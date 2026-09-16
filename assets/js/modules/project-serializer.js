@@ -1,4 +1,5 @@
 import { normalizeCountryFeature, pruneCountryOverrides } from './country-feature.js';
+import { createGeometrySnapshotPool } from './geometry-versions.js';
 import {
   PROJECT_SCHEMA_VERSION,
   SOURCE_PROVENANCE_SCHEMA_VERSION,
@@ -8,15 +9,13 @@ import {
 } from './version-contract.js';
 
 function cloneCountryFeature(feature, clone = structuredClone) {
-  const normalized = normalizeCountryFeature(feature);
-  normalized.geometry = clone(feature?.geometry);
-  return normalized;
+  return normalizeCountryFeature(feature, { clone });
 }
 
-function normalizeCountriesData(collection) {
+function normalizeCountriesData(collection, clone = structuredClone) {
   return {
     type: 'FeatureCollection',
-    features: (collection?.features || []).map(feature => cloneCountryFeature(feature)),
+    features: (collection?.features || []).map(feature => cloneCountryFeature(feature, clone)),
   };
 }
 
@@ -80,16 +79,17 @@ export function createProjectSerializer({
   now = () => new Date(),
 }) {
   const contracts = { genericFeatureSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes };
+  const autosaveCopies = createGeometrySnapshotPool();
 
-  function buildProject(snapshot = readSnapshot()) {
-    const countriesData = normalizeCountriesData(snapshot.countriesData);
+  function buildProject(snapshot = readSnapshot(), clone = structuredClone) {
+    const countriesData = normalizeCountriesData(snapshot.countriesData, clone);
     return {
       format: 'pandolab-project-state',
       schemaVersion,
       version: appVersion,
       savedAt: now().toISOString(),
       countriesData,
-      ...normalizeProjectFields(snapshot.projectFields, countriesData),
+      ...normalizeProjectFields(clone(snapshot.projectFields), countriesData),
       baseDataset,
       ...modelContracts(contracts),
       physicalSourceInfo: {
@@ -109,8 +109,8 @@ export function createProjectSerializer({
 
   function buildAutosave() {
     const snapshot = readSnapshot();
-    if (snapshot.fullAutosave) return { ...buildProject(snapshot), format: 'pandolab-autosave-full' };
-    const changed = normalizeCountriesData({ features: snapshot.countryDelta?.changed || [] }).features;
+    if (snapshot.fullAutosave) return { ...buildProject(snapshot, autosaveCopies.clone), format: 'pandolab-autosave-full' };
+    const changed = normalizeCountriesData({ features: snapshot.countryDelta?.changed || [] }, autosaveCopies.clone).features;
     const currentIds = new Set((snapshot.countriesData?.features || []).map(feature => String(feature.id)));
     return {
       format: 'pandolab-autosave-delta',
@@ -119,7 +119,7 @@ export function createProjectSerializer({
       savedAt: now().toISOString(),
       countryDelta: { changed, removedIds: [...(snapshot.countryDelta?.removedIds || [])].map(String) },
       ...{
-        ...(snapshot.projectFields || {}),
+        ...autosaveCopies.clone(snapshot.projectFields || {}),
         countryOverrides: pruneCountryOverrides(snapshot.projectFields?.countryOverrides, currentIds),
       },
       baseDataset,

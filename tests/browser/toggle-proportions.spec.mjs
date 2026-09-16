@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('toggle thumb keeps equal end clearance across states, themes and layouts', async ({ page }) => {
   await page.route('**/toggle-fixture', route => route.fulfill({ contentType: 'text/html', body: `
     <link rel="stylesheet" href="/assets/css/app.css">
-    <link rel="stylesheet" href="/assets/css/ui-v2.bundle.css">
+    <link rel="stylesheet" href="/assets/css/ui.bundle.css">
     <label class="ui-choice-row ui-toggle"><input type="checkbox"><span>표시</span></label>` }));
   await page.goto('/toggle-fixture');
   const input = page.getByRole('checkbox');

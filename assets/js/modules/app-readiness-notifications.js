@@ -14,30 +14,15 @@ export function createReadinessNotifications() {
     dependencies = ports;
   }
 
-  function setCurrentTool(name) {
-    const currentName = name || '선택·편집';
-    if ((0, dependencies.$)('currentToolStatus')) (0, dependencies.$)('currentToolStatus').textContent = currentName;
+  function setCurrentTool() {
     syncStatusBar();
   }
 
-  function shouldShowCoordinates() {
-    if (dependencies.state.labelPlacementMode || dependencies.state.tool === 'label' || dependencies.state.tool === 'point') return true;
-    if (['country-border', 'country-coast'].includes(dependencies.state.tool) || (0, dependencies.isGenericFeatureDraftTool)(dependencies.state.tool)) return true;
-    if (dependencies.state.tool === 'new-country') return dependencies.state.newCountryPhase === 'line';
-    if (dependencies.state.tool === 'annex-territory') return ['line', 'polygon'].includes(dependencies.state.annexPhase);
-    return false;
-  }
-
   function syncStatusBar() {
-    const showCoordinates = shouldShowCoordinates();
-    const showTask = dependencies.state.tool !== 'select' || dependencies.state.labelPlacementMode;
     const selectedText = (0, dependencies.$)('selectionStatus')?.textContent?.trim() || '';
     const showSelection = !!dependencies.state.selected && !!selectedText;
     const projectionLabel = dependencies.state.projection === 'flat' ? '평면지도' : '지구본';
-    if ((0, dependencies.$)('projectionStatus')) (0, dependencies.$)('projectionStatus').textContent = `투영 ${projectionLabel}`;
-    (0, dependencies.$)('coordStatus')?.classList.toggle('hidden', !showCoordinates);
-    (0, dependencies.$)('statusView')?.classList.toggle('coordinates-active', showCoordinates);
-    (0, dependencies.$)('statusPrimary')?.classList.toggle('hidden', !showTask);
+    if ((0, dependencies.$)('projectionStatus')) (0, dependencies.$)('projectionStatus').textContent = projectionLabel;
     (0, dependencies.$)('statusSelection')?.classList.toggle('hidden', !showSelection);
   }
 
@@ -56,14 +41,19 @@ export function createReadinessNotifications() {
     if ((0, dependencies.$)('actionStatus')?.classList.contains('error')) clearNotification();
   }
 
-  function setActionStatus(message, tone = 'success', timeout = 1800) {
+  function setActionStatus(message, tone = 'success', timeout = 1800, { forceVisible = false } = {}) {
     const notice = (0, dependencies.$)('actionStatus');
     if (!notice) return;
     const fullMessage = String(message ?? '').replace(/\s+/g, ' ').trim();
+    const isTopLevelNotice = tone === 'working' || tone === 'error' || forceVisible;
+    clearTimeout(setActionStatus._timer);
+    if (!fullMessage || !isTopLevelNotice) {
+      clearNotification();
+      return;
+    }
     const visibleMessage = (0, dependencies.isMobile)()
       ? (0, dependencies.compactNotificationMessage)(fullMessage, { tone, maxLength: 22 })
       : fullMessage;
-    clearTimeout(setActionStatus._timer);
     notice.classList.remove('hidden');
     notice.classList.remove('ready', 'working', 'success', 'error', 'info', 'warning');
     notice.classList.add(tone);
@@ -244,25 +234,27 @@ export function createReadinessNotifications() {
 
   function initializeCANONICAL_CONTROL_SELECTOR() {
     (CANONICAL_CONTROL_SELECTOR = [
-      '#createMenu .create-menu-item',
+      '#createMenu .ui-menu-item',
       '#rightPanel input', '#rightPanel select', '#rightPanel textarea',
       '#rightPanel button:not(.sheet-close-btn):not(#focusSelectedObjectBtn)',
+      '#selectionToolbar input', '#selectionToolbar textarea', '#selectionToolbar button:not(#selectionToolbarEditBtn)',
       '.top-actions button', '.top-actions input',
-      '#undoBtn', '#redoBtn',
-      '.layer-child-menu', '.layer-folder-lock', '.layer-style-toggle',
+      '#mobileFileBtn', '#preferencesBtn', '#helpBtn', '#undoBtn', '#redoBtn',
+      '.layer-child-menu', '.layer-folder-lock', '[data-map-display-row]',
       '[data-layer-style-opacity]', '[data-layer-style-boundary]', '[data-layer-style-blend-mode]',
+      '[data-territorial-symbol]',
       '.layer-folder input[type="checkbox"]', '#labelsVisible', '#basemapLabelsVisible',
     ].join(','));
 
     (READINESS_INDEPENDENT_CONTROL_SELECTOR = [
       '.layer-visibility-toggle',
-      '.layer-style-toggle',
+      '[data-map-display-row]',
       '[data-layer-style-opacity]',
       '[data-layer-style-boundary]',
       '[data-layer-style-blend-mode]',
+      '[data-territorial-symbol]',
       '#terrainVisible',
       'input[name="terrainStyle"]',
-      '#terrainStrengthInput',
       '#labelsVisible',
       '#basemapLabelsVisible',
     ].join(','));

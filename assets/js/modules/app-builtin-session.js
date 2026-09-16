@@ -73,11 +73,12 @@ export function createBuiltinSession() {
     const labelRefs = new Map();
     const units = new Map();
     for (const unit of dependencies.state.territorialUnits || []) {
-      const id = (0, dependencies.builtinSubunitSourceId)(unit);
-      if (!id || byId.has(id)) continue;
+      const sourceId = (0, dependencies.builtinSubunitSourceId)(unit);
+      const id = sourceId && !byId.has(sourceId) ? sourceId : `territorial:${unit.properties.unitType}:${unit.id}`;
       const feature = { type: 'Feature', id, properties: unit.properties, geometry: unit.geometry };
       labelById.set(id, feature);
-      labelRefs.set(id, { domain: 'territorial', type: 'subunit', id: unit.id });
+      labelRefs.set(id, { domain: 'territorial', type: unit.properties.unitType, id: unit.id });
+      if (!sourceId || byId.has(sourceId)) continue;
       const style = (0, dependencies.layerStyle)(dependencies.state.layerPresentation, 'subunits', `territorial:subunit:${unit.id}`);
       if (style.opacity !== 1 || style.blendMode !== 'normal' || !style.boundaryVisible) continue;
       let unchanged = builtinGeometryCache.get(unit.geometry);

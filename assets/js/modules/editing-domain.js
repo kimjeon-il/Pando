@@ -1,3 +1,4 @@
+import { touchGeometry } from './geometry-versions.js';
 import {
   createDraftEditState,
   deleteDraftVertex,
@@ -109,6 +110,7 @@ function editableVertices(feature) {
 }
 
 function setEditableVertex(feature, vertex, value) {
+  touchGeometry(feature.geometry);
   const next = cloneCoordinate(value);
   const type = feature?.geometry?.type;
   if (type === 'LineString') feature.geometry.coordinates[vertex.index] = next;
@@ -173,6 +175,7 @@ export function createEditingDomain({
   let pendingMove = null;
   let pendingMoveFrame = 0;
   let snapshotCache = null;
+  let draftPreparationEpoch = 0;
 
   const tool = toolController || {};
   const services = draftServices || {};
@@ -192,6 +195,7 @@ export function createEditingDomain({
       coords: Object.freeze(cloneCoordinates(draftCoords).map(Object.freeze)),
       hover: draftHover ? Object.freeze(cloneCoordinate(draftHover)) : null,
       inputPhase: draftEdit.inputPhase,
+      vertexInsertMode: draftEdit.vertexInsertMode,
       selectedVertexIndex: draftEdit.selectedVertexIndex,
       insertTarget: draftEdit.insertTarget ? Object.freeze({
         segmentIndex: draftEdit.insertTarget.segmentIndex,
@@ -219,6 +223,7 @@ export function createEditingDomain({
   };
 
   const refreshDerivedState = ({ buildPreview = false } = {}) => {
+    const preparationEpoch = ++draftPreparationEpoch;
     const assessment = services.assessDraft?.({
       tool: activeTool,
       coords: cloneCoordinates(draftCoords),
@@ -226,6 +231,23 @@ export function createEditingDomain({
       buildPreview,
       revision: draftEdit.revision,
     }) || null;
+    if (assessment?.then) {
+      const expectedDraft = draftEdit, expectedRevision = draftEdit.revision, expectedTool = activeTool, expectedGeneration = projectGeneration;
+      draftCutAssessment = { status: 'pending', valid: false, issues: [], message: '경계선을 계산하고 있습니다.' };
+      draftEdit.splitPreview = null;
+      assessment.then(result => {
+        if (disposed || preparationEpoch !== draftPreparationEpoch || expectedDraft !== draftEdit || !draftCoords.length || expectedRevision !== draftEdit.revision || expectedTool !== activeTool || expectedGeneration !== projectGeneration) return;
+        draftCutAssessment = result;
+        draftEdit.issues = result?.issues || [];
+        draftEdit.splitPreview = result?.split ? { revision: expectedRevision, candidates: result.split.candidates } : null;
+        emit('cut-preparation-ready');
+      }).catch(error => {
+        if (disposed || preparationEpoch !== draftPreparationEpoch || expectedDraft !== draftEdit || !draftCoords.length || expectedRevision !== draftEdit.revision || expectedTool !== activeTool || expectedGeneration !== projectGeneration) return;
+        draftCutAssessment = { status: 'invalid', valid: false, issues: [], message: error.message };
+        emit('cut-preparation-failed');
+      });
+      return draftCutAssessment;
+    }
     draftCutAssessment = assessment?.cutAssessment || assessment || null;
     draftEdit.issues = [...(assessment?.issues
       || draftCutAssessment?.issues
@@ -237,6 +259,7 @@ export function createEditingDomain({
 
   const syncAfterMutation = (options = {}) => {
     draftEdit.revision += 1;
+    if (draftCoords.length < 2) draftEdit.vertexInsertMode = false;
     draftEdit.insertTarget = null;
     draftHover = null;
     refreshDerivedState({ buildPreview: options.buildPreview !== false });
@@ -256,7 +279,7 @@ export function createEditingDomain({
   };
 
   const appendDraftCoordinate = (coord, options = {}) => {
-    if (!draftInputActive() || !Array.isArray(coord)) return false;
+    if (!draftInputActive() || draftEdit.vertexInsertMode || !Array.isArray(coord)) return false;
     if (options.dedupe && draftCoords.length && coordinateNear(draftCoords.at(-1), coord)) return false;
     return commitDraftCoords([...draftCoords, coord], draftCoords.length, { inputPhase: 'draw' });
   };
@@ -313,7 +336,20 @@ export function createEditingDomain({
     ? insertDraftPointAt(draftEdit.insertTarget.segmentIndex, draftEdit.insertTarget.coordinate)
     : false;
 
+  const setDraftVertexInsertMode = enabled => {
+    const next = enabled === true;
+    if (next && (!draftInputActive() || draftStroke.active || draftEdit.dragging || draftCoords.length < 2)) return false;
+    if (draftEdit.vertexInsertMode === next) return false;
+    draftEdit.vertexInsertMode = next;
+    draftEdit.insertTarget = null;
+    draftHover = null;
+    if (next) draftEdit.inputPhase = 'refine';
+    emit('draft-insert-mode');
+    return true;
+  };
+
   const selectDraftVertex = index => {
+    if (!draftInputActive() || draftStroke.active) return false;
     if (!Number.isInteger(index) || index < 0 || index >= draftCoords.length) return false;
     if (draftEdit.selectedVertexIndex === index && draftEdit.inputPhase === 'refine' && !draftEdit.insertTarget) return false;
     draftEdit.selectedVertexIndex = index;
@@ -368,7 +404,7 @@ export function createEditingDomain({
   const beginDraftStroke = (screenPoint, event = {}) => {
     active();
     const config = toolConfig();
-    if (!config || draftEdit.inputPhase !== 'draw' || services.isSpacePanActive?.()) return false;
+    if (!config || draftEdit.vertexInsertMode || draftEdit.inputPhase !== 'draw' || services.isSpacePanActive?.()) return false;
     const sample = services.screenSample?.(screenPoint);
     if (!sample) return false;
     draftHover = null;
@@ -452,6 +488,8 @@ export function createEditingDomain({
 
   const clearDraft = (options = {}) => {
     active();
+    services.cancelPreparation?.();
+    draftPreparationEpoch += 1;
     const normalizedOptions = typeof options === 'boolean'
       ? { render: options }
       : (options || {});
@@ -503,6 +541,7 @@ export function createEditingDomain({
 
   const beginGesture = event => {
     if (Number(event.projectGeneration) !== projectGeneration || Number(event.packetRevision) !== revision) return false;
+    if (event.type === 'draft-vertex-drag-start' && (!draftInputActive() || draftStroke.active)) return false;
     const gestureId = String(event.gestureId || `editing-${++gestureSequence}`);
     activeGesture = { id: gestureId, type: event.type, targetRef: event.targetRef || null, vertexKey: event.vertexKey || null };
     if (event.type === 'draft-vertex-drag-start') {
@@ -627,8 +666,12 @@ export function createEditingDomain({
     if (type.endsWith('-drag-start')) return beginGesture(value);
     if (type.endsWith('-drag-move')) return queueGestureMove(value);
     if (type.endsWith('-drag-end')) return endGesture(value);
-    if (Number(value.projectGeneration) !== projectGeneration || Number(value.packetRevision) !== revision) return false;
-    if (type === 'draft-segment-hover') {
+    if (Number(value.projectGeneration) !== projectGeneration) return false;
+    // Display-only hover emissions must not discard a click on the same prepared source.
+    if (Number(value.packetRevision) !== revision && !(type.startsWith('territory-component-') && value.territorySourceKey)) return false;
+    if (type === 'draft-segment-hover' || type === 'draft-segment-insert') {
+      if (!draftInputActive() || draftStroke.active || services.isSpacePanActive?.()) return false;
+      if (type === 'draft-segment-insert' && !draftEdit.vertexInsertMode) return false;
       const row = draftSegments(draftCoords, toolConfig()?.shape === 'polygon').find(item => item.segmentIndex === Number(value.segmentIndex));
       const start = row ? services.projectCoordinate?.(row.start) : null;
       const end = row ? services.projectCoordinate?.(row.end) : null;
@@ -640,6 +683,7 @@ export function createEditingDomain({
       const ratio = Math.max(0.08, Math.min(0.92, ((value.screenPoint[0] - start[0]) * dx + (value.screenPoint[1] - start[1]) * dy) / length2));
       const insert = services.screenToCoordinate?.([start[0] + dx * ratio, start[1] + dy * ratio]);
       if (!insert) return false;
+      if (type === 'draft-segment-insert') return insertDraftPointAt(row.segmentIndex, insert);
       draftEdit.insertTarget = { segmentIndex: row.segmentIndex, coordinate: cloneCoordinate(insert) };
       emit(type);
       return true;
@@ -691,6 +735,8 @@ export function createEditingDomain({
         : [],
     } : supplemental.objectVertices;
     packet = createEditingRenderPacket({
+      boundaryActiveNodeKey: activeGesture?.session?.kind === 'boundary' ? activeGesture.vertexKey : null,
+      boundaryActiveCoordinate: activeGesture?.session?.kind === 'boundary' ? activeGesture.session.coordinate : null,
       revision,
       projectGeneration,
       tool: activeTool,
@@ -698,6 +744,7 @@ export function createEditingDomain({
       draft: {
         active: !!config,
         inputPhase: draftEdit.inputPhase,
+        vertexInsertMode: draftEdit.vertexInsertMode,
         shape: config?.shape || null,
         geometry: draftGeometry(assessment?.line || [...draftCoords, ...(draftHover ? [draftHover] : [])], config?.shape),
         rawStrokeGeometry: draftStroke.active ? draftGeometry(rawCoords, 'line') : null,
@@ -771,23 +818,28 @@ export function createEditingDomain({
         nameField: result.mapping?.nameField || '',
         countryField: result.mapping?.countryField || '',
         parentField: result.mapping?.parentField || '',
-        levelField: result.mapping?.levelField || '',
       },
     });
   };
 
   return Object.freeze({
     setTool, handleInteraction, createRenderPacket,
-    refreshTerritoryOperation: reason => {
-      if (disposed || !['annex-territory', 'new-country'].includes(activeTool)) return false;
-      emit(reason || 'territory-operation-changed');
+    refreshDraftPresentation: reason => {
+      if (disposed || (!draftCoords.length && !draftInputActive())) return false;
+      if (!draftInputActive()) draftEdit.vertexInsertMode = false;
+      emit(reason || 'draft-presentation-changed');
+      return true;
+    },
+    refreshTerritorySelection: ({ tool: expectedTool, reason } = {}) => {
+      if (disposed || !expectedTool || String(expectedTool) !== activeTool) return false;
+      emit(reason || 'territory-selection-changed');
       return true;
     },
     startDraft, replaceDraftCoordinates, clearDraftHover,
     cancelActiveGesture, resetProject,
     dispose, draftInputActive, appendDraftScreenPoint,
     performDraftUndo, performDraftRedo, removeLastDraftPoint, deleteSelectedDraftPoint,
-    moveSelectedDraftPointByPixels, redrawDraft,
+    moveSelectedDraftPointByPixels, redrawDraft, setDraftVertexInsertMode,
     clearDraft,
     commitImport,
     snapshot: () => snapshotCache || (snapshotCache = buildSnapshot('snapshot')),

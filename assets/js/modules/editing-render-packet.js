@@ -1,3 +1,19 @@
+const immutableGeometries = new WeakSet();
+
+/** Only call for privately owned calculation results, never live project geometry. */
+export function freezeEditingGeometry(value) {
+  if (!value || immutableGeometries.has(value)) return value;
+  const freezeCoordinates = coordinates => {
+    if (!Array.isArray(coordinates) || Object.isFrozen(coordinates)) return;
+    for (const child of coordinates) freezeCoordinates(child);
+    Object.freeze(coordinates);
+  };
+  freezeCoordinates(value.coordinates);
+  Object.freeze(value);
+  immutableGeometries.add(value);
+  return value;
+}
+
 const coordinate = value => (
   Array.isArray(value) && value.length >= 2
     ? Object.freeze([Number(value[0]), Number(value[1])])
@@ -24,6 +40,7 @@ const cloneGeometryCoordinates = value => {
 
 const geometry = value => {
   if (!value?.type) return null;
+  if (immutableGeometries.has(value)) return value;
   return Object.freeze({
     type: String(value.type),
     coordinates: cloneGeometryCoordinates(value.coordinates),
@@ -84,6 +101,7 @@ export function createDraftRenderPacket(input = {}) {
   return Object.freeze({
     active: input.active === true,
     inputPhase: input.inputPhase === 'refine' ? 'refine' : 'draw',
+    vertexInsertMode: input.vertexInsertMode === true,
     shape: input.shape === 'polygon' ? 'polygon' : input.shape === 'line' ? 'line' : null,
     geometry: geometry(input.geometry),
     rawStrokeGeometry: geometry(input.rawStrokeGeometry),
@@ -94,8 +112,8 @@ export function createDraftRenderPacket(input = {}) {
     insertTarget,
     dragging: input.dragging === true,
     issues: freezeList(input.issues, issue),
-    splitCandidates: freezeList(input.splitCandidates, value => Object.freeze({
-      key: String(value?.key || ''),
+    splitCandidates: freezeList(input.splitCandidates, (value, index) => Object.freeze({
+      key: String(value?.key || `split:${index}`),
       geometry: geometry(value?.geometry),
       area: Number(value?.area || value?.areaKm2 || 0),
     })),
@@ -119,9 +137,42 @@ const objectVerticesPacket = input => {
   });
 };
 
+const trustedBoundaries = new WeakSet();
+/** Adopt a privately owned Worker result once; packets share its original coordinates. */
+export function adoptBoundaryRenderPacket(input) {
+  if (!input || trustedBoundaries.has(input)) return input;
+  const seen = new WeakSet();
+  const freeze = value => {
+    if (!value || typeof value !== 'object' || seen.has(value)) return;
+    seen.add(value);
+    for (const child of Object.values(value)) freeze(child);
+    Object.freeze(value);
+  };
+  freeze(input);
+  trustedBoundaries.add(input);
+  return input;
+}
+/** Large Worker results are adopted in bounded UI turns so cancellation stays responsive. */
+export async function adoptBoundaryRenderPacketAsync(input, checkpoint) {
+  if (!input || trustedBoundaries.has(input)) return input;
+  const seen = new WeakSet(), stack = [input];
+  let count = 0;
+  while (stack.length) {
+    const value = stack.pop();
+    if (!value || typeof value !== 'object' || seen.has(value)) continue;
+    seen.add(value);
+    for (const child of Object.values(value)) if (child && typeof child === 'object') stack.push(child);
+    Object.freeze(value);
+    if (++count % 512 === 0) await checkpoint();
+  }
+  trustedBoundaries.add(input);
+  return input;
+}
 const boundaryPacket = input => {
   if (!input) return null;
+  if (trustedBoundaries.has(input)) return input;
   return Object.freeze({
+    preparationId: String(input.preparationId || ''),
     segments: freezeList(input.segments, segment),
     handles: freezeList(input.handles, vertex),
   });
@@ -131,6 +182,7 @@ const territoryPacket = input => {
   if (!input) return null;
   return Object.freeze({
     kind: String(input.kind || ''),
+    sourceKey: String(input.sourceKey || ''),
     phase: String(input.phase || ''),
     components: freezeList(input.components, value => Object.freeze({
       key: String(value?.key || ''),
@@ -146,6 +198,7 @@ const territoryPacket = input => {
       index: Number(value?.index || 0),
       geometry: geometry(value?.geometry),
       selected: value?.selected === true,
+      interactive: value?.interactive !== false,
     })),
     riverBoundarySegments: Object.freeze((input.riverBoundarySegments || []).map(coordinates)),
   });
@@ -173,6 +226,8 @@ export function createEditingRenderPacket(input = {}) {
     draft: createDraftRenderPacket(input.draft),
     objectVertices: objectVerticesPacket(input.objectVertices),
     boundaryEdit: boundaryPacket(input.boundaryEdit),
+    boundaryActiveNodeKey: input.boundaryActiveNodeKey || null,
+    boundaryActiveCoordinate: coordinate(input.boundaryActiveCoordinate),
     territoryOperation: territoryPacket(input.territoryOperation),
     snap: snapPacket(input.snap),
     preview: input.preview ? cloneFrozen(input.preview) : null,

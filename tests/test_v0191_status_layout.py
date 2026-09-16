@@ -17,8 +17,8 @@ class StatusLayoutV0191Tests(unittest.TestCase):
         inner_start = INDEX.index('<div class="status-inner">')
         status_end = INDEX.index('</main>', inner_start)
         markup = INDEX[inner_start:status_end]
-        self.assertLess(markup.index('id="statusView"'), markup.index('id="statusPrimary"'))
-        self.assertLess(markup.index('id="statusPrimary"'), markup.index('id="statusSelection"'))
+        self.assertLess(markup.index('id="projectSaveStatus"'), markup.index('id="statusView"'))
+        self.assertLess(markup.index('id="statusView"'), markup.index('id="statusSelection"'))
 
     def test_status_bar_has_one_unqualified_base_rule(self):
         self.assertEqual(len(re.findall(r"(?m)^\.map-bottom-status\s*\{", CSS)), 1)
@@ -33,11 +33,12 @@ class StatusLayoutV0191Tests(unittest.TestCase):
         self.assertNotIn("#selectionStatus { margin-left: auto;", CSS)
         self.assertNotRegex(CSS, r"\.status-primary\s*\{[^}]*border-inline")
 
-    def test_separators_and_mobile_coordinate_priority_follow_visibility(self):
+    def test_separators_and_status_visibility_follow_preferences(self):
         self.assertIn(".status-group:not(.hidden) ~ .status-group:not(.hidden)::before", CSS)
-        self.assertIn(".status-item:not(.hidden) ~ .status-item:not(.hidden)::before", CSS)
         self.assertNotIn("#zoomStatus", INDEX + APP + CSS)
-        self.assertIn("$('statusView')?.classList.toggle('coordinates-active', showCoordinates);", APP)
+        self.assertNotIn('coordStatus', INDEX + APP)
+        self.assertNotIn('statusPrimary', INDEX)
+        self.assertIn('preferencesStatusBarVisibleInput', INDEX)
 
     def test_version_is_updated(self):
         self.assertIn('data-app-version="0.30.0"', INDEX)

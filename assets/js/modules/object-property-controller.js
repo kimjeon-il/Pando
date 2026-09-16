@@ -14,9 +14,9 @@ export function createObjectPropertyController(runtime = {}) {
     colorDomains,
     defaultGenericFeatureColor,
     hydroToolConfig,
+    refreshTerritorialCoastAvailability,
     territorialUnitById,
     territorialUnitName,
-    territorialUnitCountryName,
     territorialUnitCountryOptions,
     territorialUnitParentOptions,
     territorialParentOptions,
@@ -28,17 +28,12 @@ export function createObjectPropertyController(runtime = {}) {
     normalizeGenericFeatureSemantics,
     genericFeatureGeometryKind,
     genericFeatureRole,
-    genericFeatureRoleLabel,
-    genericFeatureRoleHelp,
-    genericFeatureLandBinding,
     genericFeatureName,
     genericFeatureRoleLabels,
-    defaultGenericFeatureColorFor,
     labelKey,
     automaticLabelSettings,
     hydroFeatureById,
     hydroEditById,
-    isHydroFeatureVisible,
     hydroCategoryKey,
     hydroCategoryLabel,
     hydroFallbackName,
@@ -48,6 +43,7 @@ export function createObjectPropertyController(runtime = {}) {
     readDomainColor,
     syncColorPicker,
     replaceSelectOptions,
+    shouldShowTerritorialParentChoice,
     formatArea,
     geometryAreaKm2,
     layerNameCompare,
@@ -74,6 +70,7 @@ export function createObjectPropertyController(runtime = {}) {
   function syncActionTab(type) {
     const form = activeForm(type);
     const sections = form ? [...form.children].filter(element => !element.hidden && !element.classList.contains('hidden')) : [];
+    const infoAvailable = sections.some(element => element.matches?.('.editor-info-section'));
     const hasActions = sections.some(element => element.matches?.('.editor-action-section') && !element.classList.contains('editor-relation-section'));
     const relationSections = sections.filter(element => element.matches?.('.editor-relation-section'));
     const relationAvailable = relationSections.length > 0;
@@ -88,25 +85,26 @@ export function createObjectPropertyController(runtime = {}) {
       if (inlineRelation) rightPanel.setAttribute('data-editor-inline-relation', 'true');
       else rightPanel.removeAttribute('data-editor-inline-relation');
     }
-    $('actionsTabBtn').hidden = !type;
+    $('editorTabBtn').hidden = !type || !infoAvailable;
+    $('editorTabBtn').setAttribute('aria-disabled', String(!infoAvailable));
+    $('actionsTabBtn').hidden = !type || !hasActions;
     $('actionsTabBtn').setAttribute('aria-disabled', String(!hasActions));
     $('relationTabBtn').hidden = !type || !relationTabVisible;
     $('relationTabBtn').setAttribute('aria-disabled', String(!relationTabVisible));
+    const availableViews = [infoAvailable && 'info', hasActions && 'actions', relationTabVisible && 'relation'].filter(Boolean);
+    document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type || availableViews.length <= 1);
     const current = rightPanel?.getAttribute('data-editor-view');
-    if (current === 'relation' && !relationTabVisible) setEditorShellView('info');
-    else if (current === 'actions' && !hasActions) setEditorShellView(relationTabVisible ? 'relation' : 'info');
+    if (current && !availableViews.includes(current)) setEditorShellView(availableViews[0] || 'info');
   }
 
   function show(type, title = '', { resetScroll = true, typeLabel = '' } = {}) {
     if (type && resetScroll) setEditorShellView('info');
     $('emptyProperties').classList.toggle('hidden', !!type);
     const objectHeader = $('editorObjectHeader');
-    objectHeader.classList.toggle('hidden', !type);
-    objectHeader.classList.toggle('editor-object-header--country', type === 'country');
-    $('countryHeaderFields')?.classList.toggle('hidden', type !== 'country');
-    document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type);
+    const toolbarOwnsHeader = ['country', 'subunit', 'region'].includes(type);
+    objectHeader.classList.toggle('hidden', !type || toolbarOwnsHeader);
     $('editSheetTitle')?.classList.remove('hidden');
-    $('rightPanel')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
+    $('rightPanel')?.setAttribute('aria-labelledby', type && !toolbarOwnsHeader ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
     for (const [kind, id] of Object.entries({
       country: 'countryProperties', subunit: 'subunitProperties',
       region: 'regionProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
@@ -160,7 +158,12 @@ export function createObjectPropertyController(runtime = {}) {
       && String(candidate.properties?.name || '').trim().toLocaleLowerCase('ko') === normalizedName);
     $(`${prefix}NameConflict`).classList.toggle('hidden', !conflict);
     $(`${prefix}NameInput`).value = properties.name || '';
-    replaceSelectOptions($(`${prefix}CountryInput`), territorialUnitCountryOptions(), properties.sovereignId);
+    const countrySelect = $(`${prefix}CountryInput`);
+    const countryChoice = replaceSelectOptions(countrySelect, territorialUnitCountryOptions().filter(option => !subunits || option.value), properties.sovereignId, {
+      autoSelectSingle: true,
+      preserveInvalid: true,
+    });
+    countrySelect.closest('.field-group')?.classList.toggle('hidden', countryChoice.single);
     const inheritedColor = territorialUnitColor({ ...feature, properties: { ...properties, style: {} } });
     const color = readDomainColor(colorDomains.TERRITORIAL, { feature }, { inherited: inheritedColor, fallback: defaultGenericFeatureColor });
     $(`${prefix}ColorInput`).value = color.value;
@@ -168,22 +171,30 @@ export function createObjectPropertyController(runtime = {}) {
     $(`${prefix}NotesInput`).value = properties.notes || '';
     const actionIds = region
       ? ['reassignRegionShapeBtn', 'mergeRegionBtn', 'transferRegionBtn']
-      : ['splitSubunitBtn', 'mergeSubunitBtn', 'reassignSubunitShapeBtn', 'reconcileSubunitCoastBtn', 'transferSubunitBtn', 'promoteSubunitBtn', 'changeSubunitTypeBtn', 'removeSubunitDivisionBtn'];
+      : ['addSubunitChildBtn', 'annexSubunitBtn', 'mergeSubunitBtn', 'reassignSubunitShapeBtn', 'editSubunitCoastBtn', 'reconcileSubunitCoastBtn', 'promoteSubunitBtn', 'removeSubunitDivisionBtn'];
     for (const actionId of actionIds) $(actionId).disabled = properties.locked === true;
     if (subunits) {
+      refreshTerritorialCoastAvailability?.(feature);
       const parentOptions = territorialUnitParentOptions(feature);
-      replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId);
-      $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', parentOptions.length < 2 && String(properties.parentId) === String(properties.sovereignId));
-      $('subunitLevelInput').value = properties.adminLevel || '';
+      $('subunitParentInput').disabled = properties.locked === true || parentOptions.pending === true;
+      $('subunitParentInput').setAttribute('aria-busy', String(parentOptions.pending === true));
+      replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId, { autoSelectSingle: true, preserveInvalid: false });
+      $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', !shouldShowTerritorialParentChoice({
+        sovereignId: properties.sovereignId,
+        parentId: properties.parentId,
+        options: parentOptions,
+      }));
     } else if (region) {
       replaceSelectOptions($('regionParentInput'), territorialParentOptions(feature), properties.parentId);
       // Kept only to display pre-v5 relationship data; Region is not a new
       // branch in the Country/Subunit hierarchy.
       $('regionParentInput').disabled = true;
+      $('regionParentInput').closest('.field-group')?.classList.toggle('hidden', !properties.parentId
+        || String(properties.parentId) === String(properties.sovereignId));
       $('regionValidFromInput').value = properties.validFrom || '';
       $('regionValidToInput').value = properties.validTo || '';
     }
-    $('selectionStatus').textContent = `${subunits ? `하위단위 · ${territorialUnitCountryName(feature)}${Number(properties.adminLevel) > 0 ? ` · ${properties.adminLevel}급` : ''}` : '지방'} · ${displayName}${areaSuffix(feature.geometry)}`;
+    $('selectionStatus').textContent = `${displayName}${areaSuffix(feature.geometry)}`;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;
@@ -240,12 +251,21 @@ export function createObjectPropertyController(runtime = {}) {
       value: unit.id,
       label: `${unit.properties?.name || unit.id} · ${runtime.territorialTypeLabel(unit.properties?.unitType)}`,
     })).sort((a, b) => layerNameCompare(a.label, b.label));
-    replaceSelectOptions($('distributionParentInput'), parentOptions, layer.parentId);
-    replaceSelectOptions($('distributionTerritorialUnitInput'), unitOptions, $('distributionTerritorialUnitInput').value);
+    const distributionParent = $('distributionParentInput');
+    const parentChoice = replaceSelectOptions(distributionParent, parentOptions, layer.parentId, { autoSelectSingle: true, preserveInvalid: true });
+    const parentField = distributionParent.closest('.field-group');
+    parentField?.classList.toggle('hidden', parentChoice.single);
+    parentField?.closest('details')?.classList.toggle('hidden', parentChoice.single);
+    const territorialInput = $('distributionTerritorialUnitInput');
+    const territorialChoice = replaceSelectOptions(territorialInput, unitOptions.length
+      ? unitOptions
+      : [{ value: '', label: '선택 가능한 기준 영역 없음', placeholder: true }], territorialInput.value, { autoSelectSingle: true });
+    territorialInput.closest('.field-group')?.classList.toggle('hidden', territorialChoice.single);
     $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
-    for (const idValue of ['distributionNameInput', 'distributionColorTrigger', 'distributionParentInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
+    for (const idValue of ['distributionNameInput', 'distributionColorTrigger', 'distributionParentInput', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
+    $('addTerritorialDistributionBtn').disabled = layer.locked || !territorialInput.value;
     renderDistributionEntries(layer);
-    $('selectionStatus').textContent = `${distributionTypeLabels[layer.type]} · ${layer.name}`;
+    $('selectionStatus').textContent = layer.name;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;
@@ -254,25 +274,45 @@ export function createObjectPropertyController(runtime = {}) {
   function syncGenericSemanticEditor(feature) {
     const geometryKind = genericFeatureGeometryKind(feature);
     const role = genericFeatureRole(feature);
-    const editableArea = geometryKind === 'polygon' && role === 'generic';
-    const hasOwnerCountry = !!runtime.countryFeatureById(feature?.properties?.ownerId);
-    $('genericFeatureLandRelationSection').classList.toggle('hidden', !editableArea);
-    $('genericFeatureLandActionsSection').classList.toggle('hidden', !editableArea);
-    $('genericFeatureOwnerField').classList.add('hidden');
-    $('genericFeatureParentField').classList.add('hidden');
-    $('genericFeatureLandBindingField').classList.toggle('hidden', !editableArea);
-    $('splitGenericFeatureBtn').classList.toggle('hidden', !editableArea);
-    $('mergeGenericFeatureBtn').classList.toggle('hidden', !editableArea);
-    for (const id of ['syncGenericFeatureCoastBtn', 'editGenericFeatureCoastBtn', 'applyGenericFeatureToCountryBtn', 'promoteGenericFeatureToCountryBtn']) $(id).classList.toggle('hidden', !editableArea);
-    for (const id of ['syncGenericFeatureCoastBtn', 'editGenericFeatureCoastBtn', 'applyGenericFeatureToCountryBtn']) {
-      const button = $(id);
-      button.disabled = editableArea && !hasOwnerCountry;
-      if (button.disabled) button.dataset.tooltip = '소유 국가가 지정된 영역에서 사용할 수 있습니다.';
-      else delete button.dataset.tooltip;
-    }
-    $('promoteGenericFeatureToCountryBtn').disabled = !editableArea;
-    $('genericFeatureLandBindingInput').value = genericFeatureLandBinding(feature);
-    $('genericFeatureRoleHelp').textContent = genericFeatureRoleHelp(feature);
+    const options = geometryKind === 'point'
+      ? [{ value: 'label', label: '지명' }]
+      : geometryKind === 'line'
+        ? [{ value: 'river', label: '강' }]
+        : geometryKind === 'polygon'
+          ? [
+            { value: 'country', label: '국가' }, { value: 'subunit', label: '하위단위' },
+            { value: 'region', label: '지방' }, { value: 'lake', label: '호수' }, { value: 'distribution', label: '분포' },
+          ]
+          : [];
+    const convertSection = $('genericFeatureConversionSection');
+    convertSection.classList.toggle('hidden', !options.length);
+    const typeInput = $('genericFeatureConvertType');
+    const typeChoice = replaceSelectOptions(typeInput, options, typeInput.value || options[0]?.value, { autoSelectSingle: true });
+    typeInput.closest('.field-group')?.classList.toggle('hidden', typeChoice.single);
+    const target = $('genericFeatureConvertType').value;
+    const countryField = $('genericFeatureConvertCountryField');
+    const countryOptions = [{ value: '', label: '국가 선택', placeholder: true }, ...(state.countriesData?.features || []).map(country => ({
+      value: String(country.id), label: String(country.properties?.name || country.properties?.NAME || country.id),
+    })).sort((left, right) => layerNameCompare(left.label, right.label))];
+    const countryChoice = replaceSelectOptions($('genericFeatureConvertCountryInput'), countryOptions, feature.properties?.ownerId || '', {
+      autoSelectSingle: true,
+      preserveInvalid: true,
+    });
+    countryField.dataset.singleChoice = String(countryChoice.single);
+    countryField.dataset.invalidChoice = String(countryChoice.invalid);
+    countryField.classList.toggle('hidden', !['subunit', 'region'].includes(target) || countryChoice.single);
+    const distributionField = $('genericFeatureConvertDistributionField');
+    const distributionChoice = replaceSelectOptions($('genericFeatureConvertDistributionInput'), [
+      { value: '', label: '분포 레이어 선택', placeholder: true },
+      ...distributionService.listLayers().map(layer => ({ value: layer.id, label: layer.name })),
+    ], '', { autoSelectSingle: true });
+    distributionField.dataset.singleChoice = String(distributionChoice.single);
+    distributionField.classList.toggle('hidden', target !== 'distribution' || distributionChoice.single);
+    const targetRequiresCountry = ['subunit', 'region'].includes(target);
+    const targetRequiresDistribution = target === 'distribution';
+    $('convertGenericFeatureBtn').disabled = !options.length
+      || (targetRequiresCountry && (!$('genericFeatureConvertCountryInput').value || countryChoice.invalid))
+      || (targetRequiresDistribution && !$('genericFeatureConvertDistributionInput').value);
     $('genericFeatureRoleValue').textContent = genericFeatureRoleLabels[role] || role;
     $('genericFeatureTopologyValue').textContent = feature.properties?.topologyGroup || '—';
     syncActionTab('generic');
@@ -282,19 +322,11 @@ export function createObjectPropertyController(runtime = {}) {
     const feature = genericFeatureById(id);
     if (!feature) return false;
     normalizeGenericFeatureSemantics(feature);
-    const meta = feature.properties || (feature.properties = {});
-    const typeLabel = genericFeatureRoleLabel(feature);
     const displayName = genericFeatureName(feature);
     show('generic', displayName, { resetScroll: !refreshOnly });
-    $('genericFeatureNameInput').value = meta.name || '';
     $('genericFeatureIdInput').textContent = String(id);
-    const defaultColor = defaultGenericFeatureColorFor(feature);
-    const color = readDomainColor(colorDomains.GENERIC, { feature }, { fallback: defaultColor });
-    $('genericFeatureColorInput').value = color.value;
-    syncColorPicker('generic', { value: color.value, defaultColor, isDefault: color.isDefault });
-    $('genericFeatureNotesInput').value = meta.notes || '';
     syncGenericSemanticEditor(feature);
-    $('selectionStatus').textContent = `${typeLabel} · ${meta.name || String(id).slice(0, 8)}${areaSuffix(feature.geometry)}`;
+    $('selectionStatus').textContent = `${feature.properties?.name || String(id).slice(0, 8)}${areaSuffix(feature.geometry)}`;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;
@@ -309,7 +341,7 @@ export function createObjectPropertyController(runtime = {}) {
     $('labelNotesInput').value = label.notes || '';
     const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});
     $('labelPositionValue').textContent = settings.pinned ? '사용자 위치에 고정됨' : '종류별 정책으로 자동 배치';
-    $('selectionStatus').textContent = `지명 · ${label.name}`;
+    $('selectionStatus').textContent = label.name;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;
@@ -317,7 +349,7 @@ export function createObjectPropertyController(runtime = {}) {
 
   function presentHydro(id, refreshOnly = false) {
     const feature = hydroFeatureById(id);
-    if (!feature || !isHydroFeatureVisible(feature)) return false;
+    if (!feature) return false;
     const properties = feature.properties || {};
     const editable = !!hydroEditById(id);
     const categoryKey = hydroCategoryKey(properties.category);
@@ -347,7 +379,7 @@ export function createObjectPropertyController(runtime = {}) {
     $('hydroTributaryValue').textContent = categoryKey === 'river' ? '본류·표시 지류' : '호수';
     $('hydroSourceValue').textContent = properties.source || `판도연구소 내장 ${category}`;
     $('hydroBuiltinHelp').lastChild.textContent = ` 기반 내장 ${category}입니다. 직접 수정하려면 복사본을 만드세요.`;
-    $('selectionStatus').textContent = `${category} · ${displayName}`;
+    $('selectionStatus').textContent = displayName;
     syncStatusBar();
     layerTreeController()?.syncSelection();
     if (!editable && !feature.geometry && !feature.__geometryLoading) {

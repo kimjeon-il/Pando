@@ -56,24 +56,14 @@ export function createProjectRestore() {
     dependencies.editingDomain?.resetProject?.(dependencies.projectDomain?.getGeneration?.() || 0);
 
     (0, dependencies.syncProjectionButtons)();
-    (0, dependencies.$)('countriesVisible').checked = dependencies.state.layerVisibility.countries;
-    (0, dependencies.$)('subunitsVisible').checked = dependencies.state.layerVisibility.subunits !== false;
-    (0, dependencies.$)('regionsVisible').checked = dependencies.state.layerVisibility.regions !== false;
-    (0, dependencies.$)('languagesVisible').checked = dependencies.state.layerVisibility.languages !== false;
-    (0, dependencies.$)('ethnicitiesVisible').checked = dependencies.state.layerVisibility.ethnicities !== false;
-    (0, dependencies.$)('religionsVisible').checked = dependencies.state.layerVisibility.religions !== false;
-    (0, dependencies.$)('riversVisible').checked = dependencies.state.layerVisibility.rivers !== false;
-    (0, dependencies.$)('lakesVisible').checked = dependencies.state.layerVisibility.lakes !== false;
-    (0, dependencies.$)('genericFeaturesVisible').checked = dependencies.state.layerVisibility.genericFeatures;
-    (0, dependencies.$)('labelsVisible').checked = dependencies.state.layerVisibility.labels;
-    (0, dependencies.$)('basemapLabelsVisible').checked = dependencies.state.layerVisibility.basemapLabels;
-    (0, dependencies.$)('countryFlagsVisible').checked = dependencies.state.layerVisibility.countryFlags !== false;
-    (0, dependencies.syncPhysicalControls)();
+    (0, dependencies.renderMapDisplaySettings)();
     if ((0, dependencies.$)('layerSearchInput')) (0, dependencies.$)('layerSearchInput').value = dependencies.state.layerSearch;
     dependencies.layerTreeController?.render(true);
     dependencies.objectPropertyController.show(null);
     (0, dependencies.$)('selectionStatus').textContent = '';
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
+    dependencies.mapEditClient?.invalidateBoundaryCache?.();
     (0, dependencies.scheduleGpuMeshRebuild)(0, nextProjectGeneration);
     (0, dependencies.syncMapHostFromState)();
     (0, dependencies.scheduleMapObjectSpatialIndexRebuild)();
@@ -144,6 +134,7 @@ export function createProjectRestore() {
 
   async function reconcileAdminCountryCoast(adminId, { manual = true } = {}) {
     await (0, dependencies.ensureGisRuntime)();
+    const revision = dependencies.state.stateRevision;
     const analysis = analyzeAdminCountryCoastConflicts(adminId);
     if (!analysis.admin || !analysis.country) {
       (0, dependencies.setActionStatus)('소속 국가를 찾을 수 없어 해안선을 비교할 수 없습니다.', 'error', 3600);
@@ -169,48 +160,29 @@ export function createProjectRestore() {
       return { ok: true, changed: false, independent: true };
     }
 
-    const snapshot = (0, dependencies.snapshotEditable)();
-    const countryId = String(analysis.country.id || '');
-    const adminIdKey = String(analysis.admin.id);
-    const countryBefore = (0, dependencies.deepClone)(analysis.country.geometry);
-    const adminBefore = (0, dependencies.deepClone)(analysis.admin.geometry);
+    if (dependencies.state.stateRevision !== revision) return { ok: false, cancelled: true };
     try {
       const planned = (0, dependencies.planCoastReconciliations)({ conflicts: analysis.conflicts, direction: decision.direction });
-      const nextCountry = planned.countryGeometry;
-      const nextAdmin = planned.adminGeometry;
-      const countryValidation = (0, dependencies.validateCoastReplacement)(nextCountry, { clipper: window.polygonClipping });
-      const adminValidation = (0, dependencies.validateCoastReplacement)(nextAdmin, { clipper: window.polygonClipping });
-      if (!countryValidation.ok || !adminValidation.ok) throw new Error('정합 결과 geometry가 올바르지 않습니다.');
-      dependencies.projectDomain.recordHistory({
-        type: 'coast-reconciliation',
-        description: `${(0, dependencies.territorialUnitName)(analysis.admin)}·${(0, dependencies.countryName)(analysis.country)} 해안선 정합`,
-        affectedIds: [adminIdKey, countryId],
-      });
-      if (decision.direction === 'admin-to-country') {
-        analysis.country.geometry = nextCountry;
-        dependencies.state.historyDirtyCountryIds.add(countryId);
-        (0, dependencies.reconcileTerritorialUnitCompleteness)([countryId], { preserveIds: [adminIdKey] });
-      } else {
-        analysis.admin.geometry = nextAdmin;
-        (0, dependencies.reconcileTerritorialUnitCompleteness)([countryId]);
+      const clipper = window.polygonClipping;
+      let coastBaseline;
+      if (decision.direction === 'country-to-admin') {
+        const addition = clipper.difference(planned.adminGeometry.coordinates, analysis.admin.geometry.coordinates);
+        const removal = clipper.difference(analysis.admin.geometry.coordinates, planned.adminGeometry.coordinates);
+        coastBaseline = { type: 'MultiPolygon', coordinates: clipper.union(clipper.difference(analysis.country.geometry.coordinates, addition), removal) };
       }
-      (0, dependencies.normalizeProjectObjects)();
-      (0, dependencies.assertCurrentProjectReferences)();
-      (0, dependencies.markLayerTreeDirty)();
-      dependencies.renderingDomain?.invalidateCountryPatch?.('admin-country-coast-reconciled');
-      dependencies.projectDomain.queueAutosave();
-      (0, dependencies.setActionStatus)(decision.direction === 'admin-to-country' ? '하위단위 해안선을 기준으로 국가 해안선을 조정했습니다.' : '국가 해안선을 기준으로 하위단위 해안선을 조정했습니다.', 'success', 4200);
-      return { ok: true, changed: true, direction: decision.direction };
+      const prepared = await (0, dependencies.previewTerritorialEdit)({ operation: 'coast',
+        targetId: analysis.admin.id, draft: planned.countryGeometry, coastBaseline,
+      }, { selectedId: analysis.admin.id, shouldKeepResult: () => dependencies.state.stateRevision === revision });
+      return { ok: prepared, preview: prepared, changed: false };
     } catch (error) {
-      analysis.country.geometry = countryBefore;
-      analysis.admin.geometry = adminBefore;
-      (0, dependencies.restoreEditable)(snapshot);
-      (0, dependencies.reportOperationError)(error, '해안선 정합을 적용하지 못했습니다.', 'PL-COAST-RECONCILE-001', 4400);
+      (0, dependencies.reportOperationError)(error, '해안선 정합을 계산하지 못했습니다.', 'PL-COAST-RECONCILE-001', 4400);
       return { ok: false, error };
     }
   }
 
   async function resetProjectInPlace({ projectGeneration = null, skipRenderReset = false, prepared = null } = {}) {
+    const preparedCountries = prepared?.countries || prepared;
+    if (!preparedCountries?.features) throw new Error('내장 기본 프로젝트 자료가 준비되지 않았습니다.');
     closeConfirmModal();
     (0, dependencies.closeMobileSheets)();
     const nextProjectGeneration = skipRenderReset && Number.isFinite(projectGeneration)
@@ -218,6 +190,8 @@ export function createProjectRestore() {
       : dependencies.projectDomain
         ? dependencies.projectDomain.resetRenderGeneration('project-reset')
         : dependencies.gpuMapRenderer.resetProjectRenderState?.();
+    (0, dependencies.cancelGpuMeshRebuild)();
+    dependencies.mapEditClient?.stop?.();
     dependencies.boundarySelectionAnalysisCache.clear();
     dependencies.state.countryVisualPhase = 'preview';
     dependencies.countryDisplaySource = null;
@@ -268,40 +242,26 @@ export function createProjectRestore() {
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     dependencies.state.countryIndex.clear();
-    dependencies.state.countriesData = (0, dependencies.reindexCountries)(prepared, false, { assumeCanonical: true });
+    dependencies.state.countriesData = (0, dependencies.reindexCountries)(preparedCountries, false, { assumeCanonical: true });
+    const restoredExactly = dependencies.canonicalCountryStore
+      ? dependencies.state.countriesData.features.length === dependencies.canonicalCountryStore.ids().length
+        && dependencies.state.countriesData.features.every(feature => dependencies.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))
+      : true;
+    if (!restoredExactly) {
+      throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
+    }
     (0, dependencies.applyFreshBuiltinClassification)();
     (0, dependencies.applyPristineLabelAnchors)(dependencies.state.countriesData);
     dependencies.state.auditPreviewCountries = null;
     (0, dependencies.pruneLayerItemVisibility)();
     (0, dependencies.markLayerTreeDirty)();
     (0, dependencies.configureDatasetSession)(null);
-    (0, dependencies.scheduleGpuMeshRebuild)(0, nextProjectGeneration);
-    const expectedCountries = (0, dependencies.classifyBuiltinCountries)({ ...prepared, features: prepared.features }).countries;
-    const expectedById = new Map(expectedCountries.features.map(feature => [String(feature.id), feature]));
-    const restoredExactly = dependencies.canonicalCountryStore
-      ? dependencies.state.countriesData.features.length === expectedCountries.features.length
-        && dependencies.state.countriesData.features.every(feature => JSON.stringify(feature.geometry) === JSON.stringify(expectedById.get(String(feature.id))?.geometry))
-        && dependencies.state.territorialUnits.every(feature => dependencies.canonicalCountryStore.geometryEquals((0, dependencies.builtinSubunitSourceId)(feature), feature.geometry))
-      : true;
-    if (!restoredExactly) {
-      throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
-    }
     (0, dependencies.refreshCountryCentroids)();
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
+    dependencies.mapEditClient?.invalidateBoundaryCache?.();
 
-    (0, dependencies.$)('countriesVisible').checked = true;
-    (0, dependencies.$)('subunitsVisible').checked = true;
-    (0, dependencies.$)('regionsVisible').checked = true;
-    (0, dependencies.$)('languagesVisible').checked = true;
-    (0, dependencies.$)('ethnicitiesVisible').checked = true;
-    (0, dependencies.$)('religionsVisible').checked = true;
-    (0, dependencies.$)('riversVisible').checked = true;
-    (0, dependencies.$)('lakesVisible').checked = true;
-    (0, dependencies.$)('genericFeaturesVisible').checked = true;
-    (0, dependencies.$)('labelsVisible').checked = true;
-    (0, dependencies.$)('basemapLabelsVisible').checked = true;
-    (0, dependencies.$)('countryFlagsVisible').checked = dependencies.state.layerVisibility.countryFlags !== false;
-    (0, dependencies.syncPhysicalControls)();
+    (0, dependencies.renderMapDisplaySettings)();
     if ((0, dependencies.$)('layerSearchInput')) (0, dependencies.$)('layerSearchInput').value = '';
     dependencies.layerTreeController?.render(true);
     (0, dependencies.syncProjectionButtons)();
@@ -309,21 +269,44 @@ export function createProjectRestore() {
     (0, dependencies.$)('selectionStatus').textContent = '';
     dependencies.editingDomain?.setTool('select', { announce: false });
 
-    // 기존 SVG 노드는 편집된 Feature 객체를 __data__로 들고 있을 수 있으므로 완전히 제거 후 원본으로 재바인딩한다.
-    dependencies.countryLayer?.selectAll('*').remove();
-    dependencies.countryLabelLayer?.selectAll('*').remove();
-    dependencies.boundaryEditLayer?.selectAll('*').remove();
-    dependencies.territorialUnitLayer?.selectAll('*').remove();
-    dependencies.distributionLayer?.selectAll('*').remove();
-    dependencies.vertexLayer?.selectAll('*').remove();
-    dependencies.genericFeatureLayer?.selectAll('*').remove();
-    dependencies.labelLayer?.selectAll('*').remove();
+    const clearReplacedProjectLayers = () => {
+      // Existing SVG nodes can retain the edited Feature as __data__.  Clear
+      // them only when the canonical mesh is staged, so labels never arrive
+      // before the corresponding country surface.
+      dependencies.countryLayer?.selectAll('*').remove();
+      dependencies.countryLabelLayer?.selectAll('*').remove();
+      dependencies.selectionLayer?.selectAll('*').remove();
+      dependencies.hoverLayer?.selectAll('*').remove();
+      dependencies.boundaryEditLayer?.selectAll('*').remove();
+      dependencies.territorialUnitLayer?.selectAll('*').remove();
+      dependencies.distributionLayer?.selectAll('*').remove();
+      dependencies.vertexLayer?.selectAll('*').remove();
+      dependencies.genericFeatureLayer?.selectAll('*').remove();
+      dependencies.labelLayer?.selectAll('*').remove();
+      dependencies.previewLayer?.selectAll('*').remove();
+      dependencies.validationLayer?.selectAll('*').remove();
+      dependencies.draftLayer?.selectAll('*').remove();
+      dependencies.snapLayer?.selectAll('*').remove();
+      dependencies.territorialOperationLayer?.selectAll('*').remove();
+    };
 
-    (0, dependencies.syncMapHostFromState)();
-    (0, dependencies.resizeMap)();
+    const activatedBuiltinMesh = await dependencies.gpuMapRenderer.activateBuiltinMeshBaseline({
+      projectGeneration: nextProjectGeneration,
+      onStaged: () => {
+        dependencies.state.countryVisualPhase = 'canonical';
+        dependencies.countryDisplaySource = null;
+        dependencies.countryDisplayIndex = new Map();
+        clearReplacedProjectLayers();
+        (0, dependencies.syncMapHostFromState)();
+        dependencies.renderingDomain?.invalidateProject?.('built-in-project-transition-ready');
+        (0, dependencies.resizeMap)();
+      },
+    });
+    if (!activatedBuiltinMesh) {
+      throw new Error('내장 기본 메시를 화면에 적용하지 못했습니다.');
+    }
     (0, dependencies.scheduleMapObjectSpatialIndexRebuild)();
     dependencies.projectUi.syncHistory();
-    (0, dependencies.setActionStatus)('새 프로젝트를 만들었습니다.', 'success', 3200);
   }
 
   function initializeConfirmModalController() {
@@ -333,7 +316,7 @@ export function createProjectRestore() {
 
     (openConfirmModal = options => getConfirmModalController()
       .then(controller => controller.open(options))
-      .catch(error => (0, dependencies.reportOperationError)(error, '확인 창을 불러오지 못했습니다.', 'PL-MODAL-001')));
+      .catch(error => { options.onCancel?.(); (0, dependencies.reportOperationError)(error, '확인 창을 불러오지 못했습니다.', 'PL-MODAL-001'); }));
 
     (closeConfirmModal = () => confirmModalController?.close());
   }

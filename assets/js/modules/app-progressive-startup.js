@@ -89,7 +89,8 @@ export function createProgressiveStartup() {
     (0, dependencies.markLayerTreeDirty)();
     (0, dependencies.configureDatasetSession)(restored);
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'project-normalized';
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
     const externalGeometry = !!restored?.countriesData && restored.baseDataset !== dependencies.BASE_DATASET;
     const useBuiltInMesh = !externalGeometry && !dependencies.state.sessionBaseCountriesJson;
     window.PANDOLAB_COUNTRIES = null;
@@ -152,6 +153,7 @@ export function createProgressiveStartup() {
         meshBuffer: mesh.meshBuffer,
         preparedStroke: mesh.preparedStroke,
         spatialBlocks: mesh.spatialBlocks,
+        builtinIdentity: mesh.identity,
         onStaged: () => {
           dependencies.state.countryVisualPhase = 'canonical';
           dependencies.countryDisplaySource = null;
@@ -232,7 +234,8 @@ export function createProgressiveStartup() {
     (0, dependencies.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.markLayerTreeDirty)();
     (0, dependencies.configureDatasetSession)(null);
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
     (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = '빠른 미리보기 GPU 지도를 준비하는 중입니다.';
 
     (0, dependencies.applyLayoutMode)({ initial: true });
@@ -345,7 +348,8 @@ export function createProgressiveStartup() {
     (0, dependencies.configureDatasetSession)(restored);
     const externalGeometry = !!restored?.countriesData && restored.baseDataset !== dependencies.BASE_DATASET;
     (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = 'Natural Earth 5.1.1 · GPU 렌더러를 준비하는 중입니다.';
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
 
     (0, dependencies.applyLayoutMode)({ initial: true });
     (0, dependencies.bindUI)();
@@ -375,19 +379,7 @@ export function createProgressiveStartup() {
       }
     }
 
-    (0, dependencies.$)('countriesVisible').checked = dependencies.state.layerVisibility.countries;
-    (0, dependencies.$)('subunitsVisible').checked = dependencies.state.layerVisibility.subunits !== false;
-    (0, dependencies.$)('regionsVisible').checked = dependencies.state.layerVisibility.regions !== false;
-    (0, dependencies.$)('languagesVisible').checked = dependencies.state.layerVisibility.languages !== false;
-    (0, dependencies.$)('ethnicitiesVisible').checked = dependencies.state.layerVisibility.ethnicities !== false;
-    (0, dependencies.$)('religionsVisible').checked = dependencies.state.layerVisibility.religions !== false;
-    (0, dependencies.$)('riversVisible').checked = dependencies.state.layerVisibility.rivers !== false;
-    (0, dependencies.$)('lakesVisible').checked = dependencies.state.layerVisibility.lakes !== false;
-    (0, dependencies.$)('genericFeaturesVisible').checked = dependencies.state.layerVisibility.genericFeatures;
-    (0, dependencies.$)('labelsVisible').checked = dependencies.state.layerVisibility.labels;
-    (0, dependencies.$)('basemapLabelsVisible').checked = dependencies.state.layerVisibility.basemapLabels;
-    (0, dependencies.$)('countryFlagsVisible').checked = dependencies.state.layerVisibility.countryFlags !== false;
-    (0, dependencies.syncPhysicalControls)();
+    (0, dependencies.renderMapDisplaySettings)();
     if ((0, dependencies.$)('layerSearchInput')) (0, dependencies.$)('layerSearchInput').value = dependencies.state.layerSearch;
     dependencies.layerTreeController?.render(true);
     (0, dependencies.syncProjectionButtons)();

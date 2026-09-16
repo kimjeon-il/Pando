@@ -63,7 +63,12 @@ test('physical data and visibility changes invalidate the cached base scene', ()
   assert.match(source, /function setTerrainManifest\([\s\S]*?invalidatePhysicalScene\('terrain-manifest'\);/);
   assert.match(source, /function invalidateHydroVisibility\([\s\S]*?queueHydroRender\('hydro-visibility'\);/);
   assert.match(source, /function queueHydroRender\([\s\S]*?invalidatePhysicalScene\(reason\);/);
-  assert.match(source, /completeTerrainLevelForFrame[\s\S]*?invalidatePhysicalScene\('terrain-level-ready'\);/);
+  assert.ok(source.includes('function terrainTileAt(level, longitude, latitude)'));
+  assert.ok(source.includes('function terrainNeighbourSpecs(level, specs)'));
+  assert.ok(source.includes("invalidatePhysicalScene('terrain-tile-ready')"));
+  assert.ok(source.includes('terrainRetentionKeys.has(item[0])'));
+  assert.ok(source.includes('terrainFallbackTileCount'));
+  assert.match(source, /physicalScale \/ renderDpr\) \* sourceDpr/);
 });
 
 test('Canvas Worker persists independently revisioned view and style state', () => {
@@ -79,11 +84,14 @@ test('Canvas Worker persists independently revisioned view and style state', () 
   assert.ok(worker.includes("message.type === 'physical-style'"));
   assert.ok(worker.includes('incomingRevision < styleRevision'));
   assert.ok(worker.includes('incomingRevision < physicalStyleRevision'));
+  assert.ok(worker.includes('message.terrainDpr || dpr'));
+  assert.ok(worker.includes('terrainProtectedKeys.has(key)'));
+  assert.ok(!renderer.includes('canDisplay && message.bitmap && message.terrainComplete !== false'));
 });
 
 test('map edit worker clones only objects modified by the operation', () => {
   const source = read('assets/js/workers/map-edit-worker.js');
-  assert.ok(source.includes('const working = new Map(countries);'));
+  assert.ok(source.includes('const working = readOnly ? null : new Map(countries);'));
   assert.ok(!source.includes("new Map([...countries].map"));
   assert.ok(source.includes('const nextTarget = clone(target);'));
   assert.ok(source.includes('const next = clone(source);'));

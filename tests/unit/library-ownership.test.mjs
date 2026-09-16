@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { missingLibraryOwnership, prepareLibraryOwnership, subunitParentChoices } from '../../assets/js/modules/library-ownership.js';
+import {
+  missingLibraryOwnership,
+  prepareLibraryOwnership,
+  shouldShowTerritorialParentChoice,
+  subunitParentChoices,
+} from '../../assets/js/modules/library-ownership.js';
 
 const country = id => ({ type: 'Feature', id, properties: { name: id }, geometry: {} });
 const unit = (id, parentId = 'A', sovereignId = 'A') => ({ type: 'Feature', id, geometry: {}, properties: { name: id, unitType: 'subunit', parentId, sovereignId } });
@@ -27,6 +32,27 @@ test('parent choices use actual country name and depth, exclude cycles and other
   assert.deepEqual(subunitParentChoices('A', [country('A')], units).map(item => item.value), ['A', 'Z', 'X']);
   assert.equal(subunitParentChoices('A', [country('A')], units)[0].label, 'A');
   assert.deepEqual(subunitParentChoices('A', [country('A')], units, { exclude: ['Z'] }).map(item => item.value), ['A']);
+});
+
+test('parent selector is hidden only when the sovereign is its sole valid choice', () => {
+  assert.equal(shouldShowTerritorialParentChoice({
+    sovereignId: 'A', parentId: 'A', options: [{ value: 'A', label: 'Country A' }],
+  }), false);
+  assert.equal(shouldShowTerritorialParentChoice({
+    sovereignId: 'A', parentId: 'A', options: [{ value: '', label: 'Choose' }, { value: 'A', label: 'Country A' }],
+  }), false);
+  assert.equal(shouldShowTerritorialParentChoice({
+    sovereignId: 'A', parentId: 'A', options: [{ value: 'A' }, { value: 'P' }],
+  }), true);
+  assert.equal(shouldShowTerritorialParentChoice({
+    sovereignId: 'A', parentId: 'P', options: [{ value: 'A' }, { value: 'P' }],
+  }), true);
+  assert.equal(shouldShowTerritorialParentChoice({
+    sovereignId: 'A', parentId: 'A', options: [] },
+  ), true);
+  assert.equal(shouldShowTerritorialParentChoice({
+    sovereignId: 'A', parentId: 'A', options: [{ value: 'B', label: 'Country A' }],
+  }), true);
 });
 
 test('explicit country and nested parent apply once; children inherit the chosen sovereign', () => {

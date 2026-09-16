@@ -13,6 +13,7 @@ export function createCountryIndex() {
   let countryLabelAnchorRequestId;
   let countryLabelAnchorFlight;
   let labelFallbackQueue;
+  const countryLabelAnchorGeometries = new Map();
   function connect(ports) {
     if (dependencies) throw new Error('country-index already connected');
     dependencies = ports;
@@ -177,6 +178,7 @@ export function createCountryIndex() {
     pendingCountryLabelAnchors.clear();
     countryLabelAnchorVersions.clear();
     countryLabelAnchors.clear();
+    countryLabelAnchorGeometries.clear();
     countryLabelAnchorRequestId += 1;
   }
 
@@ -217,15 +219,28 @@ export function createCountryIndex() {
 
   function scheduleCountryLabelAnchors(ids = null, delay = 30) {
     const requested = ids ? new Set([...ids].map(String)) : null;
-    for (const feature of (0, dependencies.builtinRenderCountries)().labelById.values()) {
+    const sources = (0, dependencies.builtinRenderCountries)();
+    for (const id of countryLabelAnchorGeometries.keys()) {
+      if (sources.labelById.has(id)) continue;
+      countryLabelAnchorGeometries.delete(id);
+      countryLabelAnchors.delete(id);
+      pendingCountryLabelAnchors.delete(id);
+      countryLabelAnchorVersions.delete(id);
+    }
+    let changed = false;
+    for (const feature of sources.labelById.values()) {
       const id = String(feature?.id || '');
-      if (requested && !requested.has(id)) continue;
-      if (!requested && validLabelAnchor(countryLabelAnchors.get(id))) continue;
+      if (requested && !requested.has(id) && !requested.has(String(sources.labelRefs.get(id)?.id))) continue;
+      const previousGeometry = countryLabelAnchorGeometries.get(id);
+      countryLabelAnchorGeometries.set(id, feature.geometry);
+      if (!requested && (!previousGeometry || previousGeometry === feature.geometry)
+        && (validLabelAnchor(countryLabelAnchors.get(id)) || pendingCountryLabelAnchors.has(id))) continue;
       countryLabelAnchors.delete(id);
       countryLabelAnchorVersions.set(id, (countryLabelAnchorVersions.get(id) || 0) + 1);
       pendingCountryLabelAnchors.add(id);
+      changed = true;
     }
-    if (!pendingCountryLabelAnchors.size) return;
+    if (!changed) return;
     (0, dependencies.markLayerTreeDirty)();
     clearTimeout(countryLabelAnchorTimer);
     countryLabelAnchorTimer = setTimeout(flushCountryLabelAnchorQueue, delay);

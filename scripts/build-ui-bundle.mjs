@@ -4,19 +4,23 @@ import { fileURLToPath } from 'node:url';
 
 const scriptsDirectory = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const projectRoot = resolve(scriptsDirectory, '..');
-const outputPath = resolve(projectRoot, 'assets/css/ui-v2.bundle.css');
+const outputPath = resolve(projectRoot, 'assets/css/ui.bundle.css');
 const modalOutputPath = resolve(projectRoot, 'assets/css/ui-modal.bundle.css');
 const sources = Object.freeze([
-  'assets/css/tokens/ui-v2.css',
+  'assets/css/tokens/design-tokens.css',
   'assets/css/primitives/controls.css',
   'assets/css/components/surface.css',
   'assets/css/components/content.css',
   'assets/css/components/command-row.css',
   'assets/css/components/workflows.css',
   'assets/css/layout/surfaces.css',
+  'assets/css/components/topbar.css',
   'assets/css/features/layer-panel.css',
   'assets/css/components/editor-shell.css',
+  'assets/css/components/selection-toolbar.css',
   'assets/css/components/panels.css',
+  'assets/css/components/menus.css',
+  'assets/css/components/view-menu.css',
   'assets/css/components/mobile-sheets.css',
   'assets/css/components/feedback.css',
   'assets/css/utilities/accessibility.css',

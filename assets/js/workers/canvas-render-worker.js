@@ -1,9 +1,10 @@
 'use strict';
-importScripts('../vendor/d3.min.js', './geographic-boundary-core.js');
+importScripts('../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js');
 
 function canvasFallbackWorkerMain() {
     let canvas = null;
     let context = null;
+    let substrate = null;
     let features = [];
     let geometryRevision = 0;
     let terrainManifest = null;
@@ -13,6 +14,7 @@ function canvasFallbackWorkerMain() {
     const terrainFetchQueue = [];
     const terrainQueuedKeys = new Set();
     const terrainFailures = new Map();
+    const terrainProtectedKeys = new Set();
     let terrainActiveFetches = 0;
     let terrainFetchConcurrency = 2;
     const hydroPacks = new Map();
@@ -28,7 +30,13 @@ function canvasFallbackWorkerMain() {
     const countryOutlineCache = new WeakMap();
 
     function mergeRenderState(message) {
-      lastRenderMessage = { ...(lastRenderMessage || {}), ...message, type: 'render' };
+      const updated = { ...message };
+      for (const channel of ['scenePolygons', 'interactionPolygons']) {
+        if (!Array.isArray(message[channel])) continue;
+        const previous = new Map((lastRenderMessage?.[channel] || []).map(packet => [packet.key, packet]));
+        updated[channel] = message[channel].map(packet => packet.ringCoordinates ? packet : { ...previous.get(packet.key), ...packet });
+      }
+      lastRenderMessage = { ...(lastRenderMessage || {}), ...updated, type: 'render' };
       return lastRenderMessage;
     }
 
@@ -51,6 +59,22 @@ function canvasFallbackWorkerMain() {
           90 - y1 / level.height * 180,
         ],
       };
+    }
+
+    function terrainNeighbourSpecs(level, specs) {
+      const output = [];
+      const seen = new Set(specs.map(spec => spec.key));
+      for (const spec of specs) {
+        for (let row = Math.max(0, spec.row - 1); row <= Math.min(level.rows - 1, spec.row + 1); row += 1) {
+          for (let column = Math.max(0, spec.column - 1); column <= Math.min(level.columns - 1, spec.column + 1); column += 1) {
+            const neighbour = terrainTileSpec(level, column, row);
+            if (seen.has(neighbour.key)) continue;
+            seen.add(neighbour.key);
+            output.push(neighbour);
+          }
+        }
+      }
+      return output;
     }
 
     function terrainTileUrl(spec) {
@@ -121,7 +145,9 @@ function canvasFallbackWorkerMain() {
           terrainFailures.delete(spec.key);
           terrainTiles.set(spec.key, { ...images, lastUsed: performance.now() });
           while (terrainTiles.size > 40) {
-            const oldest = [...terrainTiles.entries()].sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
+            const oldest = [...terrainTiles.entries()]
+              .filter(([key]) => !terrainProtectedKeys.has(key))
+              .sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
             if (!oldest || oldest[0] === spec.key) break;
             terrainTiles.delete(oldest[0]);
           }
@@ -157,9 +183,9 @@ function canvasFallbackWorkerMain() {
       }
     }
 
-    function terrainLevelForView(projection, dpr) {
+    function terrainLevelForView(projection, terrainDpr) {
       if (!terrainManifest?.levels?.length) return null;
-      const desiredWidth = Math.max(1, 2 * Math.PI * projection.scale() * dpr);
+      const desiredWidth = Math.max(1, 2 * Math.PI * projection.scale() * Math.max(1, Number(terrainDpr || 1)));
       return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
         || terrainManifest.levels[terrainManifest.levels.length - 1];
     }
@@ -287,7 +313,7 @@ function canvasFallbackWorkerMain() {
       if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return true;
       const levels = terrainManifest.levels;
       const baseLevel = levels[0];
-      const targetLevel = terrainLevelForView(projection, dpr) || baseLevel;
+      const targetLevel = terrainLevelForView(projection, message.terrainDpr || dpr) || baseLevel;
       const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
       const activeTargetIndex = message.dataReadiness === 'enhanced' ? targetIndex : 0;
       const specsByLevel = levels.slice(0, activeTargetIndex + 1).map((level, index) => ({
@@ -296,10 +322,14 @@ function canvasFallbackWorkerMain() {
       }));
       const targetSpecs = specsByLevel[specsByLevel.length - 1]?.specs || [];
       const terrainComplete = targetSpecs.every(spec => terrainTiles.has(spec.key));
+      terrainProtectedKeys.clear();
+      for (const entry of specsByLevel) for (const spec of entry.specs) terrainProtectedKeys.add(spec.key);
+      for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainProtectedKeys.add(spec.key);
       for (let index = 0; index < specsByLevel.length; index += 1) {
         const priority = index === 0 ? 10_000 : 1_000 - index;
         for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
       }
+      for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 120);
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
       context.save();
       context.globalAlpha = 1;
@@ -334,23 +364,18 @@ function canvasFallbackWorkerMain() {
 
     function createProjection(message, width, height) {
       const view = message.view || {};
+      const frame = message.renderProjection || {};
+      const translate = frame.translate || [width / 2, height / 2];
       if (message.projection === 'globe') {
-        const base = Math.max(60, Math.min(width, height - 26) * 0.455);
-        return self.d3.geo.orthographic()
-          .translate([width / 2, height / 2])
-          .scale(base * Number(view.globeZoom || 1))
-          .rotate(view.globeRotation || [-15, -25, 0])
-          .clipAngle(90)
-          .precision(0.35);
+        const fallback = Math.max(60, Math.min(width, height - 26) * 0.455) * Number(view.globeZoom || 1);
+        return self.d3.geo.orthographic().translate(translate).scale(frame.scale || fallback)
+          .rotate(view.globeRotation || [-15, -25, 0]).clipAngle(90).precision(0.35);
       }
-      const base = Math.max(30, width / (2 * Math.PI));
-      return self.d3.geo.mercator()
-        .translate([width / 2, height / 2])
-        .scale(base * Number(view.flatZoom || 1))
-        .center(view.flatCenter || [0, 20])
-        .rotate([0, 0, 0])
-        .clipExtent([[0, 0], [width, height - 25]])
-        .precision(0.25);
+      const safe = frame.safeInset || { left: 0, top: 0, right: 0, bottom: 0 };
+      return self.d3.geo.equirectangular().translate(translate)
+        .scale(frame.scale || Math.max(30, width / (2 * Math.PI)) * Number(view.flatZoom || 1))
+        .center(view.flatCenter || [0, 20]).rotate([0, 0, 0])
+        .clipExtent([[safe.left, safe.top], [width - safe.right, height - safe.bottom]]).precision(0.25);
     }
 
     function activeHydroFeatures(includeEdits = true) {
@@ -387,7 +412,8 @@ function canvasFallbackWorkerMain() {
       return `#${values.map(value => value.toString(16).padStart(2, '0')).join('')}`;
     }
 
-    function renderHydroPass(message, projection, dpr, borderAligned) {
+    function renderHydroPass(message, projection, dpr, borderAligned, target = context, reserve = false) {
+      const context = target;
       const geoPath = self.d3.geo.path().projection(projection).context(context);
       const features = activeHydroFeatures();
       context.save();
@@ -409,7 +435,7 @@ function canvasFallbackWorkerMain() {
           if (borderAligned) continue;
           context.beginPath();
           geoPath(feature);
-          context.globalAlpha = hydroOpacity;
+          context.globalAlpha = reserve ? 1 : hydroOpacity;
           context.fillStyle = featureColor;
           context.fill();
           if (message.theme?.lakeBoundaryVisible !== false) {
@@ -428,7 +454,7 @@ function canvasFallbackWorkerMain() {
         const parts = lineParts(feature.geometry);
         const profiles = properties.stroke_widths || [];
         const fallback = Math.max(0.55, Math.min(2.6, Number(properties.stroke_width || 0.8)));
-        context.globalAlpha = hydroOpacity;
+        context.globalAlpha = reserve ? 1 : hydroOpacity;
         context.strokeStyle = featureColor;
         for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
           const part = parts[partIndex];
@@ -541,6 +567,10 @@ function canvasFallbackWorkerMain() {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const projection = createProjection(message, width, height);
         terrainComplete = renderTerrain(message, projection, width, height, dpr);
+        if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
+        const substrateContext = substrate.getContext('2d');
+        substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
+        substrateContext.drawImage(canvas, 0, 0);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const geoPath = self.d3.geo.path().projection(projection).context(context);
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
@@ -560,22 +590,28 @@ function canvasFallbackWorkerMain() {
           context.fillStyle = message.colors?.[countryId(feature, index)] || defaultLand;
           context.fill();
         }
+        self.PandoLabCanvasSceneComposition.drawFills(context, geoPath, message.scenePolygons || [], substrate, dpr);
         const emphasis = message.countryEmphasis || {};
         const selectedCountryIds = new Set((emphasis.selectedIds || []).map(String));
+        const emphasisEntries = [];
         for (let index = 0; message.visible && index < features.length; index += 1) {
           const feature = features[index];
           const id = countryId(feature, index);
           if (hiddenCountryIds.has(id)) continue;
-          const kind = id === String(emphasis.primaryId || '') ? 'primary'
-            : selectedCountryIds.has(id) ? 'secondary'
-              : id === String(emphasis.hoverId || '') ? 'hover' : '';
-          if (!kind) continue;
-          context.beginPath();
-          geoPath(feature);
-          context.globalAlpha = Number(emphasis[`${kind}Alpha`] || 0);
-          context.fillStyle = emphasis[`${kind}Color`] || defaultLand;
-          context.fill();
+          const kind = (emphasis.primaryIds || [String(emphasis.primaryId || '')]).includes(id) ? 'primary'
+            : selectedCountryIds.has(id) ? 'secondary' : id === String(emphasis.hoverId || '') ? 'hover' : '';
+          if (kind) emphasisEntries.push({ key: `country:${id}`, geometry: feature,
+            priority: emphasis.priorities?.[id] || (kind === 'primary' ? 4 : kind === 'secondary' ? 3 : 2),
+            style: { color: emphasis[`${kind}Color`], fillAlpha: Number(emphasis[`${kind}Alpha`] || 0) } });
         }
+        const polygonByKey = new Map((message.scenePolygons || []).map(packet => [packet.key, packet]));
+        for (const item of message.interactionFillItems || []) if (polygonByKey.has(item.key)) emphasisEntries.push({ ...item, packet: polygonByKey.get(item.key) });
+        for (const packet of message.interactionPolygons || []) emphasisEntries.push({ key: packet.key, packet,
+          priority: packet.interactionPriority || 5, style: packet.style });
+        self.PandoLabCanvasSceneComposition.drawEmphasis(context, geoPath, emphasisEntries, dpr, {
+          key: [message.viewRevision, message.projectionRevision, pixelWidth, pixelHeight, physicalStyleRevision, hydroEditRevision, [...hydroActivePackIds].join(','), hydroPacks.size].join(':'),
+          draw: mask => { renderHydroPass(message, projection, dpr, false, mask, true); renderHydroPass(message, projection, dpr, true, mask, true); },
+        });
         renderHydroPass(message, projection, dpr, false);
         renderHydroPass(message, projection, dpr, true);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -594,6 +630,7 @@ function canvasFallbackWorkerMain() {
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({
         type: 'frame',
+        styleRevision,
         frameId: Number(message.frameId || message.revision || 0),
         revision: Number(message.revision || 0),
         viewRevision: Number(message.viewRevision || message.revision || 0),

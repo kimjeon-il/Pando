@@ -10,11 +10,13 @@ CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 
 
 class MobileStatusV0164Tests(unittest.TestCase):
-    def test_status_bar_has_three_semantic_groups_in_one_inner_row(self):
+    def test_status_bar_has_save_view_and_selection_groups_in_one_inner_row(self):
         self.assertIn('class="status-inner"', INDEX)
+        self.assertIn('id="projectSaveStatus" class="ui-status status-group project-save-status"', INDEX)
         self.assertIn('class="status-group status-view"', INDEX)
-        self.assertIn('class="status-group status-primary hidden"', INDEX)
         self.assertIn('class="status-group status-selection hidden"', INDEX)
+        self.assertNotIn('id="statusPrimary"', INDEX)
+        self.assertNotIn('id="coordStatus"', INDEX)
         self.assertIn(".status-group:not(.hidden) ~ .status-group:not(.hidden)::before", CSS)
         self.assertNotIn("grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);", CSS)
 

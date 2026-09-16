@@ -240,7 +240,7 @@ function writeAtlasTables(db, payload) {
   }
   const territorialColumns = [
     { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },
-    { name: 'admin_level', type: 'INTEGER' }, { name: 'is_remainder', type: 'INTEGER' }, { name: 'valid_from' }, { name: 'valid_to' },
+    { name: 'valid_from' }, { name: 'valid_to' },
     { name: 'color' }, { name: 'style_key' }, { name: 'source_library_id' }, { name: 'source_geometry_version' },
     { name: 'metadata_json' }, { name: 'properties_json' },
   ];

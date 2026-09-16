@@ -39,7 +39,9 @@ All names below are under `assets/js/modules/` and have an `app-` prefix.
 | Object operations | `object-commands`, `generic-commands`, `object-deletion`, `object-metadata`, `territorial-conversion` |
 | Selection/property presentation | `property-selection`, `object-presentation`, `layer-list`, `color-picker` |
 | Project/history and IO | `project-snapshots`, `history-assembly`, `project-restore`, `gis-assembly`, `library-assembly` |
-| Editing workflows | `country-modes`, `country-commits`, `territorial-drafts`, `river-candidates`, `geometry-preview` |
+| Territory-selection workflow | `territory-selection-workflow` (the only setup/method/selection session, transitions, multi-area controls, preview debounce, and final-action gate) |
+| Territory operation adapters | `country-modes` and `country-commits` (annex/country source and Worker plans), `territorial-drafts` (subunit/region source, relationship, remainder, and local plans) |
+| Other editing workflows | `country-modes`, `country-commits`, `territorial-drafts`, `river-candidates`, `geometry-preview` |
 | Spatial/geometry preparation | `country-index`, `spatial-index`, `country-validation`, `land-relations`, `cut-geometry`, `territory-components` |
 | Projection and input | `map-projection`, `camera-navigation`, `map-host`, `pointer-targets`, `object-picking` |
 | Render resources | `service-assembly`, `gpu-scene`, `interaction-packets`, `country-labels`, `physical-resources`, `render-quality`, `map-audit` |
@@ -50,6 +52,12 @@ The connection files contain only wiring: `foundation`, `spatial-data`,
 `lifecycle-ui`. Actual algorithms belong to the owners, or to the pre-existing
 domain/service modules they call. In particular, `domain-assembly` configures
 the existing domains; it does not replace their ownership contracts.
+
+Annexation, country creation, subunit creation, and region creation read and
+write only `state.territorySelectionSession`. Their adapters provide setup
+validation, source preparation, draft completion, and final change plans; they
+must not own stages, toolbar state, preview timers, or mirrored operation state.
+There are no operation-specific compatibility fields or transition wrappers.
 
 ## Contracts retained
 

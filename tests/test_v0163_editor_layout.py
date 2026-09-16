@@ -11,8 +11,8 @@ CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 
 class EditorLayoutV0163Tests(unittest.TestCase):
     def test_active_work_uses_one_task_dock_and_the_continuous_status_line(self):
-        self.assertIn('id="currentToolStatus" class="current-tool-status"', INDEX)
-        self.assertIn("$('currentToolStatus').textContent = currentName", APP)
+        self.assertNotIn('id="currentToolStatus" class="current-tool-status"', INDEX)
+        self.assertNotIn('id="statusPrimary"', INDEX)
         self.assertIn('class="mode-task-context"', INDEX)
         self.assertNotIn('id="currentTool"', INDEX)
         self.assertNotIn("map-context-panel", CSS + APP)

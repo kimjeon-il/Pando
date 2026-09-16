@@ -25,15 +25,16 @@ class InformationHierarchyV0170Tests(unittest.TestCase):
             self.assertNotIn(element_id, APP)
         self.assertNotIn("layer-child-count", APP)
 
-    def test_status_bar_reveals_precision_context_conditionally(self):
+    def test_status_bar_keeps_only_save_projection_and_selection_context(self):
         self.assertNotIn('id="zoomStatus"', INDEX + APP)
-        self.assertIn('id="coordStatus" class="status-item hidden"', INDEX)
-        self.assertIn('id="statusPrimary" class="status-group status-primary hidden"', INDEX)
+        self.assertIn('id="mapBottomStatus" class="ui-status map-bottom-status"', INDEX)
+        self.assertIn('id="preferencesStatusBarVisibleInput"', INDEX)
         self.assertIn('id="statusSelection" class="status-group status-selection hidden"', INDEX)
-        self.assertIn("function shouldShowCoordinates()", APP)
+        self.assertNotIn('id="coordStatus"', INDEX)
+        self.assertNotIn('id="statusPrimary"', INDEX)
         self.assertIn("function syncStatusBar()", APP)
-        self.assertIn("$('statusView')?.classList.toggle('coordinates-active', showCoordinates);", APP)
-        self.assertNotIn("#app[data-layout=\"mobile\"] #coordStatus { display: none !important; }", CSS)
+        self.assertIn("$('projectionStatus').textContent = projectionLabel", APP)
+        self.assertIn('dataset.statusBarVisible', INDEX + APP)
 
     def test_editor_uses_minimal_primary_information(self):
         self.assertNotIn("변경사항 자동 저장", INDEX)

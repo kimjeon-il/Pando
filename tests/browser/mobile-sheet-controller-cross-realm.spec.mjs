@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.use({ trace: 'off' });
 
-test('mobile sheet dispatches synthetic keys with the handle document realm', async ({ page }) => {
+test('mobile task sheet raises a collapsed editor with the handle document realm', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
 
@@ -14,8 +14,8 @@ test('mobile sheet dispatches synthetic keys with the handle document realm', as
     foreignDocument.body.dataset.layout = 'mobile';
     foreignDocument.body.innerHTML = `
       <div id="app" data-layout="mobile"></div>
-      <section id="rightPanel" class="mobile-open" data-sheet-snap="1">
-        <button data-sheet-handle="rightPanel" aria-valuenow="1"></button>
+      <section id="rightPanel" class="mobile-open" data-editor-content="task" data-sheet-snap="0">
+        <button data-sheet-handle="rightPanel" aria-valuenow="0"></button>
       </section>
       <div id="modeEditingContext"></div>
     `;
@@ -40,7 +40,7 @@ test('mobile sheet dispatches synthetic keys with the handle document realm', as
   });
 
   expect(result).toEqual({
-    key: 'Home',
+    key: 'ArrowUp',
     foreignKeyboardEvent: true,
     hostKeyboardEvent: false,
   });

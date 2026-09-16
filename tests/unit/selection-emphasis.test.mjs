@@ -175,8 +175,8 @@ test('country interaction boundaries reuse stable shared resources and draw only
   assert.match(selection, /snapshot\.strokeResources/);
   assert.match(selection, /ownerIds:\s*\[id\]/);
   assert.match(gpu, /function buildCountryStrokeResource/);
-  assert.match(gpu, /sourceMesh\.strokeStartsEnds/);
-  assert.match(gpu, /sourceMesh\.strokeOwnerRanges/);
+  assert.match(gpu, /preparedGeometry\.startsEnds/);
+  assert.match(gpu, /preparedGeometry\.inputOwnerRanges/);
   assert.match(gpu, /function prewarmCountryStrokeResources/);
   assert.match(gpu, /buildCountryStrokeResource\(canonicalMesh, canonicalCountryIds, 'canonical', canonicalRevision\)/);
   assert.doesNotMatch(gpu, /const selectedOwnerIds = new Set/);
@@ -205,13 +205,15 @@ test('country interaction fill draws only emphasized country owner ranges', asyn
   assert.match(interactionFill, /mesh\?\.triangleRangesByCountryId\?\.get\(id\)/);
   assert.match(interactionFill, /visibleBaseRanges/);
   assert.match(interactionFill, /drawProgram\(fillProgram[^;]+visibleBaseRanges\)/s);
-  assert.match(interactionFill, /performanceMetrics\.countryInteractionIndexCount = 0/);
+  assert.match(gpu.slice(end, gpu.indexOf('function sceneViewSignature', end)), /performanceMetrics\.countryInteractionIndexCount = 0/);
 });
 
 test('territorial persistent boundaries use the shared GPU scene stroke domain', async () => {
   const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
   const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
-  assert.match(rendering, /buildTerritorialInternalBoundarySegments/);
+  const preparation = await readFile(new URL('../../assets/js/modules/edit-display-preparation.js', import.meta.url), 'utf8');
+  assert.match(preparation, /buildTerritorialInternalBoundarySegments/);
+  assert.doesNotMatch(rendering, /buildTerritorialInternalBoundarySegments/);
   assert.match(rendering, /replaceGpuSceneDomain\?\.\('territorial-boundaries'/);
   assert.match(gpu, /strokeRenderer\.drawBatches/);
 });
@@ -264,7 +266,7 @@ test('map hover delegates ownership and invalidation to the selection domain', a
   const start = app.indexOf('function setMapHover');
   const end = app.indexOf('\n  }', start);
   const source = app.slice(start, end);
-  assert.match(source, /selectionDomain\.setHover\(nextRef\)/);
+  assert.match(source, /selectionDomain\.setHover\(nextRef, \{ source: 'map'/);
   assert.doesNotMatch(source, /invalidateSelectionOverlay/);
   assert.doesNotMatch(source, /renderHoverOverlay\(\)/);
 });

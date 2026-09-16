@@ -77,11 +77,12 @@ function segmentProgramSources(version) {
     : 'precision highp float;precision highp int;varying float vDepth;varying float vAcross;varying float vAlong;';
   const output = version === 2 ? 'outColor=vec4(uColor.rgb,uColor.a*coverage);' : 'gl_FragColor=vec4(uColor.rgb,uColor.a*coverage);';
   const fragment = `${fragmentHeader}
-    uniform int uMode;uniform float uHalfWidth;uniform float uAaRadius;uniform vec2 uDash;uniform vec4 uColor;
+    uniform int uMode;uniform float uHalfWidth;uniform float uAaRadius;uniform float uInnerCutout;uniform vec2 uDash;uniform vec4 uColor;
     void main(){
       if(uMode==0&&vDepth<0.0)discard;
       float period=uDash.x+uDash.y;if(uDash.x>0.0&&uDash.y>0.0&&mod(vAlong,max(1.0,period))>uDash.x)discard;
       float edge=uHalfWidth-abs(vAcross);float coverage=smoothstep(-uAaRadius,uAaRadius,edge);
+      if(uInnerCutout>0.0)coverage*=smoothstep(-uAaRadius,uAaRadius,abs(vAcross)-uInnerCutout);
       if(coverage<=0.001)discard;${output}
     }`;
   return { vertex, fragment };
@@ -110,7 +111,7 @@ function roundProgramSources(version) {
     : 'precision highp float;precision highp int;varying float vDepth;varying vec2 vLocal;varying vec2 vIncoming;varying vec2 vOutgoing;varying float vKind;';
   const output = version === 2 ? 'outColor=vec4(uColor.rgb,uColor.a*coverage);' : 'gl_FragColor=vec4(uColor.rgb,uColor.a*coverage);';
   const fragment = `${fragmentHeader}
-    uniform int uMode;uniform int uJoinMode;uniform int uRoundCap;uniform float uHalfWidth;uniform float uAaRadius;uniform vec4 uColor;
+    uniform int uMode;uniform int uJoinMode;uniform int uRoundCap;uniform float uHalfWidth;uniform float uAaRadius;uniform float uInnerCutout;uniform vec4 uColor;
     float cross2(vec2 left,vec2 right){return left.x*right.y-left.y*right.x;}
     void main(){
       if(uMode==0&&vDepth<0.0)discard;
@@ -125,6 +126,7 @@ function roundProgramSources(version) {
         if(dot(vLocal,vIncoming)<=0.0)discard;
       }
       float edge=uHalfWidth-length(vLocal);float coverage=smoothstep(-uAaRadius,uAaRadius,edge);
+      if(uInnerCutout>0.0)coverage*=smoothstep(-uAaRadius,uAaRadius,length(vLocal)-uInnerCutout);
       if(coverage<=0.001)discard;${output}
     }`;
   return { vertex, fragment };
@@ -168,13 +170,13 @@ function createPrograms(device, only = null) {
   return Object.freeze({
     segment: (!only || only === 'segment') && linkProgram(device, segmentSources.vertex, segmentSources.fragment,
       ['aCorner', 'aPrevious', 'aSegment', 'aNext', 'aMeta'],
-      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uJoinMode', 'uMiterLimit', 'uDash', 'uColor']),
+      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uInnerCutout', 'uJoinMode', 'uMiterLimit', 'uDash', 'uColor']),
     round: (!only || only === 'round') && linkProgram(device, roundSources.vertex, roundSources.fragment,
       ['aCorner', 'aNodePrevious', 'aNodePoint', 'aNodeNext', 'aNodeMeta'],
-      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uJoinMode', 'uRoundCap', 'uColor']),
+      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uInnerCutout', 'uJoinMode', 'uRoundCap', 'uColor']),
     bevel: (!only || only === 'bevel') && linkProgram(device, bevelSources.vertex, bevelSources.fragment,
       ['aVertexId', 'aNodePrevious', 'aNodePoint', 'aNodeNext', 'aNodeMeta'],
-      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uColor']),
+      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uInnerCutout', 'uColor']),
   });
 }
 
@@ -266,7 +268,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       cancelUploads();
       onError?.({ stage: 'stroke-staging-upload', error });
     } finally {
-      if (gl) gl.bindBuffer(gl.ARRAY_BUFFER, savedBuffer);
+      if (gl) gl.bindBuffer(gl.ARRAY_BUFFER, savedBuffer && gl.isBuffer(savedBuffer) ? savedBuffer : null);
       scheduleUpload();
     }
   }
@@ -400,6 +402,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     const [red, green, blue] = parseGpuColor(style.color);
     const alpha = Math.max(0, Math.min(1, Number(style.alpha ?? 1)));
     const width = Math.max(0.25, Number(style.width || 1));
+    if (programInfo.uniforms.uInnerCutout) gl.uniform1f(programInfo.uniforms.uInnerCutout, Number(style.innerCutout || 0) / 2);
     if (programInfo.uniforms.uHalfWidth) gl.uniform1f(programInfo.uniforms.uHalfWidth, width / 2);
     if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, aaRadius);
     if (programInfo.uniforms.uColor) gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);

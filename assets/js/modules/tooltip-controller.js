@@ -5,7 +5,11 @@ export function createTooltipController({
   clamp,
   idPrefix = 'ui-tooltip-owner-',
 }) {
+  let showTimer = 0;
+
   function hide() {
+    window.clearTimeout(showTimer);
+    showTimer = 0;
     if (!tooltip) return;
     const ownerId = tooltip.dataset.ownerId;
     const owner = ownerId && document.getElementById(ownerId);
@@ -50,7 +54,12 @@ export function createTooltipController({
     document.addEventListener('pointerover', event => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
       const target = event.target.closest?.('[data-tooltip]');
-      if (target && !target.contains(event.relatedTarget)) show(target);
+      if (!target || target.contains(event.relatedTarget)) return;
+      window.clearTimeout(showTimer);
+      showTimer = window.setTimeout(() => {
+        showTimer = 0;
+        if (target.matches(':hover')) show(target);
+      }, 420);
     });
     document.addEventListener('pointerout', event => {
       const target = event.target.closest?.('[data-tooltip]');

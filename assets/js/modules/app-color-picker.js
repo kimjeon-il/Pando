@@ -1,9 +1,12 @@
+import { createCustomColorControl } from './custom-color-control.js';
+
 /** ColorPicker: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createColorPicker() {
   let dependencies;
+  const customControls = new WeakMap();
 
   function connect(ports) {
     if (dependencies) throw new Error('color-picker already connected');
@@ -46,6 +49,8 @@ export function createColorPicker() {
     const popover = picker.querySelector('.ui-color-popover');
     const trigger = picker.querySelector('.ui-color-trigger');
     if (popover?.classList.contains('hidden')) return;
+    customControls.get(picker)?.close();
+    popover?.classList.remove('is-custom');
     popover.classList.add('hidden');
     picker.classList.remove('is-open');
     trigger?.setAttribute('aria-expanded', 'false');
@@ -60,6 +65,7 @@ export function createColorPicker() {
 
   function alignColorPopoverToViewport(popover) {
     if (!popover || popover.classList.contains('hidden')) return;
+    if (window.matchMedia('(max-width: 799px)').matches) return;
     popover.style.removeProperty('--ui-color-popover-shift-x');
     popover.style.removeProperty('--ui-color-popover-shift-y');
     delete popover.dataset.placement;
@@ -92,9 +98,35 @@ export function createColorPicker() {
     picker.classList.toggle('is-open', opening);
     trigger.setAttribute('aria-expanded', String(opening));
     if (opening) requestAnimationFrame(() => {
+      if (!picker.classList.contains('is-open')) return;
       alignColorPopoverToViewport(popover);
-      popover.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
+      if (!popover.classList.contains('is-custom')) popover.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
     });
+  }
+
+  function openCustomColorPicker(picker) {
+    const popover = picker.querySelector('.ui-color-popover');
+    const input = picker.querySelector('.ui-native-color-input');
+    if (!popover || !input) return;
+    if (!picker.classList.contains('is-open')) openColorPicker(picker);
+    let control = customControls.get(picker);
+    if (!control) {
+      control = createCustomColorControl({
+        onApply(value) {
+          // Preserve the existing object commit and preference preview handlers.
+          input.value = value;
+          input.dispatchEvent(new window.Event(picker.hasAttribute('data-color-custom-only') ? 'input' : 'change', { bubbles: true }));
+          closeColorPicker(picker, { restoreFocus: true });
+        },
+        onCancel: () => closeColorPicker(picker, { restoreFocus: true }),
+      });
+      customControls.set(picker, control);
+      popover.appendChild(control.element);
+    }
+    popover.classList.add('is-custom');
+    control.open(input.value);
+    alignColorPopoverToViewport(popover);
+    if (picker.hasAttribute('data-color-custom-only')) control.element.scrollIntoView({ block: 'nearest' });
   }
 
   function resetCountryColor() {
@@ -102,15 +134,18 @@ export function createColorPicker() {
     const id = dependencies.state.selected.id;
     const idx = dependencies.state.countryIndex.get(id);
     const feature = idx === undefined ? null : dependencies.state.countriesData.features[idx];
-    const override = dependencies.state.countryOverrides[id] || {};
+    const override = { ...(dependencies.state.countryOverrides[id] || {}) };
     const color = (0, dependencies.readDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, { feature, override }, { fallback: (0, dependencies.defaultCountryColor)() });
     if (color.isDefault) {
       syncColorPicker('country', { value: (0, dependencies.defaultCountryColor)(), defaultColor: (0, dependencies.defaultCountryColor)(), isDefault: true });
       return true;
     }
     dependencies.projectDomain.recordHistory();
-    dependencies.state.countryOverrides[id] = override;
     (0, dependencies.writeDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, { feature, override }, '', { clear: true, fallback: (0, dependencies.defaultCountryColor)() });
+    if (Object.keys(override).length) dependencies.state.countryOverrides[id] = override;
+    else delete dependencies.state.countryOverrides[id];
+    dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-color-reset');
+    dependencies.renderingDomain?.invalidateBaseScene?.('country-color-reset');
     (0, dependencies.applyCountrySelectionIntent)(id, true);
     dependencies.projectDomain.queueAutosave();
     (0, dependencies.setActionStatus)('국가 색상을 기본값으로 되돌렸습니다.', 'success');
@@ -210,25 +245,32 @@ export function createColorPicker() {
     return button;
   }
 
-  function appendColorPaletteSection(container, label, colors, modifier) {
-    const section = document.createElement('section');
-    section.className = 'ui-color-palette-section';
-    const heading = document.createElement('span');
-    heading.className = 'ui-color-palette-label';
-    heading.textContent = label;
+  function paletteColorsByTone() {
+    const neutrals = dependencies.COLOR_PALETTE_NEUTRALS;
+    const chromatic = dependencies.COLOR_PALETTE_COLORS;
+    const hueCount = Math.max(1, new Set(chromatic.map(color => color.family)).size);
+    const rowCount = Math.max(neutrals.length, Math.ceil(chromatic.length / hueCount));
+    const colors = [];
+    for (let row = 0; row < rowCount; row += 1) {
+      const tone = chromatic[row * hueCount]?.tone || '가장 어두움';
+      if (neutrals[row]) colors.push({ ...neutrals[row], family: '회색', tone });
+      colors.push(...chromatic.slice(row * hueCount, (row + 1) * hueCount));
+    }
+    return colors;
+  }
+
+  function appendColorPalette(container, colors) {
     const grid = document.createElement('div');
-    grid.className = `ui-color-swatch-grid ui-color-swatch-grid--${modifier}`;
+    grid.className = 'ui-color-swatch-grid ui-color-swatch-grid--palette';
     grid.setAttribute('role', 'group');
-    grid.setAttribute('aria-label', `${label} 색상`);
+    grid.setAttribute('aria-label', '색상표');
     colors.forEach(color => grid.appendChild(createColorSwatch(color)));
-    section.append(heading, grid);
-    container.appendChild(section);
+    container.appendChild(grid);
   }
 
   function populateColorPalette(container) {
     if (!container || container.children.length) return;
-    appendColorPaletteSection(container, '무채색', dependencies.COLOR_PALETTE_NEUTRALS, 'neutral');
-    appendColorPaletteSection(container, '색상', dependencies.COLOR_PALETTE_COLORS, 'chromatic');
+    appendColorPalette(container, paletteColorsByTone());
   }
 
   function bindColorPickers() {
@@ -239,8 +281,9 @@ export function createColorPicker() {
       const swatches = picker.querySelector('.ui-color-swatches');
       const defaultButton = picker.querySelector('[data-color-default]');
       const customButton = picker.querySelector('[data-color-custom]');
+      const customOnly = picker.hasAttribute('data-color-custom-only');
       populateColorPalette(swatches);
-      trigger?.addEventListener('click', () => openColorPicker(picker));
+      if (!customOnly) trigger?.addEventListener('click', () => openColorPicker(picker));
       defaultButton?.addEventListener('click', () => {
         if (applyColorPickerSelection(kind, '', true)) closeColorPicker(picker, { restoreFocus: true });
       });
@@ -250,16 +293,16 @@ export function createColorPicker() {
         if (applyColorPickerSelection(kind, button.dataset.colorValue)) closeColorPicker(picker, { restoreFocus: true });
       });
       customButton?.addEventListener('click', () => {
-        closeColorPicker(picker);
-        input?.click();
+        if (customOnly && picker.classList.contains('is-open')) closeColorPicker(picker, { restoreFocus: true });
+        else openCustomColorPicker(picker);
       });
-      input?.addEventListener('change', event => {
+      if (!customOnly) input?.addEventListener('change', event => {
         applyColorPickerSelection(kind, event.target.value);
         trigger?.focus({ preventScroll: true });
       });
     });
     document.addEventListener('pointerdown', event => {
-      if (!event.target.closest('[data-color-picker]')) closeAllColorPickers();
+      if (!event.target.closest('.ui-color-popover, .ui-color-trigger')) closeAllColorPickers();
     }, true);
     document.addEventListener('keydown', event => {
       if (event.key !== 'Escape') return;

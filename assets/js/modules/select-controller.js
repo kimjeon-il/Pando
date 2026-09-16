@@ -1,4 +1,5 @@
 import { createSemanticIcon } from './icon-utils.js';
+import { isPlaceholderOption, selectableOptions } from './select-option-policy.js';
 
 const DEFAULT_SEARCH_THRESHOLD = 12;
 const DEFAULT_RENDER_LIMIT = 240;
@@ -25,8 +26,9 @@ function optionMatchRank(option, query) {
 
 export function filterSelectOptions(options, query, collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' })) {
   const normalizedQuery = normalizeSelectQuery(query);
-  if (!normalizedQuery) return [...options];
-  return options
+  const candidates = [...options].filter(option => !isPlaceholderOption(option) && option?.hidden !== true);
+  if (!normalizedQuery) return candidates;
+  return candidates
     .map((option, index) => ({ option, index, rank: optionMatchRank(option, normalizedQuery) }))
     .filter(entry => Number.isFinite(entry.rank))
     .sort((left, right) => left.rank - right.rank
@@ -74,6 +76,8 @@ export function createSelectController({
       searchText: `${option.dataset.searchText || ''} ${option.value}`,
       tooltip: option.dataset.tooltip || '',
       disabled: !!option.disabled,
+      hidden: !!option.hidden,
+      placeholder: isPlaceholderOption(option),
       selected: !!option.selected,
     }));
   }
@@ -330,9 +334,11 @@ export function createSelectController({
     const component = components.get(select);
     if (!component) return;
     component.options = optionData(select);
-    component.searchable = select.hasAttribute('data-searchable-select') || component.options.length > searchThreshold;
+    const candidates = component.options.filter(option => !option.placeholder && !option.hidden);
+    const enabledCandidates = selectableOptions(candidates);
+    component.searchable = select.hasAttribute('data-searchable-select') || candidates.length > searchThreshold;
     component.control.readOnly = !component.searchable;
-    component.control.disabled = !!select.disabled || !component.options.length;
+    component.control.disabled = !!select.disabled || !enabledCandidates.length;
     component.control.setAttribute('aria-autocomplete', component.searchable ? 'list' : 'none');
     component.shell.classList.toggle('is-searchable', component.searchable);
     component.shell.classList.toggle('is-disabled', component.control.disabled);

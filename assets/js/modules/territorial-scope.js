@@ -88,9 +88,13 @@ export function validateSubunitParentChanges(previous, next, countryExists) {
       seen.add(cursor);
       cursor = String(units.get(cursor).properties?.parentId || '');
     }
-    if (before?.properties?.unitType === 'subunit' && String(before.properties.parentId || '') === parentId) continue;
+    const parent = units.get(parentId);
+    if (!countryExists(String(unit.properties.sovereignId || '')) || (parentId !== String(unit.properties.sovereignId || '')
+      && String(parent?.properties?.sovereignId || '') !== String(unit.properties.sovereignId || ''))) {
+      issues.push(unit.id + ': 상위 단위와 소속 국가가 일치해야 합니다.');
+    }
     if (!parentId || (!countryExists(parentId) && units.get(parentId)?.properties?.unitType !== 'subunit')) {
-      issues.push(`${unit.id}: 하위단위의 상위 소속은 국가 또는 하위단위여야 합니다.`);
+      issues.push(`${unit.id}: 하위단위의 상위 단위는 국가 또는 하위단위여야 합니다.`);
     }
   }
   return { ok: !issues.length, issues };

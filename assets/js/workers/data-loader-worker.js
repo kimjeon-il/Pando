@@ -18,6 +18,7 @@ let canonicalCountryIds = [];
 const DATA_CACHE_NAME = `${DATA_CACHE_PREFIX}${DATA_REVISION}`;
 const LEGACY_CORE_CACHE_PREFIX = 'pandolab-core-';
 const params = new URL(self.location.href).searchParams;
+const builtinMeshOnly = params.get('mode') === 'builtin-mesh-only';
 const loadPolicy = resolveStartupLoadPolicy({
   layout: params.get('layout') || 'wide',
   deviceMemory: params.get('deviceMemory') || null,
@@ -424,6 +425,12 @@ async function loadMesh() {
     meshReady = true;
     self.postMessage({
       type: 'mesh-ready', buildId: APP_VERSION, meshBuffer, preparedStroke, spatialBlocks,
+      identity: Object.freeze({
+        hash: String(manifest.assets.canonicalMesh?.sha256 || ''),
+        header: [...(manifest.assets.canonicalMesh?.header || [])].map(Number),
+        dataRevision: DATA_REVISION,
+        countryIds: [...canonicalCountryIds],
+      }),
       postedEpochMs: performance.timeOrigin + performance.now(),
       metrics: {
         policy: loadPolicy,
@@ -444,8 +451,36 @@ async function loadMesh() {
   }
 }
 
+async function loadBuiltinMeshOnly(countryIds) {
+  const ids = [...(countryIds || [])].map(String).filter(Boolean);
+  if (ids.length !== 258) throw new Error('내장 기본 메시 국가 ID가 올바르지 않습니다.');
+  const result = await loadMeshAsset(manifest.assets.canonicalMesh, 'mesh', 'builtin-mesh', '내장 기본 GPU 메시');
+  const meshBuffer = result.buffer;
+  const decodedMesh = decodeCountryMesh(meshBuffer, ids).mesh;
+  const preparedStroke = prepareCountryStroke(decodedMesh, ids);
+  const originalTriangles = decodedMesh.triangleIndices, originalLines = decodedMesh.lineIndices;
+  prepareMeshSpatialBlocks(decodedMesh);
+  originalTriangles.set(decodedMesh.triangleIndices); originalLines.set(decodedMesh.lineIndices);
+  const identity = Object.freeze({
+    hash: String(manifest.assets.canonicalMesh?.sha256 || ''),
+    header: [...(manifest.assets.canonicalMesh?.header || [])].map(Number),
+    dataRevision: DATA_REVISION,
+    countryIds: ids,
+  });
+  self.postMessage({
+    type: 'builtin-mesh-ready', meshBuffer, preparedStroke, spatialBlocks: decodedMesh.spatialBlocks, identity,
+  }, [meshBuffer, ...countryStrokeTransferables(preparedStroke), ...spatialBlockTransferables(decodedMesh)]);
+}
+
 self.onmessage = event => {
   const type = event.data?.type;
+  if (builtinMeshOnly && type === 'load-builtin-mesh') {
+    loadBuiltinMeshOnly(event.data?.countryIds).catch(error => {
+      self.postMessage({ type: 'builtin-mesh-error', message: error?.message || String(error) });
+    });
+    return;
+  }
+  if (builtinMeshOnly) return;
   if (type === 'start-geometry' && previewReady && !geometryStartRequested) {
     geometryStartRequested = true;
     loadGeometry();
@@ -471,8 +506,12 @@ self.onmessage = event => {
 (async () => {
   try {
     manifest = await loadManifest();
+    if (builtinMeshOnly) {
+      self.postMessage({ type: 'builtin-mesh-loader-ready' });
+      return;
+    }
     await loadPreview();
   } catch (error) {
-    self.postMessage({ type: 'preview-error', message: error?.message || String(error) });
+    self.postMessage({ type: builtinMeshOnly ? 'builtin-mesh-error' : 'preview-error', message: error?.message || String(error) });
   }
 })();

@@ -1,19 +1,12 @@
-[data-layout="compact"] .topbar,
-[data-layout="mobile"] .topbar {
-  padding-block: var(--ui-space-3);
-  padding-inline: max(var(--ui-surface-content-rail-x), env(safe-area-inset-left)) max(var(--ui-surface-content-rail-x), env(safe-area-inset-right));
-}
-
 [data-layout="wide"] .surface-map {
   width: var(--ui-shell-left-panel-width);
 }
 
 /* The wide dock has no workspace navigation; retain the shared narrow controls. */
-[data-layout="wide"] .adaptive-nav { display: none; }
 
 /* Both desktop surfaces end at the same persistent status boundary. */
-[data-layout="wide"] .workspace-surface,
-[data-layout="compact"] .workspace-surface {
+[data-layout="wide"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search),
+[data-layout="compact"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search) {
   bottom: var(--ui-shell-statusbar-height);
 }
 
@@ -50,14 +43,14 @@
 [data-layout="wide"] .workspace-surface > .surface-header,
 [data-layout="compact"] .workspace-surface > .surface-header {
   display: grid;
-  min-height: var(--ui-v2-surface-header-height-desktop);
+  min-height: var(--design-surface-header-height-desktop);
 }
 
 [data-layout="wide"] .surface-map :is(.sheet-close-btn, .sheet-drag-handle) {
   display: none;
 }
 
-[data-layout="compact"] .workspace-surface {
+[data-layout="compact"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search) {
   position: fixed;
   z-index: 36;
   top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
@@ -105,8 +98,8 @@
   bottom: var(--mobile-nav-height);
   left: 0;
   width: 100%;
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-half));
-  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--ui-v2-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
+  height: var(--sheet-height, var(--design-sheet-snap-half));
+  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--design-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
   max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
   overflow: hidden;
   opacity: 0;
@@ -120,7 +113,7 @@
 }
 
 [data-layout="mobile"] .surface-map {
-  height: var(--sheet-height, var(--ui-v2-sheet-snap-layer-half));
+  height: var(--sheet-height, var(--design-sheet-snap-layer-half));
 }
 
 [data-layout="mobile"] .workspace-surface.mobile-open {
@@ -147,10 +140,11 @@
 [data-layout="mobile"] .surface-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(var(--ui-touch-height), auto) auto;
+  grid-template-rows: minmax(var(--ui-touch-height), auto);
   flex-basis: auto;
-  min-height: var(--ui-surface-header-height-mobile);
-  padding-block: 0 var(--ui-space-2);
+  min-height: var(--ui-touch-height);
+  padding-block: 0;
+  border-bottom: 0;
   touch-action: none;
   cursor: ns-resize;
 }
@@ -163,3 +157,67 @@
 [data-layout="mobile"] .surface-header .sheet-drag-handle {
   display: grid;
 }
+
+/* Map commands own transient surfaces; there is no persistent layer drawer. */
+.surface-create,
+.surface-search,
+.surface-display {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
+}
+
+.surface-create > .surface-body,
+.surface-search > .surface-body,
+.surface-display > .surface-body {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.surface-display { opacity: 0; visibility: hidden; pointer-events: none; }
+.surface-search:not(.surface-open) { visibility: hidden; pointer-events: none; }
+
+[data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display) {
+  position: fixed;
+  z-index: 100;
+  right: 0;
+  bottom: var(--mobile-nav-height);
+  left: 0;
+  width: 100%;
+  height: var(--sheet-height, var(--design-sheet-snap-half));
+  min-height: min(calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height)), max(var(--design-sheet-snap-collapsed), var(--ui-sheet-header-measured, var(--ui-surface-header-height-mobile))));
+  max-height: calc(100dvh - var(--ui-shell-topbar-height) - var(--mobile-nav-height));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(calc(100% + var(--ui-surface-mobile-hidden-offset)));
+}
+
+[data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display).mobile-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+[data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display).mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
+  height: var(--sheet-drag-height, var(--sheet-height));
+  transform: translate3d(0, var(--sheet-drag-offset, 0px), 0);
+}
+
+/* Create changes its placement, not its menu rows, between menu and sheet. */
+[data-layout]:not([data-layout="mobile"]) .surface-create {
+  position: fixed;
+  top: var(--ui-menu-position-top, var(--ui-shell-topbar-height));
+  left: var(--ui-menu-position-left, var(--ui-shell-compact-inset));
+  max-height: var(--ui-menu-position-max-height, 80dvh);
+  z-index: var(--ui-layer-create-z);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+[data-layout]:not([data-layout="mobile"]) .surface-create.surface-open { opacity: 1; visibility: visible; pointer-events: auto; }
+[data-layout]:not([data-layout="mobile"]) .surface-create > .surface-header { display: none; }
+.surface-create > .surface-body { overflow: auto; padding: 0; }

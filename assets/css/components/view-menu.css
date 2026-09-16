@@ -1,0 +1,52 @@
+/* Menu appearance belongs to menus.css; this file owns view-menu placement. */
+.surface-display.view-menu-desktop {
+  position: fixed;
+  z-index: 140;
+  top: var(--ui-menu-position-top, calc(var(--ui-shell-topbar-height) + var(--ui-menu-trigger-gap)));
+  right: auto;
+  bottom: auto;
+  height: auto;
+  left: var(--ui-menu-position-left, var(--ui-menu-screen-edge));
+  max-height: var(--ui-menu-position-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-4)));
+  overflow: visible;
+  transform: none;
+}
+/* Fixed submenus must keep the viewport as their containing block. */
+.surface-display.view-menu-desktop:is(.surface-open, .mobile-open) {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+}
+.surface-display.view-menu-desktop > .surface-header { display: none; }
+.surface-display.view-menu-desktop > .surface-body,
+.surface-display.view-menu-desktop .map-view-panel-section { min-height: 0; overflow: visible; padding: 0; }
+.view-menu-desktop .view-menu-root { max-height: var(--ui-menu-position-max-height, 80dvh); overflow-y: auto; overscroll-behavior: contain; }
+.view-menu-popups { display: contents; }
+.view-menu-desktop .view-menu-root > .layer-style-editor,
+.view-menu-desktop .layer-type-settings,
+.view-menu-desktop .map-display-row { display: contents; }
+.view-menu-desktop .view-menu-root > .layer-style-editor > strong,
+.view-menu-desktop .view-menu-popups > [role="menu"] > strong,
+.view-menu-desktop .view-menu-popups > [role="menu"] > .layer-setting-hint { display: none; }
+
+.view-menu-desktop .view-menu-popups > .ui-menu-surface {
+  position: fixed;
+  z-index: 141;
+  top: var(--ui-menu-position-top);
+  left: var(--ui-menu-position-left);
+  max-height: var(--ui-menu-position-max-height, calc(100dvh - var(--ui-space-4)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.view-menu-desktop .view-menu-popups > [data-menu-level="2"] { z-index: 142; }
+.view-menu-desktop .view-menu-panel-content[inert] { opacity: .48; }
+.view-menu-desktop .view-menu-parent { inset: auto; z-index: auto; }
+
+.surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent,
+.surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent,
+.surface-display:not(.view-menu-desktop) .view-menu-separator,
+.surface-display:not(.view-menu-desktop) .view-menu-icon,
+.surface-display:not(.view-menu-desktop) .ui-menu-mark { display: none; }
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-leading { display: contents; }
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-chevron { display: none; }

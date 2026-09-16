@@ -6,7 +6,6 @@
   .historical-library-preview,
   .historical-library-result,
   .editor-action-row,
-  .create-menu-item,
   .file-menu-item,
   .ui-callout,
   .ui-alert,
@@ -17,8 +16,8 @@
   overflow-wrap: anywhere;
 }
 
-:is(.editor-action-row, .create-menu-item, .file-menu-item) > span,
-:is(.editor-action-row, .create-menu-item) > :is(div, span) {
+:is(.editor-action-row, .file-menu-item) > span,
+.editor-action-row > :is(div, span) {
   min-width: 0;
 }
 
@@ -40,7 +39,7 @@
 
 .action-status {
   height: auto;
-  min-height: var(--ui-v2-control-lg);
+  min-height: var(--design-control-lg);
 }
 
 .map-bottom-status {
@@ -53,8 +52,8 @@
 .sheet-drag-handle:focus-visible,
 [role="tab"]:focus-visible,
 [role="radio"]:focus-visible {
-  outline: 2px solid var(--ui-v2-color-focus-ring);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline: 2px solid var(--design-color-focus-ring);
+  outline-offset: var(--design-focus-offset);
 }
 
 .historical-library-results,
@@ -95,6 +94,15 @@
 }
 
 @media (forced-colors: active) {
+  :where(.ui-button) {
+    border-color: ButtonText;
+  }
+
+  :where(.ui-button):is([aria-pressed="true"], [aria-expanded="true"], .active, .sheet-open) {
+    border-color: Highlight;
+    color: Highlight;
+  }
+
   :where(.ui-button):focus-visible,
   [role="option"]:focus-visible,
   [role="menuitem"]:focus-visible,
@@ -102,7 +110,7 @@
   [role="tab"]:focus-visible,
   [role="radio"]:focus-visible {
     outline: 2px solid Highlight;
-    outline-offset: var(--ui-v2-focus-offset);
+    outline-offset: var(--design-focus-offset);
   }
 
   .ui-alert,

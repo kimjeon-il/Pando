@@ -1,3 +1,4 @@
+import { geometryRevision } from './geometry-versions.js';
 /** PointerTargets: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -11,6 +12,9 @@ export function createPointerTargets() {
   let lastHoverPickViewRevision;
   let lastHoverHit;
   let snapCandidateCache;
+  const snapSources = new WeakMap();
+  let snapSequence = 0;
+  let confirmedSnapSource = null;
   function connect(ports) {
     if (dependencies) throw new Error('pointer-targets already connected');
     dependencies = ports;
@@ -68,9 +72,8 @@ export function createPointerTargets() {
         : null;
       const nextId = hoveredCountry ? String(hoveredCountry?.id || '') : '';
       const nextRef = hoveredCountry ? (0, dependencies.countryObjectRef)(nextId) : null;
-      if ((dependencies.selectionDomain.snapshot().hover?.key || '') === (nextRef?.key || '')) return;
       lastHoverHit = hoveredCountry ? { ref: nextRef, feature: hoveredCountry } : null;
-      dependencies.selectionDomain.setHover(nextRef);
+      dependencies.selectionDomain.setHover(nextRef, { source: 'map' });
     }, 50);
   }
 
@@ -124,13 +127,6 @@ export function createPointerTargets() {
       && (dependencies.editingDomain?.draftInputActive?.() || ['select', 'move', 'country-border', 'country-coast', 'merge-country', 'merge-generic-feature', 'new-country', 'annex-territory'].includes(dependencies.state.tool));
   }
 
-  function featureNearCoordinate(feature, coordinate, margin) {
-    if (!feature?.geometry) return false;
-    const bounds = (0, dependencies.geometryBounds)(feature.geometry);
-    return coordinate[0] >= bounds[0] - margin && coordinate[0] <= bounds[2] + margin
-      && coordinate[1] >= bounds[1] - margin && coordinate[1] <= bounds[3] + margin;
-  }
-
   function activeSnapOwnerIds() {
     if (dependencies.state.tool === 'country-border') return dependencies.state.boundaryEditCountryIds.map(String);
     if (dependencies.state.coastEditCountryId) return [String(dependencies.state.coastEditCountryId)];
@@ -141,83 +137,36 @@ export function createPointerTargets() {
     return [];
   }
 
-  function appendLocalGeometryCandidates(output, geometry, coordinate, margin, {
-    ownerId = '', segmentKind = 'edge', maxCandidates = 1800,
-  } = {}) {
-    const ownerIds = ownerId ? [String(ownerId)] : [];
-    const nodeKeys = new Set(output.filter(candidate => candidate.nodeKey).map(candidate => candidate.nodeKey));
-    (0, dependencies.geometryPolygonSets)(geometry).forEach((polygon, polygonIndex) => {
-      (polygon || []).forEach((ring, ringIndex) => {
-        const count = Math.max(0, (ring?.length || 0) - 1);
-        for (let segmentIndex = 0; segmentIndex < count && output.length < maxCandidates; segmentIndex += 1) {
-          const a = ring[segmentIndex];
-          const b = ring[segmentIndex + 1];
-          if (Math.max(a[0], b[0]) < coordinate[0] - margin || Math.min(a[0], b[0]) > coordinate[0] + margin
-            || Math.max(a[1], b[1]) < coordinate[1] - margin || Math.min(a[1], b[1]) > coordinate[1] + margin) continue;
-          for (const vertex of [a, b]) {
-            const nodeKey = (0, dependencies.coordKey)(vertex);
-            if (nodeKeys.has(nodeKey)) continue;
-            nodeKeys.add(nodeKey);
-            output.push({ kind: 'vertex', coordinate: vertex, ownerIds, nodeKey });
-          }
-          output.push({
-            kind: segmentKind,
-            a, b, ownerIds,
-            segmentKey: `${ownerId || 'geometry'}:${polygonIndex}:${ringIndex}:${segmentIndex}`,
-          });
-        }
-      });
-    });
-    return output;
-  }
-
   function localSnapCandidates(coordinate) {
     if (!coordinate) return [];
     const projectionScale = Math.max(1, (0, dependencies.activeProjection)().scale());
     const margin = (0, dependencies.clamp)(26 * 180 / (Math.PI * projectionScale), 0.03, 4);
-    const tileSize = margin;
-    const cacheKey = [
-      dependencies.state.stateRevision, dependencies.countryLandRevision, dependencies.state.tool, dependencies.state.selected?.type || '', dependencies.state.selected?.id || '', dependencies.state.boundaryEditCountryIds.join('|'),
-      dependencies.state.territorialUnits.length, dependencies.state.genericFeatures.length, dependencies.state.hydroEdits.length, margin.toFixed(4),
-      Math.floor(coordinate[0] / tileSize), Math.floor(coordinate[1] / tileSize),
-    ].join(':');
-    if (snapCandidateCache.key === cacheKey) return snapCandidateCache.candidates;
-    const bounds = [coordinate[0] - margin, coordinate[1] - margin, coordinate[0] + margin, coordinate[1] + margin];
-    const countryFeatures = (0, dependencies.spatialFeatures)(bounds);
-    const nearbyUnits = dependencies.state.territorialUnits.filter(feature => featureNearCoordinate(feature, coordinate, margin)).slice(0, 32);
-    const nearbyGenericFeatures = dependencies.state.genericFeatures.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
-      && featureNearCoordinate(feature, coordinate, margin)).slice(0, 24);
-    const activeOwners = new Set(activeSnapOwnerIds());
-    const candidates = [];
-    for (const feature of [...countryFeatures, ...nearbyUnits, ...nearbyGenericFeatures]) {
-      const ownerId = String(feature?.id || '');
-      const segmentKind = activeOwners.size && !activeOwners.has(ownerId) ? 'neighbor' : 'edge';
-      appendLocalGeometryCandidates(candidates, feature.geometry, coordinate, margin * 2, { ownerId, segmentKind });
-      if (candidates.length >= 1800) break;
-    }
-    const sourceGeometry = (0, dependencies.activeCutDraftSourceGeometry)();
-    if (sourceGeometry) appendLocalGeometryCandidates(candidates, sourceGeometry, coordinate, margin * 2, {
-      ownerId: activeSnapOwnerIds()[0] || 'source', segmentKind: 'boundary', maxCandidates: 2200,
-    });
-    const segments = candidates.filter(candidate => candidate.a && candidate.b).slice(0, 80);
-    for (let left = 0; left < segments.length; left += 1) {
-      for (let right = left + 1; right < segments.length; right += 1) {
-        if (segments[left].segmentKey === segments[right].segmentKey) continue;
-        const intersection = (0, dependencies.segmentIntersectionDetail)(segments[left].a, segments[left].b, segments[right].a, segments[right].b);
-        if (!intersection || intersection.overlap || intersection.lineT <= 1e-7 || intersection.lineT >= 1 - 1e-7
-          || intersection.boundaryT <= 1e-7 || intersection.boundaryT >= 1 - 1e-7) continue;
-        candidates.push({ kind: 'intersection', coordinate: intersection.coord, ownerIds: [...new Set([...(segments[left].ownerIds || []), ...(segments[right].ownerIds || [])])] });
-        if (candidates.length >= 240) {
-          snapCandidateCache = { key: cacheKey, candidates };
-          return candidates;
-        }
-      }
-    }
-    snapCandidateCache = { key: cacheKey, candidates };
-    return candidates;
+    const source = (0, dependencies.activeCutDraftSourceGeometry)();
+    if (source && !snapSources.has(source)) snapSources.set(source, `snap:${++snapSequence}`);
+    const sourceKey = source ? `${snapSources.get(source)}:${geometryRevision(source)}` : '';
+    const workerStats = dependencies.mapEditClient.stats();
+    const key = [dependencies.state.stateRevision, dependencies.countryLandRevision, dependencies.state.tool,
+      ...activeSnapOwnerIds(), sourceKey, margin, Math.floor(coordinate[0] / margin), Math.floor(coordinate[1] / margin)].join(':');
+    if (snapCandidateCache.key === key) return snapCandidateCache.candidates;
+    const entry = { key, candidates: [] };
+    snapCandidateCache = entry;
+    dependencies.mapEditClient.execute('territorial-snap', { payload: {
+      coordinate, margin: margin * 2, activeOwnerIds: activeSnapOwnerIds(), sourceKey,
+      source: source && (confirmedSnapSource?.key !== sourceKey || confirmedSnapSource.revision !== workerStats.dataRevision || !workerStats.ready) ? source : undefined,
+    } }, { jobKey: 'territorial-snap', priority: 50 }).then(response => {
+      if (snapCandidateCache !== entry) return;
+      entry.candidates = response.result.candidates;
+      if (source) confirmedSnapSource = { key: sourceKey, revision: response.geometryRevision };
+    }).catch(() => { if (snapCandidateCache === entry) { snapCandidateCache = { key: '', candidates: [] }; confirmedSnapSource = null; } });
+    return entry.candidates;
   }
 
   function mapClickBlocked(event = dependencies.d3.event) {
+    if (dependencies.state.projectReplacing) {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      return true;
+    }
     if (event?.defaultPrevented) {
       event.stopPropagation?.();
       return true;

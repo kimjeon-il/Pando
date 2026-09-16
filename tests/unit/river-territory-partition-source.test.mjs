@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
-const app = readApplicationOwners('runtime-dependencies', 'project-session', 'domain-assembly', 'river-candidates', 'territory-components');
+const app = readApplicationOwners('runtime-dependencies', 'project-session', 'domain-assembly', 'river-candidates', 'territory-components', 'territory-selection-workflow');
 const renderer = fs.readFileSync(new URL('assets/js/modules/gpu-map-renderer.js', root), 'utf8');
 const worker = fs.readFileSync(new URL('assets/js/workers/river-territory-partition-worker.js', root), 'utf8');
 
@@ -27,12 +27,12 @@ test('river partition candidates are rewound before D3 renders their spherical p
 });
 
 test('river boundaries extend the shared territory component selection flow', () => {
-  assert.match(app, /annexUseRiverBoundaries: false/);
+  assert.match(app, /useRiverBoundaries: false/);
   assert.match(app, /composeRiverBoundaryTerritoryComponents/);
-  assert.match(app, /state\.annexSelectedComponentKeys/);
-  assert.doesNotMatch(app, /annexSelectedRiverPartitionKeys/);
-  assert.doesNotMatch(app, /annexRiverPartitionPreviewGeometry/);
-  assert.doesNotMatch(app, /annexPhase === 'river-partitions'/);
+  assert.match(app, /territorySelectionSession/);
+  assert.match(app, /selectedComponentKeys/);
+  assert.doesNotMatch(app, /annexSelectedComponentKeys/);
+  assert.doesNotMatch(app, /annexRiverPartition/);
 });
 
 test('frontier pocket implementation and companion assets are completely removed', () => {

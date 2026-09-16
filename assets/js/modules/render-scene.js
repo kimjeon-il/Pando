@@ -58,7 +58,15 @@ function fallbackTriangulate(vertices, holes = []) {
 export function buildPolygonGeometryPacket(geometry, { triangulate = null } = {}) {
   const positions = [];
   const indices = [];
+  const ringCoordinates = [];
+  const ringOffsets = [0];
+  const polygonOffsets = [0];
   for (const component of polygonComponents(geometry)) {
+    for (const ring of component || []) {
+      for (const point of ring || []) if (finiteCoordinate(point)) ringCoordinates.push(Number(point[0]), Number(point[1]));
+      ringOffsets.push(ringCoordinates.length / 2);
+    }
+    polygonOffsets.push(ringOffsets.length - 1);
     const rings = (component || []).map((ring, index) => unwrapRing(ring, index ? component?.[0]?.[0]?.[0] : null))
       .filter(ring => ring.length >= 3);
     if (!rings.length) continue;
@@ -86,6 +94,9 @@ export function buildPolygonGeometryPacket(geometry, { triangulate = null } = {}
     featureIds: new Uint32Array(positions.length / 2),
     vertexCount: positions.length / 2,
     triangleCount: indices.length / 3,
+    ringCoordinates: new Float64Array(ringCoordinates),
+    ringOffsets: new Uint32Array(ringOffsets),
+    polygonOffsets: new Uint32Array(polygonOffsets),
   });
 }
 
@@ -135,6 +146,9 @@ function geometryPacketByteLength(packet) {
   return Number(packet?.positions?.byteLength || 0)
     + Number(packet?.indices?.byteLength || 0)
     + Number(packet?.featureIds?.byteLength || 0)
+    + Number(packet?.ringCoordinates?.byteLength || 0)
+    + Number(packet?.ringOffsets?.byteLength || 0)
+    + Number(packet?.polygonOffsets?.byteLength || 0)
     + Number(packet?.startsEnds?.byteLength || 0);
 }
 
@@ -152,6 +166,10 @@ function freezePacket(item, geometryPacket, kind, { lod = 'high', projection = '
     style: normalizedStyle(item?.style),
     blendMode: item?.blendMode === 'multiply' || item?.style?.blendMode === 'multiply' ? 'multiply' : 'normal',
     role: String(item?.role || ''),
+    interactionPriority: Number(item?.interactionPriority || 0),
+    ownerId: String(item?.ownerId || ''),
+    parentId: String(item?.parentId || ''),
+    territoryDepth: Number(item?.territoryDepth || 0),
     sourceKey: packetKey(item, kind, lod, projection),
     chunkKey: String(item?.chunkKey || item?.key || ''),
     lod,

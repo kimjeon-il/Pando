@@ -109,7 +109,7 @@ test('scrollbar follows sheet transforms during drag and settling', async ({ pag
 
 test('concise toast copy fits narrow screens without enlarging the toast', async ({ page }) => {
   await fixture(page);
-  await page.addStyleTag({ url: '/assets/css/tokens/ui-v2.css' });
+  await page.addStyleTag({ url: '/assets/css/tokens/design-tokens.css' });
   await page.addStyleTag({ url: '/assets/css/app.css' });
   await page.addStyleTag({ url: '/assets/css/components/feedback.css' });
   await page.evaluate(() => {

@@ -44,6 +44,27 @@ function harness(overrides = {}) {
   return { service, storage, tasks, events };
 }
 
+test('queued autosaves share a build and clear waits for an active write without restoring cancelled data', async () => {
+  let release;
+  let builds = 0;
+  const gate = new Promise(resolve => { release = resolve; });
+  const current = harness({
+    storage: { async writeProject(value) { await gate; this.project = value; } },
+    service: { buildAutosave: () => ({ format: 'autosave', build: ++builds }) },
+  });
+  const first = current.service.persist();
+  await Promise.resolve();
+  const queued = current.service.persist();
+  assert.equal(current.service.persist(), queued);
+  const clearing = current.service.clear();
+  release();
+  await Promise.all([first, queued, clearing]);
+  assert.equal(builds, 1);
+  assert.equal(current.storage.project, null);
+  await current.service.persist();
+  assert.equal(builds, 2);
+});
+
 test('document and presentation queues share persistence but report distinct dirty scopes', async () => {
   const { service, storage, tasks, events } = harness();
   service.queuePresentation(25);

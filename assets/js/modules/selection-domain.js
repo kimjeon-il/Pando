@@ -135,24 +135,31 @@ export function createSelectionDomain({
   );
   const prune = (validKeys, options = {}) => {
     const keys = validKeys == null ? null : new Set([...validKeys].map(String));
-    return mutate(options.reason || 'prune', () => controller.prune(ref => (
+    const result = mutate(options.reason || 'prune', () => controller.prune(ref => (
       keys ? keys.has(ref.key) : refExists(ref)
     )));
+    if (hover && !(keys ? keys.has(hover.key) : refExists(hover))) return setHover(null);
+    return result;
   };
   const clear = (options = {}) => mutate(options.reason || 'clear', () => controller.clear());
-  const setHover = value => {
+  let hoverSource = '';
+  const setHover = (value, { source = '', expectedKey = '' } = {}) => {
     active();
+    if (value == null && ((source && hoverSource && source !== hoverSource)
+      || (expectedKey && hover?.key !== expectedKey))) return snapshot();
     const ref = value == null ? null : normalizeExistingRef(value);
     if (value != null && !ref) {
       metrics.noOpCount += 1;
       return snapshot();
     }
     if ((hover?.key || '') === (ref?.key || '')) {
+      if (ref) hoverSource = source;
       metrics.noOpCount += 1;
       return snapshot();
     }
     metrics.mutationCount += 1;
     hover = ref;
+    hoverSource = ref ? source : '';
     hoverRevision += 1;
     return publishHover('selection-hover');
   };
@@ -170,6 +177,7 @@ export function createSelectionDomain({
       suppressControllerChange = false;
     }
     hover = null;
+    hoverSource = '';
     if (!hadSelection && !hadHover && previousGeneration === projectGeneration) {
       metrics.noOpCount += 1;
       return snapshot();

@@ -51,6 +51,7 @@ export function connectMapResources({
     get viewRevision() { return mapHost.viewRevision; },
   });
   objectPresentation.connect({
+    get mapEditClient() { return spatialIndex.mapEditClient; },
     get $() { return environment.$; },
     get boundsOverlap() { return cutGeometry.boundsOverlap; },
     get builtinSubunitSourceId() { return runtime.builtinSubunitSourceId; },
@@ -98,6 +99,7 @@ export function connectMapResources({
   layerList.connect({
     get $() { return environment.$; },
     get activeLayerFolderKeys() { return hydroSettings.activeLayerFolderKeys; },
+    get ASSET_REVISION() { return environment.ASSET_REVISION; },
     get builtinRenderCountries() { return builtinSession.builtinRenderCountries; },
     get countryColor() { return objectPresentation.countryColor; },
     get countryName() { return objectPresentation.countryName; },
@@ -121,6 +123,7 @@ export function connectMapResources({
     get LAYER_GROUP_KEYS() { return objectPresentation.LAYER_GROUP_KEYS; },
     get layerGroupNames() { return objectPresentation.layerGroupNames; },
     get pendingCountryLabelAnchors() { return countryIndex.pendingCountryLabelAnchors; },
+    get scheduleCountryLabelAnchors() { return countryIndex.scheduleCountryLabelAnchors; },
     get projectDomain() { return domainAssembly.projectDomain; },
     get renderingDomain() { return domainAssembly.renderingDomain; },
     get selectionDomain() { return domainAssembly.selectionDomain; },
@@ -132,6 +135,7 @@ export function connectMapResources({
     get territorialUnitName() { return objectPresentation.territorialUnitName; },
   });
   countryLabels.connect({
+    get $() { return environment.$; },
     get activeProjection() { return mapProjection.activeProjection; },
     get applyAppAccent() { return runtime.applyAppAccent; },
     get applyMapLabelPreferences() { return environment.applyMapLabelPreferences; },
@@ -204,6 +208,7 @@ export function connectMapResources({
     get state() { return projectSession.state; },
   });
   interactionPackets.connect({
+    get resolvedInteractionStyle() { return environment.resolvedInteractionStyle; },
     get $() { return environment.$; },
     get activeCutDraftSourceGeometry() { return cutGeometry.activeCutDraftSourceGeometry; },
     get createRenderSceneBuilder() { return runtime.createRenderSceneBuilder; },

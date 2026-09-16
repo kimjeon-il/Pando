@@ -6,7 +6,7 @@
  */
 
 const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
-const { missingLibraryOwnership, prepareLibraryOwnership, subunitParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
+const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, subunitParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
 const { layoutCountryFlags } = await import(`./country-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
 const { countryDisplayName, defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -128,9 +128,10 @@ const renderingDomainModule = await import(versionedModuleUrl('./modules/renderi
 const gisDomainModule = await import(versionedModuleUrl('./modules/gis-domain.js'));
 const editingDomainModule = await import(versionedModuleUrl('./modules/editing-domain.js'));
 const selectionUiControllerModule = await import(versionedModuleUrl('./modules/selection-ui-controller.js'));
+const selectionToolbarPresentationModule = await import(versionedModuleUrl('./modules/selection-toolbar-presentation.js'));
 const countryPropertyControllerModule = await import(versionedModuleUrl('./modules/country-property-controller.js'));
 const objectPropertyControllerModule = await import(versionedModuleUrl('./modules/object-property-controller.js'));
-const { effectiveCountryFlagUrl } = countryFlagsModule;
+const { effectiveCountryFlagUrl, effectiveTerritorialFlagUrl } = countryFlagsModule;
 const { createProjectDomain } = projectDomainModule;
 const { createProjectCommandPipeline } = projectCommandPipelineModule;
 const { createSelectionDomain } = selectionDomainModule;
@@ -138,6 +139,7 @@ const { createRenderingDomain } = renderingDomainModule;
 const { createGisDomain } = gisDomainModule;
 const { createEditingDomain } = editingDomainModule;
 const { createSelectionUiController } = selectionUiControllerModule;
+const { createSelectionToolbarPresentation } = selectionToolbarPresentationModule;
 const { createCountryPropertyController } = countryPropertyControllerModule;
 const { createObjectPropertyController } = objectPropertyControllerModule;
 
@@ -365,9 +367,7 @@ const createPartitionTerritorialFeature = options => createTerritorialFeature({
   unitType: options.unitType,
   parentId: options.parentId || options.sovereignId || '',
   sovereignId: options.sovereignId || '',
-  isRemainder: options.isRemainder === true,
   coverageMode: TERRITORIAL_COVERAGE_MODES.PARTITION,
-  adminLevel: options.adminLevel,
   name: options.name,
   color: options.color,
   notes: options.notes,
@@ -418,6 +418,7 @@ export {
   moduleRevision,
   missingLibraryOwnership,
   prepareLibraryOwnership,
+  shouldShowTerritorialParentChoice,
   subunitParentChoices,
   BUILTIN_TERRITORY_MERGES,
   layoutCountryFlags,
@@ -531,9 +532,11 @@ export {
   gisDomainModule,
   editingDomainModule,
   selectionUiControllerModule,
+  selectionToolbarPresentationModule,
   countryPropertyControllerModule,
   objectPropertyControllerModule,
   effectiveCountryFlagUrl,
+  effectiveTerritorialFlagUrl,
   createProjectDomain,
   createProjectCommandPipeline,
   createSelectionDomain,
@@ -541,6 +544,7 @@ export {
   createGisDomain,
   createEditingDomain,
   createSelectionUiController,
+  createSelectionToolbarPresentation,
   createCountryPropertyController,
   createObjectPropertyController,
   createProjectUiBridge,

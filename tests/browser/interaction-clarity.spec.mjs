@@ -14,12 +14,13 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
   return errors;
 }
 
-async function clickMapBackgroundAt(page, point, { altKey = false } = {}) {
+async function clickMapBackgroundAt(page, point, { altKey = false, ctrlKey = false } = {}) {
   await page.locator('#map .map-svg').dispatchEvent('click', {
     bubbles: true,
     clientX: point.x,
     clientY: point.y,
     altKey,
+    ctrlKey,
   });
 }
 
@@ -43,7 +44,11 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await search.fill('폴란드');
   const poland = page.locator('#layerSearchResults .layer-search-result').first();
   await expect(poland).toContainText('폴란드');
-  await poland.click();
+  await expect(poland.locator('.layer-search-focus-action')).toBeVisible();
+  await expect(poland.locator(':scope > span')).toHaveCount(0);
+  const viewRevisionBeforeSearchFocus = await page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0));
+  await poland.locator('.layer-search-focus-action').click();
+  await expect.poll(() => page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0))).toBeGreaterThan(viewRevisionBeforeSearchFocus);
   await expect(page.locator('#focusSelectedObjectBtn')).toBeVisible();
   const viewRevisionBeforeFocus = await page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0));
   await page.locator('#focusSelectedObjectBtn').click();
@@ -107,7 +112,7 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
   await expect(page.locator('#layerPresentationBtn, #layerPresentationCloseBtn, #layerPresentationModal')).toHaveCount(0);
   await expect(page.locator('#layerStyleEditorTitle')).toHaveCount(0);
   await page.locator('#mapLayersTabBtn').click();
-  await page.locator('[data-layer-style-toggle="countries"]').click();
+  await page.locator('[data-map-display-row="countries"]').click();
   await expect(page.locator('[data-layer-order-direction]')).toHaveCount(0);
   await page.locator('[data-layer-style-opacity="countries"]').fill('80');
   await page.locator('[data-layer-style-opacity="countries"]').dispatchEvent('change');
@@ -131,9 +136,6 @@ test('layer selection supports additive selection, compact batch UI, fixed prese
 test('overlapping map objects open the compact chooser and expose disambiguating type labels', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
-  await page.locator('#mapViewTabBtn').click();
-  await page.locator('#basemapLabelsVisible').uncheck();
-  await page.locator('#mapLayersTabBtn').click();
   await page.locator('#createMenuBtn').click();
   await page.locator('#addLabelBtn').click();
 
@@ -145,21 +147,6 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   await selectUiOption(page, '#labelKindInput', 'capital');
   await expect(page.locator('.user-label')).toContainText('겹침 테스트');
   await expect(page.locator('#labelProperties')).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator('#labelProperties .editor-disclosure')).toHaveCount(0);
-  const labelNotes = page.locator('#labelNotesInput');
-  await expect(labelNotes).toBeVisible();
-  await labelNotes.fill('지명 메모 테스트');
-  await labelNotes.blur();
-  await expect(labelNotes).toHaveValue('지명 메모 테스트');
-  await expect(page.locator('#undoBtn')).toBeEnabled();
-  await page.locator('#undoBtn').click();
-  await clickMapBackgroundAt(page, point);
-  await page.locator('#objectChooser').getByRole('option').filter({ hasText: '겹침 테스트' }).click();
-  await expect(labelNotes).toHaveValue('');
-  await page.locator('#redoBtn').click();
-  await clickMapBackgroundAt(page, point);
-  await page.locator('#objectChooser').getByRole('option').filter({ hasText: '겹침 테스트' }).click();
-  await expect(labelNotes).toHaveValue('지명 메모 테스트');
 
   await clickMapBackgroundAt(page, point);
   const chooser = page.locator('#objectChooser');
@@ -171,10 +158,13 @@ test('overlapping map objects open the compact chooser and expose disambiguating
   await expect(page.locator('#propertyTitle')).toHaveText('겹침 테스트');
 
   await page.locator('#objectChooserCloseBtn').click();
-  await clickMapBackgroundAt(page, point, { altKey: true });
+  await clickMapBackgroundAt(page, point, { ctrlKey: true });
   await expect(chooser).toBeVisible();
   await expect(chooser.getByRole('option')).toHaveCount(2);
   await expect(page.locator('#propertyTitle')).toHaveText('겹침 테스트');
+  await chooser.getByRole('option').filter({ hasText: '국가' }).click();
+  await expect(chooser).toBeHidden();
+  await expect(page.locator('#multiProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
 

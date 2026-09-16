@@ -101,17 +101,17 @@ export function validateProjectReferenceIntegrity({
     if (geometryError) issues.push(geometryError);
 
     if (parentId === id) {
-      issues.push(issue('PL-INV-SELF-PARENT', `${id}가 자기 자신을 상위 소속으로 참조합니다.`, [id], 'parentId'));
+      issues.push(issue('PL-INV-SELF-PARENT', `${id}가 자기 자신을 상위 단위로 참조합니다.`, [id], 'parentId'));
     } else if (parentId && !territorialIds.has(parentId)) {
-      issues.push(issue('PL-INV-MISSING-PARENT', `${id}의 상위 소속 ${parentId}이 존재하지 않습니다.`, [id, parentId], 'parentId'));
+      issues.push(issue('PL-INV-MISSING-PARENT', `${id}의 상위 단위 ${parentId}이 존재하지 않습니다.`, [id, parentId], 'parentId'));
     }
 
     if (sovereignId && !countryIds.has(sovereignId)) {
-      issues.push(issue('PL-INV-MISSING-SOVEREIGN', `${id}의 주권 국가 ${sovereignId}이 존재하지 않습니다.`, [id, sovereignId], 'sovereignId'));
+      issues.push(issue('PL-INV-MISSING-SOVEREIGN', `${id}의 소속 국가 ${sovereignId}이 존재하지 않습니다.`, [id, sovereignId], 'sovereignId'));
     }
 
     if (parentCycle(id, unitById, row => row?.properties?.parentId)) {
-      issues.push(issue('PL-INV-PARENT-CYCLE', `${id}의 상위 소속 관계가 순환합니다.`, [id], 'parentId'));
+      issues.push(issue('PL-INV-PARENT-CYCLE', `${id}의 상위 단위 관계가 순환합니다.`, [id], 'parentId'));
     }
     try { normalizeTemporalInterval(feature?.properties?.validFrom, feature?.properties?.validTo); }
     catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id}의 유효기간이 올바르지 않습니다. ${error.message}`, [id], 'validFrom')); }
@@ -126,10 +126,10 @@ export function validateProjectReferenceIntegrity({
       issues.push(issue('PL-INV-MISSING-RELATION-UNIT', `${id || unitId}의 대상 영역 ${unitId}이 존재하지 않습니다.`, [id, unitId], 'unitId'));
     }
     if (parentId && !territorialIds.has(parentId)) {
-      issues.push(issue('PL-INV-MISSING-RELATION-PARENT', `${id || unitId}의 상위 소속 ${parentId}이 존재하지 않습니다.`, [id, unitId, parentId], 'parentId'));
+      issues.push(issue('PL-INV-MISSING-RELATION-PARENT', `${id || unitId}의 상위 단위 ${parentId}이 존재하지 않습니다.`, [id, unitId, parentId], 'parentId'));
     }
     if (sovereignId && !countryIds.has(sovereignId)) {
-      issues.push(issue('PL-INV-MISSING-RELATION-SOVEREIGN', `${id || unitId}의 주권 국가 ${sovereignId}이 존재하지 않습니다.`, [id, unitId, sovereignId], 'sovereignId'));
+      issues.push(issue('PL-INV-MISSING-RELATION-SOVEREIGN', `${id || unitId}의 소속 국가 ${sovereignId}이 존재하지 않습니다.`, [id, unitId, sovereignId], 'sovereignId'));
     }
     try { normalizeTemporalInterval(relation?.validFrom, relation?.validTo); }
     catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id || unitId}의 유효기간이 올바르지 않습니다. ${error.message}`, [id, unitId], 'validFrom')); }

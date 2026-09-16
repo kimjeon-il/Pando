@@ -17,7 +17,6 @@ const ACTION_UI_BINDINGS = Object.freeze({
   ]),
   'change-type': Object.freeze([
     Object.freeze({ elementId: 'changeCountryTypeBtn', labelSelector: 'strong' }),
-    Object.freeze({ elementId: 'changeSubunitTypeBtn', labelSelector: 'strong' }),
   ]),
   'border-edit': Object.freeze([
     Object.freeze({ elementId: 'editBorderBtn', labelSelector: 'strong' }),
@@ -43,7 +42,7 @@ function syncObjectTaxonomy(root) {
   for (const node of root.querySelectorAll?.('[data-map-category]') || []) {
     const descriptor = MAP_OBJECT_CATEGORIES[node.dataset.mapCategory];
     if (!descriptor) continue;
-    const heading = node.querySelector('.create-menu-group-title, .layer-category-title');
+    const heading = node.querySelector('.layer-category-title');
     if (heading) heading.textContent = descriptor.label;
     node.dataset.objectCategory = descriptor.key;
   }
@@ -55,9 +54,9 @@ function syncObjectTaxonomy(root) {
     node.dataset.objectCategory = descriptor.category;
     node.dataset.objectEditor = descriptor.editor;
     node.dataset.objectCreatable = String(descriptor.creatable);
-    const label = node.querySelector('strong');
+    const label = node.querySelector(node.classList.contains('ui-menu-item') ? 'span' : 'strong');
     if (label) label.textContent = descriptor.label;
-    if (descriptor.icon) syncUseIcon(node.querySelector('.create-menu-icon') || node, descriptor.icon);
+    if (descriptor.icon) syncUseIcon(node, descriptor.icon);
   }
 }
 

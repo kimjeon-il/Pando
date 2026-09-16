@@ -1,5 +1,25 @@
 export const LAYER_PRESENTATION_SCHEMA_VERSION = 3;
 
+export const TERRITORIAL_SYMBOL_KEYS = Object.freeze({
+  countries: Object.freeze({ name: 'basemapLabels', flag: 'countryFlags' }),
+  subunits: Object.freeze({ name: 'subunitLabels', flag: 'subunitFlags' }),
+  regions: Object.freeze({ name: 'regionLabels', flag: 'regionFlags' }),
+});
+
+export function territorialSymbolGroup(feature) {
+  return feature?.properties?.unitType === 'subunit' ? 'subunits'
+    : feature?.properties?.unitType === 'region' ? 'regions' : 'countries';
+}
+
+export function territorialSymbolVisibility(state, group) {
+  const keys = TERRITORIAL_SYMBOL_KEYS[group];
+  const visible = state.layerVisibility?.[group] !== false;
+  return {
+    name: visible && state.layerVisibility?.[keys.name] !== false,
+    flag: visible && state.layerVisibility?.[keys.flag] !== false,
+  };
+}
+
 export const OVERLAY_GROUPS = Object.freeze([
   'religions',
   'ethnicities',
@@ -72,7 +92,11 @@ export function normalizeLayerPresentation(value = {}) {
     styles[group] = normalizeLayerStyle(sourceStyles[group]);
   }
   const objectStyles = {};
-  for (const [key, style] of Object.entries(value.objectStyles || {})) objectStyles[key] = normalizeLayerStyle(style);
+  for (const [key, style] of Object.entries(value.objectStyles || {})) {
+    const normalized = normalizeLayerStyle(style);
+    objectStyles[key] = Object.fromEntries(Object.keys(normalized)
+      .filter(property => Object.hasOwn(style, property)).map(property => [property, normalized[property]]));
+  }
   const objectOrder = [...new Set((value.objectOrder || []).map(String))];
   return { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder, styles, objectStyles, objectOrder };
 }
@@ -84,5 +108,5 @@ export function moveOverlayGroup(presentation, group, direction) {
 }
 
 export const layerStyle = (presentation, group, objectKey = '') => normalizeLayerStyle(
-  (objectKey && presentation?.objectStyles?.[objectKey]) || presentation?.styles?.[group],
+  { ...presentation?.styles?.[group], ...(objectKey && presentation?.objectStyles?.[objectKey]) },
 );
