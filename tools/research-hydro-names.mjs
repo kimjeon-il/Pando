@@ -152,7 +152,7 @@ function renderMarkdown(document) {
     for (const source of entry.sources || []) lines.push(`- ${source.kind}: [${source.label || source.url}](${source.url})${source.id ? ` (ID ${source.id})` : ''}`);
     lines.push('');
   }
-  return `${lines.join('\n')}\n`;
+  return `${lines.join('\n').trimEnd()}\n`;
 }
 
 function formatNumber(value) {
