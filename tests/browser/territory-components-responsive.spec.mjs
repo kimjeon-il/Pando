@@ -57,3 +57,38 @@ test('Russia subunit components keep input responsive and reuse preparation on h
   expect(metrics.longTasks.filter(task => task.start >= metrics.start && task.duration > 1000)).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+test('Germany river components prepare a subunit preview before the next step', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?debug=1');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#addCountrySubunitBtn').evaluate(button => button.click());
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
+  await page.locator('#territorialCreateNameInput').fill('하천 조각 회귀 시험');
+  await page.locator('#modePrimaryBtn').click();
+  await page.locator('#modeComponentsMethodInput').check();
+  await page.locator('#modeRiverBoundaryInput').evaluate(input => input.click());
+  const components = page.locator('.draft-layer .territory-component.river-partition');
+  await expect.poll(() => components.count(), { timeout: 90_000 }).toBeGreaterThan(2);
+  await components.evaluateAll(nodes => nodes.slice(0, 3).forEach(node => node.dispatchEvent(new window.MouseEvent('click', {
+    bubbles: true, cancelable: true,
+  }))));
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
+  await expect(page.locator('#modePrimaryBtn')).toContainText('다음');
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modeTaskStage')).toHaveText('결과 확인');
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await expect(page.locator('#modePrimaryBtn')).toContainText('생성');
+  expect(errors.filter(message => /PL-TERRITORY-PREVIEW-001|beginGeometryPreview/.test(message))).toEqual([]);
+  await page.locator('#modePrimaryBtn').click();
+  const created = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' })
+    .some(feature => feature.properties.name === '하천 조각 회귀 시험'));
+  await expect.poll(created, { timeout: 60_000 }).toBe(true);
+  await page.locator('#undoBtn').click();
+  await expect.poll(created, { timeout: 30_000 }).toBe(false);
+});

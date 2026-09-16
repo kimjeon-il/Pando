@@ -49,37 +49,38 @@ const remainingOwnerGroups = {
 };
 const ownerName = file => file.slice(4, -3).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 
-test('spatial-data owners consume small named capability ports without flat dependency aliases', async () => {
+function assertOwnerPortAccesses({ ports, contract, files }) {
+  for (const file of files) {
+    const source = read(`assets/js/modules/${file}`);
+    const owner = ownerName(file);
+    assert.ok(contract[owner], `${file} has no declared owner contract`);
+    const accesses = [...source.matchAll(/\bdependencies\.([A-Za-z_$][\w$]*)(?:\.([A-Za-z_$][\w$]*))?/g)];
+    assert.ok(accesses.length > 0, `${file} should consume injected ports`);
+    for (const [, group, member] of accesses) {
+      assert.ok(member, `${file} retains flat dependency access: dependencies.${group}`);
+      assert.ok(!/^runtime|environment$/i.test(group), `${file} exposes provider-shaped port: ${group}`);
+      assert.ok(contract[owner].includes(group), `${file} uses undeclared port: ${group}`);
+      assert.ok(ports[group], `${file} uses missing port: ${group}`);
+      assert.ok(Object.hasOwn(ports[group], member), `${file} uses undeclared capability: ${group}.${member}`);
+    }
+  }
+}
+
+test('every owner access is declared by an injected capability port', async () => {
   const portModuleUrl = new URL('assets/js/modules/app-capability-ports.js', root);
   assert.equal(existsSync(portModuleUrl), true, 'missing capability port registry');
-  const { createSpatialDataPorts, SPATIAL_DATA_OWNER_PORTS } = await import(portModuleUrl.href);
-  assert.equal(typeof createSpatialDataPorts, 'function');
-  assert.deepEqual(Object.keys(SPATIAL_DATA_OWNER_PORTS).sort(), spatialOwners.map(ownerName).sort());
-
-  for (const file of spatialOwners) {
-    const source = read(`assets/js/modules/${file}`);
-    const accesses = [...source.matchAll(/\bdependencies\.([A-Za-z_$][\w$]*)(?:\.([A-Za-z_$][\w$]*))?/g)];
-    assert.ok(accesses.length > 0, `${file} should consume injected ports`);
-    for (const [, group, member] of accesses) {
-      assert.ok(member, `${file} retains flat dependency access: dependencies.${group}`);
-      assert.ok(!/^runtime|environment$/i.test(group), `${file} exposes provider-shaped port: ${group}`);
-    }
-  }
-});
-
-test('map-resources owners use the shared application registry without flat dependencies', async () => {
-  const module = await import(new URL('assets/js/modules/app-capability-ports.js', root).href);
-  assert.equal(typeof module.createApplicationPorts, 'function');
+  const module = await import(portModuleUrl.href);
+  const providers = new Proxy({}, {
+    get: (_target, provider) => new Proxy({}, {
+      get: (_providerTarget, field) => `${String(provider)}.${String(field)}`,
+      set: () => true,
+    }),
+  });
+  const ports = module.createApplicationPorts(providers);
+  assert.deepEqual(Object.keys(module.SPATIAL_DATA_OWNER_PORTS).sort(), spatialOwners.map(ownerName).sort());
   assert.deepEqual(Object.keys(module.MAP_RESOURCE_OWNER_PORTS).sort(), mapResourceOwners.map(ownerName).sort());
-  for (const file of mapResourceOwners) {
-    const source = read(`assets/js/modules/${file}`);
-    const accesses = [...source.matchAll(/\bdependencies\.([A-Za-z_$][\w$]*)(?:\.([A-Za-z_$][\w$]*))?/g)];
-    assert.ok(accesses.length > 0, `${file} should consume injected ports`);
-    for (const [, group, member] of accesses) {
-      assert.ok(member, `${file} retains flat dependency access: dependencies.${group}`);
-      assert.ok(!/^runtime|environment$/i.test(group), `${file} exposes provider-shaped port: ${group}`);
-    }
-  }
+  assertOwnerPortAccesses({ ports, contract: module.SPATIAL_DATA_OWNER_PORTS, files: spatialOwners });
+  assertOwnerPortAccesses({ ports, contract: module.MAP_RESOURCE_OWNER_PORTS, files: mapResourceOwners });
   const composition = read('assets/js/modules/app-composition.js');
   assert.match(composition, /createApplicationPorts/);
   assert.match(composition, /ports:\s*applicationPorts/g);
@@ -97,18 +98,7 @@ test('remaining connector domains expose owner contracts without flat dependency
   for (const [contractName, files] of Object.entries(remainingOwnerGroups)) {
     assert.ok(module[contractName], `${contractName} missing`);
     assert.deepEqual(Object.keys(module[contractName]).sort(), files.map(ownerName).sort());
-    for (const file of files) {
-      const source = read(`assets/js/modules/${file}`);
-      const accesses = [...source.matchAll(/\bdependencies\.([A-Za-z_$][\w$]*)(?:\.([A-Za-z_$][\w$]*))?/g)];
-      assert.ok(accesses.length > 0, `${file} should consume injected ports`);
-      for (const [, group, member] of accesses) {
-        assert.ok(member, `${file} retains flat dependency access: dependencies.${group}`);
-        assert.ok(!/^runtime|environment$/i.test(group), `${file} exposes provider-shaped port: ${group}`);
-        assert.ok(module[contractName][ownerName(file)].includes(group), `${file} uses undeclared port: ${group}`);
-        assert.ok(Object.hasOwn(ports[group], member), `${file} uses undeclared capability: ${group}.${member}`);
-      }
-      assert.doesNotMatch(source, /\bdependencies\.[A-Za-z_$][\w$]*\s*(?:\+=|=)/, `${file} retains dependency assignment`);
-    }
+    assertOwnerPortAccesses({ ports, contract: module[contractName], files });
   }
 });
 
@@ -129,6 +119,25 @@ test('map-resources writes use explicit capability commands', async () => {
   assert.equal(state.objectPresentation.distributionVisibilityRevision, 3);
   assert.equal(state.environment.resolvedAccentColor, '#123456');
   assert.deepEqual(state.environment.userPreferences, { theme: 'dark' });
+});
+
+test('environment provides the platform values consumed by boundary editing', async () => {
+  const { createEnvironment } = await import(new URL('assets/js/modules/app-environment.js', root).href);
+  const previousMatchMedia = globalThis.matchMedia;
+  const previousClipper = globalThis.polygonClipping;
+  const clipper = { intersection() {} };
+  try {
+    globalThis.matchMedia = query => ({ matches: query === '(pointer: coarse)' });
+    globalThis.polygonClipping = clipper;
+    const environment = createEnvironment();
+    assert.equal(environment.coarsePointer, true);
+    assert.strictEqual(environment.polygonClipping, clipper);
+  } finally {
+    if (previousMatchMedia === undefined) delete globalThis.matchMedia;
+    else globalThis.matchMedia = previousMatchMedia;
+    if (previousClipper === undefined) delete globalThis.polygonClipping;
+    else globalThis.polygonClipping = previousClipper;
+  }
 });
 
 test('application capability ports are frozen, shared and bounded to twelve members', async () => {
