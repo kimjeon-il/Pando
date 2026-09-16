@@ -22,7 +22,7 @@ export function createSpatialIndex() {
     if (!geometry || typeof geometry !== 'object') return [Infinity, Infinity, -Infinity, -Infinity];
     const cached = geometryBoundsCache.get(geometry);
     if (cached) return cached;
-    const bounds = (0, dependencies.coordinateBounds)(geometry.coordinates);
+    const bounds = (0, dependencies.cutGeometry.coordinateBounds)(geometry.coordinates);
     geometryBoundsCache.set(geometry, bounds);
     return bounds;
   }
@@ -42,14 +42,14 @@ export function createSpatialIndex() {
       [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2],
     ];
     const projected = samples
-      .filter(coordinate => dependencies.state.projection !== 'globe' || (0, dependencies.isCoordVisible)(coordinate))
-      .map(coordinate => (0, dependencies.activeProjection)()(coordinate))
+      .filter(coordinate => dependencies.projectState.state.projection !== 'globe' || (0, dependencies.mapView.isCoordVisible)(coordinate))
+      .map(coordinate => (0, dependencies.mapView.activeProjection)()(coordinate))
       .filter(Boolean);
     if (!projected.length) return false;
     const xs = projected.map(point => point[0]);
     const ys = projected.map(point => point[1]);
-    return Math.max(...xs) >= -overscan && Math.min(...xs) <= dependencies.state.size.width + overscan
-      && Math.max(...ys) >= -overscan && Math.min(...ys) <= dependencies.state.size.height + overscan;
+    return Math.max(...xs) >= -overscan && Math.min(...xs) <= dependencies.projectState.state.size.width + overscan
+      && Math.max(...ys) >= -overscan && Math.min(...ys) <= dependencies.projectState.state.size.height + overscan;
   }
 
   function sameSourceParts(left = [], right = []) {
@@ -66,14 +66,14 @@ export function createSpatialIndex() {
   }
 
   function visibleFlatGeographicBounds(overscan = 64) {
-    const width = Math.max(1, Number(dependencies.state.size.width || 1));
-    const height = Math.max(1, Number(dependencies.state.size.height || 1));
-    const center = (0, dependencies.screenToGeo)([width / 2, height / 2]) || dependencies.state.view.flatCenter || [0, 0];
+    const width = Math.max(1, Number(dependencies.projectState.state.size.width || 1));
+    const height = Math.max(1, Number(dependencies.projectState.state.size.height || 1));
+    const center = (0, dependencies.mapView.screenToGeo)([width / 2, height / 2]) || dependencies.projectState.state.view.flatCenter || [0, 0];
     const samples = [
       [-overscan, -overscan], [width / 2, -overscan], [width + overscan, -overscan],
       [-overscan, height / 2], [width / 2, height / 2], [width + overscan, height / 2],
       [-overscan, height + overscan], [width / 2, height + overscan], [width + overscan, height + overscan],
-    ].map(dependencies.screenToGeo).filter(Boolean);
+    ].map(dependencies.mapView.screenToGeo).filter(Boolean);
     if (!samples.length) return [-180, -90, 180, 90];
     const longitudes = samples.map(coordinate => {
       let longitude = Number(coordinate[0]);
@@ -88,9 +88,9 @@ export function createSpatialIndex() {
   function visibleMapObjectCandidates(domains) {
     rebuildMapObjectSpatialIndex();
     const started = performance.now();
-    const records = dependencies.state.projection === 'globe'
+    const records = dependencies.projectState.state.projection === 'globe'
       ? mapObjectSpatialIndex.querySphericalCap({
-          center: [-Number(dependencies.state.view.globeRotation?.[0] || 0), -Number(dependencies.state.view.globeRotation?.[1] || 0)],
+          center: [-Number(dependencies.projectState.state.view.globeRotation?.[0] || 0), -Number(dependencies.projectState.state.view.globeRotation?.[1] || 0)],
           radius: 91,
           domains,
         })
@@ -116,21 +116,21 @@ export function createSpatialIndex() {
   function rebuildMapObjectSpatialIndex(force = false) {
     if (force) mapObjectSpatialIndexSources.clear();
     let changed = false;
-    changed = replaceSpatialDomain('label', [dependencies.state.labels, dependencies.state.labels?.length || 0, mapObjectGeometryRevisions.label], () => (dependencies.state.labels || []).flatMap(label => {
+    changed = replaceSpatialDomain('label', [dependencies.projectState.state.labels, dependencies.projectState.state.labels?.length || 0, mapObjectGeometryRevisions.label], () => (dependencies.projectState.state.labels || []).flatMap(label => {
       const bounds = pointBounds(label.coordinates);
       return bounds ? [{
         key: `label:${label.id}`, domain: 'label', type: label.kind || 'label', id: label.id, bounds,
       }] : [];
     })) || changed;
-    changed = replaceSpatialDomain('generic', [dependencies.state.genericFeatures, dependencies.state.genericFeatures?.length || 0, mapObjectGeometryRevisions.generic], () => (dependencies.state.genericFeatures || []).flatMap(feature => feature?.geometry ? [{
+    changed = replaceSpatialDomain('generic', [dependencies.projectState.state.genericFeatures, dependencies.projectState.state.genericFeatures?.length || 0, mapObjectGeometryRevisions.generic], () => (dependencies.projectState.state.genericFeatures || []).flatMap(feature => feature?.geometry ? [{
         key: `generic:${feature.id}`, domain: 'generic', type: 'feature', id: feature.id,
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
-    changed = replaceSpatialDomain('territorial', [dependencies.state.territorialUnits, dependencies.state.territorialUnits?.length || 0, mapObjectGeometryRevisions.territorial], () => (dependencies.state.territorialUnits || []).flatMap(feature => feature?.geometry ? [{
-        key: `territorial:${feature.id}`, domain: 'territorial', type: feature.properties?.unitType || dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT, id: feature.id,
+    changed = replaceSpatialDomain('territorial', [dependencies.projectState.state.territorialUnits, dependencies.projectState.state.territorialUnits?.length || 0, mapObjectGeometryRevisions.territorial], () => (dependencies.projectState.state.territorialUnits || []).flatMap(feature => feature?.geometry ? [{
+        key: `territorial:${feature.id}`, domain: 'territorial', type: feature.properties?.unitType || dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT, id: feature.id,
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
-    const distributionRows = dependencies.renderingDomain?.getDistributionRenderRows?.() || [];
+    const distributionRows = dependencies.domains.renderingDomain?.getDistributionRenderRows?.() || [];
     if (force || mapObjectSpatialIndexSources.get('distribution')?.[0] !== distributionRows) mapObjectDistributionRowCache.clear();
     changed = replaceSpatialDomain('distribution', [distributionRows], () => distributionRows.map(row => {
       mapObjectDistributionRowCache.set(String(row.id), row);
@@ -139,7 +139,7 @@ export function createSpatialIndex() {
         bounds: row.bounds,
       };
     })) || changed;
-    changed = replaceSpatialDomain('hydro', [dependencies.state.hydroEdits, dependencies.state.hydroEdits?.length || 0, mapObjectGeometryRevisions.hydro], () => (dependencies.state.hydroEdits || []).flatMap(feature => feature?.geometry ? [{
+    changed = replaceSpatialDomain('hydro', [dependencies.projectState.state.hydroEdits, dependencies.projectState.state.hydroEdits?.length || 0, mapObjectGeometryRevisions.hydro], () => (dependencies.projectState.state.hydroEdits || []).flatMap(feature => feature?.geometry ? [{
         key: `hydro:${feature.id}`, domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id,
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
@@ -147,15 +147,15 @@ export function createSpatialIndex() {
   }
 
   function scheduleMapObjectSpatialIndexRebuild() {
-    dependencies.mapWorkScheduler.scheduleIdle('map-object-spatial-index', () => rebuildMapObjectSpatialIndex(), 40);
+    dependencies.projectState.mapWorkScheduler.scheduleIdle('map-object-spatial-index', () => rebuildMapObjectSpatialIndex(), 40);
   }
 
   function selectionQueryBounds(screenPoint, tolerance = 8) {
-    const center = (0, dependencies.screenToGeo)(screenPoint);
+    const center = (0, dependencies.mapView.screenToGeo)(screenPoint);
     if (!center) return null;
     const samples = [[0, 0], [-tolerance, 0], [tolerance, 0], [0, -tolerance], [0, tolerance],
       [-tolerance, -tolerance], [tolerance, -tolerance], [-tolerance, tolerance], [tolerance, tolerance]]
-      .map(([dx, dy]) => (0, dependencies.screenToGeo)([screenPoint[0] + dx, screenPoint[1] + dy]))
+      .map(([dx, dy]) => (0, dependencies.mapView.screenToGeo)([screenPoint[0] + dx, screenPoint[1] + dy]))
       .filter(Boolean);
     if (!samples.length) return [center[0], center[1], center[0], center[1]];
     const longitudes = samples.map(coordinate => {
@@ -170,12 +170,12 @@ export function createSpatialIndex() {
 
   function indexedMapObjectCandidates(screenPoint) {
     rebuildMapObjectSpatialIndex();
-    const bounds = selectionQueryBounds(screenPoint, (0, dependencies.isMobile)() ? 18 : 11);
+    const bounds = selectionQueryBounds(screenPoint, (0, dependencies.surfaces.isMobile)() ? 18 : 11);
     if (!bounds) return [];
     const startedAt = performance.now();
     const candidates = mapObjectSpatialIndex.query(bounds);
-    dependencies.selectionPerformanceMetrics.indexQueryMs = performance.now() - startedAt;
-    dependencies.selectionPerformanceMetrics.indexedCandidateCount = candidates.length;
+    dependencies.rendering.selectionPerformanceMetrics.indexQueryMs = performance.now() - startedAt;
+    dependencies.rendering.selectionPerformanceMetrics.indexedCandidateCount = candidates.length;
     return candidates;
   }
 
@@ -183,8 +183,8 @@ export function createSpatialIndex() {
     return mapObjectDistributionRowCache.get(String(id)) || null;
   }
 
-  function rebuildSpatialIndex(features = dependencies.state.countriesData?.features || []) {
-    dependencies.state.spatialIndex = (features || []).map(feature => ({
+  function rebuildSpatialIndex(features = dependencies.projectState.state.countriesData?.features || []) {
+    dependencies.projectState.state.spatialIndex = (features || []).map(feature => ({
       id: String(feature?.id || ''),
       feature,
       bounds: geometryBounds(feature.geometry),
@@ -193,25 +193,25 @@ export function createSpatialIndex() {
 
   function spatialFeatures(bounds, excludeIds = null) {
     const excluded = excludeIds ? new Set([...excludeIds].map(String)) : null;
-    return (dependencies.state.spatialIndex || [])
-      .filter(item => (!excluded || !excluded.has(item.id)) && (0, dependencies.boundsOverlap)(bounds, item.bounds))
+    return (dependencies.projectState.state.spatialIndex || [])
+      .filter(item => (!excluded || !excluded.has(item.id)) && (0, dependencies.cutGeometry.boundsOverlap)(bounds, item.bounds))
       .map(item => item.feature);
   }
 
   function invalidateGeometryCaches(ids = []) {
     const wanted = new Set([...ids].map(String));
-    for (const feature of dependencies.state.countriesData?.features || []) {
+    for (const feature of dependencies.projectState.state.countriesData?.features || []) {
       if (!wanted.size || wanted.has(String(feature?.id || ''))) {
         touchGeometry(feature.geometry);
         geometryBoundsCache.delete(feature.geometry);
-        dependencies.ringHitTester.invalidate(feature.geometry);
-        dependencies.countryOutlineCache.delete(feature.geometry);
+        dependencies.territoryGeometry.ringHitTester.invalidate(feature.geometry);
+        dependencies.labels.countryOutlineCache.delete(feature.geometry);
       }
     }
     if (!wanted.size) rebuildSpatialIndex();
-    else for (const item of dependencies.state.spatialIndex || []) {
+    else for (const item of dependencies.projectState.state.spatialIndex || []) {
       if (!wanted.has(item.id)) continue;
-      const feature = (0, dependencies.countryFeatureById)(item.id);
+      const feature = (0, dependencies.countries.countryFeatureById)(item.id);
       if (feature) { item.feature = feature; item.bounds = geometryBounds(feature.geometry); }
     }
   }
@@ -222,10 +222,10 @@ export function createSpatialIndex() {
       const id = String(rawId || '');
       if (!id) continue;
       changed.add(id);
-      dependencies.state.historyDirtyCountryIds.add(id);
-      dependencies.state.pendingCountryRenderIds.add(id);
+      dependencies.projectState.state.historyDirtyCountryIds.add(id);
+      dependencies.projectState.state.pendingCountryRenderIds.add(id);
     }
-    const currentFeatures = new Map((dependencies.state.countriesData?.features || []).map(feature => [
+    const currentFeatures = new Map((dependencies.projectState.state.countriesData?.features || []).map(feature => [
       String(feature?.id || ''),
       feature,
     ]));
@@ -238,14 +238,14 @@ export function createSpatialIndex() {
     }
     invalidateGeometryCaches(changed);
     if (changed.size) {
-      dependencies.state.stateRevision += 1;
+      dependencies.projectState.state.stateRevision += 1;
     }
-    dependencies.countryLandRevision += 1;
-    dependencies.boundarySelectionAnalysisCache.clear();
-    dependencies.genericFeatureLandClipCache = new WeakMap();
-    dependencies.state.boundaryPreparation?.cancel();
-    dependencies.state.boundaryPreparation = null;
-    dependencies.gpuMapRenderer.applyCountryPatch(
+    (0, dependencies.countryCommands.bumpLandRevision)();
+    dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
+    (0, dependencies.presentationCommands.resetGenericFeatureLandClipCache)();
+    dependencies.projectState.state.boundaryPreparation?.cancel();
+    dependencies.projectState.state.boundaryPreparation = null;
+    dependencies.rendering.gpuMapRenderer.applyCountryPatch(
       { ids: [...changed], features, removedIds },
       { presentation },
     );
@@ -257,7 +257,7 @@ export function createSpatialIndex() {
   }
 
   function initializeMapObjectSpatialIndex() {
-    (mapObjectSpatialIndex = (0, dependencies.createMapObjectSpatialIndex)());
+    (mapObjectSpatialIndex = (0, dependencies.spatialFactories.createMapObjectSpatialIndex)());
 
     (mapObjectDistributionRowCache = new Map());
 
@@ -280,23 +280,23 @@ export function createSpatialIndex() {
   function initializeApplyingMapEditWorkerResult() {
     (applyingMapEditWorkerResult = false);
 
-    (mapEditClient = (0, dependencies.createMapEditWorkerClient)({
-      createWorker: () => new Worker((0, dependencies.runtimeAssetUrl)('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' }),
-      getFeatures: () => dependencies.state.countriesData?.features || [],
-      getFeatureById: dependencies.countryFeatureById,
+    (mapEditClient = (0, dependencies.spatialFactories.createMapEditWorkerClient)({
+      createWorker: () => new Worker((0, dependencies.platform.runtimeAssetUrl)('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' }),
+      getFeatures: () => dependencies.projectState.state.countriesData?.features || [],
+      getFeatureById: dependencies.countries.countryFeatureById,
       getBoundaryFeatures: () => [
-        ...(dependencies.state.countriesData?.features || []).map(feature => ({ ...feature,
-          boundaryLocked: dependencies.state.countryOverrides?.[String(feature.id)]?.locked === true })),
-        ...dependencies.state.territorialUnits.filter(feature => feature.properties?.unitType === 'subunit'),
+        ...(dependencies.projectState.state.countriesData?.features || []).map(feature => ({ ...feature,
+          boundaryLocked: dependencies.projectState.state.countryOverrides?.[String(feature.id)]?.locked === true })),
+        ...dependencies.projectState.state.territorialUnits.filter(feature => feature.properties?.unitType === 'subunit'),
       ],
       getEditSources: () => [
-        ...(dependencies.state.countriesData?.features || []).map(feature => ({ kind: 'country', feature: { ...feature,
-          properties: { ...feature.properties, locked: feature.properties?.locked === true || dependencies.state.countryOverrides?.[String(feature.id)]?.locked === true } } })),
-        ...dependencies.state.territorialUnits.map(feature => ({ kind: 'territorial', feature })),
-        ...dependencies.state.genericFeatures.map(feature => ({ kind: 'generic', feature })),
-        ...dependencies.state.hydroEdits.map(feature => ({ kind: 'hydro', feature })),
+        ...(dependencies.projectState.state.countriesData?.features || []).map(feature => ({ kind: 'country', feature: { ...feature,
+          properties: { ...feature.properties, locked: feature.properties?.locked === true || dependencies.projectState.state.countryOverrides?.[String(feature.id)]?.locked === true } } })),
+        ...dependencies.projectState.state.territorialUnits.map(feature => ({ kind: 'territorial', feature })),
+        ...dependencies.projectState.state.genericFeatures.map(feature => ({ kind: 'generic', feature })),
+        ...dependencies.projectState.state.hydroEdits.map(feature => ({ kind: 'hydro', feature })),
       ],
-      getTargetRevision: () => dependencies.state.stateRevision,
+      getTargetRevision: () => dependencies.projectState.state.stateRevision,
     }));
   }
 

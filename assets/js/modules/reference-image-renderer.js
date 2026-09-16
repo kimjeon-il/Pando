@@ -35,7 +35,6 @@ function projectVisible(host, coordinate) {
 
 function affineForTriangles(source, destination) {
   const [s0, s1, s2] = source;
-  const [d0, d1, d2] = destination;
   const denominator = s0[0] * (s1[1] - s2[1]) + s1[0] * (s2[1] - s0[1]) + s2[0] * (s0[1] - s1[1]);
   if (!Number.isFinite(denominator) || Math.abs(denominator) < 1e-8) return null;
   const coefficient = values => [

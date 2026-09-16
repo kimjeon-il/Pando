@@ -23,12 +23,12 @@ export function createMapProjection() {
   }
 
   function activeProjection() {
-    return dependencies.state.projection === 'globe' ? globeProjection : flatProjection;
+    return dependencies.projectState.state.projection === 'globe' ? globeProjection : flatProjection;
   }
 
   function readMapSafeInsets() {
     const workspace = document.querySelector('.workspace');
-    if (!workspace) return dependencies.DEFAULT_SAFE_INSETS;
+    if (!workspace) return dependencies.mapLayout.DEFAULT_SAFE_INSETS;
     const styles = getComputedStyle(workspace);
     const read = name => Math.max(0, Number.parseFloat(styles.getPropertyValue(name)) || 0);
     return {
@@ -42,7 +42,7 @@ export function createMapProjection() {
   function readObjectFitInsets(mapRect, safe) {
     const insets = { ...safe };
     if (!mapRect?.width || !mapRect?.height) return insets;
-    const panel = (0, dependencies.$)('rightPanel');
+    const panel = (0, dependencies.platform.$)('rightPanel');
     const panelOpen = panel?.classList.contains('mobile-open') && getComputedStyle(panel).visibility !== 'hidden';
     if (!panelOpen) return insets;
     const panelRect = panel.getBoundingClientRect();
@@ -52,34 +52,34 @@ export function createMapProjection() {
     const overlapTop = Math.max(mapRect.top, panelRect.top);
     const overlapBottom = Math.min(mapRect.bottom, panelRect.bottom);
     if (overlapRight <= overlapLeft || overlapBottom <= overlapTop) return insets;
-    if (dependencies.layoutMode === 'mobile') {
+    if (dependencies.surfaces.layoutMode === 'mobile') {
       insets.bottom = Math.max(insets.bottom, mapRect.bottom - panelRect.top + edge);
     } else if (panelRect.left >= mapRect.left + mapRect.width / 2) {
       insets.right = Math.max(insets.right, mapRect.right - panelRect.left + edge);
     } else {
       insets.left = Math.max(insets.left, panelRect.right - mapRect.left + edge);
     }
-    insets.left = (0, dependencies.clamp)(insets.left, 0, mapRect.width - 96);
-    insets.right = (0, dependencies.clamp)(insets.right, 0, mapRect.width - insets.left - 96);
-    insets.top = (0, dependencies.clamp)(insets.top, 0, mapRect.height - 96);
-    insets.bottom = (0, dependencies.clamp)(insets.bottom, 0, mapRect.height - insets.top - 96);
+    insets.left = (0, dependencies.platform.clamp)(insets.left, 0, mapRect.width - 96);
+    insets.right = (0, dependencies.platform.clamp)(insets.right, 0, mapRect.width - insets.left - 96);
+    insets.top = (0, dependencies.platform.clamp)(insets.top, 0, mapRect.height - 96);
+    insets.bottom = (0, dependencies.platform.clamp)(insets.bottom, 0, mapRect.height - insets.top - 96);
     return insets;
   }
 
   function refreshMapLayoutMetrics(reason = 'layout') {
-    const mapElement = (0, dependencies.$)('map');
+    const mapElement = (0, dependencies.platform.$)('map');
     const bounds = mapElement?.getBoundingClientRect?.();
-    const width = Math.max(1, bounds?.width || mapElement?.clientWidth || dependencies.state.size.width || 900);
-    const height = Math.max(1, bounds?.height || mapElement?.clientHeight || dependencies.state.size.height || 650);
+    const width = Math.max(1, bounds?.width || mapElement?.clientWidth || dependencies.projectState.state.size.width || 900);
+    const height = Math.max(1, bounds?.height || mapElement?.clientHeight || dependencies.projectState.state.size.height || 650);
     const safe = readMapSafeInsets();
     mapLayoutMetricsRefreshCount += 1;
-    mapLayoutMetricsSnapshot = (0, dependencies.createMapLayoutMetricsSnapshot)({
+    mapLayoutMetricsSnapshot = (0, dependencies.mapLayout.createMapLayoutMetricsSnapshot)({
       width,
       height,
       dpr: Math.max(1, Number(window.devicePixelRatio || 1)),
       safeInsets: safe,
       fitInsets: readObjectFitInsets(bounds, safe),
-      mobile: (0, dependencies.isMobile)(),
+      mobile: (0, dependencies.surfaces.isMobile)(),
       revision: mapLayoutMetricsRefreshCount,
       reason,
     });
@@ -88,12 +88,12 @@ export function createMapProjection() {
 
   function projectionLayoutMetrics() {
     if (!mapLayoutMetricsSnapshot) {
-      mapLayoutMetricsSnapshot = (0, dependencies.createMapLayoutMetricsSnapshot)({
-        width: dependencies.state.size.width,
-        height: dependencies.state.size.height,
+      mapLayoutMetricsSnapshot = (0, dependencies.mapLayout.createMapLayoutMetricsSnapshot)({
+        width: dependencies.projectState.state.size.width,
+        height: dependencies.projectState.state.size.height,
         dpr: Math.max(1, Number(window.devicePixelRatio || 1)),
-        safeInsets: dependencies.DEFAULT_SAFE_INSETS,
-        mobile: (0, dependencies.isMobile)(),
+        safeInsets: dependencies.mapLayout.DEFAULT_SAFE_INSETS,
+        mobile: (0, dependencies.surfaces.isMobile)(),
       });
     }
     return mapLayoutMetricsSnapshot;
@@ -113,18 +113,18 @@ export function createMapProjection() {
       globeBaseScale,
       flatBaseScale,
     } = projectionLayoutMetrics();
-    if (dependencies.state.projection === 'globe') {
+    if (dependencies.projectState.state.projection === 'globe') {
       globeProjection
         .translate([centerX, centerY])
-        .scale(globeBaseScale * dependencies.state.view.globeZoom)
-        .rotate(dependencies.state.view.globeRotation)
+        .scale(globeBaseScale * dependencies.projectState.state.view.globeZoom)
+        .rotate(dependencies.projectState.state.view.globeRotation)
         .clipAngle(90);
       path.projection(globeProjection);
     } else {
       flatProjection
         .translate([centerX, centerY])
-        .scale(flatBaseScale * dependencies.state.view.flatZoom)
-        .center(dependencies.state.view.flatCenter)
+        .scale(flatBaseScale * dependencies.projectState.state.view.flatZoom)
+        .center(dependencies.projectState.state.view.flatCenter)
         .rotate([0, 0, 0])
         .clipExtent([[safe.left, safe.top], [width - safe.right, height - safe.bottom]]);
       path.projection(flatProjection);
@@ -138,13 +138,13 @@ export function createMapProjection() {
     }
     const p = activeProjection()(coord);
     if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return null;
-    if (dependencies.state.projection === 'globe') {
-      const r = frameContext?.rotation || dependencies.state.view.globeRotation;
+    if (dependencies.projectState.state.projection === 'globe') {
+      const r = frameContext?.rotation || dependencies.projectState.state.view.globeRotation;
       const center = [-r[0], -r[1]];
-      return dependencies.d3.geo.distance(coord, center) <= Math.PI / 2 + 0.005 ? p : null;
+      return dependencies.platform.d3.geo.distance(coord, center) <= Math.PI / 2 + 0.005 ? p : null;
     }
-    const width = Number(frameContext?.size?.width || dependencies.state.size.width);
-    const height = Number(frameContext?.size?.height || dependencies.state.size.height);
+    const width = Number(frameContext?.size?.width || dependencies.projectState.state.size.width);
+    const height = Number(frameContext?.size?.height || dependencies.projectState.state.size.height);
     return p[0] >= -30 && p[0] <= width + 30 && p[1] >= -30 && p[1] <= height + 30 ? p : null;
   }
 
@@ -154,7 +154,7 @@ export function createMapProjection() {
 
   function screenToGeo(screenPoint) {
     const projection = activeProjection();
-    if (dependencies.state.projection === 'globe') {
+    if (dependencies.projectState.state.projection === 'globe') {
       const c = projection.translate();
       const s = projection.scale();
       const dx = screenPoint[0] - c[0];
@@ -164,28 +164,28 @@ export function createMapProjection() {
     const coord = projection.invert(screenPoint);
     if (!coord || !Number.isFinite(coord[0]) || !Number.isFinite(coord[1])) return null;
     let lon = ((coord[0] + 540) % 360) - 180;
-    let lat = (0, dependencies.clamp)(coord[1], -89.999, 89.999);
+    let lat = (0, dependencies.platform.clamp)(coord[1], -89.999, 89.999);
     return [lon, lat];
   }
 
   function updatePandoGlobeShell(frameContext = null) {
-    const projectionKind = frameContext?.projection || dependencies.state.projection;
+    const projectionKind = frameContext?.projection || dependencies.projectState.state.projection;
     const globe = projectionKind === 'globe';
     const translate = Array.isArray(frameContext?.cssTranslate || frameContext?.translate)
       ? (frameContext.cssTranslate || frameContext.translate)
       : activeProjection().translate();
     const radius = Math.max(0, Number(frameContext?.cssScale || frameContext?.scale || activeProjection().scale() || 0));
-    const width = Math.max(1, Number(frameContext?.size?.width || dependencies.state.size.width));
-    const height = Math.max(1, Number(frameContext?.size?.height || dependencies.state.size.height));
-    const frameSignature = `${Number(frameContext?.revision || dependencies.viewRevision)}:${projectionKind}:${translate[0]}:${translate[1]}:${radius}`;
+    const width = Math.max(1, Number(frameContext?.size?.width || dependencies.projectState.state.size.width));
+    const height = Math.max(1, Number(frameContext?.size?.height || dependencies.projectState.state.size.height));
+    const frameSignature = `${Number(frameContext?.revision || dependencies.mapLayout.viewRevision)}:${projectionKind}:${translate[0]}:${translate[1]}:${radius}`;
 
-    dependencies.baseSvg?.classed('flat-projection', !globe)
+    dependencies.mapLayers.baseSvg?.classed('flat-projection', !globe)
       .attr('data-shell-frame-signature', frameSignature);
-    dependencies.flatOceanLayer?.attr('display', globe ? 'none' : null)
+    dependencies.mapLayers.flatOceanLayer?.attr('display', globe ? 'none' : null)
       .attr('x', 0).attr('y', 0).attr('width', width).attr('height', height);
-    dependencies.oceanLayer?.attr('display', globe ? null : 'none')
+    dependencies.mapLayers.oceanLayer?.attr('display', globe ? null : 'none')
       .attr('cx', translate[0]).attr('cy', translate[1]).attr('r', radius);
-    dependencies.shadowLayer?.attr('display', globe ? null : 'none')
+    dependencies.mapLayers.shadowLayer?.attr('display', globe ? null : 'none')
       .attr('cx', translate[0]).attr('cy', translate[1]).attr('r', radius);
   }
 
@@ -196,13 +196,13 @@ export function createMapProjection() {
   }
 
   function initializeGlobeProjection() {
-    (globeProjection = dependencies.d3.geo.orthographic().clipAngle(90).precision((0, dependencies.isMobile)() ? 0.9 : 0.35));
+    (globeProjection = dependencies.platform.d3.geo.orthographic().clipAngle(90).precision((0, dependencies.surfaces.isMobile)() ? 0.9 : 0.35));
 
-    (flatProjection = dependencies.d3.geo.equirectangular().precision((0, dependencies.isMobile)() ? 0.7 : 0.25));
+    (flatProjection = dependencies.platform.d3.geo.equirectangular().precision((0, dependencies.surfaces.isMobile)() ? 0.7 : 0.25));
 
-    (path = dependencies.d3.geo.path().pointRadius(5));
+    (path = dependencies.platform.d3.geo.path().pointRadius(5));
 
-    (graticule = dependencies.d3.geo.graticule());
+    (graticule = dependencies.platform.d3.geo.graticule());
   }
 
   return Object.freeze({

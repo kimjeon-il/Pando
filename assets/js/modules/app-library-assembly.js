@@ -20,12 +20,12 @@ export function createLibraryAssembly() {
     const union = coordinates.length === 1
       ? (valid[0].type === 'Polygon' ? [coordinates[0]] : coordinates[0])
       : window.polygonClipping.union(...coordinates);
-    return (0, dependencies.normalizeClippedLandGeometry)(union);
+    return (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(union);
   }
 
   function subtractHistoricalLibraryGeometry(geometry, excludedGeometry) {
     if (!geometry?.coordinates || !excludedGeometry?.coordinates) return null;
-    return (0, dependencies.normalizeClippedLandGeometry)(window.polygonClipping.difference(
+    return (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(window.polygonClipping.difference(
       geometry.coordinates,
       excludedGeometry.coordinates,
     ));
@@ -37,8 +37,8 @@ export function createLibraryAssembly() {
     const svgNode = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svgNode.setAttribute('viewBox', '0 0 420 190');
     svgNode.setAttribute('aria-label', `${entity.displayNames?.ko || entity.canonicalName} 경계 미리보기`);
-    const projection = dependencies.d3.geo.equirectangular().scale(1).translate([0, 0]);
-    const previewPath = dependencies.d3.geo.path().projection(projection);
+    const projection = dependencies.platform.d3.geo.equirectangular().scale(1).translate([0, 0]);
+    const previewPath = dependencies.platform.d3.geo.path().projection(projection);
     const feature = { type: 'Feature', properties: {}, geometry: version.geometry };
     const bounds = previewPath.bounds(feature);
     const width = Math.max(1, bounds[1][0] - bounds[0][0]);
@@ -61,18 +61,18 @@ export function createLibraryAssembly() {
     if (!libraryId) return '';
     const entity = historicalLibraryService.get(libraryId);
     const currentCountryId = String(entity?.metadata?.currentCountryId || '');
-    if (currentCountryId && (0, dependencies.countryFeatureById)(currentCountryId)) return currentCountryId;
-    if ((0, dependencies.countryFeatureById)(libraryId)) return String(libraryId);
-    const unit = dependencies.state.territorialUnits.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
+    if (currentCountryId && (0, dependencies.countries.countryFeatureById)(currentCountryId)) return currentCountryId;
+    if ((0, dependencies.countries.countryFeatureById)(libraryId)) return String(libraryId);
+    const unit = dependencies.projectState.state.territorialUnits.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
     return unit ? String(unit.id) : '';
   }
 
   async function instantiateHistoricalLibraryEntities(rootIds, referenceDate, childDepth = 'none', versionOverrides = {}, options = {}) {
-    const revision = dependencies.state.stateRevision;
-    const landRevision = dependencies.countryLandRevision;
-    const currentCountries = dependencies.state.countriesData;
+    const revision = dependencies.projectState.state.stateRevision;
+    const landRevision = dependencies.countries.countryLandRevision;
+    const currentCountries = dependencies.projectState.state.countriesData;
     const assertCurrent = () => {
-      if (options.isCurrent?.() === false || dependencies.state.stateRevision !== revision || dependencies.countryLandRevision !== landRevision || dependencies.state.countriesData !== currentCountries) {
+      if (options.isCurrent?.() === false || dependencies.projectState.state.stateRevision !== revision || dependencies.countries.countryLandRevision !== landRevision || dependencies.projectState.state.countriesData !== currentCountries) {
         throw new Error('프로젝트 또는 선택이 변경되었습니다. 항목과 소속을 다시 확인하세요.');
       }
     };
@@ -87,30 +87,30 @@ export function createLibraryAssembly() {
       batchPreparation = entry;
       entry.promise = (async () => {
         const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth, versionOverrides);
-        const prepared = (0, dependencies.prepareLibraryOwnership)({
-          descriptors, resolve: libraryInstanceId, countries: dependencies.state.countriesData.features,
-          units: dependencies.state.territorialUnits, choices: options.ownership || {},
-          allocateId: type => (0, dependencies.uid)(`library_${type}`),
+        const prepared = (0, dependencies.libraryServices.prepareLibraryOwnership)({
+          descriptors, resolve: libraryInstanceId, countries: dependencies.projectState.state.countriesData.features,
+          units: dependencies.projectState.state.territorialUnits, choices: options.ownership || {},
+          allocateId: type => (0, dependencies.surfaces.uid)(`library_${type}`),
           // Exact containment is checked in the batch Worker before applying anything.
           contains: null,
         });
         if (!prepared.length) return { prepared };
         const countryFeatures = prepared.filter(item => item.type === 'country').map(item => {
-          const feature = (0, dependencies.createCountryFeature)(item.name, [], null, item.geometry);
+          const feature = (0, dependencies.objectPicking.createCountryFeature)(item.name, [], null, item.geometry);
           feature.id = item.id;
           if (item.validFrom) feature.properties.validFrom = item.validFrom;
           if (item.validTo) feature.properties.validTo = item.validTo;
           return feature;
         });
-        const units = prepared.filter(item => item.type !== 'country').map(item => (0, dependencies.createTerritorialFeature)({
+        const units = prepared.filter(item => item.type !== 'country').map(item => (0, dependencies.territorialServicesA.createTerritorialFeature)({
           id: item.id, unitType: item.type, name: item.name, geometry: item.geometry,
           parentId: item.parentId, sovereignId: item.sovereignId,
-          coverageMode: item.type === 'region' ? dependencies.TERRITORIAL_COVERAGE_MODES.EXPLICIT : dependencies.TERRITORIAL_COVERAGE_MODES.PARTITION,
+          coverageMode: item.type === 'region' ? dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT : dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.PARTITION,
           validFrom: item.validFrom, validTo: item.validTo,
           color: item.metadata?.defaultColor || '',
           metadata: item.metadata, sourceLibraryId: item.libraryId, sourceGeometryVersion: item.geometryVersionId,
         }));
-        const response = await dependencies.mapEditClient.execute('territorial-library-batch', { payload: { countries: countryFeatures, units } });
+        const response = await dependencies.spatialQuery.mapEditClient.execute('territorial-library-batch', { payload: { countries: countryFeatures, units } });
         return { descriptors, prepared, countryFeatures, units, batch: response.result, sourceRevision: response.sourceRevision };
 
       })().catch(error => { if (batchPreparation === entry) batchPreparation = null; throw error; });
@@ -118,7 +118,7 @@ export function createLibraryAssembly() {
     const { descriptors, prepared, countryFeatures, units, batch, sourceRevision } = await batchPreparation.promise;
     assertCurrent();
     if (!prepared.length) return { added: 0, subtracted: 0, deleted: 0, affectedIds: [] };
-    if (!dependencies.mapEditClient.sourcesCurrent(sourceRevision)) {
+    if (!dependencies.spatialQuery.mapEditClient.sourcesCurrent(sourceRevision)) {
       batchPreparation = null;
       throw new Error('프로젝트가 변경되었습니다. 추가할 항목을 다시 준비하세요.');
     }
@@ -150,7 +150,7 @@ export function createLibraryAssembly() {
       && countryFeatures.length === prepared.length
       && !units.length
       && !deleted;
-    const committer = await (0, dependencies.getGisImportCommitter)();
+    const committer = await (0, dependencies.gisRuntime.getGisImportCommitter)();
     assertCurrent();
     const result = await committer.commitGisMerge({
       countriesData: { type: 'FeatureCollection', features: countryFeatures },
@@ -169,81 +169,81 @@ export function createLibraryAssembly() {
       counts: { added: prepared.length, subtracted: donorIds.size, deleted },
       countryPatchPresentation: preserveExistingScene ? 'preserve-existing-scene' : 'replace-scene',
     });
-    (0, dependencies.markLayerTreeDirty)();
-    (0, dependencies.scheduleMapObjectSpatialIndexRebuild)();
-    if (!preserveExistingScene) dependencies.renderingDomain?.invalidateProject?.('historical-library-import');
-    dependencies.saveState.markNewProject('content:0');
+    (0, dependencies.layers.markLayerTreeDirty)();
+    (0, dependencies.spatialRecords.scheduleMapObjectSpatialIndexRebuild)();
+    if (!preserveExistingScene) dependencies.domains.renderingDomain?.invalidateProject?.('historical-library-import');
+    dependencies.projectSession.saveState.markNewProject('content:0');
     batchPreparation = null;
     return result;
   }
 
   async function getHistoricalLibraryController() {
     if (historicalLibraryController) return historicalLibraryController;
-    await Promise.all([(0, dependencies.ensureHistoricalRuntime)(), dependencies.gisWorkflow.ensure(), (0, dependencies.ensureModalRuntime)()]);
-    const { createHistoricalLibraryService } = dependencies.historicalLibraryServiceModule;
-    const { createHistoricalLibraryController } = dependencies.historicalLibraryControllerModule;
+    await Promise.all([(0, dependencies.libraryServices.ensureHistoricalRuntime)(), dependencies.gisRuntime.gisWorkflow.ensure(), (0, dependencies.applicationServicesA.ensureModalRuntime)()]);
+    const { createHistoricalLibraryService } = dependencies.libraryServices.historicalLibraryServiceModule;
+    const { createHistoricalLibraryController } = dependencies.libraryServices.historicalLibraryControllerModule;
     historicalLibraryService = createHistoricalLibraryService({
-      dataUrl: dependencies.HISTORICAL_LIBRARY_DATA_URL,
+      dataUrl: dependencies.platformConfigurationA.HISTORICAL_LIBRARY_DATA_URL,
       fetchJson: async url => {
         const response = await fetch(url, { cache: 'force-cache' });
         if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
         return response.json();
       },
-      getCountriesData: () => dependencies.state.countriesData,
-      getMaterializationCountriesData: () => (0, dependencies.materializePristineCountriesSync)(),
-      displayName: dependencies.countryName,
+      getCountriesData: () => dependencies.projectState.state.countriesData,
+      getMaterializationCountriesData: () => (0, dependencies.builtinCountries.materializePristineCountriesSync)(),
+      displayName: dependencies.presentation.countryName,
       combineGeometries: combineHistoricalLibraryGeometries,
       subtractGeometries: subtractHistoricalLibraryGeometry,
     });
     LIBRARY_TYPE_LABELS = Object.freeze({
-      [dependencies.LIBRARY_ENTITY_TYPES.COUNTRY]: dependencies.MAP_OBJECT_TYPES.country.label,
-      [dependencies.LIBRARY_ENTITY_TYPES.SUBUNIT]: dependencies.MAP_OBJECT_TYPES.subunit.label,
-      [dependencies.LIBRARY_ENTITY_TYPES.REGION]: dependencies.MAP_OBJECT_TYPES.region.label,
+      [dependencies.applicationConstantsA.LIBRARY_ENTITY_TYPES.COUNTRY]: dependencies.objectCatalog.MAP_OBJECT_TYPES.country.label,
+      [dependencies.applicationConstantsA.LIBRARY_ENTITY_TYPES.SUBUNIT]: dependencies.objectCatalog.MAP_OBJECT_TYPES.subunit.label,
+      [dependencies.applicationConstantsA.LIBRARY_ENTITY_TYPES.REGION]: dependencies.objectCatalog.MAP_OBJECT_TYPES.region.label,
     });
     historicalLibraryController = createHistoricalLibraryController({
       document,
       elements: {
         open: null,
-        modal: (0, dependencies.$)('historicalLibraryModal'),
+        modal: (0, dependencies.platform.$)('historicalLibraryModal'),
         card: document.querySelector('.historical-library-card'),
-        close: (0, dependencies.$)('historicalLibraryCloseBtn'),
-        backdrop: (0, dependencies.$)('historicalLibraryModal').querySelector('.ui-dialog-backdrop'),
-        search: (0, dependencies.$)('historicalLibrarySearchInput'),
-        clearSearch: (0, dependencies.$)('historicalLibrarySearchClearBtn'),
-        type: (0, dependencies.$)('historicalLibraryTypeInput'),
-        status: (0, dependencies.$)('historicalLibraryStatusInput'),
-        year: (0, dependencies.$)('historicalLibraryYearInput'),
-        geographicRegion: (0, dependencies.$)('historicalLibraryGeographicRegionInput'),
-        results: (0, dependencies.$)('historicalLibraryResults'),
-        preview: (0, dependencies.$)('historicalLibraryPreview'),
-        snapshot: (0, dependencies.$)('historicalLibrarySnapshotInput'),
-        snapshotButton: (0, dependencies.$)('historicalLibrarySnapshotBtn'),
-        childDepth: (0, dependencies.$)('historicalLibraryChildDepthInput'),
-        add: (0, dependencies.$)('historicalLibraryAddBtn'),
-        addOptions: (0, dependencies.$)('historicalLibraryAddOptions'),
-        optionsBack: (0, dependencies.$)('historicalLibraryOptionsBackBtn'),
-        ownership: (0, dependencies.$)('historicalLibraryOwnership'),
+        close: (0, dependencies.platform.$)('historicalLibraryCloseBtn'),
+        backdrop: (0, dependencies.platform.$)('historicalLibraryModal').querySelector('.ui-dialog-backdrop'),
+        search: (0, dependencies.platform.$)('historicalLibrarySearchInput'),
+        clearSearch: (0, dependencies.platform.$)('historicalLibrarySearchClearBtn'),
+        type: (0, dependencies.platform.$)('historicalLibraryTypeInput'),
+        status: (0, dependencies.platform.$)('historicalLibraryStatusInput'),
+        year: (0, dependencies.platform.$)('historicalLibraryYearInput'),
+        geographicRegion: (0, dependencies.platform.$)('historicalLibraryGeographicRegionInput'),
+        results: (0, dependencies.platform.$)('historicalLibraryResults'),
+        preview: (0, dependencies.platform.$)('historicalLibraryPreview'),
+        snapshot: (0, dependencies.platform.$)('historicalLibrarySnapshotInput'),
+        snapshotButton: (0, dependencies.platform.$)('historicalLibrarySnapshotBtn'),
+        childDepth: (0, dependencies.platform.$)('historicalLibraryChildDepthInput'),
+        add: (0, dependencies.platform.$)('historicalLibraryAddBtn'),
+        addOptions: (0, dependencies.platform.$)('historicalLibraryAddOptions'),
+        optionsBack: (0, dependencies.platform.$)('historicalLibraryOptionsBackBtn'),
+        ownership: (0, dependencies.platform.$)('historicalLibraryOwnership'),
       },
       service: historicalLibraryService,
       typeLabels: LIBRARY_TYPE_LABELS,
-      selectGeometryVersion: dependencies.selectGeometryVersion,
+      selectGeometryVersion: dependencies.applicationServicesB.selectGeometryVersion,
       renderMapPreview: historicalLibraryPreviewSvg,
-      createEmptyState: dependencies.createEmptyState,
-      replaceSelectOptions: dependencies.replaceSelectOptions,
-      shouldShowTerritorialParentChoice: dependencies.shouldShowTerritorialParentChoice,
-      collator: dependencies.layerNameCollator,
-      isMobile: dependencies.isMobile,
-      closeSurface: dependencies.closeSurface,
-      focusSurfaceTrigger: dependencies.focusSurfaceTrigger,
+      createEmptyState: dependencies.platformConfigurationB.createEmptyState,
+      replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
+      shouldShowTerritorialParentChoice: dependencies.territorialServicesA.shouldShowTerritorialParentChoice,
+      collator: dependencies.objectModelA.layerNameCollator,
+      isMobile: dependencies.surfaces.isMobile,
+      closeSurface: dependencies.workspaceUiA.closeSurface,
+      focusSurfaceTrigger: dependencies.workspaceUiB.focusSurfaceTrigger,
       instantiate: instantiateHistoricalLibraryEntities,
       ownershipContext: (ids, year, depth, versions) => ({
-        missing: (0, dependencies.missingLibraryOwnership)(historicalLibraryService.instantiateDescriptors(ids, year, depth, versions), libraryInstanceId, dependencies.state.countriesData.features, dependencies.state.territorialUnits),
-        countries: (0, dependencies.territorialUnitCountryOptions)().filter(option => option.value),
-        parents: id => (0, dependencies.subunitParentChoices)(id, dependencies.state.countriesData.features, dependencies.state.territorialUnits, { name: feature => feature.properties?.unitType ? (0, dependencies.territorialUnitName)(feature) : (0, dependencies.countryName)(feature) }),
+        missing: (0, dependencies.libraryServices.missingLibraryOwnership)(historicalLibraryService.instantiateDescriptors(ids, year, depth, versions), libraryInstanceId, dependencies.projectState.state.countriesData.features, dependencies.projectState.state.territorialUnits),
+        countries: (0, dependencies.propertyEditingB.territorialUnitCountryOptions)().filter(option => option.value),
+        parents: id => (0, dependencies.territorialServicesA.subunitParentChoices)(id, dependencies.projectState.state.countriesData.features, dependencies.projectState.state.territorialUnits, { name: feature => feature.properties?.unitType ? (0, dependencies.objectPresentation.territorialUnitName)(feature) : (0, dependencies.presentation.countryName)(feature) }),
       }),
-      confirm: dependencies.openConfirmModal,
-      setStatus: dependencies.setActionStatus,
-      reportError: dependencies.reportOperationError,
+      confirm: dependencies.projectRestore.openConfirmModal,
+      setStatus: dependencies.feedback.setActionStatus,
+      reportError: dependencies.feedback.reportOperationError,
     });
     historicalLibraryController.connect();
     return historicalLibraryController;

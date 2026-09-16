@@ -50,3 +50,13 @@
 .surface-display:not(.view-menu-desktop) .ui-menu-mark { display: none; }
 .surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-leading { display: contents; }
 .surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-chevron { display: none; }
+.layer-type-settings-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-1);
+}
+
+.layer-type-settings-heading > label { flex: 1; }
+.app-root .layer-type-settings .layer-inline-style-panel { margin: 0; }
+.layer-type-settings { padding-block: var(--ui-space-2); border-top: 0; }

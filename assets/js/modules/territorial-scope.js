@@ -77,10 +77,18 @@ export function validateSubunitParentChanges(previous, next, countryExists) {
   const old = new Map((previous || []).map(unit => [String(unit.id), unit]));
   const units = new Map((next || []).map(unit => [String(unit.id), unit]));
   const issues = [];
+  const parentRelationSignature = (parentId, source) => {
+    const id = String(parentId || '');
+    if (countryExists(id)) return `country:${id}`;
+    const parent = source.get(id);
+    if (!parent) return 'missing';
+    return `unit:${String(parent.properties?.unitType || '')}:${String(parent.properties?.sovereignId || '')}`;
+  };
   for (const unit of next || []) {
     if (unit.properties?.unitType !== 'subunit') continue;
     const before = old.get(String(unit.id));
     const parentId = String(unit.properties.parentId || '');
+    const sovereignId = String(unit.properties.sovereignId || '');
     let cursor = parentId;
     const seen = new Set([String(unit.id)]);
     while (cursor && units.has(cursor)) {
@@ -88,9 +96,15 @@ export function validateSubunitParentChanges(previous, next, countryExists) {
       seen.add(cursor);
       cursor = String(units.get(cursor).properties?.parentId || '');
     }
+    const beforeParentId = String(before?.properties?.parentId || '');
+    const relationChanged = before?.properties?.unitType !== 'subunit'
+      || beforeParentId !== parentId
+      || String(before.properties?.sovereignId || '') !== sovereignId
+      || parentRelationSignature(beforeParentId, old) !== parentRelationSignature(parentId, units);
+    if (!relationChanged) continue;
     const parent = units.get(parentId);
-    if (!countryExists(String(unit.properties.sovereignId || '')) || (parentId !== String(unit.properties.sovereignId || '')
-      && String(parent?.properties?.sovereignId || '') !== String(unit.properties.sovereignId || ''))) {
+    if (!countryExists(sovereignId) || (parentId !== sovereignId
+      && String(parent?.properties?.sovereignId || '') !== sovereignId)) {
       issues.push(unit.id + ': 상위 단위와 소속 국가가 일치해야 합니다.');
     }
     if (!parentId || (!countryExists(parentId) && units.get(parentId)?.properties?.unitType !== 'subunit')) {

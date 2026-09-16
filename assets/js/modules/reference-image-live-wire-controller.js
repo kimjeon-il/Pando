@@ -328,9 +328,7 @@ export function installReferenceImageLiveWire() {
     cancel.hidden = !active;
 
     const gcpButton = editor.querySelector('[data-ref-action="gcp"]');
-    if (gcpButton) gcpButton.disabled = !!meta?.locked || active;
-    const lineStart = editor.querySelector('[data-ref-line-action="start"]');
-    if (lineStart && active) lineStart.disabled = true;
+    if (gcpButton) gcpButton.disabled = !!meta?.locked || active || mapElement.classList.contains('is-reference-line-refine-mode');
     if (lastMessage) setMessage(lastMessage, lastTone);
   }
 
@@ -725,7 +723,10 @@ export function installReferenceImageLiveWire() {
     if (panel.hidden && state) cancelLiveWire();
     else scheduleSync();
   });
-  observer.observe(panel, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'class', 'disabled'] });
+  // Watch host changes, not the button attributes written by either image tool.
+  observer.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+  observer.observe(editor, { childList: true, attributes: true, attributeFilter: ['hidden'] });
+  observer.observe(mapElement, { attributes: true, attributeFilter: ['class'] });
   const resizeObserver = new ResizeObserver(requestRender);
   resizeObserver.observe(mapElement);
 

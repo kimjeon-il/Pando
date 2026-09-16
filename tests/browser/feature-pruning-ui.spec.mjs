@@ -38,7 +38,9 @@ for (const viewport of viewports) {
     await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
 
     const search = page.locator('#layerSearchInput');
-    if (!await search.isVisible()) await page.locator('#mobileMapBtn').click();
+    if (!await search.isVisible()) {
+      await page.locator(viewport.name === 'mobile' ? '#mobileSearchBtn' : '#objectSearchBtn').click();
+    }
     await search.fill('폴란드');
     await page.locator('#layerSearchResults .layer-search-result').first().click();
     await expect(page.locator('#selectionToolbar')).toBeVisible();

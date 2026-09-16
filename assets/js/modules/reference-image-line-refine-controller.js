@@ -251,12 +251,12 @@ export function installReferenceImageLineRefiner() {
     const cancel = row.querySelector('[data-ref-line-action="cancel"]');
     const active = !!state && state.recordId === recordId;
     start.hidden = active;
-    start.disabled = !meta || meta.locked || !warpReady || mapElement.classList.contains('is-reference-gcp-mode') || mapElement.classList.contains('is-reference-placement-mode');
+    start.disabled = !meta || meta.locked || !warpReady || mapElement.classList.contains('is-reference-gcp-mode') || mapElement.classList.contains('is-reference-placement-mode') || mapElement.classList.contains('is-reference-live-wire-mode');
     apply.hidden = !active || state.phase !== 'preview';
     redraw.hidden = !active || state.phase !== 'preview';
     cancel.hidden = !active;
     const gcpButton = editor.querySelector('[data-ref-action="gcp"]');
-    if (gcpButton) gcpButton.disabled = !!meta?.locked || active;
+    if (gcpButton) gcpButton.disabled = !!meta?.locked || active || mapElement.classList.contains('is-reference-live-wire-mode');
     if (lastMessage) setMessage(lastMessage, lastTone);
   }
 
@@ -451,19 +451,6 @@ export function installReferenceImageLineRefiner() {
     return true;
   }
 
-  function redraw() {
-    if (!state) return false;
-    state.phase = 'armed';
-    state.pointerId = null;
-    state.roughScreenPoints = [];
-    state.roughImagePoints = [];
-    state.previewCoordinates = [];
-    setMessage('경계를 따라 대략 선을 다시 드래그하세요.', 'working');
-    requestRender();
-    scheduleSync();
-    return true;
-  }
-
   function intercept(event) {
     if (!state || !['armed', 'drawing'].includes(state.phase)) return false;
     if (!mapElement.contains(event.target)) return false;
@@ -546,7 +533,10 @@ export function installReferenceImageLineRefiner() {
     if (panel.hidden && state) cancelRefine();
     else scheduleSync();
   });
-  observer.observe(panel, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'class', 'disabled'] });
+  // Watch host changes, not the button attributes written by either image tool.
+  observer.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+  observer.observe(editor, { childList: true, attributes: true, attributeFilter: ['hidden'] });
+  observer.observe(mapElement, { attributes: true, attributeFilter: ['class'] });
   const resizeObserver = new ResizeObserver(requestRender);
   resizeObserver.observe(mapElement);
 

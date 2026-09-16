@@ -1,7 +1,3 @@
-[data-layout="wide"] .surface-map {
-  width: var(--ui-shell-left-panel-width);
-}
-
 /* The wide dock has no workspace navigation; retain the shared narrow controls. */
 
 /* Both desktop surfaces end at the same persistent status boundary. */
@@ -36,18 +32,10 @@
   --ui-surface-shadow: var(--control-shadow);
 }
 
-[data-layout="wide"] .surface-map {
-  --ui-surface-border-right: var(--ui-border-width) solid var(--border);
-}
-
 [data-layout="wide"] .workspace-surface > .surface-header,
 [data-layout="compact"] .workspace-surface > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
-}
-
-[data-layout="wide"] .surface-map :is(.sheet-close-btn, .sheet-drag-handle) {
-  display: none;
 }
 
 [data-layout="compact"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search) {
@@ -71,19 +59,13 @@
   --ui-surface-shadow: var(--control-shadow);
 }
 
-[data-layout="compact"] .surface-map {
-  right: auto;
-  left: var(--ui-shell-compact-inset);
-  transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
-}
-
 [data-layout="compact"] .surface-editor {
   right: var(--ui-shell-compact-inset);
   left: auto;
   transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
 }
 
-[data-layout="compact"] :is(.surface-map.mobile-open, .surface-editor.mobile-open){
+[data-layout="compact"] .surface-editor.mobile-open {
   transform: translateX(0);
   opacity: 1;
   visibility: visible;
@@ -110,10 +92,6 @@
   --ui-surface-radius-top-left: var(--ui-radius-sheet);
   --ui-surface-radius-top-right: var(--ui-radius-sheet);
   --ui-surface-shadow: var(--control-shadow);
-}
-
-[data-layout="mobile"] .surface-map {
-  height: var(--sheet-height, var(--design-sheet-snap-layer-half));
 }
 
 [data-layout="mobile"] .workspace-surface.mobile-open {

@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
+import { FOUNDATION_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
+import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 function harness(refs, { builtin = false } = {}) {
   const nodes = new Map(['objectVisibilityBtn', 'objectVisibilityIcon', 'editorObjectStatus'].map(id => [id, {
@@ -19,10 +21,15 @@ function harness(refs, { builtin = false } = {}) {
     state, $: id => nodes.get(id), normalizeObjectRef: ref => ref,
     TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
     DISTRIBUTION_TYPE_GROUPS: { language: 'languages' }, distributionVisibilityRevision: 0,
+    bumpVisibilityRevision: () => { ports.distributionVisibilityRevision += 1; },
     selectionDomain: { snapshot: () => ({ selection: { items: refs } }), primary: () => refs[0] },
     countryFeatureById: () => feature, territorialUnitById: () => feature, territorialChildren: () => [],
     distributionLayerById: () => feature,
     hydroFeatureById: () => feature, hydroEditById: () => builtin ? null : feature,
+    hydroCategoryKey: value => value === 'lake' ? 'lake' : 'river',
+    hydroCategoryLabel: value => value === 'lake' ? '호수' : '강',
+    hydroFallbackName: value => `이름 없는 ${value === 'lake' ? '호수' : '강'}`,
+    hydroEditorName: (value, fallback) => String(value || '').trim() || fallback,
     isLayerItemVisible: (group, id) => state.itemVisibility[group]?.[id] !== false,
     markLayerTreeDirty() {},
     gpuMapRenderer: { invalidateCountryPalette() { effects.palette++; }, invalidateHydroVisibility() { effects.hydro++; } },
@@ -31,9 +38,20 @@ function harness(refs, { builtin = false } = {}) {
     },
     projectDomain: { queuePresentationAutosave() { effects.saved++; }, recordHistory() { assert.fail('visibility must stay presentation-only'); } },
   };
-  commands.connect(ports);
+  commands.connect(capabilityPortsForFixture(FOUNDATION_OWNER_PORTS.objectCommands, ports));
   return { commands, state, effects, nodes, ports };
 }
+
+test('river and lake display info uses only the object kind without built-in source text', () => {
+  for (const type of ['river', 'lake']) {
+    const { commands } = harness([{ domain: 'hydro', type, id: `builtin-${type}` }], { builtin: true });
+    assert.deepEqual(commands.objectDisplayInfo({ domain: 'hydro', type, id: `builtin-${type}` }), {
+      name: `이름 없는 ${type === 'lake' ? '호수' : '강'}`,
+      type: type === 'lake' ? '호수' : '강',
+      detail: '',
+    });
+  }
+});
 
 test('per-object visibility keeps every layer master and selection intact', () => {
   for (const [domain, type, group] of [

@@ -75,9 +75,9 @@ export function createEnvironment() {
   }
 
   function resolveCurrentInteractionStyle() {
-    const theme = (0, dependencies.effectiveTheme)(userPreferences, systemTheme === 'dark');
+    const theme = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
     const computed = getComputedStyle(document.documentElement);
-    return (0, dependencies.resolveMapInteractionStyle)({
+    return (0, dependencies.applicationServicesB.resolveMapInteractionStyle)({
       theme,
       selectionColor: userPreferences.selection.color || resolvedAccentColor,
       outlineVisible: userPreferences.selection.outlineVisible,
@@ -98,14 +98,14 @@ export function createEnvironment() {
   }
 
   function mapTheme() {
-    const terrainVisible = dependencies.state?.physicalSettings?.terrainVisible !== false;
-    const terrainStyle = dependencies.state?.physicalSettings?.terrainStyle || 'political';
+    const terrainVisible = dependencies.projectState.state?.physicalSettings?.terrainVisible !== false;
+    const terrainStyle = dependencies.projectState.state?.physicalSettings?.terrainStyle || 'political';
     const terrainFillAlpha = terrainVisible
       ? (terrainStyle === 'physical' ? 0.22 : 0.68)
       : null;
-    const countryStyle = dependencies.state?.layerPresentation ? (0, dependencies.layerStyle)(dependencies.state.layerPresentation, 'countries') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
-    const riverStyle = dependencies.state?.layerPresentation ? (0, dependencies.layerStyle)(dependencies.state.layerPresentation, 'rivers') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
-    const lakeStyle = dependencies.state?.layerPresentation ? (0, dependencies.layerStyle)(dependencies.state.layerPresentation, 'lakes') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
+    const countryStyle = dependencies.projectState.state?.layerPresentation ? (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'countries') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
+    const riverStyle = dependencies.projectState.state?.layerPresentation ? (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'rivers') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
+    const lakeStyle = dependencies.projectState.state?.layerPresentation ? (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'lakes') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
     const base = (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light'
       ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 1, border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1, ocean: '#ffffff', oceanGpu: [1, 1, 1] }
       : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 0.74, border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92, ocean: '#0d2837', oceanGpu: [0.051, 0.157, 0.216] };
@@ -132,27 +132,27 @@ export function createEnvironment() {
     if (nextTheme === systemTheme && userPreferences.appearance.theme !== 'system') return;
     systemTheme = nextTheme;
     document.documentElement.dataset.systemTheme = systemTheme;
-    document.documentElement.dataset.theme = (0, dependencies.effectiveTheme)(userPreferences, systemTheme === 'dark');
-    window.__PANDOLAB_THEME__ = (0, dependencies.effectiveTheme)(userPreferences, systemTheme === 'dark');
-    resolvedAccentColor = (0, dependencies.applyAppAccent)(document, userPreferences.appearance.accentColor);
-    (0, dependencies.syncResolvedInteractionStyle)();
-    dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'system-theme');
-    dependencies.gpuMapRenderer.invalidatePhysicalStyle('system-theme');
-    if (dependencies.state?.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      const id = String(dependencies.state.selected.id);
-      const feature = (0, dependencies.countryFeatureById)(id);
-      const color = (0, dependencies.readDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.state.countryOverrides[id] }, { fallback: defaultCountryColor() });
+    document.documentElement.dataset.theme = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
+    window.__PANDOLAB_THEME__ = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
+    resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentColor);
+    (0, dependencies.preferences.syncResolvedInteractionStyle)();
+    dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'system-theme');
+    dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('system-theme');
+    if (dependencies.projectState.state?.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      const id = String(dependencies.projectState.state.selected.id);
+      const feature = (0, dependencies.countries.countryFeatureById)(id);
+      const color = (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.projectState.state.countryOverrides[id] }, { fallback: defaultCountryColor() });
       if (color.isDefault && $('countryColorInput')) $('countryColorInput').value = color.value;
-      (0, dependencies.syncColorPicker)('country', {
+      (0, dependencies.colorPicker.syncColorPicker)('country', {
         value: color.value,
         defaultColor: defaultCountryColor(),
         isDefault: color.isDefault,
       });
     }
-    if (dependencies.svg) {
-      (0, dependencies.markLayerTreeDirty)();
-      dependencies.layerTreeController?.render();
-      dependencies.renderingDomain?.invalidateBaseScene?.('system-theme');
+    if (dependencies.mapLayers.svg) {
+      (0, dependencies.layers.markLayerTreeDirty)();
+      dependencies.domains.layerTreeController?.render();
+      dependencies.domains.renderingDomain?.invalidateBaseScene?.('system-theme');
     }
   }
 
@@ -191,11 +191,11 @@ export function createEnvironment() {
   }
 
   function initializeTerritorialGeometry() {
-    (territorialGeometry = (0, dependencies.createTerritorialGeometryKernel)(window.polygonClipping));
+    (territorialGeometry = (0, dependencies.territorialServicesA.createTerritorialGeometryKernel)(window.polygonClipping));
 
     (APP_VERSION = String(globalThis.PANDOLAB_BUILD_META?.appVersion || ''));
 
-    (HYDRO_DATA_VERSION = '0.13.0');
+    (HYDRO_DATA_VERSION = '0.13.1');
 
     (FLAT_PROJECTION_KIND = 'equirectangular');
 
@@ -310,13 +310,13 @@ export function createEnvironment() {
 
     (systemTheme = systemThemeQuery.matches ? 'dark' : 'light');
 
-    (userPreferences = (0, dependencies.loadUserPreferences)());
+    (userPreferences = (0, dependencies.applicationServicesB.loadUserPreferences)());
 
     (runtimeReady = false);
 
     document.documentElement.dataset.systemTheme = systemTheme;
 
-    document.documentElement.dataset.theme = (0, dependencies.effectiveTheme)(userPreferences, systemTheme === 'dark');
+    document.documentElement.dataset.theme = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
     document.documentElement.dataset.statusBarVisible = String(userPreferences.appearance?.statusBarVisible !== false);
 
     (MAP_LABEL_FONT_STACKS = Object.freeze({
@@ -327,17 +327,17 @@ export function createEnvironment() {
 
     applyMapLabelPreferences();
 
-    (resolvedAccentColor = (0, dependencies.applyAppAccent)(document, userPreferences.appearance.accentColor));
+    (resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentColor));
 
     (resolvedInteractionStyle = resolveCurrentInteractionStyle());
 
     for (const [property, value] of Object.entries(interactionCssProperties(resolvedInteractionStyle))) document.documentElement.style.setProperty(property, value);
 
-    (0, dependencies.setSelectionColor)(resolvedInteractionStyle.selection.color);
+    (0, dependencies.selectionServices.setSelectionColor)(resolvedInteractionStyle.selection.color);
 
-    (0, dependencies.setSelectionInteractionStyle)(resolvedInteractionStyle);
+    (0, dependencies.selectionServices.setSelectionInteractionStyle)(resolvedInteractionStyle);
 
-    window.__PANDOLAB_THEME__ = (0, dependencies.effectiveTheme)(userPreferences, systemTheme === 'dark');
+    window.__PANDOLAB_THEME__ = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
 
     document.addEventListener('keydown', enableKeyboardNavigation, true);
 
@@ -349,11 +349,11 @@ export function createEnvironment() {
 
     ($ = (id) => document.getElementById(id));
 
-    (selectController = (0, dependencies.createSelectController)({ document, window }));
+    (selectController = (0, dependencies.uiFactoriesB.createSelectController)({ document, window }));
 
     selectController.enhanceAll();
 
-    (tooltipController = (0, dependencies.createTooltipController)({
+    (tooltipController = (0, dependencies.uiFactoriesB.createTooltipController)({
       document,
       window,
       tooltip: $('uiTooltip'),
@@ -391,7 +391,7 @@ export function createEnvironment() {
 
     (deepClone = (obj) => JSON.parse(JSON.stringify(obj)));
 
-    (reliabilityDiagnostic = (0, dependencies.createDiagnosticLog)({ limit: 250 }));
+    (reliabilityDiagnostic = (0, dependencies.applicationFactories.createDiagnosticLog)({ limit: 250 }));
 
     window.__PANDOLAB_RELIABILITY_LOG__ = reliabilityDiagnostic;
   }

@@ -1,14 +1,12 @@
 # UI Architecture
 
-이 문서는 UI 공통 규칙의 단일 원본이다. 기존 UI의 디자인 방향은 유지하되 글자·조작 영역은 아래 합의 규격으로 대체한다. 컴포넌트 계약과 예외는 [UI Components](ui-components.md)를 참조한다.
-
-아래 규격은 구현의 기준이며 현재 CSS·DOM이 모두 준수한다는 뜻이 아니다. 적용 현황과 남은 검증은 [공통 UI 적용 감사](ui-common-rules-audit.md)에 구분해서 기록한다. 공개 API·저장 형식·기능 및 렌더링 모델은 유지한다.
+이 문서는 UI 공통 규칙의 단일 원본이다. 기존 UI의 디자인 방향은 유지하되 글자·조작 영역은 아래 합의 규격으로 대체한다. 컴포넌트 계약과 예외는 [UI Components](ui-components.md)를 참조한다. 공개 API·저장 형식·기능 및 렌더링 모델은 유지한다.
 
 ## 확정 규격
 
 - **확정**: 글자·컨트롤 규격, 정보 순서, 정렬·스크롤·상태 규칙, 반응형 허용 범위, CSS 소유권.
-- **Shell**: 상단바 최소 3rem, 컴퓨터 헤더 최소 3.25rem, wide 레이어 17.5rem, Inspector 20rem, compact drawer 20rem(화면 양쪽 0.5rem 이내), 상태 영역 최소 2rem, 모바일 헤더 최소 5rem, 하단 내비게이션 최소 3.5rem + safe-area, 콘텐츠 좌우 rail 1rem.
-- 헤더와 상단바는 실제 높이를 공통 `surface-metrics`에서 측정해 시작 위치에 연결한다. 모바일 접힘은 최소 5.25rem이며 실제 헤더보다 작지 않다. 편집 시트 48/86dvh, 지도 시트 52/88dvh를 가용 높이로 제한한다. 레이어 추가는 시트가 아닌 하단 버튼의 하위메뉴다.
+- **Shell**: 상단바 최소 3rem, 컴퓨터 헤더 최소 3.25rem, Inspector 20rem, compact drawer 20rem(화면 양쪽 0.5rem 이내), 상태 영역 최소 2rem, 모바일 헤더 최소 5rem, 하단 내비게이션 최소 3.5rem + safe-area, 콘텐츠 좌우 rail 1rem.
+- 헤더와 상단바는 실제 높이를 공통 `surface-metrics`에서 측정해 시작 위치에 연결한다. 모바일 접힘은 최소 5.25rem이며 실제 헤더보다 작지 않다. 편집 시트는 48/86dvh, 검색·보기·추가 시트는 52/88dvh를 가용 높이로 제한한다.
 - 과거 시안의 작은 글자, 28/30px 컨트롤, 모바일 visibility 32px 규격은 아래 목표 규격으로 대체한다. 다른 문서나 시안의 수치와 충돌하면 이 문서를 우선한다.
 
 ### 글자
@@ -131,7 +129,7 @@
 
 ## 4. Surface DOM contract
 
-지도 / 편집은 외형과 위치가 달라도 내부 shell 계약은 동일하다. 레이어 추가 하위메뉴는 Surface가 아니다.
+검색·보기·추가·편집은 외형과 위치가 달라도 동일한 surface 상태 계약을 사용한다.
 
 ```text
 workspace-surface
@@ -147,12 +145,14 @@ workspace-surface
 
 슬롯 이름은 역할 설명이다. 헤더에는 창 제목과 창 제어만 두고, 객체 탐색은 컨텍스트, 편집 작업은 본문에 둔다. 선택적 슬롯은 빈 공간 없이 생략한다. 같은 역할의 헤더·탭·필드·작업 행은 같은 컴포넌트를 사용한다. 이 목표 계약을 문서화하는 단계에서 새 DOM이나 ID를 추가하지 않는다.
 
-기존 연결을 보존할 surface는 다음 두 개다.
+현재 surface와 패널 연결은 다음과 같다.
 
-- `#leftPanel.surface-map`
-- `#rightPanel.surface-editor`
+- `create` → `#createMenu`
+- `search` → `#objectSearchSurface`
+- `display` → `#mapDisplaySurface`
+- `editor` → `#rightPanel.surface-editor`
 
-`#createMenu.layer-create-menu`는 모든 폭에서 레이어 추가 버튼에 연결된 하위메뉴다. 헤더·탭·drag handle·snap·독립 history는 없으며 Surface controller의 상태를 바꾸지 않는다. 현재 항목·순서·라이브러리 진입은 유지한다. Escape·Tab·바깥 클릭으로 닫고, breakpoint 변경과 레이어 닫힘에도 종료한다.
+넓음·중간 화면에서 추가와 보기는 버튼에 붙는 메뉴이고 검색은 하단 작업바에서 펼쳐진다. 좁은 화면에서는 같은 DOM이 공통 바텀시트로 전환된다. 편집은 데스크톱 편집창과 모바일 편집 시트를 공유한다. 모바일에서는 한 번에 하나의 시트만 열며, 폭 전환은 문서·선택·draft와 지도 상태를 변경하지 않는다.
 
 각 tab button은 `.ui-button.ui-tab`을 조합하고 `data-surface-tab`으로 의미를 선언한다. Wide에서 창 모양을 다르게 만드는 것은 Layout 책임이며, feature별로 header/tabs/body 순서를 바꾸지 않는다.
 
@@ -190,6 +190,9 @@ workspace-surface
 - `check:ui-components`: primitive/component 조합 검사
 - `check:ui-architecture`: 계층, Surface DOM contract, legacy ratchet 및 retired artifact 검사
 - `check:ui-layering`: 원본 목록과 계층 검사
+- `check:ui-ia`: 현재 surface variant와 생성·편집 정보 구조 검사
+
+`scripts/lib/ui-source-catalog.mjs`는 canonical bundle, lazy modal, 원본 audit 입력 목록의 단일 원본이다. 검사기는 생성 bundle을 다시 입력으로 읽거나 자체 CSS 경로 배열을 유지하지 않는다. IA 검사는 현재 surface별 구조 차이를 `menu-sheet`·`delegated`·`editor` 계약으로 구분한다.
 
 UI 예외를 추가해서 검사를 우회하는 것보다 기존 primitive/component를 확장하는 것을 우선한다. 예외가 필요한 경우 이유가 코드에 남아야 하며 범위는 최소여야 한다.
 

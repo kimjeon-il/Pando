@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createCountryCommits } from '../../assets/js/modules/app-country-commits.js';
+import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
+import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 const box = (x0, y0, x1, y1) => ({
   type: 'Polygon',
@@ -27,7 +29,7 @@ function harness(kind) {
   };
   const requests = [];
   const commits = createCountryCommits();
-  commits.connect({
+  commits.connect(capabilityPortsForFixture(OBJECT_EDITING_OWNER_PORTS.countryCommits, {
     state,
     countryFeatureById: id => features.find(feature => String(feature.id) === String(id)),
     countryName: feature => feature?.properties?.name || '',
@@ -39,7 +41,7 @@ function harness(kind) {
     snapGeometryToGrid: geometry => geometry,
     editingDraftCoordinates: () => [],
     setActionStatus() {},
-  });
+  }));
   return { commits, features, requests, session, state };
 }
 

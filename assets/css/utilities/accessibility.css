@@ -70,8 +70,7 @@
 @media (max-width: 799px) {
   .surface-editor .editor-view-tabs .ui-tab,
   .mobile-bottom-bar .ui-nav-item,
-  .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn),
-  .gis-export-format-option {
+  .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) {
     min-height: var(--ui-touch-height);
   }
 
