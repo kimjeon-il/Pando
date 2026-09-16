@@ -48,25 +48,25 @@ export function createMapHost() {
   }
 
   function projectionViewSnapshot() {
-    const projection = (0, dependencies.activeProjection)();
+    const projection = (0, dependencies.mapView.activeProjection)();
     const translate = projection.translate().map(Number);
-    const center = (0, dependencies.screenToGeo)(translate);
+    const center = (0, dependencies.mapView.screenToGeo)(translate);
     return {
-      projection: dependencies.state.projection,
-      flatProjectionKind: dependencies.FLAT_PROJECTION_KIND,
-      size: { width: dependencies.state.size.width, height: dependencies.state.size.height },
-      dpr: (0, dependencies.currentMapDevicePixelRatio)(),
-      safeInset: (0, dependencies.currentMapSafeInsets)(),
+      projection: dependencies.projectState.state.projection,
+      flatProjectionKind: dependencies.platformConfigurationA.FLAT_PROJECTION_KIND,
+      size: { width: dependencies.projectState.state.size.width, height: dependencies.projectState.state.size.height },
+      dpr: (0, dependencies.hydroModel.currentMapDevicePixelRatio)(),
+      safeInset: (0, dependencies.projectionView.currentMapSafeInsets)(),
       translate,
       scale: Number(projection.scale()),
-      rotation: dependencies.state.projection === 'globe' ? dependencies.state.view.globeRotation.map(Number) : null,
-      projectionCenter: dependencies.state.projection === 'flat' ? dependencies.state.view.flatCenter.map(Number) : null,
-      flatCenter: dependencies.state.view.flatCenter.map(Number),
-      globeRotation: dependencies.state.view.globeRotation.map(Number),
-      flatZoom: Number(dependencies.state.view.flatZoom),
-      globeZoom: Number(dependencies.state.view.globeZoom),
+      rotation: dependencies.projectState.state.projection === 'globe' ? dependencies.projectState.state.view.globeRotation.map(Number) : null,
+      projectionCenter: dependencies.projectState.state.projection === 'flat' ? dependencies.projectState.state.view.flatCenter.map(Number) : null,
+      flatCenter: dependencies.projectState.state.view.flatCenter.map(Number),
+      globeRotation: dependencies.projectState.state.view.globeRotation.map(Number),
+      flatZoom: Number(dependencies.projectState.state.view.flatZoom),
+      globeZoom: Number(dependencies.projectState.state.view.globeZoom),
       geographicCenter: center ? center.map(Number) : null,
-      zoom: dependencies.state.projection === 'globe' ? Number(dependencies.state.view.globeZoom) : Number(dependencies.state.view.flatZoom),
+      zoom: dependencies.projectState.state.projection === 'globe' ? Number(dependencies.projectState.state.view.globeZoom) : Number(dependencies.projectState.state.view.flatZoom),
     };
   }
 
@@ -88,7 +88,7 @@ export function createMapHost() {
   }
 
   function handleRenderFrameComplete(sample) {
-    const gpuStats = dependencies.gpuMapRenderer.getRuntimeState?.() || {};
+    const gpuStats = dependencies.rendering.gpuMapRenderer.getRuntimeState?.() || {};
     const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     if (startupMetrics) {
       startupMetrics.firstCanonicalFrameMs = gpuStats.firstCanonicalFrameMs ?? startupMetrics.firstCanonicalFrameMs;
@@ -98,23 +98,23 @@ export function createMapHost() {
     // interaction performance sample. Feeding it into the adaptive window
     // caused an immediate post-load downgrade and another scene refresh.
     const shouldSampleInteractionBudget = sample.interactionActive || (!sample.full && sample.viewFrame === true);
-    const changed = shouldSampleInteractionBudget && dependencies.renderQualityController.recordFrame(sample.durationMs, {
+    const changed = shouldSampleInteractionBudget && dependencies.renderQuality.renderQualityController.recordFrame(sample.durationMs, {
       interaction: sample.interactionActive,
     });
-    if (changed) (0, dependencies.queueAdaptiveRenderQualityRefresh)('frame-budget-quality-change');
+    if (changed) (0, dependencies.renderQuality.queueAdaptiveRenderQualityRefresh)('frame-budget-quality-change');
   }
 
   function visualProjectionForSnapshot(viewState) {
     if (viewState.projection === 'globe') {
-      return dependencies.d3.geo.orthographic()
+      return dependencies.platform.d3.geo.orthographic()
         .translate(viewState.translate)
         .scale(viewState.scale)
         .rotate(viewState.rotation || [0, 0, 0])
         .clipAngle(90)
-        .precision((0, dependencies.isMobile)() ? 0.9 : 0.35);
+        .precision((0, dependencies.surfaces.isMobile)() ? 0.9 : 0.35);
     }
-    const safe = viewState.safeInset || dependencies.DEFAULT_SAFE_INSETS;
-    return dependencies.d3.geo.equirectangular()
+    const safe = viewState.safeInset || dependencies.mapLayout.DEFAULT_SAFE_INSETS;
+    return dependencies.platform.d3.geo.equirectangular()
       .translate(viewState.translate)
       .scale(viewState.scale)
       .center(viewState.projectionCenter || [0, 0])
@@ -123,45 +123,45 @@ export function createMapHost() {
         [safe.left, safe.top],
         [viewState.size.width - safe.right, viewState.size.height - safe.bottom],
       ])
-      .precision((0, dependencies.isMobile)() ? 0.7 : 0.25);
+      .precision((0, dependencies.surfaces.isMobile)() ? 0.7 : 0.25);
   }
 
   function legacyHostOptions() {
     return {
-      getProjectionKind: () => dependencies.state.projection,
+      getProjectionKind: () => dependencies.projectState.state.projection,
       setProjectionKind: kind => {
-        dependencies.state.projection = kind === 'globe' ? 'globe' : 'flat';
-        (0, dependencies.updateProjection)();
+        dependencies.projectState.state.projection = kind === 'globe' ? 'globe' : 'flat';
+        (0, dependencies.mapView.updateProjection)();
         return true;
       },
       getViewState: () => projectionViewSnapshot(),
       setViewState: view => {
-        if (view?.projection) dependencies.state.projection = view.projection === 'globe' ? 'globe' : 'flat';
-        if (view?.view) dependencies.state.view = (0, dependencies.deepClone)(view.view);
-        (0, dependencies.updateProjection)();
+        if (view?.projection) dependencies.projectState.state.projection = view.projection === 'globe' ? 'globe' : 'flat';
+        if (view?.view) dependencies.projectState.state.view = (0, dependencies.platform.deepClone)(view.view);
+        (0, dependencies.mapView.updateProjection)();
         return true;
       },
       getViewportSize: () => {
-        const layout = (0, dependencies.projectionLayoutMetrics)();
+        const layout = (0, dependencies.mapView.projectionLayoutMetrics)();
         return { width: layout.width, height: layout.height, dpr: layout.dpr };
       },
-      project: coordinate => (0, dependencies.activeProjection)()(coordinate),
-      unproject: point => (0, dependencies.screenToGeo)(point),
-      requestRepaint: reason => dependencies.renderingDomain?.invalidateGpuFrame?.(reason || 'legacy-host-repaint'),
-      resize: () => dependencies.gpuMapRenderer.resize(),
-      dragBy: dependencies.dragLegacyMapViewBy,
+      project: coordinate => (0, dependencies.mapView.activeProjection)()(coordinate),
+      unproject: point => (0, dependencies.mapView.screenToGeo)(point),
+      requestRepaint: reason => dependencies.domains.renderingDomain?.invalidateGpuFrame?.(reason || 'legacy-host-repaint'),
+      resize: () => dependencies.rendering.gpuMapRenderer.resize(),
+      dragBy: dependencies.navigation.dragLegacyMapViewBy,
       getDebugState: () => ({ viewRevision }),
     };
   }
 
   function createPreferredMapHost(mapEl) {
-    const legacy = (0, dependencies.createLegacyMapHost)(legacyHostOptions());
+    const legacy = (0, dependencies.renderFactories.createLegacyMapHost)(legacyHostOptions());
     legacy.attach(mapEl);
     return legacy;
   }
 
   async function activateLegacyMapHost(reason = '') {
-    const mapEl = (0, dependencies.$)('map');
+    const mapEl = (0, dependencies.platform.$)('map');
     mapHost?.destroy?.();
     // Reuse the Pando canvas created by initSvg when host initialization is
     // retried. Creating another canvas here would create a second visible
@@ -172,11 +172,11 @@ export function createMapHost() {
       if (overlay) mapEl.insertBefore(gpuCanvas, overlay);
       else mapEl?.appendChild(gpuCanvas);
     }
-    dependencies.gpuMapRenderer.attach(gpuCanvas);
-    mapHost = (0, dependencies.createLegacyMapHost)(legacyHostOptions());
+    dependencies.rendering.gpuMapRenderer.attach(gpuCanvas);
+    mapHost = (0, dependencies.renderFactories.createLegacyMapHost)(legacyHostOptions());
     mapHost.attach(mapEl);
     await mapHost.initialize();
-    document.body.dataset.mapHost = dependencies.MAP_HOST_KINDS.LEGACY;
+    document.body.dataset.mapHost = dependencies.applicationConstantsA.MAP_HOST_KINDS.LEGACY;
     window.__PANDOLAB_MAP_HOST__ = mapHost;
     if (reason) console.warn('[map-host]', reason);
     return false;
@@ -186,8 +186,8 @@ export function createMapHost() {
     if (!mapHost) return activateLegacyMapHost('MapHost가 초기화되지 않았습니다.');
     try {
       await mapHost.initialize();
-      (0, dependencies.applyAdaptiveRenderQuality)({ refreshScene: false, reason: 'map-host-ready' });
-      document.body.dataset.mapHost = dependencies.MAP_HOST_KINDS.LEGACY;
+      (0, dependencies.renderQuality.applyAdaptiveRenderQuality)({ refreshScene: false, reason: 'map-host-ready' });
+      document.body.dataset.mapHost = dependencies.applicationConstantsA.MAP_HOST_KINDS.LEGACY;
       window.__PANDOLAB_MAP_HOST__ = mapHost;
       return true;
     } catch (error) {
@@ -196,22 +196,22 @@ export function createMapHost() {
   }
 
   function initSvg() {
-    const mapEl = (0, dependencies.$)('map');
-    const map = dependencies.d3.select(mapEl);
+    const mapEl = (0, dependencies.platform.$)('map');
+    const map = dependencies.platform.d3.select(mapEl);
     mapHost?.destroy?.();
     mapHost = null;
     mapHostReadyPromise = Promise.resolve(false);
-    dependencies.gpuMapRenderer.setSelectionPass?.(null);
-    dependencies.selectionPass = null;
+    dependencies.rendering.gpuMapRenderer.setSelectionPass?.(null);
+    dependencies.mapHostCommands.installSelectionPass(null);
     map.selectAll('*').remove();
-    dependencies.mapDebug.installViewFacade();
+    dependencies.lifecycleUi.mapDebug.installViewFacade();
 
-    dependencies.baseSvg = map.append('svg')
+    dependencies.mapHostCommands.installBaseSvg(map.append('svg')
       .attr('class', 'map-base-svg')
       .attr('aria-hidden', 'true')
-      .attr('focusable', 'false');
-    const baseRoot = dependencies.baseSvg.append('g').attr('class', 'map-base-root');
-    dependencies.flatOceanLayer = baseRoot.append('rect').attr('class', 'map-ocean map-ocean-flat');
+      .attr('focusable', 'false'));
+    const baseRoot = dependencies.mapLayers.baseSvg.append('g').attr('class', 'map-base-root');
+    dependencies.mapHostCommands.installFlatOceanLayer(baseRoot.append('rect').attr('class', 'map-ocean map-ocean-flat'));
     oceanLayer = baseRoot.append('circle').attr('class', 'map-ocean map-ocean-globe');
     shadowLayer = baseRoot.append('circle').attr('class', 'globe-shadow');
 
@@ -219,14 +219,14 @@ export function createMapHost() {
     const gpuCanvas = document.createElement('canvas');
     gpuCanvas.className = 'gpu-map-canvas';
     mapEl.appendChild(gpuCanvas);
-    dependencies.gpuMapRenderer.attach(gpuCanvas);
+    dependencies.rendering.gpuMapRenderer.attach(gpuCanvas);
 
     svg = map.append('svg').attr('class', 'map-svg map-overlay-svg');
     const handleSelectionRenderError = ({ stage = 'selection-overlay-render', channel = '', error } = {}) => {
-      if (dependencies.renderingDomain?.recordSelectionRenderError) {
-        dependencies.renderingDomain.recordSelectionRenderError({ stage, error });
+      if (dependencies.domains.renderingDomain?.recordSelectionRenderError) {
+        dependencies.domains.renderingDomain.recordSelectionRenderError({ stage, error });
       } else {
-        dependencies.reliabilityDiagnostic.push({
+        dependencies.readiness.reliabilityDiagnostic.push({
           category: 'render',
           operation: 'selection-overlay-render',
           result: 'recovered',
@@ -236,12 +236,12 @@ export function createMapHost() {
         });
       }
     };
-    dependencies.selectionPass = (0, dependencies.createSelectionPass)({
-      projectionForView: () => (0, dependencies.activeProjection)(),
+    dependencies.mapHostCommands.installSelectionPass((0, dependencies.renderFactories.createSelectionPass)({
+      projectionForView: () => (0, dependencies.mapView.activeProjection)(),
       onRenderError: handleSelectionRenderError,
-    });
-    dependencies.gpuMapRenderer.setSelectionPass?.(dependencies.selectionPass);
-    (0, dependencies.syncResolvedInteractionStyle)();
+    }));
+    dependencies.rendering.gpuMapRenderer.setSelectionPass?.(dependencies.gpuRenderingA.selectionPass);
+    (0, dependencies.preferences.syncResolvedInteractionStyle)();
     interactionSvg = map.append('svg').attr('class', 'map-interaction-svg');
     const interactionRoot = interactionSvg.append('g').attr('class', 'map-interaction-root');
     root = svg.append('g').attr('class', 'map-root');
@@ -270,7 +270,7 @@ export function createMapHost() {
     [previewLayer, validationLayer, vertexLayer, draftLayer, snapLayer, countryLabelLayer, labelLayer]
       .forEach(layer => interactionRoot.node().appendChild(layer.node()));
 
-    dependencies.mapInputController = dependencies.mapInputPresentation.bindSvg(svg);
+    dependencies.mapHostCommands.installMapInputController(dependencies.lifecycleUi.mapInputPresentation.bindSvg(svg));
   }
 
   function queueMapResize(reason = 'layout') {
@@ -280,7 +280,7 @@ export function createMapHost() {
       mapResizeFrame = 0;
       const reasons = [...mapResizeReasons].sort();
       mapResizeReasons.clear();
-      (0, dependencies.refreshMapLayoutMetrics)(reasons.join(',') || 'layout');
+      (0, dependencies.projectionView.refreshMapLayoutMetrics)(reasons.join(',') || 'layout');
       resizeMap();
     });
   }
@@ -300,43 +300,43 @@ export function createMapHost() {
     mapResizeObserver?.disconnect?.();
     if (typeof ResizeObserver === 'function') {
       mapResizeObserver = new ResizeObserver(() => queueMapResize('resize-observer'));
-      mapResizeObserver.observe((0, dependencies.$)('map'));
+      mapResizeObserver.observe((0, dependencies.platform.$)('map'));
     }
     window.visualViewport?.addEventListener?.('resize', () => {
-      (0, dependencies.refreshMapSheetMetrics)();
+      (0, dependencies.workspaceUiB.refreshMapSheetMetrics)();
       queueMapResize('visual-viewport-resize');
     });
     watchDevicePixelRatio();
   }
 
   function resizeMap() {
-    const layout = dependencies.mapLayoutMetricsRefreshCount > 0
-      ? (0, dependencies.projectionLayoutMetrics)()
-      : (0, dependencies.refreshMapLayoutMetrics)('initial-resize');
+    const layout = dependencies.projectionView.mapLayoutMetricsRefreshCount > 0
+      ? (0, dependencies.mapView.projectionLayoutMetrics)()
+      : (0, dependencies.projectionView.refreshMapLayoutMetrics)('initial-resize');
     const { width, height } = layout;
     const signature = layout.projectionSignature;
     if (signature === mapResizeSignature) {
-      (0, dependencies.syncMapHudBounds)();
+      (0, dependencies.taskPresentation.syncMapHudBounds)();
       return false;
     }
     mapResizeSignature = signature;
-    dependencies.state.size.width = width;
-    dependencies.state.size.height = height;
-    const viewBox = `0 0 ${dependencies.state.size.width} ${dependencies.state.size.height}`;
-    [dependencies.baseSvg, svg].forEach(layer => {
-      layer?.attr('width', dependencies.state.size.width)
-        .attr('height', dependencies.state.size.height)
+    dependencies.projectState.state.size.width = width;
+    dependencies.projectState.state.size.height = height;
+    const viewBox = `0 0 ${dependencies.projectState.state.size.width} ${dependencies.projectState.state.size.height}`;
+    [dependencies.mapLayers.baseSvg, svg].forEach(layer => {
+      layer?.attr('width', dependencies.projectState.state.size.width)
+        .attr('height', dependencies.projectState.state.size.height)
         .attr('viewBox', viewBox)
         .attr('preserveAspectRatio', 'none');
     });
     mapInteractionLayer
-      ?.attr('width', dependencies.state.size.width)
-      .attr('height', dependencies.state.size.height);
+      ?.attr('width', dependencies.projectState.state.size.width)
+      .attr('height', dependencies.projectState.state.size.height);
     mapHost?.resize?.();
-    dependencies.gpuMapRenderer.resize();
-    dependencies.renderingDomain?.invalidateViewport?.('resize');
-    (0, dependencies.syncMapHudBounds)();
-    requestAnimationFrame(() => dependencies.gpuMapRenderer.verifyLayout());
+    dependencies.rendering.gpuMapRenderer.resize();
+    dependencies.domains.renderingDomain?.invalidateViewport?.('resize');
+    (0, dependencies.taskPresentation.syncMapHudBounds)();
+    requestAnimationFrame(() => dependencies.rendering.gpuMapRenderer.verifyLayout());
     return true;
   }
 

@@ -182,12 +182,6 @@
 
 .layer-inline-style-panel { border-block: 0; }
 
-/* The footer owns the bottom inset; the containing tab must not add another. */
-.left-panel .layer-panel-section {
-  padding-block: var(--ui-space-2) 0;
-  padding-inline: 0;
-}
-
 
 @media (max-width: 799px) {
   .historical-library-modal .historical-library-card,
@@ -215,10 +209,8 @@
     background: var(--surface-elevated);
   }
 
-  .gis-stepper { display: none; }
   .gis-mobile-step-indicator { display: block; }
   .gis-export-layers { grid-template-columns: 1fr; }
-  .gis-export-format-option { min-height: 3.5rem; }
 }
 
 /* Historical library refinements. */

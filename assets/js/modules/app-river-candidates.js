@@ -14,8 +14,8 @@ export function createRiverCandidates() {
 
   function resetRiverPartitionState({ preserveCache = true } = {}) {
     riverPartitionGeneration += 1;
-    dependencies.gisDomain?.cancelRiverPartition?.();
-    const session = (0, dependencies.activeTerritorySelectionSession)();
+    dependencies.domainControllers.gisDomain?.cancelRiverPartition?.();
+    const session = (0, dependencies.territorySelectionA.activeTerritorySelectionSession)();
     if (session) {
       session.riverPartitionStatus = 'idle';
       session.riverPartitionCandidates = [];
@@ -36,7 +36,7 @@ export function createRiverCandidates() {
   }
 
   function riverPartitionHydroEditSignature() {
-    const edits = dependencies.state.hydroEdits
+    const edits = dependencies.projectState.state.hydroEdits
       .filter(feature => feature?.properties?.category === 'river' && feature.geometry)
       .map(feature => `${String(feature.id)}:${JSON.stringify(feature.geometry.coordinates || [])}`)
       .sort();
@@ -44,15 +44,15 @@ export function createRiverCandidates() {
   }
 
   function riverPartitionHydroSignature() {
-    return `${dependencies.state.hydroManifest?.version || ''}:${dependencies.state.hydroManifest?.index?.sha256 || ''}:${riverPartitionHydroEditSignature()}`;
+    return `${dependencies.projectState.state.hydroManifest?.version || ''}:${dependencies.projectState.state.hydroManifest?.index?.sha256 || ''}:${riverPartitionHydroEditSignature()}`;
   }
 
   function riverPartitionCandidateSignature(donors) {
     return [
       ...donors.map(riverPartitionGeometrySignature).sort(),
       riverPartitionHydroSignature(),
-      dependencies.RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
-      (0, dependencies.riverTerritoryPartitionConfigFingerprint)(dependencies.RIVER_TERRITORY_PARTITION_CONFIG),
+      dependencies.applicationConstantsA.RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
+      (0, dependencies.territorialServicesA.riverTerritoryPartitionConfigFingerprint)(dependencies.applicationConstantsA.RIVER_TERRITORY_PARTITION_CONFIG),
     ].join('::');
   }
 
@@ -62,7 +62,7 @@ export function createRiverCandidates() {
 
   function riverPartitionQueryBounds(geometry) {
     const output = [];
-    for (const polygon of (0, dependencies.geometryPolygonSets)(geometry)) {
+    for (const polygon of (0, dependencies.geometryPreview.geometryPolygonSets)(geometry)) {
       const longitudes = [];
       let minLatitude = Infinity;
       let maxLatitude = -Infinity;
@@ -100,29 +100,29 @@ export function createRiverCandidates() {
   }
 
   function riverPartitionRequestActive() {
-    const session = (0, dependencies.activeTerritorySelectionSession)();
+    const session = (0, dependencies.territorySelectionA.activeTerritorySelectionSession)();
     return session?.stage === 'selection' && session.activePhase === 'components' && session.useRiverBoundaries;
   }
 
   function refreshRiverPartitionPresentation(reason) {
-    const session = (0, dependencies.activeTerritorySelectionSession)();
-    dependencies.editingDomain?.refreshTerritorySelection?.({ tool: session?.tool, reason });
+    const session = (0, dependencies.territorySelectionA.activeTerritorySelectionSession)();
+    dependencies.domains.editingDomain?.refreshTerritorySelection?.({ tool: session?.tool, reason });
   }
 
   function applyRiverPartitionResult(candidates, donorResults) {
-    const session = (0, dependencies.activeTerritorySelectionSession)();
+    const session = (0, dependencies.territorySelectionA.activeTerritorySelectionSession)();
     if (!session) return { items: [] };
     session.riverPartitionCandidates = candidates;
     session.riverPartitionDonorResults = donorResults;
-    const composition = (0, dependencies.riverBoundaryComposition)((0, dependencies.territoryBaseComponentItems)(), { candidates, donorResults });
-    dependencies.installRiverComponentIndex(session, composition, candidates, donorResults);
+    const composition = (0, dependencies.territoryComponents.riverBoundaryComposition)((0, dependencies.territoryComponents.territoryBaseComponentItems)(), { candidates, donorResults });
+    dependencies.territoryComponents.installRiverComponentIndex(session, composition, candidates, donorResults);
     session.riverPartitionStatus = composition.items.length ? 'ready' : 'error';
     return composition;
   }
 
   function riverPartitionResultMessage(composition, donorResults, donors) {
     const invalidIds = new Set((donorResults || []).filter(result => result.status === 'invalid').map(result => String(result.donorCountryId)));
-    const invalidNames = donors.filter(feature => invalidIds.has(String(feature.id))).map(feature => (0, dependencies.countryName)(feature) || feature.properties?.name || '기준 영역');
+    const invalidNames = donors.filter(feature => invalidIds.has(String(feature.id))).map(feature => (0, dependencies.presentation.countryName)(feature) || feature.properties?.name || '기준 영역');
     const suffix = invalidNames.length ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외했습니다.` : '';
     if (composition.riverCandidateCount > 0) return `하천으로 나뉜 영토 조각을 선택하세요.${suffix}`;
     if (composition.items.length) return `분할 가능한 하천이 없어 기존 영토 조각을 표시합니다.${suffix}`;
@@ -132,30 +132,30 @@ export function createRiverCandidates() {
   }
 
   async function prepareRiverPartitionCandidates() {
-    const session = (0, dependencies.activeTerritorySelectionSession)();
+    const session = (0, dependencies.territorySelectionA.activeTerritorySelectionSession)();
     const donors = (session?.componentFeatures || []).filter(feature => feature?.geometry);
     if (!riverPartitionRequestActive() || !donors.length) return false;
     resetRiverPartitionState();
     const generation = riverPartitionGeneration;
-    const projectGeneration = dependencies.projectDomain?.getGeneration?.();
+    const projectGeneration = dependencies.domains.projectDomain?.getGeneration?.();
     const donorSignature = donors.map(riverPartitionGeometrySignature).sort().join('::');
     const editSignature = riverPartitionHydroEditSignature();
     let signature = null;
     const current = () => riverPartitionRequestActive()
       && generation === riverPartitionGeneration
-      && projectGeneration === dependencies.projectDomain?.getGeneration?.()
-      && session === (0, dependencies.activeTerritorySelectionSession)()
+      && projectGeneration === dependencies.domains.projectDomain?.getGeneration?.()
+      && session === (0, dependencies.territorySelectionA.activeTerritorySelectionSession)()
       && donorSignature === (session.componentFeatures || []).map(riverPartitionGeometrySignature).sort().join('::')
       && editSignature === riverPartitionHydroEditSignature()
       && (signature === null || signature === riverPartitionCandidateSignature(donors));
     session.riverPartitionStatus = 'loading';
-    (0, dependencies.setModeBanner)('하천 기준 영토 조각을 준비하는 중입니다.');
-    (0, dependencies.updateModeButtons)();
+    (0, dependencies.taskUi.setModeBanner)('하천 기준 영토 조각을 준비하는 중입니다.');
+    (0, dependencies.taskUi.updateModeButtons)();
     try {
-      await (0, dependencies.ensureGisRuntime)();
+      await (0, dependencies.gisServicesA.ensureGisRuntime)();
       if (!current()) return;
-      const ready = dependencies.state.physicalLoadState.hydro === 'ready'
-        || await (0, dependencies.loadHydroData)(dependencies.state.physicalLoadState.hydro === 'error');
+      const ready = dependencies.projectState.state.physicalLoadState.hydro === 'ready'
+        || await (0, dependencies.physicalData.loadHydroData)(dependencies.projectState.state.physicalLoadState.hydro === 'error');
       if (!current()) return;
       if (!ready) throw new Error('강·호수 데이터가 아직 준비되지 않았습니다.');
       // Initial manifest loading is part of this request, not an invalidation.
@@ -166,14 +166,14 @@ export function createRiverCandidates() {
         const candidates = structuredClone(cached.candidates);
         const donorResults = structuredClone(cached.donorResults || []);
         const composition = applyRiverPartitionResult(candidates, donorResults);
-        (0, dependencies.setModeBanner)(riverPartitionResultMessage(composition, donorResults, donors));
-        (0, dependencies.updateModeButtons)();
+        (0, dependencies.taskUi.setModeBanner)(riverPartitionResultMessage(composition, donorResults, donors));
+        (0, dependencies.taskUi.updateModeButtons)();
         refreshRiverPartitionPresentation('river-partition-cache-ready');
         return;
       }
-      const sources = await dependencies.gisDomain.loadRiverPartitionFeatures(donors);
+      const sources = await dependencies.domainControllers.gisDomain.loadRiverPartitionFeatures(donors);
       if (!current()) return;
-      const result = await dependencies.gisDomain.computeRiverPartition({
+      const result = await dependencies.domainControllers.gisDomain.computeRiverPartition({
         donors: donors.map(feature => ({
           countryId: String(feature.id || ''),
           geometry: feature.geometry,
@@ -181,33 +181,33 @@ export function createRiverCandidates() {
         })),
         riverFeatures: sources.features,
         hydroRevision: riverPartitionHydroSignature(),
-        config: dependencies.RIVER_TERRITORY_PARTITION_CONFIG,
-        algorithmRevision: dependencies.RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
+        config: dependencies.applicationConstantsA.RIVER_TERRITORY_PARTITION_CONFIG,
+        algorithmRevision: dependencies.applicationConstantsA.RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
       });
       if (!current()) return;
       if (!result) return;
       const candidates = (result.candidates || []).map(candidate => ({
         ...candidate,
-        geometry: (0, dependencies.normalizeClippedLandGeometry)(candidate?.geometry),
+        geometry: (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(candidate?.geometry),
       })).filter(candidate => candidate.geometry && candidate.donorCountryId);
       const donorResults = result.donorResults || [];
       const diagnostics = { ...sources.diagnostics, ...(result.diagnostics || {}) };
       riverPartitionCache.set(signature, { candidates: structuredClone(candidates), donorResults: structuredClone(donorResults), diagnostics });
       if (riverPartitionCache.size > 8) riverPartitionCache.delete(riverPartitionCache.keys().next().value);
       const composition = applyRiverPartitionResult(candidates, donorResults);
-      (0, dependencies.setModeBanner)(riverPartitionResultMessage(composition, donorResults, donors));
-      (0, dependencies.updateModeButtons)();
+      (0, dependencies.taskUi.setModeBanner)(riverPartitionResultMessage(composition, donorResults, donors));
+      (0, dependencies.taskUi.updateModeButtons)();
       refreshRiverPartitionPresentation('river-partition-ready');
     } catch (error) {
       if (!current()) return;
       session.riverPartitionStatus = error?.code === 'RIVER_PARTITION_SOURCE_ERROR' ? 'source-error' : 'error';
       session.riverPartitionCandidates = [];
       session.riverPartitionDonorResults = [];
-      (0, dependencies.setModeBanner)(error?.code === 'RIVER_PARTITION_SOURCE_ERROR'
+      (0, dependencies.taskUi.setModeBanner)(error?.code === 'RIVER_PARTITION_SOURCE_ERROR'
         ? '가져올 국가의 하천 데이터를 불러오지 못했습니다.'
         : '강으로 분리되는 영토 조각을 계산하지 못했습니다.');
-      (0, dependencies.updateModeButtons)();
-      (0, dependencies.reportOperationError)(error, '강으로 분리되는 영토 조각을 계산하지 못했습니다. 잠시 후 다시 시도하세요.', 'PL-TERRITORY-RIVER-001', 4200);
+      (0, dependencies.taskUi.updateModeButtons)();
+      (0, dependencies.feedback.reportOperationError)(error, '강으로 분리되는 영토 조각을 계산하지 못했습니다. 잠시 후 다시 시도하세요.', 'PL-TERRITORY-RIVER-001', 4200);
       refreshRiverPartitionPresentation('river-partition-error');
     }
   }

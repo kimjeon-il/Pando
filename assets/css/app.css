@@ -181,7 +181,6 @@
   --ui-icon-size: var(--design-icon-size);
   --ui-icon-size-sm: var(--design-icon-size-sm);
   --ui-statusbar-height: var(--ui-shell-statusbar-height);
-  --ui-left-panel-width: var(--ui-shell-left-panel-width);
   --ui-right-panel-width: var(--ui-shell-right-panel-width);
   --ui-segment-bg: var(--surface-subtle);
   --ui-segment-padding: 3px;
@@ -342,7 +341,6 @@ button:disabled { opacity: .38; cursor: not-allowed; filter: saturate(.5); }
 
 .btn.wide { width: 100%; }
 
-.left-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
 .right-panel.collapsed { display: none; }
 .panel-section { padding: var(--ui-panel-padding); border-bottom: 0; }
 
@@ -747,9 +745,6 @@ body[data-layout="mobile"] .gis-country-identity-row { grid-template-columns: 1f
 
 /* ===== 시험판 0.8.4: 단순·직관형 작업공간 ===== */
 
-.left-panel .panel-section { padding: var(--ui-panel-padding-dense); }
-
-
 /* PandoLab split-site bootstrap */
 [hidden] { display: none !important; }
 body.is-loading .app-root { pointer-events: none; user-select: none; }
@@ -784,7 +779,6 @@ body.is-loading .app-root { pointer-events: none; user-select: none; }
   .status-dot { background: var(--design-status-neutral-dot); }
   .layer-search { background: #ffffff; }
   .layer-search input::placeholder { color: #7a8590; }
-  .layer-child { color: #46515c; }
   .field-group label { color: #46515c; }
   .field-group input[readonly] { color: #74808b; }
   .fatal-noscript { border-color: #c97979; background: #fff0f0; color: #8b2929; }
@@ -852,7 +846,6 @@ body { font-size: var(--ui-font-body); }
 .danger-btn { min-height: var(--ui-control-height); padding: 0 var(--ui-space-3); font-size: var(--ui-font-body); }
 
 .sidebar { min-width: 0; font-size: var(--ui-font-body); }
-.left-panel { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
 .right-panel { border-left: 1px solid var(--border); background: var(--surface-elevated); }
 .terrain-display-options { display: grid; gap: var(--ui-space-1); }
 .terrain-display-options[hidden] { display: none; }
@@ -1004,7 +997,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
    Both edges reserve the same layout space whether content overflows or not. */
 :where(
   .ui-scroll-surface,
-  .layer-children,
   .ui-select-listbox,
   .preferences-fields,
   .mode-task-window-body,
@@ -1018,7 +1010,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 :where(
   .ui-scroll-surface,
-  .layer-children,
   .ui-select-listbox,
   .preferences-fields,
   .mode-task-window-body,
@@ -1031,7 +1022,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 :where(
   .ui-scroll-surface,
-  .layer-children,
   .ui-select-listbox,
   .preferences-fields,
   .mode-task-window-body,
@@ -1041,7 +1031,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 )::-webkit-scrollbar-track { background: transparent; }
 :where(
   .ui-scroll-surface,
-  .layer-children,
   .ui-select-listbox,
   .preferences-fields,
   .mode-task-window-body,
@@ -1056,7 +1045,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 :where(
   .ui-scroll-surface,
-  .layer-children,
   .ui-select-listbox,
   .preferences-fields,
   .mode-task-window-body,
@@ -1135,7 +1123,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 /* ===== PandoLab v0.18.1: map-first responsive workspace ===== */
 .workspace {
-  --panel-left-width: var(--ui-left-panel-width);
   --panel-right-width: var(--ui-right-panel-width);
   --projection-safe-left: 0px;
   --projection-safe-right: 0px;
@@ -1162,7 +1149,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 .app-root,
 #bootstrapLoading { touch-action: pan-x pan-y; }
 
-.left-panel,
 .right-panel,
 .right-panel.collapsed {
   display: flex !important;
@@ -1216,7 +1202,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 }
 
 
-.left-panel { overflow: hidden; }
 .right-panel,
 .right-panel.collapsed { overflow: hidden; }
 
@@ -1225,7 +1210,7 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
 
 .mobile-backdrop { opacity: 0; transition: opacity 170ms ease; }
 
-/* Wide: persistent layer panel, modeless editor drawer. */
+/* Wide: modeless editor drawer. */
 
 
 
@@ -1262,7 +1247,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   --map-safe-left: 0px;
 }
 
-.app-root[data-layout="compact"] .left-panel,
 .app-root[data-layout="compact"] .right-panel,
 .app-root[data-layout="compact"] .right-panel.collapsed {
   top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
@@ -1276,12 +1260,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   pointer-events: none;
 }
 
-.app-root[data-layout="compact"] .left-panel {
-  left: var(--ui-shell-compact-inset);
-  right: auto;
-  transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
-}
-
 .app-root[data-layout="compact"] .right-panel,
 .app-root[data-layout="compact"] .right-panel.collapsed {
   right: var(--ui-shell-compact-inset);
@@ -1289,7 +1267,6 @@ input::placeholder, textarea::placeholder { font-weight: var(--ui-weight-regular
   transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
 }
 
-.app-root[data-layout="compact"] .left-panel.mobile-open,
 .app-root[data-layout="compact"] .right-panel.mobile-open,
 .app-root[data-layout="compact"] .right-panel.collapsed.mobile-open {
   transform: translateX(0);
@@ -1342,7 +1319,6 @@ body[data-layout="mobile"] {
   --ui-map-bottom-occupied-height: calc(var(--mobile-nav-height) + var(--ui-shell-statusbar-height));
 }
 
-.app-root[data-layout="mobile"] .left-panel,
 .app-root[data-layout="mobile"] .right-panel,
 .app-root[data-layout="mobile"] .right-panel.collapsed {
   display: flex !important;
@@ -1369,7 +1345,6 @@ body[data-layout="mobile"] {
   transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
 }
 
-.app-root[data-layout="mobile"] .left-panel.mobile-open,
 .app-root[data-layout="mobile"] .right-panel.mobile-open,
 .app-root[data-layout="mobile"] .right-panel.collapsed.mobile-open {
   transform: translateY(0);
@@ -1390,33 +1365,6 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status { opacity
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: auto;
 }
-.app-root[data-layout="mobile"] .surface-map > .surface-body-delegated {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  scrollbar-gutter: auto;
-}
-.app-root[data-layout="mobile"] .surface-map > .surface-body-delegated #layerSection {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.app-root[data-layout="mobile"] .surface-map > .surface-body-delegated .layer-list {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: auto;
-}
-
-.app-root[data-layout="mobile"] .left-panel{
-  height: var(--sheet-height, var(--design-sheet-snap-layer-half));
-}
 .app-root[data-layout="mobile"] .right-panel,
 .app-root[data-layout="mobile"] .right-panel.collapsed {
   height: var(--sheet-height, var(--design-sheet-snap-half));
@@ -1433,9 +1381,7 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status { opacity
   flex-basis: var(--ui-touch-height);
   font-size: var(--ui-font-body);
 }
-.app-root[data-layout="mobile"] .terrain-mode-option,
-.app-root[data-layout="mobile"] .layer-child,
-.app-root[data-layout="mobile"] .layer-child-name { min-height: var(--ui-touch-height); }
+.app-root[data-layout="mobile"] .terrain-mode-option { min-height: var(--ui-touch-height); }
 
 
 .app-root[data-layout="mobile"] .icon-btn { width: var(--ui-touch-height); height: var(--ui-touch-height); }
@@ -2081,8 +2027,6 @@ input[type="search"]::-webkit-search-decoration { appearance: none; -webkit-appe
     [role="tab"],
     label:has(> input[type="checkbox"]),
     label:has(> input[type="radio"]),
-    .layer-folder-row,
-    .layer-child,
     .surface-header,
     .sheet-drag-handle,
     .ui-select-control[readonly],
@@ -2148,25 +2092,6 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
   pointer-events: none;
 }
 
-/* Layer hierarchy uses whole-row feedback and predictable alignment. */
-.layer-list {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-3);
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  padding-inline-end: var(--ui-surface-content-rail-x);
-  padding-inline-start: var(--ui-surface-content-rail-x);
-  padding-block-end: var(--ui-surface-content-padding-bottom);
-}
-
-
-
 .ui-skeleton-block {
   display: block;
   height: .8em;
@@ -2230,102 +2155,6 @@ input[type="range"].ui-range-progress::-moz-range-progress { height: 4px; border
 .layer-inline-style-field output { color: var(--text-strong); font-variant-numeric: tabular-nums; }
 .layer-inline-style-panel input[type="range"] { width: 100%; }
 html.keyboard-navigation .map-display-detail-trigger:focus-visible { border-radius: var(--ui-radius-control); outline-offset: -2px; }
-.layer-child-name {
-  min-width: 0;
-  min-height: var(--ui-control-height);
-  display: flex;
-  align-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: inherit;
-  font-size: var(--ui-font-body);
-  font-weight: var(--ui-weight-medium);
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.layer-child {
-  position: relative;
-  display: grid;
-  align-items: center;
-  height: var(--ui-tree-row-height);
-  min-height: var(--ui-tree-row-height);
-  grid-template-columns: var(--ui-tree-action-size) minmax(0, 1fr) var(--ui-tree-action-size);
-  gap: var(--ui-space-1);
-  padding: 0 var(--ui-row-padding-x);
-}
-.layer-child.has-no-menu { grid-template-columns: var(--ui-tree-action-size) minmax(0, 1fr); }
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected)::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: var(--ui-space-1-5);
-  bottom: var(--ui-space-1-5);
-  width: 2px;
-  border-radius: var(--ui-space-0-5);
-  background: var(--accent);
-  pointer-events: none;
-}
-
-
-
-
-.layer-child > .layer-visibility-control { grid-column: 1; }
-.layer-child-name { grid-column: 2; }
-.layer-child-name-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.layer-child-name.has-lock-indicator { gap: var(--ui-space-1); }
-.layer-lock-indicator { flex: 0 0 16px; width: 16px; height: 16px; display: grid; place-items: center; color: inherit; }
-.layer-lock-indicator .layer-lock-icon { width: 16px; height: 16px; }
-.layer-child:has(> .layer-visibility-control > .layer-visibility-toggle:not(:checked)):not(.is-selected) > .layer-child-name { color: var(--muted); }
-.layer-child-menu {
-  grid-column: 3;
-  width: var(--ui-tree-action-size);
-  min-width: var(--ui-tree-action-size);
-  height: var(--ui-tree-action-size);
-  display: grid;
-  place-items: center;
-  position: relative;
-  isolation: isolate;
-  padding: 0;
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  color: var(--muted);
-  transition: color .14s ease;
-}
-.layer-child-menu::before {
-  content: "";
-  width: 32px;
-  height: 32px;
-  position: absolute;
-  z-index: 0;
-  border-radius: calc(var(--ui-radius-control) - 2px);
-  background: transparent;
-  pointer-events: none;
-  transition: background-color .14s ease;
-}
-.layer-child-menu:hover:not(:disabled) { background: transparent; color: var(--text-strong); }
-.layer-child-menu:hover:not(:disabled)::before { background: var(--surface-hover); }
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) .layer-child-menu { color: var(--selection-strong-muted); }
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) .layer-child-menu:hover:not(:disabled) { color: var(--selection-strong-fg); }
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) .layer-child-menu:hover:not(:disabled)::before {
-  background: color-mix(in srgb, var(--selection-strong-fg) 14%, transparent);
-}
-.layer-child-menu:disabled { opacity: .32; }
-.layer-child-menu .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); position: relative; z-index: 1; }
-.app-root:not([data-layout="mobile"]) .layer-child-menu { opacity: 0; }
-.app-root:not([data-layout="mobile"]) .layer-child:is(:hover, :focus-within, .is-selected) .layer-child-menu { opacity: 1; }
-html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-child-name, .layer-child-menu):focus-visible {
-  border-radius: var(--ui-radius-control);
-  outline-offset: -2px;
-}
-.layer-child:is(.is-selected:not(.is-multi-selected), .is-primary-selected) > .layer-visibility-control:hover {
-  background: color-mix(in srgb, var(--selection-strong-fg) 14%, transparent);
-}
 .terrain-mode-option {
   min-height: var(--ui-control-height);
   display: flex;
@@ -2376,23 +2205,13 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
   .ui-color-default
 ) { min-height: var(--ui-touch-height); }
 .app-root[data-layout="mobile"] .projection-control { height: var(--ui-touch-height); padding: var(--ui-segment-padding); }
-.app-root[data-layout="mobile"] .layer-lock-control {
-  width: var(--ui-tree-action-size-touch);
-  min-width: var(--ui-tree-action-size-touch);
-  height: var(--ui-tree-action-size-touch);
-}
-
-
 .app-root[data-layout="mobile"] .terrain-mode-option { min-height: var(--ui-touch-height); }
-.app-root[data-layout="mobile"] .layer-child { grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr) var(--ui-tree-action-size-touch); }
-.app-root[data-layout="mobile"] .layer-child.has-no-menu { grid-template-columns: var(--ui-tree-action-size-touch) minmax(0, 1fr); }
 
 
 
 .app-root[data-layout="mobile"] .layer-presentation-row { min-height: var(--ui-touch-height); grid-template-columns: var(--ui-touch-height) minmax(0, 1fr) var(--ui-touch-height); }
 .app-root[data-layout="mobile"] .map-name-settings .map-display-details { padding-inline: var(--ui-space-2); }
 .app-root[data-layout="mobile"] .map-name-settings .map-display-details input[type="range"] { min-height: var(--ui-touch-height); }
-.app-root[data-layout="mobile"] .layer-child-menu { width: var(--ui-tree-action-size-touch); min-width: var(--ui-tree-action-size-touch); height: var(--ui-tree-action-size-touch); }
 .app-root[data-layout="mobile"] .map-view-toolbar {
   width: calc(var(--ui-touch-height) + var(--ui-toolbar-padding) + var(--ui-toolbar-padding) + 2px);
   grid-template-columns: var(--ui-touch-height);
@@ -2404,7 +2223,7 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .app-root[data-layout="mobile"] .ui-floating-toolbar:has(.workspace-surface) { backdrop-filter: none; }
 .app-root[data-layout="mobile"] .top-actions .btn,
 .app-root[data-layout="mobile"] .top-actions .btn:not(.ghost) { height: var(--ui-touch-height); flex-basis: var(--ui-touch-height); }
-.app-root[data-layout="mobile"] :is(.left-panel, .right-panel, .right-panel.collapsed) { border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0; }
+.app-root[data-layout="mobile"] :is(.right-panel, .right-panel.collapsed) { border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0; }
 
 /* A single non-modal task window keeps map editing controls together. */
 .mode-task-context {
@@ -3132,8 +2951,6 @@ html.keyboard-navigation :is(.layer-folder-toggle, .layer-folder-name, .layer-ch
 .editor-panel[data-editor-view="relation"] details.editor-relation-section { display: block; }
 
 /* Command-row presentation is owned by components/command-row.css. */
-.layer-child-name { font-size: var(--ui-font-md); }
-.app-root[data-layout="mobile"] .layer-child { min-height: 38px; height: 38px; }
 .app-root[data-layout="mobile"] .editor-action-row { min-height: var(--ui-touch-height); }
 
 .ui-empty-state,
@@ -3236,7 +3053,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 }
 .map-view-projection-slot .projection-btn > span { display: inline; }
 
-.layer-child.is-multi-selected:not(.is-primary-selected),
 .layer-search-result.is-multi-selected:not(.is-primary-selected) {
   border-color: var(--selection-soft-border);
   background: var(--selection-soft-bg);
@@ -3267,24 +3083,17 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   .app-root[data-layout="mobile"] .mode-action-buttons .ui-icon { display: none; }
 }
 
-/* ===== PandoLab v0.23.0: layer content and navigation placement ===== */
-.layer-panel-section,
-.map-view-panel-section,
-.surface-map > .surface-body-delegated {
+/* Current display and object-search content placement. */
+.map-view-panel-section {
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
-.surface-map > .surface-body-delegated { flex: 1 1 auto; overflow: hidden; }
-.layer-panel-section,
 .map-view-panel-section {
   flex: 1 1 auto;
   padding-block: var(--ui-space-2) 0;
   padding-inline: 0;
 }
-.left-panel .layer-panel-section,
-.left-panel .map-view-panel-section { padding-inline: 0; }
-.layer-panel-section { overflow: hidden; }
 .map-view-panel-section {
   overflow-x: hidden;
   overflow-y: auto;
@@ -3292,7 +3101,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
 }
-.layer-virtual-spacer { width: 1px; min-height: 0; pointer-events: none; }
 .layer-search-results {
   flex: 1 1 auto;
   min-height: 0;
@@ -3326,8 +3134,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 
 
 
-.app-root[data-layout="wide"] .left-panel .sheet-close-btn,
-.app-root[data-layout="wide"] .left-panel .sheet-drag-handle { display: none; }
 .app-root[data-layout="wide"] #mobileCloseRightBtn { display: none; }
 .app-root[data-layout="compact"] .workspace {
   --projection-safe-left: 0px;
@@ -3350,7 +3156,6 @@ body[data-layout="mobile"] #gisImportModal .mobile-step-control-hidden { display
 }
 
 @media (prefers-reduced-motion: reduce) {
-.left-panel,
 .right-panel,
 .map-view-toolbar,
 .map-top-context-slot,

@@ -12,10 +12,10 @@ export function createEditorBindings() {
 
   function syncEditorCommandRows() {
     for (const [id, semanticName] of Object.entries(EDITOR_COMMAND_ROW_ICONS)) {
-      const button = (0, dependencies.$)(id);
+      const button = (0, dependencies.platform.$)(id);
       if (!button || button.querySelector(':scope > .command-row-icon')) continue;
       const trailingIcon = button.querySelector(':scope > .ui-icon:last-of-type');
-      button.insertBefore((0, dependencies.createSemanticIcon)(document, semanticName, 'ui-icon command-row-icon'), button.firstChild);
+      button.insertBefore((0, dependencies.applicationFactories.createSemanticIcon)(document, semanticName, 'ui-icon command-row-icon'), button.firstChild);
       button.classList.add('has-command-row-icon');
       trailingIcon?.querySelector('use')?.setAttribute('href', '#icon-chevron-right');
     }
@@ -23,25 +23,25 @@ export function createEditorBindings() {
 
   function bindUI() {
     syncEditorCommandRows();
-    (0, dependencies.bindUiTooltips)();
-    (0, dependencies.bindNavigationUI)();
-    (0, dependencies.bindLayerUI)();
-    (0, dependencies.bindToolUI)();
-    dependencies.propertyEditorUi.bind();
-    (0, dependencies.bindFileAndGisUI)();
-    (0, dependencies.bindGlobalInputUI)();
-    (0, dependencies.syncSearchClearButton)((0, dependencies.$)('layerSearchInput'), (0, dependencies.$)('layerSearchClearBtn'));
-    (0, dependencies.syncSearchClearButton)((0, dependencies.$)('historicalLibrarySearchInput'), (0, dependencies.$)('historicalLibrarySearchClearBtn'));
-    (0, dependencies.syncColorPicker)('multiProperties', { value: (0, dependencies.$)('multiPropertiesColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
-    dependencies.projectUi.syncSaveStatus(dependencies.saveState.snapshot());
+    (0, dependencies.platformConfigurationB.bindUiTooltips)();
+    (0, dependencies.navigationBindings.bindNavigationUI)();
+    (0, dependencies.navigationBindings.bindLayerUI)();
+    (0, dependencies.toolBindings.bindToolUI)();
+    dependencies.lifecycleUi.propertyEditorUi.bind();
+    (0, dependencies.fileBindings.bindFileAndGisUI)();
+    (0, dependencies.globalInput.bindGlobalInputUI)();
+    (0, dependencies.platformConfigurationB.syncSearchClearButton)((0, dependencies.platform.$)('layerSearchInput'), (0, dependencies.platform.$)('layerSearchClearBtn'));
+    (0, dependencies.platformConfigurationB.syncSearchClearButton)((0, dependencies.platform.$)('historicalLibrarySearchInput'), (0, dependencies.platform.$)('historicalLibrarySearchClearBtn'));
+    (0, dependencies.colorPicker.syncColorPicker)('multiProperties', { value: (0, dependencies.platform.$)('multiPropertiesColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
+    dependencies.lifecycleUi.projectUi.syncSaveStatus(dependencies.projectSession.saveState.snapshot());
   }
 
   function syncProjectControls() {
-    (0, dependencies.renderMapDisplaySettings)();
-    if ((0, dependencies.$)('layerSearchInput')) (0, dependencies.$)('layerSearchInput').value = dependencies.state.layerSearch;
-    dependencies.layerTreeController?.render(true);
-    (0, dependencies.syncProjectionButtons)();
-    (0, dependencies.syncCanonicalControls)();
+    (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
+    if ((0, dependencies.platform.$)('layerSearchInput')) (0, dependencies.platform.$)('layerSearchInput').value = dependencies.projectState.state.layerSearch;
+    dependencies.domains.layerTreeController?.render(true);
+    (0, dependencies.mapSettingsUi.syncProjectionButtons)();
+    (0, dependencies.readinessUi.syncCanonicalControls)();
   }
 
   function initializeEDITOR_COMMAND_ROW_ICONS() {

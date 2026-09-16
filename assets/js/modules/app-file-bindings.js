@@ -13,56 +13,56 @@ export function createFileBindings() {
   }
 
   function bindFileAndGisUI() {
-    (0, dependencies.$)('addFromLibraryBtn')?.addEventListener('click', async () => {
+    (0, dependencies.platform.$)('addFromLibraryBtn')?.addEventListener('click', async () => {
       try {
-        const controller = await (0, dependencies.getHistoricalLibraryController)();
+        const controller = await (0, dependencies.libraryUi.getHistoricalLibraryController)();
         await controller.open();
       } catch (error) {
-        (0, dependencies.reportOperationError)(error, '국가·지역 라이브러리를 불러오지 못했습니다.', 'PL-LIB-001', 4800);
+        (0, dependencies.feedback.reportOperationError)(error, '국가·지역 라이브러리를 불러오지 못했습니다.', 'PL-LIB-001', 4800);
       }
     });
-    (0, dependencies.$)('saveProjectBtn').addEventListener('click', () => {
-      void (0, dependencies.getGisFileController)().then(controller => controller.saveProject());
+    (0, dependencies.platform.$)('saveProjectBtn').addEventListener('click', () => {
+      void (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.saveProject());
     });
-    (0, dependencies.$)('openGisBtn').addEventListener('click', event => {
-      void (0, dependencies.getGisFileController)().then(controller => controller.openPicker({ trigger: event.currentTarget }));
+    (0, dependencies.platform.$)('openGisBtn').addEventListener('click', event => {
+      void (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.openPicker({ trigger: event.currentTarget }));
     });
-    (0, dependencies.$)('openProjectBtn').addEventListener('click', () => {
-      void (0, dependencies.getGisFileController)().then(controller => controller.openProjectPicker());
+    (0, dependencies.platform.$)('openProjectBtn').addEventListener('click', () => {
+      void (0, dependencies.gisRuntime.getGisFileController)().then(controller => controller.openProjectPicker());
     });
 
-    (0, dependencies.$)('newProjectBtn').addEventListener('click', (...args) => dependencies.projectUi.requestNew(...args));
-    (0, dependencies.$)('dataExportBtn').addEventListener('click', () => {
-      void (0, dependencies.getGisExportController)()
+    (0, dependencies.platform.$)('newProjectBtn').addEventListener('click', (...args) => dependencies.lifecycleUi.projectUi.requestNew(...args));
+    (0, dependencies.platform.$)('dataExportBtn').addEventListener('click', () => {
+      void (0, dependencies.gisRuntime.getGisExportController)()
         .then(controller => controller.open())
-        .catch(error => (0, dependencies.reportOperationError)(error, 'GIS 내보내기 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-002', 4200));
+        .catch(error => (0, dependencies.feedback.reportOperationError)(error, 'GIS 내보내기 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-002', 4200));
     });
-    const preferencesModal = (0, dependencies.$)('preferencesModal');
+    const preferencesModal = (0, dependencies.platform.$)('preferencesModal');
     let preferencesOrigin = null;
     let accentPreviewFrame = 0;
     let pendingAccent;
     const syncPreferencesForm = () => {
-      (0, dependencies.$)('preferencesThemeInput').value = dependencies.userPreferences.appearance.theme;
-      (0, dependencies.$)('preferencesStatusBarVisibleInput').checked = dependencies.userPreferences.appearance.statusBarVisible !== false;
-      const accent = dependencies.userPreferences.appearance.accentColor;
+      (0, dependencies.platform.$)('preferencesThemeInput').value = dependencies.preferences.userPreferences.appearance.theme;
+      (0, dependencies.platform.$)('preferencesStatusBarVisibleInput').checked = dependencies.preferences.userPreferences.appearance.statusBarVisible !== false;
+      const accent = dependencies.preferences.userPreferences.appearance.accentColor;
       const input = document.getElementById('preferencesAccentInput');
-      input.value = accent || dependencies.resolvedAccentColor;
-      document.getElementById('preferencesAccentValue').textContent = accent || `기본 · ${dependencies.resolvedAccentColor}`;
-      document.getElementById('preferencesAccentPreview').style.backgroundColor = accent || dependencies.resolvedAccentColor;
+      input.value = accent || dependencies.preferences.resolvedAccentColor;
+      document.getElementById('preferencesAccentValue').textContent = accent || `기본 · ${dependencies.preferences.resolvedAccentColor}`;
+      document.getElementById('preferencesAccentPreview').style.backgroundColor = accent || dependencies.preferences.resolvedAccentColor;
       preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
         button.setAttribute('aria-pressed', String((button.dataset.preferenceAccent || null) === accent));
       });
     };
     const preferencesFromForm = () => ({
-      ...dependencies.userPreferences,
+      ...dependencies.preferences.userPreferences,
       appearance: {
-        ...dependencies.userPreferences.appearance,
-        theme: (0, dependencies.$)('preferencesThemeInput').value,
-        statusBarVisible: (0, dependencies.$)('preferencesStatusBarVisibleInput').checked,
+        ...dependencies.preferences.userPreferences.appearance,
+        theme: (0, dependencies.platform.$)('preferencesThemeInput').value,
+        statusBarVisible: (0, dependencies.platform.$)('preferencesStatusBarVisibleInput').checked,
       },
     });
     const applyPreferencesForm = () => {
-      (0, dependencies.applyUserPreferences)(preferencesFromForm(), { persist: false });
+      (0, dependencies.countryLabelModel.applyUserPreferences)(preferencesFromForm(), { persist: false });
       syncPreferencesForm();
     };
     const flushAccentPreview = () => {
@@ -70,7 +70,7 @@ export function createFileBindings() {
       accentPreviewFrame = 0;
       if (pendingAccent === undefined) return;
       const accentColor = pendingAccent; pendingAccent = undefined;
-      (0, dependencies.applyUserPreferences)({ ...dependencies.userPreferences, appearance: { ...dependencies.userPreferences.appearance, accentColor } }, { persist: false });
+      (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: { ...dependencies.preferences.userPreferences.appearance, accentColor } }, { persist: false });
       syncPreferencesForm();
     };
     const previewAccent = value => {
@@ -82,62 +82,62 @@ export function createFileBindings() {
       if (revert) {
         if (accentPreviewFrame) cancelAnimationFrame(accentPreviewFrame);
         accentPreviewFrame = 0; pendingAccent = undefined;
-        if (preferencesOrigin) (0, dependencies.applyUserPreferences)({ ...dependencies.userPreferences, appearance: preferencesOrigin }, { persist: false });
+        if (preferencesOrigin) (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: preferencesOrigin }, { persist: false });
       } else {
         flushAccentPreview();
-        dependencies.userPreferences = (0, dependencies.saveUserPreferences)(dependencies.userPreferences);
+        dependencies.preferences.setUserPreferences((0, dependencies.preferences.saveUserPreferences)(dependencies.preferences.userPreferences));
       }
       preferencesOrigin = null;
-      (0, dependencies.closeColorPicker)(preferencesModal.querySelector('[data-color-picker="accent"]'));
+      (0, dependencies.colorPicker.closeColorPicker)(preferencesModal.querySelector('[data-color-picker="accent"]'));
       preferencesModal.classList.add('hidden');
-      if (restoreFocus) (0, dependencies.$)('preferencesBtn')?.focus({ preventScroll: true });
+      if (restoreFocus) (0, dependencies.platform.$)('preferencesBtn')?.focus({ preventScroll: true });
     };
     const openPreferences = () => {
-      (0, dependencies.closeFileMenu)();
-      (0, dependencies.closeSurface)('create');
+      (0, dependencies.workspaceUiA.closeFileMenu)();
+      (0, dependencies.workspaceUiA.closeSurface)('create');
       syncPreferencesForm();
-      preferencesOrigin = { ...dependencies.userPreferences.appearance };
+      preferencesOrigin = { ...dependencies.preferences.userPreferences.appearance };
       preferencesModal?.classList.remove('hidden');
-      (0, dependencies.$)('preferencesThemeInput')?.focus({ preventScroll: true });
+      (0, dependencies.platform.$)('preferencesThemeInput')?.focus({ preventScroll: true });
     };
-    (0, dependencies.$)('preferencesBtn')?.addEventListener('click', openPreferences);
-    (0, dependencies.$)('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
+    (0, dependencies.platform.$)('preferencesBtn')?.addEventListener('click', openPreferences);
+    (0, dependencies.platform.$)('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
     preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences({ revert: true }));
-    (0, dependencies.$)('preferencesResetBtn')?.addEventListener('click', () => {
+    (0, dependencies.platform.$)('preferencesResetBtn')?.addEventListener('click', () => {
       pendingAccent = undefined;
       if (accentPreviewFrame) cancelAnimationFrame(accentPreviewFrame);
       accentPreviewFrame = 0;
-      (0, dependencies.applyUserPreferences)({ ...dependencies.userPreferences, appearance: (0, dependencies.defaultUserPreferences)().appearance }, { persist: false });
+      (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: (0, dependencies.applicationServicesA.defaultUserPreferences)().appearance }, { persist: false });
       syncPreferencesForm();
     });
     preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
       button.addEventListener('click', () => previewAccent(button.dataset.preferenceAccent || null));
     });
     document.getElementById('preferencesAccentInput').addEventListener('input', event => previewAccent(event.target.value.toLowerCase()));
-    (0, dependencies.$)('preferencesThemeInput')?.addEventListener('change', applyPreferencesForm);
-    (0, dependencies.$)('preferencesStatusBarVisibleInput')?.addEventListener('change', applyPreferencesForm);
-    (0, dependencies.$)('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
-    const helpModal = (0, dependencies.$)('helpModal');
+    (0, dependencies.platform.$)('preferencesThemeInput')?.addEventListener('change', applyPreferencesForm);
+    (0, dependencies.platform.$)('preferencesStatusBarVisibleInput')?.addEventListener('change', applyPreferencesForm);
+    (0, dependencies.platform.$)('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
+    const helpModal = (0, dependencies.platform.$)('helpModal');
     const closeHelp = ({ restoreFocus = true } = {}) => {
       if (!helpModal || helpModal.classList.contains('hidden')) return;
       helpModal.classList.add('hidden');
-      if (restoreFocus) (0, dependencies.$)('helpBtn')?.focus({ preventScroll: true });
+      if (restoreFocus) (0, dependencies.platform.$)('helpBtn')?.focus({ preventScroll: true });
     };
     const openHelp = async () => {
-      (0, dependencies.closeFileMenu)();
-      (0, dependencies.closeSurface)('create');
+      (0, dependencies.workspaceUiA.closeFileMenu)();
+      (0, dependencies.workspaceUiA.closeSurface)('create');
       try {
         await (window.PANDOLAB_ENSURE_MODAL_STYLES?.() || Promise.resolve());
       } catch (error) {
-        (0, dependencies.reportOperationError)(error, '도움말 화면을 불러오지 못했습니다.', 'PL-HELP-001', 4200);
+        (0, dependencies.feedback.reportOperationError)(error, '도움말 화면을 불러오지 못했습니다.', 'PL-HELP-001', 4200);
         return;
       }
       helpModal?.classList.remove('hidden');
-      (0, dependencies.$)('helpCloseBtn')?.focus({ preventScroll: true });
+      (0, dependencies.platform.$)('helpCloseBtn')?.focus({ preventScroll: true });
     };
-    (0, dependencies.$)('helpBtn')?.addEventListener('click', () => { void openHelp(); });
-    (0, dependencies.$)('helpCloseBtn')?.addEventListener('click', () => closeHelp());
-    (0, dependencies.$)('helpDoneBtn')?.addEventListener('click', () => closeHelp());
+    (0, dependencies.platform.$)('helpBtn')?.addEventListener('click', () => { void openHelp(); });
+    (0, dependencies.platform.$)('helpCloseBtn')?.addEventListener('click', () => closeHelp());
+    (0, dependencies.platform.$)('helpDoneBtn')?.addEventListener('click', () => closeHelp());
     helpModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closeHelp());
     const fileMenu = document.querySelector('.top-actions');
     const visibleFileMenuItems = () => [...(fileMenu?.querySelectorAll('[role="menuitem"]:not(:disabled)') || [])]
@@ -147,8 +147,8 @@ export function createFileBindings() {
       if (event.key === 'Tab') {
         exitMenuOnTab(event, {
           menus: fileMenu,
-          trigger: (0, dependencies.$)('mobileFileBtn'),
-          close: () => (0, dependencies.closeFileMenu)({ restoreFocus: false }),
+          trigger: (0, dependencies.platform.$)('mobileFileBtn'),
+          close: () => (0, dependencies.workspaceUiA.closeFileMenu)({ restoreFocus: false }),
         });
         return;
       }
@@ -168,17 +168,17 @@ export function createFileBindings() {
       const button = e.target.closest('button');
       if (!button) return;
       setTimeout(() => {
-        (0, dependencies.closeFileMenu)();
+        (0, dependencies.workspaceUiA.closeFileMenu)();
       }, 80);
     });
     document.addEventListener('pandolab:restore-file-menu-focus', event => {
       const target = document.getElementById(String(event.detail?.targetId || ''));
-      if (dependencies.layoutMode === 'wide' || !target || !fileMenu?.contains(target)) return;
+      if (dependencies.surfaces.layoutMode === 'wide' || !target || !fileMenu?.contains(target)) return;
       event.preventDefault();
       requestAnimationFrame(() => {
-        dependencies.fileMenuTrigger = (0, dependencies.$)('mobileFileBtn');
+        dependencies.surfaceCommands.setFileMenuTrigger((0, dependencies.platform.$)('mobileFileBtn'));
         fileMenu.classList.add('mobile-open');
-        (0, dependencies.syncOverlayState)();
+        (0, dependencies.workspaceUiB.syncOverlayState)();
         requestAnimationFrame(() => target.focus({ preventScroll: true }));
       });
     });

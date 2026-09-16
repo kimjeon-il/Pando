@@ -1,4 +1,5 @@
 import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
+import { UI_BUNDLE_SOURCES } from '../../scripts/lib/ui-source-catalog.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
@@ -12,6 +13,7 @@ const bootstrap = read('assets/js/bootstrap.js');
 const loader = read('assets/js/workers/data-loader-worker.js');
 const projectRestore = read('assets/js/modules/app-project-restore.js');
 const lifecycleWiring = read('assets/js/modules/app-connect-lifecycle-ui.js');
+const foundationPorts = read('assets/js/modules/app-capability-ports-foundation.js');
 const meshResourceLoader = read('assets/js/modules/builtin-mesh-resource.js');
 const metadata = read('assets/js/build-meta.js');
 const bundle = read('assets/css/ui.bundle.css');
@@ -19,22 +21,6 @@ const surfaces = read('assets/css/layout/surfaces.css');
 const editorShell = read('assets/css/components/editor-shell.css');
 const modalBundle = read('assets/css/ui-modal.bundle.css');
 const indexHtml = read('index.html');
-
-const uiSources = Object.freeze([
-  'assets/css/tokens/design-tokens.css',
-  'assets/css/primitives/controls.css',
-  'assets/css/components/surface.css',
-  'assets/css/components/content.css',
-  'assets/css/components/command-row.css',
-  'assets/css/components/workflows.css',
-  'assets/css/layout/surfaces.css',
-  'assets/css/features/layer-panel.css',
-  'assets/css/components/editor-shell.css',
-  'assets/css/components/panels.css',
-  'assets/css/components/mobile-sheets.css',
-  'assets/css/components/feedback.css',
-  'assets/css/utilities/accessibility.css',
-]);
 
 test('render resources use frame snapshots instead of Proxy traps', () => {
   assert.doesNotMatch(app, /createLiveResources|new\s+Proxy/);
@@ -56,7 +42,7 @@ test('label and terrain view work scales with the visible frame', () => {
   const labelMetricsSource = app.slice(labelMetricsStart, labelMetricsEnd);
   assert.ok(labelMetricsStart >= 0 && labelMetricsEnd > labelMetricsStart);
   assert.doesNotMatch(labelMetricsSource, /path\.bounds/);
-  assert.match(labelMetricsSource, /geometryBounds\(geometry\)/);
+  assert.match(labelMetricsSource, /spatialQuery\.geometryBounds/);
   assert.match(gpuRenderer, /const globe = Number\(frameContext\?\.mode\) === 0/);
   assert.match(gpuRenderer, /const angularStep = globe/);
   assert.doesNotMatch(gpuRenderer, /Math\.ceil\(spanLon \/ 0\.499\)/);
@@ -107,7 +93,7 @@ test('data and asset revisions remain separate contracts', () => {
 
 test('UI bundle contains every canonical stylesheet exactly once in order', () => {
   let previous = -1;
-  for (const source of uiSources) {
+  for (const source of UI_BUNDLE_SOURCES) {
     const marker = `/* source: ${source} */`;
     const index = bundle.indexOf(marker);
     assert.ok(index > previous, `missing or out-of-order bundle source: ${source}`);
@@ -134,8 +120,8 @@ test('mobile sheet drag stays compositor-only until snap settlement', () => {
 
 test('map chrome avoids live backdrop blur over animated map content', () => {
   assert.doesNotMatch(editorShell, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
-  assert.match(editorShell, /\.topbar[\s\S]*backdrop-filter: none/);
-  assert.match(editorShell, /\[data-layout="wide"\] \.left-panel\s*\{[^}]*backdrop-filter: none/);
+  assert.doesNotMatch(surfaces, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
+  assert.match(read('assets/css/components/selection-toolbar.css'), /\.selection-toolbar\s*\{[^}]*backdrop-filter: none/);
 });
 
 test('canonical startup is input-gated and strictly sequential', () => {
@@ -164,7 +150,8 @@ test('new project reuses a prepared built-in mesh instead of scheduling a world 
   assert.match(loader, /builtin-mesh-only/);
   assert.match(loader, /type: 'builtin-mesh-ready'/);
   assert.match(bootstrap, /identity:\s*data\.identity \|\| null/);
-  assert.match(lifecycleWiring, /get canonicalCountryStore\(\) \{ return builtinSession\.canonicalCountryStore; \}/);
+  assert.match(lifecycleWiring, /connectCapabilityOwners\(LIFECYCLE_UI_OWNER_PORTS/);
+  assert.match(foundationPorts, /\["canonicalCountryStore","builtinSession","canonicalCountryStore"\]/);
   assert.match(meshResourceLoader, /if \(pending\) return pending/);
   const resetStart = projectRestore.indexOf('async function resetProjectInPlace');
   const resetEnd = projectRestore.indexOf('function initializeConfirmModalController', resetStart);

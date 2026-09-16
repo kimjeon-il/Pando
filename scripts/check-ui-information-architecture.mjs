@@ -6,12 +6,37 @@ import {
   MAP_OBJECT_CATEGORY_ORDER,
   MAP_OBJECT_TYPES,
 } from '../assets/js/modules/map-object-categories.js';
+import { uiSourcePath } from './lib/ui-source-catalog.mjs';
 
 const root = process.cwd();
-const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const contentCss = fs.readFileSync(path.join(root, 'assets/css/components/content.css'), 'utf8');
-const uiTokens = fs.readFileSync(path.join(root, 'assets/css/tokens/design-tokens.css'), 'utf8');
+const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
+const html = read('index.html');
+const contentCss = read(uiSourcePath('content'));
+const uiTokens = read(uiSourcePath('tokens'));
+const surfaceController = read('assets/js/modules/surface-controller.js');
 const failures = [];
+
+const surfaceContracts = Object.freeze([
+  Object.freeze({
+    surface: 'create', id: 'createMenu', variant: 'surface-create', kind: 'menu-sheet',
+    endMarker: 'id="mobileBackdrop"', triggers: ['createMenuBtn', 'mobileCreateBtn'],
+  }),
+  Object.freeze({
+    surface: 'search', id: 'objectSearchSurface', variant: 'surface-search', kind: 'delegated',
+    endMarker: 'id="mapDisplaySurface"', titleId: 'searchSheetTitle', actionId: 'objectSearchCloseBtn',
+    contentId: 'objectSearchSection', triggers: ['objectSearchBtn', 'mobileSearchBtn'],
+  }),
+  Object.freeze({
+    surface: 'display', id: 'mapDisplaySurface', variant: 'surface-display', kind: 'delegated',
+    endMarker: 'id="rightPanel"', titleId: 'displaySheetTitle', actionId: 'mapDisplayCloseBtn',
+    contentId: 'mapViewSection', triggers: ['mapDisplayBtn', 'mobileDisplayBtn'],
+  }),
+  Object.freeze({
+    surface: 'editor', id: 'rightPanel', variant: 'surface-editor', kind: 'editor',
+    endMarker: 'class="overlay-root"', titleId: 'editSheetTitle', actionId: 'mobileCloseRightBtn',
+    triggers: ['mobileEditBtn'],
+  }),
+]);
 
 function fail(message) {
   failures.push(message);
@@ -30,12 +55,96 @@ function textById(id) {
   return stripTags(elementById(id));
 }
 
+function openingTagForId(id) {
+  const idIndex = html.indexOf(`id="${id}"`);
+  if (idIndex < 0) return '';
+  const start = html.lastIndexOf('<', idIndex);
+  const end = html.indexOf('>', idIndex);
+  return start >= 0 && end >= 0 ? html.slice(start, end + 1) : '';
+}
+
+function surfaceSegment(contract) {
+  const openingTag = openingTagForId(contract.id);
+  if (!openingTag) return { openingTag: '', source: '' };
+  const start = html.indexOf(openingTag);
+  const end = html.indexOf(contract.endMarker, start + openingTag.length);
+  return { openingTag, source: html.slice(start, end > start ? end : html.length) };
+}
+
+function requireSurfaceContract(contract) {
+  const { openingTag, source } = surfaceSegment(contract);
+  if (!openingTag) {
+    fail(`missing canonical surface: #${contract.id}`);
+    return;
+  }
+  for (const className of ['workspace-surface', contract.variant, 'ui-sheet']) {
+    if (!new RegExp(`\\b${className}\\b`).test(openingTag)) fail(`#${contract.id} lacks .${className}`);
+  }
+
+  const headerIndex = source.search(/class=["'][^"']*\bsurface-header\b[^"']*["']/i);
+  const bodyIndex = source.search(/class=["'][^"']*\bsurface-body\b[^"']*["']/i);
+  if (headerIndex < 0 || bodyIndex < 0 || headerIndex >= bodyIndex) {
+    fail(`#${contract.id} must contain surface-header before surface-body`);
+    return;
+  }
+  const headerEnd = source.indexOf('</header>', headerIndex);
+  const header = headerEnd >= 0 ? source.slice(headerIndex, headerEnd) : '';
+  const body = source.slice(bodyIndex);
+
+  if (contract.kind === 'menu-sheet') {
+    if (!/role=["']menu["']/.test(openingTag)) fail(`#${contract.id} must expose desktop menu semantics`);
+    if (!/\bsheet-drag-handle\b/.test(header)) fail(`#${contract.id} must retain the mobile sheet handle`);
+    if (!/\bui-menu-list\b/.test(body) || !body.includes('id="createBuildPanel"')) fail(`#${contract.id} must own the shared create menu list`);
+    return;
+  }
+
+  if (!/\bsurface-header-title\b/.test(header) || !header.includes(`id="${contract.titleId}"`)) {
+    fail(`#${contract.id} header must own #${contract.titleId}`);
+  }
+  if (!/\bsurface-header-actions\b/.test(header) || !header.includes(`id="${contract.actionId}"`)) {
+    fail(`#${contract.id} header must own #${contract.actionId}`);
+  }
+
+  if (contract.kind === 'delegated') {
+    if (!/\bsurface-body-delegated\b/.test(body)) fail(`#${contract.id} must use delegated surface body ownership`);
+    if (!body.includes(`id="${contract.contentId}"`)) fail(`#${contract.id} is missing #${contract.contentId}`);
+    return;
+  }
+
+  const contextIndex = source.indexOf('id="editorObjectHeader"');
+  const tabsIndex = source.search(/class=["'][^"']*\bsurface-tabs\b[^"']*["']/i);
+  const contentIndex = source.search(/class=["'][^"']*\bsurface-content\b[^"']*["']/i);
+  if (!(headerIndex < contextIndex && contextIndex < tabsIndex && tabsIndex < bodyIndex && bodyIndex < contentIndex)) {
+    fail(`#${contract.id} hierarchy must be header → ObjectContext → tabs → body → content`);
+  }
+  const tabsEnd = source.indexOf('</nav>', tabsIndex);
+  const tabs = tabsEnd >= 0 ? source.slice(tabsIndex, tabsEnd) : '';
+  const tabButtons = [...tabs.matchAll(/<button\b[^>]*>/gi)].map(match => match[0]);
+  if (tabButtons.length < 2) fail(`#${contract.id} must expose at least two editor tabs`);
+  for (const button of tabButtons) {
+    if (!/\bui-button\b/.test(button) || !/\bui-tab\b/.test(button) || !/\bdata-surface-tab=/.test(button)) {
+      fail(`#${contract.id} tabs must compose .ui-button .ui-tab and data-surface-tab`);
+    }
+  }
+}
+
+for (const contract of surfaceContracts) requireSurfaceContract(contract);
+
+const panelMap = surfaceController.match(/const SURFACE_TO_PANEL\s*=\s*Object\.freeze\(\{[^}]+\}\)/)?.[0] || '';
+const triggerMap = surfaceController.match(/const SURFACE_TO_TRIGGER\s*=\s*Object\.freeze\(\{[^}]+\}\)/)?.[0] || '';
+for (const contract of surfaceContracts) {
+  if (!new RegExp(`${contract.surface}:\\s*['"]${contract.id}['"]`).test(panelMap)) fail(`surface controller does not map ${contract.surface} to #${contract.id}`);
+  for (const trigger of contract.triggers) {
+    if (!new RegExp(`${contract.surface}:[^\\n]+['"]${trigger}['"]`).test(triggerMap)) fail(`surface controller ${contract.surface} mapping is missing #${trigger}`);
+  }
+}
+
 // Create commands and library acquisition share one list, without route tabs.
 if (/id="(?:createBuildTabBtn|createLibraryTabBtn|createLibraryPanel)"/.test(html)) fail('create menu must not retain route tabs');
 if (textById('addFromLibraryBtn') !== '라이브러리') fail('library entry must be named 라이브러리');
 
 const buildStart = html.indexOf('id="createBuildPanel"');
-const libraryStart = html.indexOf('class="create-menu-category create-library-actions"');
+const libraryStart = html.indexOf('id="addFromLibraryBtn"');
 const buildPanel = buildStart >= 0 && libraryStart > buildStart ? html.slice(buildStart, libraryStart) : '';
 if (!buildPanel) fail('create build panel could not be resolved');
 const categoryContract = MAP_OBJECT_CATEGORY_ORDER.map(category => {
@@ -74,7 +183,7 @@ const headerEnd = headerStart >= 0 ? editor.indexOf('</header>', headerStart) : 
 const editorHeader = headerStart >= 0 && headerEnd > headerStart ? editor.slice(headerStart, headerEnd) : '';
 if (!editorHeader.includes('id="editSheetTitle"') || !editorHeader.includes('>편집<')) fail('editor Surface Header must identify the edit surface');
 if (!editorHeader.includes('id="mobileCloseRightBtn"')) fail('editor Surface Header must expose the close action');
-for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus', 'focusSelectedObjectBtn']) {
+for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (editorHeader.includes(`id="${forbiddenId}"`)) fail(`editor object control #${forbiddenId} must not live in the Surface Header`);
 }
 for (const id of ['objectLockBtn', 'objectDeleteBtn']) {
@@ -90,7 +199,7 @@ const objectContext = contextIndex >= 0 && contextEnd > contextIndex ? editor.sl
 for (const requiredId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (!objectContext.includes(`id="${requiredId}"`)) fail(`ObjectContext is missing #${requiredId}`);
 }
-if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext must own the optional map-focus action');
+if (!editorHeader.includes('id="focusSelectedObjectBtn"')) fail('editor Surface Header must own the optional map-focus action');
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
@@ -113,5 +222,5 @@ if (failures.length) {
   for (const message of [...new Set(failures)]) console.error(`- ${message}`);
   process.exitCode = 1;
 } else {
-  console.log('UI information architecture audit passed: create routes/categories and editor context/action hierarchy are canonical.');
+  console.log(`UI information architecture audit passed: ${surfaceContracts.length} current surface variants and create/editor hierarchy are canonical.`);
 }

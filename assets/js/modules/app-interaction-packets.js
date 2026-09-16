@@ -30,23 +30,23 @@ export function createInteractionPackets() {
   }
 
   function presentationGroupForTerritorialFeature(feature) {
-    return feature?.properties?.unitType === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT
+    return feature?.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT
       ? 'subunits'
-      : feature?.properties?.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION
+      : feature?.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION
         ? 'regions'
         : 'subunits';
   }
 
   function applyOverlayStackOrder() {
-    if (!dependencies.overlayStackLayer) return;
-    const order = dependencies.state.layerPresentation?.overlayOrder || dependencies.OVERLAY_GROUPS;
-    const objectOrder = new Map((dependencies.state.layerPresentation?.objectOrder || []).map((key, index) => [key, index]));
+    if (!dependencies.mapLayers.overlayStackLayer) return;
+    const order = dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS;
+    const objectOrder = new Map((dependencies.projectState.state.layerPresentation?.objectOrder || []).map((key, index) => [key, index]));
     const groupForDatum = datum => datum?.layer
-      ? dependencies.DISTRIBUTION_TYPE_GROUPS[datum.layer.type]
+      ? dependencies.distributionPresentation.DISTRIBUTION_TYPE_GROUPS[datum.layer.type]
       : datum?.properties?.unitType
         ? presentationGroupForTerritorialFeature(datum)
         : 'genericFeatures';
-    dependencies.overlayStackLayer.selectAll('[data-presentation-group]').sort((left, right) => {
+    dependencies.mapLayers.overlayStackLayer.selectAll('[data-presentation-group]').sort((left, right) => {
       const leftGroup = groupForDatum(left);
       const rightGroup = groupForDatum(right);
       const leftIndex = order.indexOf(leftGroup);
@@ -60,34 +60,34 @@ export function createInteractionPackets() {
   }
 
   function defaultDraftInstruction() {
-    const draft = (0, dependencies.editingDraftSnapshot)();
+    const draft = (0, dependencies.draftPresentation.editingDraftSnapshot)();
     if (draft.inputPhase === 'refine' && draft.coords.length) {
       return '꼭짓점을 드래그해 미세조정하세요.';
     }
-    const inputHint = (0, dependencies.isMobile)() ? '한 손가락으로 그리세요.' : '드래그하거나 클릭해 그리세요.';
-    const hydro = (0, dependencies.hydroToolConfig)(dependencies.state.tool);
-    if (hydro) return `${hydro.label}의 ${(0, dependencies.isPolygonDraftTool)(dependencies.state.tool) ? '경계를' : '흐름을'} 따라 ${inputHint}`;
-    if (dependencies.state.tool === 'split-generic-feature') {
+    const inputHint = (0, dependencies.surfaces.isMobile)() ? '한 손가락으로 그리세요.' : '드래그하거나 클릭해 그리세요.';
+    const hydro = (0, dependencies.draftPresentation.hydroToolConfig)(dependencies.projectState.state.tool);
+    if (hydro) return `${hydro.label}의 ${(0, dependencies.surfaces.isPolygonDraftTool)(dependencies.projectState.state.tool) ? '경계를' : '흐름을'} 따라 ${inputHint}`;
+    if (dependencies.projectState.state.tool === 'split-generic-feature') {
       return '영역을 가로질러 경계를 그리세요.';
     }
-    if (dependencies.state.tool === 'split-territorial-unit') {
+    if (dependencies.projectState.state.tool === 'split-territorial-unit') {
       return '영역을 가로질러 경계를 그리세요.';
     }
-    if (dependencies.state.tool === 'redraw-territorial-unit') return '부모 영역 안에 새 영역을 그리세요.';
-    const territorySelection = dependencies.state.territorySelectionSession;
-    if (territorySelection?.tool === dependencies.state.tool && territorySelection.stage === 'selection') {
+    if (dependencies.projectState.state.tool === 'redraw-territorial-unit') return '부모 영역 안에 새 영역을 그리세요.';
+    const territorySelection = dependencies.projectState.state.territorySelectionSession;
+    if (territorySelection?.tool === dependencies.projectState.state.tool && territorySelection.stage === 'selection') {
       const instruction = territorySelection.draftInstructions?.[territorySelection.activeMethod];
       if (instruction) return instruction;
     }
-    if (dependencies.state.distributionDraft && (0, dependencies.isPolygonDraftTool)(dependencies.state.tool)) return '분포 영역을 지도에서 지정하세요.';
+    if (dependencies.projectState.state.distributionDraft && (0, dependencies.surfaces.isPolygonDraftTool)(dependencies.projectState.state.tool)) return '분포 영역을 지도에서 지정하세요.';
     return inputHint;
   }
 
   function syncGenericDraftFeedback() {
-    if (!dependencies.editingDomain?.draftInputActive?.() || (0, dependencies.activeCutDraftSourceGeometry)()) return;
-    const issue = (0, dependencies.editingDraftSnapshot)().issues[0];
-    (0, dependencies.setModeBanner)(issue?.message || defaultDraftInstruction());
-    if (issue) (0, dependencies.$)('modeTaskInstruction')?.classList.add('cut-invalid');
+    if (!dependencies.domains.editingDomain?.draftInputActive?.() || (0, dependencies.draftPresentation.activeCutDraftSourceGeometry)()) return;
+    const issue = (0, dependencies.draftPresentation.editingDraftSnapshot)().issues[0];
+    (0, dependencies.draftPresentation.setModeBanner)(issue?.message || defaultDraftInstruction());
+    if (issue) (0, dependencies.platform.$)('modeTaskInstruction')?.classList.add('cut-invalid');
   }
 
   function gpuInteractionGeometry(datum) {
@@ -107,7 +107,7 @@ export function createInteractionPackets() {
     const role = interactionNodeRole(node, domain);
     if (channel === 'stroke' && (node.classList.contains('geometry-preview-fill') || node.dataset.commonOutline === 'true')) return null;
     const directManipulation = node.classList.contains('draft-shape');
-    const style = interactionRoleStyle(dependencies.resolvedInteractionStyle || resolveMapInteractionStyle(), role, { directManipulation });
+    const style = interactionRoleStyle(dependencies.preferences.resolvedInteractionStyle || resolveMapInteractionStyle(), role, { directManipulation });
     node.style.fill = style.color;
     node.style.fillOpacity = String(style.fillAlpha);
     node.style.stroke = style.color;
@@ -130,7 +130,7 @@ export function createInteractionPackets() {
       const priority = INTERACTION_ROLE_PRIORITY[interactionNodeRole(node, domain)];
       node.setAttribute('data-object-key', objectKey);
       node.setAttribute('data-interaction-priority', String(priority));
-      const revision = (0, dependencies.selectionGeometryRevision)(objectKey, domain, (0, dependencies.featureFromGeometry)(geometry));
+      const revision = (0, dependencies.renderScene.selectionGeometryRevision)(objectKey, domain, (0, dependencies.renderScene.featureFromGeometry)(geometry));
       const resourceKeys = [];
       node.classList.remove('gpu-interaction-hit-proxy', 'gpu-interaction-fill-proxy', 'gpu-interaction-stroke-proxy', 'canvas-interaction-fill-proxy');
       node.removeAttribute('data-gpu-interaction-stroke-keys');
@@ -170,13 +170,13 @@ export function createInteractionPackets() {
     gpuInteractionPacketSignatures[domain] = signature;
     if (domain === 'preview') currentGpuPreviewPackets = packets;
     else currentGpuDraftPackets = packets;
-    (0, dependencies.syncGpuInteractionState)();
-    dependencies.renderingDomain?.invalidateGpuInteraction?.(`gpu-${domain}-packets`);
+    (0, dependencies.renderScene.syncGpuInteractionState)();
+    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.(`gpu-${domain}-packets`);
     return true;
   }
 
   function initializeInteractionSceneBuilder() {
-    (interactionSceneBuilder = (0, dependencies.createRenderSceneBuilder)({ triangulate: (...args) => window.earcut(...args), cacheLimit: 256 }));
+    (interactionSceneBuilder = (0, dependencies.renderScene.createRenderSceneBuilder)({ triangulate: (...args) => window.earcut(...args), cacheLimit: 256 }));
   }
 
   function initializeCurrentGpuInteractionFillItems() {

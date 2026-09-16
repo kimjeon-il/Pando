@@ -9,9 +9,12 @@ function fixture() {
     coastEditScopeGenericFeatureId: null, countriesData: { features: [{ id: 'A', geometry: {} }, { id: 'B', geometry: {} }] },
     territorialUnits: [], countryOverrides: {}, genericFeatures: [] };
   const app = createGeometryPreview();
-  app.connect({ state, projectDomain: { getGeneration: () => generation },
+  app.connect({ projectState: { state }, domains: {
+    projectDomain: { getGeneration: () => generation },
+    editingDomain: { refreshTerritorySelection({ tool }) { assert.equal(tool, state.tool); counters.refresh++; } },
+  }, spatialQuery: {
     mapEditClient: { execute(operation, payload, options) { return new Promise((resolve, reject) => requests.push({ operation, payload, options, resolve, reject })); }, stop() { counters.stop++; } },
-    editingDomain: { refreshTerritorySelection({ tool }) { assert.equal(tool, state.tool); counters.refresh++; } }, updateModeButtons() {},
+  }, taskUi: { updateModeButtons() {} },
   });
   const result = (selectedIds = ['A', 'B']) => ({ result: { preparationId: 'ready', selectedIds, valid: true, neighbors: ['C'], handles: [], segments: [], isolatedIds: [] } });
   return { app, state, requests, counters, result, nextProject() { generation++; } };

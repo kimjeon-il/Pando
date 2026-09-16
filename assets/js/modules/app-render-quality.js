@@ -16,7 +16,7 @@ export function createRenderQuality() {
 
   function applyAdaptiveRenderQuality({ refreshScene = false, reason = 'adaptive-render-quality' } = {}) {
     currentRenderQuality = renderQualityController.profile();
-    const gpuQuality = dependencies.gpuMapRenderer.getRuntimeState?.() || {};
+    const gpuQuality = dependencies.rendering.gpuMapRenderer.getRuntimeState?.() || {};
     if (gpuQuality.canonicalMeshReady) {
       // Background LOD is allowed to be coarse only while the initial
       // preview is visible.  After canonical promotion, interaction may
@@ -28,36 +28,36 @@ export function createRenderQuality() {
         terrainResolutionScale: 1,
       });
     }
-    dependencies.renderSceneBuilder.setCacheByteBudget(currentRenderQuality.renderPacketCacheBudgetBytes);
-    dependencies.gpuMapRenderer.setRenderQuality?.(currentRenderQuality);
-    dependencies.mapHost?.setRenderPixelRatio?.(Math.min(
-      (0, dependencies.currentMapDevicePixelRatio)(),
+    dependencies.gpuRenderingA.renderSceneBuilder.setCacheByteBudget(currentRenderQuality.renderPacketCacheBudgetBytes);
+    dependencies.rendering.gpuMapRenderer.setRenderQuality?.(currentRenderQuality);
+    dependencies.mapView.mapHost?.setRenderPixelRatio?.(Math.min(
+      (0, dependencies.hydroModel.currentMapDevicePixelRatio)(),
       Math.max(1, Number(currentRenderQuality.dprCap || 1)),
     ));
-    if (refreshScene) dependencies.renderingDomain?.invalidateQuality?.(reason);
+    if (refreshScene) dependencies.domains.renderingDomain?.invalidateQuality?.(reason);
     return currentRenderQuality;
   }
 
   function queueAdaptiveRenderQualityRefresh(reason = 'adaptive-render-quality') {
     if (renderQualityApplyQueued) return;
     renderQualityApplyQueued = true;
-    dependencies.mapWorkScheduler.scheduleIdle('adaptive-render-quality', () => {
+    dependencies.projectState.mapWorkScheduler.scheduleIdle('adaptive-render-quality', () => {
       renderQualityApplyQueued = false;
       applyAdaptiveRenderQuality({ refreshScene: true, reason });
     }, 80);
   }
 
   function syncResolvedInteractionStyle({ redraw = false } = {}) {
-    dependencies.resolvedInteractionStyle = (0, dependencies.resolveCurrentInteractionStyle)();
-    (0, dependencies.setSelectionInteractionStyle)(dependencies.resolvedInteractionStyle);
-    dependencies.selectionPass?.updateStyle?.(dependencies.resolvedInteractionStyle);
-    dependencies.gpuMapRenderer.setInteractionStyle?.(dependencies.resolvedInteractionStyle);
-    for (const [property, value] of Object.entries(interactionCssProperties(dependencies.resolvedInteractionStyle))) document.documentElement.style.setProperty(property, value);
-    window.__PANDOLAB_INTERACTION_STYLE__ = dependencies.resolvedInteractionStyle;
+    dependencies.preferenceCommands.setResolvedInteractionStyle((0, dependencies.platformConfigurationB.resolveCurrentInteractionStyle)());
+    (0, dependencies.selectionServices.setSelectionInteractionStyle)(dependencies.preferences.resolvedInteractionStyle);
+    dependencies.gpuRenderingA.selectionPass?.updateStyle?.(dependencies.preferences.resolvedInteractionStyle);
+    dependencies.rendering.gpuMapRenderer.setInteractionStyle?.(dependencies.preferences.resolvedInteractionStyle);
+    for (const [property, value] of Object.entries(interactionCssProperties(dependencies.preferences.resolvedInteractionStyle))) document.documentElement.style.setProperty(property, value);
+    window.__PANDOLAB_INTERACTION_STYLE__ = dependencies.preferences.resolvedInteractionStyle;
     if (redraw) {
-      dependencies.renderingDomain?.invalidateSelectionStyle?.('selection-style');
+      dependencies.domains.renderingDomain?.invalidateSelectionStyle?.('selection-style');
     }
-    return dependencies.resolvedInteractionStyle;
+    return dependencies.preferences.resolvedInteractionStyle;
   }
 
   function cancelGpuMeshRebuild() {
@@ -69,21 +69,21 @@ export function createRenderQuality() {
     clearTimeout(gpuRebuildTimer);
     const requestedGeneration = Number.isFinite(projectGeneration)
       ? Number(projectGeneration)
-      : dependencies.gpuMapRenderer.getProjectGeneration?.();
+      : dependencies.rendering.gpuMapRenderer.getProjectGeneration?.();
     gpuRebuildTimer = setTimeout(() => {
       gpuRebuildTimer = null;
       if (Number.isFinite(requestedGeneration)
-          && dependencies.gpuMapRenderer.getProjectGeneration?.() !== requestedGeneration) return;
-      dependencies.mapEditClient.rebase(dependencies.state.countriesData?.features || []);
-      dependencies.gpuMapRenderer.rebuildFromCountries((0, dependencies.builtinRenderCountries)().collection.features, {
+          && dependencies.rendering.gpuMapRenderer.getProjectGeneration?.() !== requestedGeneration) return;
+      dependencies.spatialQuery.mapEditClient.rebase(dependencies.projectState.state.countriesData?.features || []);
+      dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinRenderCountries)().collection.features, {
         projectGeneration: requestedGeneration,
       });
     }, delay);
   }
 
   function initializeRenderQualityController() {
-    (renderQualityController = (0, dependencies.createAdaptiveRenderQualityController)({
-      mobile: (0, dependencies.isMobile)(),
+    (renderQualityController = (0, dependencies.uiFactoriesA.createAdaptiveRenderQualityController)({
+      mobile: (0, dependencies.surfaces.isMobile)(),
       deviceMemory: navigator.deviceMemory,
       hardwareConcurrency: navigator.hardwareConcurrency,
       saveData: navigator.connection?.saveData === true,

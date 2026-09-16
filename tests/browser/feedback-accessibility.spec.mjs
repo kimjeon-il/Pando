@@ -14,8 +14,7 @@ test('real file menu hides panel tracks and loads the revisioned scrollbar modul
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
-  await page.getByRole('button', { name: '레이어', exact: true }).click();
-  await page.locator('#mapViewTabBtn').click();
+  await page.locator('#mapDisplayBtn').click();
   const track = page.locator('.ui-overlay-scrollbar[aria-controls="mapViewSection"]');
   await expect(track).toBeVisible();
   const revision = await page.locator('script[src*="/ui-runtime.js"], script[src*="/build-meta.js"]').first().getAttribute('src');

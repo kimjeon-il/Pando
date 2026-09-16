@@ -15,25 +15,25 @@ export function createHistoryAssembly() {
 
   function applyAutosavedView(viewRecord) {
     if (!viewRecord || typeof viewRecord !== 'object') return false;
-    if (viewRecord.projection === 'globe' || viewRecord.projection === 'flat') dependencies.state.projection = viewRecord.projection;
+    if (viewRecord.projection === 'globe' || viewRecord.projection === 'flat') dependencies.projectState.state.projection = viewRecord.projection;
     if (viewRecord.view && typeof viewRecord.view === 'object') {
-      dependencies.state.view = (0, dependencies.clampViewZooms)({ ...dependencies.state.view, ...(0, dependencies.deepClone)(viewRecord.view) });
+      dependencies.projectState.state.view = (0, dependencies.workspaceUiA.clampViewZooms)({ ...dependencies.projectState.state.view, ...(0, dependencies.platform.deepClone)(viewRecord.view) });
     }
     return true;
   }
 
   function validateCanonicalProjectState() {
-    (0, dependencies.assertProjectReferenceIntegrity)({
-      countries: dependencies.state.countriesData?.features || [],
-      countryOverrides: dependencies.state.countryOverrides,
-      territorialUnits: dependencies.state.territorialUnits,
-      territorialRelations: dependencies.state.territorialRelations,
-      distributionLayers: dependencies.state.distributionLayers,
-      distributionEntries: dependencies.state.distributionEntries,
-      labels: dependencies.state.labels,
-      genericFeatures: dependencies.state.genericFeatures,
-      itemVisibility: dependencies.state.itemVisibility,
-      labelSettings: dependencies.state.labelSettings,
+    (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
+      countries: dependencies.projectState.state.countriesData?.features || [],
+      countryOverrides: dependencies.projectState.state.countryOverrides,
+      territorialUnits: dependencies.projectState.state.territorialUnits,
+      territorialRelations: dependencies.projectState.state.territorialRelations,
+      distributionLayers: dependencies.projectState.state.distributionLayers,
+      distributionEntries: dependencies.projectState.state.distributionEntries,
+      labels: dependencies.projectState.state.labels,
+      genericFeatures: dependencies.projectState.state.genericFeatures,
+      itemVisibility: dependencies.projectState.state.itemVisibility,
+      labelSettings: dependencies.projectState.state.labelSettings,
     });
     return true;
   }
@@ -41,40 +41,40 @@ export function createHistoryAssembly() {
   function invalidateProjectCommandRender(descriptor, commandId) {
     const domain = String(descriptor?.domain || '');
     const reason = `project-command:${String(commandId || 'mutation')}`;
-    if (domain === 'country') return dependencies.renderingDomain?.invalidateCountryPatch?.(reason);
-    if (domain === 'territorial') return dependencies.renderingDomain?.invalidateTerritorialPatch?.(reason);
-    if (domain === 'distribution') return dependencies.renderingDomain?.invalidateOverlayGeometry?.('distribution', reason);
-    if (domain === 'generic') return dependencies.renderingDomain?.invalidateGenericPatch?.(reason);
+    if (domain === 'country') return dependencies.domains.renderingDomain?.invalidateCountryPatch?.(reason);
+    if (domain === 'territorial') return dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.(reason);
+    if (domain === 'distribution') return dependencies.domains.renderingDomain?.invalidateOverlayGeometry?.('distribution', reason);
+    if (domain === 'generic') return dependencies.domains.renderingDomain?.invalidateGenericPatch?.(reason);
     throw new TypeError(`Unknown project command render domain: ${domain || '(empty)'}`);
   }
 
   function initializeBrowserProjectStorage() {
-    (browserProjectStorage = (0, dependencies.createBrowserProjectStorage)({
+    (browserProjectStorage = (0, dependencies.projectServices.createBrowserProjectStorage)({
       indexedDB: window.indexedDB,
       localStorage: window.localStorage,
-      databaseName: dependencies.AUTOSAVE_DB_NAME,
-      storeName: dependencies.AUTOSAVE_STORE_NAME,
-      projectKey: dependencies.AUTOSAVE_RECORD_KEY,
-      viewKey: dependencies.AUTOSAVE_VIEW_KEY,
-      fallbackKey: dependencies.STORAGE_KEY,
+      databaseName: dependencies.platformConfigurationA.AUTOSAVE_DB_NAME,
+      storeName: dependencies.platformConfigurationA.AUTOSAVE_STORE_NAME,
+      projectKey: dependencies.platformConfigurationA.AUTOSAVE_RECORD_KEY,
+      viewKey: dependencies.platformConfigurationA.AUTOSAVE_VIEW_KEY,
+      fallbackKey: dependencies.platformConfigurationB.STORAGE_KEY,
     }));
 
-    (persistenceService = (0, dependencies.createPersistenceService)({
+    (persistenceService = (0, dependencies.projectServices.createPersistenceService)({
       storage: browserProjectStorage,
-      scheduler: dependencies.mapWorkScheduler,
-      canPersist: () => (0, dependencies.canMutateProject)(dependencies.state.dataReadiness),
-      buildAutosave: () => dependencies.projectDomain?.buildAutosave?.() || dependencies.projectSerializer.buildAutosave(),
-      readView: () => ({ projection: dependencies.state.projection, view: (0, dependencies.deepClone)(dependencies.state.view) }),
-      validateProject: dependencies.assertCurrentProjectSchema,
+      scheduler: dependencies.projectState.mapWorkScheduler,
+      canPersist: () => (0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness),
+      buildAutosave: () => dependencies.domains.projectDomain?.buildAutosave?.() || dependencies.mapSettingsUi.projectSerializer.buildAutosave(),
+      readView: () => ({ projection: dependencies.projectState.state.projection, view: (0, dependencies.platform.deepClone)(dependencies.projectState.state.view) }),
+      validateProject: dependencies.projectServices.assertCurrentProjectSchema,
       onDirty: scope => {
-        if (scope === 'presentation') dependencies.saveState.markPresentationChanged();
-        else dependencies.saveState.markDocumentChanged();
+        if (scope === 'presentation') dependencies.projectSession.saveState.markPresentationChanged();
+        else dependencies.projectSession.saveState.markDocumentChanged();
       },
-      onAutosaveState: (value, options) => dependencies.saveState.setAutosave(value, options),
+      onAutosaveState: (value, options) => dependencies.projectSession.saveState.setAutosave(value, options),
       onSaved: savedAt => {
-        dependencies.state.lastSavedAt = savedAt;
+        dependencies.projectState.state.lastSavedAt = savedAt;
       },
-      onFailure: () => (0, dependencies.setActionStatus)('자동저장 실패. 파일로 저장하세요.', 'error', 0),
+      onFailure: () => (0, dependencies.feedback.setActionStatus)('자동저장 실패. 파일로 저장하세요.', 'error', 0),
       onWarning: (...args) => console.warn(...args),
     }));
 
@@ -82,125 +82,125 @@ export function createHistoryAssembly() {
 
     (projectCommandStateRevision = 0);
 
-    dependencies.projectCommandPipeline = (0, dependencies.createProjectCommandPipeline)({
+    dependencies.projectServiceCommands.installCommandPipeline((0, dependencies.projectServices.createProjectCommandPipeline)({
       captureSnapshot: () => {
-        projectCommandSaveStateCheckpoint = dependencies.saveState.checkpoint();
-        projectCommandStateRevision = dependencies.state.stateRevision;
-        return (0, dependencies.snapshotEditable)();
+        projectCommandSaveStateCheckpoint = dependencies.projectSession.saveState.checkpoint();
+        projectCommandStateRevision = dependencies.projectState.state.stateRevision;
+        return (0, dependencies.snapshots.snapshotEditable)();
       },
-      recordHistory: (meta, snapshot) => dependencies.projectDomain.commitHistorySnapshot(snapshot, meta),
-      discardHistory: () => dependencies.projectDomain.discardHistory(),
+      recordHistory: (meta, snapshot) => dependencies.domains.projectDomain.commitHistorySnapshot(snapshot, meta),
+      discardHistory: () => dependencies.domains.projectDomain.discardHistory(),
       restoreSnapshot: snapshot => {
-        (0, dependencies.restoreEditable)(snapshot, { mode: 'rollback' });
-        dependencies.state.stateRevision = projectCommandStateRevision;
-        if (projectCommandSaveStateCheckpoint) dependencies.saveState.restore(projectCommandSaveStateCheckpoint);
+        (0, dependencies.projectSnapshots.restoreEditable)(snapshot, { mode: 'rollback' });
+        dependencies.projectState.state.stateRevision = projectCommandStateRevision;
+        if (projectCommandSaveStateCheckpoint) dependencies.projectSession.saveState.restore(projectCommandSaveStateCheckpoint);
       },
       validateProject: validateCanonicalProjectState,
       advanceRevision: () => {
-        dependencies.state.stateRevision += 1;
-        return dependencies.state.stateRevision;
+        dependencies.projectState.state.stateRevision += 1;
+        return dependencies.projectState.state.stateRevision;
       },
       invalidateRender: invalidateProjectCommandRender,
-      queueAutosave: () => dependencies.projectDomain.queueAutosave(),
+      queueAutosave: () => dependencies.domains.projectDomain.queueAutosave(),
       onSuccess: () => {
         projectCommandSaveStateCheckpoint = null;
       },
       onError: () => {
         projectCommandSaveStateCheckpoint = null;
       },
-    });
+    }));
 
-    dependencies.territorialRepository = (0, dependencies.createTerritorialRepository)({
-      getCountries: () => dependencies.state.countriesData,
-      getUnits: () => dependencies.state.territorialUnits,
-      getCountryOverride: id => dependencies.state.countryOverrides[id] || {},
-    });
+    dependencies.projectServiceCommands.installTerritorialRepository((0, dependencies.territorialServicesA.createTerritorialRepository)({
+      getCountries: () => dependencies.projectState.state.countriesData,
+      getUnits: () => dependencies.projectState.state.territorialUnits,
+      getCountryOverride: id => dependencies.projectState.state.countryOverrides[id] || {},
+    }));
 
-    dependencies.territorialApplicationService = (0, dependencies.createTerritorialApplicationService)({
-      repository: dependencies.territorialRepository,
-      commandPipeline: dependencies.projectCommandPipeline,
+    dependencies.projectServiceCommands.installTerritorialApplicationService((0, dependencies.territorialServicesA.createTerritorialApplicationService)({
+      repository: dependencies.presentation.territorialRepository,
+      commandPipeline: dependencies.objectModelB.projectCommandPipeline,
       countryCommands: {
-        isLocked: id => (0, dependencies.isCountryLocked)(id),
-        hasField: (id, field) => Object.hasOwn(dependencies.state.countryOverrides[id] || {}, field),
-        setLocked: (id, locked) => (0, dependencies.setCountryLockedState)(id, locked),
+        isLocked: id => (0, dependencies.objectOperationsA.isCountryLocked)(id),
+        hasField: (id, field) => Object.hasOwn(dependencies.projectState.state.countryOverrides[id] || {}, field),
+        setLocked: (id, locked) => (0, dependencies.objectOperationsB.setCountryLockedState)(id, locked),
         setField: (id, field, value) => {
-          const previous = dependencies.state.countryOverrides[id] || {};
+          const previous = dependencies.projectState.state.countryOverrides[id] || {};
           if (field === 'flagDataUrl' && value === undefined) {
             if (!Object.hasOwn(previous, field)) return;
             const next = { ...previous };
             delete next[field];
-            if (Object.keys(next).length) dependencies.state.countryOverrides[id] = next;
-            else delete dependencies.state.countryOverrides[id];
+            if (Object.keys(next).length) dependencies.projectState.state.countryOverrides[id] = next;
+            else delete dependencies.projectState.state.countryOverrides[id];
             return;
           }
-          dependencies.state.countryOverrides[id] = { ...previous };
+          dependencies.projectState.state.countryOverrides[id] = { ...previous };
           if (field === 'color') {
-            (0, dependencies.writeDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, {
-              feature: (0, dependencies.countryFeatureById)(id), override: dependencies.state.countryOverrides[id],
-            }, value, { fallback: (0, dependencies.defaultCountryColor)() });
-          } else dependencies.state.countryOverrides[id][field] = value;
+            (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, {
+              feature: (0, dependencies.countries.countryFeatureById)(id), override: dependencies.projectState.state.countryOverrides[id],
+            }, value, { fallback: (0, dependencies.colorModel.defaultCountryColor)() });
+          } else dependencies.projectState.state.countryOverrides[id][field] = value;
         },
       },
       unitCommands: {
         setField: (id, field, value) => {
-          const feature = (0, dependencies.territorialUnitById)(id);
+          const feature = (0, dependencies.objectPresentation.territorialUnitById)(id);
           if (!feature) return;
-          if (field === 'color') (0, dependencies.setTerritorialStyleColor)(feature, value);
+          if (field === 'color') (0, dependencies.objectModelB.setTerritorialStyleColor)(feature, value);
           else feature.properties[field] = value;
         },
         replaceAll: units => {
-          dependencies.state.territorialUnits = units;
-          dependencies.mapObjectGeometryRevisions.territorial += 1;
+          dependencies.projectState.state.territorialUnits = units;
+          dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
         },
       },
-    });
+    }));
 
-    dependencies.distributionService = (0, dependencies.createDistributionService)({
+    dependencies.projectServiceCommands.installDistributionService((0, dependencies.distributionServices.createDistributionService)({
       documentStore: {
-        readLayers: () => dependencies.state.distributionLayers,
+        readLayers: () => dependencies.projectState.state.distributionLayers,
         replaceLayers: layers => {
-          dependencies.state.distributionLayers = layers;
-          dependencies.distributionVisibilityRevision += 1;
+          dependencies.projectState.state.distributionLayers = layers;
+          dependencies.distributionPresentation.bumpVisibilityRevision();
         },
-        readEntries: () => dependencies.state.distributionEntries,
+        readEntries: () => dependencies.projectState.state.distributionEntries,
         replaceEntries: entries => {
-          dependencies.state.distributionEntries = entries;
-          dependencies.distributionVisibilityRevision += 1;
+          dependencies.projectState.state.distributionEntries = entries;
+          dependencies.distributionPresentation.bumpVisibilityRevision();
         },
       },
       presentationStore: {
         setRenderMode: mode => {
-          dependencies.state.distributionSettings.renderMode = mode;
-          dependencies.distributionVisibilityRevision += 1;
+          dependencies.projectState.state.distributionSettings.renderMode = mode;
+          dependencies.distributionPresentation.bumpVisibilityRevision();
         },
         setBoundaryVisible: visible => {
-          dependencies.state.distributionSettings.boundaryVisible = visible !== false;
-          dependencies.distributionVisibilityRevision += 1;
+          dependencies.projectState.state.distributionSettings.boundaryVisible = visible !== false;
+          dependencies.distributionPresentation.bumpVisibilityRevision();
         },
       },
-      commandPipeline: dependencies.projectCommandPipeline,
-      writeLayerColor: (layer, color) => (0, dependencies.writeDomainColor)(
-        dependencies.COLOR_DOMAINS.DISTRIBUTION,
+      commandPipeline: dependencies.objectModelB.projectCommandPipeline,
+      writeLayerColor: (layer, color) => (0, dependencies.colorModel.writeDomainColor)(
+        dependencies.colorModel.COLOR_DOMAINS.DISTRIBUTION,
         { layer },
         color,
-        { fallback: dependencies.DEFAULT_GENERIC_FEATURE_COLOR },
+        { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR },
       ),
-      territorialExists: id => !!dependencies.territorialRepository.get(id),
-    });
+      territorialExists: id => !!dependencies.presentation.territorialRepository.get(id),
+    }));
 
-    dependencies.genericFeatureService = (0, dependencies.createGenericFeatureService)({
+    dependencies.projectServiceCommands.installGenericFeatureService((0, dependencies.applicationFactories.createGenericFeatureService)({
       documentStore: {
-        readFeatures: () => dependencies.state.genericFeatures,
-        replaceFeatures: genericFeatures => { dependencies.state.genericFeatures = genericFeatures; },
+        readFeatures: () => dependencies.projectState.state.genericFeatures,
+        replaceFeatures: genericFeatures => { dependencies.projectState.state.genericFeatures = genericFeatures; },
       },
-      commandPipeline: dependencies.projectCommandPipeline,
-      writeColor: (feature, color) => (0, dependencies.writeDomainColor)(
-        dependencies.COLOR_DOMAINS.GENERIC,
+      commandPipeline: dependencies.objectModelB.projectCommandPipeline,
+      writeColor: (feature, color) => (0, dependencies.colorModel.writeDomainColor)(
+        dependencies.colorModel.COLOR_DOMAINS.GENERIC,
         { feature },
         color,
-        { fallback: (0, dependencies.defaultGenericFeatureColor)(feature) },
+        { fallback: (0, dependencies.objectModelA.defaultGenericFeatureColor)(feature) },
       ),
-    });
+    }));
   }
 
   return Object.freeze({

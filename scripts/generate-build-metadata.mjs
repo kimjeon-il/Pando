@@ -17,7 +17,7 @@ if (!/^\d+\.\d+\.\d+$/.test(appVersion)) throw new Error(`package.json versionÏù
 const DATA_MANIFEST_PATHS = Object.freeze([
   `assets/data/world-preview-v${appVersion}.json`,
   'assets/data/terrain/v0.12.6/manifest.json',
-  'assets/data/hydro/v0.13.0/manifest.json',
+  'assets/data/hydro/v0.13.1/manifest.json',
 ]);
 
 function gitRevision() {

@@ -19,7 +19,7 @@ README = (ROOT / "README.md").read_text(encoding="utf-8")
 CANVAS = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
 GPU = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
 TERRAIN_MANIFEST = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))
-DATA = ROOT / "assets" / "data" / "hydro" / "v0.13.0"
+DATA = ROOT / "assets" / "data" / "hydro" / "v0.13.1"
 
 
 def source_section(source: str, start: str, end: str) -> str:
@@ -27,18 +27,17 @@ def source_section(source: str, start: str, end: str) -> str:
     return source[begin:source.index(end, begin)]
 
 
-class V0130RuntimeTests(unittest.TestCase):
+class V0131RuntimeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf-8"))
         cls.core = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["core"]["url"]).read_bytes()))["features"]
         cls.detail = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["detail"]["url"]).read_bytes()))["features"]
 
-    def test_v0140_shell_and_v0130_assets_are_compatible(self):
-        self.assertIn('data-app-version="0.30.0"', INDEX)
-        self.assertIn("v0.30.0", APP[:200])
-        self.assertIn("HYDRO_DATA_VERSION = '0.13.0'", APP)
-        self.assertEqual(self.manifest["version"], "0.13.0")
+    def test_current_shell_and_v0131_assets_are_compatible(self):
+        self.assertIn('data-app-version="0.33.0"', INDEX)
+        self.assertIn("HYDRO_DATA_VERSION = '0.13.1'", APP)
+        self.assertEqual(self.manifest["version"], "0.13.1")
         self.assertEqual(self.manifest["schema"], "pandolab-water-shards-v5")
         self.assertEqual(self.manifest["format"]["metadata"], 5)
         self.assertEqual(self.manifest["metadata"]["featureCount"], len(self.core))
@@ -136,6 +135,13 @@ class V0130RuntimeTests(unittest.TestCase):
         self.assertFalse([name for name in river_names | lake_names if bad_suffix_spacing.search(name)])
         self.assertGreater(self.manifest["stats"]["namedRiverSystemCount"], 0)
         self.assertIn("미명명 수계", " ".join(river_names))
+        for name in ("욀뷔사우강", "코케매에니오키강", "퀴미요키강", "나르바강", "노르스트룀강", "시엔셀바강"):
+            self.assertIn(name, river_names)
+
+    def test_v0131_reuses_unchanged_v0130_binary_assets(self):
+        self.assertEqual(self.manifest["index"]["url"], "../v0.13.0/index.bin.gz")
+        self.assertEqual(self.manifest["metadata"]["detail"]["url"], "../v0.13.0/metadata-detail.json.gz")
+        self.assertTrue(all(row["url"].startswith("../v0.13.0/shards/") for row in self.manifest["shards"]))
 
     def test_osm_provenance_and_segment_border_alignment_are_recorded(self):
         self.assertIn("OpenStreetMap contributors", README)

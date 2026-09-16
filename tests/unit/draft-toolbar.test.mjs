@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTaskPresentation, draftToolbarStatus, multiDraftReviewActive } from '../../assets/js/modules/app-task-presentation.js';
+import { MAP_INTERACTION_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
+import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 const options = (overrides = {}) => ({
   state: { tool: 'river', geometryPreview: { session: null } },
@@ -104,7 +106,7 @@ test('completion awaits the drawing operation, rejects duplicate clicks and neve
   let release;
   const pending = new Promise(resolve => { release = resolve; });
   const presentation = createTaskPresentation();
-  presentation.connect({
+  presentation.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
     state: input.state, $: id => id === 'modeDraftDoneBtn' ? done : null,
     editingDraftSnapshot: () => input.draft, editingDomain: { draftInputActive: () => true },
     isGenericFeatureDraftTool: () => true, draftMinimumPoints: () => 2,
@@ -113,10 +115,11 @@ test('completion awaits the drawing operation, rejects duplicate clicks and neve
     TERRITORIAL_UNIT_TYPES: { SUBUNIT: 'subunit' },
     editorWorkspacePresentation: { sync() {} }, projectUi: { syncHistory() {} },
     syncStatusBar() {}, layoutMode: 'wide', territorySelectionPresentation: () => null,
+    setMapModeContextActive() {},
     finishDraft: () => { calls++; return pending; },
     applyActiveGeometryPreview: () => assert.fail('completion must not apply the preview'),
     reportOperationError: error => { throw error; },
-  });
+  }));
   const completion = presentation.completeCurrentDraft();
   assert.equal(input.state.modeProcessing, true);
   assert.equal(done.disabled, true);

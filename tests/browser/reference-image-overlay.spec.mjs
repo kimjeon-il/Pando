@@ -8,7 +8,9 @@ const PNG_1X1 = Buffer.from(
 async function openApp(page) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('console', message => {
+    if (message.type() === 'error' || message.text().includes('[reference-image-restore]')) errors.push(message.text());
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
@@ -131,13 +133,46 @@ test('reference images support placement, ordering, georeferencing and persisten
   await expect(page.locator('[data-ref-action="placement"]')).toBeDisabled();
   await page.keyboard.press('Escape');
 
+  // Reload only after the debounced image metadata transaction is durable.
+  await expect.poll(async () => (await readReferenceStore(page)).map(item => ({
+    name: item.name,
+    points: item.controlPointCount,
+  }))).toEqual([
+    { name: 'Top reference', points: 0 },
+    { name: '<Base "reference">', points: 2 },
+  ]);
+
   await page.reload();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list().length || 0)).toBe(2);
+  // The map's enhanced event precedes the lazy image bootstrap and blob decoding.
+  await expect(page.locator('.reference-image-launcher')).toBeVisible({ timeout: 30_000 });
+  await expect.poll(async () => ({
+    names: await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list().map(item => item.name) || []),
+    errors,
+  }), { timeout: 30_000 }).toEqual({ names: ['Top reference', '<Base "reference">'], errors: [] });
   const restored = await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list());
   expect(restored.map(item => item.name)).toEqual(['Top reference', '<Base "reference">']);
   expect(restored.find(item => item.name === '<Base "reference">').controlPointCount).toBe(2);
   expect(restored.find(item => item.name === '<Base "reference">').rotation).toBe(45);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  await page.locator('.reference-image-launcher').click();
+  const imagePanel = page.locator('.reference-image-panel');
+  await expect(imagePanel).toBeVisible();
+  const panelBounds = await imagePanel.boundingBox();
+  const navigationBounds = await page.locator('.mobile-bottom-bar').boundingBox();
+  expect(panelBounds.x).toBeGreaterThanOrEqual(0);
+  expect(panelBounds.x + panelBounds.width).toBeLessThanOrEqual(390);
+  expect(panelBounds.y + panelBounds.height).toBeLessThanOrEqual(navigationBounds.y);
+  await page.locator('#mobileDisplayBtn').click();
+  await expect(page.locator('#mobileDisplayBtn')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#mapDisplaySurface')).toBeVisible();
+  await page.locator('#mobileDisplayBtn').click();
+  await expect(page.locator('#mobileDisplayBtn')).toHaveAttribute('aria-expanded', 'false');
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await expect(imagePanel).toBeVisible();
+  expect(await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().length)).toBe(2);
   expect(errors).toEqual([]);
 });

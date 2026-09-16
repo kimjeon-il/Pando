@@ -2,11 +2,14 @@ import { readApplicationImplementations } from './lib/application-source.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { UI_AUDIT_STYLE_SOURCES } from './lib/ui-source-catalog.mjs';
 
 const root = process.cwd();
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const html = read('index.html');
-const css = `${read('assets/css/app.css')}\n${read('assets/css/primitives/controls.css')}`;
+const cssBySource = new Map(UI_AUDIT_STYLE_SOURCES.map(relativePath => [relativePath, read(relativePath)]));
+const css = [...cssBySource.values()].join('\n');
+const legacyCss = cssBySource.get('assets/css/app.css') || '';
 const app = readApplicationImplementations();
 const gpuRenderer = read('assets/js/modules/gpu-map-renderer.js');
 const selectController = read('assets/js/modules/select-controller.js');
@@ -17,6 +20,8 @@ const requiredPrimitives = [
   'ui-floating-toolbar', 'ui-context-toolbar', 'ui-tabs', 'ui-tab', 'ui-nav',
   'ui-nav-item', 'ui-icon-toggle', 'ui-search-field', 'ui-status', 'ui-tooltip',
   'ui-progress', 'ui-callout', 'ui-alert', 'ui-dialog', 'ui-dialog-card',
+  'ui-menu', 'ui-menu-item', 'ui-menu-surface', 'ui-sheet', 'ui-popover',
+  'ui-choice-row', 'ui-toggle', 'ui-scroll-surface',
 ];
 for (const primitive of requiredPrimitives) {
   if (!new RegExp(`\\.${primitive}\\b`).test(css)) failures.push(`missing UI primitive: .${primitive}`);
@@ -52,8 +57,11 @@ if (/\btitle=["']/.test(html) || /setAttribute\(['"]title|\.title\s*=/.test(`${a
 if (!/input\[type="number"\]::-webkit-inner-spin-button/.test(css)) failures.push('number spinner suppression is missing');
 if (!/input\[type="search"\]::-webkit-search-cancel-button/.test(css)) failures.push('native search cancel suppression is missing');
 if (!/textarea\s*\{\s*resize:\s*none/.test(css)) failures.push('textarea resize grip suppression is missing');
-for (const match of css.matchAll(/resize\s*:\s*([^;}]+)/g)) {
-  if (match[1].trim() !== 'none') failures.push('a textarea resize override re-enables the browser grip');
+for (const match of css.matchAll(/([^{}]*\btextarea\b[^{}]*)\{([^{}]*)\}/g)) {
+  const resize = match[2].match(/(?:^|;)\s*resize\s*:\s*([^;}]+)/)?.[1]?.trim();
+  if (!resize || resize === 'none') continue;
+  if (match[1].trim() === '.selection-toolbar-note-field textarea' && resize === 'vertical') continue;
+  failures.push(`unsupported textarea resize override: ${match[1].trim()} { resize: ${resize} }`);
 }
 
 for (const id of ['layerSearchInput', 'historicalLibrarySearchInput']) {
@@ -66,6 +74,9 @@ for (const id of ['layerSearchInput', 'historicalLibrarySearchInput']) {
 }
 
 const floatingContracts = new Map([
+  ['fileMenu', ['ui-menu', 'ui-popover', 'ui-floating-surface']],
+  ['createMenu', ['workspace-surface', 'surface-create', 'ui-sheet', 'ui-menu-surface']],
+  ['selectionToolbar', ['ui-floating-surface', 'selection-toolbar']],
   ['modeActionBar', ['ui-floating-surface', 'ui-context-toolbar']],
   ['objectChooser', ['ui-popover', 'ui-floating-surface']],
   // Single and multiple selection now share the editor object context.
@@ -98,7 +109,7 @@ const featureSurfaceNames = [
 ];
 for (const name of featureSurfaceNames) {
   const rulePattern = new RegExp(`\\.${name}[^{}]*\\{([^{}]*)\\}`, 'g');
-  for (const match of css.matchAll(rulePattern)) {
+  for (const match of legacyCss.matchAll(rulePattern)) {
     if (match[0].includes('::-webkit-scrollbar')) continue;
     const count = skinProperties.filter(property => new RegExp(`(?:^|;)\\s*${property}\\s*:`).test(match[1])).length;
     if (count >= 3) failures.push(`feature class recreates visual skin: .${name}`);

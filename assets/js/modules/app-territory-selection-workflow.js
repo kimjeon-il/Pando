@@ -13,7 +13,7 @@ export function createTerritorySelectionWorkflow() {
   }
 
   function session() {
-    return dependencies.state?.territorySelectionSession || null;
+    return dependencies.projectState.state?.territorySelectionSession || null;
   }
 
   function createSession(kind, options = {}) {
@@ -22,7 +22,7 @@ export function createTerritorySelectionWorkflow() {
     const sourceCountryIds = [...new Set((options.sourceCountryIds || options.referenceCountryIds || []).map(text).filter(Boolean))];
     return {
       ...options,
-      id: options.id || (0, dependencies.uid)('territory-selection'),
+      id: options.id || (0, dependencies.surfaces.uid)('territory-selection'),
       kind,
       tool: options.tool || definition.tool,
       taskLabel: definition.label,
@@ -43,7 +43,7 @@ export function createTerritorySelectionWorkflow() {
       requestedMethod: null,
       methodChangeConfirmation: null,
       name: String(options.name ?? definition.defaultName),
-      generatedId: options.generatedId || (definition.generatedIdPrefix ? (0, dependencies.uid)(definition.generatedIdPrefix) : ''),
+      generatedId: options.generatedId || (definition.generatedIdPrefix ? (0, dependencies.surfaces.uid)(definition.generatedIdPrefix) : ''),
       targetCountryId: text(options.targetCountryId),
       sovereignId: text(options.sovereignId),
       parentId: text(options.parentId),
@@ -77,7 +77,7 @@ export function createTerritorySelectionWorkflow() {
       settingsRevision: 0,
       selectionRevision: 0,
       sourceRevision: 0,
-      projectGeneration: dependencies.projectDomain?.getGeneration?.() ?? 0,
+      projectGeneration: dependencies.domains.projectDomain?.getGeneration?.() ?? 0,
       applying: false,
       sourceCountryIds,
     };
@@ -117,10 +117,10 @@ export function createTerritorySelectionWorkflow() {
         sourceInstruction: '영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: (current, id) => id !== current.targetCountryId,
         sourceRejectedMessage: '편입 주체와 다른 국가를 선택하세요.',
-        validateSetup: dependencies.validateAnnexSelectionSetup,
-        prepareSelection: dependencies.prepareAnnexSelection,
-        finishDraft: dependencies.finishAnnexSelectionDraft,
-        preview: dependencies.prepareAnnexSelectionPreview,
+        validateSetup: dependencies.countryEditingC.validateAnnexSelectionSetup,
+        prepareSelection: dependencies.countryEditingB.prepareAnnexSelection,
+        finishDraft: dependencies.countryCommitFlow.finishAnnexSelectionDraft,
+        preview: dependencies.countryCommitFlow.prepareAnnexSelectionPreview,
       })],
       ['new-country', Object.freeze({
         tool: 'new-country',
@@ -153,10 +153,10 @@ export function createTerritorySelectionWorkflow() {
         finalLabel: () => '생성',
         sourceInstruction: '영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: () => true,
-        validateSetup: dependencies.validateNewCountrySelectionSetup,
-        prepareSelection: dependencies.prepareNewCountrySelection,
-        finishDraft: dependencies.finishNewCountrySelectionDraft,
-        preview: dependencies.prepareNewCountrySelectionPreview,
+        validateSetup: dependencies.countryEditingC.validateNewCountrySelectionSetup,
+        prepareSelection: dependencies.countryEditingB.prepareNewCountrySelection,
+        finishDraft: dependencies.countryCommitFlow.finishNewCountrySelectionDraft,
+        preview: dependencies.countryCommitFlow.prepareNewCountrySelectionPreview,
       })],
       ['subunit', Object.freeze({
         tool: 'draw-territorial-unit',
@@ -189,10 +189,10 @@ export function createTerritorySelectionWorkflow() {
         finalLabel: () => '생성',
         sourceInstruction: '기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: () => false,
-        validateSetup: dependencies.territorialCreateSetupValid,
-        prepareSelection: dependencies.prepareTerritorialCreateSelection,
-        finishDraft: dependencies.finishTerritorialUnitDirectDraft,
-        preview: dependencies.prepareTerritorialSelectionPreview,
+        validateSetup: dependencies.territorialEditingB.territorialCreateSetupValid,
+        prepareSelection: dependencies.territorialEditingA.prepareTerritorialCreateSelection,
+        finishDraft: dependencies.territorialEditingA.finishTerritorialUnitDirectDraft,
+        preview: dependencies.territorialEditingA.prepareTerritorialSelectionPreview,
       })],
       ['region', Object.freeze({
         tool: 'draw-territorial-unit',
@@ -225,14 +225,14 @@ export function createTerritorySelectionWorkflow() {
         finalLabel: () => '생성',
         sourceInstruction: '영역 기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: () => true,
-        validateSetup: dependencies.territorialCreateSetupValid,
-        prepareSelection: dependencies.prepareTerritorialCreateSelection,
-        finishDraft: dependencies.finishTerritorialUnitDirectDraft,
-        preview: dependencies.prepareTerritorialSelectionPreview,
+        validateSetup: dependencies.territorialEditingB.territorialCreateSetupValid,
+        prepareSelection: dependencies.territorialEditingA.prepareTerritorialCreateSelection,
+        finishDraft: dependencies.territorialEditingA.finishTerritorialUnitDirectDraft,
+        preview: dependencies.territorialEditingA.prepareTerritorialSelectionPreview,
       })],
     ]));
     cancelSelectionComputation(session());
-    dependencies.state.territorySelectionSession = null;
+    dependencies.projectState.state.territorySelectionSession = null;
   }
 
   function adapterFor(current = session()) {
@@ -241,24 +241,24 @@ export function createTerritorySelectionWorkflow() {
 
   function refresh(reason) {
     const current = session();
-    if (current) dependencies.editingDomain?.refreshTerritorySelection?.({ tool: current.tool, reason });
-    dependencies.renderingDomain?.invalidateEditingOverlays?.(reason);
+    if (current) dependencies.domains.editingDomain?.refreshTerritorySelection?.({ tool: current.tool, reason });
+    dependencies.domains.renderingDomain?.invalidateEditingOverlays?.(reason);
     const presentationOnly = reason.startsWith('territory-selection-component')
       || ['territory-selection-calculated', 'territory-selection-preview-pending', 'territory-selection-preview-ready'].includes(reason);
     if (!presentationOnly) {
-      dependencies.renderingDomain?.invalidateCountryPatch?.(reason);
+      dependencies.domains.renderingDomain?.invalidateCountryPatch?.(reason);
     }
-    (0, dependencies.updateModeButtons)();
+    (0, dependencies.taskUi.updateModeButtons)();
   }
 
   function start(kind, options = {}) {
     if (!adapters?.has(kind)) return false;
     clear({ discardPreview: true, refreshUi: false });
     const current = createSession(kind, options);
-    dependencies.state.territorySelectionSession = current;
-    dependencies.editingDomain?.setTool(current.tool, { announce: false });
-    dependencies.state.territorySelectionSession = current;
-    (0, dependencies.setModeBanner)('');
+    dependencies.projectState.state.territorySelectionSession = current;
+    dependencies.domains.editingDomain?.setTool(current.tool, { announce: false });
+    dependencies.projectState.state.territorySelectionSession = current;
+    (0, dependencies.taskUi.setModeBanner)('');
     refresh('territory-selection-start');
     return current;
   }
@@ -274,17 +274,17 @@ export function createTerritorySelectionWorkflow() {
       current.previewPending = false;
       if (!preserveReady) current.previewReadyKey = null;
     }
-    if (discard) (0, dependencies.discardActiveGeometryPreview)({ announce: false });
-    (0, dependencies.updateModeButtons)();
+    if (discard) (0, dependencies.geometryOperations.discardActiveGeometryPreview)({ announce: false });
+    (0, dependencies.taskUi.updateModeButtons)();
   }
 
   function clear({ discardPreview = true, refreshUi = true } = {}) {
     const current = session();
     cancelSelectionComputation(current);
     cancelPreview({ discard: discardPreview });
-    dependencies.editingDomain?.clearDraft?.({ reason: 'territory-selection-clear', render: false });
-    dependencies.state.territorySelectionSession = null;
-    (0, dependencies.resetRiverPartitionState)();
+    dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-clear', render: false });
+    dependencies.projectState.state.territorySelectionSession = null;
+    (0, dependencies.riverCandidates.resetRiverPartitionState)();
     if (refreshUi) refresh('territory-selection-clear');
     return !!current;
   }
@@ -296,7 +296,7 @@ export function createTerritorySelectionWorkflow() {
 
   function previewIsCurrent(current, key) {
     return current === session()
-      && current.projectGeneration === (dependencies.projectDomain?.getGeneration?.() ?? current.projectGeneration)
+      && current.projectGeneration === (dependencies.domains.projectDomain?.getGeneration?.() ?? current.projectGeneration)
       && key === previewKey(current);
   }
 
@@ -314,7 +314,7 @@ export function createTerritorySelectionWorkflow() {
   function clearCurrentSelection(current = session(), { clearDraft = true, refreshUi = false } = {}) {
     if (!current) return false;
     touchSelection(current);
-    if (clearDraft) dependencies.editingDomain?.clearDraft?.({ reason: 'territory-selection-current-clear', render: false });
+    if (clearDraft) dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-current-clear', render: false });
     current.activePhase = null;
     current.activeMethod = null;
     current.requestedMethod = null;
@@ -329,7 +329,7 @@ export function createTerritorySelectionWorkflow() {
     current.riverPartitionStatus = 'idle';
     current.riverPartitionCandidates = [];
     current.riverPartitionDonorResults = [];
-    (0, dependencies.resetRiverPartitionState)();
+    (0, dependencies.riverCandidates.resetRiverPartitionState)();
     refreshCombinedGeometry(current);
     if (refreshUi) refresh('territory-selection-current-clear');
     return true;
@@ -359,13 +359,13 @@ export function createTerritorySelectionWorkflow() {
   }
 
   function draftCoordinates() {
-    return (0, dependencies.editingDraftCoordinates)() || [];
+    return (0, dependencies.countryEditingA.editingDraftCoordinates)() || [];
   }
 
   function activeCurrentWork(current = session()) {
     return !!current && (!!current.currentGeometry || current.candidates.length > 0
       || current.selectedComponentKeys.length > 0 || draftCoordinates().length > 0
-      || dependencies.editingDomain?.draftInputActive?.());
+      || dependencies.domains.editingDomain?.draftInputActive?.());
   }
 
   function currentSelectionSnapshot(current) {
@@ -407,7 +407,7 @@ export function createTerritorySelectionWorkflow() {
       riverPartitionCandidates: snapshot.riverPartitionCandidates,
       riverPartitionDonorResults: snapshot.riverPartitionDonorResults,
     });
-    dependencies.editingDomain?.replaceDraftCoordinates?.(snapshot.draftCoords, { record: false, inputPhase: 'refine' });
+    dependencies.domains.editingDomain?.replaceDraftCoordinates?.(snapshot.draftCoords, { record: false, inputPhase: 'refine' });
     refreshCombinedGeometry(current);
   }
 
@@ -424,7 +424,7 @@ export function createTerritorySelectionWorkflow() {
     current.computationTimer = null;
     current.operationAbort?.abort();
     current.operationAbort = null;
-    if (current.workerRequests > 0) dependencies.mapEditClient.stop();
+    if (current.workerRequests > 0) dependencies.spatialQuery.mapEditClient.stop();
     current.computationPending = false;
     current.preparation = null;
   }
@@ -433,7 +433,7 @@ export function createTerritorySelectionWorkflow() {
     current.workerRequests = (current.workerRequests || 0) + 1;
     current.operationAbort ||= new AbortController();
     try {
-      const response = await dependencies.mapEditClient.execute(operation, { payload }, {
+      const response = await dependencies.spatialQuery.mapEditClient.execute(operation, { payload }, {
         jobKey: `${current.id}:${operation}`,
         signal: current.operationAbort.signal,
       });
@@ -453,8 +453,8 @@ export function createTerritorySelectionWorkflow() {
     }).then(result => {
       if (current !== session() || current.preparation !== preparation
         || key !== componentPreparationKey(current)
-        || current.projectGeneration !== (dependencies.projectDomain?.getGeneration?.() ?? current.projectGeneration)) return false;
-      dependencies.installComponentIndex(current, result, key);
+        || current.projectGeneration !== (dependencies.domains.projectDomain?.getGeneration?.() ?? current.projectGeneration)) return false;
+      dependencies.territoryComponents.installComponentIndex(current, result, key);
       current.componentFeatures = result.componentFeatures;
       current.baseSourceGeometry = result.baseSourceGeometry;
       current.workingSourceGeometry = result.workingSourceGeometry;
@@ -487,12 +487,12 @@ export function createTerritorySelectionWorkflow() {
     clearTimeout(current.computationTimer);
     current.computationTimer = null;
     current.computationPending = false;
-    dependencies.setModeBanner('영토 조각을 준비하는 중입니다.');
+    dependencies.taskUi.setModeBanner('영토 조각을 준비하는 중입니다.');
     refresh('territory-selection-components-preparing');
     const methodEpoch = current.computationEpoch;
     let prepared = false;
     try { prepared = await adapterFor(current)?.prepareSelection?.(current); }
-    catch (error) { dependencies.reportOperationError(error, '기준 영역을 준비하지 못했습니다.', 'PL-TERRITORY-SOURCE', 3800); }
+    catch (error) { dependencies.feedback.reportOperationError(error, '기준 영역을 준비하지 못했습니다.', 'PL-TERRITORY-SOURCE', 3800); }
     if (current !== session() || methodEpoch !== current.computationEpoch) return false;
     if (!prepared) {
       restoreCurrentSelection(current, previous);
@@ -504,7 +504,7 @@ export function createTerritorySelectionWorkflow() {
     let sourceReady = false;
     try { sourceReady = await prepareComponentSource(current); }
     catch (error) {
-      if (current === session() && activationEpoch === current.computationEpoch) dependencies.reportOperationError(error, '영토 조각을 준비하지 못했습니다. 방식을 다시 선택해 재시도하세요.', 'PL-TERRITORY-COMPONENTS', 3800);
+      if (current === session() && activationEpoch === current.computationEpoch) dependencies.feedback.reportOperationError(error, '영토 조각을 준비하지 못했습니다. 방식을 다시 선택해 재시도하세요.', 'PL-TERRITORY-COMPONENTS', 3800);
     }
     if (current !== session() || activationEpoch !== current.computationEpoch) return false;
     if (!sourceReady) {
@@ -514,11 +514,11 @@ export function createTerritorySelectionWorkflow() {
     }
     current.activePhase = method === 'components' ? 'components' : 'drawing';
     if (current.activePhase === 'drawing') {
-      dependencies.editingDomain?.startDraft?.({ coords: [] });
-      (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
+      dependencies.domains.editingDomain?.startDraft?.({ coords: [] });
+      (0, dependencies.taskUi.setModeBanner)((0, dependencies.interactionPresentation.defaultDraftInstruction)());
     } else {
-      (0, dependencies.updateTerritoryComponentSelectionFeedback)();
-      dependencies.editingDomain?.refreshTerritorySelection?.({
+      (0, dependencies.territoryComponentUi.updateTerritoryComponentSelectionFeedback)();
+      dependencies.domains.editingDomain?.refreshTerritorySelection?.({
         tool: current.tool,
         reason: 'territory-selection-components-ready',
       });
@@ -539,20 +539,20 @@ export function createTerritorySelectionWorkflow() {
       if (!setupValid(current)) return false;
       current.name = current.name.trim();
       current.stage = 'selection';
-      (0, dependencies.setModeBanner)('');
+      (0, dependencies.taskUi.setModeBanner)('');
       if (current.activePhase === 'preparing') {
         const method = current.activeMethod;
         current.activeMethod = null;
         return activateMethod(current, method);
       }
       if (!current.combinedGeometry && (current.selectedComponentKeys.length || current.currentGeometry || current.parts.length)) refreshCombinedGeometry(current);
-      if (!dependencies.state.geometryPreview.session && selectionGeometryReady(current)) schedulePreview();
+      if (!dependencies.projectState.state.geometryPreview.session && selectionGeometryReady(current)) schedulePreview();
       refresh('territory-selection-open');
       return true;
     }
     if (current.stage !== 'selection' || !previewReady(current)) return false;
     current.stage = 'review';
-    (0, dependencies.setModeBanner)('');
+    (0, dependencies.taskUi.setModeBanner)('');
     refresh('territory-selection-review');
     return true;
   }
@@ -568,7 +568,7 @@ export function createTerritorySelectionWorkflow() {
     }
     if (current.stage === 'review') {
       current.stage = 'selection';
-      (0, dependencies.setModeBanner)('');
+      (0, dependencies.taskUi.setModeBanner)('');
       refresh('territory-selection-back-selection');
       return true;
     }
@@ -576,7 +576,7 @@ export function createTerritorySelectionWorkflow() {
       cancelSelectionComputation(current);
       cancelPreview({ discard: false, preserveReady: true });
       current.stage = 'setup';
-      (0, dependencies.setModeBanner)('');
+      (0, dependencies.taskUi.setModeBanner)('');
       refresh('territory-selection-back-setup');
       return true;
     }
@@ -664,10 +664,10 @@ export function createTerritorySelectionWorkflow() {
   function toggleSourceCountry(countryId) {
     const current = session();
     const id = text(countryId);
-    if (!countryPickingActive(current) || !id || !(0, dependencies.countryFeatureById)(id)) return false;
+    if (!countryPickingActive(current) || !id || !(0, dependencies.countries.countryFeatureById)(id)) return false;
     const adapter = adapterFor(current);
     if (adapter?.canUseSource?.(current, id) !== true) {
-      if (adapter?.sourceRejectedMessage) (0, dependencies.setActionStatus)(adapter.sourceRejectedMessage, 'error', 3000);
+      if (adapter?.sourceRejectedMessage) (0, dependencies.feedback.setActionStatus)(adapter.sourceRejectedMessage, 'error', 3000);
       return false;
     }
     const firstRegionReference = current.kind === 'region' && current.stage === 'selection'
@@ -705,12 +705,12 @@ export function createTerritorySelectionWorkflow() {
     const current = session();
     if (!current || current.stage !== 'selection' || current.activePhase !== 'drawing'
       || !['line', 'polygon'].includes(current.activeMethod)) return false;
-    if (!dependencies.editingDraftCoordinates().length && current.parts.length) {
+    if (!dependencies.countryEditingA.editingDraftCoordinates().length && current.parts.length) {
       current.currentGeometry = null;
       current.candidates = [];
       current.selectedCandidateIndex = null;
       current.activePhase = 'result';
-      dependencies.editingDomain?.clearDraft?.({ reason: 'territory-selection-parts-review', render: false });
+      dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-parts-review', render: false });
       refreshCombinedGeometry(current);
       if (!previewReady(current)) schedulePreview();
       refresh('territory-selection-parts-review');
@@ -734,7 +734,7 @@ export function createTerritorySelectionWorkflow() {
     const phase = current.activePhase;
     current.computationPending = true;
     current.computationError = false;
-    dependencies.setModeBanner('선택 영역을 계산하는 중입니다.');
+    dependencies.taskUi.setModeBanner('선택 영역을 계산하는 중입니다.');
     const isCurrent = () => previewIsCurrent(current, key) && epoch === current.computationEpoch && phase === current.activePhase;
     current.computationTimer = setTimeout(async () => {
       current.computationTimer = null;
@@ -744,7 +744,7 @@ export function createTerritorySelectionWorkflow() {
         if (!isCurrent()) return;
         if (!prepared) throw new Error('기준 영역이 변경되었습니다. 다시 시도하세요.');
         const selected = phase === 'components'
-          ? dependencies.territoryComponentItems().filter(item => item.selected).map(item => item.geometry) : [];
+          ? dependencies.territoryComponents.territoryComponentItems().filter(item => item.selected).map(item => item.geometry) : [];
         const result = await executeSelectionOperation(current, 'territory-selection', {
           components: phase === 'components', selected, currentGeometry: current.currentGeometry,
           archivedGeometry: current.archivedGeometry, workingSourceGeometry: current.workingSourceGeometry,
@@ -753,14 +753,14 @@ export function createTerritorySelectionWorkflow() {
         for (const value of Object.values(result)) freezeEditingGeometry(value);
         Object.assign(current, result);
         current.computationPending = false;
-        dependencies.updateTerritoryComponentSelectionFeedback();
+        dependencies.territoryComponentUi.updateTerritoryComponentSelectionFeedback();
         schedulePreview();
       } catch (error) {
         if (!isCurrent()) return;
         current.computationPending = false;
         current.computationError = true;
         current.combinedGeometry = null;
-        dependencies.reportOperationError(error, '선택 영역을 계산하지 못했습니다. 다시 계산을 눌러 재시도하세요.', 'PL-TERRITORY-SELECTION-001', 3800);
+        dependencies.feedback.reportOperationError(error, '선택 영역을 계산하지 못했습니다. 다시 계산을 눌러 재시도하세요.', 'PL-TERRITORY-SELECTION-001', 3800);
       } finally {
         if (isCurrent()) refresh('territory-selection-calculated');
       }
@@ -777,7 +777,7 @@ export function createTerritorySelectionWorkflow() {
     current.currentGeometry = current.candidates[current.selectedCandidateIndex]?.geometry || null;
     current.activePhase = 'candidate';
     refreshCombinedGeometry(current);
-    dependencies.editingDomain?.clearDraft?.({ reason: 'territory-selection-candidate-ready', render: false });
+    dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-candidate-ready', render: false });
     if (current.currentGeometry) schedulePreview();
     refresh('territory-selection-candidates');
     return !!current.currentGeometry;
@@ -791,7 +791,7 @@ export function createTerritorySelectionWorkflow() {
     current.selectedCandidateIndex = index;
     current.currentGeometry = current.candidates[index].geometry;
     refreshCombinedGeometry(current);
-    (0, dependencies.setModeBanner)('선택한 영역을 확인하세요.');
+    (0, dependencies.taskUi.setModeBanner)('선택한 영역을 확인하세요.');
     schedulePreview();
     refresh('territory-selection-candidate');
     return true;
@@ -800,7 +800,7 @@ export function createTerritorySelectionWorkflow() {
   function toggleComponent(componentKey) {
     const current = session();
     if (!current || current.stage !== 'selection' || current.activePhase !== 'components') return false;
-    if (current.useRiverBoundaries) dependencies.territoryComponentItems();
+    if (current.useRiverBoundaries) dependencies.territoryComponents.territoryComponentItems();
     const available = current.useRiverBoundaries ? current.componentIndex?.river?.byKey : current.componentIndex?.byKey;
     if (!available?.has(componentKey)) return false;
     touchSelection(current);
@@ -809,7 +809,7 @@ export function createTerritorySelectionWorkflow() {
     current.selectedComponentKeys = [...selected];
     current.currentGeometry = null;
     refreshCombinedGeometry(current);
-    (0, dependencies.updateTerritoryComponentSelectionFeedback)();
+    (0, dependencies.territoryComponentUi.updateTerritoryComponentSelectionFeedback)();
     if (current.currentGeometry) schedulePreview();
     refresh('territory-selection-component');
     return true;
@@ -826,10 +826,10 @@ export function createTerritorySelectionWorkflow() {
     current.currentGeometry = null;
     current.hoveredComponentKey = null;
     refreshCombinedGeometry(current);
-    (0, dependencies.resetRiverPartitionState)();
-    if (next) void (0, dependencies.prepareRiverPartitionCandidates)();
-    else (0, dependencies.updateTerritoryComponentSelectionFeedback)();
-    dependencies.editingDomain?.refreshTerritorySelection?.({
+    (0, dependencies.riverCandidates.resetRiverPartitionState)();
+    if (next) void (0, dependencies.riverCandidates.prepareRiverPartitionCandidates)();
+    else (0, dependencies.territoryComponentUi.updateTerritoryComponentSelectionFeedback)();
+    dependencies.domains.editingDomain?.refreshTerritorySelection?.({
       tool: current.tool,
       reason: 'territory-selection-river-toggle',
     });
@@ -839,8 +839,8 @@ export function createTerritorySelectionWorkflow() {
 
   function startNextDraft(current) {
     current.activePhase = 'drawing';
-    dependencies.editingDomain?.startDraft?.({ coords: [] });
-    (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
+    dependencies.domains.editingDomain?.startDraft?.({ coords: [] });
+    (0, dependencies.taskUi.setModeBanner)((0, dependencies.interactionPresentation.defaultDraftInstruction)());
     refresh('territory-selection-next-part');
   }
 
@@ -850,19 +850,19 @@ export function createTerritorySelectionWorkflow() {
     touchSelection(current);
     if (current.activePhase === 'components') {
       const selected = new Set(current.selectedComponentKeys);
-      const allItems = (0, dependencies.territoryComponentItems)();
-      const snapshotId = (0, dependencies.uid)('territory-component-snapshot');
+      const allItems = (0, dependencies.territoryComponents.territoryComponentItems)();
+      const snapshotId = (0, dependencies.surfaces.uid)('territory-component-snapshot');
       current.componentSnapshots.push({ id: snapshotId, items: allItems });
       const selectedItems = allItems.filter(item => selected.has(item.key));
       current.parts.push(...selectedItems.map(item => ({
-        id: (0, dependencies.uid)('territory-part'),
+        id: (0, dependencies.surfaces.uid)('territory-part'),
         method: 'components',
         geometry: item.geometry,
         component: { ...item, snapshotId },
       })));
     } else {
       current.parts.push({
-        id: (0, dependencies.uid)('territory-part'),
+        id: (0, dependencies.surfaces.uid)('territory-part'),
         method: current.activeMethod,
         geometry: current.currentGeometry,
       });
@@ -876,10 +876,10 @@ export function createTerritorySelectionWorkflow() {
     current.requestedMethod = null;
     current.activePhase = null;
     current.useRiverBoundaries = false;
-    (0, dependencies.resetRiverPartitionState)();
+    (0, dependencies.riverCandidates.resetRiverPartitionState)();
     refreshCombinedGeometry(current);
     schedulePreview();
-    dependencies.editingDomain?.clearDraft?.({ reason: 'territory-selection-part-archived', render: false });
+    dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territory-selection-part-archived', render: false });
     refresh('territory-selection-part-archived');
     return true;
   }
@@ -887,13 +887,13 @@ export function createTerritorySelectionWorkflow() {
   function undoPart() {
     const current = session();
     if (!current || current.stage !== 'selection'
-      || dependencies.editingDomain?.draftInputActive?.() && (0, dependencies.editingDraftCoordinates)().length) return false;
+      || dependencies.domains.editingDomain?.draftInputActive?.() && (0, dependencies.countryEditingA.editingDraftCoordinates)().length) return false;
     if (!current.currentGeometry && !current.parts.length && !current.selectedComponentKeys.length) return false;
     touchSelection(current);
     if (current.activePhase === 'components' && current.selectedComponentKeys.length) {
       current.selectedComponentKeys.pop();
       current.currentGeometry = null;
-      (0, dependencies.updateTerritoryComponentSelectionFeedback)();
+      (0, dependencies.territoryComponentUi.updateTerritoryComponentSelectionFeedback)();
     } else if (current.currentGeometry) {
       current.currentGeometry = null;
     } else {
@@ -936,12 +936,12 @@ export function createTerritorySelectionWorkflow() {
 
   function selectionGeometryReady(current = session()) {
     if (!current || current.computationPending || !['selection', 'review'].includes(current.stage)) return false;
-    if (current.stage === 'review') return !!current.combinedGeometry && !dependencies.editingDomain?.draftInputActive?.();
+    if (current.stage === 'review') return !!current.combinedGeometry && !dependencies.domains.editingDomain?.draftInputActive?.();
     if (current.activePhase === 'components') {
       return (!current.useRiverBoundaries || current.riverPartitionStatus === 'ready') && current.selectedComponentKeys.length > 0 && !!current.currentGeometry;
     }
     if (current.activePhase === 'drawing' || current.activePhase === 'source' || current.activePhase === 'preparing') return false;
-    return !!current.combinedGeometry && !dependencies.editingDomain?.draftInputActive?.();
+    return !!current.combinedGeometry && !dependencies.domains.editingDomain?.draftInputActive?.();
   }
 
   function schedulePreview({ delay = 300 } = {}) {
@@ -965,7 +965,7 @@ export function createTerritorySelectionWorkflow() {
         prepared = await adapterFor(current)?.preview?.(current, key) === true;
       } catch (error) {
         if (previewIsCurrent(current, key)) {
-          (0, dependencies.reportOperationError)(
+          (0, dependencies.feedback.reportOperationError)(
             error,
             '선택한 영역의 결과를 준비하지 못했습니다. 영역을 다시 선택하세요.',
             'PL-TERRITORY-PREVIEW-001',
@@ -975,7 +975,7 @@ export function createTerritorySelectionWorkflow() {
       } finally {
         if (previewIsCurrent(current, key)) {
           current.previewPending = false;
-          current.previewReadyKey = prepared && dependencies.state.geometryPreview.session ? key : null;
+          current.previewReadyKey = prepared && dependencies.projectState.state.geometryPreview.session ? key : null;
           refresh('territory-selection-preview-ready');
         }
       }
@@ -987,8 +987,8 @@ export function createTerritorySelectionWorkflow() {
     return !!current && !current.computationPending && current.previewReadyKey === previewKey(current)
       && !current.previewPending
       && selectionGeometryReady(current)
-      && !!dependencies.state.geometryPreview.session
-      && dependencies.state.geometryPreview.session.validation?.blocking !== true;
+      && !!dependencies.projectState.state.geometryPreview.session
+      && dependencies.projectState.state.geometryPreview.session.validation?.blocking !== true;
   }
 
   async function apply() {
@@ -997,11 +997,11 @@ export function createTerritorySelectionWorkflow() {
     current.applying = true;
     refresh('territory-selection-applying');
     try {
-      const applied = await (0, dependencies.applyActiveGeometryPreview)();
+      const applied = await (0, dependencies.geometryOperations.applyActiveGeometryPreview)();
       if (!applied) return false;
       if (session() === current) {
-        (0, dependencies.resetRiverPartitionState)();
-        dependencies.state.territorySelectionSession = null;
+        (0, dependencies.riverCandidates.resetRiverPartitionState)();
+        dependencies.projectState.state.territorySelectionSession = null;
       }
       return true;
     } finally {
@@ -1058,7 +1058,7 @@ export function createTerritorySelectionWorkflow() {
         || ['candidate', 'components', 'result'].includes(current.activePhase)),
       count,
       canAddPart: canAddPart(current),
-      canUndoPart: current.stage === 'selection' && !dependencies.editingDomain?.draftInputActive?.()
+      canUndoPart: current.stage === 'selection' && !dependencies.domains.editingDomain?.draftInputActive?.()
         && (current.selectedComponentKeys.length > 0 || !!current.currentGeometry || current.parts.length > 0),
       primaryLabel,
       primaryIcon: current.stage === 'review' ? '#icon-check' : '#icon-chevron-right',

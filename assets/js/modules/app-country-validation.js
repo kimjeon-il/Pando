@@ -11,7 +11,7 @@ export function createCountryValidation() {
   }
 
   function unwrapRingLongitudes(rawRing) {
-    const ring = (0, dependencies.ensureClosedRing)(rawRing);
+    const ring = (0, dependencies.geometryModel.ensureClosedRing)(rawRing);
     if (!ring.length) return [];
     const out = [[ring[0][0], ring[0][1]]];
     for (let i = 1; i < ring.length; i += 1) {
@@ -66,14 +66,14 @@ export function createCountryValidation() {
   }
 
   function countryGeometryIsValid(geometry) {
-    const polygons = (0, dependencies.geometryMultiCoordinates)(geometry);
+    const polygons = (0, dependencies.territoryGeometry.geometryMultiCoordinates)(geometry);
     if (!polygons.length) return false;
     return polygons.every(polygon => polygon?.length && polygon.every(ring => {
-      const closed = (0, dependencies.ensureClosedRing)(ring);
-      const unique = new Set(closed.slice(0, -1).map(coord => (0, dependencies.coordKey)(coord, 8)));
+      const closed = (0, dependencies.geometryModel.ensureClosedRing)(ring);
+      const unique = new Set(closed.slice(0, -1).map(coord => (0, dependencies.geometryPreview.coordKey)(coord, 8)));
       return closed.length >= 4 && unique.size >= 3 &&
-        (0, dependencies.coordNear)(closed[0], closed[closed.length - 1], 1e-9) &&
-        Math.abs((0, dependencies.ringSignedArea)(closed)) > 1e-14 &&
+        (0, dependencies.geometryPreview.coordNear)(closed[0], closed[closed.length - 1], 1e-9) &&
+        Math.abs((0, dependencies.geometryModel.ringSignedArea)(closed)) > 1e-14 &&
         !ringHasSelfIntersection(closed);
     }));
   }
@@ -98,7 +98,7 @@ export function createCountryValidation() {
       : { union: baselineOrUnion, overlaps: new Map(), boundaryLength: 0 };
     const areaTolerance = Math.max(1e-8, Number(baseline.boundaryLength || 0) * 2e-7);
     const overrideMap = featureOverrides instanceof Map ? featureOverrides : new Map();
-    const features = (dependencies.state.countriesData?.features || []).map(feature => (
+    const features = (dependencies.projectState.state.countriesData?.features || []).map(feature => (
       overrideMap.get(String(feature?.id || '')) || feature
     ));
     const ids = features.map(feature => String(feature?.id || ''));
@@ -108,7 +108,7 @@ export function createCountryValidation() {
     for (const feature of features) {
       const id = String(feature?.id || '');
       if (affected.has(id) && !countryGeometryIsValid(feature.geometry)) {
-        return { ok: false, message: `${(0, dependencies.countryName)(feature)}의 경계가 유효하지 않습니다.` };
+        return { ok: false, message: `${(0, dependencies.presentation.countryName)(feature)}의 경계가 유효하지 않습니다.` };
       }
     }
 
@@ -116,27 +116,27 @@ export function createCountryValidation() {
     for (const feature of features) {
       const id = String(feature?.id || '');
       if (!affected.has(id)) continue;
-      const bounds = (0, dependencies.geometryBounds)(feature.geometry);
+      const bounds = (0, dependencies.spatialQuery.geometryBounds)(feature.geometry);
       const nearby = overrideMap.size
-        ? features.filter(other => (0, dependencies.boundsOverlap)(bounds, (0, dependencies.geometryBounds)(other.geometry)))
-        : (0, dependencies.spatialFeatures)(bounds);
+        ? features.filter(other => (0, dependencies.cutGeometry.boundsOverlap)(bounds, (0, dependencies.spatialQuery.geometryBounds)(other.geometry)))
+        : (0, dependencies.spatialQuery.spatialFeatures)(bounds);
       for (const other of nearby) {
         const otherId = String(other?.id || '');
         if (id === otherId) continue;
         const pairKey = id < otherId ? `${id}|${otherId}` : `${otherId}|${id}`;
         if (tested.has(pairKey)) continue;
         tested.add(pairKey);
-        const overlapArea = (0, dependencies.multiPolygonPlanarArea)(clipper.intersection(feature.geometry.coordinates, other.geometry.coordinates));
+        const overlapArea = (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(clipper.intersection(feature.geometry.coordinates, other.geometry.coordinates));
         const previousArea = Number(baseline.overlaps?.get(pairKey) || 0);
         if (overlapArea > previousArea + areaTolerance) {
-          return { ok: false, message: `${(0, dependencies.countryName)(feature)}과(와) ${(0, dependencies.countryName)(other)} 사이에 ${(overlapArea - previousArea).toExponential(3)}deg²의 새 중첩이 생겼습니다. 편입 영역을 줄이거나 국경선을 다시 지정하세요.` };
+          return { ok: false, message: `${(0, dependencies.presentation.countryName)(feature)}과(와) ${(0, dependencies.presentation.countryName)(other)} 사이에 ${(overlapArea - previousArea).toExponential(3)}deg²의 새 중첩이 생겼습니다. 편입 영역을 줄이거나 국경선을 다시 지정하세요.` };
         }
       }
     }
 
     if (baseline.union) {
-      const unionAfter = (0, dependencies.countryUnionFromFeatures)(features, affected);
-      const changedArea = (0, dependencies.multiPolygonPlanarArea)(clipper.xor(baseline.union, unionAfter));
+      const unionAfter = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(features, affected);
+      const changedArea = (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(clipper.xor(baseline.union, unionAfter));
       if (changedArea > areaTolerance) return { ok: false, message: `편집 영역에 ${changedArea.toExponential(3)}deg²의 새 빈틈 또는 면적 변화가 생겼습니다. 편입선을 다시 지정하세요.` };
     }
     return { ok: true };
@@ -144,25 +144,25 @@ export function createCountryValidation() {
 
   function captureCountryGeometryValidationBaseline(affectedIds) {
     const ids = new Set([...affectedIds].map(String));
-    const features = dependencies.state.countriesData?.features || [];
+    const features = dependencies.projectState.state.countriesData?.features || [];
     const clipper = window.polygonClipping;
     const overlaps = new Map();
     let boundaryLength = 0;
     for (const feature of features) {
       const id = String(feature?.id || '');
       if (!ids.has(id)) continue;
-      for (const polygon of (0, dependencies.geometryPolygonSets)(feature.geometry)) for (const ring of polygon || []) {
+      for (const polygon of (0, dependencies.geometryPreview.geometryPolygonSets)(feature.geometry)) for (const ring of polygon || []) {
         for (let index = 0; index < ring.length - 1; index += 1) boundaryLength += Math.hypot(ring[index + 1][0] - ring[index][0], ring[index + 1][1] - ring[index][1]);
       }
-      for (const other of (0, dependencies.spatialFeatures)((0, dependencies.geometryBounds)(feature.geometry))) {
+      for (const other of (0, dependencies.spatialQuery.spatialFeatures)((0, dependencies.spatialQuery.geometryBounds)(feature.geometry))) {
         const otherId = String(other?.id || '');
         if (!otherId || otherId === id) continue;
         const pairKey = id < otherId ? `${id}|${otherId}` : `${otherId}|${id}`;
         if (overlaps.has(pairKey)) continue;
-        overlaps.set(pairKey, (0, dependencies.multiPolygonPlanarArea)(clipper.intersection(feature.geometry.coordinates, other.geometry.coordinates)));
+        overlaps.set(pairKey, (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(clipper.intersection(feature.geometry.coordinates, other.geometry.coordinates)));
       }
     }
-    return { union: (0, dependencies.countryUnionFromFeatures)(features, ids), overlaps, boundaryLength };
+    return { union: (0, dependencies.territoryGeometry.countryUnionFromFeatures)(features, ids), overlaps, boundaryLength };
   }
 
   function structuredGeometryIssueKey(issue = {}) {
@@ -178,16 +178,16 @@ export function createCountryValidation() {
   }
 
   function restoreCountryEditSnapshot(snapshot) {
-    const changedIds = new Set(dependencies.state.historyDirtyCountryIds);
-    (0, dependencies.applySharedProjectFields)(snapshot, 'history');
-    (0, dependencies.restoreCountriesFromSnapshot)(snapshot);
-    (0, dependencies.normalizeProjectObjects)();
-    const restoredDirtyIds = new Set(dependencies.state.historyDirtyCountryIds);
-    for (const id of dependencies.state.historyDirtyCountryIds) changedIds.add(String(id));
-    (0, dependencies.markCountryGeometriesChanged)(changedIds);
-    dependencies.state.historyDirtyCountryIds = restoredDirtyIds;
-    (0, dependencies.rebuildBoundaryTopology)(dependencies.state.tool === 'country-border' ? dependencies.state.boundaryEditCountryIds : dependencies.state.coastEditCountryId);
-    dependencies.renderingDomain?.invalidateCountryPatch?.('country-edit-snapshot-restored');
+    const changedIds = new Set(dependencies.projectState.state.historyDirtyCountryIds);
+    (0, dependencies.snapshots.applySharedProjectFields)(snapshot, 'history');
+    (0, dependencies.snapshots.restoreCountriesFromSnapshot)(snapshot);
+    (0, dependencies.snapshots.normalizeProjectObjects)();
+    const restoredDirtyIds = new Set(dependencies.projectState.state.historyDirtyCountryIds);
+    for (const id of dependencies.projectState.state.historyDirtyCountryIds) changedIds.add(String(id));
+    (0, dependencies.spatialQuery.markCountryGeometriesChanged)(changedIds);
+    dependencies.projectState.state.historyDirtyCountryIds = restoredDirtyIds;
+    (0, dependencies.geometryPreview.rebuildBoundaryTopology)(dependencies.projectState.state.tool === 'country-border' ? dependencies.projectState.state.boundaryEditCountryIds : dependencies.projectState.state.coastEditCountryId);
+    dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-edit-snapshot-restored');
   }
 
   function interpolateCoordinate(a, b, t) {
@@ -202,7 +202,7 @@ export function createCountryValidation() {
 
   function refreshCountryCentroids(ids = null) {
     const filter = ids ? new Set([...ids].map(String)) : null;
-    (0, dependencies.scheduleCountryLabelAnchors)(filter, 20);
+    (0, dependencies.countries.scheduleCountryLabelAnchors)(filter, 20);
   }
 
 
