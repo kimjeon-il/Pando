@@ -1,3 +1,4 @@
+import { referenceImageKeyBlocked } from './reference-image-input.js';
 import {
   buildReferenceImageMesh,
   buildReferenceImageWarp,
@@ -685,6 +686,7 @@ export function installReferenceImageLiveWire() {
   }
 
   function onKeyDown(event) {
+    if (referenceImageKeyBlocked(event)) return;
     if (!state) return;
     const undoShortcut = event.key === 'Backspace' || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z');
     if (undoShortcut && ['tracking', 'preview'].includes(state.phase)) {

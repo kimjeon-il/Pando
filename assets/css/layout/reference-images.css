@@ -14,17 +14,37 @@
   inset-block-start: calc(var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-4));
   inset-inline-end: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-map-edge));
   min-height: var(--ui-control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.reference-image-launcher .ui-icon {
+  flex: 0 0 var(--ui-icon-size);
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
 }
 
 .reference-image-panel {
+  --ui-reference-panel-top: calc(var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-4) + var(--ui-control-height) + var(--ui-space-2));
   position: absolute;
   z-index: 9;
-  inset-block-start: calc(var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-4) + var(--ui-control-height) + var(--ui-space-2));
+  inset-block-start: var(--ui-reference-panel-top);
   inset-inline-end: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-map-edge));
   width: min(var(--ui-reference-panel-width), calc(100% - var(--ui-map-edge) * 2));
-  max-height: min(var(--ui-reference-panel-max-height), calc(100% - var(--ui-reference-panel-clearance)));
-  overflow: auto;
+  max-height: min(var(--ui-reference-panel-max-height), calc(100% - var(--ui-reference-panel-top) - var(--ui-map-edge) - var(--ui-shell-statusbar-height)));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
+
+.reference-image-panel[hidden] { display: none; }
+.reference-image-body { min-height: 0; overflow: auto; }
+.reference-image-panel-header { flex: 0 0 auto; }
+.reference-image-editing-summary { display: flex; align-items: center; gap: var(--ui-space-2); }
+.reference-image-editing-summary[hidden] { display: none; }
+.reference-image-editing-summary > span { flex: 1; min-width: 0; }
 
 .reference-image-panel-header,
 .reference-image-editor-title,
@@ -90,10 +110,13 @@
   display: grid;
 }
 
-.reference-image-editor-title .ui-input {
+.reference-image-editor-title input[type="text"] {
   min-width: var(--ui-space-0);
   flex: 1;
 }
+
+.reference-image-editor-title .icon-btn { flex-shrink: 0; }
+.reference-image-field > :is(input, select) { min-width: 0; width: 100%; }
 
 .reference-image-field {
   display: grid;
@@ -126,27 +149,39 @@
 
 .reference-image-diagnostics {
   justify-content: space-between;
+  flex-wrap: wrap;
 }
+
+.reference-image-points { display: grid; }
+.reference-image-points li { display: flex; flex-wrap: wrap; align-items: center; min-width: 0; }
+.reference-image-points li > span { flex: 0 0 100%; }
+.reference-image-points .btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 
 @media (max-width: 799px) {
   .reference-image-launcher {
     inset-block-start: var(--ui-space-2);
     inset-inline-end: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-space-2));
-  }
-
-  .reference-image-panel {
-    inset-block-start: calc(var(--ui-space-2) + var(--ui-v2-control-mobile-height) + var(--ui-space-2));
-    inset-inline: var(--ui-space-2);
-    width: auto;
-    max-height: min(var(--ui-reference-mobile-panel-max-height), calc(100% - var(--ui-reference-mobile-panel-clearance)));
+    min-width: var(--ui-v2-control-mobile-height);
+    min-height: var(--ui-v2-control-mobile-height);
   }
 
   .reference-image-field {
     grid-template-columns: var(--ui-reference-field-label-width-mobile) minmax(0, 1fr) auto;
   }
 
-  .reference-image-placement-actions .ui-button,
-  .reference-image-gcp-actions .ui-button {
+  .reference-image-panel .ui-button,
+  .reference-image-toggle-row label {
     min-height: var(--ui-v2-control-mobile-height);
   }
+
+  .reference-image-panel .icon-btn { min-width: var(--ui-v2-control-mobile-height); }
 }
+
+[data-layout="mobile"] .surface-reference.reference-image-editing {
+  height: auto;
+  min-height: var(--ui-v2-control-mobile-height);
+}
+[data-layout="mobile"] .surface-reference.reference-image-editing > .surface-header,
+[data-layout="mobile"] .surface-reference.reference-image-editing > .surface-body { display: none; }
+[data-layout="mobile"] .reference-image-panel-header > div,
+[data-layout="mobile"] .reference-image-panel-header > [data-ref-action="close"] { display: none; }

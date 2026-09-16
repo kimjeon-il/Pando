@@ -27,7 +27,7 @@ function fixture(initialLayout) {
   const elements = Object.fromEntries([
     'objectSearchSurface', 'mapDisplaySurface', 'rightPanel', 'createMenu', 'objectSearchBtn',
     'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'createMenuBtn', 'mobileEditBtn',
-    'mobileFileBtn', 'mobileBackdrop', 'mobileCreateBtn',
+    'mobileFileBtn', 'mobileBackdrop', 'mobileCreateBtn', 'referenceImageSurface', 'referenceImageBtn',
   ].map(id => [id, element(id)]));
   const workspace = element('workspace');
   const body = element('body');
@@ -46,6 +46,34 @@ function fixture(initialLayout) {
     setActiveElement: id => { document.activeElement = id ? elements[id] : null; },
   };
 }
+
+test('reference image is the only mobile sheet and restores its trigger state across layout changes', () => {
+  const { controller, elements, setLayout } = fixture('wide');
+  controller.open('editor');
+  assert.equal(controller.open('reference'), true);
+  controller.render();
+  assert.equal(controller.isOpen('editor'), true);
+  setLayout('mobile');
+  controller.syncLayout('wide');
+  controller.render();
+  assert.equal(controller.activeMobileSheet, 'reference');
+  assert.equal(controller.isOpen('editor'), false);
+  assert.equal(elements.referenceImageBtn.getAttribute('aria-expanded'), 'true');
+  assert.equal(elements.referenceImageSurface.getAttribute('role'), 'dialog');
+  controller.open('display');
+  controller.render();
+  assert.equal(controller.isOpen('reference'), false);
+  assert.equal(elements.referenceImageSurface.inert, true);
+  assert.equal(elements.referenceImageBtn.getAttribute('aria-expanded'), 'false');
+  controller.open('reference');
+  setLayout('compact');
+  controller.syncLayout('mobile');
+  controller.render();
+  assert.equal(controller.isOpen('reference'), true);
+  controller.close('reference');
+  controller.render();
+  assert.equal(elements.referenceImageSurface.inert, true);
+});
 
 test('compact search preserves the editor and synchronizes ARIA while replacing competing menus', () => {
   const { controller, elements } = fixture('compact');

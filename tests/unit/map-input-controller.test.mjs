@@ -66,6 +66,55 @@ function createController(surface, overrides = {}) {
   });
 }
 
+test('image placement owns the gesture before map drawing or navigation starts', () => {
+  const surface = new PointerSurface();
+  const events = [];
+  const controller = createController(surface, {
+    beginExternalGesture: () => ({ kind: 'exclusive', move: () => events.push('image-move'), end: () => events.push('image-end') }),
+    canDrawStroke: () => true, beginStroke: () => events.push('draw'),
+    dragBy: () => events.push('map'),
+  });
+  surface.dispatchEvent(pointerEvent('pointerdown'));
+  surface.dispatchEvent(pointerEvent('pointermove', { clientX: 80 }));
+  surface.dispatchEvent(pointerEvent('pointerup', { clientX: 80 }));
+  assert.deepEqual(events, ['image-move', 'image-end']);
+  controller.destroy();
+});
+
+test('image point taps commit on release, while a drag pans without committing a point', () => {
+  const surface = new PointerSurface(); const events = [];
+  const controller = createController(surface, {
+    beginExternalGesture: () => ({ kind: 'tap', end: () => events.push('point'), cancel: () => events.push('cancel') }),
+    dragBy: () => events.push('pan'),
+  });
+  surface.dispatchEvent(pointerEvent('pointerdown'));
+  assert.deepEqual(events, []);
+  surface.dispatchEvent(pointerEvent('pointerup'));
+  assert.deepEqual(events, ['point']);
+  events.length = 0;
+  surface.dispatchEvent(pointerEvent('pointerdown'));
+  surface.dispatchEvent(pointerEvent('pointermove', { clientX: 80 }));
+  surface.dispatchEvent(pointerEvent('pointerup', { clientX: 80 }));
+  assert.deepEqual(events, ['pan', 'cancel']);
+  controller.destroy();
+});
+
+test('second touch and pointercancel roll back image input rather than committing it', () => {
+  const surface = new PointerSurface(); const events = [];
+  const controller = createController(surface, {
+    beginExternalGesture: () => ({ kind: 'exclusive', end: () => events.push('commit'), cancel: () => events.push('rollback') }),
+    beginMovement: () => events.push('pinch'),
+  });
+  surface.dispatchEvent(pointerEvent('pointerdown'));
+  surface.dispatchEvent(pointerEvent('pointercancel'));
+  assert.deepEqual(events, ['rollback']);
+  events.length = 0;
+  surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 1 }));
+  surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 2 }));
+  assert.deepEqual(events, ['rollback', 'pinch']);
+  controller.destroy();
+});
+
 test('middle button navigates without starting the active drawing tool', () => {
   const surface = new PointerSurface(); let draws = 0, moves = 0;
   const controller = createController(surface, { canNavigate: () => false, canDrawStroke: () => true, beginStroke: () => { draws++; }, dragBy: () => { moves++; } });
