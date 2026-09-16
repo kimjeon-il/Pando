@@ -1,0 +1,175 @@
+/* Canonical primitives / select. */
+
+.app-root[data-layout="mobile"] .ui-select-control {
+  min-height: var(--ui-touch-height);
+  font-size: var(--ui-font-section);
+}
+
+body[data-layout="mobile"] .ui-select-option {
+  min-height: var(--ui-touch-height);
+  font-size: var(--ui-font-section);
+}
+
+.ui-select-shell {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.ui-select-shell.is-searchable .ui-select-control {
+  cursor: text;
+}
+
+.ui-select-control:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: color-mix(in srgb, var(--surface-input) 82%, var(--surface-hover));
+}
+
+.ui-select-control:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.ui-select-shell.is-open .ui-select-control {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.ui-select-control:disabled {
+  cursor: not-allowed;
+  color: var(--muted);
+  background: var(--surface-subtle);
+  opacity: .58;
+}
+
+.ui-select-toggle {
+  position: absolute;
+  top: 50%;
+  right: var(--ui-select-indicator-inset);
+  width: var(--ui-select-indicator-size);
+  height: var(--ui-select-indicator-size);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.ui-select-toggle .ui-icon {
+  width: var(--ui-select-indicator-size);
+  height: var(--ui-select-indicator-size);
+  transition: transform .14s ease;
+}
+
+.ui-select-shell.is-open .ui-select-toggle {
+  color: var(--accent-2);
+}
+
+.ui-select-shell.is-open .ui-select-toggle .ui-icon {
+  transform: rotate(180deg);
+}
+
+.ui-select-shell.is-disabled .ui-select-toggle {
+  opacity: .44;
+}
+
+.ui-select-popover {
+  --ui-select-list-max-height: 320px;
+  position: fixed;
+  z-index: 13050;
+  padding: var(--ui-menu-padding);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--ui-radius-panel);
+  background: var(--surface-elevated);
+  box-shadow: var(--control-shadow);
+}
+
+.ui-select-popover[hidden] {
+  display: none;
+}
+
+.ui-select-listbox {
+  max-height: var(--ui-select-list-max-height);
+  padding-block: var(--ui-scrollbar-gutter-size);
+  padding-inline: 0;
+  scroll-padding-block: var(--ui-scrollbar-gutter-size);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ui-select-option {
+  min-height: var(--ui-space-10);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ui-icon-size);
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: var(--ui-menu-item-padding-x);
+  border-radius: var(--ui-radius-control);
+  color: var(--text-soft);
+  font-size: var(--ui-font-body);
+  line-height: var(--ui-line-tight);
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-select-option:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.ui-select-option.is-active {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.ui-select-option.is-selected {
+  background: color-mix(in srgb, var(--accent-surface) 22%, transparent);
+  color: var(--text-strong);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.ui-select-option.is-selected.is-active {
+  background: color-mix(in srgb, var(--accent-surface) 34%, var(--surface-hover));
+}
+
+.ui-select-option.is-selected:hover {
+  background: color-mix(in srgb, var(--accent-surface) 34%, var(--surface-hover));
+}
+
+.ui-select-option[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .42;
+}
+
+.ui-select-option-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-select-check {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+  color: var(--accent-2);
+}
+
+.ui-select-empty {
+  margin: 0;
+  padding: var(--ui-space-3) var(--ui-space-2);
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-normal);
+  text-align: center;
+}
+
+.ui-select-status {
+  margin: 0;
+  padding: var(--ui-space-3) var(--ui-space-2);
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-normal);
+  text-align: center;
+  border-top: 1px solid var(--border);
+}

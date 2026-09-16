@@ -4,7 +4,7 @@ import { Worker } from 'node:worker_threads';
 import { readFileSync } from 'node:fs';
 import { createMapEditWorkerClient } from '../../assets/js/modules/map-edit-worker-client.js';
 
-function harness(t, rows) {
+function harness(t, rows, { failFirstClipMethod = '' } = {}) {
   const script = new URL('../../assets/js/workers/map-edit-worker.js', import.meta.url).href;
   const createWorker = () => {
     const worker = new Worker(`
@@ -14,9 +14,24 @@ function harness(t, rows) {
       self.location = new URL(${JSON.stringify(script)});
       global.importScripts = (...urls) => urls.forEach(url => vm.runInThisContext('(function(module,exports){' + fs.readFileSync(new URL(url), 'utf8') + '\\n}).call(globalThis,undefined,undefined)'));
       self.postMessage = data => parentPort.postMessage(data);
-      vm.runInThisContext(fs.readFileSync(self.location, 'utf8'), { filename: self.location.href, importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER });
+      vm.runInThisContext(fs.readFileSync(self.location, 'utf8'), {
+        filename: self.location.href,
+        importModuleDynamically: specifier => import(new URL(specifier, self.location).href),
+      });
+      const failMethod = ${JSON.stringify(failFirstClipMethod)};
+      if (failMethod) {
+        const operation = self.polygonClipping[failMethod].bind(self.polygonClipping);
+        let failed = false;
+        self.polygonClipping[failMethod] = (...args) => {
+          if (!failed) {
+            failed = true;
+            throw new Error('Unable to find segment in SweepLine tree');
+          }
+          return operation(...args);
+        };
+      }
       parentPort.on('message', data => self.onmessage({ data }));
-    `, { eval: true });
+    `, { eval: true, execArgv: ['--experimental-vm-modules'] });
     const adapter = { postMessage: value => worker.postMessage(value), terminate: () => worker.terminate() };
     worker.on('message', data => adapter.onmessage?.({ data }));
     worker.on('error', error => adapter.onerror?.(error));
@@ -32,6 +47,30 @@ function harness(t, rows) {
 }
 const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });
 const feature = (id, geometry, properties = {}) => ({ type: 'Feature', id, geometry, properties });
+
+test('country command previews stay pending until commit and discard preserves worker originals', async t => {
+  const originals = [feature('a', square(0, 0, 1, 1)), feature('b', square(1, 0, 2, 1))];
+  const before = structuredClone(originals);
+  const client = harness(t, originals.map(feature => ({ kind: 'country', feature })));
+  const first = await client.execute('merge', { sourceId: 'a', targetIds: ['b'] });
+  assert.deepEqual(first.result.removedIds, ['b']);
+  assert.equal(first.result.seamless, true);
+  assert.equal(first.result.preview.validation.blocking, false);
+  client.discard(first.requestId);
+  const second = await client.execute('merge', { sourceId: 'a', targetIds: ['b'] });
+  assert.deepEqual(second.result.features, first.result.features);
+  client.commit(second.requestId);
+  await assert.rejects(client.execute('merge', { sourceId: 'a', targetIds: ['b'] }), /합병할 국가/);
+  assert.deepEqual(originals, before);
+});
+
+test('actual map-edit Worker retries country clipping sweep failures through the shared calculation', async t => {
+  const originals = [feature('a', square(0.1234567896, 0, 1.1234567896, 1)), feature('b', square(1.1234567896, 0, 2.1234567896, 1))];
+  const client = harness(t, originals.map(feature => ({ kind: 'country', feature })), { failFirstClipMethod: 'union' });
+  const response = await client.execute('merge', { sourceId: 'a', targetIds: ['b'] });
+  assert.deepEqual(response.result.removedIds, ['b']);
+  assert.equal(response.result.preview.validation.blocking, false);
+});
 
 test('actual worker validates normalized edits and invalidates receipts after lock changes', { timeout: 15000 }, async t => {
   const parent = feature('RUS', square(0, 0, 10, 10));
@@ -80,6 +119,21 @@ test('snap broad phase retains edges crossing the date line', async t => {
   const client = harness(t, [{ kind: 'country', feature: feature('island', square(179, 5, -179, 6)) }]);
   const snap = await client.execute('territorial-snap', { payload: { coordinate: [180, 5], margin: 0.1 } });
   assert.ok(snap.result.candidates.some(candidate => candidate.a && candidate.b));
+});
+
+test('snap intersections use connected geometry ports and retain both owners', async t => {
+  const a = feature('horizontal', square(0, 1, 4, 2));
+  const b = feature('vertical', square(1, 0, 2, 4));
+  const before = structuredClone([a, b]);
+  const client = harness(t, [{ kind: 'country', feature: a }, { kind: 'generic', feature: b }]);
+  const { result } = await client.execute('territorial-snap', {
+    payload: { coordinate: [1, 1], margin: 0.1, activeOwnerIds: ['horizontal'] },
+  });
+  const crossing = result.candidates.find(candidate => candidate.kind === 'intersection'
+    && candidate.coordinate[0] === 1 && candidate.coordinate[1] === 1);
+  assert.ok(crossing);
+  assert.deepEqual(crossing.ownerIds, ['horizontal', 'vertical']);
+  assert.deepEqual([a, b], before);
 });
 
 test('drawn clipping and region previews stay in the worker and reject changed locks', async t => {

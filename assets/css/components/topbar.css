@@ -1,4 +1,144 @@
-/* Canonical document-command header. Layout is shared by every viewport. */
+/* Canonical components / topbar. */
+
+.topbar {
+  height: var(--ui-topbar-height);
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
+  align-items: center;
+  gap: var(--ui-space-3);
+  padding: 0 var(--ui-space-3);
+  background: var(--surface-topbar);
+  border-bottom: 1px solid var(--border);
+  z-index: 20;
+}
+
+.topbar-center {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  padding: 0 var(--ui-space-2);
+  pointer-events: none;
+}
+
+.overlay-root .top-actions {
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.new-project-command {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-color-scheme: light) {
+  .file-menu-btn::after {
+    color: var(--file-menu-btn-color);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .file-menu-btn.sheet-open {
+    background: var(--accent-surface-hover);
+    border-color: var(--accent-border);
+  }
+}
+
+.file-menu-btn::after {
+  content: none;
+}
+
+.file-menu-btn .ui-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+  transition: transform .16s ease;
+}
+
+.file-menu-btn.sheet-open .ui-icon {
+  transform: rotate(180deg);
+}
+
+.file-menu-btn:hover {
+  background: var(--accent-surface-hover);
+}
+
+.file-menu-btn.sheet-open {
+  background: var(--accent-surface-hover);
+}
+
+.topbar-file-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: var(--ui-space-2);
+}
+
+.top-actions:not(.mobile-open) {
+  display: none;
+  pointer-events: none;
+}
+
+.top-actions.mobile-open {
+  display: grid;
+}
+
+.app-root[data-layout="mobile"] .topbar {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.app-root[data-layout="mobile"] .topbar-center {
+  display: flex;
+  position: fixed;
+  z-index: 85;
+  top: calc(var(--file-menu-notification-top, var(--ui-topbar-height)) + var(--ui-space-2));
+  right: var(--ui-space-2);
+  left: var(--ui-space-2);
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.app-root[data-layout="mobile"] .file-menu-btn {
+  min-width: var(--file-menu-btn-min-width-alternate);
+  height: var(--ui-touch-height);
+}
+
+.app-root[data-layout="mobile"] .topbar-file-actions {
+  gap: var(--ui-space-2);
+}
+
+.app-root[data-layout="mobile"] .top-actions {
+  top: calc(var(--ui-topbar-height) + var(--ui-space-2));
+  right: var(--ui-popover-screen-edge);
+  width: var(--top-actions-width-alternate);
+}
+
+.app-root[data-layout="mobile"] .top-actions .btn {
+  font-size: var(--ui-font-body);
+}
+
+.app-root[data-layout="mobile"] .top-actions .btn:not(.ghost) {
+  font-size: var(--ui-font-body);
+}
+
+.app-root[data-layout="mobile"] .top-actions .btn {
+  height: var(--ui-touch-height);
+  flex-basis: var(--ui-touch-height);
+}
+
+.app-root[data-layout="mobile"] .top-actions .btn:not(.ghost) {
+  height: var(--ui-touch-height);
+  flex-basis: var(--ui-touch-height);
+}
+
+@media (max-width: 799px) {
+  .app-root .topbar-center {
+    padding: 0;
+  }
+}
 
 .app-root .topbar {
   min-width: 0;
@@ -14,12 +154,22 @@
   z-index: 20;
 }
 
-body.file-menu-open .app-root .topbar { z-index: 150; }
+body.file-menu-open .app-root .topbar {
+  z-index: 150;
+}
 
-/* Mobile already exposes display controls from the bottom navigation. */
-.app-root[data-layout="mobile"] #mapDisplayBtn { display: none; }
+.app-root[data-layout="mobile"] .map-display-command {
+  display: none;
+}
 
-.app-root .topbar-history,
+.app-root .topbar-history {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--ui-space-1);
+}
+
 .app-root .topbar-actions {
   min-width: 0;
   display: flex;
@@ -48,7 +198,6 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
   white-space: nowrap;
 }
 
-/* The file trigger is a document command, not a primary action. */
 .app-root .topbar .file-menu-btn.topbar-command {
   min-width: 0;
   background: var(--topbar-command-background);
@@ -88,26 +237,43 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
     gap: var(--ui-space-2);
     padding-inline: max(var(--ui-space-1), env(safe-area-inset-left)) max(var(--ui-space-1), env(safe-area-inset-right));
   }
+}
 
-  .app-root[data-layout="mobile"] .topbar-history,
-  .app-root[data-layout="mobile"] .topbar-actions { gap: var(--ui-space-1); }
+@media (max-width: 799px) {
+  .app-root[data-layout="mobile"] .topbar-history {
+    gap: var(--ui-space-1);
+  }
+}
 
-  .app-root[data-layout="mobile"] .topbar-history > .ui-button,
-  .app-root[data-layout="mobile"] .topbar .topbar-command {
+@media (max-width: 799px) {
+  .app-root[data-layout="mobile"] .topbar-actions {
+    gap: var(--ui-space-1);
+  }
+}
+
+@media (max-width: 799px) {
+  .app-root[data-layout="mobile"] .topbar-history > .ui-button {
     width: auto;
     min-width: var(--ui-touch-height);
     min-height: var(--ui-touch-height);
     height: var(--ui-touch-height);
   }
+}
 
-  /* The highlight is smaller than the unchanged 48px touch target. */
+@media (max-width: 799px) {
   .app-root[data-layout="mobile"] .topbar .topbar-command {
+    width: auto;
+    min-width: var(--ui-touch-height);
+    min-height: var(--ui-touch-height);
+    height: var(--ui-touch-height);
     position: relative;
     isolation: isolate;
     padding-inline: var(--ui-space-3);
     background: transparent;
   }
+}
 
+@media (max-width: 799px) {
   .app-root[data-layout="mobile"] .topbar .topbar-command::before {
     content: '';
     position: absolute;
@@ -120,7 +286,9 @@ body.file-menu-open .app-root .topbar { z-index: 150; }
     transform: translateY(-50%);
     pointer-events: none;
   }
+}
 
+@media (max-width: 799px) {
   .app-root[data-layout="mobile"] .top-actions {
     position: fixed;
     top: calc(var(--ui-shell-topbar-height) + var(--ui-space-2));

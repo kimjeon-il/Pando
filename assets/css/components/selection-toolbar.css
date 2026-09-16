@@ -1,6 +1,12 @@
-/* Compact primary metadata editor for one selected territorial object. */
+/* Canonical components / selection-toolbar. */
 
 .map-overlay-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  min-width: 0;
+  min-height: 0;
+  pointer-events: none;
   --selection-toolbar-top: var(--ui-popover-screen-edge);
   --selection-toolbar-height: calc(var(--ui-control-height) + var(--ui-space-3));
 }
@@ -16,7 +22,9 @@
   pointer-events: none;
 }
 
-.selection-toolbar-slot > * { pointer-events: auto; }
+.selection-toolbar-slot > * {
+  pointer-events: auto;
+}
 
 .map-overlay-layer:has(.selection-toolbar-slot .selection-toolbar:not(.hidden)) .map-top-context-slot {
   top: calc(var(--selection-toolbar-top) + var(--selection-toolbar-height) + var(--ui-space-2));
@@ -31,15 +39,20 @@
   align-items: center;
   gap: var(--ui-space-1);
   padding: var(--ui-space-1-5);
+  backdrop-filter: none;
 }
 
-/* A backdrop filter creates a containing block for fixed descendants.
-   The mobile color sheet must be fixed to the viewport, not this toolbar. */
-.selection-toolbar { backdrop-filter: none; }
+.selection-toolbar.hidden {
+  display: none;
+}
 
-.selection-toolbar.hidden,
-.selection-toolbar-fields.hidden,
-.selection-toolbar-note-field.hidden { display: none !important; }
+.selection-toolbar-fields.hidden {
+  display: none;
+}
+
+.selection-toolbar-note-field.hidden {
+  display: none;
+}
 
 .selection-toolbar-fields {
   position: relative;
@@ -70,8 +83,15 @@
   field-sizing: content;
 }
 
-/* These inputs live outside a field-group after moving into the toolbar. */
-.selection-toolbar .selection-toolbar-name,
+.selection-toolbar .selection-toolbar-name {
+  padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
+  border: var(--ui-border-width) solid var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  color: var(--text);
+  outline: 0;
+  transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+
 .selection-toolbar .selection-toolbar-note-field textarea {
   padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
   border: var(--ui-border-width) solid var(--component-field-border);
@@ -91,15 +111,24 @@
   border-color: var(--ui-control-border-hover);
 }
 
-.selection-toolbar .selection-toolbar-name:focus,
+.selection-toolbar .selection-toolbar-name:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
 .selection-toolbar .selection-toolbar-note-field textarea:focus {
   border-color: var(--accent-border);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-.selection-toolbar .selection-toolbar-name:focus { background-color: var(--surface-input); }
+.selection-toolbar .selection-toolbar-name:focus {
+  background-color: var(--surface-input);
+}
 
-.selection-toolbar .selection-toolbar-name:is(:disabled, [readonly]),
+.selection-toolbar .selection-toolbar-name:is(:disabled, [readonly]) {
+  color: var(--muted);
+}
+
 .selection-toolbar .selection-toolbar-note-field textarea:is(:disabled, [readonly]) {
   color: var(--muted);
   background-color: var(--surface-subtle);
@@ -110,7 +139,13 @@
   background-color: transparent;
 }
 
-.selection-toolbar > .icon-btn,
+.selection-toolbar > .icon-btn {
+  width: var(--ui-control-height);
+  min-width: var(--ui-control-height);
+  height: var(--ui-control-height);
+  flex: 0 0 var(--ui-control-height);
+}
+
 .selection-toolbar-fields > .selection-toolbar-color {
   width: var(--ui-control-height);
   min-width: var(--ui-control-height);
@@ -118,19 +153,29 @@
   flex: 0 0 var(--ui-control-height);
 }
 
-.selection-toolbar-flag { padding: var(--ui-space-1); }
+.selection-toolbar-flag {
+  padding: var(--ui-space-1);
+}
+
 .selection-toolbar .editor-flag-thumbnail {
   width: 1.75rem;
   height: 1.25rem;
   color: var(--text-soft);
 }
+
 .selection-toolbar .editor-flag-thumbnail .ui-icon {
   width: var(--ui-icon-size);
   height: var(--ui-icon-size);
 }
 
-.selection-toolbar-color { gap: 0; }
-.selection-toolbar-color .ui-color-value { display: none; }
+.selection-toolbar-color {
+  gap: 0;
+}
+
+.selection-toolbar-color .ui-color-value {
+  display: none;
+}
+
 .selection-toolbar-color .ui-color-preview {
   width: 1.25rem;
   min-width: 1.25rem;
@@ -185,28 +230,46 @@
 }
 
 @media (max-width: 799px) {
-  .map-overlay-layer { --selection-toolbar-height: calc(var(--ui-touch-height) + var(--ui-space-3)); }
+  .map-overlay-layer {
+    --selection-toolbar-height: calc(var(--ui-touch-height) + var(--ui-space-3));
+  }
+}
 
+@media (max-width: 799px) {
   .selection-toolbar {
     width: fit-content;
     max-width: min(22.5rem, calc(100dvw - env(safe-area-inset-left) - env(safe-area-inset-right) - (var(--ui-popover-screen-edge) * 2)));
   }
+}
 
-  .selection-toolbar > .icon-btn,
+@media (max-width: 799px) {
+  .selection-toolbar > .icon-btn {
+    width: var(--ui-touch-height);
+    min-width: var(--ui-touch-height);
+    height: var(--ui-touch-height);
+    flex-basis: var(--ui-touch-height);
+  }
+}
+
+@media (max-width: 799px) {
   .selection-toolbar-fields > .selection-toolbar-color {
     width: var(--ui-touch-height);
     min-width: var(--ui-touch-height);
     height: var(--ui-touch-height);
     flex-basis: var(--ui-touch-height);
   }
+}
 
+@media (max-width: 799px) {
   .selection-toolbar-name {
     height: var(--ui-touch-height);
     min-height: var(--ui-touch-height);
     font-size: 1rem;
   }
+}
 
-  body[data-layout="mobile"]:has(#actionStatus:not(.hidden)) .map-overlay-layer {
+@media (max-width: 799px) {
+  body[data-layout="mobile"]:has(.action-status:not(.hidden)) .map-overlay-layer {
     --selection-toolbar-top: calc(var(--ui-popover-screen-edge) + var(--ui-touch-height) + var(--ui-space-2));
   }
 }

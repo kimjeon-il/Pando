@@ -1,8 +1,710 @@
-/* Shared grammar for editing workflows, dialogs, and wizard sessions. */
+/* Canonical components / workflows. */
 
-/* Map-edit workflow extensions. */
+.map-top-context-slot {
+  position: absolute;
+  z-index: 62;
+  top: var(--ui-map-edge);
+  left: var(--map-context-center, 50%);
+  width: var(--map-context-width, calc(100% - var(--map-safe-left) - var(--map-safe-right) - var(--ui-space-6)));
+  display: grid;
+  justify-items: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+  transition: left 170ms ease, width 170ms ease;
+}
 
-/* Shared grammar for direct map-edit sessions and editing dialogs. */
+.mode-editing-context {
+  width: var(--mode-editing-context-width);
+  display: grid;
+  justify-items: center;
+}
+
+.mode-editing-context.hidden {
+  display: none;
+}
+
+.mode-action-bar.hidden {
+  display: none;
+}
+
+.mode-draft-actions.hidden {
+  display: none;
+}
+
+.mode-task-window > .mode-task-window-header {
+  border-bottom: 0;
+}
+
+.mode-task-window-controls {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--ui-space-1);
+}
+
+.mode-task-window-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0 var(--ui-space-3) var(--ui-space-3);
+}
+
+.mode-task-window-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-content: flex-start;
+  gap: var(--ui-space-3);
+  max-height: var(--mode-task-window-body-max-height);
+  overflow-y: auto;
+}
+
+.mode-task-window-content[hidden] {
+  display: none;
+}
+
+.mode-task-section {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-2);
+}
+
+.mode-task-section-title {
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.mode-task-method-section:has(.mode-method-switch.hidden):has(.mode-method-change-confirm.hidden):has(.mode-river-boundary-option.hidden):has(.territorial-create-reference.hidden) {
+  display: none;
+}
+
+.territorial-create-setup {
+  display: grid;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-2) var(--ui-space-1);
+}
+
+.territorial-create-reference {
+  display: grid;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-1) var(--ui-space-2) 0;
+}
+
+.territorial-create-reference-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  color: var(--text-soft);
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.territorial-create-reference-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ui-space-8);
+  padding: var(--ui-space-0-5) var(--ui-space-2);
+  border-radius: var(--ui-radius-pill);
+  background: var(--surface-hover);
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.territorial-create-reference-list {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-1-5);
+}
+
+.territorial-create-reference-chip {
+  min-width: 0;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border-radius: var(--ui-radius-pill);
+  background: var(--surface-hover);
+  color: var(--text-strong);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-tight);
+}
+
+.territorial-create-reference-chip strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.territorial-create-reference-flag {
+  width: 1.25rem;
+  height: .875rem;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  object-fit: cover;
+}
+
+@media (prefers-color-scheme: light) {
+  .file-menu-btn {
+    border-color: var(--accent-border);
+    background: var(--accent-surface);
+    color: var(--accent-text);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .mode-primary-btn {
+    background: var(--accent-surface);
+    border-color: var(--accent-border);
+    color: var(--accent-text);
+  }
+}
+
+.file-menu-btn {
+  min-width: var(--file-menu-btn-min-width);
+  height: var(--ui-control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-1);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-semibold);
+  cursor: pointer;
+}
+
+.btn {
+  height: var(--ui-control-height);
+}
+
+.right-panel {
+  border-left: 1px solid var(--border);
+}
+
+.btn {
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.mode-action-bar button {
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.surface-header button {
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.btn {
+  transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease;
+}
+
+.mode-action-bar button {
+  min-height: var(--ui-control-height);
+  border-radius: var(--ui-radius-control);
+  transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease;
+}
+
+.surface-header button {
+  min-height: var(--ui-control-height);
+  border-radius: var(--ui-radius-control);
+  transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease;
+}
+
+.btn.ghost:hover {
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
+  color: var(--text-strong);
+}
+
+.icon-btn:hover {
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
+  color: var(--text-strong);
+}
+
+.mode-cancel-btn:hover {
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
+  color: var(--text-strong);
+}
+
+.mode-method-switch.hidden {
+  display: none;
+}
+
+.mode-action-buttons .ui-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+}
+
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 36;
+  min-width: 0;
+  overscroll-behavior: contain;
+  background: var(--surface-elevated);
+  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
+}
+
+.geometry-preview-summary {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-soft);
+  font-size: var(--ui-font-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 799px) {
+  .geometry-preview-summary {
+    max-width: 58%;
+  }
+}
+
+.right-panel {
+  overflow: hidden;
+}
+
+.mobile-backdrop {
+  display: none;
+  opacity: 0;
+  transition: opacity 170ms ease;
+}
+
+.app-root[data-layout="mobile"] .mode-editing-context {
+  width: var(--mode-editing-context-width);
+}
+
+.app-root[data-layout="mobile"] .mode-task-window-body {
+  max-height: var(--mode-task-window-body-max-height-alternate);
+}
+
+.app-root[data-layout="mobile"] .mode-method-switch {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.app-root[data-layout="mobile"] .mode-action-buttons {
+  justify-self: center;
+}
+
+.app-root[data-layout="mobile"] .mode-action-buttons button {
+  min-height: var(--ui-touch-height);
+  flex: 0 0 auto;
+  padding: 0 var(--ui-control-padding-x);
+}
+
+.btn {
+  min-height: var(--ui-control-height);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-button-subtle);
+  color: var(--ui-control-text);
+}
+
+.file-menu-btn {
+  min-height: var(--ui-control-height);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+}
+
+.mode-primary-btn {
+  min-height: var(--ui-control-height);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+}
+
+.mode-cancel-btn {
+  min-height: var(--ui-control-height);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+}
+
+.btn {
+  padding: 0 var(--ui-control-padding-x);
+}
+
+.file-menu-btn {
+  padding: 0 var(--ui-control-padding-x);
+}
+
+.mode-primary-btn {
+  padding: 0 var(--ui-control-padding-x);
+}
+
+.mode-cancel-btn {
+  padding: 0 var(--ui-control-padding-x);
+}
+
+.btn.ghost {
+  background: var(--ui-button-subtle);
+  border-color: transparent;
+  color: var(--ui-control-text);
+}
+
+.mode-cancel-btn {
+  background: var(--ui-button-subtle);
+  border-color: transparent;
+  color: var(--ui-control-text);
+}
+
+.btn:not(.ghost) {
+  border-color: var(--accent-border);
+  background: var(--accent-surface);
+  color: var(--accent-text);
+}
+
+.file-menu-btn {
+  border-color: var(--accent-border);
+  background: var(--accent-surface);
+  color: var(--accent-text);
+}
+
+.mode-primary-btn {
+  border-color: var(--accent-border);
+  background: var(--accent-surface);
+  color: var(--accent-text);
+}
+
+:is(.btn:not(.ghost), .file-menu-btn, .mode-primary-btn):hover {
+  border-color: var(--accent-border);
+  background: var(--accent-surface-hover);
+  color: var(--accent-text);
+}
+
+:is(.btn:not(.ghost), .file-menu-btn, .mode-primary-btn):active:not(:disabled) {
+  background: var(--accent-surface-hover);
+}
+
+.mode-method-switch {
+  flex: 0 0 auto;
+}
+
+.terrain-mode-option {
+  min-height: var(--ui-control-height);
+  display: flex;
+  align-items: center;
+  gap: var(--ui-row-gap);
+  padding: 0 var(--ui-row-padding-x);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.terrain-mode-option:hover {
+  border-color: var(--surface-hover-border);
+  background: var(--surface-hover);
+}
+
+.terrain-mode-option:has(input:checked) {
+  border-color: var(--accent-border);
+  background: color-mix(in srgb, var(--accent-surface) 18%, transparent);
+  color: var(--text-strong);
+}
+
+.app-root[data-layout="mobile"] :where( .btn, .danger-btn, .mode-action-bar button, .surface-header button, .ui-color-trigger, .ui-color-default ) {
+  min-height: var(--ui-touch-height);
+}
+
+.app-root[data-layout="mobile"] .terrain-mode-option {
+  min-height: var(--ui-touch-height);
+}
+
+.mode-task-context {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-0-5);
+}
+
+.mode-task-heading {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--ui-space-1);
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.mode-task-separator {
+  color: var(--border-strong);
+}
+
+.mode-task-detail {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-1);
+}
+
+.mode-task-instruction:empty {
+  display: none;
+}
+
+.territorial-review-summary {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--ui-space-1);
+  color: var(--text-soft);
+  font-size: var(--ui-font-body);
+  line-height: var(--ui-line-normal);
+}
+
+.territorial-review-summary.hidden {
+  display: none;
+}
+
+.territorial-review-summary strong {
+  min-width: 0;
+  color: var(--text-strong);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.territorial-review-summary span:empty {
+  display: none;
+}
+
+.mode-method-switch {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ui-space-1);
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.mode-direct-method-option {
+  min-width: 0;
+  min-height: var(--ui-control-height);
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+  padding: 0 var(--ui-space-1);
+  border-radius: var(--ui-radius-control);
+  color: var(--text-soft);
+  font-size: var(--ui-font-body);
+  cursor: pointer;
+}
+
+.mode-direct-method-option:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.mode-direct-method-option:has(input:focus-visible) {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.mode-direct-method-option input {
+  width: var(--mode-direct-method-option-width);
+  height: var(--mode-direct-method-option-height);
+  margin: 0;
+  accent-color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.mode-direct-method-option:has(input:checked) {
+  color: var(--text-strong);
+}
+
+.mode-direct-method-option:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: .48;
+}
+
+.mode-river-boundary-option {
+  width: calc((100% - var(--ui-toolbar-gap)) / 2);
+  min-height: var(--ui-control-height);
+  justify-self: start;
+  padding: 0 var(--ui-space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+  color: var(--text-soft);
+  font-size: var(--ui-font-caption);
+  cursor: pointer;
+}
+
+.mode-river-boundary-option.hidden {
+  display: none;
+}
+
+.mode-river-boundary-option input {
+  accent-color: var(--accent);
+}
+
+.mode-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: var(--ui-space-1);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-top: 1px solid var(--border);
+}
+
+.mode-action-bar .mode-action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  margin-left: 0;
+  gap: var(--ui-space-2);
+}
+
+.mode-action-bar.single-action .mode-action-buttons {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mode-action-bar .mode-action-buttons > :is(.mode-cancel-btn, .mode-primary-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--ui-touch-height);
+  gap: var(--ui-control-gap);
+  padding: 0 var(--ui-control-padding-x);
+}
+
+.mode-action-bar .mode-action-buttons > :is(.mode-cancel-btn, .mode-primary-btn) > .ui-icon {
+  display: block;
+  flex: 0 0 var(--ui-icon-size);
+}
+
+.mode-action-bar .mode-button-label {
+  line-height: 1;
+}
+
+.mode-primary-btn {
+  position: relative;
+}
+
+.mode-button-busy {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding-inline: var(--ui-control-padding-x);
+  white-space: nowrap;
+}
+
+.mode-action-bar.is-processing .mode-primary-btn > :not(.mode-button-busy) {
+  visibility: hidden;
+}
+
+.mode-action-bar.is-processing .mode-button-busy {
+  display: grid;
+}
+
+.mode-draft-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ui-toolbar-gap);
+  min-width: 0;
+  padding: 0;
+}
+
+.mode-draft-actions:not(.hidden) {
+  padding-top: var(--ui-space-2);
+  border-top: 1px solid var(--border);
+}
+
+.app-root[data-layout="mobile"] .mode-task-heading strong {
+  font-size: var(--ui-font-body);
+}
+
+.app-root[data-layout="mobile"] .mode-task-stage {
+  font-size: var(--ui-font-caption);
+}
+
+.app-root[data-layout="mobile"] .mode-action-buttons {
+  width: 100%;
+}
+
+.app-root[data-layout="mobile"] .mode-action-buttons > button {
+  flex: 1 1 0;
+}
+
+.app-root[data-layout="mobile"] .mode-action-bar {
+  justify-content: stretch;
+}
+
+.mode-task-instruction.cut-pending {
+  color: var(--text);
+}
+
+.mode-task-instruction.cut-valid {
+  color: var(--text);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.mode-task-instruction.cut-invalid {
+  color: var(--mode-task-instruction-color);
+  font-weight: var(--ui-weight-semibold);
+}
+
+[data-theme="dark"] .mode-task-instruction.cut-pending {
+  color: var(--text);
+}
+
+[data-theme="dark"] .mode-task-instruction.cut-valid {
+  color: var(--text);
+}
+
+[data-theme="dark"] .mode-task-instruction.cut-invalid {
+  color: var(--mode-task-instruction-color-cut-invalid);
+}
+
+@media (max-width: 359px) {
+  .app-root[data-layout="mobile"] .mode-action-buttons button {
+    padding: 0 var(--ui-space-2);
+  }
+}
+
+@media (max-width: 359px) {
+  .app-root[data-layout="mobile"] .mode-action-buttons .ui-icon {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .right-panel {
+    transition-duration: 0.01ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-top-context-slot {
+    transition-duration: 0.01ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-action-bar {
+    transition-duration: 0.01ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-backdrop {
+    transition-duration: 0.01ms;
+  }
+}
 
 .workflow-map-session.mode-task-window {
   width: min(26.25rem, calc(100vw - (var(--ui-space-6) * 2)));
@@ -27,7 +729,9 @@
   gap: var(--ui-space-1-5);
 }
 
-.workflow-map-session .mode-task-icon { color: var(--muted); }
+.workflow-map-session .mode-task-icon {
+  color: var(--muted);
+}
 
 .workflow-map-session .mode-task-heading > strong {
   min-width: 0;
@@ -60,7 +764,9 @@
   gap: var(--ui-space-1);
 }
 
-.workflow-map-session .mode-task-window-content { min-width: 0; }
+.workflow-map-session .mode-task-window-content {
+  min-width: 0;
+}
 
 .workflow-map-session .mode-task-window-body {
   display: flex;
@@ -71,8 +777,13 @@
   padding: var(--ui-space-3);
 }
 
-.workflow-map-session .mode-task-context,
-.workflow-map-session .mode-task-detail { min-width: 0; }
+.workflow-map-session .mode-task-context {
+  min-width: 0;
+}
+
+.workflow-map-session .mode-task-detail {
+  min-width: 0;
+}
 
 .workflow-map-session .mode-task-instruction {
   margin: 0;
@@ -91,7 +802,9 @@
   margin-top: var(--ui-space-2);
 }
 
-.workflow-map-session .annex-country-flow.hidden { display: none; }
+.workflow-map-session .annex-country-flow.hidden {
+  display: none;
+}
 
 .workflow-map-session .annex-country-flow-country {
   min-width: 0;
@@ -100,7 +813,9 @@
   gap: var(--ui-space-1);
 }
 
-.workflow-map-session .annex-country-flow-donor { justify-content: flex-end; }
+.workflow-map-session .annex-country-flow-donor {
+  justify-content: flex-end;
+}
 
 .workflow-map-session .annex-country-flow-flag {
   flex: 0 0 auto;
@@ -143,7 +858,9 @@
   min-width: 0;
 }
 
-.workflow-map-session .multi-drawn-actions.hidden { display: none; }
+.workflow-map-session .multi-drawn-actions.hidden {
+  display: none;
+}
 
 .workflow-map-session .multi-drawn-count {
   flex: 1 0 auto;
@@ -211,7 +928,9 @@
   line-height: var(--ui-line-normal);
 }
 
-.workflow-map-session .mode-method-change-confirm.hidden { display: none; }
+.workflow-map-session .mode-method-change-confirm.hidden {
+  display: none;
+}
 
 .workflow-map-session .mode-aux-control {
   position: relative;
@@ -264,6 +983,7 @@
   min-height: var(--design-control-md);
   justify-self: start;
 }
+
 .workflow-map-session .mode-river-boundary-option input {
   position: absolute;
   width: var(--ui-border-width);
@@ -298,13 +1018,9 @@
   gap: var(--ui-space-2);
 }
 
-.workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) {
-  min-width: 0;
-  min-height: var(--design-control-md);
-  justify-content: center;
+.workflow-map-session .mode-button-label {
+  white-space: nowrap;
 }
-
-.workflow-map-session .mode-button-label { white-space: nowrap; }
 
 .workflow-map-session .mode-cancel-btn {
   border-color: transparent;
@@ -318,17 +1034,17 @@
   color: var(--accent-text);
 }
 
-.workflow-dialog-card {
-  display: grid;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
-  column-gap: var(--ui-space-2);
-  row-gap: var(--ui-space-2);
-  padding: var(--ui-dialog-padding);
+.workflow-dialog--compact {
+  width: min(var(--ui-confirm-modal-width), calc(100vw - (var(--ui-dialog-edge) * 2)));
 }
 
-.workflow-dialog--compact { width: min(var(--ui-confirm-modal-width), calc(100vw - (var(--ui-dialog-edge) * 2))); }
-.workflow-dialog--standard { width: min(37.5rem, calc(100vw - (var(--ui-dialog-edge) * 2))); }
-.workflow-dialog--wide { width: min(max(var(--ui-coast-modal-width), 38.75rem), calc(100vw - (var(--ui-dialog-edge) * 2))); }
+.workflow-dialog--standard {
+  width: min(37.5rem, calc(100vw - (var(--ui-dialog-edge) * 2)));
+}
+
+.workflow-dialog--wide {
+  width: min(max(var(--ui-coast-modal-width), 38.75rem), calc(100vw - (var(--ui-dialog-edge) * 2)));
+}
 
 .workflow-dialog-card > .workflow-dialog-icon {
   grid-column: 1;
@@ -358,7 +1074,12 @@
   grid-column: 1 / -1;
 }
 
-.workflow-dialog-card .territorial-type-fields,
+.workflow-dialog-card .territorial-type-fields {
+  display: grid;
+  gap: var(--ui-field-gap);
+  margin-top: var(--ui-space-2);
+}
+
 .workflow-dialog-card .territorial-create-fields {
   display: grid;
   gap: var(--ui-field-gap);
@@ -402,7 +1123,9 @@
   border-top: 1px solid var(--border);
 }
 
-.workflow-dialog-card > :is(.ui-dialog-actions, .confirm-modal-actions) > .btn { min-width: var(--ui-workflow-action-min-width); }
+.workflow-dialog-card > :is(.ui-dialog-actions, .confirm-modal-actions) > .btn {
+  min-width: var(--ui-workflow-action-min-width);
+}
 
 .workflow-dialog--decision .coast-reconciliation-actions {
   display: grid;
@@ -424,7 +1147,12 @@
   text-align: left;
 }
 
-.workflow-dialog--decision .workflow-decision-option:hover,
+.workflow-dialog--decision .workflow-decision-option:hover {
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
+  color: var(--text-strong);
+}
+
 .workflow-dialog--decision .workflow-decision-option:focus-visible {
   border-color: transparent;
   background: var(--ui-button-subtle-hover);
@@ -444,24 +1172,25 @@
 }
 
 @media (max-width: 799px) {
-  .workflow-map-session.mode-task-window { width: min(100%, calc(100vw - var(--ui-space-4))); }
+  .workflow-map-session.mode-task-window {
+    width: min(100%, calc(100vw - var(--ui-space-4)));
+  }
+}
 
+@media (max-width: 799px) {
   .workflow-map-session .mode-task-window-header {
     min-height: 2.5rem;
     padding-inline: var(--ui-space-2);
   }
+}
 
-  .workflow-map-session .mode-task-window-body { padding: var(--ui-space-2); }
-
-  .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) { min-height: 2.5rem; }
-
-  .workflow-dialog-card {
-    width: calc(100vw - var(--ui-space-4));
-    max-height: calc(100dvh - var(--ui-space-4));
-    padding: var(--ui-dialog-padding-compact);
-    overflow: auto;
+@media (max-width: 799px) {
+  .workflow-map-session .mode-task-window-body {
+    padding: var(--ui-space-2);
   }
+}
 
+@media (max-width: 799px) {
   .workflow-dialog-card > :is(.ui-dialog-actions, .confirm-modal-actions) {
     position: sticky;
     bottom: calc(var(--ui-dialog-padding-compact) * -1);
@@ -471,16 +1200,24 @@
     padding: var(--ui-space-3) var(--ui-dialog-padding-compact) var(--ui-dialog-padding-compact);
     background: var(--surface-elevated);
   }
+}
 
+@media (max-width: 799px) {
   .workflow-dialog-card > :is(.ui-dialog-actions, .confirm-modal-actions) > .btn {
     min-height: 2.5rem;
     min-width: 0;
     flex: 1 1 0;
   }
+}
 
-  .workflow-dialog--decision .workflow-decision-option { min-height: var(--ui-touch-height); }
+@media (max-width: 799px) {
+  .workflow-dialog--decision .workflow-decision-option {
+    min-height: var(--ui-touch-height);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .workflow-dialog-card .btn { transition: none; }
+  .workflow-dialog-card .btn {
+    transition: none;
+  }
 }

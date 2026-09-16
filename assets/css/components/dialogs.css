@@ -1,0 +1,476 @@
+/* Canonical components / dialogs. */
+
+.layer-empty {
+  padding: var(--ui-space-2);
+  color: var(--muted);
+  text-align: center;
+}
+
+.field-group label {
+  color: var(--field-group-color);
+}
+
+.preferences-card {
+  width: var(--preferences-card-width);
+  max-height: calc(100dvh - var(--ui-dialog-edge) * 2);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.preferences-fields {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--ui-space-4);
+  margin-top: var(--ui-space-4);
+  overflow-y: auto;
+}
+
+.preferences-section {
+  display: grid;
+  gap: var(--ui-space-3);
+}
+
+.preferences-section + .preferences-section {
+  padding-top: var(--ui-space-4);
+  border-top: 1px solid var(--border);
+}
+
+.preferences-section > h3 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: var(--ui-font-section);
+  font-weight: var(--ui-weight-bold);
+  line-height: var(--ui-line-tight);
+}
+
+.preferences-actions-spacer {
+  flex: 1;
+}
+
+.preferences-accent {
+  display: grid;
+  gap: var(--ui-space-3);
+}
+
+body[data-layout="mobile"] .gis-country-identity-row {
+  grid-template-columns: 1fr;
+}
+
+.gis-target-country-row b {
+  color: var(--danger-text);
+}
+
+.gis-crs-summary {
+  min-height: var(--ui-control-height);
+  display: flex;
+  align-items: center;
+  color: var(--text-soft);
+}
+
+.gis-check input {
+  margin: 0;
+}
+
+.gis-import-dialog .is-busy select {
+  pointer-events: none;
+  opacity: .58;
+}
+
+.gis-import-dialog .is-busy input {
+  pointer-events: none;
+  opacity: .58;
+}
+
+.gis-import-dialog .is-busy .ui-dialog-actions button {
+  pointer-events: none;
+  opacity: .58;
+}
+
+.gis-import-impact-summary ul {
+  margin: var(--ui-space-2) 0 0;
+  padding-left: var(--ui-space-5);
+}
+
+.gis-import-impact-summary li + li {
+  margin-top: var(--ui-space-1);
+}
+
+@media (prefers-color-scheme: light) {
+  .field-group label {
+    color: var(--field-group-color-media-prefers-color-scheme-light);
+  }
+}
+
+.territorial-type-card {
+  width: var(--territorial-type-card-width);
+}
+
+.territorial-type-fields {
+  display: grid;
+  gap: var(--ui-space-3);
+  margin: var(--ui-space-4) 0 0;
+}
+
+.territorial-type-impact {
+  min-height: 3.2em;
+  margin: 0;
+  padding: var(--ui-space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+  white-space: normal;
+}
+
+.territorial-type-impact strong {
+  display: block;
+  color: var(--text-strong);
+}
+
+.territorial-type-impact ul {
+  display: grid;
+  gap: var(--ui-space-1);
+  margin: var(--ui-space-2) 0 0;
+  padding-left: var(--ui-space-5);
+}
+
+.territorial-type-impact.danger-preview {
+  border-color: var(--danger-border);
+  background: color-mix(in srgb, var(--danger-surface) 52%, transparent);
+}
+
+.gis-check {
+  font-size: var(--ui-font-body);
+}
+
+.ui-dialog-card h2 {
+  font-weight: var(--ui-weight-bold);
+  line-height: var(--design-line-title);
+}
+
+.field-group label {
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-medium);
+  line-height: var(--ui-line-normal);
+}
+
+.gis-form-grid .field-group > span {
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-medium);
+  line-height: var(--ui-line-normal);
+}
+
+.layer-empty {
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.gis-form-grid small {
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+:where( .ui-scroll-surface, .ui-select-listbox, .preferences-fields, .mode-task-window-body, .debug-map-panel, .gis-import-content-rail, .gis-export-step ) {
+  scrollbar-gutter: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+:where( .ui-scroll-surface, .ui-select-listbox, .preferences-fields, .mode-task-window-body, .debug-map-panel, .gis-import-content-rail, .gis-export-step )::-webkit-scrollbar {
+  width: var(--ui-scrollbar-size);
+  height: var(--ui-scrollbar-size);
+}
+
+:where( .ui-scroll-surface, .ui-select-listbox, .preferences-fields, .mode-task-window-body, .debug-map-panel, .gis-import-content-rail, .gis-export-step )::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:where( .ui-scroll-surface, .ui-select-listbox, .preferences-fields, .mode-task-window-body, .debug-map-panel, .gis-import-content-rail, .gis-export-step )::-webkit-scrollbar-thumb {
+  border: var(--ui-scrollbar-thumb-inset) solid transparent;
+  border-radius: var(--ui-radius-pill);
+  background: var(--border-strong);
+  background-clip: padding-box;
+}
+
+:where( .ui-scroll-surface, .ui-select-listbox, .preferences-fields, .mode-task-window-body, .debug-map-panel, .gis-import-content-rail, .gis-export-step )::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-soft);
+}
+
+.gis-check {
+  min-height: var(--ui-control-height);
+  border-color: var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-input);
+}
+
+.app-root[data-layout="mobile"] :where(.field-group, .gis-form-grid) :is(input[type="text"], input[type="search"], input[type="number"], textarea, select):not(.ui-native-select) {
+  min-height: var(--ui-touch-height);
+  font-size: var(--ui-font-section);
+}
+
+body[data-layout="mobile"] :where(.field-group, .gis-form-grid) :is(input[type="text"], input[type="search"], input[type="number"], textarea, select):not(.ui-native-select) {
+  min-height: var(--ui-touch-height);
+  font-size: var(--ui-font-section);
+}
+
+body[data-layout="mobile"] .ui-dialog {
+  padding: var(--ui-dialog-edge);
+}
+
+body[data-layout="mobile"] .ui-dialog-card {
+  max-height: calc(100dvh - var(--ui-dialog-edge) * 2);
+  padding: var(--ui-dialog-padding-compact);
+  border-radius: var(--ui-radius-sheet);
+}
+
+body[data-layout="mobile"] .ui-dialog-actions .btn {
+  min-height: var(--ui-touch-height);
+}
+
+body[data-layout="mobile"] .ui-dialog-header .icon-btn {
+  width: var(--ui-touch-height);
+  height: var(--ui-touch-height);
+}
+
+body[data-layout="mobile"] .gis-form-grid {
+  grid-template-columns: 1fr;
+}
+
+body[data-layout="mobile"] .gis-wide {
+  grid-column: 1;
+}
+
+body[data-layout="mobile"] .gis-export-dialog {
+  align-items: center;
+  padding: var(--ui-dialog-edge);
+}
+
+body[data-layout="mobile"] .gis-export-step {
+  flex: 1 1 auto;
+  align-content: start;
+  overflow: auto;
+}
+
+body[data-layout="mobile"] .gis-export-layers {
+  grid-template-columns: 1fr;
+}
+
+.ui-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 12500;
+  display: grid;
+  place-items: center;
+  padding: var(--ui-dialog-edge);
+}
+
+.ui-dialog.hidden {
+  display: none;
+}
+
+.ui-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--confirm-dim);
+  backdrop-filter: none;
+}
+
+.ui-dialog-card h2 {
+  color: var(--modal-title);
+  font-size: var(--ui-font-modal-title);
+}
+
+body:not([data-layout="mobile"]) .gis-export-dialog .ui-dialog-card {
+  padding-inline-start: var(--ui-dialog-padding);
+}
+
+:where(.field-group, .gis-form-grid) :where( input[type="text"], input[type="search"], input[type="number"], textarea, select ):not(.ui-select-control):not(.ui-native-select) {
+  width: 100%;
+  min-height: var(--ui-control-height);
+  padding: var(--ui-control-padding-y) var(--ui-control-padding-x);
+  border: 1px solid var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  background-color: var(--surface-input);
+  color: var(--text);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-regular);
+  outline: 0;
+}
+
+.field-group > select:not(.ui-native-select) {
+  padding-right: var(--ui-select-indicator-space);
+}
+
+.gis-form-grid .field-group > select:not(.ui-native-select) {
+  padding-right: var(--ui-select-indicator-space);
+}
+
+:is(.field-group input, .field-group textarea, .field-group select, .gis-form-grid input, .gis-form-grid select):focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.field-group .ui-select-control {
+  width: 100%;
+  min-height: var(--ui-control-height);
+  padding: var(--ui-control-padding-y) var(--ui-select-indicator-space) var(--ui-control-padding-y) var(--ui-control-padding-x);
+  border: 1px solid var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  outline: 0;
+  background: var(--surface-input);
+  color: var(--text);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-regular);
+  line-height: var(--ui-line-tight);
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease, color .14s ease;
+}
+
+.gis-form-grid .ui-select-control {
+  width: 100%;
+  min-height: var(--ui-control-height);
+  padding: var(--ui-control-padding-y) var(--ui-select-indicator-space) var(--ui-control-padding-y) var(--ui-control-padding-x);
+  border: 1px solid var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  outline: 0;
+  background: var(--surface-input);
+  color: var(--text);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-regular);
+  line-height: var(--ui-line-tight);
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease, color .14s ease;
+}
+
+.field-group .ui-select-control[readonly] {
+  background: var(--surface-input);
+  color: var(--text);
+}
+
+.gis-form-grid .ui-select-control[readonly] {
+  background: var(--surface-input);
+  color: var(--text);
+}
+
+.gis-import-dialog .is-busy .ui-select-toggle {
+  opacity: .58;
+}
+
+.confirm-impact {
+  display: grid;
+  gap: var(--ui-space-2);
+  margin-top: var(--ui-dialog-section-gap);
+  padding: var(--ui-card-padding);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--ui-radius-control);
+  background: color-mix(in srgb, var(--danger-surface) 52%, transparent);
+}
+
+.confirm-impact ul {
+  display: grid;
+  gap: var(--ui-space-1);
+  margin: 0;
+  padding-left: var(--ui-space-5);
+  color: var(--modal-text);
+}
+
+.ui-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-3);
+}
+
+.ui-dialog-header > div {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: var(--ui-space-1);
+}
+
+.ui-dialog-header h2 {
+  margin: 0;
+}
+
+.ui-dialog-header p {
+  margin: 0;
+  color: var(--modal-text);
+}
+
+.gis-import-dialog .ui-dialog-card {
+  width: var(--gis-import-dialog-width);
+  max-width: var(--gis-import-dialog-max-width);
+  max-height: calc(100dvh - (var(--ui-dialog-edge) * 2));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.gis-import-dialog .ui-dialog-header {
+  position: relative;
+  z-index: 2;
+  background: var(--modal-card-bg);
+}
+
+.gis-import-form {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gis-import-form > .gis-import-content-rail {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: auto;
+}
+
+.gis-import-form > .gis-import-content-rail > .gis-form-grid {
+  min-height: var(--gis-import-form-min-height);
+  align-content: start;
+  overflow: visible;
+}
+
+.gis-import-dialog .ui-dialog-actions {
+  flex: 0 0 auto;
+  margin-top: 0;
+  padding-top: var(--ui-space-3);
+  background: var(--modal-card-bg);
+}
+
+body[data-layout="mobile"] .gis-import-dialog {
+  align-items: stretch;
+  padding: 0;
+}
+
+body[data-layout="mobile"] .gis-import-dialog .ui-dialog-card {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  border-radius: 0;
+}
+
+body[data-layout="mobile"] .gis-import-form {
+  gap: var(--ui-space-3);
+}
+
+body[data-layout="mobile"] .gis-import-form > .gis-import-content-rail > .gis-form-grid {
+  min-height: 0;
+}
+
+body[data-layout="mobile"] .gis-import-dialog .ui-dialog-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
+  display: none;
+}
