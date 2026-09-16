@@ -31,8 +31,10 @@ export function createSpatialDataPorts(providers) {
     }),
     domains: Object.freeze({
       get editingDomain() { return providers.domainAssembly.editingDomain; },
+      get layerTreeController() { return providers.domainAssembly.layerTreeController; },
       get projectDomain() { return providers.domainAssembly.projectDomain; },
       get renderingDomain() { return providers.domainAssembly.renderingDomain; },
+      get selectionDomain() { return providers.domainAssembly.selectionDomain; },
       get selectionUiController() { return providers.domainAssembly.selectionUiController; },
     }),
     feedback: Object.freeze({
@@ -53,6 +55,7 @@ export function createSpatialDataPorts(providers) {
       get hasCanonicalCountryWinding() { return providers.runtime.hasCanonicalCountryWinding; },
       get normalizeCountryGeometry() { return providers.runtime.normalizeCountryGeometry; },
       get ringSignedArea() { return providers.runtime.ringSignedArea; },
+      get snapLineEndpointsToBoundary() { return providers.runtime.snapLineEndpointsToBoundary; },
       get validateStructuredGeometry() { return providers.runtime.validateStructuredGeometry; },
       get validateTerritorialGeometry() { return providers.runtime.validateTerritorialGeometry; },
     }),
@@ -78,6 +81,7 @@ export function createSpatialDataPorts(providers) {
     mapView: Object.freeze({
       get activeProjection() { return providers.mapProjection.activeProjection; },
       get flatProjection() { return providers.mapProjection.flatProjection; },
+      get globeProjection() { return providers.mapProjection.globeProjection; },
       get isCoordVisible() { return providers.mapProjection.isCoordVisible; },
       get mapHost() { return providers.mapHost.mapHost; },
       get path() { return providers.mapProjection.path; },
@@ -145,12 +149,17 @@ export function createSpatialDataPorts(providers) {
       get geometryBounds() { return providers.spatialIndex.geometryBounds; },
       get mapEditClient() { return providers.spatialIndex.mapEditClient; },
       get markCountryGeometriesChanged() { return providers.spatialIndex.markCountryGeometriesChanged; },
+      get mapObjectGeometryRevisions() { return providers.spatialIndex.mapObjectGeometryRevisions; },
       get rebuildSpatialIndex() { return providers.spatialIndex.rebuildSpatialIndex; },
       get spatialFeatures() { return providers.spatialIndex.spatialFeatures; },
+      get viewportCullingMetrics() { return providers.spatialIndex.viewportCullingMetrics; },
+      get visibleMapObjectCandidates() { return providers.spatialIndex.visibleMapObjectCandidates; },
     }),
     surfaces: Object.freeze({
       get isGenericFeatureDraftTool() { return providers.workspaceSurfaces.isGenericFeatureDraftTool; },
       get isMobile() { return providers.workspaceSurfaces.isMobile; },
+      get isPolygonDraftTool() { return providers.workspaceSurfaces.isPolygonDraftTool; },
+      get layoutMode() { return providers.workspaceSurfaces.layoutMode; },
       get uid() { return providers.workspaceSurfaces.uid; },
     }),
     taskUi: Object.freeze({
@@ -173,6 +182,8 @@ export function createSpatialDataPorts(providers) {
       get geometryMultiCoordinates() { return providers.territoryComponents.geometryMultiCoordinates; },
       get multiPolygonPlanarArea() { return providers.territoryComponents.multiPolygonPlanarArea; },
       get pointInGenericFeature() { return providers.landRelations.pointInGenericFeature; },
+      get pointInRing() { return providers.landRelations.pointInRing; },
+      get pointOnSegment() { return providers.landRelations.pointOnSegment; },
       get ringHitTester() { return providers.landRelations.ringHitTester; },
       get territorialUnitContainer() { return providers.objectMetadata.territorialUnitContainer; },
     }),

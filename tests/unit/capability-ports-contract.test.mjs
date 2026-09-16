@@ -14,13 +14,24 @@ const spatialOwners = [
   'app-country-validation.js',
   'app-land-relations.js',
 ];
+const mapResourceOwners = [
+  'app-cut-geometry.js',
+  'app-map-projection.js',
+  'app-object-presentation.js',
+  'app-hydro-settings.js',
+  'app-layer-list.js',
+  'app-country-labels.js',
+  'app-physical-resources.js',
+  'app-interaction-packets.js',
+];
+const ownerName = file => file.slice(4, -3).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 
 test('spatial-data owners consume small named capability ports without flat dependency aliases', async () => {
   const portModuleUrl = new URL('assets/js/modules/app-capability-ports.js', root);
   assert.equal(existsSync(portModuleUrl), true, 'missing capability port registry');
   const { createSpatialDataPorts, SPATIAL_DATA_OWNER_PORTS } = await import(portModuleUrl.href);
   assert.equal(typeof createSpatialDataPorts, 'function');
-  assert.deepEqual(Object.keys(SPATIAL_DATA_OWNER_PORTS).sort(), spatialOwners.map(name => name.slice(4, -3).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())).sort());
+  assert.deepEqual(Object.keys(SPATIAL_DATA_OWNER_PORTS).sort(), spatialOwners.map(ownerName).sort());
 
   for (const file of spatialOwners) {
     const source = read(`assets/js/modules/${file}`);
@@ -31,6 +42,43 @@ test('spatial-data owners consume small named capability ports without flat depe
       assert.ok(!/^runtime|environment$/i.test(group), `${file} exposes provider-shaped port: ${group}`);
     }
   }
+});
+
+test('map-resources owners use the shared application registry without flat dependencies', async () => {
+  const module = await import(new URL('assets/js/modules/app-capability-ports.js', root).href);
+  assert.equal(typeof module.createApplicationPorts, 'function');
+  assert.deepEqual(Object.keys(module.MAP_RESOURCE_OWNER_PORTS).sort(), mapResourceOwners.map(ownerName).sort());
+  for (const file of mapResourceOwners) {
+    const source = read(`assets/js/modules/${file}`);
+    const accesses = [...source.matchAll(/\bdependencies\.([A-Za-z_$][\w$]*)(?:\.([A-Za-z_$][\w$]*))?/g)];
+    assert.ok(accesses.length > 0, `${file} should consume injected ports`);
+    for (const [, group, member] of accesses) {
+      assert.ok(member, `${file} retains flat dependency access: dependencies.${group}`);
+      assert.ok(!/^runtime|environment$/i.test(group), `${file} exposes provider-shaped port: ${group}`);
+    }
+  }
+  const composition = read('assets/js/modules/app-composition.js');
+  assert.match(composition, /createApplicationPorts/);
+  assert.match(composition, /ports:\s*applicationPorts/g);
+});
+
+test('map-resources writes use explicit capability commands', async () => {
+  const state = {
+    spatialIndex: { applyingMapEditWorkerResult: false },
+    objectPresentation: { distributionVisibilityRevision: 2 },
+    environment: { resolvedAccentColor: '#000000', userPreferences: { theme: 'system' } },
+  };
+  const providers = new Proxy(state, { get: (target, key) => target[key] ||= {} });
+  const { createApplicationPorts } = await import(new URL('assets/js/modules/app-capability-ports.js', root).href);
+  const ports = createApplicationPorts(providers);
+  ports.geometryMutation.setApplyingWorkerResult(true);
+  ports.distributionPresentation.bumpVisibilityRevision();
+  ports.preferences.setResolvedAccentColor('#123456');
+  ports.preferences.setUserPreferences({ theme: 'dark' });
+  assert.equal(state.spatialIndex.applyingMapEditWorkerResult, true);
+  assert.equal(state.objectPresentation.distributionVisibilityRevision, 3);
+  assert.equal(state.environment.resolvedAccentColor, '#123456');
+  assert.deepEqual(state.environment.userPreferences, { theme: 'dark' });
 });
 
 test('spatial-data capability ports are frozen, shared and bounded to twelve members', async () => {
