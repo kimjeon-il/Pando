@@ -14,7 +14,7 @@ export async function composeApplication({ revision }) {
     factoryHistoryAssembly, factoryProjectRestore, factoryObjectDeletion, factoryGisAssembly,
     factoryLibraryAssembly, factoryNavigationBindings, factoryToolBindings, factoryFileBindings,
     factoryGlobalInputBindings, factoryEditorBindings, factoryProgressiveStartup, factoryDomainAssembly,
-    factoryLifecycleAssembly, foundationConnector, spatialDataConnector, mapResourcesConnector,
+    factoryLifecycleAssembly, factoryCapabilityPorts, foundationConnector, spatialDataConnector, mapResourcesConnector,
     mapInteractionConnector, objectEditingConnector, projectIoConnector, lifecycleUiConnector,
   ] = await Promise.all([
     import(new URL(`./app-runtime-dependencies.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
@@ -73,6 +73,7 @@ export async function composeApplication({ revision }) {
     import(new URL(`./app-progressive-startup.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-domain-assembly.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-lifecycle-assembly.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
+    import(new URL(`./app-capability-ports.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-connect-foundation.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-connect-spatial-data.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-connect-map-resources.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
@@ -136,6 +137,14 @@ export async function composeApplication({ revision }) {
   const progressiveStartup = factoryProgressiveStartup.createProgressiveStartup();
   const domainAssembly = factoryDomainAssembly.createDomainAssembly();
   const lifecycleAssembly = factoryLifecycleAssembly.createLifecycleAssembly();
+  const applicationPorts = factoryCapabilityPorts.createApplicationPorts({
+    builtinSession, cameraNavigation, colorPicker, countryIndex, countryLabels, countryModes,
+    countryValidation, cutGeometry, domainAssembly, environment, geometryPreview, gpuScene,
+    hydroSettings, landRelations, layerList, mapHost, mapProjection, objectCommands, objectMetadata,
+    objectPresentation, physicalResources, pointerTargets, projectSession, projectSnapshots,
+    propertySelection, readinessNotifications, renderQuality, runtime, serviceAssembly, spatialIndex,
+    taskPresentation, territoryComponents, workspaceSurfaces,
+  });
   foundationConnector.connectFoundation({
     builtinSession, cameraNavigation, colorPicker, countryIndex, countryLabels, countryModes, cutGeometry,
     domainAssembly, environment, geometryPreview, gpuScene, hydroSettings, landRelations, layerList,
@@ -145,18 +154,14 @@ export async function composeApplication({ revision }) {
     workspaceSurfaces,
   });
   spatialDataConnector.connectSpatialData({
-    builtinSession, cameraNavigation, countryIndex, countryLabels, countryValidation, cutGeometry,
-    domainAssembly, environment, geometryPreview, landRelations, layerList, mapHost, mapProjection,
-    objectCommands, objectMetadata, objectPresentation, physicalResources, projectSession, projectSnapshots,
-    readinessNotifications, runtime, serviceAssembly, spatialIndex, taskPresentation, territoryComponents,
-    workspaceSurfaces,
+    ports: applicationPorts,
+    cameraNavigation, readinessNotifications, countryIndex, spatialIndex, geometryPreview,
+    territoryComponents, countryValidation, landRelations,
   });
   mapResourcesConnector.connectMapResources({
-    builtinSession, colorPicker, countryIndex, countryLabels, countryModes, countryValidation, cutGeometry,
-    domainAssembly, environment, geometryPreview, gpuScene, hydroSettings, interactionPackets, landRelations,
-    layerList, mapHost, mapProjection, objectCommands, objectPresentation, physicalResources, pointerTargets,
-    projectSession, propertySelection, readinessNotifications, renderQuality, runtime, serviceAssembly,
-    spatialIndex, taskPresentation, territoryComponents, workspaceSurfaces,
+    ports: applicationPorts,
+    cutGeometry, mapProjection, objectPresentation, hydroSettings, layerList, countryLabels,
+    physicalResources, interactionPackets,
   });
   mapInteractionConnector.connectMapInteraction({
     cameraNavigation, countryCommits, countryIndex, countryLabels, countryModes, cutGeometry, domainAssembly,
