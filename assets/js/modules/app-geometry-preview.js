@@ -35,7 +35,7 @@ export function createGeometryPreview() {
   }
 
   function transactCountryEdit({ operation, payload, snapshot, applyResult, onSuccess, onError }) {
-    return (0, dependencies.geometryEditing.runCountryEditTransaction)({
+    return (0, dependencies.geometryEditingCore.runCountryEditTransaction)({
       client: dependencies.spatialQuery.mapEditClient,
       operation,
       payload,
@@ -245,7 +245,7 @@ export function createGeometryPreview() {
       const preview = result.preview;
       if (!preview?.validation) throw new Error('Worker 미리보기 검증 결과를 받지 못했습니다.');
       const validationIssues = preview.validation.issues;
-      const session = (0, dependencies.geometryEditing.beginGeometryPreview)(dependencies.projectState.state.geometryPreview, {
+      const session = (0, dependencies.geometryEditingCore.beginGeometryPreview)(dependencies.projectState.state.geometryPreview, {
         operation,
         baseDataRevision,
         workerRequestId: requestId,
@@ -261,9 +261,9 @@ export function createGeometryPreview() {
       });
       activeGeometryPreviewDiscard = () => dependencies.spatialQuery.mapEditClient.discard(requestId);
       activeGeometryPreviewApply = async () => {
-        if (!shouldKeepResult() || !(0, dependencies.geometryEditing.previewIsCurrent)(dependencies.projectState.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.projectState.state.stateRevision !== baseDataRevision) {
+        if (!shouldKeepResult() || !(0, dependencies.geometryEditingCore.previewIsCurrent)(dependencies.projectState.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.projectState.state.stateRevision !== baseDataRevision) {
           dependencies.spatialQuery.mapEditClient.discard(requestId);
-          (0, dependencies.geometryEditing.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
+          (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
           activeGeometryPreviewApply = null;
           activeGeometryPreviewDiscard = null;
           dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('geometry-preview-cancelled');
@@ -275,7 +275,7 @@ export function createGeometryPreview() {
           (0, dependencies.feedback.setActionStatus)('미리보기 형상을 수정하세요.', 'error', 3400);
           return false;
         }
-        (0, dependencies.geometryEditing.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
+        (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
         activeGeometryPreviewApply = null;
         activeGeometryPreviewDiscard = null;
         try {
@@ -356,7 +356,7 @@ export function createGeometryPreview() {
     }
     const issues = preparedPreview.validation?.issues || [];
     const preview = preparedPreview;
-    const session = (0, dependencies.geometryEditing.beginGeometryPreview)(dependencies.projectState.state.geometryPreview, {
+    const session = (0, dependencies.geometryEditingCore.beginGeometryPreview)(dependencies.projectState.state.geometryPreview, {
       operation,
       baseDataRevision,
       affectedIds: [...new Set([...beforeFeatures, ...afterFeatures].map(feature => String(feature?.id || '')).filter(Boolean))],
@@ -368,8 +368,8 @@ export function createGeometryPreview() {
     });
     activeGeometryPreviewDiscard = null;
     activeGeometryPreviewApply = async () => {
-      if (!shouldKeepResult() || !(0, dependencies.geometryEditing.previewIsCurrent)(dependencies.projectState.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.projectState.state.stateRevision !== baseDataRevision) {
-        (0, dependencies.geometryEditing.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
+      if (!shouldKeepResult() || !(0, dependencies.geometryEditingCore.previewIsCurrent)(dependencies.projectState.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.projectState.state.stateRevision !== baseDataRevision) {
+        (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
         activeGeometryPreviewApply = null;
         dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('local-geometry-preview-cancelled');
         (0, dependencies.taskUi.updateModeButtons)();
@@ -387,8 +387,8 @@ export function createGeometryPreview() {
         return false;
       }
       if (!shouldKeepResult() || dependencies.projectState.state.stateRevision !== baseDataRevision
-        || !(0, dependencies.geometryEditing.previewIsCurrent)(dependencies.projectState.state.geometryPreview, session.sessionId, baseDataRevision)) return false;
-      (0, dependencies.geometryEditing.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
+        || !(0, dependencies.geometryEditingCore.previewIsCurrent)(dependencies.projectState.state.geometryPreview, session.sessionId, baseDataRevision)) return false;
+      (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
       activeGeometryPreviewApply = null;
       activeGeometryPreviewDiscard = null;
       try {
@@ -431,7 +431,7 @@ export function createGeometryPreview() {
     activeGeometryPreviewDiscard?.();
     activeGeometryPreviewApply = null;
     activeGeometryPreviewDiscard = null;
-    (0, dependencies.geometryEditing.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
+    (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
     dependencies.domains.editingDomain?.refreshDraftPresentation?.('draft-preview-discard');
     dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('geometry-preview-discard');
     (0, dependencies.taskUi.updateModeButtons)();
