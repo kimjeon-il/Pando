@@ -7,6 +7,8 @@ const directory = new URL('../../assets/js/modules/', import.meta.url);
 // syntax so existing algorithm assertions do not depend on injection spelling.
 export function readApplicationOwners(...owners) {
   return owners.map(owner => fs.readFileSync(new URL(`app-${owner}.js`, directory), 'utf8')
+    .replace(/\(0, dependencies\.[$\w]+\.([$\w]+)\)/g, '$1')
+    .replace(/\bdependencies\.[$\w]+\.([$\w]+)/g, '$1')
     .replace(/\(0, dependencies\.([$\w]+)\)/g, '$1')
     .replace(/\bdependencies\./g, '')).join('\n');
 }

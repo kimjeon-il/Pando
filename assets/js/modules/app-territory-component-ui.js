@@ -11,14 +11,14 @@ export function createTerritoryComponentUi() {
   }
 
   function selectTerritoryCandidate(candidateIndex) {
-    return (0, dependencies.selectTerritorySelectionCandidate)(candidateIndex);
+    return (0, dependencies.territorySelectionA.selectTerritorySelectionCandidate)(candidateIndex);
   }
 
   function updateTerritoryComponentSelectionFeedback() {
-    const session = (0, dependencies.activeTerritorySelectionSession)();
+    const session = (0, dependencies.territorySelectionA.activeTerritorySelectionSession)();
     if (!session || session.stage !== 'selection' || session.activePhase !== 'components') return;
     if (session.computationPending) {
-      dependencies.setModeBanner('선택 영역을 계산하는 중입니다.');
+      dependencies.taskUi.setModeBanner('선택 영역을 계산하는 중입니다.');
       return;
     }
     const prefix = session.useRiverBoundaries ? session.riverComponentLabel : session.componentLabel;
@@ -27,20 +27,20 @@ export function createTerritoryComponentUi() {
         .filter(result => result.status === 'invalid')
         .map(result => String(result.donorCountryId)));
       const invalidNames = session.sourceCountryIds
-        .map(dependencies.countryFeatureById)
+        .map(dependencies.countries.countryFeatureById)
         .filter(feature => feature && invalidIds.has(String(feature.id)))
-        .map(dependencies.countryName);
+        .map(dependencies.presentation.countryName);
       const suffix = session.useRiverBoundaries && invalidNames.length
         ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외됨.`
         : '';
-      (0, dependencies.setModeBanner)(`${prefix}을 선택하세요.${suffix}`);
+      (0, dependencies.taskUi.setModeBanner)(`${prefix}을 선택하세요.${suffix}`);
     } else {
-      (0, dependencies.setModeBanner)(`${prefix}을 클릭해 선택하세요.`);
+      (0, dependencies.taskUi.setModeBanner)(`${prefix}을 클릭해 선택하세요.`);
     }
   }
 
   function toggleTerritoryComponentSelection(componentKey) {
-    return (0, dependencies.toggleTerritorySelectionComponent)(componentKey);
+    return (0, dependencies.territorySelectionC.toggleTerritorySelectionComponent)(componentKey);
   }
 
 

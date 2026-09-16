@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createTerritorySelectionWorkflow } from '../../assets/js/modules/app-territory-selection-workflow.js';
+import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
+import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 const geometry = id => ({ type: 'MultiPolygon', coordinates: [[[[id, 0], [id + 1, 0], [id + 1, 1], [id, 0]]]] });
 
@@ -74,7 +76,7 @@ function harness(t) {
     state.geometryPreview.session = { validation: { blocking: false } };
     return true;
   };
-  workflow.connect({
+  workflow.connect(capabilityPortsForFixture(OBJECT_EDITING_OWNER_PORTS.territorySelectionWorkflow, {
     state,
     mapEditClient: worker,
     installComponentIndex(current, result, key) { current.componentIndex = { key, items: result.items, byKey: new Map(componentItems().map(item => [item.key, item])) }; },
@@ -126,7 +128,7 @@ function harness(t) {
       invalidateCountryPatch: reason => calls.refresh.push(reason),
     },
     updateModeButtons() {},
-  });
+  }));
   workflow.initializeTerritorySelectionWorkflow();
   return {
     state, calls, workflow, worker,

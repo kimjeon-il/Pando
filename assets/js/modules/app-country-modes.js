@@ -18,113 +18,113 @@ export function createCountryModes() {
   }
 
   function resetMergeState() {
-    dependencies.state.mergeSourceCountryId = null;
-    dependencies.state.mergeTargetCountryIds = [];
+    dependencies.projectState.state.mergeSourceCountryId = null;
+    dependencies.projectState.state.mergeTargetCountryIds = [];
   }
 
   function resetGenericFeatureMergeState() {
-    dependencies.state.genericFeatureMergeSourceId = null;
-    dependencies.state.genericFeatureMergeTargetIds = [];
+    dependencies.projectState.state.genericFeatureMergeSourceId = null;
+    dependencies.projectState.state.genericFeatureMergeTargetIds = [];
   }
 
   function resetTerritorialUnitEditState() {
-    if (dependencies.state.territorySelectionSession?.tool === 'draw-territorial-unit') {
-      (0, dependencies.clearTerritorySelection)({ discardPreview: true, refreshUi: false });
+    if (dependencies.projectState.state.territorySelectionSession?.tool === 'draw-territorial-unit') {
+      (0, dependencies.territorySelectionA.clearTerritorySelection)({ discardPreview: true, refreshUi: false });
     }
-    dependencies.state.territorialUnitMergeSourceId = null;
-    dependencies.state.territorialUnitMergeTargetIds = [];
-    dependencies.state.territorialUnitSplitSourceId = null;
-    dependencies.state.territorialUnitSplitVirtualSource = null;
-    dependencies.state.territorialUnitRedrawSourceId = null;
-    dependencies.state.multiDraft = null;
+    dependencies.projectState.state.territorialUnitMergeSourceId = null;
+    dependencies.projectState.state.territorialUnitMergeTargetIds = [];
+    dependencies.projectState.state.territorialUnitSplitSourceId = null;
+    dependencies.projectState.state.territorialUnitSplitVirtualSource = null;
+    dependencies.projectState.state.territorialUnitRedrawSourceId = null;
+    dependencies.projectState.state.multiDraft = null;
   }
 
   function draftMinimumPoints() {
-    return (0, dependencies.isPolygonDraftTool)(dependencies.state.tool) ? 3 : 2;
+    return (0, dependencies.surfaces.isPolygonDraftTool)(dependencies.projectState.state.tool) ? 3 : 2;
   }
 
   function resetTerritoryEditingState(invalidateInteraction = true) {
-    dependencies.editingDomain?.clearDraft?.(invalidateInteraction);
-    if (dependencies.state.territorySelectionSession) {
-      (0, dependencies.clearTerritorySelection)({ discardPreview: true, refreshUi: false });
+    dependencies.domains.editingDomain?.clearDraft?.(invalidateInteraction);
+    if (dependencies.projectState.state.territorySelectionSession) {
+      (0, dependencies.territorySelectionA.clearTerritorySelection)({ discardPreview: true, refreshUi: false });
       return;
     }
   }
 
   function resetBoundaryEditState() {
-    dependencies.state.boundaryEditCountryIds = [];
-    dependencies.state.boundaryEditAutoSeedId = null;
-    dependencies.state.boundaryEditPhase = null;
-    dependencies.state.boundaryEditInitialSelection = null;
-    dependencies.state.boundaryEditSeedCountryId = null;
+    dependencies.projectState.state.boundaryEditCountryIds = [];
+    dependencies.projectState.state.boundaryEditAutoSeedId = null;
+    dependencies.projectState.state.boundaryEditPhase = null;
+    dependencies.projectState.state.boundaryEditInitialSelection = null;
+    dependencies.projectState.state.boundaryEditSeedCountryId = null;
   }
 
   function enterTerrainGenericFeatureMode(tool) {
     const config = hydroToolConfig(tool);
     if (!config) return false;
-    (0, dependencies.clearNotification)();
-    dependencies.selectionUiController.clear({ reason: 'tool-mode-selection-clear' });
+    (0, dependencies.readinessUi.clearNotification)();
+    dependencies.domains.selectionUiController.clear({ reason: 'tool-mode-selection-clear' });
     resetTerritoryEditingState(true);
-    dependencies.state.coastEditCountryId = null;
+    dependencies.projectState.state.coastEditCountryId = null;
     resetMergeState();
-    dependencies.state.multiDraft = { kind: 'hydro', category: config.category, shape: config.category === 'lake' ? 'polygon' : 'line', parts: [], current: null };
-    dependencies.editingDomain?.setTool(tool, { announce: false });
-    (0, dependencies.setModeBanner)((0, dependencies.defaultDraftInstruction)());
-    (0, dependencies.updateModeButtons)();
+    dependencies.projectState.state.multiDraft = { kind: 'hydro', category: config.category, shape: config.category === 'lake' ? 'polygon' : 'line', parts: [], current: null };
+    dependencies.domains.editingDomain?.setTool(tool, { announce: false });
+    (0, dependencies.taskUi.setModeBanner)((0, dependencies.interactionPresentation.defaultDraftInstruction)());
+    (0, dependencies.taskUi.updateModeButtons)();
     return true;
   }
 
   function enterNewCountryMode() {
-    (0, dependencies.clearNotification)();
-    dependencies.selectionUiController.clear({ reason: 'new-country-selection-clear' });
-    return !!(0, dependencies.startTerritorySelection)('new-country', {
+    (0, dependencies.readinessUi.clearNotification)();
+    dependencies.domains.selectionUiController.clear({ reason: 'new-country-selection-clear' });
+    return !!(0, dependencies.territorySelectionA.startTerritorySelection)('new-country', {
       tool: 'new-country', name: '새 국가', sourceCountryIds: [],
     });
   }
 
   function enterAnnexTerritoryMode(id) {
-    if (!dependencies.planDrawnTerritoryAnnex || !dependencies.composeRiverBoundaryTerritoryComponents) {
-      (0, dependencies.setActionStatus)('영토 편입 도구를 준비하는 중입니다.', 'working', 0);
-      void (0, dependencies.ensureGisRuntime)()
+    if (!dependencies.territorialServicesA.planDrawnTerritoryAnnex || !dependencies.territorialModel.composeRiverBoundaryTerritoryComponents) {
+      (0, dependencies.feedback.setActionStatus)('영토 편입 도구를 준비하는 중입니다.', 'working', 0);
+      void (0, dependencies.gisServicesA.ensureGisRuntime)()
         .then(() => enterAnnexTerritoryMode(id))
-        .catch(error => (0, dependencies.reportOperationError)(error, '영토 편입 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-001', 4200));
+        .catch(error => (0, dependencies.feedback.reportOperationError)(error, '영토 편입 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-001', 4200));
       return true;
     }
-    (0, dependencies.clearNotification)();
-    const feature = (0, dependencies.countryFeatureById)(id);
+    (0, dependencies.readinessUi.clearNotification)();
+    const feature = (0, dependencies.countries.countryFeatureById)(id);
     if (!feature) return false;
-    if (!(0, dependencies.requireCountriesUnlocked)([id], '영토 편입을 시작')) return false;
-    const current = (0, dependencies.startTerritorySelection)('annex', {
+    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([id], '영토 편입을 시작')) return false;
+    const current = (0, dependencies.territorySelectionA.startTerritorySelection)('annex', {
       tool: 'annex-territory', targetCountryId: String(id), sourceCountryIds: [],
     });
     if (!current) return false;
-    (0, dependencies.syncCountryActionButtons)();
-    dependencies.renderingDomain?.invalidateEditingOverlays?.('annex-target-selected');
-    (0, dependencies.setModeBanner)('가져올 국가를 선택하세요.');
-    (0, dependencies.updateModeButtons)();
+    (0, dependencies.taskPresentation.syncCountryActionButtons)();
+    dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('annex-target-selected');
+    (0, dependencies.taskUi.setModeBanner)('가져올 국가를 선택하세요.');
+    (0, dependencies.taskUi.updateModeButtons)();
     return true;
   }
 
   function validateAnnexSelectionSetup(session) {
     const targetId = String(session?.targetCountryId || '');
-    return !!targetId && !!(0, dependencies.countryFeatureById)(targetId)
+    return !!targetId && !!(0, dependencies.countries.countryFeatureById)(targetId)
       && Array.isArray(session.sourceCountryIds) && session.sourceCountryIds.length > 0
-      && session.sourceCountryIds.every(sourceId => String(sourceId) !== targetId && !!(0, dependencies.countryFeatureById)(sourceId));
+      && session.sourceCountryIds.every(sourceId => String(sourceId) !== targetId && !!(0, dependencies.countries.countryFeatureById)(sourceId));
   }
 
   function validateNewCountrySelectionSetup(session) {
     return !!session?.name?.trim() && Array.isArray(session.sourceCountryIds) && session.sourceCountryIds.length > 0
-      && session.sourceCountryIds.every(sourceId => !!(0, dependencies.countryFeatureById)(sourceId));
+      && session.sourceCountryIds.every(sourceId => !!(0, dependencies.countries.countryFeatureById)(sourceId));
   }
 
   function prepareCountrySelectionSource(session, operationLabel) {
     const ids = session.sourceCountryIds.map(String);
     const lockIds = session.kind === 'annex' ? [session.targetCountryId, ...ids] : ids;
-    if (!(0, dependencies.requireCountriesUnlocked)(lockIds, operationLabel)) return false;
+    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)(lockIds, operationLabel)) return false;
     try {
       const fingerprint = [...ids].sort().join('|');
       if (session.sourceCountryFingerprint === fingerprint && session.baseSourceGeometry) return true;
-      const features = ids.map(id => (0, dependencies.countryFeatureById)(id)).filter(Boolean);
+      const features = ids.map(id => (0, dependencies.countries.countryFeatureById)(id)).filter(Boolean);
       if (!features.length) return false;
       // The selection worker unions multiple sources; keep immutable source references here.
       session.baseSourceGeometry = features.length === 1 ? features[0].geometry : null;
@@ -135,7 +135,7 @@ export function createCountryModes() {
       session.componentFeatures = features;
       return true;
     } catch (error) {
-      (0, dependencies.reportOperationError)(error, '선택한 국가의 영토를 준비할 수 없습니다. 대상을 다시 선택하세요.', 'PL-TERRITORY-SELECTION-002', 3800);
+      (0, dependencies.feedback.reportOperationError)(error, '선택한 국가의 영토를 준비할 수 없습니다. 대상을 다시 선택하세요.', 'PL-TERRITORY-SELECTION-002', 3800);
       return false;
     }
   }
@@ -149,7 +149,7 @@ export function createCountryModes() {
   }
 
   function selectionSessionSnapshot() {
-    const snapshot = dependencies.selectionDomain.snapshot().selection;
+    const snapshot = dependencies.domains.selectionDomain.snapshot().selection;
     return {
       primaryKey: snapshot.primaryKey,
       items: snapshot.items.map(ref => ({ domain: ref.domain, type: ref.type, id: ref.id })),
@@ -157,285 +157,285 @@ export function createCountryModes() {
   }
 
   function enterCountryBorderSelection(id) {
-    (0, dependencies.clearNotification)();
-    const feature = (0, dependencies.countryFeatureById)(id);
+    (0, dependencies.readinessUi.clearNotification)();
+    const feature = (0, dependencies.countries.countryFeatureById)(id);
     if (!feature) return false;
-    if (!(0, dependencies.requireCountriesUnlocked)([id], '국경 조정 대상을 선택')) return false;
+    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([id], '국경 조정 대상을 선택')) return false;
     const initialSelection = selectionSessionSnapshot();
-    if (!dependencies.editingDomain?.setTool('country-border', { announce: false })) return false;
-    dependencies.state.boundaryEditAutoSeedId = null;
-    dependencies.state.boundaryEditCountryIds = [String(id)];
-    dependencies.state.boundaryEditPhase = 'selecting';
-    dependencies.state.boundaryEditInitialSelection = initialSelection;
-    dependencies.state.boundaryEditSeedCountryId = String(id);
-    dependencies.selectionUiController.replaceMany(dependencies.state.boundaryEditCountryIds.map(dependencies.countryObjectRef), {
-      primary: (0, dependencies.countryObjectRef)(id), scope: 'map', reason: 'boundary-edit-selection', present: false,
+    if (!dependencies.domains.editingDomain?.setTool('country-border', { announce: false })) return false;
+    dependencies.projectState.state.boundaryEditAutoSeedId = null;
+    dependencies.projectState.state.boundaryEditCountryIds = [String(id)];
+    dependencies.projectState.state.boundaryEditPhase = 'selecting';
+    dependencies.projectState.state.boundaryEditInitialSelection = initialSelection;
+    dependencies.projectState.state.boundaryEditSeedCountryId = String(id);
+    dependencies.domains.selectionUiController.replaceMany(dependencies.projectState.state.boundaryEditCountryIds.map(dependencies.objectOperationsA.countryObjectRef), {
+      primary: (0, dependencies.objectOperationsA.countryObjectRef)(id), scope: 'map', reason: 'boundary-edit-selection', present: false,
     });
-    (0, dependencies.rebuildBoundaryTopology)(dependencies.state.boundaryEditCountryIds);
-    (0, dependencies.setModeBanner)(`${(0, dependencies.countryName)(feature)}와 접한 국가를 선택하세요.`);
-    dependencies.renderingDomain?.invalidateGpuInteraction?.('country-border-selection');
-    (0, dependencies.updateModeButtons)();
+    (0, dependencies.geometryPreview.rebuildBoundaryTopology)(dependencies.projectState.state.boundaryEditCountryIds);
+    (0, dependencies.taskUi.setModeBanner)(`${(0, dependencies.presentation.countryName)(feature)}와 접한 국가를 선택하세요.`);
+    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('country-border-selection');
+    (0, dependencies.taskUi.updateModeButtons)();
     return true;
   }
 
   function enterCountryBorderEditFromSelection(operation = 'boundary') {
-    (0, dependencies.clearNotification)();
+    (0, dependencies.readinessUi.clearNotification)();
     const snapshot = selectionSessionSnapshot();
-    const refs = dependencies.selectionDomain.snapshot().selection.items;
+    const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
     if (refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === 'subunit')) {
-      const units = refs.map(ref => (0, dependencies.territorialUnitById)(ref.id));
+      const units = refs.map(ref => (0, dependencies.objectPresentation.territorialUnitById)(ref.id));
       const policy = subunitSelectionPolicy(units, operation === 'merge' ? { adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry) } : { deferConnectivity: true });
-      if (!policy.valid) { (0, dependencies.setActionStatus)(policy.message, 'error', 3600); return false; }
-      if (operation === 'merge') return (0, dependencies.previewTerritorialEdit)({ operation: 'merge', targetId: units[0].id,
+      if (!policy.valid) { (0, dependencies.feedback.setActionStatus)(policy.message, 'error', 3600); return false; }
+      if (operation === 'merge') return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'merge', targetId: units[0].id,
         parentId: units[0].properties.parentId, sourceIds: units.slice(1).map(unit => unit.id),
       }, { selectedId: units[0].id });
-      return (0, dependencies.enterTerritorialUnitRedrawMode)(units[0].id, units.map(unit => String(unit.id)));
+      return (0, dependencies.territorialEditingA.enterTerritorialUnitRedrawMode)(units[0].id, units.map(unit => String(unit.id)));
     }
-    const ids = refs.filter(ref => ref.domain === 'territorial' && ref.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id);
+    const ids = refs.filter(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id);
     if (ids.length !== refs.length || ids.length < 2) {
-      (0, dependencies.setActionStatus)('국가를 2개 이상 선택하세요', 'error', 3200);
+      (0, dependencies.feedback.setActionStatus)('국가를 2개 이상 선택하세요', 'error', 3200);
       return false;
     }
-    if (!(0, dependencies.requireCountriesUnlocked)(ids, '국경 조정을 시작')) return false;
+    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)(ids, '국경 조정을 시작')) return false;
     const analysis = { selectedIds: ids };
-    if (!dependencies.editingDomain?.setTool('country-border', { announce: false })) return false;
-    dependencies.state.boundaryEditAutoSeedId = null;
-    dependencies.state.boundaryEditCountryIds = analysis.selectedIds;
-    dependencies.state.boundaryEditPhase = 'editing';
-    dependencies.state.boundaryEditInitialSelection = snapshot;
-    dependencies.state.boundaryEditSeedCountryId = analysis.selectedIds[0];
-    dependencies.selectionUiController.replaceMany(analysis.selectedIds.map(dependencies.countryObjectRef), {
-      primary: (0, dependencies.countryObjectRef)(analysis.selectedIds.at(-1)), scope: 'map', reason: 'boundary-edit-selection', present: false,
+    if (!dependencies.domains.editingDomain?.setTool('country-border', { announce: false })) return false;
+    dependencies.projectState.state.boundaryEditAutoSeedId = null;
+    dependencies.projectState.state.boundaryEditCountryIds = analysis.selectedIds;
+    dependencies.projectState.state.boundaryEditPhase = 'editing';
+    dependencies.projectState.state.boundaryEditInitialSelection = snapshot;
+    dependencies.projectState.state.boundaryEditSeedCountryId = analysis.selectedIds[0];
+    dependencies.domains.selectionUiController.replaceMany(analysis.selectedIds.map(dependencies.objectOperationsA.countryObjectRef), {
+      primary: (0, dependencies.objectOperationsA.countryObjectRef)(analysis.selectedIds.at(-1)), scope: 'map', reason: 'boundary-edit-selection', present: false,
     });
-    (0, dependencies.rebuildBoundaryTopology)(analysis.selectedIds);
-    (0, dependencies.setModeBanner)('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
-    dependencies.renderingDomain?.invalidateGpuInteraction?.('country-border-edit-selection');
-    (0, dependencies.updateModeButtons)();
+    (0, dependencies.geometryPreview.rebuildBoundaryTopology)(analysis.selectedIds);
+    (0, dependencies.taskUi.setModeBanner)('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
+    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('country-border-edit-selection');
+    (0, dependencies.taskUi.updateModeButtons)();
     return true;
   }
 
-  function boundaryNeighborIds(selectedCountryIds = dependencies.state.boundaryEditCountryIds) {
-    return new Set(dependencies.state.boundaryPreparation?.status === 'ready'
-      ? dependencies.state.boundaryPreparation.result.neighbors : []);
+  function boundaryNeighborIds(selectedCountryIds = dependencies.projectState.state.boundaryEditCountryIds) {
+    return new Set(dependencies.projectState.state.boundaryPreparation?.status === 'ready'
+      ? dependencies.projectState.state.boundaryPreparation.result.neighbors : []);
   }
 
   function toggleBoundaryEditCountry(id) {
-    if (dependencies.state.tool !== 'country-border' || dependencies.state.boundaryEditPhase !== 'selecting') return false;
+    if (dependencies.projectState.state.tool !== 'country-border' || dependencies.projectState.state.boundaryEditPhase !== 'selecting') return false;
     const countryId = String(id || '');
-    if (!(0, dependencies.countryFeatureById)(countryId)) return false;
-    const selected = new Set(dependencies.state.boundaryEditCountryIds.map(String));
+    if (!(0, dependencies.countries.countryFeatureById)(countryId)) return false;
+    const selected = new Set(dependencies.projectState.state.boundaryEditCountryIds.map(String));
     if (selected.has(countryId)) {
-      if (countryId === dependencies.state.boundaryEditSeedCountryId) {
-        (0, dependencies.setActionStatus)('시작 국가는 대상 선택 단계에서 해제할 수 없습니다.', 'error', 2800);
+      if (countryId === dependencies.projectState.state.boundaryEditSeedCountryId) {
+        (0, dependencies.feedback.setActionStatus)('시작 국가는 대상 선택 단계에서 해제할 수 없습니다.', 'error', 2800);
         return false;
       }
       selected.delete(countryId);
     } else {
-      if (dependencies.state.boundaryPreparation?.status !== 'ready') return false;
+      if (dependencies.projectState.state.boundaryPreparation?.status !== 'ready') return false;
       if (!boundaryNeighborIds([...selected]).has(countryId)) {
-        (0, dependencies.setActionStatus)('현재 선택 집합과 실제 국경을 맞댄 국가만 추가할 수 있습니다.', 'error', 3200);
+        (0, dependencies.feedback.setActionStatus)('현재 선택 집합과 실제 국경을 맞댄 국가만 추가할 수 있습니다.', 'error', 3200);
         return false;
       }
       selected.add(countryId);
     }
-    dependencies.state.boundaryEditCountryIds = [...selected];
-    dependencies.selectionUiController.replaceMany(dependencies.state.boundaryEditCountryIds.map(dependencies.countryObjectRef), {
-      primary: (0, dependencies.countryObjectRef)(countryId), scope: 'map', reason: 'boundary-edit-selection', present: false,
+    dependencies.projectState.state.boundaryEditCountryIds = [...selected];
+    dependencies.domains.selectionUiController.replaceMany(dependencies.projectState.state.boundaryEditCountryIds.map(dependencies.objectOperationsA.countryObjectRef), {
+      primary: (0, dependencies.objectOperationsA.countryObjectRef)(countryId), scope: 'map', reason: 'boundary-edit-selection', present: false,
     });
-    (0, dependencies.rebuildBoundaryTopology)(dependencies.state.boundaryEditCountryIds);
-    const analysis = (0, dependencies.boundaryEditSelectionAnalysis)(dependencies.state.boundaryEditCountryIds);
-    (0, dependencies.setModeBanner)(analysis.valid
+    (0, dependencies.geometryPreview.rebuildBoundaryTopology)(dependencies.projectState.state.boundaryEditCountryIds);
+    const analysis = (0, dependencies.geometryOperations.boundaryEditSelectionAnalysis)(dependencies.projectState.state.boundaryEditCountryIds);
+    (0, dependencies.taskUi.setModeBanner)(analysis.valid
       ? `${analysis.selectedIds.length}개 국가 선택됨 · 완료하면 공유국경을 편집합니다.`
       : analysis.message);
-    dependencies.renderingDomain?.invalidateGpuInteraction?.('country-border-country-toggle');
-    (0, dependencies.updateModeButtons)();
+    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('country-border-country-toggle');
+    (0, dependencies.taskUi.updateModeButtons)();
     return true;
   }
 
   function beginCountryBorderEditing() {
-    if (dependencies.state.tool !== 'country-border' || dependencies.state.boundaryEditPhase !== 'selecting') return false;
-    if (!(0, dependencies.requireCountriesUnlocked)(dependencies.state.boundaryEditCountryIds, '국경 조정을 시작')) return false;
-    const analysis = (0, dependencies.boundaryEditSelectionAnalysis)(dependencies.state.boundaryEditCountryIds);
+    if (dependencies.projectState.state.tool !== 'country-border' || dependencies.projectState.state.boundaryEditPhase !== 'selecting') return false;
+    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)(dependencies.projectState.state.boundaryEditCountryIds, '국경 조정을 시작')) return false;
+    const analysis = (0, dependencies.geometryOperations.boundaryEditSelectionAnalysis)(dependencies.projectState.state.boundaryEditCountryIds);
     if (!analysis.valid) {
-      (0, dependencies.setActionStatus)(analysis.message, 'error', 3400);
+      (0, dependencies.feedback.setActionStatus)(analysis.message, 'error', 3400);
       return false;
     }
-    dependencies.state.boundaryEditAutoSeedId = null;
-    dependencies.state.boundaryEditCountryIds = analysis.selectedIds;
-    dependencies.state.boundaryEditPhase = 'editing';
-    (0, dependencies.rebuildBoundaryTopology)(analysis.selectedIds);
-    (0, dependencies.setModeBanner)('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
-    dependencies.renderingDomain?.invalidateGpuInteraction?.('country-border-edit-start');
-    (0, dependencies.updateModeButtons)();
+    dependencies.projectState.state.boundaryEditAutoSeedId = null;
+    dependencies.projectState.state.boundaryEditCountryIds = analysis.selectedIds;
+    dependencies.projectState.state.boundaryEditPhase = 'editing';
+    (0, dependencies.geometryPreview.rebuildBoundaryTopology)(analysis.selectedIds);
+    (0, dependencies.taskUi.setModeBanner)('공유국경 꼭짓점을 드래그하세요. 외부 접점은 고정됩니다.');
+    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('country-border-edit-start');
+    (0, dependencies.taskUi.updateModeButtons)();
     return true;
   }
 
   function finishCountryBorderEdit() {
-    if (dependencies.state.tool !== 'country-border') return false;
-    const subunit = dependencies.state.territorialUnits.find(unit => String(unit.id) === String(dependencies.state.boundaryEditSeedCountryId));
+    if (dependencies.projectState.state.tool !== 'country-border') return false;
+    const subunit = dependencies.projectState.state.territorialUnits.find(unit => String(unit.id) === String(dependencies.projectState.state.boundaryEditSeedCountryId));
     if (subunit) {
-      dependencies.editingDomain?.setTool('select', { announce: false });
-      dependencies.state.boundaryPreparation?.cancel();
-      dependencies.state.boundaryPreparation = null;
+      dependencies.domains.editingDomain?.setTool('select', { announce: false });
+      dependencies.projectState.state.boundaryPreparation?.cancel();
+      dependencies.projectState.state.boundaryPreparation = null;
 
       return true;
     }
-    const ids = dependencies.state.boundaryEditCountryIds.slice();
-    const primaryId = (dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) && ids.includes(String(dependencies.state.selected.id)) ? String(dependencies.state.selected.id) : ids.at(-1);
-    dependencies.editingDomain?.setTool('select', { announce: false });
-    dependencies.state.boundaryPreparation?.cancel();
-    dependencies.state.boundaryPreparation = null;
+    const ids = dependencies.projectState.state.boundaryEditCountryIds.slice();
+    const primaryId = (dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) && ids.includes(String(dependencies.projectState.state.selected.id)) ? String(dependencies.projectState.state.selected.id) : ids.at(-1);
+    dependencies.domains.editingDomain?.setTool('select', { announce: false });
+    dependencies.projectState.state.boundaryPreparation?.cancel();
+    dependencies.projectState.state.boundaryPreparation = null;
 
-    dependencies.selectionUiController.replaceMany(ids.map(dependencies.countryObjectRef), {
-      primary: (0, dependencies.countryObjectRef)(primaryId), scope: 'map', reason: 'boundary-edit-commit', present: true,
+    dependencies.domains.selectionUiController.replaceMany(ids.map(dependencies.objectOperationsA.countryObjectRef), {
+      primary: (0, dependencies.objectOperationsA.countryObjectRef)(primaryId), scope: 'map', reason: 'boundary-edit-commit', present: true,
     });
-    dependencies.projectDomain.queueAutosave();
-    (0, dependencies.setActionStatus)(`${ids.length}개 국가 사이의 공유국경 조정을 완료했습니다.`, 'success');
+    dependencies.domains.projectDomain.queueAutosave();
+    (0, dependencies.feedback.setActionStatus)(`${ids.length}개 국가 사이의 공유국경 조정을 완료했습니다.`, 'success');
     return true;
   }
 
   function enterCountryCoastEdit(id, { scopeGenericFeatureId = null, returnSelection = null } = {}) {
-    (0, dependencies.clearNotification)();
-    const feature = (0, dependencies.countryFeatureById)(id);
+    (0, dependencies.readinessUi.clearNotification)();
+    const feature = (0, dependencies.countries.countryFeatureById)(id);
     if (!feature) return false;
-    if (!(0, dependencies.requireCountriesUnlocked)([id], '해안선 조정을 시작')) return false;
-    if (!dependencies.editingDomain?.setTool('country-coast', { announce: false })) return false;
-    dependencies.state.coastEditCountryId = String(id);
-    dependencies.state.coastEditScopeGenericFeatureId = scopeGenericFeatureId ? String(scopeGenericFeatureId) : null;
-    dependencies.state.coastEditReturnSelection = returnSelection ? (0, dependencies.deepClone)(returnSelection) : null;
-    (0, dependencies.rebuildBoundaryTopology)(id);
-    (0, dependencies.syncCountryActionButtons)();
-    (0, dependencies.setModeBanner)(scopeGenericFeatureId
+    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([id], '해안선 조정을 시작')) return false;
+    if (!dependencies.domains.editingDomain?.setTool('country-coast', { announce: false })) return false;
+    dependencies.projectState.state.coastEditCountryId = String(id);
+    dependencies.projectState.state.coastEditScopeGenericFeatureId = scopeGenericFeatureId ? String(scopeGenericFeatureId) : null;
+    dependencies.projectState.state.coastEditReturnSelection = returnSelection ? (0, dependencies.platform.deepClone)(returnSelection) : null;
+    (0, dependencies.geometryPreview.rebuildBoundaryTopology)(id);
+    (0, dependencies.taskPresentation.syncCountryActionButtons)();
+    (0, dependencies.taskUi.setModeBanner)(scopeGenericFeatureId
       ? '해안선 꼭짓점을 드래그하세요. 연결 영역도 함께 변경됩니다.'
       : '해안선 꼭짓점을 드래그하세요. 국경 접점은 고정됩니다.');
     return true;
   }
 
   function finishCountryCoastEdit() {
-    const id = dependencies.state.coastEditCountryId;
+    const id = dependencies.projectState.state.coastEditCountryId;
     if (!id) return;
-    const feature = (0, dependencies.countryFeatureById)(id);
-    const returnSelection = dependencies.state.coastEditReturnSelection ? (0, dependencies.deepClone)(dependencies.state.coastEditReturnSelection) : null;
-    dependencies.editingDomain?.setTool('select', { announce: false });
-    dependencies.state.boundaryPreparation?.cancel();
-    dependencies.state.boundaryPreparation = null;
+    const feature = (0, dependencies.countries.countryFeatureById)(id);
+    const returnSelection = dependencies.projectState.state.coastEditReturnSelection ? (0, dependencies.platform.deepClone)(dependencies.projectState.state.coastEditReturnSelection) : null;
+    dependencies.domains.editingDomain?.setTool('select', { announce: false });
+    dependencies.projectState.state.boundaryPreparation?.cancel();
+    dependencies.projectState.state.boundaryPreparation = null;
 
-    dependencies.state.coastEditScopeGenericFeatureId = null;
-    dependencies.state.coastEditReturnSelection = null;
-    if (returnSelection?.type === 'generic' && dependencies.state.genericFeatures.some(item => String(item.id) === String(returnSelection.id))) (0, dependencies.applyGenericSelectionIntent)(String(returnSelection.id), true);
-    else if (feature) (0, dependencies.applyCountrySelectionIntent)(id, true);
-    dependencies.projectDomain.queueAutosave();
-    (0, dependencies.setActionStatus)(`${feature ? (0, dependencies.countryName)(feature) : '국가'}의 해안선을 조정했습니다.`, 'success');
+    dependencies.projectState.state.coastEditScopeGenericFeatureId = null;
+    dependencies.projectState.state.coastEditReturnSelection = null;
+    if (returnSelection?.type === 'generic' && dependencies.projectState.state.genericFeatures.some(item => String(item.id) === String(returnSelection.id))) (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(returnSelection.id), true);
+    else if (feature) (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(id, true);
+    dependencies.domains.projectDomain.queueAutosave();
+    (0, dependencies.feedback.setActionStatus)(`${feature ? (0, dependencies.presentation.countryName)(feature) : '국가'}의 해안선을 조정했습니다.`, 'success');
   }
 
   function enterMergeCountryMode(id) {
-    (0, dependencies.clearNotification)();
-    const feature = (0, dependencies.countryFeatureById)(id);
+    (0, dependencies.readinessUi.clearNotification)();
+    const feature = (0, dependencies.countries.countryFeatureById)(id);
     if (!feature) return false;
-    if (!(0, dependencies.requireCountriesUnlocked)([id], '국가 합병을 시작')) return false;
-    dependencies.state.mergeSourceCountryId = String(id);
-    dependencies.state.mergeTargetCountryIds = [];
-    dependencies.editingDomain?.setTool('merge-country', { announce: false });
-    dependencies.state.mergeSourceCountryId = String(id);
-    dependencies.state.mergeTargetCountryIds = [];
-    (0, dependencies.setModeBanner)('합병할 국가를 선택하세요.');
-    (0, dependencies.syncCountryActionButtons)();
-    (0, dependencies.updateModeButtons)();
+    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([id], '국가 합병을 시작')) return false;
+    dependencies.projectState.state.mergeSourceCountryId = String(id);
+    dependencies.projectState.state.mergeTargetCountryIds = [];
+    dependencies.domains.editingDomain?.setTool('merge-country', { announce: false });
+    dependencies.projectState.state.mergeSourceCountryId = String(id);
+    dependencies.projectState.state.mergeTargetCountryIds = [];
+    (0, dependencies.taskUi.setModeBanner)('합병할 국가를 선택하세요.');
+    (0, dependencies.taskPresentation.syncCountryActionButtons)();
+    (0, dependencies.taskUi.updateModeButtons)();
     return true;
   }
 
   function toggleMergeTarget(id) {
-    const sourceId = String(dependencies.state.mergeSourceCountryId || '');
+    const sourceId = String(dependencies.projectState.state.mergeSourceCountryId || '');
     const targetId = String(id || '');
-    if (dependencies.state.tool !== 'merge-country' || !sourceId) return;
+    if (dependencies.projectState.state.tool !== 'merge-country' || !sourceId) return;
     if (!targetId || targetId === sourceId) {
-      (0, dependencies.setActionStatus)('기준 국가 외 합병 대상을 선택하세요', 'error', 3200);
+      (0, dependencies.feedback.setActionStatus)('기준 국가 외 합병 대상을 선택하세요', 'error', 3200);
       return;
     }
-    if (!(0, dependencies.countryFeatureById)(targetId)) {
-      (0, dependencies.setActionStatus)('합병 대상을 찾을 수 없습니다. 지도에 표시된 다른 국가를 선택하세요.', 'error', 3200);
+    if (!(0, dependencies.countries.countryFeatureById)(targetId)) {
+      (0, dependencies.feedback.setActionStatus)('합병 대상을 찾을 수 없습니다. 지도에 표시된 다른 국가를 선택하세요.', 'error', 3200);
       return;
     }
-    const selected = new Set(dependencies.state.mergeTargetCountryIds.map(String));
+    const selected = new Set(dependencies.projectState.state.mergeTargetCountryIds.map(String));
     if (selected.has(targetId)) selected.delete(targetId);
     else selected.add(targetId);
-    dependencies.state.mergeTargetCountryIds = [...selected];
-    dependencies.renderingDomain?.invalidateEditingOverlays?.('merge-country-target-selection-changed');
-    (0, dependencies.setModeBanner)('합병할 국가를 선택하세요.');
-    (0, dependencies.updateModeButtons)();
+    dependencies.projectState.state.mergeTargetCountryIds = [...selected];
+    dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('merge-country-target-selection-changed');
+    (0, dependencies.taskUi.setModeBanner)('합병할 국가를 선택하세요.');
+    (0, dependencies.taskUi.updateModeButtons)();
   }
 
   function cancelActiveMode(announce = true) {
-    const cancelledTool = dependencies.state.tool;
-    const boundarySelectionSnapshot = dependencies.state.boundaryEditInitialSelection;
-    dependencies.mapEditClient.cancel();
-    const selectedTerritorialUnitId = dependencies.state.territorialUnitSplitSourceId || dependencies.state.territorialUnitMergeSourceId
-      || ((dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type !== dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) ? dependencies.state.selected.id : null);
-    const selectedGenericFeatureId = dependencies.state.genericFeatureSplitSourceId || dependencies.state.genericFeatureMergeSourceId
-      || (dependencies.state.coastEditReturnSelection?.type === 'generic' ? dependencies.state.coastEditReturnSelection.id : null);
-    const selectedId = dependencies.state.territorySelectionSession?.targetCountryId
-      || dependencies.state.coastEditCountryId
-      || dependencies.state.mergeSourceCountryId
-      || ((dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) ? dependencies.state.selected.id : null);
+    const cancelledTool = dependencies.projectState.state.tool;
+    const boundarySelectionSnapshot = dependencies.projectState.state.boundaryEditInitialSelection;
+    dependencies.spatialQuery.mapEditClient.cancel();
+    const selectedTerritorialUnitId = dependencies.projectState.state.territorialUnitSplitSourceId || dependencies.projectState.state.territorialUnitMergeSourceId
+      || ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) ? dependencies.projectState.state.selected.id : null);
+    const selectedGenericFeatureId = dependencies.projectState.state.genericFeatureSplitSourceId || dependencies.projectState.state.genericFeatureMergeSourceId
+      || (dependencies.projectState.state.coastEditReturnSelection?.type === 'generic' ? dependencies.projectState.state.coastEditReturnSelection.id : null);
+    const selectedId = dependencies.projectState.state.territorySelectionSession?.targetCountryId
+      || dependencies.projectState.state.coastEditCountryId
+      || dependencies.projectState.state.mergeSourceCountryId
+      || ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) ? dependencies.projectState.state.selected.id : null);
     resetTerritoryEditingState(true);
-    dependencies.state.coastEditCountryId = null;
-    dependencies.state.coastEditScopeGenericFeatureId = null;
-    dependencies.state.coastEditReturnSelection = null;
+    dependencies.projectState.state.coastEditCountryId = null;
+    dependencies.projectState.state.coastEditScopeGenericFeatureId = null;
+    dependencies.projectState.state.coastEditReturnSelection = null;
     resetBoundaryEditState();
     resetMergeState();
     resetGenericFeatureMergeState();
     resetTerritorialUnitEditState();
-    dependencies.state.genericFeatureSplitSourceId = null;
-    dependencies.editingDomain?.setTool('select', { announce: false });
-    dependencies.state.boundaryPreparation?.cancel();
-    dependencies.state.boundaryPreparation = null;
+    dependencies.projectState.state.genericFeatureSplitSourceId = null;
+    dependencies.domains.editingDomain?.setTool('select', { announce: false });
+    dependencies.projectState.state.boundaryPreparation?.cancel();
+    dependencies.projectState.state.boundaryPreparation = null;
 
-    if (cancelledTool === 'country-border' && boundarySelectionSnapshot) dependencies.selectionUiController.restore(boundarySelectionSnapshot);
-    else if (selectedGenericFeatureId && dependencies.state.genericFeatures.some(item => String(item.id) === String(selectedGenericFeatureId))) (0, dependencies.applyGenericSelectionIntent)(String(selectedGenericFeatureId), true);
-    else if (selectedTerritorialUnitId && (0, dependencies.territorialUnitById)(selectedTerritorialUnitId)) (0, dependencies.applyTerritorialUnitSelectionIntent)(String(selectedTerritorialUnitId), true);
-    else if (selectedId && (0, dependencies.countryFeatureById)(selectedId)) (0, dependencies.applyCountrySelectionIntent)(selectedId, true);
+    if (cancelledTool === 'country-border' && boundarySelectionSnapshot) dependencies.domains.selectionUiController.restore(boundarySelectionSnapshot);
+    else if (selectedGenericFeatureId && dependencies.projectState.state.genericFeatures.some(item => String(item.id) === String(selectedGenericFeatureId))) (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(selectedGenericFeatureId), true);
+    else if (selectedTerritorialUnitId && (0, dependencies.objectPresentation.territorialUnitById)(selectedTerritorialUnitId)) (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(String(selectedTerritorialUnitId), true);
+    else if (selectedId && (0, dependencies.countries.countryFeatureById)(selectedId)) (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(selectedId, true);
     // Country tool highlighting lives in the GPU scene rather than the draft overlay.
     // Rebuild that scene on cancellation so its translucent fills do not remain until
     // the next camera movement triggers a full country presentation pass.
     if (['annex-territory', 'new-country', 'draw-territorial-unit', 'merge-country'].includes(cancelledTool)) {
-      dependencies.renderingDomain?.invalidateCountryPatch?.('active-mode-cancelled');
+      dependencies.domains.renderingDomain?.invalidateCountryPatch?.('active-mode-cancelled');
     } else {
-      dependencies.renderingDomain?.invalidateEditingOverlays?.('active-mode-cancelled');
+      dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('active-mode-cancelled');
     }
     const labels = { 'new-country': '국가 추가', 'annex-territory': '영토 편입', 'merge-country': '국가 합병', 'merge-generic-feature': '영역 합치기', 'split-generic-feature': '영역 나누기', 'merge-territorial-unit': '영역 합치기', 'split-territorial-unit': '영역 나누기', 'country-border': '국경 조정', 'country-coast': '해안선 조정' };
-    if (announce) (0, dependencies.setActionStatus)(`${labels[cancelledTool] || '지도 작업'}을 취소했습니다.`, 'success');
+    if (announce) (0, dependencies.feedback.setActionStatus)(`${labels[cancelledTool] || '지도 작업'}을 취소했습니다.`, 'success');
   }
 
   function enterLabelMode() {
-    (0, dependencies.clearNotification)();
+    (0, dependencies.readinessUi.clearNotification)();
     resetTerritoryEditingState(true);
-    dependencies.state.coastEditCountryId = null;
+    dependencies.projectState.state.coastEditCountryId = null;
     resetMergeState();
-    dependencies.state.tool = 'label';
-    dependencies.state.labelPlacementMode = true;
-    (0, dependencies.setCurrentTool)('지명 추가');
-    (0, dependencies.$)('map').classList.add('generic-feature-mode');
-    (0, dependencies.$)('map').classList.remove('select-mode');
-    (0, dependencies.setModeBanner)('지명을 배치할 위치를 선택하세요.');
-    (0, dependencies.updateModeButtons)();
+    dependencies.projectState.state.tool = 'label';
+    dependencies.projectState.state.labelPlacementMode = true;
+    (0, dependencies.readinessUi.setCurrentTool)('지명 추가');
+    (0, dependencies.platform.$)('map').classList.add('generic-feature-mode');
+    (0, dependencies.platform.$)('map').classList.remove('select-mode');
+    (0, dependencies.taskUi.setModeBanner)('지명을 배치할 위치를 선택하세요.');
+    (0, dependencies.taskUi.updateModeButtons)();
     return true;
   }
 
   function exitLabelMode(announce = true) {
-    dependencies.state.labelPlacementMode = false;
-    dependencies.state.tool = 'select';
-    (0, dependencies.$)('map').classList.remove('generic-feature-mode');
-    (0, dependencies.$)('map').classList.add('select-mode');
-    (0, dependencies.setModeBanner)();
-    (0, dependencies.setCurrentTool)('국가 선택');
-    (0, dependencies.updateModeButtons)();
-    if (announce) (0, dependencies.setActionStatus)('지명 추가를 취소했습니다.', 'success');
+    dependencies.projectState.state.labelPlacementMode = false;
+    dependencies.projectState.state.tool = 'select';
+    (0, dependencies.platform.$)('map').classList.remove('generic-feature-mode');
+    (0, dependencies.platform.$)('map').classList.add('select-mode');
+    (0, dependencies.taskUi.setModeBanner)();
+    (0, dependencies.readinessUi.setCurrentTool)('국가 선택');
+    (0, dependencies.taskUi.updateModeButtons)();
+    if (announce) (0, dependencies.feedback.setActionStatus)('지명 추가를 취소했습니다.', 'success');
   }
 
   function initializeHydroToolConfig() {
-    (hydroToolConfig = tool => dependencies.HYDRO_TOOL_CONFIG[tool] || null);
+    (hydroToolConfig = tool => dependencies.hydroPresentation.HYDRO_TOOL_CONFIG[tool] || null);
 
-    (draftToolConfig = tool => (0, dependencies.toolDraftDefinition)(tool, dependencies.state));
+    (draftToolConfig = tool => (0, dependencies.toolServices.toolDraftDefinition)(tool, dependencies.projectState.state));
   }
 
   function initializeEmptyDraftSession() {
@@ -445,14 +445,14 @@ export function createCountryModes() {
       futureCount: 0, strokeActive: false, cutAssessment: null, activeSnap: null,
     }));
 
-    (editingDraftSnapshot = () => dependencies.editingDomain?.snapshot?.().draft || emptyDraftSession);
+    (editingDraftSnapshot = () => dependencies.domains.editingDomain?.snapshot?.().draft || emptyDraftSession);
 
     (editingDraftCoordinates = () => editingDraftSnapshot().coords);
 
     (dispatchEditingInteraction = (type, detail = {}) => {
-      const currentPacket = dependencies.editingDomain?.createRenderPacket?.();
+      const currentPacket = dependencies.domains.editingDomain?.createRenderPacket?.();
       if (!currentPacket) return false;
-      return dependencies.editingDomain.handleInteraction({
+      return dependencies.domains.editingDomain.handleInteraction({
         type,
         projectGeneration: currentPacket.projectGeneration,
         packetRevision: currentPacket.revision,

@@ -52,12 +52,12 @@ export function createHydroSettings() {
   }
 
   function syncPhysicalControls() {
-    const terrainVisible = dependencies.state.physicalSettings.terrainVisible !== false;
-    if ((0, dependencies.$)('terrainVisible')) {
-      (0, dependencies.$)('terrainVisible').checked = terrainVisible;
+    const terrainVisible = dependencies.projectState.state.physicalSettings.terrainVisible !== false;
+    if ((0, dependencies.platform.$)('terrainVisible')) {
+      (0, dependencies.platform.$)('terrainVisible').checked = terrainVisible;
     }
-    if ((0, dependencies.$)('terrainPoliticalRadio')) (0, dependencies.$)('terrainPoliticalRadio').checked = dependencies.state.physicalSettings.terrainStyle === 'political';
-    if ((0, dependencies.$)('terrainPhysicalRadio')) (0, dependencies.$)('terrainPhysicalRadio').checked = dependencies.state.physicalSettings.terrainStyle === 'physical';
+    if ((0, dependencies.platform.$)('terrainPoliticalRadio')) (0, dependencies.platform.$)('terrainPoliticalRadio').checked = dependencies.projectState.state.physicalSettings.terrainStyle === 'political';
+    if ((0, dependencies.platform.$)('terrainPhysicalRadio')) (0, dependencies.platform.$)('terrainPhysicalRadio').checked = dependencies.projectState.state.physicalSettings.terrainStyle === 'physical';
   }
 
   function parseHexRgb(value, fallback = dependencies.physicalConfig.TERRAIN_OCEAN_REPRESENTATIVE) {
@@ -71,8 +71,8 @@ export function createHydroSettings() {
   }
 
   function automaticWaterColor(gpu = false) {
-    if (dependencies.state.physicalSettings.terrainVisible && dependencies.state.physicalSettings.terrainStyle === 'physical') {
-      const representative = dependencies.state.terrainManifest?.displayColors?.oceanRepresentative || dependencies.physicalConfig.TERRAIN_OCEAN_REPRESENTATIVE;
+    if (dependencies.projectState.state.physicalSettings.terrainVisible && dependencies.projectState.state.physicalSettings.terrainStyle === 'physical') {
+      const representative = dependencies.projectState.state.terrainManifest?.displayColors?.oceanRepresentative || dependencies.physicalConfig.TERRAIN_OCEAN_REPRESENTATIVE;
       let rgb = parseHexRgb(representative);
       if ((document.documentElement.dataset.theme || dependencies.preferences.systemTheme) === 'dark') rgb = rgb.map((value, index) => value * [0.808, 0.8464, 0.8848][index]);
       return gpu ? rgb.map(value => value / 255) : formatHexRgb(rgb);
@@ -125,37 +125,37 @@ export function createHydroSettings() {
 
   function hydroEditById(id) {
     const key = String(id);
-    return dependencies.state.hydroEdits.find(feature => String(feature.id) === key) || null;
+    return dependencies.projectState.state.hydroEdits.find(feature => String(feature.id) === key) || null;
   }
 
   function isHydroEditFeature(feature) {
-    return !!feature && (feature.properties?.pandolab_domain === 'hydro' || dependencies.state.hydroEdits.includes(feature));
+    return !!feature && (feature.properties?.pandolab_domain === 'hydro' || dependencies.projectState.state.hydroEdits.includes(feature));
   }
 
   function hydroLayerVisible(layerId) {
     const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(dependencies.hydroPresentation.HYDRO_LAYER_META[layerId]?.category);
-    return dependencies.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false
-      && dependencies.state.physicalSettings.hydroLayers?.[layerId] !== false;
+    return dependencies.projectState.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false
+      && dependencies.projectState.state.physicalSettings.hydroLayers?.[layerId] !== false;
   }
 
   function isHydroFeatureVisible(feature) {
     const id = String(feature?.properties?.pandolab_id || feature?.id || '');
     if (isHydroEditFeature(feature)) {
       const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(feature.properties?.category);
-      return dependencies.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('hydro', id);
+      return dependencies.projectState.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('hydro', id);
     }
-    return hydroLayerVisible(feature?.properties?.layer_id) && dependencies.state.physicalSettings.hiddenHydroIds?.[id] !== true;
+    return hydroLayerVisible(feature?.properties?.layer_id) && dependencies.projectState.state.physicalSettings.hiddenHydroIds?.[id] !== true;
   }
 
   function allBuiltInHydroFeatures() {
-    const tiled = dependencies.state.hydroFeatureCache instanceof Map ? [...dependencies.state.hydroFeatureCache.values()] : [];
-    const legacy = Object.values(dependencies.state.hydroCollections || {}).flatMap(collection => collection?.features || []);
+    const tiled = dependencies.projectState.state.hydroFeatureCache instanceof Map ? [...dependencies.projectState.state.hydroFeatureCache.values()] : [];
+    const legacy = Object.values(dependencies.projectState.state.hydroCollections || {}).flatMap(collection => collection?.features || []);
     return [...tiled, ...legacy];
   }
 
   function builtInHydroFeatureById(id) {
     const key = String(id);
-    if (dependencies.state.hydroFeatureCache instanceof Map && dependencies.state.hydroFeatureCache.has(key)) return dependencies.state.hydroFeatureCache.get(key);
+    if (dependencies.projectState.state.hydroFeatureCache instanceof Map && dependencies.projectState.state.hydroFeatureCache.has(key)) return dependencies.projectState.state.hydroFeatureCache.get(key);
     for (const feature of allBuiltInHydroFeatures()) {
       if (String(feature.properties?.pandolab_id || feature.id || '') === key) return feature;
     }

@@ -32,7 +32,7 @@ export function createBuiltinSession() {
 
   function materializePristineCountriesSync() {
     return canonicalCountryStore?.materializeCollectionSync?.()
-      || (0, dependencies.deepClone)(pristineCountriesFallback || { type: 'FeatureCollection', features: [] });
+      || (0, dependencies.platform.deepClone)(pristineCountriesFallback || { type: 'FeatureCollection', features: [] });
   }
 
   async function materializePristineCountries() {
@@ -47,16 +47,16 @@ export function createBuiltinSession() {
   }
 
   function freshPristineCountries(applyOverrides = true) {
-    const countries = (0, dependencies.reindexCountries)(materializePristineCountriesSync(), applyOverrides, { assumeCanonical: !!canonicalCountryStore });
-    (0, dependencies.applyPristineLabelAnchors)(countries);
+    const countries = (0, dependencies.geometryMutation.reindexCountries)(materializePristineCountriesSync(), applyOverrides, { assumeCanonical: !!canonicalCountryStore });
+    (0, dependencies.countryRecords.applyPristineLabelAnchors)(countries);
     return countries;
   }
 
   function applyFreshBuiltinClassification() {
-    const result = (0, dependencies.classifyBuiltinCountries)(dependencies.state.countriesData);
-    dependencies.state.territorialUnits = result.subunits;
-    dependencies.state.countriesData = (0, dependencies.reindexCountries)(result.countries, true, { assumeCanonical: true });
-    (0, dependencies.applyPristineLabelAnchors)({ features: result.subunits.map(unit => ({ id: (0, dependencies.builtinSubunitSourceId)(unit) })) });
+    const result = (0, dependencies.applicationServicesA.classifyBuiltinCountries)(dependencies.projectState.state.countriesData);
+    dependencies.projectState.state.territorialUnits = result.subunits;
+    dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(result.countries, true, { assumeCanonical: true });
+    (0, dependencies.countryRecords.applyPristineLabelAnchors)({ features: result.subunits.map(unit => ({ id: (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit) })) });
   }
 
   function builtinRenderCountries() {
@@ -65,21 +65,21 @@ export function createBuiltinSession() {
       builtinGeometryCache = new WeakMap();
       builtinRenderCache = null;
     }
-    if (builtinRenderCache?.countries === dependencies.state.countriesData && builtinRenderCache.units === dependencies.state.territorialUnits
-      && builtinRenderCache.presentation === dependencies.state.layerPresentation) return builtinRenderCache;
-    const features = [...(dependencies.state.countriesData?.features || [])];
+    if (builtinRenderCache?.countries === dependencies.projectState.state.countriesData && builtinRenderCache.units === dependencies.projectState.state.territorialUnits
+      && builtinRenderCache.presentation === dependencies.projectState.state.layerPresentation) return builtinRenderCache;
+    const features = [...(dependencies.projectState.state.countriesData?.features || [])];
     const byId = new Map(features.map(feature => [String(feature.id), feature]));
     const labelById = new Map(byId);
     const labelRefs = new Map();
     const units = new Map();
-    for (const unit of dependencies.state.territorialUnits || []) {
-      const sourceId = (0, dependencies.builtinSubunitSourceId)(unit);
+    for (const unit of dependencies.projectState.state.territorialUnits || []) {
+      const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
       const id = sourceId && !byId.has(sourceId) ? sourceId : `territorial:${unit.properties.unitType}:${unit.id}`;
       const feature = { type: 'Feature', id, properties: unit.properties, geometry: unit.geometry };
       labelById.set(id, feature);
       labelRefs.set(id, { domain: 'territorial', type: unit.properties.unitType, id: unit.id });
       if (!sourceId || byId.has(sourceId)) continue;
-      const style = (0, dependencies.layerStyle)(dependencies.state.layerPresentation, 'subunits', `territorial:subunit:${unit.id}`);
+      const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'subunits', `territorial:subunit:${unit.id}`);
       if (style.opacity !== 1 || style.blendMode !== 'normal' || !style.boundaryVisible) continue;
       let unchanged = builtinGeometryCache.get(unit.geometry);
       if (unchanged === undefined) {
@@ -92,29 +92,29 @@ export function createBuiltinSession() {
     }
     const order = new Map((canonicalCountryStore?.ids() || pristineCountriesFallback?.features.map(feature => feature.id) || []).map((id, index) => [id, index]));
     features.sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity));
-    builtinRenderCache = { countries: dependencies.state.countriesData, units: dependencies.state.territorialUnits, presentation: dependencies.state.layerPresentation,
+    builtinRenderCache = { countries: dependencies.projectState.state.countriesData, units: dependencies.projectState.state.territorialUnits, presentation: dependencies.projectState.state.layerPresentation,
       collection: { type: 'FeatureCollection', features }, byId, labelById, labelRefs, nativeUnits: units };
     return builtinRenderCache;
   }
 
   function syncBuiltinPalette() {
     const cache = builtinRenderCountries();
-    const visibility = JSON.stringify([dependencies.state.layerVisibility.subunits, dependencies.state.itemVisibility.subunits]);
+    const visibility = JSON.stringify([dependencies.projectState.state.layerVisibility.subunits, dependencies.projectState.state.itemVisibility.subunits]);
     if (builtinPaletteKey === cache && builtinPaletteVisibility === visibility) return;
     builtinPaletteKey = cache;
     builtinPaletteVisibility = visibility;
-    dependencies.gpuMapRenderer.invalidateCountryPalette({ base: true }, 'builtin-subunit-presentation');
+    dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true }, 'builtin-subunit-presentation');
   }
 
   function isNativeBuiltinSubunit(unit) {
-    const sourceId = (0, dependencies.builtinSubunitSourceId)(unit);
+    const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
     return !!sourceId && builtinRenderCountries().nativeUnits.get(sourceId) === unit;
   }
 
   function isRenderCountryVisible(id) {
     const unit = builtinRenderCountries().nativeUnits.get(String(id));
-    return unit ? dependencies.state.layerVisibility.subunits !== false && (0, dependencies.isLayerItemVisible)('subunits', unit.id)
-      : !!(0, dependencies.countryFeatureById)(id) && (0, dependencies.isCountryVisibleById)(id);
+    return unit ? dependencies.projectState.state.layerVisibility.subunits !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('subunits', unit.id)
+      : !!(0, dependencies.countries.countryFeatureById)(id) && (0, dependencies.layerPresentation.isCountryVisibleById)(id);
   }
 
   function initializePristineCountriesFallback() {

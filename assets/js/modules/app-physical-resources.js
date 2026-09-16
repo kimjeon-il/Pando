@@ -14,7 +14,7 @@ export function createPhysicalResources() {
   function prepareHydroFeature(feature) {
     const bounds = (0, dependencies.cutGeometry.coordinateBounds)(feature?.geometry?.coordinates);
     feature.__awBounds = bounds.every(Number.isFinite) ? bounds : [-180, -90, 180, 90];
-    try { feature.__awCentroid = dependencies.d3.geo.centroid(feature); }
+    try { feature.__awCentroid = dependencies.platform.d3.geo.centroid(feature); }
     catch (_) { feature.__awCentroid = [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2]; }
     feature.__awRadius = Math.min(180, Math.hypot(bounds[2] - bounds[0], bounds[3] - bounds[1]) / 2);
     return feature;
@@ -42,19 +42,19 @@ export function createPhysicalResources() {
     const minZoom = Number(feature.properties?.min_zoom ?? feature.properties?.scale_rank ?? 10);
     if (minZoom > hydroVisibilityThreshold()) return false;
     const bounds = feature.__awBounds || [-180, -90, 180, 90];
-    if (dependencies.state.projection === 'flat') {
-      const scale = dependencies.flatProjection.scale();
-      const halfLon = dependencies.state.size.width / Math.max(1, scale) * 90 / Math.PI;
-      const halfLat = dependencies.state.size.height / Math.max(1, scale) * 90 / Math.PI;
+    if (dependencies.projectState.state.projection === 'flat') {
+      const scale = dependencies.mapView.flatProjection.scale();
+      const halfLon = dependencies.projectState.state.size.width / Math.max(1, scale) * 90 / Math.PI;
+      const halfLat = dependencies.projectState.state.size.height / Math.max(1, scale) * 90 / Math.PI;
       const centerLon = (bounds[0] + bounds[2]) / 2;
       const centerLat = (bounds[1] + bounds[3]) / 2;
-      const deltaLon = Math.abs((((centerLon - dependencies.state.view.flatCenter[0]) + 540) % 360) - 180);
+      const deltaLon = Math.abs((((centerLon - dependencies.projectState.state.view.flatCenter[0]) + 540) % 360) - 180);
       return deltaLon <= halfLon + Math.abs(bounds[2] - bounds[0]) / 2 + 2
-        && Math.abs(centerLat - dependencies.state.view.flatCenter[1]) <= halfLat + Math.abs(bounds[3] - bounds[1]) / 2 + 2;
+        && Math.abs(centerLat - dependencies.projectState.state.view.flatCenter[1]) <= halfLat + Math.abs(bounds[3] - bounds[1]) / 2 + 2;
     }
-    const center = [-Number(dependencies.state.view.globeRotation?.[0] || 0), -Number(dependencies.state.view.globeRotation?.[1] || 0)];
-    const radius = Math.asin(Math.min(1, Math.hypot(dependencies.state.size.width, dependencies.state.size.height) * 0.5 / Math.max(1, dependencies.globeProjection.scale())));
-    return dependencies.d3.geo.distance(center, feature.__awCentroid || [0, 0]) <= radius + Number(feature.__awRadius || 0) * Math.PI / 180 + 0.04;
+    const center = [-Number(dependencies.projectState.state.view.globeRotation?.[0] || 0), -Number(dependencies.projectState.state.view.globeRotation?.[1] || 0)];
+    const radius = Math.asin(Math.min(1, Math.hypot(dependencies.projectState.state.size.width, dependencies.projectState.state.size.height) * 0.5 / Math.max(1, dependencies.mapView.globeProjection.scale())));
+    return dependencies.platform.d3.geo.distance(center, feature.__awCentroid || [0, 0]) <= radius + Number(feature.__awRadius || 0) * Math.PI / 180 + 0.04;
   }
 
   function hydroRenderGroups(category) {
@@ -106,29 +106,29 @@ export function createPhysicalResources() {
         url.searchParams.set('v', dependencies.physicalConfig.DATA_REVISION);
         return url;
       },
-      getLoadState: () => dependencies.state.physicalLoadState.terrain,
+      getLoadState: () => dependencies.projectState.state.physicalLoadState.terrain,
       onLoading: () => {
-        dependencies.state.physicalLoadState.terrain = 'loading';
-        dependencies.state.physicalLoadState.terrainManifest = 'loading';
+        dependencies.projectState.state.physicalLoadState.terrain = 'loading';
+        dependencies.projectState.state.physicalLoadState.terrainManifest = 'loading';
         (0, dependencies.layerPresentation.markLayerTreeDirty)();
         dependencies.domains.layerTreeController?.render();
       },
-      onRetry: (_operation, attempt) => dependencies.reliabilityDiagnostic.push({
+      onRetry: (_operation, attempt) => dependencies.operationFeedback.reliabilityDiagnostic.push({
         category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
       }),
       acceptManifest: manifest => {
-        dependencies.state.terrainManifest = manifest;
-        dependencies.state.physicalLoadState.terrainManifest = 'ready';
-        dependencies.state.physicalLoadState.terrain = 'ready';
-        dependencies.gpuMapRenderer.setTerrainManifest(manifest);
+        dependencies.projectState.state.terrainManifest = manifest;
+        dependencies.projectState.state.physicalLoadState.terrainManifest = 'ready';
+        dependencies.projectState.state.physicalLoadState.terrain = 'ready';
+        dependencies.rendering.gpuMapRenderer.setTerrainManifest(manifest);
         (0, dependencies.layerPresentation.markLayerTreeDirty)();
         dependencies.domains.layerTreeController?.render();
         dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-manifest-ready');
       },
       onFailure: error => {
-        dependencies.state.physicalLoadState.terrainManifest = 'error';
-        dependencies.state.physicalLoadState.terrain = 'error';
-        dependencies.reliabilityDiagnostic.push({ category: 'asset', operation: 'terrain-manifest', result: 'failed', errorCode: 'PL-TERRAIN-001' });
+        dependencies.projectState.state.physicalLoadState.terrainManifest = 'error';
+        dependencies.projectState.state.physicalLoadState.terrain = 'error';
+        dependencies.operationFeedback.reliabilityDiagnostic.push({ category: 'asset', operation: 'terrain-manifest', result: 'failed', errorCode: 'PL-TERRAIN-001' });
         (0, dependencies.layerPresentation.markLayerTreeDirty)();
         dependencies.domains.layerTreeController?.render();
         console.warn('Terrain load failed', error);
@@ -144,41 +144,41 @@ export function createPhysicalResources() {
         manifestUrl.searchParams.set('v', dependencies.physicalConfig.DATA_REVISION);
         return manifestUrl;
       },
-      getLoadState: () => dependencies.state.physicalLoadState.hydro,
+      getLoadState: () => dependencies.projectState.state.physicalLoadState.hydro,
       onLoading: () => {
-        dependencies.state.physicalLoadState.hydro = 'loading';
-        dependencies.state.physicalLoadState.hydroManifest = 'loading';
-        dependencies.state.physicalLoadState.hydroWorker = 'starting';
-        dependencies.state.physicalLoadState.hydroView = 'idle';
+        dependencies.projectState.state.physicalLoadState.hydro = 'loading';
+        dependencies.projectState.state.physicalLoadState.hydroManifest = 'loading';
+        dependencies.projectState.state.physicalLoadState.hydroWorker = 'starting';
+        dependencies.projectState.state.physicalLoadState.hydroView = 'idle';
         (0, dependencies.layerPresentation.markLayerTreeDirty)();
         dependencies.domains.layerTreeController?.render();
       },
-      onRetry: (_operation, attempt) => dependencies.reliabilityDiagnostic.push({
+      onRetry: (_operation, attempt) => dependencies.operationFeedback.reliabilityDiagnostic.push({
         category: 'asset', operation: 'hydro-manifest', result: `retry-${attempt}`,
       }),
       acceptManifest: async (manifest, manifestUrl) => {
-        dependencies.state.hydroManifest = manifest;
-        dependencies.state.hydroCollections = {};
-        dependencies.state.hydroFeatureCache = new Map();
-        dependencies.state.hydroFeatureByFid = new Map();
-        dependencies.state.hydroFragmentsByLogicalId = new Map();
-        dependencies.state.physicalLoadState.hydroManifest = 'ready';
-        dependencies.state.physicalLoadState.hydroCache = 'idle';
-        dependencies.state.physicalLoadState.hydroCachePercent = 0;
-        const workerReady = await dependencies.gpuMapRenderer.setHydroManifest(manifest, manifestUrl);
+        dependencies.projectState.state.hydroManifest = manifest;
+        dependencies.projectState.state.hydroCollections = {};
+        dependencies.projectState.state.hydroFeatureCache = new Map();
+        dependencies.projectState.state.hydroFeatureByFid = new Map();
+        dependencies.projectState.state.hydroFragmentsByLogicalId = new Map();
+        dependencies.projectState.state.physicalLoadState.hydroManifest = 'ready';
+        dependencies.projectState.state.physicalLoadState.hydroCache = 'idle';
+        dependencies.projectState.state.physicalLoadState.hydroCachePercent = 0;
+        const workerReady = await dependencies.rendering.gpuMapRenderer.setHydroManifest(manifest, manifestUrl);
         if (!workerReady) return false;
-        dependencies.state.physicalLoadState.hydroWorker = 'ready';
-        dependencies.state.physicalLoadState.hydro = 'ready';
+        dependencies.projectState.state.physicalLoadState.hydroWorker = 'ready';
+        dependencies.projectState.state.physicalLoadState.hydro = 'ready';
         (0, dependencies.layerPresentation.markLayerTreeDirty)();
         dependencies.domains.layerTreeController?.render();
         dependencies.domains.renderingDomain?.renderHydro?.();
         return true;
       },
       onFailure: error => {
-        if (dependencies.state.physicalLoadState.hydroManifest !== 'ready') dependencies.state.physicalLoadState.hydroManifest = 'error';
-        dependencies.state.physicalLoadState.hydroWorker = 'error';
-        dependencies.state.physicalLoadState.hydro = 'error';
-        dependencies.reliabilityDiagnostic.push({ category: 'asset', operation: 'hydro-init', result: 'failed', errorCode: 'PL-WATER-001' });
+        if (dependencies.projectState.state.physicalLoadState.hydroManifest !== 'ready') dependencies.projectState.state.physicalLoadState.hydroManifest = 'error';
+        dependencies.projectState.state.physicalLoadState.hydroWorker = 'error';
+        dependencies.projectState.state.physicalLoadState.hydro = 'error';
+        dependencies.operationFeedback.reliabilityDiagnostic.push({ category: 'asset', operation: 'hydro-init', result: 'failed', errorCode: 'PL-WATER-001' });
         (0, dependencies.layerPresentation.markLayerTreeDirty)();
         dependencies.domains.layerTreeController?.render();
         console.warn('Hydro load failed', error);
