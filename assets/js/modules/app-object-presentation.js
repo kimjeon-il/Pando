@@ -29,15 +29,15 @@ export function createObjectPresentation() {
   }
 
   function defaultGenericFeatureColor(feature) {
-    return dependencies.DEFAULT_GENERIC_FEATURE_COLOR;
+    return dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR;
   }
 
   function genericFeatureColor(feature) {
-    return (0, dependencies.readDomainColor)(dependencies.COLOR_DOMAINS.GENERIC, { feature }, { fallback: defaultGenericFeatureColor(feature) }).value;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.GENERIC, { feature }, { fallback: defaultGenericFeatureColor(feature) }).value;
   }
 
   function genericFeatureRoleLabel(feature) {
-    return dependencies.GENERIC_FEATURE_ROLE_RULES[feature?.properties?.role]?.label || '기타 객체';
+    return dependencies.objectCatalog.GENERIC_FEATURE_ROLE_RULES[feature?.properties?.role]?.label || '기타 객체';
   }
 
   function genericFeatureRoleHelp(feature) {
@@ -45,17 +45,17 @@ export function createObjectPresentation() {
   }
 
   function genericFeatureDisplayFeature(feature) {
-    if ((0, dependencies.genericFeatureGeometryKind)(feature) !== 'polygon' || (0, dependencies.genericFeatureLandBinding)(feature) === 'none') return feature;
+    if ((0, dependencies.objectPresentation.genericFeatureGeometryKind)(feature) !== 'polygon' || (0, dependencies.objectPresentation.genericFeatureLandBinding)(feature) === 'none') return feature;
     const cached = genericFeatureLandClipCache.get(feature);
     const ownerId = String(feature.properties?.ownerId || '');
-    if (cached && cached.revision === dependencies.countryLandRevision && cached.geometry === feature.geometry && cached.ownerId === ownerId) return { ...feature, geometry: cached.feature.geometry };
-    const entry = { revision: dependencies.countryLandRevision, geometry: feature.geometry, ownerId, feature: { ...feature, geometry: null } };
+    if (cached && cached.revision === dependencies.countries.countryLandRevision && cached.geometry === feature.geometry && cached.ownerId === ownerId) return { ...feature, geometry: cached.feature.geometry };
+    const entry = { revision: dependencies.countries.countryLandRevision, geometry: feature.geometry, ownerId, feature: { ...feature, geometry: null } };
     genericFeatureLandClipCache.set(feature, entry);
     dependencies.mapEditClient.execute('territorial-land-clip', { payload: { targetId: String(feature.id) } },
       { jobKey: `territorial-land-clip:${feature.id}` }).then(response => {
-      if (genericFeatureLandClipCache.get(feature) !== entry || entry.geometry !== feature.geometry || entry.revision !== dependencies.countryLandRevision) return;
+      if (genericFeatureLandClipCache.get(feature) !== entry || entry.geometry !== feature.geometry || entry.revision !== dependencies.countries.countryLandRevision) return;
       entry.feature = { ...feature, geometry: response.result.geometry };
-      dependencies.renderingDomain?.invalidateGenericPatch?.('land-clip-ready');
+      dependencies.domains.renderingDomain?.invalidateGenericPatch?.('land-clip-ready');
     }).catch(() => { if (genericFeatureLandClipCache.get(feature) === entry) genericFeatureLandClipCache.delete(feature); });
     return entry.feature;
   }
@@ -69,44 +69,44 @@ export function createObjectPresentation() {
   }
 
   function territorialStyleColor(feature) {
-    return (0, dependencies.readDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }).explicit;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }).explicit;
   }
 
   function setTerritorialStyleColor(feature, color) {
     if (!feature?.properties) return '';
-    return (0, dependencies.writeDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }, color, { clear: !color, fallback: dependencies.DEFAULT_GENERIC_FEATURE_COLOR });
+    return (0, dependencies.colorModel.writeDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }, color, { clear: !color, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
   }
 
   function territorialUnitName(feature) {
     const properties = feature?.properties || {};
-    if (properties.name) return (0, dependencies.defaultGeographicName)((0, dependencies.builtinSubunitSourceId)(feature), properties.name);
+    if (properties.name) return (0, dependencies.objectPresentation.defaultGeographicName)((0, dependencies.objectCatalog.builtinSubunitSourceId)(feature), properties.name);
     if (properties.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
     return '이름 없는 하위단위';
   }
 
   function territorialUnitColor(feature) {
-    return (0, dependencies.readDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }, {
-      inherited: territorialScope.color(feature, dependencies.DEFAULT_GENERIC_FEATURE_COLOR),
-      fallback: dependencies.DEFAULT_GENERIC_FEATURE_COLOR,
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.TERRITORIAL, { feature }, {
+      inherited: territorialScope.color(feature, dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR),
+      fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
     }).value;
   }
 
   function territorialUnitCountryName(feature) {
-    const country = (0, dependencies.countryFeatureById)(feature?.properties?.sovereignId);
+    const country = (0, dependencies.countries.countryFeatureById)(feature?.properties?.sovereignId);
     return country ? countryName(country) : '소속 국가 미지정';
   }
 
   function countryColor(feature) {
     const id = String(feature?.id || '');
-    return (0, dependencies.readDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.state.countryOverrides[id] }, { fallback: (0, dependencies.defaultCountryColor)() }).value;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.state.countryOverrides[id] }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() }).value;
   }
 
   function distributionColor(layer) {
-    return (0, dependencies.readDomainColor)(dependencies.COLOR_DOMAINS.DISTRIBUTION, { layer }, { fallback: dependencies.DEFAULT_GENERIC_FEATURE_COLOR }).value;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.COLOR_DOMAINS.DISTRIBUTION, { layer }, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR }).value;
   }
 
   function countryName(feature) {
-    return (0, dependencies.countryDisplayName)(feature, dependencies.state.countryOverrides[String(feature?.id || '')]);
+    return (0, dependencies.objectPresentation.countryDisplayName)(feature, dependencies.state.countryOverrides[String(feature?.id || '')]);
   }
 
   function hydroCategoryKey(value) {
@@ -134,14 +134,14 @@ export function createObjectPresentation() {
     if (buildContent) {
       dependencies.MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {
         const categoryNode = buildContent.querySelector(`.ui-menu-group[data-map-category="${categoryKey}"]`);
-        const category = dependencies.MAP_OBJECT_CATEGORIES[categoryKey];
+        const category = dependencies.objectCatalog.MAP_OBJECT_CATEGORIES[categoryKey];
         if (!categoryNode || !category) return;
         categoryNode.setAttribute('role', 'group');
         categoryNode.setAttribute('aria-label', category.label);
         category.createItems.forEach(type => {
           const item = categoryNode.querySelector(`[data-map-object-type="${type}"]`);
           if (!item) return;
-          const metadata = dependencies.MAP_OBJECT_TYPES[type];
+          const metadata = dependencies.objectCatalog.MAP_OBJECT_TYPES[type];
           const label = item.querySelector('span');
           const icon = item.querySelector('.ui-icon use');
           if (metadata) {
@@ -159,9 +159,9 @@ export function createObjectPresentation() {
   }
 
   function initializeTerritorialScope() {
-    (territorialScope = (0, dependencies.createTerritorialScopeResolver)({
-      read: () => ({ units: dependencies.state.territorialUnits, revision: `${dependencies.state.stateRevision}:${dependencies.countryLandRevision}:${dependencies.mapObjectGeometryRevisions.territorial}` }),
-      countryById: dependencies.countryFeatureById,
+    (territorialScope = (0, dependencies.objectPresentation.createTerritorialScopeResolver)({
+      read: () => ({ units: dependencies.state.territorialUnits, revision: `${dependencies.state.stateRevision}:${dependencies.countries.countryLandRevision}:${dependencies.mapObjectGeometryRevisions.territorial}` }),
+      countryById: dependencies.countries.countryFeatureById,
       countryColor,
       clipper: () => window.polygonClipping,
     }));
@@ -209,17 +209,17 @@ export function createObjectPresentation() {
     (DISTRIBUTION_TYPE_LABELS = Object.freeze({ language: '언어', ethnicity: '민족', religion: '종교' }));
 
     (LAYER_GROUP_KEYS = Object.freeze([...new Set([
-      ...dependencies.MAP_OBJECT_CATEGORIES.territorial.layerGroups,
-      ...dependencies.MAP_OBJECT_CATEGORIES.distribution.layerGroups,
+      ...dependencies.objectCatalog.MAP_OBJECT_CATEGORIES.territorial.layerGroups,
+      ...dependencies.objectCatalog.MAP_OBJECT_CATEGORIES.distribution.layerGroups,
       'hydro',
       'genericFeatures',
-      ...dependencies.MAP_OBJECT_CATEGORIES.features.viewGroups,
+      ...dependencies.objectCatalog.MAP_OBJECT_CATEGORIES.features.viewGroups,
     ])]));
 
     (LAYER_SEARCH_GROUP_KEYS = LAYER_GROUP_KEYS.filter(group => group !== 'countryLabels'));
 
     (layerGroupNames = Object.freeze({
-      ...Object.fromEntries(Object.values(dependencies.MAP_OBJECT_TYPES)
+      ...Object.fromEntries(Object.values(dependencies.objectCatalog.MAP_OBJECT_TYPES)
         .filter(type => type.layerGroup)
         .map(type => [type.layerGroup, type.label])),
       languages: '언어',

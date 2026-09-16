@@ -11,8 +11,8 @@ export function createHydroSettings() {
   }
 
   function currentMapDevicePixelRatio() {
-    const devicePixelRatio = dependencies.mapLayoutMetricsSnapshot?.dpr ?? Math.max(1, Number(window.devicePixelRatio || 1));
-    return Math.min((0, dependencies.isMobile)() ? 2 : 3, devicePixelRatio);
+    const devicePixelRatio = dependencies.mapLayout.mapLayoutMetricsSnapshot?.dpr ?? Math.max(1, Number(window.devicePixelRatio || 1));
+    return Math.min((0, dependencies.surfaces.isMobile)() ? 2 : 3, devicePixelRatio);
   }
 
   function activeLayerFolderKeys() {
@@ -38,7 +38,7 @@ export function createHydroSettings() {
       hydroLayers,
       userFeaturesVisible: value?.userFeaturesVisible !== false,
       hiddenHydroIds,
-      dataset: dependencies.PHYSICAL_DATASET,
+      dataset: dependencies.physicalConfig.PHYSICAL_DATASET,
     };
   }
 
@@ -47,7 +47,7 @@ export function createHydroSettings() {
     const min = Number(input.min || 0);
     const max = Number(input.max || 100);
     const value = Number(input.value || min);
-    const progress = max > min ? (0, dependencies.clamp)(((value - min) / (max - min)) * 100, 0, 100) : 0;
+    const progress = max > min ? (0, dependencies.platform.clamp)(((value - min) / (max - min)) * 100, 0, 100) : 0;
     input.style.setProperty('--ui-range-progress', `${progress}%`);
   }
 
@@ -60,24 +60,24 @@ export function createHydroSettings() {
     if ((0, dependencies.$)('terrainPhysicalRadio')) (0, dependencies.$)('terrainPhysicalRadio').checked = dependencies.state.physicalSettings.terrainStyle === 'physical';
   }
 
-  function parseHexRgb(value, fallback = dependencies.TERRAIN_OCEAN_REPRESENTATIVE) {
+  function parseHexRgb(value, fallback = dependencies.physicalConfig.TERRAIN_OCEAN_REPRESENTATIVE) {
     const match = /^#([0-9a-f]{6})$/i.exec(String(value || '')) || /^#([0-9a-f]{6})$/i.exec(fallback);
     const packed = Number.parseInt(match[1], 16);
     return [(packed >> 16) & 255, (packed >> 8) & 255, packed & 255];
   }
 
   function formatHexRgb(rgb) {
-    return `#${rgb.map(value => (0, dependencies.clamp)(Math.round(value), 0, 255).toString(16).padStart(2, '0')).join('')}`;
+    return `#${rgb.map(value => (0, dependencies.platform.clamp)(Math.round(value), 0, 255).toString(16).padStart(2, '0')).join('')}`;
   }
 
   function automaticWaterColor(gpu = false) {
     if (dependencies.state.physicalSettings.terrainVisible && dependencies.state.physicalSettings.terrainStyle === 'physical') {
-      const representative = dependencies.state.terrainManifest?.displayColors?.oceanRepresentative || dependencies.TERRAIN_OCEAN_REPRESENTATIVE;
+      const representative = dependencies.state.terrainManifest?.displayColors?.oceanRepresentative || dependencies.physicalConfig.TERRAIN_OCEAN_REPRESENTATIVE;
       let rgb = parseHexRgb(representative);
-      if ((document.documentElement.dataset.theme || dependencies.systemTheme) === 'dark') rgb = rgb.map((value, index) => value * [0.808, 0.8464, 0.8848][index]);
+      if ((document.documentElement.dataset.theme || dependencies.preferences.systemTheme) === 'dark') rgb = rgb.map((value, index) => value * [0.808, 0.8464, 0.8848][index]);
       return gpu ? rgb.map(value => value / 255) : formatHexRgb(rgb);
     }
-    const theme = (0, dependencies.mapTheme)();
+    const theme = (0, dependencies.preferences.mapTheme)();
     return gpu ? theme.oceanGpu : theme.ocean;
   }
 
@@ -88,7 +88,7 @@ export function createHydroSettings() {
   function normalizeHydroEdit(feature) {
     if (!feature?.geometry || !Array.isArray(feature.geometry.coordinates) || !feature.geometry.coordinates.length) return null;
     feature.properties ||= {};
-    const geometryKind = (0, dependencies.genericFeatureGeometryKind)(feature);
+    const geometryKind = (0, dependencies.objectPresentation.genericFeatureGeometryKind)(feature);
     const category = feature.properties.category === 'lake' && geometryKind === 'polygon' ? 'lake'
       : feature.properties.category === 'river' && geometryKind === 'line' ? 'river'
         : geometryKind === 'polygon' ? 'lake'
@@ -104,7 +104,7 @@ export function createHydroSettings() {
       pandolab_id: feature.id,
       name: String(feature.properties.name || ''),
       notes: String(feature.properties.notes || ''),
-      editorColor: (0, dependencies.normalizeEditorColor)(feature.properties.editorColor, dependencies.HYDRO_TOOL_CONFIG[category].color),
+      editorColor: (0, dependencies.colorModel.normalizeEditorColor)(feature.properties.editorColor, dependencies.hydroPresentation.HYDRO_TOOL_CONFIG[category].color),
     };
     delete feature.properties.visible;
     return feature;
@@ -133,7 +133,7 @@ export function createHydroSettings() {
   }
 
   function hydroLayerVisible(layerId) {
-    const category = (0, dependencies.hydroCategoryKey)(dependencies.HYDRO_LAYER_META[layerId]?.category);
+    const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(dependencies.hydroPresentation.HYDRO_LAYER_META[layerId]?.category);
     return dependencies.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false
       && dependencies.state.physicalSettings.hydroLayers?.[layerId] !== false;
   }
@@ -141,8 +141,8 @@ export function createHydroSettings() {
   function isHydroFeatureVisible(feature) {
     const id = String(feature?.properties?.pandolab_id || feature?.id || '');
     if (isHydroEditFeature(feature)) {
-      const category = (0, dependencies.hydroCategoryKey)(feature.properties?.category);
-      return dependencies.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false && (0, dependencies.isLayerItemVisible)('hydro', id);
+      const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(feature.properties?.category);
+      return dependencies.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('hydro', id);
     }
     return hydroLayerVisible(feature?.properties?.layer_id) && dependencies.state.physicalSettings.hiddenHydroIds?.[id] !== true;
   }
