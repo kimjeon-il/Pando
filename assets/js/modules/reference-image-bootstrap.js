@@ -24,10 +24,22 @@ function ensureStylesheet(relativePath, revision) {
   return link;
 }
 
+function moveControlsToOverlayLayer() {
+  const mapElement = document.getElementById('map');
+  const overlayLayer = mapElement?.closest('.map-wrap')?.querySelector('.map-overlay-layer');
+  if (!mapElement || !overlayLayer) return;
+  const launcher = mapElement.querySelector(':scope > .reference-image-launcher');
+  const panel = mapElement.querySelector(':scope > .reference-image-panel');
+  if (launcher) overlayLayer.appendChild(launcher);
+  if (panel) overlayLayer.appendChild(panel);
+}
+
 export async function installReferenceImageFeature({ revision = '' } = {}) {
   for (const path of STYLE_PATHS) ensureStylesheet(path, revision);
   const controllerUrl = new URL('./reference-image-controller.js', import.meta.url);
   if (revision) controllerUrl.searchParams.set('v', revision);
   const { installReferenceImageController } = await import(controllerUrl.href);
-  return installReferenceImageController();
+  const controller = installReferenceImageController();
+  moveControlsToOverlayLayer();
+  return controller;
 }
