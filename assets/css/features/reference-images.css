@@ -1,4 +1,5 @@
-.is-reference-gcp-mode {
+.is-reference-gcp-mode,
+.is-reference-line-refine-mode {
   cursor: crosshair;
 }
 
