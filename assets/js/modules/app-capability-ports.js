@@ -102,8 +102,10 @@ export function createSpatialDataPorts(providers) {
     platform: Object.freeze({
       get $() { return providers.environment.$; },
       get clamp() { return providers.environment.clamp; },
+      get coarsePointer() { return providers.environment.coarsePointer; },
       get d3() { return providers.environment.d3; },
       get deepClone() { return providers.environment.deepClone; },
+      get polygonClipping() { return providers.environment.polygonClipping; },
       get runtimeAssetUrl() { return providers.environment.runtimeAssetUrl; },
     }),
     presentation: Object.freeze({
@@ -197,7 +199,7 @@ export function createSpatialDataPorts(providers) {
 export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
   cutGeometry: Object.freeze(["geometryModel","geometryMutation","geometryPreview","geometryValidation","mapView","objectPresentation","platform","projectState","spatialQuery","territoryGeometry"]),
   mapProjection: Object.freeze(["mapLayers","mapLayout","platform","projectState","surfaces"]),
-  objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","objectCatalog","objectPresentation","platform","projectState","spatialQuery"]),
+  objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectCatalog","objectPresentation","platform","projectState","spatialQuery"]),
   hydroSettings: Object.freeze(["colorModel","hydroPresentation","layerPresentation","mapLayout","objectPresentation","physicalConfig","platform","preferences","projectState","surfaces"]),
   layerList: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectCatalog","objectPresentation","platform","projectState","rendering"]),
   countryLabels: Object.freeze(["colorModel","countries","domains","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces"]),
@@ -334,12 +336,14 @@ function createMapResourcePorts(providers) {
       get applyMapLabelPreferences() { return providers.environment.applyMapLabelPreferences; },
       get effectiveTheme() { return providers.runtime.effectiveTheme; },
       get mapTheme() { return providers.environment.mapTheme; },
+      get resolvedAccentColor() { return providers.environment.resolvedAccentColor; },
       get resolvedInteractionStyle() { return providers.environment.resolvedInteractionStyle; },
       get saveUserPreferences() { return providers.runtime.saveUserPreferences; },
       setResolvedAccentColor: value => { providers.environment.resolvedAccentColor = value; },
       setUserPreferences: value => { providers.environment.userPreferences = value; },
       get syncResolvedInteractionStyle() { return providers.renderQuality.syncResolvedInteractionStyle; },
       get systemTheme() { return providers.environment.systemTheme; },
+      get userPreferences() { return providers.environment.userPreferences; },
     }),
     renderScene: Object.freeze({
       get createRenderSceneBuilder() { return providers.runtime.createRenderSceneBuilder; },
