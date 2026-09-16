@@ -238,6 +238,7 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function hitTestUv(record, point) {
+    if (record?.warp?.ok && record.mesh && mapHost()) projectedMesh(record, mapHost());
     if (!record?.warp?.ok || !record.mesh || !record.projectedMesh) {
       const rect = record?.screenRect;
       const local = referenceImagePointToPlacementLocal(record, point);
@@ -261,6 +262,12 @@ export function createReferenceImageCanvasRenderer({
     }
     return null;
   }
+
+  const sharedHitTestUv = (recordId, point) => {
+    const record = (getRecords?.() || []).find(candidate => String(candidate.id) === String(recordId));
+    return record ? hitTestUv(record, point) : null;
+  };
+  globalThis.__PANDOLAB_REFERENCE_IMAGE_HIT_TEST_UV__ = sharedHitTestUv;
 
   const resizeObserver = new ResizeObserver(requestRender);
   resizeObserver.observe(mapElement);
@@ -290,6 +297,7 @@ export function createReferenceImageCanvasRenderer({
       disposed = true;
       globalThis.clearTimeout(monitorTimer);
       resizeObserver.disconnect();
+      if (globalThis.__PANDOLAB_REFERENCE_IMAGE_HIT_TEST_UV__ === sharedHitTestUv) delete globalThis.__PANDOLAB_REFERENCE_IMAGE_HIT_TEST_UV__;
       canvas.remove();
     },
   });
