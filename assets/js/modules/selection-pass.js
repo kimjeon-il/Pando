@@ -155,7 +155,20 @@ export function createSelectionPass({ onRenderError = null } = {}) {
     styleRevision = nextRevision;interactionStyle = nextStyle;return true;
   }
 
-  function drawChannel(name, frameContext, phase = 'inner') {
+  function prepare() {
+    const before = strokeRenderer?.stats?.() || {};
+    const packets = new Map();
+    for (const channel of CHANNELS) for (const item of items[channel]) {
+      if (item.packet && !item.packet.empty) packets.set(item.packet.key, item.packet);
+    }
+    for (const packet of packets.values()) strokeRenderer?.ensureResource?.(packet);
+    const after = strokeRenderer?.stats?.() || {};
+    bufferBuildCount += Math.max(0, Number(after.buildCount || 0) - Number(before.buildCount || 0));
+    bufferBuildMs += Math.max(0, Number(after.buildMs || 0) - Number(before.buildMs || 0));
+    bufferUploadBytes += Math.max(0, Number(after.uploadBytes || 0) - Number(before.uploadBytes || 0));
+  }
+
+  function drawChannel(name, frameContext, phase = 'inner', preparedOnly = false) {
     const requested = items[name];
     const renderedKeys = [];const missingKeys = [];
     const resolvedStyle = channelStyle(name, interactionStyle);
@@ -183,7 +196,7 @@ export function createSelectionPass({ onRenderError = null } = {}) {
         style,
         ownerIds: group.isCountry ? [...group.ownerIds] : group.packet.ownerIds,
       };
-      const result = strokeRenderer.drawBatches([batch], frameContext);
+      const result = strokeRenderer.drawBatches([batch], frameContext, { preparedOnly });
       if (group.isCountry) countryBatchCount += 1;
       else genericBatchCount += 1;
       strokeDrawCallCount += Number(result?.drawCallCount || 0);
@@ -220,13 +233,13 @@ export function createSelectionPass({ onRenderError = null } = {}) {
       renderFailureCount += 1;lastDrawMs = performance.now() - started;drawMs += lastDrawMs;return lastRenderResult;
     }
     try {
-      drawChannel('secondary', frameContext, 'casing');
-      drawChannel('primary', frameContext, 'casing');
+      drawChannel('secondary', frameContext, 'casing', options.preparedOnly);
+      drawChannel('primary', frameContext, 'casing', options.preparedOnly);
       const channels = Object.freeze({
-        candidate: drawChannel('candidate', frameContext),
-        hover: drawChannel('hover', frameContext),
-        secondary: drawChannel('secondary', frameContext),
-        primary: drawChannel('primary', frameContext),
+        candidate: drawChannel('candidate', frameContext, 'inner', options.preparedOnly),
+        hover: drawChannel('hover', frameContext, 'inner', options.preparedOnly),
+        secondary: drawChannel('secondary', frameContext, 'inner', options.preparedOnly),
+        primary: drawChannel('primary', frameContext, 'inner', options.preparedOnly),
       });
       const after = strokeRenderer.stats?.() || {};
       bufferBuildCount += Math.max(0, Number(after.buildCount || 0) - Number(before.buildCount || 0));
@@ -275,7 +288,7 @@ export function createSelectionPass({ onRenderError = null } = {}) {
   }
 
   return Object.freeze({
-    initialize,setSharedRenderers,updateData,updateStyle,setCountryBoundaryResources,draw,clear,dispose,handleContextLost,handleContextRestored,resourceKeys,
+    initialize,setSharedRenderers,updateData,updateStyle,setCountryBoundaryResources,prepare,draw,clear,dispose,handleContextLost,handleContextRestored,resourceKeys,
     isAvailable: () => available && !contextLost && !!strokeRenderer?.isAvailable?.(),
     stats: () => {
       const stroke = strokeRenderer?.stats?.() || {};

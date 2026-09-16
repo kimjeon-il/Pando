@@ -1,0 +1,125 @@
+/* Canonical components / statusbar. */
+
+.status-inner {
+  position: absolute;
+  top: 0;
+  right: var(--map-safe-right, 0);
+  bottom: 0;
+  left: var(--map-safe-left, 0);
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: var(--ui-status-padding-y) var(--ui-space-3);
+  transition: left 170ms ease, right 170ms ease;
+}
+
+.status-group {
+  min-width: 0;
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.status-view {
+  color: var(--text-soft);
+}
+
+.status-primary {
+  color: var(--text);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.status-selection {
+  color: var(--text);
+  font-weight: var(--ui-weight-medium);
+}
+
+.status-group:not(.hidden) ~ .status-group:not(.hidden)::before {
+  content: "";
+  width: var(--ui-border-width);
+  height: var(--status-group-height);
+  flex: 0 0 1px;
+  margin-inline: var(--ui-space-3);
+  background: var(--map-status-border);
+}
+
+.status-item {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-item:not(.hidden) ~ .status-item:not(.hidden)::before {
+  content: "";
+  width: var(--ui-border-width);
+  height: var(--ui-space-3);
+  display: inline-block;
+  margin-inline: var(--ui-space-2);
+  vertical-align: -1px;
+  background: var(--map-status-border);
+}
+
+.current-tool-status {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-weight: var(--ui-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.app-root[data-layout="mobile"] .map-bottom-status {
+  bottom: var(--mobile-nav-height);
+  min-height: var(--ui-statusbar-height);
+}
+
+.app-root[data-layout="mobile"] .status-inner {
+  padding-inline: var(--ui-space-2);
+}
+
+.app-root[data-layout="mobile"] .status-view {
+  max-width: 48vw;
+}
+
+.app-root[data-layout="mobile"] .status-primary {
+  min-width: 0;
+  max-width: 36vw;
+}
+
+.app-root[data-layout="mobile"] .current-tool-status {
+  max-width: 36vw;
+}
+
+.app-root[data-layout="mobile"] .selection-status {
+  max-width: 32vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-save-status[data-save-state="saved"] {
+  color: var(--accent-2);
+}
+
+.project-save-status[data-save-state="saving"] {
+  color: var(--accent);
+}
+
+.app-root[data-layout="mobile"] .project-save-status-text {
+  position: absolute;
+  width: var(--ui-border-width);
+  height: var(--ui-border-width);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

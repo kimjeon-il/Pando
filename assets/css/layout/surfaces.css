@@ -1,12 +1,9 @@
-/* The wide dock has no workspace navigation; retain the shared narrow controls. */
+/* Canonical layout / surfaces. */
 
-/* Both desktop surfaces end at the same persistent status boundary. */
-[data-layout="wide"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search, .surface-reference),
-[data-layout="compact"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search, .surface-reference) {
+[data-layout="wide"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search, .surface-reference) {
   bottom: var(--ui-shell-statusbar-height);
 }
 
-[data-layout="wide"] .map-bottom-status,
 [data-layout="compact"] .map-bottom-status {
   position: fixed;
   left: 0;
@@ -14,25 +11,21 @@
   bottom: 0;
 }
 
-[data-layout="wide"] .map-bottom-status .status-inner,
+[data-layout="wide"] .map-bottom-status .status-inner {
+  left: 0;
+  right: 0;
+}
+
 [data-layout="compact"] .map-bottom-status .status-inner {
   left: 0;
   right: 0;
 }
 
-[data-layout="wide"] .surface-editor {
-  --ui-surface-border-top: var(--ui-border-width) solid var(--border);
-  --ui-surface-border-right: var(--ui-border-width) solid var(--border);
-  --ui-surface-border-bottom: var(--ui-border-width) solid var(--border);
-  --ui-surface-border-left: var(--ui-border-width) solid var(--border);
-  --ui-surface-radius-top-left: var(--ui-radius-panel);
-  --ui-surface-radius-top-right: var(--ui-radius-panel);
-  --ui-surface-radius-bottom-right: var(--ui-radius-panel);
-  --ui-surface-radius-bottom-left: var(--ui-radius-panel);
-  --ui-surface-shadow: var(--control-shadow);
+[data-layout="wide"] .workspace-surface:not(.surface-reference) > .surface-header {
+  display: grid;
+  min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="wide"] .workspace-surface:not(.surface-reference) > .surface-header,
 [data-layout="compact"] .workspace-surface:not(.surface-reference) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
@@ -122,12 +115,14 @@
   flex-basis: auto;
   min-height: var(--ui-touch-height);
   padding-block: 0;
-  border-bottom: 0;
   touch-action: none;
   cursor: ns-resize;
 }
 
-[data-layout="mobile"] .surface-header .sheet-close-btn,
+[data-layout="mobile"] .surface-header .sheet-close-btn {
+  display: none;
+}
+
 [data-layout="mobile"] .surface-header .surface-header-actions {
   display: none;
 }
@@ -136,10 +131,7 @@
   display: grid;
 }
 
-/* Map commands own transient surfaces; there is no persistent layer drawer. */
-.surface-create,
-.surface-search,
-.surface-display {
+.surface-create {
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -147,15 +139,33 @@
   transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
 }
 
-.surface-create > .surface-body,
-.surface-search > .surface-body,
+.surface-search {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
+}
+
+.surface-create > .surface-body {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.surface-search > .surface-body {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
 .surface-display > .surface-body {
   min-height: 0;
   flex: 1 1 auto;
 }
 
-.surface-display { opacity: 0; visibility: hidden; pointer-events: none; }
-.surface-search:not(.surface-open) { visibility: hidden; pointer-events: none; }
+.surface-search:not(.surface-open) {
+  visibility: hidden;
+  pointer-events: none;
+}
 
 [data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display) {
   position: fixed;
@@ -185,7 +195,6 @@
   transform: translate3d(0, var(--sheet-drag-offset, 0px), 0);
 }
 
-/* Create changes its placement, not its menu rows, between menu and sheet. */
 [data-layout]:not([data-layout="mobile"]) .surface-create {
   position: fixed;
   top: var(--ui-menu-position-top, var(--ui-shell-topbar-height));
@@ -196,6 +205,18 @@
   visibility: hidden;
   pointer-events: none;
 }
-[data-layout]:not([data-layout="mobile"]) .surface-create.surface-open { opacity: 1; visibility: visible; pointer-events: auto; }
-[data-layout]:not([data-layout="mobile"]) .surface-create > .surface-header { display: none; }
-.surface-create > .surface-body { overflow: auto; padding: 0; }
+
+[data-layout]:not([data-layout="mobile"]) .surface-create.surface-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+[data-layout]:not([data-layout="mobile"]) .surface-create > .surface-header {
+  display: none;
+}
+
+.surface-create > .surface-body {
+  overflow: auto;
+  padding: 0;
+}

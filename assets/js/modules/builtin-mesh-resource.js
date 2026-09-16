@@ -6,8 +6,12 @@
 export function createBuiltinMeshResourceLoader({ runtimeAssetUrl, WorkerClass = Worker } = {}) {
   if (typeof runtimeAssetUrl !== 'function') throw new TypeError('runtimeAssetUrl is required for the built-in mesh loader.');
   let pending = null;
+  let cancelPending = null;
+  let disposed = false;
+  const cancellation = () => Object.assign(new Error('Built-in mesh loader disposed'), { name: 'AbortError' });
 
   function load(countryIds = []) {
+    if (disposed) return Promise.reject(cancellation());
     if (pending) return pending;
     const ids = [...countryIds].map(String).filter(Boolean);
     if (!ids.length) return Promise.reject(new Error('내장 메시 국가 ID가 준비되지 않았습니다.'));
@@ -16,8 +20,14 @@ export function createBuiltinMeshResourceLoader({ runtimeAssetUrl, WorkerClass =
         type: 'module',
         name: 'pandolab-builtin-mesh-resource',
       });
-      const dispose = () => worker.terminate();
+      let live = true;
+      const dispose = () => {
+        if (!live) return;
+        live = false; worker.terminate(); cancelPending = null;
+      };
+      cancelPending = () => { dispose(); reject(cancellation()); };
       worker.onmessage = event => {
+        if (!live || disposed) return;
         const message = event.data || {};
         if (message.type === 'builtin-mesh-loader-ready') {
           worker.postMessage({ type: 'load-builtin-mesh', countryIds: ids });
@@ -39,6 +49,7 @@ export function createBuiltinMeshResourceLoader({ runtimeAssetUrl, WorkerClass =
         }
       };
       worker.onerror = event => {
+        if (!live || disposed) return;
         dispose();
         reject(new Error(event.message || '내장 기본 메시 Worker 오류'));
       };
@@ -50,5 +61,9 @@ export function createBuiltinMeshResourceLoader({ runtimeAssetUrl, WorkerClass =
     return pending;
   }
 
-  return Object.freeze({ load });
+  return Object.freeze({ load, dispose() {
+    if (disposed) return;
+    disposed = true;
+    cancelPending?.(); cancelPending = null; pending = null;
+  } });
 }

@@ -1,3 +1,117 @@
+/* Canonical components / content. */
+
+.empty-state p {
+  font-size: var(--ui-font-body);
+  line-height: 1.7;
+}
+
+.ui-row {
+  min-width: 0;
+}
+
+.ui-card {
+  border: 1px solid var(--ui-card-border);
+  background: var(--ui-card-bg);
+}
+
+.ui-selectable-row {
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--text);
+  transition: background-color .14s ease, border-color .14s ease, color .14s ease;
+}
+
+.ui-selectable-row:hover:not(.is-selected) {
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
+  color: var(--text-strong);
+}
+
+.ui-selectable-row.is-selected {
+  border-color: transparent;
+  background: var(--ui-button-selected);
+  color: var(--text-strong);
+}
+
+.ui-selectable-row.is-multi-selected:not(.is-primary-selected) {
+  border-color: transparent;
+  background: var(--ui-button-selected);
+  color: var(--selection-soft-fg);
+}
+
+.ui-row-button:hover {
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
+  color: var(--text-strong);
+}
+
+.ui-row-button.active {
+  border-color: transparent;
+  background: var(--ui-button-selected);
+  color: var(--text-strong);
+}
+
+.ui-row-button[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--ui-button-selected);
+  color: var(--text-strong);
+}
+
+.ui-choice-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-control-gap);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+}
+
+.ui-status {
+  color: var(--text-soft);
+  font-size: var(--ui-font-caption);
+}
+
+.ui-progress {
+  height: var(--ui-space-1-5);
+  overflow: hidden;
+  border-radius: var(--ui-radius-pill);
+  background: var(--bootstrap-progress-bg);
+}
+
+.ui-info-list {
+  border: 1px solid var(--ui-card-border);
+  background: var(--ui-card-bg);
+}
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-10) var(--ui-space-5);
+  text-align: center;
+  color: var(--muted);
+}
+
+.ui-empty-state strong {
+  color: var(--text);
+}
+
+.empty-state strong {
+  color: var(--text);
+}
+
+.ui-empty-state p {
+  margin: 0;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.ui-empty-state--compact {
+  padding: var(--ui-space-5) var(--ui-space-3);
+}
+
 :where(.ui-content-section, .editor-section) {
   min-width: 0;
 }
@@ -7,9 +121,7 @@
   gap: var(--ui-field-gap);
 }
 
-/* Shared flat section grammar, independent of panel width or purpose. */
-.surface-content .editor-section,
-.map-view-settings > .layer-style-editor {
+.surface-content .editor-section {
   display: grid;
   gap: var(--ui-field-gap);
   padding: var(--ui-space-4) 0;
@@ -112,10 +224,9 @@
   line-height: var(--ui-line-tight);
 }
 
-
-
-/* Preferences is available before lazy workflow styles have loaded. */
-.preferences-accent-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-height), 1fr)); gap: var(--design-button-gap); align-items: center; }
-@media (max-width: 799px) {
-  .app-root .topbar-center { padding: 0;
-}}
+.preferences-accent-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-height), 1fr));
+  gap: var(--design-button-gap);
+  align-items: center;
+}

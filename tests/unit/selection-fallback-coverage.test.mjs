@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { commitSelectionFallbackCoverage } from '../../assets/js/modules/selection-fallback-coverage.js';
 import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
 import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from '../../assets/js/modules/map-render-coordinator.js';
@@ -28,7 +27,8 @@ test('library country upload completion retires both SVG strokes without touchin
 
 test('pending, failed, empty and other-channel coverage retain fallback outlines', () => {
   for (const result of [null, { channels: {} }, { channels: { primary: { renderedKeys: [] } } },
-    { succeeded: false, channels: { primary: { renderedKeys: ['country:historical-country:soviet-union'] } } },
+    { succeeded: false, gpuHealth: 'unhealthy', channels: { primary: { renderedKeys: ['country:historical-country:soviet-union'] } } },
+    { error: new Error('draw failed'), channels: { primary: { renderedKeys: ['country:historical-country:soviet-union'] } } },
     { contextLost: true }, { channels: { hover: { renderedKeys: ['country:historical-country:soviet-union'] } } }]) {
     const { root, nodes } = fixture();
     assert.equal(commitSelectionFallbackCoverage([root], result), 0);
@@ -36,11 +36,21 @@ test('pending, failed, empty and other-channel coverage retain fallback outlines
   }
 });
 
-test('view commit consumes coverage before reprojecting, without rebuilding selection packets', () => {
-  const source = readFileSync(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
-  const branch = source.slice(source.indexOf('if (!gpuFrameFailed) {'), source.indexOf('const selectionLayer = selection.selectionLayer;', source.indexOf('if (!gpuFrameFailed) {')));
-  assert.ok(branch.indexOf('commitSelectionFallbackCoverage') < branch.indexOf('renderSparseSelectionFallbackView'));
-  assert.doesNotMatch(branch, /updateData|renderGpuInteraction/);
+test('partial selection frame retires covered outlines and retains missing objects', () => {
+  const pass = createSelectionPass();
+  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+    isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy' }),
+    drawBatches: batches => ({ succeeded: true, renderedKeys: batches.map(batch => batch.key), drawCallCount: 1 }),
+  } });
+  const id = 'historical-country:soviet-union';
+  pass.setCountryBoundaryResources({ revision: 'mixed', visibleIds: [id, 'FRA'], pendingIds: ['FRA'],
+    strokeResources: { selectionBase: { ownerIds: [id], packet: { key: 'base', preparedGeometry: {} } } } });
+  pass.updateData({ country: { primaryId: id, secondaryIds: ['FRA'] }, countryBoundaryRevision: 'mixed' });
+  const result = pass.draw({}, {}, { frameContext: { frameId: 1 } });
+  assert.equal(result.succeeded, false);
+  const { root, nodes } = fixture();
+  assert.equal(commitSelectionFallbackCoverage([root], result), 2);
+  assert.deepEqual(nodes.map(node => node.getAttribute('data-selection-fallback-key')), ['country:FRA', 'country:DEU']);
 });
 
 test('prepared library-country GPU resource transitions from upload pending to covered on interaction-only frame', () => {
@@ -78,6 +88,7 @@ test('prepared library-country GPU resource transitions from upload pending to c
   coordinator.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION, 'interaction-resource-ready');
   frames.shift()();
   assert.deepEqual(events, ['gpu', 'svg']);
-  assert.equal(draws, 2);
+  // Each frame draws the casing and inner stroke, without rebuilding data.
+  assert.equal(draws, 4);
   assert.equal(nodes.length, 2);
 });

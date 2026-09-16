@@ -1,5 +1,5 @@
-/* Canonical UI design tokens. Components consume these through the
-   semantic aliases kept in app.css; themes only replace token values. */
+/* Canonical tokens / design-tokens. */
+
 :root {
   --design-color-bg: #101316;
   --design-color-panel: #171b20;
@@ -62,7 +62,6 @@
   --design-color-toolbar-border: rgba(57, 69, 80, .9);
   --design-color-mobile-nav-bg: rgba(23, 27, 32, .98);
   --design-color-focus-ring: rgba(79, 140, 255, .72);
-
   --design-font-family: "Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
   --design-font-xs: 0.8125rem;
   --design-font-sm: 0.8125rem;
@@ -83,7 +82,6 @@
   --design-projection-icon-size: 1.125rem;
   --design-icon-stroke-width: 1.6;
   --design-surface-header-height-desktop: 3.25rem;
-
   --design-space-0: 0;
   --design-space-0-5: 2px;
   --design-space-1: 4px;
@@ -131,8 +129,6 @@
   --design-sheet-snap-expanded: 86dvh;
   --design-sheet-snap-layer-half: 52dvh;
   --design-sheet-snap-layer-expanded: 88dvh;
-  /* Workspace shell contract. Keep placement variants on these aliases so
-     surfaces do not duplicate breakpoint-specific dimensions. */
   --ui-shell-topbar-height: var(--ui-topbar-measured, var(--design-topbar-height));
   --ui-shell-statusbar-height: var(--design-statusbar-height);
   --ui-map-bottom-occupied-height: var(--ui-shell-statusbar-height);
@@ -145,8 +141,6 @@
   --design-control-shadow: 0 16px 42px rgba(0, 0, 0, .28);
   --design-toolbar-shadow: 0 4px 14px rgba(0, 0, 0, .18);
   --design-overlay-blur: 8px;
-
-  /* Existing surface/component aliases are resolved from this token layer. */
   --ui-border-width: 1px;
   --ui-menu-width: 17.5rem;
   --ui-menu-trigger-gap: 6px;

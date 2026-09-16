@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 import * as boundary from '../../assets/js/modules/geographic-boundary.js';
 import { distanceKm, geometryAreaKm2, lineDistanceKm } from '../../assets/js/modules/geometry-metrics.js';
 import * as partitions from '../../assets/js/modules/river-territory-partition.js';
+import { validateCollection } from '../../assets/js/modules/gis-geometry-validation.js';
+import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -26,24 +28,6 @@ function createBoundaryWorker() {
   context.self = context;
   vm.runInContext(read('assets/js/workers/geographic-boundary-core.js'), context);
   return context.PandoLabGeographicBoundary;
-}
-
-function createGisWorker() {
-  const messages = [];
-  const context = vm.createContext({ console, self: null, messages });
-  context.self = context;
-  context.importScripts = () => {};
-  vm.runInContext(read('assets/js/vendor/polygon-clipping.min.js'), context);
-  context.postMessage = message => messages.push(message);
-  vm.runInContext(read('assets/js/modules/gis-geometry-validation.js').replace('export function validateCollection', 'function validateCollection')
-    + read('assets/js/workers/gis-geometry-worker.js').replace(/ {4}const \{ validateCollection \} = await import\([^\n]+\);\r?\n/, ''), context);
-  return {
-    validate(collection, affectedIds = null) {
-      messages.length = 0;
-      context.onmessage({ data: { id: 1, action: 'validate', collection, affectedIds } });
-      return messages[0];
-    },
-  };
 }
 
 function ring(x0, y0, x1, y1, clockwise = true) {
@@ -101,28 +85,48 @@ test('spherical distance and area contracts preserve dateline and holes', () => 
   assert.ok(geometryAreaKm2({ type: 'MultiPolygon', coordinates: [outer.coordinates, [ring(10, 10, 11, 11)]] }) > geometryAreaKm2(outer));
 });
 
-test('GIS Worker validates canonical geometry and reports spherical overlap area', () => {
-  const worker = createGisWorker();
+test('GIS Worker validates canonical geometry and reports the shared physical overlap area', async t => {
+  const worker = createGisWorkerHarness(t);
   const left = polygonFeature('left', [ring(0, 0, 2, 2)]);
   const right = polygonFeature('right', [ring(1, 1, 3, 3)]);
   const collection = { type: 'FeatureCollection', features: [left, right] };
   const snapshot = clone(collection);
-  const result = worker.validate(collection);
+  const result = await worker.validate(collection);
   assert.equal(result.ok, true);
   assert.deepEqual(JSON.parse(JSON.stringify(result.firstOverlap)), ['left', 'right']);
   const expectedOverlap = geometryAreaKm2({ type: 'Polygon', coordinates: [ring(1, 1, 2, 2)] });
-  // d3.geo.area uses ring winding to distinguish a spherical complement.  The
-  // worker's clipping output is intentionally allowed to use either winding;
-  // compare the physical (minor) overlap area, not the orientation convention.
-  const sphereAreaKm2 = 4 * Math.PI * 6371.0088 ** 2;
-  const workerMinorArea = Math.min(result.overlapAreaKm2, sphereAreaKm2 - result.overlapAreaKm2);
-  const tolerance = Math.max(1e-6, Math.max(expectedOverlap, workerMinorArea) * 1e-9);
-  assert.ok(Math.abs(workerMinorArea - expectedOverlap) <= tolerance, `${workerMinorArea} !== ${expectedOverlap} (raw worker area: ${result.overlapAreaKm2})`);
+  const tolerance = Math.max(1e-6, Math.max(expectedOverlap, result.overlapAreaKm2) * 1e-9);
+  assert.ok(Math.abs(result.overlapAreaKm2 - expectedOverlap) <= tolerance, `${result.overlapAreaKm2} !== ${expectedOverlap}`);
   assert.deepEqual(collection, snapshot);
-  const invalid = worker.validate({ type: 'FeatureCollection', features: [polygonFeature('invalid', [ring(0, 0, 0, 0)])] });
+  const invalid = await worker.validate({ type: 'FeatureCollection', features: [polygonFeature('invalid', [ring(0, 0, 0, 0)])] });
   assert.equal(invalid.ok, false);
   assert.match(invalid.error, /유효하지 않습니다/);
-  assert.equal(worker.validate({ type: 'FeatureCollection', features: [left, polygonFeature('trusted', [ring(0, 0, 0, 0)])] }, ['left']).ok, true);
+  assert.equal((await worker.validate({ type: 'FeatureCollection', features: [left, polygonFeature('trusted', [ring(0, 0, 0, 0)])] }, ['left'])).ok, true);
+});
+
+test('main validator and actual GIS Worker agree on normal, empty, invalid, precision and date-line fixtures', async t => {
+  const worker = createGisWorkerHarness(t);
+  const clipperContext = vm.createContext({});
+  vm.runInContext(read('assets/js/vendor/polygon-clipping.min.js'), clipperContext);
+  const fixtures = [
+    { name: 'normal', collection: { type: 'FeatureCollection', features: [polygonFeature('normal', [ring(0, 0, 2, 2)])] } },
+    { name: 'empty', collection: { type: 'FeatureCollection', features: [] } },
+    { name: 'invalid', collection: { type: 'FeatureCollection', features: [polygonFeature('invalid', [ring(0, 0, 0, 0)])] } },
+    { name: 'precision', collection: { type: 'FeatureCollection', features: [polygonFeature('precision', [ring(1.1234567891, 2.1234567891, 1.2234567891, 2.2234567891)])] } },
+    { name: 'date-line', collection: { type: 'FeatureCollection', features: [polygonFeature('date-line', [[[179, 0], [179, 1], [-179, 1], [-179, 0], [179, 0]]])] } },
+  ];
+  const mainOutcome = collection => {
+    try {
+      return { ok: true, ...validateCollection(collection, null, clipperContext.polygonClipping) };
+    } catch (error) {
+      return { ok: false, error: error.message };
+    }
+  };
+  for (const fixture of fixtures) {
+    const actual = await worker.validate(fixture.collection);
+    const { id: _id, intersectionAttempts: _attempts, ...workerOutcome } = actual;
+    assert.deepEqual(workerOutcome, mainOutcome(fixture.collection), fixture.name);
+  }
 });
 
 test('country normalizer and GPU mesh preserve winding, finite packets and owner ranges', () => {

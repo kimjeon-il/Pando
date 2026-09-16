@@ -1,7 +1,15 @@
+import { createGpuCanvasWorker } from './gpu-canvas-worker.js';
+import { drawGpuBaseScene } from './gpu-base-scene-pass.js';
+import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
+import { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan } from './gpu-scene-preparation.js';
+import { createGpuResourceLifecycle, createGpuUploadScope } from './gpu-resource-lifecycle.js';
+import { createGpuWorkerChannels } from './gpu-worker-channels.js';
+import { createGpuTerrainPreparation } from './gpu-terrain-preparation.js';
 import { resolveMapInteractionStyle } from './map-interaction-style.js';
 import '../workers/canvas-scene-composition-core.js';
 import { decodeCountryMesh } from './country-mesh-codec.js';
-import { visibleSpatialBlockRanges } from './mesh-spatial-blocks.js';
+import { createCountryTriangleRangeMap } from './gpu-country-ranges.js';
+export { countryDrawRangesForFrame, createCountryTriangleRangeMap, mergeCountryDrawRanges } from './gpu-country-ranges.js';
 import { createRenderDevice } from './render-device.js';
 import { createSceneColorCache } from './scene-color-cache.js';
 import { createGpuPolygonOverlayPass } from './gpu-polygon-overlay-pass.js';
@@ -9,15 +17,12 @@ import { createGpuStrokeRenderer } from './gpu-stroke-renderer.js';
 import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 import { linkGpuProgram } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
-import { createHydroTileWindow, hydroTileSpecsForWindow } from './hydro-tile-window.js';
-import { createHydroViewRequests } from './hydro-view-requests.js';
+import { createGpuHydroPreparation } from './gpu-hydro-preparation.js';
 import { createBuiltinMeshResourceLoader } from './builtin-mesh-resource.js';
 import { isRenderScene } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
-import {
-  createLatestWorkerJobScheduler,
-  createWorkerCancellationError,
-} from './worker-job-scheduler.js';
+import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
+import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
 
 const DEFAULT_RENDER_QUALITY = Object.freeze({
   tier: 'high',
@@ -31,232 +36,6 @@ const DEFAULT_RENDER_QUALITY = Object.freeze({
   overlayGpuBudgetBytes: 192 * 1024 * 1024,
   uploadBudgetBytes: 8 * 1024 * 1024,
 });
-
-const COUNTRY_BOUNDS_FLAG_DATELINE = 1;
-const COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE = 2;
-const COUNTRY_BOUNDS_SCALE = 1e-6;
-const COUNTRY_CULLING_PADDING_PIXELS = 64;
-const COUNTRY_CULLING_FULL_RANGE_THRESHOLD = 0.7;
-const COUNTRY_CULLING_MAX_RANGES = 96;
-
-function fullCountryDrawRange(indexCount) {
-  const count = Math.max(0, Number(indexCount || 0));
-  return count ? [{ first: 0, count }] : [];
-}
-
-export function mergeCountryDrawRanges(ranges = []) {
-  const normalized = ranges
-    .map(range => ({
-      first: Math.max(0, Number(range?.first || 0)),
-      count: Math.max(0, Number(range?.count || 0)),
-    }))
-    .filter(range => range.count > 0)
-    .sort((left, right) => left.first - right.first);
-  const merged = [];
-  for (const range of normalized) {
-    const previous = merged[merged.length - 1];
-    if (previous && range.first <= previous.first + previous.count) {
-      previous.count = Math.max(previous.first + previous.count, range.first + range.count) - previous.first;
-    } else {
-      merged.push({ ...range });
-    }
-  }
-  return merged;
-}
-
-export function createCountryTriangleRangeMap(sourceMesh, countryIds = []) {
-  const ranges = new Map();
-  const metadataRanges = sourceMesh?.countryTriangleRanges;
-  const metadataIds = sourceMesh?.metadataCountryIds;
-  if (metadataRanges?.length === metadataIds?.length * 2) {
-    for (let countryIndex = 0; countryIndex < metadataIds.length; countryIndex += 1) {
-      const count = Number(metadataRanges[countryIndex * 2 + 1] || 0);
-      if (!count) continue;
-      ranges.set(String(metadataIds[countryIndex]), Object.freeze([Object.freeze({
-        first: Number(metadataRanges[countryIndex * 2] || 0),
-        count,
-      })]));
-    }
-    return ranges;
-  }
-  const indices = sourceMesh?.triangleIndices || [];
-  let activeId = '';
-  let activeRange = null;
-  for (let first = 0; first + 2 < indices.length; first += 3) {
-    const vertexIndex = Number(indices[first]);
-    const countryIndex = Number(sourceMesh.countryIndices?.[vertexIndex]);
-    const countryId = String(countryIds?.[countryIndex] || '');
-    if (!countryId) {
-      activeId = '';
-      activeRange = null;
-      continue;
-    }
-    if (countryId === activeId && activeRange && activeRange.first + activeRange.count === first) {
-      activeRange.count += 3;
-      continue;
-    }
-    activeId = countryId;
-    activeRange = { first, count: 3 };
-    if (!ranges.has(countryId)) ranges.set(countryId, []);
-    ranges.get(countryId).push(activeRange);
-  }
-  for (const [countryId, countryRanges] of ranges) {
-    ranges.set(countryId, Object.freeze(countryRanges.map(range => Object.freeze({ ...range }))));
-  }
-  return ranges;
-}
-
-function longitudeIntervals(west, east, flags) {
-  if ((flags & COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE) !== 0) return [[-180, 180]];
-  if ((flags & COUNTRY_BOUNDS_FLAG_DATELINE) !== 0 || west > east) return [[west, 180], [-180, east]];
-  return [[west, east]];
-}
-
-function longitudeSpanDegrees(west, east, flags) {
-  if ((flags & COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE) !== 0) return 360;
-  return west <= east ? east - west : 360 - west + east;
-}
-
-function longitudeMidpointDegrees(west, east, flags) {
-  if ((flags & COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE) !== 0) return 0;
-  const span = longitudeSpanDegrees(west, east, flags);
-  const midpoint = west + span / 2;
-  return midpoint > 180 ? midpoint - 360 : midpoint;
-}
-
-function flatBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels) {
-  const [west, south, east, north] = bounds;
-  const width = Math.max(1, Number(frameContext.cssViewport?.[0] || 0));
-  const height = Math.max(1, Number(frameContext.cssViewport?.[1] || 0));
-  const translate = frameContext.cssTranslate || [width / 2, height / 2];
-  const scale = Math.abs(Number(frameContext.cssScale || 0));
-  const center = frameContext.flatCenter || [0, 0];
-  if (!scale) return true;
-  const minY = translate[1] - scale * (north * Math.PI / 180 - center[1]);
-  const maxY = translate[1] - scale * (south * Math.PI / 180 - center[1]);
-  if (maxY < -paddingPixels || minY > height + paddingPixels) return false;
-  for (const [intervalWest, intervalEast] of longitudeIntervals(west, east, flags)) {
-    for (const worldOffset of frameContext.worldOffsets || [0]) {
-      const minX = translate[0] + scale * (intervalWest * Math.PI / 180 + worldOffset - center[0]);
-      const maxX = translate[0] + scale * (intervalEast * Math.PI / 180 + worldOffset - center[0]);
-      if (maxX >= -paddingPixels && minX <= width + paddingPixels) return true;
-    }
-  }
-  return false;
-}
-
-function globeBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels) {
-  const [west, south, east, north] = bounds;
-  if ((flags & COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE) !== 0) return true;
-  const width = Math.max(1, Number(frameContext.cssViewport?.[0] || 0));
-  const height = Math.max(1, Number(frameContext.cssViewport?.[1] || 0));
-  const translate = frameContext.cssTranslate || [width / 2, height / 2];
-  const scale = Math.abs(Number(frameContext.cssScale || 0));
-  const lon = longitudeMidpointDegrees(west, east, flags) * Math.PI / 180;
-  const lat = ((south + north) / 2) * Math.PI / 180;
-  const vector = [Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)];
-  const rowX = frameContext.rowX || [1, 0, 0];
-  const rowY = frameContext.rowY || [0, 1, 0];
-  const rowZ = frameContext.rowZ || [0, 0, 1];
-  const dot = (row, point) => row[0] * point[0] + row[1] * point[1] + row[2] * point[2];
-  const longitudeRadius = longitudeSpanDegrees(west, east, flags) * Math.PI / 360;
-  const latitudeRadius = Math.max(0, north - south) * Math.PI / 360;
-  const angularRadius = Math.min(Math.PI, Math.hypot(longitudeRadius, latitudeRadius) + 2 * Math.PI / 180);
-  if (angularRadius >= Math.PI / 2) return true;
-  const paddingAngle = scale > 0 ? paddingPixels / scale : 0;
-  const centerDepth = Math.max(-1, Math.min(1, dot(rowZ, vector)));
-  if (Math.acos(centerDepth) > Math.PI / 2 + angularRadius + paddingAngle) return false;
-  const screenX = translate[0] + scale * dot(rowX, vector);
-  const screenY = translate[1] + scale * dot(rowY, vector);
-  const radiusPixels = scale * 2 * Math.sin(angularRadius / 2) + paddingPixels;
-  return screenX + radiusPixels >= 0
-    && screenX - radiusPixels <= width
-    && screenY + radiusPixels >= 0
-    && screenY - radiusPixels <= height;
-}
-
-const countryVisibilityFrames = new WeakMap();
-function countryVisibilityForFrame(sourceMesh, frameContext, paddingPixels, countryCount) {
-  let meshes = countryVisibilityFrames.get(frameContext);
-  if (!meshes) countryVisibilityFrames.set(frameContext, meshes = new WeakMap());
-  let cached = meshes.get(sourceMesh);
-  if (cached?.paddingPixels === paddingPixels) return cached.visible;
-  const visible = new Uint8Array(countryCount);
-  for (let i = 0; i < countryCount; i += 1) {
-    const bounds = Array.from(sourceMesh.countryBounds.subarray(i * 4, i * 4 + 4), value => value * COUNTRY_BOUNDS_SCALE);
-    const flags = Number(sourceMesh.countryBoundsFlags[i] || 0);
-    visible[i] = frameContext.mode === 0
-      ? globeBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels)
-      : flatBoundsIntersectViewport(bounds, flags, frameContext, paddingPixels);
-  }
-  meshes.set(sourceMesh, { paddingPixels, visible });
-  return visible;
-}
-
-export function countryDrawRangesForFrame(sourceMesh, frameContext, {
-  kind = 'triangle',
-  paddingPixels = COUNTRY_CULLING_PADDING_PIXELS,
-  fullRangeThreshold = COUNTRY_CULLING_FULL_RANGE_THRESHOLD,
-  maxRanges = COUNTRY_CULLING_MAX_RANGES,
-  includeCountry = null,
-} = {}) {
-  const indexCount = Number(kind === 'boundary'
-    ? sourceMesh?.lineIndices?.length
-    : sourceMesh?.triangleIndices?.length) || 0;
-  const fullRanges = fullCountryDrawRange(indexCount);
-  const rangeData = kind === 'boundary' ? sourceMesh?.countryBoundaryRanges : sourceMesh?.countryTriangleRanges;
-  const boundsData = sourceMesh?.countryBounds;
-  const flagsData = sourceMesh?.countryBoundsFlags;
-  const countryIds = sourceMesh?.metadataCountryIds;
-  const countryCount = Array.isArray(countryIds) ? countryIds.length : Number(rangeData?.length || 0) / 2;
-  const invalidMetadata = !frameContext
-    || !rangeData || rangeData.length !== countryCount * 2
-    || !boundsData || boundsData.length !== countryCount * 4
-    || !flagsData || flagsData.length !== countryCount;
-  if (!indexCount || invalidMetadata) {
-    return { ranges: fullRanges, culled: false, visibleCountryCount: countryCount, indexCount, fullIndexCount: indexCount, fallback: true };
-  }
-  const width = Math.max(1, Number(frameContext.cssViewport?.[0] || 0));
-  const height = Math.max(1, Number(frameContext.cssViewport?.[1] || 0));
-  const scale = Math.abs(Number(frameContext.cssScale || 0));
-  const worldVisible = frameContext.mode !== 0
-    && scale * 2 * Math.PI <= width + paddingPixels * 2 && scale * Math.PI <= height + paddingPixels * 2;
-  if (worldVisible && typeof includeCountry !== 'function') {
-    return { ranges: fullRanges, culled: false, visibleCountryCount: countryCount, indexCount, fullIndexCount: indexCount, fallback: false };
-  }
-  const candidates = [];
-  const blocks = typeof includeCountry !== 'function' ? visibleSpatialBlockRanges(sourceMesh, frameContext, kind, paddingPixels, maxRanges) : null;
-  if (blocks) {
-    let submittedCountries = 0;
-    for (let index = 0; index < countryCount; index++) {
-      const first = rangeData[index * 2], count = rangeData[index * 2 + 1];
-      if (count && blocks.some(range => range.first < first + count && range.first + range.count > first)) submittedCountries++;
-    }
-    return { ranges: blocks, culled: true, visibleCountryCount: submittedCountries, indexCount: blocks.reduce((sum, r) => sum + r.count, 0), fullIndexCount: indexCount, fallback: false };
-  }
-  const visibility = countryVisibilityForFrame(sourceMesh, frameContext, paddingPixels, countryCount);
-  let visibleCountryCount = 0;
-  for (let countryIndex = 0; countryIndex < countryCount; countryIndex += 1) {
-    const countryId = String(countryIds?.[countryIndex] ?? countryIndex);
-    if (typeof includeCountry === 'function' && !includeCountry(countryId, countryIndex)) continue;
-    const range = {
-      first: Number(rangeData[countryIndex * 2] || 0),
-      count: Number(rangeData[countryIndex * 2 + 1] || 0),
-    };
-    if (!range.count) continue;
-    if (!visibility[countryIndex]) continue;
-    visibleCountryCount += 1;
-    candidates.push(range);
-  }
-  const merged = mergeCountryDrawRanges(candidates);
-  const visibleIndexCount = merged.reduce((sum, range) => sum + range.count, 0);
-  // A globe's conservative country bounds often retain most indices. Do not
-  // undo its rear-hemisphere rejection merely because that fraction is high.
-  if ((frameContext.mode !== 0 && visibleIndexCount >= indexCount * Math.max(0, Number(fullRangeThreshold) || 0)) || merged.length > Math.max(1, Number(maxRanges) || 1)) {
-    return { ranges: fullRanges, culled: false, visibleCountryCount, indexCount, fullIndexCount: indexCount, fallback: true };
-  }
-  return { ranges: merged, culled: true, visibleCountryCount, indexCount: visibleIndexCount, fullIndexCount: indexCount, fallback: false };
-}
 
 export function resolveRenderPixelRatioValue(devicePixelRatio, mobileLayout = false, qualityCap = Infinity) {
   const deviceRatio = Math.max(1, Number(devicePixelRatio || 1));
@@ -395,7 +174,10 @@ export function createGpuMapRenderer(deps) {
     state,
   } = deps;
   return (() => {
-    const PI = Math.PI;
+    const lifecycle = createGpuResourceLifecycle();
+    const workerChannels = createGpuWorkerChannels();
+    let disposed = false;
+    let canvasWorkerNeedsRestart = false;
     let canvas = null;
     let gl = null;
     let glVersion = 0;
@@ -407,7 +189,7 @@ export function createGpuMapRenderer(deps) {
     let projectGeneration = 0;
     let projectRenderBlocked = false;
     let builtinMeshBaseline = null;
-    const builtinMeshResourceLoader = createBuiltinMeshResourceLoader({ runtimeAssetUrl });
+    const builtinMeshResourceLoader = createBuiltinMeshResourceLoader({ runtimeAssetUrl, WorkerClass: workerChannels.WorkerClass });
     let renderScene = null;
     let renderInteractionState = Object.freeze({
       selectionPacket: null,
@@ -480,41 +262,20 @@ export function createGpuMapRenderer(deps) {
     let hydroVisibilityTexture = null;
     let hydroVisibilityWidth = 1;
     let hydroVisibilityHeight = 1;
-    let hydroManifest = null;
-    let hydroManifestUrl = null;
-    let hydroWorker = null;
-    let hydroWorkerReady = false;
-    let hydroWorkerGeneration = 0;
-    let hydroWorkerIncludesGeometry = false;
-    let hydroWorkerReadyPromise = Promise.resolve(false);
-    let hydroWorkerReadyResolve = null;
-    let hydroWorkerReadyTimer = 0;
-    let hydroViewRequestedRevision = 0;
-    const hydroViewRequests = createHydroViewRequests({
-      retry: () => requestHydroView(),
-      onSuppressed: () => {
-        performanceMetrics.hydroExhaustedRequestSuppressedCount = Number(performanceMetrics.hydroExhaustedRequestSuppressedCount || 0) + 1;
-      },
-      notify: message => {
-        performanceMetrics.hydroLastError = message.diagnostic || null;
-        const error = Object.assign(new Error(message.message || ''), { diagnostic: message.diagnostic });
-        reportOperationError(error, '현재 화면의 강·호수 데이터를 처리하지 못했습니다. 다시 시도하세요.', 'PL-WATER-003', 4200);
-      },
-    });
-    let hydroRequestRevision = 0;
-    let hydroVisibleTileCache = { signature: '', tiles: [], key: '', window: null };
-    let hydroAcceptedRevision = 0;
-    let hydroActivePackIds = new Set();
-    const hydroPacks = new Map();
-    let hydroEditEntries = [];
-    let hydroEditRevision = -1;
     const hydroEditFeatureByFid = new Map();
-    let interactionActive = false;
-    let hydroVisibilityDirty = true;
-    const hydroFeatureRequests = new Map();
-    const hydroLogicalQueryRequests = new Map();
-    let hydroFeatureRequestId = 0;
-    let hydroCacheCompletionNotified = false;
+    let interactionActive = false, hydroVisibilityDirty = true;
+    const hydroPreparation = createGpuHydroPreparation({
+      createWorker: () => workerChannels.create(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'pandolab-hydro-tiles' }),
+      getMode: () => rendererMode, isMobile, DATA_REVISION, ASSET_REVISION,
+      getCacheBudget: () => renderQuality.hydroCacheBudgetBytes,
+      getProtectedPackIds: () => { const feature = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
+        return feature?.properties?.pack_ids || [feature?.properties?.pack_id].filter(Number.isFinite); },
+      getView: () => hydroViewSnapshot(), registerHydroFragments, registerHydroDescriptors, unregisterHydroFragments,
+      queueHydroRender, reportOperationError, setActionStatus, onConnect: connectHydroCanvasWorkers,
+      onLoadState: status => Object.assign(state.physicalLoadState, status),
+      onReset: () => { hydroVisibilityDirty = true; hydroEditFeatureByFid.clear(); state.hydroFragmentsByLogicalId = new Map();
+        setHydroEdits(state.hydroEdits || [], Number(state.stateRevision || 0)); },
+    });
     let fillVao = null;
     let lineVao = null;
     let positionBuffer = null;
@@ -549,46 +310,42 @@ export function createGpuMapRenderer(deps) {
     let overrideLineVao = null;
     let overrideMesh = null;
     const countryOverrideIds = new Set();
+    // IDs changed while the 50m startup preview is painted. They are retained
+    // in project state immediately, but their 10m override is deferred until
+    // the canonical base can be installed in the same frame.
+    const deferredCountryPatchIds = new Set();
     const overrideFeatureSnapshots = new Map();
     const geometryRevisionTracker = createCountryGeometryRevisionTracker();
     let countryPatchPresentation = null;
     let pendingOldMeshVisibleCount = 0;
-    let patchWorker = null;
-    const patchRequests = new Map();
-    let patchWorkerOutputBytes = 0;
-    const patchJobScheduler = createLatestWorkerJobScheduler({
-      maxConcurrent: 1,
-      execute: entry => new Promise((resolve, reject) => {
-        const payload = entry.payload || {};
-        const currentWorker = ensurePatchWorker();
-        patchRequests.set(Number(payload.token), { resolve, reject, geometryRevision: entry.geometryRevision });
-        currentWorker.postMessage({
-          token: Number(payload.token),
-          geometryRevision: Number(entry.geometryRevision),
-          targetRevision: Number(entry.targetRevision),
-          jobKey: entry.jobKey,
-          features: payload.features || [],
-        });
-      }),
+    const patchJobScheduler = createGpuMeshWorkerJobs({
+      createWorker: () => workerChannels.create(runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-country-patch-mesh' }),
+      createRebuildWorker: () => workerChannels.create(runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-gpu-mesh' }),
       isCurrent: entry => geometryRevisionTracker.isCurrent(entry.payload?.token, entry.geometryRevision),
+      onMesh: () => { if (lastGeometryCommitTimings) lastGeometryCommitTimings.patchWorkerCompletedAt = performance.now(); },
+      onError: event => { console.error('[PL-GPU-PATCH-001]', event.message || event); scheduleGpuMeshRebuild(0); },
     });
     let terrainManifest = null;
-    const terrainTiles = new Map();
-    const terrainTileRequests = new Map();
-    const terrainFetchQueue = [];
-    const terrainFetchQueuedKeys = new Set();
-    let terrainActiveFetches = 0;
-    const terrainTileFailures = new Map();
-    const terrainTileQueuedKeys = new Set();
-    const terrainUploadQueue = [];
-    const terrainGridMeshes = new Map();
-    let terrainLastLevel = -1;
-    let terrainRenderedLevel = -1;
-    let terrainTargetTileCount = 0;
-    let terrainTargetTilesLoaded = 0;
-    let terrainFallbackTileCount = 0;
-    let terrainTargetTileKeys = new Set();
-    let terrainRetentionKeys = new Set();
+    const terrainPreparation = createGpuTerrainPreparation({
+      isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
+      tileUrl: spec => {
+        const relative = terrainManifest.urlTemplate.replace('{level}', String(spec.level)).replace('{column}', String(spec.column)).replace('{row}', String(spec.row));
+        const url = new URL(relative, PHYSICAL_DATA_BASE_URL);
+        url.searchParams.set('v', DATA_REVISION || terrainManifest.version || APP_VERSION);
+        return url;
+      },
+    });
+    let preparedTerrain = [];
+    function prepareTerrain(frame) {
+      terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: uploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
+      preparedTerrain = terrainPreparation.prepare(frame, {
+        visible: state.physicalSettings.terrainVisible, enhanced: state.dataReadiness === 'enhanced',
+        projection: state.projection, rotation: state.view.globeRotation, flatCenter: state.view.flatCenter,
+        width: cssWidth, height: cssHeight, dpr: effectivePixelRatio, devicePixelRatio: window.devicePixelRatio,
+        cacheBudgetBytes: renderQuality.terrainCacheBudgetBytes,
+      });
+    }
+    function renderTerrain() { for (const tile of preparedTerrain) drawTerrainTile(tile); }
     let mesh = null;
     let meshCountryIds = [];
     const countryStrokePacketCache = {
@@ -617,24 +374,15 @@ export function createGpuMapRenderer(deps) {
     let pickTexture = null;
     let activeRenderViewState = null;
     let lastSceneFrameContext = null;
-    let worker = null;
-    let workerCompletionResolver = null;
     let canvasWorker = null;
     let canvasWorkerUrl = null;
     let canvasWorkerBitmapContext = null;
     let canvasWorker2dContext = null;
-    let canvasWorkerReady = false;
-    let canvasWorkerBusy = false;
-    let canvasWorkerPendingMessage = null;
     let canvasStyleRevision = 0;
     let canvasPhysicalStyleRevision = 0;
     let canvasLastStyleSignature = '';
     let canvasDisplayedStyleRevision = 0;
     let canvasLastPhysicalStyleSignature = '';
-    let canvasWorkerLatestRequestedRevision = 0;
-    let canvasWorkerDisplayedRevision = 0;
-    let canvasHydroPickRequestId = 0;
-    const canvasHydroPickRequests = new Map();
     let fallbackReason = '';
     let layoutMismatchCount = 0;
     let lastLayoutMismatchCssPx = 0;
@@ -658,7 +406,6 @@ export function createGpuMapRenderer(deps) {
       hydroTileWindowCacheHitCount: 0,
       hydroTileWindowRecomputeCount: 0,
       hydroUploadBytes: 0,
-      terrainUploadCount: 0,
       terrainIncompleteFrameCount: 0,
       canvasWorkerMessageCount: 0,
       canvasWorkerMessageBytes: 0,
@@ -705,11 +452,13 @@ export function createGpuMapRenderer(deps) {
     })();
 
     function invalidateGpuFrame(reason = 'gpu-frame') {
+      if (disposed) return;
       if (typeof scheduleGpuFrame === 'function') return scheduleGpuFrame(reason);
       return renderViewFrame?.(reason);
     }
 
     function invalidateGpuInteraction(reason = 'gpu-interaction') {
+      if (disposed) return;
       if (typeof scheduleGpuInteractionFrame === 'function') return scheduleGpuInteractionFrame(reason);
       return invalidateGpuFrame(reason);
     }
@@ -726,11 +475,7 @@ export function createGpuMapRenderer(deps) {
         && countryPatchPresentation.ids.has(String(id));
     }
 
-    function terrainTargetsHaveSettled() {
-      if (!terrainTargetTileKeys.size) return true;
-      return [...terrainTargetTileKeys].every(key => terrainTiles.has(key)
-        || Number(terrainTileFailures.get(key)?.attempts || 0) >= 4);
-    }
+    const terrainTargetsHaveSettled = () => terrainPreparation.settled();
 
     function shouldHoldCountryPatchScene(viewSignature) {
       const presentation = countryPatchPresentation;
@@ -739,6 +484,7 @@ export function createGpuMapRenderer(deps) {
       if (presentation.geometryRevision !== geometryRevisionTracker.committedRevision()) return false;
       if (!sceneColorCache.canCompositePreserved?.(viewSignature, projectGeneration)) return false;
       if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return false;
+      const { terrainTargetTileCount, terrainTargetTilesLoaded } = terrainPreparation.stats();
       return terrainTargetTileCount > 0
         && terrainTargetTilesLoaded < terrainTargetTileCount
         && !terrainTargetsHaveSettled();
@@ -1247,7 +993,7 @@ export function createGpuMapRenderer(deps) {
       }`;
 
     function createProgram(vertexSource, fragmentSource) {
-      return linkGpuProgram(gl, vertexSource, fragmentSource, { label: 'map' });
+      return lifecycle.retain(gl, 'Program', linkGpuProgram(gl, vertexSource, fragmentSource, { label: 'map' }));
     }
 
     function cachedUniformLocation(program, name) {
@@ -1300,6 +1046,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function replaceCanvas() {
+      lifecycle.unlisten(canvas);
+      releaseGpuContext();
       if (renderDevice || gl) handleSharedGpuContextLost();
       const replacement = rendererUi.createCanvas();
       canvas?.replaceWith(replacement);
@@ -1321,10 +1069,10 @@ export function createGpuMapRenderer(deps) {
     }
 
     function connectHydroCanvasWorkers() {
-      if (!hydroWorker || !canvasWorker || rendererMode !== 'canvas-worker' || typeof MessageChannel !== 'function') return;
+      if (!hydroPreparation.hasWorker() || !canvasWorker || rendererMode !== 'canvas-worker' || typeof MessageChannel !== 'function') return;
       const channel = new MessageChannel();
       canvasWorker.postMessage({ type: 'hydro-port', port: channel.port1 }, [channel.port1]);
-      hydroWorker.postMessage({ type: 'hydro-port', port: channel.port2 }, [channel.port2]);
+      hydroPreparation.connectPort(channel.port2);
     }
 
     function rendererName() {
@@ -1376,53 +1124,38 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(program, ['uHydroVisibility', 'uHydroVisibilitySize', 'uHydroColor', 'uWidthBoost', 'uWidthScale'], ['aCoord', 'aCountry', 'aCorner', 'aStart', 'aEnd', 'aStartWidth', 'aEndWidth']);
       }
       primeProgramLocations(terrainProgram, ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme'], ['aGrid']);
-      paletteTexture = gl.createTexture();
-      overridePaletteTexture = gl.createTexture();
-      emphasisPaletteTexture = gl.createTexture();
-      overrideEmphasisPaletteTexture = gl.createTexture();
+      paletteTexture = lifecycle.create(gl, 'Texture');
+      overridePaletteTexture = lifecycle.create(gl, 'Texture');
+      emphasisPaletteTexture = lifecycle.create(gl, 'Texture');
+      overrideEmphasisPaletteTexture = lifecycle.create(gl, 'Texture');
       paletteCapacity = 0;
       palettePixels = null;
       paletteDirty.base = true;
       paletteDirty.emphasis = true;
       emphasisPaletteFullDirty = true;
       pendingEmphasisCountryIds.clear();
-      hydroVisibilityTexture = gl.createTexture();
-      countryStateQuadBuffer = gl.createBuffer();
+      hydroVisibilityTexture = lifecycle.create(gl, 'Texture');
+      countryStateQuadBuffer = lifecycle.create(gl, 'Buffer');
       gl.bindBuffer(gl.ARRAY_BUFFER, countryStateQuadBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-      hydroCornerBuffer = gl.createBuffer();
+      hydroCornerBuffer = lifecycle.create(gl, 'Buffer');
       gl.bindBuffer(gl.ARRAY_BUFFER, hydroCornerBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, -1, 0, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
       positionBuffer = null;
       countryBuffer = null;
       fillIndexBuffer = null;
       lineIndexBuffer = null;
-      overridePositionBuffer = gl.createBuffer();
-      overrideCountryBuffer = gl.createBuffer();
-      overrideFillIndexBuffer = gl.createBuffer();
-      overrideLineIndexBuffer = gl.createBuffer();
+      overridePositionBuffer = lifecycle.create(gl, 'Buffer');
+      overrideCountryBuffer = lifecycle.create(gl, 'Buffer');
+      overrideFillIndexBuffer = lifecycle.create(gl, 'Buffer');
+      overrideLineIndexBuffer = lifecycle.create(gl, 'Buffer');
       resetGpuNormalBlend(gl);
       gl.disable(gl.DEPTH_TEST);
       pickFramebuffer = null;
       pickTexture = null;
       pickSceneKey = '';
-      for (const pending of terrainUploadQueue.splice(0)) pending.bitmap?.close?.();
-      terrainTileQueuedKeys.clear();
-      terrainTiles.clear();
-      terrainTileRequests.clear();
-      terrainFetchQueue.length = 0;
-      terrainFetchQueuedKeys.clear();
-      terrainActiveFetches = 0;
-      terrainTileFailures.clear();
-      terrainRetentionKeys = new Set();
-      terrainTargetTileKeys = new Set();
-      terrainGridMeshes.clear();
-      for (const entry of [...hydroPacks.values(), ...hydroEditEntries]) {
-        entry.resources = null;
-        entry.uploadState = null;
-        entry.uploadQueued = false;
-        scheduleHydroUpload(entry);
-      }
+      terrainPreparation.reset();
+      hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: uploadScheduler });
       hydroVisibilityDirty = true;
     }
 
@@ -1450,7 +1183,7 @@ export function createGpuMapRenderer(deps) {
         invalidateGpuFrame('shared-pass-ready');
       };
       // At least one paint before optional pass compilation.
-      requestAnimationFrame(() => requestAnimationFrame(() => { void initialize().catch(error => {
+      lifecycle.frame(() => lifecycle.frame(() => { void initialize().catch(error => {
         if (error.name !== 'AbortError') console.warn('Optional GPU pass initialization failed', error);
       }); }));
       lastSelectionRenderResult = null;
@@ -1458,6 +1191,10 @@ export function createGpuMapRenderer(deps) {
     }
 
     function handleSharedGpuContextLost() {
+      renderDeviceContextRevision += 1;
+      terrainPreparation.reset();
+      hydroPreparation.resetGpu();
+      lifecycle.releaseContext(gl);
       pendingCanonicalCommit?.reject(Object.assign(new Error('Context lost during canonical commit'), { name: 'AbortError' }));
       pendingCanonicalCommit = null;
       uploadScheduler?.cancelAll();
@@ -1473,17 +1210,17 @@ export function createGpuMapRenderer(deps) {
     }
 
     function handleWebGlContextLost(event) {
-      if (event.currentTarget !== canvas) return;
+      if (disposed || event.currentTarget !== canvas) return;
       event.preventDefault();
       handleSharedGpuContextLost();
       webglContextLost = true;
       renderDevice = null;
       rendererMode = 'webgl-recovering';
-      clearTimeout(webglRecoveryTimer);
+      lifecycle.cancelTimeout(webglRecoveryTimer);
       updateRendererStatus(`${rendererName()} · GPU를 복구하는 중입니다.`);
       setActionStatus('지도 GPU를 복구하는 중입니다.', 'working', 0);
       rendererUi.onContextStateChange?.('lost');
-      webglRecoveryTimer = setTimeout(() => {
+      webglRecoveryTimer = lifecycle.timeout(() => {
         if (webglContextLost && rendererMode === 'webgl-recovering') {
           activateCanvasFallback('WebGL 컨텍스트 복구 시간 초과');
         }
@@ -1491,8 +1228,9 @@ export function createGpuMapRenderer(deps) {
     }
 
     async function handleWebGlContextRestored(event) {
-      if (event.currentTarget !== canvas || !webglContextLost) return;
-      clearTimeout(webglRecoveryTimer);
+      if (disposed || event.currentTarget !== canvas || !webglContextLost) return;
+      const restoringCanvas = canvas, restoringGeneration = projectGeneration;
+      lifecycle.cancelTimeout(webglRecoveryTimer);
       try {
         gl = canvas.getContext(webGlContextKind);
         if (!gl) throw new Error(`복구된 ${rendererName()} 컨텍스트를 가져올 수 없습니다.`);
@@ -1512,6 +1250,7 @@ export function createGpuMapRenderer(deps) {
         });
         initializeSharedGpuPasses();
         for (const entry of meshVariants.values()) entry.resources = await stageMeshResources(entry.mesh);
+        if (disposed || canvas !== restoringCanvas || projectGeneration !== restoringGeneration) return;
         activateMeshVariant(activeMeshQuality, { renderFrame: false });
         webglContextLost = false;
         rendererMode = glVersion === 2 ? 'webgl2' : 'webgl1';
@@ -1521,6 +1260,7 @@ export function createGpuMapRenderer(deps) {
         setActionStatus('지도 GPU를 복구했습니다.', 'success', 2200);
         rendererUi.onContextStateChange?.('restored');
       } catch (error) {
+        if (disposed || canvas !== restoringCanvas || projectGeneration !== restoringGeneration || error.name === 'AbortError') return;
         webglContextLost = false;
         console.error('[PL-GPU-002]', error);
         activateCanvasFallback('WebGL 컨텍스트를 복구하지 못했습니다.');
@@ -1559,8 +1299,8 @@ export function createGpuMapRenderer(deps) {
         contextRevision: renderDeviceContextRevision,
       });
       initializeSharedGpuPasses();
-      canvas.addEventListener('webglcontextlost', handleWebGlContextLost);
-      canvas.addEventListener('webglcontextrestored', handleWebGlContextRestored);
+      lifecycle.listen(canvas, 'webglcontextlost', handleWebGlContextLost);
+      lifecycle.listen(canvas, 'webglcontextrestored', handleWebGlContextRestored);
       webglContextLost = false;
       rendererMode = version === 2 ? 'webgl2' : 'webgl1';
     }
@@ -1568,11 +1308,11 @@ export function createGpuMapRenderer(deps) {
     function disposeMeshResources(resources) {
       if (!gl || !resources) return;
       if (glVersion === 2) {
-        if (resources.fillVao) gl.deleteVertexArray(resources.fillVao);
-        if (resources.lineVao) gl.deleteVertexArray(resources.lineVao);
+        if (resources.fillVao) lifecycle.release(resources.fillVao);
+        if (resources.lineVao) lifecycle.release(resources.lineVao);
       }
       for (const buffer of [resources.positionBuffer, resources.countryBuffer, resources.fillIndexBuffer, resources.lineIndexBuffer]) {
-        if (buffer) gl.deleteBuffer(buffer);
+        if (buffer) lifecycle.release(buffer);
       }
     }
 
@@ -1602,9 +1342,12 @@ export function createGpuMapRenderer(deps) {
     }
 
     async function ensureBuiltinMeshBaseline(countryIds = []) {
+      if (disposed) return false;
       if (builtinMeshBaseline?.mesh) return true;
       const resource = await builtinMeshResourceLoader.load(countryIds);
+      if (disposed) return false;
       const decoded = await decodeBuiltInMesh(resource.meshBuffer, countryIds, resource.preparedStroke);
+      if (disposed) return false;
       decoded.mesh.spatialBlocks = resource.spatialBlocks;
       rememberBuiltinMesh(decoded.mesh, decoded.ids, resource.identity);
       return true;
@@ -1660,10 +1403,10 @@ export function createGpuMapRenderer(deps) {
     function uploadMeshResources(nextMesh, staged = null) {
       if (!gl || !nextMesh) return null;
       const resources = staged || {
-        positionBuffer: gl.createBuffer(),
-        countryBuffer: gl.createBuffer(),
-        fillIndexBuffer: gl.createBuffer(),
-        lineIndexBuffer: gl.createBuffer(),
+        positionBuffer: lifecycle.create(gl, 'Buffer'),
+        countryBuffer: lifecycle.create(gl, 'Buffer'),
+        fillIndexBuffer: lifecycle.create(gl, 'Buffer'),
+        lineIndexBuffer: lifecycle.create(gl, 'Buffer'),
         fillVao: null,
         lineVao: null,
         byteLength: Number(nextMesh.positions?.byteLength || 0)
@@ -1691,7 +1434,7 @@ export function createGpuMapRenderer(deps) {
       }
       if (glVersion === 2) {
         const createVao = indexBuffer => {
-          const vao = gl.createVertexArray();
+          const vao = lifecycle.create(gl, 'VertexArray');
           gl.bindVertexArray(vao);
           gl.bindBuffer(gl.ARRAY_BUFFER, resources.positionBuffer);
           gl.enableVertexAttribArray(0);
@@ -1722,7 +1465,7 @@ export function createGpuMapRenderer(deps) {
       ].map(([key, data, target, convert]) => ({ key, data, target, convert, offset: 0 }));
       return uploadScheduler.enqueueUpload({
         key: `mesh:${++stagingSequence}`, projectGeneration: generation, contextGeneration, priority: 100,
-        dispose: () => { for (const task of tasks) if (resources[task.key]) uploadGl.deleteBuffer(resources[task.key]); },
+        dispose: () => { for (const task of tasks) if (resources[task.key]) lifecycle.release(resources[task.key]); },
         step: ({ byteBudget }) => {
           if (signal?.aborted || generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision || gl !== uploadGl || gl.isContextLost()) throw Object.assign(new Error('Stale mesh staging'), { name: 'AbortError' });
           const task = tasks.find(item => !item.done);
@@ -1732,7 +1475,7 @@ export function createGpuMapRenderer(deps) {
           try {
             const length = task.convert ? task.data.length * 4 : task.data.byteLength;
             if (!resources[task.key]) {
-              resources[task.key] = gl.createBuffer();
+              resources[task.key] = lifecycle.create(gl, 'Buffer');
               if (!resources[task.key]) throw new Error('Mesh staging allocation failed');
               gl.bindBuffer(task.target, resources[task.key]); gl.bufferData(task.target, length, gl.STATIC_DRAW);
               resources.byteLength += length;
@@ -1860,8 +1603,8 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.countryPatchUploadBytes += uploadBytes;
       performanceMetrics.lastCountryPatchUploadBytes = uploadBytes;
       if (!stagedResources) throw new Error('Override mesh requires staged GPU resources');
-      for (const buffer of [overridePositionBuffer, overrideCountryBuffer, overrideFillIndexBuffer, overrideLineIndexBuffer]) if (buffer) gl.deleteBuffer(buffer);
-      if (glVersion === 2) { if (overrideFillVao) gl.deleteVertexArray(overrideFillVao); if (overrideLineVao) gl.deleteVertexArray(overrideLineVao); }
+      for (const buffer of [overridePositionBuffer, overrideCountryBuffer, overrideFillIndexBuffer, overrideLineIndexBuffer]) if (buffer) lifecycle.release(buffer);
+      if (glVersion === 2) { if (overrideFillVao) lifecycle.release(overrideFillVao); if (overrideLineVao) lifecycle.release(overrideLineVao); }
       overridePositionBuffer = stagedResources.positionBuffer; overrideCountryBuffer = stagedResources.countryBuffer;
       overrideFillIndexBuffer = stagedResources.fillIndexBuffer; overrideLineIndexBuffer = stagedResources.lineIndexBuffer;
       overrideFillVao = stagedResources.fillVao; overrideLineVao = stagedResources.lineVao;
@@ -1912,14 +1655,7 @@ export function createGpuMapRenderer(deps) {
       return remapped;
     }
 
-    function stopPatchWorkerJobs(reason = 'cancelled') {
-      patchJobScheduler.cancelAll(reason);
-      const error = createWorkerCancellationError('국가 메시 계산을 취소했습니다.', reason);
-      for (const request of patchRequests.values()) request.reject(error);
-      patchRequests.clear();
-      patchWorker?.terminate();
-      patchWorker = null;
-    }
+    const stopPatchWorkerJobs = reason => patchJobScheduler.cancelAll(reason);
 
     function completeGeometryDisplay(ids, geometryRevision, { renderFrame = true } = {}) {
       const cleared = geometryRevisionTracker.markDisplayed(ids, geometryRevision);
@@ -1962,41 +1698,23 @@ export function createGpuMapRenderer(deps) {
       return { ids, features, removedIds };
     }
 
-    function ensurePatchWorker() {
-      if (patchWorker) return patchWorker;
-      patchWorker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-country-patch-mesh' });
-      patchWorker.onmessage = event => {
-        const token = Number(event.data?.token || 0);
-        const request = patchRequests.get(token);
-        if (!request) return;
-        patchRequests.delete(token);
-        if (!event.data?.ok) {
-          request.reject(new Error(event.data?.message || '변경 국가 메시를 만들지 못했습니다.'));
-          return;
-        }
-        lastGeometryCommitTimings && (lastGeometryCommitTimings.patchWorkerCompletedAt = performance.now());
-        const next = event.data.mesh;
-        patchWorkerOutputBytes += Number(next?.positions?.byteLength || 0)
-          + Number(next?.countryIndices?.byteLength || 0)
-          + Number(next?.triangleIndices?.byteLength || 0)
-          + Number(next?.lineIndices?.byteLength || 0)
-          + Number(next?.strokeStartsEnds?.byteLength || 0);
-        request.resolve(next);
-      };
-      patchWorker.onerror = event => {
-        console.error('[PL-GPU-PATCH-001]', event.message || event);
-        for (const request of patchRequests.values()) request.reject(new Error(event.message || '변경 국가 메시 Worker 오류'));
-        patchRequests.clear();
-        patchWorker?.terminate();
-        patchWorker = null;
-        scheduleGpuMeshRebuild(0);
-      };
-      return patchWorker;
-    }
-
     function applyCountryPatch(rawRequest, { presentation = 'replace-scene' } = {}) {
       const { ids, features, removedIds } = normalizeCountryPatchRequest(rawRequest);
       if (!ids.length) return Promise.resolve(true);
+      const qualityGate = decideCountryPatchPresentation({
+        renderer: rendererMode,
+        canonicalMeshReady,
+        ids,
+      });
+      if (qualityGate.mode === 'defer') {
+        for (const id of qualityGate.ids) {
+          deferredCountryPatchIds.add(id);
+          state.pendingCountryRenderIds.add(id);
+        }
+        renderPendingCountryOverlays?.();
+        window.__PANDOLAB_GPU_METRICS__ = getStats();
+        return Promise.resolve(true);
+      }
       mapWorkScheduler.cancel('country-mesh-compaction');
       const commit = geometryRevisionTracker.beginCommit(ids);
       countryPatchPresentation = presentation === 'preserve-existing-scene'
@@ -2062,7 +1780,7 @@ export function createGpuMapRenderer(deps) {
       // The worker result contains earlier queued patches too. Promote their
       // pending IDs together so a rapid second addition cannot leave a preview.
       if (countryPatchPresentation?.token === token) countryPatchPresentation.ids = new Set(snapshotIds);
-      return new Promise(resolve => requestAnimationFrame(resolve)).then(() => {
+      return lifecycle.nextFrame().then(() => {
         if (!geometryRevisionTracker.isCurrent(token, commit.revision)) return false;
         lastGeometryCommitTimings.patchWorkerRequestedAt = performance.now();
         const ticket = patchJobScheduler.enqueue({
@@ -2095,6 +1813,7 @@ export function createGpuMapRenderer(deps) {
           return true;
         });
       }).catch(error => {
+        if (disposed || error?.name === 'AbortError') return false;
         if (!geometryRevisionTracker.isCurrent(token, commit.revision)) return false;
         if (countryPatchPresentation?.token === token) countryPatchPresentation = null;
         console.error('[PL-GPU-PATCH-002]', error);
@@ -2111,16 +1830,21 @@ export function createGpuMapRenderer(deps) {
       });
     }
 
+    async function flushDeferredCountryPatches() {
+      if (!canonicalMeshReady || !deferredCountryPatchIds.size) return true;
+      const ids = [...deferredCountryPatchIds];
+      deferredCountryPatchIds.clear();
+      return applyCountryPatch(ids);
+    }
+
     function resetCountryGeometryVisualState({ renderFrame = false, renderPending = true } = {}) {
       mapWorkScheduler.cancel('country-mesh-compaction');
       geometryRevisionTracker.reset();
       countryPatchPresentation = null;
       stopPatchWorkerJobs('geometry-reset');
-      worker?.terminate();
-      worker = null;
-      workerCompletionResolver?.(false);
-      workerCompletionResolver = null;
+      patchJobScheduler.cancelRebuild();
       countryOverrideIds.clear();
+      deferredCountryPatchIds.clear();
       overrideFeatureSnapshots.clear();
       overrideMesh = null;
       // Clearing an override removes geometry from the base scene as well as
@@ -2148,6 +1872,11 @@ export function createGpuMapRenderer(deps) {
         ? requested
         : projectGeneration + 1;
       projectRenderBlocked = true;
+      if (canvasWorker) {
+        canvasWorker.terminate(); canvasWorker = null; canvasWorkerNeedsRestart = true;
+      }
+      canvasDataReplacementResolver?.(); canvasDataReplacementResolver = null;
+      void hydroPreparation.restart();
       resetCountryGeometryVisualState({ renderFrame: false, renderPending: false });
       sceneColorCache.reset?.({ dropActive: !preserveBuiltinMesh });
       renderScene = null;
@@ -2175,21 +1904,7 @@ export function createGpuMapRenderer(deps) {
         meshQuality = previewAllowed ? 'preview' : 'canonical';
         canonicalMeshReady = false;
       }
-      for (const pending of terrainUploadQueue.splice(0)) pending.bitmap?.close?.();
-      terrainFetchQueue.length = 0;
-      terrainFetchQueuedKeys.clear();
-      terrainTileQueuedKeys.clear();
-      terrainTileRequests.clear();
-      terrainTileFailures.clear();
-      for (const entry of terrainTiles.values()) if (entry.texture && gl) gl.deleteTexture(entry.texture);
-      terrainTiles.clear();
-      terrainLastLevel = -1;
-      terrainRenderedLevel = -1;
-      terrainTargetTileCount = 0;
-      terrainTargetTilesLoaded = 0;
-      terrainFallbackTileCount = 0;
-      terrainTargetTileKeys = new Set();
-      terrainRetentionKeys = new Set();
+      terrainPreparation.reset();
       // Keep the previously committed pixels in place while a new project is
       // prepared.  They are replaced only by the prepared canonical frame.
       if (!preserveBuiltinMesh && gl && !gl.isContextLost?.()) {
@@ -2216,18 +1931,6 @@ export function createGpuMapRenderer(deps) {
         window.PANDOLAB_GPU_MESH_STROKES = null;
       }
       return decoded;
-    }
-
-    function createWorker() {
-      if (worker) {
-        worker.terminate();
-        workerCompletionResolver?.(false);
-        workerCompletionResolver = null;
-      }
-      worker = new Worker(runtimeAssetUrl('workers/gpu-mesh-worker.js'), {
-        name: 'pandolab-gpu-mesh',
-      });
-      return worker;
     }
 
     function rebuildFromCountries(features, {
@@ -2275,37 +1978,10 @@ export function createGpuMapRenderer(deps) {
         return Promise.resolve(true);
       }
       const token = task.token;
-      let currentWorker;
-      try { currentWorker = createWorker(); }
-      catch (error) {
-        console.error('[PL-GPU-001]', error);
-        activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
-        return Promise.resolve(false);
-      }
       updateRendererStatus(`${rendererName()} · 편집 메시지를 계산하는 중입니다.`);
-      return new Promise(resolve => {
-        const settle = value => {
-          if (workerCompletionResolver === settle) workerCompletionResolver = null;
-          resolve(value);
-        };
-        workerCompletionResolver = settle;
-        currentWorker.onmessage = async event => {
-          if (event.data?.token !== token
-            || Number(event.data?.projectGeneration ?? taskProjectGeneration) !== projectGeneration
-            || !geometryRevisionTracker.isCurrent(token, task.revision)) {
-            currentWorker.terminate();
-            settle(false);
-            return;
-          }
-          currentWorker.terminate();
-          if (worker === currentWorker) worker = null;
-          if (!event.data?.ok) {
-            console.error('[PL-GPU-003]', event.data?.message || event.data);
-            activateCanvasFallback('동적 지도 메시를 준비하지 못했습니다.');
-            settle(false);
-            return;
-          }
-          const next = event.data.mesh;
+      return patchJobScheduler.rebuild({ token, projectGeneration: taskProjectGeneration, geometryRevision: task.revision, features },
+        () => taskProjectGeneration === projectGeneration && geometryRevisionTracker.isCurrent(token, task.revision)).then(async next => {
+          if (!next) return false;
           let stagedResources, nextMesh;
           try {
             assertPreparedStroke(next, next.countryIds || []);
@@ -2326,9 +2002,9 @@ export function createGpuMapRenderer(deps) {
             stagedResources = await stageMeshResources(nextMesh, { projectGeneration: taskProjectGeneration });
           } catch (error) {
             if (error.name !== 'AbortError') console.error('[PL-GPU-MESH-STAGING]', error);
-            settle(false); return;
+            return false;
           }
-          if (taskProjectGeneration !== projectGeneration || !geometryRevisionTracker.isCurrent(token, task.revision)) { disposeMeshResources(stagedResources); settle(false); return; }
+          if (taskProjectGeneration !== projectGeneration || !geometryRevisionTracker.isCurrent(token, task.revision)) { disposeMeshResources(stagedResources); return false; }
           countryOverrideIds.clear(); overrideFeatureSnapshots.clear(); overrideMesh = null;
           setMesh(nextMesh, next.countryIds || [], { stagedResources, renderFrame: false, quality: 'canonical', preserveOtherVariants: false });
           completeGeometryDisplay(pendingIds, task.revision);
@@ -2337,19 +2013,11 @@ export function createGpuMapRenderer(deps) {
           sceneColorCache.invalidate('project-mesh-ready');
           invalidateGpuFrame('project-mesh-ready');
           updateRendererStatus(`${rendererName()} · GPU 실시간`);
-          settle(true);
-        };
-        currentWorker.onerror = event => {
-          if (Number(taskProjectGeneration) !== projectGeneration
-            || !geometryRevisionTracker.isCurrent(token, task.revision)) {
-            settle(false);
-            return;
-          }
-          console.error('[PL-GPU-004]', event.message || event);
-          activateCanvasFallback('동적 지도 메시 Worker를 사용할 수 없습니다.');
-          settle(false);
-        };
-        currentWorker.postMessage({ token, projectGeneration: taskProjectGeneration, geometryRevision: task.revision, features });
+          return true;
+      }).catch(error => {
+        console.error('[PL-GPU-004]', error);
+        activateCanvasFallback('동적 지도 메시 Worker를 사용할 수 없습니다.');
+        return false;
       });
     }
 
@@ -2609,8 +2277,8 @@ export function createGpuMapRenderer(deps) {
       canvas.style.width = '100%';
       canvas.style.height = '100%';
       resize();
-      if (layoutVerificationFrame) cancelAnimationFrame(layoutVerificationFrame);
-      layoutVerificationFrame = requestAnimationFrame(() => {
+      if (layoutVerificationFrame) lifecycle.cancelFrame(layoutVerificationFrame);
+      layoutVerificationFrame = lifecycle.frame(() => {
         layoutVerificationFrame = 0;
         if (layoutMismatch() <= 0.5) {
           layoutMismatchCount = 0;
@@ -2679,87 +2347,6 @@ export function createGpuMapRenderer(deps) {
       else {
         for (const location of webGl1Locations) if (location >= 0) gl.disableVertexAttribArray(location);
       }
-    }
-
-    function uploadHydroPack(entry, sharedByteBudget = 256 * 1024) {
-      if (!gl || !isWebGlRenderer() || entry.resources) return;
-      const meshData = entry.mesh;
-      if (!entry.uploadState) {
-        entry.uploadState = {
-          resources: {
-            riverSegmentCount: meshData.riverFeatureIds.length,
-            borderRiverSegmentCount: meshData.borderRiverFeatureIds.length,
-            lakeIndexCount: meshData.lakeIndices.length,
-            lakeBoundarySegmentCount: meshData.lakeBoundaryFeatureIds.length,
-          },
-          tasks: [
-            ['riverStartBuffer', meshData.riverStarts, gl.ARRAY_BUFFER, true], ['riverEndBuffer', meshData.riverEnds, gl.ARRAY_BUFFER, true],
-            ['riverFeatureBuffer', meshData.riverFeatureIds, gl.ARRAY_BUFFER, true], ['riverStartWidthBuffer', meshData.riverStartWidths, gl.ARRAY_BUFFER],
-            ['riverEndWidthBuffer', meshData.riverEndWidths, gl.ARRAY_BUFFER], ['borderRiverStartBuffer', meshData.borderRiverStarts, gl.ARRAY_BUFFER, true],
-            ['borderRiverEndBuffer', meshData.borderRiverEnds, gl.ARRAY_BUFFER, true], ['borderRiverFeatureBuffer', meshData.borderRiverFeatureIds, gl.ARRAY_BUFFER, true],
-            ['borderRiverStartWidthBuffer', meshData.borderRiverStartWidths, gl.ARRAY_BUFFER], ['borderRiverEndWidthBuffer', meshData.borderRiverEndWidths, gl.ARRAY_BUFFER],
-            ['lakePositionBuffer', meshData.lakePositions, gl.ARRAY_BUFFER, true], ['lakeFeatureBuffer', meshData.lakeFeatureIds, gl.ARRAY_BUFFER, true],
-            ['lakeIndexBuffer', meshData.lakeIndices, gl.ELEMENT_ARRAY_BUFFER],
-            ['lakeBoundaryStartBuffer', meshData.lakeBoundaryStarts, gl.ARRAY_BUFFER, true], ['lakeBoundaryEndBuffer', meshData.lakeBoundaryEnds, gl.ARRAY_BUFFER, true],
-            ['lakeBoundaryFeatureBuffer', meshData.lakeBoundaryFeatureIds, gl.ARRAY_BUFFER, true], ['lakeBoundaryStartWidthBuffer', meshData.lakeBoundaryWidths, gl.ARRAY_BUFFER],
-            ['lakeBoundaryEndWidthBuffer', meshData.lakeBoundaryWidths, gl.ARRAY_BUFFER],
-          ].map(([key, data, target, webGl1Float]) => ({ key, data, target, webGl1Float, offset: 0, buffer: null })),
-        };
-      }
-      const task = entry.uploadState.tasks[0];
-      if (task) {
-        const convertToFloat = task.webGl1Float && glVersion === 1 && !(task.data instanceof Float32Array);
-        const outputBytes = convertToFloat ? task.data.length * 4 : task.data.byteLength;
-        if (!task.buffer) {
-          task.buffer = gl.createBuffer();
-          gl.bindBuffer(task.target, task.buffer);
-          gl.bufferData(task.target, outputBytes, gl.STATIC_DRAW);
-          entry.uploadState.resources[task.key] = task.buffer;
-          return;
-        } else {
-          gl.bindBuffer(task.target, task.buffer);
-        }
-        const byteBudget = sharedByteBudget;
-        if (convertToFloat) {
-          const start = Math.floor(task.offset / 4);
-          const count = Math.min(task.data.length - start, Math.floor(byteBudget / 4));
-          const chunk = Float32Array.from(task.data.subarray(start, start + count));
-          gl.bufferSubData(task.target, task.offset, chunk);
-          task.offset += chunk.byteLength;
-          performanceMetrics.hydroUploadBytes += chunk.byteLength;
-        } else {
-          const count = Math.min(outputBytes - task.offset, byteBudget);
-          const chunk = new Uint8Array(task.data.buffer, task.data.byteOffset + task.offset, count);
-          gl.bufferSubData(task.target, task.offset, chunk);
-          task.offset += count;
-          performanceMetrics.hydroUploadBytes += count;
-        }
-        if (task.offset >= outputBytes) entry.uploadState.tasks.shift();
-      }
-      if (!entry.uploadState.tasks.length) {
-        entry.resources = entry.uploadState.resources;
-        entry.uploadState = null;
-      }
-    }
-
-    function deleteHydroPackResources(entry) {
-      if (!entry || !gl) return;
-      if (entry.uploadState?.resources) {
-        for (const buffer of Object.values(entry.uploadState.resources)) {
-          if (buffer && gl.isBuffer(buffer)) gl.deleteBuffer(buffer);
-        }
-      }
-      entry.uploadState = null;
-      if (!entry.resources) return;
-      for (const key of [
-        'riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverStartWidthBuffer', 'riverEndWidthBuffer',
-        'borderRiverStartBuffer', 'borderRiverEndBuffer', 'borderRiverFeatureBuffer', 'borderRiverStartWidthBuffer', 'borderRiverEndWidthBuffer',
-        'lakePositionBuffer', 'lakeFeatureBuffer', 'lakeIndexBuffer',
-        'lakeBoundaryStartBuffer', 'lakeBoundaryEndBuffer', 'lakeBoundaryFeatureBuffer', 'lakeBoundaryStartWidthBuffer', 'lakeBoundaryEndWidthBuffer',
-      ]) {
-        if (entry.resources[key]) gl.deleteBuffer(entry.resources[key]);
-      }
-      entry.resources = null;
     }
 
     function hydroLineParts(geometry) {
@@ -2840,11 +2427,10 @@ export function createGpuMapRenderer(deps) {
 
     function setHydroEdits(features = [], revision = 0) {
       const nextRevision = Number(revision || 0);
-      if (nextRevision === hydroEditRevision) return false;
-      for (const entry of hydroEditEntries) deleteHydroPackResources(entry);
-      hydroEditEntries = [];
+      if (nextRevision === hydroPreparation.editRevision) return false;
+      const entries = [];
       hydroEditFeatureByFid.clear();
-      const baseFid = Math.max(0, Number(hydroManifest?.stats?.featureCount || 0));
+      const baseFid = Math.max(0, Number(hydroPreparation.manifest?.stats?.featureCount || 0));
       let nextFid = baseFid;
       const groups = new Map();
       for (const feature of features || []) {
@@ -2859,20 +2445,19 @@ export function createGpuMapRenderer(deps) {
         const meshData = buildHydroEditMesh(group.features, nextFid);
         const entry = { id: `edit:${group.category}:${group.color}`, mesh: meshData, color: group.color, resources: null, uploadQueued: false, lastUsed: performance.now() };
         entry.byteLength = Object.values(meshData).reduce((sum, value) => sum + value.byteLength, 0);
-        hydroEditEntries.push(entry);
+        entries.push(entry);
         nextFid += group.features.length;
-        if (isWebGlRenderer()) scheduleHydroUpload(entry);
       }
-      hydroEditRevision = nextRevision;
+      hydroPreparation.replaceEdits(entries, nextRevision);
       hydroVisibilityDirty = true;
-      if (rendererMode === 'canvas-worker' && canvasWorker) postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroEditRevision, features: features || [] });
+      if (rendererMode === 'canvas-worker' && canvasWorker) postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroPreparation.editRevision, features: features || [] });
       invalidatePhysicalScene('hydro-edit-data');
       return true;
     }
 
     function updateHydroVisibility() {
       if (!gl || !hydroVisibilityTexture || !hydroVisibilityDirty) return;
-      const count = Math.max(1, Number(hydroManifest?.stats?.featureCount || 0) + hydroEditFeatureByFid.size);
+      const count = Math.max(1, Number(hydroPreparation.manifest?.stats?.featureCount || 0) + hydroEditFeatureByFid.size);
       hydroVisibilityWidth = Math.min(4096, Math.max(1, count));
       hydroVisibilityHeight = Math.ceil(count / hydroVisibilityWidth);
       const pixels = new Uint8Array(hydroVisibilityWidth * hydroVisibilityHeight * 4);
@@ -2997,25 +2582,8 @@ export function createGpuMapRenderer(deps) {
       entry.lastUsed = performance.now();
     }
 
-    function scheduleHydroUpload(entry) {
-      if (!entry || entry.resources || entry.uploadQueued || !uploadScheduler) return;
-      entry.uploadQueued = true;
-      const generation = projectGeneration, contextGeneration = renderDeviceContextRevision;
-      void uploadScheduler.enqueueUpload({
-        key: 'hydro:' + (++stagingSequence), projectGeneration: generation, contextGeneration, priority: 40,
-        dispose: () => { entry.uploadQueued = false; deleteHydroPackResources(entry); },
-        step: ({ byteBudget }) => {
-          if (generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale hydro upload'), { name: 'AbortError' });
-          const before = performanceMetrics.hydroUploadBytes;
-          uploadHydroPack(entry, byteBudget);
-          if (entry.resources) { entry.uploadQueued = false; queueHydroRender('hydro-upload-ready'); }
-          return { bytes: performanceMetrics.hydroUploadBytes - before, done: !!entry.resources };
-        },
-      }).catch(error => { if (error.name !== 'AbortError') console.warn('Hydro upload failed', error); });
-    }
-
     function drawHydro(category, picking = false) {
-      if ((!hydroManifest || !hydroActivePackIds.size) && !hydroEditEntries.length) return;
+      if ((!hydroPreparation.manifest || !hydroPreparation.activeIds().length) && !hydroPreparation.editEntries().length) return;
       const theme = mapTheme();
       const isLake = category === 'lake' || category === 'lake-boundary';
       if (state.layerVisibility[isLake ? 'lakes' : 'rivers'] === false) return;
@@ -3023,66 +2591,25 @@ export function createGpuMapRenderer(deps) {
         ? Math.max(0, Math.min(1, Number(isLake ? theme.lakeOpacity : theme.riverOpacity)))
         : 1;
       if (hydroOpacity <= 0 || (category === 'lake-boundary' && theme.lakeBoundaryVisible === false)) return;
-      updateHydroVisibility();
       const program = category === 'river' || category === 'border-river' || category === 'lake-boundary'
         ? (picking ? hydroLinePickProgram : hydroLineProgram)
         : (picking ? hydroPickProgram : hydroFillProgram);
       const rgb = hydroDisplayColor(isLake ? 'lake' : 'river', true);
       const color = [...rgb, hydroOpacity];
-      for (const packId of hydroActivePackIds) {
-        const entry = hydroPacks.get(packId);
+      for (const packId of hydroPreparation.activeIds()) {
+        const entry = hydroPreparation.pack(packId);
         if (entry) drawHydroEntry(program, entry, category, color, picking);
       }
-      for (const entry of picking ? [] : hydroEditEntries) {
+      for (const entry of picking ? [] : hydroPreparation.editEntries()) {
         const editRgb = parseColor(entry.color).map(value => value / 255);
         drawHydroEntry(program, entry, category, [...editRgb, hydroOpacity], picking);
       }
     }
 
-    function requestHydroView(viewState = getRenderViewState()) {
-      if (!hydroWorker || !hydroWorkerReady || !hydroManifest) return;
-      const threshold = hydroVisibilityThreshold();
-      const projection = viewState?.projection || state.projection;
-      const activeProjectionState = projection === 'globe' ? globeProjection : flatProjection;
-      const tileWindow = createHydroTileWindow({
-        manifest: hydroManifest,
-        projection,
-        threshold,
-        width: Number(viewState?.size?.width || state.size.width),
-        height: Number(viewState?.size?.height || state.size.height),
-        scale: Number(viewState?.scale || activeProjectionState.scale()),
-        flatCenter: viewState?.projectionCenter || viewState?.flatCenter || state.view.flatCenter,
-        rotation: viewState?.rotation || state.view.globeRotation,
-      });
-      if (hydroVisibleTileCache.signature !== tileWindow.signature) {
-        const tiles = hydroTileSpecsForWindow(tileWindow);
-        hydroVisibleTileCache = {
-          signature: tileWindow.signature,
-          tiles,
-          key: tiles.map(spec => `${spec.stage}/${spec.x}-${spec.y}`).join('|'),
-          window: tileWindow,
-        };
-        performanceMetrics.hydroTileWindowRecomputeCount += 1;
-      } else {
-        performanceMetrics.hydroTileWindowCacheHitCount += 1;
-      }
-      const { tiles, key } = hydroVisibleTileCache;
-      if (!hydroViewRequests.start(key, hydroRequestRevision + 1)) return;
-      hydroViewRequestedRevision = ++hydroRequestRevision;
-      state.physicalLoadState.hydroView = 'loading';
-      performanceMetrics.hydroViewRequestCount += 1;
-      hydroWorker.postMessage({
-        type: 'view',
-        revision: hydroViewRequestedRevision,
-        tiles,
-        mobile: isMobile(),
-      });
-    }
-
     let hydroRenderFrame = 0;
     function queueHydroRender(reason = 'hydro-ready') {
       if (hydroRenderFrame) return;
-      hydroRenderFrame = requestAnimationFrame(() => {
+      hydroRenderFrame = lifecycle.frame(() => {
         hydroRenderFrame = 0;
         invalidatePhysicalScene(reason);
       });
@@ -3191,271 +2718,24 @@ export function createGpuMapRenderer(deps) {
       if (logicalIds.size) hydroVisibilityDirty = true;
     }
 
-    function loadHydroLogicalFeature(logicalFid) {
-      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
-      const requestId = ++hydroFeatureRequestId;
-      return new Promise((resolve, reject) => {
-        hydroFeatureRequests.set(requestId, { resolve, reject });
-        hydroWorker.postMessage({ type: 'load-feature', requestId, logicalFid });
-      });
+    function hydroViewSnapshot(viewState = getRenderViewState()) {
+      const projection = viewState?.projection || state.projection;
+      const projectionState = projection === 'globe' ? globeProjection : flatProjection;
+      return { projection, threshold: hydroVisibilityThreshold(), width: Number(viewState?.size?.width || state.size.width),
+        height: Number(viewState?.size?.height || state.size.height), scale: Number(viewState?.scale || projectionState.scale()),
+        flatCenter: viewState?.projectionCenter || viewState?.flatCenter || state.view.flatCenter, rotation: viewState?.rotation || state.view.globeRotation };
     }
-
-    function queryHydroLogicalFeatures(bounds, { category = 'river' } = {}) {
-      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
-      const requestId = ++hydroFeatureRequestId;
-      return new Promise((resolve, reject) => {
-        hydroLogicalQueryRequests.set(requestId, { resolve, reject });
-        hydroWorker.postMessage({ type: 'query-logical-features', requestId, bounds, category });
-      });
-    }
-
-    function retryHydroCache() {
-      if (!hydroViewRequests.retryCurrent()) return;
-      hydroWorker?.postMessage({ type: 'retry-cache' });
-      requestHydroView();
-    }
-
-    function receiveHydroWorkerMessage(event) {
-      const message = event.data || {};
-      if (message.type === 'ready') {
-        hydroWorkerReady = true;
-        hydroViewRequests.reset();
-        state.physicalLoadState.hydroWorker = 'ready';
-        if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
-        hydroWorkerReadyTimer = 0;
-        hydroWorkerReadyResolve?.(true);
-        hydroWorkerReadyResolve = null;
-        requestHydroView();
-        return;
-      }
-      if (message.type === 'init-error') {
-        hydroWorkerReady = false;
-        state.physicalLoadState.hydroWorker = 'error';
-        if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
-        hydroWorkerReadyTimer = 0;
-        hydroWorkerReadyResolve?.(false);
-        hydroWorkerReadyResolve = null;
-        hydroWorker?.terminate();
-        hydroWorker = null;
-        console.warn('Hydro worker initialization failed', message.message);
-        return;
-      }
-      if (message.type === 'view-ready') {
-        const revision = Number(message.revision || 0);
-        if (!hydroViewRequests.ready(revision)) return;
-        state.physicalLoadState.hydroView = 'ready';
-        return;
-      }
-      if (message.type === 'view-error') {
-        const revision = Number(message.revision || 0);
-        const phase = hydroViewRequests.fail(revision, message);
-        if (!phase) return;
-        state.physicalLoadState.hydroView = phase === 'retry-wait' ? 'retrying' : 'error';
-        return;
-      }
-      if (message.type === 'active') {
-        if (Number(message.revision || 0) < hydroAcceptedRevision) return;
-        hydroAcceptedRevision = Number(message.revision || hydroAcceptedRevision);
-        hydroActivePackIds = new Set(message.packIds || []);
-        pruneHydroCache();
-        queueHydroRender();
-        return;
-      }
-      if (message.type === 'pack') {
-        if (Number(message.revision || 0) < hydroAcceptedRevision) return;
-        const meshData = message.mesh || {};
-        const features = message.features || [];
-        const descriptors = message.descriptors || [];
-        const entry = {
-          id: Number(message.packId), features, descriptors, resources: null, uploadQueued: false, lastUsed: performance.now(),
-          mesh: {
-            riverStarts: new Int32Array(meshData.riverStarts || 0),
-            riverEnds: new Int32Array(meshData.riverEnds || 0),
-            riverFeatureIds: new Uint32Array(meshData.riverFeatureIds || 0),
-            riverStartWidths: new Float32Array(meshData.riverStartWidths || 0),
-            riverEndWidths: new Float32Array(meshData.riverEndWidths || 0),
-            borderRiverStarts: new Int32Array(meshData.borderRiverStarts || 0),
-            borderRiverEnds: new Int32Array(meshData.borderRiverEnds || 0),
-            borderRiverFeatureIds: new Uint32Array(meshData.borderRiverFeatureIds || 0),
-            borderRiverStartWidths: new Float32Array(meshData.borderRiverStartWidths || 0),
-            borderRiverEndWidths: new Float32Array(meshData.borderRiverEndWidths || 0),
-            lakePositions: new Int32Array(meshData.lakePositions || 0),
-            lakeFeatureIds: new Uint32Array(meshData.lakeFeatureIds || 0),
-            lakeIndices: new Uint32Array(meshData.lakeIndices || 0),
-            lakeBoundaryStarts: new Int32Array(meshData.lakeBoundaryStarts || 0),
-            lakeBoundaryEnds: new Int32Array(meshData.lakeBoundaryEnds || 0),
-            lakeBoundaryFeatureIds: new Uint32Array(meshData.lakeBoundaryFeatureIds || 0),
-            lakeBoundaryWidths: new Float32Array(meshData.lakeBoundaryWidths || 0),
-          },
-        };
-        entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0);
-        hydroPacks.set(entry.id, entry);
-        if (features.length) registerHydroFragments(features);
-        else registerHydroDescriptors(descriptors);
-        if (isWebGlRenderer()) scheduleHydroUpload(entry);
-        pruneHydroCache();
-        return;
-      }
-      if (message.type === 'feature' || message.type === 'feature-error') {
-        const pending = hydroFeatureRequests.get(Number(message.requestId));
-        if (!pending) return;
-        hydroFeatureRequests.delete(Number(message.requestId));
-        if (message.type === 'feature-error') pending.reject(new Error(message.message || '강·호수 전체 형상을 불러오지 못했습니다.'));
-        else pending.resolve(message.feature ? prepareHydroFeature(message.feature) : null);
-        return;
-      }
-      if (message.type === 'logical-features' || message.type === 'logical-features-error') {
-        const pending = hydroLogicalQueryRequests.get(Number(message.requestId));
-        if (!pending) return;
-        hydroLogicalQueryRequests.delete(Number(message.requestId));
-        if (message.type === 'logical-features-error') pending.reject(new Error(message.message || '수계 후보를 찾지 못했습니다.'));
-        else pending.resolve((message.logicalFids || []).map(Number).filter(Number.isFinite));
-        return;
-      }
-      if (message.type === 'cache-progress') {
-        state.physicalLoadState.hydroCache = 'loading';
-        state.physicalLoadState.hydroCachePercent = Number(message.percent || 0);
-        return;
-      }
-      if (message.type === 'cache-complete') {
-        state.physicalLoadState.hydroCache = 'ready';
-        state.physicalLoadState.hydroCachePercent = 100;
-        if (!hydroCacheCompletionNotified) {
-          hydroCacheCompletionNotified = true;
-          setActionStatus('전 세계 강·호수 데이터를 오프라인 저장소에 준비했습니다.', 'success', 3200);
-        }
-        return;
-      }
-      if (message.type === 'cache-unavailable') {
-        state.physicalLoadState.hydroCache = 'unavailable';
-        console.warn('Hydro persistent cache unavailable', message.message);
-        return;
-      }
-      if (message.type === 'error') {
-        console.warn('Hydro tile worker failed', message.message);
-        if (!hydroWorkerReady) {
-          state.physicalLoadState.hydroWorker = 'error';
-          if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
-          hydroWorkerReadyTimer = 0;
-          hydroWorkerReadyResolve?.(false);
-          hydroWorkerReadyResolve = null;
-          hydroWorker?.terminate();
-          hydroWorker = null;
-        } else {
-          reportOperationError(new Error(message.message || ''), '강·호수 처리 중 오류가 발생했습니다. 현재 지도는 계속 사용할 수 있습니다.', 'PL-WATER-003', 4200);
-        }
-      }
-    }
-
-    function pruneHydroCache() {
-      const limit = Math.max(8 * 1024 * 1024, Number(renderQuality.hydroCacheBudgetBytes) || (isMobile() ? 48 : 96) * 1024 * 1024);
-      let total = [...hydroPacks.values()].reduce((sum, entry) => sum + entry.byteLength, 0);
-      if (total <= limit) return;
-      const selectedFeature = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
-      const selectedPacks = new Set(selectedFeature?.properties?.pack_ids || [selectedFeature?.properties?.pack_id].filter(Number.isFinite));
-      const candidates = [...hydroPacks.values()]
-        .filter(entry => !hydroActivePackIds.has(entry.id) && !selectedPacks.has(entry.id))
-        .sort((left, right) => left.lastUsed - right.lastUsed);
-      const released = [];
-      for (const entry of candidates) {
-        if (total <= limit) break;
-        deleteHydroPackResources(entry);
-        hydroPacks.delete(entry.id);
-        unregisterHydroFragments(entry.features);
-        total -= entry.byteLength;
-        released.push(entry.id);
-      }
-      if (released.length) hydroWorker?.postMessage({ type: 'release', packIds: released });
-    }
-
-    function setHydroManifest(nextManifest, sourceUrl) {
-      const normalizedManifest = nextManifest?.stages?.length ? nextManifest : null;
-      const normalizedUrl = sourceUrl ? new URL(sourceUrl) : null;
-      const wantedIncludeGeometry = rendererMode === 'canvas2d';
-      const sameManifest = hydroManifest === normalizedManifest
-        && String(hydroManifestUrl || '') === String(normalizedUrl || '');
-
-      if (sameManifest && hydroWorker && hydroWorkerIncludesGeometry === wantedIncludeGeometry) {
-        connectHydroCanvasWorkers();
-        return hydroWorkerReady ? Promise.resolve(true) : hydroWorkerReadyPromise;
-      }
-
-      hydroManifest = normalizedManifest;
-      hydroManifestUrl = normalizedUrl;
-      hydroWorkerGeneration += 1;
-      const generation = hydroWorkerGeneration;
-      hydroWorker?.terminate();
-      hydroWorker = null;
-      hydroWorkerReady = false;
-      hydroWorkerIncludesGeometry = wantedIncludeGeometry;
-      hydroViewRequestedRevision = 0;
-      hydroViewRequests.reset();
-      hydroVisibleTileCache = { signature: '', tiles: [], key: '', window: null };
-      hydroAcceptedRevision = 0;
-      hydroActivePackIds.clear();
-      hydroVisibilityDirty = true;
-      invalidatePhysicalScene('hydro-manifest');
-      for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
-      hydroPacks.clear();
-      for (const entry of hydroEditEntries) deleteHydroPackResources(entry);
-      hydroEditEntries = [];
-      hydroEditFeatureByFid.clear();
-      hydroEditRevision = -1;
-      setHydroEdits(state.hydroEdits || [], Number(state.stateRevision || 0));
-      for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('강·호수 로더가 다시 시작되었습니다.'));
-      hydroFeatureRequests.clear();
-      for (const pending of hydroLogicalQueryRequests.values()) pending.reject(new Error('강·호수 로더가 다시 시작되었습니다.'));
-      hydroLogicalQueryRequests.clear();
-      state.hydroFragmentsByLogicalId = new Map();
-
-      if (hydroWorkerReadyTimer) clearTimeout(hydroWorkerReadyTimer);
-      hydroWorkerReadyTimer = 0;
-      hydroWorkerReadyResolve?.(false);
-      hydroWorkerReadyResolve = null;
-
-      if (!hydroManifest || !hydroManifestUrl || typeof Worker !== 'function') {
-        hydroWorkerReadyPromise = Promise.resolve(false);
-        return hydroWorkerReadyPromise;
-      }
-
-      state.physicalLoadState.hydroWorker = 'starting';
-      hydroWorkerReadyPromise = new Promise(resolve => { hydroWorkerReadyResolve = resolve; });
-      hydroWorker = new Worker(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'pandolab-hydro-tiles' });
-      hydroWorker.onmessage = event => {
-        if (generation !== hydroWorkerGeneration) return;
-        receiveHydroWorkerMessage(event);
-      };
-      hydroWorker.onerror = event => {
-        if (generation !== hydroWorkerGeneration) return;
-        receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '강·호수 Worker 실행 오류' } });
-      };
-      const hydroRevision = `${DATA_REVISION || ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
-      hydroWorker.postMessage({
-        type: 'init',
-        manifest: hydroManifest,
-        baseUrl: new URL('./', hydroManifestUrl).href,
-        assetRevision: hydroRevision,
-        dataRevision: DATA_REVISION || hydroRevision,
-        includeGeometry: wantedIncludeGeometry,
-      });
-      hydroWorkerReadyTimer = setTimeout(() => {
-        if (generation !== hydroWorkerGeneration || hydroWorkerReady) return;
-        state.physicalLoadState.hydroWorker = 'error';
-        hydroWorker?.terminate();
-        hydroWorker = null;
-        hydroWorkerGeneration += 1;
-        hydroWorkerReadyResolve?.(false);
-        hydroWorkerReadyResolve = null;
-      }, 30000);
-      connectHydroCanvasWorkers();
-      return hydroWorkerReadyPromise;
-    }
+    function requestHydroView(viewState) { return hydroPreparation.requestView(hydroViewSnapshot(viewState)); }
+    function setHydroManifest(manifest, sourceUrl) { return hydroPreparation.setManifest(manifest, sourceUrl); }
+    function loadHydroLogicalFeature(fid) { return hydroPreparation.loadFeature(fid).then(feature => feature ? prepareHydroFeature(feature) : null); }
+    function queryHydroLogicalFeatures(bounds, options) { return hydroPreparation.queryFeatures(bounds, options); }
+    function retryHydroCache() { return hydroPreparation.retry(); }
 
     function setHydroInteractionActive(active) {
       interactionActive = active === true;
-      hydroWorker?.postMessage({ type: 'interaction', active: interactionActive });
+      hydroPreparation.setInteraction(interactionActive);
       if (!interactionActive) {
-        if (terrainUploadQueue.length) scheduleTerrainUpload();
+        terrainPreparation.scheduleUpload();
       }
     }
 
@@ -3494,279 +2774,10 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function terrainLevelForView(frameContext = activeFrameContext) {
-      if (!terrainManifest?.levels?.length) return null;
-      const physicalScale = Number(frameContext?.scale) || Number(activeProjection().scale()) || 1;
-      // The render canvas may lower its DPR under load, but that must not
-      // choose a blurrier source terrain level for an unchanged map view.
-      const renderDpr = Math.max(1, Number(effectivePixelRatio || resolveRenderPixelRatio()));
-      const sourceDpr = Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1)));
-      const desiredWidth = Math.max(1, 2 * PI * (physicalScale / renderDpr) * sourceDpr);
-      return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
-        || terrainManifest.levels[terrainManifest.levels.length - 1];
-    }
-
-    function terrainTileSpec(level, column, row) {
-      const x0 = column * level.tileSize;
-      const y0 = row * level.tileSize;
-      const x1 = Math.min(level.width, x0 + level.tileSize);
-      const y1 = Math.min(level.height, y0 + level.tileSize);
-      return {
-        key: `${level.id}/${column}-${row}`,
-        level: level.id,
-        column,
-        row,
-        pixelWidth: x1 - x0,
-        pixelHeight: y1 - y0,
-        bounds: [
-          -180 + x0 / level.width * 360,
-          90 - y0 / level.height * 180,
-          -180 + x1 / level.width * 360,
-          90 - y1 / level.height * 180,
-        ],
-      };
-    }
-
-    function terrainTileAt(level, longitude, latitude) {
-      if (!level) return null;
-      const x = Math.min(level.width - Number.EPSILON, Math.max(0, (Number(longitude) + 180) / 360 * level.width));
-      const y = Math.min(level.height - Number.EPSILON, Math.max(0, (90 - Number(latitude)) / 180 * level.height));
-      return terrainTileSpec(level, Math.floor(x / level.tileSize), Math.floor(y / level.tileSize));
-    }
-
-    function terrainNeighbourSpecs(level, specs) {
-      const output = [];
-      const seen = new Set(specs.map(spec => spec.key));
-      for (const spec of specs) {
-        for (let row = Math.max(0, spec.row - 1); row <= Math.min(level.rows - 1, spec.row + 1); row += 1) {
-          for (let column = Math.max(0, spec.column - 1); column <= Math.min(level.columns - 1, spec.column + 1); column += 1) {
-            const neighbour = terrainTileSpec(level, column, row);
-            if (seen.has(neighbour.key)) continue;
-            seen.add(neighbour.key);
-            output.push(neighbour);
-          }
-        }
-      }
-      return output;
-    }
-
-    function visibleTerrainTileSpecs(level, includeAll = false, frameContext = activeFrameContext) {
-      const specs = [];
-      const projection = activeProjection();
-      const viewport = frameContext?.viewport || [cssWidth, cssHeight];
-      const scale = Number(frameContext?.scale) || projection.scale();
-      const flatHalfLon = viewport[0] / Math.max(1, scale) * 90 / PI;
-      const flatHalfLat = viewport[1] / Math.max(1, scale) * 90 / PI;
-      const rotation = frameContext?.viewState?.rotation || state.view.globeRotation;
-      const flatCenter = frameContext?.viewState?.projectionCenter || state.view.flatCenter;
-      const globeCenter = [-Number(rotation?.[0] || 0), -Number(rotation?.[1] || 0)];
-      const globeRadius = Math.asin(Math.min(1, Math.hypot(viewport[0], viewport[1]) * 0.5 / Math.max(1, scale)));
-      for (let row = 0; row < level.rows; row += 1) {
-        for (let column = 0; column < level.columns; column += 1) {
-          const spec = terrainTileSpec(level, column, row);
-          if (includeAll) {
-            specs.push(spec);
-            continue;
-          }
-          const [west, north, east, south] = spec.bounds;
-          const center = [(west + east) / 2, (north + south) / 2];
-          const halfLon = (east - west) / 2;
-          const halfLat = (north - south) / 2;
-          const projectionKind = frameContext?.viewState?.projection || state.projection;
-          if (projectionKind === 'flat') {
-            const deltaLon = Math.abs((((center[0] - flatCenter[0]) + 540) % 360) - 180);
-            const deltaLat = Math.abs(center[1] - flatCenter[1]);
-            if (deltaLon <= flatHalfLon + halfLon + 2 && deltaLat <= flatHalfLat + halfLat + 2) specs.push(spec);
-          } else {
-            const padding = Math.hypot(halfLon, halfLat) * PI / 180;
-            if (d3.geo.distance(globeCenter, center) <= globeRadius + padding + 0.04) specs.push(spec);
-          }
-        }
-      }
-      return specs;
-    }
-
-    function terrainTileUrl(spec) {
-      const relative = terrainManifest.urlTemplate
-        .replace('{level}', String(spec.level))
-        .replace('{column}', String(spec.column))
-        .replace('{row}', String(spec.row));
-      const url = new URL(relative, PHYSICAL_DATA_BASE_URL);
-      url.searchParams.set('v', DATA_REVISION || terrainManifest.version || APP_VERSION);
-      return url;
-    }
-
-    function requestTerrainTile(spec, priority = 0) {
-      if (!gl || terrainTiles.has(spec.key) || terrainTileRequests.has(spec.key)
-          || terrainTileQueuedKeys.has(spec.key) || terrainFetchQueuedKeys.has(spec.key)) return;
-      const previousFailure = terrainTileFailures.get(spec.key);
-      if (previousFailure?.retryAt > performance.now()) return;
-      terrainFetchQueuedKeys.add(spec.key);
-      terrainFetchQueue.push({ spec, priority: Number(priority || 0) });
-      terrainFetchQueue.sort((left, right) => right.priority - left.priority || left.spec.key.localeCompare(right.spec.key));
-      pumpTerrainFetchQueue();
-    }
-
-    function pumpTerrainFetchQueue() {
-      const concurrency = isMobile() ? 2 : 4;
-      while (terrainActiveFetches < concurrency && terrainFetchQueue.length) {
-        const next = terrainFetchQueue.shift();
-        terrainFetchQueuedKeys.delete(next.spec.key);
-        startTerrainTileRequest(next.spec, next.priority);
-      }
-    }
-
-    function startTerrainTileRequest(spec, priority = 0) {
-      const previousFailure = terrainTileFailures.get(spec.key);
-      const requestGeneration = projectGeneration;
-      terrainActiveFetches += 1;
-      const request = (async () => {
-        const response = await fetch(terrainTileUrl(spec));
-        if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
-        const blob = await response.blob();
-        let bitmap;
-        try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
-        catch (_) { bitmap = await createImageBitmap(blob); }
-        if (requestGeneration !== projectGeneration) {
-          bitmap.close?.();
-          return;
-        }
-        if (!gl || !isWebGlRenderer()) {
-          bitmap.close?.();
-          return;
-        }
-        terrainTileFailures.delete(spec.key);
-        terrainTileQueuedKeys.add(spec.key);
-        terrainUploadQueue.push({ spec, bitmap });
-        scheduleTerrainUpload();
-      })().catch(error => {
-        const attempts = Number(previousFailure?.attempts || 0) + 1;
-        const retryDelay = attempts <= 3 ? Math.min(4000, 400 * 2 ** (attempts - 1)) : 30000;
-        terrainTileFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay });
-        if (attempts <= 3) {
-          setTimeout(() => {
-            requestTerrainTile(spec, priority);
-          }, retryDelay + 16);
-        }
-        if (terrainRetentionKeys.has(spec.key)) invalidatePhysicalScene('terrain-tile-failed');
-        console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
-      }).finally(() => {
-        if (terrainTileRequests.get(spec.key) === request) terrainTileRequests.delete(spec.key);
-        terrainActiveFetches = Math.max(0, terrainActiveFetches - 1);
-        pumpTerrainFetchQueue();
-      });
-      terrainTileRequests.set(spec.key, request);
-    }
-
-    function uploadTerrainTile(next) {
-      if (!next) return false;
-      const { spec, bitmap } = next;
-      terrainTileQueuedKeys.delete(spec.key);
-      if (!gl || !isWebGlRenderer()) {
-        bitmap.close?.();
-        return false;
-      }
-        const texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
-        bitmap.close?.();
-        const byteLength = Math.max(1, Number(spec.pixelWidth || bitmap.width || 1))
-          * Math.max(1, Number(spec.pixelHeight || bitmap.height || 1)) * 4;
-        terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength });
-        performanceMetrics.terrainUploadCount += 1;
-        let terrainBytes = [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0);
-        const terrainBudget = Math.max(8 * 1024 * 1024, Number(renderQuality.terrainCacheBudgetBytes) || DEFAULT_RENDER_QUALITY.terrainCacheBudgetBytes);
-        while (terrainBytes > terrainBudget) {
-          let oldest = null;
-          for (const item of terrainTiles.entries()) {
-            if (terrainRetentionKeys.has(item[0])) continue;
-            if (!oldest || item[1].lastUsed < oldest[1].lastUsed) oldest = item;
-          }
-          if (!oldest || oldest[0] === spec.key) break;
-          gl.deleteTexture(oldest[1].texture);
-          terrainTiles.delete(oldest[0]);
-          terrainBytes -= Number(oldest[1].byteLength || 0);
-        }
-      return true;
-    }
-
-    function scheduleTerrainUpload() {
-      if (!uploadScheduler || !terrainUploadQueue.length) return;
-      const generation = projectGeneration, contextGeneration = renderDeviceContextRevision;
-      void uploadScheduler.enqueueUpload({
-        key: 'terrain:' + generation + ':' + contextGeneration, projectGeneration: generation, contextGeneration, priority: 40,
-        dispose: () => { for (const item of terrainUploadQueue.splice(0)) item.bitmap.close?.(); },
-        step: () => {
-          if (generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale terrain upload'), { name: 'AbortError' });
-          const next = terrainUploadQueue.shift();
-          const bytes = next ? next.bitmap.width * next.bitmap.height * 4 : 0;
-          const uploaded = next && uploadTerrainTile(next);
-          if (uploaded && next && terrainRetentionKeys.has(next.spec.key)) invalidatePhysicalScene('terrain-tile-ready');
-          return { bytes, done: !terrainUploadQueue.length };
-        },
-      }).catch(error => { if (error.name !== 'AbortError') console.warn('Terrain upload failed', error); });
-    }
-
-    function terrainGridMesh(spec, frameContext = activeFrameContext || lastVisualFrame) {
-      const spanLon = Math.abs(spec.bounds[2] - spec.bounds[0]);
-      const spanLat = Math.abs(spec.bounds[1] - spec.bounds[3]);
-      // Equirectangular terrain is affine inside a tile, so four vertices are
-      // exact. On the globe, tessellate only enough to keep spherical chord
-      // error below roughly one physical pixel. The old fixed 0.499-degree
-      // grid generated hundreds of thousands of triangles for a single
-      // overview tile and saturated mobile GPUs without improving the raster.
-      const globe = Number(frameContext?.mode) === 0;
-      const scale = Math.max(1, Number(frameContext?.scale) || 1);
-      const angularStep = globe
-        ? Math.max(0.75, Math.min(8, Math.sqrt(4 / scale) * 180 / PI))
-        : 360;
-      const stepsX = Math.max(1, Math.ceil(spanLon / angularStep));
-      const stepsY = Math.max(1, Math.ceil(spanLat / angularStep));
-      const key = `${globe ? 'globe' : 'flat'}:${stepsX}x${stepsY}`;
-      if (terrainGridMeshes.has(key)) return terrainGridMeshes.get(key);
-      const vertices = new Float32Array((stepsX + 1) * (stepsY + 1) * 2);
-      let vertexOffset = 0;
-      for (let y = 0; y <= stepsY; y += 1) {
-        for (let x = 0; x <= stepsX; x += 1) {
-          vertices[vertexOffset++] = x / stepsX;
-          vertices[vertexOffset++] = y / stepsY;
-        }
-      }
-      const indices = new Uint32Array(stepsX * stepsY * 6);
-      let indexOffset = 0;
-      for (let y = 0; y < stepsY; y += 1) {
-        for (let x = 0; x < stepsX; x += 1) {
-          const a = y * (stepsX + 1) + x;
-          const b = a + 1;
-          const c = a + stepsX + 1;
-          const d = c + 1;
-          indices[indexOffset++] = a; indices[indexOffset++] = c; indices[indexOffset++] = b;
-          indices[indexOffset++] = b; indices[indexOffset++] = c; indices[indexOffset++] = d;
-        }
-      }
-      const vertexBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-      const indexBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-      const meshEntry = { vertexBuffer, indexBuffer, indexCount: indices.length };
-      terrainGridMeshes.set(key, meshEntry);
-      return meshEntry;
-    }
-
-    function drawTerrainTile(spec, sourceSpec = spec) {
-      const tile = terrainTiles.get(sourceSpec.key);
-      if (!tile || !terrainProgram) return false;
-      tile.lastUsed = performance.now();
+    function drawTerrainTile({ spec, sourceSpec, texture, grid, gutter }) {
+      if (!terrainProgram) return false;
       const frameContext = activeFrameContext || lastVisualFrame;
       if (!frameContext) return false;
-      const grid = terrainGridMesh(spec, frameContext);
       gl.useProgram(terrainProgram);
       const gridLocation = glVersion === 2 ? 0 : cachedAttributeLocation(terrainProgram, 'aGrid');
       gl.bindBuffer(gl.ARRAY_BUFFER, grid.vertexBuffer);
@@ -3774,11 +2785,10 @@ export function createGpuMapRenderer(deps) {
       gl.vertexAttribPointer(gridLocation, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, grid.indexBuffer);
       gl.activeTexture(gl.TEXTURE1);
-      gl.bindTexture(gl.TEXTURE_2D, tile.texture);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform1i(cachedUniformLocation(terrainProgram, 'uTerrain'), 1);
       const [west, north, east, south] = spec.bounds;
       gl.uniform4f(cachedUniformLocation(terrainProgram, 'uGeoBounds'), west, north, east, south);
-      const gutter = Number(terrainManifest.gutter || 0);
       const [sourceWest, sourceNorth, sourceEast, sourceSouth] = sourceSpec.bounds;
       const sourceWidth = sourceSpec.pixelWidth + gutter * 2;
       const sourceHeight = sourceSpec.pixelHeight + gutter * 2;
@@ -3795,58 +2805,6 @@ export function createGpuMapRenderer(deps) {
       }
       gl.disableVertexAttribArray(gridLocation);
       return true;
-    }
-
-    function terrainCandidateLevels(frameContext = activeFrameContext || lastVisualFrame) {
-      if (!frameContext) return [];
-      const levels = terrainManifest.levels;
-      const baseLevel = levels[0];
-      const targetLevel = terrainLevelForView(frameContext) || baseLevel;
-      const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
-      const candidateLevels = levels.slice(0, (state.dataReadiness === 'enhanced' ? targetIndex : 0) + 1).reverse();
-      return candidateLevels.map(level => ({
-        level,
-        specs: visibleTerrainTileSpecs(level, false, frameContext),
-      }));
-    }
-
-    function renderTerrain() {
-      if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return;
-      const frameContext = activeFrameContext || lastVisualFrame;
-      if (!frameContext) return false;
-      const specsByLevel = terrainCandidateLevels(frameContext);
-      const targetSpecs = specsByLevel[0]?.specs || [];
-      const targetLevel = specsByLevel[0]?.level || null;
-      terrainLastLevel = Number(targetLevel?.id ?? -1);
-      terrainTargetTileCount = targetSpecs.length;
-      terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
-      terrainFallbackTileCount = 0;
-      terrainTargetTileKeys = new Set(targetSpecs.map(spec => spec.key));
-      terrainRetentionKeys = new Set(specsByLevel.flatMap(entry => entry.specs.map(spec => spec.key)));
-      if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);
-      for (let index = 0; index < specsByLevel.length; index += 1) {
-        const priority = index === 0 ? 10_000 : 1_000 - index;
-        for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
-      }
-      if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 120);
-      terrainRenderedLevel = -1;
-      for (const spec of targetSpecs) {
-        let sourceSpec = terrainTiles.has(spec.key) ? spec : null;
-        if (!sourceSpec) {
-          const centerLongitude = (spec.bounds[0] + spec.bounds[2]) / 2;
-          const centerLatitude = (spec.bounds[1] + spec.bounds[3]) / 2;
-          for (let index = 1; index < specsByLevel.length; index += 1) {
-            const candidate = terrainTileAt(specsByLevel[index].level, centerLongitude, centerLatitude);
-            if (candidate && terrainTiles.has(candidate.key)) {
-              sourceSpec = candidate;
-              break;
-            }
-          }
-        }
-        if (!sourceSpec || !drawTerrainTile(spec, sourceSpec)) continue;
-        terrainRenderedLevel = terrainRenderedLevel < 0 ? Number(sourceSpec.level) : Math.min(terrainRenderedLevel, Number(sourceSpec.level));
-        if (sourceSpec.key !== spec.key) terrainFallbackTileCount += 1;
-      }
     }
 
     function overlayResourceReady(key) {
@@ -3934,241 +2892,49 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
-    function drawBaseSceneContent() {
-      if (!gl || !mesh || !activeFrameContext || projectRenderBlocked) return false;
-      gl.viewport(0, 0, pixelWidth, pixelHeight);
-      gl.disable(gl.SCISSOR_TEST);
-      gl.colorMask(true, true, true, true);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clearStencil(0);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-      gl.disable(gl.BLEND);
-      const dynamicResources = overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null;
-      const baseTriangleDraw = countryDrawRangesForFrame(mesh, activeFrameContext, { kind: 'triangle' });
-      const baseBoundaryDraw = countryDrawRangesForFrame(mesh, activeFrameContext, { kind: 'boundary' });
-      const overrideTriangleDraw = countryDrawRangesForFrame(overrideMesh, activeFrameContext, { kind: 'triangle' });
-      const overrideBoundaryDraw = countryDrawRangesForFrame(overrideMesh, activeFrameContext, { kind: 'boundary' });
+    let preparedBaseScene = null;
+    function prepareBaseScene() {
+      prepareTerrain(activeFrameContext);
+      preparedBaseScene = prepareGpuBaseScene({ mesh, overrideMesh, frame: activeFrameContext,
+        scene: renderScene, budgetBytes: renderQuality.uploadBudgetBytes }, { polygonOverlayPass, strokeRenderer });
+      const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
+        overlayUploadBytes, deferredOverlayKeys, overrunCount } = preparedBaseScene;
       performanceMetrics.countryBaseIndexCount = baseTriangleDraw.indexCount + overrideTriangleDraw.indexCount;
       performanceMetrics.countryBaseFullIndexCount = baseTriangleDraw.fullIndexCount + overrideTriangleDraw.fullIndexCount;
       performanceMetrics.countryBaseRangeCount = baseTriangleDraw.ranges.length + overrideTriangleDraw.ranges.length;
       performanceMetrics.countryBoundaryIndexCount = baseBoundaryDraw.indexCount + overrideBoundaryDraw.indexCount;
       performanceMetrics.countryBoundaryFullIndexCount = baseBoundaryDraw.fullIndexCount + overrideBoundaryDraw.fullIndexCount;
       performanceMetrics.countryVisibleCount = baseTriangleDraw.visibleCountryCount + overrideTriangleDraw.visibleCountryCount;
-      if (baseTriangleDraw.fallback || baseBoundaryDraw.fallback || (overrideMesh && (overrideTriangleDraw.fallback || overrideBoundaryDraw.fallback))) {
-        performanceMetrics.countryCullingFallbackCount += 1;
-      }
-      if (state.physicalSettings.terrainVisible && state.physicalSettings.terrainStyle !== 'physical') {
-        gl.enable(gl.STENCIL_TEST);
-        gl.stencilMask(0xff);
-        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-        gl.colorMask(false, false, false, false);
-        drawProgram(landMaskProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(landMaskProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
-        gl.colorMask(true, true, true, true);
-        gl.stencilMask(0x00);
-        gl.stencilFunc(gl.EQUAL, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-        renderTerrain();
-        gl.disable(gl.STENCIL_TEST);
-        gl.stencilMask(0xff);
-      } else {
-        renderTerrain();
-      }
-      const overlayItems = [
-        ...(renderScene?.polygons || []).map(packet => ({ kind: 'polygon', packet })),
-        ...(renderScene?.strokes || []).map(packet => ({ kind: 'stroke', packet })),
-      ].sort((left, right) => Number(left.packet.order || 0) - Number(right.packet.order || 0));
-      const uploadBudget = Math.max(64 * 1024, Number(renderQuality.uploadBudgetBytes) || DEFAULT_RENDER_QUALITY.uploadBudgetBytes);
-      let overlayUploadBytes = 0;
-      const deferredOverlayKeys = new Set();
-      const failedOverlayKeys = new Set();
-      const uploadCandidates = overlayItems.filter(item => {
-        const pass = item.kind === 'polygon' ? polygonOverlayPass : strokeRenderer;
-        return !pass.hasResource?.(item.packet.key);
-      }).sort((left, right) => Number(right.packet.protected === true) - Number(left.packet.protected === true)
-        || Number(right.packet.priority || 0) - Number(left.packet.priority || 0)
-        || Number(left.packet.order || 0) - Number(right.packet.order || 0));
-      for (const item of uploadCandidates) {
-        const byteLength = Math.max(0, Number(item.packet.byteLength
-          || item.packet.positions?.byteLength + item.packet.indices?.byteLength
-          || item.packet.startsEnds?.byteLength || 0));
-        const protectedUpload = item.packet.protected === true;
-        if (!protectedUpload && overlayUploadBytes > 0 && overlayUploadBytes + byteLength > uploadBudget) {
-          deferredOverlayKeys.add(String(item.packet.key));
-          continue;
-        }
-        const pass = item.kind === 'polygon' ? polygonOverlayPass : strokeRenderer;
-        const uploaded = pass.ensureResource?.(item.packet)?.resource;
-        if (uploaded) {
-          overlayUploadBytes += Number(uploaded.byteLength || byteLength);
-          if (overlayUploadBytes > uploadBudget) performanceMetrics.uploadBudgetOverrunCount += 1;
-        } else failedOverlayKeys.add(String(item.packet.key));
-      }
-      const overlayRenderedKeys = [];
-      const overlayMissingKeys = [];
-      const drawOverlay = item => {
-        const pass = item.kind === 'polygon' ? polygonOverlayPass : strokeRenderer;
-        if (deferredOverlayKeys.has(String(item.packet.key)) || failedOverlayKeys.has(String(item.packet.key)) || !pass.hasResource?.(item.packet.key)) {
-          overlayMissingKeys.push(String(item.packet.key));
-          return;
-        }
-        const result = item.kind === 'polygon'
-          ? polygonOverlayPass.drawPackets([item.packet], activeFrameContext, { claimTransparent: item.packet.role === 'territorial-fill' })
-          : strokeRenderer.drawBatches([item.packet], activeFrameContext);
-        overlayRenderedKeys.push(...(result?.renderedKeys || []));
-        overlayMissingKeys.push(...(result?.missingKeys || []));
-      };
-      // Front-to-back ownership: each sample receives exactly one territorial
-      // fill, regardless of nesting, alpha, or the number of overlapping units.
-      gl.stencilMask(0xff);
-      gl.clearStencil(0);
-      gl.clear(gl.STENCIL_BUFFER_BIT);
-      gl.enable(gl.STENCIL_TEST);
-      gl.stencilFunc(gl.EQUAL, 0, 0xff);
-      gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
-      const territoryItems = overlayItems.filter(item => item.kind === 'polygon' && item.packet.role === 'territorial-fill')
-        .sort((a, b) => b.packet.territoryDepth - a.packet.territoryDepth || b.packet.order - a.packet.order);
-      for (const item of territoryItems) drawOverlay(item);
-      flushPaletteUpdates();
-      resetGpuNormalBlend(gl);
-      if (state.layerVisibility.countries) {
-        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
-        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
-      }
-      gl.disable(gl.STENCIL_TEST);
-      for (const item of overlayItems) {
-        if (item.kind === 'polygon' && item.packet.role !== 'territorial-fill') drawOverlay(item);
-      }
-      resetGpuNormalBlend(gl);
-      drawHydro('lake');
-      drawHydro('lake-boundary');
-      drawHydro('river');
-      drawHydro('border-river');
-      const countryStrokeResult = drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw);
-      for (const item of overlayItems) if (item.kind === 'stroke') drawOverlay(item);
+      if (baseTriangleDraw.fallback || baseBoundaryDraw.fallback || (overrideMesh && (overrideTriangleDraw.fallback || overrideBoundaryDraw.fallback))) performanceMetrics.countryCullingFallbackCount += 1;
       performanceMetrics.overlayUploadBytes += overlayUploadBytes;
       performanceMetrics.lastOverlayUploadBytes = overlayUploadBytes;
       performanceMetrics.overlayDeferredItemCount = deferredOverlayKeys.size;
+      performanceMetrics.uploadBudgetOverrunCount += overrunCount;
       if (deferredOverlayKeys.size) invalidateGpuFrame('overlay-upload-budget');
+    }
+
+    function drawBaseSceneContent() {
+      if (!gl || !mesh || !activeFrameContext || projectRenderBlocked || !preparedBaseScene) return false;
+      lastBaseSceneResult = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
+        terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
+        countriesVisible: state.layerVisibility.countries,
+        countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
+        prepared: preparedBaseScene,
+      }, { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
       performanceMetrics.baseSceneDrawCount += 1;
       sceneCacheFullDrawCount += 1;
-      lastBaseSceneResult = { overlayRenderedKeys, overlayMissingKeys, countryStrokeResult };
       return lastBaseSceneResult;
     }
 
-    function drawCountryInteractionFills(priority = null) {
-      if (projectRenderBlocked) return;
-
-      performanceMetrics.countryInteractionFullIndexCount = Number(mesh?.triangleIndices?.length || 0) + Number(overrideMesh?.triangleIndices?.length || 0);
-      if (!state.layerVisibility.countries) return;
+    function drawCountryInteractionFills({ base, override }) {
+      resetGpuNormalBlend(gl);
       const dynamicResources = overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null;
-      const emphasizedIds = new Set([
-        ...countryEmphasis.selectedIds,
-        countryEmphasis.primaryId,
-        countryEmphasis.hoverId,
-      ].map(String).filter(id => id && (priority == null || Number(countryEmphasis.priorities[id] || (countryEmphasis.primaryIds.has(id) ? 4 : countryEmphasis.selectedIds.has(id) ? 3 : 2)) === priority)));
-      if (!emphasizedIds.size) return;
-      flushPaletteUpdates();
-      resetGpuNormalBlend(gl);
-      const visibleBaseRanges = [...emphasizedIds]
-        .filter(id => !countryOverrideIds.has(id) && !geometryRevisionTracker.isPending(id) && isCountryVisibleById(id))
-        .flatMap(id => mesh?.triangleRangesByCountryId?.get(id) || []);
-      if (visibleBaseRanges.length) {
-        performanceMetrics.countryInteractionIndexCount += visibleBaseRanges.reduce((sum, range) => sum + Number(range.count || 0), 0);
-        performanceMetrics.countryInteractionRangeCount += visibleBaseRanges.length;
-        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, emphasisPaletteTexture, null, null, visibleBaseRanges);
+      for (const ranges of [base, override]) {
+        performanceMetrics.countryInteractionIndexCount += ranges.reduce((sum, range) => sum + Number(range.count || 0), 0);
+        performanceMetrics.countryInteractionRangeCount += ranges.length;
       }
-      if (overrideMesh?.triangleIndices?.length) {
-        const visibleOverrideRanges = [...emphasizedIds]
-          .filter(id => countryOverrideIds.has(id) && !geometryRevisionTracker.isPending(id) && isCountryVisibleById(id))
-          .flatMap(id => overrideMesh.triangleRangesByCountryId?.get(id) || []);
-        if (visibleOverrideRanges.length) {
-          performanceMetrics.countryInteractionIndexCount += visibleOverrideRanges.reduce((sum, range) => sum + Number(range.count || 0), 0);
-          performanceMetrics.countryInteractionRangeCount += visibleOverrideRanges.length;
-          drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overrideEmphasisPaletteTexture, null, null, visibleOverrideRanges);
-        }
-      }
-    }
-
-    function drawInteractionPasses(viewState) {
-      performanceMetrics.countryInteractionIndexCount = 0;
-      performanceMetrics.countryInteractionRangeCount = 0;
-      const fillTarget = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-      const fillTargetReady = interactionFillCache.beginScene(pixelWidth, pixelHeight, '', projectGeneration);
-      if (fillTargetReady) { gl.colorMask(true, true, true, true); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
-      // One sample, one emphasis. Water is reserved before claiming land.
-      gl.stencilMask(0xff);
-      gl.clearStencil(0);
-      gl.clear(gl.STENCIL_BUFFER_BIT);
-      gl.enable(gl.STENCIL_TEST);
-      const fillResults = [];
-      const previewFillResults = [];
-      const draftFillResults = [];
-      const fillPackets = [...(renderInteractionState.previewPackets || []), ...(renderInteractionState.draftPackets || [])].filter(item => item.kind === 'polygon');
-      // Hand off the entire fill mask atomically. Mixing an SVG winner with a
-      // lower-priority GPU fill would blend the same pixel twice.
-      for (const item of fillPackets) polygonOverlayPass.ensureResource(item.packet);
-      let fillReady = fillTargetReady && (renderInteractionState.genericFillItems || []).every(item => polygonOverlayPass.hasResource(item.key))
-        && fillPackets.every(item => polygonOverlayPass.hasResource(item.packet.key))
-        && [...countryEmphasis.selectedIds, countryEmphasis.primaryId, countryEmphasis.hoverId].filter(Boolean).every(id => !geometryRevisionTracker.isPending(id));
-      if (!fillReady) {
-        fillResults.push({ succeeded: false, renderedKeys: [], missingKeys: (renderInteractionState.genericFillItems || []).map(item => item.key) });
-        for (const [packets, results] of [[renderInteractionState.previewPackets, previewFillResults], [renderInteractionState.draftPackets, draftFillResults]]) {
-          results.push({ succeeded: false, renderedKeys: [], missingKeys: (packets || []).filter(item => item.kind === 'polygon').map(item => item.packet.key) });
-        }
-      }
-      try {
-        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-        gl.colorMask(false, false, false, false);
-        drawHydro('lake'); drawHydro('river'); drawHydro('border-river');
-        gl.colorMask(true, true, true, true);
-        gl.stencilFunc(gl.EQUAL, 0, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
-        for (const priority of fillReady ? [5, 4, 3, 2] : []) {
-          for (const [packets, results] of [[renderInteractionState.previewPackets, previewFillResults], [renderInteractionState.draftPackets, draftFillResults]]) {
-            for (const item of packets || []) if (item.kind === 'polygon' && Number(item.packet.interactionPriority || 5) === priority) {
-              results.push(polygonOverlayPass.drawPackets([item.packet], activeFrameContext));
-            }
-          }
-          drawCountryInteractionFills(priority);
-          fillResults.push(polygonOverlayPass.drawResourceItems(
-            (renderInteractionState.genericFillItems || []).filter(item => Number(item.priority || 2) === priority)
-              .sort((a, b) => Number(a.depth || 0) - Number(b.depth || 0) || String(a.objectKey || a.key).localeCompare(String(b.objectKey || b.key))), activeFrameContext));
-        }
-      } finally {
-        gl.colorMask(true, true, true, true);
-        gl.disable(gl.STENCIL_TEST);
-        gl.stencilMask(0xff);
-      }
-      if (fillTargetReady) {
-        interactionFillCache.finishScene(fillTarget);
-        if (fillReady) fillReady = interactionFillCache.composite(pixelWidth, pixelHeight, { targetFramebuffer: fillTarget, clearTarget: false, blendOver: true });
-      } else gl.bindFramebuffer(gl.FRAMEBUFFER, fillTarget);
-      resetGpuNormalBlend(gl);
-      const genericFillResult = { succeeded: fillReady && fillResults.every(result => result.succeeded),
-        renderedKeys: fillReady ? fillResults.flatMap(result => result.renderedKeys || []) : [],
-        missingKeys: fillResults.flatMap(result => result.missingKeys || []) };
-      lastInteractionFillResult = genericFillResult;
-      lastSelectionRenderResult = selectionPass?.draw?.(viewState, {
-        size: { width: cssWidth, height: cssHeight },
-        dpr: effectivePixelRatio,
-        pixelWidth,
-        pixelHeight,
-      }, { clear: false, frameContext: activeFrameContext }) || null;
-      const drawPackets = packets => (packets || []).filter(item => item.kind !== 'polygon').map(item => (
-        item?.kind === 'polygon'
-          ? polygonOverlayPass.drawPackets([item.packet], activeFrameContext)
-          : strokeRenderer.drawBatches([item.packet], activeFrameContext)
-      ));
-      const fillCoverage = results => fillReady ? results : results.map(result => ({ ...result, succeeded: false,
-        missingKeys: [...(result.missingKeys || []), ...(result.renderedKeys || [])], renderedKeys: [] }));
-      const previewResults = [...fillCoverage(previewFillResults), ...drawPackets(renderInteractionState.previewPackets)];
-      const draftResults = [...fillCoverage(draftFillResults), ...drawPackets(renderInteractionState.draftPackets)];
-      sceneCacheInteractionDrawCount += 1;
-      performanceMetrics.interactionFrameCount += 1;
-      return { fillOwner: fillReady ? 'gpu' : 'svg', genericFillResult, selection: lastSelectionRenderResult, previewResults, draftResults };
+      if (base.length) drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, emphasisPaletteTexture, null, null, base);
+      if (override.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overrideEmphasisPaletteTexture, null, null, override);
     }
 
     function sceneViewSignature(viewState = activeRenderViewState || getRenderViewState()) {
@@ -4241,6 +3007,18 @@ export function createGpuMapRenderer(deps) {
         ? flatSceneReprojection(activeFrameContext)
         : null;
       const needsBaseScene = !exactSceneCacheHit && !reproject;
+      let preparedThisFrame = false;
+      const prepareForSubmission = () => {
+        if (preparedThisFrame) return;
+        prepareBaseScene();
+        preparedThisFrame = true;
+      };
+      // Preparation completes before any base/interaction submission or fallback redraw.
+      flushPaletteUpdates();
+      updateHydroVisibility();
+      prepareGpuInteraction(renderInteractionState, { polygonOverlayPass, strokeRenderer, selectionPass });
+      // Even a cache hit may require a direct redraw when compositing fails.
+      if (needsBaseScene || !preparedBaseScene) prepareForSubmission();
       if (needsBaseScene) {
         if (interactionOnly) sceneCacheSelectionOnlyBaseDrawCount += 1;
         if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
@@ -4304,6 +3082,7 @@ export function createGpuMapRenderer(deps) {
             // Do not expose a transparent failed composite. If there is no
             // usable current-view cache, draw the scene directly as the only
             // safe first-frame fallback.
+            prepareForSubmission();
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             baseResult = drawBaseSceneContent();
           }
@@ -4315,11 +3094,27 @@ export function createGpuMapRenderer(deps) {
         if (sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
           baseResult = lastBaseSceneResult;
         } else {
+          prepareForSubmission();
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
           baseResult = drawBaseSceneContent();
         }
       }
-      const interactionResult = drawInteractionPasses(viewState);
+      const preparedInteraction = prepareGpuInteractionPlan({ interaction: renderInteractionState, emphasis: countryEmphasis,
+        mesh, overrideMesh, overrideIds: countryOverrideIds, countriesVisible: state.layerVisibility.countries,
+        blocked: projectRenderBlocked, isPending: id => geometryRevisionTracker.isPending(id), isVisible: isCountryVisibleById }, polygonOverlayPass);
+      const fillTarget = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+      const fillTargetReady = interactionFillCache.beginScene(pixelWidth, pixelHeight, '', projectGeneration);
+      performanceMetrics.countryInteractionIndexCount = 0;
+      performanceMetrics.countryInteractionRangeCount = 0;
+      performanceMetrics.countryInteractionFullIndexCount = Number(mesh?.triangleIndices?.length || 0) + Number(overrideMesh?.triangleIndices?.length || 0);
+      const interactionResult = drawGpuInteractionPass({ gl, frame: activeFrameContext, viewState,
+        viewport: { size: { width: cssWidth, height: cssHeight }, dpr: effectivePixelRatio, pixelWidth, pixelHeight },
+        fillTarget, fillTargetReady, prepared: preparedInteraction },
+      { fillCache: interactionFillCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryRanges: drawCountryInteractionFills });
+      lastInteractionFillResult = interactionResult.genericFillResult;
+      lastSelectionRenderResult = interactionResult.selection;
+      sceneCacheInteractionDrawCount += 1;
+      performanceMetrics.interactionFrameCount += 1;
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
       frameTimes.push(performance.now() - started);
@@ -4340,7 +3135,7 @@ export function createGpuMapRenderer(deps) {
 
     function renderCanvasHydro(canvasPath, theme, target = ctx2d, reserve = false) {
       const builtIn = [];
-      for (const packId of hydroActivePackIds) builtIn.push(...(hydroPacks.get(packId)?.features || []));
+      for (const packId of hydroPreparation.activeIds()) builtIn.push(...(hydroPreparation.pack(packId)?.features || []));
       const features = [...builtIn, ...(state.hydroEdits || [])];
       target.lineCap = 'round';
       target.lineJoin = 'round';
@@ -4423,7 +3218,7 @@ export function createGpuMapRenderer(deps) {
       for (const packet of canvasInteractionPolygons()) emphasisEntries.push({ key: packet.key, packet,
         priority: packet.interactionPriority || 5, style: packet.style });
       globalThis.PandoLabCanvasSceneComposition.drawEmphasis(ctx2d, canvasPath, emphasisEntries, dpr, {
-        key: [JSON.stringify(getRenderViewState()), physicalStyleStateRevision, hydroAcceptedRevision, hydroEditRevision, [...hydroActivePackIds].join(',')].join(':'),
+        key: [JSON.stringify(getRenderViewState()), physicalStyleStateRevision, hydroPreparation.acceptedRevision, hydroPreparation.editRevision, [...hydroPreparation.activeIds()].join(',')].join(':'),
         draw: mask => renderCanvasHydro(d3.geo.path().projection(activeProjection()).context(mask), theme, mask, true),
       });
       renderCanvasHydro(canvasPath, theme);
@@ -4572,19 +3367,18 @@ export function createGpuMapRenderer(deps) {
       catch (_) { return 0; }
     }
 
-    function postCanvasWorkerMessage(message) {
-      if (!canvasWorker) return false;
+    function recordCanvasWorkerMessage(message) {
       performanceMetrics.canvasWorkerMessageCount += 1;
       performanceMetrics.canvasWorkerMessageBytes += estimateCanvasMessageBytes(message);
       performanceMetrics.canvasWorkerMessagesByType[message.type] = Number(performanceMetrics.canvasWorkerMessagesByType[message.type] || 0) + 1;
       if (message.type === 'view') performanceMetrics.canvasWorkerViewMessageCount += 1;
       else performanceMetrics.canvasWorkerStateMessageCount += 1;
-      canvasWorker.postMessage(message);
-      return true;
     }
 
+    function postCanvasWorkerMessage(message) { return canvasWorker?.postMessage(message) || false; }
+
     function syncCanvasWorkerState() {
-      if (!canvasWorker || !canvasWorkerReady) return;
+      if (!canvasWorker || !canvasWorker.ready) return;
       const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.countries, getSystemTheme(),
         renderScene?.revisions?.geometry, renderScene?.revisions?.style, renderScene?.revisions?.overlayOrder].join(':');
       if (styleSignature !== canvasLastStyleSignature) {
@@ -4602,26 +3396,11 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
-    function postCanvasWorkerFrame(message) {
-      if (!canvasWorker || !canvasWorkerReady) {
-        canvasWorkerPendingMessage = message;
-        return;
-      }
-      canvasWorkerBusy = true;
-      postCanvasWorkerMessage(message);
-    }
-
     function renderCanvasWorker(revision = currentRenderRevision, visualFrame = null) {
       if (!canvasWorker) return;
       if (resizePending) resize();
       syncCanvasWorkerState();
-      const message = canvasWorkerViewMessage(revision, visualFrame);
-      canvasWorkerLatestRequestedRevision = Math.max(canvasWorkerLatestRequestedRevision, message.revision);
-      if (!canvasWorkerReady || canvasWorkerBusy) {
-        canvasWorkerPendingMessage = message;
-        return;
-      }
-      postCanvasWorkerFrame(message);
+      canvasWorker.queueFrame(canvasWorkerViewMessage(revision, visualFrame));
     }
 
     function renderLatestVisualFrame() {
@@ -4629,6 +3408,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function renderFrame(visualFrame, { interactionOnly = false } = {}) {
+      if (disposed) return null;
+      if (canvasWorkerNeedsRestart && !projectRenderBlocked) activateCanvasFallback(fallbackReason);
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('renderFrame() requires a MapVisualFrame.');
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
       lastVisualFrame = visualFrame;
@@ -4659,26 +3440,13 @@ export function createGpuMapRenderer(deps) {
     function prioritizeLatest() {
       if (rendererMode !== 'canvas-worker' || !canvasWorker) return;
       syncCanvasWorkerState();
-      const message = canvasWorkerViewMessage(currentRenderRevision, activeRenderViewState);
-      canvasWorkerLatestRequestedRevision = Math.max(canvasWorkerLatestRequestedRevision, message.revision);
-      if (!canvasWorkerReady || canvasWorkerBusy) {
-        if (!canvasWorkerPendingMessage || canvasWorkerPendingMessage.revision <= message.revision) {
-          canvasWorkerPendingMessage = message;
-        }
-        return;
-      }
-      postCanvasWorkerFrame(message);
+      canvasWorker.queueFrame(canvasWorkerViewMessage(currentRenderRevision, activeRenderViewState));
     }
 
     function failCanvasWorker(message) {
       console.warn('Canvas worker failed', message);
       canvasWorker?.terminate();
       canvasWorker = null;
-      canvasWorkerReady = false;
-      canvasWorkerBusy = false;
-      canvasWorkerPendingMessage = null;
-      for (const pending of canvasHydroPickRequests.values()) pending.resolve(null);
-      canvasHydroPickRequests.clear();
       replaceCanvas();
       rendererMode = 'canvas2d';
       resize();
@@ -4686,7 +3454,7 @@ export function createGpuMapRenderer(deps) {
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
       setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
-      if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
+      if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
       renderCanvasFallback();
       completeGeometryDisplay(
         geometryRevisionTracker.pendingIds(),
@@ -4698,14 +3466,10 @@ export function createGpuMapRenderer(deps) {
     function receiveCanvasWorkerMessage(event) {
       const message = event.data || {};
       if (message.type === 'ready') {
-        canvasWorkerReady = true;
-        postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroEditRevision, features: state.hydroEdits || [] });
+        postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroPreparation.editRevision, features: state.hydroEdits || [] });
         canvasLastStyleSignature = '';
         canvasLastPhysicalStyleSignature = '';
         syncCanvasWorkerState();
-        const pending = canvasWorkerPendingMessage || canvasWorkerViewMessage(currentRenderRevision);
-        canvasWorkerPendingMessage = null;
-        postCanvasWorkerFrame(pending);
         return;
       }
       if (message.type === 'terrain-ready') {
@@ -4734,28 +3498,14 @@ export function createGpuMapRenderer(deps) {
         renderCanvasWorker(Math.max(currentRenderRevision, Number(message.revision || 0)));
         return;
       }
-      if (message.type === 'hydro-pick') {
-        const pending = canvasHydroPickRequests.get(Number(message.requestId));
-        if (pending) {
-          canvasHydroPickRequests.delete(Number(message.requestId));
-          pending.resolve(Number.isFinite(Number(message.fid)) ? state.hydroFeatureByFid.get(Number(message.fid)) || null : null);
-        }
-        return;
-      }
       if (message.type === 'error') {
         failCanvasWorker(message.message || 'Canvas Worker 렌더링 오류');
         return;
       }
       if (message.type !== 'frame') return;
-      canvasWorkerBusy = false;
       const revision = Number(message.revision || 0);
       const geometryRevision = Number(message.geometryRevision || 0);
-      const canDisplay = revision >= canvasWorkerDisplayedRevision
-        && revision >= canvasWorkerLatestRequestedRevision
-        && Number(message.projectGeneration || projectGeneration) === projectGeneration
-        && geometryRevision >= geometryRevisionTracker.committedRevision()
-        && Number(message.styleRevision || 0) === canvasStyleRevision;
-      if (canDisplay && message.bitmap) {
+      if (message.bitmap) {
         if (canvasWorkerBitmapContext) {
           canvasWorkerBitmapContext.transferFromImageBitmap(message.bitmap);
         } else if (canvasWorker2dContext) {
@@ -4764,7 +3514,6 @@ export function createGpuMapRenderer(deps) {
           canvasWorker2dContext.drawImage(message.bitmap, 0, 0, canvas.width, canvas.height);
           message.bitmap.close?.();
         }
-        canvasWorkerDisplayedRevision = revision;
         canvasDisplayedStyleRevision = Number(message.styleRevision || 0);
         displayedRenderRevision = revision;
         framePresentationListener?.({
@@ -4776,26 +3525,20 @@ export function createGpuMapRenderer(deps) {
         });
         completeGeometryDisplay(geometryRevisionTracker.pendingIds(), geometryRevision, { renderFrame: false });
         if (message.terrainComplete === false) performanceMetrics.terrainIncompleteFrameCount += 1;
-      } else {
-        if (message.bitmap) performanceMetrics.canvasWorkerStaleFrameCount += 1;
-        message.bitmap?.close?.();
       }
-      const pending = canvasWorkerPendingMessage;
-      canvasWorkerPendingMessage = null;
-      if (pending) postCanvasWorkerFrame(pending);
     }
 
     function activateCanvasFallback(reason) {
+      if (disposed) return;
+      canvasWorkerNeedsRestart = false;
+      canvasSentGeometry.clear();
       const rawReason = String(reason || '');
       if (rawReason && !isSafeKoreanErrorMessage({ message: rawReason })) console.warn('[PL-GPU-005]', rawReason);
       fallbackReason = isSafeKoreanErrorMessage({ message: rawReason }) ? rawReason : 'GPU 렌더러를 사용할 수 없습니다.';
-      clearTimeout(webglRecoveryTimer);
+      lifecycle.cancelTimeout(webglRecoveryTimer);
       webglContextLost = false;
       canvasWorker?.terminate();
       canvasWorker = null;
-      canvasWorkerReady = false;
-      canvasWorkerBusy = false;
-      canvasWorkerPendingMessage = null;
       if (canvasWorkerUrl) URL.revokeObjectURL(canvasWorkerUrl);
       canvasWorkerUrl = null;
       if (canvas) replaceCanvas();
@@ -4805,23 +3548,23 @@ export function createGpuMapRenderer(deps) {
           resize();
           const canvasRuntimeUrl = runtimeAssetUrl('workers/canvas-render-worker.js');
           canvasRuntimeUrl.searchParams.set('physical', '1');
-          canvasWorker = new Worker(canvasRuntimeUrl, {
-            name: 'pandolab-canvas-renderer',
+          canvasWorker = createGpuCanvasWorker({
+            worker: workerChannels.create(canvasRuntimeUrl, { name: 'pandolab-canvas-renderer' }),
+            generation: projectGeneration, onSend: recordCanvasWorkerMessage,
+            acceptFrame: message => Number(message.geometryRevision || 0) >= geometryRevisionTracker.committedRevision()
+              && Number(message.styleRevision || 0) === canvasStyleRevision,
+            onStale: () => { performanceMetrics.canvasWorkerStaleFrameCount += 1; },
           });
-          canvasWorkerReady = false;
-          canvasWorkerBusy = false;
-          canvasWorkerPendingMessage = canvasWorkerViewMessage(currentRenderRevision);
-          canvasWorkerLatestRequestedRevision = currentRenderRevision;
-          canvasWorkerDisplayedRevision = 0;
+          canvasWorker.queueFrame(canvasWorkerViewMessage(currentRenderRevision));
           canvasWorkerBitmapContext = canvas.getContext('bitmaprenderer');
           if (!canvasWorkerBitmapContext) canvasWorker2dContext = canvas.getContext('2d', { alpha: true });
           if (!canvasWorkerBitmapContext && !canvasWorker2dContext) throw new Error('Canvas 표시 컨텍스트를 만들 수 없습니다.');
           const initMessage = canvasWorkerInitMessage();
           initMessage.features = state.countriesData?.features || [];
-          postCanvasWorkerMessage(initMessage);
           canvasWorker.onmessage = receiveCanvasWorkerMessage;
           canvasWorker.onerror = event => failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
-          if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
+          postCanvasWorkerMessage(initMessage);
+          if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
           else connectHydroCanvasWorkers();
           updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
           setActionStatus(`${meshQualityLabel()} Canvas Worker로 전환했습니다.`, 'working', 4200);
@@ -4839,7 +3582,7 @@ export function createGpuMapRenderer(deps) {
       if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
       setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
-      if (hydroManifest && hydroManifestUrl) setHydroManifest(hydroManifest, hydroManifestUrl);
+      if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
       renderCanvasFallback();
       completeGeometryDisplay(
         geometryRevisionTracker.pendingIds(),
@@ -4851,8 +3594,8 @@ export function createGpuMapRenderer(deps) {
 
     function ensurePickTarget() {
       if (pickFramebuffer && pickTexture) return;
-      pickFramebuffer = gl.createFramebuffer();
-      pickTexture = gl.createTexture();
+      pickFramebuffer = lifecycle.create(gl, 'Framebuffer');
+      pickTexture = lifecycle.create(gl, 'Texture');
       gl.bindTexture(gl.TEXTURE_2D, pickTexture);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -4939,7 +3682,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function pickHydro(screenPoint) {
-      if (!isWebGlRenderer() || !gl || !hydroManifest || !hydroActivePackIds.size || !(state.layerVisibility.rivers || state.layerVisibility.lakes)) return null;
+      if (!isWebGlRenderer() || !gl || !hydroPreparation.manifest || !hydroPreparation.activeIds().length || !(state.layerVisibility.rivers || state.layerVisibility.lakes)) return null;
       resize();
       try { ensurePickTarget(); } catch (_) { return null; }
       pickSceneKey = '';
@@ -4948,6 +3691,7 @@ export function createGpuMapRenderer(deps) {
       gl.disable(gl.BLEND);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
+      updateHydroVisibility();
       drawHydro('lake', true);
       drawHydro('river', true);
       drawHydro('border-river', true);
@@ -4963,21 +3707,13 @@ export function createGpuMapRenderer(deps) {
     }
 
     function pickHydroAsync(screenPoint) {
-      if (rendererMode !== 'canvas-worker' || !canvasWorker || !canvasWorkerReady) return Promise.resolve(null);
-      const requestId = ++canvasHydroPickRequestId;
-      return new Promise(resolve => {
-        canvasHydroPickRequests.set(requestId, { resolve });
-        postCanvasWorkerMessage({ type: 'hydro-pick', requestId, point: screenPoint });
-        setTimeout(() => {
-          const pending = canvasHydroPickRequests.get(requestId);
-          if (!pending) return;
-          canvasHydroPickRequests.delete(requestId);
-          pending.resolve(null);
-        }, 900);
-      });
+      if (rendererMode !== 'canvas-worker' || !canvasWorker) return Promise.resolve(null);
+      return canvasWorker.pick(screenPoint).then(fid => fid != null && Number.isFinite(Number(fid))
+        ? state.hydroFeatureByFid.get(Number(fid)) || null : null);
     }
 
     async function initialize() {
+      if (disposed) return false;
       if (forcedRenderer === 'canvas') {
         activateCanvasFallback('강제 Canvas 테스트');
         return false;
@@ -4998,6 +3734,7 @@ export function createGpuMapRenderer(deps) {
           }
           if (!previewAllowed || canonicalMeshReady) throw new Error('canonical mesh unavailable after startup preview');
           if (!decoded) decoded = await decodeBuiltInMesh();
+          if (disposed) return false;
           setMesh(decoded.mesh, decoded.ids, { quality: 'preview', preserveOtherVariants: false });
           meshQuality = 'preview';
           canonicalMeshReady = false;
@@ -5017,7 +3754,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     async function replaceBuiltInMesh({ meshBuffer, preparedStroke, spatialBlocks, features, onStaged = null, quality = 'canonical', builtinIdentity = null, projectGeneration: requestedGeneration = projectGeneration }) {
-      if (Number(requestedGeneration) !== projectGeneration) return false;
+      if (disposed || Number(requestedGeneration) !== projectGeneration) return false;
       const decoded = await decodeBuiltInMesh(meshBuffer, features, preparedStroke);
       decoded.mesh.spatialBlocks = spatialBlocks;
       if (quality === 'canonical' && builtinIdentity) rememberBuiltinMesh(decoded.mesh, decoded.ids, builtinIdentity);
@@ -5031,14 +3768,15 @@ export function createGpuMapRenderer(deps) {
         preserveOtherVariants: quality === 'canonical' && meshVariants.has('preview'),
       });
       meshQuality = quality;
+      if (canvasWorkerNeedsRestart) activateCanvasFallback(fallbackReason);
       if (rendererMode === 'canvas-worker' && canvasWorker) {
         await new Promise(resolve => {
-          const timeout = setTimeout(() => {
+          const timeout = lifecycle.timeout(() => {
             if (canvasDataReplacementResolver === complete) canvasDataReplacementResolver = null;
             resolve();
           }, 3000);
           const complete = () => {
-            clearTimeout(timeout);
+            lifecycle.cancelTimeout(timeout);
             resolve();
           };
           canvasDataReplacementResolver = complete;
@@ -5067,6 +3805,7 @@ export function createGpuMapRenderer(deps) {
           onStaged?.();
           invalidateGpuFrame('canonical-staging-ready');
         });
+        await flushDeferredCountryPatches();
       } else if (quality === 'canonical') promoteCanonicalMesh({ frameId: currentRenderRevision });
       return decoded;
     }
@@ -5273,10 +4012,7 @@ export function createGpuMapRenderer(deps) {
 
     function setTerrainManifest(manifest) {
       terrainManifest = manifest?.levels?.length ? manifest : null;
-      terrainLastLevel = -1;
-      if (terrainManifest && isWebGlRenderer()) {
-        for (const spec of visibleTerrainTileSpecs(terrainManifest.levels[0], false)) requestTerrainTile(spec, 10_000);
-      }
+      terrainPreparation.setManifest(terrainManifest);
       invalidatePhysicalScene('terrain-manifest');
     }
 
@@ -5294,10 +4030,7 @@ export function createGpuMapRenderer(deps) {
       target.paletteRebuildCount = performanceMetrics.paletteRebuildCount;
       target.paletteUploadCount = performanceMetrics.paletteUploadCount;
       target.paletteUploadBytes = performanceMetrics.paletteUploadBytes;
-      target.hydroViewRequestCount = performanceMetrics.hydroViewRequestCount;
-      target.hydroTileWindowCacheHitCount = performanceMetrics.hydroTileWindowCacheHitCount;
-      target.hydroTileWindowRecomputeCount = performanceMetrics.hydroTileWindowRecomputeCount;
-      target.hydroTileWindowSignature = hydroVisibleTileCache.signature;
+      Object.assign(target, hydroPreparation.metrics());
       target.canvasWorkerMessageCount = performanceMetrics.canvasWorkerMessageCount;
       target.canvasWorkerMessageBytes = performanceMetrics.canvasWorkerMessageBytes;
       target.countryBaseIndexCount = performanceMetrics.countryBaseIndexCount;
@@ -5433,40 +4166,63 @@ export function createGpuMapRenderer(deps) {
         } : null,
         geometryRenderTaskToken: geometryRevisionTracker.taskToken(),
         patchWorkerJobs: patchJobScheduler.stats(),
-        patchWorkerOutputBytes,
+        patchWorkerOutputBytes: patchJobScheduler.outputBytes(),
         lastGeometryCommitTimings: lastGeometryCommitTimings ? { ...lastGeometryCommitTimings } : null,
-        canvasWorkerBusy,
+        canvasWorkerBusy: !!canvasWorker?.busy,
         canvasStyleRevision, canvasDisplayedStyleRevision,
-        canvasWorkerHasPendingFrame: !!canvasWorkerPendingMessage,
+        canvasWorkerHasPendingFrame: !!canvasWorker?.hasPendingFrame,
         webglContextLost,
         webGlVersion: glVersion || null,
         forcedRenderer: forcedRenderer || null,
         fallbackReason,
-        terrainLevel: terrainLastLevel,
-        terrainRenderedLevel,
-        terrainTargetTileCount,
-        terrainTargetTilesLoaded,
-        terrainTargetTilesSettled: terrainTargetsHaveSettled(),
-        terrainFallbackTileCount,
-        terrainTilesLoaded: terrainTiles.size,
-        terrainCacheBytes: [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0),
-        terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length,
-        terrainFetchConcurrency: isMobile() ? 2 : 4,
+        ...terrainPreparation.stats(),
         hydroFeaturesLoaded: state.hydroFeatureCache?.size || 0,
-        hydroPacksLoaded: hydroPacks.size,
-        hydroPacksActive: hydroActivePackIds.size,
-        hydroEditRevision,
         interactionActive,
         paletteDirty: { ...paletteDirty },
         ...performanceMetrics,
+        ...hydroPreparation.stats(),
         canvasWorkerMessagesByType: { ...performanceMetrics.canvasWorkerMessagesByType },
-        hydroEditBatchCount: hydroEditEntries.length,
-        hydroCacheBytes: [...hydroPacks.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0),
       };
     }
 
+    function releaseGpuContext() {
+      hydroPreparation.resetGpu();
+      terrainPreparation.reset();
+      sceneColorCache.dispose(); interactionFillCache.dispose();
+      polygonOverlayPass.dispose(); strokeRenderer.dispose();
+      lifecycle.releaseContext(gl);
+    }
+
+    function dispose() {
+      if (disposed) return;
+      disposed = true;
+      projectGeneration += 1; renderDeviceContextRevision += 1;
+      pendingCanonicalCommit?.reject(Object.assign(new Error('Renderer disposed'), { name: 'AbortError' }));
+      pendingCanonicalCommit = null;
+      // The rendering domain owns the scheduler; the renderer only cancels its jobs.
+      uploadScheduler?.cancelAll();
+      stopPatchWorkerJobs('renderer-disposed');
+      patchJobScheduler.cancelRebuild();
+      canvasDataReplacementResolver?.(); canvasDataReplacementResolver = null;
+      hydroPreparation.dispose();
+      canvasWorker?.terminate();
+      builtinMeshResourceLoader.dispose();
+      workerChannels.dispose();
+      canvasWorker = null;
+      releaseGpuContext(); terrainPreparation.dispose();
+      // selectionPass is borrowed from rendering-domain; it owns disposal.
+      selectionPass?.handleContextLost?.();
+      lifecycle.dispose();
+      if (canvasWorkerUrl) URL.revokeObjectURL(canvasWorkerUrl);
+      canvasWorkerUrl = null; canvasWorkerBitmapContext = null; canvasWorker2dContext = null;
+      meshVariants.clear();
+      mesh = null; overrideMesh = null; builtinMeshBaseline = null;
+      renderDevice = null; gl = null; ctx2d = null; canvasFillSubstrate = null;
+      rendererMode = 'disposed'; framePresentationListener = null;
+    }
+
     return {
-      attach,
+      dispose, attach,
       initialize, replaceBuiltInMesh, renderFrame, renderInteraction,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, setTerrainManifest,
@@ -5485,7 +4241,13 @@ export function createGpuMapRenderer(deps) {
       getSelectionRenderResult: () => lastSelectionRenderResult,
       getRenderDevice: () => renderDevice,
       getUploadByteBudget: () => renderQuality.uploadBudgetBytes,
-      setUploadScheduler: scheduler => { uploadScheduler = scheduler; strokeRenderer.setUploadScheduler(scheduler); polygonOverlayPass.setUploadScheduler(scheduler); },
+      setUploadScheduler: scheduler => {
+        uploadScheduler?.cancelAll();
+        uploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;
+        strokeRenderer.setUploadScheduler(uploadScheduler);
+        polygonOverlayPass.setUploadScheduler(uploadScheduler);
+        if (gl) hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: uploadScheduler });
+      },
       commitVisualFrame: frame => {
         if (pendingCanonicalCommit?.generation !== projectGeneration || !pendingCanonicalCommit) return;
         const pending = pendingCanonicalCommit; pendingCanonicalCommit = null;

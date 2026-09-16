@@ -1,0 +1,210 @@
+/* Canonical components / map-viewport. */
+
+.map-wrap {
+  min-height: 0;
+  background: var(--map-wrap-bg);
+}
+
+.floating-toolbar {
+  position: absolute;
+  top: var(--ui-map-edge);
+  right: var(--ui-map-edge);
+  z-index: 8;
+}
+
+.map-stage {
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
+  cursor: grab;
+  background: var(--map-stage);
+  isolation: isolate;
+}
+
+.map-base-svg {
+  z-index: 0;
+  pointer-events: none;
+  background: var(--map-stage);
+}
+
+.gpu-map-canvas {
+  z-index: 1;
+  pointer-events: none;
+  background: transparent;
+}
+
+.map-interaction-svg {
+  z-index: 4;
+  background: transparent;
+  pointer-events: none;
+}
+
+.map-svg {
+  z-index: 2;
+  background: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.map-overlay-svg {
+  z-index: 2;
+  background: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.map-top-context-slot > * {
+  pointer-events: auto;
+}
+
+.projection-btn {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  font-weight: var(--ui-weight-strong);
+  box-shadow: none;
+}
+
+.projection-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.projection-btn.active {
+  background: var(--accent-surface);
+  color: var(--accent-text);
+  box-shadow: none;
+}
+
+.projection-btn.active:hover {
+  background: var(--accent-surface-hover);
+  color: var(--accent-text);
+}
+
+.projection-btn > span {
+  display: none;
+}
+
+.map-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 100%;
+}
+
+.map-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 100%;
+}
+
+.map-view-toolbar .icon-btn {
+  flex: 0 0 var(--ui-control-height);
+}
+
+.app-root[data-layout="mobile"] {
+  --mobile-nav-height: calc(var(--ui-mobile-bottom-nav-height) + env(safe-area-inset-bottom));
+  --ui-map-bottom-occupied-height: calc(var(--mobile-nav-height) + var(--ui-shell-statusbar-height));
+}
+
+.app-root[data-layout="mobile"] .map-view-toolbar {
+  display: grid;
+  position: absolute;
+  z-index: 18;
+}
+
+.app-root[data-layout="mobile"] .map-view-toolbar button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: var(--ui-radius-control);
+}
+
+.projection-control {
+  width: calc(var(--ui-control-height) * 2);
+  height: var(--ui-control-height);
+  padding: var(--ui-border-width);
+  gap: 0;
+}
+
+.map-view-toolbar .projection-btn {
+  border-radius: var(--ui-radius-control);
+}
+
+.reset-view-command {
+  font-size: var(--ui-font-body);
+}
+
+.ui-floating-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-toolbar-gap);
+  padding: var(--ui-toolbar-padding);
+}
+
+.ui-context-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-toolbar-gap);
+  padding: var(--ui-toolbar-padding);
+}
+
+.app-root[data-layout="mobile"] .icon-btn {
+  width: var(--ui-touch-height);
+  min-width: var(--ui-touch-height);
+  height: var(--ui-touch-height);
+}
+
+.app-root[data-layout="mobile"] .map-view-toolbar button {
+  width: var(--ui-touch-height);
+  min-width: var(--ui-touch-height);
+  height: var(--ui-touch-height);
+}
+
+.app-root[data-layout="mobile"] .projection-control {
+  height: var(--ui-touch-height);
+  padding: var(--ui-segment-padding);
+}
+
+.app-root[data-layout="mobile"] .map-view-toolbar {
+  width: calc(var(--ui-touch-height) + var(--ui-toolbar-padding) + var(--ui-toolbar-padding) + var(--ui-space-0-5));
+  grid-template-columns: var(--ui-touch-height);
+  grid-template-rows: repeat(3, var(--ui-touch-height));
+  gap: var(--ui-toolbar-gap);
+  padding: var(--ui-toolbar-padding);
+}
+
+.app-root[data-layout="mobile"] .map-view-toolbar .ui-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+}
+
+.app-root[data-layout="mobile"] .ui-floating-toolbar:has(.workspace-surface) {
+  backdrop-filter: none;
+}
+
+.app-root[data-layout="mobile"] .map-view-toolbar {
+  top: auto;
+  left: auto;
+  right: calc(var(--map-safe-right, 0) + var(--ui-popover-screen-edge));
+  bottom: var(--map-view-toolbar-bottom);
+  transform: none;
+}

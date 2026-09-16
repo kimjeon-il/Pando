@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-74a8ac4655d5" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.33.0-build-74a8ac4655d5" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-f05f4984911d" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.33.0-build-f05f4984911d" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -68,7 +68,7 @@
   </svg>
   <div id="bootstrapLoading" class="bootstrap-loading" role="status" aria-live="polite">
     <div class="bootstrap-loading-card">
-      <p id="bootstrapLoadingText">지도를 표시하는 중입니다</p>
+      <p id="bootstrapLoadingText" class="bootstrap-loading-text">지도를 표시하는 중입니다</p>
       <p id="startupProbe" class="startup-probe">잠시만 기다려 주세요</p>
       <div class="ui-progress bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
@@ -80,7 +80,7 @@
         <div class="topbar-file-actions">
           <button id="mobileFileBtn" class="ui-button file-menu-btn topbar-command topbar-text-command" type="button" aria-label="파일 메뉴 열기" aria-haspopup="menu" aria-controls="fileMenu" aria-expanded="false" data-od-id="file-menu-button">파일</button>
           <nav id="fileMenu" class="ui-menu ui-popover ui-floating-surface top-actions ui-scroll-surface ui-menu-surface ui-menu-list ui-command-menu" role="menu" aria-label="파일 메뉴">
-            <button id="newProjectBtn" type="button" class="ui-button btn ghost file-menu-item ui-menu-item" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>새 프로젝트</span></button>
+            <button id="newProjectBtn" type="button" class="ui-button btn ghost file-menu-item ui-menu-item new-project-command" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>새 프로젝트</span></button>
             <button id="openProjectBtn" class="ui-button btn ghost file-menu-item ui-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>프로젝트 불러오기</span></button>
             <input id="projectFileInput" type="file" accept=".gpkg,application/geopackage+sqlite3" hidden />
             <button id="saveProjectBtn" class="ui-button btn file-menu-item ui-menu-item ghost" type="button" role="menuitem" aria-label="프로젝트 저장" data-tooltip="프로젝트 저장"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-save"/></svg><span>프로젝트 저장</span></button>
@@ -90,7 +90,7 @@
             <button id="dataExportBtn" class="ui-button btn ghost file-menu-item ui-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map-export"/></svg><span>GIS 내보내기</span></button>
           </nav>
         </div>
-        <button id="mapDisplayBtn" class="ui-button topbar-command topbar-text-command" type="button" aria-label="보기" aria-controls="mapDisplaySurface" aria-expanded="false">보기</button>
+        <button id="mapDisplayBtn" class="ui-button topbar-command topbar-text-command map-display-command" type="button" aria-label="보기" aria-controls="mapDisplaySurface" aria-expanded="false">보기</button>
         <button id="preferencesBtn" class="ui-button topbar-command topbar-text-command" type="button">설정</button>
         <button id="helpBtn" class="ui-button topbar-command topbar-text-command" type="button" aria-haspopup="dialog" aria-controls="helpModal">도움말</button>
       </div>
@@ -227,7 +227,7 @@
       </aside>
 
       <main class="map-wrap" data-od-id="map-area">
-        <div id="map" tabindex="-1" aria-label="지도 편집 영역" data-od-id="map-stage"></div>
+        <div id="map" tabindex="-1" aria-label="지도 편집 영역" data-od-id="map-stage" class="map-stage"></div>
 
         <div class="map-overlay-layer" aria-label="지도 도구 및 상태">
 
@@ -239,11 +239,11 @@
         </nav>
 
         <div class="ui-toolbar ui-floating-surface ui-floating-toolbar map-command-toolbar floating-toolbar" aria-label="지도 명령">
-          <button id="createMenuBtn" class="ui-button icon-btn" type="button" aria-label="추가" data-tooltip="추가" aria-haspopup="menu" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
+          <button id="createMenuBtn" class="ui-button icon-btn create-menu-command" type="button" aria-label="추가" data-tooltip="추가" aria-haspopup="menu" aria-controls="createMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></button>
           <div class="map-command-search">
-            <button id="objectSearchBtn" class="ui-button icon-btn" type="button" aria-label="검색" data-tooltip="검색" aria-controls="objectSearchSurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg></button>
+            <button id="objectSearchBtn" class="ui-button icon-btn object-search-command" type="button" aria-label="검색" data-tooltip="검색" aria-controls="objectSearchSurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg></button>
           </div>
-          <button id="resetViewBtn" class="ui-button icon-btn" data-tooltip="전체 지도 보기" aria-label="전체 지도 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
+          <button id="resetViewBtn" class="ui-button icon-btn reset-view-command" data-tooltip="전체 지도 보기" aria-label="전체 지도 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
 
 
@@ -301,7 +301,7 @@
           <div id="modeEditingContext" class="mode-editing-context hidden">
             <section id="modeEditingHud" class="ui-floating-surface ui-workflow-shell workflow-map-session mode-task-window" role="region" aria-label="지도 편집 작업">
               <header class="mode-task-window-header">
-                <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">-</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span></div>
+                <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">-</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span><span id="modeTaskStatus" class="mode-task-status" data-task-state="editable">편집 가능</span></div>
                 <div class="mode-task-window-controls"><button id="modeTaskMinimizeBtn" class="mode-task-minimize-btn ui-button icon-btn compact" type="button" aria-label="지도 작업창 최소화" aria-controls="modeTaskWindowContent" aria-expanded="true" data-tooltip="최소화"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button></div>
               </header>
               <div id="modeTaskWindowContent" class="mode-task-window-content">
@@ -324,6 +324,11 @@
                         <span id="territorialReviewDetail"></span>
                       </div>
                       <p id="modeTaskInstruction" class="mode-task-instruction"></p>
+                      <section id="modeTaskTargets" class="mode-task-targets hidden" aria-labelledby="modeTaskTargetsLabel">
+                        <div class="mode-task-targets-heading"><span id="modeTaskTargetsLabel">선택 대상</span><button id="modeTaskTargetsFocusBtn" class="ui-button mode-task-targets-focus" type="button">대상으로 이동</button></div>
+                        <ul id="modeTaskTargetList" class="mode-task-target-list"></ul>
+                      </section>
+                      <p id="modeTaskDisabledReason" class="mode-task-disabled-reason hidden"></p>
                       <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
                     </div>
                   </div>
@@ -394,13 +399,13 @@
         <div id="mapBottomStatus" class="ui-status map-bottom-status" aria-label="지도 상태">
           <div class="status-inner">
             <div id="projectSaveStatus" class="ui-status status-group project-save-status" data-tooltip="저장되지 않은 변경 사항이 있습니다." aria-label="저장되지 않은 변경 사항이 있습니다">
-              <span class="project-save-status-dot" aria-hidden="true"></span><span id="projectSaveStatusText">미저장</span>
+              <span class="project-save-status-dot" aria-hidden="true"></span><span id="projectSaveStatusText" class="project-save-status-text">미저장</span>
             </div>
             <div id="statusView" class="status-group status-view" aria-label="보기 정보">
               <span id="projectionStatus" class="status-item">지구본</span>
             </div>
             <div id="statusSelection" class="status-group status-selection hidden" aria-label="선택 대상">
-              <span id="selectionStatus"></span>
+              <span id="selectionStatus" class="selection-status"></span>
             </div>
           </div>
         </div>
@@ -614,7 +619,7 @@
               <p id="hydroBuiltinHelp" class="editor-help"><span id="hydroSourceValue">Natural Earth 5.0.0 1:10m</span> 기반 내장 강입니다. 직접 수정하려면 복사본을 만드세요.</p>
             </section>
 
-            <section class="editor-section editor-action-section"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button></section>
+            <section class="editor-section editor-action-section"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action hydro-copy-command">복사하여 편집</button></section>
             <details class="ui-disclosure editor-disclosure" hidden>
               <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
@@ -687,7 +692,7 @@
               <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#e87924" style="--swatch: #e87924" aria-label="주황" aria-pressed="false"></button>
               <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#d9468f" style="--swatch: #d9468f" aria-label="분홍" aria-pressed="false"></button>
             </div>
-            <button id="preferencesAccentCustomBtn" type="button" class="ui-button btn ghost ui-color-trigger" data-color-custom aria-expanded="false" aria-controls="preferencesAccentPopover" aria-haspopup="dialog"><span id="preferencesAccentPreview" class="ui-color-preview" aria-hidden="true"></span><span>사용자 지정</span><output id="preferencesAccentValue"></output></button>
+            <button id="preferencesAccentCustomBtn" type="button" class="ui-button btn ghost ui-color-trigger preferences-accent-custom" data-color-custom aria-expanded="false" aria-controls="preferencesAccentPopover" aria-haspopup="dialog"><span id="preferencesAccentPreview" class="ui-color-preview" aria-hidden="true"></span><span>사용자 지정</span><output id="preferencesAccentValue" class="preferences-accent-value"></output></button>
             <input id="preferencesAccentInput" type="color" class="ui-native-color-input" value="#4f8cff" tabindex="-1" aria-hidden="true" />
             <div id="preferencesAccentPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="강조색 사용자 지정"></div>
           </div>
@@ -806,7 +811,7 @@
       </footer>
     </section>
   </div>
-  <div id="gisImportModal" class="ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="gisImportTitle">
+  <div id="gisImportModal" class="ui-dialog hidden gis-import-dialog" role="dialog" aria-modal="true" aria-labelledby="gisImportTitle">
     <div class="ui-dialog-backdrop"></div>
     <section class="ui-dialog-card ui-workflow-shell ui-scroll-surface">
       <header class="ui-dialog-header">
@@ -815,7 +820,7 @@
           <p id="gisStepIndicator" class="gis-mobile-step-indicator" aria-live="polite">1/3 · 데이터 선택</p>
         </div>
       </header>
-      <form id="gisImportForm" onsubmit="return false;">
+      <form id="gisImportForm" onsubmit="return false;" class="gis-import-form">
         <div class="gis-import-content-rail">
           <div id="gisImportProgress" class="gis-import-progress"><div class="ui-progress" aria-hidden="true"><span id="gisImportProgressBar"></span></div><p id="gisImportStatus" class="ui-status gis-import-status" aria-live="polite">선택한 파일을 확인하는 중입니다.</p></div>
           <div id="gisImportError" class="ui-alert hidden" role="alert" aria-live="assertive"></div>
@@ -826,7 +831,7 @@
 <label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="" disabled hidden selected data-placeholder="true">종류를 선택하세요</option><option value="country">국가</option><option value="subunit">하위단위</option><option value="region">지방</option><option value="distribution">분포</option></select></label>
           <p id="gisCompatibilityNotice" class="editor-help hidden" data-gis-step="1">기존 파일의 기타 객체를 호환 모드로 복원합니다.</p>
           <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
-          <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="" disabled hidden selected data-placeholder="true">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">선택한 국가로 영토가 이전됩니다.</small></label>
+          <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden gis-target-country-row" data-gis-step="3"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="" disabled hidden selected data-placeholder="true">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">선택한 국가로 영토가 이전됩니다.</small></label>
           <label id="gisIndependentRegionRow" class="ui-check gis-wide hidden" data-gis-step="3"><input id="gisIndependentRegion" type="checkbox" /><span>국가에 속하지 않는 독립 지방으로 가져오기</span></label>
           <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>상위 단위</span><select id="gisParentUnit"><option value="" disabled hidden selected data-placeholder="true">소속 국가 선택</option></select></label>
           <div class="gis-mapping-summary gis-wide" data-gis-step="2"><strong>자동 인식</strong><p id="gisMappingSummary">속성을 확인하는 중입니다.</p></div>
@@ -839,8 +844,8 @@
             <label id="gisColorFieldRow" class="ui-field field-group"><span>색상 속성</span><select id="gisColorField"></select></label>
             <label class="ui-field field-group"><span>수동 좌표계</span><input id="gisCrsInput" type="text" inputmode="numeric" placeholder="EPSG:4326" /></label>
           </div></details>
-          <div class="ui-field field-group" data-gis-step="2"><span>좌표계</span><output id="gisCrsSummary">감지 중</output></div>
-          <div id="gisImportImpact" class="ui-callout gis-wide" data-gis-step="4"><strong>적용 결과</strong><div id="gisImportImpactSummary"><p>적용할 내용을 계산하기 전입니다.</p></div></div>
+          <div class="ui-field field-group" data-gis-step="2"><span>좌표계</span><output id="gisCrsSummary" class="gis-crs-summary">감지 중</output></div>
+          <div id="gisImportImpact" class="ui-callout gis-wide" data-gis-step="4"><strong>적용 결과</strong><div id="gisImportImpactSummary" class="gis-import-impact-summary"><p>적용할 내용을 계산하기 전입니다.</p></div></div>
           <div id="gisCountryIdentityPanel" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>국가 ID 연결</strong><p class="gis-country-identity-help">연결할 국가를 확인하세요.</p><div id="gisCountryIdentityRows" class="gis-country-identity-rows"></div></div>
           <div id="gisOpenModeRow" class="ui-field field-group gis-wide" data-gis-step="3"><span>적용 방식</span><div id="gisOpenModeControl" class="ui-segmented" role="radiogroup" aria-label="적용 방식"><button class="ui-button ui-segment-option active" type="button" data-gis-open-mode="replace" role="radio" aria-checked="true">새 프로젝트</button><button class="ui-button ui-segment-option" type="button" data-gis-open-mode="merge" role="radio" aria-checked="false">현재 지도에 추가</button></div><select id="gisOpenMode" hidden><option value="replace">새 프로젝트</option><option value="merge">현재 지도에 추가</option></select></div>
           <div id="gisFixedOpenModeNote" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>현재 지도에 추가</strong><p>이 종류는 기존 국가·영역을 기준으로 하므로 현재 프로젝트에 추가됩니다.</p></div>
@@ -858,7 +863,7 @@
       </form>
     </section>
   </div>
-  <div id="gisExportModal" class="ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="gisExportTitle">
+  <div id="gisExportModal" class="ui-dialog hidden gis-export-dialog" role="dialog" aria-modal="true" aria-labelledby="gisExportTitle">
     <div class="ui-dialog-backdrop"></div>
     <section class="ui-dialog-card ui-workflow-shell ui-scroll-surface">
       <header class="ui-dialog-header">
@@ -890,10 +895,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-74a8ac4655d5" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-f05f4984911d" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-74a8ac4655d5" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-f05f4984911d" defer></script>
 </body>
 </html>
