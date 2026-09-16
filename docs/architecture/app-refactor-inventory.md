@@ -64,3 +64,9 @@ The composition root wires selectors and commands into these boundaries, owns st
 - `app.js` reintroduces the raw map-edit Worker execute protocol.
 
 The remaining direct Worker calls in `app.js` are intentionally limited to the country-label anchor and map-audit application facades. GIS country validation is confined to `import-service.js`; political mesh and hydro Worker traffic remains inside the renderer. The debug-only `localStorage.getItem('atlaswright.debug-map')` read is a session preference and is not project persistence.
+
+## Capability port migration
+
+Application owners migrate from flat dependency bags one connector domain at a time. `spatial-data` is the first completed domain: its eight owners receive shared, frozen capability ports from `app-capability-ports.js`, each limited to twelve live reads or explicit commands. An owner never supports flat and grouped dependency names at the same time.
+
+The seven `app-connect-*` modules remain explicit composition adapters during this migration. Their removal is not a completion criterion; each adapter becomes responsible only for selecting the capability ports used by its owners. Writable dependency properties are replaced with named commands, while reads retain live identity through getters.

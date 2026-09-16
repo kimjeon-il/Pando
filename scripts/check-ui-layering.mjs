@@ -1,31 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { UI_BUNDLE_SOURCES, UI_MODAL_SOURCES } from './lib/ui-source-catalog.mjs';
 
 const root = process.cwd();
-const requiredLayeredFiles = Object.freeze([
-  'assets/css/tokens/design-tokens.css',
-  'assets/css/primitives/controls.css',
-  'assets/css/components/surface.css',
-  'assets/css/components/content.css',
-  'assets/css/components/command-row.css',
-  'assets/css/components/workflows.css',
-  'assets/css/layout/surfaces.css',
-  'assets/css/components/topbar.css',
-  'assets/css/components/editor-shell.css',
-  'assets/css/components/selection-toolbar.css',
-  'assets/css/components/panels.css',
-  'assets/css/components/menus.css',
-  'assets/css/components/view-menu.css',
-  'assets/css/components/mobile-sheets.css',
-  'assets/css/components/feedback.css',
-  'assets/css/utilities/accessibility.css',
-]);
+const requiredLayeredFiles = UI_BUNDLE_SOURCES;
 const bootstrapPath = path.join(root, 'assets/js/bootstrap.js');
 const appStylesheetPath = path.join(root, 'assets/css/app.css');
 const bundlePath = path.join(root, 'assets/css/ui.bundle.css');
 const modalBundlePath = path.join(root, 'assets/css/ui-modal.bundle.css');
-const modalSourceFiles = Object.freeze(['assets/css/components/modals.css']);
+const modalSourceFiles = UI_MODAL_SOURCES;
 const indexPath = path.join(root, 'index.html');
 const uiRuntimePath = path.join(root, 'assets/js/modules/ui-runtime.js');
 const componentDocPath = path.join(root, 'docs/architecture/ui-components.md');

@@ -19,16 +19,16 @@ export function createReadinessNotifications() {
   }
 
   function syncStatusBar() {
-    const selectedText = (0, dependencies.$)('selectionStatus')?.textContent?.trim() || '';
-    const showSelection = !!dependencies.state.selected && !!selectedText;
-    const projectionLabel = dependencies.state.projection === 'flat' ? '평면지도' : '지구본';
-    if ((0, dependencies.$)('projectionStatus')) (0, dependencies.$)('projectionStatus').textContent = projectionLabel;
-    (0, dependencies.$)('statusSelection')?.classList.toggle('hidden', !showSelection);
+    const selectedText = (0, dependencies.platform.$)('selectionStatus')?.textContent?.trim() || '';
+    const showSelection = !!dependencies.projectState.state.selected && !!selectedText;
+    const projectionLabel = dependencies.projectState.state.projection === 'flat' ? '평면지도' : '지구본';
+    if ((0, dependencies.platform.$)('projectionStatus')) (0, dependencies.platform.$)('projectionStatus').textContent = projectionLabel;
+    (0, dependencies.platform.$)('statusSelection')?.classList.toggle('hidden', !showSelection);
   }
 
   function clearNotification() {
     clearTimeout(setActionStatus._timer);
-    const notice = (0, dependencies.$)('actionStatus');
+    const notice = (0, dependencies.platform.$)('actionStatus');
     if (!notice) return;
     notice.classList.add('hidden');
     notice.classList.remove('working', 'success', 'error', 'info', 'warning');
@@ -38,11 +38,11 @@ export function createReadinessNotifications() {
   }
 
   function clearErrorNotification() {
-    if ((0, dependencies.$)('actionStatus')?.classList.contains('error')) clearNotification();
+    if ((0, dependencies.platform.$)('actionStatus')?.classList.contains('error')) clearNotification();
   }
 
   function setActionStatus(message, tone = 'success', timeout = 1800, { forceVisible = false } = {}) {
-    const notice = (0, dependencies.$)('actionStatus');
+    const notice = (0, dependencies.platform.$)('actionStatus');
     if (!notice) return;
     const fullMessage = String(message ?? '').replace(/\s+/g, ' ').trim();
     const isTopLevelNotice = tone === 'working' || tone === 'error' || forceVisible;
@@ -51,8 +51,8 @@ export function createReadinessNotifications() {
       clearNotification();
       return;
     }
-    const visibleMessage = (0, dependencies.isMobile)()
-      ? (0, dependencies.compactNotificationMessage)(fullMessage, { tone, maxLength: 22 })
+    const visibleMessage = (0, dependencies.surfaces.isMobile)()
+      ? (0, dependencies.readiness.compactNotificationMessage)(fullMessage, { tone, maxLength: 22 })
       : fullMessage;
     notice.classList.remove('hidden');
     notice.classList.remove('ready', 'working', 'success', 'error', 'info', 'warning');
@@ -73,13 +73,13 @@ export function createReadinessNotifications() {
   }
 
   function syncCanonicalControls(scope = document) {
-    const unavailable = !(0, dependencies.canMutateProject)(dependencies.state.dataReadiness);
+    const unavailable = !(0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness);
     if (!canonicalControlsRegistered || scope !== document) {
       for (const element of scope.querySelectorAll(CANONICAL_CONTROL_SELECTOR)) canonicalControls.add(element);
       canonicalControlsRegistered = true;
     }
-    (0, dependencies.$)('app')?.setAttribute('data-readiness', dependencies.state.dataReadiness);
-    document.body.dataset.mapReadiness = dependencies.state.dataReadiness;
+    (0, dependencies.platform.$)('app')?.setAttribute('data-readiness', dependencies.projectState.state.dataReadiness);
+    document.body.dataset.mapReadiness = dependencies.projectState.state.dataReadiness;
     for (const element of canonicalControls) {
       if (!element.isConnected) { canonicalControls.delete(element); continue; }
       if (canonicalControlReadiness.get(element) === unavailable) continue;
@@ -108,25 +108,25 @@ export function createReadinessNotifications() {
   }
 
   function setDataReadiness(value) {
-    dependencies.state.dataReadiness = Object.values(dependencies.DATA_READINESS).includes(value) ? value : dependencies.DATA_READINESS.PREVIEW;
+    dependencies.projectState.state.dataReadiness = Object.values(dependencies.readiness.DATA_READINESS).includes(value) ? value : dependencies.readiness.DATA_READINESS.PREVIEW;
     syncCanonicalControls();
   }
 
   function applyDataReadinessEvent(event) {
-    setDataReadiness((0, dependencies.transitionDataReadiness)(dependencies.state.dataReadiness, event));
+    setDataReadiness((0, dependencies.readiness.transitionDataReadiness)(dependencies.projectState.state.dataReadiness, event));
   }
 
   function requireCanonicalData() {
-    if ((0, dependencies.canMutateProject)(dependencies.state.dataReadiness)) return true;
-    const message = dependencies.state.dataReadiness === dependencies.DATA_READINESS.ERROR
+    if ((0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness)) return true;
+    const message = dependencies.projectState.state.dataReadiness === dependencies.readiness.DATA_READINESS.ERROR
       ? '편집 데이터를 불러오지 못했습니다. 새로고침하세요.'
-      : `편집 데이터 준비 중 · ${Math.round(dependencies.state.geometryProgress || 0)}%`;
-    setActionStatus(message, dependencies.state.dataReadiness === dependencies.DATA_READINESS.ERROR ? 'error' : 'working', 2600);
+      : `편집 데이터 준비 중 · ${Math.round(dependencies.projectState.state.geometryProgress || 0)}%`;
+    setActionStatus(message, dependencies.projectState.state.dataReadiness === dependencies.readiness.DATA_READINESS.ERROR ? 'error' : 'working', 2600);
     return false;
   }
 
   function blockUnavailableCanonicalAction(event) {
-    if ((0, dependencies.canMutateProject)(dependencies.state.dataReadiness)) return;
+    if ((0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness)) return;
     const target = event.target instanceof window.Element ? event.target.closest(CANONICAL_CONTROL_SELECTOR) : null;
     if (!target || isReadinessIndependentControl(target)) return;
     event.preventDefault();
@@ -152,13 +152,13 @@ export function createReadinessNotifications() {
   }
 
   function createGisImportError(userMessage, {
-    category = dependencies.RELIABILITY_ERROR_CATEGORIES.TRANSACTION,
+    category = dependencies.readiness.RELIABILITY_ERROR_CATEGORIES.TRANSACTION,
     objectIds = [],
     technicalMessage = '',
     cause = null,
     code = 'PL-GIS-001',
   } = {}) {
-    return (0, dependencies.createOperationalError)({
+    return (0, dependencies.readiness.createOperationalError)({
       code,
       category,
       userMessage,
@@ -178,7 +178,7 @@ export function createReadinessNotifications() {
       objectIds,
       rollback,
     }, error);
-    dependencies.reliabilityDiagnostic.push({
+    dependencies.readiness.reliabilityDiagnostic.push({
       category: error?.category || 'gis',
       operation: error?.operationType || 'gis-import',
       objectIds,
@@ -195,7 +195,7 @@ export function createReadinessNotifications() {
   }
 
   function showFatalError(error) {
-    if ((0, dependencies.isAbortError)(error)) return;
+    if ((0, dependencies.readiness.isAbortError)(error)) return;
     console.error('[PL-RUNTIME-001]', error);
     const message = isSafeKoreanErrorMessage(error)
       ? String(error.message).trim()
@@ -212,8 +212,8 @@ export function createReadinessNotifications() {
   }
 
   function handleUnexpectedRuntimeError(error) {
-    if ((0, dependencies.isAbortError)(error)) return;
-    if (!dependencies.runtimeReady) {
+    if ((0, dependencies.readiness.isAbortError)(error)) return;
+    if (!dependencies.readiness.runtimeReady) {
       showFatalError(error);
       return;
     }
@@ -259,7 +259,7 @@ export function createReadinessNotifications() {
 
     window.addEventListener('error', event => {
       const error = event.error || event.message;
-      if ((0, dependencies.isAbortError)(error)) {
+      if ((0, dependencies.readiness.isAbortError)(error)) {
         event.preventDefault();
         return;
       }
@@ -267,7 +267,7 @@ export function createReadinessNotifications() {
     });
 
     window.addEventListener('unhandledrejection', event => {
-      if ((0, dependencies.isAbortError)(event.reason)) {
+      if ((0, dependencies.readiness.isAbortError)(event.reason)) {
         event.preventDefault();
         return;
       }

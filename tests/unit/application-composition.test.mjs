@@ -47,8 +47,19 @@ test('all owners construct without DOM access, connect once, and expose every re
     assert.throws(() => owner.connect({}), /already connected/, name);
     const ports = portsByOwner.get(name);
     for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(ports))) {
+      if ('value' in descriptor && descriptor.value && typeof descriptor.value === 'object') {
+        assert.equal(Object.isFrozen(descriptor.value), true, `${name}.${key} capability port must be frozen`);
+        assert.ok(Object.keys(descriptor.value).length <= 12, `${name}.${key} capability port is too broad`);
+        for (const [member, memberDescriptor] of Object.entries(Object.getOwnPropertyDescriptors(descriptor.value))) {
+          assert.equal(memberDescriptor.set, undefined, `${name}.${key}.${member} must use an explicit command instead of a setter`);
+          assert.ok(typeof memberDescriptor.get === 'function' || typeof memberDescriptor.value === 'function', `${name}.${key}.${member} must be a live read or command`);
+        }
+        continue;
+      }
       assert.equal(typeof descriptor.get, 'function', `${name}.${key} must remain a live read`);
-      const [, provider, field] = descriptor.get.toString().match(/return ([$\w]+)\.([$\w]+);/) || [];
+      const getterSource = descriptor.get.toString();
+      if (/return async\s/.test(getterSource)) continue;
+      const [, provider, field] = getterSource.match(/return ([$\w]+)\.([$\w]+)(?:\?\.)?/) || [];
       assert.ok(provider && field, `${name}.${key} must explicitly name its provider`);
       if (provider === 'runtime') {
         assert.match(runtimeSource, new RegExp(`\\b${field}\\b`));

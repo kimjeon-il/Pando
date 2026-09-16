@@ -21,14 +21,14 @@ export function createTerritoryComponents() {
   function multiPolygonPlanarArea(multiPolygon) {
     return (multiPolygon || []).reduce((total, polygon) => {
       if (!polygon?.length) return total;
-      const exterior = Math.abs((0, dependencies.ringSignedArea)((0, dependencies.ensureClosedRing)(polygon[0])));
-      const holes = polygon.slice(1).reduce((sum, ring) => sum + Math.abs((0, dependencies.ringSignedArea)((0, dependencies.ensureClosedRing)(ring))), 0);
+      const exterior = Math.abs((0, dependencies.geometryModel.ringSignedArea)((0, dependencies.geometryModel.ensureClosedRing)(polygon[0])));
+      const holes = polygon.slice(1).reduce((sum, ring) => sum + Math.abs((0, dependencies.geometryModel.ringSignedArea)((0, dependencies.geometryModel.ensureClosedRing)(ring))), 0);
       return total + Math.max(0, exterior - holes);
     }, 0);
   }
 
   function territoryComponentContext() {
-    const session = dependencies.state.territorySelectionSession;
+    const session = dependencies.projectState.state.territorySelectionSession;
     if (session?.stage === 'selection' && session.activePhase === 'components') {
       return { selectedKeys: session.selectedComponentKeys, features: session.componentFeatures || [] };
     }
@@ -37,24 +37,24 @@ export function createTerritoryComponents() {
 
   function installComponentIndex(session, result, key) {
     const names = new Map((session.baseSourceFeatures || []).map(feature => [String(feature.id),
-      (0, dependencies.countryName)(feature) || feature.properties?.name || '기준 영역']));
+      (0, dependencies.presentation.countryName)(feature) || feature.properties?.name || '기준 영역']));
     const items = result.items.map(item => ({ ...item, geometry: freezeEditingGeometry(item.geometry),
       countryName: names.get(item.countryId) || '기준 영역',
-      areaKm2: Math.max(0, dependencies.d3.geo.area(item.geometry) * 6371.0088 ** 2),
+      areaKm2: Math.max(0, dependencies.platform.d3.geo.area(item.geometry) * 6371.0088 ** 2),
     }));
     session.componentIndex = { key, items, byKey: new Map(items.map(item => [item.key, item])), river: null };
     return session.componentIndex;
   }
 
   function territoryBaseComponentItems() {
-    return dependencies.state.territorySelectionSession?.componentIndex?.items || [];
+    return dependencies.projectState.state.territorySelectionSession?.componentIndex?.items || [];
   }
 
   function riverBoundaryComposition(baseItems = territoryBaseComponentItems(), { candidates, donorResults } = {}) {
-    return (0, dependencies.composeRiverBoundaryTerritoryComponents)({
+    return (0, dependencies.territorialModel.composeRiverBoundaryTerritoryComponents)({
       components: baseItems,
-      candidates: candidates || dependencies.state.territorySelectionSession?.riverPartitionCandidates || [],
-      donorResults: donorResults || dependencies.state.territorySelectionSession?.riverPartitionDonorResults || [],
+      candidates: candidates || dependencies.projectState.state.territorySelectionSession?.riverPartitionCandidates || [],
+      donorResults: donorResults || dependencies.projectState.state.territorySelectionSession?.riverPartitionDonorResults || [],
     });
   }
 
@@ -64,7 +64,7 @@ export function createTerritoryComponents() {
     const selected = new Set(context.selectedKeys);
     const baseItems = territoryBaseComponentItems(context);
     let items = baseItems;
-    const territorialSession = dependencies.state.territorySelectionSession;
+    const territorialSession = dependencies.projectState.state.territorySelectionSession;
     const usesRiver = territorialSession?.stage === 'selection'
       && territorialSession.activePhase === 'components'
       && territorialSession.useRiverBoundaries;
@@ -88,7 +88,7 @@ export function createTerritoryComponents() {
       ...item, key: String(item.key), geometry: freezeEditingGeometry(item.geometry),
       countryName: baseByComponent.get(item.componentKey)?.countryName || '기준 영역',
       areaKm2: Number.isFinite(item.areaKm2) ? item.areaKm2 : Number.isFinite(item.areaM2)
-        ? item.areaM2 / 1e6 : dependencies.d3.geo.area(item.geometry) * 6371.0088 ** 2,
+        ? item.areaM2 / 1e6 : dependencies.platform.d3.geo.area(item.geometry) * 6371.0088 ** 2,
       usesRiverBoundary: item.partitionKind === 'river',
       riverBoundarySegments: item.riverBoundarySegments || [],
     }));
@@ -96,7 +96,7 @@ export function createTerritoryComponents() {
   }
 
   function selectedTerritoryComponentGeometry() {
-    return dependencies.state.territorySelectionSession?.currentGeometry || null;
+    return dependencies.projectState.state.territorySelectionSession?.currentGeometry || null;
   }
 
   function formatTerritoryArea(areaKm2) {

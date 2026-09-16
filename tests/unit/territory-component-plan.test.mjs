@@ -76,9 +76,12 @@ test('component cache and render packets reuse geometry across hover, selection 
   const current = { stage: 'selection', activePhase: 'components', baseSourceFeatures: [source],
     selectedComponentKeys: [], componentFeatures: [source], useRiverBoundaries: false };
   const api = createTerritoryComponents();
-  api.connect({ state: { territorySelectionSession: current }, countryName: () => '기준',
-    d3: { geo: { area: () => { areas += 1; return 1; } } },
-    composeRiverBoundaryTerritoryComponents });
+  api.connect({
+    projectState: { state: { territorySelectionSession: current } },
+    presentation: { countryName: () => '기준' },
+    platform: { d3: { geo: { area: () => { areas += 1; return 1; } } } },
+    territorialModel: { composeRiverBoundaryTerritoryComponents },
+  });
   api.installComponentIndex(current, await plan.prepare({ features: [source] }), 'source:1');
   const initial = api.territoryComponentItems()[0];
   for (let i = 0; i < 20; i++) {
