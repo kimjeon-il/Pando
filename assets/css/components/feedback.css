@@ -119,8 +119,7 @@
 }
 
 [aria-busy="true"] .ui-skeleton-block,
-[aria-busy="true"] .layer-skeleton-row > span,
-[aria-busy="true"] .layer-child-skeleton > span {
+[aria-busy="true"] .layer-skeleton-row > span {
   opacity: .72;
 }
 

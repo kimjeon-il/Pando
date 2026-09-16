@@ -28,7 +28,6 @@ const uiSources = Object.freeze([
   'assets/css/components/command-row.css',
   'assets/css/components/workflows.css',
   'assets/css/layout/surfaces.css',
-  'assets/css/features/layer-panel.css',
   'assets/css/components/editor-shell.css',
   'assets/css/components/panels.css',
   'assets/css/components/mobile-sheets.css',
@@ -134,8 +133,8 @@ test('mobile sheet drag stays compositor-only until snap settlement', () => {
 
 test('map chrome avoids live backdrop blur over animated map content', () => {
   assert.doesNotMatch(editorShell, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
-  assert.match(editorShell, /\.topbar[\s\S]*backdrop-filter: none/);
-  assert.match(editorShell, /\[data-layout="wide"\] \.left-panel\s*\{[^}]*backdrop-filter: none/);
+  assert.doesNotMatch(surfaces, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
+  assert.match(read('assets/css/components/selection-toolbar.css'), /\.selection-toolbar\s*\{[^}]*backdrop-filter: none/);
 });
 
 test('canonical startup is input-gated and strictly sequential', () => {

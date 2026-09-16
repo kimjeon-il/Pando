@@ -209,7 +209,7 @@ if (!fs.existsSync(policyDocPath)) {
 
 for (const surface of surfaceContracts) requireSurfaceContract(surface);
 const createTag = openingTagForId('createMenu');
-if (!/role="menu"/.test(createTag) || /workspace-surface|ui-sheet|surface-create/.test(createTag)) failures.push('layer add must be a menu, not a surface');
+if (!/role="menu"/.test(createTag) || !/workspace-surface|ui-sheet|surface-create/.test(createTag)) failures.push('create must reuse the shared surface as a desktop menu and mobile sheet');
 if (!/aria-haspopup="menu"/.test(openingTagForId('createMenuBtn'))) failures.push('layer add trigger must expose menu semantics');
 
 const cssFiles = walkCssFiles(cssRoot);

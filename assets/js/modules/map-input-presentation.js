@@ -87,7 +87,7 @@ export function createMapInputPresentation({
       element: $('map'),
       interactiveTarget: (target, event) => {
         if (getInputSnapshot().projectReplacing) return true;
-        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.map-overlay-layer,.left-panel,.right-panel')) return true;
+        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.map-overlay-layer,.right-panel')) return true;
         if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);
         return getInputSnapshot().tool !== 'move' && !getInputSnapshot().spacePanActive && mapInteractionGate.isPandoTarget(target);

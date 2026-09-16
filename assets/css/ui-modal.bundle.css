@@ -350,58 +350,6 @@ body.modal-open { overflow: hidden; }
 .ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-header,
 .ui-dialog[aria-labelledby="gisExportTitle"] .ui-dialog-header { align-items: center; }
 
-.gis-stepper {
-  display: grid;
-  gap: var(--ui-space-1);
-  margin: 0;
-  padding: var(--ui-space-3) var(--ui-dialog-padding) var(--ui-space-2);
-  list-style: none;
-  border-bottom: 1px solid var(--border);
-}
-
-.gis-stepper--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-.gis-stepper--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-
-.gis-stepper li {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-space-1);
-  min-height: var(--design-control-sm);
-  padding: 0 var(--ui-space-2);
-  border-radius: var(--ui-radius-control);
-  color: var(--muted);
-  font-size: var(--ui-font-sm);
-  font-weight: var(--ui-weight-medium);
-  white-space: nowrap;
-}
-
-.gis-stepper li::before {
-  content: attr(data-step-number);
-  width: 1.125rem;
-  height: 1.125rem;
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 1.125rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 50%;
-  font-size: var(--ui-font-xs);
-}
-
-.gis-stepper li.is-current {
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-  color: var(--text-strong);
-}
-
-.gis-stepper li.is-current::before,
-.gis-stepper li.is-complete::before {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.gis-stepper li.is-complete { color: var(--text-soft); }
-
 .gis-import-content-rail,
 .gis-export-step { min-width: 0; }
 
@@ -441,61 +389,6 @@ body.modal-open { overflow: hidden; }
   border: 0;
   border-radius: 0;
   background: transparent;
-}
-
-.gis-export-format-native {
-  position: absolute;
-  width: .0625rem;
-  height: .0625rem;
-  margin: -.0625rem;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.gis-export-format-list {
-  display: grid;
-  gap: var(--ui-space-1);
-}
-
-.gis-export-format-option {
-  min-height: 3.25rem;
-  display: grid;
-  grid-template-columns: 1.125rem minmax(0, 1fr);
-  gap: var(--ui-space-2);
-  align-items: center;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-control);
-  background: transparent;
-  cursor: pointer;
-}
-
-.gis-export-format-option:hover { background: var(--surface-hover); }
-
-.gis-export-format-option:has(input:checked) {
-  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-}
-
-.gis-export-format-option input { margin: 0; }
-
-.gis-export-format-copy {
-  min-width: 0;
-  display: grid;
-  gap: var(--ui-space-0-5);
-}
-
-.gis-export-format-copy strong {
-  font-size: var(--ui-font-md);
-  font-weight: var(--ui-weight-semibold);
-}
-
-.gis-export-format-copy small {
-  color: var(--muted);
-  font-size: var(--ui-font-sm);
-  line-height: var(--ui-line-normal);
 }
 
 .historical-library-card {
