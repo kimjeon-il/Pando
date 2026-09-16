@@ -16,19 +16,19 @@ Add a semi-automatic `자동 추적` tool for georeferenced reference images. Th
 - Applying uses `__PANDOLAB_REFERENCE_IMAGE_EDITING__` and therefore preserves the existing draft/preview workflow.
 
 ## Image analysis
-Reuse the existing cached reference-image Sobel analysis. Extend the cached field to retain normalized Sobel X/Y components as well as gradient magnitude. Images remain downscaled to a maximum analysis dimension of 1024 px.
+Use a live-wire-specific cached Sobel field so the tracker can retain signed Sobel X/Y components as well as gradient magnitude without changing the existing `선 보강` field contract. The cache is keyed by decoded reference image and analysis size. Images are downscaled to a maximum analysis dimension of 1024 px.
 
 ## Live-wire algorithm
 - Internal coordinates are analysis-image pixels.
 - Initial and subsequent anchors snap to the strongest nearby edge within an 8 px analysis radius.
-- Build a local shortest-path tree with Dijkstra from the active anchor inside a bounded search box (default half-size 384 analysis px).
+- Build a local Dijkstra tree from the active anchor inside a target-aware bounded search box (default margin/search radius 256 analysis px).
 - 8-neighbor graph.
 - Edge traversal cost combines:
   - gradient cost (dominant): prefer stronger edges;
   - direction cost: prefer motion along the local edge tangent;
   - turn cost: discourage zig-zagging;
   - weak cursor corridor bias: prefer paths roughly consistent with the user's intended direction without overriding strong boundaries.
-- Pointer movement only backtracks the already-built parent tree where possible; when the target is outside the current local tree, rebuild around the anchor with a target-aware box/corridor.
+- Pointer movement backtracks the already-built parent tree where possible. The tree is rebuilt when the current target is unreachable or moves materially away from the target for which the tree was built.
 - Return an explicit failure for unusably weak imagery or unreachable targets.
 
 ## Coordinate conversion
@@ -41,10 +41,10 @@ Committed segments are stored separately so anchors are preserved. On finish, si
 Use a dedicated map overlay canvas. Draw committed path, current preview path, and anchor markers. Throttle pointer preview rendering with `requestAnimationFrame()`.
 
 ## Session invalidation
-Cancel the session if the selected reference image changes, the image becomes locked, georeferencing becomes invalid, the panel closes, or another incompatible reference-image interaction starts.
+Cancel the session if the selected reference image changes, the image becomes locked, georeferencing becomes invalid, or the panel closes. Starting the tool is blocked while GCP placement, image placement editing, or `선 보강` is active.
 
 ## Scope
 This version does not include ML segmentation, fully autonomous tracing to an unknown endpoint, Web Worker execution, or new persistent data formats. Only final lon/lat draft coordinates persist.
 
 ## Tests
-Unit tests cover anchor snapping, straight/curved edge tracking, distant-edge avoidance/cursor bias, weak-image failure, direction field generation, undo-safe segment joining, and projection conversion. Browser regression covers ready/locked gating, start/cancel, live preview, segment commit/undo, finish, and apply into the existing draft bridge.
+Unit tests cover direction field generation, anchor snapping, curved edge tracking, target-direction/corridor preference, weak-image failure, segment simplification with anchor preservation, and coordinate conversion. Browser regression covers ready/locked gating, start/cancel, live preview, segment commit/undo, finish, and apply into the existing draft bridge.
