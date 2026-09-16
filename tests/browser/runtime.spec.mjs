@@ -152,7 +152,10 @@ test('annex territory exposes river boundaries as a retained component-selection
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexTerritoryBtn').click();
-  await expect(page.locator('#modeTaskStage')).toHaveText('가져올 국가 선택');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
+  await expect(page.locator('#modeTaskStage')).toHaveText('대상 선택');
+  await expect(page.locator('#annexCountryFlow')).toBeVisible();
+  await expect(page.locator('#modeMethodSwitch')).toBeHidden();
   const donorPoint = await page.evaluate(() => {
     const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL');
     return window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(anchor);
@@ -163,19 +166,23 @@ test('annex territory exposes river boundaries as a retained component-selection
     clientY: mapBox.y + donorPoint[1],
     button: 0,
   });
-  await expect(page.locator('#modePrimaryBtn')).toBeHidden();
-  await expect(page.locator('#modeLineMethodBtn')).toBeEnabled();
-  await page.locator('#modeLineMethodBtn').click();
-
-  await expect(page.locator('#modeMethodSwitch .mode-method-btn')).toHaveCount(2);
-  await expect(page.locator('#modeDirectMethodOptions')).toBeVisible();
-  await expect(page.locator('#modeDirectLineMethodInput')).toBeChecked();
-  await expect(page.locator('#modePolygonMethodBtn')).not.toBeChecked();
-  await page.locator('#modePolygonMethodBtn').check();
-  await expect(page.locator('#modePolygonMethodBtn')).toBeChecked();
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await expect(page.locator('#modePrimaryBtn')).toContainText('다음');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
+  await expect(page.locator('#modeMethodSwitch')).toBeHidden();
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 2단계');
+  await expect(page.locator('#modeTaskStage')).toHaveText('영역 선택');
+  await expect(page.locator('#modeMethodSwitch')).toBeVisible();
+  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  await expect(page.locator('#modeMethodSwitch .mode-direct-method-option')).toHaveCount(3);
+  await expect(page.locator('#modePolygonMethodInput')).not.toBeChecked();
   await expect(page.locator('#modeRiverMethodBtn')).toHaveCount(0);
   await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
-  await page.locator('#modeComponentsMethodBtn').click();
+  await page.locator('#modeComponentsMethodInput').check();
+  await expect(page.locator('#modeComponentsMethodInput')).toBeChecked();
+  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  await expect(page.locator('#modeMethodSwitch')).toBeVisible();
   await expect(page.locator('#modeRiverBoundaryOption')).toBeVisible();
   await expect(page.locator('#modeRiverBoundaryInput')).not.toBeChecked();
   const components = page.locator('.draft-layer path.territory-component');
@@ -184,9 +191,10 @@ test('annex territory exposes river boundaries as a retained component-selection
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
   })));
+  await expect(page.locator('#modePrimaryBtn')).toContainText('다음', { timeout: 120_000 });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
 
-  await page.locator('#modeRiverBoundaryInput').check();
+  await page.locator('#modeRiverBoundaryOption').click();
   await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await expect(page.locator('#modeTaskInstruction')).toContainText('준비하는 중');
@@ -196,32 +204,72 @@ test('annex territory exposes river boundaries as a retained component-selection
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
   })));
-  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
-  await page.locator('#modeLineMethodBtn').click();
-  await expect(page.locator('#modeDirectLineMethodInput')).toBeChecked();
-  await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
-  await page.locator('#modeComponentsMethodBtn').click();
-  await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
-  await expect(components.first()).toBeVisible({ timeout: 120_000 });
-  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
-  await page.locator('#modeRiverBoundaryInput').uncheck();
+  await page.locator('#modeRiverBoundaryOption').click();
+  await expect(page.locator('#modeRiverBoundaryInput')).not.toBeChecked();
   await expect(page.locator('#modeTaskInstruction')).toContainText('가져올 영토 조각');
   await page.waitForTimeout(500);
   await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
   })));
-  await page.evaluate(() => document.activeElement?.blur());
-  await page.keyboard.press('Enter');
-  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 120_000 });
-  await page.keyboard.press('Enter');
+  await expect(page.locator('#modePrimaryBtn')).toContainText('다음', { timeout: 120_000 });
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 3단계');
+  await expect(page.locator('#modeTaskStage')).toHaveText('결과 확인');
+  await expect(page.locator('#modeMethodSwitch')).toBeHidden();
+  await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
+  await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (1)');
+  await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeActionBar')).toBeHidden({ timeout: 120_000 });
   await expect(page.locator('#actionStatus')).toContainText('영토 조각');
   expect(errors).toEqual([]);
 });
 
+test('annex archives a component and starts the next method without losing the combined selection', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page, { url: '/?debug=1' });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#annexTerritoryBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
+  const donorPoint = await page.evaluate(() => {
+    const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL');
+    return window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(anchor);
+  });
+  const mapBox = await page.locator('#map').boundingBox();
+  await page.locator('#map .map-svg').dispatchEvent('click', {
+    clientX: mapBox.x + donorPoint[0], clientY: mapBox.y + donorPoint[1], button: 0,
+  });
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await page.locator('#modePrimaryBtn').click();
+  await page.locator('#modeComponentsMethodInput').check();
+  const components = page.locator('.draft-layer path.territory-component');
+  await expect(components.first()).toBeVisible();
+  await components.first().evaluate(element => element.dispatchEvent(new element.ownerDocument.defaultView.MouseEvent('click', {
+    bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
+  })));
+  await expect(page.locator('#modePrimaryBtn')).toContainText('다음', { timeout: 120_000 });
+  await expect(page.locator('#multiDrawnAddBtn')).toBeEnabled();
+  await page.locator('#multiDrawnAddBtn').click();
+  await expect(page.locator('#modeMethodSwitch')).toBeVisible();
+  await expect(page.locator('#modeDirectLineMethodInput')).not.toBeChecked();
+  await expect(page.locator('#modePolygonMethodInput')).not.toBeChecked();
+  await expect(page.locator('#modeComponentsMethodInput')).not.toBeChecked();
+  await expect(page.locator('#multiDrawnCount')).toHaveText('영역 1개');
+  await expect(page.locator('#multiDrawnAddBtn')).toBeDisabled();
+  await expect(page.locator('#multiDrawnUndoBtn')).toBeEnabled();
+  await page.locator('#modePolygonMethodInput').check();
+  await expect(page.locator('#modeDraftActions')).toBeVisible();
+  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  await page.locator('#modeCancelBtn').click();
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#modeActionBar')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
 test('narrow mobile widths keep the editor type scale instead of shrinking text', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  const errors = await openApp(page, { waitForCanonical: false });
+  const errors = await openApp(page);
   for (const width of [360, 320]) {
     await page.setViewportSize({ width, height: 780 });
     await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
@@ -448,8 +496,10 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
-  await page.locator('#modeComponentsMethodBtn').click();
-  await page.locator('#modeRiverBoundaryInput').check();
+  await page.locator('#modeComponentsMethodInput').check();
+  await expect(page.locator('#modeRiverBoundaryOption')).toBeVisible();
+  await page.locator('#modeRiverBoundaryOption').click();
+  await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
   await expect(page.locator('#modeTaskInstruction')).toContainText('준비하는 중');
   await expect.poll(() => manifestRequested).toBe(true);
   // Complete first-time hydro loading after the checkbox request has begun.
@@ -465,13 +515,21 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
       const node = nodes.find(node => Math.abs(node.__data__.areaKm2 - target) < 2);
       node.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true, clientX: -1000, clientY: -1000 }));
     }, area);
-    await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
     await expect(page.locator('.selected-component')).toHaveCount(expectedAreas.indexOf(area) + 1);
   }
+  await expect(page.locator('#modePrimaryBtn')).toContainText('다음', { timeout: 90_000 });
   await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 90_000 });
-  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 3단계');
+  await expect(page.locator('#modeTaskStage')).toHaveText('결과 확인');
   await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (3)');
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 2단계');
+  await expect(page.locator('#modeTaskStage')).toHaveText('영역 선택');
+  await expect(page.locator('#modePrimaryBtn')).toContainText('다음');
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (3)');
+  await page.locator('#modeCancelBtn').click();
+  await page.locator('#modeCancelBtn').click();
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#modeActionBar')).toBeHidden();
   await expect(components).toHaveCount(0);
@@ -487,8 +545,9 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
   });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
-  await page.locator('#modeComponentsMethodBtn').click();
-  await page.locator('#modeRiverBoundaryInput').check();
+  await page.locator('#modeComponentsMethodInput').check();
+  await page.locator('#modeRiverBoundaryOption').click();
+  await expect(page.locator('#modeRiverBoundaryInput')).toBeChecked();
   await expect(page.locator('#modeTaskInstruction')).toContainText('하천으로 나뉜', { timeout: 60_000 });
   await expect.poll(() => components.evaluateAll(nodes => [824, 1087].map(area => nodes.filter(node =>
     Math.abs(node.__data__.areaKm2 - area) < 2).length))).toEqual([1, 1]);
@@ -504,9 +563,7 @@ test('Hungary annex workflow selects three northern Serbia river cells and cance
       node.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true, clientX: -1000, clientY: -1000 }));
     }, area);
   }
-  await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (2)');
-  await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('#modePrimaryBtn')).toContainText('변경 적용', { timeout: 90_000 });
+  await expect(page.locator('#modePrimaryBtn')).toContainText('다음');
   await page.locator('#modeCancelBtn').click();
   await page.locator('#modeCancelBtn').click();
   await expect(components).toHaveCount(0);
@@ -524,17 +581,14 @@ test('wide keeps layers visible while the add popover opens', async ({ page }) =
   expect(errors).toEqual([]);
 });
 
-test('brand frame stays empty and every add action renders a unique icon', async ({ page }) => {
+test('brand is omitted while every add action renders a unique icon', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   await expect(page).toHaveTitle('판도연구소 — 국가와 국경을 만드는 세계지도 편집기');
-  await expect(page.locator('.brand > div:last-child strong')).toHaveText('판도연구소');
-  const brandMark = page.locator('.brand-mark');
-  await expect(brandMark).toBeVisible();
-  expect(await brandMark.evaluate(element => element.childElementCount)).toBe(0);
-  const brandBox = await brandMark.boundingBox();
-  expect(brandBox?.width).toBe(34);
-  expect(brandBox?.height).toBe(34);
+  await expect(page.locator('.topbar .brand, .topbar .brand-mark')).toHaveCount(0);
+  await expect(page.locator('#mobileFileBtn')).toHaveText('파일');
+  await expect(page.locator('#preferencesBtn')).toHaveText('설정');
+  await expect(page.locator('#helpBtn')).toHaveText('도움말');
 
   await page.locator('#createMenuBtn').click();
   const iconHrefs = await page.locator('#createMenu .create-menu-item use').evaluateAll(elements => (
@@ -945,64 +999,81 @@ test('virtualized country deletion honors per-object lock, undo, and autosave re
   expect(errors).toEqual([]);
 });
 
-test('layer folders expose presentation controls while global view settings stay in the map view', async ({ page }) => {
+test('map display controls stay separate from the compact layer list', async ({ page }) => {
   await page.setViewportSize(layouts[0].viewport);
-  const errors = await openApp(page);
-  const categories = page.locator('.layer-category');
-  await expect(categories.locator('.layer-category-title')).toHaveText(['영토·구역', '인문 분포', '지형지물']);
-  await expect(categories.nth(0).locator('.layer-folder-name')).toHaveText(['국가', '권역', '행정구역', '지방']);
-  await expect(categories.nth(1).locator('.layer-folder-name')).toHaveText(['언어', '민족', '종교']);
-  await expect(categories.nth(2).locator('.layer-folder:not([hidden]) .layer-folder-name')).toHaveText(['강', '호수']);
-  await expect(categories.nth(2).locator('.layer-folder[data-layer-group="genericFeatures"]')).toBeHidden();
+  const errors = await openApp(page, { waitForCanonical: false });
+  const layerList = page.locator('#layerSection .layer-list');
+  await expect(layerList).toHaveAttribute('aria-label', '프로젝트 레이어');
+  await expect(layerList.getByRole('button', { name: '정치체', exact: true })).toHaveCount(1);
+  await expect(layerList.getByRole('button', { name: '지형지물', exact: true })).toHaveCount(1);
   await expect(page.locator('#layerSection #terrainVisible')).toHaveCount(0);
-  await expect(categories.locator('.layer-category-title button, .layer-category-title input')).toHaveCount(0);
-  await expect(page.locator('[data-layer-style-toggle="countries"]')).toHaveCount(1);
-  await expect(page.locator('[data-layer-style-toggle="rivers"]')).toHaveCount(1);
-  await expect(page.locator('[data-layer-style-toggle="lakes"]')).toHaveCount(1);
-  await expect(page.locator('[data-layer-style-toggle="labels"], [data-layer-style-toggle="countryLabels"]')).toHaveCount(0);
+  await expect(page.locator('#layerSection [data-map-display-row]')).toHaveCount(0);
+  await expect(page.locator('[data-map-display-row="countries"]')).toHaveCount(1);
+  await expect(page.locator('[data-map-display-row="rivers"]')).toHaveCount(1);
+  await expect(page.locator('[data-map-display-row="lakes"]')).toHaveCount(1);
+  await expect(page.locator('[data-map-display-row="labels"], [data-map-display-row="countryLabels"]')).toHaveCount(0);
   await page.locator('#mapViewTabBtn').click();
-  await expect(page.locator('#mapNameSettingsTitle')).toHaveText('지도 표기');
-  await expect(page.locator('#mapViewSection label:has(#basemapLabelsVisible)')).toContainText('국가명 표시');
+  await expect(page.locator('#mapNameSettingsTitle')).toHaveText('지도 표시');
+  await expect(page.locator('#mapViewSection label:has(#basemapLabelsVisible)')).toContainText('객체명');
   await expect(page.locator('#mapViewSection label:has(#labelsVisible)')).toContainText('지명 표시');
+  await expect(page.locator('.terrain-settings')).toHaveCount(0);
   const terrainVisible = page.locator('#terrainVisible');
   const terrainOptions = page.locator('#terrainDisplayOptions');
-  const terrainStrength = page.locator('#terrainStrengthInput');
+  const terrainDisclosure = page.locator('[data-map-display-row="terrain"]');
   await expect(page.locator('#mapViewSection #terrainVisible')).toHaveCount(1);
   await expect(page.locator('label:has(#terrainVisible)')).toContainText('지형 표시');
   await expect(page.locator('#terrainPoliticalRadio').locator('xpath=..')).toContainText('국가 색상 유지');
   await expect(page.locator('#terrainPhysicalRadio').locator('xpath=..')).toContainText('지형 높낮이 색상');
-  await expect(page.locator('.terrain-strength-heading')).toContainText('입체감');
-  await expect(terrainStrength).toHaveAttribute('aria-label', '지형 입체감');
-  await expect(terrainVisible).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#terrainStrengthControl, #terrainStrengthInput')).toHaveCount(0);
+  expect(await page.locator('#terrainVisible').evaluate(input => input.closest('.map-name-settings') != null)).toBe(true);
+  expect(await page.locator('#countriesVisible, #subunitsVisible, #regionsVisible, #languagesVisible, #ethnicitiesVisible, #religionsVisible, #riversVisible, #lakesVisible')
+    .evaluateAll(inputs => inputs.map(input => input.type))).toEqual(Array.from({ length: 8 }, () => 'checkbox'));
+  await expect(terrainDisclosure).toHaveAttribute('aria-expanded', 'false');
+  await expect(terrainOptions).toBeHidden();
+  await terrainDisclosure.click();
+  await expect(terrainDisclosure).toHaveAttribute('aria-expanded', 'true');
   await expect(terrainOptions).toBeVisible();
-  await expect(terrainStrength).toHaveJSProperty('value', '32');
-  await expect.poll(() => terrainStrength.evaluate(input => getComputedStyle(input).getPropertyValue('--ui-range-progress').trim())).toBe('32%');
-  await terrainStrength.evaluate(input => {
-    input.value = '75';
-    input.dispatchEvent(new input.ownerDocument.defaultView.Event('input', { bubbles: true }));
-  });
-  await expect(page.locator('#terrainStrengthValue')).toHaveText('75%');
-  await expect.poll(() => terrainStrength.evaluate(input => getComputedStyle(input).getPropertyValue('--ui-range-progress').trim())).toBe('75%');
   await terrainVisible.uncheck();
-  await expect(terrainVisible).toHaveAttribute('aria-expanded', 'false');
+  await expect(terrainDisclosure).toBeDisabled();
+  await expect(terrainDisclosure).toHaveAttribute('aria-expanded', 'false');
   await expect(terrainOptions).toBeHidden();
   await terrainVisible.check();
+  await expect(terrainDisclosure).toBeEnabled();
+  await expect(terrainOptions).toBeHidden();
+  await terrainDisclosure.click();
   await expect(terrainOptions).toBeVisible();
-  await expect(page.locator('#terrainStrengthValue')).toHaveText('75%');
   await page.locator('#terrainPhysicalRadio').check();
-  await expect(page.locator('#terrainStrengthControl')).toBeHidden();
   await page.locator('#terrainPoliticalRadio').check();
-  await expect(page.locator('#terrainStrengthControl')).toBeVisible();
+  const countryDisclosure = page.locator('[data-map-display-row="countries"]');
+  const countryOptions = page.locator('#layerStylePanel-countries');
+  await expect(countryDisclosure).toHaveAttribute('aria-expanded', 'false');
+  await expect(countryOptions).toBeHidden();
+  await countryDisclosure.click();
+  await expect(countryDisclosure).toHaveAttribute('aria-expanded', 'true');
+  await expect(countryOptions).toBeVisible();
+  const countryOpacity = page.locator('[data-layer-style-opacity="countries"]');
+  await expect(countryOpacity).toHaveClass(/ui-range-progress/);
+  await countryOpacity.fill('62');
+  await countryOpacity.dispatchEvent('input');
+  await expect(page.locator('[data-layer-style-opacity-value="countries"]')).toHaveText('62%');
+  await expect(countryOpacity).toHaveCSS('--ui-range-progress', '62%');
+  await page.locator('#countriesVisible').uncheck();
+  await expect(countryDisclosure).toBeDisabled();
+  await expect(countryDisclosure).toHaveAttribute('aria-expanded', 'false');
+  await expect(countryOptions).toBeHidden();
+  await page.locator('#countriesVisible').check();
+  await expect(countryDisclosure).toBeEnabled();
+  await expect(countryOptions).toBeHidden();
   for (const layout of layouts.slice(1)) {
     await page.setViewportSize(layout.viewport);
     await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));
     await expect(page.locator('#app')).toHaveAttribute('data-layout', layout.name, { timeout: 30_000 });
     if (!await page.locator('#leftPanel').isVisible()) await page.locator('#mobileMapBtn').click();
     if (!await page.locator('#mapViewSection').isVisible()) await page.locator('#mapViewTabBtn').click();
-    await expect(page.locator('.terrain-settings')).toBeVisible();
+    await expect(page.locator('.map-name-settings')).toBeVisible();
     const overflow = await page.locator('#leftPanel').evaluate(panel => ({
       panel: panel.scrollWidth > panel.clientWidth + 1,
-      settings: panel.querySelector('.terrain-settings').scrollWidth > panel.querySelector('.terrain-settings').clientWidth + 1,
+      settings: panel.querySelector('.map-name-settings').scrollWidth > panel.querySelector('.map-name-settings').clientWidth + 1,
     }));
     expect(overflow).toEqual({ panel: false, settings: false });
   }
@@ -1256,17 +1327,19 @@ test('shared color picker applies presets, restores defaults, and participates i
   await expect(page.locator('#countryColorInput')).toHaveValue('#63758a');
   await page.locator('#countryColorTrigger').click();
   const palette = page.locator('#countryColorPopover');
-  const neutrals = palette.locator('.ui-color-swatch-grid--neutral [data-color-value]');
-  const chromatic = palette.locator('.ui-color-swatch-grid--chromatic [data-color-value]');
+  const swatches = palette.locator('.ui-color-swatch-grid--palette [data-color-value]');
   await expect(palette).toBeVisible();
-  await expect(neutrals).toHaveCount(6);
-  await expect(chromatic).toHaveCount(60);
-  await expect(neutrals.first()).toHaveAttribute('aria-label', '흰색 (#FFFFFF) 색상');
-  await expect(chromatic.first()).toHaveAttribute('aria-label', '빨강 아주 밝음 (#FEE2E2) 색상');
-  expect(await chromatic.evaluateAll(elements => elements.slice(0, 12).map(element => element.dataset.colorFamily))).toEqual([
-    '빨강', '주황', '황금', '노랑', '연두', '초록', '청록', '시안', '파랑', '인디고', '보라', '분홍',
+  await expect(swatches).toHaveCount(65);
+  await expect(swatches.first()).toHaveAttribute('aria-label', '회색 아주 밝음 (#F3F4F6) 색상');
+  await expect(swatches.nth(1)).toHaveAttribute('aria-label', '빨강 아주 밝음 (#FEE2E2) 색상');
+  expect(await swatches.evaluateAll(elements => elements.slice(0, 13).map(element => element.dataset.colorFamily))).toEqual([
+    '회색', '빨강', '주황', '황금', '노랑', '연두', '초록', '청록', '시안', '파랑', '인디고', '보라', '분홍',
   ]);
-  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(12);
+  expect(await palette.locator('.ui-color-swatch-grid--palette').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(13);
+  expect(await palette.locator('.ui-color-swatch-grid').evaluateAll(grids => grids.map(grid => {
+    const rect = grid.querySelector('.ui-color-swatch')?.getBoundingClientRect();
+    return rect ? [rect.width, rect.height] : [];
+  }))).toHaveLength(1);
   await palette.locator('[data-color-value="#ef4444"]').click();
   await expect(page.locator('#countryColorInput')).toHaveValue('#ef4444');
   await expect(page.locator('#countryColorValue')).toHaveText('#EF4444');
@@ -1288,12 +1361,9 @@ test('shared color picker applies presets, restores defaults, and participates i
   ]);
   await page.locator('#countryColorTrigger').click();
   await expect(palette).toBeVisible();
-  const paletteBox = await palette.boundingBox();
-  expect(paletteBox.x).toBeGreaterThanOrEqual(0);
-  expect(paletteBox.x + paletteBox.width).toBeLessThanOrEqual(layouts[2].viewport.width);
-  expect(paletteBox.y).toBeGreaterThanOrEqual(0);
-  expect(paletteBox.y + paletteBox.height).toBeLessThanOrEqual(layouts[2].viewport.height);
-  expect(await palette.locator('.ui-color-swatch-grid--chromatic').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(12);
+  await expect(palette).toHaveCSS('position', 'fixed');
+  expect(await palette.evaluate(element => element.parentElement?.id)).toBe('editorObjectHeader');
+  expect(await palette.locator('.ui-color-swatch-grid--palette').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(13);
   await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
   await expect(page.locator('#countryColorInput')).toHaveAttribute('type', 'color');
   await page.keyboard.press('Escape');
@@ -1303,91 +1373,46 @@ test('shared color picker applies presets, restores defaults, and participates i
   expect(errors).toEqual([]);
 });
 
-test('layer style hover is isolated and preferences reuse the shared color picker', async ({ page }) => {
+test('map display disclosures isolate nested settings', async ({ page }) => {
   test.setTimeout(180_000);
   await page.setViewportSize(layouts[0].viewport);
   await page.emulateMedia({ colorScheme: 'light' });
   const errors = await openApp(page, { waitForCanonical: false });
-  const folder = page.locator('.layer-folder[data-layer-group="countries"]');
-  const row = folder.locator(':scope > .layer-folder-row');
-  const visibility = row.locator('.layer-visibility-control');
-  const styleToggle = row.locator('[data-layer-style-toggle="countries"]');
-  const readHover = async locator => {
-    await locator.hover();
-    await page.waitForTimeout(200);
-    return locator.evaluate(element => {
-      const rowElement = element.closest('.layer-folder-row');
-      const style = getComputedStyle(element);
-      return { background: style.backgroundColor, color: style.color, rowBackground: getComputedStyle(rowElement).backgroundColor };
-    });
-  };
-  const baseRowBackground = await row.evaluate(element => getComputedStyle(element).backgroundColor);
-  const visibilityHover = await readHover(visibility);
-  await page.mouse.move(0, 0);
-  const styleHover = await readHover(styleToggle);
-  expect(styleHover.background).toBe(visibilityHover.background);
-  expect(styleHover.color).toBe(visibilityHover.color);
-  expect(styleHover.rowBackground).toBe(baseRowBackground);
-  await styleToggle.click();
-  await expect(styleToggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(styleToggle).toHaveClass(/active/);
-  await page.mouse.move(0, 0);
-  const settledActiveStyle = await styleToggle.evaluate(element => {
+  await page.locator('#mapViewTabBtn').click();
+  const disclosure = page.locator('[data-map-display-row="countries"]');
+  const displayOptions = page.locator('#layerStylePanel-countries');
+  await expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+  await expect(displayOptions).toBeHidden();
+  await disclosure.click();
+  await expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+  await expect(displayOptions).toBeVisible();
+  const displaySurface = await displayOptions.evaluate(element => {
     const style = getComputedStyle(element);
-    return { background: style.backgroundColor, color: style.color };
+    return { background: style.backgroundColor, borderTop: style.borderTopColor };
   });
-  expect(settledActiveStyle.background).not.toBe('rgba(0, 0, 0, 0)');
-  expect(settledActiveStyle.color).not.toBe('rgba(0, 0, 0, 0)');
+  expect(displaySurface.background).not.toBe('rgba(0, 0, 0, 0)');
+  expect(displaySurface.borderTop).not.toBe('rgba(0, 0, 0, 0)');
 
-  const folderToggle = row.locator('[data-layer-folder-toggle="countries"]').first();
-  if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
-  await page.locator('#countriesLayerChildren .layer-child-name').first().click();
-  await expect(page.locator('#countryProperties')).toBeVisible();
-  expect(await page.locator('.editor-flag-actions > .icon-btn').evaluateAll(buttons => buttons.map(button => {
-    const style = getComputedStyle(button);
-    const icon = button.querySelector('.ui-icon');
-    return [style.width, style.height, getComputedStyle(icon).width, getComputedStyle(icon).height];
-  }))).toEqual([
-    ['30px', '30px', '16px', '16px'],
-    ['30px', '30px', '16px', '16px'],
-  ]);
+  expect(errors).toEqual([]);
+});
 
-  await page.locator('#mobileFileBtn').click();
-  await page.locator('#preferencesBtn').click();
-  await expect(page.locator('#preferencesModal')).toBeVisible();
-  await page.locator('#preferencesSelectionColorTrigger').click();
-  const palette = page.locator('#preferencesSelectionColorPopover');
-  await expect(palette).toBeVisible();
-  await expect(palette.locator('.ui-color-swatch-grid--neutral [data-color-value]')).toHaveCount(6);
-  await expect(palette.locator('.ui-color-swatch-grid--chromatic [data-color-value]')).toHaveCount(60);
-  await expect(palette.locator('[data-color-custom]')).toHaveText('사용자 지정');
-  await palette.locator('[data-color-value="#ef4444"]').click();
-  await expect(page.locator('#preferencesSelectionColorInput')).toHaveValue('#ef4444');
-  await expect(page.locator('#preferencesSelectionColorValue')).toHaveText('#EF4444');
-  await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--map-selection-halo'))).toBe('#ef4444');
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences') || '{}').selection?.color)).toBe('#ef4444');
-
-  await page.locator('#preferencesCloseBtn').click();
+test('mobile sheet offsets only the visual grab bar without shrinking its touch target', async ({ page }) => {
   await page.setViewportSize(layouts[2].viewport);
-  await page.emulateMedia({ colorScheme: 'dark' });
-  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
-  if (await page.locator('#mobileEditBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileEditBtn').click();
-  expect(await page.locator('.editor-flag-actions > .icon-btn').evaluateAll(buttons => buttons.map(button => {
-    const style = getComputedStyle(button);
-    return [style.width, style.height];
-  }))).toEqual([
-    ['36px', '36px'],
-    ['36px', '36px'],
-  ]);
-  await page.locator('#mobileFileBtn').click();
-  await page.locator('#preferencesBtn').click();
-  await page.locator('#preferencesSelectionColorTrigger').click();
-  await expect(palette).toBeVisible();
-  const paletteBox = await palette.boundingBox();
-  expect(paletteBox.x).toBeGreaterThanOrEqual(0);
-  expect(paletteBox.x + paletteBox.width).toBeLessThanOrEqual(layouts[2].viewport.width);
-  expect(paletteBox.y).toBeGreaterThanOrEqual(0);
-  expect(paletteBox.y + paletteBox.height).toBeLessThanOrEqual(layouts[2].viewport.height);
+  const errors = await openApp(page, { waitForCanonical: false });
+  if (await page.locator('#mobileMapBtn').getAttribute('aria-expanded') !== 'true') await page.locator('#mobileMapBtn').click();
+  const handle = page.getByRole('slider', { name: '지도 창 높이 조절' });
+  const metrics = await handle.evaluate(element => {
+    const handleBox = element.getBoundingClientRect();
+    const barBox = element.querySelector('span').getBoundingClientRect();
+    return {
+      touchHeight: handleBox.height,
+      visualOffset: getComputedStyle(element).getPropertyValue('--ui-sheet-handle-visual-offset').trim(),
+      barInset: barBox.top - handleBox.top,
+    };
+  });
+  expect(metrics.touchHeight).toBeGreaterThanOrEqual(48);
+  expect(metrics.visualOffset).toBe('4px');
+  expect(metrics.barInset).toBeGreaterThanOrEqual(4);
   expect(errors).toEqual([]);
 });
 

@@ -120,7 +120,8 @@ export function createCountryImportMergePlanner({
 
   return async function planMerge(currentCountries, importedCountries, strategy) {
     if (!clipper?.union || !clipper?.difference || !clipper?.intersection) throw new Error('국가 병합 연산 엔진을 불러오지 못했습니다.');
-    const current = (currentCountries?.features || []).map(feature => clone(feature));
+    // Only an affected wrapper is written; source geometries remain read-only.
+    const current = (currentCountries?.features || []).map(feature => ({ ...feature }));
     const imported = (clone(importedCountries)?.features || []).map((feature, index) => {
       feature.id = featureCountryId(feature, index);
       return feature;

@@ -42,6 +42,7 @@ export function createSelectionUiController({
     }
     const presenter = presenters.resolve?.(ref) || presenters[ref.domain] || presenters.default;
     presenter?.(ref, { refreshOnly, openEditor });
+    uiActions.syncSelectionToolbar?.(ref);
     if (openEditor && !refreshOnly) uiActions.openEditor?.(ref);
     return true;
   };
@@ -52,6 +53,7 @@ export function createSelectionUiController({
     presenters.multiple?.(current, {
       typeLabel: types.length === 1 ? types[0] : '여러 유형',
     });
+    uiActions.clearSelectionToolbar?.();
     return true;
   };
 
@@ -69,7 +71,8 @@ export function createSelectionUiController({
       // Keep the status bar reserved for single-object context information.
       if (elements.selectionStatus) elements.selectionStatus.textContent = '';
       renderMultiple(current);
-    }
+    } else if (count === 1) uiActions.syncSelectionToolbar?.(primary(current));
+    else uiActions.clearSelectionToolbar?.();
     uiActions.syncBatchActions?.(current);
     uiActions.syncMapSurfaces?.(current);
     uiActions.syncLayerRows?.(current);
@@ -99,7 +102,7 @@ export function createSelectionUiController({
     orderedRefs = [],
     scope = 'map',
     refreshOnly = false,
-    openEditor = true,
+    openEditor = null,
   } = {}) => {
     if (disposed) return false;
     const ref = resolveRef(value);
@@ -111,9 +114,11 @@ export function createSelectionUiController({
     metrics.controllerMs = (globalThis.performance?.now?.() || Date.now()) - startedAt;
     const selected = selectionDomain.has(ref);
     if (selected) {
-      presentPrimary({ refreshOnly, openEditor });
-      const isCountry = ref.domain === 'territorial' && ref.type === 'country';
-      if (!refreshOnly && !isCountry) uiActions.focusObject?.(ref);
+      const territorialToolbarTarget = ref.domain === 'territorial'
+        && ['country', 'subunit', 'region'].includes(ref.type);
+      const shouldOpenEditor = openEditor == null ? !territorialToolbarTarget : openEditor;
+      presentPrimary({ refreshOnly, openEditor: shouldOpenEditor });
+      if (!refreshOnly && !territorialToolbarTarget) uiActions.focusObject?.(ref);
     } else if (!selectionDomain.size()) uiActions.clearPresenter?.({ refreshOnly: false });
     uiActions.closeChooser?.();
     return selected;
@@ -144,6 +149,7 @@ export function createSelectionUiController({
     if (disposed) return false;
     const changed = selectionDomain.clear({ scope: options.scope || 'ui', reason: options.reason || 'selection-clear' });
     uiActions.clearPresenter?.(options);
+    uiActions.clearSelectionToolbar?.();
     return changed;
   };
 
@@ -155,6 +161,7 @@ export function createSelectionUiController({
     if (syncFrame) cancelFrame?.(syncFrame);
     syncFrame = 0;
     uiActions.clearPresenter?.({ projectReset: true });
+    uiActions.clearSelectionToolbar?.();
   };
 
   const dispose = () => {

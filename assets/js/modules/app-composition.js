@@ -4,7 +4,7 @@ export async function composeApplication({ revision }) {
     runtime, factoryEnvironment, factoryBuiltinSession, factoryWorkspaceSurfaces, factoryProjectSession,
     factoryObjectCommands, factoryServiceAssembly, factoryRenderQuality, factoryPointerTargets,
     factoryCameraNavigation, factoryReadinessNotifications, factoryCountryIndex, factorySpatialIndex,
-    factoryGeometryPreview, factoryTerritoryComponents, factoryCountryValidation, factoryLandRelations,
+    factoryGeometryPreview, factoryTerritorySelectionWorkflow, factoryTerritoryComponents, factoryCountryValidation, factoryLandRelations,
     factoryCutGeometry, factoryMapProjection, factoryObjectPresentation, factoryHydroSettings,
     factoryLayerList, factoryCountryLabels, factoryPhysicalResources, factoryInteractionPackets,
     factoryTerritoryComponentUi, factoryGpuScene, factoryMapAudit, factoryMapHost, factoryTaskPresentation,
@@ -31,6 +31,7 @@ export async function composeApplication({ revision }) {
     import(new URL(`./app-country-index.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-spatial-index.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-geometry-preview.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
+    import(new URL(`./app-territory-selection-workflow.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-territory-components.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-country-validation.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-land-relations.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
@@ -93,6 +94,7 @@ export async function composeApplication({ revision }) {
   const countryIndex = factoryCountryIndex.createCountryIndex();
   const spatialIndex = factorySpatialIndex.createSpatialIndex();
   const geometryPreview = factoryGeometryPreview.createGeometryPreview();
+  const territorySelectionWorkflow = factoryTerritorySelectionWorkflow.createTerritorySelectionWorkflow();
   const territoryComponents = factoryTerritoryComponents.createTerritoryComponents();
   const countryValidation = factoryCountryValidation.createCountryValidation();
   const landRelations = factoryLandRelations.createLandRelations();
@@ -138,7 +140,7 @@ export async function composeApplication({ revision }) {
     builtinSession, cameraNavigation, colorPicker, countryIndex, countryLabels, countryModes, cutGeometry,
     domainAssembly, environment, geometryPreview, gpuScene, hydroSettings, landRelations, layerList,
     lifecycleAssembly, mapHost, mapProjection, objectCommands, objectDeletion, objectPicking,
-    objectPresentation, physicalResources, pointerTargets, projectRestore, projectSession, propertySelection,
+    objectPresentation, physicalResources, pointerTargets, projectRestore, projectSession, projectSnapshots, propertySelection,
     readinessNotifications, renderQuality, runtime, serviceAssembly, spatialIndex, taskPresentation,
     workspaceSurfaces,
   });
@@ -158,10 +160,11 @@ export async function composeApplication({ revision }) {
   });
   mapInteractionConnector.connectMapInteraction({
     cameraNavigation, countryCommits, countryIndex, countryLabels, countryModes, cutGeometry, domainAssembly,
-    environment, genericCommands, geometryPreview, gpuScene, hydroSettings, interactionPackets, layerList,
+    environment, genericCommands, geometryPreview, gpuScene, hydroSettings, interactionPackets, landRelations, layerList,
     lifecycleAssembly, mapAudit, mapHost, mapProjection, objectCommands, objectPicking, objectPresentation,
     physicalResources, pointerTargets, projectSession, propertySelection, readinessNotifications,
     renderQuality, riverCandidates, runtime, serviceAssembly, spatialIndex, taskPresentation,
+    territorySelectionWorkflow,
     territorialDrafts, territoryComponentUi, territoryComponents, workspaceSurfaces,
   });
   objectEditingConnector.connectObjectEditing({
@@ -169,17 +172,17 @@ export async function composeApplication({ revision }) {
     domainAssembly, environment, genericCommands, geometryPreview, gisAssembly, hydroSettings,
     interactionPackets, landRelations, layerList, lifecycleAssembly, mapHost, mapProjection, objectCommands,
     objectMetadata, objectPicking, objectPresentation, projectRestore, projectSession, projectSnapshots,
-    propertySelection, readinessNotifications, runtime, serviceAssembly, spatialIndex, taskPresentation,
-    territorialConversion, territorialDrafts, territoryComponents, workspaceSurfaces,
+    propertySelection, readinessNotifications, riverCandidates, runtime, serviceAssembly, spatialIndex, taskPresentation,
+    territorialConversion, territorialDrafts, territoryComponentUi, territoryComponents, territorySelectionWorkflow, workspaceSurfaces,
   });
   projectIoConnector.connectProjectIo({
-    builtinSession, cameraNavigation, countryIndex, countryLabels, countryModes, countryValidation,
+    builtinSession, cameraNavigation, countryCommits, countryIndex, countryLabels, countryModes, countryValidation,
     cutGeometry, domainAssembly, environment, genericCommands, geometryPreview, gisAssembly, historyAssembly,
     hydroSettings, landRelations, layerList, libraryAssembly, lifecycleAssembly, mapHost, mapProjection,
     mapSettings, navigationBindings, objectCommands, objectDeletion, objectMetadata, objectPicking,
     objectPresentation, pointerTargets, projectRestore, projectSession, projectSnapshots, propertySelection,
     readinessNotifications, renderQuality, runtime, serviceAssembly, spatialIndex, taskPresentation,
-    territorialDrafts, territoryComponentUi, territoryComponents, toolBindings, workspaceSurfaces,
+    territorialDrafts, territoryComponentUi, territoryComponents, territorySelectionWorkflow, toolBindings, workspaceSurfaces,
   });
   lifecycleUiConnector.connectLifecycleUi({
     builtinSession, cameraNavigation, colorPicker, countryCommits, countryIndex, countryLabels, countryModes,
@@ -190,7 +193,7 @@ export async function composeApplication({ revision }) {
     objectPicking, objectPresentation, physicalResources, pointerTargets, progressiveStartup, projectRestore,
     projectSession, projectSnapshots, propertySelection, readinessNotifications, renderQuality,
     riverCandidates, runtime, serviceAssembly, spatialIndex, taskPresentation, territorialConversion,
-    territorialDrafts, territoryComponentUi, territoryComponents, toolBindings, workspaceSurfaces,
+    territorialDrafts, territoryComponentUi, territoryComponents, territorySelectionWorkflow, toolBindings, workspaceSurfaces,
   });
 
   environment.initializeD3();
@@ -239,6 +242,7 @@ export async function composeApplication({ revision }) {
   countryIndex.initializeCountryLabelAnchorWorker();
   mapAudit.initializeGeometryValidationWorker();
   riverCandidates.initializeRiverPartitionGeneration();
+  territorySelectionWorkflow.initializeTerritorySelectionWorkflow();
   geometryPreview.initializeActiveGeometryPreviewApply();
   pointerTargets.initializeSnapCandidateCache();
   mapProjection.initializeGlobeProjection();
@@ -251,7 +255,6 @@ export async function composeApplication({ revision }) {
   objectPresentation.initializeTerritorialRepository();
   physicalResources.initializeTerrainService();
   propertySelection.initializePropertySelection();
-  territorialDrafts.initializePendingTerritorialCreateType();
   territorialConversion.initializeTerritorialTypeSource();
   projectSnapshots.initializeHistoryStore();
   mapSettings.initializeLAYER_STYLE_TARGETS();

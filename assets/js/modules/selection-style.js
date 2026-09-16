@@ -1,3 +1,4 @@
+import { resolveMapInteractionStyle } from './map-interaction-style.js';
 export const SELECTION_STYLE = {
   color: '#cda95d',
   primaryWidth: 2.5,
@@ -6,15 +7,7 @@ export const SELECTION_STYLE = {
   secondaryAlpha: 0.72,
 };
 
-let interactionStyle = Object.freeze({
-  hover: Object.freeze({ color: '#d7ba7d', width: 1.5, alpha: 1, fillAlpha: 0.05775 }),
-  selection: Object.freeze({
-    color: '#cda95d',
-    casingColor: '#f2f4f6',
-    primary: Object.freeze({ innerWidth: 2.5, innerAlpha: 1, outerWidth: 4, casingAlpha: 0.72, fillAlpha: 0.13 }),
-    secondary: Object.freeze({ innerWidth: 1.5, innerAlpha: 0.72, outerWidth: 2.8, casingAlpha: 0.48, fillAlpha: 0.08 }),
-  }),
-});
+let interactionStyle = resolveMapInteractionStyle();
 
 export function setInteractionStyle(nextStyle) {
   if (!nextStyle?.hover || !nextStyle?.selection) return interactionStyle;
@@ -29,7 +22,11 @@ export function setInteractionStyle(nextStyle) {
 
 export function setSelectionColor(color) {
   const value = String(color || '').trim();
-  if (/^#[0-9a-f]{6}$/i.test(value)) SELECTION_STYLE.color = value.toLowerCase();
+  if (/^#[0-9a-f]{6}$/i.test(value)) setInteractionStyle(resolveMapInteractionStyle({
+    theme: interactionStyle.theme, selectionColor: value,
+    outlineVisible: interactionStyle.selection.outlineVisible, fillStrength: interactionStyle.selection.fillStrength,
+    tokens: { textStrong: interactionStyle.selection.casingColor },
+  }));
   return SELECTION_STYLE.color;
 }
 

@@ -70,6 +70,29 @@ test('failed replacement restores canonical state and preserves history without 
   assert.deepEqual(events, ['cancel-pending', 'reset', 'replace', 'reset', 'rollback']);
 });
 
+test('new project keeps replacement active until its prepared visual swap resolves', async () => {
+  const phases = [];
+  const resets = [];
+  let releaseSwap;
+  const domain = createProjectDomain({
+    prepareEmpty: async () => ({ countries: { count: 0 }, builtinMeshReady: true }),
+    replaceSnapshot: () => new Promise(resolve => { releaseSwap = () => resolve(true); }),
+    onProjectReset: event => resets.push(event),
+    onReplacementState: active => phases.push(active),
+  });
+  const pending = domain.createEmpty();
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(domain.isReplacing(), true);
+  assert.deepEqual(phases, [true]);
+  assert.equal(resets.length, 1);
+  assert.equal(resets[0].preserveBuiltinMesh, true);
+  releaseSwap();
+  await pending;
+  assert.equal(domain.isReplacing(), false);
+  assert.deepEqual(phases, [true, false]);
+});
+
 test('undo/redo emit one lifecycle sequence; empty history has no effects', () => {
   const { domain, events } = fixture();
   assert.equal(domain.undo(), false);

@@ -41,10 +41,12 @@ for (const viewport of viewports) {
     if (!await search.isVisible()) await page.locator('#mobileMapBtn').click();
     await search.fill('폴란드');
     await page.locator('#layerSearchResults .layer-search-result').first().click();
-    if (!await page.locator('#editorObjectHeader').isVisible()) await page.locator('#mobileEditBtn').click();
-    await expect(page.locator('.editor-view-tabs')).toHaveText(/정보\s*작업/);
+    await expect(page.locator('#selectionToolbar')).toBeVisible();
+    await page.locator('#selectionToolbarEditBtn').click();
+    await expect(page.locator('.editor-view-tabs')).toHaveText(/작업/);
+    await expect(page.locator('#editorTabBtn')).toBeHidden();
     await expect(page.locator('#countryAreaValue')).toContainText('km²');
-    await expect(page.locator('#focusSelectedObjectBtn')).toHaveAttribute('aria-label', '지도에서 보기');
+    await expect(page.locator('#focusSelectedObjectBtn')).toHaveAttribute('aria-label', '선택 객체로 이동');
     await page.locator('#actionsTabBtn').click();
     await expect(page.locator('#objectActionsBtn')).toHaveCount(0);
     await expect(page.locator('#objectLockBtn')).toHaveAttribute('aria-pressed', /true|false/);
@@ -59,7 +61,6 @@ for (const viewport of viewports) {
       .map(row => row.id));
     expect(inconsistentActionRows).toEqual([]);
     await expect(page.locator('#countryProperties .editor-action-grid')).toHaveCount(0);
-    await page.locator('#editorTabBtn').click();
     const overflow = await page.evaluate(() => ({
       viewport: window.innerWidth,
       document: document.documentElement.scrollWidth,
@@ -77,7 +78,7 @@ for (const viewport of viewports) {
       selectedType: document.querySelector('#propertyTypeLabel')?.textContent || '',
       editorView: document.querySelector('#rightPanel')?.getAttribute('data-editor-view') || '',
     }));
-    expect(focusedState).toEqual({ headerVisible: true, selectedType: '국가', editorView: 'info' });
+    expect(focusedState).toEqual({ headerVisible: false, selectedType: '국가', editorView: 'actions' });
     expect(overflow.document).toBeLessThanOrEqual(overflow.viewport + 1);
     expect(overflow.body).toBeLessThanOrEqual(overflow.viewport + 1);
     expect(errors).toEqual([]);

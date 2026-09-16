@@ -6,7 +6,7 @@ const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
 const DEFAULTS = Object.freeze({
   version: 2,
-  appearance: Object.freeze({ theme: 'system', accentColor: null }),
+  appearance: Object.freeze({ theme: 'system', accentColor: null, statusBarVisible: true }),
   labels: Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
     place: Object.freeze({ font: 'default', color: null, pointColor: null }),
@@ -32,7 +32,7 @@ function normalizeLabelFont(value, fallback) {
 export function defaultUserPreferences() {
   return {
     version: DEFAULTS.version,
-    appearance: { theme: DEFAULTS.appearance.theme, accentColor: null },
+    appearance: { theme: DEFAULTS.appearance.theme, accentColor: null, statusBarVisible: DEFAULTS.appearance.statusBarVisible },
     labels: {
       country: { font: DEFAULTS.labels.country.font, color: DEFAULTS.labels.country.color },
       place: {
@@ -54,10 +54,14 @@ export function normalizeUserPreferences(value) {
   const source = value && typeof value === 'object' && Number(value.version) === DEFAULTS.version ? value : {};
   const theme = THEMES.has(source.appearance?.theme) ? source.appearance.theme : defaults.appearance.theme;
   const fillStrength = normalizeFillStrength(source.selection?.fillStrength, defaults.selection.fillStrength);
-  const outlineVisible = source.selection?.outlineVisible !== false || fillStrength === 0;
+  const outlineVisible = source.selection?.outlineVisible !== false;
   return {
     version: DEFAULTS.version,
-    appearance: { theme, accentColor: normalizeColor(source.appearance?.accentColor) },
+    appearance: {
+      theme,
+      accentColor: normalizeColor(source.appearance?.accentColor),
+      statusBarVisible: source.appearance?.statusBarVisible !== false,
+    },
     labels: {
       country: {
         font: normalizeLabelFont(source.labels?.country?.font, defaults.labels.country.font),

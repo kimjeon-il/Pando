@@ -109,7 +109,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         for entity in children:
             self.assertEqual(entity["type"], "subunit")
             self.assertEqual(entity["sovereignLibraryId"], "historical-country:soviet-union")
-            self.assertEqual(entity["adminLevel"], 1)
+            self.assertNotIn("adminLevel", entity)
             self.assertTrue(entity["metadata"]["defaultFlagDataUrl"].startswith("data:image/svg+xml;base64,"))
 
     def test_east_prussia_rebuild_preserves_identity_and_discloses_uncertainty(self):

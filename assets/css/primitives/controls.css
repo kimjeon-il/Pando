@@ -1,16 +1,98 @@
-/* Canonical UI v2 primitive controls. Feature styles may position these
+/* Canonical UI primitive controls. Feature styles may position these
    controls, but they do not redefine their visual language. */
+
+/* Custom color editing shares one compact control in object and preference pickers. */
+.ui-color-popover:not(.is-custom) > .ui-custom-color,
+.ui-color-popover.is-custom > :not(.ui-custom-color) { display: none; }
+.ui-color-popover.is-custom {
+  max-height: calc(100dvh - var(--ui-popover-screen-edge) * 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.ui-custom-color { min-width: 0; display: grid; gap: var(--ui-space-2); color: var(--text); }
+.ui-custom-color-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); }
+.ui-custom-color-heading strong { font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); }
+.ui-custom-color-plane {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: clamp(120px, 22dvh, 180px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), var(--color-hue, red);
+  cursor: crosshair;
+  touch-action: none;
+}
+.ui-custom-color-plane:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.ui-custom-color-cursor {
+  position: absolute;
+  left: clamp(6px, var(--color-x, 0%), calc(100% - 6px));
+  top: clamp(6px, var(--color-y, 0%), calc(100% - 6px));
+  width: 12px; height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #0009;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.ui-custom-color-hue { display: flex; min-width: 0; align-items: center; }
+.ui-custom-color-hue > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.ui-custom-color-hue input[type="range"] { width: 100%; min-height: var(--ui-control-height); margin: 0; }
+.ui-custom-color-hue input::-webkit-slider-runnable-track {
+  height: 10px; border-radius: var(--ui-radius-control);
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.ui-custom-color-hue input::-moz-range-track {
+  height: 10px; border-radius: var(--ui-radius-control);
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.ui-custom-color-hue input::-webkit-slider-thumb { width: 18px; height: 18px; margin-top: -4px; border: 2px solid #fff; background: transparent; box-shadow: 0 0 0 1px #0008; }
+.ui-custom-color-hue input::-moz-range-thumb { width: 18px; height: 18px; border: 2px solid #fff; background: transparent; box-shadow: 0 0 0 1px #0008; }
+.ui-custom-color-value-row { display: flex; min-width: 0; align-items: end; gap: var(--ui-space-2); }
+.ui-custom-color-preview { display: block; flex: 0 0 var(--ui-control-height); height: var(--ui-control-height); border: 1px solid var(--border); border-radius: var(--ui-radius-control); }
+.ui-custom-color-hex { flex: 1; }
+.ui-custom-color .ui-field { display: grid; min-width: 0; gap: var(--ui-space-1); }
+.ui-custom-color .ui-field > span { color: var(--text-soft); font-size: var(--ui-font-sm); }
+.ui-custom-color .ui-field input {
+  width: 100%; min-width: 0;
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border: 1px solid var(--component-field-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-input);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.ui-custom-color .ui-field input:focus-visible { border-color: var(--accent); outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.ui-custom-color input[aria-invalid="true"] { border-color: var(--danger); }
+.ui-custom-color-formats { display: flex; gap: var(--ui-space-1); }
+.ui-custom-color-formats .ui-button { padding-inline: var(--ui-space-2); background: transparent; font-size: var(--ui-font-sm); }
+.ui-custom-color-formats .ui-button[aria-pressed="true"] { background: var(--ui-button-selected); color: var(--accent); }
+.ui-custom-color-channels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ui-space-2); }
+.ui-custom-color-message { margin: 0; color: var(--text-soft); font-size: var(--ui-font-sm); }
+.ui-custom-color-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2); margin-top: var(--ui-space-1); }
+@media (max-width: 799px) {
+  .ui-color-popover.is-custom { max-height: calc(100dvh - var(--ui-topbar-height) - var(--ui-map-bottom-occupied-height) - var(--ui-space-4) * 2); }
+  .ui-custom-color :is(.ui-button, .ui-field input, .ui-custom-color-hue input) { min-height: var(--ui-touch-height); }
+  .ui-custom-color-preview { flex-basis: var(--ui-touch-height); height: var(--ui-touch-height); }
+}
+@media (forced-colors: active) {
+  .ui-custom-color-plane, .ui-custom-color-hue input, .ui-custom-color-preview { forced-color-adjust: none; }
+  .ui-custom-color-formats .ui-button[aria-pressed="true"] { outline: 1px solid Highlight; }
+}
 
 html { font-size: 100%; }
 
 .ui-icon {
-  width: var(--ui-v2-icon-size);
-  height: var(--ui-v2-icon-size);
+  width: var(--design-icon-size);
+  height: var(--design-icon-size);
   display: block;
   flex: 0 0 auto;
   fill: none;
   stroke: currentColor;
-  stroke-width: var(--ui-v2-icon-stroke-width);
+  stroke-width: var(--design-icon-stroke-width);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -28,13 +110,13 @@ html { font-size: 100%; }
   padding: 0;
   background: var(--swatch);
   border: 2px solid var(--border);
-  border-radius: var(--ui-v2-radius-pill);
+  border-radius: var(--design-radius-pill);
 }
 
 .ui-button.preferences-accent-chip:is(:hover, :focus-visible) {
   background: var(--swatch);
   outline: 2px solid var(--text-strong);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline-offset: var(--design-focus-offset);
 }
 
 .ui-button.preferences-accent-chip[aria-pressed="true"] {
@@ -51,80 +133,110 @@ html { font-size: 100%; }
 
 /* Projection glyphs are the only intentionally larger common icons. */
 .projection-btn .ui-icon {
-  width: var(--ui-v2-projection-icon-size);
-  height: var(--ui-v2-projection-icon-size);
+  width: var(--design-projection-icon-size);
+  height: var(--design-projection-icon-size);
 }
 
 :where(.ui-button) {
   -webkit-appearance: none;
   appearance: none;
   min-width: 0;
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   margin: 0;
-  padding: 0 var(--ui-v2-control-padding-x);
-  border: 1px solid var(--ui-control-border);
-  border-radius: var(--ui-v2-radius-md);
-  background: var(--ui-control-bg);
+  padding: 0 var(--design-control-padding-x);
+  border: 1px solid transparent;
+  border-radius: var(--design-radius-md);
+  background: var(--ui-button-subtle);
   color: var(--ui-control-text);
-  font: var(--ui-v2-weight-semibold) var(--ui-v2-font-md) / var(--ui-v2-line-normal) var(--ui-v2-font-family);
+  font: var(--design-weight-semibold) var(--design-font-md) / var(--design-line-normal) var(--design-font-family);
   -webkit-tap-highlight-color: transparent;
   box-shadow: none;
   transition: background-color .14s ease, border-color .14s ease, color .14s ease, opacity .14s ease, box-shadow .14s ease;
 }
 
 :where(.ui-button):focus-visible {
-  outline: 2px solid var(--ui-v2-color-focus-ring);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline: 2px solid var(--design-color-focus-ring);
+  outline-offset: var(--design-focus-offset);
 }
 
 :where(.ui-button):active:not(:disabled) { transform: none; }
 :where(.ui-button):disabled { cursor: not-allowed; opacity: .48; }
 
-.ui-button:is(.btn, .file-menu-btn, .create-menu-btn, .mode-primary-btn) {
-  min-height: var(--ui-v2-control-md);
+.ui-button:is(.btn, .create-menu-btn, .mode-primary-btn) {
+  min-height: var(--design-control-md);
   height: auto;
   padding-block: var(--ui-space-1);
 }
 
 .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) {
-  width: var(--ui-v2-control-md);
-  min-width: var(--ui-v2-control-md);
-  min-height: var(--ui-v2-control-md);
+  width: var(--design-control-md);
+  min-width: var(--design-control-md);
+  min-height: var(--design-control-md);
   height: auto;
   padding: 0;
   display: inline-grid;
   place-items: center;
+  border-color: transparent;
+  background: transparent;
 }
 
 .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) .ui-icon {
-  width: var(--ui-v2-icon-size);
-  height: var(--ui-v2-icon-size);
+  width: var(--design-icon-size);
+  height: var(--design-icon-size);
 }
 
 .ui-button.compact:is(.icon-btn, .ui-icon-button),
 .ui-button:is(.mode-task-minimize-btn, .mode-task-close-btn) {
-  width: var(--ui-v2-control-sm);
-  min-width: var(--ui-v2-control-sm);
-  min-height: var(--ui-v2-control-sm);
+  width: var(--design-control-sm);
+  min-width: var(--design-control-sm);
+  min-height: var(--design-control-sm);
   height: auto;
 }
 
 :where(.ui-button):hover:not(:disabled) {
-  border-color: var(--ui-control-border-hover);
-  background: var(--ui-control-bg-hover);
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
   color: var(--text-strong);
 }
 
-:where(.ui-button):active:not(:disabled) { background: var(--ui-control-bg-pressed); }
+:where(.ui-button):active:not(:disabled) { background: var(--ui-button-subtle-pressed); }
 
-.ui-button:is(.btn:not(.ghost), .file-menu-btn, .create-menu-btn, .mode-primary-btn) {
+.ui-button.ui-search-clear:is(:hover, :active) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ui-control-text);
+  box-shadow: none;
+}
+
+.ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn):is(
+  [aria-pressed="true"],
+  [aria-expanded="true"],
+  .active,
+  .sheet-open
+) {
+  border-color: transparent;
+  background: var(--ui-button-selected);
+  color: var(--accent);
+}
+
+.ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn):is(
+  [aria-pressed="true"],
+  [aria-expanded="true"],
+  .active,
+  .sheet-open
+):hover:not(:disabled) {
+  background: var(--ui-button-selected-hover);
+  color: var(--accent);
+}
+
+.ui-button:is(.btn:not(.ghost), .create-menu-btn, .mode-primary-btn) {
   border-color: var(--accent-border);
   background: var(--accent-surface);
   color: var(--accent-text);
 }
 
-.ui-button:is(.btn:not(.ghost), .file-menu-btn, .create-menu-btn, .mode-primary-btn):hover:not(:disabled),
-.ui-button:is(.btn:not(.ghost), .file-menu-btn, .create-menu-btn, .mode-primary-btn):active:not(:disabled) {
+.ui-button:is(.btn:not(.ghost), .create-menu-btn, .mode-primary-btn):hover:not(:disabled),
+.ui-button:is(.btn:not(.ghost), .create-menu-btn, .mode-primary-btn):active:not(:disabled) {
   border-color: var(--accent-border);
   background: var(--accent-surface-hover);
   color: var(--accent-text);
@@ -140,9 +252,9 @@ html { font-size: 100%; }
 ):not(.ui-native-select),
 .ui-select-control,
 .ui-search-field {
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   height: auto;
-  font-size: var(--ui-v2-font-md);
+  font-size: var(--design-font-md);
 }
 
 .ui-search-field > input[type="search"] { height: 100%; }
@@ -151,24 +263,24 @@ html { font-size: 100%; }
    minimum control rhythm. */
 :where(.field-group, .ui-field, .gis-form-grid) textarea {
   height: auto;
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
 }
 
 /* A toggle is a compact visual control inside a larger labelled hit area. */
 .ui-toggle {
-  min-height: var(--ui-v2-control-md);
+  min-height: var(--design-control-md);
   display: inline-flex;
   align-items: center;
 }
 
 .ui-toggle > input[type="checkbox"] {
   position: relative;
-  width: var(--ui-v2-toggle-width);
-  min-width: var(--ui-v2-toggle-width);
-  height: var(--ui-v2-toggle-height);
-  min-height: var(--ui-v2-toggle-height);
+  width: var(--design-toggle-width);
+  min-width: var(--design-toggle-width);
+  height: var(--design-toggle-height);
+  min-height: var(--design-toggle-height);
   border: 0;
-  border-radius: var(--ui-v2-radius-pill);
+  border-radius: var(--design-radius-pill);
   background: var(--border-strong);
   color: var(--accent-text);
   box-shadow: none;
@@ -178,9 +290,9 @@ html { font-size: 100%; }
 .ui-toggle > input[type="checkbox"]::before {
   position: absolute;
   top: 50%;
-  left: var(--ui-v2-toggle-thumb-inset);
-  width: var(--ui-v2-toggle-thumb-size);
-  height: var(--ui-v2-toggle-thumb-size);
+  left: var(--design-toggle-thumb-inset);
+  width: var(--design-toggle-thumb-size);
+  height: var(--design-toggle-thumb-size);
   border: 0;
   border-radius: 50%;
   background: var(--surface-elevated);
@@ -194,36 +306,36 @@ html { font-size: 100%; }
 }
 
 .ui-toggle > input[type="checkbox"]:checked::before {
-  left: calc(100% - var(--ui-v2-toggle-thumb-size) - var(--ui-v2-toggle-thumb-inset));
+  left: calc(100% - var(--design-toggle-thumb-size) - var(--design-toggle-thumb-inset));
 }
 
 .ui-toggle > input[type="checkbox"]:focus-visible {
-  outline: 2px solid var(--ui-v2-color-focus-ring);
-  outline-offset: var(--ui-v2-focus-offset);
+  outline: 2px solid var(--design-color-focus-ring);
+  outline-offset: var(--design-focus-offset);
 }
 
 /* Destructive intent is reserved for the final confirmation action. */
 .danger-btn,
 .danger-ghost,
 .mode-draft-action-btn.danger {
-  border-color: var(--ui-control-border);
-  background: var(--ui-control-bg);
+  border-color: transparent;
+  background: var(--ui-button-subtle);
   color: var(--ui-control-text);
 }
 
 .danger-btn:hover:not(:disabled),
 .danger-ghost:hover:not(:disabled),
 .mode-draft-action-btn.danger:hover:not(:disabled) {
-  border-color: var(--ui-control-border-hover);
-  background: var(--ui-control-bg-hover);
-  color: var(--text-strong);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
+  color: var(--danger-text);
 }
 .danger-btn:active:not(:disabled),
 .danger-ghost:active:not(:disabled),
 .mode-draft-action-btn.danger:active:not(:disabled) {
-  border-color: var(--ui-control-border);
-  background: var(--ui-control-bg-pressed);
-  color: var(--ui-control-text);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--danger) 14%, var(--panel));
+  color: var(--danger-text);
 }
 
 .confirm-modal-actions .danger-confirm,
@@ -243,10 +355,10 @@ html { font-size: 100%; }
   }
 
   .ui-toggle > input[type="checkbox"] {
-    width: var(--ui-v2-toggle-mobile-width);
-    min-width: var(--ui-v2-toggle-mobile-width);
-    height: var(--ui-v2-toggle-mobile-height);
-    min-height: var(--ui-v2-toggle-mobile-height);
+    width: var(--design-toggle-mobile-width);
+    min-width: var(--design-toggle-mobile-width);
+    height: var(--design-toggle-mobile-height);
+    min-height: var(--design-toggle-mobile-height);
   }
 
   :where(.field-group, .ui-field, .gis-form-grid) :where(
@@ -258,10 +370,10 @@ html { font-size: 100%; }
   ):not(.ui-native-select),
   .ui-select-control,
   .ui-search-field {
-    min-height: var(--ui-v2-control-mobile-height);
+    min-height: var(--design-control-mobile-height);
     height: auto;
   }
 
-  .ui-button:is(.btn, .file-menu-btn, .create-menu-btn, .mode-primary-btn),
+  .ui-button:is(.btn, .create-menu-btn, .mode-primary-btn),
   .ui-toggle { min-height: var(--ui-touch-height); }
 }

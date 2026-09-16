@@ -40,6 +40,7 @@ export function composeRiverBoundaryTerritoryComponents({
     const countryId = String(component?.countryId || component?.donorCountryId || '');
     if (!countryId || invalid.has(countryId)) continue;
     const polygonIndex = Number(component?.polygonIndex || 0);
+    const sourcePolygonIndex = Number(component?.sourcePolygonIndex ?? polygonIndex);
     const componentKey = String(component?.componentKey || `${countryId}:${polygonIndex}`);
     const partitions = candidatesByComponent.get(componentKey) || [];
     if (partitions.length) {
@@ -48,11 +49,12 @@ export function composeRiverBoundaryTerritoryComponents({
         ...candidate,
         countryId,
         polygonIndex,
+        sourcePolygonIndex,
         componentKey,
         partitionKind: 'river',
       });
     } else {
-      items.push({ ...component, countryId, polygonIndex, componentKey, partitionKind: 'original' });
+      items.push({ ...component, countryId, polygonIndex, sourcePolygonIndex, componentKey, partitionKind: 'original' });
     }
   }
   return {

@@ -22,7 +22,7 @@ export function createObjectPresentation() {
   let LAYER_SEARCH_GROUP_KEYS;
   let layerGroupNames;
   let layerNameCollator;
-  let expandedLayerStyleGroups;
+  let expandedMapDisplayGroups;
   function connect(ports) {
     if (dependencies) throw new Error('object-presentation already connected');
     dependencies = ports;
@@ -48,23 +48,16 @@ export function createObjectPresentation() {
     if ((0, dependencies.genericFeatureGeometryKind)(feature) !== 'polygon' || (0, dependencies.genericFeatureLandBinding)(feature) === 'none') return feature;
     const cached = genericFeatureLandClipCache.get(feature);
     const ownerId = String(feature.properties?.ownerId || '');
-    if (cached && cached.revision === dependencies.countryLandRevision && cached.geometry === feature.geometry && cached.ownerId === ownerId) return cached.feature;
-    const clipper = window.polygonClipping;
-    if (!clipper?.intersection) return feature;
-    const bounds = (0, dependencies.geometryBounds)(feature.geometry);
-    const countries = ownerId && (0, dependencies.countryFeatureById)(ownerId)
-      ? [(0, dependencies.countryFeatureById)(ownerId)]
-      : (0, dependencies.spatialFeatures)(bounds);
-    const pieces = [];
-    for (const country of countries) {
-      if (!country?.geometry || !(0, dependencies.boundsOverlap)(bounds, (0, dependencies.geometryBounds)(country.geometry))) continue;
-      const clipped = clipper.intersection(feature.geometry.coordinates, country.geometry.coordinates);
-      if (clipped?.length) pieces.push(...clipped);
-    }
-    const geometry = (0, dependencies.normalizeClippedLandGeometry)(pieces);
-    const display = geometry ? { ...feature, geometry } : { ...feature, geometry: null };
-    genericFeatureLandClipCache.set(feature, { revision: dependencies.countryLandRevision, geometry: feature.geometry, ownerId, feature: display });
-    return display;
+    if (cached && cached.revision === dependencies.countryLandRevision && cached.geometry === feature.geometry && cached.ownerId === ownerId) return { ...feature, geometry: cached.feature.geometry };
+    const entry = { revision: dependencies.countryLandRevision, geometry: feature.geometry, ownerId, feature: { ...feature, geometry: null } };
+    genericFeatureLandClipCache.set(feature, entry);
+    dependencies.mapEditClient.execute('territorial-land-clip', { payload: { targetId: String(feature.id) } },
+      { jobKey: `territorial-land-clip:${feature.id}` }).then(response => {
+      if (genericFeatureLandClipCache.get(feature) !== entry || entry.geometry !== feature.geometry || entry.revision !== dependencies.countryLandRevision) return;
+      entry.feature = { ...feature, geometry: response.result.geometry };
+      dependencies.renderingDomain?.invalidateGenericPatch?.('land-clip-ready');
+    }).catch(() => { if (genericFeatureLandClipCache.get(feature) === entry) genericFeatureLandClipCache.delete(feature); });
+    return entry.feature;
   }
 
   function genericFeatureName(feature) {
@@ -88,9 +81,7 @@ export function createObjectPresentation() {
     const properties = feature?.properties || {};
     if (properties.name) return (0, dependencies.defaultGeographicName)((0, dependencies.builtinSubunitSourceId)(feature), properties.name);
     if (properties.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
-    return properties.isRemainder === true
-      ? (properties.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION ? '미지정 지방' : '미지정 하위단위')
-      : (properties.unitType === dependencies.TERRITORIAL_UNIT_TYPES.REGION ? '이름 없는 지방' : '이름 없는 하위단위');
+    return '이름 없는 하위단위';
   }
 
   function territorialUnitColor(feature) {
@@ -139,27 +130,20 @@ export function createObjectPresentation() {
   }
 
   function syncMapObjectCategoryLabels() {
-    document.querySelectorAll('[data-map-category]').forEach(node => {
-      const category = dependencies.MAP_OBJECT_CATEGORIES[node.dataset.mapCategory];
-      if (!category) return;
-      const title = node.querySelector('.create-menu-group-title');
-      if (title) title.textContent = category.label;
-    });
     const buildContent = (0, dependencies.$)('createBuildPanel');
     if (buildContent) {
       dependencies.MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {
-        const categoryNode = buildContent.querySelector(`.create-menu-category[data-map-category="${categoryKey}"]`);
+        const categoryNode = buildContent.querySelector(`.ui-menu-group[data-map-category="${categoryKey}"]`);
         const category = dependencies.MAP_OBJECT_CATEGORIES[categoryKey];
         if (!categoryNode || !category) return;
-        buildContent.appendChild(categoryNode);
         categoryNode.setAttribute('role', 'group');
         categoryNode.setAttribute('aria-label', category.label);
         category.createItems.forEach(type => {
           const item = categoryNode.querySelector(`[data-map-object-type="${type}"]`);
           if (!item) return;
           const metadata = dependencies.MAP_OBJECT_TYPES[type];
-          const label = item.querySelector('strong');
-          const icon = item.querySelector('.create-menu-icon use');
+          const label = item.querySelector('span');
+          const icon = item.querySelector('.ui-icon use');
           if (metadata) {
             if (label) label.textContent = metadata.label;
             if (icon) icon.setAttribute('href', `#${metadata.icon}`);
@@ -247,7 +231,7 @@ export function createObjectPresentation() {
 
     (layerNameCollator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' }));
 
-    (expandedLayerStyleGroups = new Set());
+    (expandedMapDisplayGroups = new Set());
   }
 
   return Object.freeze({
@@ -269,7 +253,7 @@ export function createObjectPresentation() {
     set distributionService(value) { distributionService = value; },
     get distributionVisibilityRevision() { return distributionVisibilityRevision; },
     set distributionVisibilityRevision(value) { distributionVisibilityRevision = value; },
-    get expandedLayerStyleGroups() { return expandedLayerStyleGroups; },
+    get expandedMapDisplayGroups() { return expandedMapDisplayGroups; },
     get genericFeatureColor() { return genericFeatureColor; },
     get genericFeatureDisplayFeature() { return genericFeatureDisplayFeature; },
     get genericFeatureLandClipCache() { return genericFeatureLandClipCache; },

@@ -1,3 +1,5 @@
+import { exitMenuOnTab } from './menu-presentation.js';
+
 /** FileBindings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -41,6 +43,7 @@ export function createFileBindings() {
     let pendingAccent;
     const syncPreferencesForm = () => {
       (0, dependencies.$)('preferencesThemeInput').value = dependencies.userPreferences.appearance.theme;
+      (0, dependencies.$)('preferencesStatusBarVisibleInput').checked = dependencies.userPreferences.appearance.statusBarVisible !== false;
       const accent = dependencies.userPreferences.appearance.accentColor;
       const input = document.getElementById('preferencesAccentInput');
       input.value = accent || dependencies.resolvedAccentColor;
@@ -52,7 +55,11 @@ export function createFileBindings() {
     };
     const preferencesFromForm = () => ({
       ...dependencies.userPreferences,
-      appearance: { ...dependencies.userPreferences.appearance, theme: (0, dependencies.$)('preferencesThemeInput').value },
+      appearance: {
+        ...dependencies.userPreferences.appearance,
+        theme: (0, dependencies.$)('preferencesThemeInput').value,
+        statusBarVisible: (0, dependencies.$)('preferencesStatusBarVisibleInput').checked,
+      },
     });
     const applyPreferencesForm = () => {
       (0, dependencies.applyUserPreferences)(preferencesFromForm(), { persist: false });
@@ -81,17 +88,19 @@ export function createFileBindings() {
         dependencies.userPreferences = (0, dependencies.saveUserPreferences)(dependencies.userPreferences);
       }
       preferencesOrigin = null;
+      (0, dependencies.closeColorPicker)(preferencesModal.querySelector('[data-color-picker="accent"]'));
       preferencesModal.classList.add('hidden');
       if (restoreFocus) (0, dependencies.$)('preferencesBtn')?.focus({ preventScroll: true });
     };
     const openPreferences = () => {
+      (0, dependencies.closeFileMenu)();
+      (0, dependencies.closeSurface)('create');
       syncPreferencesForm();
       preferencesOrigin = { ...dependencies.userPreferences.appearance };
       preferencesModal?.classList.remove('hidden');
       (0, dependencies.$)('preferencesThemeInput')?.focus({ preventScroll: true });
     };
     (0, dependencies.$)('preferencesBtn')?.addEventListener('click', openPreferences);
-    (0, dependencies.$)('preferencesCloseBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
     (0, dependencies.$)('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
     preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences({ revert: true }));
     (0, dependencies.$)('preferencesResetBtn')?.addEventListener('click', () => {
@@ -105,21 +114,42 @@ export function createFileBindings() {
       button.addEventListener('click', () => previewAccent(button.dataset.preferenceAccent || null));
     });
     document.getElementById('preferencesAccentInput').addEventListener('input', event => previewAccent(event.target.value.toLowerCase()));
-    document.getElementById('preferencesAccentCustomBtn').addEventListener('click', () => {
-      const input = document.getElementById('preferencesAccentInput');
-      if (input.showPicker) input.showPicker(); else input.click();
-    });
     (0, dependencies.$)('preferencesThemeInput')?.addEventListener('change', applyPreferencesForm);
+    (0, dependencies.$)('preferencesStatusBarVisibleInput')?.addEventListener('change', applyPreferencesForm);
     (0, dependencies.$)('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
+    const helpModal = (0, dependencies.$)('helpModal');
+    const closeHelp = ({ restoreFocus = true } = {}) => {
+      if (!helpModal || helpModal.classList.contains('hidden')) return;
+      helpModal.classList.add('hidden');
+      if (restoreFocus) (0, dependencies.$)('helpBtn')?.focus({ preventScroll: true });
+    };
+    const openHelp = async () => {
+      (0, dependencies.closeFileMenu)();
+      (0, dependencies.closeSurface)('create');
+      try {
+        await (window.PANDOLAB_ENSURE_MODAL_STYLES?.() || Promise.resolve());
+      } catch (error) {
+        (0, dependencies.reportOperationError)(error, '도움말 화면을 불러오지 못했습니다.', 'PL-HELP-001', 4200);
+        return;
+      }
+      helpModal?.classList.remove('hidden');
+      (0, dependencies.$)('helpCloseBtn')?.focus({ preventScroll: true });
+    };
+    (0, dependencies.$)('helpBtn')?.addEventListener('click', () => { void openHelp(); });
+    (0, dependencies.$)('helpCloseBtn')?.addEventListener('click', () => closeHelp());
+    (0, dependencies.$)('helpDoneBtn')?.addEventListener('click', () => closeHelp());
+    helpModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closeHelp());
     const fileMenu = document.querySelector('.top-actions');
     const visibleFileMenuItems = () => [...(fileMenu?.querySelectorAll('[role="menuitem"]:not(:disabled)') || [])]
       .filter(item => !item.closest('.hidden'));
     fileMenu?.addEventListener('keydown', event => {
       const active = document.activeElement;
       if (event.key === 'Tab') {
-        event.preventDefault();
-        event.stopPropagation();
-        (0, dependencies.closeFileMenu)({ restoreFocus: true });
+        exitMenuOnTab(event, {
+          menus: fileMenu,
+          trigger: (0, dependencies.$)('mobileFileBtn'),
+          close: () => (0, dependencies.closeFileMenu)({ restoreFocus: false }),
+        });
         return;
       }
       const items = visibleFileMenuItems();

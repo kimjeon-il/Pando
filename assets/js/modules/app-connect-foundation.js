@@ -3,7 +3,7 @@ export function connectFoundation({
   builtinSession, cameraNavigation, colorPicker, countryIndex, countryLabels, countryModes, cutGeometry,
   domainAssembly, environment, geometryPreview, gpuScene, hydroSettings, landRelations, layerList,
   lifecycleAssembly, mapHost, mapProjection, objectCommands, objectDeletion, objectPicking, objectPresentation,
-  physicalResources, pointerTargets, projectRestore, projectSession, propertySelection, readinessNotifications,
+  physicalResources, pointerTargets, projectRestore, projectSession, projectSnapshots, propertySelection, readinessNotifications,
   renderQuality, runtime, serviceAssembly, spatialIndex, taskPresentation, workspaceSurfaces,
 }) {
   environment.connect({
@@ -57,6 +57,8 @@ export function connectFoundation({
     get queueMapResize() { return mapHost.queueMapResize; },
     get state() { return projectSession.state; },
     get syncMapHudBounds() { return taskPresentation.syncMapHudBounds; },
+    get syncSelectionToolbarInteraction() { return domainAssembly.selectionToolbarPresentation?.syncInteraction; },
+    get syncSelectionToolbarOcclusion() { return domainAssembly.selectionToolbarPresentation?.syncOcclusion; },
     get ZOOM_LIMITS() { return environment.ZOOM_LIMITS; },
   });
   projectSession.connect({
@@ -71,6 +73,8 @@ export function connectFoundation({
     get projectUi() { return lifecycleAssembly.projectUi; },
   });
   objectCommands.connect({
+    get snapshotEditable() { return projectSnapshots.snapshotEditable; },
+    get restoreEditable() { return projectSnapshots.restoreEditable; },
     get $() { return environment.$; },
     get boundaryEditSelectionAnalysis() { return geometryPreview.boundaryEditSelectionAnalysis; },
     get clamp() { return environment.clamp; },
@@ -88,6 +92,8 @@ export function connectFoundation({
     get DISTRIBUTION_TYPE_LABELS() { return objectPresentation.DISTRIBUTION_TYPE_LABELS; },
     get distributionEntriesForLayer() { return runtime.distributionEntriesForLayer; },
     get distributionLayerById() { return propertySelection.distributionLayerById; },
+    get distributionVisibilityRevision() { return objectPresentation.distributionVisibilityRevision; },
+    set distributionVisibilityRevision(value) { objectPresentation.distributionVisibilityRevision = value; },
     get focusCoordinate() { return cameraNavigation.focusCoordinate; },
     get focusCountry() { return cameraNavigation.focusCountry; },
     get genericFeatureName() { return objectPresentation.genericFeatureName; },
@@ -118,6 +124,7 @@ export function connectFoundation({
     get selectionUiController() { return domainAssembly.selectionUiController; },
     get setActionStatus() { return readinessNotifications.setActionStatus; },
     get state() { return projectSession.state; },
+    get syncSelectionToolbarInteraction() { return domainAssembly.selectionToolbarPresentation?.syncInteraction; },
     get TERRITORIAL_UNIT_TYPES() { return runtime.TERRITORIAL_UNIT_TYPES; },
     get territorialChildren() { return runtime.territorialChildren; },
     get territorialRepository() { return objectPresentation.territorialRepository; },
@@ -191,6 +198,7 @@ export function connectFoundation({
     get state() { return projectSession.state; },
   });
   pointerTargets.connect({
+    get mapEditClient() { return spatialIndex.mapEditClient; },
     get $() { return environment.$; },
     get activeCutDraftSourceGeometry() { return cutGeometry.activeCutDraftSourceGeometry; },
     get activeProjection() { return mapProjection.activeProjection; },

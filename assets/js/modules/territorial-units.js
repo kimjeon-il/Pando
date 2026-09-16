@@ -45,9 +45,6 @@ function normalizedProperties(feature, type) {
   if (![TERRITORIAL_COVERAGE_MODES.EXPLICIT, TERRITORIAL_COVERAGE_MODES.PARTITION].includes(coverageMode)) {
     throw new Error('영역 coverageMode가 올바르지 않습니다.');
   }
-  if (typeof source.isRemainder !== 'boolean') throw new Error('영역 isRemainder 값이 필요합니다.');
-  if (source.isRemainder && coverageMode !== TERRITORIAL_COVERAGE_MODES.PARTITION) throw new Error('나머지 영역은 partition에서만 사용할 수 있습니다.');
-  if (source.isRemainder && !parentId) throw new Error('나머지 영역에는 상위 소속이 필요합니다.');
   const interval = normalizeTemporalInterval(source.validFrom, source.validTo);
   const sourceStyle = source.style && typeof source.style === 'object' ? source.style : {};
   const color = text(sourceStyle.color);
@@ -58,20 +55,17 @@ function normalizedProperties(feature, type) {
     parentId,
     sovereignId,
     coverageMode,
-    adminLevel: type === TERRITORIAL_UNIT_TYPES.SUBUNIT && Number(source.adminLevel) > 0
-      ? Math.max(1, Number.parseInt(source.adminLevel, 10))
-      : null,
     style: color ? { ...sourceStyle, color } : { ...sourceStyle },
     locked: source.locked === true,
     validFrom: interval.validFrom,
     validTo: interval.validTo,
-    isRemainder: source.isRemainder,
     notes: text(source.notes),
     metadata: source.metadata && typeof source.metadata === 'object' ? clone(source.metadata) : {},
     sourceFolderId: text(source.sourceFolderId),
     sourceLibraryId: text(source.sourceLibraryId),
     sourceGeometryVersion: text(source.sourceGeometryVersion),
   };
+  delete properties.metadata.legacyTerritorialPartition;
   if (!color) delete properties.style.color;
   return properties;
 }
@@ -102,11 +96,12 @@ function parentCreatesCycle(id, parentId, byId) {
 
 export function normalizeTerritorialUnits(value, {
   countryExists = () => true,
+  validatedUnchanged = null,
 } = {}) {
   const normalized = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
-    const feature = normalizeTerritorialFeature(raw);
+    const feature = validatedUnchanged?.has(raw) ? raw : normalizeTerritorialFeature(raw);
     if (!feature) throw new Error('영역 형식이 올바르지 않습니다.');
     if (feature.properties.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) throw new Error('국가는 countriesData에 저장해야 합니다.');
     if (seen.has(feature.id)) throw new Error(`영역 ID가 중복되었습니다: ${feature.id}`);
@@ -118,17 +113,22 @@ export function normalizeTerritorialUnits(value, {
   const unitExists = id => byId.has(text(id)) || countryExists(text(id));
   for (const feature of normalized) {
     const properties = feature.properties;
+    if (properties.unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT) {
+      const parent = byId.get(properties.parentId);
+      if (!properties.sovereignId || !properties.parentId || (properties.parentId !== properties.sovereignId
+        && (parent?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT || parent.properties.sovereignId !== properties.sovereignId))) {
+        throw new Error(feature.id + ': 같은 소속 국가의 상위 단위를 지정해야 합니다.');
+      }
+    }
     if (properties.sovereignId && !countryExists(properties.sovereignId)) {
-      throw new Error(`${feature.id}의 주권 국가 ${properties.sovereignId}이 존재하지 않습니다.`);
+      throw new Error(`${feature.id}의 소속 국가 ${properties.sovereignId}이 존재하지 않습니다.`);
     }
     if (properties.parentId && (!unitExists(properties.parentId)
       || properties.parentId === feature.id
       || parentCreatesCycle(feature.id, properties.parentId, byId))) {
-      throw new Error(`${feature.id}의 상위 소속 ${properties.parentId}이 존재하지 않거나 순환합니다.`);
+      throw new Error(`${feature.id}의 상위 단위 ${properties.parentId}이 존재하지 않거나 순환합니다.`);
     }
   }
-  const remainderValidation = validatePartitionRemainders(normalized);
-  if (!remainderValidation.ok) throw new Error(remainderValidation.issues[0]);
   return normalized;
 }
 
@@ -144,8 +144,7 @@ export function territorialSiblings(units, source) {
     && candidate.properties?.unitType === properties.unitType
     && text(candidate.properties?.parentId) === text(properties.parentId)
     && (properties.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT
-      || Number(candidate.properties?.adminLevel || 0) === Number(properties.adminLevel || 0))
-    && (candidate.properties?.metadata?.legacyTerritorialPartition || '') === (properties.metadata?.legacyTerritorialPartition || ''));
+      || text(candidate.properties?.sovereignId) === text(properties.sovereignId)));
 }
 
 export function validateTerritorialRelations(units, {
@@ -161,8 +160,8 @@ export function validateTerritorialRelations(units, {
     if (!id) issues.push('영역 ID가 비어 있습니다.');
     if (!POLYGON_TYPES.has(feature.geometry?.type)) issues.push(`${id || '영역'}의 형상이 Polygon이 아닙니다.`);
     if (!UNIT_TYPES.has(properties.unitType)) issues.push(`${id || '영역'}의 유형이 올바르지 않습니다.`);
-    if (properties.parentId && !exists(properties.parentId)) issues.push(`${id}의 상위 소속이 존재하지 않습니다.`);
-    if (properties.sovereignId && !countryExists(properties.sovereignId)) issues.push(`${id}의 주권 국가가 존재하지 않습니다.`);
+    if (properties.parentId && !exists(properties.parentId)) issues.push(`${id}의 상위 단위가 존재하지 않습니다.`);
+    if (properties.sovereignId && !countryExists(properties.sovereignId)) issues.push(`${id}의 소속 국가가 존재하지 않습니다.`);
     if (properties.parentId === id || parentCreatesCycle(id, properties.parentId, byId)) issues.push(`${id}의 상위 관계가 순환합니다.`);
     try { normalizeTemporalInterval(properties.validFrom, properties.validTo); }
     catch (error) { issues.push(`${id}의 유효기간이 올바르지 않습니다. ${error.message}`); }
@@ -171,8 +170,8 @@ export function validateTerritorialRelations(units, {
   for (const relation of Array.isArray(relations) ? relations : []) {
     const unitId = text(relation?.unitId);
     if (!exists(unitId)) issues.push(`${unitId || '관계'}의 대상 영역이 존재하지 않습니다.`);
-    if (relation?.parentId && !exists(relation.parentId)) issues.push(`${unitId}의 기간별 상위 소속이 존재하지 않습니다.`);
-    if (relation?.sovereignId && !countryExists(relation.sovereignId)) issues.push(`${unitId}의 기간별 주권 국가가 존재하지 않습니다.`);
+    if (relation?.parentId && !exists(relation.parentId)) issues.push(`${unitId}의 기간별 상위 단위가 존재하지 않습니다.`);
+    if (relation?.sovereignId && !countryExists(relation.sovereignId)) issues.push(`${unitId}의 기간별 소속 국가가 존재하지 않습니다.`);
     try { normalizeTemporalInterval(relation?.validFrom, relation?.validTo); }
     catch (error) { issues.push(`${unitId}의 기간별 관계가 올바르지 않습니다. ${error.message}`); }
     const list = byRelationUnit.get(unitId) || [];
@@ -186,7 +185,6 @@ export function validateTerritorialRelations(units, {
       }
     }
   }
-  issues.push(...validatePartitionRemainders(units).issues);
   return { ok: issues.length === 0, issues };
 }
 
@@ -239,9 +237,7 @@ export function createTerritorialFeature({
   geometry,
   parentId = '',
   sovereignId = '',
-  isRemainder = false,
   coverageMode,
-  adminLevel = null,
   color = '',
   locked = false,
   validFrom = null,
@@ -254,7 +250,7 @@ export function createTerritorialFeature({
 }) {
   if (unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT) {
     parentId = text(parentId || sovereignId);
-    if (!parentId) throw new Error('하위단위의 상위 소속을 지정해야 합니다.');
+    if (!parentId) throw new Error('하위단위의 상위 단위를 지정해야 합니다.');
   }
   const resolvedCoverageMode = coverageMode || (unitType === TERRITORIAL_UNIT_TYPES.REGION
     ? TERRITORIAL_COVERAGE_MODES.EXPLICIT
@@ -268,9 +264,7 @@ export function createTerritorialFeature({
       name,
       parentId,
       sovereignId,
-      isRemainder: isRemainder === true,
       coverageMode: resolvedCoverageMode,
-      adminLevel,
       style: color ? { color } : {},
       locked,
       validFrom,
@@ -302,8 +296,6 @@ export function createCountryTerritorialAdapter(feature, override = {}) {
       parentId: '',
       sovereignId: id,
       coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
-      isRemainder: false,
-      adminLevel: null,
       style: { color: text(override.color) },
       locked: false,
       validFrom: normalizeTemporalInterval(properties.validFrom, properties.validTo).validFrom,
@@ -343,8 +335,8 @@ export function createTerritorialRepository({
 }
 
 export function changeParent(unit, newParentId) {
-  if (!unit) throw new Error('상위 소속을 변경할 대상을 찾을 수 없습니다.');
-  if (text(unit.id) === text(newParentId)) throw new Error('영역 자신을 상위 소속으로 지정할 수 없습니다.');
+  if (!unit) throw new Error('상위 단위를 변경할 대상을 찾을 수 없습니다.');
+  if (text(unit.id) === text(newParentId)) throw new Error('영역 자신을 상위 단위로 지정할 수 없습니다.');
   const next = clone(unit);
   next.properties.parentId = text(newParentId);
   return next;
@@ -357,48 +349,6 @@ export function changeSovereign(unit, newSovereignId) {
   return next;
 }
 
-function partitionGroupKey(feature) {
-  const properties = feature?.properties || {};
-  if (properties.coverageMode !== TERRITORIAL_COVERAGE_MODES.PARTITION || !properties.parentId) return '';
-  return [text(properties.parentId), text(properties.unitType), Number(properties.adminLevel) || 0,
-    text(properties.metadata?.legacyTerritorialPartition)].join('\u0000');
-}
-
-export function validatePartitionRemainders(units) {
-  const issues = [];
-  const remainderByGroup = new Map();
-  for (const feature of units || []) {
-    if (feature?.properties?.isRemainder !== true) continue;
-    const key = partitionGroupKey(feature);
-    if (!key) {
-      issues.push(`${text(feature?.id) || '영역'}의 나머지 영역에는 partition 상위 소속이 필요합니다.`);
-      continue;
-    }
-    const previous = remainderByGroup.get(key);
-    if (previous) issues.push(`${previous.id}와 ${feature.id}이(가) 같은 partition의 나머지 영역으로 중복되었습니다.`);
-    else remainderByGroup.set(key, feature);
-  }
-  return { ok: issues.length === 0, issues };
-}
-
-export function reconcilePartitionRemainder({ siblings, remainderGeometry, createRemainder }) {
-  const next = clone(siblings || []);
-  const remainders = next.filter(feature => feature?.properties?.isRemainder === true);
-  if (remainders.length > 1) throw new Error('같은 partition에 나머지 영역이 둘 이상 있습니다.');
-  if (!remainderGeometry) return next.filter(feature => feature?.properties?.isRemainder !== true);
-  if (remainders.length === 1) {
-    remainders[0].geometry = clone(remainderGeometry);
-    return next;
-  }
-  if (typeof createRemainder !== 'function') throw new Error('새 나머지 영역 생성 함수가 필요합니다.');
-  const created = createRemainder(clone(remainderGeometry));
-  if (created?.properties?.isRemainder !== true) throw new Error('생성된 영역이 나머지 영역으로 표시되지 않았습니다.');
-  next.push(created);
-  const validation = validatePartitionRemainders(next);
-  if (!validation.ok) throw new Error(validation.issues[0]);
-  return next;
-}
-
 export function changeUnitType(unit, newType) {
   if (!unit) throw new Error('유형을 변경할 영역을 찾을 수 없습니다.');
   const type = text(newType);
@@ -408,9 +358,6 @@ export function changeUnitType(unit, newType) {
   next.properties.coverageMode = type === TERRITORIAL_UNIT_TYPES.REGION
     ? TERRITORIAL_COVERAGE_MODES.EXPLICIT
     : next.properties.coverageMode;
-  next.properties.adminLevel = type === TERRITORIAL_UNIT_TYPES.SUBUNIT && Number(next.properties.adminLevel) > 0
-    ? Math.max(1, Number(next.properties.adminLevel))
-    : null;
   return next;
 }
 

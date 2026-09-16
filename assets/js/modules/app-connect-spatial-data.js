@@ -92,6 +92,7 @@ export function connectSpatialData({
     get TERRITORIAL_UNIT_TYPES() { return runtime.TERRITORIAL_UNIT_TYPES; },
   });
   geometryPreview.connect({
+    get editingDomain() { return domainAssembly.editingDomain; },
     get $() { return environment.$; },
     get assertProjectReferenceIntegrity() { return runtime.assertProjectReferenceIntegrity; },
     get beginGeometryPreview() { return runtime.beginGeometryPreview; },

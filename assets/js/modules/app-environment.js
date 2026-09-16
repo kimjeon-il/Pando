@@ -1,3 +1,4 @@
+import { interactionCssProperties } from './map-interaction-style.js';
 /** Environment: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -78,9 +79,9 @@ export function createEnvironment() {
     const computed = getComputedStyle(document.documentElement);
     return (0, dependencies.resolveMapInteractionStyle)({
       theme,
-      selectionColor: resolvedAccentColor,
-      outlineVisible: true,
-      fillStrength: 0.35,
+      selectionColor: userPreferences.selection.color || resolvedAccentColor,
+      outlineVisible: userPreferences.selection.outlineVisible,
+      fillStrength: userPreferences.selection.fillStrength,
       tokens: {
         accent: computed.getPropertyValue('--accent').trim(),
         textStrong: computed.getPropertyValue('--text-strong').trim(),
@@ -99,9 +100,8 @@ export function createEnvironment() {
   function mapTheme() {
     const terrainVisible = dependencies.state?.physicalSettings?.terrainVisible !== false;
     const terrainStyle = dependencies.state?.physicalSettings?.terrainStyle || 'political';
-    const terrainStrength = clamp(Number(dependencies.state?.physicalSettings?.terrainStrength ?? 0.32), 0, 1);
     const terrainFillAlpha = terrainVisible
-      ? (terrainStyle === 'physical' ? 0.22 : 1 - terrainStrength)
+      ? (terrainStyle === 'physical' ? 0.22 : 0.68)
       : null;
     const countryStyle = dependencies.state?.layerPresentation ? (0, dependencies.layerStyle)(dependencies.state.layerPresentation, 'countries') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
     const riverStyle = dependencies.state?.layerPresentation ? (0, dependencies.layerStyle)(dependencies.state.layerPresentation, 'rivers') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
@@ -109,6 +109,8 @@ export function createEnvironment() {
     const base = (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || systemTheme) === 'light'
       ? { defaultLand: LIGHT_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 1, border: '#ffffff', borderGpu: [1, 1, 1], borderAlpha: 1, ocean: '#ffffff', oceanGpu: [1, 1, 1] }
       : { defaultLand: DARK_DEFAULT_COLOR, fillAlpha: terrainFillAlpha ?? 0.74, border: '#323c46', borderGpu: [0.196, 0.235, 0.275], borderAlpha: 0.92, ocean: '#0d2837', oceanGpu: [0.051, 0.157, 0.216] };
+    base.terrainColorAlpha = terrainFillAlpha ?? 1;
+    base.countryColorAlpha = base.fillAlpha;
     base.fillAlpha *= countryStyle.opacity;
     base.fillAlphaByte = Math.round(base.fillAlpha * 255);
     base.borderAlpha = countryStyle.boundaryVisible ? base.borderAlpha * countryStyle.opacity : 0;
@@ -247,12 +249,11 @@ export function createEnvironment() {
     (COLOR_PALETTE_TONES = Object.freeze(['아주 밝음', '밝음', '기본', '어두움', '아주 어두움']));
 
     (COLOR_PALETTE_NEUTRALS = Object.freeze([
-      Object.freeze({ color: '#ffffff', label: '흰색' }),
-      Object.freeze({ color: '#e5e7eb', label: '연회색' }),
-      Object.freeze({ color: '#9ca3af', label: '회색' }),
-      Object.freeze({ color: '#4b5563', label: '진회색' }),
-      Object.freeze({ color: '#1f2937', label: '먹색' }),
-      Object.freeze({ color: '#000000', label: '검정' }),
+      Object.freeze({ color: '#f3f4f6', label: '회색 아주 밝음' }),
+      Object.freeze({ color: '#d1d5db', label: '회색 밝음' }),
+      Object.freeze({ color: '#9ca3af', label: '회색 기본' }),
+      Object.freeze({ color: '#4b5563', label: '회색 어두움' }),
+      Object.freeze({ color: '#1f2937', label: '회색 아주 어두움' }),
     ]));
 
     (COLOR_PALETTE_HUES = Object.freeze([
@@ -316,6 +317,7 @@ export function createEnvironment() {
     document.documentElement.dataset.systemTheme = systemTheme;
 
     document.documentElement.dataset.theme = (0, dependencies.effectiveTheme)(userPreferences, systemTheme === 'dark');
+    document.documentElement.dataset.statusBarVisible = String(userPreferences.appearance?.statusBarVisible !== false);
 
     (MAP_LABEL_FONT_STACKS = Object.freeze({
       default: 'var(--ui-font-family)',
@@ -329,7 +331,7 @@ export function createEnvironment() {
 
     (resolvedInteractionStyle = resolveCurrentInteractionStyle());
 
-    document.documentElement.style.setProperty('--map-selection-halo', resolvedInteractionStyle.selection.color);
+    for (const [property, value] of Object.entries(interactionCssProperties(resolvedInteractionStyle))) document.documentElement.style.setProperty(property, value);
 
     (0, dependencies.setSelectionColor)(resolvedInteractionStyle.selection.color);
 
@@ -361,26 +363,25 @@ export function createEnvironment() {
     (bindUiTooltips = () => tooltipController.bind());
 
     (REQUIRED_UI_IDS = Object.freeze([
-      'app', 'map', 'statusView', 'projectionStatus', 'statusPrimary', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
-      'mapPanelTabs', 'mapLayersTabBtn', 'mapViewTabBtn', 'layerSection', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
-      'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
-      'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'terrainStrengthControl', 'terrainStrengthInput', 'terrainStrengthValue', 'countryNameInput', 'countryColorInput', 'notesInput',
+      'app', 'map', 'mapBottomStatus', 'statusView', 'projectionStatus', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
+      'objectSearchSurface', 'objectSearchSection', 'mapDisplaySurface', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
+      'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'subunitLabelsVisible', 'subunitFlagsVisible', 'regionLabelsVisible', 'regionFlagsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
+      'createMenuBtn', 'mobileCreateBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'selectionToolbar', 'selectionToolbarNotesBtn', 'selectionToolbarTypeBtn', 'selectionToolbarEditBtn', 'selectionToolbarNotesPopover', 'flagMenuBtn', 'flagMenu', 'flagPreview', 'countryNameInput', 'countryColorInput', 'notesInput',
       'debugMapPanel', 'countryAreaValue',
       'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
-      'genericFeatureNameInput', 'genericFeatureColorInput', 'genericFeatureNotesInput',
-      'genericFeatureLandRelationSection', 'genericFeatureOwnerField', 'genericFeatureOwnerInput', 'genericFeatureParentField', 'genericFeatureParentInput', 'genericFeatureLandBindingField', 'genericFeatureLandBindingInput', 'genericFeatureRoleHelp',
-      'genericFeatureLandActionsSection', 'splitGenericFeatureBtn', 'mergeGenericFeatureBtn', 'syncGenericFeatureCoastBtn', 'editGenericFeatureCoastBtn', 'applyGenericFeatureToCountryBtn', 'promoteGenericFeatureToCountryBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue',
+      'genericFeatureConversionSection', 'genericFeatureConvertType', 'genericFeatureConvertCountryField', 'genericFeatureConvertCountryInput', 'genericFeatureConvertDistributionField', 'genericFeatureConvertDistributionInput', 'convertGenericFeatureBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue',
       'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue',
-      'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'editorTabBtn', 'actionsTabBtn', 'relationTabBtn', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu',
+      'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'editorTabBtn', 'actionsTabBtn', 'relationTabBtn', 'objectVisibilityBtn', 'objectVisibilityIcon', 'objectLockBtn', 'objectDeleteBtn', 'objectActionsMenu',
       'countryProperties', 'subunitProperties', 'regionProperties', 'distributionProperties', 'subunitNameConflict', 'regionNameConflict', 'regionNameInput', 'regionCountryInput', 'regionParentInput', 'regionColorInput', 'regionValidFromInput', 'regionValidToInput', 'regionNotesInput', 'distributionNameInput', 'distributionTypeValue', 'distributionColorInput', 'distributionParentInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionShareInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
-      'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'changeSubunitTypeBtn', 'reconcileSubunitCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
+      'editBorderBtn', 'editCoastBtn', 'changeCountryTypeBtn', 'reconcileSubunitCoastBtn', 'territorialTypeModal', 'territorialTypeTitle', 'territorialTypeContext', 'territorialTypeInput', 'territorialTypeSovereignRow', 'territorialTypeSovereignInput', 'territorialTypeParentRow', 'territorialTypeParentInput', 'territorialTypeImpact', 'territorialTypeImpactSummary', 'territorialTypeImpactList', 'territorialTypeCancelBtn', 'territorialTypeConfirmBtn',
       'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
       'undoBtn', 'redoBtn', 'rightPanel',
-      'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeTaskCloseBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskInstruction',
-      'modeMethodSwitch', 'modeLineMethodBtn', 'modeDirectMethodOptions', 'modeDirectLineMethodInput', 'modePolygonMethodBtn', 'modeComponentsMethodBtn', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftRedrawBtn', 'modeDraftRemoveLastBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
+      'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeCancelIcon', 'modePrimaryIcon', 'modeTaskInstruction', 'annexCountryFlow', 'annexTargetCountryFlag', 'annexTargetCountryName', 'annexDonorCountryFlag', 'annexDonorCountryName',
+      'modeMethodSwitch', 'modeDirectLineMethodInput', 'modePolygonMethodOption', 'modePolygonMethodInput', 'modeComponentsMethodInput', 'modeRiverBoundaryOption', 'modeRiverBoundaryInput', 'modeDraftActions', 'modeDraftInsertBtn', 'modeDraftDoneBtn', 'modeDraftRedrawBtn', 'modeDraftDeleteBtn', 'geometryPreviewSummary', 'modePrimaryBtn', 'modeCancelBtn',
+      'multiDrawnActions', 'multiDrawnCount', 'multiDrawnAddBtn', 'multiDrawnUndoBtn',
       'multiPropertiesVisibilityInput', 'multiCountryActions', 'multiBorderEditBtn', 'multiBorderEditHelp',
-      'saveProjectBtn', 'openProjectBtn', 'projectFileInput', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'preferencesCloseBtn',
-      'createBuildPanel', 'addCountryBtn', 'addSubunitBtn', 'addRegionBtn', 'territorialCreateModal', 'territorialCreateTitle', 'territorialCreateContext', 'territorialCreateMethod', 'territorialCreateCancelBtn', 'territorialCreateConfirmBtn',
+      'saveProjectBtn', 'openProjectBtn', 'projectFileInput', 'openGisBtn', 'gisFileInput', 'newProjectBtn', 'dataExportBtn', 'preferencesBtn', 'preferencesModal', 'preferencesThemeInput', 'preferencesStatusBarVisibleInput', 'preferencesApplyBtn', 'preferencesResetBtn', 'preferencesCancelBtn', 'helpBtn', 'helpModal', 'helpCloseBtn', 'helpDoneBtn',
+      'createBuildPanel', 'addCountryBtn', 'addSubunitBtn', 'addRegionBtn', 'territorialCreateSetup', 'territorialCreateNameLabel', 'territorialCreateNameInput', 'territorialCreateSovereignInput', 'territorialCreateParentInput', 'territorialCreateSourceInput', 'territorialCreateReference', 'territorialCreateReferenceLabel', 'territorialCreateReferenceCount', 'territorialCreateReferenceList',
       'gisTargetCountry', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
       'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',
       'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibrarySearchClearBtn', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryGeographicRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',

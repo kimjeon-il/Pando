@@ -121,9 +121,19 @@ export function createHistoryAssembly() {
       commandPipeline: dependencies.projectCommandPipeline,
       countryCommands: {
         isLocked: id => (0, dependencies.isCountryLocked)(id),
+        hasField: (id, field) => Object.hasOwn(dependencies.state.countryOverrides[id] || {}, field),
         setLocked: (id, locked) => (0, dependencies.setCountryLockedState)(id, locked),
         setField: (id, field, value) => {
-          dependencies.state.countryOverrides[id] = { ...(dependencies.state.countryOverrides[id] || {}) };
+          const previous = dependencies.state.countryOverrides[id] || {};
+          if (field === 'flagDataUrl' && value === undefined) {
+            if (!Object.hasOwn(previous, field)) return;
+            const next = { ...previous };
+            delete next[field];
+            if (Object.keys(next).length) dependencies.state.countryOverrides[id] = next;
+            else delete dependencies.state.countryOverrides[id];
+            return;
+          }
+          dependencies.state.countryOverrides[id] = { ...previous };
           if (field === 'color') {
             (0, dependencies.writeDomainColor)(dependencies.COLOR_DOMAINS.COUNTRY, {
               feature: (0, dependencies.countryFeatureById)(id), override: dependencies.state.countryOverrides[id],

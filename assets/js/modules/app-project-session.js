@@ -75,6 +75,10 @@ export function createProjectSession() {
       labels: true,
       basemapLabels: true,
       countryFlags: true,
+      subunitLabels: true,
+      subunitFlags: true,
+      regionLabels: true,
+      regionFlags: true,
     }));
 
     (state = {
@@ -104,7 +108,6 @@ export function createProjectSession() {
       physicalSettings: {
         terrainVisible: true,
         terrainStyle: 'political',
-        terrainStrength: 0.32,
         hydroLayers: {
           rivers_hydro: true,
           lakes_natural_earth: true,
@@ -156,30 +159,14 @@ export function createProjectSession() {
       territorialUnitSplitSourceId: null,
       territorialUnitSplitVirtualSource: null,
       territorialUnitRedrawSourceId: null,
-      territorialCreateContext: null,
-      annexTargetCountryId: null,
-      annexDonorCountryIds: [],
-      annexPhase: null,
-      annexComponentIndex: null,
-      annexCandidates: [],
-      annexSelectedCandidateIndex: null,
-      annexSelectedComponentKeys: [],
-      annexSelectionMethod: 'line',
-      annexUseRiverBoundaries: false,
-      annexSourceGeometry: null,
-      annexRiverPartitionStatus: 'idle',
-      annexRiverPartitionCandidates: [],
-      annexRiverPartitionDonorResults: [],
-      annexHoveredComponentKey: null,
-      newCountryPhase: null,
-      newCountrySourceIds: [],
-      newCountryCandidates: [],
-      newCountrySelectedCandidateIndex: null,
-      newCountrySelectedComponentKeys: [],
-      newCountrySelectionMethod: 'line',
-      newCountrySourceGeometry: null,
-      boundaryTopology: { edges: new Map(), nodes: new Map() },
-      sharedBoundaryTopology: { segments: new Map(), nodes: new Map() },
+      // One non-persistent selection workflow is shared by annexation and all
+      // polity creation tools. Only the final operation result is persisted.
+      territorySelectionSession: null,
+      // Ephemeral composition state for a single user-created object.  It is
+      // deliberately outside the project document: only the final geometry is
+      // persisted, and cancelling a tool must leave no partial object behind.
+      multiDraft: null,
+      boundaryPreparation: null,
       spatialIndex: [],
       mapMoving: false,
       historyDirtyCountryIds: new Set(),

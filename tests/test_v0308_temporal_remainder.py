@@ -28,10 +28,10 @@ class TemporalRemainderPolicyTests(unittest.TestCase):
         self.assertNotIn("Math.max", share)
         self.assertNotIn("Math.min", share)
 
-    def test_partition_remainder_is_not_sovereignty_status(self):
-        self.assertIn("validatePartitionRemainders", TERRITORIAL)
-        self.assertIn("reconcilePartitionRemainder", TERRITORIAL)
-        self.assertIn("isRemainder", APP)
+    def test_partition_remainder_objects_are_removed(self):
+        self.assertNotIn("validatePartitionRemainders", TERRITORIAL)
+        self.assertNotIn("reconcilePartitionRemainder", TERRITORIAL)
+        self.assertNotIn("isRemainder: true", APP)
         self.assertNotIn("TERRITORIAL_STATUS", TERRITORIAL)
         self.assertNotIn("COUNTRY_REGION_STATUS", APP)
 

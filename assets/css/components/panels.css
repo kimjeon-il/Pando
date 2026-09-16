@@ -1,26 +1,9 @@
-/* Shared map, create, historical-library, and GIS panel presentation. */
-.layer-create-menu {
-  position: fixed;
-  top: var(--layer-create-top, var(--ui-shell-topbar-height));
-  left: var(--layer-create-left, var(--ui-shell-compact-inset));
-  width: min(var(--ui-layer-create-width), calc(100vw - var(--ui-space-5)));
-  max-height: var(--layer-create-height, 80dvh);
-  overflow: auto;
-  padding: var(--ui-space-2) var(--ui-surface-content-rail-x);
-  border: var(--ui-border-width) solid var(--border);
-  border-radius: var(--ui-radius-control);
-  background: var(--surface-elevated);
-  box-shadow: var(--shadow);
-  z-index: var(--ui-layer-create-z);
-}
-.layer-create-menu.hidden { display: none; }
-.layer-create-content, .layer-create-groups { min-width: 0; }
-
-/* Map and create panel rules. */
+/* Shared map, create, historical-library, and GIS panel presentation. *//* Map and create panel rules. */
 
 /* Map settings and create surface presentation. */
 
 .map-view-settings {
+  --map-display-row-height: var(--ui-control-height);
   min-width: 0;
   display: grid;
   gap: 0;
@@ -30,13 +13,18 @@
   min-width: 0;
 }
 
+/* Map display rows share the parent grid gap, whether they expose a style menu
+   or only a visibility toggle. */
+.map-display-list > .layer-type-settings {
+  padding-block: 0;
+}
+
 .map-view-settings > .layer-style-editor:first-child {
   padding-top: 0;
   border-top: 0;
 }
 
-.map-view-settings > .layer-style-editor > strong,
-.create-menu-group-title {
+.map-view-settings > .layer-style-editor > strong {
   color: var(--muted);
   font-size: var(--ui-font-md);
   font-weight: var(--ui-weight-semibold);
@@ -57,16 +45,16 @@
 
 .map-view-projection-slot .projection-btn {
   min-width: 0;
-  min-height: var(--ui-v2-command-row-min-height);
+  min-height: var(--design-command-row-min-height);
   height: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--ui-space-2);
   padding-inline: var(--ui-space-3);
-  border: 1px solid var(--ui-control-border);
+  border: 1px solid transparent;
   border-radius: var(--ui-radius-control);
-  background: var(--ui-control-bg);
+  background: var(--ui-button-subtle);
   color: var(--muted);
 }
 
@@ -81,28 +69,28 @@
 }
 
 .map-view-projection-slot .projection-btn .ui-icon {
-  width: var(--ui-v2-projection-icon-size);
-  height: var(--ui-v2-projection-icon-size);
+  width: var(--design-projection-icon-size);
+  height: var(--design-projection-icon-size);
   flex: 0 0 auto;
 }
 
 .map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: color-mix(in srgb, var(--accent) 10%, var(--ui-control-bg));
+  border-color: transparent;
+  background: var(--ui-button-selected);
   color: var(--text-strong);
 }
 
 .map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) .ui-icon { color: var(--accent); }
 
 .map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]):hover {
-  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent) 13%, var(--ui-control-bg));
+  border-color: transparent;
+  background: var(--ui-button-selected-hover);
   color: var(--text-strong);
 }
 
 .map-view-settings .ui-choice-row,
-.map-view-settings .ui-toggle {
-  min-height: var(--ui-v2-control-mobile-height);
+.map-view-settings .map-display-row {
+  min-height: var(--map-display-row-height);
 }
 
 .map-view-settings .ui-choice-row,
@@ -127,7 +115,7 @@
 /* Terrain modes use the same quiet radio-row treatment as distribution modes.
    Selection is communicated by the radio itself, not a card-sized highlight. */
 .map-view-settings .terrain-mode-option {
-  min-height: var(--ui-v2-control-mobile-height);
+  min-height: var(--design-control-mobile-height);
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -171,47 +159,6 @@
 }
 
 
-.create-menu-category {
-  min-width: 0;
-  display: grid;
-  gap: var(--ui-space-0-5);
-  padding: var(--ui-space-3) 0;
-  border-top: 1px solid var(--border);
-}
-
-.create-menu-category:first-child {
-  padding-top: 0;
-  border-top: 0;
-}
-
-.create-menu-category + .create-menu-category { margin-top: 0; }
-
-.create-menu-group {
-  min-height: 1.5rem;
-  display: flex;
-  align-items: center;
-  padding-inline: var(--ui-space-2);
-}
-
-.create-menu-item {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-}
-
-.create-menu-item:hover,
-.create-menu-item:focus-visible {
-  background: var(--surface-hover);
-  color: var(--text-strong);
-}
-
-.create-menu-item .create-menu-icon { color: var(--muted); }
-
-.create-menu-item:hover .create-menu-icon,
-.create-menu-item:focus-visible .create-menu-icon { color: var(--text-soft); }
-
-.create-menu-item > span:nth-child(2) { gap: var(--ui-space-0-5); }
 
 @media (max-width: 799px) {
   .map-view-settings > .layer-style-editor { padding-block: var(--ui-space-4); }
@@ -221,41 +168,17 @@
     height: auto;
   }
 
-  .map-view-settings .ui-choice-row,
-  .map-view-settings .ui-toggle { min-height: var(--ui-touch-height); }
+  .map-view-settings { --map-display-row-height: var(--ui-touch-height); }
 
   .terrain-strength-control input[type="range"] { min-height: var(--ui-touch-height); }
 
-  .create-menu-item { min-height: var(--ui-touch-height); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .map-view-projection-slot .projection-btn,
-  .create-menu-item { transition: none; }
+  .map-view-projection-slot .projection-btn { transition: none; }
 }
 
 /* Library, GIS, and file panel rules. */
-
-.top-actions .file-menu-item {
-  min-height: var(--ui-v2-control-lg);
-  border-color: transparent;
-  background: transparent;
-  color: var(--text-soft);
-}
-
-.top-actions .file-menu-item:hover,
-.top-actions .file-menu-item:focus-visible {
-  border-color: transparent;
-  background: var(--surface-hover);
-  color: var(--text-strong);
-}
-
-.top-actions .file-menu-export-boundary {
-  margin-top: var(--ui-space-3);
-  box-shadow: none;
-}
-
-.top-actions .file-submenu { border-left: 0; }
 
 .layer-inline-style-panel { border-block: 0; }
 
@@ -265,8 +188,6 @@
   padding-inline: 0;
 }
 
-
-.top-actions .file-menu-icon { color: var(--muted); }
 
 @media (max-width: 799px) {
   .historical-library-modal .historical-library-card,
@@ -310,4 +231,198 @@
 body.file-menu-open .mobile-backdrop {
   display: none;
   pointer-events: none;
+}
+
+.map-command-toolbar {
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-1);
+  border: 1px solid var(--toolbar-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--toolbar-bg);
+  box-shadow: var(--design-toolbar-shadow);
+}
+
+.map-command-toolbar .map-command-divider {
+  margin-inline: var(--ui-space-1);
+  background: var(--ui-control-border);
+}
+
+/* Visibility lists share their spacing, including rows with optional details. */
+.surface-display:not(.view-menu-desktop) .map-display-list,
+.surface-display:not(.view-menu-desktop) .map-display-list > .layer-type-settings {
+  display: grid;
+  gap: var(--ui-space-1);
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--ui-space-2);
+  border-radius: var(--ui-radius-control);
+  cursor: pointer;
+  transition: background-color .14s ease, color .14s ease;
+}
+
+.surface-display:not(.view-menu-desktop) .ui-choice-row:has(> input[type="checkbox"]) {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.surface-display:not(.view-menu-desktop) .ui-choice-row > input[type="checkbox"] {
+  order: 1;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row > label { position: relative; z-index: 1; flex: 1 1 auto; min-width: 0; }
+
+/* Keep the disclosure row and the switch as separate full-height targets. */
+.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label {
+  flex: 0 0 var(--ui-touch-height);
+  margin-inline-start: auto;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label > span { display: none; }
+
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  min-height: 0;
+  padding: 0 calc(var(--ui-touch-height) + var(--ui-space-2)) 0 calc(var(--ui-space-2) + var(--ui-border-width));
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  box-shadow: none;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: calc(-1 * var(--design-focus-offset));
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row:has(.map-display-detail-trigger:is(:hover, :focus-visible)):not(.is-disabled) {
+  background: var(--surface-hover);
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row:has(.map-display-detail-trigger[aria-expanded="true"]) {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface-subtle));
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-row.is-disabled { opacity: .58; cursor: default; }
+
+.surface-display:not(.view-menu-desktop) .map-display-details {
+  margin: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+}
+
+
+.surface-search:not(.search-toolbar-desktop),
+.surface-display {
+  background: var(--surface-elevated);
+  border: var(--ui-border-width) solid var(--border);
+  border-radius: var(--ui-radius-panel);
+  box-shadow: var(--control-shadow);
+}
+
+/* Search is a quick picker, not a second card list. */
+.object-search-section .layer-search-results {
+  display: grid;
+  align-content: start;
+  gap: var(--ui-space-0-5);
+}
+
+.object-search-section .layer-search-result {
+  min-height: var(--design-control-md);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  border-color: transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+}
+
+.object-search-section .layer-search-result-select {
+  min-width: 0;
+  min-height: inherit;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--ui-space-2);
+  border-color: transparent;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.object-search-section .layer-search-result-select > strong {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.object-search-section .layer-search-focus-action {
+  align-self: center;
+  width: var(--design-control-md);
+  height: var(--design-control-md);
+  margin-inline-end: var(--ui-space-0-5);
+  color: var(--muted);
+}
+
+.object-search-section .layer-search-focus-action:is(:hover, :focus-visible) {
+  color: var(--text-strong);
+}
+
+.object-search-section .layer-search-result-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+  color: var(--muted);
+}
+
+.object-search-section .layer-search-result-flag {
+  width: var(--ui-icon-size);
+  height: calc(var(--ui-icon-size) * 0.7);
+  flex: 0 0 var(--ui-icon-size);
+  display: block;
+  object-fit: contain;
+}
+
+.object-search-section .layer-search-result:is(:hover, :focus-within) {
+  border-color: transparent;
+  background: var(--surface-hover);
+}
+
+@media (max-width: 799px) {
+  [data-layout="mobile"] :is(.surface-search, .surface-display) {
+    border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
+  }
+  .object-search-section .layer-search-result { min-height: var(--ui-touch-height); }
+  .object-search-section .layer-search-focus-action { width: var(--ui-touch-height); height: var(--ui-touch-height); }
+}
+.preferences-accent .ui-color-popover.is-custom {
+  position: static;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  padding: var(--ui-space-2) 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+  transform: none;
 }

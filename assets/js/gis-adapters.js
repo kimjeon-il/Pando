@@ -46,10 +46,18 @@
     return index;
   }
 
+  function territorialProperties(properties) {
+    const current = structuredClone(properties || {});
+    delete current.adminLevel;
+    delete current.isRemainder;
+    if (current.metadata) delete current.metadata.legacyTerritorialPartition;
+    return current;
+  }
+
   function territorialRows(state) {
     const rows = Object.fromEntries(Object.values(TERRITORIAL_TABLES).map(table => [table, []]));
     for (const item of state?.territorialUnits || []) {
-      const properties = item?.properties || {};
+      const properties = territorialProperties(item?.properties);
       const unitType = text(properties.unitType);
       const table = TERRITORIAL_TABLES[unitType];
       const geometry = polygonGeometry(item?.geometry);
@@ -61,8 +69,6 @@
         type: unitType,
         parent_id: text(properties.parentId),
         sovereign_id: text(properties.sovereignId),
-        admin_level: unitType === 'subunit' && Number(properties.adminLevel) > 0 ? Number(properties.adminLevel) : null,
-        is_remainder: properties.isRemainder === true ? 1 : 0,
         valid_from: text(properties.validFrom),
         valid_to: text(properties.validTo),
         color: text(properties.style?.color),
@@ -115,7 +121,7 @@
     const unitType = TERRITORIAL_TYPES_BY_TABLE[tableName];
     const geometry = polygonGeometry(feature?.geometry);
     if (!unitType || !geometry) return null;
-    const currentProperties = parseJson(properties.properties_json);
+    const currentProperties = territorialProperties(parseJson(properties.properties_json));
     const id = text(properties.id || feature.id);
     if (!id) throw new Error(`영역 원본 ID가 비어 있습니다: ${unitType} ${index + 1}`);
     return {
@@ -128,9 +134,7 @@
         name: text(properties.name ?? currentProperties.name) || id,
         parentId: text(properties.parent_id ?? currentProperties.parentId),
         sovereignId: text(properties.sovereign_id ?? currentProperties.sovereignId),
-        adminLevel: unitType === 'subunit' && Number(properties.admin_level ?? currentProperties.adminLevel) > 0 ? Math.max(1, Number(properties.admin_level ?? currentProperties.adminLevel)) : null,
         coverageMode: unitType === 'region' ? 'explicit' : text(currentProperties.coverageMode) || 'partition',
-        isRemainder: Number(properties.is_remainder ?? (currentProperties.isRemainder ? 1 : 0)) === 1,
         validFrom: text(properties.valid_from ?? currentProperties.validFrom) || null,
         validTo: text(properties.valid_to ?? currentProperties.validTo) || null,
         style: {
@@ -140,7 +144,7 @@
         },
         sourceLibraryId: text(properties.source_library_id ?? currentProperties.sourceLibraryId),
         sourceGeometryVersion: text(properties.source_geometry_version ?? currentProperties.sourceGeometryVersion),
-        metadata: parseJson(properties.metadata_json, currentProperties.metadata || {}),
+        metadata: territorialProperties({ metadata: parseJson(properties.metadata_json, currentProperties.metadata || {}) }).metadata,
       },
       geometry,
     };

@@ -86,12 +86,14 @@ export function createMapInputPresentation({
       // escape through a child SVG hit target and become page zoom.
       element: $('map'),
       interactiveTarget: (target, event) => {
+        if (getInputSnapshot().projectReplacing) return true;
         if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.map-overlay-layer,.left-panel,.right-panel')) return true;
         if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);
         return getInputSnapshot().tool !== 'move' && !getInputSnapshot().spacePanActive && mapInteractionGate.isPandoTarget(target);
       },
       canNavigate: () => {
+        if (getInputSnapshot().projectReplacing) return false;
         const enabled = mapNavigationEnabled();
         mapInteractionGate.setNavigationEnabled(enabled);
         return enabled;
@@ -108,16 +110,21 @@ export function createMapInputPresentation({
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
       },
       canDirectTap: () => {
-        if (getInputSnapshot().tool === 'move') return false;
-        const annexLine = getInputSnapshot().tool === 'annex-territory' && ['line', 'polygon'].includes(getInputSnapshot().annexPhase);
-        const newCountryLine = getInputSnapshot().tool === 'new-country' && getInputSnapshot().newCountryPhase === 'line';
-        const draftTap = (isGenericFeatureDraftTool(getInputSnapshot().tool) || newCountryLine || annexLine) && getDraftSnapshot().inputPhase === 'draw';
-        return getInputSnapshot().labelPlacementMode || draftTap || getInputSnapshot().tool === 'point';
+        const input = getInputSnapshot();
+        if (input.projectReplacing) return false;
+        if (input.tool === 'move') return false;
+        const territoryDraft = input.territorySelectionSession?.tool === input.tool
+          && input.territorySelectionSession.stage === 'selection'
+          && input.territorySelectionSession.activePhase === 'drawing'
+          && ['line', 'polygon'].includes(input.territorySelectionSession.activeMethod);
+        const draftTap = (isGenericFeatureDraftTool(input.tool) || territoryDraft) && getDraftSnapshot().inputPhase === 'draw';
+        return input.labelPlacementMode || draftTap || input.tool === 'point';
       },
       directTap: handleMapClick,
-      canDoubleTap: () => isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'country-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
+      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'country-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
       suppressClick: suppressNextMapClick,
       canDrawStroke: () => {
+        if (getInputSnapshot().projectReplacing) return false;
         const active = editingDomain?.draftInputActive?.() && getDraftSnapshot().inputPhase === 'draw' && !getInputSnapshot().spacePanActive;
         mapInteractionGate.setDraftInputActive(active);
         return active;
@@ -138,6 +145,7 @@ export function createMapInputPresentation({
     });
 
     svg.on('mousemove', function() {
+      if (getInputSnapshot().projectReplacing) return;
       const draft = getDraftSnapshot();
       if (draft.strokeActive) return;
       if (d3.event.target?.closest?.('.draft-interactive') || draft.dragging) {
@@ -151,20 +159,22 @@ export function createMapInputPresentation({
       const screenPoint = d3.mouse(this);
       const coord = screenToGeo(screenPoint);
       if (coord) {
-        $('coordStatus').textContent = `경도 ${coord[0].toFixed(4)} · 위도 ${coord[1].toFixed(4)}`;
-        const newCountryLineMode = getInputSnapshot().tool === 'new-country' && getInputSnapshot().newCountryPhase === 'line';
-        if ((isGenericFeatureDraftTool(getInputSnapshot().tool) || newCountryLineMode || (getInputSnapshot().tool === 'annex-territory' && ['line', 'polygon'].includes(getInputSnapshot().annexPhase))) && draft.inputPhase === 'draw' && draft.coords.length) {
+        const input = getInputSnapshot();
+        const territoryDraft = input.territorySelectionSession?.tool === input.tool
+          && input.territorySelectionSession.stage === 'selection'
+          && input.territorySelectionSession.activePhase === 'drawing'
+          && ['line', 'polygon'].includes(input.territorySelectionSession.activeMethod);
+        if ((isGenericFeatureDraftTool(input.tool) || territoryDraft) && draft.inputPhase === 'draw' && draft.coords.length) {
           dispatchEditingInteraction('draft-hover-move', { screenPoint, pointerType: 'mouse' });
         }
         if (getInputSnapshot().tool === 'select' && !isMobile() && !d3.event.target?.closest?.('.generic-feature-shape, .territorial-unit-shape, .distribution-shape')) {
           queueCountryHoverPick(screenPoint, coord);
         }
       } else {
-        $('coordStatus').textContent = '지구본 바깥';
         dispatchEditingInteraction('draft-hover-clear');
         cancelCountryHoverPick({ clear: true });
         clearHoverHit();
-        selectionDomain.setHover(null);
+        selectionDomain.setHover(null, { source: 'map' });
       }
     });
 
@@ -172,7 +182,7 @@ export function createMapInputPresentation({
       cancelCountryHoverPick();
       dispatchEditingInteraction('draft-hover-clear');
       clearHoverHit();
-      selectionDomain.setHover(null);
+      selectionDomain.setHover(null, { source: 'map' });
     });
     boundInput = mapInputController;
     boundSvg = svg;

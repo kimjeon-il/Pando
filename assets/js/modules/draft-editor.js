@@ -3,6 +3,7 @@ const cloneCoords = coords => (coords || []).map(coord => [Number(coord[0]), Num
 export function createDraftEditState() {
   return {
     inputPhase: 'draw',
+    vertexInsertMode: false,
     selectedVertexIndex: null,
     insertTarget: null,
     history: [],
@@ -24,6 +25,7 @@ function snapshotDraft(coords, selectedVertexIndex = null, inputPhase = 'draw') 
 
 export function resetDraftEditState(editState) {
   editState.inputPhase = 'draw';
+  editState.vertexInsertMode = false;
   editState.selectedVertexIndex = null;
   editState.insertTarget = null;
   editState.history = [];

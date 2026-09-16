@@ -3,14 +3,26 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createGisFileController } from '../../assets/js/modules/gis-file-controller.js';
 
-test('file menu groups project, GIS and preferences with semantic icons', () => {
+test('topbar separates history, file, view, settings and help commands', () => {
   const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
+  const tokens = readFileSync(new URL('../../assets/css/tokens/design-tokens.css', import.meta.url), 'utf8');
+  const menuCss = readFileSync(new URL('../../assets/css/components/menus.css', import.meta.url), 'utf8');
+  const fileBindings = readFileSync(new URL('../../assets/js/modules/app-file-bindings.js', import.meta.url), 'utf8');
+  const topbar = html.match(/<header class="topbar"[\s\S]*?<\/header>/)[0];
   const menu = html.match(/<nav id="fileMenu"[\s\S]*?<\/nav>/)[0];
+  assert.equal(topbar.includes('class="brand"'), false);
+  assert.deepEqual([...topbar.matchAll(/id="(undoBtn|redoBtn|mobileFileBtn|mapDisplayBtn|preferencesBtn|helpBtn)"/g)].map(m => m[1]),
+    ['undoBtn', 'redoBtn', 'mobileFileBtn', 'mapDisplayBtn', 'preferencesBtn', 'helpBtn']);
+  assert.match(topbar, /<button id="mapDisplayBtn"[^>]*>보기<\/button>/);
   assert.deepEqual([...menu.matchAll(/<button id="([^"]+)"/g)].map(m => m[1]),
-    ['newProjectBtn', 'openProjectBtn', 'saveProjectBtn', 'openGisBtn', 'dataExportBtn', 'preferencesBtn']);
+    ['newProjectBtn', 'openProjectBtn', 'saveProjectBtn', 'openGisBtn', 'dataExportBtn']);
   assert.deepEqual([...menu.matchAll(/<use href="#([^"]+)"/g)].map(m => m[1]),
-    ['icon-plus', 'icon-folder-open', 'icon-save', 'icon-map-import', 'icon-map-export', 'icon-gear']);
-  assert.equal((menu.match(/role="separator"/g) || []).length, 2);
+    ['icon-plus', 'icon-folder-open', 'icon-save', 'icon-map-import', 'icon-map-export']);
+  assert.equal((menu.match(/role="separator"/g) || []).length, 1);
+  assert.match(menu, /class="[^"]*\bui-command-menu\b/);
+  assert.match(tokens, /--ui-menu-width:\s*17\.5rem;/);
+  assert.match(menuCss, /\.ui-command-menu[\s\S]*?width:\s*min\(var\(--ui-menu-width\)/);
+  assert.match(fileBindings, /exitMenuOnTab\(event,[\s\S]*restoreFocus:\s*false/);
 });
 
 test('file inputs pass explicit source intent without changing the import target', async () => {

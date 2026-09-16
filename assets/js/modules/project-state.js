@@ -19,7 +19,7 @@ const PROJECT_FORMATS = Object.freeze(new Set([
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const text = value => String(value ?? '').trim();
-const LAYER_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels', 'countryFlags']);
+const LAYER_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels', 'countryFlags', 'subunitLabels', 'subunitFlags', 'regionLabels', 'regionFlags']);
 const ITEM_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'genericFeatures', 'labels', 'countryLabels']);
 const PRESENTATION_GROUP_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'countryLabels', 'terrain']);
 const GENERIC_PROPERTY_KEYS = new Set(['schemaVersion', 'name', 'notes', 'color', 'locked', 'source']);
@@ -150,10 +150,9 @@ export function assertCurrentProjectSchema(input) {
     requireSchemaVersion(feature?.properties?.schemaVersion, `영역 ${text(feature?.id)}`, 2);
     assertAllowedKeys(feature?.properties, new Set([
       'schemaVersion', 'unitType', 'name', 'parentId', 'sovereignId', 'coverageMode',
-      'adminLevel', 'style', 'locked', 'validFrom', 'validTo', 'isRemainder', 'notes',
+      'style', 'locked', 'validFrom', 'validTo', 'notes',
       'metadata', 'sourceFolderId', 'sourceLibraryId', 'sourceGeometryVersion',
     ]), `영역 ${text(feature?.id)}`);
-    if (typeof feature?.properties?.isRemainder !== 'boolean') throw schemaError(`영역 ${text(feature?.id)}에 isRemainder가 없습니다.`, 'PL-SCHEMA-REMAINDER');
   }
   for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`, 1);
   for (const layer of project.distributionLayers || []) {

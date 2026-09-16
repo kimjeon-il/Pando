@@ -1,3 +1,5 @@
+import { effectiveCountryFlagUrl, effectiveTerritorialFlagUrl } from './country-flags.js';
+
 /** LayerList: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -111,6 +113,11 @@ export function createLayerList() {
           id,
           name: (0, dependencies.countryName)(feature),
           color: (0, dependencies.countryColor)(feature),
+          flagUrl: effectiveCountryFlagUrl({
+            countryId: id,
+            override: dependencies.state.countryOverrides[id] || {},
+            assetRevision: dependencies.ASSET_REVISION,
+          }),
           searchText: id,
           meta: group === 'countryLabels' && dependencies.pendingCountryLabelAnchors.has(id) ? '계산 중' : '',
           selected: (dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) && dependencies.state.selected.id === id,
@@ -123,21 +130,22 @@ export function createLayerList() {
         : dependencies.TERRITORIAL_UNIT_TYPES.REGION;
       return dependencies.state.territorialUnits.filter(feature => feature.properties?.unitType === kind).map(feature => {
         const countryLabel = (0, dependencies.territorialUnitCountryName)(feature);
-        const levelLabel = kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT && Number(feature.properties?.adminLevel) > 0 ? `${Number(feature.properties.adminLevel)}급` : '';
+
         return {
           id: String(feature.id),
           name: (0, dependencies.territorialUnitName)(feature),
           color: (0, dependencies.territorialUnitColor)(feature),
-          meta: levelLabel,
-          searchText: `${countryLabel} ${levelLabel}`,
+          flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.ASSET_REVISION }),
+          meta: '',
+          searchText: countryLabel,
           folderName: kind === dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT
-            ? `하위단위 · ${countryLabel} · ${levelLabel}`
+            ? `하위단위 · ${countryLabel}`
             : kind === dependencies.TERRITORIAL_UNIT_TYPES.REGION
             ? `지방${feature.properties?.sovereignId ? ` · ${countryLabel}` : ''}`
             : `하위단위 · ${countryLabel}`,
           countryId: String(feature.properties?.sovereignId || ''),
           parentId: String(feature.properties?.parentId || ''),
-          level: Number(feature.properties?.adminLevel) || null,
+
           selected: (dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type !== dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) && dependencies.state.selected.id === String(feature.id),
         };
       });

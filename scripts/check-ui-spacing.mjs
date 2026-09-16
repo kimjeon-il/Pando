@@ -22,7 +22,6 @@ const geometryImportantAllowlist = [
   '.ui-native-select',
   '.ui-native-color-input',
   '.sheet-drag-handle',
-  '.compact-primary-controls',
   '@media (prefers-reduced-motion: reduce)',
 ];
 

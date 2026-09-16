@@ -10,9 +10,9 @@ export const OBJECT_ACTIONS = Object.freeze({
   focus: freezeAction({
     id: 'focus',
     command: 'object.focus',
-    label: '지도에서 보기',
+    label: '선택 객체로 이동',
     help: '선택한 객체가 보이도록 지도를 이동합니다.',
-    icon: 'icon-focus-object',
+    icon: 'icon-focus-target',
     capability: 'focus',
     danger: false,
   }),

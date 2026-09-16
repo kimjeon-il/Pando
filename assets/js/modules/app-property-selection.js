@@ -2,8 +2,18 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
+import { resolveSelectChoice } from './select-option-policy.js';
+
 export function createPropertySelection() {
   let dependencies;
+  const parentPreparations = new Map();
+  const parentGeometryTokens = new WeakMap();
+  let parentGeometrySequence = 0;
+  const parentGeometryToken = geometry => {
+    if (!geometry) return 0;
+    if (!parentGeometryTokens.has(geometry)) parentGeometryTokens.set(geometry, ++parentGeometrySequence);
+    return parentGeometryTokens.get(geometry);
+  };
 
   function connect(ports) {
     if (dependencies) throw new Error('property-selection already connected');
@@ -12,22 +22,46 @@ export function createPropertySelection() {
 
   function setEditorShellView(view, { focus = false } = {}) {
     const requested = view === 'relation' ? 'relation' : view === 'actions' ? 'actions' : 'info';
-    const tab = requested === 'relation' ? (0, dependencies.$)('relationTabBtn') : requested === 'actions' ? (0, dependencies.$)('actionsTabBtn') : (0, dependencies.$)('editorTabBtn');
-    const active = requested !== 'info' && (tab?.hidden || tab?.getAttribute('aria-disabled') === 'true') ? 'info' : requested;
+    const tabs = {
+      info: (0, dependencies.$)('editorTabBtn'),
+      actions: (0, dependencies.$)('actionsTabBtn'),
+      relation: (0, dependencies.$)('relationTabBtn'),
+    };
+    const available = key => !!tabs[key] && !tabs[key].hidden && tabs[key].getAttribute('aria-disabled') !== 'true';
+    const active = available(requested) ? requested : ['info', 'actions', 'relation'].find(available) || requested;
     (0, dependencies.$)('rightPanel')?.setAttribute('data-editor-view', active);
     dependencies.editorSurfaceTabs?.sync(active, { focus });
   }
 
-  function replaceSelectOptions(select, options, selectedValue = '') {
-    if (!select) return;
-    select.replaceChildren(...options.map(option => {
+  function replaceSelectOptions(select, options, selectedValue = '', { autoSelectSingle = false, preserveInvalid = false } = {}) {
+    if (!select) return Object.freeze({ candidateCount: 0, invalid: false, single: false, value: '' });
+    const normalized = [...(options || [])];
+    const requestedValue = String(selectedValue ?? '');
+    let state = resolveSelectChoice(normalized, requestedValue, { autoSelectSingle, preserveInvalid });
+    if (preserveInvalid && state.invalid) {
+      normalized.push({ value: requestedValue, label: `${requestedValue} · 기존 값`, disabled: true, invalid: true });
+      const unresolved = resolveSelectChoice(normalized, requestedValue, { autoSelectSingle, preserveInvalid: true });
+      state = Object.freeze({ ...unresolved, invalid: true, single: false, value: requestedValue });
+    }
+    select.replaceChildren(...normalized.map(option => {
       const element = document.createElement('option');
       element.value = String(option.value ?? '');
       element.textContent = String(option.label ?? option.value ?? '');
       if (option.searchText) element.dataset.searchText = String(option.searchText);
+      if (option.tooltip) element.dataset.tooltip = String(option.tooltip);
+      if (option.placeholder === true) {
+        element.dataset.placeholder = 'true';
+        element.disabled = true;
+        element.hidden = true;
+      } else {
+        element.disabled = option.disabled === true;
+        element.hidden = option.hidden === true;
+      }
+      if (option.invalid === true) element.dataset.invalid = 'true';
       return element;
     }));
-    select.value = String(selectedValue || '');
+    select.value = state.value;
+    return Object.freeze({ ...state, value: select.value });
   }
 
   function territorialUnitCountryOptions() {
@@ -49,12 +83,26 @@ export function createPropertySelection() {
     const options = (0, dependencies.subunitParentChoices)(countryId, dependencies.state.countriesData.features, dependencies.state.territorialUnits, {
       exclude: [feature.id], name: item => item.properties?.unitType ? (0, dependencies.territorialUnitName)(item) : (0, dependencies.countryName)(item),
     });
-    const parentId = String(feature.properties?.parentId || '');
-    if (!options.some(option => option.value === parentId)) {
-      const parent = (0, dependencies.territorialUnitById)(parentId) || (0, dependencies.countryFeatureById)(parentId);
-      options.push({ value: parentId, label: parent ? `${parent.properties?.name || parentId} · 기존 소속` : parentId ? `${parentId} · 기존 소속` : '상위 소속 없음' });
+    const signature = JSON.stringify([parentGeometryToken(feature.geometry), feature.properties.parentId, countryId,
+      options.map(option => {
+        const parent = (0, dependencies.territorialUnitById)(option.value) || (0, dependencies.countryFeatureById)(option.value);
+        return [option.value, parentGeometryToken(parent?.geometry), parent?.properties?.parentId, parent?.properties?.locked];
+      })]);
+    let entry = parentPreparations.get(String(feature.id));
+    if (entry?.signature !== signature) {
+      entry = { signature, ids: null };
+      parentPreparations.set(String(feature.id), entry);
+      while (parentPreparations.size > 16) parentPreparations.delete(parentPreparations.keys().next().value);
+      dependencies.mapEditClient.execute('territorial-parents', { payload: { targetId: String(feature.id), candidateIds: options.map(option => option.value) } },
+        { jobKey: 'territorial-parents' }).then(response => {
+        if (parentPreparations.get(String(feature.id)) !== entry) return;
+        entry.ids = new Set(response.result.ids);
+        if (String(dependencies.state.selected?.id) === String(feature.id)) dependencies.objectPropertyController.present(dependencies.state.selected, { refreshOnly: true });
+      }).catch(() => { if (parentPreparations.get(String(feature.id)) === entry) parentPreparations.delete(String(feature.id)); });
     }
-    return options;
+    const prepared = options.filter(option => entry.ids ? entry.ids.has(option.value) : String(option.value) === String(feature.properties.parentId));
+    prepared.pending = !entry.ids;
+    return prepared;
   }
 
   function territorialParentOptions(feature) {
@@ -69,7 +117,7 @@ export function createPropertySelection() {
       }
     }
     return [
-      { value: '', label: '상위 소속 없음' },
+      { value: '', label: '상위 단위 없음' },
       ...dependencies.territorialRepository.list()
         .filter(candidate => !excluded.has(String(candidate.id)))
         .map(candidate => ({
@@ -111,10 +159,11 @@ export function createPropertySelection() {
     return true;
   }
 
-  function createDistributionLayerFromPrompt(type) {
+  function createDistributionLayerFromPrompt(type, { beforeCreate } = {}) {
     const label = dependencies.DISTRIBUTION_TYPE_LABELS[type];
     const name = prompt(`새 ${label} 항목의 이름을 입력하세요.`, `새 ${label}`);
     if (name === null) return false;
+    beforeCreate?.();
     const layer = dependencies.distributionService.createLayer({
       id: (0, dependencies.uid)(`distribution_${type}`),
       type,
@@ -227,11 +276,11 @@ export function createPropertySelection() {
   function applyTerritorialSelectionIntent(type, id, refreshOnly = false) {
     const unitType = String(type || (0, dependencies.territorialUnitById)(id)?.properties?.unitType || '');
     if (unitType === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      return dependencies.selectionUiController.applyIntent((0, dependencies.countryObjectRef)(id), { refreshOnly, openEditor: !refreshOnly });
+      return dependencies.selectionUiController.applyIntent((0, dependencies.countryObjectRef)(id), { refreshOnly, openEditor: false });
     }
     const unit = (0, dependencies.territorialUnitById)(id);
     if (!unit || unit.properties?.unitType !== unitType) return false;
-    return dependencies.selectionUiController.applyIntent((0, dependencies.normalizeObjectRef)({ domain: 'territorial', type: unitType, id }), { refreshOnly, openEditor: !refreshOnly });
+    return dependencies.selectionUiController.applyIntent((0, dependencies.normalizeObjectRef)({ domain: 'territorial', type: unitType, id }), { refreshOnly, openEditor: false });
   }
 
   function setTerritorialUnitName(type, id, name) {
@@ -261,7 +310,10 @@ export function createPropertySelection() {
     if (type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) {
       if ((dependencies.state.selected?.domain === 'territorial' && dependencies.state.selected.type === dependencies.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.state.selected.id) === key) dependencies.countryPropertyController.refresh((0, dependencies.countryObjectRef)(key));
       (0, dependencies.syncBatchActionAvailability)();
-    } else dependencies.objectPropertyController.presentTerritorial(key, true);
+    } else if (dependencies.state.selected?.domain === 'territorial' && String(dependencies.state.selected.id) === key) {
+      dependencies.selectionUiController.presentPrimary({ refreshOnly: true });
+    }
+    (0, dependencies.syncBatchActionAvailability)();
     return true;
   }
 
@@ -320,7 +372,7 @@ export function createPropertySelection() {
   function applyCountrySelectionIntent(id, refreshOnly = false) {
     return dependencies.selectionUiController.applyIntent(
       (0, dependencies.countryObjectRef)(id),
-      { refreshOnly, openEditor: !refreshOnly, reason: 'country-selection' },
+      { refreshOnly, openEditor: false, reason: 'country-selection' },
     );
   }
 
@@ -330,7 +382,7 @@ export function createPropertySelection() {
       domain: 'territorial',
       type: feature.properties?.unitType || dependencies.TERRITORIAL_UNIT_TYPES.SUBUNIT,
       id: String(id),
-    }), { refreshOnly, openEditor: !refreshOnly, reason: 'territorial-selection' }) : false;
+    }), { refreshOnly, openEditor: false, reason: 'territorial-selection' }) : false;
   }
 
   function applyDistributionSelectionIntent(id, refreshOnly = false) {

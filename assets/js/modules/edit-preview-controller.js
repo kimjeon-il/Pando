@@ -1,24 +1,9 @@
+import { getInteractionStyle } from './selection-style.js';
+import { interactionRoleStyle } from './map-interaction-style.js';
+
 function finiteCoordinate(value) {
   return Array.isArray(value) && value.length >= 2
     && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]));
-}
-
-function normalizedStyle(style = {}) {
-  return Object.freeze({
-    color: String(style.color || '#f4c766'),
-    alpha: Math.max(0, Math.min(1, Number(style.alpha ?? 1))),
-    width: Math.max(0.5, Number(style.width || 3)),
-    casing: style.casing ? Object.freeze({
-      color: String(style.casing.color || '#151b23'),
-      alpha: Math.max(0, Math.min(1, Number(style.casing.alpha ?? 0.7))),
-      width: Math.max(0.5, Number(style.casing.width || 4.5)),
-    }) : null,
-    cap: style.cap === 'butt' ? 'butt' : 'round',
-    join: ['miter', 'bevel', 'round'].includes(style.join) ? style.join : 'round',
-    dash: Object.freeze(Array.isArray(style.dash) ? [Number(style.dash[0] || 0), Number(style.dash[1] || 0)] : [0, 0]),
-    miterLimit: Math.max(1, Number(style.miterLimit || 4)),
-    blendMode: style.blendMode === 'multiply' ? 'multiply' : 'normal',
-  });
 }
 
 function percentile(values, ratio) {
@@ -27,7 +12,7 @@ function percentile(values, ratio) {
   return sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * ratio) - 1))] || 0;
 }
 
-export function createEditPreviewController({ now = () => globalThis.performance?.now?.() ?? Date.now() } = {}) {
+export function createEditPreviewController({ now = () => globalThis.performance?.now?.() ?? Date.now(), getStyle = getInteractionStyle } = {}) {
   let sequence = 0;
   let session = null;
   const updateSamples = [];
@@ -87,14 +72,13 @@ export function createEditPreviewController({ now = () => globalThis.performance
     return validCount;
   }
 
-  function begin({ key = 'edit-preview', segments = [], style = {}, order = 20_000 } = {}) {
+  function begin({ key = 'edit-preview', segments = [], order = 20_000 } = {}) {
     session = {
       id: ++sequence,
       key: String(key || 'edit-preview'),
       revision: 0,
       startsEnds: new Float32Array(0),
       segmentCount: 0,
-      style: normalizedStyle(style),
       order: Number(order || 20_000),
       startedAt: now(),
       updatedAt: 0,
@@ -122,8 +106,8 @@ export function createEditPreviewController({ now = () => globalThis.performance
         role: 'edit-preview',
         startsEnds,
         segmentCount: session.segmentCount,
-        style: session.style,
-        blendMode: session.style.blendMode,
+        style: Object.freeze({ ...interactionRoleStyle(getStyle(), 'edit-target', { directManipulation: true }), cap: 'round', join: 'round', dash: [0, 0], blendMode: 'normal' }),
+        blendMode: 'normal',
       }),
     });
   }

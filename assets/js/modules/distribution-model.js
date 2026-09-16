@@ -88,7 +88,7 @@ export function normalizeDistributionLayers(value) {
   return output;
 }
 
-function normalizeDistributionEntry(raw) {
+function normalizeDistributionEntry(raw, { cloneGeometry = clone } = {}) {
   if (Number(raw?.schemaVersion) !== DISTRIBUTION_SCHEMA_VERSION) throw new Error('분포 엔트리 schemaVersion이 현재 형식과 일치하지 않습니다.');
   assertAllowedKeys(raw, ENTRY_KEYS, '분포 엔트리');
   const layerId = text(raw?.layerId);
@@ -97,7 +97,7 @@ function normalizeDistributionEntry(raw) {
   if (!MODES.has(mode)) return null;
   const territorialUnitId = mode === DISTRIBUTION_MODES.TERRITORIAL ? text(raw.territorialUnitId) : '';
   const geometry = mode === DISTRIBUTION_MODES.GEOMETRY && POLYGON_TYPES.has(raw?.geometry?.type)
-    ? clone(raw.geometry)
+    ? cloneGeometry(raw.geometry)
     : null;
   if ((mode === DISTRIBUTION_MODES.TERRITORIAL && !territorialUnitId)
     || (mode === DISTRIBUTION_MODES.GEOMETRY && (!geometry || !Array.isArray(geometry.coordinates) || !geometry.coordinates.length))) return null;
@@ -119,11 +119,11 @@ function normalizeDistributionEntry(raw) {
   };
 }
 
-export function normalizeDistributionEntries(value, { layerExists = () => true } = {}) {
+export function normalizeDistributionEntries(value, { layerExists = () => true, cloneGeometry = clone } = {}) {
   const output = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
-    const entry = normalizeDistributionEntry(raw);
+    const entry = normalizeDistributionEntry(raw, { cloneGeometry });
     if (!entry) throw new Error('분포 엔트리 형식이 올바르지 않습니다.');
     if (seen.has(entry.id)) throw new Error(`분포 엔트리 ID가 중복되었습니다: ${entry.id}`);
     if (!layerExists(entry.layerId)) throw new Error(`${entry.id}의 분포 레이어가 존재하지 않습니다.`);

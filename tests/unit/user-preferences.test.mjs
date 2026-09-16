@@ -17,10 +17,15 @@ test('current preferences retain only label and composable selection settings', 
   });
   assert.deepEqual(preferences, {
     version: 2,
-    appearance: { theme: 'dark', accentColor: null },
+    appearance: { theme: 'dark', accentColor: null, statusBarVisible: true },
     labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef' } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
+});
+
+test('status bar visibility defaults to visible and persists an explicit opt-out', () => {
+  assert.equal(defaultUserPreferences().appearance.statusBarVisible, true);
+  assert.equal(normalizeUserPreferences({ version: 2, appearance: { statusBarVisible: false } }).appearance.statusBarVisible, false);
 });
 
 test('invisible selection combinations restore an outline and old schema values are ignored', () => {

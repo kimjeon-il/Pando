@@ -7,7 +7,8 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const workerSource = fs.readFileSync(path.join(root, 'assets/js/workers/gis-geometry-worker.js'), 'utf8');
+const workerSource = fs.readFileSync(path.join(root, 'assets/js/modules/gis-geometry-validation.js'), 'utf8').replace('export function validateCollection', 'function validateCollection')
+  + fs.readFileSync(path.join(root, 'assets/js/workers/gis-geometry-worker.js'), 'utf8').replace(/ {4}const \{ validateCollection \} = await import\([^\n]+\);\r?\n/, '');
 const appSource = readApplicationOwners('gis-assembly');
 const importServiceSource = fs.readFileSync(path.join(root, 'assets/js/modules/import-service.js'), 'utf8');
 
@@ -33,7 +34,7 @@ function runWorker(collection, affectedIds = null, { intersection = null } = {})
     d3: { geo: { area: () => 0 } },
     postMessage(message) { messages.push(message); },
   };
-  vm.runInNewContext(workerSource, { self, importScripts() {} });
+  vm.runInNewContext(workerSource, { self, polygonClipping: self.polygonClipping, importScripts() {} });
   self.onmessage({ data: { id: 1, action: 'validate', collection, affectedIds } });
   return { message: messages[0], intersectionCalls };
 }
@@ -87,7 +88,7 @@ test('country import validation has a timeout and validates imported IDs before 
   assert.match(importServiceSource, /affectedIds: \[\.\.\.affectedIds\]/);
   assert.match(appSource, /markCountryGeometriesChanged: markCountryGeometriesChanged/);
   const committer = fs.readFileSync(path.join(root, 'assets/js/modules/gis-import-transaction.js'), 'utf8');
-  assert.match(committer, /markCountryGeometriesChanged\(plan\.affectedIds \|\| importedIds\)/);
+  assert.match(committer, /markCountryGeometriesChanged\(plan\.affectedIds \|\| importedIds(?:\)|,\s*\{)/);
   assert.match(importServiceSource, /importedFeatures\.map\(featureCountryId\)/);
   assert.doesNotMatch(importServiceSource, /importedFeatures\.length > 1/);
 });

@@ -15,7 +15,11 @@ test('palette swatches stay square and inside their grid on desktop and mobile',
     await page.locator('#countryColorTrigger').click();
     const palette = page.locator('#countryColorPopover');
     await expect(palette).toBeVisible();
-    await expect(palette.locator('.ui-color-swatch')).toHaveCount(66);
+    await expect.poll(() => palette.evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      return rect.top >= 0 && rect.left >= 0 && rect.right <= window.innerWidth && rect.bottom <= window.innerHeight;
+    })).toBe(true);
+    await expect(palette.locator('.ui-color-swatch')).toHaveCount(65);
     await expect.poll(() => palette.locator('.ui-color-swatch-grid').evaluateAll(grids => grids.every(grid => {
       const bounds = grid.getBoundingClientRect();
       const rects = [...grid.querySelectorAll('.ui-color-swatch')].map(node => node.getBoundingClientRect());
@@ -24,6 +28,17 @@ test('palette swatches stay square and inside their grid on desktop and mobile',
         && rects.slice(index + 1).every(other => rect.right <= other.left + 0.1 || other.right <= rect.left + 0.1
           || rect.bottom <= other.top + 0.1 || other.bottom <= rect.top + 0.1));
     }))).toBe(true);
+    const swatchSizes = await palette.locator('.ui-color-swatch-grid').evaluateAll(grids => grids.map(grid => {
+      const swatch = grid.querySelector('.ui-color-swatch');
+      const rect = swatch?.getBoundingClientRect();
+      return rect ? [rect.width, rect.height] : [];
+    }));
+    expect(swatchSizes).toHaveLength(1);
+    expect(swatchSizes[0][0]).toBeGreaterThanOrEqual(18);
+    expect(swatchSizes[0][0]).toBeLessThanOrEqual(26);
+    expect(swatchSizes[0][1]).toBe(swatchSizes[0][0]);
+    expect(await palette.locator('.ui-color-swatch-grid--palette').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(13);
+    await expect(palette).toHaveCSS('position', width < 800 ? 'fixed' : 'absolute');
     await palette.screenshot({ path: testInfo.outputPath(`palette-${width}.png`) });
     await palette.locator('[data-color-value="#ef4444"]').click();
     await expect(page.locator('#countryColorInput')).toHaveValue('#ef4444');

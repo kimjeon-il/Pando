@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ui-space-2);
-  min-height: var(--ui-v2-control-lg);
+  min-height: var(--design-control-lg);
   padding: var(--ui-space-2) var(--ui-space-3);
   border-bottom: 1px solid var(--border);
 }
@@ -22,7 +22,7 @@
 .workflow-map-session .mode-task-heading {
   min-width: 0;
   display: grid;
-  grid-template-columns: var(--ui-icon-size) auto auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   gap: var(--ui-space-1-5);
 }
@@ -81,6 +81,91 @@
   line-height: var(--ui-line-normal);
 }
 
+.workflow-map-session .annex-country-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--ui-space-1);
+  min-width: 0;
+  min-height: 1.75rem;
+  margin-top: var(--ui-space-2);
+}
+
+.workflow-map-session .annex-country-flow.hidden { display: none; }
+
+.workflow-map-session .annex-country-flow-country {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+}
+
+.workflow-map-session .annex-country-flow-donor { justify-content: flex-end; }
+
+.workflow-map-session .annex-country-flow-flag {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 0.875rem;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--surface-subtle);
+}
+
+.workflow-map-session .annex-country-flow-arrow {
+  color: var(--text-strong);
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+  line-height: 1;
+}
+
+.workflow-map-session .annex-country-flow-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-strong);
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-bold);
+  line-height: var(--ui-line-tight);
+}
+
+.workflow-map-session .annex-country-flow-placeholder {
+  color: var(--text-soft);
+  font-weight: var(--ui-weight-medium);
+}
+
+.workflow-map-session .multi-drawn-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--ui-space-2);
+  min-width: 0;
+}
+
+.workflow-map-session .multi-drawn-actions.hidden { display: none; }
+
+.workflow-map-session .multi-drawn-count {
+  flex: 1 0 auto;
+  color: var(--text-soft);
+  font-size: var(--ui-font-sm);
+  white-space: nowrap;
+}
+
+.workflow-map-session .multi-drawn-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-1);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.workflow-map-session .multi-drawn-buttons .ui-button {
+  min-width: 0;
+  padding-inline: var(--ui-space-2);
+  white-space: nowrap;
+}
+
 .workflow-map-session .geometry-preview-summary:not(.hidden) {
   display: grid;
   gap: var(--ui-space-1);
@@ -102,54 +187,96 @@
   background: transparent;
 }
 
-.workflow-map-session .mode-method-btn {
-  min-height: var(--ui-v2-command-description-height-mobile);
+.workflow-map-session .mode-method-change-confirm {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  align-items: center;
-  justify-items: start;
-  column-gap: var(--ui-space-2);
-  row-gap: var(--ui-space-0-5);
-  padding: var(--ui-space-2) var(--ui-space-3);
-  border: 1px solid var(--ui-control-border);
-  border-radius: var(--ui-radius-control);
-  background: var(--ui-control-bg);
-  color: var(--ui-control-text);
-  text-align: left;
+  gap: var(--ui-space-2);
+  min-width: 0;
 }
 
-.workflow-map-session .mode-method-btn:is(.active, [aria-pressed="true"]) {
-  border-color: var(--accent-border);
-  background: var(--accent-surface);
-  color: var(--accent-text);
+.workflow-map-session .mode-method-change-confirm > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-1);
 }
 
-.workflow-map-session .mode-method-btn::before {
-  content: "";
-  grid-row: 1 / span 2;
-  width: var(--ui-icon-size);
-  height: var(--ui-icon-size);
+.workflow-map-session .mode-method-change-confirm .ui-button {
+  width: 100%;
+  min-width: 0;
+}
+
+.workflow-map-session .mode-method-change-confirm p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.workflow-map-session .mode-method-change-confirm.hidden { display: none; }
+
+.workflow-map-session .mode-aux-control {
+  position: relative;
   box-sizing: border-box;
-  border: 2px solid var(--border-strong);
-  border-radius: 50%;
-}
-
-.workflow-map-session .mode-method-btn:is(.active, [aria-pressed="true"])::before {
-  border-color: var(--accent);
-  background: var(--accent);
-  box-shadow: inset 0 0 0 4px var(--accent-surface);
-}
-
-.workflow-map-session .mode-method-title { font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold); }
-.workflow-map-session .mode-method-btn small { color: var(--muted); font-size: var(--ui-font-caption); line-height: var(--ui-line-normal); }
-.workflow-map-session .mode-method-btn:is(.active, [aria-pressed="true"]) small { color: var(--accent-text); opacity: .82; }
-.workflow-map-session .mode-river-boundary-option {
-  min-height: var(--ui-v2-control-md);
-  padding-inline: var(--ui-space-3);
-  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: var(--design-control-md);
+  min-height: var(--design-control-md);
+  padding: 0 var(--ui-space-2);
+  border: 1px solid transparent;
   border-radius: var(--ui-radius-control);
-  background: var(--surface-subtle);
+  background: var(--ui-button-subtle);
+  color: var(--ui-control-text);
+  font-size: var(--ui-font-sm);
+  font-weight: var(--ui-weight-medium);
+  line-height: var(--ui-line-tight);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.workflow-map-session .mode-aux-control:where(:hover:not(:disabled):not(:has(input:disabled))) {
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
+}
+
+.workflow-map-session .mode-aux-control:where(:active:not(:disabled):not(:has(input:disabled))) {
+  background: var(--ui-button-subtle-pressed);
+}
+
+.workflow-map-session .mode-aux-control:is([aria-pressed="true"], :has(input:checked)) {
+  border-color: transparent;
+  background: var(--ui-button-selected);
+  color: var(--accent);
+}
+
+.workflow-map-session .mode-aux-control:is(:focus-visible, :has(input:focus-visible)) {
+  outline: 2px solid var(--accent);
+  outline-offset: var(--design-focus-offset);
+}
+
+.workflow-map-session .mode-aux-control:is(:disabled, :has(input:disabled)) {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.workflow-map-session .mode-river-boundary-option {
+  width: calc((100% - var(--ui-toolbar-gap)) / 2);
+  min-height: var(--design-control-md);
+  justify-self: start;
+}
+.workflow-map-session .mode-river-boundary-option input {
+  position: absolute;
+  width: var(--ui-border-width);
+  height: var(--ui-border-width);
+  margin: 0;
+  padding: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+
+.app-root[data-layout="mobile"] .workflow-map-session .mode-aux-control {
+  height: var(--design-control-mobile-height);
+  min-height: var(--design-control-mobile-height);
 }
 
 .workflow-map-session .mode-action-bar {
@@ -165,17 +292,23 @@
 }
 
 .workflow-map-session .mode-action-buttons {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
-  justify-content: flex-end;
   gap: var(--ui-space-2);
 }
 
-.workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) { min-height: var(--ui-v2-control-md); }
+.workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) {
+  min-width: 0;
+  min-height: var(--design-control-md);
+  justify-content: center;
+}
+
+.workflow-map-session .mode-button-label { white-space: nowrap; }
 
 .workflow-map-session .mode-cancel-btn {
-  border-color: var(--ui-control-border);
-  background: var(--ui-control-bg);
+  border-color: transparent;
+  background: var(--ui-button-subtle);
   color: var(--ui-control-text);
 }
 
@@ -285,16 +418,16 @@
   justify-items: start;
   gap: var(--ui-space-0-5);
   padding: var(--ui-space-2) var(--ui-space-3);
-  border-color: var(--ui-control-border);
-  background: var(--ui-control-bg);
+  border-color: transparent;
+  background: var(--ui-button-subtle);
   color: var(--text-strong);
   text-align: left;
 }
 
 .workflow-dialog--decision .workflow-decision-option:hover,
 .workflow-dialog--decision .workflow-decision-option:focus-visible {
-  border-color: var(--ui-control-border-hover);
-  background: var(--ui-control-bg-hover);
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
   color: var(--text-strong);
 }
 
@@ -320,7 +453,6 @@
 
   .workflow-map-session .mode-task-window-body { padding: var(--ui-space-2); }
 
-  .workflow-map-session .mode-method-btn,
   .workflow-map-session :is(.mode-cancel-btn, .mode-primary-btn) { min-height: 2.5rem; }
 
   .workflow-dialog-card {
@@ -350,6 +482,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .workflow-map-session .mode-method-btn,
   .workflow-dialog-card .btn { transition: none; }
 }

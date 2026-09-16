@@ -15,6 +15,7 @@ export function createConfirmModalController({
   beforeOpen = () => {},
 }) {
   let action = null;
+  let cancelAction = null;
   let restoreFocusTarget = null;
 
   const focusableElements = () => [...(elements.modal?.querySelectorAll?.(FOCUSABLE_SELECTOR) || [])]
@@ -27,19 +28,24 @@ export function createConfirmModalController({
     window.requestAnimationFrame(() => target.focus({ preventScroll: true }));
   }
 
-  function close({ restore = true } = {}) {
+  function close({ restore = true, confirmed = false } = {}) {
+    const pendingCancel = cancelAction;
+    cancelAction = null;
     elements.modal?.classList.add('hidden');
     elements.choiceRow?.classList.add('hidden');
     elements.impactSection?.classList.add('hidden');
     action = null;
     if (restore) restoreFocus();
+    if (!confirmed) pendingCancel?.();
   }
 
   function open({
     title = '확인', message = '', confirmText = '확인', cancelText = '취소', danger = false,
-    choices = [], impacts = [], onConfirm = null,
+    choices = [], impacts = [], onConfirm = null, onCancel = null,
   } = {}) {
     if (!elements.modal) return false;
+    cancelAction?.();
+    cancelAction = typeof onCancel === 'function' ? onCancel : null;
     beforeOpen();
     const active = document.activeElement;
     restoreFocusTarget = active instanceof HTMLElement && !elements.modal.contains(active) ? active : restoreFocusTarget;
@@ -55,17 +61,23 @@ export function createConfirmModalController({
     elements.ok.textContent = confirmText;
     elements.ok.classList.toggle('danger-confirm', !!danger);
     if (elements.cancel) elements.cancel.textContent = cancelText;
-    const hasChoices = Array.isArray(choices) && choices.length > 0;
-    elements.choiceRow.classList.toggle('hidden', !hasChoices);
-    if (hasChoices) setChoices(elements.choice, choices, choices[0].value);
+    const hasChoiceOptions = Array.isArray(choices) && choices.length > 0;
+    const choiceState = hasChoiceOptions
+      ? setChoices(elements.choice, choices, choices.find(choice => choice?.placeholder !== true)?.value, { autoSelectSingle: true })
+      : null;
+    const candidateCount = choiceState?.candidateCount
+      ?? (hasChoiceOptions ? choices.filter(choice => choice?.placeholder !== true && choice?.disabled !== true).length : 0);
+    const showChoices = candidateCount > 1;
+    elements.choiceRow.classList.toggle('hidden', !showChoices);
+    elements.ok.disabled = hasChoiceOptions && candidateCount === 0;
     action = typeof onConfirm === 'function'
-      ? () => onConfirm(hasChoices ? elements.choice.value : undefined)
+      ? () => onConfirm(candidateCount > 0 ? elements.choice.value : undefined)
       : null;
     elements.modal.classList.remove('hidden');
     window.requestAnimationFrame(() => {
       const initial = danger && elements.cancel
         ? elements.cancel
-        : hasChoices ? elements.choice : elements.ok;
+        : showChoices ? elements.choice : elements.ok;
       initial?.focus({ preventScroll: true });
     });
     return true;
@@ -73,7 +85,7 @@ export function createConfirmModalController({
 
   function confirm() {
     const pending = action;
-    close();
+    close({ confirmed: true });
     pending?.();
   }
 

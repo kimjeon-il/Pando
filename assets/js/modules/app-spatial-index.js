@@ -1,3 +1,4 @@
+import { touchGeometry } from './geometry-versions.js';
 /** SpatialIndex: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -201,6 +202,7 @@ export function createSpatialIndex() {
     const wanted = new Set([...ids].map(String));
     for (const feature of dependencies.state.countriesData?.features || []) {
       if (!wanted.size || wanted.has(String(feature?.id || ''))) {
+        touchGeometry(feature.geometry);
         geometryBoundsCache.delete(feature.geometry);
         dependencies.ringHitTester.invalidate(feature.geometry);
         dependencies.countryOutlineCache.delete(feature.geometry);
@@ -214,7 +216,7 @@ export function createSpatialIndex() {
     }
   }
 
-  function markCountryGeometriesChanged(ids = []) {
+  function markCountryGeometriesChanged(ids = [], { presentation = 'replace-scene' } = {}) {
     const changed = new Set();
     for (const rawId of ids) {
       const id = String(rawId || '');
@@ -241,8 +243,12 @@ export function createSpatialIndex() {
     dependencies.countryLandRevision += 1;
     dependencies.boundarySelectionAnalysisCache.clear();
     dependencies.genericFeatureLandClipCache = new WeakMap();
-    dependencies.state.boundaryTopology = { edges: new Map(), nodes: new Map() };
-    dependencies.gpuMapRenderer.applyCountryPatch({ ids: [...changed], features, removedIds });
+    dependencies.state.boundaryPreparation?.cancel();
+    dependencies.state.boundaryPreparation = null;
+    dependencies.gpuMapRenderer.applyCountryPatch(
+      { ids: [...changed], features, removedIds },
+      { presentation },
+    );
     if (!applyingMapEditWorkerResult) mapEditClient.syncPatch(changed);
   }
 
@@ -278,6 +284,18 @@ export function createSpatialIndex() {
       createWorker: () => new Worker((0, dependencies.runtimeAssetUrl)('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' }),
       getFeatures: () => dependencies.state.countriesData?.features || [],
       getFeatureById: dependencies.countryFeatureById,
+      getBoundaryFeatures: () => [
+        ...(dependencies.state.countriesData?.features || []).map(feature => ({ ...feature,
+          boundaryLocked: dependencies.state.countryOverrides?.[String(feature.id)]?.locked === true })),
+        ...dependencies.state.territorialUnits.filter(feature => feature.properties?.unitType === 'subunit'),
+      ],
+      getEditSources: () => [
+        ...(dependencies.state.countriesData?.features || []).map(feature => ({ kind: 'country', feature: { ...feature,
+          properties: { ...feature.properties, locked: feature.properties?.locked === true || dependencies.state.countryOverrides?.[String(feature.id)]?.locked === true } } })),
+        ...dependencies.state.territorialUnits.map(feature => ({ kind: 'territorial', feature })),
+        ...dependencies.state.genericFeatures.map(feature => ({ kind: 'generic', feature })),
+        ...dependencies.state.hydroEdits.map(feature => ({ kind: 'hydro', feature })),
+      ],
       getTargetRevision: () => dependencies.state.stateRevision,
     }));
   }

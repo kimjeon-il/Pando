@@ -43,8 +43,8 @@ test('full render preserves canonical layer order and revision', () => {
   assert.equal(coordinator.getStats().renderRevision, 1);
   assert.deepEqual(calls.map(call => call[0]), [
     'prepare', 'base', 'hydro', 'hydroEdits', 'territorialUnits',
-    'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'countries', 'geometryPreview', 'validation', 'selectionData',
-    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'labelLayout', 'countryLabels', 'userLabels', 'viewPresentation', 'layerTree', 'debug',
+    'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'countries', 'geometryPreview', 'validation',
+    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'selectionData', 'labelLayout', 'countryLabels', 'userLabels', 'viewPresentation', 'layerTree', 'debug',
   ]);
   assert.equal(calls.find(call => call[0] === 'countries')[1], viewState);
   assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'countryLabels', 'userLabels', 'debug', 'layerTree'].includes(call[0])).every(call => call[1] === viewState), true);

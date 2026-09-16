@@ -42,17 +42,26 @@ test('freehand river becomes one editable draft history step', async ({ page }) 
   await expect(page.locator('#modeTaskInstruction')).toContainText('미세조정');
   await expect(page.locator('#undoBtn')).toBeEnabled();
   await expect(page.locator('#modeDraftRedrawBtn')).toBeEnabled();
-  await expect(page.locator('#modeDraftRemoveLastBtn')).toBeVisible();
-  await expect(page.locator('#modeDraftDeleteBtn')).toBeHidden();
+  await expect(page.locator('#modeDraftDeleteBtn')).toBeVisible();
+  await expect(page.locator('#modeDraftDeleteBtn')).toBeDisabled();
 
   const countBeforeRedraw = await vertices.count();
+  await page.locator('#undoBtn').click();
+  await expect(vertices).toHaveCount(0);
+  await page.locator('#redoBtn').click();
+  await expect(vertices).toHaveCount(countBeforeRedraw);
   await page.locator('#modeDraftRedrawBtn').click();
   await expect(vertices).toHaveCount(0);
-  await page.locator('#undoBtn').click();
-  await expect(vertices).toHaveCount(countBeforeRedraw);
+  await expect(page.locator('#modeDraftDoneBtn')).toBeDisabled();
+  await drawMouseStroke(page, [
+    [box.x + box.width * 0.38, box.y + box.height * 0.42],
+    [box.x + box.width * 0.53, box.y + box.height * 0.48],
+    [box.x + box.width * 0.62, box.y + box.height * 0.52],
+  ]);
   await expect(page.locator('#modeDraftRedrawBtn')).toBeVisible();
 
-  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modePrimaryBtn')).toBeHidden();
+  await page.locator('#modeDraftDoneBtn').click();
   await expect(page.locator('#modeEditingHud')).toBeHidden();
   await expect(page.locator('#hydroProperties')).toBeVisible();
   expect(errors).toEqual([]);

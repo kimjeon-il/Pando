@@ -10,7 +10,7 @@ import {
 const root = process.cwd();
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const contentCss = fs.readFileSync(path.join(root, 'assets/css/components/content.css'), 'utf8');
-const uiTokens = fs.readFileSync(path.join(root, 'assets/css/tokens/ui-v2.css'), 'utf8');
+const uiTokens = fs.readFileSync(path.join(root, 'assets/css/tokens/design-tokens.css'), 'utf8');
 const failures = [];
 
 function fail(message) {
@@ -32,7 +32,7 @@ function textById(id) {
 
 // Create commands and library acquisition share one list, without route tabs.
 if (/id="(?:createBuildTabBtn|createLibraryTabBtn|createLibraryPanel)"/.test(html)) fail('create menu must not retain route tabs');
-if (textById('addFromLibraryBtn') !== '라이브러리에서 추가') fail('library entry must be named 라이브러리에서 추가');
+if (textById('addFromLibraryBtn') !== '라이브러리') fail('library entry must be named 라이브러리');
 
 const buildStart = html.indexOf('id="createBuildPanel"');
 const libraryStart = html.indexOf('class="create-menu-category create-library-actions"');
@@ -72,10 +72,13 @@ if (!editor) fail('editor surface could not be resolved');
 const headerStart = editor.indexOf('<header class="surface-header">');
 const headerEnd = headerStart >= 0 ? editor.indexOf('</header>', headerStart) : -1;
 const editorHeader = headerStart >= 0 && headerEnd > headerStart ? editor.slice(headerStart, headerEnd) : '';
-if (!editorHeader.includes('id="editSheetTitle"') || !editorHeader.includes('>편집<')) fail('editor Surface Header must identify only the edit surface');
+if (!editorHeader.includes('id="editSheetTitle"') || !editorHeader.includes('>편집<')) fail('editor Surface Header must identify the edit surface');
 if (!editorHeader.includes('id="mobileCloseRightBtn"')) fail('editor Surface Header must expose the close action');
-for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus', 'focusSelectedObjectBtn', 'objectLockBtn', 'objectDeleteBtn']) {
+for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus', 'focusSelectedObjectBtn']) {
   if (editorHeader.includes(`id="${forbiddenId}"`)) fail(`editor object control #${forbiddenId} must not live in the Surface Header`);
+}
+for (const id of ['objectLockBtn', 'objectDeleteBtn']) {
+  if (!editorHeader.includes(`id="${id}"`)) fail(`editor Surface Header must own #${id}`);
 }
 
 const tabsIndex = editor.indexOf('class="ui-tabs surface-tabs editor-view-tabs');
@@ -91,16 +94,14 @@ if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext 
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
-const footer = html.match(/<footer class="layer-panel-footer">([\s\S]*?)<\/footer>/)?.[1] || '';
 if (!html.includes('id="layerSearchInput"')) fail('layer search must remain available');
-if ((html.match(/id="createMenuBtn"/g) || []).length !== 1) fail('#createMenuBtn must have one owner');
+const mapToolbar = html.match(/<div class="[^"]*map-command-toolbar[^"]*"[\s\S]*?<\/div>/)?.[0] || '';
+if (!mapToolbar.includes('id="createMenuBtn"')) fail('map command bar must own #createMenuBtn');
 for (const id of ['createMenuBtn', 'objectLockBtn', 'objectDeleteBtn']) {
-  if (!footer.includes(`id="${id}"`)) fail(`layer footer must own #${id}`);
   if ((html.match(new RegExp(`id="${id}"`, 'g')) || []).length !== 1) fail(`#${id} must have one owner`);
 }
 // Single and multiple selection share one object context, not a duplicate footer summary.
 if ((html.match(/id="editorObjectHeader"/g) || []).length !== 1) fail('selection context must have one owner');
-if (editor.includes('id="objectDeleteBtn"') || editor.includes('id="objectLockBtn"')) fail('property editors must not duplicate layer actions');
 
 if (!uiTokens.includes('--ui-object-context-name-lines: 2;')) fail('ObjectContext name line budget must remain two lines');
 if (!contentCss.includes('-webkit-line-clamp: var(--ui-object-context-name-lines);') || !contentCss.includes('white-space: normal;')) {
