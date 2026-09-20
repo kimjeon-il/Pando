@@ -32,8 +32,8 @@
   --ui-surface-shadow: var(--control-shadow);
 }
 
-[data-layout="wide"] .workspace-surface:not(.surface-reference) > .surface-header,
-[data-layout="compact"] .workspace-surface:not(.surface-reference) > .surface-header {
+[data-layout="wide"] .workspace-surface:not(.surface-reference, .view-menu-desktop) > .surface-header,
+[data-layout="compact"] .workspace-surface:not(.surface-reference, .view-menu-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
