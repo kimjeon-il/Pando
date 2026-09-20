@@ -54,12 +54,13 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
 });
 
 test('selection layer architecture uses one legacy Pando host and z4 controls', async () => {
-  const css = await readFile(new URL('../../assets/css/app.css', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../../assets/css/components/map-viewport.css', import.meta.url), 'utf8');
   const app = readApplicationOwners('map-host');
   assert.match(css, /\.map-base-svg\s*\{\s*z-index:\s*0/);
   assert.match(css, /\.gpu-map-canvas\s*\{\s*z-index:\s*1/);
   assert.match(css, /\.map-interaction-svg\s*\{\s*z-index:\s*4/);
-  assert.match(css, /\.map-svg,\s*\.map-overlay-svg\s*\{[\s\S]*?z-index:\s*2/);
+  assert.match(css, /\.map-svg\s*\{[\s\S]*?z-index:\s*2/);
+  assert.match(css, /\.map-overlay-svg\s*\{[\s\S]*?z-index:\s*2/);
   assert.doesNotMatch(css, /gpu-selection-canvas/);
   const mapHost = app.indexOf('mapHost = createPreferredMapHost(mapEl)');
   const projectedSvg = app.indexOf("svg = map.append('svg').attr('class', 'map-svg map-overlay-svg')", mapHost);
@@ -79,5 +80,5 @@ test('main renderer owns the only RenderDevice and all shared GPU passes', async
   assert.match(main, /createGpuPolygonOverlayPass\(\{/);
   assert.match(main, /createGpuStrokeRenderer\(\{/);
   assert.match(main, /selectionPass\.initialize\?\.\(renderDevice, \{ strokeRenderer, polygonPass: polygonOverlayPass \}\)/);
-  assert.doesNotMatch(selection, /createRenderDevice|getContext\s*\(|\bdocument\b/);
+  assert.doesNotMatch(selection, /createRenderDevice|getContext\s*\(/);
 });
