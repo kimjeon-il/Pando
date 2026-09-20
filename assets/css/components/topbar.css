@@ -240,6 +240,8 @@ body.file-menu-open .app-root .topbar {
 
 @media (max-width: 799px) {
   .app-root[data-layout="mobile"] .topbar {
+    min-height: calc(var(--ui-touch-height) + (var(--ui-space-1-5) * 2));
+    height: calc(var(--ui-touch-height) + (var(--ui-space-1-5) * 2));
     gap: var(--ui-space-2);
     padding-inline: max(var(--ui-space-1), env(safe-area-inset-left)) max(var(--ui-space-1), env(safe-area-inset-right));
   }
@@ -276,21 +278,6 @@ body.file-menu-open .app-root .topbar {
     isolation: isolate;
     padding-inline: var(--ui-space-3);
     background: transparent;
-  }
-}
-
-@media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .topbar .topbar-command::before {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    inset-inline: var(--ui-space-2);
-    top: 50%;
-    height: calc(var(--ui-touch-height) - var(--ui-space-3) * 2);
-    border-radius: inherit;
-    background: var(--topbar-command-background);
-    transform: translateY(-50%);
-    pointer-events: none;
   }
 }
 
