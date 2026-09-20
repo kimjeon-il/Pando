@@ -1,15 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { accentTokens } from '../../assets/js/modules/app-accent.js';
+import { resolveAccentPreset } from '../../assets/js/modules/accent-presets.js';
 import { normalizeUserPreferences, saveUserPreferences } from '../../assets/js/modules/user-preferences.js';
 import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
 
-test('accent preference normalizes independently from preserved label and selection settings', () => {
-  for (const value of [undefined, null, 'invalid', '#123', '#123456ff']) assert.equal(normalizeUserPreferences({ version: 2, appearance: { accentColor: value } }).appearance.accentColor, null);
-  const input = normalizeUserPreferences({ version: 2, appearance: { theme: 'light', accentColor: '#ABCDEF' }, labels: { country: { font: 'serif', color: '#123456' } }, selection: { color: '#ff0000', fillStrength: 0.8 } });
-  assert.equal(input.appearance.accentColor, '#abcdef');
-  const changed = saveUserPreferences({ ...input, appearance: { ...input.appearance, accentColor: '#8b5cf6' } }, { setItem() {} });
+test('accent preset normalizes independently from preserved label and selection settings', () => {
+  for (const value of [undefined, null, 'invalid', '#123', '#123456ff']) assert.equal(normalizeUserPreferences({ version: 2, appearance: { accentColor: value } }).appearance.accentPreset, 'blue');
+  const input = normalizeUserPreferences({ version: 2, appearance: { theme: 'light', accentColor: '#8b5cf6' }, labels: { country: { font: 'serif', color: '#123456' } }, selection: { color: '#ff0000', fillStrength: 0.8 } });
+  assert.equal(input.appearance.accentPreset, 'purple');
+  const changed = saveUserPreferences({ ...input, appearance: { ...input.appearance, accentPreset: 'pink' } }, { setItem() {} });
   assert.deepEqual(changed.labels, input.labels); assert.deepEqual(changed.selection, input.selection);
+});
+
+test('accent presets resolve to an appropriate color for each theme', () => {
+  assert.equal(resolveAccentPreset('blue', 'light'), '#316fd3');
+  assert.equal(resolveAccentPreset('blue', 'dark'), '#70a6ff');
+  assert.equal(resolveAccentPreset('missing', 'dark'), null);
 });
 
 test('changing accent preserves every non-color interaction rule', () => {

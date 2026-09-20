@@ -39,8 +39,6 @@ export function createFileBindings() {
     });
     const preferencesModal = (0, dependencies.platform.$)('preferencesModal');
     let preferencesOrigin = null;
-    let accentPreviewFrame = 0;
-    let pendingAccent;
     const syncPreferencesForm = () => {
       const theme = dependencies.preferences.userPreferences.appearance.theme;
       (0, dependencies.platform.$)('preferencesThemeInput').value = theme;
@@ -48,16 +46,9 @@ export function createFileBindings() {
         button.setAttribute('aria-pressed', String(button.dataset.preferenceTheme === theme));
       });
       (0, dependencies.platform.$)('preferencesStatusBarVisibleInput').checked = dependencies.preferences.userPreferences.appearance.statusBarVisible !== false;
-      const accent = dependencies.preferences.userPreferences.appearance.accentColor;
-      const input = document.getElementById('preferencesAccentInput');
-      input.value = accent || dependencies.preferences.resolvedAccentColor;
-      const customButton = document.getElementById('preferencesAccentCustomBtn');
-      const presetValues = new Set([...preferencesModal.querySelectorAll('[data-preference-accent]')].map(button => button.dataset.preferenceAccent));
-      const hasCustomAccent = !!accent && !presetValues.has(accent);
-      customButton?.style.setProperty('--swatch', accent || 'transparent');
-      customButton?.setAttribute('aria-pressed', String(hasCustomAccent));
+      const accentPreset = dependencies.preferences.userPreferences.appearance.accentPreset;
       preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
-        button.setAttribute('aria-pressed', String((button.dataset.preferenceAccent || null) === accent));
+        button.setAttribute('aria-pressed', String(button.dataset.preferenceAccent === accentPreset));
       });
     };
     const preferencesFromForm = () => ({
@@ -72,30 +63,18 @@ export function createFileBindings() {
       (0, dependencies.countryLabelModel.applyUserPreferences)(preferencesFromForm(), { persist: false });
       syncPreferencesForm();
     };
-    const flushAccentPreview = () => {
-      if (accentPreviewFrame) cancelAnimationFrame(accentPreviewFrame);
-      accentPreviewFrame = 0;
-      if (pendingAccent === undefined) return;
-      const accentColor = pendingAccent; pendingAccent = undefined;
-      (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: { ...dependencies.preferences.userPreferences.appearance, accentColor } }, { persist: false });
+    const previewAccent = accentPreset => {
+      (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: { ...dependencies.preferences.userPreferences.appearance, accentPreset } }, { persist: false });
       syncPreferencesForm();
-    };
-    const previewAccent = value => {
-      pendingAccent = value;
-      if (!accentPreviewFrame) accentPreviewFrame = requestAnimationFrame(flushAccentPreview);
     };
     const closePreferences = ({ restoreFocus = true, revert = false } = {}) => {
       if (!preferencesModal || preferencesModal.classList.contains('hidden')) return;
       if (revert) {
-        if (accentPreviewFrame) cancelAnimationFrame(accentPreviewFrame);
-        accentPreviewFrame = 0; pendingAccent = undefined;
         if (preferencesOrigin) (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: preferencesOrigin }, { persist: false });
       } else {
-        flushAccentPreview();
         dependencies.preferences.setUserPreferences((0, dependencies.preferences.saveUserPreferences)(dependencies.preferences.userPreferences));
       }
       preferencesOrigin = null;
-      (0, dependencies.colorPicker.closeColorPicker)(preferencesModal.querySelector('[data-color-picker="accent"]'));
       preferencesModal.classList.add('hidden');
       if (restoreFocus) (0, dependencies.platform.$)('preferencesBtn')?.focus({ preventScroll: true });
     };
@@ -111,16 +90,12 @@ export function createFileBindings() {
     (0, dependencies.platform.$)('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
     preferencesModal?.querySelector('.ui-dialog-backdrop')?.addEventListener('click', () => closePreferences({ revert: true }));
     (0, dependencies.platform.$)('preferencesResetBtn')?.addEventListener('click', () => {
-      pendingAccent = undefined;
-      if (accentPreviewFrame) cancelAnimationFrame(accentPreviewFrame);
-      accentPreviewFrame = 0;
       (0, dependencies.countryLabelModel.applyUserPreferences)({ ...dependencies.preferences.userPreferences, appearance: (0, dependencies.applicationServicesA.defaultUserPreferences)().appearance }, { persist: false });
       syncPreferencesForm();
     });
     preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
-      button.addEventListener('click', () => previewAccent(button.dataset.preferenceAccent || null));
+      button.addEventListener('click', () => previewAccent(button.dataset.preferenceAccent));
     });
-    document.getElementById('preferencesAccentInput').addEventListener('input', event => previewAccent(event.target.value.toLowerCase()));
     preferencesModal.querySelectorAll('[data-preference-theme]').forEach(button => {
       button.addEventListener('click', () => {
         (0, dependencies.platform.$)('preferencesThemeInput').value = button.dataset.preferenceTheme;

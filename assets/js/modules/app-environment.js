@@ -134,7 +134,7 @@ export function createEnvironment() {
     document.documentElement.dataset.systemTheme = systemTheme;
     document.documentElement.dataset.theme = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
     window.__PANDOLAB_THEME__ = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
-    resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentColor);
+    resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentPreset);
     (0, dependencies.preferences.syncResolvedInteractionStyle)();
     dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'system-theme');
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('system-theme');
@@ -327,7 +327,7 @@ export function createEnvironment() {
 
     applyMapLabelPreferences();
 
-    (resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentColor));
+    (resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentPreset));
 
     (resolvedInteractionStyle = resolveCurrentInteractionStyle());
 
