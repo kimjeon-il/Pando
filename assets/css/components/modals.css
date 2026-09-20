@@ -139,9 +139,7 @@ body.modal-open { overflow: hidden; }
 .gis-country-identity-help { margin: var(--ui-space-1) 0 var(--ui-space-3); color: var(--muted); }
 
 .gis-export-step { display: grid; gap: var(--ui-field-gap); }
-.gis-export-layers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2); margin: 0; padding: 0; border: 0; }
 .gis-export-layers legend { grid-column: 1 / -1; margin-bottom: var(--ui-space-2); font-weight: var(--ui-weight-bold); }
-.gis-export-layers .ui-check { min-width: 0; padding: var(--ui-space-2); border-radius: var(--ui-radius-control); }
 
 @media (max-width: 799px) {
   .gis-country-identity-row { grid-template-columns: 1fr; }

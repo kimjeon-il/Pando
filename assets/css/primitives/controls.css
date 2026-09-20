@@ -1090,10 +1090,10 @@ html {
   --ui-control-bg: var(--swatch);
   --ui-control-bg-hover: var(--swatch);
   --ui-control-bg-pressed: var(--swatch);
-  width: 28px;
-  min-width: 28px;
-  min-height: 28px;
-  height: 28px;
+  width: var(--ui-preferences-chip-size);
+  min-width: var(--ui-preferences-chip-size);
+  min-height: var(--ui-preferences-chip-size);
+  height: var(--ui-preferences-chip-size);
   padding: 0;
   background: var(--swatch);
   border: 2px solid var(--border);
@@ -1107,8 +1107,8 @@ html {
 
 .preferences-theme-swatches {
   display: grid;
-  grid-template-columns: repeat(3, 28px);
-  gap: 6px;
+  grid-template-columns: repeat(3, var(--ui-preferences-chip-size));
+  gap: var(--ui-preferences-swatch-gap);
   justify-content: start;
 }
 
@@ -1145,13 +1145,13 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 
 @media (max-width: 799px) {
   .ui-button.preferences-accent-chip {
-    width: 32px;
-    min-width: 32px;
-    min-height: 32px;
-    height: 32px;
+    width: var(--ui-preferences-chip-size-mobile);
+    min-width: var(--ui-preferences-chip-size-mobile);
+    min-height: var(--ui-preferences-chip-size-mobile);
+    height: var(--ui-preferences-chip-size-mobile);
   }
 
-  .preferences-theme-swatches { grid-template-columns: repeat(3, 32px); }
+  .preferences-theme-swatches { grid-template-columns: repeat(3, var(--ui-preferences-chip-size-mobile)); }
 }
 
 .projection-btn .ui-icon {

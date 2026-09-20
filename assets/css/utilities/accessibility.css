@@ -371,10 +371,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   max-width: calc(100vw - (var(--ui-dialog-edge) * 2));
 }
 
-.historical-library-card {
-  max-width: calc(100vw - (var(--ui-dialog-edge) * 2));
-}
-
 .ui-dialog-card :is(input, select, textarea, .ui-select-control, .ui-search-field) {
   max-width: 100%;
 }
