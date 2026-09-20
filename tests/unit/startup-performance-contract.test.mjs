@@ -7,8 +7,11 @@ import test from 'node:test';
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
 const app = readApplicationOwners('runtime-dependencies', 'domain-assembly', 'country-labels', 'render-quality', 'gpu-scene', 'workspace-surfaces', 'map-host');
 const rendering = read('assets/js/modules/rendering-domain.js');
+const gpuScene = read('assets/js/modules/app-gpu-scene.js');
 const coordinator = read('assets/js/modules/map-render-coordinator.js');
 const gpuRenderer = read('assets/js/modules/gpu-map-renderer.js');
+const terrainPreparation = read('assets/js/modules/gpu-terrain-preparation.js');
+const mapVisualFrame = read('assets/js/modules/map-visual-frame.js');
 const bootstrap = read('assets/js/bootstrap.js');
 const loader = read('assets/js/workers/data-loader-worker.js');
 const projectRestore = read('assets/js/modules/app-project-restore.js');
@@ -42,10 +45,10 @@ test('label and terrain view work scales with the visible frame', () => {
   const labelMetricsSource = app.slice(labelMetricsStart, labelMetricsEnd);
   assert.ok(labelMetricsStart >= 0 && labelMetricsEnd > labelMetricsStart);
   assert.doesNotMatch(labelMetricsSource, /path\.bounds/);
-  assert.match(labelMetricsSource, /spatialQuery\.geometryBounds/);
-  assert.match(gpuRenderer, /const globe = Number\(frameContext\?\.mode\) === 0/);
-  assert.match(gpuRenderer, /const angularStep = globe/);
-  assert.doesNotMatch(gpuRenderer, /Math\.ceil\(spanLon \/ 0\.499\)/);
+  assert.match(labelMetricsSource, /geometryBounds\(geometry\)/);
+  assert.match(terrainPreparation, /const globe = Number\(frameContext\?\.mode\) === 0/);
+  assert.match(terrainPreparation, /const angularStep = globe/);
+  assert.doesNotMatch(terrainPreparation, /Math\.ceil\(spanLon \/ 0\.499\)/);
   const adaptiveStart = app.indexOf('function applyAdaptiveRenderQuality');
   const adaptiveEnd = app.indexOf('function queueAdaptiveRenderQualityRefresh', adaptiveStart);
   const adaptiveSource = app.slice(adaptiveStart, adaptiveEnd);
@@ -60,24 +63,26 @@ test('render hot paths avoid heavyweight diagnostics and eager picking', () => {
   assert.match(app, /gpuMapRenderer\.getRuntimeState\?\.\(\)/);
   assert.doesNotMatch(app, /if \(needsBaseScene\) ensureCountryIdScene\(\)/);
   const interactionStart = gpuRenderer.indexOf('function drawCountryInteractionFills');
-  const interactionEnd = gpuRenderer.indexOf('function drawInteractionPasses', interactionStart);
+  const interactionEnd = gpuRenderer.indexOf('function drawCountryBoundaryMask', interactionStart);
   const interactionSource = gpuRenderer.slice(interactionStart, interactionEnd);
   assert.doesNotMatch(interactionSource, /ensureCountryIdScene\(\)/);
-  assert.match(interactionSource, /triangleRangesByCountryId\?\.get\(id\)/);
-  assert.doesNotMatch(interactionSource, /createCountryTriangleRangeMap|countryTriangleRanges|for\s*\(/);
+  assert.match(interactionSource, /for \(const ranges of \[base, override\]\)/);
+  assert.match(interactionSource, /drawProgram\(fillProgram[\s\S]*base\)/);
+  assert.match(interactionSource, /drawProgram\(fillProgram[\s\S]*override\)/);
+  assert.doesNotMatch(interactionSource, /createCountryTriangleRangeMap|countryTriangleRanges/);
   assert.doesNotMatch(app, /const gpuId = gpuMapRenderer\.pick\(screenPoint\)/);
 });
 
 test('flat rendering only submits world copies that intersect the viewport', () => {
   assert.match(gpuRenderer, /export function visibleFlatWorldOffsets/);
-  assert.match(gpuRenderer, /worldOffsets: mode === 0 \? \[0\] : visibleFlatWorldOffsets/);
-  assert.doesNotMatch(gpuRenderer, /worldOffsets: mode === 0 \? \[0\] : \[-2 \* PI, 0, 2 \* PI\]/);
+  assert.match(mapVisualFrame, /worldOffsets = Object\.freeze\(mode === 0 \? \[0\] : visibleFlatWorldOffsets/);
+  assert.doesNotMatch(mapVisualFrame, /worldOffsets = Object\.freeze\(mode === 0 \? \[0\] : \[-2 \* PI, 0, 2 \* PI\]/);
 });
 
 test('unchanged scene domains do not enter the patch pipeline', () => {
-  assert.match(app, /previous\?\.geometrySignature === geometrySignature && previous\?\.styleSignature === styleSignature\) return false/);
-  assert.match(rendering, /const sceneChanged = countries\.replaceGpuSceneDomain/);
-  assert.match(rendering, /if \(sceneChanged !== false\) countries\.syncGpuRenderScene/);
+  assert.match(gpuScene, /previous\?\.geometrySignature === geometrySignature && previous\?\.styleSignature === styleSignature\) return false/);
+  assert.match(rendering, /countries\.replaceGpuSceneDomain\?\.\('country-overlays'/);
+  assert.match(rendering, /countries\.syncGpuRenderScene\?\.\(\)/);
 });
 
 test('data and asset revisions remain separate contracts', () => {
