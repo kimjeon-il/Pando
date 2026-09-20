@@ -194,24 +194,9 @@ export function createObjectCommands() {
     return !!(ref && group && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id));
   }
 
-  function syncBatchBooleanInput(input, values, enabled) {
-    if (!input) return;
-    const activeCount = values.filter(Boolean).length;
-    input.disabled = !enabled;
-    input.checked = enabled && values.length > 0 && activeCount === values.length;
-    input.indeterminate = enabled && activeCount > 0 && activeCount < values.length;
-    input.setAttribute('aria-checked', input.indeterminate ? 'mixed' : String(input.checked));
-    const option = input.closest('.multi-property-option');
-    if (option) {
-      if (enabled) delete option.dataset.tooltip;
-      else option.dataset.tooltip = '선택한 모든 객체에 공통으로 적용할 수 없습니다.';
-    }
-  }
-
   function syncBatchActionAvailability(selection = dependencies.domains.selectionDomain.snapshot().selection) {
     const refs = selection.items || [];
     const capabilities = commonBatchCapabilities(refs);
-    syncBatchBooleanInput((0, dependencies.platform.$)('multiPropertiesVisibilityInput'), refs.map(objectRefVisible), capabilities.has('visible'));
     if ((0, dependencies.platform.$)('multiPropertiesColorInput')) (0, dependencies.platform.$)('multiPropertiesColorInput').disabled = !capabilities.has('color');
     if ((0, dependencies.platform.$)('multiPropertiesColorTrigger')) (0, dependencies.platform.$)('multiPropertiesColorTrigger').disabled = !capabilities.has('color');
     const countryOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY);

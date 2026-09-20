@@ -34,7 +34,6 @@ export function createPropertyEditorBindings({
   undo,
   redo,
   closeObjectActionsMenu,
-  batchSetVisibility,
   enterCountryBorderEditFromSelection,
 } = {}) {
 
@@ -160,7 +159,6 @@ export function createPropertyEditorBindings({
       event.preventDefault();
       items[(current + delta + items.length) % items.length]?.focus();
     });
-    listen($('multiPropertiesVisibilityInput'), 'change', event => batchSetVisibility(event.target.checked));
     listen($('multiSubunitMergeBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterCountryBorderEditFromSelection('merge'))));
     listen($('multiBorderEditBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterCountryBorderEditFromSelection())));
   }

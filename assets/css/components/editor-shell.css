@@ -653,15 +653,6 @@
   gap: var(--ui-field-gap);
 }
 
-.multi-property-option {
-  min-height: var(--ui-control-height);
-  padding-inline: var(--ui-row-padding-x);
-}
-
-.multi-property-option:has(input:disabled) {
-  opacity: .5;
-}
-
 .editor-panel[data-editor-view="info"] .editor-view > .editor-action-section:not(.editor-relation-section) {
   display: none;
 }

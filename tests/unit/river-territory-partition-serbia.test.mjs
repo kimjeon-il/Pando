@@ -7,6 +7,7 @@ import test from 'node:test';
 import { buildRiverTerritoryPartitions, createRiverPartitionWorkspace } from '../../assets/js/modules/river-territory-partition.js';
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import { createCountryCommandCalculator } from '../../assets/js/modules/map-edit-country-commands.js';
+import { validateGeometry } from '../../assets/js/modules/geometry-validation.js';
 
 const root = new URL('../../', import.meta.url);
 const read = relative => fs.readFileSync(new URL(relative, root));
@@ -125,4 +126,24 @@ test('production Croatia confluences restore the two northern river-defined cell
     assert.equal(result.candidates.filter(cell => Math.abs(cell.areaM2 / 1e6 - expectedKm2) < 2).length, 1);
   }
   assert.deepEqual(rivers, before);
+});
+
+test('Moldova river cells can be annexed into Romania without a retraced boundary', () => {
+  const moldova = collection.features.find(feature => feature.id === 'MDA');
+  const rivers = loadSerbiaRivers(moldova);
+  const partitions = buildRiverTerritoryPartitions({
+    donors: [{ countryId: 'MDA', geometry: moldova.geometry, geometryRevision: 1 }],
+    riverFeatures: rivers,
+    clipper: globalThis.polygonClipping,
+  });
+  const selected = partitions.candidates.find(candidate => candidate.key === 'MDA:river-cell:6c83e30a');
+  assert.ok(selected, 'expected the Moldova river partition that meets the Romanian border');
+  const { result } = createCountryCommandCalculator(globalThis.polygonClipping).calculate({
+    operation: 'annex', targetId: 'ROU', donorIds: ['MDA'], transferredGeometry: selected.geometry,
+    riverSliverContext: [{ donorId: 'MDA', polygonIndex: 0,
+      unselectedGeometries: partitions.candidates.filter(candidate => candidate !== selected).map(candidate => candidate.geometry) }],
+  }, new Map(collection.features.map(feature => [feature.id, feature])));
+  for (const feature of result.features.filter(feature => ['ROU', 'MDA'].includes(feature.id))) {
+    assert.equal(validateGeometry(feature).some(issue => issue.kind === 'self-intersection'), false, feature.id);
+  }
 });

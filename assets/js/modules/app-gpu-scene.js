@@ -1,4 +1,5 @@
 import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
+import { makeSvgSceneProxy } from './render-channel-ownership.js';
 /** GpuScene: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -260,14 +261,17 @@ export function createGpuScene() {
 
   function applyGpuSceneCoverage(frameResult) {
     const webGlReady = ['webgl2', 'webgl1'].includes(dependencies.rendering.gpuMapRenderer.getRuntimeState?.()?.renderer);
-    const ownedFills = new Set((currentRenderScene?.polygons || []).map(packet => packet.key));
+    const ownedSceneKeys = new Set([
+      ...(currentRenderScene?.polygons || []).map(packet => packet.key),
+      ...(currentRenderScene?.strokes || []).map(packet => packet.key),
+    ]);
     const rendered = new Set(frameResult?.baseResult?.overlayRenderedKeys || []);
     const missing = new Set(frameResult?.baseResult?.overlayMissingKeys || []);
-    dependencies.mapLayers.svg?.selectAll?.('[data-gpu-scene-key]')?.classed('gpu-scene-hit-proxy', function() {
+    dependencies.mapLayers.svg?.selectAll?.('[data-gpu-scene-key]')?.each(function() {
       const key = this.getAttribute('data-gpu-scene-key') || '';
-      // A late GPU upload keeps the parent scene, never an SVG fill above water.
-      // Canvas consumes the same polygons; SVG retains only its stroke/hit roles.
-      return ownedFills.has(key) || (webGlReady && rendered.has(key) && !missing.has(key));
+      // Scene geometry has one visual owner. SVG remains only as a pointer
+      // target, including while a WebGL upload is late or Canvas owns the frame.
+      if (ownedSceneKeys.has(key) || (webGlReady && rendered.has(key) && !missing.has(key))) makeSvgSceneProxy(this);
     });
   }
 
