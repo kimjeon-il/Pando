@@ -122,11 +122,10 @@ test('selection range map is materialized from metadata without reading triangle
 });
 
 test('selection interaction hot path performs only precomputed map lookups', () => {
-  const source = fs.readFileSync(path.join(projectRoot, 'assets/js/modules/gpu-map-renderer.js'), 'utf8');
-  const start = source.indexOf('function drawCountryInteractionFills()');
-  const end = source.indexOf('function drawInteractionPasses', start);
-  assert.ok(start >= 0 && end > start);
-  const interactionSource = source.slice(start, end);
+  const source = fs.readFileSync(path.join(projectRoot, 'assets/js/modules/gpu-scene-preparation.js'), 'utf8');
+  const start = source.indexOf('function prepareGpuInteractionPlan(');
+  assert.ok(start >= 0);
+  const interactionSource = source.slice(start);
   assert.match(interactionSource, /triangleRangesByCountryId\?\.get\(id\)/);
   assert.doesNotMatch(interactionSource, /countryTriangleRanges|createCountryTriangleRangeMap|for\s*\(/);
 });

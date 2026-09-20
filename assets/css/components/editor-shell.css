@@ -1,8 +1,802 @@
-/* Editor shell, map toolbar, edit-session HUD, and persistent status. */
+/* Canonical components / editor-shell. */
 
-.editor-object-context-main { display: flex; align-items: center; gap: var(--design-button-gap); }
-.editor-object-context-main > .editor-object-heading { flex: 1; min-width: 0; }
-.editor-object-type-label { display: none; }
+.panel-section {
+  padding: var(--ui-panel-padding);
+  border-bottom: 0;
+}
+
+.distribution-entry-list {
+  display: grid;
+  gap: var(--ui-space-2);
+  margin-bottom: var(--ui-space-4);
+}
+
+.distribution-entry-row {
+  grid-template-columns: minmax(0, 1fr) var(--ui-control-height);
+  gap: var(--ui-space-2);
+  align-items: center;
+  padding: var(--ui-space-2);
+}
+
+.distribution-entry-row > span {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-0-5);
+}
+
+.distribution-entry-row strong {
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.distribution-entry-row small {
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.distribution-entry-add {
+  display: grid;
+  gap: var(--ui-space-3);
+}
+
+.editor-panel {
+  background: var(--surface-elevated);
+}
+
+.mode-task-window {
+  width: 100%;
+  overflow: hidden;
+}
+
+.mode-task-window-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-2) var(--ui-space-3);
+}
+
+.top-actions {
+  position: fixed;
+  z-index: 2000;
+  top: calc(var(--ui-topbar-height) + var(--ui-space-2));
+  right: var(--ui-map-edge);
+  width: var(--top-actions-width);
+  max-height: calc(100dvh - var(--ui-topbar-height) - var(--ui-space-5));
+  overflow-y: auto;
+}
+
+.hydro-copy-command {
+  width: 100%;
+}
+
+.editor-object-header h2 {
+  font-size: var(--ui-font-xl);
+  font-weight: var(--ui-weight-bold);
+  line-height: var(--design-line-title);
+}
+
+.editor-section-title {
+  font-size: var(--ui-font-lg);
+  font-weight: var(--ui-weight-bold);
+  line-height: var(--ui-line-tight);
+}
+
+.editor-help {
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.panel-section {
+  min-width: 0;
+}
+
+.editor-view {
+  min-width: 0;
+}
+
+.editor-flag-preview {
+  border-radius: var(--ui-radius-panel);
+}
+
+.top-actions {
+  border-radius: var(--ui-radius-panel);
+}
+
+.editor-section {
+  border-color: var(--component-card-border);
+  background: var(--surface-card);
+}
+
+.editor-disclosure {
+  border-color: var(--component-card-border);
+  background: var(--surface-card);
+}
+
+.map-view-toolbar {
+  top: var(--ui-map-edge);
+  left: auto;
+  right: calc(var(--map-safe-right) + var(--ui-map-edge));
+  transition: left 170ms ease, right 170ms ease, opacity 170ms ease;
+}
+
+.mode-task-stage {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: var(--ui-weight-medium);
+  text-overflow: ellipsis;
+}
+
+.mode-task-instruction {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  line-height: var(--ui-line-normal);
+}
+
+.editor-object-header {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+}
+
+.editor-object-header h2 {
+  margin: 0;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-empty {
+  display: grid;
+  padding-block: var(--ui-space-6);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
+  color: var(--muted);
+}
+
+.editor-empty p {
+  margin: 0;
+}
+
+.editor-view {
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-6);
+  padding-block: 0 var(--ui-surface-content-padding-bottom);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
+}
+
+.editor-section {
+  width: 100%;
+  margin: 0;
+  border-radius: var(--ui-radius-panel);
+  box-shadow: none;
+}
+
+.editor-disclosure {
+  width: 100%;
+  margin: 0;
+  border-radius: var(--ui-radius-panel);
+  box-shadow: none;
+}
+
+.editor-section {
+  display: grid;
+  gap: var(--ui-field-gap);
+  padding: var(--ui-card-padding);
+}
+
+.editor-section-primary {
+  background: var(--surface-card);
+}
+
+.editor-section-title {
+  margin: 0;
+  color: var(--text-strong);
+}
+
+.editor-property-heading {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-medium);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-field {
+  min-width: 0;
+}
+
+.editor-field-grid {
+  min-width: 0;
+}
+
+.editor-disclosure-body {
+  min-width: 0;
+}
+
+.editor-field {
+  display: grid;
+  gap: var(--ui-field-label-gap);
+}
+
+.editor-field-stack {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-field-gap);
+}
+
+.editor-field-grid {
+  display: grid;
+  gap: var(--ui-field-gap);
+}
+
+.editor-field-grid-color {
+  grid-template-columns: minmax(0, 1fr) minmax(124px, .72fr);
+}
+
+.editor-panel :is(.editor-object-form, .multi-properties) .editor-field > label {
+  color: var(--text-soft);
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-medium);
+  line-height: var(--ui-line-normal);
+}
+
+.app-root .editor-panel :is(.editor-object-form, .multi-properties) .editor-field > :is(input[type="text"], input[type="search"], input[type="number"], textarea, select):not(.ui-native-select) {
+  font-size: var(--ui-font-body);
+}
+
+.editor-panel :is(.editor-object-form, .multi-properties) .ui-color-trigger .ui-color-value {
+  color: var(--text);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-regular);
+}
+
+.editor-panel :is(.editor-object-form, .multi-properties) :is(.ui-select-control, .ui-select-option) {
+  font-size: var(--ui-font-body);
+}
+
+.editor-help {
+  margin: 0;
+  color: var(--muted);
+}
+
+.editor-section-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+}
+
+.editor-section-heading :is(.editor-section-title, .editor-property-heading) {
+  min-width: 0;
+  flex: 1;
+}
+
+.editor-quiet-action {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.editor-quiet-action:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.editor-quiet-action:focus-visible:not(:disabled) {
+  border-color: transparent;
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.editor-quiet-action:disabled {
+  border-color: transparent;
+  background: transparent;
+}
+
+.editor-disclosure {
+  overflow: clip;
+}
+
+.editor-disclosure > summary {
+  min-height: var(--ui-touch-height);
+  display: flex;
+  align-items: center;
+  gap: var(--ui-control-gap);
+  padding: 0 var(--ui-control-padding-x);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--ui-font-md);
+  font-weight: var(--ui-weight-semibold);
+  cursor: pointer;
+  list-style: none;
+}
+
+.editor-object-form .editor-disclosure > summary {
+  color: var(--text-soft);
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-medium);
+}
+
+.editor-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor-disclosure > summary:hover {
+  background: var(--ui-control-bg-hover);
+}
+
+.editor-disclosure[open] > summary {
+  border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0;
+}
+
+.editor-disclosure > summary .disclosure-icon {
+  width: var(--editor-disclosure-width);
+  height: var(--editor-disclosure-height);
+  margin-left: auto;
+  transition: transform .14s ease;
+}
+
+.editor-disclosure[open] > summary .disclosure-icon {
+  transform: rotate(180deg);
+}
+
+.editor-disclosure-body {
+  display: grid;
+  gap: var(--ui-field-gap);
+  padding: var(--ui-space-1) var(--ui-card-padding) var(--ui-card-padding);
+  border: 0;
+}
+
+.editor-info-list {
+  display: grid;
+  gap: 0;
+  border: 0;
+  background: transparent;
+}
+
+.editor-info-list > div {
+  min-width: 0;
+  min-height: var(--editor-info-list-min-height);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  align-items: center;
+  gap: var(--ui-field-gap);
+  padding: var(--ui-space-1) 0;
+  border: 0;
+}
+
+.editor-info-list span {
+  color: var(--muted);
+}
+
+.editor-info-list strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text-strong);
+  font-weight: var(--ui-weight-semibold);
+  text-align: right;
+}
+
+.editor-info-list output {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text-strong);
+  font-weight: var(--ui-weight-semibold);
+  text-align: right;
+}
+
+.editor-property-list span {
+  color: var(--text-soft);
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-medium);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-property-list strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text-strong);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-semibold);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-property-list output {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text-strong);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-semibold);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-readonly-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text-strong);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-semibold);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-meta-list span {
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-meta-list strong {
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-meta-list output {
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-meta-list span {
+  color: var(--muted);
+  font-weight: var(--ui-weight-regular);
+}
+
+.editor-meta-list strong {
+  color: var(--text-soft);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.editor-meta-list output {
+  color: var(--text-soft);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.editor-primary-action {
+  width: 100%;
+}
+
+.editor-object-form {
+  gap: var(--ui-space-5);
+}
+
+.editor-object-form > .editor-section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.editor-object-form > .editor-disclosure {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.editor-object-form > .editor-disclosure > summary {
+  padding-inline: 0;
+}
+
+.editor-object-form > .editor-disclosure > .editor-disclosure-body {
+  padding-inline: 0;
+}
+
+.editor-object-form > .editor-info-section {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.editor-object-form > .editor-action-section.editor-section {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.multi-properties > .editor-action-section.editor-section {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.editor-object-form > .editor-info-section {
+  gap: var(--ui-field-gap);
+}
+
+.editor-object-form > .editor-info-section + .editor-info-section {
+  padding-top: var(--ui-space-6);
+  border-top: 1px solid var(--border);
+}
+
+.editor-object-form > .editor-section + .editor-section {
+  padding-top: var(--ui-space-1);
+}
+
+.editor-object-form > .editor-section + .editor-disclosure {
+  padding-top: var(--ui-space-1);
+}
+
+.editor-object-form > .editor-disclosure + .editor-section {
+  padding-top: var(--ui-space-1);
+}
+
+.editor-period-group {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-field-label-gap);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.editor-period-group > legend {
+  margin: 0 0 var(--ui-field-label-gap);
+  padding: 0;
+  color: var(--text-soft);
+  font-size: var(--ui-font-label);
+  font-weight: var(--ui-weight-medium);
+}
+
+.editor-period-fields {
+  display: grid;
+  gap: var(--ui-field-gap);
+}
+
+.editor-panel .editor-period-fields .editor-field > label {
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  font-weight: var(--ui-weight-medium);
+}
+
+.editor-action-list {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-1);
+}
+
+.editor-object-header[data-editor-context] {
+  width: 100%;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  padding: 0 0 var(--ui-space-4);
+}
+
+.surface-editor > .editor-object-header[data-editor-context] {
+  padding-inline: var(--ui-surface-content-rail-x);
+  padding-block: var(--ui-space-3) var(--ui-space-4);
+}
+
+.editor-object-context-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.editor-object-heading {
+  min-width: 0;
+  display: grid;
+  gap: var(--ui-space-1);
+  overflow: hidden;
+}
+
+.editor-object-heading h2 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.editor-object-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1-5);
+}
+
+.editor-object-meta > span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--ui-font-body);
+  font-weight: var(--ui-weight-regular);
+  line-height: var(--ui-line-tight);
+}
+
+.editor-object-status {
+  color: var(--text-soft);
+  font-weight: var(--ui-weight-medium);
+}
+
+.editor-object-header[data-editor-context] .editor-focus-action {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.multi-properties > .editor-section-primary {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.multi-properties-actions {
+  display: grid;
+  gap: var(--ui-field-gap);
+}
+
+.multi-property-option {
+  min-height: var(--ui-control-height);
+  padding-inline: var(--ui-row-padding-x);
+}
+
+.multi-property-option:has(input:disabled) {
+  opacity: .5;
+}
+
+.editor-panel[data-editor-view="info"] .editor-view > .editor-action-section:not(.editor-relation-section) {
+  display: none;
+}
+
+.editor-panel[data-editor-view="info"]:not([data-editor-inline-relation="true"]) .editor-view > .editor-relation-section {
+  display: none;
+}
+
+.editor-panel[data-editor-view="actions"] .editor-view > :not(.editor-action-section):not([hidden]) {
+  display: none;
+}
+
+.editor-panel[data-editor-view="actions"] .editor-view > .editor-action-section {
+  display: grid;
+}
+
+.editor-panel[data-editor-view="actions"] details.editor-action-section {
+  display: block;
+}
+
+.editor-panel[data-editor-view="actions"] .editor-view > .editor-relation-section {
+  display: none;
+}
+
+.editor-panel[data-editor-view="actions"][data-editor-inline-relation="true"] .editor-view > .editor-relation-section {
+  display: grid;
+}
+
+.editor-panel[data-editor-view="relation"] .editor-view > :not(.editor-relation-section):not([hidden]) {
+  display: none;
+}
+
+.editor-panel[data-editor-view="relation"] .editor-view > .editor-relation-section {
+  display: grid;
+}
+
+.editor-panel[data-editor-view="relation"] details.editor-relation-section {
+  display: block;
+}
+
+.app-root[data-layout="mobile"] .editor-action-row {
+  min-height: var(--ui-touch-height);
+}
+
+.editor-scroll-body > .editor-empty {
+  padding-block: var(--ui-space-6);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
+}
+
+.app-root[data-layout="mobile"] .editor-object-header {
+  width: 100%;
+}
+
+.app-root[data-layout="compact"] .workspace.layers-drawer-open {
+  --map-safe-left: 0px;
+  --map-safe-right: 0px;
+}
+
+.app-root[data-layout="compact"] .workspace.editor-drawer-open {
+  --map-safe-left: 0px;
+  --map-safe-right: 0px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-view-toolbar {
+    transition-duration: 0.01ms;
+  }
+}
+
+.editor-object-command {
+  color: var(--text-soft);
+}
+
+.editor-object-command:is(:hover, :focus-visible):not(:disabled) {
+  color: var(--text);
+}
+
+@media (max-width: 799px) {
+  .app-root[data-layout="mobile"] .surface-editor .editor-object-command {
+    display: grid;
+    width: var(--ui-touch-height);
+    height: var(--ui-touch-height);
+  }
+}
+
+.editor-action-row > span {
+  grid-column: 1;
+}
+
+.editor-action-row > span > small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  display: block;
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  line-height: var(--ui-line-normal);
+}
+
+[data-layout="wide"] .map-bottom-status {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+[data-layout="wide"] .surface-editor {
+  --ui-surface-border-top: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-right: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-bottom: var(--ui-border-width) solid var(--border);
+  --ui-surface-border-left: var(--ui-border-width) solid var(--border);
+  --ui-surface-radius-top-left: var(--ui-radius-panel);
+  --ui-surface-radius-top-right: var(--ui-radius-panel);
+  --ui-surface-radius-bottom-right: var(--ui-radius-panel);
+  --ui-surface-radius-bottom-left: var(--ui-radius-panel);
+  --ui-surface-shadow: var(--control-shadow);
+}
+
+.editor-object-context-main {
+  display: flex;
+  align-items: center;
+  gap: var(--design-button-gap);
+}
+
+.editor-object-context-main > .editor-object-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-object-type-label {
+  display: none;
+}
+
 .editor-focus-action {
   width: var(--ui-control-height);
   min-width: var(--ui-control-height);
@@ -11,9 +805,26 @@
   place-items: center;
   padding: 0;
 }
-.editor-focus-action .ui-icon { width: var(--ui-icon-size); height: var(--ui-icon-size); }
-.editor-flag-thumbnail { display: grid; place-items: center; width: 2.5rem; height: 1.75rem; }
-.editor-flag-thumbnail img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+.editor-focus-action .ui-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+}
+
+.editor-flag-thumbnail {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 1.75rem;
+}
+
+.editor-flag-thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .editor-flag-menu {
   position: fixed;
   margin: 0;
@@ -32,11 +843,27 @@
   color: var(--muted);
   text-align: center;
 }
-.editor-flag-preview img { width: auto; max-width: 100%; height: auto; max-height: var(--ui-touch-height); object-fit: contain; }
 
-.surface-header .editor-collapse-icon { display: none; transform: rotate(-90deg); }
-[data-layout="wide"] .surface-header .editor-collapse-icon { display: block; }
-[data-layout="wide"] .surface-header .editor-close-icon { display: none; }
+.editor-flag-preview img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: var(--ui-touch-height);
+  object-fit: contain;
+}
+
+.surface-header .editor-collapse-icon {
+  display: none;
+  transform: rotate(-90deg);
+}
+
+[data-layout="wide"] .surface-header .editor-collapse-icon {
+  display: block;
+}
+
+[data-layout="wide"] .surface-header .editor-close-icon {
+  display: none;
+}
 
 @media (max-width: 799px) {
   .editor-focus-action {
@@ -46,33 +873,81 @@
   }
 }
 
-[data-layout="wide"] .surface-editor { width: var(--ui-shell-right-panel-width); }
+[data-layout="wide"] .surface-editor {
+  width: var(--ui-shell-right-panel-width);
+}
 
-/* Keep the map viewport stable while the wide inspector opens over its edge. */
-.editor-task-slot[hidden] { display: none; }
-.editor-task-slot { display: flex; flex: 1 1 auto; min-height: 0; overflow: hidden; }
-.editor-panel[data-editor-content="task"] > :is(.surface-header, .editor-object-header, .editor-view-tabs, .editor-scroll-body) { display: none; }
+.editor-task-slot[hidden] {
+  display: none;
+}
+
+.editor-task-slot {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-panel[data-editor-content="task"] > :is(.surface-header, .editor-object-header, .editor-view-tabs, .editor-scroll-body) {
+  display: none;
+}
+
 .editor-panel[data-editor-content="task"] .mode-editing-context {
-  display: flex; flex: 1 1 auto; width: 100%; max-width: none; min-height: 0;
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
 }
+
 .editor-panel[data-editor-content="task"] .mode-task-window {
-  display: flex; flex-direction: column; flex: 1 1 auto; width: 100%; max-width: none;
-  min-height: 0; border: 0; border-radius: 0; box-shadow: none; background: var(--surface-elevated);
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--surface-elevated);
 }
+
 .editor-panel[data-editor-content="task"] .mode-task-window-header {
-  flex: 0 0 auto; min-height: var(--ui-surface-header-height-compact); border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+  min-height: var(--ui-surface-header-height-compact);
+  border-bottom: 1px solid var(--border);
 }
+
 .editor-panel[data-editor-content="task"] .mode-task-window-content {
-  display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
+
 .editor-panel[data-editor-content="task"] .mode-task-window-body {
-  flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
 }
+
 .editor-panel[data-editor-content="task"] .mode-action-bar {
-  flex: 0 0 auto; width: 100%; max-width: none; margin: 0; border-radius: 0; box-shadow: none;
-  border: 0; border-top: 1px solid var(--border);
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border: 0;
+  border-top: 1px solid var(--border);
 }
-.editor-panel[data-editor-content="task"] .mode-task-minimize-btn { display: none; }
+
+.editor-panel[data-editor-content="task"] .mode-task-minimize-btn {
+  display: none;
+}
 
 .mode-task-window {
   border: 1px solid var(--overlay-border);
@@ -101,28 +976,8 @@
   font-size: var(--design-font-md);
 }
 
-.map-bottom-status {
-  min-height: var(--ui-shell-statusbar-height);
-  height: auto;
-  padding: 0;
-  border-top: 1px solid var(--status-border);
-  border-radius: 0;
-  background: var(--status-bg);
-  color: var(--status-text);
-  box-shadow: none;
-}
-
 :root[data-status-bar-visible="false"] .map-bottom-status {
   display: none;
-}
-
-.map-bottom-status .status-inner {
-  min-height: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-3);
-  padding-inline: var(--ui-space-3);
 }
 
 .map-bottom-status :is(.status-group, .status-item) {
@@ -131,26 +986,22 @@
   line-height: 1;
 }
 
-.project-save-status {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-1);
-  white-space: nowrap;
+.project-save-status:is(.saved, [data-save-state="saved"]) .project-save-status-dot {
+  background: var(--design-status-success-dot);
 }
 
-.project-save-status-dot {
-  width: var(--ui-space-1-5);
-  height: var(--ui-space-1-5);
-  flex: 0 0 var(--ui-space-1-5);
-  border-radius: 50%;
+.project-save-status:is(.saving, [data-save-state="saving"]) .project-save-status-dot {
+  background: var(--design-status-working-dot);
 }
 
-.project-save-status:is(.saved, [data-save-state="saved"]) .project-save-status-dot { background: var(--design-status-success-dot); }
-.project-save-status:is(.saving, [data-save-state="saving"]) .project-save-status-dot { background: var(--design-status-working-dot); }
-.project-save-status:is(.dirty, .unsaved, [data-save-state="dirty"], [data-save-state="unsaved"]) .project-save-status-dot { background: var(--design-status-neutral-dot); }
-.project-save-status:is(.error, [data-save-state="error"]) .project-save-status-dot { background: var(--design-status-error-dot); }
+.project-save-status:is(.dirty, .unsaved, [data-save-state="dirty"], [data-save-state="unsaved"]) .project-save-status-dot {
+  background: var(--design-status-neutral-dot);
+}
 
-/* The command surfaces float over a map-first workspace; there is no left dock. */
+.project-save-status:is(.error, [data-save-state="error"]) .project-save-status-dot {
+  background: var(--design-status-error-dot);
+}
+
 [data-layout="wide"] .workspace {
   --projection-safe-left: 0px;
   --map-safe-left: 0px;
@@ -161,31 +1012,20 @@
   --map-safe-right: 0px;
 }
 
-/* The drawer overlays the right edge; keep map content fixed and move only the controls. */
 .app-root[data-layout="wide"] .workspace.editor-drawer-open .map-view-toolbar {
   right: calc(var(--ui-shell-right-panel-width) + var(--ui-map-edge));
 }
 
-@media (max-width: 799px) {
-
-  .map-bottom-status {
-    height: auto;
-    min-height: var(--ui-shell-statusbar-height);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .mode-task-window { transition: none; }
+  .mode-task-window {
+    transition: none;
+  }
 }
 
 .map-view-toolbar {
   width: max-content;
   max-width: calc(100% - var(--map-safe-left, 0) - var(--map-safe-right, 0) - (var(--ui-map-edge) * 2));
   align-self: start;
-  justify-self: start;
-}
-
-.map-view-toolbar {
   justify-self: end;
 }
 
@@ -193,8 +1033,13 @@
   margin-bottom: var(--ui-space-1);
 }
 
-/* Group inspector fields with spacing, without a second frame around controls. */
-.editor-panel .editor-section,
+.editor-panel .editor-section {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .editor-panel .editor-disclosure {
   border: 0;
   border-radius: 0;
@@ -261,24 +1106,34 @@
   object-fit: cover;
 }
 
-/* Desktop workbench refinement keeps the map and inspector roles readable. */
 @media (min-width: 800px) {
   [data-layout="wide"] .right-panel {
     background: var(--surface-elevated);
   }
+}
 
-
+@media (min-width: 800px) {
   [data-layout="wide"] .editor-action-row {
     min-height: var(--ui-content-command-row-min-height);
     border: 0;
   }
+}
 
-  [data-layout="wide"] .editor-action-row:hover,
+@media (min-width: 800px) {
+  [data-layout="wide"] .editor-action-row:hover {
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
+}
+
+@media (min-width: 800px) {
   [data-layout="wide"] .editor-action-row:focus-visible {
     background: var(--surface-hover);
     color: var(--text-strong);
   }
+}
 
+@media (min-width: 800px) {
   [data-layout="wide"] .map-view-toolbar {
     padding: var(--ui-space-1);
     border: 1px solid var(--toolbar-border);
@@ -286,15 +1141,20 @@
     background: var(--toolbar-bg);
     box-shadow: var(--design-toolbar-shadow);
   }
+}
 
+@media (min-width: 800px) {
   [data-layout="wide"] .map-view-toolbar .icon-btn {
     border-radius: var(--design-radius-md);
   }
+}
 
+@media (min-width: 800px) {
   [data-layout="wide"] .map-bottom-status {
     background: color-mix(in srgb, var(--status-bg) 92%, transparent);
   }
 }
+
 .historical-library-ownership {
   min-height: 0;
   max-height: 45dvh;
@@ -314,8 +1174,6 @@
   margin: 0;
 }
 
-/* The inspector presents object actions by intent, rather than treating
-   destructive, contextual, and dismissal controls as one icon cluster. */
 .editor-empty {
   flex: 0 0 auto;
   min-height: 0;
@@ -324,13 +1182,21 @@
   text-align: left;
 }
 
-.editor-empty p { max-width: 34ch; }
+.editor-empty p {
+  max-width: 34ch;
+}
 
 .surface-editor .surface-header-actions {
   gap: var(--ui-space-1);
 }
 
-.surface-editor .ui-button.editor-object-command,
+.surface-editor .ui-button.editor-object-command {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-soft);
+  box-shadow: none;
+}
+
 .surface-editor .ui-button.editor-object-command:is(:hover, :active, :focus-visible, [aria-pressed="true"]):not(:disabled) {
   border-color: transparent;
   background: transparent;
@@ -347,11 +1213,22 @@
   color: var(--danger-text);
 }
 
-.surface-editor .editor-surface-close { margin-inline-start: var(--ui-space-1); }
+.surface-editor .editor-surface-close {
+  margin-inline-start: var(--ui-space-1);
+}
 
-.editor-action-row > span { min-width: 0; }
-.editor-action-row > span > :is(strong, small) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editor-action-row > span {
+  min-width: 0;
+}
+
+.editor-action-row > span > :is(strong, small) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 @media (max-width: 799px) {
-  .editor-action-row > span > small { display: none; }
+  .editor-action-row > span > small {
+    display: none;
+  }
 }

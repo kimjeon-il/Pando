@@ -1,5 +1,18 @@
-/* Shared command-row language for editor actions. */
-.editor-action-row,
+/* Canonical components / command-row. */
+
+.ui-row-button {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ui-control-text);
+}
+
+.editor-action-row {
+  min-width: 0;
+  border-radius: var(--ui-radius-control);
+}
+
 .ui-row-button {
   min-width: 0;
   border-radius: var(--ui-radius-control);
@@ -27,51 +40,69 @@
   color: var(--muted);
 }
 
-.editor-action-row.has-command-row-icon > span { grid-column: 2; }
-.editor-action-row.has-command-row-icon > .ui-icon:not(.command-row-icon) { grid-column: 3; }
-.editor-action-row > span { min-width: 0; grid-column: 1; }
-.editor-action-row > .ui-icon { grid-column: 2; }
+.editor-action-row.has-command-row-icon > span {
+  grid-column: 2;
+}
 
-.editor-action-row > span > strong,
-.editor-action-row > span > small {
+.editor-action-row.has-command-row-icon > .ui-icon:not(.command-row-icon) {
+  grid-column: 3;
+}
+
+.editor-action-row > .ui-icon {
+  grid-column: 2;
+}
+
+.editor-action-row > span > strong {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal;
-}
-
-.editor-action-row > span > strong {
   display: block;
   font-size: var(--ui-font-md);
   font-weight: var(--ui-weight-semibold);
 }
 
-.editor-action-row > span > small {
-  display: block;
-  color: var(--muted);
-  font-size: var(--ui-font-sm);
-  line-height: var(--ui-line-normal);
+.editor-action-row:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
 }
 
-.editor-action-row:hover,
 .editor-action-row:focus-visible {
   background: var(--surface-hover);
   color: var(--text-strong);
 }
 
-.editor-action-row .command-row-icon,
-.editor-action-row > .ui-icon { color: var(--muted); }
-.editor-action-row:hover .command-row-icon,
-.editor-action-row:focus-visible .command-row-icon { color: var(--text-soft); }
-.editor-action-row:is(.active, [aria-pressed="true"]) .command-row-icon { color: var(--accent); }
+.editor-action-row .command-row-icon {
+  color: var(--muted);
+}
+
+.editor-action-row > .ui-icon {
+  color: var(--muted);
+}
+
+.editor-action-row:hover .command-row-icon {
+  color: var(--text-soft);
+}
+
+.editor-action-row:focus-visible .command-row-icon {
+  color: var(--text-soft);
+}
+
+.editor-action-row:is(.active, [aria-pressed="true"]) .command-row-icon {
+  color: var(--accent);
+}
 
 :is(.editor-action-row, .ui-row-button):has(small:not(:empty)) {
   min-height: var(--design-command-description-height);
 }
 
 @media (max-width: 799px) {
-  .editor-action-row { min-height: var(--ui-touch-height); }
+  .editor-action-row {
+    min-height: var(--ui-touch-height);
+  }
+}
 
+@media (max-width: 799px) {
   :is(.editor-action-row, .ui-row-button):has(small:not(:empty)) {
     min-height: var(--design-command-description-height-mobile);
   }

@@ -14,6 +14,11 @@ async function openEnhanced(page, query = '?perf') {
   return errors;
 }
 
+async function zoomMap(page, steps = 1) {
+  await page.locator('#map .map-svg').hover();
+  await page.mouse.wheel(0, -120 * steps);
+}
+
 test('pan and zoom frames do not rebuild or upload country palettes', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openEnhanced(page);
@@ -36,9 +41,7 @@ test('pan and zoom frames do not rebuild or upload country palettes', async ({ p
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: touchPoint(start.x, start.y) });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: touchPoint(start.x + 48, start.y + 20) });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await page.evaluate(() => {
-    for (let index = 0; index < 6; index += 1) document.querySelector('#zoomInBtn').click();
-  });
+  await zoomMap(page, 6);
   await page.waitForTimeout(250);
   const after = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot());
   expect(after.gpu.paletteRebuildCount).toBe(before.gpu.paletteRebuildCount);
@@ -56,9 +59,7 @@ test('forced WebGL1 also keeps country palettes stable while zooming', async ({ 
   const errors = await openEnhanced(page, '?perf&renderer=webgl1');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer)).toBe('webgl1');
   const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu);
-  await page.evaluate(() => {
-    for (let index = 0; index < 3; index += 1) document.querySelector('#zoomInBtn').click();
-  });
+  await zoomMap(page, 3);
   await page.waitForTimeout(250);
   const after = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu);
   expect(after.paletteRebuildCount).toBe(before.paletteRebuildCount);
@@ -76,9 +77,7 @@ test('Canvas pan and zoom sends view updates without resending style state', asy
   }), { timeout: 20_000 }).toBe(true);
   await page.waitForTimeout(500);
   const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu);
-  await page.evaluate(() => {
-    for (let index = 0; index < 6; index += 1) document.querySelector('#zoomInBtn').click();
-  });
+  await zoomMap(page, 6);
   await expect.poll(
     () => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.canvasWorkerViewMessageCount),
     { timeout: 20_000 },
@@ -98,7 +97,7 @@ test('Canvas2D fallback renders a view frame without Worker support', async ({ p
   const errors = await openEnhanced(page, '?perf&renderer=canvas');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer)).toBe('canvas2d');
   const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.displayedRevision);
-  await page.evaluate(() => document.querySelector('#zoomInBtn').click());
+  await zoomMap(page);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.displayedRevision)).toBeGreaterThan(before);
   await expect(page.locator('#map .gpu-map-canvas')).toBeVisible();
   expect(errors).toEqual([]);

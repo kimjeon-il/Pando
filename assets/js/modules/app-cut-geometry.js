@@ -1,6 +1,7 @@
 import { geometryRevision } from './geometry-versions.js';
 import { geometrySegmentIndex, segmentQueryBounds } from './geometry-segment-index.js';
 import { preparedCut } from './cut-preparation-cache.js';
+import { coordinateBounds as calculateCoordinateBounds } from './coordinate-bounds.js';
 /** CutGeometry: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -23,19 +24,7 @@ export function createCutGeometry() {
   }
 
   function coordinateBounds(value, bounds = [Infinity, Infinity, -Infinity, -Infinity]) {
-    if (!Array.isArray(value)) return bounds;
-    if (value.length >= 2 && !Array.isArray(value[0]) && !Array.isArray(value[1])
-      && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]))) {
-      const x = Number(value[0]);
-      const y = Number(value[1]);
-      bounds[0] = Math.min(bounds[0], x);
-      bounds[1] = Math.min(bounds[1], y);
-      bounds[2] = Math.max(bounds[2], x);
-      bounds[3] = Math.max(bounds[3], y);
-      return bounds;
-    }
-    value.forEach(item => coordinateBounds(item, bounds));
-    return bounds;
+    return calculateCoordinateBounds(value, bounds);
   }
 
   function boundsOverlap(a, b) {

@@ -1,4 +1,5 @@
-/* Menu appearance belongs to menus.css; this file owns view-menu placement. */
+/* Canonical components / view-menu. */
+
 .surface-display.view-menu-desktop {
   --ui-surface-border-top: var(--ui-border-width) solid var(--overlay-border);
   --ui-surface-border-right: var(--ui-border-width) solid var(--overlay-border);
@@ -21,27 +22,64 @@
   overflow: visible;
   transform: none;
 }
-/* Fixed submenus must keep the viewport as their containing block. */
+
 .surface-display.view-menu-desktop:is(.surface-open, .mobile-open) {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: none;
 }
+
 [data-layout="wide"] .workspace-surface.surface-display.view-menu-desktop > .surface-header,
 [data-layout="compact"] .workspace-surface.surface-display.view-menu-desktop > .surface-header {
   display: none;
 }
-.surface-display.view-menu-desktop > .surface-body,
-.surface-display.view-menu-desktop .map-view-panel-section { min-height: 0; overflow: visible; padding: 0; }
-.view-menu-desktop .view-menu-root { max-height: var(--ui-menu-position-max-height, 80dvh); overflow-y: auto; overscroll-behavior: contain; }
-.view-menu-popups { display: contents; }
-.view-menu-desktop .view-menu-root > .layer-style-editor,
-.view-menu-desktop .layer-type-settings,
-.view-menu-desktop .map-display-row { display: contents; }
-.view-menu-desktop .view-menu-root > .layer-style-editor > strong,
-.view-menu-desktop .view-menu-popups > [role="menu"] > strong,
-.view-menu-desktop .view-menu-popups > [role="menu"] > .layer-setting-hint { display: none; }
+
+.surface-display.view-menu-desktop > .surface-body {
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+.surface-display.view-menu-desktop .map-view-panel-section {
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+.view-menu-desktop .view-menu-root {
+  max-height: var(--ui-menu-position-max-height, 80dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.view-menu-popups {
+  display: contents;
+}
+
+.view-menu-desktop .view-menu-root > .layer-style-editor {
+  display: contents;
+}
+
+.view-menu-desktop .layer-type-settings {
+  display: contents;
+}
+
+.view-menu-desktop .map-display-row {
+  display: contents;
+}
+
+.view-menu-desktop .view-menu-root > .layer-style-editor > strong {
+  display: none;
+}
+
+.view-menu-desktop .view-menu-popups > [role="menu"] > strong {
+  display: none;
+}
+
+.view-menu-desktop .view-menu-popups > [role="menu"] > .layer-setting-hint {
+  display: none;
+}
 
 .view-menu-desktop .view-menu-popups > .ui-menu-surface {
   position: fixed;
@@ -52,17 +90,48 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.view-menu-desktop .view-menu-popups > [data-menu-level="2"] { z-index: 142; }
-.view-menu-desktop .view-menu-panel-content[inert] { opacity: .48; }
-.view-menu-desktop .view-menu-parent { inset: auto; z-index: auto; }
 
-.surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent,
-.surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent,
-.surface-display:not(.view-menu-desktop) .view-menu-separator,
-.surface-display:not(.view-menu-desktop) .view-menu-icon,
-.surface-display:not(.view-menu-desktop) .ui-menu-mark { display: none; }
-.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-leading { display: contents; }
-.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-chevron { display: none; }
+.view-menu-desktop .view-menu-popups > [data-menu-level="2"] {
+  z-index: 142;
+}
+
+.view-menu-desktop .view-menu-panel-content[inert] {
+  opacity: .48;
+}
+
+.view-menu-desktop .view-menu-parent {
+  inset: auto;
+  z-index: auto;
+}
+
+.surface-display:not(.view-menu-desktop) .map-projection-settings > .view-menu-parent {
+  display: none;
+}
+
+.surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent {
+  display: none;
+}
+
+.surface-display:not(.view-menu-desktop) .view-menu-separator {
+  display: none;
+}
+
+.surface-display:not(.view-menu-desktop) .view-menu-icon {
+  display: none;
+}
+
+.surface-display:not(.view-menu-desktop) .ui-menu-mark {
+  display: none;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-leading {
+  display: contents;
+}
+
+.surface-display:not(.view-menu-desktop) .map-display-detail-trigger .view-menu-chevron {
+  display: none;
+}
+
 .layer-type-settings-heading {
   display: flex;
   align-items: center;
@@ -70,6 +139,15 @@
   gap: var(--ui-space-1);
 }
 
-.layer-type-settings-heading > label { flex: 1; }
-.app-root .layer-type-settings .layer-inline-style-panel { margin: 0; }
-.layer-type-settings { padding-block: var(--ui-space-2); border-top: 0; }
+.layer-type-settings-heading > label {
+  flex: 1;
+}
+
+.app-root .layer-type-settings .layer-inline-style-panel {
+  margin: 0;
+}
+
+.layer-type-settings {
+  padding-block: var(--ui-space-2);
+  border-top: 0;
+}

@@ -256,7 +256,7 @@ test('selection overlay commits staged SVG only after GPU draw coverage is known
   assert.doesNotMatch(app, /function renderSelectionOverlay\b/);
   assert.doesNotMatch(source, /selectionLayer\.selectAll\('\*'\)\.remove\(\)/);
   assert.match(source, /createElementNS/);
-  assert.match(source, /gpuRenderResult\?\.channels\?\.primary\?\.renderedKeys/);
+  assert.match(source, /selectionCoverage\(gpuRenderResult/);
   assert.match(source, /selectionTarget\?\.replaceChildren/);
   assert.match(source, /retainedPreviousFrame/);
 });

@@ -41,34 +41,44 @@ test('a newly promoted scene cache texture is presented in the same view frame',
   const renderWebGl = gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro'));
   const finish = renderWebGl.indexOf('sceneColorCache.finishScene(null, viewSignature, projectGeneration)');
   const present = renderWebGl.indexOf('sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })', finish);
-  const interactions = renderWebGl.indexOf('drawInteractionPasses(viewState)');
+  const interactions = renderWebGl.indexOf('drawGpuInteractionPass(');
   assert.ok(finish >= 0, 'scene promotion must remain explicit');
   assert.ok(present > finish, 'the promoted texture must be presented after promotion');
   assert.ok(present < interactions, 'the base scene must be presented before interaction overlays');
   assert.ok(!renderWebGl.includes('{ clearTarget: false, reproject }'));
 });
 
-test('hydro and terrain use bounded interaction-aware upload budgets', () => {
-  const source = read('assets/js/modules/gpu-map-renderer.js');
-  assert.ok(source.includes('Number(renderQuality.uploadBudgetBytes)'));
-  assert.ok(source.includes('const next = hydroUploadQueue.shift();'));
-  assert.ok(source.includes('const limit = interactionActive ? 1 : Math.max(1, Math.min(4, Math.floor(uploadBudget / (1024 * 1024))));'));
-  assert.ok(source.includes('performance.now() - startedAt < 4'));
-  assert.ok(source.includes("hydroWorker?.postMessage({ type: 'interaction', active: interactionActive });"));
+test('hydro and terrain share bounded upload steps and pause during interaction', async () => {
+  const { createGpuUploadScheduler } = await import('../../assets/js/modules/gpu-upload-scheduler.js');
+  const frames = [], submitted = [];
+  let now = 0;
+  const scheduler = createGpuUploadScheduler({ requestFrame: callback => (frames.push(callback), frames.length),
+    cancelFrame() {}, now: () => now, isHidden: () => false, isInputPending: () => false, getByteBudget: () => 512 * 1024 });
+  scheduler.noteInput(true);
+  const pending = ['hydro', 'terrain'].map(key => scheduler.enqueueUpload({ key, step: ({ byteBudget }) => {
+    submitted.push([key, byteBudget]); return { bytes: byteBudget, done: true };
+  } }));
+  frames.shift()();
+  assert.deepEqual(submitted, []);
+  scheduler.noteInput(false); now = 500; frames.shift()();
+  await Promise.all(pending);
+  assert.deepEqual(submitted, [['hydro', 262144], ['terrain', 262144]]);
+  scheduler.dispose();
 });
 
 test('physical data and visibility changes invalidate the cached base scene', () => {
   const source = read('assets/js/modules/gpu-map-renderer.js');
+  const terrain = read('assets/js/modules/gpu-terrain-preparation.js');
   assert.match(source, /function invalidatePhysicalScene\([\s\S]*?sceneColorCache\.invalidate\(reason\);[\s\S]*?invalidateGpuFrame\(reason\);/);
   assert.match(source, /function setTerrainManifest\([\s\S]*?invalidatePhysicalScene\('terrain-manifest'\);/);
   assert.match(source, /function invalidateHydroVisibility\([\s\S]*?queueHydroRender\('hydro-visibility'\);/);
   assert.match(source, /function queueHydroRender\([\s\S]*?invalidatePhysicalScene\(reason\);/);
-  assert.ok(source.includes('function terrainTileAt(level, longitude, latitude)'));
-  assert.ok(source.includes('function terrainNeighbourSpecs(level, specs)'));
-  assert.ok(source.includes("invalidatePhysicalScene('terrain-tile-ready')"));
-  assert.ok(source.includes('terrainRetentionKeys.has(item[0])'));
-  assert.ok(source.includes('terrainFallbackTileCount'));
-  assert.match(source, /physicalScale \/ renderDpr\) \* sourceDpr/);
+  assert.ok(terrain.includes('function terrainTileAt(level, longitude, latitude)'));
+  assert.ok(terrain.includes('function terrainNeighbourSpecs(level, specs)'));
+  assert.ok(terrain.includes("invalidate('terrain-tile-ready')"));
+  assert.ok(terrain.includes('terrainRetentionKeys.has(item[0])'));
+  assert.ok(terrain.includes('terrainFallbackTileCount'));
+  assert.match(terrain, /physicalScale \/ renderDpr\) \* sourceDpr/);
 });
 
 test('Canvas Worker persists independently revisioned view and style state', () => {
@@ -77,7 +87,7 @@ test('Canvas Worker persists independently revisioned view and style state', () 
   for (const type of ["type: 'view'", "type: 'style'", "type: 'physical-style'", "type: 'patch'"]) {
     assert.ok(renderer.includes(type), `missing renderer message ${type}`);
   }
-  assert.ok(renderer.includes('canvasWorkerPendingMessage = message;'));
+  assert.ok(renderer.includes('canvasWorker.queueFrame('));
   assert.match(renderer, /invalidateGpuFrame\('canvas-data-ready'\);\s+renderCanvasWorker\(Math\.max\(currentRenderRevision, Number\(message\.revision \|\| 0\)\)\);/);
   assert.ok(worker.includes("message.type === 'view'"));
   assert.ok(worker.includes("message.type === 'style'"));
@@ -89,13 +99,18 @@ test('Canvas Worker persists independently revisioned view and style state', () 
   assert.ok(!renderer.includes('canDisplay && message.bitmap && message.terrainComplete !== false'));
 });
 
-test('map edit worker clones only objects modified by the operation', () => {
-  const source = read('assets/js/workers/map-edit-worker.js');
-  assert.ok(source.includes('const working = readOnly ? null : new Map(countries);'));
-  assert.ok(!source.includes("new Map([...countries].map"));
-  assert.ok(source.includes('const nextTarget = clone(target);'));
-  assert.ok(source.includes('const next = clone(source);'));
-  assert.ok(source.includes('const next = clone(donor);'));
+test('map edit calculation preserves originals and shares untouched country objects', async () => {
+  await import('../../assets/js/vendor/polygon-clipping.min.js');
+  const { createCountryCommandCalculator } = await import('../../assets/js/modules/map-edit-country-commands.js');
+  const { normalizeCountryGeometry } = await import('../../assets/js/modules/map-edit-geometry.js');
+  const square = x => normalizeCountryGeometry({ type: 'Polygon', coordinates: [[[x, 0], [x + 1, 0], [x + 1, 1], [x, 1], [x, 0]]] });
+  const countries = new Map(['source', 'target', 'untouched'].map((id, index) => [id, { type: 'Feature', id, properties: {}, geometry: square(index) }]));
+  const before = structuredClone(countries);
+  const { result, afterFeatures } = createCountryCommandCalculator(globalThis.polygonClipping).calculate({ operation: 'merge', sourceId: 'source', targetIds: ['target'] }, countries);
+  assert.deepEqual(countries, before);
+  assert.deepEqual(result.removedIds, ['target']);
+  assert.notEqual(result.features[0], countries.get('source'));
+  assert.equal(afterFeatures.find(feature => feature.id === 'untouched'), countries.get('untouched'));
 });
 
 test('large-data overlays use domain caches and multi-tier culling', () => {

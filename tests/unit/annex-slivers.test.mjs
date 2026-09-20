@@ -1,17 +1,10 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import vm from 'node:vm';
 import test from 'node:test';
+import '../../assets/js/vendor/polygon-clipping.min.js';
+import { createCountryCommandCalculator } from '../../assets/js/modules/map-edit-country-commands.js';
 
-const context = vm.createContext({ URL });
-context.self = context;
-context.location = { href: 'http://test/assets/js/workers/map-edit-worker.js' };
-context.importScripts = () => {};
-for (const path of ['modules/country-geometry.js', 'vendor/polygon-clipping.min.js', 'workers/map-edit-worker.js']) {
-  vm.runInContext(fs.readFileSync(new URL(`../../assets/js/${path}`, import.meta.url), 'utf8'), context);
-}
-const pc = context.polygonClipping;
-const api = vm.runInContext('({executeAnnex, subtractAreaFromGeometry, sliverAreaM2})', context);
+const pc = globalThis.polygonClipping;
+const api = createCountryCommandCalculator(pc);
 const box = (x, y, size) => [[[x, y], [x, y + size], [x + size, y + size], [x + size, y], [x, y]]];
 const geom = polygons => ({ type: 'MultiPolygon', coordinates: polygons });
 const feature = (id, polygons) => ({ id, properties: {}, geometry: geom(polygons) });
@@ -21,7 +14,7 @@ function annex({ leftovers, originalIsland = null, automatic = true, unselected 
   const transferred = geom(pc.difference([source], leftovers));
   const features = [feature('D', [source, ...(originalIsland ? [originalIsland] : [])]), feature('T', [box(-0.02, 0, 0.01)])];
   const before = JSON.stringify(features);
-  const result = api.executeAnnex({ targetId: 'T', donorIds: ['D'], transferredGeometry: transferred,
+  const { result } = api.calculate({ operation: 'annex', targetId: 'T', donorIds: ['D'], transferredGeometry: transferred,
     riverSliverContext: automatic ? [{ donorId: 'D', polygonIndex: 0, unselectedGeometries: unselected.map(p => geom([p])) }] : [],
   }, new Map(features.map(f => [f.id, f])));
   assert.equal(JSON.stringify(features), before);
@@ -60,16 +53,15 @@ test('tiny explicit whole and partial transfers are not discarded by overlap tol
   assert.equal(complete.geometry, null);
   const partial = api.subtractAreaFromGeometry(geom([polygon]), [box(2, 0, 0.0000015)]);
   assert.equal(partial.affected, true);
-  const result = api.executeAnnex({ targetId: 'T', donorIds: ['D'], transferredGeometry: geom([polygon]) },
+  const { result } = api.calculate({ operation: 'annex', targetId: 'T', donorIds: ['D'], transferredGeometry: geom([polygon]) },
     new Map([['D', feature('D', [polygon])], ['T', feature('T', [box(0, 0, 1)])]]));
   assert.ok(result.removedIds.includes('D'));
 });
 
 test('point contact is not boundary ownership and ambiguous shared boundaries stay untouched', () => {
   const piece = small(0.002, 0.2);
-  context.piece = piece;
-  context.corner = box(piece[0][2][0], piece[0][2][1], 0.001);
-  assert.equal(vm.runInContext('sharesBoundary(piece, [corner])', context), false);
+  const corner = box(piece[0][2][0], piece[0][2][1], 0.001);
+  assert.equal(api.sharesBoundary(piece, [corner]), false);
   const next = box(piece[0][2][0], 0.002, 0.001);
   const result = annex({ leftovers: [piece, next], unselected: [next] });
   assert.equal(result.autoIncludedSlivers.count, 0);

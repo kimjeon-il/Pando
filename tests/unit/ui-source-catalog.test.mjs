@@ -15,12 +15,17 @@ test('one catalog owns canonical, modal and audit UI stylesheet inputs', async (
   } = await import(catalogUrl.href);
 
   assert.deepEqual(UI_BUNDLE_SOURCES, [
+    'assets/css/tokens/application-tokens.css',
+    'assets/css/tokens/component-tokens.css',
     'assets/css/tokens/design-tokens.css',
     'assets/css/primitives/controls.css',
+    'assets/css/primitives/select.css',
+    'assets/css/primitives/color-picker.css',
     'assets/css/components/surface.css',
     'assets/css/components/content.css',
     'assets/css/components/command-row.css',
     'assets/css/components/workflows.css',
+    'assets/css/components/dialogs.css',
     'assets/css/layout/surfaces.css',
     'assets/css/components/topbar.css',
     'assets/css/components/editor-shell.css',
@@ -30,7 +35,12 @@ test('one catalog owns canonical, modal and audit UI stylesheet inputs', async (
     'assets/css/components/view-menu.css',
     'assets/css/components/mobile-sheets.css',
     'assets/css/components/feedback.css',
+    'assets/css/components/statusbar.css',
+    'assets/css/components/map-display.css',
+    'assets/css/components/map-search.css',
+    'assets/css/components/map-viewport.css',
     'assets/css/utilities/accessibility.css',
+    'assets/css/features/map-rendering.css',
   ]);
   assert.deepEqual(UI_MODAL_SOURCES, ['assets/css/components/modals.css']);
   assert.deepEqual(UI_AUDIT_STYLE_SOURCES, [

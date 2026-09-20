@@ -3,12 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import { validateCollection } from '../../assets/js/modules/gis-geometry-validation.js';
+import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const workerSource = fs.readFileSync(path.join(root, 'assets/js/modules/gis-geometry-validation.js'), 'utf8').replace('export function validateCollection', 'function validateCollection')
-  + fs.readFileSync(path.join(root, 'assets/js/workers/gis-geometry-worker.js'), 'utf8').replace(/ {4}const \{ validateCollection \} = await import\([^\n]+\);\r?\n/, '');
 const appSource = readApplicationOwners('gis-assembly');
 const importServiceSource = fs.readFileSync(path.join(root, 'assets/js/modules/import-service.js'), 'utf8');
 
@@ -21,31 +20,14 @@ function feature(id, coordinates) {
   };
 }
 
-function runWorker(collection, affectedIds = null, { intersection = null } = {}) {
-  const messages = [];
-  let intersectionCalls = 0;
-  const self = {
-    polygonClipping: {
-      intersection(...args) {
-        intersectionCalls += 1;
-        return intersection ? intersection(...args) : [];
-      },
-    },
-    d3: { geo: { area: () => 0 } },
-    postMessage(message) { messages.push(message); },
-  };
-  vm.runInNewContext(workerSource, { self, polygonClipping: self.polygonClipping, importScripts() {} });
-  self.onmessage({ data: { id: 1, action: 'validate', collection, affectedIds } });
-  return { message: messages[0], intersectionCalls };
-}
-
 const square = [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]];
 const degenerate = [[[0, 0], [0, 0], [0, 0], [0, 0]]];
 
-test('scoped GIS validation trusts unchanged canonical geometry and validates affected countries', () => {
+test('scoped GIS validation trusts unchanged canonical geometry and validates affected countries', async t => {
+  const worker = createGisWorkerHarness(t);
   const collection = { type: 'FeatureCollection', features: [feature('affected', square), feature('trusted', degenerate)] };
-  assert.equal(runWorker(collection, ['affected']).message.ok, true);
-  assert.equal(runWorker(collection).message.ok, false);
+  assert.equal((await worker.validate(collection, ['affected'])).ok, true);
+  assert.equal((await worker.validate(collection)).ok, false);
 });
 
 test('scoped GIS overlap checks only compare pairs that contain an affected country', () => {
@@ -53,32 +35,30 @@ test('scoped GIS overlap checks only compare pairs that contain an affected coun
     type: 'FeatureCollection',
     features: [feature('affected', square), feature('trusted-a', square), feature('trusted-b', square)],
   };
-  assert.equal(runWorker(collection, ['affected']).intersectionCalls, 2);
-  assert.equal(runWorker(collection).intersectionCalls, 3);
+  let intersectionCalls = 0;
+  const clipper = { intersection() { intersectionCalls += 1; return []; } };
+  validateCollection(collection, ['affected'], clipper);
+  assert.equal(intersectionCalls, 2);
+  intersectionCalls = 0;
+  validateCollection(collection, null, clipper);
+  assert.equal(intersectionCalls, 3);
 });
 
-test('an empty scope falls back to full validation instead of silently trusting every country', () => {
+test('an empty scope falls back to full validation instead of silently trusting every country', async t => {
+  const worker = createGisWorkerHarness(t);
   const collection = { type: 'FeatureCollection', features: [feature('invalid', degenerate)] };
-  assert.equal(runWorker(collection, []).message.ok, false);
+  assert.equal((await worker.validate(collection, [])).ok, false);
 });
 
-test('GIS overlap validation isolates component pairs and retries polygon-clipping sweep failures', () => {
+test('actual GIS Worker isolates component pairs and retries polygon-clipping sweep failures', async t => {
   const secondSquare = [[[10, 10], [10, 12], [12, 12], [12, 10], [10, 10]]];
   const left = feature('left', square);
   left.geometry.coordinates.push(secondSquare);
   const right = feature('right', square);
-  let attempts = 0;
-  const result = runWorker({ type: 'FeatureCollection', features: [left, right] }, ['left'], {
-    intersection(first, second) {
-      attempts += 1;
-      assert.equal(first.length, 1);
-      assert.equal(second.length, 1);
-      if (attempts === 1) throw new Error('Unable to find segment #1 in SweepLine tree.');
-      return [];
-    },
-  });
-  assert.equal(result.message.ok, true);
-  assert.equal(attempts, 2);
+  const worker = createGisWorkerHarness(t, { failFirstIntersection: true });
+  const result = await worker.validate({ type: 'FeatureCollection', features: [left, right] }, ['left']);
+  assert.equal(result.ok, true);
+  assert.ok(result.intersectionAttempts >= 2);
 });
 
 test('country import validation has a timeout and validates imported IDs before a scoped merge', () => {

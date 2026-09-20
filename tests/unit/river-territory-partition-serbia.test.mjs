@@ -6,6 +6,7 @@ import { gunzipSync } from 'node:zlib';
 import test from 'node:test';
 import { buildRiverTerritoryPartitions, createRiverPartitionWorkspace } from '../../assets/js/modules/river-territory-partition.js';
 import '../../assets/js/vendor/polygon-clipping.min.js';
+import { createCountryCommandCalculator } from '../../assets/js/modules/map-edit-country-commands.js';
 
 const root = new URL('../../', import.meta.url);
 const read = relative => fs.readFileSync(new URL(relative, root));
@@ -74,23 +75,15 @@ test('production Serbia rivers separate three northern cells from the southern m
     return matches[0];
   });
   assert.equal(new Set(cells.map(cell => cell.key)).size, 4);
-  // Exercise the production annex worker: these three cells formerly left
+  // Exercise the production annex calculation: these three cells formerly left
   // two almost-zero-area polygons north-west of Serbia's mainland.
-  const worker = vm.createContext({ URL });
-  worker.self = worker;
-  worker.location = { href: 'http://test/assets/js/workers/map-edit-worker.js' };
-  worker.importScripts = () => {};
-  for (const path of ['modules/country-geometry.js', 'vendor/polygon-clipping.min.js', 'workers/map-edit-worker.js']) {
-    vm.runInContext(read(`assets/js/${path}`).toString(), worker);
-  }
   const selected = cells.slice(0, 3);
-  worker.features = collection.features;
-  worker.payload = { targetId: 'HUN', donorIds: ['SRB'],
+  const payload = { operation: 'annex', targetId: 'HUN', donorIds: ['SRB'],
     transferredGeometry: { type: 'MultiPolygon', coordinates: clipper.union(...selected.map(cell => polygons(cell.geometry))) },
     riverSliverContext: [{ donorId: 'SRB', polygonIndex: 0,
       unselectedGeometries: result.candidates.filter(cell => !selected.includes(cell)).map(cell => cell.geometry) }],
   };
-  const annex = vm.runInContext('executeAnnex(payload, new Map(features.map(f => [f.id, f])))', worker);
+  const { result: annex } = createCountryCommandCalculator(clipper).calculate(payload, new Map(collection.features.map(feature => [feature.id, feature])));
   // Two persisted artifacts plus one smaller raw clipping fragment that the
   // old normalization dropped. All are transferred, not silently discarded.
   assert.equal(annex.autoIncludedSlivers.count, 3);

@@ -671,7 +671,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     }
   }
 
-  function drawBatches(batches = [], frameContext) {
+  function drawBatches(batches = [], frameContext, { preparedOnly = false } = {}) {
     const started = performance.now();
     drawCount += 1;
     const renderedKeys = [];
@@ -684,7 +684,9 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     gl.disable(gl.CULL_FACE);
     for (const batch of batches) {
       const key = String(batch?.key || '');
-      const { resource, reason } = ensureResource(batch);
+      const { resource, reason } = preparedOnly
+        ? { resource: resources.get(key)?.signature === resourceSignature(batch) ? resources.get(key) : null, reason: 'resource-not-prepared' }
+        : ensureResource(batch);
       if (!resource) {
         if (key) missingKeys.push(key);
         failures.push({ key, reason });
@@ -801,6 +803,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     dispose,
     runSelfTest,
     hasResource: key => resources.has(String(key || '')),
+    hasPreparedResource: packet => resources.get(String(packet?.key || ''))?.signature === resourceSignature(packet),
     resourceByteLength: key => Number(resources.get(String(key || ''))?.byteLength || 0),
     isAvailable: () => !!gl && !!programs && !contextLost && gpuHealth === 'healthy' && selfTestPassed,
     stats: () => Object.freeze({

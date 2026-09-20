@@ -1,0 +1,175 @@
+/* Canonical components / map-display. */
+
+.terrain-display-options[hidden] {
+  display: none;
+}
+
+.terrain-strength-control[hidden] {
+  display: none;
+}
+
+.terrain-strength-heading strong {
+  color: var(--accent-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.layer-visibility-control {
+  width: var(--ui-control-height);
+  min-width: var(--ui-control-height);
+  height: var(--ui-control-height);
+  display: grid;
+  place-items: center;
+  position: relative;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  cursor: pointer;
+}
+
+.layer-visibility-control:hover {
+  background: var(--ui-control-bg-hover);
+}
+
+.layer-visibility-control:has(.layer-visibility-toggle:disabled) {
+  cursor: not-allowed;
+  opacity: .42;
+}
+
+.layer-visibility-control:has(.layer-visibility-toggle:disabled):hover {
+  background: transparent;
+}
+
+.layer-visibility-control .layer-visibility-toggle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.layer-visibility-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+}
+
+.layer-visibility-control:has(.layer-visibility-toggle:focus-visible) {
+  outline: 2px solid var(--accent-border);
+  outline-offset: var(--layer-visibility-control-outline-offset);
+}
+
+.layer-presentation-row {
+  min-height: var(--ui-tree-row-height);
+  display: grid;
+  grid-template-columns: var(--ui-tree-action-size) minmax(0, 1fr) var(--ui-tree-action-size);
+  align-items: center;
+  gap: var(--ui-space-1);
+  padding: 0 var(--ui-row-padding-x);
+}
+
+.layer-presentation-subrow {
+  margin-left: var(--ui-tree-indent);
+}
+
+.layer-presentation-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-soft);
+}
+
+.layer-presentation-row > .layer-presentation-name {
+  grid-column: 1 / 3;
+}
+
+.map-name-settings .map-display-details {
+  margin: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--ui-radius-control);
+  background: var(--panel-2);
+}
+
+.map-name-settings .map-display-details[hidden] {
+  display: none;
+}
+
+.layer-inline-style-field {
+  gap: var(--ui-space-1);
+}
+
+.layer-inline-style-field > span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-soft);
+}
+
+.layer-inline-style-field output {
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.layer-inline-style-panel input[type="range"] {
+  width: 100%;
+}
+
+html.keyboard-navigation .map-display-detail-trigger:focus-visible {
+  border-radius: var(--ui-radius-control);
+  outline-offset: var(--keyboard-navigation-outline-offset);
+}
+
+.app-root[data-layout="mobile"] .layer-presentation-row {
+  min-height: var(--ui-touch-height);
+  grid-template-columns: var(--ui-touch-height) minmax(0, 1fr) var(--ui-touch-height);
+}
+
+.app-root[data-layout="mobile"] .map-name-settings .map-display-details {
+  padding-inline: var(--ui-space-2);
+}
+
+.app-root[data-layout="mobile"] .map-name-settings .map-display-details input[type="range"] {
+  min-height: var(--ui-touch-height);
+}
+
+.layer-display-option {
+  min-height: var(--ui-tree-folder-height);
+  padding-inline: var(--ui-row-padding-x);
+}
+
+.layer-style-editor {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ui-field-gap);
+  padding-top: var(--ui-field-gap);
+  border-top: 1px solid var(--border);
+}
+
+.layer-style-editor > strong {
+  grid-column: 1 / -1;
+}
+
+.layer-setting-hint {
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-normal);
+}
+
+.app-root[data-layout="mobile"] .layer-style-editor {
+  grid-template-columns: 1fr;
+}
+
+.surface-display .map-view-panel-section {
+  flex: 1 1 auto;
+  padding: var(--ui-space-3);
+}
+
+.surface-display .map-view-settings {
+  display: grid;
+  gap: var(--ui-space-3);
+}
+
+.surface-display .map-display-details {
+  margin-inline: 0;
+}

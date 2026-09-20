@@ -1,3 +1,5 @@
+import { coordinateBounds } from './coordinate-bounds.js';
+
 const clone = value => value == null ? value : structuredClone(value);
 const featureId = (feature, fallback = '') => String(feature?.id || fallback);
 
@@ -86,19 +88,7 @@ function coordinateEqual(a, b, epsilon = 1e-10) {
 }
 
 function bounds(geometry) {
-  const output = [Infinity, Infinity, -Infinity, -Infinity];
-  const visit = value => {
-    if (!Array.isArray(value)) return;
-    if (value.length >= 2 && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]))) {
-      output[0] = Math.min(output[0], Number(value[0]));
-      output[1] = Math.min(output[1], Number(value[1]));
-      output[2] = Math.max(output[2], Number(value[0]));
-      output[3] = Math.max(output[3], Number(value[1]));
-      return;
-    }
-    value.forEach(visit);
-  };
-  visit(geometry?.coordinates);
+  const output = coordinateBounds(geometry?.coordinates);
   return output.every(Number.isFinite) ? output : null;
 }
 

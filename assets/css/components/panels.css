@@ -1,6 +1,93 @@
-/* Shared map, create, historical-library, and GIS panel presentation. *//* Map and create panel rules. */
+/* Canonical components / panels. */
 
-/* Map settings and create surface presentation. */
+body.file-menu-open .mobile-backdrop {
+  position: fixed;
+  inset: var(--ui-topbar-height) 0 0;
+  opacity: 1;
+  background: var(--mobile-backdrop);
+}
+
+.terrain-strength-control {
+  padding: var(--ui-space-0-5) var(--ui-row-padding-x) var(--ui-space-2)
+    calc(var(--ui-row-padding-x) + var(--ui-tree-check-size) + var(--ui-row-gap));
+}
+
+.terrain-strength-control input[type="range"] {
+  --ui-range-progress: 32%;
+  width: 100%;
+  min-height: var(--ui-control-height);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.ui-dialog-kicker {
+  color: var(--accent-2);
+  font-size: var(--ui-font-caption);
+  font-weight: var(--ui-weight-bold);
+  letter-spacing: .06em;
+}
+
+.layer-inline-style-panel {
+  display: grid;
+  gap: var(--ui-space-2);
+  margin: 0 var(--ui-row-padding-x);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-radius: 0;
+  background: var(--surface-subtle);
+}
+
+.map-view-settings {
+  padding-bottom: var(--ui-surface-content-padding-bottom);
+  padding-inline-end: var(--ui-surface-content-rail-x);
+  padding-inline-start: var(--ui-surface-content-rail-x);
+}
+
+.map-view-settings > .layer-style-editor {
+  padding-top: var(--ui-space-3);
+}
+
+.map-view-projection-slot .projection-btn {
+  padding: 0 var(--ui-control-padding-x);
+}
+
+.map-command-toolbar {
+  position: absolute;
+  z-index: 18;
+  top: auto;
+  right: auto;
+  bottom: calc(var(--ui-map-bottom-occupied-height) + var(--ui-map-edge));
+  left: 50%;
+  width: max-content;
+  display: flex;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+.object-search-section .layer-search-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.map-view-settings > .layer-style-editor {
+  display: grid;
+  gap: var(--ui-field-gap);
+  padding: var(--ui-space-4) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.surface-display {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
 
 .map-view-settings {
   --map-display-row-height: var(--ui-control-height);
@@ -13,8 +100,6 @@
   min-width: 0;
 }
 
-/* Map display rows share the parent grid gap, whether they expose a style menu
-   or only a visibility toggle. */
 .map-display-list > .layer-type-settings {
   padding-block: 0;
 }
@@ -80,7 +165,9 @@
   color: var(--text-strong);
 }
 
-.map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) .ui-icon { color: var(--accent); }
+.map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]) .ui-icon {
+  color: var(--accent);
+}
 
 .map-view-projection-slot .projection-btn:is(.active, [aria-pressed="true"]):hover {
   border-color: transparent;
@@ -88,13 +175,21 @@
   color: var(--text-strong);
 }
 
-.map-view-settings .ui-choice-row,
+.map-view-settings .ui-choice-row {
+  min-height: var(--map-display-row-height);
+}
+
 .map-view-settings .map-display-row {
   min-height: var(--map-display-row-height);
 }
 
-.map-view-settings .ui-choice-row,
-.map-view-settings .field-group { margin: 0; }
+.map-view-settings .ui-choice-row {
+  margin: 0;
+}
+
+.map-view-settings .field-group {
+  margin: 0;
+}
 
 .map-view-settings .ui-choice-copy {
   min-width: 0;
@@ -112,8 +207,6 @@
   line-height: var(--ui-line-normal);
 }
 
-/* Terrain modes use the same quiet radio-row treatment as distribution modes.
-   Selection is communicated by the radio itself, not a card-sized highlight. */
 .map-view-settings .terrain-mode-option {
   min-height: var(--design-control-mobile-height);
   padding: 0;
@@ -123,25 +216,48 @@
   color: var(--text);
 }
 
-.map-view-settings .terrain-mode-option:hover,
+.map-view-settings .terrain-mode-option:hover {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text);
+}
+
 .map-view-settings .terrain-mode-option:has(input:checked) {
   border-color: transparent;
   background: transparent;
   color: var(--text);
 }
 
-.map-view-settings .layer-setting-hint:empty { display: none; }
+.map-view-settings .layer-setting-hint:empty {
+  display: none;
+}
 
-.terrain-display-options,
-.terrain-mode-options,
+.terrain-display-options {
+  min-width: 0;
+  display: grid;
+}
+
+.terrain-mode-options {
+  min-width: 0;
+  display: grid;
+}
+
 .terrain-strength-control {
   min-width: 0;
   display: grid;
 }
 
-.terrain-display-options { gap: var(--ui-space-2); }
-.terrain-mode-options,
-.terrain-strength-control { gap: var(--ui-space-1); }
+.terrain-display-options {
+  gap: var(--ui-space-2);
+}
+
+.terrain-mode-options {
+  gap: var(--ui-space-1);
+}
+
+.terrain-strength-control {
+  gap: var(--ui-space-1);
+}
 
 .terrain-strength-heading {
   display: flex;
@@ -158,64 +274,90 @@
   font-weight: var(--ui-weight-medium);
 }
 
-
+@media (max-width: 799px) {
+  .map-view-settings > .layer-style-editor {
+    padding-block: var(--ui-space-4);
+  }
+}
 
 @media (max-width: 799px) {
-  .map-view-settings > .layer-style-editor { padding-block: var(--ui-space-4); }
-
   .map-view-projection-slot .projection-btn {
     min-height: var(--ui-touch-height);
     height: auto;
   }
+}
 
-  .map-view-settings { --map-display-row-height: var(--ui-touch-height); }
+@media (max-width: 799px) {
+  .map-view-settings {
+    --map-display-row-height: var(--ui-touch-height);
+  }
+}
 
-  .terrain-strength-control input[type="range"] { min-height: var(--ui-touch-height); }
-
+@media (max-width: 799px) {
+  .terrain-strength-control input[type="range"] {
+    min-height: var(--ui-touch-height);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .map-view-projection-slot .projection-btn { transition: none; }
+  .map-view-projection-slot .projection-btn {
+    transition: none;
+  }
 }
 
-/* Library, GIS, and file panel rules. */
-
-.layer-inline-style-panel { border-block: 0; }
-
+.layer-inline-style-panel {
+  border-block: 0;
+}
 
 @media (max-width: 799px) {
-  .historical-library-modal .historical-library-card,
-  .ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-card,
+  .historical-library-modal .historical-library-card {
+    width: calc(100vw - var(--ui-space-4));
+    max-height: calc(100dvh - var(--ui-space-4));
+  }
+}
+
+@media (max-width: 799px) {
+  .ui-dialog[aria-labelledby="gisImportTitle"] .ui-dialog-card {
+    width: calc(100vw - var(--ui-space-4));
+    max-height: calc(100dvh - var(--ui-space-4));
+  }
+}
+
+@media (max-width: 799px) {
   .ui-dialog[aria-labelledby="gisExportTitle"] .ui-dialog-card {
     width: calc(100vw - var(--ui-space-4));
     max-height: calc(100dvh - var(--ui-space-4));
   }
+}
 
-
+@media (max-width: 799px) {
   .historical-library-layout {
     grid-template-columns: 1fr;
     border-bottom: 0;
   }
+}
 
-  .historical-library-results {
-    border-right: 0;
-    padding-right: 0;
-  }
-
+@media (max-width: 799px) {
   .historical-library-footer {
     position: sticky;
     bottom: 0;
     z-index: 2;
     background: var(--surface-elevated);
   }
-
-  .gis-mobile-step-indicator { display: block; }
-  .gis-export-layers { grid-template-columns: 1fr; }
 }
 
-/* Historical library refinements. */
+@media (max-width: 799px) {
+  .gis-mobile-step-indicator {
+    display: block;
+  }
+}
 
-/* Panel-owned visibility refinements. */
+@media (max-width: 799px) {
+  .gis-export-layers {
+    grid-template-columns: 1fr;
+  }
+}
+
 .ui-dialog-kicker {
   display: none;
 }
@@ -239,8 +381,11 @@ body.file-menu-open .mobile-backdrop {
   background: var(--ui-control-border);
 }
 
-/* Visibility lists share their spacing, including rows with optional details. */
-.surface-display:not(.view-menu-desktop) .map-display-list,
+.surface-display:not(.view-menu-desktop) .map-display-list {
+  display: grid;
+  gap: var(--ui-space-1);
+}
+
 .surface-display:not(.view-menu-desktop) .map-display-list > .layer-type-settings {
   display: grid;
   gap: var(--ui-space-1);
@@ -267,15 +412,21 @@ body.file-menu-open .mobile-backdrop {
   margin-inline-start: auto;
 }
 
-.surface-display:not(.view-menu-desktop) .map-display-row > label { position: relative; z-index: 1; flex: 1 1 auto; min-width: 0; }
+.surface-display:not(.view-menu-desktop) .map-display-row > label {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+}
 
-/* Keep the disclosure row and the switch as separate full-height targets. */
 .surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label {
   flex: 0 0 var(--ui-touch-height);
   margin-inline-start: auto;
 }
 
-.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label > span { display: none; }
+.surface-display:not(.view-menu-desktop) .map-display-row:has(> .map-display-detail-trigger) > label > span {
+  display: none;
+}
 
 .surface-display:not(.view-menu-desktop) .map-display-detail-trigger {
   display: flex;
@@ -308,7 +459,10 @@ body.file-menu-open .mobile-backdrop {
   background: color-mix(in srgb, var(--accent) 8%, var(--surface-subtle));
 }
 
-.surface-display:not(.view-menu-desktop) .map-display-row.is-disabled { opacity: .58; cursor: default; }
+.surface-display:not(.view-menu-desktop) .map-display-row.is-disabled {
+  opacity: .58;
+  cursor: default;
+}
 
 .surface-display:not(.view-menu-desktop) .map-display-details {
   margin: 0;
@@ -318,8 +472,13 @@ body.file-menu-open .mobile-backdrop {
   background: var(--surface-subtle);
 }
 
+.surface-search:not(.search-toolbar-desktop) {
+  background: var(--surface-elevated);
+  border: var(--ui-border-width) solid var(--border);
+  border-radius: var(--ui-radius-panel);
+  box-shadow: var(--control-shadow);
+}
 
-.surface-search:not(.search-toolbar-desktop),
 .surface-display {
   background: var(--surface-elevated);
   border: var(--ui-border-width) solid var(--border);
@@ -327,7 +486,6 @@ body.file-menu-open .mobile-backdrop {
   box-shadow: var(--control-shadow);
 }
 
-/* Search is a quick picker, not a second card list. */
 .object-search-section .layer-search-results {
   display: grid;
   align-content: start;
@@ -403,9 +561,21 @@ body.file-menu-open .mobile-backdrop {
   [data-layout="mobile"] :is(.surface-search, .surface-display) {
     border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
   }
-  .object-search-section .layer-search-result { min-height: var(--ui-touch-height); }
-  .object-search-section .layer-search-focus-action { width: var(--ui-touch-height); height: var(--ui-touch-height); }
 }
+
+@media (max-width: 799px) {
+  .object-search-section .layer-search-result {
+    min-height: var(--ui-touch-height);
+  }
+}
+
+@media (max-width: 799px) {
+  .object-search-section .layer-search-focus-action {
+    width: var(--ui-touch-height);
+    height: var(--ui-touch-height);
+  }
+}
+
 .preferences-accent .ui-color-popover.is-custom {
   position: static;
   width: 100%;
