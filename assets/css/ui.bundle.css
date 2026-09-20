@@ -701,17 +701,6 @@ button:disabled {
   min-width: 0;
 }
 
-.preferences-accent-custom {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-2);
-  flex-wrap: wrap;
-}
-
-.preferences-accent-value {
-  font-variant-numeric: tabular-nums;
-}
-
 .vertex-handle {
   fill: var(--surface-elevated);
   stroke: var(--map-selection-halo);
@@ -1706,11 +1695,10 @@ html {
   --ui-control-bg: var(--swatch);
   --ui-control-bg-hover: var(--swatch);
   --ui-control-bg-pressed: var(--swatch);
-  width: var(--ui-control-height);
-  min-width: var(--ui-control-height);
-  min-height: var(--ui-control-height);
-  height: auto;
-  aspect-ratio: 1;
+  width: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  height: 28px;
   padding: 0;
   background: var(--swatch);
   border: 2px solid var(--border);
@@ -1724,13 +1712,15 @@ html {
 
 .preferences-theme-swatches {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--design-button-gap);
+  grid-template-columns: repeat(3, 36px);
+  gap: 6px;
 }
 
 .ui-button.preferences-theme-chip {
-  min-width: 0;
-  min-height: var(--ui-control-height);
+  width: 36px;
+  min-width: 36px;
+  min-height: 28px;
+  height: 28px;
   padding: var(--ui-space-1);
   border: 2px solid var(--border);
   border-radius: var(--ui-color-swatch-border-radius);
@@ -1741,7 +1731,7 @@ html {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: calc(var(--ui-control-height) - var(--ui-space-2));
+  min-height: 18px;
   border-radius: calc(var(--ui-color-swatch-border-radius) - 2px);
 }
 
@@ -1769,11 +1759,33 @@ html {
   box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--text-strong);
 }
 
+.ui-button.preferences-accent-custom {
+  --ui-control-bg: var(--surface-subtle);
+  --ui-control-bg-hover: var(--surface-hover);
+  --ui-control-bg-pressed: var(--surface-hover);
+  color: var(--text-muted);
+  background: var(--surface-subtle);
+}
+
+.preferences-accent-custom-check { display: none; }
+
+.ui-button.preferences-accent-custom:is(:hover, :focus-visible) { background: var(--surface-hover); }
+
+.ui-button.preferences-accent-custom[aria-pressed="true"],
+.ui-button.preferences-accent-custom[aria-pressed="true"]:is(:hover, :focus-visible) {
+  background: var(--swatch);
+  color: #fff;
+}
+
+.ui-button.preferences-accent-custom[aria-pressed="true"] .preferences-accent-custom-icon { display: none; }
+.ui-button.preferences-accent-custom[aria-pressed="true"] .preferences-accent-custom-check { display: block; }
+
 @media (max-width: 799px) {
   .ui-button.preferences-accent-chip {
-    width: var(--ui-touch-height);
-    min-width: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
+    width: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    height: 32px;
   }
 }
 
@@ -3252,11 +3264,27 @@ body.map-sheet-dragging {
   line-height: var(--ui-line-tight);
 }
 
-.preferences-accent-swatches {
+.preferences-appearance-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-height), 1fr));
-  gap: var(--design-button-gap);
+  grid-template-columns: minmax(128px, 1fr) minmax(0, 2fr);
+  gap: var(--ui-space-4);
+  align-items: start;
+}
+
+.preferences-accent-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   align-items: center;
+}
+
+.preferences-display {
+  padding-top: var(--ui-space-3);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 600px) {
+  .preferences-appearance-grid { grid-template-columns: 1fr; }
 }
 
 /* source: assets/css/components/command-row.css */

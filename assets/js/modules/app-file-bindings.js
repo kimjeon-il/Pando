@@ -51,8 +51,11 @@ export function createFileBindings() {
       const accent = dependencies.preferences.userPreferences.appearance.accentColor;
       const input = document.getElementById('preferencesAccentInput');
       input.value = accent || dependencies.preferences.resolvedAccentColor;
-      document.getElementById('preferencesAccentValue').textContent = accent || `기본 · ${dependencies.preferences.resolvedAccentColor}`;
-      document.getElementById('preferencesAccentPreview').style.backgroundColor = accent || dependencies.preferences.resolvedAccentColor;
+      const customButton = document.getElementById('preferencesAccentCustomBtn');
+      const presetValues = new Set([...preferencesModal.querySelectorAll('[data-preference-accent]')].map(button => button.dataset.preferenceAccent));
+      const hasCustomAccent = !!accent && !presetValues.has(accent);
+      customButton?.style.setProperty('--swatch', accent || 'transparent');
+      customButton?.setAttribute('aria-pressed', String(hasCustomAccent));
       preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
         button.setAttribute('aria-pressed', String((button.dataset.preferenceAccent || null) === accent));
       });
