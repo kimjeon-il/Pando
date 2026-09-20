@@ -1,4 +1,4 @@
-import { layerStyle } from './layer-presentation.js';
+import { layerStyle, resolveLayerDisplayColor } from './layer-presentation.js';
 
 // Resolve only presentation values. Never persist inherited defaults on a child.
 export function createTerritorialFillResolver({ state, countryColor, defaultColor, terrainAlpha = 1 }) {
@@ -28,7 +28,12 @@ export function createTerritorialFillResolver({ state, countryColor, defaultColo
     const opacity = explicit.opacity ?? (groupStyle.opacity !== undefined && groupStyle.opacity !== 1
       ? groupStyle.opacity : inherited.opacity);
     const blendMode = explicit.blendMode ?? (groupStyle.blendMode === 'multiply' ? 'multiply' : inherited.blendMode);
-    const result = Object.freeze({ color: groupStyle.colorVisible === false ? defaultColor : (properties.style?.color || inherited.color),
+    const result = Object.freeze({ color: resolveLayerDisplayColor(presentation, group, {
+      objectKey: `territorial:${properties.unitType}:${id}`,
+      explicitColor: properties.style?.color,
+      inheritedColor: inherited.color,
+      fallbackColor: defaultColor,
+    }),
       opacity: Math.max(0, Math.min(1, Number(opacity))), blendMode,
       fillAlpha: Math.max(0, Math.min(1, Number(opacity))) * terrainAlpha,
       depth: inherited.depth + 1, ownerId: String(properties.sovereignId || ''), parentId: String(properties.parentId || '') });
