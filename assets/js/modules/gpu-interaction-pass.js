@@ -3,7 +3,7 @@ import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 // Draw accepts already classified packets and country ranges. It never starts
 // geometry work, queues uploads, or scans country buffers.
 export function drawGpuInteractionPass({ gl, frame, viewState, viewport, fillTarget, fillTargetReady, prepared },
-  { fillCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryRanges }) {
+  { fillCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryBoundaryMask = () => {}, drawCountryRanges }) {
   if (fillTargetReady) { gl.colorMask(true, true, true, true); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
   gl.stencilMask(0xff); gl.clearStencil(0); gl.clear(gl.STENCIL_BUFFER_BIT); gl.enable(gl.STENCIL_TEST);
   let fillReady = fillTargetReady && prepared.fillReady;
@@ -16,7 +16,8 @@ export function drawGpuInteractionPass({ gl, frame, viewState, viewport, fillTar
   try {
     // Reserve water before claiming land, then one winner per sample.
     gl.stencilFunc(gl.ALWAYS, 1, 0xff); gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE); gl.colorMask(false, false, false, false);
-    drawHydro('lake'); drawHydro('river'); drawHydro('border-river');
+    // Interaction fills must not tint the base water or country-border pixels below them.
+    drawHydro('lake'); drawHydro('river'); drawHydro('border-river'); drawCountryBoundaryMask();
     gl.colorMask(true, true, true, true); gl.stencilFunc(gl.EQUAL, 0, 0xff); gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
     for (const group of fillReady ? prepared.priorities : []) {
       for (const packet of group.preview) previewFillResults.push(polygonOverlayPass.drawPackets([packet], frame, { preparedOnly: true }));
