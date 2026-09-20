@@ -58,6 +58,32 @@ test('tiny explicit whole and partial transfers are not discarded by overlap tol
   assert.ok(result.removedIds.includes('D'));
 });
 
+test('annex clips only a sub-grid source-boundary fringe before applying', () => {
+  const donor = box(0, 0, 1);
+  const fringe = [[[1, 0.25], [1, 0.75], [1 + 1e-8, 0.75], [1 + 1e-8, 0.25], [1, 0.25]]];
+  const transferred = geom(pc.union([donor], [fringe]));
+  const { result } = api.calculate({
+    operation: 'annex', targetId: 'T', donorIds: ['D'], transferredGeometry: transferred,
+  }, new Map([
+    ['D', feature('D', [donor])],
+    ['T', feature('T', [box(-2, 0, 1)])],
+  ]));
+  assert.equal(result.removedIds.includes('D'), true);
+  const receivedOutsideDonor = pc.difference(result.transferredGeometry.coordinates, [donor]);
+  assert.equal(receivedOutsideDonor.length, 0);
+});
+
+test('annex still rejects meaningful territory outside the selected sources', () => {
+  const donor = box(0, 0, 1);
+  const outside = box(1.01, 0.25, 0.1);
+  assert.throws(() => api.calculate({
+    operation: 'annex', targetId: 'T', donorIds: ['D'], transferredGeometry: geom(pc.union([donor], [outside])),
+  }, new Map([
+    ['D', feature('D', [donor])],
+    ['T', feature('T', [box(-2, 0, 1)])],
+  ])), /영토를 가져올 국가 밖/u);
+});
+
 test('point contact is not boundary ownership and ambiguous shared boundaries stay untouched', () => {
   const piece = small(0.002, 0.2);
   const corner = box(piece[0][2][0], piece[0][2][1], 0.001);
