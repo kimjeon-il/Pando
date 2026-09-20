@@ -1121,6 +1121,12 @@ html {
 .ui-button.preferences-accent-chip[aria-pressed="true"] {
   border-color: var(--accent);
   box-shadow: none;
+  outline: none;
+}
+
+.ui-button.preferences-accent-chip[aria-pressed="true"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: var(--design-focus-offset);
 }
 
 .preferences-theme-chip[data-preference-theme="light"] { --swatch: #f8fafc; }
