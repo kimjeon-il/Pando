@@ -2937,6 +2937,12 @@ export function createGpuMapRenderer(deps) {
       if (override.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overrideEmphasisPaletteTexture, null, null, override);
     }
 
+    function drawCountryBoundaryMask() {
+      if (!preparedBaseScene || !state.layerVisibility.countries) return;
+      const dynamicResources = overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null;
+      drawCountryBoundaryStrokes(dynamicResources, preparedBaseScene.baseBoundaryDraw, preparedBaseScene.overrideBoundaryDraw);
+    }
+
     function sceneViewSignature(viewState = activeRenderViewState || getRenderViewState()) {
       return [
         renderDeviceContextRevision,
@@ -3110,7 +3116,7 @@ export function createGpuMapRenderer(deps) {
       const interactionResult = drawGpuInteractionPass({ gl, frame: activeFrameContext, viewState,
         viewport: { size: { width: cssWidth, height: cssHeight }, dpr: effectivePixelRatio, pixelWidth, pixelHeight },
         fillTarget, fillTargetReady, prepared: preparedInteraction },
-      { fillCache: interactionFillCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryRanges: drawCountryInteractionFills });
+      { fillCache: interactionFillCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryBoundaryMask, drawCountryRanges: drawCountryInteractionFills });
       lastInteractionFillResult = interactionResult.genericFillResult;
       lastSelectionRenderResult = interactionResult.selection;
       sceneCacheInteractionDrawCount += 1;
