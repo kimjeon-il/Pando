@@ -686,20 +686,17 @@
               <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="system" aria-label="시스템 설정" aria-pressed="true"><span class="preferences-theme-swatch preferences-theme-swatch--system" aria-hidden="true"></span></button>
             </div>
           </div>
-          <div class="preferences-accent ui-color-picker" data-color-picker="accent" data-color-custom-only role="group" aria-labelledby="preferencesAccentTitle">
+          <div class="preferences-accent" role="group" aria-labelledby="preferencesAccentTitle">
             <strong id="preferencesAccentTitle">강조색</strong>
             <div class="preferences-accent-swatches">
-              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#dc2626" style="--swatch: #dc2626" aria-label="빨강" aria-pressed="false"></button>
-              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#e87924" style="--swatch: #e87924" aria-label="주황" aria-pressed="false"></button>
-              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#2e9d57" style="--swatch: #2e9d57" aria-label="초록" aria-pressed="false"></button>
-              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#0f9d92" style="--swatch: #0f9d92" aria-label="청록" aria-pressed="false"></button>
-              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="" style="--swatch: var(--accent)" aria-label="기본 파랑" aria-pressed="true"></button>
-              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#8b5cf6" style="--swatch: #8b5cf6" aria-label="보라" aria-pressed="false"></button>
-              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="#d9468f" style="--swatch: #d9468f" aria-label="분홍" aria-pressed="false"></button>
-              <button id="preferencesAccentCustomBtn" type="button" class="ui-button preferences-accent-chip preferences-accent-custom ui-color-trigger" data-color-custom aria-label="사용자 지정 강조색" aria-pressed="false" aria-expanded="false" aria-controls="preferencesAccentPopover" aria-haspopup="dialog"><svg class="ui-icon preferences-accent-custom-icon" aria-hidden="true"><use href="#icon-plus"></use></svg><svg class="ui-icon preferences-accent-custom-check" aria-hidden="true"><use href="#icon-check"></use></svg></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="red" aria-label="빨강" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="orange" aria-label="주황" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="green" aria-label="초록" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="teal" aria-label="청록" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="blue" aria-label="파랑" aria-pressed="true"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="purple" aria-label="보라" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip" data-preference-accent="pink" aria-label="분홍" aria-pressed="false"></button>
             </div>
-            <input id="preferencesAccentInput" type="color" class="ui-native-color-input" value="#4f8cff" tabindex="-1" aria-hidden="true" />
-            <div id="preferencesAccentPopover" class="ui-color-popover ui-popover hidden" role="dialog" aria-label="강조색 사용자 지정"></div>
           </div>
           </div>
           <div class="preferences-display"><label class="ui-choice-row ui-toggle"><input id="preferencesStatusBarVisibleInput" type="checkbox" checked /><span>하단 상태표시줄 표시</span></label></div>

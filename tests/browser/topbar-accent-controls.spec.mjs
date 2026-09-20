@@ -28,6 +28,6 @@ test('file uses the same topbar command states and accent actions keep white tex
   await page.keyboard.press('Escape');
 
   await page.locator('#preferencesBtn').click();
-  await page.locator('[data-preference-accent="#e87924"]').click();
+  await page.locator('[data-preference-accent="orange"]').click();
   await expect(page.locator('#preferencesApplyBtn')).toHaveCSS('color', 'rgb(255, 255, 255)');
 });

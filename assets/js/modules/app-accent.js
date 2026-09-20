@@ -13,9 +13,10 @@ export function accentTokens(hex) {
 }
 
 // Resolve CSS colors once per appearance change, never in a map render loop.
-export function applyAppAccent(documentRef, hex = null) {
+export function applyAppAccent(documentRef, preset = null) {
   const root = documentRef.documentElement;
   for (const name of TOKEN_NAMES) root.style.removeProperty(`--design-color-${name}`);
+  const hex = resolveAccentPreset(preset, root.dataset.theme);
   if (hex) {
     for (const [name, value] of Object.entries(accentTokens(hex))) root.style.setProperty(`--design-color-${name}`, value);
     return hex;
@@ -34,3 +35,4 @@ export function applyAppAccent(documentRef, hex = null) {
   context.fillRect(0, 0, 1, 1);
   return `#${Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3).map(value => value.toString(16).padStart(2, '0')).join('')}`;
 }
+import { resolveAccentPreset } from './accent-presets.js';

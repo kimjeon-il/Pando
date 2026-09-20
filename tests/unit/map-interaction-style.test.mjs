@@ -22,8 +22,8 @@ test('interaction style keeps custom colors across themes and limits hover fill 
   assert.equal(dark.selection.color, '#8b5cf6');
   assert.equal(dark.hover.color, '#8b5cf6');
   assert.equal(dark.hover.fillAlpha, 0.10);
-  assert.deepEqual(dark.selection.primary, { innerWidth: 2.5, innerAlpha: 1, outerWidth: 4, casingAlpha: 0.72, fillAlpha: 0.30 });
-  assert.deepEqual(dark.selection.secondary, { innerWidth: 1.5, innerAlpha: 0.72, outerWidth: 2.8, casingAlpha: 0.48, fillAlpha: 0.18 });
+  assert.deepEqual(dark.selection.primary, { innerWidth: 2.5, innerAlpha: 1, outerWidth: 4, casingAlpha: 0, fillAlpha: 0.30 });
+  assert.deepEqual(dark.selection.secondary, { innerWidth: 1.5, innerAlpha: 0.72, outerWidth: 2.8, casingAlpha: 0, fillAlpha: 0.18 });
 
   const light = resolveMapInteractionStyle({ theme: 'light', selectionColor: '#8b5cf6', fillStrength: 0.5, tokens: lightTokens });
   assert.equal(light.selection.color, '#8b5cf6');
@@ -31,8 +31,8 @@ test('interaction style keeps custom colors across themes and limits hover fill 
   assert.equal(light.hover.fillAlpha, 0.04);
   assert.equal(light.selection.primary.fillAlpha, 0.12);
   assert.equal(light.selection.secondary.fillAlpha, 0.07);
-  assert.equal(light.selection.primary.casingAlpha, 0.64);
-  assert.equal(light.selection.secondary.casingAlpha, 0.42);
+  assert.equal(light.selection.primary.casingAlpha, 0);
+  assert.equal(light.selection.secondary.casingAlpha, 0);
 });
 
 test('disabled selection outlines leave selection fills intact without disabling hover outlines', () => {

@@ -1,3 +1,5 @@
+import { ACCENT_PRESET_IDS, accentPresetForColor } from './accent-presets.js';
+
 const STORAGE_KEY = 'pandolab-user-preferences';
 
 const THEMES = new Set(['system', 'light', 'dark']);
@@ -6,7 +8,7 @@ const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
 const DEFAULTS = Object.freeze({
   version: 2,
-  appearance: Object.freeze({ theme: 'system', accentColor: null, statusBarVisible: true }),
+  appearance: Object.freeze({ theme: 'system', accentPreset: 'blue', statusBarVisible: true }),
   labels: Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
     place: Object.freeze({ font: 'default', color: null, pointColor: null }),
@@ -32,7 +34,7 @@ function normalizeLabelFont(value, fallback) {
 export function defaultUserPreferences() {
   return {
     version: DEFAULTS.version,
-    appearance: { theme: DEFAULTS.appearance.theme, accentColor: null, statusBarVisible: DEFAULTS.appearance.statusBarVisible },
+    appearance: { theme: DEFAULTS.appearance.theme, accentPreset: DEFAULTS.appearance.accentPreset, statusBarVisible: DEFAULTS.appearance.statusBarVisible },
     labels: {
       country: { font: DEFAULTS.labels.country.font, color: DEFAULTS.labels.country.color },
       place: {
@@ -59,7 +61,9 @@ export function normalizeUserPreferences(value) {
     version: DEFAULTS.version,
     appearance: {
       theme,
-      accentColor: normalizeColor(source.appearance?.accentColor),
+      accentPreset: ACCENT_PRESET_IDS.includes(source.appearance?.accentPreset)
+        ? source.appearance.accentPreset
+        : accentPresetForColor(source.appearance?.accentColor) || defaults.appearance.accentPreset,
       statusBarVisible: source.appearance?.statusBarVisible !== false,
     },
     labels: {
