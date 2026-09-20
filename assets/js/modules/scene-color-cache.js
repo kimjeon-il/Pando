@@ -54,7 +54,7 @@ function createCompositeProgram(device) {
   };
 }
 
-export function createSceneColorCache() {
+export function createSceneColorCache({ nearestSampling = false } = {}) {
   let device = null;
   let gl = null;
   let activeTarget = null;
@@ -147,8 +147,9 @@ export function createSceneColorCache() {
       framebuffer = gl.createFramebuffer();
       if (!colorTexture || !framebuffer) throw new Error('scene cache target allocation failed');
       gl.bindTexture(gl.TEXTURE_2D, colorTexture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      const textureFilter = nearestSampling ? gl.NEAREST : gl.LINEAR;
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, textureFilter);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, textureFilter);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, nextWidth, nextHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);

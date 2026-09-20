@@ -3,7 +3,7 @@ import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 // Draw accepts already classified packets and country ranges. It never starts
 // geometry work, queues uploads, or scans country buffers.
 export function drawGpuInteractionPass({ gl, frame, viewState, viewport, fillTarget, fillTargetReady, prepared },
-  { fillCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryBoundaryMask = () => {}, drawCountryRanges }) {
+  { fillCache, strokeCache = null, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryBoundaryMask = () => {}, drawCountryRanges }) {
   if (fillTargetReady) { gl.colorMask(true, true, true, true); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
   gl.stencilMask(0xff); gl.clearStencil(0); gl.clear(gl.STENCIL_BUFFER_BIT); gl.enable(gl.STENCIL_TEST);
   let fillReady = fillTargetReady && prepared.fillReady;
@@ -35,11 +35,28 @@ export function drawGpuInteractionPass({ gl, frame, viewState, viewport, fillTar
   resetGpuNormalBlend(gl);
   const genericFillResult = { succeeded: fillReady && fillResults.every(result => result.succeeded),
     renderedKeys: fillReady ? fillResults.flatMap(result => result.renderedKeys || []) : [], missingKeys: fillResults.flatMap(result => result.missingKeys || []) };
-  const selection = selectionPass?.draw?.(viewState, viewport, { clear: false, frameContext: frame, preparedOnly: true }) || null;
   const strokes = packets => packets.map(packet => strokeRenderer.drawBatches([packet], frame, { preparedOnly: true }));
+  const drawInteractionStrokes = () => Object.freeze({
+    selection: selectionPass?.draw?.(viewState, viewport, { clear: false, frameContext: frame, preparedOnly: true }) || null,
+    previewResults: strokes(prepared.previewStrokes),
+    draftResults: strokes(prepared.draftStrokes),
+  });
+  let interactionStrokes;
+  const strokeCacheReady = strokeCache?.beginScene?.(viewport.pixelWidth, viewport.pixelHeight, '', 0) === true;
+  if (strokeCacheReady) {
+    gl.colorMask(true, true, true, true); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+    resetGpuNormalBlend(gl);
+    interactionStrokes = drawInteractionStrokes();
+    const composited = strokeCache.finishScene(fillTarget)
+      && strokeCache.composite(viewport.pixelWidth, viewport.pixelHeight, { targetFramebuffer: fillTarget, clearTarget: false, blendOver: true });
+    if (!composited) {
+      resetGpuNormalBlend(gl);
+      interactionStrokes = drawInteractionStrokes();
+    }
+  } else interactionStrokes = drawInteractionStrokes();
   const coverage = results => fillReady ? results : results.map(result => ({ ...result, succeeded: false,
     missingKeys: [...(result.missingKeys || []), ...(result.renderedKeys || [])], renderedKeys: [] }));
-  return { fillOwner: fillReady ? 'gpu' : 'svg', genericFillResult, selection,
-    previewResults: [...coverage(previewFillResults), ...strokes(prepared.previewStrokes)],
-    draftResults: [...coverage(draftFillResults), ...strokes(prepared.draftStrokes)] };
+  return { fillOwner: fillReady ? 'gpu' : 'svg', genericFillResult, selection: interactionStrokes.selection,
+    previewResults: [...coverage(previewFillResults), ...interactionStrokes.previewResults],
+    draftResults: [...coverage(draftFillResults), ...interactionStrokes.draftResults] };
 }
