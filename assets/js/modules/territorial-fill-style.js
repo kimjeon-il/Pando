@@ -12,7 +12,7 @@ export function createTerritorialFillResolver({ state, countryColor, defaultColo
     if (cache.has(id)) return cache.get(id);
     const properties = unit.properties || {};
     const country = countries.get(String(properties.sovereignId || properties.parentId || ''));
-    let inherited = { color: country ? countryColor(country) : defaultColor,
+    let inherited = { color: countryStyle.colorVisible && country ? countryColor(country) : defaultColor,
       opacity: countryStyle.opacity, blendMode: countryStyle.blendMode, depth: 0 };
     const parent = units.get(String(properties.parentId || ''));
     if (parent?.properties?.unitType === 'subunit' && !visiting.has(id)) {
@@ -28,7 +28,7 @@ export function createTerritorialFillResolver({ state, countryColor, defaultColo
     const opacity = explicit.opacity ?? (groupStyle.opacity !== undefined && groupStyle.opacity !== 1
       ? groupStyle.opacity : inherited.opacity);
     const blendMode = explicit.blendMode ?? (groupStyle.blendMode === 'multiply' ? 'multiply' : inherited.blendMode);
-    const result = Object.freeze({ color: properties.style?.color || inherited.color,
+    const result = Object.freeze({ color: groupStyle.colorVisible === false ? defaultColor : (properties.style?.color || inherited.color),
       opacity: Math.max(0, Math.min(1, Number(opacity))), blendMode,
       fillAlpha: Math.max(0, Math.min(1, Number(opacity))) * terrainAlpha,
       depth: inherited.depth + 1, ownerId: String(properties.sovereignId || ''), parentId: String(properties.parentId || '') });

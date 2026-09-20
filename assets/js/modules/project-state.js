@@ -111,11 +111,11 @@ export function assertCurrentProjectSchema(input) {
   assertAllowedKeys(project.layerPresentation, new Set(['schemaVersion', 'overlayOrder', 'styles', 'objectStyles', 'objectOrder']), '레이어 표현');
   assertAllowedKeys(project.layerPresentation?.styles, PRESENTATION_GROUP_KEYS, '레이어 표현 스타일');
   for (const [group, style] of Object.entries(project.layerPresentation?.styles || {})) {
-    assertAllowedKeys(style, new Set(['opacity', 'boundaryVisible', 'boundaryWidth', 'labelsVisible', 'blendMode']), `${group} 레이어 스타일`);
+    assertAllowedKeys(style, new Set(['opacity', 'colorVisible', 'boundaryVisible', 'boundaryWidth', 'labelsVisible', 'blendMode']), `${group} 레이어 스타일`);
   }
   for (const [key, style] of Object.entries(project.layerPresentation?.objectStyles || {})) {
     if (!/^territorial:(subunit|region):.+/.test(key)) throw schemaError(`객체 표현 key가 올바르지 않습니다: ${key}`);
-    assertAllowedKeys(style, new Set(['opacity', 'boundaryVisible', 'boundaryWidth', 'labelsVisible', 'blendMode']), `${key} 객체 스타일`);
+    assertAllowedKeys(style, new Set(['opacity', 'colorVisible', 'boundaryVisible', 'boundaryWidth', 'labelsVisible', 'blendMode']), `${key} 객체 스타일`);
   }
   if (project.layerPresentation?.objectOrder != null && (!Array.isArray(project.layerPresentation.objectOrder)
     || project.layerPresentation.objectOrder.some(key => typeof key !== 'string' || !/^territorial:(subunit|region):.+/.test(key)))) {

@@ -15,12 +15,11 @@ function emptyChannel(requested = []) {
 
 function channelStyle(name, style) {
   if (name === 'hover' || name === 'candidate') return Object.freeze({
-    ...interactionRoleStyle(style, name),cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',antiAlias: false,
+    ...interactionRoleStyle(style, name),cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',antiAlias: globalThis.document?.documentElement?.dataset.smoothLines !== 'false',
   });
   const selection = name === 'primary' ? style.selection.primary : style.selection.secondary;
   return Object.freeze({
-    color: style.selection.color,alpha: selection.innerAlpha,width: selection.innerWidth,cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',antiAlias: false,scaleWithView: true,
-    casing: Object.freeze({ color: style.selection.casingColor,alpha: selection.casingAlpha,width: selection.outerWidth }),
+    color: style.selection.color,alpha: selection.innerAlpha,width: selection.innerWidth,cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',antiAlias: globalThis.document?.documentElement?.dataset.smoothLines !== 'false',scaleWithView: true,
   });
 }
 
@@ -168,14 +167,11 @@ export function createSelectionPass({ onRenderError = null } = {}) {
     bufferUploadBytes += Math.max(0, Number(after.uploadBytes || 0) - Number(before.uploadBytes || 0));
   }
 
-  function drawChannel(name, frameContext, phase = 'inner', preparedOnly = false) {
+  function drawChannel(name, frameContext, preparedOnly = false) {
     const requested = items[name];
     const renderedKeys = [];const missingKeys = [];
     const resolvedStyle = channelStyle(name, interactionStyle);
-    if (phase === 'casing' && !(resolvedStyle.casing?.alpha > 0)) return null;
-    const style = phase === 'casing'
-      ? { ...resolvedStyle, ...resolvedStyle.casing, casing: null, innerCutout: resolvedStyle.width }
-      : { ...resolvedStyle, casing: null };
+    const style = resolvedStyle;
     const groups = new Map();
     for (const item of requested) {
       if (!item.packet) { missingKeys.push(item.key);continue; }
@@ -233,13 +229,11 @@ export function createSelectionPass({ onRenderError = null } = {}) {
       renderFailureCount += 1;lastDrawMs = performance.now() - started;drawMs += lastDrawMs;return lastRenderResult;
     }
     try {
-      drawChannel('secondary', frameContext, 'casing', options.preparedOnly);
-      drawChannel('primary', frameContext, 'casing', options.preparedOnly);
       const channels = Object.freeze({
-        candidate: drawChannel('candidate', frameContext, 'inner', options.preparedOnly),
-        hover: drawChannel('hover', frameContext, 'inner', options.preparedOnly),
-        secondary: drawChannel('secondary', frameContext, 'inner', options.preparedOnly),
-        primary: drawChannel('primary', frameContext, 'inner', options.preparedOnly),
+        candidate: drawChannel('candidate', frameContext, options.preparedOnly),
+        hover: drawChannel('hover', frameContext, options.preparedOnly),
+        secondary: drawChannel('secondary', frameContext, options.preparedOnly),
+        primary: drawChannel('primary', frameContext, options.preparedOnly),
       });
       const after = strokeRenderer.stats?.() || {};
       bufferBuildCount += Math.max(0, Number(after.buildCount || 0) - Number(before.buildCount || 0));

@@ -228,7 +228,7 @@ test('mobile bottom navigation opens the display sheet without restoring desktop
   await page.locator('#mobileDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(page.locator('[data-map-display-row="terrain"] .view-menu-leading')).toBeHidden();
-  await expect(page.locator('#terrainVisible + span')).toHaveText('지형');
+  await expect(page.locator('[data-map-display-row="terrain"] .view-menu-leading span')).toHaveText('지형');
   await page.locator('[data-map-display-row="terrain"]').click();
   await expect(page.locator('#terrainDisplayOptions')).toBeVisible();
   await expect(page.locator('.sheet-drag-handle[data-sheet-handle="mapDisplaySurface"]')).toBeVisible();
