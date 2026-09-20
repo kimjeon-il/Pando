@@ -4,7 +4,7 @@ const browserGlobals = {
   AbortController: 'readonly', Blob: 'readonly', CustomEvent: 'readonly', DOMParser: 'readonly', File: 'readonly', FileReader: 'readonly',
   DOMException: 'readonly', DecompressionStream: 'readonly', Image: 'readonly', ImageBitmap: 'readonly',
   ImageData: 'readonly', IndexedDB: 'readonly', HTMLElement: 'readonly', Option: 'readonly',
-  MessageChannel: 'readonly', MutationObserver: 'readonly', OffscreenCanvas: 'readonly', Path2D: 'readonly',
+  MessageChannel: 'readonly', MessageEvent: 'readonly', MutationObserver: 'readonly', OffscreenCanvas: 'readonly', Path2D: 'readonly',
   Response: 'readonly', ResizeObserver: 'readonly', TextDecoder: 'readonly', TextEncoder: 'readonly', TransformStream: 'readonly',
   URL: 'readonly', URLSearchParams: 'readonly', Worker: 'readonly',
   cancelAnimationFrame: 'readonly', clearInterval: 'readonly', clearTimeout: 'readonly', confirm: 'readonly',
@@ -54,7 +54,10 @@ export default [
     },
   },
   {
-    files: ['assets/js/workers/data-loader-worker.js'],
+    files: [
+      'assets/js/workers/data-loader-worker.js',
+      'assets/js/workers/river-territory-partition-worker.js',
+    ],
     languageOptions: { sourceType: 'module' },
   },
   {
