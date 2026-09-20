@@ -7,13 +7,13 @@ test('short notification copy is preserved', () => {
   assert.equal(compactNotificationMessage('저장했습니다.'), '저장했습니다.');
 });
 
-test('mobile error copy keeps the operation and corrective instruction', () => {
+test('error copy keeps a complete short title and diagnostic code', () => {
   const result = compactNotificationMessage(
     '파일을 불러오지 못했습니다. 파일 형식과 구성을 확인하세요. 다시 시도해도 문제가 계속되면 오류 코드 PL-GIS-001를 확인하세요.',
-    { tone: 'error', maxLength: 22 },
+    { tone: 'error', maxLength: 36 },
   );
-  assert.equal(result, '불러오기 실패. 파일을 확인하세요');
-  assert.ok(result.length <= 22);
+  assert.equal(result, '파일을 불러오지 못했습니다. · PL-GIS-001');
+  assert.ok(result.length <= 36);
 });
 
 test('dynamic success copy falls back to a complete short message', () => {
@@ -25,17 +25,17 @@ test('dynamic success copy falls back to a complete short message', () => {
   assert.ok(result.length <= 22);
 });
 
-test('actionable errors prefer the corrective instruction', () => {
+test('long actionable errors use a complete short title and code', () => {
   const result = compactNotificationMessage(
-    '국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요.',
-    { tone: 'error', maxLength: 22 },
+    '국가를 편집할 수 없습니다. 국가 레이어 잠금을 해제하세요. · PL-LOCK-001',
+    { tone: 'error', maxLength: 28 },
   );
-  assert.equal(result, '잠금 해제 후 다시 시도하세요');
+  assert.equal(result, '오류 · PL-LOCK-001');
 });
 
-test('unknown warnings and errors preserve their cause', () => {
+test('unknown long warnings and errors retain their diagnostic code', () => {
   for (const tone of ['warning', 'error']) {
-    const message = 'Unrecognized coordinate system: choose the source CRS before importing.';
-    assert.equal(compactNotificationMessage(message, { tone }), message);
+    const message = 'Unrecognized coordinate system: choose the source CRS before importing. · PL-GIS-001';
+    assert.equal(compactNotificationMessage(message, { tone, maxLength: 22 }), '오류 · PL-GIS-001');
   }
 });

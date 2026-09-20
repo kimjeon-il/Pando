@@ -338,8 +338,9 @@ body.is-loading .app-root {
 }
 
 .action-status.ui-toast {
+  width: max-content;
   min-width: 0;
-  max-width: 28.75rem;
+  max-width: calc(100vw - (var(--ui-space-2) * 2));
   height: 2.125rem;
   grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--design-control-sm);
   gap: var(--ui-space-2);

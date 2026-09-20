@@ -242,7 +242,7 @@ export function createCountryCommandCalculator(clipper) {
     const donorInputs = areaPolygonsNearFeatures(donors, transferred);
     const donorUnion = donorInputs.length ? clippingOperation('union', ...donorInputs) : [];
     if (!allowUnclaimed) {
-      const outsideMessage = '선택 영역이 영토를 가져올 국가 밖으로 벗어났습니다. 범위를 다시 지정하세요.';
+      const outsideMessage = '선택 범위가 원본 국가 밖입니다.';
       const hasRiverPartitionProvenance = Array.isArray(message.riverSliverContext)
         && message.riverSliverContext.some(row => donorIds.includes(String(row?.donorId || '')));
       transferred = hasRiverPartitionProvenance
