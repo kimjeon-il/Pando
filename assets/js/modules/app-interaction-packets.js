@@ -115,7 +115,7 @@ export function createInteractionPackets() {
     node.style.strokeOpacity = String(style.alpha);
     node.style.opacity = '1';
     if (channel === 'fill') return style.fillAlpha > 0 ? { color: style.color, fillAlpha: style.fillAlpha, blendMode: 'normal' } : null;
-    return { color: style.color, alpha: style.alpha, width: style.width, cap: 'round', join: 'round', dash: [0, 0], blendMode: 'normal' };
+    return { color: style.color, alpha: style.alpha, width: style.width, cap: 'round', join: 'round', dash: [0, 0], blendMode: 'normal', antiAlias: style.antiAlias };
   }
 
   function buildGpuInteractionLayerPackets(domain, layer) {
