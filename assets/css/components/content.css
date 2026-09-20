@@ -224,9 +224,25 @@
   line-height: var(--ui-line-tight);
 }
 
-.preferences-accent-swatches {
+.preferences-appearance-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-height), 1fr));
-  gap: var(--design-button-gap);
+  grid-template-columns: minmax(128px, 1fr) minmax(0, 2fr);
+  gap: var(--ui-space-4);
+  align-items: start;
+}
+
+.preferences-accent-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   align-items: center;
+}
+
+.preferences-display {
+  padding-top: var(--ui-space-3);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 600px) {
+  .preferences-appearance-grid { grid-template-columns: 1fr; }
 }
