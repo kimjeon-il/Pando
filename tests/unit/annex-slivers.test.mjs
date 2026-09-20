@@ -84,6 +84,20 @@ test('annex still rejects meaningful territory outside the selected sources', ()
   ])), /영토를 가져올 국가 밖/u);
 });
 
+test('river-partition annex normalizes a meaningful clipping overrun to its proven source', () => {
+  const donor = box(0, 0, 1);
+  const outside = box(1.01, 0.25, 0.1);
+  const { result } = api.calculate({
+    operation: 'annex', targetId: 'T', donorIds: ['D'], transferredGeometry: geom(pc.union([donor], [outside])),
+    riverSliverContext: [{ donorId: 'D', polygonIndex: 0, unselectedGeometries: [] }],
+  }, new Map([
+    ['D', feature('D', [donor])],
+    ['T', feature('T', [box(-2, 0, 1)])],
+  ]));
+  assert.equal(result.removedIds.includes('D'), true);
+  assert.equal(pc.difference(result.transferredGeometry.coordinates, [donor]).length, 0);
+});
+
 test('point contact is not boundary ownership and ambiguous shared boundaries stay untouched', () => {
   const piece = small(0.002, 0.2);
   const corner = box(piece[0][2][0], piece[0][2][1], 0.001);

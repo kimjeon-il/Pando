@@ -43,6 +43,17 @@ export function createCountryCommandCalculator(clipper) {
     return clippingOperation('intersection', transferred, sourceUnion);
   }
 
+  function transferFromRiverPartitions(transferred, sourceUnion, message) {
+    // River cells have already been selected from a source-country component.
+    // Their geometry is produced by a separate clipping pass, however, so use
+    // the command's authoritative source union for the final boundary.  This
+    // is deliberately not used for freehand selections: those must still
+    // report a meaningful out-of-source drawing to the user.
+    const normalized = clippingOperation('intersection', transferred, sourceUnion);
+    if (!normalized.some(positivePolygonArea)) throw new Error(message);
+    return normalized;
+  }
+
   // Translate before summing: tiny slivers at large longitude/latitude otherwise
   // lose their area to cancellation. This is an existence test, not a tolerance.
   function localRingArea(ring, scaleX = 1, scaleY = 1) {
@@ -230,8 +241,14 @@ export function createCountryCommandCalculator(clipper) {
     if (!transferred.some(positivePolygonArea)) throw new Error('편입할 유효한 영토가 없습니다.');
     const donorInputs = areaPolygonsNearFeatures(donors, transferred);
     const donorUnion = donorInputs.length ? clippingOperation('union', ...donorInputs) : [];
-    if (!allowUnclaimed) transferred = transferWithinSourceUnion(transferred, donorUnion,
-      '선택 영역이 영토를 가져올 국가 밖으로 벗어났습니다. 범위를 다시 지정하세요.');
+    if (!allowUnclaimed) {
+      const outsideMessage = '선택 영역이 영토를 가져올 국가 밖으로 벗어났습니다. 범위를 다시 지정하세요.';
+      const hasRiverPartitionProvenance = Array.isArray(message.riverSliverContext)
+        && message.riverSliverContext.some(row => donorIds.includes(String(row?.donorId || '')));
+      transferred = hasRiverPartitionProvenance
+        ? transferFromRiverPartitions(transferred, donorUnion, outsideMessage)
+        : transferWithinSourceUnion(transferred, donorUnion, outsideMessage);
+    }
     const updates = [];
     const removedIds = [];
     const affectedDonorIds = [];
