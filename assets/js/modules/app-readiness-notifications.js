@@ -245,7 +245,6 @@ export function createReadinessNotifications() {
       '[data-layer-style-boundary]',
       '[data-layer-style-blend-mode]',
       '[data-territorial-symbol]',
-      '#terrainVisible',
       'input[name="terrainStyle"]',
       '#labelsVisible',
       '#basemapLabelsVisible',

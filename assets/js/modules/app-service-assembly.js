@@ -106,8 +106,16 @@ export function createServiceAssembly() {
       DATA_REVISION: dependencies.physicalConfig.DATA_REVISION,
       PHYSICAL_DATA_BASE_URL: dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL,
       activeProjection: dependencies.mapView.activeProjection,
-      countryColor: feature => feature.properties?.unitType === 'subunit'
-        ? (0, dependencies.colorModel.territorialUnitColor)((0, dependencies.countries.builtinRenderCountries)().nativeUnits.get(String(feature.id)) || feature) : (0, dependencies.colorModel.countryColor)(feature),
+      countryColor: feature => {
+        const unit = feature.properties?.unitType === 'subunit'
+          ? (0, dependencies.countries.builtinRenderCountries)().nativeUnits.get(String(feature.id)) || feature
+          : null;
+        const group = unit ? 'subunits' : 'countries';
+        const objectKey = unit ? `territorial:subunit:${unit.id}` : '';
+        const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, group, objectKey);
+        if (style.colorVisible === false) return (0, dependencies.preferences.mapTheme)().defaultLand;
+        return unit ? (0, dependencies.colorModel.territorialUnitColor)(unit) : (0, dependencies.colorModel.countryColor)(feature);
+      },
       countryFeatureById: dependencies.builtinCountries.renderCountryFeatureById,
       countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,
       d3: dependencies.platform.d3,

@@ -195,11 +195,12 @@
                 <div id="layerStylePanel-genericFeatures" class="layer-inline-style-panel map-display-details" data-layer-style-panel="genericFeatures" role="group" aria-label="기타 객체 표시 설정" hidden></div>
               </section>
               <section class="layer-type-settings terrain-display-settings" data-map-display-group="terrain" aria-label="지형 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="terrain" aria-label="지형 표시 설정 펼치기" aria-controls="terrainDisplayOptions" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>지형</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="terrainVisible" type="checkbox" checked aria-label="지형 표시" /><span>표시</span></label></div>
+                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="terrain" aria-label="지형 표시 설정 펼치기" aria-controls="terrainDisplayOptions" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>지형</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button></div>
               <div id="terrainDisplayOptions" class="terrain-display-options map-display-details" hidden>
                 <div class="terrain-mode-options" role="radiogroup" aria-label="지형 표현 방식">
-                  <label class="ui-choice-row terrain-mode-option" for="terrainPoliticalRadio"><input id="terrainPoliticalRadio" type="radio" name="terrainStyle" value="political" checked /><span class="ui-choice-copy"><strong>국가 색상 유지</strong><small>국가별 색 위에 지형 명암을 더합니다.</small></span></label>
-                  <label class="ui-choice-row terrain-mode-option" for="terrainPhysicalRadio"><input id="terrainPhysicalRadio" type="radio" name="terrainStyle" value="physical" /><span class="ui-choice-copy"><strong>지형 높낮이 색상</strong><small>높은 곳과 낮은 곳을 색으로 구분합니다.</small></span></label>
+                  <label class="ui-choice-row terrain-mode-option" for="terrainNoneRadio"><input id="terrainNoneRadio" type="radio" name="terrainStyle" value="none" /><span>없음</span></label>
+                  <label class="ui-choice-row terrain-mode-option" for="terrainPoliticalRadio"><input id="terrainPoliticalRadio" type="radio" name="terrainStyle" value="political" checked /><span>흑백</span></label>
+                  <label class="ui-choice-row terrain-mode-option" for="terrainPhysicalRadio"><input id="terrainPhysicalRadio" type="radio" name="terrainStyle" value="physical" /><span>색채</span></label>
                 </div>
               </div>
               </section>
@@ -681,9 +682,9 @@
             <strong id="preferencesThemeTitle">테마</strong>
             <input id="preferencesThemeInput" type="hidden" value="system" />
             <div class="preferences-theme-swatches">
-              <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="light" aria-label="밝은 테마" aria-pressed="false"><span class="preferences-theme-swatch preferences-theme-swatch--light" aria-hidden="true"></span></button>
-              <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="dark" aria-label="어두운 테마" aria-pressed="false"><span class="preferences-theme-swatch preferences-theme-swatch--dark" aria-hidden="true"></span></button>
-              <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="system" aria-label="시스템 설정" aria-pressed="true"><span class="preferences-theme-swatch preferences-theme-swatch--system" aria-hidden="true"></span></button>
+              <button type="button" class="ui-button preferences-accent-chip preferences-theme-chip" data-preference-theme="light" aria-label="밝은 테마" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip preferences-theme-chip" data-preference-theme="dark" aria-label="어두운 테마" aria-pressed="false"></button>
+              <button type="button" class="ui-button preferences-accent-chip preferences-theme-chip" data-preference-theme="system" aria-label="시스템 설정" aria-pressed="true"></button>
             </div>
           </div>
           <div class="preferences-accent" role="group" aria-labelledby="preferencesAccentTitle">
@@ -699,7 +700,7 @@
             </div>
           </div>
           </div>
-          <div class="preferences-display"><label class="ui-choice-row ui-toggle"><input id="preferencesStatusBarVisibleInput" type="checkbox" checked /><span>하단 상태표시줄 표시</span></label></div>
+          <div class="preferences-display"><label class="ui-choice-row ui-toggle"><input id="preferencesStatusBarVisibleInput" type="checkbox" checked /><span>하단 상태표시줄 표시</span></label><label class="ui-choice-row ui-toggle"><input id="preferencesSmoothLinesInput" type="checkbox" checked /><span>경계선 부드럽게</span></label></div>
         </section>
       </div>
       <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="preferencesApplyBtn" class="ui-button btn" type="button">적용</button></div>

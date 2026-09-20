@@ -85,7 +85,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
   });
   await page.goto(`/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  if (renderer === 'canvas') await page.locator('#terrainVisible').evaluate(input => { if (input.checked) input.click(); });
+  if (renderer === 'canvas') await page.locator('#terrainNoneRadio').check();
   const add = async (type, parentId, name, coords) => {
     await page.evaluate(({ type, parentId }) => window.PANDOLAB_TERRITORIAL.select(type, parentId), { type, parentId });
     await page.locator(type === 'country' ? '#addCountrySubunitBtn' : '#addSubunitChildBtn').evaluate(button => button.click());

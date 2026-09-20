@@ -813,7 +813,9 @@ export function createDomainAssembly() {
         isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
         renderPendingCountryOverlays: dependencies.countryLabelModel.renderPendingCountryOverlays,
         selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
-        countryColor: dependencies.colorModel.countryColor,
+        countryColor: feature => (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'countries').colorVisible === false
+          ? dependencies.preferences.mapTheme().defaultLand
+          : dependencies.colorModel.countryColor(feature),
         mapTheme: dependencies.preferences.mapTheme,
         resolvedInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
         replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,

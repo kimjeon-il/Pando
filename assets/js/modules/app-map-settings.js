@@ -115,7 +115,7 @@ export function createMapSettings() {
       },
     });
     syncMapDisplayDisclosures();
-    if (target.presentationGroup === 'countries') {
+    if (target.presentationGroup === 'countries' || target.presentationGroup === 'subunits') {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-presentation');
     }
     if (target.presentationGroup === 'rivers' || target.presentationGroup === 'lakes') {
@@ -132,6 +132,18 @@ export function createMapSettings() {
     if (!panel || panel.dataset.initialized === 'true') return panel;
     panel.dataset.initialized = 'true';
     if (!target) return panel;
+    if (target.color) {
+      const choice = document.createElement('label');
+      choice.className = 'ui-choice-row ui-toggle';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.layerStyleColor = group;
+      checkbox.setAttribute('aria-label', `${target.label} 고유 색상 사용`);
+      const text = document.createElement('span');
+      text.textContent = '고유 색상';
+      choice.append(checkbox, text);
+      panel.prepend(choice);
+    }
     if (target.opacity) {
       const field = document.createElement('label');
       field.className = 'ui-field field-group layer-inline-style-field';
@@ -183,7 +195,7 @@ export function createMapSettings() {
 
   function mapDisplayVisible(group) {
     return group === 'terrain'
-      ? dependencies.projectState.state.physicalSettings.terrainVisible !== false
+      ? true
       : dependencies.projectState.state.layerVisibility[group] !== false;
   }
 
@@ -483,6 +495,8 @@ export function createMapSettings() {
       const target = LAYER_STYLE_TARGETS[group];
       if (!target) return;
       const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, target.presentationGroup);
+      const color = panel.querySelector('[data-layer-style-color]');
+      if (color) color.checked = style.colorVisible;
       const input = panel.querySelector('[data-layer-style-opacity]');
       if (input) { input.value = String(Math.round(style.opacity * 100)); (0, dependencies.hydroModel.syncRangeProgress)(input); }
       const output = panel.querySelector('[data-layer-style-opacity-value]');
@@ -515,7 +529,7 @@ export function createMapSettings() {
       trigger.setAttribute('aria-expanded', String(expanded));
       const label = `${mapDisplayLabel(group)} 설정 ${expanded ? '접기' : '펼치기'}`;
       trigger.setAttribute('aria-label', label);
-      const visibilityLabel = (0, dependencies.platform.$)(group === 'terrain' ? 'terrainVisible' : `${group}Visible`)?.nextElementSibling;
+      const visibilityLabel = group === 'terrain' ? null : (0, dependencies.platform.$)(`${group}Visible`)?.nextElementSibling;
       if (visibilityLabel?.matches('span')) {
         visibilityLabel.textContent = menuDesktop
           ? '표시'
@@ -603,27 +617,21 @@ export function createMapSettings() {
     for (const input of surface.querySelectorAll('[data-territorial-symbol]')) {
       input.addEventListener('change', event => setLayerVisibility(event.currentTarget.dataset.territorialSymbol, event.currentTarget.checked));
     }
-    (0, dependencies.platform.$)('terrainVisible')?.addEventListener('change', event => {
-      dependencies.projectState.state.physicalSettings.terrainVisible = !!event.currentTarget.checked;
-      if (!isDesktopViewMenu()) {
-        if (event.currentTarget.checked) dependencies.objectModelA.expandedMapDisplayGroups.add('terrain');
-        else dependencies.objectModelA.expandedMapDisplayGroups.delete('terrain');
-      }
-      dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-visibility');
-      (0, dependencies.hydroModel.syncPhysicalControls)();
-      syncMapDisplayDisclosures();
-      (0, dependencies.layers.markLayerTreeDirty)();
-      dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-visibility');
-      dependencies.domains.projectDomain.queuePresentationAutosave();
+    surface.addEventListener('change', event => {
+      const input = event.target.closest?.('[data-layer-style-color]');
+      if (input) updateLayerPresentationStyle(input.dataset.layerStyleColor, { colorVisible: input.checked });
     });
-    for (const id of ['terrainPoliticalRadio', 'terrainPhysicalRadio']) {
+    for (const id of ['terrainNoneRadio', 'terrainPoliticalRadio', 'terrainPhysicalRadio']) {
       (0, dependencies.platform.$)(id)?.addEventListener('change', event => {
         if (!event.currentTarget.checked) return;
-        dependencies.projectState.state.physicalSettings.terrainStyle = event.currentTarget.value === 'physical' ? 'physical' : 'political';
-        dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-style');
+        const mode = event.currentTarget.value;
+        dependencies.projectState.state.physicalSettings.terrainVisible = mode !== 'none';
+        if (mode !== 'none') dependencies.projectState.state.physicalSettings.terrainStyle = mode === 'physical' ? 'physical' : 'political';
+        dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
         (0, dependencies.hydroModel.syncPhysicalControls)();
+        syncMapDisplayDisclosures();
         (0, dependencies.layers.markLayerTreeDirty)();
-        dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-style');
+        dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-mode');
         dependencies.domains.projectDomain.queuePresentationAutosave();
       });
     }
@@ -819,9 +827,9 @@ export function createMapSettings() {
 
   function initializeLAYER_STYLE_TARGETS() {
     (LAYER_STYLE_TARGETS = Object.freeze({
-      countries: { presentationGroup: 'countries', label: '국가', opacity: true, boundary: true, boundaryLabel: '국경' },
-      subunits: { presentationGroup: 'subunits', label: '하위단위', opacity: true, boundary: true, boundaryLabel: '경계' },
-      regions: { presentationGroup: 'regions', label: '지방', opacity: true, boundary: true, boundaryLabel: '경계' },
+      countries: { presentationGroup: 'countries', label: '국가', color: true, opacity: true, boundary: true, boundaryLabel: '국경' },
+      subunits: { presentationGroup: 'subunits', label: '하위단위', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
+      regions: { presentationGroup: 'regions', label: '지방', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
       languages: { presentationGroup: 'languages', label: '언어', opacity: true, blendMode: true },
       ethnicities: { presentationGroup: 'ethnicities', label: '민족', opacity: true, blendMode: true },
       religions: { presentationGroup: 'religions', label: '종교', opacity: true, blendMode: true },

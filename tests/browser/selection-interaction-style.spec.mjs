@@ -141,24 +141,19 @@ test('WebGL2 country selection produces real outline pixels before suppressing S
   expect(errors).toEqual([]);
 });
 
-test('renderer fallback draws selection casing and inner outline in SVG', async ({ page }) => {
+test('renderer fallback draws a single selection outline in SVG', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { query: '?debug=1&renderer=canvas', disableWebGl: true });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toContain('country:DEU');
-  const casing = page.locator('.selection-overlay-layer .map-selection-casing.is-primary');
   const outline = page.locator('.selection-overlay-layer .map-selection-outline.is-primary');
-  await expect(casing).toHaveCount(1);
   await expect(outline).toHaveCount(1);
-  await expect(casing).toHaveAttribute('stroke', '#f2f4f6');
-  await expect(casing).toHaveAttribute('stroke-width', '4');
   await expect(outline).toHaveAttribute('stroke', '#cda95d');
   await expect(outline).toHaveAttribute('stroke-width', '2.5');
   for (const [button, projection] of [['#flatBtn', 'flat'], ['#globeBtn', 'globe']]) {
     await page.evaluate(selector => document.querySelector(selector).click(), button);
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_STATE__?.projection)).toBe(projection);
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toContain('country:DEU');
-    await expect(casing).toHaveCount(1);
     await expect(outline).toHaveCount(1);
   }
   expect(errors).toEqual([]);

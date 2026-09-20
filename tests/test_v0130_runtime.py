@@ -47,18 +47,18 @@ class V0131RuntimeTests(unittest.TestCase):
 
     def test_terrain_toggle_settings_and_automatic_water_colour(self):
         self.assertNotIn('data-layer-group="terrain"', INDEX)
-        self.assertIn('id="terrainVisible" type="checkbox" checked aria-label="지형 표시"', INDEX)
         self.assertIn('id="terrainDisplayOptions" class="terrain-display-options map-display-details"', INDEX)
         self.assertNotIn('id="terrainLayerSettingsTitle">지형</strong>', INDEX)
         self.assertNotIn('class="layer-style-editor terrain-settings"', INDEX)
-        self.assertLess(INDEX.index('id="labelsVisible"'), INDEX.index('id="terrainVisible"'))
-        self.assertLess(INDEX.index('id="terrainVisible"'), INDEX.index('id="distributionViewSettings"'))
-        self.assertIn('<strong>국가 색상 유지</strong>', INDEX)
-        self.assertIn('<strong>지형 높낮이 색상</strong>', INDEX)
+        self.assertLess(INDEX.index('id="labelsVisible"'), INDEX.index('id="terrainNoneRadio"'))
+        self.assertLess(INDEX.index('id="terrainNoneRadio"'), INDEX.index('id="distributionViewSettings"'))
+        self.assertIn('<span>없음</span>', INDEX)
+        self.assertIn('<span>흑백</span>', INDEX)
+        self.assertIn('<span>색채</span>', INDEX)
         self.assertNotIn('국가색과 결합', INDEX)
         self.assertNotIn('지형색 강조', INDEX)
         self.assertNotIn('음영 강도', INDEX)
-        for element_id in ("terrainVisible", "terrainPoliticalRadio", "terrainPhysicalRadio"):
+        for element_id in ("terrainNoneRadio", "terrainPoliticalRadio", "terrainPhysicalRadio"):
             self.assertIn(f'id="{element_id}"', INDEX)
         for removed_id in ("terrainStyleSelect", "terrainStrengthControl", "terrainStrengthInput", "riverColorSelect", "lakeColorSelect"):
             self.assertNotIn(f'id="{removed_id}"', INDEX)

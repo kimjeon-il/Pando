@@ -41,6 +41,7 @@ const PRESENTATION_GROUPS = Object.freeze([
 
 const DEFAULT_STYLE = Object.freeze({
   opacity: 1,
+  colorVisible: true,
   boundaryVisible: true,
   boundaryWidth: 1,
   labelsVisible: true,
@@ -64,6 +65,7 @@ export function layerObjectRank(presentation, objectKey) {
 function normalizeLayerStyle(value = {}) {
   return {
     opacity: clamp(Number.isFinite(Number(value.opacity)) ? Number(value.opacity) : DEFAULT_STYLE.opacity, 0, 1),
+    colorVisible: value.colorVisible !== false,
     boundaryVisible: value.boundaryVisible !== false,
     boundaryWidth: DEFAULT_STYLE.boundaryWidth,
     labelsVisible: value.labelsVisible !== false,

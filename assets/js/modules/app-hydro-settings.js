@@ -53,11 +53,9 @@ export function createHydroSettings() {
 
   function syncPhysicalControls() {
     const terrainVisible = dependencies.projectState.state.physicalSettings.terrainVisible !== false;
-    if ((0, dependencies.platform.$)('terrainVisible')) {
-      (0, dependencies.platform.$)('terrainVisible').checked = terrainVisible;
-    }
-    if ((0, dependencies.platform.$)('terrainPoliticalRadio')) (0, dependencies.platform.$)('terrainPoliticalRadio').checked = dependencies.projectState.state.physicalSettings.terrainStyle === 'political';
-    if ((0, dependencies.platform.$)('terrainPhysicalRadio')) (0, dependencies.platform.$)('terrainPhysicalRadio').checked = dependencies.projectState.state.physicalSettings.terrainStyle === 'physical';
+    if ((0, dependencies.platform.$)('terrainNoneRadio')) (0, dependencies.platform.$)('terrainNoneRadio').checked = !terrainVisible;
+    if ((0, dependencies.platform.$)('terrainPoliticalRadio')) (0, dependencies.platform.$)('terrainPoliticalRadio').checked = terrainVisible && dependencies.projectState.state.physicalSettings.terrainStyle === 'political';
+    if ((0, dependencies.platform.$)('terrainPhysicalRadio')) (0, dependencies.platform.$)('terrainPhysicalRadio').checked = terrainVisible && dependencies.projectState.state.physicalSettings.terrainStyle === 'physical';
   }
 
   function parseHexRgb(value, fallback = dependencies.physicalConfig.TERRAIN_OCEAN_REPRESENTATIVE) {

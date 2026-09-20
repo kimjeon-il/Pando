@@ -25,7 +25,7 @@ export function setSelectionColor(color) {
   if (/^#[0-9a-f]{6}$/i.test(value)) setInteractionStyle(resolveMapInteractionStyle({
     theme: interactionStyle.theme, selectionColor: value,
     outlineVisible: interactionStyle.selection.outlineVisible, fillStrength: interactionStyle.selection.fillStrength,
-    tokens: { textStrong: interactionStyle.selection.casingColor },
+    tokens: {},
   }));
   return SELECTION_STYLE.color;
 }

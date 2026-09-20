@@ -46,6 +46,7 @@ export function createFileBindings() {
         button.setAttribute('aria-pressed', String(button.dataset.preferenceTheme === theme));
       });
       (0, dependencies.platform.$)('preferencesStatusBarVisibleInput').checked = dependencies.preferences.userPreferences.appearance.statusBarVisible !== false;
+      (0, dependencies.platform.$)('preferencesSmoothLinesInput').checked = dependencies.preferences.userPreferences.appearance.smoothLines !== false;
       const accentPreset = dependencies.preferences.userPreferences.appearance.accentPreset;
       preferencesModal.querySelectorAll('[data-preference-accent]').forEach(button => {
         button.setAttribute('aria-pressed', String(button.dataset.preferenceAccent === accentPreset));
@@ -57,6 +58,7 @@ export function createFileBindings() {
         ...dependencies.preferences.userPreferences.appearance,
         theme: (0, dependencies.platform.$)('preferencesThemeInput').value,
         statusBarVisible: (0, dependencies.platform.$)('preferencesStatusBarVisibleInput').checked,
+        smoothLines: (0, dependencies.platform.$)('preferencesSmoothLinesInput').checked,
       },
     });
     const applyPreferencesForm = () => {
@@ -103,6 +105,7 @@ export function createFileBindings() {
       });
     });
     (0, dependencies.platform.$)('preferencesStatusBarVisibleInput')?.addEventListener('change', applyPreferencesForm);
+    (0, dependencies.platform.$)('preferencesSmoothLinesInput')?.addEventListener('change', applyPreferencesForm);
     (0, dependencies.platform.$)('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
     const helpModal = (0, dependencies.platform.$)('helpModal');
     const closeHelp = ({ restoreFocus = true } = {}) => {

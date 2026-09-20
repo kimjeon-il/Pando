@@ -133,6 +133,7 @@ export function createEnvironment() {
     systemTheme = nextTheme;
     document.documentElement.dataset.systemTheme = systemTheme;
     document.documentElement.dataset.theme = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
+    document.documentElement.dataset.smoothLines = String(userPreferences.appearance?.smoothLines !== false);
     window.__PANDOLAB_THEME__ = (0, dependencies.preferences.effectiveTheme)(userPreferences, systemTheme === 'dark');
     resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentPreset);
     (0, dependencies.preferences.syncResolvedInteractionStyle)();
@@ -328,6 +329,7 @@ export function createEnvironment() {
     applyMapLabelPreferences();
 
     (resolvedAccentColor = (0, dependencies.preferences.applyAppAccent)(document, userPreferences.appearance.accentPreset));
+    document.documentElement.dataset.smoothLines = String(userPreferences.appearance?.smoothLines !== false);
 
     (resolvedInteractionStyle = resolveCurrentInteractionStyle());
 
@@ -366,7 +368,7 @@ export function createEnvironment() {
       'app', 'map', 'mapBottomStatus', 'statusView', 'projectionStatus', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
       'objectSearchSurface', 'objectSearchSection', 'mapDisplaySurface', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
       'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'languagesVisible', 'ethnicitiesVisible', 'religionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'subunitLabelsVisible', 'subunitFlagsVisible', 'regionLabelsVisible', 'regionFlagsVisible', 'distributionLayerModeInput', 'distributionBoundaryVisibleInput',
-      'createMenuBtn', 'mobileCreateBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainVisible', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'selectionToolbar', 'selectionToolbarNotesBtn', 'selectionToolbarTypeBtn', 'selectionToolbarEditBtn', 'selectionToolbarNotesPopover', 'flagMenuBtn', 'flagMenu', 'flagPreview', 'countryNameInput', 'countryColorInput', 'notesInput',
+      'createMenuBtn', 'mobileCreateBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainNoneRadio', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'selectionToolbar', 'selectionToolbarNotesBtn', 'selectionToolbarTypeBtn', 'selectionToolbarEditBtn', 'selectionToolbarNotesPopover', 'flagMenuBtn', 'flagMenu', 'flagPreview', 'countryNameInput', 'countryColorInput', 'notesInput',
       'debugMapPanel', 'countryAreaValue',
       'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
       'genericFeatureConversionSection', 'genericFeatureConvertType', 'genericFeatureConvertCountryField', 'genericFeatureConvertCountryInput', 'genericFeatureConvertDistributionField', 'genericFeatureConvertDistributionInput', 'convertGenericFeatureBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue',

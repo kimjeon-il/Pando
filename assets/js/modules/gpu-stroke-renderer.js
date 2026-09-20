@@ -405,7 +405,8 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     const width = Math.max(0.25, Number(style.width || 1));
     if (programInfo.uniforms.uInnerCutout) gl.uniform1f(programInfo.uniforms.uInnerCutout, Number(style.innerCutout || 0) / 2);
     if (programInfo.uniforms.uHalfWidth) gl.uniform1f(programInfo.uniforms.uHalfWidth, width / 2);
-    if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, style.antiAlias === false ? 0 : aaRadius);
+    const smoothLines = globalThis.document?.documentElement?.dataset.smoothLines !== 'false';
+    if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, style.antiAlias === false || !smoothLines ? 0 : aaRadius);
     if (programInfo.uniforms.uColor) gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
     return { width, alpha };
   }

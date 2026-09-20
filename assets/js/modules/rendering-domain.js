@@ -1,4 +1,4 @@
-import { applySvgInteractionMasks, applySvgCasingMask } from './interaction-svg-mask.js';
+import { applySvgInteractionMasks } from './interaction-svg-mask.js';
 import { rendererOwnsSceneGeometry } from './render-channel-ownership.js';
 import { interactionRoleStyle, resolveMapInteractionStyle, interactionNodeRole, interactionStrokeScale, scaleInteractionStroke } from './map-interaction-style.js';
 import { mapInteractionEntries } from './interaction-roles.js';
@@ -661,12 +661,12 @@ export function createRenderingDomain({
           geometry: (g.buildRenderableStrokeFeature?.(feature) || feature).geometry,
           order: g.gpuSceneOrder?.('genericFeatures', 20), blendMode: style.blendMode,
           style: { color: g.genericFeatureColor?.(feature), alpha: style.opacity,
-            width: style.boundaryWidth, cap: 'round', join: 'round', blendMode: style.blendMode, antiAlias: false },
+            width: style.boundaryWidth, cap: 'round', join: 'round', blendMode: style.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' },
         });
       } else if (['LineString', 'MultiLineString'].includes(feature.geometry?.type) && style.boundaryVisible) strokes.push({
         key: `${objectKey}:line`, objectKey, geometryRevision, geometry: feature.geometry,
         order: g.gpuSceneOrder?.('genericFeatures', 15), blendMode: style.blendMode,
-        style: { color: g.genericFeatureColor?.(feature), alpha: style.opacity, width: style.boundaryWidth, cap: 'round', join: 'round', blendMode: style.blendMode, antiAlias: false },
+        style: { color: g.genericFeatureColor?.(feature), alpha: style.opacity, width: style.boundaryWidth, cap: 'round', join: 'round', blendMode: style.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' },
       });
     }
     g.replaceGpuSceneDomain?.('generic-features', { polygons, strokes });
@@ -780,8 +780,8 @@ export function createRenderingDomain({
       const fillAlpha = (0.12 + Math.max(0, Math.min(100, row.entry.share)) / 100 * 0.58) * renderStyle.opacity;
       if (isArea(row)) {
         polygons.push({ key: `distribution-entry:${row.id}:fill`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 10), blendMode: renderStyle.blendMode, style: { color: color(row), fillAlpha, blendMode: renderStyle.blendMode } });
-        if (boundaryVisible && renderStyle.boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision, geometry: (d.buildRenderableStrokeFeature?.(feature) || feature).geometry, order: d.gpuSceneOrder?.(group, 20), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: false } });
-      } else if (['LineString', 'MultiLineString'].includes(row.geometry?.type) && boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:line`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 15), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: false } });
+        if (boundaryVisible && renderStyle.boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision, geometry: (d.buildRenderableStrokeFeature?.(feature) || feature).geometry, order: d.gpuSceneOrder?.(group, 20), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' } });
+      } else if (['LineString', 'MultiLineString'].includes(row.geometry?.type) && boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:line`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 15), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' } });
     }
     d.replaceGpuSceneDomain?.('distributions', { polygons, strokes });
     return true;
@@ -1767,22 +1767,17 @@ export function createRenderingDomain({
           const fallbackFeature = request.feature || request.resolveFeature?.();
           const d = cachedSelectionPath(request.cacheKey || request.key, fallbackFeature, frameContext);
           if (!d) continue;
-          stagedSelectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-casing${priorityClass}`)
-            .attr('data-selection-fallback-key', request.key).attr('data-selection-channel', channel)
-            .attr('fill', 'none').attr('stroke', selectionStyle.casingColor).attr('stroke-width', itemStyle?.outerWidth)
-            .attr('stroke-opacity', itemStyle?.casingAlpha).attr('d', d);
           stagedSelectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
             .attr('data-selection-fallback-key', request.key).attr('data-selection-channel', channel)
             .attr('fill', 'none').attr('stroke', selectionStyle.color).attr('stroke-width', itemStyle?.innerWidth)
             .attr('stroke-opacity', itemStyle?.innerAlpha).attr('d', d);
-          pathCount += 2; pathCharacterCount += d.length * 2; svgFallbackKeys.push(request.key); boundarySegmentCount += countFallbackSegments(fallbackFeature);
+          pathCount += 1; pathCharacterCount += d.length; svgFallbackKeys.push(request.key); boundarySegmentCount += countFallbackSegments(fallbackFeature);
         }
       }
     }
-    for (const selector of ['.map-selection-casing.is-secondary', '.map-selection-casing.is-primary', '.map-selection-outline.is-secondary', '.map-selection-outline.is-primary']) {
+    for (const selector of ['.map-selection-outline.is-secondary', '.map-selection-outline.is-primary']) {
       stagedSelectionLayer.selectAll(selector).each(function() { this.parentNode?.appendChild(this); });
     }
-    applySvgCasingMask(selectionStageNode);
     const fallbackPathMs = performance.now() - fallbackStartedAt;
     selectionOverlayStage = 'selection-frame-commit';
     selectionTarget?.replaceChildren(...selectionStageNode.childNodes);

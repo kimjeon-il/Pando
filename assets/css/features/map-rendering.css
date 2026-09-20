@@ -218,10 +218,6 @@
   fill: none;
 }
 
-.map-selection-casing {
-  fill: none;
-}
-
 .map-validation-issue {
   fill-opacity: .22;
   stroke-width: 2px;

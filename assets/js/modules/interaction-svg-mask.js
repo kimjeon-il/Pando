@@ -30,24 +30,3 @@ export function applySvgInteractionMasks(root, nodes, entries, { prefix = 'inter
   }
   root.insertBefore(defs, root.firstChild);
 }
-
-/** Neutral casing occupies only the outside of the final colored strokes. */
-export function applySvgCasingMask(root) {
-  const casings = [...root.querySelectorAll('.map-selection-casing')];
-  if (!casings.length) return;
-  const document = root.ownerDocument;
-  const defs = document.createElementNS(NS, 'defs');
-  const mask = document.createElementNS(NS, 'mask');
-  for (const [key, value] of Object.entries({ id: 'selection-casing-exterior', maskUnits: 'userSpaceOnUse', x: '-100000', y: '-100000', width: '200000', height: '200000', 'mask-type': 'luminance' })) mask.setAttribute(key, value);
-  const background = document.createElementNS(NS, 'rect');
-  for (const [key, value] of Object.entries({ x: '-100000', y: '-100000', width: '200000', height: '200000', fill: 'white' })) background.setAttribute(key, value);
-  mask.appendChild(background);
-  for (const outline of root.querySelectorAll('.map-selection-outline')) {
-    const path = document.createElementNS(NS, 'path');
-    for (const [key, value] of Object.entries({ d: outline.getAttribute('d'), class: 'map-selection-mask-shape', fill: 'none', stroke: 'black', 'stroke-width': outline.getAttribute('stroke-width'), 'stroke-linejoin': 'round', 'stroke-linecap': 'round' })) path.setAttribute(key, value);
-    path.__data__ = outline.__data__;
-    mask.appendChild(path);
-  }
-  defs.appendChild(mask); root.insertBefore(defs, root.firstChild);
-  for (const casing of casings) casing.setAttribute('mask', 'url(#selection-casing-exterior)');
-}

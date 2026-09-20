@@ -446,6 +446,10 @@ body.file-menu-open .mobile-backdrop {
   box-shadow: none;
 }
 
+.surface-display:not(.view-menu-desktop) .terrain-display-settings .map-display-detail-trigger {
+  padding-inline-end: calc(var(--ui-space-2) + var(--ui-border-width));
+}
+
 .surface-display:not(.view-menu-desktop) .map-display-detail-trigger:focus-visible {
   outline: 2px solid var(--ui-focus-ring);
   outline-offset: calc(-1 * var(--design-focus-offset));

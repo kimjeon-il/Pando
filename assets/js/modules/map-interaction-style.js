@@ -81,10 +81,9 @@ export function interactionRoleStyle(style, role = 'candidate', { directManipula
   return Object.freeze({ color: selection.color,
     width: directManipulation ? (priority >= 4 ? 2.5 : 1.5) : source.innerWidth,
     alpha: directManipulation ? (priority >= 4 ? 1 : 0.72) : source.innerAlpha,
-    fillAlpha: source.fillAlpha, casingColor: selection.casingColor,
-    outerWidth: source.outerWidth, casingAlpha: source.casingAlpha,
+    fillAlpha: source.fillAlpha,
     scaleWithView: true,
-    ...(directManipulation ? { antiAlias: false } : {}) });
+    antiAlias: globalThis.document?.documentElement?.dataset.smoothLines !== 'false' });
 }
 
 export function interactionCssProperties(style) {
@@ -131,32 +130,25 @@ export function resolveMapInteractionStyle({
   };
   const themeAccentFallback = dark ? '#cda95d' : '#315e9d';
   const resolvedSelectionColor = color(selectionColor, color(tokens.accent, themeAccentFallback));
-  // A light casing turns into a neon halo against the dark map; keep its keyline dark instead.
-  const casingColor = dark ? '#0c1117' : color(tokens.textStrong, '#1c2229');
   const hoverFillAlpha = (dark ? 0.10 : 0.08) * resolvedFillStrength;
   return Object.freeze({
     theme: resolvedTheme,
     hover: Object.freeze({ color: resolvedSelectionColor, width: 1.5, alpha: 0.85, fillAlpha: hoverFillAlpha }),
     selection: Object.freeze({
       color: resolvedSelectionColor,
-      casingColor,
       outlineVisible: resolvedOutlineVisible,
       fillStrength: resolvedFillStrength,
       primary: Object.freeze({
         innerWidth: resolvedOutlineVisible ? 2.5 : 0,
         innerAlpha: resolvedOutlineVisible ? 1 : 0,
-        outerWidth: resolvedOutlineVisible ? 4 : 0,
-        casingAlpha: 0,
         fillAlpha: fill.primary,
       }),
       secondary: Object.freeze({
         innerWidth: resolvedOutlineVisible ? 1.5 : 0,
         innerAlpha: resolvedOutlineVisible ? 0.72 : 0,
-        outerWidth: resolvedOutlineVisible ? 2.8 : 0,
-        casingAlpha: 0,
         fillAlpha: fill.secondary,
       }),
     }),
-    drawOrder: Object.freeze(['secondary-casing', 'primary-casing', 'candidate', 'hover', 'secondary-inner', 'primary-inner']),
+    drawOrder: Object.freeze(['candidate', 'hover', 'secondary-inner', 'primary-inner']),
   });
 }
