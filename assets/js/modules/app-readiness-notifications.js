@@ -51,9 +51,14 @@ export function createReadinessNotifications() {
       clearNotification();
       return;
     }
-    const visibleMessage = (0, dependencies.surfaces.isMobile)()
-      ? (0, dependencies.readiness.compactNotificationMessage)(fullMessage, { tone, maxLength: 22 })
-      : fullMessage;
+    const visibleMessage = tone === 'error'
+      ? (0, dependencies.readiness.compactNotificationMessage)(fullMessage, {
+        tone,
+        maxLength: (0, dependencies.surfaces.isMobile)() ? 28 : 44,
+      })
+      : (0, dependencies.surfaces.isMobile)()
+        ? (0, dependencies.readiness.compactNotificationMessage)(fullMessage, { tone, maxLength: 22 })
+        : fullMessage;
     notice.classList.remove('hidden');
     notice.classList.remove('ready', 'working', 'success', 'error', 'info', 'warning');
     notice.classList.add(tone);
@@ -143,10 +148,9 @@ export function createReadinessNotifications() {
   function reportOperationError(error, fallbackMessage, code, timeout = 4400) {
     console.error(`[${code}]`, error);
     const detail = isSafeKoreanErrorMessage(error) ? String(error.message).trim() : '';
-    const hasRecoveryAction = /(선택|확인|입력|이동|조정|해제|새로고침|다시 시도|다시 그리)하세요\.$/.test(detail);
     const fallbackSummary = String(fallbackMessage || '').split(/(?<=[.!?])\s+/u)[0];
     const message = detail
-      ? (hasRecoveryAction ? detail : `${detail} · ${code}`)
+      ? `${detail} · ${code}`
       : `${fallbackSummary} · ${code}`;
     setActionStatus(message, 'error', timeout);
   }
@@ -191,7 +195,7 @@ export function createReadinessNotifications() {
     const hasSpecificUserMessage = !!String(error?.userMessage || '').trim() || isSafeKoreanErrorMessage(error);
     const userMessage = String(error?.userMessage || '').trim()
       || (isSafeKoreanErrorMessage(error) ? technicalMessage.trim() : '파일을 불러오지 못했습니다. 파일 형식과 구성을 확인하세요.');
-    setActionStatus(hasSpecificUserMessage ? userMessage : `${userMessage} · ${code}`, 'error', 5600);
+    setActionStatus(`${userMessage} · ${code}`, 'error', 5600);
   }
 
   function showFatalError(error) {

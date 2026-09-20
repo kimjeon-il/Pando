@@ -38,6 +38,24 @@ function fallbackCopy(value, tone) {
   return '완료했습니다.';
 }
 
+function errorFallback(value) {
+  if (/잠금.*해제/u.test(value)) return '잠금 해제 후 다시 시도하세요';
+  if (/자동저장.*(?:실패|못)/u.test(value)) return '자동저장 실패';
+  if (/파일.*(?:불러오지 못|열 수 없|형식)/u.test(value)) return '파일을 불러오지 못했습니다';
+  if (/GIS|GeoJSON|GeoPackage/u.test(value)) return 'GIS 작업 오류';
+  if (/강·호수|수계/u.test(value)) return '강·호수 작업 오류';
+  if (/영토 조각/u.test(value)) return '영토 조각 오류';
+  if (/선택 영역|선택 범위/u.test(value)) return '선택 영역 오류';
+  if (/국경/u.test(value)) return '국경 편집 오류';
+  if (/미리보기/u.test(value)) return '미리보기 오류';
+  if (/라이브러리/u.test(value)) return '라이브러리 오류';
+  return '작업 오류';
+}
+
+function withErrorCode(value, code) {
+  return code ? `${stripEnd(value)} · ${code}` : value;
+}
+
 export function compactNotificationMessage(message, { tone = 'success', maxLength = 22 } = {}) {
   const full = normalize(message);
   if (!full || full.length <= maxLength) return full;
@@ -45,12 +63,17 @@ export function compactNotificationMessage(message, { tone = 'success', maxLengt
   let compact = full;
   for (const [pattern, replacement] of COPY_REPLACEMENTS) compact = compact.replace(pattern, replacement);
   compact = normalize(compact);
-  // Never replace an unknown warning/error with a generic failure or success.
+  // A toast has one visual line. Preserve the full error in its accessible
+  // label/tooltip, while rendering a complete short title and diagnostic code.
   if (tone === 'error' || tone === 'warning') {
-    if (/잠금.*해제/u.test(compact)) return '잠금 해제 후 다시 시도하세요';
-    if (/자동저장.*(?:실패|못)/u.test(compact)) return '자동저장 실패. 직접 저장하세요';
-    if (/파일을 불러오지 못했습니다.*파일을 확인하세요/u.test(compact)) return '불러오기 실패. 파일을 확인하세요';
-    return compact;
+    const candidates = [compact, firstSentence(compact)];
+    for (const candidate of candidates) {
+      const labeled = withErrorCode(candidate, code);
+      if (labeled.length <= maxLength) return labeled;
+    }
+    const fallback = withErrorCode(errorFallback(compact), code);
+    if (fallback.length <= maxLength) return fallback;
+    return code ? `오류 · ${code}` : errorFallback(compact);
   }
   if (compact.length <= maxLength) return compact;
 

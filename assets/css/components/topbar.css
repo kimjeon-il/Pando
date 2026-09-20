@@ -213,6 +213,12 @@ body.file-menu-open .app-root .topbar {
 }
 
 .app-root .topbar-center {
+  position: fixed;
+  z-index: 85;
+  top: 0;
+  right: var(--ui-space-2);
+  left: var(--ui-space-2);
+  width: auto;
   min-width: 0;
   display: flex;
   align-items: center;
