@@ -234,7 +234,7 @@
 .preferences-accent-swatches {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--ui-preferences-swatch-gap);
   align-items: center;
 }
 

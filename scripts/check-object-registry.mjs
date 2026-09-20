@@ -74,7 +74,7 @@ const requiredBindings = Object.freeze({
   delete: ['objectDeleteBtn'],
   focus: ['focusSelectedObjectBtn', 'objectFocusMenuBtn'],
   'coast-reconcile': ['reconcileSubunitCoastBtn'],
-  'change-type': ['changeCountryTypeBtn', 'changeSubunitTypeBtn'],
+  'change-type': ['changeCountryTypeBtn'],
 });
 for (const [actionId, elementIds] of Object.entries(requiredBindings)) {
   const bound = new Set((ACTION_UI_BINDINGS[actionId] || []).map(binding => binding.elementId));

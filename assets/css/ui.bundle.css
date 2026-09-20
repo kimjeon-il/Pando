@@ -277,6 +277,9 @@
   --field-group-color: #aeb7c1;
   --country-label-flag-filter: drop-shadow(0 0 .4px rgba(0, 0, 0, .55));
   --preferences-card-width: min(520px, calc(100vw - var(--ui-dialog-edge) * 2));
+  --ui-preferences-swatch-gap: var(--design-space-1-5);
+  --ui-preferences-chip-size: 1.75rem;
+  --ui-preferences-chip-size-mobile: 2rem;
   --draft-issue-marker-stroke: #d45656;
   --fatal-noscript-border: 1px solid #8a4f4f;
   --fatal-noscript-background: #3b2525;
@@ -1695,10 +1698,10 @@ html {
   --ui-control-bg: var(--swatch);
   --ui-control-bg-hover: var(--swatch);
   --ui-control-bg-pressed: var(--swatch);
-  width: 28px;
-  min-width: 28px;
-  min-height: 28px;
-  height: 28px;
+  width: var(--ui-preferences-chip-size);
+  min-width: var(--ui-preferences-chip-size);
+  min-height: var(--ui-preferences-chip-size);
+  height: var(--ui-preferences-chip-size);
   padding: 0;
   background: var(--swatch);
   border: 2px solid var(--border);
@@ -1712,8 +1715,8 @@ html {
 
 .preferences-theme-swatches {
   display: grid;
-  grid-template-columns: repeat(3, 28px);
-  gap: 6px;
+  grid-template-columns: repeat(3, var(--ui-preferences-chip-size));
+  gap: var(--ui-preferences-swatch-gap);
   justify-content: start;
 }
 
@@ -1750,13 +1753,13 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 
 @media (max-width: 799px) {
   .ui-button.preferences-accent-chip {
-    width: 32px;
-    min-width: 32px;
-    min-height: 32px;
-    height: 32px;
+    width: var(--ui-preferences-chip-size-mobile);
+    min-width: var(--ui-preferences-chip-size-mobile);
+    min-height: var(--ui-preferences-chip-size-mobile);
+    height: var(--ui-preferences-chip-size-mobile);
   }
 
-  .preferences-theme-swatches { grid-template-columns: repeat(3, 32px); }
+  .preferences-theme-swatches { grid-template-columns: repeat(3, var(--ui-preferences-chip-size-mobile)); }
 }
 
 .projection-btn .ui-icon {
@@ -3244,7 +3247,7 @@ body.map-sheet-dragging {
 .preferences-accent-swatches {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--ui-preferences-swatch-gap);
   align-items: center;
 }
 
@@ -10158,10 +10161,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 .workflow-dialog-card {
-  max-width: calc(100vw - (var(--ui-dialog-edge) * 2));
-}
-
-.historical-library-card {
   max-width: calc(100vw - (var(--ui-dialog-edge) * 2));
 }
 

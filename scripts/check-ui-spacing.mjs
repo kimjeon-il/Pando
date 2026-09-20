@@ -1,11 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { UI_AUDIT_STYLE_SOURCES } from './lib/ui-source-catalog.mjs';
 
 const root = process.cwd();
-const cssPath = path.join(root, 'assets', 'css', 'app.css');
 const jsRoot = path.join(root, 'assets', 'js');
-const cssSource = fs.readFileSync(cssPath, 'utf8');
+const cssSource = UI_AUDIT_STYLE_SOURCES
+  .map(source => fs.readFileSync(path.join(root, source), 'utf8'))
+  .join('\n');
 
 const requiredTokens = [
   '--ui-space-0', '--ui-space-0-5', '--ui-space-1', '--ui-space-1-5', '--ui-space-2',
