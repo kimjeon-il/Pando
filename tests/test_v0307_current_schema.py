@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 APP = read_application_sources(ROOT)
 PROJECT = (ROOT / "assets" / "js" / "modules" / "project-state.js").read_text(encoding="utf-8")
+SERIALIZER = (ROOT / "assets" / "js" / "modules" / "project-serializer.js").read_text(encoding="utf-8")
 MIGRATIONS = (ROOT / "assets" / "js" / "modules" / "project-migrations.js").read_text(encoding="utf-8")
 VERSIONS = (ROOT / "assets" / "js" / "modules" / "version-contract.js").read_text(encoding="utf-8")
 TERRITORIAL = (ROOT / "assets" / "js" / "modules" / "territorial-units.js").read_text(encoding="utf-8")
@@ -17,12 +18,14 @@ GIS_ADAPTERS = (ROOT / "assets" / "js" / "gis-adapters.js").read_text(encoding="
 
 class CurrentSchemaPolicyTests(unittest.TestCase):
     def test_project_save_and_load_use_central_schema_contract(self):
-        self.assertIn("schemaVersion: PROJECT_SCHEMA_VERSION", APP)
-        self.assertIn("assertCurrentProjectSchema(project)", APP)
-        self.assertIn("export const PROJECT_SCHEMA_VERSION = 4", VERSIONS)
+        self.assertIn("schemaVersion = PROJECT_SCHEMA_VERSION", SERIALIZER)
+        self.assertIn("schemaVersion,", SERIALIZER)
+        self.assertIn("assertCurrentProjectSchema)(project)", APP)
+        self.assertIn("export const PROJECT_SCHEMA_VERSION = 5", VERSIONS)
         self.assertIn("export { PROJECT_SCHEMA_VERSION }", PROJECT)
         self.assertIn("migrateProjectInPlace(project)", PROJECT)
         self.assertIn("3: migrateProjectV3ToV4", MIGRATIONS)
+        self.assertIn("4: migrateProjectV4ToV5", MIGRATIONS)
         self.assertIn("new Set(['name', 'validFrom', 'validTo'])", PROJECT)
         self.assertIn("createProjectObjectId", PROJECT)
         self.assertIn("crypto.randomUUID", PROJECT)
