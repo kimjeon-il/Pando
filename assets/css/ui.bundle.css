@@ -5478,7 +5478,7 @@ body.file-menu-open .app-root .topbar {
 .app-root .topbar-center {
   position: fixed;
   z-index: 85;
-  top: 0;
+  top: calc(var(--file-menu-notification-top, var(--ui-shell-topbar-height)) + var(--ui-space-2));
   right: var(--ui-space-2);
   left: var(--ui-space-2);
   width: auto;
@@ -8823,7 +8823,7 @@ body.is-loading .app-root {
   grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--design-control-sm);
   gap: var(--ui-space-2);
   padding: 0 var(--ui-space-2) 0 var(--ui-space-3);
-  border-radius: var(--ui-radius-pill);
+  border-radius: var(--ui-radius-control);
   box-shadow: var(--control-shadow);
 }
 

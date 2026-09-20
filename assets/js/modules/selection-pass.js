@@ -15,7 +15,7 @@ function emptyChannel(requested = []) {
 
 function channelStyle(name, style) {
   if (name === 'hover' || name === 'candidate') return Object.freeze({
-    ...interactionRoleStyle(style, name),cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',
+    ...interactionRoleStyle(style, name),cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',antiAlias: false,
   });
   const selection = name === 'primary' ? style.selection.primary : style.selection.secondary;
   return Object.freeze({

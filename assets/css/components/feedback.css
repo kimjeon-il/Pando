@@ -345,7 +345,7 @@ body.is-loading .app-root {
   grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--design-control-sm);
   gap: var(--ui-space-2);
   padding: 0 var(--ui-space-2) 0 var(--ui-space-3);
-  border-radius: var(--ui-radius-pill);
+  border-radius: var(--ui-radius-control);
   box-shadow: var(--control-shadow);
 }
 

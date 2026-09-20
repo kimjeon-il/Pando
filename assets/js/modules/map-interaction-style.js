@@ -55,7 +55,8 @@ export function interactionRoleStyle(style, role = 'candidate', { directManipula
     width: directManipulation ? (priority >= 4 ? 2.5 : 1.5) : source.innerWidth,
     alpha: directManipulation ? (priority >= 4 ? 1 : 0.72) : source.innerAlpha,
     fillAlpha: source.fillAlpha, casingColor: selection.casingColor,
-    outerWidth: source.outerWidth, casingAlpha: source.casingAlpha });
+    outerWidth: source.outerWidth, casingAlpha: source.casingAlpha,
+    ...(directManipulation ? { antiAlias: false } : {}) });
 }
 
 export function interactionCssProperties(style) {
