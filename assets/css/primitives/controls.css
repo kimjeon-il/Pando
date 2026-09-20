@@ -1119,7 +1119,8 @@ html {
 }
 
 .ui-button.preferences-accent-chip[aria-pressed="true"] {
-  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--text-strong);
+  border-color: var(--accent);
+  box-shadow: none;
 }
 
 .preferences-theme-chip[data-preference-theme="light"] { --swatch: #f8fafc; }
