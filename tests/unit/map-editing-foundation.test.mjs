@@ -189,6 +189,15 @@ test('a selected label wins a collision without persisting a raw priority overri
   assert.deepEqual(output.map(item => item.key), ['selected']);
 });
 
+test('label layout culls ordinary labels whose full box crosses viewport bounds', () => {
+  const output = layoutLabels([
+    { key: 'inside', point: [50, 50], width: 20, height: 10, priority: 1 },
+    { key: 'clipped', point: [96, 10], width: 20, height: 10, priority: 2 },
+    { key: 'selected', point: [96, 30], width: 20, height: 10, priority: 3, selected: true },
+  ], { bounds: { left: 0, top: 0, right: 100, bottom: 100 } });
+  assert.deepEqual(output.map(item => item.key), ['selected', 'inside']);
+});
+
 test('label policies override legacy tuning while preserving established manual placement', () => {
   const settings = automaticLabelSettings('city', {
     priority: 999,

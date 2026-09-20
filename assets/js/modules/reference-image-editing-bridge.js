@@ -7,14 +7,14 @@ export function installReferenceImageEditingBridge(getEditingDomain) {
     isDraftActive() {
       return getEditingDomain()?.draftInputActive?.() === true;
     },
-    applyDraftCoordinates(coordinates) {
+    applyDraftCoordinates(coordinates, { source = 'reference-image-line-refined' } = {}) {
       const editingDomain = getEditingDomain();
       if (!editingDomain?.draftInputActive?.() || !Array.isArray(coordinates) || coordinates.length < 2) return false;
       return editingDomain.replaceDraftCoordinates?.(coordinates, {
         record: true,
         inputPhase: 'refine',
         buildPreview: true,
-        reason: 'reference-image-line-refined',
+        reason: source,
       }) === true;
     },
   });

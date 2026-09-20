@@ -630,12 +630,14 @@ export function installReferenceImageLiveWire() {
       setMessage('먼저 지도 편집 도구를 켠 뒤 적용하세요. 자동 추적 결과는 그대로 유지됩니다.', 'error');
       return false;
     }
-    const applied = bridge.applyDraftCoordinates?.(state.previewCoordinates) === true;
+    const applied = bridge.applyDraftCoordinates?.(state.previewCoordinates, {
+      source: 'reference-image-live-wire',
+    }) === true;
     if (!applied) {
       setMessage('현재 편집선에 자동 추적 결과를 적용하지 못했습니다. 편집 상태를 확인하세요.', 'error');
       return false;
     }
-    cancelLiveWire({ message: '자동 추적선을 현재 편집 draft에 적용했습니다.', tone: 'success' });
+    cancelLiveWire({ message: '자동 추적선을 도형 편집 초안에 반영했습니다. 지도 미리보기에서 확인한 뒤 기존 편집 확정 흐름을 사용하세요.', tone: 'success' });
     return true;
   }
 

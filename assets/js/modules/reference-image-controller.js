@@ -133,6 +133,9 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   const pendingPersistTimers = new Map();
   let selectedId = '';
   let gcpState = null;
+  let controlPointEditingId = '';
+  let selectedControlPointId = '';
+  let controlPointDrag = null;
   let placementEditingId = '';
   let placementDrag = null;
   let disposed = false;
@@ -151,6 +154,8 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     getRecords: () => records,
     getSelectedId: () => selectedId,
     getPlacementEditingId: () => placementEditingId,
+    getControlPointEditingId: () => controlPointEditingId,
+    getSelectedControlPointId: () => selectedControlPointId,
     isPanelHidden: () => panel.hidden,
   });
 
@@ -223,19 +228,26 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       blendOptions: BLEND_OPTIONS,
       warpOptions: WARP_OPTIONS,
       gcpState,
+      controlPointEditing: controlPointEditingId === record.id,
+      selectedControlPointId,
     });
     syncEditingSurface();
   }
 
   function syncEditingSurface() {
-    const active = !!(gcpState || placementEditingId);
-    const hint = gcpState ? (gcpState.step === 'image' ? '이미지에서 맞출 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.') : '이미지를 드래그해 배치하세요.';
+    const active = !!(gcpState || placementEditingId || controlPointEditingId);
+    const hint = gcpState
+      ? (gcpState.step === 'image' ? '이미지에서 맞출 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.')
+      : controlPointEditingId
+        ? '지도 위 기준점을 드래그해 이동하거나 선택 후 Delete로 삭제하세요.'
+        : '이미지를 드래그해 배치하세요.';
     surface?.setEditing(active, hint);
   }
 
   function cancelInteraction() {
     cancelTools();
     cancelGcp(false);
+    stopControlPointEditing({ renderUi: false });
     stopPlacementEditing({ renderUi: false });
     renderEditor();
   }
@@ -317,6 +329,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     selectedId = records.at(-1)?.id || '';
     if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
     if (gcpState?.recordId === record.id) cancelGcp(false);
+    if (controlPointEditingId === record.id) stopControlPointEditing({ renderUi: false });
     await persistAll();
     refreshUi();
   }
@@ -356,6 +369,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (!record || record.locked) return;
     cancelTools();
     stopPlacementEditing({ renderUi: false });
+    stopControlPointEditing({ renderUi: false });
     gcpState = { recordId: record.id, step: side, image: null, pointId, token: currentToken() };
     mapElement.classList.add('is-reference-gcp-mode');
     renderEditor();
@@ -367,6 +381,93 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     mapElement.classList.remove('is-reference-gcp-mode');
     if (renderUi && selected()) renderEditor();
     syncEditingSurface();
+  }
+
+  function startControlPointEditing(record) {
+    if (!record || record.locked || !record.controlPoints.length) return false;
+    cancelTools();
+    cancelGcp(false);
+    stopPlacementEditing({ renderUi: false });
+    controlPointEditingId = record.id;
+    selectedControlPointId = '';
+    mapElement.classList.add('is-reference-gcp-edit-mode');
+    renderEditor();
+    renderer.requestRender();
+    return true;
+  }
+
+  function stopControlPointEditing({ renderUi = true } = {}) {
+    cancelControlPointDrag();
+    controlPointEditingId = '';
+    selectedControlPointId = '';
+    mapElement.classList.remove('is-reference-gcp-edit-mode');
+    if (renderUi && selected()) renderEditor();
+    renderer.requestRender();
+    syncEditingSurface();
+  }
+
+  function beginControlPointDrag(event, record, point) {
+    const hit = renderer.hitTestControlPoint(record, point);
+    if (!hit) return false;
+    controlPointDrag = {
+      recordId: record.id,
+      pointId: hit.id,
+      pointerId: event.pointerId,
+      before: copyReferenceImageRecords(records),
+    };
+    selectedControlPointId = hit.id;
+    surface?.setGestureActive(true);
+    try { mapElement.setPointerCapture?.(event.pointerId); } catch (_) {}
+    renderEditor();
+    renderer.requestRender();
+    return true;
+  }
+
+  function updateControlPointDrag(point, event) {
+    if (!controlPointDrag || event.pointerId !== controlPointDrag.pointerId) return false;
+    const record = records.find(candidate => candidate.id === controlPointDrag.recordId);
+    const coordinate = mapHost()?.unproject(point);
+    if (!record || record.locked || !coordinate?.every(Number.isFinite)) return false;
+    const changed = applyReferenceImageEdit(record, 'replace-coordinate', {
+      id: controlPointDrag.pointId,
+      value: coordinate,
+    });
+    if (!changed) return false;
+    rebuildWarp(record);
+    renderer.requestRender();
+    return true;
+  }
+
+  function finishControlPointDrag(event) {
+    if (!controlPointDrag || event.pointerId !== controlPointDrag.pointerId) return false;
+    const drag = controlPointDrag;
+    const record = records.find(candidate => candidate.id === drag.recordId);
+    try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
+    controlPointDrag = null;
+    surface?.setGestureActive(false);
+    if (record) {
+      const before = drag.before.find(candidate => candidate.id === record.id);
+      if (JSON.stringify(before?.controlPoints) !== JSON.stringify(record.controlPoints)) history.push(drag.before);
+      void persist(record);
+      renderEditor();
+      renderer.requestRender();
+    }
+    return true;
+  }
+
+  function cancelControlPointDrag() {
+    if (!controlPointDrag) return;
+    const drag = controlPointDrag;
+    const record = records.find(candidate => candidate.id === drag.recordId);
+    const before = drag.before.find(candidate => candidate.id === drag.recordId);
+    if (record && before) {
+      record.controlPoints = before.controlPoints.map(point => ({ ...point, image: [...point.image], coordinate: [...point.coordinate] }));
+      rebuildWarp(record);
+    }
+    try { mapElement.releasePointerCapture?.(drag.pointerId); } catch (_) {}
+    controlPointDrag = null;
+    surface?.setGestureActive(false);
+    renderer.requestRender();
   }
 
   function beginPlacementDrag(event, record, point) {
@@ -477,7 +578,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function beginGesture(point, event, { spacePan = false } = {}) {
-    if (isBlocked() || !(gcpState || placementEditingId)) return null;
+    if (isBlocked() || !(gcpState || placementEditingId || controlPointEditingId)) return null;
     if (event.button === 1 || spacePan) return { kind: 'navigate' };
     if (event.button !== 0) return null;
     if (gcpState) {
@@ -486,6 +587,9 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       return { kind: 'tap', end: next => { surface?.setGestureActive(false); if (gcpState === state) commitGcp(next); }, cancel: () => surface?.setGestureActive(false) };
     }
     const record = selected();
+    if (record && controlPointEditingId === record.id && beginControlPointDrag(event, record, point)) {
+      return { kind: 'exclusive', move: updateControlPointDrag, end: (_point, up) => finishControlPointDrag(up), cancel: cancelControlPointDrag };
+    }
     if (record && !record.locked && !record.warp?.ok && beginPlacementDrag(event, record, point)) {
       return { kind: 'exclusive', move: updatePlacementDrag, end: (_point, up) => finishPlacementDrag(up), cancel: cancelPlacementDrag };
     }
@@ -516,6 +620,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       record.locked = event.target.checked;
       if (record.locked) {
         cancelGcp(false);
+        if (controlPointEditingId === record.id) stopControlPointEditing({ renderUi: false });
         if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
       }
     }
@@ -583,12 +688,17 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (action === 'bring-forward') moveRecord(record, 1);
     if (action === 'send-backward') moveRecord(record, -1);
     if (action === 'gcp') armGcp(record);
+    if (action === 'gcp-edit') {
+      if (controlPointEditingId === record.id) stopControlPointEditing();
+      else startControlPointEditing(record);
+      return;
+    }
     if (action === 'edit-image' || action === 'edit-coordinate') armGcp(record, button.dataset.pointId, action === 'edit-image' ? 'image' : 'map');
     const before = copyReferenceImageRecords(records);
     const editAction = action === 'undo-gcp' ? 'delete-gcp' : action;
     const id = action === 'undo-gcp' ? record.controlPoints.at(-1)?.id : button?.dataset.pointId;
     if (applyReferenceImageEdit(record, editAction, { id })) {
-      history.push(before); cancelGcp(false); rebuildWarp(record); void persist(record); refreshUi();
+      history.push(before); cancelGcp(false); selectedControlPointId = ''; rebuildWarp(record); void persist(record); refreshUi();
     }
   }
 
@@ -600,10 +710,24 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       else surface.close({ restoreFocus: true });
       return true;
     }
+    if ((event.key === 'Delete' || event.key === 'Backspace') && controlPointEditingId && selectedControlPointId) {
+      const record = selected();
+      if (record && !record.locked) {
+        const before = copyReferenceImageRecords(records);
+        if (applyReferenceImageEdit(record, 'delete-gcp', { id: selectedControlPointId })) {
+          history.push(before);
+          selectedControlPointId = '';
+          rebuildWarp(record);
+          void persist(record);
+          refreshUi();
+        }
+      }
+      return true;
+    }
     if ((event.ctrlKey || event.metaKey) && ['z', 'y'].includes(event.key.toLowerCase())) {
       restoreHistory(event.key.toLowerCase() === 'y' || event.shiftKey ? 'redo' : 'undo'); return true;
     }
-    return ['Delete', 'Backspace', 'Enter'].includes(event.key) && !!(gcpState || placementEditingId);
+    return ['Delete', 'Backspace', 'Enter'].includes(event.key) && !!(gcpState || placementEditingId || controlPointEditingId);
   }
 
   async function onFileChange() {
@@ -622,7 +746,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
 
   const onPanelClickEvent = event => { void onPanelClick(event); };
   surface = installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose: cancelInteraction, onOpen: () => renderer.requestRender() });
-  const unregisterInput = registerReferenceImageInput({ begin: beginGesture, active: () => !!(gcpState || placementEditingId), key: onKeyDown, cancel: cancelInteraction, reset: resetSession });
+  const unregisterInput = registerReferenceImageInput({ begin: beginGesture, active: () => !!(gcpState || placementEditingId || controlPointEditingId), key: onKeyDown, cancel: cancelInteraction, reset: resetSession });
   const stopPanelKeys = event => {
     const text = event.target?.closest('input,textarea,select,[contenteditable="true"]');
     if (!text && onKeyDown(event)) event.preventDefault();

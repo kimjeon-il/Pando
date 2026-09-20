@@ -39,6 +39,7 @@ test('global input initializes the image bridge through current domain ports', t
   active = true;
   assert.equal(bridge.isDraftActive(), true);
   assert.equal(bridge.applyDraftCoordinates(coordinates), true);
+  assert.equal(bridge.applyDraftCoordinates(coordinates, { source: 'reference-image-live-wire' }), true);
   assert.deepEqual(calls, [{
     coordinates,
     options: {
@@ -46,6 +47,14 @@ test('global input initializes the image bridge through current domain ports', t
       inputPhase: 'refine',
       buildPreview: true,
       reason: 'reference-image-line-refined',
+    },
+  }, {
+    coordinates,
+    options: {
+      record: true,
+      inputPhase: 'refine',
+      buildPreview: true,
+      reason: 'reference-image-live-wire',
     },
   }]);
 });
