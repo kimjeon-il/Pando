@@ -202,6 +202,7 @@ export function createGpuMapRenderer(deps) {
     let lastBaseSceneResult = null;
     const sceneColorCache = createSceneColorCache();
     const interactionFillCache = createSceneColorCache();
+    const interactionStrokeCache = createSceneColorCache({ nearestSampling: true });
     const polygonOverlayPass = createGpuPolygonOverlayPass({
       onResourceReady: key => overlayResourceReady(key),
       onError: payload => console.warn(`[${payload?.stage || 'gpu-polygon-overlay'}]`, payload?.error || payload),
@@ -1163,6 +1164,7 @@ export function createGpuMapRenderer(deps) {
       if (!renderDevice) return false;
       const sceneCacheReady = sceneColorCache.initialize(renderDevice);
       interactionFillCache.initialize(renderDevice);
+      interactionStrokeCache.initialize(renderDevice);
       const device = renderDevice, revision = renderDeviceContextRevision;
       const enqueue = (name, run) => uploadScheduler.enqueueUpload({
         key: 'shader:' + revision + ':' + name, contextGeneration: revision, priority: 20,
@@ -1199,7 +1201,7 @@ export function createGpuMapRenderer(deps) {
       pendingCanonicalCommit = null;
       uploadScheduler?.cancelAll();
       sceneColorCache.handleContextLost();
-      interactionFillCache.handleContextLost();
+      interactionFillCache.handleContextLost(); interactionStrokeCache.handleContextLost();
       polygonOverlayPass.handleContextLost();
       strokeRenderer.handleContextLost();
       if (!selectionPass?.stats?.().contextLost) selectionPass?.handleContextLost?.();
@@ -3116,7 +3118,7 @@ export function createGpuMapRenderer(deps) {
       const interactionResult = drawGpuInteractionPass({ gl, frame: activeFrameContext, viewState,
         viewport: { size: { width: cssWidth, height: cssHeight }, dpr: effectivePixelRatio, pixelWidth, pixelHeight },
         fillTarget, fillTargetReady, prepared: preparedInteraction },
-      { fillCache: interactionFillCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryBoundaryMask, drawCountryRanges: drawCountryInteractionFills });
+      { fillCache: interactionFillCache, strokeCache: interactionStrokeCache, polygonOverlayPass, strokeRenderer, selectionPass, drawHydro, drawCountryBoundaryMask, drawCountryRanges: drawCountryInteractionFills });
       lastInteractionFillResult = interactionResult.genericFillResult;
       lastSelectionRenderResult = interactionResult.selection;
       sceneCacheInteractionDrawCount += 1;
@@ -4194,7 +4196,7 @@ export function createGpuMapRenderer(deps) {
     function releaseGpuContext() {
       hydroPreparation.resetGpu();
       terrainPreparation.reset();
-      sceneColorCache.dispose(); interactionFillCache.dispose();
+      sceneColorCache.dispose(); interactionFillCache.dispose(); interactionStrokeCache.dispose();
       polygonOverlayPass.dispose(); strokeRenderer.dispose();
       lifecycle.releaseContext(gl);
     }
