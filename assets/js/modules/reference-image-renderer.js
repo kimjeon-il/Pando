@@ -62,6 +62,8 @@ export function createReferenceImageCanvasRenderer({
   getRecords,
   getSelectedId,
   getPlacementEditingId,
+  getControlPointEditingId,
+  getSelectedControlPointId,
   isPanelHidden,
 } = {}) {
   if (!mapElement) throw new TypeError('reference image renderer requires mapElement');
@@ -201,8 +203,11 @@ export function createReferenceImageCanvasRenderer({
       if (!target || !target.every(Number.isFinite)) continue;
       context.beginPath();
       context.arc(target[0], target[1], 4.5, 0, Math.PI * 2);
-      context.fillStyle = 'rgba(79,140,255,.95)';
+      const editing = record.id === getControlPointEditingId?.();
+      const selected = editing && point.id === getSelectedControlPointId?.();
+      context.fillStyle = selected ? 'rgba(245,158,11,1)' : 'rgba(79,140,255,.95)';
       context.fill();
+      context.lineWidth = selected ? 2.5 : 1.5;
       context.strokeStyle = 'rgba(255,255,255,.95)';
       context.stroke();
       context.fillStyle = 'rgba(255,255,255,.96)';
@@ -262,6 +267,24 @@ export function createReferenceImageCanvasRenderer({
     return null;
   }
 
+  function hitTestControlPoint(record, point, radius = 12) {
+    if (!record || record.id !== getSelectedId?.() || !mapHost()) return null;
+    const limit = Math.max(1, Number(radius) || 12) ** 2;
+    let closest = null;
+    for (let index = 0; index < record.controlPoints.length; index += 1) {
+      const controlPoint = record.controlPoints[index];
+      const screen = projectVisible(mapHost(), controlPoint.coordinate);
+      if (!screen) continue;
+      const dx = point[0] - screen[0];
+      const dy = point[1] - screen[1];
+      const distance = dx * dx + dy * dy;
+      if (distance <= limit && (!closest || distance < closest.distance)) {
+        closest = { id: controlPoint.id, index, distance, screen };
+      }
+    }
+    return closest;
+  }
+
   const sharedHitTestUv = (recordId, point) => {
     const record = (getRecords?.() || []).find(candidate => String(candidate.id) === String(recordId));
     return record ? hitTestUv(record, point) : null;
@@ -291,6 +314,7 @@ export function createReferenceImageCanvasRenderer({
     canvas,
     requestRender,
     hitTestUv,
+    hitTestControlPoint,
     destroy() {
       if (disposed) return;
       disposed = true;

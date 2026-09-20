@@ -68,6 +68,8 @@ export function referenceImageEditorMarkup({
   blendOptions,
   warpOptions,
   gcpState = null,
+  controlPointEditing = false,
+  selectedControlPointId = '',
 } = {}) {
   const diagnostics = warp?.ok ? warp.diagnostics : null;
   const warnings = diagnostics?.warnings || [];
@@ -101,11 +103,12 @@ export function referenceImageEditorMarkup({
     </div>
     <div class="reference-image-gcp-actions">
       <button type="button" class="ui-button btn" data-ref-action="gcp" aria-pressed="${!!gcpState}"${record.locked ? ' disabled' : ''}>기준점 추가</button>
+      <button type="button" class="ui-button btn ghost${controlPointEditing ? ' active' : ''}" data-ref-action="gcp-edit" aria-pressed="${controlPointEditing}"${record.locked || !record.controlPoints.length ? ' disabled' : ''}>지도에서 점 편집</button>
       <button type="button" class="ui-button btn ghost" data-ref-action="undo-gcp"${record.controlPoints.length && !record.locked ? '' : ' disabled'}>마지막 점 삭제</button>
       <button type="button" class="ui-button btn ghost" data-ref-action="clear-gcp"${record.controlPoints.length && !record.locked ? '' : ' disabled'}>전체 삭제</button>
     </div>
     <ol class="reference-image-points" aria-label="기준점 편집">
-      ${record.controlPoints.map((point, i) => `<li${gcpState?.pointId === point.id ? ' aria-current="true"' : ''}>
+      ${record.controlPoints.map((point, i) => `<li${(gcpState?.pointId === point.id || selectedControlPointId === point.id) ? ' aria-current="true"' : ''}>
         <span>기준점 ${i + 1}</span>
         ${[['edit-image', '이미지 위치 다시 지정'], ['edit-coordinate', '지도 위치 다시 지정'], ['delete-gcp', '삭제']].map(([action, label]) => `<button type="button" class="ui-button btn ghost" data-ref-action="${action}" data-point-id="${escapeAttribute(point.id)}"${record.locked ? ' disabled' : ''}>${label}</button>`).join('')}
       </li>`).join('')}
@@ -117,6 +120,6 @@ export function referenceImageEditorMarkup({
     </div>
     ${warningText ? `<p class="reference-image-warning">${warningText}</p>` : ''}
     ${diagnostics && record.controlPoints.length <= 2 ? '<p class="reference-image-warning">최소 기준점으로 계산한 오차입니다. 0이어도 전체 이미지 정렬의 정확성을 보장하지 않습니다.</p>' : ''}
-    <p class="reference-image-hint" data-ref-hint>${warp?.ok ? `${warp.mode} 보정 적용 중 · 배치 편집 대신 기준점으로 위치를 조정합니다.` : placementEditing ? '배치 편집 중 · 드래그로 이동, 모서리로 크기, 위 핸들로 회전합니다.' : `기준점 ${warp?.minimumPoints || 2}개부터 보정할 수 있습니다. 평소에는 클릭이 지도 도구로 통과합니다.`}</p>
+    <p class="reference-image-hint" data-ref-hint>${controlPointEditing ? '지도 위 번호를 드래그해 위치를 옮기고, 선택한 점은 Delete로 삭제합니다.' : warp?.ok ? `${warp.mode} 보정 적용 중 · 배치 편집 대신 기준점으로 위치를 조정합니다.` : placementEditing ? '배치 편집 중 · 드래그로 이동, 모서리로 크기, 위 핸들로 회전합니다.' : `기준점 ${warp?.minimumPoints || 2}개부터 보정할 수 있습니다. 평소에는 클릭이 지도 도구로 통과합니다.`}</p>
   `;
 }

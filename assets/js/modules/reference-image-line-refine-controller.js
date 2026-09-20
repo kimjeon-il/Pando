@@ -443,7 +443,9 @@ export function installReferenceImageLineRefiner() {
       setMessage('먼저 지도 편집 도구를 켠 뒤 적용하세요. 보강 결과는 그대로 유지됩니다.', 'error');
       return false;
     }
-    const applied = bridge.applyDraftCoordinates?.(state.previewCoordinates) === true;
+    const applied = bridge.applyDraftCoordinates?.(state.previewCoordinates, {
+      source: 'reference-image-line-refined',
+    }) === true;
     if (!applied) {
       setMessage('현재 편집선에 보강 결과를 적용하지 못했습니다. 편집 상태를 확인하세요.', 'error');
       return false;

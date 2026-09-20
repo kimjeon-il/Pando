@@ -19,7 +19,7 @@ function channelStyle(name, style) {
   });
   const selection = name === 'primary' ? style.selection.primary : style.selection.secondary;
   return Object.freeze({
-    color: style.selection.color,alpha: selection.innerAlpha,width: selection.innerWidth,cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',
+    color: style.selection.color,alpha: selection.innerAlpha,width: selection.innerWidth,cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',antiAlias: false,
     casing: Object.freeze({ color: style.selection.casingColor,alpha: selection.casingAlpha,width: selection.outerWidth }),
   });
 }

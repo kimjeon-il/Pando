@@ -54,10 +54,19 @@ export function automaticLabelSettings(kind, raw = {}) {
   };
 }
 
-function sortedVisibleCandidates(candidates, zoom) {
+function boxInsideBounds(box, bounds) {
+  if (!bounds) return true;
+  return box.left >= Number(bounds.left ?? -Infinity)
+    && box.right <= Number(bounds.right ?? Infinity)
+    && box.top >= Number(bounds.top ?? -Infinity)
+    && box.bottom <= Number(bounds.bottom ?? Infinity);
+}
+
+function sortedVisibleCandidates(candidates, zoom, bounds) {
   return candidates
     .filter(candidate => candidate?.point && zoom >= Number(candidate.minZoom ?? 0) && zoom <= Number(candidate.maxZoom ?? Infinity))
     .map(candidate => ({ ...candidate, box: normalizedBox(candidate), collisionGroup: String(candidate.collisionGroup || 'map') }))
+    .filter(candidate => candidate.selected || candidate.pinned || boxInsideBounds(candidate.box, bounds))
     .sort((left, right) => Number(!!right.selected) - Number(!!left.selected)
       || Number(!!right.pinned) - Number(!!left.pinned)
       || Number(right.priority || 0) - Number(left.priority || 0)
@@ -73,9 +82,9 @@ function screenCellRange(box, cellSize, padding = 0) {
   };
 }
 
-export function layoutLabels(candidates = [], { zoom = 1, padding = 3, cellSize = 64, metrics = null } = {}) {
+export function layoutLabels(candidates = [], { zoom = 1, padding = 3, cellSize = 64, bounds = null, metrics = null } = {}) {
   const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  const visible = sortedVisibleCandidates(candidates, zoom);
+  const visible = sortedVisibleCandidates(candidates, zoom, bounds);
   const resolvedCellSize = Math.max(16, Number(cellSize) || 64);
   const gridsByGroup = new Map();
   let collisionCheckCount = 0;

@@ -1,4 +1,5 @@
 .is-reference-gcp-mode,
+.is-reference-gcp-edit-mode,
 .is-reference-line-refine-mode,
 .is-reference-live-wire-mode {
   cursor: crosshair;

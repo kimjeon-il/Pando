@@ -158,6 +158,27 @@ test('reference images support placement, ordering, georeferencing and persisten
   await expect(page.locator('[data-ref-action="placement"]')).toBeDisabled();
   expect(await page.locator('#selectionToolbar').getAttribute('aria-hidden')).toEqual(selectedBeforeGcp);
   await page.keyboard.press('Escape');
+  const pointBeforeDirectEdit = (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0];
+  const pointScreen = await page.evaluate(point => {
+    const screen = window.__PANDOLAB_MAP_HOST__.project(point.coordinate);
+    const rect = document.getElementById('map').getBoundingClientRect();
+    return { x: rect.left + screen[0], y: rect.top + screen[1] };
+  }, pointBeforeDirectEdit);
+  await page.locator('[data-ref-action="gcp-edit"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-edit-mode/);
+  await page.mouse.move(pointScreen.x, pointScreen.y);
+  await page.mouse.down();
+  await page.mouse.move(pointScreen.x + 24, pointScreen.y + 18, { steps: 3 });
+  await page.mouse.up();
+  await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).not.toEqual(pointBeforeDirectEdit.coordinate);
+  await page.locator('[data-ref-action="undo"]').click();
+  await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).toEqual(pointBeforeDirectEdit.coordinate);
+  await page.mouse.click(pointScreen.x, pointScreen.y);
+  await page.keyboard.press('Delete');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().find(value => value.name === '<Base "reference">')?.controlPointCount)).toBe(1);
+  await page.locator('[data-ref-action="undo"]').click();
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().find(value => value.name === '<Base "reference">')?.controlPointCount)).toBe(2);
+  await page.locator('[data-ref-action="gcp-edit"]').click();
   await expect(page.locator('[data-ref-action="flip-x"]')).toBeDisabled();
   await page.locator('[data-ref-field="locked"]').check();
   await expect(page.locator('[data-ref-action="delete"]')).toBeDisabled();

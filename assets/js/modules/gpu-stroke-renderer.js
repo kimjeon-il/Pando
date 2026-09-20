@@ -81,8 +81,8 @@ function segmentProgramSources(version) {
     void main(){
       if(uMode==0&&vDepth<0.0)discard;
       float period=uDash.x+uDash.y;if(uDash.x>0.0&&uDash.y>0.0&&mod(vAlong,max(1.0,period))>uDash.x)discard;
-      float edge=uHalfWidth-abs(vAcross);float coverage=smoothstep(-uAaRadius,uAaRadius,edge);
-      if(uInnerCutout>0.0)coverage*=smoothstep(-uAaRadius,uAaRadius,abs(vAcross)-uInnerCutout);
+      float edge=uHalfWidth-abs(vAcross);float coverage=uAaRadius<=0.0?step(0.0,edge):smoothstep(-uAaRadius,uAaRadius,edge);
+      if(uInnerCutout>0.0){float innerEdge=abs(vAcross)-uInnerCutout;coverage*=uAaRadius<=0.0?step(0.0,innerEdge):smoothstep(-uAaRadius,uAaRadius,innerEdge);}
       if(coverage<=0.001)discard;${output}
     }`;
   return { vertex, fragment };
@@ -125,8 +125,8 @@ function roundProgramSources(version) {
       }else{
         if(dot(vLocal,vIncoming)<=0.0)discard;
       }
-      float edge=uHalfWidth-length(vLocal);float coverage=smoothstep(-uAaRadius,uAaRadius,edge);
-      if(uInnerCutout>0.0)coverage*=smoothstep(-uAaRadius,uAaRadius,length(vLocal)-uInnerCutout);
+      float edge=uHalfWidth-length(vLocal);float coverage=uAaRadius<=0.0?step(0.0,edge):smoothstep(-uAaRadius,uAaRadius,edge);
+      if(uInnerCutout>0.0){float innerEdge=length(vLocal)-uInnerCutout;coverage*=uAaRadius<=0.0?step(0.0,innerEdge):smoothstep(-uAaRadius,uAaRadius,innerEdge);}
       if(coverage<=0.001)discard;${output}
     }`;
   return { vertex, fragment };
@@ -404,7 +404,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     const width = Math.max(0.25, Number(style.width || 1));
     if (programInfo.uniforms.uInnerCutout) gl.uniform1f(programInfo.uniforms.uInnerCutout, Number(style.innerCutout || 0) / 2);
     if (programInfo.uniforms.uHalfWidth) gl.uniform1f(programInfo.uniforms.uHalfWidth, width / 2);
-    if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, aaRadius);
+    if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, style.antiAlias === false ? 0 : aaRadius);
     if (programInfo.uniforms.uColor) gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
     return { width, alpha };
   }

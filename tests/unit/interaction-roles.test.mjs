@@ -37,6 +37,18 @@ test('tool role overrides selection without altering canonical selection or geom
   assert.equal(JSON.stringify(snapshot), before);
 });
 
+test('country border keeps the selected countries primary and secondary while the boundary is edited', () => {
+  const rou = normalizeObjectRef({ domain: 'territorial', type: 'country', id: 'ROU' });
+  const mda = normalizeObjectRef({ domain: 'territorial', type: 'country', id: 'MDA' });
+  const snapshot = { selection: { primaryKey: mda.key, items: [rou, mda] }, hover: null };
+  const entries = mapInteractionEntries(snapshot, {
+    tool: 'country-border', boundaryEditPhase: 'editing', boundaryEditCountryIds: ['ROU', 'MDA'],
+  });
+  assert.equal(entries.find(entry => entry.ref.id === 'MDA').role, 'primary');
+  assert.equal(entries.find(entry => entry.ref.id === 'ROU').role, 'secondary');
+  assert.equal(entries.some(entry => entry.role === 'edit-target'), false);
+});
+
 test('ownership order is stable under input reordering and prioritizes stronger roles before ancestry', () => {
   const entries = [{ key: 'b', role: 'primary', depth: 1, ancestorKeys: ['parent'] }, { key: 'a', role: 'primary', depth: 1, ancestorKeys: ['parent'] },
     { key: 'parent', role: 'primary', depth: 0 }, { key: 'child', role: 'edit-target', depth: 2 }];
