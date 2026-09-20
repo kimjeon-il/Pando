@@ -138,10 +138,11 @@ class V0131RuntimeTests(unittest.TestCase):
         oder_system_names = {
             row["systemId"]: row["name"]
             for row in self.core
-            if row["category"] == "river" and row["systemId"] in {"20282220", "20282318"}
+            if row["category"] == "river" and row["systemId"] in {"20282220", "20282318", "20323928"}
         }
         self.assertEqual(oder_system_names["20282220"], "엘베강")
         self.assertEqual(oder_system_names["20282318"], "오데르강")
+        self.assertEqual(oder_system_names["20323928"], "라인강")
         for name in ("욀뷔사우강", "코케매에니오키강", "퀴미요키강", "나르바강", "노르스트룀강", "시엔셀바강"):
             self.assertIn(name, river_names)
 

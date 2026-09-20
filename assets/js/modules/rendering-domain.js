@@ -1,4 +1,5 @@
 import { applySvgInteractionMasks, applySvgCasingMask } from './interaction-svg-mask.js';
+import { rendererOwnsSceneGeometry } from './render-channel-ownership.js';
 import { interactionRoleStyle, resolveMapInteractionStyle, interactionNodeRole } from './map-interaction-style.js';
 import { mapInteractionEntries } from './interaction-roles.js';
 import { selectionEntries, selectionDisplayPlan, orderSelectionFillMasks, selectionFrameOwnership, selectionGeometryKinds, planSelectionEntry, planHoverEntry, selectionCoverage } from './selection-overlay-plan.js';
@@ -551,14 +552,13 @@ export function createRenderingDomain({
       })
       .classed('is-territory', feature => feature.properties?.unitType === types.SUBUNIT)
       .classed('is-region', feature => feature.properties?.unitType === types.REGION)
-      .classed('has-explicit-color', feature => !!t.territorialStyleColor?.(feature))
       .classed('territorial-unit-merge-source', feature => state.territorialUnitMergeSourceId === String(feature.id))
       .classed('territorial-unit-merge-target', feature => (state.territorialUnitMergeTargetIds || []).includes(String(feature.id)))
-      .style('color', feature => resolveFill(feature).color)
-      .style('fill', feature => resolveFill(feature).color)
-      .style('fill-opacity', feature => resolveFill(feature).fillAlpha)
+      .style('color', null)
+      .style('fill', 'transparent')
+      .style('fill-opacity', 0)
       .style('stroke', 'none').style('stroke-opacity', 0).style('stroke-width', 0).style('stroke-dasharray', 'none')
-      .style('mix-blend-mode', feature => resolveFill(feature).blendMode)
+      .style('mix-blend-mode', 'normal')
       .attr('data-presentation-group', t.presentationGroupForTerritorialFeature);
     selection?.exit().remove();
     t.territorialOperationLayer?.selectAll('path.territorial-unit-operation-outline').remove();
@@ -618,6 +618,7 @@ export function createRenderingDomain({
         g.handleObjectSelectionAt?.(g.d3?.mouse?.(g.svg), { sourceEvent: g.d3?.event, hitRef: { domain: 'generic', type: 'feature', id: d.id } });
       });
     const selectedRef = d => g.normalizeObjectRef?.({ domain: 'generic', type: 'feature', id: d.id });
+    const sceneGeometry = d => ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(d.geometry?.type);
     selection?.attr('d', g.path)
       .attr('data-gpu-scene-key', d => d.geometry?.type?.includes('Polygon')
         ? `${selectedRef(d)?.key || `generic:feature:${d.id}`}:fill`
@@ -626,28 +627,17 @@ export function createRenderingDomain({
       .classed('selected-point', d => d.geometry?.type === 'Point' && g.selectionHas?.(selectedRef(d)))
       .classed('is-primary-selection', d => selectedRef(d)?.key === g.selectionSnapshot?.()?.primaryKey)
       .classed('is-secondary-selection', d => g.selectionHas?.(selectedRef(d)) && selectedRef(d)?.key !== g.selectionSnapshot?.()?.primaryKey)
-      .style('fill', d => d.geometry?.type?.includes('Polygon') ? g.genericFeatureColor?.(d) : 'none')
-      .style('fill-opacity', d => d.geometry?.type?.includes('Polygon') ? 0.34 * style.opacity : 0)
-      .style('stroke', d => d.geometry?.type?.includes('Polygon') ? 'none' : g.genericFeatureColor?.(d))
-      .style('stroke-opacity', d => d.geometry?.type?.includes('Polygon') ? 0 : style.boundaryVisible ? style.opacity : 0)
-      .style('stroke-width', d => d.geometry?.type?.includes('Polygon') ? 0 : style.boundaryWidth)
-      .style('mix-blend-mode', style.blendMode)
+      .style('fill', d => sceneGeometry(d) ? 'transparent' : 'none')
+      .style('fill-opacity', 0)
+      .style('stroke', d => sceneGeometry(d) ? 'transparent' : g.genericFeatureColor?.(d))
+      .style('stroke-opacity', d => sceneGeometry(d) ? 0 : style.boundaryVisible ? style.opacity : 0)
+      .style('stroke-width', d => sceneGeometry(d) ? 0 : style.boundaryWidth)
+      .style('mix-blend-mode', d => sceneGeometry(d) ? 'normal' : style.blendMode)
       .attr('data-presentation-group', 'genericFeatures')
       .classed('generic-feature-merge-source', d => state.tool === 'merge-generic-feature' && state.genericFeatureMergeSourceId === String(d.id))
       .classed('generic-feature-merge-target', d => state.tool === 'merge-generic-feature' && (state.genericFeatureMergeTargetIds || []).includes(String(d.id)));
     selection?.exit().remove();
-    const polygonSelection = g.genericFeatureLayer?.selectAll('path.generic-feature-boundary').data(
-      data.filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)), feature => String(feature.id));
-    polygonSelection?.enter().append('path').attr('class', 'generic-feature-boundary').style('fill', 'none').style('pointer-events', 'none');
-    polygonSelection?.attr('d', feature => g.path?.(g.buildRenderableStrokeFeature?.(feature) || feature))
-      .attr('data-gpu-scene-key', feature => `${selectedRef(feature)?.key || `generic:feature:${feature.id}`}:boundary`)
-      .style('stroke', g.genericFeatureColor)
-      .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
-      .style('stroke-width', style.boundaryWidth)
-      .style('mix-blend-mode', style.blendMode)
-      .classed('generic-feature-merge-source', feature => state.tool === 'merge-generic-feature' && state.genericFeatureMergeSourceId === String(feature.id))
-      .classed('generic-feature-merge-target', feature => state.tool === 'merge-generic-feature' && (state.genericFeatureMergeTargetIds || []).includes(String(feature.id)));
-    polygonSelection?.exit().remove();
+    g.genericFeatureLayer?.selectAll('path.generic-feature-boundary').remove();
     const polygons = [];
     const strokes = [];
     for (const feature of data) {
@@ -763,20 +753,14 @@ export function createRenderingDomain({
       });
     selection.attr('d', row => d.path?.({ type: 'Feature', properties: {}, geometry: row.geometry }))
       .attr('data-gpu-scene-key', row => `distribution-entry:${row.id}:${isArea(row) ? 'fill' : 'line'}`)
-      .style('fill', row => color(row)).style('stroke', row => isArea(row) ? 'none' : color(row))
-      .style('fill-opacity', row => (0.12 + Math.max(0, Math.min(100, row.entry.share)) / 100 * 0.58) * styleFor(row).opacity)
-      .style('stroke-opacity', row => isArea(row) ? 0 : boundaryVisible ? styleFor(row).opacity : 0)
-      .style('stroke-width', row => isArea(row) ? 0 : styleFor(row).boundaryWidth)
-      .style('mix-blend-mode', row => styleFor(row).blendMode)
+      .style('fill', 'transparent').style('stroke', 'transparent')
+      .style('fill-opacity', 0)
+      .style('stroke-opacity', 0)
+      .style('stroke-width', 0)
+      .style('mix-blend-mode', 'normal')
       .attr('data-presentation-group', row => groups[row.layer.type]);
     selection.exit().remove();
-    const polygonSelection = d.distributionLayer.selectAll('path.distribution-boundary').data(data.filter(isArea), row => row.id);
-    polygonSelection.enter().append('path').attr('class', 'distribution-boundary').style('fill', 'none').style('pointer-events', 'none');
-    polygonSelection.attr('d', row => d.path?.(d.buildRenderableStrokeFeature?.(d.featureFromGeometry?.(row.geometry)) || d.featureFromGeometry?.(row.geometry)))
-      .attr('data-gpu-scene-key', row => `distribution-entry:${row.id}:boundary`).style('stroke', row => color(row))
-      .style('stroke-opacity', row => boundaryVisible && styleFor(row).boundaryVisible ? styleFor(row).opacity : 0)
-      .style('stroke-width', row => styleFor(row).boundaryWidth).style('mix-blend-mode', row => styleFor(row).blendMode);
-    polygonSelection.exit().remove();
+    d.distributionLayer.selectAll('path.distribution-boundary').remove();
     const polygons = [], strokes = [];
     for (const row of data) {
       const group = groups[row.layer.type];
@@ -874,15 +858,9 @@ export function createRenderingDomain({
       fallbackGroups.get(key).coordinates.push([segment.a, segment.b]);
     }
     const data = [...fallbackGroups.values()].map(group => ({ ...group, geometry: { type: 'MultiLineString', coordinates: connectBoundarySegments(group.coordinates) } }));
-    const selection = t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').data(data, group => group.key);
-    selection?.enter().append('path').attr('class', 'territorial-internal-boundary');
-    selection?.exit().remove();
-    const paths = t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary');
-    paths?.attr('class', group => `territorial-internal-boundary territorial-internal-boundary--${group.styleType}`)
-      .attr('d', group => t.path?.({ type: 'Feature', properties: {}, geometry: group.geometry }))
-      .attr('data-gpu-scene-key', group => `territorial-internal:${group.key}`).style('color', group => group.color).style('stroke', group => group.color).style('stroke-opacity', group => group.opacity)
-      .style('stroke-width', group => styleByType.get(group.styleType).width)
-      .style('stroke-dasharray', group => styleByType.get(group.styleType).dash.join(' '));
+    // These are scene strokes. A projected SVG copy caused a second visual
+    // owner with different cache and transition timing.
+    t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
     t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
       const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits', width: 1, dash: [] };
       return { key: `territorial-internal:${group.key}`, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 30 + index), style: { color: group.color, alpha: group.opacity, width: definition.width, dash: definition.dash, cap: 'round', join: 'round' } };
@@ -1583,6 +1561,7 @@ export function createRenderingDomain({
     });
     const selectionFramePath = framePath(frameContext, selection.path);
     const selectionPassAvailable = !!selectionPass?.isAvailable?.();
+    const sceneOwnsFills = rendererOwnsSceneGeometry(gpuMapRenderer?.getRuntimeState?.()?.renderer);
     const hierarchyBoundary = (ref, feature, role) => {
       const boundary = { feature, revision: selectionGeometryRevision(ref.key, 'boundary', feature) };
       const owners = (displayPlan.boundaryOwnersByKey.get(ref.key) || []).map(entry => ({
@@ -1618,7 +1597,7 @@ export function createRenderingDomain({
         ? hierarchyBoundary(hovered, feature, 'hover')
         : { feature, revision: selectionGeometryRevision(key, 'hover', feature) };
       const plan = planHoverEntry({ ref: hovered, countryType: selection.countryType, feature, boundary, pendingCountry, hoverStyle: style.hover });
-      if (plan.fill) {
+      if (plan.fill && !sceneOwnsFills) {
         stagedHoverLayer.append('path').datum(feature)
           .attr('class', 'map-hover-shape map-hover-fill')
           .attr('data-object-key', hovered.key || '')
@@ -1645,7 +1624,7 @@ export function createRenderingDomain({
         : { feature, revision: selectionGeometryRevision(ref.key, 'selection-outline', feature) };
       const plan = planSelectionEntry({ ref, entry, channel, countryType: selection.countryType, feature, boundary,
         pendingCountry: state.pendingCountryRenderIds?.has(String(ref.id)), outlineVisible, selectionStyle });
-      if (plan.fill) stagedSelectionLayer.append('path').datum(feature)
+      if (plan.fill && !sceneOwnsFills) stagedSelectionLayer.append('path').datum(feature)
         .attr('class', `map-selection-shape map-selection-fill${primary ? ' is-primary' : ' is-secondary'}`)
         .attr('data-object-key', ref.key).attr('fill', plan.fill.color).attr('fill-opacity', plan.fill.fillAlpha)
         .attr('stroke', 'none').attr('d', selectionFramePath);
@@ -1711,7 +1690,7 @@ export function createRenderingDomain({
       return gpuFilledObjectKeys.has(this.getAttribute('data-object-key') || '');
     }).remove();
     lastInteractionFillOwner = fillOwner;
-    if (fillOwner === 'svg') {
+    if (fillOwner === 'svg' && !sceneOwnsFills) {
       for (const entry of emphasisEntries) {
         if (entry.ref.domain !== 'territorial' || entry.ref.type !== selection.countryType) continue;
         const itemStyle = interactionRoleStyle(style, entry.role);
@@ -1725,8 +1704,7 @@ export function createRenderingDomain({
           .attr('d', cachedSelectionPath(selectionGeometryRevision(entry.key, 'fill-mask', feature), feature, frameContext));
       }
     }
-    const canvasOwnsFills = ['canvas-worker', 'canvas2d'].includes(gpuMapRenderer?.getRuntimeState?.()?.renderer);
-    if (canvasOwnsFills) {
+    if (sceneOwnsFills) {
       stagedSelectionLayer.selectAll('.map-selection-fill').remove();
       stagedHoverLayer.selectAll('.map-hover-fill').remove();
     } else {

@@ -198,7 +198,7 @@ test('custom color, zero fill and disabled selected outlines preserve unselected
 });
 
 
-test('GPU context recovery hands fill and stroke coverage back from SVG once', async ({ page }) => {
+test('GPU context recovery never gives scene fills back to SVG', async ({ page }) => {
   test.setTimeout(120000);
   await page.goto('/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
@@ -211,7 +211,7 @@ test('GPU context recovery hands fill and stroke coverage back from SVG once', a
   });
   test.skip(!supported, 'Context loss extension unavailable');
   await expect(page.locator('.map-selection-outline.is-primary')).toHaveCount(1);
-  await expect(page.locator('.map-selection-fill')).toHaveCount(1);
+  await expect(page.locator('.map-selection-fill')).toHaveCount(0);
   await page.evaluate(() => window.__lossExtension.restoreContext());
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || []), { timeout: 30000 }).toContain('country:DEU');
   await expect(page.locator('.map-selection-outline, .map-selection-fill')).toHaveCount(0);

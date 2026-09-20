@@ -108,7 +108,6 @@ export function createLifecycleAssembly() {
             convertSelectedGenericFeature: dependencies.genericEditingA.convertSelectedGenericFeature,
             copySelectedHydroForEditing: dependencies.propertyEditingA.copySelectedHydroForEditing,
             closeObjectActionsMenu: dependencies.objectOperationsA.closeObjectActionsMenu,
-            batchSetVisibility: dependencies.objectOperationsA.batchSetVisibility,
             enterCountryBorderEditFromSelection: dependencies.countryEditingA.enterCountryBorderEditFromSelection,
             undo: () => projectUi.undo(),
             redo: () => projectUi.redo(),

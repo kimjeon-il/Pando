@@ -71,9 +71,8 @@ class MapEditingToolsV0304Tests(unittest.TestCase):
         self.assertIn("performDraftRedo();", APP)
 
     def test_multi_selection_uses_common_property_inputs_and_header_menu_delete(self):
-        self.assertIn('id="multiPropertiesVisibilityInput"', INDEX)
-        self.assertIn('id="multiPropertiesLockInput"', INDEX)
-        self.assertIn("input.indeterminate", APP)
+        self.assertNotIn('multiPropertiesVisibilityInput', INDEX + APP)
+        self.assertIn('id="objectVisibilityBtn"', INDEX)
         self.assertIn("deleteSelectedFromObjectMenu", APP)
         self.assertIn("width: min(100%, 360px);", CSS)
 

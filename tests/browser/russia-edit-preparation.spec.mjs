@@ -164,7 +164,8 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     await page.locator('#modePrimaryBtn').click();
     const children = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' }).filter(item => item.properties.name === '러시아 응답성 시험').length);
     await expect.poll(children, { timeout: 30000 }).toBe(1);
-    await expect.poll(() => page.locator('path.territorial-internal-boundary').count(), { timeout: 30000 }).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().territorialBoundaryRevision), { timeout: 30000 }).not.toBe('');
+    await expect(page.locator('path.territorial-internal-boundary')).toHaveCount(0);
     expect(await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry) === window.__russiaOriginal)).toBe(true);
     await page.locator('#undoBtn').click();
     await expect.poll(children).toBe(0);
