@@ -676,7 +676,15 @@
       <div class="preferences-fields">
         <section class="preferences-section" aria-labelledby="preferencesAppearanceTitle">
           <h3 id="preferencesAppearanceTitle">화면</h3>
-          <label class="ui-field field-group"><span>테마</span><select id="preferencesThemeInput"><option value="system">시스템 설정</option><option value="light">밝은 테마</option><option value="dark">어두운 테마</option></select></label>
+          <div class="preferences-theme" role="group" aria-labelledby="preferencesThemeTitle">
+            <strong id="preferencesThemeTitle">테마</strong>
+            <input id="preferencesThemeInput" type="hidden" value="system" />
+            <div class="preferences-theme-swatches">
+              <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="light" aria-label="밝은 테마" aria-pressed="false"><span class="preferences-theme-swatch preferences-theme-swatch--light" aria-hidden="true"></span></button>
+              <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="dark" aria-label="어두운 테마" aria-pressed="false"><span class="preferences-theme-swatch preferences-theme-swatch--dark" aria-hidden="true"></span></button>
+              <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="system" aria-label="시스템 설정" aria-pressed="true"><span class="preferences-theme-swatch preferences-theme-swatch--system" aria-hidden="true"></span></button>
+            </div>
+          </div>
           <label class="ui-choice-row ui-toggle"><input id="preferencesStatusBarVisibleInput" type="checkbox" checked /><span>하단 상태표시줄 표시</span></label>
           <div class="preferences-accent ui-color-picker" data-color-picker="accent" data-color-custom-only role="group" aria-labelledby="preferencesAccentTitle">
             <strong id="preferencesAccentTitle">강조색</strong>

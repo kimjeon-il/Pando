@@ -75,7 +75,7 @@ test('theme defaults, custom selection colors, and reset stay synchronized', asy
   await expect(page.locator('#preferencesSelectionColorValue')).toHaveText('기본 색상');
   await expect(page.locator('#preferencesSelectionColorInput')).toHaveValue('#cda95d');
 
-  await page.locator('#preferencesThemeInput').selectOption('light');
+  await page.locator('[data-preference-theme="light"]').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__)).toMatchObject({
     theme: 'light',
@@ -90,7 +90,7 @@ test('theme defaults, custom selection colors, and reset stay synchronized', asy
     hover: { color: '#a27df8' },
     selection: { color: '#8b5cf6' },
   });
-  await page.locator('#preferencesThemeInput').selectOption('dark');
+  await page.locator('[data-preference-theme="dark"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__)).toMatchObject({
     theme: 'dark',
     hover: { color: '#a27df8' },

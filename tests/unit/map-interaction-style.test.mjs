@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveMapInteractionStyle } from '../../assets/js/modules/map-interaction-style.js';
+import { interactionStrokeScale, resolveMapInteractionStyle, scaleInteractionStroke } from '../../assets/js/modules/map-interaction-style.js';
 
 const darkTokens = { accent: '#cda95d', textStrong: '#f2f4f6' };
 const lightTokens = { accent: '#315e9d', textStrong: '#11161c' };
@@ -46,4 +46,16 @@ test('disabled selection outlines leave selection fills intact without disabling
   assert.equal(variants[1].selection.primary.casingAlpha, 0);
   assert.equal(variants[1].selection.primary.fillAlpha, 0.24);
   assert.deepEqual(variants[0].drawOrder, ['secondary-casing', 'primary-casing', 'candidate', 'hover', 'secondary-inner', 'primary-inner']);
+});
+
+test('interaction outlines recede together at map minimum zoom without changing normal-scale widths', () => {
+  const normalFrame = { projection: 'flat', size: { width: 1200, height: 700 }, safeInset: { bottom: 26 }, scale: 1200 / (2 * Math.PI) };
+  const overviewFrame = { ...normalFrame, scale: normalFrame.scale * 0.75 };
+  assert.equal(interactionStrokeScale(normalFrame), 1);
+  assert.ok(interactionStrokeScale(overviewFrame) < 0.5);
+  const scaled = scaleInteractionStroke({ width: 2.5, innerCutout: 2.5, scaleWithView: true,
+    casing: { width: 4, alpha: 0.72 } }, overviewFrame);
+  assert.ok(scaled.width < 1.25);
+  assert.ok(scaled.casing.width < 2);
+  assert.equal(scaled.innerCutout, scaled.width);
 });

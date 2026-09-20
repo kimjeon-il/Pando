@@ -17,7 +17,7 @@ test('one responsive view control and theme-only preferences preserve editing an
   await expect(page.locator('#preferencesModal')).toBeVisible();
   await expect(page.locator('#preferencesModal input[type="color"]')).toHaveCount(1);
   await expect(page.locator('#preferencesModal input[type="range"]')).toHaveCount(0);
-  await page.locator('#preferencesThemeInput').selectOption('dark', { force: true });
+  await page.locator('[data-preference-theme="dark"]').click();
   await page.locator('#preferencesResetBtn').click();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences')).appearance.theme)).toBe('light');
   await page.locator('#preferencesCancelBtn').click();

@@ -23,6 +23,9 @@ test('theme updates retain persisted label and legacy selection values', () => {
   assert.match(app, /selectionColor: resolvedAccentColor,\s+outlineVisible: true,\s+fillStrength: 0\.35/);
   const fields = html.slice(html.indexOf('id="preferencesModal"'), html.indexOf('id="coastReconciliationModal"'));
   assert.ok(fields.includes('id="preferencesThemeInput"'));
+  assert.match(fields, /data-preference-theme="light"/);
+  assert.match(fields, /data-preference-theme="dark"/);
+  assert.match(fields, /data-preference-theme="system"/);
   assert.doesNotMatch(fields, /preferences(?:Country|Place|Selection)/);
 });
 test('manual CRS belongs to the existing advanced mapping disclosure', () => {
