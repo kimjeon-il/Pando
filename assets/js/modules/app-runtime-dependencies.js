@@ -404,7 +404,7 @@ const { validateGeometry: validateStructuredGeometry, validateTerritorialGeometr
 const { LABEL_PRIORITIES, automaticLabelSettings, labelKey, layoutLabels, normalizeLabelSettings } = labelLayoutModule;
 const { createAtomicMapStateController } = mapStateTransitionModule;
 const { normalizeObjectRef } = objectRefModule;
-const { OVERLAY_GROUPS, layerStyle, layerObjectRank, normalizeLayerPresentation } = layerPresentationModule;
+const { OVERLAY_GROUPS, layerStyle, layerObjectRank, normalizeLayerPresentation, resolveLayerDisplayColor } = layerPresentationModule;
 const { AUTOSAVE_STATES, createSaveStateController } = saveStateModule;
 const {
   ensureClosedRing,
@@ -691,6 +691,7 @@ export {
   normalizeObjectRef,
   OVERLAY_GROUPS,
   layerStyle,
+  resolveLayerDisplayColor,
   layerObjectRank,
   normalizeLayerPresentation,
   AUTOSAVE_STATES,

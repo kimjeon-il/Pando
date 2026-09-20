@@ -112,9 +112,11 @@ export function createServiceAssembly() {
           : null;
         const group = unit ? 'subunits' : 'countries';
         const objectKey = unit ? `territorial:subunit:${unit.id}` : '';
-        const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, group, objectKey);
-        if (style.colorVisible === false) return (0, dependencies.preferences.mapTheme)().defaultLand;
-        return unit ? (0, dependencies.colorModel.territorialUnitColor)(unit) : (0, dependencies.colorModel.countryColor)(feature);
+        return (0, dependencies.applicationServicesB.resolveLayerDisplayColor)(dependencies.projectState.state.layerPresentation, group, {
+          objectKey,
+          explicitColor: unit ? (0, dependencies.colorModel.territorialUnitColor)(unit) : (0, dependencies.colorModel.countryColor)(feature),
+          fallbackColor: (0, dependencies.preferences.mapTheme)().defaultLand,
+        });
       },
       countryFeatureById: dependencies.builtinCountries.renderCountryFeatureById,
       countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,

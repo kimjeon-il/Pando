@@ -112,3 +112,14 @@ export function moveOverlayGroup(presentation, group, direction) {
 export const layerStyle = (presentation, group, objectKey = '') => normalizeLayerStyle(
   { ...presentation?.styles?.[group], ...(objectKey && presentation?.objectStyles?.[objectKey]) },
 );
+
+// Keep the base-country palette and territorial replacement fills on one
+// display rule: a disabled color channel uses the map land color, while an
+// enabled channel preserves the most specific available color.
+export function resolveLayerDisplayColor(presentation, group, {
+  objectKey = '', explicitColor, inheritedColor, fallbackColor,
+} = {}) {
+  const style = layerStyle(presentation, group, objectKey);
+  if (style.colorVisible === false) return fallbackColor;
+  return explicitColor || inheritedColor || fallbackColor;
+}
