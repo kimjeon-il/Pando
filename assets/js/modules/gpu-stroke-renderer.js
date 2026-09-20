@@ -5,6 +5,7 @@ import { createGpuResourceBudget } from './gpu-resource-budget.js';
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from './gpu-blend-utils.js';
 import { linkGpuProgram } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
+import { scaleInteractionStroke } from './map-interaction-style.js';
 
 const FLOATS_PER_INSTANCE = 10;
 const FLOATS_PER_NODE = 8;
@@ -694,7 +695,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       }
       try {
         resourceBudget.touch(key, batch?.priority);
-        const style = batch.style || {};
+        const style = scaleInteractionStroke(batch.style || {}, frameContext);
         applyGpuBlendMode(gl, batch.blendMode || style.blendMode);
         let completedDraws = 0;
         if (style.casing?.width > style.width && style.casing.alpha > 0) {

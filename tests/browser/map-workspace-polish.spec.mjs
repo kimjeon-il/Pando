@@ -79,7 +79,7 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     await expect(page.locator('#app')).toHaveAttribute('data-layout', mobile ? 'mobile' : viewport.width >= 1280 ? 'wide' : 'compact');
     if (mobile) {
       await page.locator('#preferencesBtn').click();
-      await page.locator('#preferencesThemeInput').selectOption('dark', { force: true });
+      await page.locator('[data-preference-theme="dark"]').click();
       await page.locator('#preferencesApplyBtn').click();
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     }

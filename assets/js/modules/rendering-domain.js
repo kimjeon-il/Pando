@@ -1,6 +1,6 @@
 import { applySvgInteractionMasks, applySvgCasingMask } from './interaction-svg-mask.js';
 import { rendererOwnsSceneGeometry } from './render-channel-ownership.js';
-import { interactionRoleStyle, resolveMapInteractionStyle, interactionNodeRole } from './map-interaction-style.js';
+import { interactionRoleStyle, resolveMapInteractionStyle, interactionNodeRole, interactionStrokeScale, scaleInteractionStroke } from './map-interaction-style.js';
 import { mapInteractionEntries } from './interaction-roles.js';
 import { selectionEntries, selectionDisplayPlan, orderSelectionFillMasks, selectionFrameOwnership, selectionGeometryKinds, planSelectionEntry, planHoverEntry, selectionCoverage } from './selection-overlay-plan.js';
 import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
@@ -130,6 +130,15 @@ export function createRenderingDomain({
   const reprojectEditingLayer = (layer, frame) => {
     const path = framePath(frame, interaction.path || editing.path);
     layer?.selectAll('path').each(function(d) {
+      if (this.hasAttribute('data-interaction-priority')) {
+        const directManipulation = this.classList.contains('draft-shape') || this.classList.contains('draft-auto-close-preview');
+        const style = scaleInteractionStroke(interactionRoleStyle(
+          selection.resolvedInteractionStyle?.() || selection.getInteractionStyle?.() || resolveMapInteractionStyle(),
+          interactionNodeRole(this, this.closest('[data-interaction-domain]')?.getAttribute('data-interaction-domain') || 'draft'),
+          { directManipulation },
+        ), frame);
+        this.style.strokeWidth = `${style.width}px`;
+      }
       const geometry = d?.geometry || (d?.start && d?.end ? { type: 'LineString', coordinates: [d.start, d.end] } : null);
       if (geometry) {
         const cacheable = this.classList.contains('territory-component') && Object.isFrozen(geometry)
@@ -1453,7 +1462,7 @@ export function createRenderingDomain({
       directPreviewGeometry = { key, feature: { type: 'Feature', properties: {}, geometry: { type: 'MultiLineString', coordinates } } };
     }
     if (!node) { node = root.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path'); root.appendChild(node); }
-    const style = interactionRoleStyle(selection.resolvedInteractionStyle?.() || selection.getInteractionStyle?.(), 'edit-target', { directManipulation: true });
+    const style = scaleInteractionStroke(interactionRoleStyle(selection.resolvedInteractionStyle?.() || selection.getInteractionStyle?.(), 'edit-target', { directManipulation: true }), frame);
     node.__data__ = directPreviewGeometry.feature;
     for (const [name, value] of Object.entries({ class: 'map-selection-shape map-direct-preview', fill: 'none', stroke: style.color,
       'stroke-width': style.width, 'stroke-opacity': style.alpha, 'data-object-key': packet.key,
@@ -1552,7 +1561,7 @@ export function createRenderingDomain({
     labels.labelLayer?.selectAll('g.user-label').each(function(label) {
       const key = labels.normalizeObjectRef?.({ domain: 'label', type: label.kind || 'label', id: label.id })?.key;
       const entry = displayPlan.labelEntriesByKey.get(key);
-      const roleStyle = entry ? interactionRoleStyle(style, entry.role) : null;
+      const roleStyle = entry ? scaleInteractionStroke(interactionRoleStyle(style, entry.role), frameContext) : null;
       let ring = this.querySelector('.user-label-interaction');
       if (!(roleStyle?.width > 0)) { ring?.remove(); return; }
       if (!ring) { ring = this.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'circle'); this.appendChild(ring); }
@@ -1738,7 +1747,7 @@ export function createRenderingDomain({
     };
     for (const request of [...fallbackRequests.candidate.map(item => ({ ...item, candidate: true })), ...fallbackRequests.hover]) {
       const channel = request.candidate ? 'candidate' : 'hover';
-      const guideStyle = interactionRoleStyle(style, channel);
+      const guideStyle = scaleInteractionStroke(interactionRoleStyle(style, channel), frameContext);
       if (renderedKeys[channel].has(request.key)) continue;
       const fallbackFeature = request.feature || request.resolveFeature?.();
       const d = cachedSelectionPath(request.cacheKey || request.key, fallbackFeature, frameContext);
@@ -1751,7 +1760,7 @@ export function createRenderingDomain({
     if (selectionOutlinesVisible) {
       for (const channel of ['secondary', 'primary']) {
         const primary = channel === 'primary';
-        const itemStyle = primary ? selectionStyle.primary : selectionStyle.secondary;
+        const itemStyle = scaleInteractionStroke({ ...(primary ? selectionStyle.primary : selectionStyle.secondary), scaleWithView: true }, frameContext);
         const priorityClass = primary ? ' is-primary' : ' is-secondary';
         for (const request of fallbackRequests[channel]) {
           if (renderedKeys[channel].has(request.key)) continue;
@@ -2008,7 +2017,7 @@ export function createRenderingDomain({
     }
     joinEditingNodes(layer, 'path.river-partition-emphasis', riverSections, d => d.key)
       .attr('class', d => 'river-partition-emphasis' + (d.selected ? ' selected' : ''))
-      .attr('stroke', interaction.selectionStyle?.color).attr('stroke-width', interaction.selectionStyle?.primaryWidth);
+      .attr('stroke', interaction.selectionStyle?.color).attr('stroke-width', interactionStrokeScale(frameContext) * Number(interaction.selectionStyle?.primaryWidth || 0));
     void path;
     reprojectEditingLayer(layer, frameContext);
     interaction.syncGpuInteractionLayer?.('draft', layer);

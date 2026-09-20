@@ -42,7 +42,11 @@ export function createFileBindings() {
     let accentPreviewFrame = 0;
     let pendingAccent;
     const syncPreferencesForm = () => {
-      (0, dependencies.platform.$)('preferencesThemeInput').value = dependencies.preferences.userPreferences.appearance.theme;
+      const theme = dependencies.preferences.userPreferences.appearance.theme;
+      (0, dependencies.platform.$)('preferencesThemeInput').value = theme;
+      preferencesModal.querySelectorAll('[data-preference-theme]').forEach(button => {
+        button.setAttribute('aria-pressed', String(button.dataset.preferenceTheme === theme));
+      });
       (0, dependencies.platform.$)('preferencesStatusBarVisibleInput').checked = dependencies.preferences.userPreferences.appearance.statusBarVisible !== false;
       const accent = dependencies.preferences.userPreferences.appearance.accentColor;
       const input = document.getElementById('preferencesAccentInput');
@@ -98,7 +102,7 @@ export function createFileBindings() {
       syncPreferencesForm();
       preferencesOrigin = { ...dependencies.preferences.userPreferences.appearance };
       preferencesModal?.classList.remove('hidden');
-      (0, dependencies.platform.$)('preferencesThemeInput')?.focus({ preventScroll: true });
+      preferencesModal.querySelector(`[data-preference-theme="${dependencies.preferences.userPreferences.appearance.theme}"]`)?.focus({ preventScroll: true });
     };
     (0, dependencies.platform.$)('preferencesBtn')?.addEventListener('click', openPreferences);
     (0, dependencies.platform.$)('preferencesCancelBtn')?.addEventListener('click', () => closePreferences({ revert: true }));
@@ -114,7 +118,12 @@ export function createFileBindings() {
       button.addEventListener('click', () => previewAccent(button.dataset.preferenceAccent || null));
     });
     document.getElementById('preferencesAccentInput').addEventListener('input', event => previewAccent(event.target.value.toLowerCase()));
-    (0, dependencies.platform.$)('preferencesThemeInput')?.addEventListener('change', applyPreferencesForm);
+    preferencesModal.querySelectorAll('[data-preference-theme]').forEach(button => {
+      button.addEventListener('click', () => {
+        (0, dependencies.platform.$)('preferencesThemeInput').value = button.dataset.preferenceTheme;
+        applyPreferencesForm();
+      });
+    });
     (0, dependencies.platform.$)('preferencesStatusBarVisibleInput')?.addEventListener('change', applyPreferencesForm);
     (0, dependencies.platform.$)('preferencesApplyBtn')?.addEventListener('click', () => closePreferences({ revert: false }));
     const helpModal = (0, dependencies.platform.$)('helpModal');

@@ -1,5 +1,6 @@
 const THEMES = new Set(['light', 'dark']);
 const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+const PI = Math.PI;
 
 function color(value, fallback) {
   const normalized = String(value || '').trim();
@@ -9,6 +10,32 @@ function color(value, fallback) {
 function unitInterval(value, fallback) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? Math.max(0, Math.min(1, numeric)) : fallback;
+}
+
+/** Keep interactive casings from merging nearby islands while zoomed out. */
+export function interactionStrokeScale(frameContext = null) {
+  const width = Number(frameContext?.size?.width);
+  const height = Number(frameContext?.size?.height);
+  const scale = Number(frameContext?.scale);
+  if (!(width > 0) || !(height > 0) || !(scale > 0)) return 1;
+  const safe = frameContext?.safeInset || {};
+  const contentWidth = Math.max(1, width - Number(safe.left || 0) - Number(safe.right || 0));
+  const contentHeight = Math.max(1, height - Number(safe.top || 0) - Number(safe.bottom || 0));
+  const baseScale = frameContext?.projection === 'flat'
+    ? Math.max(30, contentWidth / (2 * PI))
+    : Math.max(60, Math.min(contentWidth, contentHeight) * 0.455);
+  const zoom = scale / baseScale;
+  return Math.max(0.45, Math.min(1, 0.4 + ((zoom - 0.72) / 0.28) * 0.6));
+}
+
+export function scaleInteractionStroke(style, frameContext = null) {
+  if (!style?.scaleWithView) return style || {};
+  const factor = interactionStrokeScale(frameContext);
+  const casing = style.casing && typeof style.casing === 'object'
+    ? Object.freeze({ ...style.casing, width: Number(style.casing.width || 0) * factor })
+    : style.casing;
+  return Object.freeze({ ...style, width: Number(style.width || 0) * factor,
+    innerCutout: Number(style.innerCutout || 0) * factor, casing, interactionScale: factor });
 }
 
 export const INTERACTION_ROLE_PRIORITY = Object.freeze({
@@ -48,14 +75,15 @@ export function resolveInteractionEntries(entries = []) {
 export function interactionRoleStyle(style, role = 'candidate', { directManipulation = false } = {}) {
   const priority = INTERACTION_ROLE_PRIORITY[role] || 1;
   const selection = style.selection;
-  if (priority === 1) return Object.freeze({ color: selection.color, width: 1, alpha: 0.45, fillAlpha: 0 });
-  if (priority === 2) return style.hover;
+  if (priority === 1) return Object.freeze({ color: selection.color, width: 1, alpha: 0.45, fillAlpha: 0, scaleWithView: true });
+  if (priority === 2) return Object.freeze({ ...style.hover, scaleWithView: true });
   const source = priority >= 4 ? selection.primary : selection.secondary;
   return Object.freeze({ color: selection.color,
     width: directManipulation ? (priority >= 4 ? 2.5 : 1.5) : source.innerWidth,
     alpha: directManipulation ? (priority >= 4 ? 1 : 0.72) : source.innerAlpha,
     fillAlpha: source.fillAlpha, casingColor: selection.casingColor,
     outerWidth: source.outerWidth, casingAlpha: source.casingAlpha,
+    scaleWithView: true,
     ...(directManipulation ? { antiAlias: false } : {}) });
 }
 
