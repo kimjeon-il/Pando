@@ -131,7 +131,8 @@ export function resolveMapInteractionStyle({
   };
   const themeAccentFallback = dark ? '#cda95d' : '#315e9d';
   const resolvedSelectionColor = color(selectionColor, color(tokens.accent, themeAccentFallback));
-  const casingColor = color(tokens.textStrong, dark ? '#f2f4f6' : '#1c2229');
+  // A light casing turns into a neon halo against the dark map; keep its keyline dark instead.
+  const casingColor = dark ? '#0c1117' : color(tokens.textStrong, '#1c2229');
   const hoverFillAlpha = (dark ? 0.10 : 0.08) * resolvedFillStrength;
   return Object.freeze({
     theme: resolvedTheme,

@@ -8,10 +8,12 @@ const lightTokens = { accent: '#315e9d', textStrong: '#11161c' };
 test('interaction style resolves theme accents and derives hover from the effective selection color', () => {
   const dark = resolveMapInteractionStyle({ theme: 'dark', selectionColor: null, fillStrength: 0.35, tokens: darkTokens });
   assert.equal(dark.selection.color, '#cda95d');
+  assert.equal(dark.selection.casingColor, '#0c1117');
   assert.deepEqual(dark.hover, { color: '#cda95d', width: 1.5, alpha: 0.85, fillAlpha: 0.10 * 0.35 });
 
   const light = resolveMapInteractionStyle({ theme: 'light', selectionColor: null, fillStrength: 0.35, tokens: lightTokens });
   assert.equal(light.selection.color, '#315e9d');
+  assert.equal(light.selection.casingColor, '#11161c');
   assert.deepEqual(light.hover, { color: '#315e9d', width: 1.5, alpha: 0.85, fillAlpha: 0.08 * 0.35 });
 });
 
