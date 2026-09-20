@@ -27,6 +27,22 @@ export function createCountryCommandCalculator(clipper) {
     return polygons;
   }
 
+  function containmentTolerance(coordinates) {
+    const geometry = { type: 'MultiPolygon', coordinates };
+    // Use the same scale-aware tolerance as the post-edit topology check.
+    // River partitions are produced through a separate clipping pass, so an
+    // otherwise-contained cell can retain a sub-grid fringe at a shared border.
+    return Math.max(1e-8, boundaryLength(geometry) * 2e-7);
+  }
+
+  function transferWithinSourceUnion(transferred, sourceUnion, message) {
+    const outside = clippingOperation('difference', transferred, sourceUnion);
+    if (area(outside) > containmentTolerance(transferred)) throw new Error(message);
+    // Do not carry a numerical fringe into subtraction or the receiving
+    // country. Meaningful out-of-source area is rejected above.
+    return clippingOperation('intersection', transferred, sourceUnion);
+  }
+
   // Translate before summing: tiny slivers at large longitude/latitude otherwise
   // lose their area to cancellation. This is an existence test, not a tolerance.
   function localRingArea(ring, scaleX = 1, scaleY = 1) {
@@ -211,13 +227,11 @@ export function createCountryCommandCalculator(clipper) {
     const donors = donorIds.map(id => working.get(id)).filter(Boolean);
     if (!target?.geometry || donors.length !== donorIds.length || (!allowUnclaimed && !donors.length)) throw new Error('편입할 국가 데이터를 찾을 수 없습니다. 대상을 다시 선택하세요.');
     let transferred = multiCoordinates(message.transferredGeometry);
-    const transferredArea = area(transferred);
     if (!transferred.some(positivePolygonArea)) throw new Error('편입할 유효한 영토가 없습니다.');
     const donorInputs = areaPolygonsNearFeatures(donors, transferred);
     const donorUnion = donorInputs.length ? clippingOperation('union', ...donorInputs) : [];
-    if (!allowUnclaimed && area(clippingOperation('difference', transferred, donorUnion)) > Math.max(1e-10, transferredArea * 1e-10)) {
-      throw new Error('선택 영역이 영토를 가져올 국가 밖으로 벗어났습니다. 범위를 다시 지정하세요.');
-    }
+    if (!allowUnclaimed) transferred = transferWithinSourceUnion(transferred, donorUnion,
+      '선택 영역이 영토를 가져올 국가 밖으로 벗어났습니다. 범위를 다시 지정하세요.');
     const updates = [];
     const removedIds = [];
     const affectedDonorIds = [];
@@ -296,13 +310,11 @@ export function createCountryCommandCalculator(clipper) {
     const newFeature = clone(message.newFeature);
     const newId = featureId(newFeature);
     if (!sources.length || sources.length !== sourceIds.length || !newFeature?.geometry || !newId) throw new Error('새 국가의 원본 국가 데이터를 찾을 수 없습니다.');
-    const transferred = multiCoordinates(message.transferredGeometry);
-    const transferredArea = area(transferred);
+    let transferred = multiCoordinates(message.transferredGeometry);
     const sourceInputs = areaPolygonsNearFeatures(sources, transferred);
     const sourceUnion = sourceInputs.length ? clippingOperation('union', ...sourceInputs) : [];
-    if (area(clippingOperation('difference', transferred, sourceUnion)) > Math.max(1e-10, transferredArea * 1e-10)) {
-      throw new Error('선택 영역이 영토를 가져올 국가 밖으로 벗어났습니다.');
-    }
+    transferred = transferWithinSourceUnion(transferred, sourceUnion,
+      '선택 영역이 영토를 가져올 국가 밖으로 벗어났습니다.');
     const updates = [];
     const removedIds = [];
     const affectedSourceIds = [];
