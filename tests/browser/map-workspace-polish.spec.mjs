@@ -53,6 +53,122 @@ async function bottomFloatingGeometry(page) {
   });
 }
 
+async function cameraSnapshot(page) {
+  return page.evaluate(() => {
+    const view = window.__PANDOLAB_VIEW_DEBUG__.snapshot();
+    return { projection: view.projection, flatZoom: view.flatZoom, globeZoom: view.globeZoom,
+      flatCenter: view.flatCenter, globeRotation: view.globeRotation };
+  });
+}
+
+test('task workspace and toolbar search preserve their DOM and camera across layouts', async ({ page }, testInfo) => {
+  test.setTimeout(240_000);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?renderer=canvas&debug=1');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  const inputNode = await page.locator('#layerSearchInput').elementHandle();
+  const taskNode = await page.locator('#modeEditingContext').elementHandle();
+  for (const viewport of [
+    { width: 1440, height: 900 }, { width: 1024, height: 800 },
+    { width: 390, height: 844 }, { width: 1024, height: 800 },
+  ]) {
+    await page.setViewportSize(viewport);
+    const mobile = viewport.width < 800;
+    await expect(page.locator('#app')).toHaveAttribute('data-layout', mobile ? 'mobile' : viewport.width >= 1280 ? 'wide' : 'compact');
+    if (mobile) {
+      await page.locator('#preferencesBtn').click();
+      await page.locator('#preferencesThemeInput').selectOption('dark', { force: true });
+      await page.locator('#preferencesApplyBtn').click();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    }
+    await page.locator(mobile ? '#mobileSearchBtn' : '#objectSearchBtn').click();
+    await expect(page.locator('#layerSearchInput')).toBeFocused();
+    expect(await page.locator('#layerSearchInput').evaluate((node, original) => node === original, inputNode)).toBe(true);
+    if (!mobile) {
+      await expect(page.locator('#objectSearchSurface > .surface-header')).toBeHidden();
+      const geometry = await page.evaluate(() => {
+        const bar = document.querySelector('.map-command-toolbar').getBoundingClientRect();
+        const input = document.querySelector('#layerSearchInput').getBoundingClientRect();
+        const status = document.querySelector('#mapBottomStatus').getBoundingClientRect();
+        return { barTop: bar.top, barBottom: bar.bottom, inputTop: input.top, inputBottom: input.bottom, statusTop: status.top };
+      });
+      expect(geometry.inputTop).toBeGreaterThanOrEqual(geometry.barTop);
+      expect(geometry.inputBottom).toBeLessThanOrEqual(geometry.barBottom);
+      expect(geometry.barBottom).toBeLessThan(geometry.statusTop);
+    }
+    await page.locator('#layerSearchInput').fill('독일');
+    const germany = page.locator('#layerSearchResults .layer-search-result-select[data-item-id="DEU"]');
+    await expect(germany).toBeVisible();
+    await expect(germany.locator('.layer-search-result-flag')).toBeVisible();
+    const beforeSelect = await cameraSnapshot(page);
+    await germany.click();
+    await expect(page.locator('#objectSearchSurface')).toBeHidden();
+    await expect(page.locator('#countryNameInput')).toHaveValue('독일');
+    expect(await cameraSnapshot(page)).toEqual(beforeSelect);
+    await page.locator(mobile ? '#mobileEditBtn' : '#selectionToolbarEditBtn').click();
+    await expect(page.locator('#editBorderBtn')).toBeVisible();
+    const beforeTask = await cameraSnapshot(page);
+    await page.locator('#editBorderBtn').click();
+    await expect(page.locator('#rightPanel')).toHaveAttribute('data-editor-content', 'task');
+    if (mobile) {
+      await expect(page.locator('#rightPanel .surface-header-actions')).toBeHidden();
+      await expect(page.locator('#editSheetTitle')).toBeHidden();
+      await expect(page.locator('[data-sheet-handle="rightPanel"]')).toBeVisible();
+    } else await expect(page.locator('#rightPanel > .surface-header')).toBeHidden();
+    await expect(page.locator('#modeTaskName')).toContainText('국경 조정');
+    await expect(page.locator('#modeTaskTargetList')).toContainText('독일');
+    await expect(page.locator('#modeTaskTargetsFocusBtn')).toBeVisible();
+    expect(await page.locator('#modeEditingContext').evaluate((node, original) => node === original, taskNode)).toBe(true);
+    expect(await cameraSnapshot(page)).toEqual(beforeTask);
+    await expect(page.locator('#modeTaskStatus')).toHaveAttribute('data-task-state', 'needs-target', { timeout: 60_000 });
+    expect(await cameraSnapshot(page)).toEqual(beforeTask);
+    await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+    await expect(page.locator('#modeTaskDisabledReason')).toBeVisible();
+    if (mobile) {
+      const handle = page.locator('[data-sheet-handle="rightPanel"]');
+      const initialSnap = await handle.getAttribute('aria-valuenow');
+      const direction = initialSnap === '2' ? 'ArrowDown' : 'ArrowUp';
+      await handle.focus();
+      await page.keyboard.press(direction);
+      await expect(handle).not.toHaveAttribute('aria-valuenow', initialSnap);
+      await page.keyboard.press(direction === 'ArrowUp' ? 'ArrowDown' : 'ArrowUp');
+      await expect(handle).toHaveAttribute('aria-valuenow', initialSnap);
+    }
+    await page.locator('#modeTaskTargetsFocusBtn').click();
+    if (viewport.width === 1440) await expect.poll(() => cameraSnapshot(page)).not.toEqual(beforeTask);
+    await page.screenshot({ path: testInfo.outputPath(`task-${viewport.width}-${mobile ? 'mobile' : 'desktop'}.png`) });
+    await page.locator('#modeCancelBtn').click();
+    await expect(page.locator('#rightPanel')).toHaveAttribute('data-editor-content', 'properties');
+    await expect(page.locator('#countryNameInput')).toHaveValue('독일');
+    await expect(page.locator('#editBorderBtn')).toBeVisible();
+    await page.locator(mobile ? '#mobileEditBtn' : '#selectionToolbarEditBtn').click();
+    await expect(page.locator('#rightPanel')).not.toHaveClass(/surface-open/);
+  }
+  await page.setViewportSize({ width: 1024, height: 500 });
+  await page.locator('#objectSearchBtn').click();
+  await page.locator('#layerSearchInput').fill('강');
+  await expect(page.locator('#layerSearchResults .layer-search-result').first()).toBeVisible();
+  const lowGeometry = await page.evaluate(() => {
+    const results = document.querySelector('#layerSearchResults').getBoundingClientRect();
+    const input = document.querySelector('#layerSearchInput').getBoundingClientRect();
+    const topbar = document.querySelector('.topbar').getBoundingClientRect();
+    return { top: results.top, bottom: results.bottom, inputTop: input.top, topbarBottom: topbar.bottom };
+  });
+  expect(lowGeometry.top).toBeGreaterThanOrEqual(lowGeometry.topbarBottom);
+  expect(lowGeometry.bottom).toBeLessThan(lowGeometry.inputTop);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#objectSearchBtn')).toBeFocused();
+  await page.locator('#objectSearchBtn').click();
+  await page.locator('#layerSearchClearBtn').click();
+  await expect(page.locator('#layerSearchInput')).toHaveValue('');
+  await expect(page.locator('#layerSearchInput')).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(page.locator('#objectSearchSurface')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
 test('compact map commands stay clickable and search closes only after a single normal selection', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 1024, height: 800 });

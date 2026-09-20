@@ -1,3 +1,5 @@
+import { taskStagePresentation, taskTargetRefs } from './app-task-stage-model.js';
+
 /** Task surface presentation. Territory selection is rendered from one shared model. */
 export function draftToolbarStatus({ state, draft, draftMode, hasDraftTool, minimumPoints, cutLineReady }) {
   const territory = state.territorySelectionSession;
@@ -60,6 +62,7 @@ export function createTaskPresentation() {
     if (instruction.textContent !== text) instruction.textContent = text;
     instruction.classList.remove('cut-valid', 'cut-invalid', 'cut-pending');
     instruction.classList.toggle('hidden', !text);
+    syncTaskActionDescription();
     (0, dependencies.readinessUi.syncStatusBar)();
   }
 
@@ -334,6 +337,108 @@ export function createTaskPresentation() {
     else if (button) button.textContent = label;
   }
 
+  function syncTaskActionDescription() {
+    const instruction = (0, dependencies.platform.$)('modeTaskInstruction');
+    const reason = (0, dependencies.platform.$)('modeTaskDisabledReason');
+    const describedBy = [];
+    if (instruction?.textContent?.trim() && !instruction.classList.contains('hidden')) describedBy.push('modeTaskInstruction');
+    if (reason?.textContent?.trim() && !reason.classList.contains('hidden')) describedBy.push('modeTaskDisabledReason');
+    for (const id of ['modePrimaryBtn', 'modeDraftDoneBtn']) {
+      const button = (0, dependencies.platform.$)(id);
+      if (!button) continue;
+      if (describedBy.length) button.setAttribute('aria-describedby', describedBy.join(' '));
+      else button.removeAttribute?.('aria-describedby');
+    }
+  }
+
+  function syncTaskStatus({
+    state, selection, selectionModel, draft, toolbar, primary, boundaryAnalysis,
+    boundaryPending, boundaryFailed, calculating, busy, cutLineMode, cutLineReady,
+    mergeTargetMode, genericMergeMode, unitMergeMode, unitRedrawMode, hydroReview, hydroCount,
+  }) {
+    const draftDone = (0, dependencies.platform.$)('modeDraftDoneBtn');
+    const draftActions = (0, dependencies.platform.$)('modeDraftActions');
+    const primaryDisabled = !!primary?.disabled && !primary.classList.contains('hidden');
+    const draftDisabled = !!draftDone?.disabled && !draftActions?.classList.contains('hidden');
+    const { status, label, reason } = taskStagePresentation({
+      state, selection, selectionModel, draft, toolbar, primaryDisabled, draftDisabled, boundaryAnalysis,
+      boundaryPending, boundaryFailed, calculating, busy, cutLineMode, cutLineReady,
+      mergeTargetMode, genericMergeMode, unitMergeMode, unitRedrawMode, hydroReview, hydroCount,
+    });
+    const statusNode = (0, dependencies.platform.$)('modeTaskStatus');
+    const taskRoot = (0, dependencies.platform.$)('modeEditingHud');
+    if (statusNode) {
+      statusNode.dataset.taskState = status;
+      if (statusNode.textContent !== label) statusNode.textContent = label;
+      for (const value of ['preparing', 'needs-target', 'editable', 'invalid']) statusNode.classList.toggle(`is-${value}`, value === status);
+    }
+    if (taskRoot) taskRoot.dataset.taskState = status;
+    const reasonNode = (0, dependencies.platform.$)('modeTaskDisabledReason');
+    if (reasonNode) {
+      if (reasonNode.textContent !== reason) reasonNode.textContent = reason;
+      reasonNode.classList.toggle('hidden', !reason);
+    }
+    syncTaskActionDescription();
+  }
+
+  function currentTaskTargets() {
+    const state = dependencies.projectState.state;
+    return taskTargetRefs(state, {
+      countryType: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+      countryFeatureById: dependencies.countries.countryFeatureById,
+    });
+  }
+
+  function syncTaskTargets() {
+    const targets = currentTaskTargets();
+    const section = (0, dependencies.platform.$)('modeTaskTargets');
+    const list = (0, dependencies.platform.$)('modeTaskTargetList');
+    const focus = (0, dependencies.platform.$)('modeTaskTargetsFocusBtn');
+    section?.classList.toggle('hidden', targets.length === 0);
+    if (focus) {
+      focus.disabled = targets.length === 0;
+      focus.setAttribute('aria-label', targets.length > 1 ? `선택한 ${targets.length}개 대상으로 이동` : '대상으로 이동');
+    }
+    if (!list) return targets;
+    const rows = targets.map(ref => ({ ref, display: (0, dependencies.objectOperationsA.objectDisplayInfo)(ref) }));
+    const signature = JSON.stringify(rows.map(({ ref, display }) => [ref.key, display.name, display.type]));
+    if (list.dataset.signature !== signature) {
+      const fragment = list.ownerDocument.createDocumentFragment();
+      for (const { ref, display } of rows) {
+        const item = list.ownerDocument.createElement('li');
+        item.className = 'mode-task-target';
+        item.dataset.objectKey = ref.key;
+        const name = list.ownerDocument.createElement('strong');
+        name.className = 'mode-task-target-name';
+        name.textContent = display.name;
+        const type = list.ownerDocument.createElement('span');
+        type.className = 'mode-task-target-type';
+        type.textContent = display.type;
+        item.append(name, type);
+        fragment.append(item);
+      }
+      list.replaceChildren(fragment);
+      list.dataset.signature = signature;
+    }
+    return targets;
+  }
+
+  function focusTaskTargets() {
+    const targets = currentTaskTargets();
+    if (!targets.length) return false;
+    if (targets.length === 1) return !!(0, dependencies.objectOperationsA.focusObjectRef)(targets[0]);
+    const features = targets.flatMap(ref => {
+      const feature = (0, dependencies.gpuRenderingA.mapFeatureForObjectRef)(ref);
+      if (feature?.type === 'FeatureCollection') return feature.features.filter(item => item?.geometry);
+      return feature?.geometry ? [feature] : [];
+    });
+    if (!features.length) return false;
+    (0, dependencies.navigation.focusCountry)({ type: 'FeatureCollection', features }, {
+      maxZoom: (0, dependencies.surfaces.isMobile)() ? 12 : 10,
+    });
+    return true;
+  }
+
   function updateModeButtons() {
     const state = dependencies.projectState.state;
     const selectionModel = (0, dependencies.territorySelectionB.territorySelectionPresentation)();
@@ -354,7 +459,8 @@ export function createTaskPresentation() {
     const boundaryPreparation = ['country-border', 'country-coast'].includes(state.tool) ? state.boundaryPreparation : null;
     const boundaryPending = ['pending', 'moving'].includes(boundaryPreparation?.status);
     const boundaryFailed = boundaryPreparation?.status === 'error';
-    const boundaryReady = !boundarySelectMode || (0, dependencies.geometryOperations.boundaryEditSelectionAnalysis)(state.boundaryEditCountryIds).valid;
+    const boundaryAnalysis = boundarySelectMode ? (0, dependencies.geometryOperations.boundaryEditSelectionAnalysis)(state.boundaryEditCountryIds) : null;
+    const boundaryReady = !boundarySelectMode || boundaryAnalysis.valid;
     const cutLineMode = genericSplitMode || unitSplitMode || selectionModel?.line;
     const cutLineReady = !cutLineMode || draft.cutAssessment?.valid === true;
     const toolbar = draftToolbarStatus({
@@ -366,6 +472,7 @@ export function createTaskPresentation() {
     const taskStage = (0, dependencies.platform.$)('modeTaskStage');
     if (taskName) taskName.textContent = selectionModel?.taskName || task.name;
     if (taskStage) taskStage.textContent = boundaryPending ? '경계 준비 중…' : boundaryFailed ? boundaryPreparation.message : selectionModel?.stageLabel || task.stage;
+    syncTaskTargets();
     syncTerritoryTransferFlow(selectionModel);
     syncTerritorySetup(selectionModel);
     syncTerritoryReviewSummary(selectionModel);
@@ -498,6 +605,11 @@ export function createTaskPresentation() {
       cancel.setAttribute('aria-label', back ? '이전 단계' : '작업 취소');
       cancel.disabled = !!state.modeProcessing;
     }
+    syncTaskStatus({
+      state, selection, selectionModel, draft, toolbar, primary, boundaryAnalysis,
+      boundaryPending, boundaryFailed, calculating, busy, cutLineMode, cutLineReady,
+      mergeTargetMode, genericMergeMode, unitMergeMode, unitRedrawMode, hydroReview, hydroCount,
+    });
     syncGeometryPreviewSummary(selection);
     syncMapContextSurfaces();
     syncMapCursorMode();
@@ -553,6 +665,7 @@ export function createTaskPresentation() {
     connect,
     get runModePrimaryAction() { return runModePrimaryAction; },
     get completeCurrentDraft() { return completeCurrentDraft; },
+    get focusTaskTargets() { return focusTaskTargets; },
     get setModeBanner() { return setModeBanner; },
     get syncCountryActionButtons() { return syncCountryActionButtons; },
     get syncCutDraftFeedback() { return syncCutDraftFeedback; },

@@ -112,6 +112,7 @@ test('WebGL1 keeps successful country outlines on the GPU coverage path', async 
   test.setTimeout(180_000);
   const errors = await openApp(page, {
     query: '?debug=1&renderer=webgl1', preserveSelectionBuffer: true, selectionWebGl1: true,
+    selection: { color: '#cda95d' },
   });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer), { timeout: 30_000 }).toBe('webgl1');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.canonicalMeshReady), { timeout: 60_000 }).toBe(true);
@@ -126,7 +127,7 @@ test('WebGL1 keeps successful country outlines on the GPU coverage path', async 
 
 test('WebGL2 country selection produces real outline pixels before suppressing SVG fallback', async ({ page }) => {
   test.setTimeout(180_000);
-  const errors = await openApp(page, { preserveSelectionBuffer: true });
+  const errors = await openApp(page, { preserveSelectionBuffer: true, selection: { color: '#cda95d' } });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.gpuHealth), { timeout: 30_000 }).toBe('healthy');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 20_000 }).toContain('country:DEU');
@@ -165,7 +166,31 @@ test('renderer fallback draws selection casing and inner outline in SVG', async 
 
 test('shared WebGL context loss keeps a sparse SVG fallback until the single GPU context recovers', async ({ page }) => {
   test.setTimeout(180_000);
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    window.Worker = class ContextLossProbeWorker extends NativeWorker {
+      constructor(url, options) {
+        super(url, options);
+        if (options?.name === 'pandolab-hydro-tiles') window.__hydroContextLossWorker = this;
+      }
+    };
+    window.__hydroContextRestoreUploads = 0;
+    for (const Context of [window.WebGLRenderingContext, window.WebGL2RenderingContext]) {
+      if (!Context) continue;
+      const upload = Context.prototype.bufferSubData;
+      Context.prototype.bufferSubData = function bufferSubData(target, offset, data, ...rest) {
+        if (ArrayBuffer.isView(data) && data.byteLength === 16) {
+          const values = new Int32Array(data.buffer, data.byteOffset, 4);
+          if (values[0] === 123456789 && values[1] === 987654321 && values[2] === 234567890 && values[3] === 876543210) {
+            window.__hydroContextRestoreUploads += 1;
+          }
+        }
+        return upload.call(this, target, offset, data, ...rest);
+      };
+    }
+  });
   const errors = await openApp(page);
+  await expect.poll(() => page.evaluate(() => !!window.__hydroContextLossWorker)).toBe(true);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30_000 }).toContain('country:DEU');
 
@@ -180,9 +205,25 @@ test('shared WebGL context loss keeps a sparse SVG fallback until the single GPU
 
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.contextLost), { timeout: 20_000 }).toBe(true);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toContain('country:DEU');
+  // Exercise the actual coordinator's native context-loss listener, not an
+  // owner reset called directly by the test. A late pack stays in CPU cache.
+  const latePack = await page.evaluate(() => {
+    const before = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
+    window.__hydroContextLossWorker.dispatchEvent(new window.MessageEvent('message', { data: {
+      type: 'pack', packId: 987654321, revision: Number.MAX_SAFE_INTEGER,
+      mesh: { riverStarts: new Int32Array([123456789, 987654321, 234567890, 876543210]) },
+    } }));
+    const after = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
+    return { beforePacks: before.gpu.hydroPacksLoaded, afterPacks: after.gpu.hydroPacksLoaded,
+      beforeJobs: before.uploads.pending, afterJobs: after.uploads.pending, uploads: window.__hydroContextRestoreUploads };
+  });
+  expect(latePack.afterPacks).toBe(latePack.beforePacks + 1);
+  expect(latePack.afterJobs).toBe(latePack.beforeJobs);
+  expect(latePack.uploads).toBe(0);
   await page.evaluate(() => window.__PANDOLAB_SELECTION_CONTEXT_EXTENSION__?.restoreContext());
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.contextLost), { timeout: 30_000 }).toBe(false);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30_000 }).toContain('country:DEU');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toEqual([]);
+  await expect.poll(() => page.evaluate(() => window.__hydroContextRestoreUploads), { timeout: 30_000 }).toBe(1);
   expect(errors).toEqual([]);
 });

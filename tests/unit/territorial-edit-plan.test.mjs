@@ -11,6 +11,24 @@ const unit = (id, parentId, geometry, sovereignId = 'KR') => createTerritorialFe
 const created = geometry => unit('new', 'KR', geometry);
 const patch = (result, id) => result.features.find(feature => feature.id === id);
 
+test('transfer preserves its input snapshot and rejects locked descendants at final validation', () => {
+  const countries = [country('KR', square(0, 0, 5, 5)), country('JP', square(5, 0, 10, 5))];
+  const source = unit('source', 'KR', square(4, 0, 5, 5));
+  const descendant = unit('descendant', 'source', square(4, 1, 5, 2));
+  const request = { operation: 'transfer', countries, units: [source, descendant], targetId: 'source', countryId: 'JP' };
+  const before = structuredClone(request);
+  const result = kernel.plan(request);
+  assert.deepEqual(request, before);
+  assert.equal(kernel.area(patch(result, 'KR').geometry), 20);
+  assert.equal(kernel.area(patch(result, 'JP').geometry), 30);
+  assert.equal(patch(result, 'descendant').properties.parentId, 'source');
+  assert.equal(patch(result, 'descendant').properties.sovereignId, 'JP');
+  assert.deepEqual(result.removedIds, []);
+  descendant.properties.locked = true;
+  assert.throws(() => kernel.plan(request), /잠긴/);
+  assert.equal(source.properties.sovereignId, 'KR');
+});
+
 test('country boundary previews transfer whole children, disclose cuts and preserve locked descendants', () => {
   const countries = [country('KR', square(0, 0, 5, 10)), country('JP', square(5, 0, 10, 10))];
   const moved = unit('moved', 'KR', square(4, 1, 5, 2));

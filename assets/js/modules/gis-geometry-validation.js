@@ -1,3 +1,6 @@
+import { geometryAreaKm2 } from './geometry-metrics.js';
+import { clippingOperationWithPrecisionRetry } from './polygon-clipping-calculation.js';
+
 function coordinateKey(point, precision = 8) {
   return `${Number(point?.[0] || 0).toFixed(precision)},${Number(point?.[1] || 0).toFixed(precision)}`;
 }
@@ -103,37 +106,9 @@ function canOverlap(a, b) {
   return a.some(first => b.some(second => boundsOverlap(first, second)));
 }
 
-function quantizePolygonCoordinates(value, precision) {
-  const factor = 10 ** precision;
-  const visit = item => {
-    if (Array.isArray(item) && item.length >= 2
-      && Number.isFinite(Number(item[0])) && Number.isFinite(Number(item[1]))) {
-      return [
-        Math.round(Number(item[0]) * factor) / factor,
-        Math.round(Number(item[1]) * factor) / factor,
-      ];
-    }
-    return Array.isArray(item) ? item.map(visit) : item;
-  };
-  return visit(value);
-}
-
-function robustPolygonIntersection(left, right) {
-  let originalError = null;
-  for (const precision of [null, 9, 8, 7, 6]) {
-    try {
-      const inputs = precision == null
-        ? [left, right]
-        : [left, right].map(value => quantizePolygonCoordinates(value, precision));
-      return globalThis.polygonClipping.intersection(...inputs);
-    } catch (error) {
-      const message = String(error?.message || error || '');
-      if (!/SweepLine tree|Unable to find segment/i.test(message)) throw error;
-      originalError ||= error;
-    }
-  }
-  throw originalError || new Error('국가 경계 교차 검사를 완료하지 못했습니다.');
-}
+const robustPolygonIntersection = (clipper, left, right) => (
+  clippingOperationWithPrecisionRetry(clipper, 'intersection', left, right)
+);
 
 function planarArea(multiPolygon) {
   return (multiPolygon || []).reduce((total, polygon) => {
@@ -142,53 +117,6 @@ function planarArea(multiPolygon) {
     const holes = polygon.slice(1).reduce((sum, ring) => sum + Math.abs(signedArea(closedRing(ring))), 0);
     return total + Math.max(0, exterior - holes);
   }, 0);
-}
-
-// Keep Worker overlap metrics numerically identical to the browser-side
-// geometry-metrics contract.  d3.geo.area() uses ring winding to distinguish
-// a spherical complement, which makes the result depend on polygon-clipping's
-// output orientation.  The editor's metric is the physical minor area of
-// each ring, with holes subtracted and MultiPolygon components summed.
-const MEAN_EARTH_RADIUS_KM = 6371.0088;
-
-function radians(value) {
-  return Number(value || 0) * Math.PI / 180;
-}
-
-function ringAreaSteradians(ring = []) {
-  if (ring.length < 3) return 0;
-  let sum = 0;
-  const limit = ring.length > 1
-    && ring[0][0] === ring[ring.length - 1][0]
-    && ring[0][1] === ring[ring.length - 1][1]
-    ? ring.length - 1
-    : ring.length;
-  for (let index = 0; index < limit; index += 1) {
-    const current = ring[index];
-    const next = ring[(index + 1) % limit];
-    let deltaLon = radians(next[0]) - radians(current[0]);
-    if (deltaLon > Math.PI) deltaLon -= Math.PI * 2;
-    if (deltaLon < -Math.PI) deltaLon += Math.PI * 2;
-    sum += deltaLon * (2 + Math.sin(radians(current[1])) + Math.sin(radians(next[1])));
-  }
-  let area = Math.abs(sum / 2);
-  if (area > Math.PI * 2) area = Math.PI * 4 - area;
-  return Math.max(0, area);
-}
-
-function sphericalAreaKm2(geometry) {
-  const polygons = geometry?.type === 'Polygon'
-    ? [geometry.coordinates || []]
-    : geometry?.type === 'MultiPolygon'
-      ? geometry.coordinates || []
-      : [];
-  const steradians = polygons.reduce((total, polygon) => {
-    if (!polygon?.length) return total;
-    const outer = ringAreaSteradians(polygon[0]);
-    const holes = polygon.slice(1).reduce((sum, ring) => sum + ringAreaSteradians(ring), 0);
-    return total + Math.max(0, outer - holes);
-  }, 0);
-  return steradians * MEAN_EARTH_RADIUS_KM * MEAN_EARTH_RADIUS_KM;
 }
 
 function featureName(feature) {
@@ -201,7 +129,7 @@ function featureId(feature, index) {
   return String(properties.pandolab_id || properties.ADM0_A3 || properties.ISO_A3 || properties.GID_0 || feature?.id || index + 1);
 }
 
-export function validateCollection(collection, affectedIds = null) {
+export function validateCollection(collection, affectedIds = null, clipper = globalThis.polygonClipping) {
   const features = collection?.features || [];
   const ids = features.map(featureId);
   if (ids.some(id => !id) || new Set(ids).size !== ids.length) throw new Error('국가 ID가 비어 있거나 중복되었습니다.');
@@ -225,6 +153,7 @@ export function validateCollection(collection, affectedIds = null) {
         for (let rightIndex = 0; rightIndex < rightPolygons.length; rightIndex += 1) {
           if (!boundsOverlap(componentBounds[i][leftIndex], componentBounds[j][rightIndex])) continue;
           const componentOverlap = robustPolygonIntersection(
+            clipper,
             [leftPolygons[leftIndex]],
             [rightPolygons[rightIndex]],
           );
@@ -235,7 +164,7 @@ export function validateCollection(collection, affectedIds = null) {
       }
       if (overlapPlanarArea <= 1e-8) continue;
       const overlapGeometry = { type: 'MultiPolygon', coordinates: overlap };
-      const areaKm2 = sphericalAreaKm2(overlapGeometry);
+      const areaKm2 = geometryAreaKm2(overlapGeometry);
       return { overlapAreaKm2: areaKm2, firstOverlap: [ids[i], ids[j]] };
     }
   }

@@ -191,7 +191,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     return setGpuViewUniforms(gl, { frameContext, worldOffset, getLocation: name => programInfo.uniforms[name] });
   }
 
-  function drawPackets(packets = [], frameContext, { styleByKey = null, claimTransparent = false } = {}) {
+  function drawPackets(packets = [], frameContext, { styleByKey = null, claimTransparent = false, preparedOnly = false } = {}) {
     const started = performance.now();
     drawCount += 1;
     const renderedKeys = [];
@@ -204,7 +204,9 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     gl.disable(gl.CULL_FACE);
     for (const packet of packets) {
       const key = String(packet?.key || '');
-      const { resource } = ensureResource(packet);
+      const { resource } = preparedOnly
+        ? { resource: resources.get(key)?.signature === signature(packet) ? resources.get(key) : null }
+        : ensureResource(packet);
       if (!resource) {
         if (key) missingKeys.push(key);
         continue;
@@ -347,6 +349,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     handleContextLost,
     dispose,
     hasResource: key => resources.has(String(key || '')),
+    hasPreparedResource: packet => resources.get(String(packet?.key || ''))?.signature === signature(packet),
     isAvailable: () => !!gl && !!programInfo && !contextLost,
     stats: () => Object.freeze({
       resourceCount: resources.size,
