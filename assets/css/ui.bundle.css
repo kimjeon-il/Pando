@@ -5397,7 +5397,7 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
   display: flex;
   position: fixed;
   z-index: 85;
-  top: calc(var(--file-menu-notification-top, var(--ui-topbar-height)) + var(--ui-space-2));
+  top: calc(var(--file-menu-notification-top, var(--ui-topbar-height)) + var(--ui-popover-screen-edge));
   right: var(--ui-space-2);
   left: var(--ui-space-2);
   width: auto;
@@ -5520,7 +5520,7 @@ body.file-menu-open .app-root .topbar {
 .app-root .topbar-center {
   position: fixed;
   z-index: 85;
-  top: calc(var(--file-menu-notification-top, var(--ui-shell-topbar-height)) + var(--ui-space-2));
+  top: calc(var(--file-menu-notification-top, var(--ui-shell-topbar-height)) + var(--ui-popover-screen-edge));
   right: var(--ui-space-2);
   left: var(--ui-space-2);
   width: auto;
@@ -7107,12 +7107,6 @@ body.file-menu-open .app-root .topbar {
     height: var(--ui-touch-height);
     min-height: var(--ui-touch-height);
     font-size: 1rem;
-  }
-}
-
-@media (max-width: 799px) {
-  body[data-layout="mobile"]:has(.action-status:not(.hidden)) .map-overlay-layer {
-    --selection-toolbar-top: calc(var(--ui-popover-screen-edge) + var(--ui-touch-height) + var(--ui-space-2));
   }
 }
 
@@ -8861,11 +8855,11 @@ body.is-loading .app-root {
   width: max-content;
   min-width: 0;
   max-width: calc(100vw - (var(--ui-space-2) * 2));
-  height: 2.125rem;
+  height: calc(var(--ui-control-height) + (var(--ui-space-1-5) * 2));
   grid-template-columns: var(--ui-icon-size) minmax(0, 1fr) var(--design-control-sm);
   gap: var(--ui-space-2);
   padding: 0 var(--ui-space-2) 0 var(--ui-space-3);
-  border-radius: var(--ui-radius-control);
+  border-radius: var(--ui-radius-panel);
   box-shadow: var(--control-shadow);
 }
 
@@ -8991,7 +8985,7 @@ body.is-loading .app-root {
   .action-status.ui-toast {
     width: min(calc(100vw - var(--ui-space-4)), 26.25rem);
     max-width: min(calc(100vw - var(--ui-space-4)), 26.25rem);
-    height: 2.375rem;
+    height: calc(var(--ui-touch-height) + (var(--ui-space-1-5) * 2));
     margin-inline: auto;
   }
 }

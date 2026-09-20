@@ -92,7 +92,7 @@
   display: flex;
   position: fixed;
   z-index: 85;
-  top: calc(var(--file-menu-notification-top, var(--ui-topbar-height)) + var(--ui-space-2));
+  top: calc(var(--file-menu-notification-top, var(--ui-topbar-height)) + var(--ui-popover-screen-edge));
   right: var(--ui-space-2);
   left: var(--ui-space-2);
   width: auto;
@@ -215,7 +215,7 @@ body.file-menu-open .app-root .topbar {
 .app-root .topbar-center {
   position: fixed;
   z-index: 85;
-  top: calc(var(--file-menu-notification-top, var(--ui-shell-topbar-height)) + var(--ui-space-2));
+  top: calc(var(--file-menu-notification-top, var(--ui-shell-topbar-height)) + var(--ui-popover-screen-edge));
   right: var(--ui-space-2);
   left: var(--ui-space-2);
   width: auto;

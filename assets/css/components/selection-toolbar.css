@@ -267,9 +267,3 @@
     font-size: 1rem;
   }
 }
-
-@media (max-width: 799px) {
-  body[data-layout="mobile"]:has(.action-status:not(.hidden)) .map-overlay-layer {
-    --selection-toolbar-top: calc(var(--ui-popover-screen-edge) + var(--ui-touch-height) + var(--ui-space-2));
-  }
-}
