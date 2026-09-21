@@ -28,6 +28,32 @@
 .reference-image-editing-summary[hidden] { display: none; }
 .reference-image-editing-summary > span { flex: 1; min-width: 0; }
 
+@media (min-width: 800px) {
+  .reference-image-panel {
+    --ui-reference-toolbar-outer-height: calc(
+      var(--ui-control-height) +
+      (var(--ui-space-1) * 2) +
+      (var(--ui-border-width) * 2)
+    );
+    --ui-reference-panel-bottom: calc(
+      var(--ui-map-bottom-occupied-height) +
+      var(--ui-map-edge) +
+      var(--ui-reference-toolbar-outer-height) +
+      var(--ui-menu-trigger-gap)
+    );
+    top: auto;
+    right: auto;
+    bottom: var(--ui-reference-panel-bottom);
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(var(--ui-reference-panel-width), calc(100% - var(--ui-map-edge) * 2));
+    max-height: min(
+      var(--ui-reference-panel-max-height),
+      calc(100% - var(--ui-reference-panel-bottom) - var(--ui-map-edge))
+    );
+  }
+}
+
 .reference-image-panel-header,
 .reference-image-editor-title,
 .reference-image-toolbar,

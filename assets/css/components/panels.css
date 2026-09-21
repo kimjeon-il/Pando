@@ -50,8 +50,7 @@ body.file-menu-open .mobile-backdrop {
   padding: 0 var(--ui-control-padding-x);
 }
 
-.map-command-toolbar,
-.mobile-menu-toolbar {
+.map-command-toolbar {
   position: absolute;
   z-index: 18;
   top: auto;
@@ -368,7 +367,8 @@ body.file-menu-open .mobile-backdrop {
   pointer-events: none;
 }
 
-.map-command-toolbar {
+.map-command-toolbar,
+.mobile-menu-toolbar {
   gap: var(--ui-space-1);
   padding: var(--ui-space-1);
   border: 1px solid var(--toolbar-border);
