@@ -55,7 +55,7 @@ export function createWorkspaceSurfaces() {
   }
 
   function mobileSheetAvailableHeight() {
-    const topbarHeight = document.querySelector('.topbar')?.getBoundingClientRect().height || 60;
+    const topbarHeight = document.querySelector('.topbar')?.getBoundingClientRect().height || (isMobile() ? 0 : 60);
     return Math.max(180, mobileViewportHeight() - topbarHeight - mobileSheetNavHeight());
   }
 
@@ -228,7 +228,12 @@ export function createWorkspaceSurfaces() {
     fileMenuTrigger = null;
     menu.classList.remove('mobile-open');
     syncOverlayState();
-    if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
+    if (restoreFocus) {
+      const focusTarget = isMobile()
+        ? ((0, dependencies.platform.$)('mobileMenuFileBtn') || (0, dependencies.platform.$)('mobileMenuBtn'))
+        : trigger;
+      if (focusTarget?.isConnected) focusTarget.focus({ preventScroll: true });
+    }
   }
 
   function activeCreateMenuItems() {

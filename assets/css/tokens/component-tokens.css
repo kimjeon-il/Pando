@@ -11,9 +11,9 @@
   --field-group-color: #aeb7c1;
   --country-label-flag-filter: drop-shadow(0 0 .4px rgba(0, 0, 0, .55));
   --preferences-card-width: min(520px, calc(100vw - var(--ui-dialog-edge) * 2));
-  --ui-preferences-swatch-gap: var(--design-space-1-5);
-  --ui-preferences-chip-size: 1.75rem;
-  --ui-preferences-chip-size-mobile: 2rem;
+  --ui-preferences-swatch-gap: 4px;
+  --ui-preferences-chip-size: 24px;
+  --ui-preferences-chip-size-mobile: 28px;
   --draft-issue-marker-stroke: #d45656;
   --fatal-noscript-border: 1px solid #8a4f4f;
   --fatal-noscript-background: #3b2525;

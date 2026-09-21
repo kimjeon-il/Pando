@@ -85,12 +85,19 @@ export function createProjectUiBridge({
     const draft = getDraftSnapshot();
     const undoAvailable = draftMode ? draft.historyCount > 0 : (canUndo() || false);
     const redoAvailable = draftMode ? draft.futureCount > 0 : (canRedo() || false);
-    $('undoBtn').disabled = getEditingSnapshot().processing || !undoAvailable;
-    $('redoBtn').disabled = getEditingSnapshot().processing || !redoAvailable;
-    $('undoBtn').dataset.tooltip = draftMode ? '작성 중 실행 취소' : '실행 취소';
-    $('redoBtn').dataset.tooltip = draftMode ? '작성 중 다시 실행' : '다시 실행';
-    $('undoBtn').setAttribute('aria-label', draftMode ? '작성 중 실행 취소' : '실행 취소');
-    $('redoBtn').setAttribute('aria-label', draftMode ? '작성 중 다시 실행' : '다시 실행');
+    const controls = [
+      [$('undoBtn'), getEditingSnapshot().processing || !undoAvailable, draftMode ? '작성 중 실행 취소' : '실행 취소'],
+      [$('redoBtn'), getEditingSnapshot().processing || !redoAvailable, draftMode ? '작성 중 다시 실행' : '다시 실행'],
+      [$('mobileUndoBtn'), getEditingSnapshot().processing || !undoAvailable, draftMode ? '작성 중 실행 취소' : '실행 취소'],
+      [$('mobileRedoBtn'), getEditingSnapshot().processing || !redoAvailable, draftMode ? '작성 중 다시 실행' : '다시 실행'],
+    ];
+    for (const [button, disabled, label] of controls) {
+      if (!button) continue;
+      button.disabled = disabled;
+      button.dataset.tooltip = label;
+      button.setAttribute('aria-label', label);
+      button.removeAttribute('aria-expanded');
+    }
   }
 
   function requestNewProject(event) {
