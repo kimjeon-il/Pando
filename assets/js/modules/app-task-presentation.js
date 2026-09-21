@@ -48,11 +48,11 @@ export function createTaskPresentation() {
       ? dependencies.projectState.state.selected.id : null;
     const selection = dependencies.projectState.state.territorySelectionSession;
     const buttons = [
+      ['annexTerritoryBtn', selection?.actionButtonId === 'annexTerritoryBtn' && selection.targetCountryId === selectedId],
       ['editBorderBtn', dependencies.projectState.state.tool === 'country-border' && dependencies.projectState.state.boundaryEditCountryIds.includes(String(selectedId))],
       ['editCoastBtn', dependencies.projectState.state.tool === 'country-coast' && dependencies.projectState.state.coastEditCountryId === selectedId],
       ['mergeCountryBtn', dependencies.projectState.state.tool === 'merge-country' && dependencies.projectState.state.mergeSourceCountryId === selectedId],
     ];
-    if (selection?.actionButtonId) buttons.push([selection.actionButtonId, selection.targetCountryId === selectedId]);
     for (const [id, active] of buttons) (0, dependencies.platform.$)(id)?.classList.toggle('active', !!active);
   }
 

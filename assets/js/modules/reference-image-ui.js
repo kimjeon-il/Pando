@@ -18,7 +18,6 @@ export function createReferenceImagePanel() {
     <header class="reference-image-panel-header">
       <div>
         <strong>참조 이미지</strong>
-        <span>지도 보정 · 트레이싱</span>
       </div>
       <button type="button" class="ui-button icon-btn" data-ref-action="close" aria-label="참조 이미지 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
     </header>
@@ -40,8 +39,8 @@ export function createReferenceImageLauncher() {
   button.type = 'button';
   button.className = 'ui-button icon-btn reference-image-launcher';
   button.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-reference-image"/></svg>';
-  button.setAttribute('aria-label', '참조 이미지');
-  button.dataset.tooltip = '참조 이미지';
+  button.setAttribute('aria-label', '이미지 추가');
+  button.dataset.tooltip = '이미지 추가';
   button.setAttribute('aria-expanded', 'false');
   return button;
 }
