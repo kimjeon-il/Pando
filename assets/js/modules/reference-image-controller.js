@@ -21,7 +21,6 @@ import {
   replaceStoredReferenceImages,
 } from './reference-image-store.js';
 import {
-  createReferenceImageLauncher,
   createReferenceImagePanel,
   referenceImageEditorMarkup,
   renderReferenceImageList,
@@ -118,12 +117,12 @@ function serializableRecord(record, order) {
 export function installReferenceImageController({ workspaceSurfaces, confirm, getGeneration = () => 0, isBlocked = () => false, cancelTools = () => {} } = {}) {
   if (document.documentElement.dataset.referenceImageController === 'installed') return globalThis.__PANDOLAB_REFERENCE_IMAGES__ || null;
   const mapElement = document.getElementById('map');
-  if (!mapElement) return null;
+  const launcher = document.getElementById('referenceImageBtn');
+  if (!mapElement || !launcher) return null;
   document.documentElement.dataset.referenceImageController = 'installed';
 
-  const launcher = createReferenceImageLauncher();
   const panel = createReferenceImagePanel();
-  mapElement.append(launcher, panel);
+  mapElement.append(panel);
 
   const fileInput = panel.querySelector('[data-ref-file]');
   const listElement = panel.querySelector('[data-ref-list]');

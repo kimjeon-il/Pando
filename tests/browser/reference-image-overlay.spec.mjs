@@ -13,6 +13,7 @@ async function openApp(page) {
   });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
+  await expect(page.locator('#referenceImageBtn')).toBeVisible();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect(page.locator('.reference-image-launcher')).toBeVisible();
@@ -75,6 +76,13 @@ async function addImage(page, name) {
   await page.locator('[data-ref-file]').setInputFiles({ name, mimeType: 'image/png', buffer: PNG_1X1 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list().length || 0)).toBeGreaterThan(0);
 }
+
+test('reference image toolbar button is present before enhanced startup', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await expect(page.locator('.map-command-toolbar #referenceImageBtn')).toBeVisible();
+  await expect(page.locator('#referenceImageBtn use')).toHaveAttribute('href', '#icon-reference-image');
+});
 
 test('reference images support placement, ordering, georeferencing and persistence without blocking normal map input', async ({ page }) => {
   test.setTimeout(180_000);

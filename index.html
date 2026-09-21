@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-4b17690438a4" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.33.0-build-4b17690438a4" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-7df9bc401ffe" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.33.0-build-7df9bc401ffe" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -224,7 +224,9 @@
 
         <div class="map-overlay-layer" aria-label="지도 도구 및 상태">
 
-        <button id="mobileMenuBtn" class="ui-button icon-btn mobile-menu-trigger ui-floating-surface" type="button" aria-label="메뉴 열기" aria-haspopup="menu" aria-controls="mobileGlobalMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <div class="ui-toolbar ui-floating-surface ui-floating-toolbar mobile-menu-toolbar">
+          <button id="mobileMenuBtn" class="ui-button icon-btn mobile-menu-trigger" type="button" aria-label="메뉴 열기" aria-haspopup="menu" aria-controls="mobileGlobalMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        </div>
         <nav id="mobileGlobalMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-list mobile-global-menu" role="menu" aria-label="모바일 메뉴" hidden>
           <button id="mobileMenuFileBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-haspopup="menu"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>파일</span><svg class="ui-icon ui-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
           <button id="mobileDisplayBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-controls="mapDisplaySurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg><span>보기</span></button>
@@ -256,6 +258,7 @@
           <div class="map-command-search">
             <button id="objectSearchBtn" class="ui-button icon-btn object-search-command" type="button" aria-label="검색" data-tooltip="검색" aria-controls="objectSearchSurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg></button>
           </div>
+          <button id="referenceImageBtn" class="ui-button icon-btn reference-image-launcher" type="button" aria-label="참조 이미지" data-tooltip="참조 이미지" aria-controls="referenceImageSurface" aria-haspopup="dialog" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-reference-image"/></svg></button>
           <button id="resetViewBtn" class="ui-button icon-btn reset-view-command" data-tooltip="전체 지도 보기" aria-label="전체 지도 보기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-fit-map"/></svg></button>
         </div>
 
@@ -912,10 +915,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-4b17690438a4" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-7df9bc401ffe" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-4b17690438a4" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-7df9bc401ffe" defer></script>
 </body>
 </html>

@@ -50,7 +50,8 @@ body.file-menu-open .mobile-backdrop {
   padding: 0 var(--ui-control-padding-x);
 }
 
-.map-command-toolbar {
+.map-command-toolbar,
+.mobile-menu-toolbar {
   position: absolute;
   z-index: 18;
   top: auto;
