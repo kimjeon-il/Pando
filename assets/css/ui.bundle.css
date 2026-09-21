@@ -1706,7 +1706,6 @@ html {
   background: var(--swatch);
   border: 1px solid color-mix(in srgb, var(--text) 30%, transparent);
   border-radius: var(--ui-color-swatch-border-radius);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 24%, transparent);
 }
 
 .preferences-theme {
@@ -1727,14 +1726,8 @@ html {
   outline-offset: var(--design-focus-offset);
 }
 
-.ui-button.preferences-accent-chip:hover:not(:disabled) {
-  background: var(--swatch);
-  border-color: var(--text-strong);
-}
-
 .ui-button.preferences-accent-chip[aria-pressed="true"] {
   border: 2px solid var(--accent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 70%, transparent);
   outline: none;
 }
 
@@ -2292,7 +2285,6 @@ body[data-layout="mobile"] .ui-select-option {
   border: 1px solid color-mix(in srgb, var(--text) 28%, transparent);
   border-radius: var(--ui-space-1-5);
   background: var(--swatch-color, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 26%, transparent);
 }
 
 .ui-color-value {
@@ -2387,17 +2379,11 @@ body[data-layout="mobile"] .ui-select-option {
   background: var(--swatch-color);
   color: white;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 24%, transparent);
-}
-
-.ui-color-swatch:hover {
-  border-color: var(--text-strong);
 }
 
 .ui-color-swatch[aria-pressed="true"] {
   border: 2px solid var(--accent);
   outline: none;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 70%, transparent);
 }
 
 .ui-color-swatch[aria-pressed="true"]::after {

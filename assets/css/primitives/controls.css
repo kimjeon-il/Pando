@@ -1098,7 +1098,6 @@ html {
   background: var(--swatch);
   border: 1px solid color-mix(in srgb, var(--text) 30%, transparent);
   border-radius: var(--ui-color-swatch-border-radius);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 24%, transparent);
 }
 
 .preferences-theme {
@@ -1119,14 +1118,8 @@ html {
   outline-offset: var(--design-focus-offset);
 }
 
-.ui-button.preferences-accent-chip:hover:not(:disabled) {
-  background: var(--swatch);
-  border-color: var(--text-strong);
-}
-
 .ui-button.preferences-accent-chip[aria-pressed="true"] {
   border: 2px solid var(--accent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 70%, transparent);
   outline: none;
 }
 
