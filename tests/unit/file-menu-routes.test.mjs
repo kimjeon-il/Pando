@@ -14,9 +14,14 @@ test('topbar separates history, file, view, settings and help commands', () => {
   assert.deepEqual([...topbar.matchAll(/id="(undoBtn|redoBtn|mobileFileBtn|mapDisplayBtn|preferencesBtn|helpBtn)"/g)].map(m => m[1]),
     ['undoBtn', 'redoBtn', 'mobileFileBtn', 'mapDisplayBtn', 'preferencesBtn', 'helpBtn']);
   assert.match(topbar, /<button id="mapDisplayBtn"[^>]*>보기<\/button>/);
-  assert.deepEqual([...menu.matchAll(/<button id="([^"]+)"/g)].map(m => m[1]),
+  const mobileMenu = html.match(/<nav id="mobileGlobalMenu"[\s\S]*?<\/nav>/)[0];
+  assert.deepEqual([...mobileMenu.matchAll(/<button id="([^"]+)"/g)].map(m => m[1]),
+    ['mobileMenuFileBtn', 'mobileDisplayBtn', 'mobilePreferencesBtn', 'mobileHelpBtn']);
+  assert.match(mobileMenu, /mobileDisplayBtn[\s\S]*#icon-tune/);
+  assert.match(mobileMenu, /mobileHelpBtn[\s\S]*#icon-help/);
+  assert.deepEqual([...menu.matchAll(/<button id="([^"]+)"/g)].map(m => m[1]).filter(id => id !== 'mobileFileBackBtn'),
     ['newProjectBtn', 'openProjectBtn', 'saveProjectBtn', 'openGisBtn', 'dataExportBtn']);
-  assert.deepEqual([...menu.matchAll(/<use href="#([^"]+)"/g)].map(m => m[1]),
+  assert.deepEqual([...menu.matchAll(/<use href="#([^"]+)"/g)].map(m => m[1]).filter(icon => icon !== 'icon-chevron-left'),
     ['icon-plus', 'icon-folder-open', 'icon-save', 'icon-map-import', 'icon-map-export']);
   assert.equal((menu.match(/role="separator"/g) || []).length, 1);
   assert.match(menu, /class="[^"]*\bui-command-menu\b/);

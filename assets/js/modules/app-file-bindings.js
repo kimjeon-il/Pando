@@ -78,7 +78,12 @@ export function createFileBindings() {
       }
       preferencesOrigin = null;
       preferencesModal.classList.add('hidden');
-      if (restoreFocus) (0, dependencies.platform.$)('preferencesBtn')?.focus({ preventScroll: true });
+      if (restoreFocus) {
+        const target = dependencies.surfaces.layoutMode === 'mobile'
+          ? (0, dependencies.platform.$)('mobilePreferencesBtn')
+          : (0, dependencies.platform.$)('preferencesBtn');
+        target?.focus({ preventScroll: true });
+      }
     };
     const openPreferences = () => {
       (0, dependencies.workspaceUiA.closeFileMenu)();
@@ -111,7 +116,12 @@ export function createFileBindings() {
     const closeHelp = ({ restoreFocus = true } = {}) => {
       if (!helpModal || helpModal.classList.contains('hidden')) return;
       helpModal.classList.add('hidden');
-      if (restoreFocus) (0, dependencies.platform.$)('helpBtn')?.focus({ preventScroll: true });
+      if (restoreFocus) {
+        const target = dependencies.surfaces.layoutMode === 'mobile'
+          ? (0, dependencies.platform.$)('mobileHelpBtn')
+          : (0, dependencies.platform.$)('helpBtn');
+        target?.focus({ preventScroll: true });
+      }
     };
     const openHelp = async () => {
       (0, dependencies.workspaceUiA.closeFileMenu)();
@@ -157,6 +167,7 @@ export function createFileBindings() {
     fileMenu?.addEventListener('click', e => {
       const button = e.target.closest('button');
       if (!button) return;
+      if (button.id === 'mobileFileBackBtn') return;
       setTimeout(() => {
         (0, dependencies.workspaceUiA.closeFileMenu)();
       }, 80);

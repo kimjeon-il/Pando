@@ -32,6 +32,23 @@ export function createNavigationBindings() {
   function bindNavigationUI() {
     bindSurfaceTabs();
     (0, dependencies.mapSettingsUi.bindMapDisplayUI)();
+    const mobileMenu = () => (0, dependencies.platform.$)('mobileGlobalMenu');
+    const closeMobileMenu = ({ restoreFocus = false } = {}) => {
+      const menu = mobileMenu();
+      if (!menu || menu.hidden) return;
+      menu.hidden = true;
+      (0, dependencies.platform.$)('mobileMenuBtn')?.setAttribute('aria-expanded', 'false');
+      if (restoreFocus) (0, dependencies.platform.$)('mobileMenuBtn')?.focus({ preventScroll: true });
+    };
+    const openMobileMenu = () => {
+      const menu = mobileMenu();
+      if (!menu) return;
+      (0, dependencies.workspaceUiA.closeFileMenu)();
+      (0, dependencies.workspaceUiA.closeSurface)('create');
+      menu.hidden = false;
+      (0, dependencies.platform.$)('mobileMenuBtn')?.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(() => menu.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
+    };
     let displayPointerStartedInside = false;
     let searchToolbarPointer = false;
     const closeDesktopDisplayMenu = () => {
@@ -49,6 +66,7 @@ export function createNavigationBindings() {
       if (!e.target.closest('.top-actions') && !e.target.closest('#mobileFileBtn')) {
         (0, dependencies.workspaceUiA.closeFileMenu)();
       }
+      if (!e.target.closest('#mobileGlobalMenu, #mobileMenuBtn')) closeMobileMenu();
       if (!e.target.closest('#mapDisplaySurface, #mapDisplayBtn') && !(e.detail && displayPointerStartedInside)) {
         closeDesktopDisplayMenu();
       }
@@ -89,6 +107,34 @@ export function createNavigationBindings() {
       closeDesktopDisplayMenu();
       (0, dependencies.workspaceUiB.toggleFileMenu)();
     });
+    (0, dependencies.platform.$)('mobileMenuBtn')?.addEventListener('click', event => {
+      event.stopPropagation();
+      const menu = mobileMenu();
+      if (menu?.hidden) openMobileMenu(); else closeMobileMenu({ restoreFocus: true });
+    });
+    (0, dependencies.platform.$)('mobileMenuFileBtn')?.addEventListener('click', event => {
+      event.stopPropagation();
+      closeMobileMenu();
+      (0, dependencies.workspaceUiB.toggleFileMenu)();
+    });
+    (0, dependencies.platform.$)('mobileFileBackBtn')?.addEventListener('click', event => {
+      event.stopPropagation();
+      (0, dependencies.workspaceUiA.closeFileMenu)();
+      openMobileMenu();
+    });
+    (0, dependencies.platform.$)('mobilePreferencesBtn')?.addEventListener('click', () => {
+      closeMobileMenu();
+      (0, dependencies.platform.$)('preferencesBtn')?.click();
+    });
+    (0, dependencies.platform.$)('mobileHelpBtn')?.addEventListener('click', () => {
+      closeMobileMenu();
+      (0, dependencies.platform.$)('helpBtn')?.click();
+    });
+    (0, dependencies.platform.$)('mobileGlobalMenu')?.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      closeMobileMenu({ restoreFocus: true });
+    });
     (0, dependencies.platform.$)('notificationCloseBtn')?.addEventListener('click', dependencies.readinessUi.clearNotification);
     (0, dependencies.platform.$)('createMenuBtn')?.addEventListener('click', event => {
       event.stopPropagation();
@@ -123,12 +169,16 @@ export function createNavigationBindings() {
     (0, dependencies.platform.$)('objectDeleteBtn')?.addEventListener('click', () => dependencies.objectOperationsA.deleteSelectedFromObjectMenu());
     (0, dependencies.platform.$)('mobileBackdrop')?.addEventListener('click', () => {
       (0, dependencies.workspaceUiA.closeFileMenu)({ restoreFocus: true });
+      closeMobileMenu({ restoreFocus: true });
     });
     Object.values(dependencies.workspaceUiA.MOBILE_SHEET_IDS).forEach(id => (0, dependencies.workspaceUiA.bindMobileSheetSurface)((0, dependencies.platform.$)(id)));
     (0, dependencies.platform.$)('mobileCreateBtn')?.addEventListener('click', event => (0, dependencies.workspaceUiC.toggleSurface)('create', event.currentTarget));
     (0, dependencies.platform.$)('mobileSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));
     (0, dependencies.platform.$)('mobileEditBtn')?.addEventListener('click', event => (0, dependencies.workspaceUiC.toggleSurface)('editor', event.currentTarget));
-    (0, dependencies.platform.$)('mobileDisplayBtn')?.addEventListener('click', event => toggleWorkspaceSurface('display', event.currentTarget));
+    (0, dependencies.platform.$)('mobileDisplayBtn')?.addEventListener('click', event => {
+      closeMobileMenu();
+      toggleWorkspaceSurface('display', event.currentTarget);
+    });
     (0, dependencies.platform.$)('objectSearchCloseBtn')?.addEventListener('click', () => (0, dependencies.workspaceUiA.closeSurface)('search', { restoreFocus: true }));
     (0, dependencies.platform.$)('mapDisplayCloseBtn')?.addEventListener('click', () => (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: true }));
     (0, dependencies.platform.$)('mobileCloseRightBtn')?.addEventListener('click', () => {

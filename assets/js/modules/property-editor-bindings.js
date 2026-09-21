@@ -147,6 +147,8 @@ export function createPropertyEditorBindings({
 
     listen($('undoBtn'), 'click', undo);
     listen($('redoBtn'), 'click', redo);
+    listen($('mobileUndoBtn'), 'click', undo);
+    listen($('mobileRedoBtn'), 'click', redo);
 
     listen($('focusSelectedObjectBtn'), 'click', () => getPrimary() && focusObjectRef(getPrimary()));
     listen($('objectFocusMenuBtn'), 'click', () => { closeObjectActionsMenu(); if (getPrimary()) focusObjectRef(getPrimary()); });
