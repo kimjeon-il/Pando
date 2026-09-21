@@ -7149,8 +7149,7 @@ body.file-menu-open .mobile-backdrop {
   padding: 0 var(--ui-control-padding-x);
 }
 
-.map-command-toolbar,
-.mobile-menu-toolbar {
+.map-command-toolbar {
   position: absolute;
   z-index: 18;
   top: auto;
@@ -7467,7 +7466,8 @@ body.file-menu-open .mobile-backdrop {
   pointer-events: none;
 }
 
-.map-command-toolbar {
+.map-command-toolbar,
+.mobile-menu-toolbar {
   gap: var(--ui-space-1);
   padding: var(--ui-space-1);
   border: 1px solid var(--toolbar-border);
@@ -8292,6 +8292,8 @@ body.file-menu-open .mobile-backdrop {
     position: absolute;
     z-index: 180;
     top: max(var(--ui-space-2), env(safe-area-inset-top));
+    right: auto;
+    bottom: auto;
     left: max(var(--ui-space-2), env(safe-area-inset-left));
     width: var(--ui-mobile-floating-surface-size);
     min-width: var(--ui-mobile-floating-surface-size);
@@ -8299,6 +8301,7 @@ body.file-menu-open .mobile-backdrop {
     min-height: var(--ui-mobile-floating-surface-size);
     padding: var(--ui-space-1-5);
     gap: 0;
+    transform: none;
   }
 
   [data-layout="mobile"] .mobile-menu-trigger {

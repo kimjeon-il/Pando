@@ -74,6 +74,8 @@
     position: absolute;
     z-index: 180;
     top: max(var(--ui-space-2), env(safe-area-inset-top));
+    right: auto;
+    bottom: auto;
     left: max(var(--ui-space-2), env(safe-area-inset-left));
     width: var(--ui-mobile-floating-surface-size);
     min-width: var(--ui-mobile-floating-surface-size);
@@ -81,6 +83,7 @@
     min-height: var(--ui-mobile-floating-surface-size);
     padding: var(--ui-space-1-5);
     gap: 0;
+    transform: none;
   }
 
   [data-layout="mobile"] .mobile-menu-trigger {

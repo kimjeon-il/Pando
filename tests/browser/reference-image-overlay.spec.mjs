@@ -84,6 +84,19 @@ test('reference image toolbar button is present before enhanced startup', async 
   await expect(page.locator('#referenceImageBtn use')).toHaveAttribute('href', '#icon-reference-image');
 });
 
+test('reference image panel opens above the desktop command toolbar', async ({ page }) => {
+  const errors = await openApp(page);
+  await page.locator('#referenceImageBtn').click();
+  await expect(page.locator('#referenceImageSurface')).toBeVisible();
+  const bounds = await page.evaluate(() => {
+    const panel = document.querySelector('#referenceImageSurface').getBoundingClientRect();
+    const toolbar = document.querySelector('.map-command-toolbar').getBoundingClientRect();
+    return { panelBottom: panel.bottom, toolbarTop: toolbar.top };
+  });
+  expect(bounds.panelBottom).toBeLessThan(bounds.toolbarTop);
+  expect(errors).toEqual([]);
+});
+
 test('reference images support placement, ordering, georeferencing and persistence without blocking normal map input', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);

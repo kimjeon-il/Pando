@@ -48,7 +48,7 @@ export function createObjectCommands() {
     if (!ref) return { name: '알 수 없는 객체', type: '' };
     if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
       const feature = (0, dependencies.countries.countryFeatureById)(ref.id);
-      return { name: feature ? (0, dependencies.presentation.countryName)(feature) : ref.id, type: '국가', detail: feature?.properties?.name || '' };
+      return { name: feature ? (0, dependencies.presentation.countryName)(feature) : ref.id, type: '국가', detail: '' };
     }
     if (ref.domain === 'territorial') {
       const feature = (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
