@@ -167,7 +167,7 @@
   padding: var(--ui-toolbar-padding);
 }
 
-.app-root[data-layout="mobile"] .icon-btn {
+.app-root[data-layout="mobile"] .icon-btn:not(.mobile-menu-trigger) {
   width: var(--ui-touch-height);
   min-width: var(--ui-touch-height);
   height: var(--ui-touch-height);

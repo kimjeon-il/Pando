@@ -4,8 +4,8 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
   panel.id = 'referenceImageSurface';
   panel.classList.add('workspace-surface', 'surface-reference', 'ui-sheet');
   launcher.id = 'referenceImageBtn';
-  launcher.classList.add('btn', 'ghost');
   launcher.setAttribute('aria-label', '참조 이미지');
+  launcher.dataset.tooltip = '참조 이미지';
   launcher.setAttribute('aria-controls', panel.id);
   launcher.setAttribute('aria-haspopup', 'dialog');
   const header = panel.querySelector('.reference-image-panel-header');

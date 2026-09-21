@@ -121,7 +121,7 @@
 }
 
 .map-command-search.is-expanded {
-  width: min(22.5rem, var(--search-toolbar-available-width, calc(100dvw - var(--ui-menu-screen-edge) * 2 - var(--ui-control-height) * 2 - var(--ui-toolbar-gap) * 2 - var(--ui-toolbar-padding) * 2 - var(--ui-space-0-5))));
+  width: min(22.5rem, var(--search-toolbar-available-width, calc(100dvw - var(--ui-menu-screen-edge) * 2 - var(--ui-control-height) * 3 - var(--ui-toolbar-gap) * 3 - var(--ui-toolbar-padding) * 2 - var(--ui-space-0-5))));
 }
 
 .map-command-toolbar:has(.map-command-search.is-expanded) {
@@ -225,12 +225,12 @@
     display: flex;
     grid-template-columns: none;
     grid-template-rows: none;
-    width: var(--ui-mobile-floating-surface-size);
-    min-width: var(--ui-mobile-floating-surface-size);
+    width: max-content;
+    min-width: 0;
     height: var(--ui-mobile-floating-surface-size);
     min-height: var(--ui-mobile-floating-surface-size);
     padding: var(--ui-space-1-5);
-    gap: 0;
+    gap: var(--ui-toolbar-gap);
     transform: none;
   }
 }
@@ -247,6 +247,7 @@
     min-width: var(--ui-touch-height);
     height: var(--ui-touch-height);
     min-height: var(--ui-touch-height);
+    flex: 0 0 var(--ui-touch-height);
   }
 }
 

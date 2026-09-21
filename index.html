@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-c30ea72e0662" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.33.0-build-c30ea72e0662" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-4b17690438a4" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.33.0-build-4b17690438a4" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -32,6 +32,7 @@
     <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></symbol>
     <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
     <symbol id="icon-map" viewBox="0 0 24 24"><path d="m4 6 5-2 6 2 5-2v14l-5 2-6-2-5 2V6ZM9 4v14M15 6v14"/></symbol>
+    <symbol id="icon-reference-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m5 17 4.5-4.5 3.5 3 2.5-2.5L19 17"/></symbol>
     <symbol id="icon-projection-flat" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 10h16M4 15h16M9 5v14M15 5v14"/></symbol>
     <symbol id="icon-fit-map" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/><path d="M8 9.5 12 8l4 1.5v5L12 16l-4-1.5v-5Z"/></symbol>
     <symbol id="icon-focus-object" viewBox="0 0 24 24"><path d="M9 4H5a1 1 0 0 0-1 1v4M15 4h4a1 1 0 0 1 1 1v4M9 20H5a1 1 0 0 1-1-1v-4M15 20h4a1 1 0 0 0 1-1v-4"/><circle cx="12" cy="12" r="3"/><path d="M12 7v2M12 15v2M7 12h2M15 12h2"/></symbol>
@@ -231,7 +232,7 @@
           <button id="mobileHelpBtn" class="ui-button ui-menu-item" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-help"/></svg><span>도움말</span></button>
         </nav>
         <nav id="fileMenu" class="ui-menu ui-popover ui-floating-surface top-actions ui-scroll-surface ui-menu-surface ui-menu-list ui-command-menu" role="menu" aria-label="파일 메뉴">
-            <button id="mobileFileBackBtn" class="ui-button ui-menu-item mobile-file-back" type="button" aria-label="모바일 메뉴로 돌아가기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-left"/></svg><span>메뉴</span></button>
+            <button id="mobileFileBackBtn" class="ui-button btn ghost file-menu-item ui-menu-item mobile-file-back" type="button" aria-label="모바일 메뉴로 돌아가기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-left"/></svg><span>메뉴</span></button>
             <button id="newProjectBtn" type="button" class="ui-button btn ghost file-menu-item ui-menu-item new-project-command" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>새 프로젝트</span></button>
             <button id="openProjectBtn" class="ui-button btn ghost file-menu-item ui-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>프로젝트 불러오기</span></button>
             <input id="projectFileInput" type="file" accept=".gpkg,application/geopackage+sqlite3" hidden />
@@ -911,10 +912,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-c30ea72e0662" defer></script>
+  <script src="assets/js/build-meta.js?v=0.33.0-build-4b17690438a4" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-c30ea72e0662" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.33.0-build-4b17690438a4" defer></script>
 </body>
 </html>

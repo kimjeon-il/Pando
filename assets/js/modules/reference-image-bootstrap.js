@@ -24,13 +24,18 @@ function ensureStylesheet(relativePath, revision) {
   return link;
 }
 
-function moveControlsToOverlayLayer() {
+function moveControlsToMapUi() {
   const mapElement = document.getElementById('map');
   const overlayLayer = mapElement?.closest('.map-wrap')?.querySelector('.map-overlay-layer');
+  const commandToolbar = overlayLayer?.querySelector('.map-command-toolbar');
   if (!mapElement || !overlayLayer) return;
   const launcher = mapElement.querySelector(':scope > .reference-image-launcher');
   const panel = mapElement.querySelector(':scope > .reference-image-panel');
-  if (launcher) overlayLayer.appendChild(launcher);
+  if (launcher && commandToolbar) {
+    const resetViewButton = commandToolbar.querySelector('#resetViewBtn');
+    if (resetViewButton) resetViewButton.before(launcher);
+    else commandToolbar.appendChild(launcher);
+  }
   if (panel) overlayLayer.appendChild(panel);
 }
 
@@ -43,7 +48,7 @@ export async function installReferenceImageFeature({ revision = '', workspaceSur
   const controller = installReferenceImageController({ workspaceSurfaces, confirm, getGeneration, isBlocked,
     cancelTools: () => { if (lineRefiner?.active()) lineRefiner.cancel(); if (liveWire?.active()) liveWire.cancel(); },
   });
-  moveControlsToOverlayLayer();
+  moveControlsToMapUi();
 
   const lineRefinerUrl = new URL('./reference-image-line-refine-controller.js', import.meta.url);
   if (revision) lineRefinerUrl.searchParams.set('v', revision);

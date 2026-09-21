@@ -16,6 +16,13 @@ async function openApp(page) {
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect(page.locator('.reference-image-launcher')).toBeVisible();
+  await expect(page.locator('.map-command-toolbar #referenceImageBtn')).toBeVisible();
+  await expect(page.locator('.map-command-search + #referenceImageBtn')).toHaveCount(1);
+  await expect(page.locator('#referenceImageBtn + #resetViewBtn')).toHaveCount(1);
+  await expect(page.locator('#referenceImageBtn')).toHaveAttribute('aria-label', '참조 이미지');
+  await expect(page.locator('#referenceImageBtn')).toHaveAttribute('data-tooltip', '참조 이미지');
+  await expect(page.locator('#referenceImageBtn')).toHaveText('');
+  await expect(page.locator('#referenceImageBtn use')).toHaveAttribute('href', '#icon-reference-image');
   return errors;
 }
 
@@ -229,6 +236,26 @@ test('reference images support placement, ordering, georeferencing and persisten
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  await expect(page.locator('#createMenuBtn')).toBeHidden();
+  await expect(page.locator('.map-command-search')).toBeHidden();
+  await expect(page.locator('#referenceImageBtn')).toBeVisible();
+  await expect(page.locator('#resetViewBtn')).toBeVisible();
+  const commandToolbarSizes = await page.evaluate(() => {
+    const toolbar = document.querySelector('.map-command-toolbar').getBoundingClientRect();
+    const reference = document.querySelector('#referenceImageBtn').getBoundingClientRect();
+    const reset = document.querySelector('#resetViewBtn').getBoundingClientRect();
+    return {
+      toolbar: { width: toolbar.width, height: toolbar.height },
+      reference: { width: reference.width, height: reference.height },
+      reset: { width: reset.width, height: reset.height },
+    };
+  });
+  expect(commandToolbarSizes.toolbar.width).toBeCloseTo(114, 0);
+  expect(commandToolbarSizes.toolbar.height).toBeCloseTo(62, 0);
+  expect(commandToolbarSizes.reference.width).toBeCloseTo(48, 0);
+  expect(commandToolbarSizes.reference.height).toBeCloseTo(48, 0);
+  expect(commandToolbarSizes.reset.width).toBeCloseTo(48, 0);
+  expect(commandToolbarSizes.reset.height).toBeCloseTo(48, 0);
   await page.locator('.reference-image-launcher').click();
   const imagePanel = page.locator('.reference-image-panel');
   await expect(imagePanel).toBeVisible();

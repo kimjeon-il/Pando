@@ -91,10 +91,21 @@
     display: grid;
     position: absolute;
     z-index: 210;
-    top: calc(max(var(--ui-space-2), env(safe-area-inset-top)) + var(--ui-mobile-floating-surface-size) + var(--ui-space-2));
-    left: max(var(--ui-space-2), env(safe-area-inset-left));
-    width: min(var(--ui-menu-width), calc(100vw - var(--ui-space-4) - env(safe-area-inset-left) - env(safe-area-inset-right)));
     padding: var(--ui-menu-padding);
+  }
+
+  [data-layout="mobile"] .mobile-global-menu,
+  .app-root[data-layout="mobile"] .top-actions {
+    top: calc(
+      max(var(--ui-space-2), env(safe-area-inset-top))
+      + var(--ui-mobile-floating-surface-size)
+      + var(--ui-space-2)
+    );
+    left: max(var(--ui-space-2), env(safe-area-inset-left));
+    width: min(
+      var(--ui-menu-width),
+      calc(100vw - var(--ui-space-4) - env(safe-area-inset-left) - env(safe-area-inset-right))
+    );
   }
 
   [data-layout="mobile"] .mobile-global-menu[hidden] { display: none; }
