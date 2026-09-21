@@ -5595,17 +5595,6 @@ body.file-menu-open .app-root .topbar {
   }
 }
 
-@media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .top-actions {
-    position: fixed;
-    top: calc(var(--ui-shell-topbar-height) + var(--ui-space-2));
-    right: auto;
-    left: max(var(--ui-space-2), env(safe-area-inset-left));
-    width: min(var(--ui-menu-width), calc(100vw - var(--ui-space-4) - env(safe-area-inset-left) - env(safe-area-inset-right)));
-    max-width: none;
-  }
-}
-
 /* source: assets/css/components/editor-shell.css */
 
 /* Canonical components / editor-shell. */
@@ -8319,10 +8308,21 @@ body.file-menu-open .mobile-backdrop {
     display: grid;
     position: absolute;
     z-index: 210;
-    top: calc(max(var(--ui-space-2), env(safe-area-inset-top)) + var(--ui-mobile-floating-surface-size) + var(--ui-space-2));
-    left: max(var(--ui-space-2), env(safe-area-inset-left));
-    width: min(var(--ui-menu-width), calc(100vw - var(--ui-space-4) - env(safe-area-inset-left) - env(safe-area-inset-right)));
     padding: var(--ui-menu-padding);
+  }
+
+  [data-layout="mobile"] .mobile-global-menu,
+  .app-root[data-layout="mobile"] .top-actions {
+    top: calc(
+      max(var(--ui-space-2), env(safe-area-inset-top))
+      + var(--ui-mobile-floating-surface-size)
+      + var(--ui-space-2)
+    );
+    left: max(var(--ui-space-2), env(safe-area-inset-left));
+    width: min(
+      var(--ui-menu-width),
+      calc(100vw - var(--ui-space-4) - env(safe-area-inset-left) - env(safe-area-inset-right))
+    );
   }
 
   [data-layout="mobile"] .mobile-global-menu[hidden] { display: none; }
@@ -9514,7 +9514,7 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
 }
 
 .map-command-search.is-expanded {
-  width: min(22.5rem, var(--search-toolbar-available-width, calc(100dvw - var(--ui-menu-screen-edge) * 2 - var(--ui-control-height) * 2 - var(--ui-toolbar-gap) * 2 - var(--ui-toolbar-padding) * 2 - var(--ui-space-0-5))));
+  width: min(22.5rem, var(--search-toolbar-available-width, calc(100dvw - var(--ui-menu-screen-edge) * 2 - var(--ui-control-height) * 3 - var(--ui-toolbar-gap) * 3 - var(--ui-toolbar-padding) * 2 - var(--ui-space-0-5))));
 }
 
 .map-command-toolbar:has(.map-command-search.is-expanded) {
@@ -9618,12 +9618,12 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
     display: flex;
     grid-template-columns: none;
     grid-template-rows: none;
-    width: var(--ui-mobile-floating-surface-size);
-    min-width: var(--ui-mobile-floating-surface-size);
+    width: max-content;
+    min-width: 0;
     height: var(--ui-mobile-floating-surface-size);
     min-height: var(--ui-mobile-floating-surface-size);
     padding: var(--ui-space-1-5);
-    gap: 0;
+    gap: var(--ui-toolbar-gap);
     transform: none;
   }
 }
@@ -9640,6 +9640,7 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
     min-width: var(--ui-touch-height);
     height: var(--ui-touch-height);
     min-height: var(--ui-touch-height);
+    flex: 0 0 var(--ui-touch-height);
   }
 }
 
@@ -9820,7 +9821,7 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
   padding: var(--ui-toolbar-padding);
 }
 
-.app-root[data-layout="mobile"] .icon-btn {
+.app-root[data-layout="mobile"] .icon-btn:not(.mobile-menu-trigger) {
   width: var(--ui-touch-height);
   min-width: var(--ui-touch-height);
   height: var(--ui-touch-height);

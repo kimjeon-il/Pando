@@ -8,24 +8,6 @@
   pointer-events: none;
 }
 
-.reference-image-launcher {
-  position: absolute;
-  z-index: 8;
-  inset-block-start: calc(var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-4));
-  inset-inline-end: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-map-edge));
-  min-height: var(--ui-control-height);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-.reference-image-launcher .ui-icon {
-  flex: 0 0 var(--ui-icon-size);
-  width: var(--ui-icon-size);
-  height: var(--ui-icon-size);
-}
-
 .reference-image-panel {
   --ui-reference-panel-top: calc(var(--ui-map-edge) + var(--ui-control-height) + var(--ui-space-4) + var(--ui-control-height) + var(--ui-space-2));
   position: absolute;
@@ -158,16 +140,6 @@
 .reference-image-points .btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 
 @media (max-width: 799px) {
-  .reference-image-launcher {
-    inset-block-start: var(--ui-space-2);
-    inset-inline-end: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-space-2));
-    width: var(--ui-mobile-floating-surface-size);
-    min-width: var(--ui-mobile-floating-surface-size);
-    height: var(--ui-mobile-floating-surface-size);
-    min-height: var(--ui-mobile-floating-surface-size);
-    padding: var(--ui-space-1-5);
-  }
-
   .reference-image-field {
     grid-template-columns: var(--ui-reference-field-label-width-mobile) minmax(0, 1fr) auto;
   }

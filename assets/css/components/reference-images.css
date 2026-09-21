@@ -8,12 +8,6 @@
   color: var(--text);
 }
 
-.reference-image-launcher {
-  gap: var(--ui-space-2);
-  box-shadow: var(--control-shadow);
-  backdrop-filter: blur(var(--ui-v2-overlay-blur));
-}
-
 .reference-image-panel-header,
 .reference-image-editor-title,
 .reference-image-toolbar,

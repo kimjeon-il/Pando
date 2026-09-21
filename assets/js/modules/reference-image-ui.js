@@ -38,8 +38,10 @@ export function createReferenceImagePanel() {
 export function createReferenceImageLauncher() {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'ui-button ui-floating-surface reference-image-launcher';
-  button.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"/></svg><span>참조 이미지</span>';
+  button.className = 'ui-button icon-btn reference-image-launcher';
+  button.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-reference-image"/></svg>';
+  button.setAttribute('aria-label', '참조 이미지');
+  button.dataset.tooltip = '참조 이미지';
   button.setAttribute('aria-expanded', 'false');
   return button;
 }
