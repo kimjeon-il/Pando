@@ -161,8 +161,11 @@
   .reference-image-launcher {
     inset-block-start: var(--ui-space-2);
     inset-inline-end: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-space-2));
-    min-width: var(--ui-v2-control-mobile-height);
-    min-height: var(--ui-v2-control-mobile-height);
+    width: var(--ui-mobile-floating-surface-size);
+    min-width: var(--ui-mobile-floating-surface-size);
+    height: var(--ui-mobile-floating-surface-size);
+    min-height: var(--ui-mobile-floating-surface-size);
+    padding: var(--ui-space-1-5);
   }
 
   .reference-image-field {

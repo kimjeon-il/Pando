@@ -231,7 +231,7 @@
 
 @media (max-width: 799px) {
   .map-overlay-layer {
-    --selection-toolbar-height: calc(var(--ui-touch-height) + var(--ui-space-3));
+    --selection-toolbar-height: var(--ui-mobile-floating-surface-size);
   }
 }
 
