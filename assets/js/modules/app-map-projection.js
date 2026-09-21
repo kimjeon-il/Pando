@@ -42,7 +42,7 @@ export function createMapProjection() {
   function readObjectFitInsets(mapRect, safe) {
     const insets = { ...safe };
     if (!mapRect?.width || !mapRect?.height) return insets;
-    const panel = (0, dependencies.platform.$)('rightPanel');
+    const panel = (0, dependencies.platform.$)('editorSurface');
     const panelOpen = panel?.classList.contains('mobile-open') && getComputedStyle(panel).visibility !== 'hidden';
     if (!panelOpen) return insets;
     const panelRect = panel.getBoundingClientRect();

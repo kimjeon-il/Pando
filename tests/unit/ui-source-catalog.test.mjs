@@ -77,7 +77,7 @@ test('UI tools consume the catalog and audit the current surface variants', () =
   const informationAudit = read('scripts/check-ui-information-architecture.mjs');
   assert.match(informationAudit, /surface-controller\.js/);
   for (const kind of ['menu-sheet', 'delegated', 'editor']) assert.match(informationAudit, new RegExp(`kind: ['"]${kind}['"]`));
-  for (const id of ['createMenu', 'objectSearchSurface', 'mapDisplaySurface', 'rightPanel']) {
+  for (const id of ['createMenu', 'objectSearchSurface', 'mapDisplaySurface', 'editorSurface']) {
     assert.match(informationAudit, new RegExp(`id: ['"]${id}['"]`));
   }
 });

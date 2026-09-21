@@ -29,7 +29,7 @@ export function createPropertySelection() {
     };
     const available = key => !!tabs[key] && !tabs[key].hidden && tabs[key].getAttribute('aria-disabled') !== 'true';
     const active = available(requested) ? requested : ['info', 'actions', 'relation'].find(available) || requested;
-    (0, dependencies.platform.$)('rightPanel')?.setAttribute('data-editor-view', active);
+    (0, dependencies.platform.$)('editorSurface')?.setAttribute('data-editor-view', active);
     dependencies.workspaceUiA.editorSurfaceTabs?.sync(active, { focus });
   }
 

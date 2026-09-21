@@ -246,7 +246,7 @@ export function createWorkspaceSurfaces() {
     const ids = isMobile()
       ? { create: 'mobileCreateBtn', search: 'mobileSearchBtn', display: 'mobileDisplayBtn', editor: 'mobileEditBtn', reference: 'referenceImageBtn' }
       : { create: 'createMenuBtn', search: 'objectSearchBtn', display: 'mapDisplayBtn', reference: 'referenceImageBtn' };
-    const panelId = { create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', editor: 'rightPanel', reference: 'referenceImageSurface' }[surface];
+    const panelId = { create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', editor: 'editorSurface', reference: 'referenceImageSurface' }[surface];
     const rememberedTrigger = lastOverlayTrigger?.isConnected
       && lastOverlayTrigger.getClientRects().length > 0
       && lastOverlayTrigger.getAttribute('aria-controls') === panelId
@@ -552,7 +552,7 @@ export function createWorkspaceSurfaces() {
   }
 
   function openSelectionEditor({ explicit = false, trigger = null, focus = false } = {}) {
-    const panel = (0, dependencies.platform.$)('rightPanel');
+    const panel = (0, dependencies.platform.$)('editorSurface');
     if (!panel) return false;
     let opened = surfaceController.isOpen('editor');
     if (!opened && explicit) opened = openSurface('editor', { trigger, automatic: false });
@@ -623,7 +623,7 @@ export function createWorkspaceSurfaces() {
       openSurface('editor');
       requestAnimationFrame(() => {
         if (!surfaceController.isOpen('editor')) return;
-        const panel = (0, dependencies.platform.$)('rightPanel');
+        const panel = (0, dependencies.platform.$)('editorSurface');
         const input = [...panel.querySelectorAll('input:not([type="hidden"]):not(:disabled), select:not(:disabled), textarea:not(:disabled)')]
           .find(element => element.getClientRects().length > 0 && !element.closest('[hidden], .hidden'));
         input?.focus({ preventScroll: true });
@@ -676,7 +676,7 @@ export function createWorkspaceSurfaces() {
 
     (editorWorkspacePresentation = (0, dependencies.uiFactoriesA.createEditorWorkspacePresentation)({
       document,
-      panel: (0, dependencies.platform.$)('rightPanel'), task: (0, dependencies.platform.$)('modeEditingContext'),
+      panel: (0, dependencies.platform.$)('editorSurface'), task: (0, dependencies.platform.$)('modeEditingContext'),
       dockSlot: (0, dependencies.platform.$)('editorTaskSlot'), floatingSlot: (0, dependencies.platform.$)('mapTopContextSlot'),
       content: (0, dependencies.platform.$)('modeTaskWindowContent'), minimize: (0, dependencies.platform.$)('modeTaskMinimizeBtn'),
       isEditorOpen: () => surfaceController.isOpen('editor'),
@@ -702,7 +702,7 @@ export function createWorkspaceSurfaces() {
 
     (MOBILE_SHEET_DEFAULT_SNAP = 1);
 
-    (MOBILE_SHEET_IDS = Object.freeze({ create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', edit: 'rightPanel', reference: 'referenceImageSurface' }));
+    (MOBILE_SHEET_IDS = Object.freeze({ create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', edit: 'editorSurface', reference: 'referenceImageSurface' }));
 
     (sheetSnapIndex = new Map(Object.values(MOBILE_SHEET_IDS).map(id => [id, MOBILE_SHEET_DEFAULT_SNAP])));
 

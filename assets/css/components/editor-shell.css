@@ -845,7 +845,7 @@
 
 .surface-header .editor-collapse-icon {
   display: none;
-  transform: rotate(-90deg);
+  transform: rotate(90deg);
 }
 
 [data-layout="wide"] .surface-header .editor-collapse-icon {
@@ -865,7 +865,7 @@
 }
 
 [data-layout="wide"] .surface-editor {
-  width: var(--ui-shell-right-panel-width);
+  width: var(--ui-shell-editor-width);
 }
 
 .editor-task-slot[hidden] {
@@ -1003,10 +1003,6 @@
   --map-safe-right: 0px;
 }
 
-.app-root[data-layout="wide"] .workspace.editor-drawer-open .map-view-toolbar {
-  right: calc(var(--ui-shell-right-panel-width) + var(--ui-map-edge));
-}
-
 @media (prefers-reduced-motion: reduce) {
   .mode-task-window {
     transition: none;
@@ -1098,7 +1094,7 @@
 }
 
 @media (min-width: 800px) {
-  [data-layout="wide"] .right-panel {
+  [data-layout="wide"] .editor-drawer {
     background: var(--surface-elevated);
   }
 }

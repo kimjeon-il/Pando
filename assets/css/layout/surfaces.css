@@ -53,9 +53,9 @@
 }
 
 [data-layout="compact"] .surface-editor {
-  right: var(--ui-shell-compact-inset);
-  left: auto;
-  transform: translateX(calc(100% + var(--ui-surface-offscreen-gap)));
+  right: auto;
+  left: var(--ui-shell-compact-inset);
+  transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
 }
 
 [data-layout="compact"] .surface-editor.mobile-open {

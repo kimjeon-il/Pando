@@ -25,7 +25,7 @@ function element(id = '') {
 function fixture(initialLayout) {
   let layout = initialLayout;
   const elements = Object.fromEntries([
-    'objectSearchSurface', 'mapDisplaySurface', 'rightPanel', 'createMenu', 'objectSearchBtn',
+    'objectSearchSurface', 'mapDisplaySurface', 'editorSurface', 'createMenu', 'objectSearchBtn',
     'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'createMenuBtn', 'mobileEditBtn',
     'mobileFileBtn', 'mobileBackdrop', 'mobileCreateBtn', 'referenceImageSurface', 'referenceImageBtn',
   ].map(id => [id, element(id)]));
@@ -189,7 +189,7 @@ test('mobile tracks one explicit active sheet and clears it when closed', () => 
   controller.open('display');
   controller.open('editor');
   assert.equal(controller.render().activeMobileSheet, 'edit');
-  assert.equal(elements.rightPanel.getAttribute('role'), 'dialog');
+  assert.equal(elements.editorSurface.getAttribute('role'), 'dialog');
   controller.close('editor');
   assert.equal(controller.render().activeMobileSheet, null);
 });

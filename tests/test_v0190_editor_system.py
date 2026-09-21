@@ -13,7 +13,7 @@ CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
 
 class EditorSystemV0190Tests(unittest.TestCase):
     def test_all_editor_views_share_one_shell_and_component_vocabulary(self):
-        self.assertIn('class="sidebar right-panel editor-panel workspace-surface surface-editor ui-sheet"', INDEX)
+        self.assertIn('class="sidebar editor-drawer editor-panel workspace-surface surface-editor ui-sheet"', INDEX)
         self.assertIn('id="editorScrollBody" class="surface-body editor-scroll-body ui-scroll-surface"', INDEX)
         self.assertIn('id="editorObjectHeader" class="editor-object-header hidden"', INDEX)
         for view_id in (

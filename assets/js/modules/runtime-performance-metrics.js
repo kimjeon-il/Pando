@@ -401,9 +401,9 @@ function installCommitToPaintProbe(documentRef, globalObject, metrics) {
     '.editor-action-row',
   ].join(',');
   const changeSelectors = [
-    '#rightPanel input',
-    '#rightPanel select',
-    '#rightPanel textarea',
+    '#editorSurface input',
+    '#editorSurface select',
+    '#editorSurface textarea',
   ].join(',');
 
   const schedule = event => {

@@ -53,7 +53,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertIn('-webkit-line-clamp: 2;', CSS)
         self.assertIn("document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type)", OBJECT_PROPERTIES)
         self.assertIn("$('editSheetTitle')?.classList.remove('hidden')", OBJECT_PROPERTIES)
-        self.assertIn("$('rightPanel')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle')", OBJECT_PROPERTIES)
+        self.assertIn("$('editorSurface')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle')", OBJECT_PROPERTIES)
 
     def test_multi_selection_uses_the_editor_header_without_a_card_surface(self):
         self.assertNotIn('id="multiPropertiesCount"', INDEX)
@@ -139,7 +139,7 @@ class ObjectEditorV0303Tests(unittest.TestCase):
         self.assertIn("syncMapHostFromState();", APP)
         self.assertNotIn("panMapBy(offsetX, offsetY)", APP)
         self.assertIn("alignGeographicAnchor(anchor, viewportCenter)", APP)
-        self.assertIn("--map-safe-right: calc(var(--panel-right-width) + var(--ui-map-edge));", CSS)
+        self.assertIn("--map-safe-right: calc(var(--editor-drawer-width) + var(--ui-map-edge));", CSS)
         self.assertIn("top: var(--ui-map-edge);", CSS)
         self.assertIn("bottom: calc(30px + var(--ui-map-edge));", CSS)
 

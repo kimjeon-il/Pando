@@ -121,7 +121,7 @@
   --design-layer-visibility-size-mobile: 2.75rem;
   --design-topbar-height: 3rem;
   --design-statusbar-height: 2rem;
-  --design-right-panel-width: 20rem;
+  --design-editor-width: 20rem;
   --design-sheet-handle-space: 1.25rem;
   --design-sheet-header-height-mobile: 5rem;
   --design-sheet-snap-collapsed: 5.25rem;
@@ -132,7 +132,7 @@
   --ui-shell-topbar-height: var(--ui-topbar-measured, var(--design-topbar-height));
   --ui-shell-statusbar-height: var(--design-statusbar-height);
   --ui-map-bottom-occupied-height: var(--ui-shell-statusbar-height);
-  --ui-shell-right-panel-width: var(--design-right-panel-width);
+  --ui-shell-editor-width: var(--design-editor-width);
   --design-radius-sm: 5px;
   --design-radius-md: 0.375rem;
   --design-radius-lg: 9px;

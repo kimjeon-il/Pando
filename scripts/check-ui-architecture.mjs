@@ -38,7 +38,7 @@ const rawColorPattern = /(?:#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\()/i;
 const rawPixelPattern = /(?:^|[^\w-])-?(?:\d*\.)?\d+px\b/i;
 
 const surfaceContracts = Object.freeze([
-  Object.freeze({ id: 'rightPanel', variant: 'surface-editor' }),
+  Object.freeze({ id: 'editorSurface', variant: 'surface-editor' }),
 ]);
 
 function walkCssFiles(directory, relative = '') {

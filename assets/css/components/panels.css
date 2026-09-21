@@ -382,6 +382,35 @@ body.file-menu-open .mobile-backdrop {
   background: var(--ui-control-border);
 }
 
+:is(
+  .mobile-menu-toolbar,
+  .map-command-toolbar,
+  .selection-toolbar
+) .ui-button.icon-btn:is(
+  [aria-pressed="true"],
+  [aria-expanded="true"],
+  .active,
+  .sheet-open
+) {
+  border-color: transparent;
+  background: var(--ui-button-subtle-hover);
+  color: var(--text-strong);
+}
+
+:is(
+  .mobile-menu-toolbar,
+  .map-command-toolbar,
+  .selection-toolbar
+) .ui-button.icon-btn:is(
+  [aria-pressed="true"],
+  [aria-expanded="true"],
+  .active,
+  .sheet-open
+):hover:not(:disabled) {
+  background: var(--ui-button-subtle-hover);
+  color: var(--text-strong);
+}
+
 .surface-display:not(.view-menu-desktop) .map-display-list {
   display: grid;
   gap: var(--ui-space-1);

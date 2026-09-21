@@ -64,7 +64,7 @@ workspace-surface
 
 Surface 내부 구조와 기본 chrome은 `components/surface.css`가 소유한다. Wide/Compact/Mobile의 위치·크기·열림 상태는 `layout/surfaces.css`가 소유한다.
 
-- 연결 대상은 `#createMenu`, `#objectSearchSurface`, `#mapDisplaySurface`, `#rightPanel.surface-editor`다.
+- 연결 대상은 `#createMenu`, `#objectSearchSurface`, `#mapDisplaySurface`, `#editorSurface.surface-editor`다.
 - 헤더 제목 슬롯은 긴 제목을 처리하고 액션 슬롯을 밀지 않는다.
 - ObjectContext는 객체명·유형·잠금 상태·지도에서 보기를 담당한다. 잠금 변경·삭제·유형별 편집은 본문 작업 영역을 사용한다.
 - Tab은 기존 `.ui-button.ui-tab`, `data-surface-tab`, tab/tabpanel ARIA 연결과 키보드 동작을 유지한다.

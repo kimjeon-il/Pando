@@ -181,8 +181,9 @@
   height: var(--ui-control-height);
 }
 
-.right-panel {
-  border-left: 1px solid var(--border);
+.editor-drawer {
+  border-left: 0;
+  border-right: 1px solid var(--border);
 }
 
 .btn {
@@ -243,7 +244,7 @@
   height: var(--ui-icon-size);
 }
 
-.right-panel {
+.editor-drawer {
   display: flex;
   flex-direction: column;
   position: absolute;
@@ -269,7 +270,7 @@
   }
 }
 
-.right-panel {
+.editor-drawer {
   overflow: hidden;
 }
 
@@ -683,7 +684,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .right-panel {
+  .editor-drawer {
     transition-duration: 0.01ms;
   }
 }

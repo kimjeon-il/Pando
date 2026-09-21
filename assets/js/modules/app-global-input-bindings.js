@@ -77,7 +77,7 @@ export function createGlobalInputBindings() {
         else if (dependencies.domains.editingDomain?.draftInputActive?.()) (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool) ? (0, dependencies.genericEditingA.cancelDraft)(true) : (0, dependencies.countryEditingA.cancelActiveMode)());
         else if (['new-country', 'annex-territory', 'draw-territorial-unit', 'merge-country', 'merge-generic-feature', 'country-border', 'country-coast'].includes(dependencies.projectState.state.tool)) (0, dependencies.countryEditingA.cancelActiveMode)();
         else if ((0, dependencies.countryEditingA.editingDraftCoordinates)().length) (0, dependencies.genericEditingA.cancelDraft)(true);
-        else if ((0, dependencies.platform.$)('rightPanel')?.classList.contains('mobile-open')) {
+        else if ((0, dependencies.platform.$)('editorSurface')?.classList.contains('mobile-open')) {
           (0, dependencies.workspaceUiA.closeSurface)('editor', { manual: dependencies.surfaces.layoutMode === 'wide', restoreFocus: true });
         }
         else if ((0, dependencies.platform.$)('mapDisplaySurface')?.classList.contains('surface-open')) (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: true });
