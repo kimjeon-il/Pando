@@ -20,7 +20,7 @@
   font-weight: var(--ui-weight-semibold);
 }
 
-.action-status.error .notification-close {
+.action-status.ui-toast .notification-close {
   display: grid;
   place-items: center;
 }
@@ -46,6 +46,24 @@
 .action-status.success .status-dot {
   background: var(--design-status-success-dot);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--design-status-success-dot) 14%, transparent);
+}
+
+.action-status.ui-toast.success .status-dot {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+  display: grid;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+}
+
+.action-status.ui-toast.success .status-dot::after {
+  content: '✓';
+  font-size: 0.625rem;
+  font-weight: var(--ui-weight-bold);
+  line-height: 1;
 }
 
 .action-status.info {
@@ -474,10 +492,11 @@ body.is-loading .app-root {
 }
 
 @media (max-width: 799px) {
-  .action-status.ui-toast {
-    width: min(calc(100vw - var(--ui-space-4)), 26.25rem);
-    max-width: min(calc(100vw - var(--ui-space-4)), 26.25rem);
-    height: calc(var(--ui-touch-height) + (var(--ui-space-1-5) * 2));
+  .app-root[data-layout="mobile"] .action-status.ui-toast {
+    width: max-content;
+    min-width: 0;
+    max-width: calc(100vw - var(--ui-space-4));
+    height: var(--ui-touch-height);
     margin-inline: auto;
   }
 }

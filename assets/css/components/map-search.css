@@ -68,7 +68,7 @@
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  padding-block: var(--ui-space-1);
+  padding-block: var(--ui-space-3);
   padding-inline-end: var(--ui-surface-content-rail-x);
   padding-inline-start: var(--ui-surface-content-rail-x);
 }

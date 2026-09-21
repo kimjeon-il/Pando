@@ -45,7 +45,8 @@ export function createReadinessNotifications() {
     const notice = (0, dependencies.platform.$)('actionStatus');
     if (!notice) return;
     const fullMessage = String(message ?? '').replace(/\s+/g, ' ').trim();
-    const isTopLevelNotice = tone === 'working' || tone === 'error' || forceVisible;
+    const isTopLevelNotice = ['working', 'success', 'error', 'info', 'warning'].includes(tone)
+      || forceVisible;
     clearTimeout(setActionStatus._timer);
     if (!fullMessage || !isTopLevelNotice) {
       clearNotification();

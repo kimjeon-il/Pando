@@ -18,10 +18,10 @@ async function openApp(page) {
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect(page.locator('.reference-image-launcher')).toBeVisible();
   await expect(page.locator('.map-command-toolbar #referenceImageBtn')).toBeVisible();
-  await expect(page.locator('.map-command-search + #referenceImageBtn')).toHaveCount(1);
-  await expect(page.locator('#referenceImageBtn + #resetViewBtn')).toHaveCount(1);
-  await expect(page.locator('#referenceImageBtn')).toHaveAttribute('aria-label', '참조 이미지');
-  await expect(page.locator('#referenceImageBtn')).toHaveAttribute('data-tooltip', '참조 이미지');
+  await expect(page.locator('#createMenuBtn + #referenceImageBtn')).toHaveCount(1);
+  await expect(page.locator('#referenceImageBtn + .map-command-search')).toHaveCount(1);
+  await expect(page.locator('#referenceImageBtn')).toHaveAttribute('aria-label', '이미지 추가');
+  await expect(page.locator('#referenceImageBtn')).toHaveAttribute('data-tooltip', '이미지 추가');
   await expect(page.locator('#referenceImageBtn')).toHaveText('');
   await expect(page.locator('#referenceImageBtn use')).toHaveAttribute('href', '#icon-reference-image');
   return errors;
