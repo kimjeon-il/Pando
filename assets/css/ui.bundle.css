@@ -1720,7 +1720,7 @@ html {
   justify-content: start;
 }
 
-.ui-button.preferences-accent-chip:is(:hover, :focus-visible) {
+.ui-button.preferences-accent-chip:focus-visible {
   background: var(--swatch);
   outline: 2px solid var(--text-strong);
   outline-offset: var(--design-focus-offset);
