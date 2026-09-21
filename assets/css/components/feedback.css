@@ -5,6 +5,12 @@
   grid-template-rows: var(--ui-topbar-height) minmax(0, 1fr);
 }
 
+@media (max-width: 799px) {
+  .app-root[data-layout="mobile"] {
+    grid-template-rows: minmax(0, 1fr);
+  }
+}
+
 .action-status strong {
   min-width: 0;
   text-align: center;

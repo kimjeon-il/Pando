@@ -61,8 +61,8 @@
   }
 }
 
-.mobile-menu-trigger,
-.mobile-global-menu {
+.app-root:not([data-layout="mobile"]) .mobile-menu-trigger,
+.app-root:not([data-layout="mobile"]) .mobile-global-menu {
   display: none;
 }
 
