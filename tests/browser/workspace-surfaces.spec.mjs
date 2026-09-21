@@ -18,6 +18,10 @@ test('mobile create, display and editor share the current sheet contract', async
   ];
 
   for (const [triggerSelector, panelSelector] of surfaces) {
+    if (triggerSelector === '#mobileDisplayBtn') {
+      await page.locator('#mobileMenuBtn').click();
+      await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+    }
     const trigger = page.locator(triggerSelector);
     const panel = page.locator(panelSelector);
     await trigger.click();
@@ -49,6 +53,8 @@ test('display and create reuse their DOM when switching between menu and sheet l
   await page.locator('#mapDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toHaveClass(/view-menu-desktop/);
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('#mobileMenuBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
   await page.locator('#mobileDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(page.locator('#mapDisplaySurface')).not.toHaveClass(/view-menu-desktop/);
@@ -56,4 +62,19 @@ test('display and create reuse their DOM when switching between menu and sheet l
   await expect(page.locator('#createMenu')).toHaveCount(1);
   await expect(page.locator('#mapDisplaySurface')).toHaveAttribute('data-test-identity', 'display');
   await expect(page.locator('#createMenu')).toHaveAttribute('data-test-identity', 'create');
+});
+
+test('hamburger is mobile-only and mobile workspace fills the viewport', async ({ page }) => {
+  test.setTimeout(180_000);
+  await openApp(page, { width: 1366, height: 800 });
+  await expect(page.locator('#mobileMenuBtn')).toBeHidden();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#mobileMenuBtn')).toBeVisible();
+  const metrics = await page.evaluate(() => {
+    const app = document.querySelector('#app').getBoundingClientRect();
+    const workspace = document.querySelector('.workspace').getBoundingClientRect();
+    return { appTop: app.top, appHeight: app.height, workspaceTop: workspace.top, workspaceHeight: workspace.height };
+  });
+  expect(metrics.workspaceTop).toBe(0);
+  expect(metrics.workspaceHeight).toBeGreaterThanOrEqual(metrics.appHeight - 1);
 });

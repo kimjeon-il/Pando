@@ -8284,8 +8284,8 @@ body.file-menu-open .mobile-backdrop {
   }
 }
 
-.mobile-menu-trigger,
-.mobile-global-menu {
+.app-root:not([data-layout="mobile"]) .mobile-menu-trigger,
+.app-root:not([data-layout="mobile"]) .mobile-global-menu {
   display: none;
 }
 
@@ -8563,6 +8563,12 @@ body.file-menu-open .mobile-backdrop {
 .app-root {
   display: grid;
   grid-template-rows: var(--ui-topbar-height) minmax(0, 1fr);
+}
+
+@media (max-width: 799px) {
+  .app-root[data-layout="mobile"] {
+    grid-template-rows: minmax(0, 1fr);
+  }
 }
 
 .action-status strong {
