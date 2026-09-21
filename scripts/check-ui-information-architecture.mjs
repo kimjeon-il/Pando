@@ -28,11 +28,11 @@ const surfaceContracts = Object.freeze([
   }),
   Object.freeze({
     surface: 'display', id: 'mapDisplaySurface', variant: 'surface-display', kind: 'delegated',
-    endMarker: 'id="rightPanel"', titleId: 'displaySheetTitle', actionId: 'mapDisplayCloseBtn',
+    endMarker: 'id="editorSurface"', titleId: 'displaySheetTitle', actionId: 'mapDisplayCloseBtn',
     contentId: 'mapViewSection', triggers: ['mapDisplayBtn', 'mobileDisplayBtn'],
   }),
   Object.freeze({
-    surface: 'editor', id: 'rightPanel', variant: 'surface-editor', kind: 'editor',
+    surface: 'editor', id: 'editorSurface', variant: 'surface-editor', kind: 'editor',
     endMarker: 'class="overlay-root"', titleId: 'editSheetTitle', actionId: 'mobileCloseRightBtn',
     triggers: ['mobileEditBtn'],
   }),
@@ -174,7 +174,7 @@ if (!libraryPanel.includes('id="addFromLibraryBtn"')) fail('library route must e
 if (/data-map-object-type=/.test(libraryPanel)) fail('library route must remain an acquisition route, not an object category');
 
 // Editor surface: object context stays visible above the property/action tabs.
-const rightStart = html.indexOf('id="rightPanel"');
+const rightStart = html.indexOf('id="editorSurface"');
 const rightEnd = rightStart >= 0 ? html.indexOf('</aside>', rightStart) : -1;
 const editor = rightStart >= 0 && rightEnd > rightStart ? html.slice(rightStart, rightEnd) : '';
 if (!editor) fail('editor surface could not be resolved');

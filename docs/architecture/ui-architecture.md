@@ -120,7 +120,7 @@
 
 ```css
 /* features/editor.css */
-#rightPanel .country-editor {
+#editorSurface .country-editor {
   padding: 13px;
   border-radius: 11px;
   background: #20262e;
@@ -150,7 +150,7 @@ workspace-surface
 - `create` → `#createMenu`
 - `search` → `#objectSearchSurface`
 - `display` → `#mapDisplaySurface`
-- `editor` → `#rightPanel.surface-editor`
+- `editor` → `#editorSurface.surface-editor`
 
 넓음·중간 화면에서 추가와 보기는 버튼에 붙는 메뉴이고 검색은 하단 작업바에서 펼쳐진다. 좁은 화면에서는 같은 DOM이 공통 바텀시트로 전환된다. 편집은 데스크톱 편집창과 모바일 편집 시트를 공유한다. 모바일에서는 한 번에 하나의 시트만 열며, 폭 전환은 문서·선택·draft와 지도 상태를 변경하지 않는다.
 

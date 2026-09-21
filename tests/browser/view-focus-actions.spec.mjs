@@ -60,7 +60,7 @@ test('object focus uses the actual viewport center with the editor panel open', 
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().projection)).toBe('flat');
   const countryId = 'DEU';
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select('country', id), countryId);
-  await expect(page.locator('#rightPanel')).toBeVisible();
+  await expect(page.locator('#editorSurface')).toBeVisible();
   await page.locator('#focusSelectedObjectBtn').click();
 
   const countryFocus = await page.evaluate(id => {

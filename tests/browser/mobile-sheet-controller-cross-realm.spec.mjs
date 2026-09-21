@@ -14,8 +14,8 @@ test('mobile task sheet raises a collapsed editor with the handle document realm
     foreignDocument.body.dataset.layout = 'mobile';
     foreignDocument.body.innerHTML = `
       <div id="app" data-layout="mobile"></div>
-      <section id="rightPanel" class="mobile-open" data-editor-content="task" data-sheet-snap="0">
-        <button data-sheet-handle="rightPanel" aria-valuenow="0"></button>
+      <section id="editorSurface" class="mobile-open" data-editor-content="task" data-sheet-snap="0">
+        <button data-sheet-handle="editorSurface" aria-valuenow="0"></button>
       </section>
       <div id="modeEditingContext"></div>
     `;

@@ -111,12 +111,12 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     await expect(page.locator('#editBorderBtn')).toBeVisible();
     const beforeTask = await cameraSnapshot(page);
     await page.locator('#editBorderBtn').click();
-    await expect(page.locator('#rightPanel')).toHaveAttribute('data-editor-content', 'task');
+    await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'task');
     if (mobile) {
-      await expect(page.locator('#rightPanel .surface-header-actions')).toBeHidden();
+      await expect(page.locator('#editorSurface .surface-header-actions')).toBeHidden();
       await expect(page.locator('#editSheetTitle')).toBeHidden();
-      await expect(page.locator('[data-sheet-handle="rightPanel"]')).toBeVisible();
-    } else await expect(page.locator('#rightPanel > .surface-header')).toBeHidden();
+      await expect(page.locator('[data-sheet-handle="editorSurface"]')).toBeVisible();
+    } else await expect(page.locator('#editorSurface > .surface-header')).toBeHidden();
     await expect(page.locator('#modeTaskName')).toContainText('국경 조정');
     await expect(page.locator('#modeTaskTargetList')).toContainText('독일');
     await expect(page.locator('#modeTaskTargetsFocusBtn')).toBeVisible();
@@ -127,7 +127,7 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
     await expect(page.locator('#modeTaskDisabledReason')).toBeVisible();
     if (mobile) {
-      const handle = page.locator('[data-sheet-handle="rightPanel"]');
+      const handle = page.locator('[data-sheet-handle="editorSurface"]');
       const initialSnap = await handle.getAttribute('aria-valuenow');
       const direction = initialSnap === '2' ? 'ArrowDown' : 'ArrowUp';
       await handle.focus();
@@ -140,11 +140,11 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     if (viewport.width === 1440) await expect.poll(() => cameraSnapshot(page)).not.toEqual(beforeTask);
     await page.screenshot({ path: testInfo.outputPath(`task-${viewport.width}-${mobile ? 'mobile' : 'desktop'}.png`) });
     await page.locator('#modeCancelBtn').click();
-    await expect(page.locator('#rightPanel')).toHaveAttribute('data-editor-content', 'properties');
+    await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
     await expect(page.locator('#countryNameInput')).toHaveValue('독일');
     await expect(page.locator('#editBorderBtn')).toBeVisible();
     await page.locator(mobile ? '#mobileEditBtn' : '#selectionToolbarEditBtn').click();
-    await expect(page.locator('#rightPanel')).not.toHaveClass(/surface-open/);
+    await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
   }
   await page.setViewportSize({ width: 1024, height: 500 });
   await page.locator('#objectSearchBtn').click();

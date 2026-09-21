@@ -7,9 +7,9 @@ test('territorial selection toolbar owns the shared flag menu and explicit edito
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'POL'));
   await expect(page.locator('#selectionToolbar')).toBeVisible();
-  await expect(page.locator('#rightPanel')).not.toHaveClass(/surface-open/);
+  await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
   await expect(page.locator('#countryNameInput')).toHaveValue('폴란드');
-  await expect(page.locator('#rightPanel #countryNameInput, #rightPanel #flagMenuBtn, #rightPanel #notesInput')).toHaveCount(0);
+  await expect(page.locator('#editorSurface #countryNameInput, #editorSurface #flagMenuBtn, #editorSurface #notesInput')).toHaveCount(0);
 
   const nameInput = page.locator('#countryNameInput');
   const nameChrome = () => nameInput.evaluate(element => {
@@ -43,16 +43,16 @@ test('territorial selection toolbar owns the shared flag menu and explicit edito
   await page.locator('#territorialTypeCancelBtn').click();
   await expect(page.locator('#selectionToolbarEditBtn')).toHaveAttribute('data-tooltip', '편집');
   await page.locator('#selectionToolbarEditBtn').click();
-  await expect(page.locator('#rightPanel')).toHaveClass(/surface-open/);
+  await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
   await expect(page.locator('#selectionToolbarEditBtn')).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('#selectionToolbarEditBtn')).toHaveAttribute('aria-label', '편집 닫기');
   expect(await toolbarCenter()).toBe(initialToolbarCenter);
   await page.locator('#selectionToolbarEditBtn').click();
-  await expect(page.locator('#rightPanel')).not.toHaveClass(/surface-open/);
+  await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
   await expect(page.locator('#selectionToolbarEditBtn')).toHaveAttribute('aria-expanded', 'false');
   expect(await toolbarCenter()).toBe(initialToolbarCenter);
   await page.locator('#selectionToolbarEditBtn').click();
-  await expect(page.locator('#rightPanel')).toHaveClass(/surface-open/);
+  await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
   await expect(page.locator('#editorObjectHeader')).toBeHidden();
   await page.locator('#objectSearchBtn').click();
   await expect(page.locator('#objectSearchSurface')).toBeVisible();

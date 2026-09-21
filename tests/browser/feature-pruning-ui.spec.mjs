@@ -55,7 +55,7 @@ for (const viewport of viewports) {
     await expect(page.locator('#objectDeleteBtn')).toBeVisible();
     await expect(page.locator('#propertyTitle')).toHaveCSS('white-space', 'normal');
     await expect(page.locator('#countryProperties .editor-action-row')).toHaveCount(5);
-    const inconsistentActionRows = await page.locator('#rightPanel .editor-action-row').evaluateAll(rows => rows
+    const inconsistentActionRows = await page.locator('#editorSurface .editor-action-row').evaluateAll(rows => rows
       .filter(row => !row.classList.contains('has-command-row-icon')
         || row.querySelectorAll(':scope > .command-row-icon').length !== 1
         || row.querySelectorAll(':scope > span').length !== 1
@@ -69,8 +69,8 @@ for (const viewport of viewports) {
       body: document.body.scrollWidth,
     }));
     if (viewport.name === 'mobile') {
-      await expect(page.locator('[data-sheet-handle="rightPanel"]')).toHaveAttribute('aria-valuemax', '1');
-      await expect(page.locator('[data-sheet-handle="rightPanel"]')).toHaveAttribute('aria-valuetext', '기본 높이');
+      await expect(page.locator('[data-sheet-handle="editorSurface"]')).toHaveAttribute('aria-valuemax', '1');
+      await expect(page.locator('[data-sheet-handle="editorSurface"]')).toHaveAttribute('aria-valuetext', '기본 높이');
     }
     const viewRevisionBeforeFocus = await page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0));
     await page.locator('#focusSelectedObjectBtn').click();
@@ -78,7 +78,7 @@ for (const viewport of viewports) {
     const focusedState = await page.evaluate(() => ({
       headerVisible: !document.querySelector('#editorObjectHeader')?.classList.contains('hidden'),
       selectedType: document.querySelector('#propertyTypeLabel')?.textContent || '',
-      editorView: document.querySelector('#rightPanel')?.getAttribute('data-editor-view') || '',
+      editorView: document.querySelector('#editorSurface')?.getAttribute('data-editor-view') || '',
     }));
     expect(focusedState).toEqual({ headerVisible: false, selectedType: '국가', editorView: 'actions' });
     expect(overflow.document).toBeLessThanOrEqual(overflow.viewport + 1);

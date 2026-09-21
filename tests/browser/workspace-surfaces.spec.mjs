@@ -14,7 +14,7 @@ test('mobile create, display and editor share the current sheet contract', async
   const surfaces = [
     ['#mobileCreateBtn', '#createMenu'],
     ['#mobileDisplayBtn', '#mapDisplaySurface'],
-    ['#mobileEditBtn', '#rightPanel'],
+    ['#mobileEditBtn', '#editorSurface'],
   ];
 
   for (const [triggerSelector, panelSelector] of surfaces) {

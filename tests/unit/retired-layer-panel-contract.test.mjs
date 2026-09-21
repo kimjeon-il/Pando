@@ -30,7 +30,7 @@ test('current create, display and editor surfaces retain mobile sheet handles', 
   for (const [surface, panel, trigger] of [
     ['create', 'createMenu', 'mobileCreateBtn'],
     ['display', 'mapDisplaySurface', 'mobileDisplayBtn'],
-    ['editor', 'rightPanel', 'mobileEditBtn'],
+    ['editor', 'editorSurface', 'mobileEditBtn'],
   ]) {
     assert.match(controller, new RegExp(`${surface}[^\\n]+${panel}`));
     assert.match(controller, new RegExp(`${surface}[^\\n]+${trigger}`));

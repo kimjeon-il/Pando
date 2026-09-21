@@ -80,10 +80,10 @@ export function createObjectPropertyController(runtime = {}) {
       .filter(control => !control.disabled && !control.hidden && !control.classList.contains('hidden') && !control.closest('.hidden, [hidden]')).length, 0);
     const inlineRelation = relationAvailable && !commonAvailable && relationControlCount <= 1;
     const relationTabVisible = hasRelation && !inlineRelation;
-    const rightPanel = $('rightPanel');
-    if (rightPanel) {
-      if (inlineRelation) rightPanel.setAttribute('data-editor-inline-relation', 'true');
-      else rightPanel.removeAttribute('data-editor-inline-relation');
+    const editorSurface = $('editorSurface');
+    if (editorSurface) {
+      if (inlineRelation) editorSurface.setAttribute('data-editor-inline-relation', 'true');
+      else editorSurface.removeAttribute('data-editor-inline-relation');
     }
     $('editorTabBtn').hidden = !type || !infoAvailable;
     $('editorTabBtn').setAttribute('aria-disabled', String(!infoAvailable));
@@ -93,7 +93,7 @@ export function createObjectPropertyController(runtime = {}) {
     $('relationTabBtn').setAttribute('aria-disabled', String(!relationTabVisible));
     const availableViews = [infoAvailable && 'info', hasActions && 'actions', relationTabVisible && 'relation'].filter(Boolean);
     document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type || availableViews.length <= 1);
-    const current = rightPanel?.getAttribute('data-editor-view');
+    const current = editorSurface?.getAttribute('data-editor-view');
     if (current && !availableViews.includes(current)) setEditorShellView(availableViews[0] || 'info');
   }
 
@@ -104,7 +104,7 @@ export function createObjectPropertyController(runtime = {}) {
     const toolbarOwnsHeader = ['country', 'subunit', 'region'].includes(type);
     objectHeader.classList.toggle('hidden', !type || toolbarOwnsHeader);
     $('editSheetTitle')?.classList.remove('hidden');
-    $('rightPanel')?.setAttribute('aria-labelledby', type && !toolbarOwnsHeader ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
+    $('editorSurface')?.setAttribute('aria-labelledby', type && !toolbarOwnsHeader ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
     for (const [kind, id] of Object.entries({
       country: 'countryProperties', subunit: 'subunitProperties',
       region: 'regionProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',

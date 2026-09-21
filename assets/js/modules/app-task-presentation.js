@@ -174,7 +174,7 @@ export function createTaskPresentation() {
     let right = bounds.width - edge;
     const view = document.querySelector('.map-view-toolbar');
     if (elementHasLayout(view)) right = Math.min(right, view.getBoundingClientRect().left - bounds.left - 8);
-    const editor = (0, dependencies.platform.$)('rightPanel');
+    const editor = (0, dependencies.platform.$)('editorSurface');
     if (elementHasLayout(editor) && editor.classList.contains('surface-open')) {
       const editorBounds = editor.getBoundingClientRect();
       const mapCenter = bounds.left + (bounds.width / 2);

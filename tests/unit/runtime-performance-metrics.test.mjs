@@ -91,7 +91,7 @@ test('summarizes interaction frame cadence and long tasks', () => {
   const support = metrics.observe();
   assert.equal(support.longtask, true);
   const longTaskObserver = FakePerformanceObserver.instances.find(observer => observer.options.type === 'longtask');
-  const token = metrics.beginInteraction(PERFORMANCE_METRIC_NAMES.MOBILE_SHEET_DRAG, { panelId: 'rightPanel' });
+  const token = metrics.beginInteraction(PERFORMANCE_METRIC_NAMES.MOBILE_SHEET_DRAG, { panelId: 'editorSurface' });
   metrics.sampleInteractionFrame(token, clock.advance(16));
   metrics.sampleInteractionFrame(token, clock.advance(18));
   metrics.sampleInteractionFrame(token, clock.advance(50));
@@ -102,7 +102,7 @@ test('summarizes interaction frame cadence and long tasks', () => {
   const report = metrics.snapshot();
   const summary = report.operations[PERFORMANCE_METRIC_NAMES.MOBILE_SHEET_DRAG];
   assert.equal(summary.count, 1);
-  assert.equal(summary.last.detail.panelId, 'rightPanel');
+  assert.equal(summary.last.detail.panelId, 'editorSurface');
   assert.equal(summary.last.detail.slowFrameCount, 1);
   assert.ok(summary.last.detail.estimatedMissedFrames >= 2);
   assert.equal(report.longTasks.firstLoadCount, 1);

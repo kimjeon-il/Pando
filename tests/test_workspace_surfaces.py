@@ -17,7 +17,7 @@ class WorkspaceSurfaceContracts(unittest.TestCase):
         expected = {
             "create": ("createMenu", "mobileCreateBtn"),
             "display": ("mapDisplaySurface", "mobileDisplayBtn"),
-            "editor": ("rightPanel", "mobileEditBtn"),
+            "editor": ("editorSurface", "mobileEditBtn"),
         }
         for surface, (panel, trigger) in expected.items():
             self.assertRegex(SURFACE, rf"{surface}[^\n]+{panel}")
@@ -47,7 +47,7 @@ class WorkspaceSurfaceContracts(unittest.TestCase):
 
     def test_all_current_mobile_sheet_handles_have_slider_semantics(self):
         handles = re.findall(r'<button[^>]+data-sheet-handle="([^"]+)"[^>]*>', INDEX)
-        for panel in ("createMenu", "mapDisplaySurface", "rightPanel"):
+        for panel in ("createMenu", "mapDisplaySurface", "editorSurface"):
             self.assertIn(panel, handles)
             tag = next(tag for tag in re.findall(r'<button[^>]+data-sheet-handle="[^"]+"[^>]*>', INDEX) if f'"{panel}"' in tag)
             self.assertIn('role="slider"', tag)

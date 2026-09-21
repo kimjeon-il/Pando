@@ -16,10 +16,10 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await expect(page.locator('#countryProperties')).toBeVisible();
   await expect.poll(async () => {
-    const panel = await page.locator('#rightPanel').boundingBox();
-    return Math.round(panel.x + panel.width);
-  }).toBe(1440);
-  const panel = await page.locator('#rightPanel').boundingBox();
+    const panel = await page.locator('#editorSurface').boundingBox();
+    return Math.round(panel.x);
+  }).toBe(0);
+  const panel = await page.locator('#editorSurface').boundingBox();
   const map = await page.locator('#map').boundingBox();
   const topbar = await page.locator('.topbar').boundingBox();
   expect(Math.round(panel.y)).toBe(Math.round(topbar.y + topbar.height));
@@ -38,23 +38,29 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await page.setViewportSize({ width: 1000, height: 900 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'compact');
+  const compactPosition = await page.evaluate(() => {
+    const panel = document.querySelector('#editorSurface').getBoundingClientRect();
+    const inset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-shell-compact-inset'));
+    return { x: panel.x, inset };
+  });
+  expect(compactPosition.x).toBeCloseTo(compactPosition.inset, 0);
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
-  await expect(page.locator('#rightPanel')).toHaveAttribute('data-editor-content', 'task');
+  await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'task');
   await expect(page.locator('#mapTopContextSlot #modeEditingContext')).toHaveCount(0);
   await expect(page.locator('#modeTaskMinimizeBtn')).not.toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
   await page.locator('#modeCancelBtn').click();
-  await expect(page.locator('#rightPanel')).toHaveAttribute('data-editor-content', 'properties');
+  await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await openActionsTab(page);
   await page.locator('#mergeCountryBtn').click();
   await expect(page.locator('#editorTaskSlot #modeTaskName')).toHaveText('국가 합병');
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
-  await expect(page.locator('#rightPanel')).toHaveClass(/mobile-open/);
-  await expect(page.locator('#rightPanel')).toHaveAttribute('data-editor-content', 'task');
+  await expect(page.locator('#editorSurface')).toHaveClass(/mobile-open/);
+  await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'task');
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
   await expect(page.locator('#mapTopContextSlot #modeEditingContext')).toHaveCount(0);
   await expect(page.locator('#modeTaskMinimizeBtn')).not.toBeVisible();

@@ -90,7 +90,7 @@ export function createMapInputPresentation({
       beginExternalGesture: (point, event) => getInputSnapshot().projectReplacing ? null : beginReferenceImageGesture(point, event, { spacePan: getInputSnapshot().spacePanActive }),
       interactiveTarget: (target, event) => {
         if (getInputSnapshot().projectReplacing) return true;
-        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.map-overlay-layer,.right-panel,.reference-image-panel')) return true;
+        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.map-overlay-layer,.editor-drawer,.reference-image-panel')) return true;
         if (referenceImageInputActive()) return false;
         if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);

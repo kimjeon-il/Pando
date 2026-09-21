@@ -165,7 +165,7 @@ test('a mobile touch tap selects the territorial overlay above its country', asy
     });
     if (await page.locator('#mobileCloseRightBtn').isVisible()) {
       await page.locator('#mobileCloseRightBtn').click();
-      await expect(page.locator('#rightPanel')).toBeHidden();
+      await expect(page.locator('#editorSurface')).toBeHidden();
     }
 
     const shapeIndex = await page.locator('path.territorial-unit-shape').evaluateAll((nodes, expectedName) => nodes.findIndex(

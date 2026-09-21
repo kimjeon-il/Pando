@@ -174,7 +174,7 @@
   --ui-icon-size: var(--design-icon-size);
   --ui-icon-size-sm: var(--design-icon-size-sm);
   --ui-statusbar-height: var(--ui-shell-statusbar-height);
-  --ui-right-panel-width: var(--ui-shell-right-panel-width);
+  --ui-editor-width: var(--ui-shell-editor-width);
   --ui-segment-bg: var(--surface-subtle);
   --ui-segment-padding: 3px;
   --ui-toolbar-padding: var(--ui-space-1);
