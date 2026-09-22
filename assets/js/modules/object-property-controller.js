@@ -114,7 +114,7 @@ export function createObjectPropertyController(runtime = {}) {
       region: 'regionProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
       label: 'labelProperties', hydro: 'hydroProperties', multi: 'multiProperties',
     })) $(id)?.classList.toggle('hidden', type !== kind);
-    $('editorTerritorialFlagSection')?.classList.toggle('hidden', !['country', 'subunit', 'region'].includes(type));
+    $('flagMenuBtn')?.classList.toggle('hidden', !['country', 'subunit', 'region'].includes(type));
     $('propertyTitle').textContent = type ? String(title || '') : '';
     const visibleTypeLabel = typeLabel || (type ? PROPERTY_TYPE_LABELS[type] || type : '');
     if ($('propertyTypeLabel')) {

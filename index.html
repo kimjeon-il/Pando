@@ -422,20 +422,25 @@
         <div id="editorTaskSlot" class="editor-task-slot" hidden></div>
         <header class="surface-header">
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="editorSurface" aria-label="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
-          <div class="surface-header-title">
-            <strong id="editSheetTitle">편집</strong>
-          </div>
-          <div class="surface-header-actions">
-            <button id="focusSelectedObjectBtn" class="ui-button icon-btn editor-object-command editor-focus-action hidden" type="button" data-tooltip="선택 객체로 이동" aria-label="선택 객체로 이동"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-target"/></svg></button>
-            <button id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn editor-surface-close" type="button" aria-label="편집창 닫기" data-tooltip="편집창 닫기"><svg class="ui-icon editor-close-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><svg class="ui-icon editor-collapse-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button>
-          </div>
         </header>
+        <strong id="editSheetTitle" hidden>편집</strong>
 
-          <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
-            <div class="editor-object-context-main">
-              <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel" class="editor-object-type-label"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
-            </div>
-          </section>
+        <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
+          <div class="editor-object-context-main">
+            <button id="flagMenuBtn" type="button" class="ui-button editor-header-flag hidden" aria-haspopup="menu" aria-expanded="false" aria-controls="flagMenu" aria-label="국기 관리">
+              <span id="flagPreview" class="editor-flag-thumbnail"></span>
+            </button>
+            <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel" class="editor-object-type-label"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
+            <button id="focusSelectedObjectBtn" class="ui-button icon-btn editor-object-command editor-focus-action hidden" type="button" data-tooltip="선택 객체로 이동" aria-label="선택 객체로 이동"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-target"/></svg></button>
+          </div>
+        </section>
+        <div id="flagMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-surface ui-menu-list ui-command-menu editor-flag-menu" popover="auto" role="menu" aria-label="깃발 관리">
+          <button id="flagLibraryBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg><span>라이브러리</span></button>
+          <button id="flagUploadBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>파일</span></button>
+          <button id="flagDefaultBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-restore-default"/></svg><span>기본값</span></button>
+          <button id="flagRemoveBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>삭제</span></button>
+        </div>
+        <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
 
         <nav class="ui-tabs surface-tabs editor-view-tabs hidden" role="tablist" aria-label="객체 편집 탭">
           <button id="editorTabBtn" class="ui-button ui-tab active" data-surface-tab="info" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="true">정보</button>
@@ -638,24 +643,6 @@
             </details>
           </section>
 
-
-          <section id="editorTerritorialFlagSection" class="editor-section editor-info-section editor-territorial-flag-section hidden" aria-label="국기 관리">
-            <div class="editor-action-list">
-              <button id="flagMenuBtn" type="button" class="ui-button editor-action-row has-command-row-icon" aria-haspopup="menu" aria-expanded="false" aria-controls="flagMenu">
-                <svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg>
-                <span><strong>국기 관리</strong><small>라이브러리, 파일, 기본값</small></span>
-                <svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg>
-              </button>
-            </div>
-            <span id="flagPreview" class="editor-flag-thumbnail hidden"></span>
-            <div id="flagMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-surface ui-menu-list ui-command-menu editor-flag-menu" popover="auto" role="menu" aria-label="깃발 관리">
-              <button id="flagLibraryBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-library"/></svg><span>라이브러리</span></button>
-              <button id="flagUploadBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>파일</span></button>
-              <button id="flagDefaultBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-restore-default"/></svg><span>기본값</span></button>
-              <button id="flagRemoveBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>삭제</span></button>
-            </div>
-            <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
-          </section>
 
           <section id="editorDeleteSection" class="editor-section editor-delete-section hidden" aria-label="객체 삭제">
             <div class="editor-action-list">
