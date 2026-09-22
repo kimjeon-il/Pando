@@ -659,7 +659,7 @@
 }
 
 .editor-panel[data-editor-view="info"]
-.editor-object-form > .editor-info-section:first-child {
+.editor-object-form > .editor-info-section:first-of-type {
   padding-top: var(--ui-space-2);
 }
 
