@@ -1,4 +1,4 @@
-.reference-image-canvas {
+﻿.reference-image-canvas {
   position: absolute;
   inset: var(--ui-space-0);
   z-index: 1;
@@ -70,7 +70,7 @@
 }
 
 .reference-image-panel-header > div {
-  display: grid;
+  display: none;
 }
 
 .reference-image-list {
@@ -186,3 +186,4 @@
 [data-layout="mobile"] .surface-reference.reference-image-editing > .surface-body { display: none; }
 [data-layout="mobile"] .reference-image-panel-header > div,
 [data-layout="mobile"] .reference-image-panel-header > [data-ref-action="close"] { display: none; }
+
