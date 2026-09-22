@@ -307,6 +307,28 @@ export function createDomainAssembly() {
       metrics: dependencies.rendering.selectionPerformanceMetrics,
     });
 
+    const territorialLabelId = ref => {
+      if (!ref?.id || ref.domain !== 'territorial') return '';
+      if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+        return String((0, dependencies.countries.countryFeatureById)(ref.id)?.id || ref.id);
+      }
+      for (const [labelId, labelRef] of dependencies.countries.builtinRenderCountries().collection?.labelRefs || []) {
+        if (labelRef?.domain === 'territorial' && labelRef.type === ref.type && String(labelRef.id) === String(ref.id)) return String(labelId);
+      }
+      return '';
+    };
+    const selectionCardAnchor = ref => {
+      const labelId = territorialLabelId(ref);
+      if (!labelId) return null;
+      const layer = dependencies.mapHostViewA.countryLabelLayer?.node?.();
+      const node = [...(layer?.querySelectorAll?.('g.country-label-item[data-label-id]') || [])]
+        .find(element => element.dataset.labelId === labelId);
+      if (node) return { node, rect: node.getBoundingClientRect() };
+      const coordinate = dependencies.labelPresentation.countryLabelAnchors.get(labelId);
+      const point = Array.isArray(coordinate) ? dependencies.mapLayout.projectVisibleCoordinate(coordinate) : null;
+      return point ? { point } : null;
+    };
+
     selectionToolbarPresentation = (0, dependencies.uiFactoriesB.createSelectionToolbarPresentation)({
       window,
       document,
@@ -362,6 +384,9 @@ export function createDomainAssembly() {
       closeColorPickers: dependencies.colorPicker.closeAllColorPickers,
       createSemanticIcon: dependencies.applicationFactories.createSemanticIcon,
       getLayout: () => dependencies.surfaces.layoutMode,
+      getAnchor: selectionCardAnchor,
+      getMapRect: () => (0, dependencies.platform.$)('map')?.getBoundingClientRect() || null,
+      getViewRevision: () => dependencies.mapLayout.viewRevision,
     });
 
     selectionUiController = (0, dependencies.uiFactoriesB.createSelectionUiController)({

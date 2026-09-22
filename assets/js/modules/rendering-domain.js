@@ -278,6 +278,7 @@ export function createRenderingDomain({
       });
     enter.append('text').attr('class', 'country-label').attr('dy', '.35em');
     const all = layer.selectAll('g.country-label-item');
+    all.attr('data-label-id', feature => String(feature.id || ''));
     all.select('text').text(feature => namesVisible(feature) ? labels.countryName?.(feature) || feature.properties?.name || '' : '')
       .style('display', feature => namesVisible(feature) ? null : 'none')
       .classed('major', d => (resolvedLayout?.countryScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));

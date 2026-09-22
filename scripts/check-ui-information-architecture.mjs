@@ -186,9 +186,10 @@ if (!editorHeader.includes('id="mobileCloseRightBtn"')) fail('editor Surface Hea
 for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (editorHeader.includes(`id="${forbiddenId}"`)) fail(`editor object control #${forbiddenId} must not live in the Surface Header`);
 }
-for (const id of ['objectLockBtn', 'objectDeleteBtn']) {
-  if (!editorHeader.includes(`id="${id}"`)) fail(`editor Surface Header must own #${id}`);
-}
+if (!html.includes('id="selectionToolbar"')) fail('selection toolbar must own floating object controls');
+if (!editor.includes('id="editorDeleteSection"')) fail('editor must expose the object delete section');
+if (editorHeader.includes('id="objectLockBtn"')) fail('editor Surface Header must not own #objectLockBtn');
+if (editorHeader.includes('id="objectDeleteBtn"')) fail('editor Surface Header must not own #objectDeleteBtn');
 
 const tabsIndex = editor.indexOf('class="ui-tabs surface-tabs editor-view-tabs');
 const bodyIndex = editor.indexOf('id="editorScrollBody"');

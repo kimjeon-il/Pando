@@ -101,15 +101,15 @@ export function createObjectPropertyController(runtime = {}) {
     if (type && resetScroll) setEditorShellView('info');
     $('emptyProperties').classList.toggle('hidden', !!type);
     const objectHeader = $('editorObjectHeader');
-    const toolbarOwnsHeader = ['country', 'subunit', 'region'].includes(type);
-    objectHeader.classList.toggle('hidden', !type || toolbarOwnsHeader);
+    objectHeader.classList.toggle('hidden', !type);
     $('editSheetTitle')?.classList.remove('hidden');
-    $('editorSurface')?.setAttribute('aria-labelledby', type && !toolbarOwnsHeader ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
+    $('editorSurface')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
     for (const [kind, id] of Object.entries({
       country: 'countryProperties', subunit: 'subunitProperties',
       region: 'regionProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
       label: 'labelProperties', hydro: 'hydroProperties', multi: 'multiProperties',
     })) $(id)?.classList.toggle('hidden', type !== kind);
+    $('editorTerritorialFlagSection')?.classList.toggle('hidden', !['country', 'subunit', 'region'].includes(type));
     $('propertyTitle').textContent = type ? String(title || '') : '';
     const visibleTypeLabel = typeLabel || (type ? PROPERTY_TYPE_LABELS[type] || type : '');
     if ($('propertyTypeLabel')) {
