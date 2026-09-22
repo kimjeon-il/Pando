@@ -38,7 +38,7 @@ const rawColorPattern = /(?:#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\()/i;
 const rawPixelPattern = /(?:^|[^\w-])-?(?:\d*\.)?\d+px\b/i;
 
 const surfaceContracts = Object.freeze([
-  Object.freeze({ id: 'editorSurface', variant: 'surface-editor' }),
+  Object.freeze({ id: 'editorSurface', variant: 'surface-editor', headerKind: 'handle-only' }),
 ]);
 
 function walkCssFiles(directory, relative = '') {
@@ -153,7 +153,7 @@ function classNames(tag) {
   return new Set((tag.match(/\bclass=["']([^"']+)["']/i)?.[1] || '').split(/\s+/).filter(Boolean));
 }
 
-function requireSurfaceContract({ id, variant }) {
+function requireSurfaceContract({ id, variant, headerKind }) {
   const openingTag = openingTagForId(id);
   if (!openingTag) {
     failures.push(`missing canonical surface: #${id}`);
@@ -180,8 +180,12 @@ function requireSurfaceContract({ id, variant }) {
 
   const headerEnd = snippet.indexOf('</header>', headerIndex);
   const header = headerEnd >= 0 ? snippet.slice(headerIndex, headerEnd) : '';
-  if (!/\bsurface-header-title\b/.test(header)) failures.push(`#${id} header lacks .surface-header-title`);
-  if (!/\bsurface-header-actions\b/.test(header)) failures.push(`#${id} header lacks .surface-header-actions`);
+  if (headerKind === 'handle-only') {
+    if (!/\bsheet-drag-handle\b/.test(header)) failures.push(`#${id} header must retain the mobile sheet handle`);
+  } else {
+    if (!/\bsurface-header-title\b/.test(header)) failures.push(`#${id} header lacks .surface-header-title`);
+    if (!/\bsurface-header-actions\b/.test(header)) failures.push(`#${id} header lacks .surface-header-actions`);
+  }
 
   const tabsEnd = snippet.indexOf('</nav>', tabsIndex);
   const tabs = tabsEnd >= 0 ? snippet.slice(tabsIndex, tabsEnd) : '';

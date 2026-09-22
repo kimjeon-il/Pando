@@ -33,7 +33,7 @@ const surfaceContracts = Object.freeze([
   }),
   Object.freeze({
     surface: 'editor', id: 'editorSurface', variant: 'surface-editor', kind: 'editor',
-    endMarker: 'class="overlay-root"', titleId: 'editSheetTitle', actionId: 'mobileCloseRightBtn',
+    endMarker: 'class="overlay-root"', titleId: 'editSheetTitle',
     triggers: ['mobileEditBtn'],
   }),
 ]);
@@ -98,11 +98,15 @@ function requireSurfaceContract(contract) {
     return;
   }
 
-  if (!/\bsurface-header-title\b/.test(header) || !header.includes(`id="${contract.titleId}"`)) {
-    fail(`#${contract.id} header must own #${contract.titleId}`);
-  }
-  if (!/\bsurface-header-actions\b/.test(header) || !header.includes(`id="${contract.actionId}"`)) {
-    fail(`#${contract.id} header must own #${contract.actionId}`);
+  if (contract.kind === 'editor') {
+    if (!/\bsheet-drag-handle\b/.test(header)) fail('#editorSurface header must retain the mobile sheet handle');
+  } else {
+    if (!/\bsurface-header-title\b/.test(header) || !header.includes(`id="${contract.titleId}"`)) {
+      fail(`#${contract.id} header must own #${contract.titleId}`);
+    }
+    if (!/\bsurface-header-actions\b/.test(header) || !header.includes(`id="${contract.actionId}"`)) {
+      fail(`#${contract.id} header must own #${contract.actionId}`);
+    }
   }
 
   if (contract.kind === 'delegated') {
@@ -181,8 +185,8 @@ if (!editor) fail('editor surface could not be resolved');
 const headerStart = editor.indexOf('<header class="surface-header">');
 const headerEnd = headerStart >= 0 ? editor.indexOf('</header>', headerStart) : -1;
 const editorHeader = headerStart >= 0 && headerEnd > headerStart ? editor.slice(headerStart, headerEnd) : '';
-if (!editorHeader.includes('id="editSheetTitle"') || !editorHeader.includes('>편집<')) fail('editor Surface Header must identify the edit surface');
-if (!editorHeader.includes('id="mobileCloseRightBtn"')) fail('editor Surface Header must expose the close action');
+if (!editor.includes('id="editSheetTitle" hidden') || !editor.includes('>편집<')) fail('editor Surface must retain the hidden edit title');
+if (editor.includes('id="mobileCloseRightBtn"')) fail('editor Surface must not retain the close action');
 for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (editorHeader.includes(`id="${forbiddenId}"`)) fail(`editor object control #${forbiddenId} must not live in the Surface Header`);
 }
@@ -200,7 +204,7 @@ const objectContext = contextIndex >= 0 && contextEnd > contextIndex ? editor.sl
 for (const requiredId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (!objectContext.includes(`id="${requiredId}"`)) fail(`ObjectContext is missing #${requiredId}`);
 }
-if (!editorHeader.includes('id="focusSelectedObjectBtn"')) fail('editor Surface Header must own the optional map-focus action');
+if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext must own the optional map-focus action');
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');

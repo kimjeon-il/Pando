@@ -6259,15 +6259,6 @@ body.file-menu-open .app-root .topbar {
   display: none;
 }
 
-.editor-panel[data-editor-view="actions"] .editor-territorial-flag-section,
-.editor-panel[data-editor-view="relation"] .editor-territorial-flag-section {
-  display: none;
-}
-
-.editor-territorial-flag-section .editor-flag-thumbnail {
-  display: none;
-}
-
 .editor-panel[data-editor-view="info"]:not([data-editor-inline-relation="true"]) .editor-view > .editor-relation-section {
   display: none;
 }
@@ -6290,6 +6281,10 @@ body.file-menu-open .app-root .topbar {
 
 .editor-panel[data-editor-view="actions"][data-editor-inline-relation="true"] .editor-view > .editor-relation-section {
   display: grid;
+}
+
+.editor-panel:not([data-editor-view="actions"]) .editor-delete-section {
+  display: none;
 }
 
 .editor-panel[data-editor-view="relation"] .editor-view > :not(.editor-relation-section):not([hidden]) {
@@ -6409,8 +6404,9 @@ body.file-menu-open .app-root .topbar {
 }
 
 .editor-object-context-main > .editor-object-heading {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
+  max-width: calc(100% - var(--ui-control-height) - var(--design-button-gap));
 }
 
 .editor-object-type-label {
@@ -6434,8 +6430,8 @@ body.file-menu-open .app-root .topbar {
 .editor-flag-thumbnail {
   display: grid;
   place-items: center;
-  width: 2.5rem;
-  height: 1.75rem;
+  width: 3.5rem;
+  height: 2.25rem;
 }
 
 .editor-flag-thumbnail img {
@@ -6491,6 +6487,31 @@ body.file-menu-open .app-root .topbar {
     min-width: var(--ui-icon-control-mobile-size);
     min-height: var(--ui-icon-control-mobile-size);
   }
+
+  .editor-object-context-main > .editor-object-heading {
+    max-width: calc(100% - var(--ui-icon-control-mobile-size) - var(--design-button-gap));
+  }
+}
+
+.editor-header-flag {
+  flex: 0 0 auto;
+  width: 3.5rem;
+  min-width: 3.5rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.editor-header-flag:is(:hover, :active, [aria-expanded="true"]) {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-root:not([data-layout="mobile"]) .surface-editor[data-editor-content="properties"] > .surface-header {
+  display: none;
 }
 
 [data-layout="wide"] .surface-editor {

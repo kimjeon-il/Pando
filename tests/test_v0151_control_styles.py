@@ -41,9 +41,9 @@ class V0151ControlStyleTests(unittest.TestCase):
         self.assertIn('class="ui-toolbar ui-floating-surface ui-floating-toolbar mobile-zoom-dock"', INDEX)
 
     def test_mobile_sheet_close_buttons_use_shared_icons(self):
-        self.assertEqual(INDEX.count('class="ui-button icon-btn sheet-close-btn"'), 3)
+        self.assertEqual(INDEX.count('class="ui-button icon-btn sheet-close-btn"'), 2)
         self.assertIn('id="mobileCloseLeftBtn" class="ui-button icon-btn sheet-close-btn"', INDEX)
-        self.assertIn('id="mobileCloseRightBtn" class="ui-button icon-btn sheet-close-btn"', INDEX)
+        self.assertNotIn('id="mobileCloseRightBtn"', INDEX)
         self.assertNotIn('aria-label="지도·레이어 창 닫기">닫기</button>', INDEX)
         self.assertNotIn('aria-label="편집창 닫기">닫기</button>', INDEX)
         self.assertIn('.surface-header .sheet-close-btn {', CSS)
