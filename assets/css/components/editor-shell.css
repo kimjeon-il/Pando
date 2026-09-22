@@ -590,7 +590,7 @@
 
 .surface-editor > .editor-object-header[data-editor-context] {
   padding-inline: var(--ui-surface-content-rail-x);
-  padding-block: var(--ui-space-4) var(--ui-space-3);
+  padding-block: var(--ui-space-5);
 }
 
 .editor-object-context-main {
@@ -656,6 +656,11 @@
 
 .editor-panel[data-editor-view="info"] .editor-view > .editor-action-section:not(.editor-relation-section) {
   display: none;
+}
+
+.editor-panel[data-editor-view="info"]
+.editor-object-form > .editor-info-section:first-child {
+  padding-top: var(--ui-space-2);
 }
 
 .editor-panel[data-editor-view="info"]:not([data-editor-inline-relation="true"]) .editor-view > .editor-relation-section {
@@ -803,9 +808,8 @@
 }
 
 .editor-object-context-main > .editor-object-heading {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-width: 0;
-  max-width: calc(100% - var(--ui-control-height) - var(--design-button-gap));
 }
 
 .editor-object-type-label {
@@ -827,16 +831,20 @@
 }
 
 .editor-flag-thumbnail {
-  display: grid;
-  place-items: center;
-  width: 3.5rem;
-  height: 2.25rem;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .editor-flag-thumbnail img {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 
@@ -887,20 +895,18 @@
     min-height: var(--ui-icon-control-mobile-size);
   }
 
-  .editor-object-context-main > .editor-object-heading {
-    max-width: calc(100% - var(--ui-icon-control-mobile-size) - var(--design-button-gap));
-  }
 }
 
 .editor-header-flag {
-  flex: 0 0 auto;
+  flex: 0 0 3.5rem;
   width: 3.5rem;
+  height: 3rem;
   min-width: 3.5rem;
-  height: 2.25rem;
-  min-height: 2.25rem;
+  min-height: 3rem;
   padding: 0;
   border: 0;
   background: transparent;
+  overflow: hidden;
 }
 
 .editor-header-flag:is(:hover, :active, [aria-expanded="true"]) {
