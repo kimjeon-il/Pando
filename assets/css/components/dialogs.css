@@ -232,8 +232,8 @@ body[data-layout="mobile"] .ui-dialog-actions .btn {
 }
 
 body[data-layout="mobile"] .ui-dialog-header .icon-btn {
-  width: var(--ui-touch-height);
-  height: var(--ui-touch-height);
+  width: var(--ui-icon-control-mobile-size);
+  height: var(--ui-icon-control-mobile-size);
 }
 
 body[data-layout="mobile"] .gis-form-grid {

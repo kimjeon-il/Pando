@@ -78,7 +78,8 @@ export function createObjectPropertyController(runtime = {}) {
     const hasRelation = relationAvailable || commonAvailable;
     const relationControlCount = relationSections.reduce((count, section) => count + [...section.querySelectorAll('button, input, select, textarea')]
       .filter(control => !control.disabled && !control.hidden && !control.classList.contains('hidden') && !control.closest('.hidden, [hidden]')).length, 0);
-    const inlineRelation = relationAvailable && !commonAvailable && relationControlCount <= 1;
+    const forceRelationTab = type === territorialUnitTypes.COUNTRY;
+    const inlineRelation = !forceRelationTab && relationAvailable && !commonAvailable && relationControlCount <= 1;
     const relationTabVisible = hasRelation && !inlineRelation;
     const editorSurface = $('editorSurface');
     if (editorSurface) {

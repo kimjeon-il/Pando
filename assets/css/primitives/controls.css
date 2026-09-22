@@ -1404,11 +1404,11 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 }
 
 @media (max-width: 799px) {
-  .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn) {
-    width: var(--ui-touch-height);
-    min-width: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
-    height: auto;
+  .ui-button:is(.icon-btn, .ui-icon-button, .sheet-close-btn):not(.compact) {
+    width: var(--ui-icon-control-mobile-size);
+    min-width: var(--ui-icon-control-mobile-size);
+    min-height: var(--ui-icon-control-mobile-size);
+    height: var(--ui-icon-control-mobile-size);
   }
 }
 

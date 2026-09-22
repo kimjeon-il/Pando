@@ -4,9 +4,12 @@ test('territorial selection appears as a label-anchored card and enters the edit
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
+  const slotPointerEvents = await page.locator('.selection-toolbar-slot').evaluate(node => getComputedStyle(node).pointerEvents);
+  expect(slotPointerEvents).toBe('none');
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await expect(page.locator('#selectionToolbar')).toBeVisible();
+  await expect.poll(() => page.locator('#selectionToolbar').evaluate(node => getComputedStyle(node).pointerEvents)).toBe('auto');
   await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
   await expect(page.locator('#selectionCardName')).toHaveText('독일');
   await expect(page.locator('#selectionCardFlagPreview')).toBeVisible();
@@ -22,6 +25,17 @@ test('territorial selection appears as a label-anchored card and enters the edit
   await expect(page.locator('#editorObjectHeader')).toBeVisible();
   await expect(page.locator('#selectionToolbar')).toBeHidden();
   await expect(page.locator('g.country-label-item.selection-card-source-hidden')).toHaveCount(0);
+  await expect(page.locator('#editorTabBtn')).toBeVisible();
+  await expect(page.locator('#actionsTabBtn')).toBeVisible();
+  await expect(page.locator('#relationTabBtn')).toBeVisible();
+  await expect(page.locator('#editorSurface')).not.toHaveAttribute('data-editor-inline-relation', 'true');
+  await page.locator('#relationTabBtn').click();
+  await expect(page.locator('#changeCountryTypeBtn')).toBeVisible();
+  await expect(page.locator('#annexTerritoryBtn')).toBeHidden();
+  await expect(page.locator('#countryNameInput')).toBeHidden();
+  await page.locator('#editorTabBtn').click();
+  await expect(page.locator('#countryNameInput')).toBeVisible();
+  await expect(page.locator('#changeCountryTypeBtn')).toBeHidden();
   for (const width of [1366, 1024, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await expect(page.locator('#flagMenuBtn')).toBeVisible();

@@ -605,8 +605,8 @@ body.file-menu-open .mobile-backdrop {
 
 @media (max-width: 799px) {
   .object-search-section .layer-search-focus-action {
-    width: var(--ui-touch-height);
-    height: var(--ui-touch-height);
+    width: var(--ui-icon-control-mobile-size);
+    height: var(--ui-icon-control-mobile-size);
   }
 }
 

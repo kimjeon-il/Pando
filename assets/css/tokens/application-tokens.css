@@ -128,6 +128,7 @@
   --ui-weight-strong: var(--design-weight-semibold);
   --ui-control-height: var(--design-control-md);
   --ui-touch-height: var(--design-touch-height);
+  --ui-icon-control-mobile-size: var(--design-icon-control-mobile-size);
   --ui-control-padding-x: var(--ui-space-3);
   --ui-control-padding-y: var(--ui-space-2);
   --ui-control-gap: var(--design-button-gap);

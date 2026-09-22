@@ -167,27 +167,21 @@
   padding: var(--ui-toolbar-padding);
 }
 
-.app-root[data-layout="mobile"] .icon-btn {
-  width: var(--ui-touch-height);
-  min-width: var(--ui-touch-height);
-  height: var(--ui-touch-height);
-}
-
 .app-root[data-layout="mobile"] .map-view-toolbar button {
-  width: var(--ui-touch-height);
-  min-width: var(--ui-touch-height);
-  height: var(--ui-touch-height);
+  width: var(--ui-icon-control-mobile-size);
+  min-width: var(--ui-icon-control-mobile-size);
+  height: var(--ui-icon-control-mobile-size);
 }
 
 .app-root[data-layout="mobile"] .projection-control {
-  height: var(--ui-touch-height);
+  height: var(--ui-icon-control-mobile-size);
   padding: var(--ui-segment-padding);
 }
 
 .app-root[data-layout="mobile"] .map-view-toolbar {
-  width: calc(var(--ui-touch-height) + var(--ui-toolbar-padding) + var(--ui-toolbar-padding) + var(--ui-space-0-5));
-  grid-template-columns: var(--ui-touch-height);
-  grid-template-rows: repeat(3, var(--ui-touch-height));
+  width: calc(var(--ui-icon-control-mobile-size) + var(--ui-toolbar-padding) + var(--ui-toolbar-padding) + var(--ui-space-0-5));
+  grid-template-columns: var(--ui-icon-control-mobile-size);
+  grid-template-rows: repeat(3, var(--ui-icon-control-mobile-size));
   gap: var(--ui-toolbar-gap);
   padding: var(--ui-toolbar-padding);
 }

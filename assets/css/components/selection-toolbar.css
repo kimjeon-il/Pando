@@ -9,7 +9,7 @@
   pointer-events: none;
 }
 
-.selection-toolbar-slot {
+.map-overlay-layer > .selection-toolbar-slot {
   position: absolute;
   z-index: 63;
   inset: 0;
