@@ -743,8 +743,8 @@
 @media (max-width: 799px) {
   .app-root[data-layout="mobile"] .surface-editor .editor-object-command {
     display: grid;
-    width: var(--ui-touch-height);
-    height: var(--ui-touch-height);
+    width: var(--ui-icon-control-mobile-size);
+    height: var(--ui-icon-control-mobile-size);
   }
 }
 
@@ -885,9 +885,9 @@
 
 @media (max-width: 799px) {
   .editor-focus-action {
-    width: var(--ui-touch-height);
-    min-width: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
+    width: var(--ui-icon-control-mobile-size);
+    min-width: var(--ui-icon-control-mobile-size);
+    min-height: var(--ui-icon-control-mobile-size);
   }
 }
 

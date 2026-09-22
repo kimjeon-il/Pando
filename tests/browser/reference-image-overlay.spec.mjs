@@ -271,12 +271,12 @@ test('reference images support placement, ordering, georeferencing and persisten
       reset: { width: reset.width, height: reset.height },
     };
   });
-  expect(commandToolbarSizes.toolbar.width).toBeCloseTo(114, 0);
-  expect(commandToolbarSizes.toolbar.height).toBeCloseTo(62, 0);
-  expect(commandToolbarSizes.reference.width).toBeCloseTo(48, 0);
-  expect(commandToolbarSizes.reference.height).toBeCloseTo(48, 0);
-  expect(commandToolbarSizes.reset.width).toBeCloseTo(48, 0);
-  expect(commandToolbarSizes.reset.height).toBeCloseTo(48, 0);
+  expect(commandToolbarSizes.toolbar.width).toBeCloseTo(98, 0);
+  expect(commandToolbarSizes.toolbar.height).toBeCloseTo(54, 0);
+  expect(commandToolbarSizes.reference.width).toBeCloseTo(40, 0);
+  expect(commandToolbarSizes.reference.height).toBeCloseTo(40, 0);
+  expect(commandToolbarSizes.reset.width).toBeCloseTo(40, 0);
+  expect(commandToolbarSizes.reset.height).toBeCloseTo(40, 0);
   await page.locator('.reference-image-launcher').click();
   const imagePanel = page.locator('.reference-image-panel');
   await expect(imagePanel).toBeVisible();

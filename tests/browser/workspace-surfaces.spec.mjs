@@ -71,9 +71,12 @@ test('hamburger is mobile-only and mobile workspace fills the viewport', async (
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#mobileMenuBtn')).toBeVisible();
   const hamburger = await page.locator('.mobile-menu-toolbar').boundingBox();
+  const hamburgerButton = await page.locator('#mobileMenuBtn').boundingBox();
   expect(hamburger.x).toBeGreaterThanOrEqual(0);
-  expect(hamburger.width).toBeCloseTo(62, 0);
-  expect(hamburger.height).toBeCloseTo(62, 0);
+  expect(hamburger.width).toBeCloseTo(54, 0);
+  expect(hamburger.height).toBeCloseTo(54, 0);
+  expect(hamburgerButton.width).toBeCloseTo(40, 0);
+  expect(hamburgerButton.height).toBeCloseTo(40, 0);
   const floatingStyles = await page.evaluate(() => {
     const keys = ['borderColor', 'borderRadius', 'backgroundColor', 'boxShadow'];
     const values = selector => {

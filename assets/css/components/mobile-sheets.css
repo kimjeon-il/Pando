@@ -87,10 +87,10 @@
   }
 
   [data-layout="mobile"] .mobile-menu-trigger {
-    width: var(--ui-touch-height);
-    min-width: var(--ui-touch-height);
-    height: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
+    width: var(--ui-icon-control-mobile-size);
+    min-width: var(--ui-icon-control-mobile-size);
+    height: var(--ui-icon-control-mobile-size);
+    min-height: var(--ui-icon-control-mobile-size);
     padding: 0;
   }
 

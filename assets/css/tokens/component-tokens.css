@@ -15,7 +15,7 @@
   --ui-preferences-chip-size: 24px;
   --ui-preferences-chip-size-mobile: 28px;
   --ui-mobile-floating-surface-size: calc(
-    var(--ui-touch-height) +
+    var(--ui-icon-control-mobile-size) +
     (var(--ui-space-1-5) * 2) +
     (var(--ui-border-width) * 2)
   );
