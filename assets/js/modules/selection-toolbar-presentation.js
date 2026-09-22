@@ -86,7 +86,11 @@ export function createSelectionToolbarPresentation({
     let placement = 'top';
     if (top < edge) { top = anchorBottom - mapRect.top + gap; placement = 'bottom'; }
     top = Math.max(edge, Math.min(top, mapRect.height - cardRect.height - edge));
-    const arrowLeft = Math.max(14, Math.min(cardRect.width - 14, anchorLeft - mapRect.left - left));
+    const arrowSafeInset = 28;
+    const arrowLeft = Math.max(
+      arrowSafeInset,
+      Math.min(cardRect.width - arrowSafeInset, anchorLeft - mapRect.left - left),
+    );
     card.style.left = `${Math.round(left)}px`;
     card.style.top = `${Math.round(top)}px`;
     card.style.setProperty('--selection-card-arrow-left', `${Math.round(arrowLeft)}px`);
