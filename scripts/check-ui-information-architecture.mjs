@@ -204,6 +204,25 @@ if (!editorHeader.includes('id="focusSelectedObjectBtn"')) fail('editor Surface 
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
+for (const formId of ['countryProperties', 'subunitProperties', 'regionProperties']) {
+  const form = elementById(formId, 'form');
+  if (!form.includes('class="editor-section editor-info-section editor-section-primary" aria-label="정보"')) {
+    fail(`#${formId} must expose an information section named 정보`);
+  }
+  if (!form.includes('class="editor-section editor-action-section" aria-label="편집"')) {
+    fail(`#${formId} must expose an action section named 편집`);
+  }
+  if (!form.includes('class="editor-section editor-action-section editor-relation-section" aria-label="관계"')) {
+    fail(`#${formId} must expose a relation section named 관계`);
+  }
+}
+if (/(?:영역 편집|관계 및 종류|관계 및 구조)/.test([
+  elementById('countryProperties', 'form'),
+  elementById('subunitProperties', 'form'),
+  elementById('regionProperties', 'form'),
+].join(''))) {
+  fail('territorial editor sections must not repeat tab names as headings');
+}
 if (!html.includes('id="layerSearchInput"')) fail('layer search must remain available');
 const mapToolbar = html.match(/<div class="[^"]*map-command-toolbar[^"]*"[\s\S]*?<\/div>/)?.[0] || '';
 if (!mapToolbar.includes('id="createMenuBtn"')) fail('map command bar must own #createMenuBtn');

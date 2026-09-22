@@ -9,7 +9,7 @@ export function createSelectionToolbarPresentation({
   getMapRect = () => null, getViewRevision = () => 0,
 } = {}) {
   const $ = getElement;
-  let activeRef = null, activeAnchorNode = null, anchorFrame = 0, lastViewRevision = null, flagReadRevision = 0, bound = false;
+  let activeRef = null, activeAnchorNode = null, anchorFrame = 0, lastPositionSignature = null, flagReadRevision = 0, bound = false;
   const root = () => $('selectionToolbar');
   const activeKind = () => activeRef?.type || '';
   const currentSelection = () => {
@@ -72,8 +72,8 @@ export function createSelectionToolbarPresentation({
   function positionCard({ force = false } = {}) {
     const card = root();
     if (!card || card.classList.contains('hidden') || !activeRef) return false;
-    const revision = getViewRevision();
-    if (!force && revision === lastViewRevision) return true;
+    const positionSignature = `${getViewRevision()}:${activeRef.key}`;
+    if (!force && positionSignature === lastPositionSignature) return true;
     const mapRect = getMapRect(), anchor = acquireAnchor();
     if (!mapRect || !anchor) { releaseAnchorNode(); return false; }
     const cardRect = card.getBoundingClientRect();
@@ -91,13 +91,13 @@ export function createSelectionToolbarPresentation({
     card.style.top = `${Math.round(top)}px`;
     card.style.setProperty('--selection-card-arrow-left', `${Math.round(arrowLeft)}px`);
     card.dataset.placement = placement;
-    lastViewRevision = revision;
+    lastPositionSignature = positionSignature;
     return true;
   }
   function stopAnchorTracking() {
     if (anchorFrame) window.cancelAnimationFrame(anchorFrame);
     anchorFrame = 0;
-    lastViewRevision = null;
+    lastPositionSignature = null;
   }
   function trackAnchor() {
     stopAnchorTracking();
@@ -146,7 +146,12 @@ export function createSelectionToolbarPresentation({
     if (!toolbar) return false;
     const ref = currentSelection();
     if (!ref) return clear();
-    if (activeRef?.key !== ref.key) closeTransient();
+    const selectionChanged = activeRef?.key !== ref.key;
+    if (selectionChanged) {
+      closeTransient();
+      releaseAnchorNode();
+      lastPositionSignature = null;
+    }
     activeRef = ref;
     const view = getView(ref);
     if (!view) return clear();
@@ -155,7 +160,11 @@ export function createSelectionToolbarPresentation({
     toolbar.setAttribute('aria-label', `${view.name || '선택 객체'} 선택 카드`);
     for (const fields of toolbar.querySelectorAll('[data-selection-kind]')) fields.classList.toggle('hidden', fields.dataset.selectionKind !== ref.type);
     renderIdentity(view);
-    return syncInteraction();
+    const synced = syncInteraction();
+    if (synced && selectionChanged && !isEditorOpen() && !toolbar.classList.contains('hidden')) {
+      positionCard({ force: true });
+    }
+    return synced;
   }
   function clear() {
     const toolbar = root();

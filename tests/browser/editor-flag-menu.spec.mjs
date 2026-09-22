@@ -19,6 +19,20 @@ test('territorial selection appears as a label-anchored card and enters the edit
   await expect(page.locator('#selectionToolbar #objectVisibilityBtn, #selectionToolbar #objectLockBtn')).toHaveCount(2);
   await expect(page.locator('#editorSurface .surface-header-actions #objectVisibilityBtn, #editorSurface .surface-header-actions #objectLockBtn, #editorSurface .surface-header-actions #objectDeleteBtn')).toHaveCount(0);
 
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'BGR'));
+  await expect(page.locator('#selectionCardName')).toHaveText('불가리아');
+  const bulgariaPosition = await page.locator('#selectionToolbar').boundingBox();
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'RUS'));
+  await expect(page.locator('#selectionCardName')).toHaveText('러시아');
+  const russiaPosition = await page.locator('#selectionToolbar').boundingBox();
+  expect(Math.hypot(
+    russiaPosition.x - bulgariaPosition.x,
+    russiaPosition.y - bulgariaPosition.y,
+  )).toBeGreaterThan(20);
+
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await expect(page.locator('#selectionCardName')).toHaveText('독일');
+
   await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
   await expect(page.locator('#editorSurface #changeCountryTypeBtn')).toHaveCount(1);
@@ -29,6 +43,10 @@ test('territorial selection appears as a label-anchored card and enters the edit
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
   await expect(page.locator('#relationTabBtn')).toBeVisible();
   await expect(page.locator('#editorSurface')).not.toHaveAttribute('data-editor-inline-relation', 'true');
+  await expect(page.locator('#countryProperties > .editor-info-section')).toHaveAttribute('aria-label', '정보');
+  await expect(page.locator('#countryProperties > .editor-action-section:not(.editor-relation-section)')).toHaveAttribute('aria-label', '편집');
+  await expect(page.locator('#countryProperties > .editor-relation-section')).toHaveAttribute('aria-label', '관계');
+  await expect(page.locator('#countryProperties > .editor-section > .editor-section-title')).toHaveCount(0);
   await page.locator('#relationTabBtn').click();
   await expect(page.locator('#changeCountryTypeBtn')).toBeVisible();
   await expect(page.locator('#annexTerritoryBtn')).toBeHidden();

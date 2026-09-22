@@ -477,13 +477,12 @@
           <form id="countryProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
             <div class="editor-country-area" aria-hidden="true" hidden><strong id="countryAreaValue">—</strong></div>
 
-            <section class="editor-section editor-info-section editor-section-primary">
+            <section class="editor-section editor-info-section editor-section-primary" aria-label="정보">
               <div class="ui-field field-group editor-field"><label for="countryNameInput">국명</label><input id="countryNameInput" form="countryProperties" type="text" autocomplete="off" /></div>
               <div class="ui-field field-group editor-field"><label for="notesInput">메모</label><textarea id="notesInput" form="countryProperties" rows="5" placeholder="국가에 관한 메모를 입력하세요."></textarea></div>
             </section>
 
-            <section class="editor-section editor-action-section" aria-labelledby="countryGeometryActionsTitle">
-              <h3 id="countryGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
+            <section class="editor-section editor-action-section" aria-label="편집">
               <div class="editor-action-list">
                 <button id="addCountrySubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span><strong>하위단위 추가</strong><small>상위 단위와 기준 영역을 선택하여 추가</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="annexTerritoryBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-annex"/></svg><span><strong>영토 편입</strong><small>다른 국가의 영토 가져오기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
@@ -492,7 +491,7 @@
                 <button id="editCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>해안선 조정</strong><small>바다와 맞닿은 경계 편집</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
-            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="countryRelationActionsTitle" data-od-id="country-relation-actions-title"><h3 id="countryRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
+            <section class="editor-section editor-action-section editor-relation-section" aria-label="관계" data-od-id="country-relation-actions-title">
               <div class="editor-action-list">
                 <button id="changeCountryTypeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>종류 변경</strong><small>국가를 하위단위로 전환</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
@@ -500,15 +499,14 @@
           </form>
 
           <form id="subunitProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
-            <section class="editor-section editor-info-section editor-section-primary">
+            <section class="editor-section editor-info-section editor-section-primary" aria-label="정보">
               <div class="ui-field field-group editor-field"><label for="subunitNameInput">하위단위명</label><input id="subunitNameInput" form="subunitProperties" type="text" placeholder="예: 마조프셰주" /></div>
               <p id="subunitNameConflict" class="editor-help hidden">같은 국가에 이름이 같은 하위단위가 있습니다. 상위 단위를 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="subunitCountryInput">소속 국가</label><select id="subunitCountryInput"><option value="">소속 국가 미지정</option></select></div>
               <div class="ui-field field-group editor-field"><label for="subunitParentInput">상위 단위</label><select id="subunitParentInput"><option value="" disabled hidden selected data-placeholder="true">소속 국가 선택</option></select></div>
               <div class="ui-field field-group editor-field"><label for="subunitNotesInput">메모</label><textarea id="subunitNotesInput" form="subunitProperties" rows="5"></textarea></div>
             </section>
-            <section class="editor-section editor-action-section" aria-labelledby="subunitGeometryActionsTitle">
-              <h3 id="subunitGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
+            <section class="editor-section editor-action-section" aria-label="편집">
               <div class="editor-action-list">
                 <button id="addSubunitChildBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span><strong>하위단위 추가</strong><small>이 하위단위 안에 자식 하위단위 추가</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="annexSubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>영역 편입</strong><small>같은 상위 단위 안에서 영역 가져오기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
@@ -518,7 +516,7 @@
                 <button id="reconcileSubunitCoastBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coastline"/></svg><span><strong>해안선 정합</strong><small>국가 해안선과 불일치 구간 조정</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
-            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="subunitRelationActionsTitle" data-od-id="subunit-relation-actions-title"><h3 id="subunitRelationActionsTitle" class="editor-section-title">관계 및 종류</h3>
+            <section class="editor-section editor-action-section editor-relation-section" aria-label="관계" data-od-id="subunit-relation-actions-title">
               <div class="editor-action-list">
                 <button id="promoteSubunitBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-country"/></svg><span><strong>국가로 전환</strong><small>선택 구역과 하위 영역을 국가로 전환</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="removeSubunitDivisionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-subunits"/></svg><span><strong>하위단위 삭제</strong><small>상위 단위의 면적을 유지하고 객체 삭제</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
@@ -527,7 +525,7 @@
           </form>
 
           <form id="regionProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
-            <section class="editor-section editor-info-section editor-section-primary">
+            <section class="editor-section editor-info-section editor-section-primary" aria-label="정보">
               <div class="ui-field field-group editor-field"><label for="regionNameInput">지방명</label><input id="regionNameInput" form="regionProperties" type="text" placeholder="예: 실레시아" /></div>
               <p id="regionNameConflict" class="editor-help hidden">이름이 같은 지방이 있습니다. 시대와 상위 단위를 확인하세요.</p>
               <div class="ui-field field-group editor-field"><label for="regionCountryInput">소속 국가</label><select id="regionCountryInput"><option value="">소속 국가 없음</option></select></div>
@@ -538,14 +536,13 @@
                 <div class="ui-field field-group editor-field"><label for="regionValidToInput">종료일</label><input id="regionValidToInput" type="text" inputmode="numeric" placeholder="현재까지면 비워 둠" /></div>
               </div></fieldset>
             </section>
-            <section class="editor-section editor-action-section" aria-labelledby="regionGeometryActionsTitle">
-              <h3 id="regionGeometryActionsTitle" class="editor-section-title">영역 편집</h3>
+            <section class="editor-section editor-action-section" aria-label="편집">
               <div class="editor-action-list">
                 <button id="reassignRegionShapeBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-boundary-edit"/></svg><span><strong>경계 수정</strong><small>상위 영역 안에서 경계 다시 그리기</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                 <button id="mergeRegionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-merge"/></svg><span><strong>지방 합치기</strong><small>인접한 지방 선택</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
             </section>
-            <section class="editor-section editor-action-section editor-relation-section" aria-labelledby="regionRelationActionsTitle" data-od-id="region-relation-actions-title"><h3 id="regionRelationActionsTitle" class="editor-section-title">관계 및 구조</h3>
+            <section class="editor-section editor-action-section editor-relation-section" aria-label="관계" data-od-id="region-relation-actions-title">
               <div class="editor-action-list">
                 <button id="transferRegionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-transfer"/></svg><span><strong>소속 변경</strong></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               </div>
@@ -553,7 +550,7 @@
           </form>
 
           <form id="distributionProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
-            <section class="editor-section editor-info-section editor-section-primary">
+            <section class="editor-section editor-info-section editor-section-primary" aria-label="정보">
               <div class="ui-field field-group editor-field"><label for="distributionNameInput">이름</label><input id="distributionNameInput" type="text" /></div>
               <div class="editor-field-grid editor-field-grid-color">
                 <div class="ui-field field-group editor-field"><label for="distributionTypeValue">종류</label><output id="distributionTypeValue" class="editor-readonly-value">—</output></div>
@@ -567,8 +564,7 @@
               <details class="ui-disclosure editor-disclosure"><summary><span>고급 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="distributionParentInput">상위 분류</label><select id="distributionParentInput"><option value="">상위 분류 없음</option></select></div></div></details>
               <select id="distributionRenderModeInput" data-native-select hidden><option value="dominant">가장 많은 분포만 표시</option><option value="intensity">비율을 색 농도로 표시</option></select>
             </section>
-            <section class="editor-section editor-action-section">
-              <h3 class="editor-section-title">분포</h3>
+            <section class="editor-section editor-action-section" aria-label="편집">
               <div id="distributionEntryList" class="distribution-entry-list"></div>
               <div class="distribution-entry-add">
                 <div class="ui-field field-group editor-field"><label for="distributionTerritorialUnitInput">기준 영역</label><select id="distributionTerritorialUnitInput"></select></div>
@@ -599,7 +595,7 @@
           </form>
 
           <form id="labelProperties" class="editor-view editor-object-form hidden" onsubmit="return false;">
-            <section class="editor-section editor-info-section editor-section-primary">
+            <section class="editor-section editor-info-section editor-section-primary" aria-label="정보">
               <div class="ui-field field-group editor-field"><label for="labelNameInput">이름</label><input id="labelNameInput" type="text" /></div>
               <div class="ui-field field-group editor-field">
                 <label for="labelKindInput">종류</label>
@@ -629,7 +625,7 @@
               <p id="hydroBuiltinHelp" class="editor-help"><span id="hydroSourceValue">Natural Earth 5.0.0 1:10m</span> 기반 내장 강입니다. 직접 수정하려면 복사본을 만드세요.</p>
             </section>
 
-            <section class="editor-section editor-action-section"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action hydro-copy-command">복사하여 편집</button></section>
+            <section class="editor-section editor-action-section" aria-label="편집"><button id="copyHydroBtn" type="button" class="ui-button btn wide editor-primary-action hydro-copy-command">복사하여 편집</button></section>
             <details class="ui-disclosure editor-disclosure" hidden>
               <summary><span>데이터 정보</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
               <div class="editor-disclosure-body">
