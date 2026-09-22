@@ -523,6 +523,7 @@ body.map-sheet-dragging {
 .surface-content-editor {
   padding-inline-end: var(--ui-surface-content-rail-x);
   padding-inline-start: var(--ui-surface-content-rail-x);
+  padding-top: var(--ui-space-3);
   padding-bottom: var(--ui-surface-content-padding-bottom);
   min-height: 100%;
   display: flex;
