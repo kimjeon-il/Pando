@@ -1,4 +1,4 @@
-﻿.reference-image-canvas {
+.reference-image-canvas {
   position: absolute;
   inset: var(--ui-space-0);
   z-index: 1;
@@ -70,7 +70,7 @@
 }
 
 .reference-image-panel-header > div {
-  display: none;
+  display: grid;
 }
 
 .reference-image-list {
@@ -188,19 +188,9 @@
 [data-layout="mobile"] .reference-image-panel-header > [data-ref-action="close"] { display: none; }
 
 
+
 @media (min-width: 800px) {
   .reference-image-panel-header {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    min-width: 0;
-    min-height: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
+    display: none;
   }
 }
-
