@@ -312,7 +312,7 @@ export function createDomainAssembly() {
       if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
         return String((0, dependencies.countries.countryFeatureById)(ref.id)?.id || ref.id);
       }
-      for (const [labelId, labelRef] of dependencies.countries.builtinRenderCountries().collection?.labelRefs || []) {
+      for (const [labelId, labelRef] of dependencies.countries.builtinRenderCountries().labelRefs || []) {
         if (labelRef?.domain === 'territorial' && labelRef.type === ref.type && String(labelRef.id) === String(ref.id)) return String(labelId);
       }
       return '';
