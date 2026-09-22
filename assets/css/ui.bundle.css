@@ -6922,6 +6922,12 @@ body.file-menu-open .app-root .topbar {
   outline-offset: var(--ui-space-1);
 }
 
+.selection-card-hit:is(:hover, :active) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
 .selection-card-main { min-height: inherit; pointer-events: none; }
 
 .selection-summary {
@@ -7009,8 +7015,14 @@ body.file-menu-open .app-root .topbar {
   box-shadow: none;
 }
 
-.selection-card-quickbar > .icon-btn[aria-pressed="true"] {
+.selection-card-quickbar > .icon-btn[aria-pressed="true"],
+.selection-card-quickbar > .icon-btn[aria-pressed="true"]:hover,
+.selection-card-quickbar .selection-toolbar-color[aria-expanded="true"],
+.selection-card-quickbar .selection-toolbar-color[aria-expanded="true"]:hover {
+  border-color: transparent;
+  background: transparent;
   color: var(--text-soft);
+  box-shadow: none;
 }
 
 .selection-toolbar-color { gap: 0; }
