@@ -6937,7 +6937,6 @@ body.file-menu-open .app-root .topbar {
   width: 6.75rem;
   height: 5.375rem;
   place-items: center;
-  border: 1px solid color-mix(in oklch, var(--text) 10%, transparent);
   border-radius: var(--ui-radius-control);
   background: color-mix(in oklch, var(--surface-muted) 70%, transparent);
   overflow: hidden;
@@ -6993,6 +6992,25 @@ body.file-menu-open .app-root .topbar {
   min-width: 2.75rem;
   height: 2.75rem;
   border-radius: .625rem;
+}
+
+.selection-card-quickbar > .icon-btn:is(
+  :hover,
+  :active,
+  [aria-pressed="true"]
+),
+.selection-card-quickbar .selection-toolbar-color:is(
+  :hover,
+  :active,
+  [aria-expanded="true"]
+) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.selection-card-quickbar > .icon-btn[aria-pressed="true"] {
+  color: var(--text-soft);
 }
 
 .selection-toolbar-color { gap: 0; }
@@ -9600,11 +9618,11 @@ html.keyboard-navigation .map-display-detail-trigger:focus-visible {
 
 @media (max-width: 799px) {
   .app-root[data-layout="mobile"] .map-command-toolbar button {
-    width: var(--ui-touch-height);
-    min-width: var(--ui-touch-height);
-    height: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
-    flex: 0 0 var(--ui-touch-height);
+    width: var(--ui-icon-control-mobile-size);
+    min-width: var(--ui-icon-control-mobile-size);
+    height: var(--ui-icon-control-mobile-size);
+    min-height: var(--ui-icon-control-mobile-size);
+    flex: 0 0 var(--ui-icon-control-mobile-size);
   }
 }
 

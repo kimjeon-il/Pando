@@ -243,11 +243,11 @@
 
 @media (max-width: 799px) {
   .app-root[data-layout="mobile"] .map-command-toolbar button {
-    width: var(--ui-touch-height);
-    min-width: var(--ui-touch-height);
-    height: var(--ui-touch-height);
-    min-height: var(--ui-touch-height);
-    flex: 0 0 var(--ui-touch-height);
+    width: var(--ui-icon-control-mobile-size);
+    min-width: var(--ui-icon-control-mobile-size);
+    height: var(--ui-icon-control-mobile-size);
+    min-height: var(--ui-icon-control-mobile-size);
+    flex: 0 0 var(--ui-icon-control-mobile-size);
   }
 }
 

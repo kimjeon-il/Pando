@@ -84,7 +84,6 @@
   width: 6.75rem;
   height: 5.375rem;
   place-items: center;
-  border: 1px solid color-mix(in oklch, var(--text) 10%, transparent);
   border-radius: var(--ui-radius-control);
   background: color-mix(in oklch, var(--surface-muted) 70%, transparent);
   overflow: hidden;
@@ -140,6 +139,25 @@
   min-width: 2.75rem;
   height: 2.75rem;
   border-radius: .625rem;
+}
+
+.selection-card-quickbar > .icon-btn:is(
+  :hover,
+  :active,
+  [aria-pressed="true"]
+),
+.selection-card-quickbar .selection-toolbar-color:is(
+  :hover,
+  :active,
+  [aria-expanded="true"]
+) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.selection-card-quickbar > .icon-btn[aria-pressed="true"] {
+  color: var(--text-soft);
 }
 
 .selection-toolbar-color { gap: 0; }
