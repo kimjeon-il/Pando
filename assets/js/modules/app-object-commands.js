@@ -98,13 +98,13 @@ export function createObjectCommands() {
     if (!feature?.geometry && feature?.type !== 'FeatureCollection') return false;
     const countryScope = ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
       ? dependencies.objectModelB.territorialScope.scope(ref.id) : null;
-    if (countryScope?.members.length) feature = countryScope.extent;
     const runtimeAnchor = ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-      ? dependencies.labelPresentation.countryLabelAnchors.get(String(feature?.id || ''))
+      ? dependencies.labelPresentation.countryLabelAnchors.get(String(ref.id))
       : null;
-    const preferredAnchor = !countryScope?.members.length && (0, dependencies.countries.validLabelAnchor)(runtimeAnchor)
+    const preferredAnchor = (0, dependencies.countries.validLabelAnchor)(runtimeAnchor)
       ? runtimeAnchor
       : null;
+    if (countryScope?.members.length) feature = countryScope.extent;
     (0, dependencies.navigation.focusCountry)(feature, { maxZoom: (0, dependencies.surfaces.isMobile)() ? 12 : 10, preferredAnchor });
     if (announce) (0, dependencies.feedback.setActionStatus)('선택 객체로 이동했습니다.', 'success', 2200);
     return true;
