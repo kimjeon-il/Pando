@@ -60,7 +60,6 @@ if (!/textarea\s*\{\s*resize:\s*none/.test(css)) failures.push('textarea resize 
 for (const match of css.matchAll(/([^{}]*\btextarea\b[^{}]*)\{([^{}]*)\}/g)) {
   const resize = match[2].match(/(?:^|;)\s*resize\s*:\s*([^;}]+)/)?.[1]?.trim();
   if (!resize || resize === 'none') continue;
-  if (match[1].trim() === '.selection-toolbar-note-field textarea' && resize === 'vertical') continue;
   failures.push(`unsupported textarea resize override: ${match[1].trim()} { resize: ${resize} }`);
 }
 

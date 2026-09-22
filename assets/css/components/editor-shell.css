@@ -657,6 +657,15 @@
   display: none;
 }
 
+.editor-panel[data-editor-view="actions"] .editor-territorial-flag-section,
+.editor-panel[data-editor-view="relation"] .editor-territorial-flag-section {
+  display: none;
+}
+
+.editor-territorial-flag-section .editor-flag-thumbnail {
+  display: none;
+}
+
 .editor-panel[data-editor-view="info"]:not([data-editor-inline-relation="true"]) .editor-view > .editor-relation-section {
   display: none;
 }
@@ -752,6 +761,24 @@
   color: var(--muted);
   font-size: var(--ui-font-sm);
   line-height: var(--ui-line-normal);
+}
+
+.editor-delete-section {
+  margin-top: var(--ui-space-6);
+  padding-top: var(--ui-space-3);
+  border-top: 1px solid var(--border);
+}
+
+.editor-delete-row:not(:disabled) {
+  color: var(--danger-text);
+}
+
+.editor-delete-row:not(:disabled) .command-row-icon {
+  color: var(--danger-text);
+}
+
+.editor-delete-row:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
 }
 
 [data-layout="wide"] .map-bottom-status {

@@ -383,6 +383,15 @@ export function createObjectCommands() {
       deleteButton.dataset.tooltip = deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
       deleteButton.setAttribute('aria-label', deleteButton.dataset.tooltip);
     }
+    const deleteSection = (0, dependencies.platform.$)('editorDeleteSection');
+    if (deleteSection) deleteSection.classList.toggle('hidden', refs.length === 0);
+    const noteInputIds = { country: 'notesInput', subunit: 'subunitNotesInput', region: 'regionNotesInput' };
+    const noteInput = primary?.domain === 'territorial' ? (0, dependencies.platform.$)(noteInputIds[primary.type]) : null;
+    if (noteInput) {
+      const readOnly = objectRefLocked(primary);
+      noteInput.readOnly = readOnly;
+      noteInput.setAttribute('aria-readonly', String(readOnly));
+    }
     const menuFocus = (0, dependencies.platform.$)('objectFocusMenuBtn');
     if (menuFocus) menuFocus.disabled = refs.length !== 1 || !primary;
     dependencies.domainControllers.syncSelectionToolbarInteraction?.();
