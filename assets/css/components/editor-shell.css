@@ -590,7 +590,7 @@
 
 .surface-editor > .editor-object-header[data-editor-context] {
   padding-inline: var(--ui-surface-content-rail-x);
-  padding-block: var(--ui-space-3) var(--ui-space-4);
+  padding-block: var(--ui-space-4) var(--ui-space-3);
 }
 
 .editor-object-context-main {
@@ -638,6 +638,7 @@
 
 .editor-object-header[data-editor-context] .editor-focus-action {
   flex: 0 0 auto;
+  margin-left: auto;
   white-space: nowrap;
 }
 
