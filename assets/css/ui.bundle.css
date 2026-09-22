@@ -5285,6 +5285,10 @@ body[data-layout="mobile"] .gis-import-dialog .mobile-step-control-hidden {
 }
 
 [data-layout]:not([data-layout="mobile"]) .surface-create {
+--ui-surface-radius-top-left: var(--ui-radius-panel);
+--ui-surface-radius-top-right: var(--ui-radius-panel);
+--ui-surface-radius-bottom-right: var(--ui-radius-panel);
+--ui-surface-radius-bottom-left: var(--ui-radius-panel);
   position: fixed;
   top: var(--ui-menu-position-top, var(--ui-shell-topbar-height));
   left: var(--ui-menu-position-left, var(--ui-shell-compact-inset));
