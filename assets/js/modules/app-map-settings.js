@@ -854,6 +854,7 @@ export function createMapSettings() {
         countryDelta: (0, dependencies.projectSnapshots.buildCountryDelta)(),
         fullAutosave: !!dependencies.projectState.state.sessionBaseCountriesJson,
         terrainManifest: dependencies.projectState.state.terrainManifest,
+        terrainSourceInfo: dependencies.rendering.gpuMapRenderer?.activeTerrainSourceInfo?.(),
         hydroManifest: dependencies.projectState.state.hydroManifest,
       }),
     }));

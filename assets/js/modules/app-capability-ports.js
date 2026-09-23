@@ -331,6 +331,8 @@ function createMapResourcePorts(providers) {
       get DATA_REVISION() { return providers.environment.DATA_REVISION; },
       get HYDRO_DATA_VERSION() { return providers.environment.HYDRO_DATA_VERSION; },
       get PHYSICAL_DATA_BASE_URL() { return providers.environment.PHYSICAL_DATA_BASE_URL; },
+      get TERRAIN_RASTER_MANIFEST_URL() { return providers.environment.TERRAIN_RASTER_MANIFEST_URL; },
+      get TERRAIN_DEV_DEM_MANIFEST_URL() { return providers.environment.TERRAIN_DEV_DEM_MANIFEST_URL; },
       get PHYSICAL_DATASET() { return providers.environment.PHYSICAL_DATASET; },
       get TERRAIN_OCEAN_REPRESENTATIVE() { return providers.environment.TERRAIN_OCEAN_REPRESENTATIVE; },
     }),

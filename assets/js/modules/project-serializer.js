@@ -1,5 +1,6 @@
 import { normalizeCountryFeature, pruneCountryOverrides } from './country-feature.js';
 import { createGeometrySnapshotPool } from './geometry-versions.js';
+import { TERRAIN_RASTER_VERSION } from './terrain-manifest.js';
 import {
   PROJECT_SCHEMA_VERSION,
   SOURCE_PROVENANCE_SCHEMA_VERSION,
@@ -94,8 +95,8 @@ export function createProjectSerializer({
       ...modelContracts(contracts),
       physicalSourceInfo: {
         terrain: {
-          dataset: snapshot.terrainManifest?.dataset || terrainDataset,
-          version: snapshot.terrainManifest?.version || '0.12.6',
+          dataset: snapshot.terrainSourceInfo?.dataset || snapshot.terrainManifest?.dataset || terrainDataset,
+          version: snapshot.terrainSourceInfo?.version || snapshot.terrainManifest?.version || TERRAIN_RASTER_VERSION,
         },
         hydro: {
           dataset: snapshot.hydroManifest?.dataset || hydroDataset,

@@ -5,6 +5,8 @@ import { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan }
 import { createGpuResourceLifecycle, createGpuUploadScope } from './gpu-resource-lifecycle.js';
 import { createGpuWorkerChannels } from './gpu-worker-channels.js';
 import { createGpuTerrainPreparation } from './gpu-terrain-preparation.js';
+import { TERRAIN_DEM_FORMAT, TERRAIN_RASTER_DATASET, TERRAIN_RASTER_VERSION, terrainAssetUrl, validateTerrainManifest } from './terrain-manifest.js';
+import { terrainDemFragmentSource } from './terrain-dem-shaders.js';
 import { resolveMapInteractionStyle } from './map-interaction-style.js';
 import '../workers/canvas-scene-composition-core.js';
 import { decodeCountryMesh } from './country-mesh-codec.js';
@@ -140,6 +142,8 @@ export function createGpuMapRenderer(deps) {
     ASSET_REVISION,
     DATA_REVISION,
     PHYSICAL_DATA_BASE_URL,
+    TERRAIN_RASTER_MANIFEST_URL,
+    onTerrainSourceChanged,
     activeProjection,
     countryColor,
     countryFeatureById,
@@ -252,6 +256,7 @@ export function createGpuMapRenderer(deps) {
     let lineProgram = null;
     let pickProgram = null;
     let terrainProgram = null;
+    let terrainDemProgram = null;
     let hydroFillProgram = null;
     let hydroLineProgram = null;
     let hydroPickProgram = null;
@@ -327,17 +332,40 @@ export function createGpuMapRenderer(deps) {
       onError: event => { console.error('[PL-GPU-PATCH-001]', event.message || event); scheduleGpuMeshRebuild(0); },
     });
     let terrainManifest = null;
+    let terrainManifestUrl = null;
+    let terrainFallbackPending = false;
+    let demShadeBlend = 0;
+    let demSettleStartedAt = 0;
+    let demShadeTimer = null;
     const terrainPreparation = createGpuTerrainPreparation({
       isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
       tileUrl: spec => {
         const relative = terrainManifest.urlTemplate.replace('{level}', String(spec.level)).replace('{column}', String(spec.column)).replace('{row}', String(spec.row));
-        const url = new URL(relative, PHYSICAL_DATA_BASE_URL);
-        url.searchParams.set('v', DATA_REVISION || terrainManifest.version || APP_VERSION);
-        return url;
+        return terrainAssetUrl(relative, { manifestUrl: terrainManifestUrl,
+          dataBaseUrl: PHYSICAL_DATA_BASE_URL,
+          revision: terrainManifest.representation === TERRAIN_DEM_FORMAT
+            ? terrainManifest.assetsSha256.slice(0, 12) : DATA_REVISION || terrainManifest.version || APP_VERSION });
       },
+      tintUrl: () => terrainAssetUrl(terrainManifest.tint.url, { manifestUrl: terrainManifestUrl,
+        dataBaseUrl: PHYSICAL_DATA_BASE_URL, revision: terrainManifest.assetsSha256.slice(0, 12) }),
+      onUnusable: () => { void fallbackTerrainToRaster('DEM 타일을 사용할 수 없습니다.'); },
     });
     let preparedTerrain = [];
     function prepareTerrain(frame) {
+      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT) {
+        const highQuality = renderQuality.phase === 'settle' && renderQuality.tier !== 'coarse';
+        if (!highQuality) { demShadeBlend = 0; demSettleStartedAt = 0; }
+        else {
+          if (!demSettleStartedAt) demSettleStartedAt = performance.now();
+          demShadeBlend = Math.min(1, (performance.now() - demSettleStartedAt) / 180);
+          if (demShadeBlend < 1 && demShadeTimer === null) demShadeTimer = setTimeout(() => {
+            demShadeTimer = null;
+            if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && !disposed) {
+              invalidatePhysicalScene('terrain-shade-transition');
+            }
+          }, 16);
+        }
+      }
       terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: uploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
       preparedTerrain = terrainPreparation.prepare(frame, {
         visible: state.physicalSettings.terrainVisible, enhanced: state.dataReadiness === 'enhanced',
@@ -346,7 +374,7 @@ export function createGpuMapRenderer(deps) {
         cacheBudgetBytes: renderQuality.terrainCacheBudgetBytes,
       });
     }
-    function renderTerrain() { for (const tile of preparedTerrain) drawTerrainTile(tile); }
+    function renderTerrain(pass = 'land') { for (const tile of preparedTerrain) drawTerrainTile(tile, pass); }
     let mesh = null;
     let meshCountryIds = [];
     const countryStrokePacketCache = {
@@ -839,8 +867,10 @@ export function createGpuMapRenderer(deps) {
       uniform float uWorldOffset;
       uniform int uMode;
       out vec2 vUv;
+      out vec2 vLonLat;
       out float vDepth;
       void main() {
+        vLonLat = mix(uGeoBounds.xy, uGeoBounds.zw, aGrid);
         float lon = mix(uGeoBounds.x, uGeoBounds.z, aGrid.x) * ${Math.PI / 180};
         float lat = mix(uGeoBounds.y, uGeoBounds.w, aGrid.y) * ${Math.PI / 180};
         vec2 screenPoint;
@@ -890,8 +920,10 @@ export function createGpuMapRenderer(deps) {
       uniform float uWorldOffset;
       uniform int uMode;
       varying vec2 vUv;
+      varying vec2 vLonLat;
       varying float vDepth;
       void main() {
+        vLonLat = mix(uGeoBounds.xy, uGeoBounds.zw, aGrid);
         float lon = mix(uGeoBounds.x, uGeoBounds.z, aGrid.x) * ${Math.PI / 180};
         float lat = mix(uGeoBounds.y, uGeoBounds.w, aGrid.y) * ${Math.PI / 180};
         vec2 screenPoint;
@@ -997,6 +1029,27 @@ export function createGpuMapRenderer(deps) {
       return lifecycle.retain(gl, 'Program', linkGpuProgram(gl, vertexSource, fragmentSource, { label: 'map' }));
     }
 
+    function ensureTerrainDemProgram() {
+      if (terrainDemProgram || !gl) return !!terrainDemProgram;
+      const precision = gl.getShaderPrecisionFormat?.(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+      if (glVersion === 1 && !(precision?.precision >= 16 && precision.rangeMax >= 16)) return false;
+      try {
+        terrainDemProgram = createProgram(
+          glVersion === 2 ? terrainVertexSourceWebGl2 : terrainVertexSourceWebGl1,
+          terrainDemFragmentSource(glVersion),
+        );
+        primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
+        primeProgramLocations(terrainDemProgram,
+          ['uTerrain', 'uTint', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme',
+            'uTextureSize', 'uLevelSize', 'uLandPass', 'uShadeBlend'], ['aGrid']);
+        return true;
+      } catch (error) {
+        terrainDemProgram = null;
+        console.warn('DEM shader unavailable; raster terrain will be used', error);
+        return false;
+      }
+    }
+
     function cachedUniformLocation(program, name) {
       let locations = uniformLocationCache.get(program);
       if (!locations) {
@@ -1091,6 +1144,7 @@ export function createGpuMapRenderer(deps) {
     function createWebGlResources() {
       uniformLocationCache = new WeakMap();
       attributeLocationCache = new WeakMap();
+      terrainDemProgram = null;
       const vertexSource = glVersion === 2 ? vertexShaderSourceWebGl2 : vertexShaderSourceWebGl1;
       fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
       landMaskProgram = createProgram(vertexSource, glVersion === 2 ? landMaskFragmentSourceWebGl2 : landMaskFragmentSourceWebGl1);
@@ -1125,6 +1179,9 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(program, ['uHydroVisibility', 'uHydroVisibilitySize', 'uHydroColor', 'uWidthBoost', 'uWidthScale'], ['aCoord', 'aCountry', 'aCorner', 'aStart', 'aEnd', 'aStartWidth', 'aEndWidth']);
       }
       primeProgramLocations(terrainProgram, ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme'], ['aGrid']);
+      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && !ensureTerrainDemProgram()) {
+        queueMicrotask(() => { void fallbackTerrainToRaster('DEM 셰이더 정밀도가 부족합니다.'); });
+      }
       paletteTexture = lifecycle.create(gl, 'Texture');
       overridePaletteTexture = lifecycle.create(gl, 'Texture');
       emphasisPaletteTexture = lifecycle.create(gl, 'Texture');
@@ -2744,6 +2801,7 @@ export function createGpuMapRenderer(deps) {
     function setRenderQuality(nextProfile = {}) {
       const previousRevision = Number(renderQuality.revision || 0);
       const previousTier = renderQuality.tier;
+      const previousPhase = renderQuality.phase;
       const previousDprCap = Number(renderQuality.dprCap || Infinity);
       renderQuality = Object.freeze({ ...DEFAULT_RENDER_QUALITY, ...nextProfile });
       if (previousRevision !== Number(renderQuality.revision || 0) || previousTier !== renderQuality.tier) {
@@ -2761,6 +2819,14 @@ export function createGpuMapRenderer(deps) {
       // resolution is gated by canonical readiness and never changes during
       // interaction.
       renderQuality = Object.freeze({ ...renderQuality, countryMeshQuality: 'canonical', terrainResolutionScale: 1 });
+      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT
+          && (previousPhase !== renderQuality.phase || previousTier !== renderQuality.tier)) {
+        if (renderQuality.phase === 'interaction') {
+          demSettleStartedAt = 0; demShadeBlend = 0;
+          if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
+        }
+        invalidatePhysicalScene('terrain-shade-quality');
+      }
       return renderQuality;
     }
 
@@ -2776,21 +2842,31 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function drawTerrainTile({ spec, sourceSpec, texture, grid, gutter }) {
-      if (!terrainProgram) return false;
+    function drawTerrainTile({ spec, sourceSpec, texture, grid, gutter }, pass = 'land') {
+      const dem = terrainManifest?.representation === TERRAIN_DEM_FORMAT;
+      const program = dem ? terrainDemProgram : terrainProgram;
+      if (!program) {
+        if (dem) void fallbackTerrainToRaster('DEM 셰이더 정밀도가 부족합니다.');
+        return false;
+      }
       const frameContext = activeFrameContext || lastVisualFrame;
       if (!frameContext) return false;
-      gl.useProgram(terrainProgram);
-      const gridLocation = glVersion === 2 ? 0 : cachedAttributeLocation(terrainProgram, 'aGrid');
+      gl.useProgram(program);
+      const gridLocation = glVersion === 2 ? 0 : cachedAttributeLocation(program, 'aGrid');
       gl.bindBuffer(gl.ARRAY_BUFFER, grid.vertexBuffer);
       gl.enableVertexAttribArray(gridLocation);
       gl.vertexAttribPointer(gridLocation, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, grid.indexBuffer);
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.uniform1i(cachedUniformLocation(terrainProgram, 'uTerrain'), 1);
+      gl.uniform1i(cachedUniformLocation(program, 'uTerrain'), 1);
+      if (dem) {
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, terrainPreparation.tintTexture());
+        gl.uniform1i(cachedUniformLocation(program, 'uTint'), 2);
+      }
       const [west, north, east, south] = spec.bounds;
-      gl.uniform4f(cachedUniformLocation(terrainProgram, 'uGeoBounds'), west, north, east, south);
+      gl.uniform4f(cachedUniformLocation(program, 'uGeoBounds'), west, north, east, south);
       const [sourceWest, sourceNorth, sourceEast, sourceSouth] = sourceSpec.bounds;
       const sourceWidth = sourceSpec.pixelWidth + gutter * 2;
       const sourceHeight = sourceSpec.pixelHeight + gutter * 2;
@@ -2798,11 +2874,19 @@ export function createGpuMapRenderer(deps) {
       const v0 = (gutter + (sourceNorth - north) / (sourceNorth - sourceSouth) * sourceSpec.pixelHeight) / sourceHeight;
       const u1 = (gutter + (east - sourceWest) / (sourceEast - sourceWest) * sourceSpec.pixelWidth) / sourceWidth;
       const v1 = (gutter + (sourceNorth - south) / (sourceNorth - sourceSouth) * sourceSpec.pixelHeight) / sourceHeight;
-      gl.uniform4f(cachedUniformLocation(terrainProgram, 'uUvBounds'), u0, v0, u1, v1);
-      gl.uniform1f(cachedUniformLocation(terrainProgram, 'uPhysicalStyle'), state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
-      gl.uniform1f(cachedUniformLocation(terrainProgram, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
+      gl.uniform4f(cachedUniformLocation(program, 'uUvBounds'), u0, v0, u1, v1);
+      gl.uniform1f(cachedUniformLocation(program, 'uPhysicalStyle'),
+        state.physicalSettings.terrainStyle === 'physical' && (!dem || terrainPreparation.tintTexture()) ? 1 : 0);
+      gl.uniform1f(cachedUniformLocation(program, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
+      if (dem) {
+        const sourceLevel = terrainManifest.levels[Number(sourceSpec.level)];
+        gl.uniform2f(cachedUniformLocation(program, 'uTextureSize'), sourceWidth, sourceHeight);
+        gl.uniform2f(cachedUniformLocation(program, 'uLevelSize'), sourceLevel.width, sourceLevel.height);
+        gl.uniform1f(cachedUniformLocation(program, 'uLandPass'), pass === 'land' ? 1 : 0);
+        gl.uniform1f(cachedUniformLocation(program, 'uShadeBlend'), demShadeBlend);
+      }
       for (const offset of frameContext.worldOffsets) {
-        setViewUniforms(terrainProgram, offset, frameContext);
+        setViewUniforms(program, offset, frameContext);
         gl.drawElements(gl.TRIANGLES, grid.indexCount, gl.UNSIGNED_INT, 0);
       }
       gl.disableVertexAttribArray(gridLocation);
@@ -2919,6 +3003,7 @@ export function createGpuMapRenderer(deps) {
       if (!gl || !mesh || !activeFrameContext || projectRenderBlocked || !preparedBaseScene) return false;
       lastBaseSceneResult = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
+        terrainRepresentation: terrainManifest?.representation,
         countriesVisible: state.layerVisibility.countries,
         countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
         prepared: preparedBaseScene,
@@ -3360,9 +3445,7 @@ export function createGpuMapRenderer(deps) {
         ...canvasWorkerPhysicalStyleMessage(),
         geometryRevision: geometryRevisionTracker.committedRevision(),
         terrainManifestUrl: (() => {
-          const url = new URL('terrain/v0.12.6/manifest.json', PHYSICAL_DATA_BASE_URL);
-          url.searchParams.set('v', DATA_REVISION || terrainManifest?.version || APP_VERSION);
-          return url.href;
+          return String(TERRAIN_RASTER_MANIFEST_URL);
         })(),
       };
       message.type = 'init';
@@ -4028,10 +4111,42 @@ export function createGpuMapRenderer(deps) {
       sceneColorCache.invalidate(reason);
     }
 
-    function setTerrainManifest(manifest) {
+    async function fallbackTerrainToRaster(reason) {
+      if (terrainFallbackPending || terrainManifest?.representation !== TERRAIN_DEM_FORMAT) return;
+      terrainFallbackPending = true;
+      const originalManifest = terrainManifest;
+      const generation = projectGeneration;
+      try {
+        const response = await fetch(TERRAIN_RASTER_MANIFEST_URL);
+        if (!response.ok) throw new Error(`Raster terrain HTTP ${response.status}`);
+        const fallback = validateTerrainManifest(await response.json());
+        if (generation === projectGeneration && terrainManifest === originalManifest) {
+          console.warn('DEM terrain fallback:', reason);
+          setTerrainManifest(fallback, TERRAIN_RASTER_MANIFEST_URL);
+          onTerrainSourceChanged?.(fallback);
+        }
+      } catch (error) { console.warn('Raster terrain fallback failed', error); }
+      finally { terrainFallbackPending = false; }
+    }
+
+    function setTerrainManifest(manifest, manifestUrl = TERRAIN_RASTER_MANIFEST_URL) {
+      if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
+      demShadeBlend = 0; demSettleStartedAt = 0;
       terrainManifest = manifest?.levels?.length ? manifest : null;
+      terrainManifestUrl = manifestUrl;
       terrainPreparation.setManifest(terrainManifest);
+      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && gl && !ensureTerrainDemProgram()) {
+        void fallbackTerrainToRaster('DEM 셰이더 정밀도가 부족합니다.');
+      }
       invalidatePhysicalScene('terrain-manifest');
+    }
+
+    function activeTerrainSourceInfo() {
+      if (rendererMode === 'canvas-worker' || rendererMode === 'canvas2d') {
+        return { dataset: TERRAIN_RASTER_DATASET, version: TERRAIN_RASTER_VERSION };
+      }
+      return { dataset: terrainManifest?.dataset || TERRAIN_RASTER_DATASET,
+        version: terrainManifest?.version || TERRAIN_RASTER_VERSION };
     }
 
     function setFramePresentationListener(listener) {
@@ -4083,6 +4198,9 @@ export function createGpuMapRenderer(deps) {
         firstCanonicalFrameMs,
         canonicalFrameFallbackCount,
         projectGeneration,
+        terrainRepresentation: terrainManifest?.representation || null,
+        terrainDatasetVersion: activeTerrainSourceInfo().version,
+        terrainShadeBlend: demShadeBlend,
         projectRenderBlocked,
         sceneCacheValid: sceneColorCache.isValid(),
       };
@@ -4106,6 +4224,9 @@ export function createGpuMapRenderer(deps) {
         dataRevision: DATA_REVISION,
         dataCacheName: `pandolab-data-${DATA_REVISION}`,
         projectGeneration,
+        terrainRepresentation: terrainManifest?.representation || null,
+        terrainDatasetVersion: activeTerrainSourceInfo().version,
+        terrainShadeBlend: demShadeBlend,
         projectRenderBlocked,
         activeWebGlContextCount: renderDevice && isWebGlRenderer() ? 1 : 0,
         renderSceneRevision: lastRenderSceneRevision,
@@ -4213,6 +4334,7 @@ export function createGpuMapRenderer(deps) {
 
     function dispose() {
       if (disposed) return;
+      if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
       disposed = true;
       projectGeneration += 1; renderDeviceContextRevision += 1;
       pendingCanonicalCommit?.reject(Object.assign(new Error('Renderer disposed'), { name: 'AbortError' }));
@@ -4243,7 +4365,7 @@ export function createGpuMapRenderer(deps) {
       dispose, attach,
       initialize, replaceBuiltInMesh, renderFrame, renderInteraction,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
-      rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, setTerrainManifest,
+      rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, setTerrainManifest, activeTerrainSourceInfo,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
       setHydroEdits,
       setHydroInteractionActive, setRenderQuality,

@@ -105,6 +105,8 @@ export function createServiceAssembly() {
       ASSET_REVISION: dependencies.layerPresentation.ASSET_REVISION,
       DATA_REVISION: dependencies.physicalConfig.DATA_REVISION,
       PHYSICAL_DATA_BASE_URL: dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL,
+      TERRAIN_RASTER_MANIFEST_URL: dependencies.physicalConfig.TERRAIN_RASTER_MANIFEST_URL,
+      onTerrainSourceChanged: manifest => { dependencies.projectState.state.terrainManifest = manifest; },
       activeProjection: dependencies.mapView.activeProjection,
       countryColor: feature => {
         const unit = feature.properties?.unitType === 'subunit'

@@ -1,4 +1,5 @@
 import { interactionCssProperties } from './map-interaction-style.js';
+import { TERRAIN_RASTER_DATASET, terrainRasterManifestUrl } from './terrain-manifest.js';
 /** Environment: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -15,6 +16,8 @@ export function createEnvironment() {
   let DATA_REVISION;
   let PANDOLAB_ASSET_BASE_URL;
   let PHYSICAL_DATA_BASE_URL;
+  let TERRAIN_RASTER_MANIFEST_URL;
+  let TERRAIN_DEV_DEM_MANIFEST_URL;
   let HISTORICAL_LIBRARY_DATA_URL;
   let PHYSICAL_DATASET;
   let TERRAIN_DATASET;
@@ -211,6 +214,14 @@ export function createEnvironment() {
     (PANDOLAB_ASSET_BASE_URL = window.PANDOLAB_ASSET_BASE_URL || new URL('./assets/js/', location.href).href);
 
     (PHYSICAL_DATA_BASE_URL = new URL('../data/', PANDOLAB_ASSET_BASE_URL));
+    (TERRAIN_RASTER_MANIFEST_URL = terrainRasterManifestUrl(PHYSICAL_DATA_BASE_URL, DATA_REVISION));
+    // Development-only data source. No project field or user preference is added.
+    (TERRAIN_DEV_DEM_MANIFEST_URL = (() => {
+      const explicit = window.PANDOLAB_DEV_DEM_MANIFEST_URL;
+      const local = new URLSearchParams(location.search).get('demTerrain') === 'local'
+        ? 'http://127.0.0.1:4174/terrain/v0.13.0/manifest.json' : null;
+      return explicit || local ? new URL(String(explicit || local), location.href) : null;
+    })());
 
     (HISTORICAL_LIBRARY_DATA_URL = new URL('historical-library-pilot.json', PHYSICAL_DATA_BASE_URL));
 
@@ -218,7 +229,7 @@ export function createEnvironment() {
 
     (PHYSICAL_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · raster 3.2.0');
 
-    (TERRAIN_DATASET = 'Natural Earth raster 3.2.0 1:10m');
+    (TERRAIN_DATASET = TERRAIN_RASTER_DATASET);
 
     (HYDRO_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 1:10m lakes');
 
@@ -432,6 +443,8 @@ export function createEnvironment() {
     get MAX_HISTORY() { return MAX_HISTORY; },
     get PHYSICAL_DATASET() { return PHYSICAL_DATASET; },
     get PHYSICAL_DATA_BASE_URL() { return PHYSICAL_DATA_BASE_URL; },
+    get TERRAIN_RASTER_MANIFEST_URL() { return TERRAIN_RASTER_MANIFEST_URL; },
+    get TERRAIN_DEV_DEM_MANIFEST_URL() { return TERRAIN_DEV_DEM_MANIFEST_URL; },
     get STORAGE_KEY() { return STORAGE_KEY; },
     get TERRAIN_DATASET() { return TERRAIN_DATASET; },
     get TERRAIN_OCEAN_REPRESENTATIVE() { return TERRAIN_OCEAN_REPRESENTATIVE; },

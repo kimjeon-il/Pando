@@ -101,11 +101,10 @@ export function createPhysicalResources() {
   function initializeTerrainService() {
     (terrainService = (0, dependencies.physicalServices.createTerrainService)({
       fetchWithRetry: dependencies.physicalServices.fetchWithRetry,
-      manifestUrl: () => {
-        const url = new URL('terrain/v0.12.6/manifest.json', dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL);
-        url.searchParams.set('v', dependencies.physicalConfig.DATA_REVISION);
-        return url;
-      },
+      manifestUrl: () => dependencies.physicalConfig.TERRAIN_DEV_DEM_MANIFEST_URL
+        || dependencies.physicalConfig.TERRAIN_RASTER_MANIFEST_URL,
+      fallbackManifestUrl: dependencies.physicalConfig.TERRAIN_DEV_DEM_MANIFEST_URL
+        ? () => dependencies.physicalConfig.TERRAIN_RASTER_MANIFEST_URL : null,
       getLoadState: () => dependencies.projectState.state.physicalLoadState.terrain,
       onLoading: () => {
         dependencies.projectState.state.physicalLoadState.terrain = 'loading';
@@ -116,11 +115,11 @@ export function createPhysicalResources() {
       onRetry: (_operation, attempt) => dependencies.operationFeedback.reliabilityDiagnostic.push({
         category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
       }),
-      acceptManifest: manifest => {
+      acceptManifest: (manifest, manifestUrl) => {
         dependencies.projectState.state.terrainManifest = manifest;
         dependencies.projectState.state.physicalLoadState.terrainManifest = 'ready';
         dependencies.projectState.state.physicalLoadState.terrain = 'ready';
-        dependencies.rendering.gpuMapRenderer.setTerrainManifest(manifest);
+        dependencies.rendering.gpuMapRenderer.setTerrainManifest(manifest, manifestUrl);
         (0, dependencies.layerPresentation.markLayerTreeDirty)();
         dependencies.domains.layerTreeController?.render();
         dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-manifest-ready');
