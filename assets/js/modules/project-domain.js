@@ -216,6 +216,8 @@ export function createProjectDomain({
     queuePresentationAutosave: persistence?.queuePresentation,
     persistAutosave: persistence?.persist,
     restoreAutosave: persistence?.restore,
+    restorePreview: persistence?.restorePreview,
+    ensurePreview: persistence?.ensurePreview,
     flushAutosave: () => persistence?.writeProject(buildAutosave()),
     resetRenderGeneration,
     dispose,
