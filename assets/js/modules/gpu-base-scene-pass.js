@@ -2,7 +2,7 @@ import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 
 // Submits a prepared frame. All resource construction and range scans happen before entry.
 export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
-  terrainVisible, terrainStyle, countriesVisible, countries, prepared },
+  terrainVisible, terrainStyle, terrainRepresentation, countriesVisible, countries, prepared },
   { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
@@ -14,7 +14,7 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
       gl.clearStencil(0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
       gl.disable(gl.BLEND);
-      if (terrainVisible && terrainStyle !== 'physical') {
+      if (terrainVisible && (terrainStyle !== 'physical' || terrainRepresentation === 'dem-relief-v1')) {
         gl.enable(gl.STENCIL_TEST);
         gl.stencilMask(0xff);
         gl.stencilFunc(gl.ALWAYS, 1, 0xff);
@@ -24,9 +24,13 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
         if (overrideMesh?.triangleIndices?.length) drawProgram(landMaskProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
         gl.colorMask(true, true, true, true);
         gl.stencilMask(0x00);
+        if (terrainStyle === 'physical' && terrainRepresentation === 'dem-relief-v1') {
+          gl.stencilFunc(gl.NOTEQUAL, 1, 0xff);
+          renderTerrain('ocean');
+        }
         gl.stencilFunc(gl.EQUAL, 1, 0xff);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-        renderTerrain();
+        renderTerrain('land');
         gl.disable(gl.STENCIL_TEST);
         gl.stencilMask(0xff);
       } else {

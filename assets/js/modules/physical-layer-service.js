@@ -1,3 +1,5 @@
+import { validateTerrainManifest } from './terrain-manifest.js';
+
 async function fetchManifest({ fetchWithRetry, url, operation, onRetry }) {
   const response = await fetchWithRetry(url, {}, {
     maxAttempts: 3,
@@ -13,6 +15,7 @@ async function fetchManifest({ fetchWithRetry, url, operation, onRetry }) {
 export function createTerrainService({
   fetchWithRetry,
   manifestUrl,
+  fallbackManifestUrl,
   getLoadState,
   onLoading,
   onRetry,
@@ -23,9 +26,17 @@ export function createTerrainService({
     if (!force && ['loading', 'ready'].includes(getLoadState())) return false;
     onLoading();
     try {
-      const manifest = await fetchManifest({ fetchWithRetry, url: manifestUrl(), operation: 'terrain-manifest', onRetry });
-      if (!manifest.levels?.length) throw new Error('지형 타일 manifest가 올바르지 않습니다.');
-      await acceptManifest(manifest);
+      let selectedUrl = manifestUrl();
+      let manifest;
+      try {
+        manifest = validateTerrainManifest(await fetchManifest({ fetchWithRetry, url: selectedUrl, operation: 'terrain-manifest', onRetry }));
+      } catch (primaryError) {
+        if (!fallbackManifestUrl) throw primaryError;
+        console.warn('DEM terrain unavailable; using raster terrain', primaryError);
+        selectedUrl = fallbackManifestUrl();
+        manifest = validateTerrainManifest(await fetchManifest({ fetchWithRetry, url: selectedUrl, operation: 'terrain-raster-manifest', onRetry }));
+      }
+      await acceptManifest(manifest, selectedUrl);
       return true;
     } catch (error) {
       onFailure(error);

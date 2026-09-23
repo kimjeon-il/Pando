@@ -4,6 +4,12 @@ import { setImmediate } from 'node:timers';
 
 import { createHydroService, createTerrainService } from '../../assets/js/modules/physical-layer-service.js';
 
+const rasterManifest = {
+  version: '0.12.6', crs: 'EPSG:4326', extent: [-180, -90, 180, 90], gutter: 1,
+  urlTemplate: 'terrain/v0.12.6/{level}/{column}-{row}.webp',
+  levels: [{ id: 0, width: 2, height: 1, columns: 1, rows: 1, tileSize: 1024 }],
+};
+
 function response(json, ok = true, status = 200) {
   return { ok, status, async json() { return json; } };
 }
@@ -14,7 +20,7 @@ test('terrain service preserves manifest retry policy and lifecycle callbacks', 
     fetchWithRetry: async (url, _options, policy) => {
       calls.push(['fetch', String(url), policy.maxAttempts, policy.timeoutMs]);
       policy.onRetry({ attempt: 2 });
-      return response({ levels: [{ zoom: 0 }] });
+      return response(rasterManifest);
     },
     manifestUrl: () => new URL('https://example.test/terrain.json'),
     getLoadState: () => 'idle',
@@ -70,6 +76,27 @@ test('hydro service waits for renderer worker acceptance', async () => {
   });
   assert.equal(await service.load(), true);
   assert.deepEqual(accepted, [manifest, 'https://example.test/hydro.json']);
+});
+
+test('invalid optional DEM manifest falls back to the complete raster source', async () => {
+  const urls = [], accepted = [];
+  const service = createTerrainService({
+    fetchWithRetry: async url => {
+      urls.push(String(url));
+      return response(String(url).includes('dem') ? { representation: 'unknown' } : rasterManifest);
+    },
+    manifestUrl: () => new URL('https://example.test/dem/manifest.json'),
+    fallbackManifestUrl: () => new URL('https://example.test/raster/manifest.json'),
+    getLoadState: () => 'idle', onLoading() {}, onRetry() {},
+    acceptManifest: (manifest, url) => accepted.push([manifest.representation, String(url)]),
+    onFailure: assert.fail,
+  });
+  const warn = console.warn;
+  console.warn = () => {};
+  try { assert.equal(await service.load(), true); }
+  finally { console.warn = warn; }
+  assert.deepEqual(urls, ['https://example.test/dem/manifest.json', 'https://example.test/raster/manifest.json']);
+  assert.deepEqual(accepted, [['raster-rgba-v1', 'https://example.test/raster/manifest.json']]);
 });
 
 test('hydro consumers join initial loading through worker readiness without duplicate fetches', async () => {

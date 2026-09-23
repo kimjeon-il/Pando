@@ -1,11 +1,12 @@
 // Owns terrain requests, retries, decoded bitmaps, upload queue, textures and grids.
 // prepare() returns ready draw records; drawing never initiates preparation.
-export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geoDistance }) {
+export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMobile, invalidate, geoDistance }) {
   const PI = Math.PI;
   let gl = null, uploadScheduler = null, ready = false, disposed = false;
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
   let activeFrameContext = null, effectivePixelRatio = 1, view = {};
   let terrainManifest = null, cacheBudgetBytes = 128 * 1024 * 1024, terrainUploadCount = 0;
+  let tint = null, tintPending = false, pendingDecodedBytes = 0, unusableReported = false;
   const controllers = new Set(), retryTimers = new Set(), uploadKeys = new Set();
   const isWebGlRenderer = () => ready;
     const terrainTiles = new Map();
@@ -128,7 +129,7 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
 
     function pumpTerrainFetchQueue() {
       const concurrency = isMobile() ? 2 : 4;
-      while (terrainActiveFetches < concurrency && terrainFetchQueue.length) {
+      while (terrainActiveFetches < concurrency && pendingDecodedBytes < 32 * 1024 * 1024 && terrainFetchQueue.length) {
         const next = terrainFetchQueue.shift();
         terrainFetchQueuedKeys.delete(next.spec.key);
         startTerrainTileRequest(next.spec, next.priority);
@@ -147,7 +148,21 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
         const blob = await response.blob();
         let bitmap;
         try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
-        catch (_) { bitmap = await createImageBitmap(blob); }
+        catch (error) {
+          if (terrainManifest?.representation === 'dem-relief-v1') {
+            error.demDecodeFailure = true;
+            throw error;
+          }
+          bitmap = await createImageBitmap(blob);
+        }
+        if (terrainManifest?.representation === 'dem-relief-v1'
+            && (bitmap.width !== spec.pixelWidth + terrainManifest.gutter * 2
+              || bitmap.height !== spec.pixelHeight + terrainManifest.gutter * 2)) {
+          bitmap.close?.();
+          const error = new Error(`DEM tile dimensions differ from manifest: ${spec.key}`);
+          error.demDecodeFailure = true;
+          throw error;
+        }
         if (requestGeneration !== epoch || disposed) {
           bitmap.close?.();
           return;
@@ -158,10 +173,15 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
         }
         terrainTileFailures.delete(spec.key);
         terrainTileQueuedKeys.add(spec.key);
+        pendingDecodedBytes += bitmap.width * bitmap.height * 4;
         terrainUploadQueue.push({ spec, bitmap });
         scheduleTerrainUpload();
       })().catch(error => {
         if (requestGeneration !== epoch || disposed || controller.signal.aborted) return;
+        if (error.demDecodeFailure && !unusableReported) {
+          unusableReported = true;
+          onUnusable?.();
+        }
         const attempts = Number(previousFailure?.attempts || 0) + 1;
         const retryDelay = attempts <= 3 ? Math.min(4000, 400 * 2 ** (attempts - 1)) : 30000;
         terrainTileFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay });
@@ -187,27 +207,42 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
     function uploadTerrainTile(next) {
       if (!next) return false;
       const { spec, bitmap } = next;
-      const byteLength = Math.max(1, Number(bitmap.width || spec.pixelWidth || 1))
-        * Math.max(1, Number(bitmap.height || spec.pixelHeight || 1)) * 4;
-      terrainTileQueuedKeys.delete(spec.key);
+      const byteLength = Math.max(1, Number(bitmap.width || spec?.pixelWidth || 1))
+        * Math.max(1, Number(bitmap.height || spec?.pixelHeight || 1)) * 4;
+      pendingDecodedBytes = Math.max(0, pendingDecodedBytes - byteLength);
+      if (spec) terrainTileQueuedKeys.delete(spec.key);
       if (!gl || disposed || !isWebGlRenderer()) {
         bitmap.close?.();
         return false;
       }
         const texture = gl.createTexture();
+        const dem = terrainManifest?.representation === 'dem-relief-v1';
+        const oldPremultiply = gl.getParameter?.(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL);
+        const oldColorSpace = dem ? gl.getParameter?.(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL) : undefined;
         try {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        if (dem) gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
         } catch (error) { gl.deleteTexture(texture); throw error; }
-        finally { bitmap.close?.(); }
-        terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength });
+        finally {
+          if (oldPremultiply !== undefined) gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, oldPremultiply);
+          if (oldColorSpace !== undefined) gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, oldColorSpace);
+          bitmap.close?.();
+        }
+        if (next.tint) {
+          if (tint) gl.deleteTexture(tint.texture);
+          tint = { texture, byteLength };
+          tintPending = false;
+          invalidate('terrain-tint-ready');
+        } else terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength });
         terrainUploadCount += 1;
         let terrainBytes = [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0);
+        terrainBytes += tint?.byteLength || 0;
         const terrainBudget = Math.max(8 * 1024 * 1024, Number(cacheBudgetBytes) || 128 * 1024 * 1024);
         while (terrainBytes > terrainBudget) {
           let oldest = null;
@@ -215,7 +250,7 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
             if (terrainRetentionKeys.has(item[0])) continue;
             if (!oldest || item[1].lastUsed < oldest[1].lastUsed) oldest = item;
           }
-          if (!oldest || oldest[0] === spec.key) break;
+          if (!oldest || oldest[0] === spec?.key) break;
           gl.deleteTexture(oldest[1].texture);
           terrainTiles.delete(oldest[0]);
           terrainBytes -= Number(oldest[1].byteLength || 0);
@@ -237,10 +272,19 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
           const next = terrainUploadQueue.shift();
           const bytes = next ? next.bitmap.width * next.bitmap.height * 4 : 0;
           const uploaded = next && uploadTerrainTile(next);
-          if (uploaded && next && terrainRetentionKeys.has(next.spec.key)) invalidate('terrain-tile-ready');
+          if (uploaded && next?.spec && terrainRetentionKeys.has(next.spec.key)) invalidate('terrain-tile-ready');
+          pumpTerrainFetchQueue();
           return { bytes, done: !terrainUploadQueue.length };
         },
-      }).catch(error => { if (error.name !== 'AbortError') console.warn('Terrain upload failed', error); }).finally(() => uploadKeys.delete(key));
+      }).catch(error => {
+        if (error.name !== 'AbortError') {
+          console.warn('Terrain upload failed', error);
+          if (terrainManifest?.representation === 'dem-relief-v1' && !unusableReported) {
+            unusableReported = true;
+            onUnusable?.();
+          }
+        }
+      }).finally(() => uploadKeys.delete(key));
     }
 
     function terrainGridMesh(spec, frameContext = activeFrameContext) {
@@ -306,6 +350,7 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
 
     function prepare() {
       if (!view.visible || !terrainManifest?.levels?.length || !gl || disposed) return [];
+      if (terrainManifest.representation === 'dem-relief-v1') requestTint();
       const frameContext = activeFrameContext;
       if (!frameContext) return false;
       const specsByLevel = terrainCandidateLevels(frameContext);
@@ -345,12 +390,47 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
         terrainRenderedLevel = terrainRenderedLevel < 0 ? Number(sourceSpec.level) : Math.min(terrainRenderedLevel, Number(sourceSpec.level));
         if (sourceSpec.key !== spec.key) terrainFallbackTileCount += 1;
       }
+      if (!prepared.length && targetSpecs.length && !unusableReported
+          && targetSpecs.every(spec => Number(terrainTileFailures.get(spec.key)?.attempts || 0) >= 4)) {
+        unusableReported = true;
+        onUnusable?.();
+      }
       return prepared;
+    }
+
+    function requestTint() {
+      if (!tintUrl || tint || tintPending) return;
+      tintPending = true;
+      const requestEpoch = epoch;
+      const controller = new AbortController();
+      controllers.add(controller);
+      void (async () => {
+        const response = await fetch(tintUrl(), { signal: controller.signal });
+        if (!response.ok) throw new Error(`지형 색채 HTTP ${response.status}`);
+        const bitmap = await createImageBitmap(await response.blob(), { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+        if (requestEpoch !== epoch || disposed) { bitmap.close?.(); return; }
+        if (bitmap.width !== terrainManifest.tint.width || bitmap.height !== terrainManifest.tint.height) {
+          bitmap.close?.(); throw new Error('지형 tint 크기가 manifest와 다릅니다.');
+        }
+        pendingDecodedBytes += bitmap.width * bitmap.height * 4;
+        terrainUploadQueue.push({ tint: true, bitmap });
+        scheduleTerrainUpload();
+      })().catch(error => {
+        if (requestEpoch === epoch && !controller.signal.aborted) {
+          tintPending = false;
+          console.warn('DEM terrain tint unavailable', error);
+          if (!unusableReported) { unusableReported = true; onUnusable?.(); }
+        }
+      }).finally(() => controllers.delete(controller));
     }
 
 
   function discardUploads(queue = terrainUploadQueue) {
-    for (const item of queue.splice(0)) { terrainTileQueuedKeys.delete(item.spec.key); item.bitmap.close?.(); }
+    for (const item of queue.splice(0)) {
+      if (item.spec) terrainTileQueuedKeys.delete(item.spec.key);
+      pendingDecodedBytes = Math.max(0, pendingDecodedBytes - item.bitmap.width * item.bitmap.height * 4);
+      item.bitmap.close?.();
+    }
   }
   function reset() {
     for (const key of uploadKeys) uploadScheduler?.cancelKey?.(key);
@@ -364,11 +444,13 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
     terrainFetchQueue.length = 0; terrainFetchQueuedKeys.clear();
     terrainTileQueuedKeys.clear(); terrainTileRequests.clear(); terrainTileFailures.clear();
     terrainActiveFetches = 0;
+    tintPending = false; pendingDecodedBytes = 0; unusableReported = false;
     if (gl && !gl.isContextLost?.()) {
       for (const tile of terrainTiles.values()) gl.deleteTexture(tile.texture);
+      if (tint) gl.deleteTexture(tint.texture);
       for (const grid of terrainGridMeshes.values()) { gl.deleteBuffer(grid.vertexBuffer); gl.deleteBuffer(grid.indexBuffer); }
     }
-    terrainTiles.clear(); terrainGridMeshes.clear();
+    tint = null; terrainTiles.clear(); terrainGridMeshes.clear();
     terrainLastLevel = -1; terrainRenderedLevel = -1;
     terrainTargetTileCount = 0; terrainTargetTilesLoaded = 0; terrainFallbackTileCount = 0;
     terrainTargetTileKeys.clear(); terrainRetentionKeys.clear();
@@ -384,11 +466,13 @@ export function createGpuTerrainPreparation({ tileUrl, isMobile, invalidate, geo
     setManifest(manifest) { if (terrainManifest !== manifest) reset(); terrainManifest = manifest; },
     prepare(frame, nextView) { activeFrameContext = frame; view = nextView; effectivePixelRatio = nextView.dpr; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },
     request: requestTerrainTile,
+    tintTexture: () => tint?.texture || null,
     scheduleUpload: scheduleTerrainUpload,
     settled, reset,
     stats: () => ({ terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
       terrainTargetTilesSettled: settled(), terrainFallbackTileCount, terrainTilesLoaded: terrainTiles.size,
-      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0),
+      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, tint?.byteLength || 0),
+      terrainPendingDecodedBytes: pendingDecodedBytes, terrainTintReady: !!tint,
       terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: isMobile() ? 2 : 4,
       terrainUploadCount, terrainFailureCount: terrainTileFailures.size }),
     dispose() { if (disposed) return; reset(); disposed = true; gl = null; uploadScheduler = null; },
