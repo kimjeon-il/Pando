@@ -9,9 +9,12 @@ const outputPath = resolve(projectRoot, 'assets/css/ui.bundle.css');
 const modalOutputPath = resolve(projectRoot, 'assets/css/ui-modal.bundle.css');
 const sources = UI_BUNDLE_SOURCES;
 const modalSources = UI_MODAL_SOURCES;
+const readStylesheet = relativePath => readFileSync(resolve(projectRoot, relativePath), 'utf8')
+  .replace(/\r\n?/g, '\n')
+  .trim();
 const sourceContents = sources.map(relativePath => ({
   relativePath,
-  content: readFileSync(resolve(projectRoot, relativePath), 'utf8').trim(),
+  content: readStylesheet(relativePath),
 }));
 
 const output = [
@@ -30,7 +33,7 @@ const modalOutput = [
   `/* modal-source-count: ${modalSources.length} */`,
   ...modalSources.flatMap(relativePath => [
     `/* modal-source: ${relativePath} */`,
-    readFileSync(resolve(projectRoot, relativePath), 'utf8').trim(),
+    readStylesheet(relativePath),
   ]),
   '',
 ].join('\n\n');
