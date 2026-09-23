@@ -1,4 +1,5 @@
 export const DATA_READINESS = Object.freeze({
+  RESTORING: 'restoring',
   PREVIEW: 'preview',
   EDITABLE: 'editable',
   ENHANCED: 'enhanced',
@@ -6,6 +7,7 @@ export const DATA_READINESS = Object.freeze({
 });
 
 const READINESS_EVENTS = Object.freeze({
+  RESTORE_STARTED: 'restore-started',
   PREVIEW_READY: 'preview-ready',
   GEOMETRY_READY: 'geometry-ready',
   MESH_READY: 'mesh-ready',
@@ -15,6 +17,7 @@ const READINESS_EVENTS = Object.freeze({
 
 export function transitionDataReadiness(current, event) {
   const state = Object.values(DATA_READINESS).includes(current) ? current : DATA_READINESS.PREVIEW;
+  if (event === READINESS_EVENTS.RESTORE_STARTED) return DATA_READINESS.RESTORING;
   if (event === READINESS_EVENTS.GEOMETRY_READY) return DATA_READINESS.EDITABLE;
   if (event === READINESS_EVENTS.MESH_READY && state === DATA_READINESS.EDITABLE) return DATA_READINESS.ENHANCED;
   if (event === READINESS_EVENTS.GEOMETRY_ERROR) return DATA_READINESS.ERROR;

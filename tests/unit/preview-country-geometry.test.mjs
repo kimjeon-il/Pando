@@ -5,17 +5,17 @@ import path from 'node:path';
 import test from 'node:test';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { topology } from 'topojson-server';
 
 import { validateGeometry } from '../../assets/js/modules/geometry-validation.js';
 await import('../../assets/js/modules/country-geometry.js');
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/countries-preview-v0.30.0.geojson.gz'))));
+const appVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
+const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, `assets/data/countries-preview-v${appVersion}.geojson.gz`))));
 const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
-const source50Text = fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1-50m.geojson'), 'utf8').replaceAll('\r\n', '\n');
-const source50Bytes = Buffer.from(source50Text);
-const source50 = JSON.parse(source50Text);
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world-preview-v0.30.0.json'), 'utf8'));
+const canonicalBytes = Buffer.from(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8').replaceAll('\r\n', '\n'));
+const manifest = JSON.parse(fs.readFileSync(path.join(root, `assets/data/world-preview-v${appVersion}.json`), 'utf8'));
 const { hasCanonicalCountryWinding } = globalThis.PandoLabCountryGeometry;
 
 function consecutiveDuplicates(geometry) {
@@ -63,14 +63,19 @@ test('Egypt and the Borneo shared coordinate remain clean in both built-in quali
   }
 });
 
-test('preview uses the vendored 50m source without an additional simplification pass', () => {
-  assert.equal(manifest.previewSourceScale, '50m');
-  assert.equal(manifest.previewSourceVersion, '5.1.1');
-  assert.equal(manifest.previewSourceSha256, crypto.createHash('sha256').update(source50Bytes).digest('hex'));
-  assert.equal(source50.features.length, 242);
-  assert.deepEqual(new Set(manifest.supplementedCountryIds), new Set([
-    'BJN', 'BRI', 'BRT', 'CLP', 'CNM', 'CSI', 'ESB', 'GIB', 'KAB', 'PGA', 'SCR', 'SER', 'SPI', 'UMI', 'USG', 'WSB',
-  ]));
+test('preview derives every country and component from the canonical source', () => {
+  assert.equal(manifest.previewDerivation, 'canonical-topology-simplified');
+  assert.equal(manifest.previewSourceScale, 'derived');
+  assert.equal(manifest.previewSourceSha256, crypto.createHash('sha256').update(canonicalBytes).digest('hex'));
+  assert.equal(manifest.previewSourceSha256, manifest.canonicalSourceSha256);
+  assert.equal(manifest.source, 'countries-ne-5.1.1.geojson');
+  assert.equal(manifest.supplementedCountryIds, undefined);
+  const ringCounts = geometry => (geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates)
+    .map(polygon => polygon.length);
+  assert.deepEqual(preview.features.map(feature => feature.id), canonical.features.map(feature => feature.id));
+  for (let index = 0; index < canonical.features.length; index += 1) {
+    assert.deepEqual(ringCounts(preview.features[index].geometry), ringCounts(canonical.features[index].geometry), canonical.features[index].id);
+  }
   const count = geometry => {
     if (Array.isArray(geometry) && typeof geometry[0] === 'number') return 1;
     return (geometry || []).reduce((sum, item) => sum + count(item), 0);
@@ -79,6 +84,17 @@ test('preview uses the vendored 50m source without an additional simplification 
     const feature = preview.features.find(item => item.id === id);
     assert.ok(feature);
     assert.ok(count(feature.geometry.coordinates) >= 200);
+  }
+});
+
+test('neighboring countries retain shared topology arcs in the preview', () => {
+  const result = topology({ countries: preview });
+  const byId = new Map(result.objects.countries.geometries.map(geometry => [geometry.id, geometry]));
+  const arcIds = geometry => new Set(geometry.arcs.flat(Infinity).map(reference => reference < 0 ? ~reference : reference));
+  for (const [leftId, rightId] of [['DEU', 'POL'], ['DEU', 'CZE'], ['FRA', 'ESP']]) {
+    const left = arcIds(byId.get(leftId));
+    const right = arcIds(byId.get(rightId));
+    assert.ok([...left].some(id => right.has(id)), `${leftId}/${rightId}`);
   }
 });
 

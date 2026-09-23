@@ -3720,8 +3720,14 @@ export function createGpuMapRenderer(deps) {
         ? state.hydroFeatureByFid.get(Number(fid)) || null : null);
     }
 
-    async function initialize() {
+    async function initialize({ allowPreview = true } = {}) {
       if (disposed) return false;
+      if (!allowPreview) {
+        previewAllowed = false;
+        qualityPhase = 'canonical-loading';
+        meshQuality = 'canonical';
+        activeMeshQuality = 'canonical';
+      }
       if (forcedRenderer === 'canvas') {
         activateCanvasFallback('강제 Canvas 테스트');
         return false;
@@ -3735,6 +3741,10 @@ export function createGpuMapRenderer(deps) {
         try {
           initWebGl(version);
           updateRendererStatus(`${rendererName()} · 빠른 GPU 지도를 준비하는 중입니다.`);
+          if (!previewAllowed && !meshVariants.has('canonical')) {
+            updateRendererStatus(`${rendererName()} · 저장된 지도 준비 중`);
+            return true;
+          }
           if ((!previewAllowed || canonicalMeshReady) && meshVariants.has('canonical')) {
             qualityPhase = 'canonical-loading';
             if (meshVariants.has('canonical')) activateMeshVariant('canonical', { renderFrame: false });
