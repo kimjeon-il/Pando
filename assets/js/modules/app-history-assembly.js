@@ -64,6 +64,12 @@ export function createHistoryAssembly() {
       scheduler: dependencies.projectState.mapWorkScheduler,
       canPersist: () => (0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness),
       buildAutosave: () => dependencies.domains.projectDomain?.buildAutosave?.() || dependencies.mapSettingsUi.projectSerializer.buildAutosave(),
+      previewBaseline: () => window.PANDOLAB_PREVIEW_BASELINE,
+      previewGeometry: () => ({
+        features: dependencies.projectState.state.countriesData?.features || [],
+        territorialUnits: dependencies.projectState.state.territorialUnits || [],
+        project: dependencies.domains.projectDomain?.buildAutosave?.() || dependencies.mapSettingsUi.projectSerializer.buildAutosave(),
+      }),
       readView: () => ({ projection: dependencies.projectState.state.projection, view: (0, dependencies.platform.deepClone)(dependencies.projectState.state.view) }),
       validateProject: dependencies.projectServices.assertCurrentProjectSchema,
       onDirty: scope => {

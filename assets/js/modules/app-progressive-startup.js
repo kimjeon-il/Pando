@@ -2,12 +2,7 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function requiresRestoredCountryFirstPaint(project) {
-  if (!project) return false;
-  if (project.countriesData) return true;
-  if (project.format !== 'pandolab-autosave-delta') return false;
-  return !!project.countryDelta?.changed?.length || !!project.countryDelta?.removedIds?.length;
-}
+import { matchesDefaultPreview, previewCountriesWithProjectProperties, previewSourceForProject } from './project-preview-policy.js';
 
 export function createProgressiveStartup() {
   let dependencies;
@@ -55,7 +50,7 @@ export function createProgressiveStartup() {
     (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = '고화질 지도 오류 · 자동 재시도 중';
   }
 
-  async function completeGeometryInitialization(geometry, autosaveRestore, previewStart, { restoreCountryFirstPaint = false } = {}) {
+  async function completeGeometryInitialization(geometry, autosaveRestore, previewStart) {
     const applyStartedAt = performance.now();
     const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'start';
@@ -76,6 +71,8 @@ export function createProgressiveStartup() {
     // first canonical promotion a project reset starts from canonical data or
     // a neutral loading state and must not briefly re-expose preview geometry.
     const previewAllowed = dependencies.rendering.gpuMapRenderer.getRuntimeState?.().previewAllowed !== false;
+    dependencies.projectState.state.auditPreviewTerritorialUnits = previewAllowed
+      ? dependencies.projectState.state.territorialUnits : null;
     dependencies.projectState.state.countryVisualPhase = previewAllowed ? 'preview' : 'canonical';
     dependencies.labelCacheCommands.resetCountryDisplayCache();
 
@@ -107,8 +104,7 @@ export function createProgressiveStartup() {
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
     const externalGeometry = !!restored?.countriesData && restored.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
-    const useBuiltInMesh = !restoreCountryFirstPaint
-      && !externalGeometry
+    const useBuiltInMesh = !externalGeometry
       && !dependencies.projectState.state.sessionBaseCountriesJson;
     window.PANDOLAB_COUNTRIES = null;
     (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.GEOMETRY_READY);
@@ -166,6 +162,7 @@ export function createProgressiveStartup() {
     if (!context.useBuiltInMesh || dependencies.projectState.state.sessionBaseCountriesJson) {
       meshApplied = (await dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinRenderCountries)().collection.features, { projectGeneration })) !== false;
     } else {
+      const dirtyIds = new Set([...dependencies.projectState.state.historyDirtyCountryIds, ...dependencies.projectState.state.pendingCountryRenderIds]);
       meshApplied = (await dependencies.rendering.gpuMapRenderer.replaceBuiltInMesh({
         meshBuffer: mesh.meshBuffer,
         preparedStroke: mesh.preparedStroke,
@@ -180,13 +177,9 @@ export function createProgressiveStartup() {
         // source now lives in Subunits, is hidden, edited or deleted.
         features: dependencies.builtinCountries.canonicalCountryStore.ids().map(id => ({ id })),
         quality: 'canonical',
+        countryPatchIds: [...dirtyIds],
         projectGeneration,
       })) !== false;
-      const dirtyIds = new Set([...dependencies.projectState.state.historyDirtyCountryIds, ...dependencies.projectState.state.pendingCountryRenderIds]);
-      if (dirtyIds.size) {
-        for (const id of dirtyIds) dependencies.projectState.state.pendingCountryRenderIds.add(String(id));
-        await dependencies.rendering.gpuMapRenderer.applyCountryPatch(dirtyIds);
-      }
     }
     // Once the canonical mesh is successfully displayed, every country SVG
     // path must use the same source. This prevents edit/selection state from
@@ -195,6 +188,7 @@ export function createProgressiveStartup() {
       dependencies.projectState.state.countryVisualPhase = 'canonical';
       dependencies.labelCacheCommands.resetCountryDisplayCache();
       dependencies.projectState.state.auditPreviewCountries = null;
+      dependencies.projectState.state.auditPreviewTerritorialUnits = null;
       window.PANDOLAB_COUNTRIES = null;
       if (startupMetrics) startupMetrics.canonicalPreviewReleasedBytes = Number(
         startupMetrics.preview?.assets?.countries?.decodedBytes || 0,
@@ -236,7 +230,7 @@ export function createProgressiveStartup() {
     });
   }
 
-  async function initializeStartupRuntime({ afterInitialMapSetup = null, allowPreview = true } = {}) {
+  async function initializeStartupRuntime({ afterInitialMapSetup = null, allowPreview = true, preview = null } = {}) {
     (0, dependencies.workspaceUiA.applyLayoutMode)({ initial: true });
     (0, dependencies.editorBindings.bindUI)();
     dependencies.domains.layerTreeController.beginHydration();
@@ -252,7 +246,7 @@ export function createProgressiveStartup() {
     await dependencies.mapHostViewB.mapHostReadyPromise;
     if (startupMetrics) startupMetrics.mapHostStage = 'gpu-initialize';
     const gpuInitializeStartedAt = performance.now();
-    const gpuReady = await dependencies.rendering.gpuMapRenderer.initialize({ allowPreview });
+    const gpuReady = await dependencies.rendering.gpuMapRenderer.initialize({ allowPreview, preview });
     const gpuInitializeMs = performance.now() - gpuInitializeStartedAt;
     if (startupMetrics) startupMetrics.mapHostStage = 'ready';
     (0, dependencies.mapHostViewC.startMapResizeObserver)();
@@ -266,16 +260,40 @@ export function createProgressiveStartup() {
 
     const autosavePromise = dependencies.domains.projectDomain.restoreAutosave();
     const autosaveRestore = await autosavePromise;
-    const hasStoredCountryGeometry = requiresRestoredCountryFirstPaint(autosaveRestore.project);
+    const savedProject = autosaveRestore.project;
+    const baseline = window.PANDOLAB_PREVIEW_BASELINE;
+    const defaultPreview = matchesDefaultPreview(savedProject, baseline);
+    const cachedPreview = !defaultPreview ? await dependencies.persistence.persistenceService.restorePreview(savedProject) : null;
+    const previewSource = previewSourceForProject(savedProject, baseline, cachedPreview);
+    const hasStoredCountryGeometry = previewSource.kind === 'restore';
     restoringCountryFirstPaint = hasStoredCountryGeometry;
     if (hasStoredCountryGeometry) {
       (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.RESTORE_STARTED);
     }
-    dependencies.projectState.state.countriesData = hasStoredCountryGeometry
-      ? { type: 'FeatureCollection', features: [] }
-      : (0, dependencies.geometryMutation.reindexCountries)(window.PANDOLAB_COUNTRIES, true);
-    if (!hasStoredCountryGeometry) (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
-    (0, dependencies.snapshots.normalizeProjectObjects)();
+    if (savedProject && !hasStoredCountryGeometry) (0, dependencies.snapshots.applySharedProjectFields)(savedProject);
+    if (savedProject) (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
+    if (previewSource.kind === 'project') {
+      dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(
+        previewCountriesWithProjectProperties(cachedPreview.countries, savedProject), true);
+      const unitGeometries = new Map(cachedPreview.territorialUnits.map(unit => [String(unit.id), unit.geometry]));
+      dependencies.projectState.state.territorialUnits = dependencies.projectState.state.territorialUnits.map(unit => ({
+        ...unit, geometry: unitGeometries.get(String(unit.id)) || unit.geometry,
+      }));
+    } else if (hasStoredCountryGeometry) {
+      dependencies.projectState.state.countriesData = { type: 'FeatureCollection', features: [] };
+    } else {
+      dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(window.PANDOLAB_COUNTRIES, true);
+      if (savedProject) {
+        const classified = (0, dependencies.applicationServicesA.classifyBuiltinCountries)(dependencies.projectState.state.countriesData);
+        dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(
+          previewCountriesWithProjectProperties(classified.countries, savedProject), true);
+        const unitGeometries = new Map(classified.subunits.map(unit => [String(unit.id), unit.geometry]));
+        dependencies.projectState.state.territorialUnits = dependencies.projectState.state.territorialUnits.map(unit => ({
+          ...unit, geometry: unitGeometries.get(String(unit.id)) || unit.geometry,
+        }));
+      } else (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
+    }
+    if (!hasStoredCountryGeometry) (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
@@ -290,7 +308,8 @@ export function createProgressiveStartup() {
     window.addEventListener('pandolab:mesh-progress', handleMeshProgress);
     window.addEventListener('pandolab:geometry-error', handleGeometryError);
     window.addEventListener('pandolab:mesh-error', handleMeshError);
-    const { gpuInitializeMs } = await initializeStartupRuntime({ allowPreview: !hasStoredCountryGeometry });
+    const { gpuInitializeMs } = await initializeStartupRuntime({ allowPreview: !hasStoredCountryGeometry,
+      preview: previewSource.kind === 'project' ? cachedPreview : null });
     if (window.__PANDOLAB_STARTUP_METRICS__) {
       const previewRenderer = dependencies.rendering.gpuMapRenderer.getRuntimeState();
       window.__PANDOLAB_STARTUP_METRICS__.previewMeshUploadMs = gpuInitializeMs;
@@ -303,13 +322,24 @@ export function createProgressiveStartup() {
     (0, dependencies.mapHostViewB.resizeMap)();
     dependencies.lifecycleUi.projectUi.syncHistory();
     dependencies.domains.editingDomain?.setTool('select', { announce: false });
+    let previewFrameReady = false;
     if (!hasStoredCountryGeometry) {
-      (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.PREVIEW_READY);
+      const framePromise = dependencies.rendering.gpuMapRenderer.waitForPreviewFrame();
+      previewFrameReady = await Promise.race([
+        framePromise,
+        new Promise(resolve => setTimeout(() => resolve(false), 4000)),
+      ]);
+      if (previewFrameReady) (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.PREVIEW_READY);
+      else void framePromise.then(presented => {
+        if (presented && !(0, dependencies.readiness.canMutateProject)(dependencies.projectState.state.dataReadiness)) {
+          (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.PREVIEW_READY);
+        }
+      });
     }
     dependencies.startupCommands.markRuntimeReady();
     const previewStart = { projection: dependencies.projectState.state.projection, viewJson: JSON.stringify(dependencies.projectState.state.view) };
     (0, dependencies.feedback.setActionStatus)(
-      hasStoredCountryGeometry ? '저장된 지도 복원 중…' : '미리보기 표시 완료. 편집 데이터 준비 중…',
+      hasStoredCountryGeometry || !previewFrameReady ? '저장된 지도 복원 중…' : '미리보기 표시 완료. 편집 데이터 준비 중…',
       'working',
       0,
     );
@@ -330,9 +360,7 @@ export function createProgressiveStartup() {
     dependencies.projectState.state.auditPreviewCountries = previewCountries;
     let context;
     try {
-      context = await completeGeometryInitialization(geometry, autosaveRestore, previewStart, {
-        restoreCountryFirstPaint: hasStoredCountryGeometry,
-      });
+      context = await completeGeometryInitialization(geometry, autosaveRestore, previewStart);
     } catch (error) {
       console.error('[PL-GEOMETRY-APPLY-001]', error);
       dependencies.projectState.state.countriesData = previewCountries
@@ -346,6 +374,7 @@ export function createProgressiveStartup() {
     }
     if (!context.useBuiltInMesh) {
       await completeMeshEnhancement(null, context);
+      if (savedProject && !cachedPreview) dependencies.persistence.persistenceService.ensurePreview(savedProject);
       return;
     }
     if (window.__PANDOLAB_STARTUP_METRICS__?.meshError) {
@@ -354,6 +383,7 @@ export function createProgressiveStartup() {
     const mesh = await window.PANDOLAB_CANONICAL_MESH_PROMISE;
     try {
       await completeMeshEnhancement(mesh, context);
+      if (savedProject && !cachedPreview) dependencies.persistence.persistenceService.ensurePreview(savedProject);
     } catch (error) {
       console.error('[PL-MESH-APPLY-001]', error);
       handleMeshError({ detail: '고화질 지도를 적용하지 못했습니다.' });

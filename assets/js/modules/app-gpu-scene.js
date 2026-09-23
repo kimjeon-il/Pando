@@ -30,7 +30,17 @@ export function createGpuScene() {
   function mapFeatureForObjectRef(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return null;
-    if (ref.domain === 'territorial') return ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.countries.countryFeatureById)(ref.id) : (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+    if (ref.domain === 'territorial') {
+      const state = dependencies.projectState.state;
+      if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+        const current = (0, dependencies.countries.countryFeatureById)(ref.id);
+        if (state.countryVisualPhase !== 'preview') return current;
+        return state.auditPreviewCountries?.features?.find(feature => String(feature.id) === String(ref.id)) || current;
+      }
+      const current = (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+      if (state.countryVisualPhase !== 'preview') return current;
+      return state.auditPreviewTerritorialUnits?.find(unit => String(unit.id) === String(ref.id)) || current;
+    }
     if (ref.domain === 'generic') {
       const genericFeature = dependencies.projectState.state.genericFeatures.find(feature => String(feature.id) === ref.id) || null;
       return genericFeature ? (0, dependencies.presentation.genericFeatureDisplayFeature)(genericFeature) : null;
