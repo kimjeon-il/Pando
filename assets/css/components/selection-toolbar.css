@@ -24,6 +24,7 @@
   border: 1px solid color-mix(in oklch, var(--text) 13%, transparent);
   border-radius: 1rem;
   background: var(--panel);
+  backdrop-filter: none;
   box-shadow: 0 1.375rem 3.25rem color-mix(in oklch, var(--text) 17%, transparent), 0 .25rem .75rem color-mix(in oklch, var(--text) 9%, transparent);
   pointer-events: auto;
 }
