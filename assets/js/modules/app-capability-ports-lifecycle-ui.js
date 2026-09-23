@@ -67,6 +67,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
   ],
   "progressiveStartup": [
     "applicationConstantsA",
+    "applicationServicesA",
     "builtinCountries",
     "countries",
     "countryRecords",

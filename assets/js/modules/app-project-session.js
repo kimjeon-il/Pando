@@ -88,6 +88,7 @@ export function createProjectSession() {
       countriesData: null,
       auditPreviewCountries: null,
       countryVisualPhase: 'preview',
+      auditPreviewTerritorialUnits: null,
       countryIndex: new Map(),
       countryOverrides: {},
       sourceInfo: null,

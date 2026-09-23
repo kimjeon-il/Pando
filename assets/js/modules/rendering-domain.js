@@ -518,7 +518,9 @@ export function createRenderingDomain({
     t.syncBuiltinPalette?.();
     const types = t.TERRITORIAL_UNIT_TYPES || {};
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
-    const data = (state.territorialUnits || []).filter(feature => {
+    const displayedUnits = state.countryVisualPhase === 'preview' && state.auditPreviewTerritorialUnits
+      ? state.auditPreviewTerritorialUnits : state.territorialUnits || [];
+    const data = displayedUnits.filter(feature => {
       const group = feature.properties?.unitType === types.SUBUNIT ? 'subunits'
         : feature.properties?.unitType === types.REGION ? 'regions' : 'subunits';
       const selected = t.selectionHas?.(t.normalizeObjectRef?.({
@@ -588,7 +590,7 @@ export function createRenderingDomain({
 
     }
     t.replaceGpuSceneDomain?.('territorial-units', { polygons, strokes });
-    const boundaryFeatures = (state.territorialUnits || []).filter(feature => {
+    const boundaryFeatures = displayedUnits.filter(feature => {
       if (t.isNativeBuiltinSubunit?.(feature)) return false;
       const group = t.presentationGroupForTerritorialFeature?.(feature) || 'subunits';
       return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id);
@@ -795,8 +797,10 @@ export function createRenderingDomain({
     active();
     const t = territorialBoundary;
     const state = t.getState?.() || {};
-    const countries = state.countriesData?.features || [];
-    const units = state.territorialUnits || [];
+    const countries = state.countryVisualPhase === 'preview' && state.auditPreviewCountries
+      ? state.auditPreviewCountries.features || [] : state.countriesData?.features || [];
+    const units = state.countryVisualPhase === 'preview' && state.auditPreviewTerritorialUnits
+      ? state.auditPreviewTerritorialUnits : state.territorialUnits || [];
     const revision = t.getTerritorialGeometryRevision?.() ?? 0;
     if (!units.some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) {
       const hadBoundaries = territorialBoundaryCache.segments.length || territorialBoundaryBatchCache.groups.length;

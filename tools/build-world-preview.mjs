@@ -9,6 +9,8 @@ import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
 import { inspectCanonicalCountryPacket } from '../assets/js/modules/canonical-country-packet.js';
 import { encodeCanonicalCountryPacket } from './canonical-country-packet-encoder.mjs';
 import { buildTopologyPreview } from './preview-topology.mjs';
+import { classifyBuiltinCountries } from '../assets/js/modules/builtin-subunits.js';
+import { geometryFingerprint } from '../assets/js/modules/project-preview-policy.js';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
@@ -184,6 +186,19 @@ if (canonicalSource?.type !== 'FeatureCollection' || canonicalSource.features?.l
 
 const startedAt = performance.now();
 const preview = buildPreview(canonicalSource);
+const classified = classifyBuiltinCountries({ ...canonicalSource, features: canonicalSource.features.map(minimalFeature) });
+const canonicalById = new Map(canonicalSource.features.map((feature, index) => [countryId(feature, String(index)), feature]));
+const classifiedById = new Map(classified.countries.features.map(feature => [String(feature.id), feature]));
+const defaultClassification = {
+  countries: Object.fromEntries(classified.countries.features.map(feature => [String(feature.id), geometryFingerprint(feature.geometry)])),
+  changed: Object.fromEntries(classified.countries.features
+    .filter(feature => geometryFingerprint(feature.geometry) !== geometryFingerprint(canonicalById.get(String(feature.id))?.geometry))
+    .map(feature => [String(feature.id), geometryFingerprint(feature.geometry)])),
+  removedIds: [...canonicalById.keys()].filter(id => !classifiedById.has(id)),
+  units: Object.fromEntries(classified.subunits.map(unit => [String(unit.id), {
+    parentId: String(unit.properties.parentId), geometry: geometryFingerprint(unit.geometry),
+  }])),
+};
 const previewJson = Buffer.from(JSON.stringify(preview.collection));
 const previewCountries = zlib.gzipSync(previewJson, { level: 9, mtime: 0 });
 const canonicalCountries = zlib.gzipSync(canonicalBytes, { level: 9, mtime: 0 });
@@ -202,6 +217,7 @@ const manifest = {
   version: APP_VERSION,
   source: 'countries-ne-5.1.1.geojson',
   sourceSha256: sha256(canonicalBytes),
+  defaultClassification,
   previewDerivation: 'canonical-topology-simplified',
   previewSourceScale: 'derived',
   previewSourceSha256: sha256(canonicalBytes),

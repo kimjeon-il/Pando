@@ -317,7 +317,10 @@
     startupMetrics.initialModuleRequestCount = performance.getEntriesByType('resource')
       .filter(entry => /\.(?:js|mjs)(?:\?|$)/i.test(entry.name)).length;
     finish();
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    let paintMarked = false;
+    const markPaint = () => {
+      if (paintMarked) return;
+      paintMarked = true;
       startupMetrics.interactivePaintMs = performance.now() - bootStartedAt;
       startupGate.markInteractivePaint();
       startupMetrics.canonicalGeometryQueuedMs = performance.now() - bootStartedAt;
@@ -327,7 +330,11 @@
         void sampleStartupMemory('canonical-packet-request');
         loader.postMessage({ type: 'start-geometry' });
       }, { queuedState: 'geometry-queued', runningState: 'geometry-loading' });
-    }));
+    };
+    requestAnimationFrame(() => requestAnimationFrame(markPaint));
+    // A throttled or unavailable animation clock must not strand the exact
+    // geometry load after the preview renderer has already initialized.
+    setTimeout(markPaint, 250);
   }, { once: true });
   window.addEventListener('pandolab:editable', event => {
     startupMetrics.editableMs = performance.now() - bootStartedAt;
@@ -515,6 +522,7 @@
     window.PANDOLAB_GPU_MESH_BUFFER = data.meshBuffer;
     window.PANDOLAB_GPU_MESH_STROKES = data.preparedStroke;
     window.PANDOLAB_LABEL_ANCHORS = data.labelAnchors || {};
+    window.PANDOLAB_PREVIEW_BASELINE = data.previewBaseline || null;
     setProgress('빠른 미리보기 지도를 시작하는 중입니다.', 99);
     if (appInjected) return;
     appInjected = true;

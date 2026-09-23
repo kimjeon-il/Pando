@@ -354,6 +354,7 @@ async function loadPreview() {
   previewReady = true;
   self.postMessage({
     type: 'preview-ready', buildId: APP_VERSION, countries: countryResult.data, meshBuffer, preparedStroke, labelAnchors: labelAnchors.anchors,
+    previewBaseline: { sourceSha256: manifest.sourceSha256, defaultClassification: manifest.defaultClassification },
     postedEpochMs: performance.timeOrigin + performance.now(),
     metrics: {
       policy: loadPolicy,

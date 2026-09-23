@@ -1,5 +1,6 @@
 import { AUTOSAVE_STATES } from './save-state-controller.js';
 import { PERFORMANCE_METRIC_NAMES, getRuntimePerformanceMetrics } from './runtime-performance-metrics.js';
+import { createProjectPreviewCache } from './project-preview-cache.js';
 
 const metricNow = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 const recordMetric = (name, startedAt, detail = {}) => {
@@ -14,6 +15,7 @@ export function createBrowserProjectStorage({
   projectKey,
   viewKey,
   fallbackKey,
+  previewKey = `${projectKey}:preview`,
   databaseVersion = 2,
   fallbackLimit = 4_500_000,
 }) {
@@ -63,8 +65,19 @@ export function createBrowserProjectStorage({
       const store = transaction.objectStore(storeName);
       store.delete(projectKey);
       store.delete(viewKey);
+      store.delete(previewKey);
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error || new Error('자동저장 삭제 실패'));
+    });
+  }
+
+  async function deletePreview() {
+    const database = await openDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction(storeName, 'readwrite');
+      transaction.objectStore(storeName).delete(previewKey);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error || new Error('지도 미리보기 삭제 실패'));
     });
   }
 
@@ -92,8 +105,11 @@ export function createBrowserProjectStorage({
   return Object.freeze({
     readProject: () => readRecord(projectKey, '자동저장 읽기 실패'),
     readView: () => readRecord(viewKey, '보기 위치 읽기 실패'),
+    readPreview: () => readRecord(previewKey, '지도 미리보기 읽기 실패'),
     writeProject: project => writeRecord(projectKey, project, '자동저장 쓰기 실패'),
     writeView: view => writeRecord(viewKey, view, '보기 위치 저장 실패'),
+    writePreview: preview => writeRecord(previewKey, preview, '지도 미리보기 저장 실패'),
+    deletePreview,
     deleteRecords,
     readFallback,
     writeFallback,
@@ -113,11 +129,16 @@ export function createPersistenceService({
   onSaved,
   onFailure,
   onWarning = () => {},
+  previewGeometry = null,
+  previewBaseline = () => null,
   now = () => new Date(),
 }) {
   let writeTail = Promise.resolve();
   let queuedAutosave = null;
   let persistenceEpoch = 0;
+  const previewCache = previewGeometry && storage.readPreview && storage.writePreview
+    ? createProjectPreviewCache({ storage, scheduler, getGeometry: previewGeometry,
+      getBaseline: previewBaseline, onWarning }) : null;
   function persist(project = null) {
     if (!project && queuedAutosave) return queuedAutosave;
     const epoch = persistenceEpoch;
@@ -154,6 +175,7 @@ export function createPersistenceService({
         detail.outcome = 'indexeddb';
         onSaved(now());
         onAutosaveState(AUTOSAVE_STATES.SAVED);
+        previewCache?.schedule(autosaveProject);
       } catch (error) {
         try {
           const fallbackStartedAt = metricNow();
@@ -248,6 +270,7 @@ export function createPersistenceService({
 
   function cancelPending() {
     persistenceEpoch += 1;
+    previewCache?.cancel();
     queuedAutosave = null;
     scheduler.cancel('autosave');
     scheduler.cancel('view-autosave');
@@ -264,5 +287,8 @@ export function createPersistenceService({
 
   const writeProject = project => storage.writeProject(project);
 
-  return Object.freeze({ persist, writeProject, queueProject, queuePresentation, queueView, restore, clear, cancelPending });
+  return Object.freeze({ persist, writeProject, queueProject, queuePresentation, queueView, restore, clear, cancelPending,
+    restorePreview: project => previewCache?.restore(project) ?? Promise.resolve(null),
+    ensurePreview: project => previewCache?.schedule(project),
+  });
 }

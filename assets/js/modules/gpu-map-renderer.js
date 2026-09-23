@@ -420,6 +420,19 @@ export function createGpuMapRenderer(deps) {
     let webglContextLost = false;
     let currentRenderRevision = 0;
     let displayedRenderRevision = 0;
+    let previewFramePresented = false;
+    const previewFrameWaiters = new Set();
+    function markPreviewFramePresented() {
+      if (previewFramePresented || !previewAllowed || canonicalMeshReady
+        || !state.countriesData?.features?.length) return;
+      previewFramePresented = true;
+      for (const resolve of previewFrameWaiters) resolve(true);
+      previewFrameWaiters.clear();
+    }
+    function waitForPreviewFrame() {
+      if (previewFramePresented) return Promise.resolve(true);
+      return new Promise(resolve => previewFrameWaiters.add(resolve));
+    }
     const frameTimes = [];
     const performanceMetrics = {
       paletteRebuildCount: 0,
@@ -1681,14 +1694,14 @@ export function createGpuMapRenderer(deps) {
         throw Object.assign(new Error('Prepared country stroke is missing or has invalid owners'), { code: 'PL-GPU-STROKE-001' });
       }
     }
-    function remapOverrideMesh(rawMesh, localIds) {
+    function remapOverrideMesh(rawMesh, localIds, globalIds = meshCountryIds) {
       assertPreparedStroke(rawMesh, localIds);
       const globalIndices = localIds.map(id => {
         const key = String(id);
-        let index = meshCountryIds.indexOf(key);
+        let index = globalIds.indexOf(key);
         if (index < 0) {
-          meshCountryIds.push(key);
-          index = meshCountryIds.length - 1;
+          globalIds.push(key);
+          index = globalIds.length - 1;
         }
         return index;
       });
@@ -1923,6 +1936,9 @@ export function createGpuMapRenderer(deps) {
     }
 
     function resetProjectRenderState({ generation = null, preserveBuiltinMesh = false } = {}) {
+      previewFramePresented = false;
+      for (const resolve of previewFrameWaiters) resolve(false);
+      previewFrameWaiters.clear();
       pendingCanonicalCommit?.reject(Object.assign(new Error('Project replaced during canonical commit'), { name: 'AbortError' }));
       pendingCanonicalCommit = null;
       uploadScheduler?.cancelAll();
@@ -3210,6 +3226,7 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.interactionFrameCount += 1;
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
+      markPreviewFramePresented();
       frameTimes.push(performance.now() - started);
       if (frameTimes.length > 240) frameTimes.shift();
       activeFrameContext = null;
@@ -3328,6 +3345,7 @@ export function createGpuMapRenderer(deps) {
 
       ctx2d.globalAlpha = 1;
       displayedRenderRevision = currentRenderRevision;
+      markPreviewFramePresented();
     }
 
     function canvasInteractionPolygons() {
@@ -3607,6 +3625,7 @@ export function createGpuMapRenderer(deps) {
         }
         canvasDisplayedStyleRevision = Number(message.styleRevision || 0);
         displayedRenderRevision = revision;
+        markPreviewFramePresented();
         framePresentationListener?.({
           frameId: Number(message.frameId || revision || 0),
           viewRevision: Number(message.viewRevision || revision || 0),
@@ -3803,7 +3822,7 @@ export function createGpuMapRenderer(deps) {
         ? state.hydroFeatureByFid.get(Number(fid)) || null : null);
     }
 
-    async function initialize({ allowPreview = true } = {}) {
+    async function initialize({ allowPreview = true, preview = null } = {}) {
       if (disposed) return false;
       if (!allowPreview) {
         previewAllowed = false;
@@ -3834,7 +3853,9 @@ export function createGpuMapRenderer(deps) {
             return true;
           }
           if (!previewAllowed || canonicalMeshReady) throw new Error('canonical mesh unavailable after startup preview');
-          if (!decoded) decoded = await decodeBuiltInMesh();
+          if (!decoded) decoded = preview?.mesh && preview?.countryIds
+            ? { mesh: preview.mesh, ids: preview.countryIds }
+            : await decodeBuiltInMesh();
           if (disposed) return false;
           setMesh(decoded.mesh, decoded.ids, { quality: 'preview', preserveOtherVariants: false });
           meshQuality = 'preview';
@@ -3854,20 +3875,48 @@ export function createGpuMapRenderer(deps) {
       return false;
     }
 
-    async function replaceBuiltInMesh({ meshBuffer, preparedStroke, spatialBlocks, features, onStaged = null, quality = 'canonical', builtinIdentity = null, projectGeneration: requestedGeneration = projectGeneration }) {
+    async function replaceBuiltInMesh({ meshBuffer, preparedStroke, spatialBlocks, features, countryPatchIds = [], onStaged = null, quality = 'canonical', builtinIdentity = null, projectGeneration: requestedGeneration = projectGeneration }) {
       if (disposed || Number(requestedGeneration) !== projectGeneration) return false;
+      const startupPatch = normalizeCountryPatchRequest(countryPatchIds);
+      let patchMesh = null;
+      if (startupPatch.features.length && isWebGlRenderer()) {
+        const ticket = patchJobScheduler.enqueue({ jobKey: 'mesh:startup-country-overrides',
+          geometryRevision: geometryRevisionTracker.committedRevision(), targetRevision: requestedGeneration,
+          priority: 80, payload: { token: requestedGeneration, features: startupPatch.features } });
+        patchMesh = await ticket.promise;
+        if (!patchMesh || Number(requestedGeneration) !== projectGeneration) return false;
+      }
       const decoded = await decodeBuiltInMesh(meshBuffer, features, preparedStroke);
       decoded.mesh.spatialBlocks = spatialBlocks;
       if (quality === 'canonical' && builtinIdentity) rememberBuiltinMesh(decoded.mesh, decoded.ids, builtinIdentity);
       if (Number(requestedGeneration) !== projectGeneration) return false;
       const stagedResources = await stageMeshResources(decoded.mesh, { projectGeneration: requestedGeneration });
       if (Number(requestedGeneration) !== projectGeneration) { disposeMeshResources(stagedResources); return false; }
+      let stagedPatch = null;
+      if (patchMesh) {
+        const globalIds = [...decoded.ids];
+        const remapped = remapOverrideMesh(patchMesh, patchMesh.countryIds || [], globalIds);
+        const resources = await stageMeshResources(remapped, { projectGeneration: requestedGeneration });
+        if (Number(requestedGeneration) !== projectGeneration) {
+          disposeMeshResources(stagedResources); disposeMeshResources(resources); return false;
+        }
+        stagedPatch = { mesh: remapped, resources, globalIds };
+      }
       setMesh(decoded.mesh, decoded.ids, {
         stagedResources,
         renderFrame: false,
         quality,
         preserveOtherVariants: quality === 'canonical' && meshVariants.has('preview'),
       });
+      if (startupPatch.ids.length) {
+        for (const id of startupPatch.ids) countryOverrideIds.add(id);
+        for (const feature of startupPatch.features) overrideFeatureSnapshots.set(String(feature.id), deepClone(feature));
+        for (const id of startupPatch.removedIds) overrideFeatureSnapshots.delete(id);
+        if (stagedPatch) {
+          for (const id of stagedPatch.globalIds) if (!meshCountryIds.includes(id)) meshCountryIds.push(id);
+          setOverrideMesh(stagedPatch.mesh, { renderFrame: false, stagedResources: stagedPatch.resources });
+        }
+      }
       meshQuality = quality;
       if (canvasWorkerNeedsRestart) activateCanvasFallback(fallbackReason);
       if (rendererMode === 'canvas-worker' && canvasWorker) {
@@ -3892,6 +3941,7 @@ export function createGpuMapRenderer(deps) {
         completeGeometryDisplay(
           geometryRevisionTracker.pendingIds(),
           geometryRevisionTracker.committedRevision(),
+          { renderFrame: !isWebGlRenderer() },
         );
       }
       updateRendererStatus(isWebGlRenderer()
@@ -4378,6 +4428,7 @@ export function createGpuMapRenderer(deps) {
       setInteractionStyle, getCountryInteractionBoundaryData,
       setSelectionPass, setRenderScene, setInteractionState, invalidateSceneCache,
       setFramePresentationListener,
+      waitForPreviewFrame,
       getSelectionRenderResult: () => lastSelectionRenderResult,
       getRenderDevice: () => renderDevice,
       getUploadByteBudget: () => renderQuality.uploadBudgetBytes,
