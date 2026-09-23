@@ -127,7 +127,8 @@ body.is-loading .app-root {
   user-select: none;
 }
 
-.app-root[data-readiness="preview"] [aria-disabled="true"] {
+.app-root[data-readiness="preview"] [aria-disabled="true"],
+.app-root[data-readiness="restoring"] [aria-disabled="true"] {
   cursor: progress;
   opacity: 0.52;
 }

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
+import { requiresRestoredCountryFirstPaint } from '../../assets/js/modules/app-progressive-startup.js';
 
 const source = readFileSync(new URL('../../assets/js/modules/app-progressive-startup.js', import.meta.url), 'utf8');
 
@@ -34,9 +35,20 @@ test('progressive and canonical startup share one ordered runtime initializer', 
 
   const progressive = applicationFunctionSource(source, 'initProgressive');
   const canonical = applicationFunctionSource(source, 'init');
-  assert.match(progressive, /\{ gpuInitializeMs \}\s*=\s*await initializeStartupRuntime\(\)/);
+  assert.match(progressive, /\{ gpuInitializeMs \}\s*=\s*await initializeStartupRuntime\(\{ allowPreview: !hasStoredCountryGeometry \}\)/);
   assert.match(canonical, /\{ gpuReady \}\s*=\s*await initializeStartupRuntime\(\{[\s\S]*afterInitialMapSetup:[\s\S]*mapEditClient\.rebase/);
   for (const entrypoint of [progressive, canonical]) {
     assert.doesNotMatch(entrypoint, /applyLayoutMode|bindUI|beginHydration|initializeMapHost|gpuMapRenderer\.initialize|startMapResizeObserver/);
   }
+});
+
+test('restored country geometry never receives the built-in first paint', () => {
+  assert.equal(requiresRestoredCountryFirstPaint(null), false);
+  assert.equal(requiresRestoredCountryFirstPaint({ format: 'pandolab-autosave-delta', countryDelta: { changed: [], removedIds: [] } }), false);
+  assert.equal(requiresRestoredCountryFirstPaint({ format: 'pandolab-autosave-delta', countryDelta: { changed: [{ id: 'DEU' }], removedIds: [] } }), true);
+  assert.equal(requiresRestoredCountryFirstPaint({ format: 'pandolab-autosave-delta', countryDelta: { changed: [], removedIds: ['DEU'] } }), true);
+  assert.equal(requiresRestoredCountryFirstPaint({ countriesData: { type: 'FeatureCollection', features: [] } }), true);
+  const progressive = applicationFunctionSource(source, 'initProgressive');
+  assert.ok(progressive.indexOf('restoreAutosave()') < progressive.indexOf('reindexCountries)(window.PANDOLAB_COUNTRIES'));
+  assert.match(progressive, /if \(!hasStoredCountryGeometry\) \{[\s\S]*PREVIEW_READY/);
 });

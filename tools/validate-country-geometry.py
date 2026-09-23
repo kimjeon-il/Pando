@@ -11,7 +11,8 @@ from shapely.validation import explain_validity
 
 ROOT = Path(__file__).resolve().parents[1]
 CANONICAL_PATH = ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson"
-PREVIEW_PATH = ROOT / "assets" / "data" / "countries-preview-v0.30.0.geojson.gz"
+APP_VERSION = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+PREVIEW_PATH = ROOT / "assets" / "data" / f"countries-preview-v{APP_VERSION}.geojson.gz"
 EXPECTED_COUNTRIES = 258
 MIN_RING_AREA = 1e-14
 
@@ -111,9 +112,7 @@ def main() -> None:
     if args.canonical_only:
         return
     preview = json.loads(gzip.decompress(PREVIEW_PATH.read_bytes()))
-    manifest_path = ROOT / "assets" / "data" / "world-preview-v0.30.0.json"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
-    validate_collection("preview", preview, overlap_exempt_ids=set(manifest.get("supplementedCountryIds", [])))
+    validate_collection("preview", preview)
     canonical_ids = [feature["id"] for feature in canonical["features"]]
     preview_ids = [feature["id"] for feature in preview["features"]]
     if preview_ids != canonical_ids:

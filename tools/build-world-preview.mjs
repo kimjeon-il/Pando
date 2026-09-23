@@ -8,13 +8,12 @@ import { fileURLToPath } from 'node:url';
 import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
 import { inspectCanonicalCountryPacket } from '../assets/js/modules/canonical-country-packet.js';
 import { encodeCanonicalCountryPacket } from './canonical-country-packet-encoder.mjs';
+import { buildTopologyPreview } from './preview-topology.mjs';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
 const APP_VERSION = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')).version;
-const dataDirectory = path.join(projectRoot, 'assets', 'data');
 const sourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson');
-const previewSourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1-50m.geojson');
 const canonicalCountriesGzipPath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson.gz');
 const canonicalCountryPacketPath = path.join(projectRoot, 'assets', 'data', `countries-canonical-v${APP_VERSION}.pcg.gz`);
 const canonicalMeshPath = path.join(projectRoot, 'assets', 'data', 'world-mesh-v0.12.6.bin.gz');
@@ -26,7 +25,6 @@ const checkOnly = process.argv.includes('--check');
 
 const MAX_COORDINATES = 120_000;
 const MAX_COMPRESSED_BYTES = 3 * 1024 * 1024;
-const EXPECTED_SUPPLEMENTED_COUNTRY_IDS = new Set(['BJN', 'BRI', 'BRT', 'CLP', 'CNM', 'CSI', 'ESB', 'GIB', 'KAB', 'PGA', 'SCR', 'SER', 'SPI', 'UMI', 'USG', 'WSB']);
 
 function loadClassicScript(relativePath, globalName) {
   const filePath = path.join(projectRoot, relativePath);
@@ -41,12 +39,6 @@ const earcut = loadClassicScript(path.join('assets', 'js', 'vendor', 'earcut.min
 const countryGeometry = loadClassicScript(path.join('assets', 'js', 'modules', 'country-geometry.js'), 'PandoLabCountryGeometry');
 const meshCore = loadClassicScript(path.join('assets', 'js', 'workers', 'gpu-mesh-core.js'), 'PandoLabGpuMeshCore');
 
-function countCoordinates(value) {
-  if (Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') return 1;
-  if (!Array.isArray(value)) return 0;
-  return value.reduce((sum, item) => sum + countCoordinates(item), 0);
-}
-
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
@@ -60,15 +52,6 @@ function meshHeader(value) {
 function countryId(value, fallback = '') {
   const id = value?.id ?? value?.properties?.editor_id ?? value?.properties?.iso_a3 ?? fallback;
   return String(id || '').trim();
-}
-
-function sourceCountryId(featureValue) {
-  const properties = featureValue?.properties || {};
-  for (const value of [properties.ADM0_A3, properties.ISO_A3, featureValue?.id]) {
-    const id = String(value ?? '').trim();
-    if (id && !['-99', '-1', 'null', 'undefined'].includes(id)) return id;
-  }
-  return '';
 }
 
 function minimalFeature(featureValue, index) {
@@ -89,48 +72,18 @@ function canonicalFeatureIssues(featureValue) {
   return issues;
 }
 
-function normalizePreviewFeature(featureValue) {
-  const geometry = countryGeometry.normalizeCountryGeometry(featureValue.geometry);
-  if (!geometry) return null;
-  return { ...featureValue, geometry };
-}
-
-function buildPreview(canonicalSource, source50, existingPreview) {
+function buildPreview(canonicalSource) {
   const canonicalFeatures = canonicalSource.features.map(minimalFeature);
   const canonicalIds = canonicalFeatures.map(featureValue => featureValue.id);
   if (canonicalFeatures.length !== 258 || new Set(canonicalIds).size !== 258) throw new Error('canonical 국가 목록은 중복 없는 258개여야 합니다.');
-
-  const sourceById = new Map();
-  for (const featureValue of source50.features) {
-    const id = sourceCountryId(featureValue);
-    if (!id) throw new Error('50m 국가 geometry에 ADM0_A3/ISO_A3가 없습니다.');
-    if (sourceById.has(id)) throw new Error(`50m 국가 ID가 중복됩니다: ${id}`);
-    sourceById.set(id, featureValue);
-  }
-  const canonicalSet = new Set(canonicalIds);
-  const unknownSourceIds = [...sourceById.keys()].filter(id => !canonicalSet.has(id));
-  if (unknownSourceIds.length) throw new Error(`50m source에 canonical에 없는 국가 ID가 있습니다: ${unknownSourceIds.join(', ')}`);
-
-  const existingById = new Map(existingPreview.features.map(featureValue => [countryId(featureValue), featureValue]));
-  const supplementedCountryIds = [];
-  const features = canonicalFeatures.map(canonicalFeature => {
-    const id = canonicalFeature.id;
-    const sourceFeature = sourceById.get(id);
-    let candidate = sourceFeature ? { ...canonicalFeature, geometry: sourceFeature.geometry } : existingById.get(id);
-    if (!sourceFeature) supplementedCountryIds.push(id);
-    if (!candidate) throw new Error(`50m geometry와 기존 preview 보완 geometry 모두 없습니다: ${id}`);
-    candidate = normalizePreviewFeature(candidate);
-    if (!candidate) throw new Error(`미리보기 geometry가 비어 있습니다: ${id}`);
-    const issues = canonicalFeatureIssues(candidate);
-    if (issues.length) throw new Error(`미리보기 국가 도형이 유효하지 않습니다: ${id} ${JSON.stringify(issues)}`);
-    return { ...canonicalFeature, geometry: candidate.geometry };
+  const { features, coordinateCount, simplificationQuantile } = buildTopologyPreview(canonicalFeatures, {
+    maxCoordinates: MAX_COORDINATES,
+    normalizeGeometry: countryGeometry.normalizeCountryGeometry,
+    hasCanonicalWinding: countryGeometry.hasCanonicalCountryWinding,
   });
-
-  const coordinateCount = countCoordinates(features.map(featureValue => featureValue.geometry.coordinates));
-  if (coordinateCount > MAX_COORDINATES) throw new Error(`50m 미리보기 좌표 수가 상한을 초과했습니다: ${coordinateCount}`);
-  if (supplementedCountryIds.length !== EXPECTED_SUPPLEMENTED_COUNTRY_IDS.size
-      || supplementedCountryIds.some(id => !EXPECTED_SUPPLEMENTED_COUNTRY_IDS.has(id))) {
-    throw new Error(`50m 보완 국가 목록이 예상과 다릅니다: ${supplementedCountryIds.join(', ')}`);
+  for (const featureValue of features) {
+    const issues = canonicalFeatureIssues(featureValue);
+    if (issues.length) throw new Error(`미리보기 국가 도형이 유효하지 않습니다: ${featureValue.id} ${JSON.stringify(issues)}`);
   }
   const sphericalArea = typeof d3.geoArea === 'function' ? d3.geoArea : d3.geo.area;
   const globalAreaError = Math.abs(sphericalArea({ type: 'FeatureCollection', features }) - sphericalArea(canonicalSource))
@@ -144,7 +97,7 @@ function buildPreview(canonicalSource, source50, existingPreview) {
       bbox: canonicalSource.bbox,
     },
     coordinateCount,
-    supplementedCountryIds,
+    simplificationQuantile,
     globalAreaError,
   };
 }
@@ -222,43 +175,15 @@ function compareOrWrite(filePath, bytes) {
   fs.writeFileSync(filePath, bytes);
 }
 
-function compareVersions(left, right) {
-  for (let index = 0; index < 3; index += 1) {
-    const difference = left[index] - right[index];
-    if (difference) return difference;
-  }
-  return 0;
-}
-
-function resolvePreviewSeedPath() {
-  if (fs.existsSync(previewCountriesPath)) return previewCountriesPath;
-  const currentVersion = APP_VERSION.split('.').map(Number);
-  const candidates = fs.readdirSync(dataDirectory)
-    .map(name => {
-      const match = /^countries-preview-v(\d+)\.(\d+)\.(\d+)\.geojson\.gz$/.exec(name);
-      return match ? { name, version: match.slice(1).map(Number) } : null;
-    })
-    .filter(candidate => candidate && compareVersions(candidate.version, currentVersion) < 0)
-    .sort((left, right) => compareVersions(left.version, right.version));
-  const latest = candidates.at(-1);
-  if (!latest) throw new Error('새 미리보기를 생성할 이전 버전 국가 자산이 없습니다.');
-  return path.join(dataDirectory, latest.name);
-}
-
 const canonicalBytes = Buffer.from(fs.readFileSync(sourcePath, 'utf8').replaceAll('\r\n', '\n'));
-const source50Bytes = Buffer.from(fs.readFileSync(previewSourcePath, 'utf8').replaceAll('\r\n', '\n'));
 const canonicalMeshBytes = fs.readFileSync(canonicalMeshPath);
 const canonicalMeshDecoded = zlib.gunzipSync(canonicalMeshBytes);
 const labelAnchorBytes = Buffer.from(fs.readFileSync(labelAnchorsPath, 'utf8').replaceAll('\r\n', '\n'));
 const canonicalSource = JSON.parse(canonicalBytes.toString('utf8'));
-const source50 = JSON.parse(source50Bytes.toString('utf8'));
-const existingPreviewPath = resolvePreviewSeedPath();
-const existingPreview = JSON.parse(zlib.gunzipSync(fs.readFileSync(existingPreviewPath)));
 if (canonicalSource?.type !== 'FeatureCollection' || canonicalSource.features?.length !== 258) throw new Error('Natural Earth canonical 국가 데이터는 정확히 258개여야 합니다.');
-if (source50?.type !== 'FeatureCollection' || !Array.isArray(source50.features)) throw new Error('Natural Earth 50m 국가 데이터가 올바르지 않습니다.');
 
 const startedAt = performance.now();
-const preview = buildPreview(canonicalSource, source50, existingPreview);
+const preview = buildPreview(canonicalSource);
 const previewJson = Buffer.from(JSON.stringify(preview.collection));
 const previewCountries = zlib.gzipSync(previewJson, { level: 9, mtime: 0 });
 const canonicalCountries = zlib.gzipSync(canonicalBytes, { level: 9, mtime: 0 });
@@ -275,13 +200,13 @@ if (combinedCompressedBytes > MAX_COMPRESSED_BYTES) throw new Error(`미리보�
 
 const manifest = {
   version: APP_VERSION,
-  source: 'countries-ne-5.1.1-50m.geojson',
-  sourceSha256: sha256(source50Bytes),
-  previewSourceScale: '50m',
-  previewSourceVersion: '5.1.1',
-  previewSourceSha256: sha256(source50Bytes),
+  source: 'countries-ne-5.1.1.geojson',
+  sourceSha256: sha256(canonicalBytes),
+  previewDerivation: 'canonical-topology-simplified',
+  previewSourceScale: 'derived',
+  previewSourceSha256: sha256(canonicalBytes),
   canonicalSourceSha256: sha256(canonicalBytes),
-  supplementedCountryIds: preview.supplementedCountryIds,
+  simplificationQuantile: preview.simplificationQuantile,
   countries: preview.collection.features.length,
   coordinateCount: preview.coordinateCount,
   globalAreaError: Number(preview.globalAreaError.toFixed(8)),

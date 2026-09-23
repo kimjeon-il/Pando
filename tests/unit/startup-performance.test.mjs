@@ -88,6 +88,10 @@ test('flat world copies are limited to intervals intersecting the viewport', () 
 });
 
 test('readiness transitions enable mutations at geometry-ready and preserve them through enhancement', () => {
+  const restoring = transitionDataReadiness('', READINESS_EVENTS.RESTORE_STARTED);
+  assert.equal(restoring, DATA_READINESS.RESTORING);
+  assert.equal(canMutateProject(restoring), false);
+  assert.equal(transitionDataReadiness(restoring, READINESS_EVENTS.GEOMETRY_READY), DATA_READINESS.EDITABLE);
   let readiness = transitionDataReadiness('', READINESS_EVENTS.PREVIEW_READY);
   assert.equal(readiness, DATA_READINESS.PREVIEW);
   assert.equal(canMutateProject(readiness), false);
@@ -125,11 +129,11 @@ test('preview assets preserve country identity within the fixed size and geometr
   assert.equal(countCoordinates(preview.features.map(feature => feature.geometry.coordinates)), manifest.coordinateCount);
   assert.ok(manifest.coordinateCount <= 120_000);
   assert.ok(manifest.combinedCompressedBytes <= 3 * 1024 * 1024);
-  assert.equal(manifest.previewSourceScale, '50m');
-  assert.equal(manifest.previewSourceVersion, '5.1.1');
+  assert.equal(manifest.previewDerivation, 'canonical-topology-simplified');
+  assert.equal(manifest.previewSourceScale, 'derived');
   assert.equal(manifest.previewSourceSha256.length, 64);
-  assert.equal(manifest.canonicalSourceSha256.length, 64);
-  assert.equal(manifest.supplementedCountryIds.length, 16);
+  assert.equal(manifest.previewSourceSha256, manifest.canonicalSourceSha256);
+  assert.equal(manifest.supplementedCountryIds, undefined);
   const koreaCoordinateCounts = Object.fromEntries(['KOR', 'PRK'].map(id => [
     id,
     countCoordinates(preview.features.find(feature => feature.id === id)?.geometry?.coordinates),
@@ -146,8 +150,8 @@ test('preview assets preserve country identity within the fixed size and geometr
   assert.equal(canonicalMeshHeader[2], 258);
   assert.equal(canonicalMeshHeader[1], 2);
   assert.deepEqual(Array.from(canonicalMeshHeader.subarray(8)), [516, 516, 1032, 258]);
-  assert.equal(canonicalMeshHeader[3], 1_028_628);
-  assert.equal(canonicalMeshHeader[6], 548_464);
+  assert.equal(canonicalMeshHeader[3], manifest.assets.canonicalMesh.header[3]);
+  assert.equal(canonicalMeshHeader[6], countCoordinates(canonical.features.map(feature => feature.geometry.coordinates)));
   for (const feature of preview.features) {
     assert.ok(['Polygon', 'MultiPolygon'].includes(feature.geometry?.type));
     assert.ok(feature.geometry.coordinates.length > 0);
