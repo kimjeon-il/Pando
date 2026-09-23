@@ -263,7 +263,7 @@ export function createProgressiveStartup() {
     const savedProject = autosaveRestore.project;
     const baseline = window.PANDOLAB_PREVIEW_BASELINE;
     const defaultPreview = matchesDefaultPreview(savedProject, baseline);
-    const cachedPreview = !defaultPreview ? await dependencies.persistence.persistenceService.restorePreview(savedProject) : null;
+    const cachedPreview = !defaultPreview ? await dependencies.domains.projectDomain.restorePreview(savedProject) : null;
     const previewSource = previewSourceForProject(savedProject, baseline, cachedPreview);
     const hasStoredCountryGeometry = previewSource.kind === 'restore';
     restoringCountryFirstPaint = hasStoredCountryGeometry;
@@ -374,7 +374,7 @@ export function createProgressiveStartup() {
     }
     if (!context.useBuiltInMesh) {
       await completeMeshEnhancement(null, context);
-      if (savedProject && !cachedPreview) dependencies.persistence.persistenceService.ensurePreview(savedProject);
+      if (savedProject && !cachedPreview) dependencies.domains.projectDomain.ensurePreview(savedProject);
       return;
     }
     if (window.__PANDOLAB_STARTUP_METRICS__?.meshError) {
@@ -383,7 +383,7 @@ export function createProgressiveStartup() {
     const mesh = await window.PANDOLAB_CANONICAL_MESH_PROMISE;
     try {
       await completeMeshEnhancement(mesh, context);
-      if (savedProject && !cachedPreview) dependencies.persistence.persistenceService.ensurePreview(savedProject);
+      if (savedProject && !cachedPreview) dependencies.domains.projectDomain.ensurePreview(savedProject);
     } catch (error) {
       console.error('[PL-MESH-APPLY-001]', error);
       handleMeshError({ detail: '고화질 지도를 적용하지 못했습니다.' });

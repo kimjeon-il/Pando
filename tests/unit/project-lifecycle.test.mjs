@@ -60,6 +60,18 @@ test('load/new commit event, render and autosave once after replacement; save st
   assert.equal(saveState.snapshot().file, 'never-saved');
 });
 
+test('project preview cache operations pass through ProjectDomain', async () => {
+  const project = { format: 'pandolab-autosave-delta' };
+  const calls = [];
+  const domain = createProjectDomain({ persistence: {
+    restorePreview: async value => { calls.push(['restore', value]); return { countryIds: ['DEU'] }; },
+    ensurePreview: value => { calls.push(['ensure', value]); return true; },
+  } });
+  assert.deepEqual(await domain.restorePreview(project), { countryIds: ['DEU'] });
+  assert.equal(domain.ensurePreview(project), true);
+  assert.deepEqual(calls, [['restore', project], ['ensure', project]]);
+});
+
 test('failed replacement restores canonical state and preserves history without success effects', async () => {
   const { domain, store, events } = fixture();
   domain.recordHistory();
