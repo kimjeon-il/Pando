@@ -1,5 +1,22 @@
 import { expect, test } from '@playwright/test';
 
+test('desktop display menu becomes visible as soon as it opens', async ({ page }) => {
+  await page.goto('/assets/css/app.css');
+  await page.setContent(`
+    <link rel="stylesheet" href="/assets/css/ui.bundle.css">
+    <div class="app-root" data-layout="wide">
+      <aside id="displayFixture" class="workspace-surface surface-display ui-sheet view-menu-desktop"></aside>
+    </div>
+  `);
+  const state = await page.locator('#displayFixture').evaluate(element => {
+    const before = getComputedStyle(element).visibility;
+    element.classList.add('surface-open');
+    const style = getComputedStyle(element);
+    return { before, visibility: style.visibility, opacity: style.opacity };
+  });
+  expect(state).toEqual({ before: 'hidden', visibility: 'visible', opacity: '1' });
+});
+
 async function openApp(page, viewport) {
   await page.setViewportSize(viewport);
   await page.goto('/?renderer=canvas');

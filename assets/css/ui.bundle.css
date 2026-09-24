@@ -8089,6 +8089,7 @@ body.file-menu-open .mobile-backdrop {
   max-height: var(--ui-menu-position-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-4)));
   overflow: visible;
   transform: none;
+  transition: none;
 }
 
 .surface-display.view-menu-desktop:is(.surface-open, .mobile-open) {
