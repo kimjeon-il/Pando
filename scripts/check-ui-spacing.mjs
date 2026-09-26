@@ -1,3 +1,49 @@
+// TEMP: compare 1914 HistoGIS North Sea coast to canonical current DEU boundary.
+import fs from 'node:fs';
+const hist=JSON.parse(fs.readFileSync('tools/historical-library/working/german-empire-1914-base.geojson','utf8'));
+const current=JSON.parse(fs.readFileSync('assets/data/countries-ne-5.1.1.geojson','utf8'));
+const featureId=f=>String(f.id??f.properties?.editor_id??f.properties?.iso_a3??f.properties?.ADM0_A3??'');
+const deu=current.features.find(f=>featureId(f)==='DEU');
+if(!deu) throw new Error('DEU missing');
+const hpolys=hist.features[0].geometry.coordinates;
+const hmain=hpolys.reduce((best,p)=>p[0].length>best.length?p[0]:best,[]);
+const cpolys=deu.geometry.type==='MultiPolygon'?deu.geometry.coordinates:[deu.geometry.coordinates];
+const currentRings=[];for(const p of cpolys)for(const r of p)currentRings.push(r);
+const currentSegs=[];
+for(const r of currentRings)for(let i=0;i<r.length-1;i++){
+ const a=r[i],b=r[i+1];
+ if(Math.max(a[0],b[0])<6.2||Math.min(a[0],b[0])>10.0||Math.max(a[1],b[1])<53.0||Math.min(a[1],b[1])>55.3)continue;
+ currentSegs.push([a,b]);
+}
+const d2seg=(p,a,b)=>{const lat=p[1]*Math.PI/180,s=Math.cos(lat),px=p[0]*s,py=p[1],ax=a[0]*s,ay=a[1],bx=b[0]*s,by=b[1],vx=bx-ax,vy=by-ay,wx=px-ax,wy=py-ay,vv=vx*vx+vy*vy;let t=vv?(wx*vx+wy*vy)/vv:0;t=Math.max(0,Math.min(1,t));const dx=px-(ax+t*vx),dy=py-(ay+t*vy);return dx*dx+dy*dy;};
+const minKm=(p,segs)=>{let m=Infinity;for(const [a,b] of segs){const d=d2seg(p,a,b);if(d<m)m=d;}return Math.sqrt(m)*111.2;};
+const ranges=[
+ ['dollart-emden',6526,6541,false],
+ ['emden-leybucht',6541,6554,false],
+ ['leybucht-harle',6554,1,true],
+ ['harle-jade-west',1,35,false],
+ ['jadebusen',35,110,false],
+ ['jade-weser',110,149,false],
+ ['weser-cuxhaven',149,183,false],
+ ['cuxhaven-elbe-north',183,297,false],
+ ['elbe-eiderstedt',297,404,false],
+ ['eiderstedt-husum',404,453,false],
+ ['husum-danish-border',453,542,false],
+];
+const getSlice=(a,b,wrap)=>wrap?hmain.slice(a,-1).concat(hmain.slice(0,b+1)):hmain.slice(a,b+1);
+const percentile=(arr,p)=>{const x=[...arr].sort((a,b)=>a-b);return x[Math.min(x.length-1,Math.floor((x.length-1)*p))]??null;};
+const result=[];
+for(const [name,a,b,wrap] of ranges){
+ const pts=getSlice(a,b,wrap);const ds=pts.map(p=>minKm(p,currentSegs));
+ const max=Math.max(...ds),mean=ds.reduce((s,v)=>s+v,0)/ds.length,p95=percentile(ds,.95),median=percentile(ds,.5);
+ const worst=ds.map((v,i)=>({km:v,index:i,coord:pts[i]})).sort((x,y)=>y.km-x.km).slice(0,5);
+ result.push({name,startIndex:a,endIndex:b,wrap,points:pts.length,meanKm:+mean.toFixed(3),medianKm:+median.toFixed(3),p95Km:+p95.toFixed(3),maxKm:+max.toFixed(3),worst:worst.map(x=>({km:+x.km.toFixed(3),coord:x.coord}))});
+}
+console.log('NORTHSEA_COMPARE_BEGIN');
+console.log(JSON.stringify({historicalMainPoints:hmain.length,currentDEUType:deu.geometry.type,currentRings:currentRings.length,currentSegmentsInWindow:currentSegs.length,result}));
+console.log('NORTHSEA_COMPARE_END');
+process.exit(1);
+
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
