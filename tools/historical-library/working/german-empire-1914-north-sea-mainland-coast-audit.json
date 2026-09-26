@@ -20,7 +20,7 @@
         "medianKm": 0.158,
         "p95Km": 0.894,
         "maxKm": 0.98,
-        "decision": "historical-map-first"
+        "decision": "historical-map-only"
       },
       {
         "name": "emden-leybucht",
@@ -60,7 +60,7 @@
         "medianKm": 0.126,
         "p95Km": 0.384,
         "maxKm": 0.495,
-        "decision": "modern-line-reference-allowed-after-historical-check"
+        "decision": "historical-map-only"
       },
       {
         "name": "jadebusen",
@@ -99,7 +99,7 @@
         "medianKm": 0.32,
         "p95Km": 0.558,
         "maxKm": 0.724,
-        "decision": "historical-map-first-current-reference-secondary"
+        "decision": "historical-map-only"
       },
       {
         "name": "cuxhaven-elbe-south-to-hamburg",
@@ -113,7 +113,7 @@
         "p95Km": 1.761,
         "maxKm": 4.975,
         "decision": "historical-map-only",
-        "note": "The national polygon follows the Elbe indentation; this is not a simple open-sea coastline segment."
+        "note": "The national polygon follows the Elbe indentation; historical estuary-bank mapping controls this sector."
       },
       {
         "name": "elbe-north-to-eiderstedt",
@@ -126,7 +126,7 @@
         "medianKm": 0.327,
         "p95Km": 0.959,
         "maxKm": 1.305,
-        "decision": "historical-map-first"
+        "decision": "historical-map-only"
       },
       {
         "name": "eiderstedt-husum",
@@ -152,10 +152,15 @@
         "medianKm": 0.447,
         "p95Km": 8.168,
         "maxKm": 11.838,
-        "decision": "1914-map-only",
-        "note": "Modern DEU ceases at the post-1920 border; large divergence near the northern end is expected and not a coastline-quality signal."
+        "decision": "historical-map-only",
+        "note": "Modern DEU ceases at the post-1920 border; current-country geometry is not a usable coastline reference here."
       }
-    ]
+    ],
+    "canonicalCurrentGeometryConclusion": {
+      "status": "rejected-for-densification",
+      "reason": "Natural Earth 10m is too generalized to supply replacement coastline geometry. At the Harle historical endpoint [7.8163122013,53.7114252848], the nearest vertex on the current DEU mainland ring is about 8.97 km away even though point-to-segment distance is small; the apparent agreement is caused by long generalized segments.",
+      "use": "diagnostic comparison only; never substitute current Natural Earth vertices/segments for the 1914 coastline"
+    }
   },
   "authoritativeHistoricalSources": {
     "primary1914": {
@@ -211,10 +216,10 @@
     }
   ],
   "nextGeometryPass": [
-    "Trace/transfer Dollart-Ems-Leybucht from the 1914 Grundkarte, using 1:25k sheets where available.",
-    "Check Harle-Jade-west against historical sheets; only then allow canonical-current line densification.",
-    "Trace Jadebusen and Wilhelmshaven/Innenjade from pre-1914/1914 mapping, explicitly excluding later Groden.",
-    "Trace Weser/Elbe estuary banks from 1914-era mapping because the period includes active hydraulic works.",
-    "Reconstruct North Friesland and the 1914 North Schleswig coast from historical sheets, not current DEU."
+    "Obtain georeferenced PL25/Preußische Landesaufnahme raster coverage for the Lower Saxony North Sea coast from official LGLN services.",
+    "Trace Dollart/Ems-Leybucht from 1914-era mapping.",
+    "Trace East Frisia-Harle and Jadebusen/Innenjade from PL25, excluding post-1914 Groden/reclamations.",
+    "Trace Weser/Cuxhaven and Elbe estuary banks from 1914-era mapping because the period includes active hydraulic works.",
+    "Use Schleswig-Holstein historical mapping for Eiderstedt/Husum/North Friesland/North Schleswig; current DEU is not an admissible substitute."
   ]
 }
