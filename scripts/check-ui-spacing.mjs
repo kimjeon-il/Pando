@@ -1,6 +1,6 @@
 // TEMPORARY CI probe: recover OSM way 273992076 (Düne) coordinates.
 const probeResponse = await fetch('https://api.openstreetmap.org/api/0.6/way/273992076/full', { headers: { 'User-Agent': 'PandoLab-Dune-coordinate-audit/1' } });
-if (!probeResponse.ok) throw new Error(\`OSM HTTP \${probeResponse.status}\`);
+if (!probeResponse.ok) throw new Error('OSM HTTP ' + probeResponse.status);
 const probeXml = await probeResponse.text();
 const probeNodes = new Map();
 for (const match of probeXml.matchAll(/<node\\b([^>]*)\\/?>(?:<\\/node>)?/g)) {
