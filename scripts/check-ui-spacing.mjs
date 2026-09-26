@@ -1,5 +1,4 @@
 // TEMP: compare 1914 HistoGIS North Sea coast to canonical current DEU boundary.
-import fs from 'node:fs';
 const hist=JSON.parse(fs.readFileSync('tools/historical-library/working/german-empire-1914-base.geojson','utf8'));
 const current=JSON.parse(fs.readFileSync('assets/data/countries-ne-5.1.1.geojson','utf8'));
 const featureId=f=>String(f.id??f.properties?.editor_id??f.properties?.iso_a3??f.properties?.ADM0_A3??'');
