@@ -1,21 +1,3 @@
-// TEMP: diagnose current DEU ring candidates for Harle -> Jade-west.
-const fs2=await import('node:fs');
-const hist=JSON.parse(fs2.readFileSync('tools/historical-library/working/german-empire-1914-base.geojson','utf8'));
-const current=JSON.parse(fs2.readFileSync('assets/data/countries-ne-5.1.1.geojson','utf8'));
-const fid=f=>String(f.id??f.properties?.editor_id??f.properties?.iso_a3??f.properties?.ADM0_A3??'');
-const deu=current.features.find(f=>fid(f)==='DEU');if(!deu)throw new Error('DEU missing');
-const hp=hist.features[0].geometry.coordinates,hmain=hp.reduce((b,p)=>p[0].length>b.length?p[0]:b,[]),start=hmain[1],end=hmain[35];
-const cps=deu.geometry.type==='MultiPolygon'?deu.geometry.coordinates:[deu.geometry.coordinates];
-const rings=[];for(let pi=0;pi<cps.length;pi++)for(let ri=0;ri<cps[pi].length;ri++)rings.push({pi,ri,coords:cps[pi][ri]});
-const d2=(a,b)=>{const s=Math.cos((a[1]+b[1])/2*Math.PI/180);return((a[0]-b[0])*s)**2+(a[1]-b[1])**2};
-const ringMin=(p,r)=>{let best={d:Infinity,i:-1};for(let i=0;i<r.coords.length;i++){const d=d2(p,r.coords[i]);if(d<best.d)best={d,i,coord:r.coords[i]};}return best;};
-const bbox=r=>{const xs=r.coords.map(p=>p[0]),ys=r.coords.map(p=>p[1]);return[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];};
-const rows=rings.map((r,index)=>{const a=ringMin(start,r),b=ringMin(end,r);return{index,pi:r.pi,ri:r.ri,points:r.coords.length,bbox:bbox(r),startKm:Math.sqrt(a.d)*111.2,endKm:Math.sqrt(b.d)*111.2,sumKm:(Math.sqrt(a.d)+Math.sqrt(b.d))*111.2,startIndex:a.i,endIndex:b.i,startCoord:a.coord,endCoord:b.coord};}).sort((x,y)=>x.sumKm-y.sumKm);
-console.log('HARLE_JADE_RING_DIAG_BEGIN');
-console.log(JSON.stringify({start,end,top:rows.slice(0,12)}));
-console.log('HARLE_JADE_RING_DIAG_END');
-process.exit(1);
-
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
