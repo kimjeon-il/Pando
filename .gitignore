@@ -4,3 +4,8 @@ reports/hydro-calibration/.cache/
 node_modules/
 playwright-report/
 test-results/
+
+# Restricted/local historical GIS working sources and generated bases
+tools/historical-library/sources/german-empire-1914/*.geojson
+tools/historical-library/generated/german-empire-1914-base.geojson
+tools/historical-library/generated/german-empire-1914-base.diagnostics.json
