@@ -56,3 +56,51 @@ reference-date approximations, not a claim of cadastral historical precision:
 All six use the same `territory-replacement` materialization mode, so adding one
 subtracts its transferred geometry from overlapping current-country objects in
 one undoable operation.
+
+## German Empire 1914 working base
+
+`german-empire-1914-base.recipe.json` defines the reproducible working-base
+pipeline for the German Empire immediately before the First World War
+(reference date 1914-07-31). Unlike the distributable East Germany pilot, the
+HGIS source and its generated derivative are kept local because the HGIS
+metadata restricts use to non-commercial academic research unless separately
+licensed.
+
+Prepare the source and build the working base with:
+
+```powershell
+python tools/fetch_german_empire_1914_source.py
+python tools/build_german_empire_1914_base.py
+python tools/build_german_empire_1914_base.py --check
+```
+
+If Harvard/NYU WFS access is unavailable, download **Germany State Boundaries,
+1914, German Historical GIS** manually, convert it to EPSG:4326 GeoJSON, then:
+
+```powershell
+python tools/fetch_german_empire_1914_source.py --from-file PATH_TO_GEOJSON
+```
+
+The build performs these steps deterministically:
+
+1. Validate the local HGIS source as the 26-state 1914 dataset and check its
+   envelope against the catalog metadata.
+2. Apply the OSHistory linear HGIS correction with the published west-east
+   coefficients on longitude and south-north coefficients on latitude.
+   This is an intentional axis-correct port: upstream `transform-coords.py`
+   passes the longitude coefficients to both coordinate axes despite shipping
+   separate WE and SN coefficient files.
+3. Dissolve all corrected state polygons into one German Empire base.
+4. Clear the Heligoland work window and insert the exact Heligoland + Düne
+   components from PandoLab's canonical Natural Earth v5.1.1 `DEU` geometry.
+5. Validate geometry, area, historical inside/outside control points, and the
+   isolation of the Heligoland patch.
+
+The generated base and diagnostics are written below
+`tools/historical-library/generated/` and are gitignored. This output is a
+**working base, not the final historical-library geometry**: small enclaves,
+sub-kilometre boundary detail, coastlines, and disputed/changed sectors still
+require map-by-map review before a distributable geometry is created.
+
+The HGIS source contract and local-file policy are documented in
+`sources/german-empire-1914/README.md`.
