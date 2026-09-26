@@ -1,43 +1,20 @@
 // TEMPORARY CI probe: recover OSM way 273992076 (Düne) coordinates.
-const probeResponse = await fetch('https://api.openstreetmap.org/api/0.6/way/273992076/full', { headers: { 'User-Agent': 'PandoLab-Dune-coordinate-audit/1' } });
+const probeResponse = await fetch('https://api.openstreetmap.org/api/0.6/way/273992076/full.json', { headers: { 'User-Agent': 'PandoLab-Dune-coordinate-audit/1', 'Accept': 'application/json' } });
 if (!probeResponse.ok) throw new Error('OSM HTTP ' + probeResponse.status);
-const probeXml = await probeResponse.text();
-const probeLines = probeXml.split('\\n');
-const probeAttr = (line, name) => {
-  const marker = name + '=\"';
-  const start = line.indexOf(marker);
-  if (start < 0) return null;
-  const from = start + marker.length;
-  const end = line.indexOf('\"', from);
-  return end < 0 ? null : line.slice(from, end);
-};
-const probeNodes = new Map();
-for (const line of probeLines) {
-  if (!line.includes('<node ')) continue;
-  const id = probeAttr(line, 'id');
-  const lat = probeAttr(line, 'lat');
-  const lon = probeAttr(line, 'lon');
-  if (id && lat && lon) probeNodes.set(id, [Number(lon), Number(lat)]);
-}
-const probeRefs = [];
-let probeInsideWay = false;
-for (const line of probeLines) {
-  if (line.includes('<way ') && probeAttr(line, 'id') === '273992076') { probeInsideWay = true; continue; }
-  if (probeInsideWay && line.includes('</way>')) break;
-  if (probeInsideWay && line.includes('<nd ')) {
-    const ref = probeAttr(line, 'ref');
-    if (ref) probeRefs.push(ref);
-  }
-}
-if (!probeRefs.length) throw new Error('OSM way 273992076 missing from response');
-const probeCoords = probeRefs.map(ref => probeNodes.get(ref));
+const probeData = await probeResponse.json();
+const probeElements = Array.isArray(probeData.elements) ? probeData.elements : [];
+const probeWay = probeElements.find(element => element.type === 'way' && Number(element.id) === 273992076);
+if (!probeWay || !Array.isArray(probeWay.nodes)) throw new Error('OSM way 273992076 missing from JSON response');
+const probeNodes = new Map(probeElements.filter(element => element.type === 'node').map(element => [Number(element.id), [Number(element.lon), Number(element.lat)]]));
+const probeCoords = probeWay.nodes.map(ref => probeNodes.get(Number(ref)));
 if (probeCoords.some(value => !value)) throw new Error('OSM way has unresolved node refs');
 const probeXs = probeCoords.map(value => value[0]);
 const probeYs = probeCoords.map(value => value[1]);
 console.log('DUNE_OSM_WAY=273992076');
 console.log('DUNE_COORD_COUNT=' + probeCoords.length);
-console.log('DUNE_CLOSED=' + (probeRefs[0] === probeRefs.at(-1)));
+console.log('DUNE_CLOSED=' + (probeWay.nodes[0] === probeWay.nodes.at(-1)));
 console.log('DUNE_BBOX=' + JSON.stringify([Math.min(...probeXs), Math.min(...probeYs), Math.max(...probeXs), Math.max(...probeYs)]));
+console.log('DUNE_TAGS=' + JSON.stringify(probeWay.tags || {}));
 console.log('DUNE_COORDS_BEGIN');
 console.log(JSON.stringify(probeCoords));
 console.log('DUNE_COORDS_END');
