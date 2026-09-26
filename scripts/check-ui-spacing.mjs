@@ -1,16 +1,26 @@
-// TEMP: discover direct Oldenburg map links for 1914 North Sea sheets.
-const pageUrl='https://digital.lb-oldenburg.de/lbolmapo/content/structure/1767769';
-const res=await fetch(pageUrl,{headers:{'User-Agent':'PandoLab-historical-map-audit/1'}});
-if(!res.ok) throw new Error('Oldenburg HTTP '+res.status);
-const html=await res.text();
-const targets=['140/172','141/173','142/174','143/175','144/176','203/231'];
-console.log('OLDENBURG_DISCOVERY_BEGIN');
-for(const target of targets){
- const idx=html.indexOf(target);
- console.log('TARGET='+target+' INDEX='+idx);
- if(idx>=0) console.log(html.slice(Math.max(0,idx-2500),Math.min(html.length,idx+3500)).replaceAll('\\n',' '));
-}
-console.log('OLDENBURG_DISCOVERY_END');
+// TEMP: extract canonical-current DEU counterpart for historically stable Harle -> Jade-west coast.
+const fs2=await import('node:fs');
+const hist=JSON.parse(fs2.readFileSync('tools/historical-library/working/german-empire-1914-base.geojson','utf8'));
+const current=JSON.parse(fs2.readFileSync('assets/data/countries-ne-5.1.1.geojson','utf8'));
+const fid=f=>String(f.id??f.properties?.editor_id??f.properties?.iso_a3??f.properties?.ADM0_A3??'');
+const deu=current.features.find(f=>fid(f)==='DEU'); if(!deu)throw new Error('DEU missing');
+const hpolys=hist.features[0].geometry.coordinates,hmain=hpolys.reduce((b,p)=>p[0].length>b.length?p[0]:b,[]);
+const start=hmain[1],end=hmain[35],hpath=hmain.slice(1,36);
+const cps=deu.geometry.type==='MultiPolygon'?deu.geometry.coordinates:[deu.geometry.coordinates];
+const rings=[];for(const p of cps)for(const r of p)rings.push(r);
+const d2=(a,b)=>{const s=Math.cos((a[1]+b[1])/2*Math.PI/180);return((a[0]-b[0])*s)**2+(a[1]-b[1])**2};
+const nearest=(p)=>{let best=null;for(let ri=0;ri<rings.length;ri++)for(let i=0;i<rings[ri].length;i++){const d=d2(p,rings[ri][i]);if(!best||d<best.d)best={ri,i,d,coord:rings[ri][i]};}return best;};
+const a=nearest(start),b=nearest(end);if(a.ri!==b.ri)throw new Error('Harle/Jade endpoints land on different current rings');
+const r=rings[a.ri],n=r.length-1;
+const forward=[];let i=a.i;while(true){forward.push(r[i]);if(i===b.i)break;i=(i+1)%n;if(forward.length>n+1)throw new Error('forward loop');}
+const backward=[];i=a.i;while(true){backward.push(r[i]);if(i===b.i)break;i=(i-1+n)%n;if(backward.length>n+1)throw new Error('backward loop');}
+const lengthKm=pts=>{let s=0;for(let j=1;j<pts.length;j++){const lat=(pts[j-1][1]+pts[j][1])/2*Math.PI/180;s+=Math.hypot((pts[j][0]-pts[j-1][0])*Math.cos(lat)*111.2,(pts[j][1]-pts[j-1][1])*111.2);}return s;};
+const hlen=lengthKm(hpath),flen=lengthKm(forward),blen=lengthKm(backward);
+const candidates=[{dir:'forward',coords:forward,len:flen},{dir:'backward',coords:backward,len:blen}].filter(x=>x.coords.every(p=>p[0]>=7.6&&p[0]<=8.3&&p[1]>=53.45&&p[1]<=53.85));
+const chosen=(candidates.length?candidates:[{dir:'forward',coords:forward,len:flen},{dir:'backward',coords:backward,len:blen}]).sort((x,y)=>Math.abs(x.len-hlen)-Math.abs(y.len-hlen))[0];
+console.log('HARLE_JADE_PATH_BEGIN');
+console.log(JSON.stringify({historical:{startIndex:1,endIndex:35,points:hpath.length,lengthKm:hlen,start,end},current:{ringIndex:a.ri,startIndex:a.i,endIndex:b.i,startSnapKm:Math.sqrt(a.d)*111.2,endSnapKm:Math.sqrt(b.d)*111.2,direction:chosen.dir,points:chosen.coords.length,lengthKm:chosen.len,coordinates:chosen.coords},alternatives:{forwardPoints:forward.length,forwardKm:flen,backwardPoints:backward.length,backwardKm:blen}}));
+console.log('HARLE_JADE_PATH_END');
 process.exit(1);
 
 import fs from 'node:fs';
