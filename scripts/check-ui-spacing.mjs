@@ -2,14 +2,34 @@
 const probeResponse = await fetch('https://api.openstreetmap.org/api/0.6/way/273992076/full', { headers: { 'User-Agent': 'PandoLab-Dune-coordinate-audit/1' } });
 if (!probeResponse.ok) throw new Error('OSM HTTP ' + probeResponse.status);
 const probeXml = await probeResponse.text();
+const probeLines = probeXml.split('\\n');
+const probeAttr = (line, name) => {
+  const marker = name + '=\"';
+  const start = line.indexOf(marker);
+  if (start < 0) return null;
+  const from = start + marker.length;
+  const end = line.indexOf('\"', from);
+  return end < 0 ? null : line.slice(from, end);
+};
 const probeNodes = new Map();
-for (const match of probeXml.matchAll(/<node\\b([^>]*)\\/?>(?:<\\/node>)?/g)) {
-  const attrs = Object.fromEntries([...match[1].matchAll(/(\\w+)=\"([^\"]*)\"/g)].map(item => [item[1], item[2]]));
-  if (attrs.id && attrs.lat && attrs.lon) probeNodes.set(attrs.id, [Number(attrs.lon), Number(attrs.lat)]);
+for (const line of probeLines) {
+  if (!line.includes('<node ')) continue;
+  const id = probeAttr(line, 'id');
+  const lat = probeAttr(line, 'lat');
+  const lon = probeAttr(line, 'lon');
+  if (id && lat && lon) probeNodes.set(id, [Number(lon), Number(lat)]);
 }
-const probeWay = probeXml.match(/<way\\b[^>]*\\bid=\"273992076\"[^>]*>([\\s\\S]*?)<\\/way>/);
-if (!probeWay) throw new Error('OSM way 273992076 missing from response');
-const probeRefs = [...probeWay[1].matchAll(/<nd\\b[^>]*\\bref=\"(\\d+)\"[^>]*\\/>/g)].map(match => match[1]);
+const probeRefs = [];
+let probeInsideWay = false;
+for (const line of probeLines) {
+  if (line.includes('<way ') && probeAttr(line, 'id') === '273992076') { probeInsideWay = true; continue; }
+  if (probeInsideWay && line.includes('</way>')) break;
+  if (probeInsideWay && line.includes('<nd ')) {
+    const ref = probeAttr(line, 'ref');
+    if (ref) probeRefs.push(ref);
+  }
+}
+if (!probeRefs.length) throw new Error('OSM way 273992076 missing from response');
 const probeCoords = probeRefs.map(ref => probeNodes.get(ref));
 if (probeCoords.some(value => !value)) throw new Error('OSM way has unresolved node refs');
 const probeXs = probeCoords.map(value => value[0]);
