@@ -1,38 +1,39 @@
-// TEMP: fetch current North Sea coastline for historical-coast comparison.
-const q='[out:json][timeout:120];way["natural"="coastline"](53.10,6.40,55.20,9.80);out geom;';
-const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
-let data=null,lastErr=null;
-for(const endpoint of endpoints){
-  try{
-    const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':'PandoLab-northsea-coast-audit/1'},body:'data='+encodeURIComponent(q)});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    data=await res.json(); break;
-  }catch(e){lastErr=e;}
+// TEMP: fetch current North Sea coastline in four smaller sectors.
+const sectors=[
+  ['ems-jade',[53.10,6.40,53.82,8.42]],
+  ['jade-elbe',[53.38,7.95,54.15,9.80]],
+  ['elbe-husum',[53.78,7.95,54.75,9.80]],
+  ['husum-border',[54.35,7.95,55.20,9.50]],
+];
+const endpoints=['https://overpass.kumi.systems/api/interpreter','https://overpass-api.de/api/interpreter'];
+function stitch(ways){
+ const chains=ways.map(w=>({ways:[w.id],nodes:w.nodes.slice(),coords:w.coords.slice()}));
+ let changed=true;
+ while(changed){changed=false;outer:for(let i=0;i<chains.length;i++)for(let j=i+1;j<chains.length;j++){
+  const a=chains[i],b=chains[j],a0=a.nodes[0],a1=a.nodes.at(-1),b0=b.nodes[0],b1=b.nodes.at(-1);let m=null;
+  if(a1===b0)m={ways:a.ways.concat(b.ways),nodes:a.nodes.concat(b.nodes.slice(1)),coords:a.coords.concat(b.coords.slice(1))};
+  else if(a1===b1)m={ways:a.ways.concat(b.ways.slice().reverse()),nodes:a.nodes.concat(b.nodes.slice(0,-1).reverse()),coords:a.coords.concat(b.coords.slice(0,-1).reverse())};
+  else if(a0===b1)m={ways:b.ways.concat(a.ways),nodes:b.nodes.concat(a.nodes.slice(1)),coords:b.coords.concat(a.coords.slice(1))};
+  else if(a0===b0)m={ways:b.ways.slice().reverse().concat(a.ways),nodes:b.nodes.slice().reverse().concat(a.nodes.slice(1)),coords:b.coords.slice().reverse().concat(a.coords.slice(1))};
+  if(m){chains[i]=m;chains.splice(j,1);changed=true;break outer;}
+ }}
+ return chains;
 }
-if(!data) throw lastErr||new Error('Overpass failed');
-const ways=(data.elements||[]).filter(e=>e.type==='way'&&Array.isArray(e.nodes)&&Array.isArray(e.geometry)&&e.nodes.length===e.geometry.length).map(e=>({id:e.id,nodes:e.nodes.map(Number),coords:e.geometry.map(p=>[Number(p.lon),Number(p.lat)])}));
-const chains=ways.map(w=>({ways:[w.id],nodes:w.nodes.slice(),coords:w.coords.slice()}));
-let changed=true;
-while(changed){
-  changed=false;
-  outer:for(let i=0;i<chains.length;i++)for(let j=i+1;j<chains.length;j++){
-    const a=chains[i],b=chains[j],a0=a.nodes[0],a1=a.nodes.at(-1),b0=b.nodes[0],b1=b.nodes.at(-1); let m=null;
-    if(a1===b0)m={ways:a.ways.concat(b.ways),nodes:a.nodes.concat(b.nodes.slice(1)),coords:a.coords.concat(b.coords.slice(1))};
-    else if(a1===b1)m={ways:a.ways.concat(b.ways.slice().reverse()),nodes:a.nodes.concat(b.nodes.slice(0,-1).reverse()),coords:a.coords.concat(b.coords.slice(0,-1).reverse())};
-    else if(a0===b1)m={ways:b.ways.concat(a.ways),nodes:b.nodes.concat(a.nodes.slice(1)),coords:b.coords.concat(a.coords.slice(1))};
-    else if(a0===b0)m={ways:b.ways.slice().reverse().concat(a.ways),nodes:b.nodes.slice().reverse().concat(a.nodes.slice(1)),coords:b.coords.slice().reverse().concat(a.coords.slice(1))};
-    if(m){chains[i]=m;chains.splice(j,1);changed=true;break outer;}
-  }
+const bbox=c=>{const xs=c.coords.map(p=>p[0]),ys=c.coords.map(p=>p[1]);return[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];};
+for(const [name,b] of sectors){
+ const q='[out:json][timeout:60];way["natural"="coastline"]('+b.join(',')+');out geom;';
+ let data=null,lastErr=null;
+ for(const endpoint of endpoints){try{const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':'PandoLab-northsea-coast-audit/1'},body:'data='+encodeURIComponent(q)});if(!res.ok)throw new Error('HTTP '+res.status);data=await res.json();break;}catch(e){lastErr=e;}}
+ if(!data)throw lastErr||new Error('Overpass failed '+name);
+ const ways=(data.elements||[]).filter(e=>e.type==='way'&&Array.isArray(e.nodes)&&Array.isArray(e.geometry)&&e.nodes.length===e.geometry.length).map(e=>({id:e.id,nodes:e.nodes.map(Number),coords:e.geometry.map(p=>[Number(p.lon),Number(p.lat)])}));
+ const chains=stitch(ways);
+ const stats=chains.map((c,i)=>({i,ways:c.ways.length,points:c.coords.length,closed:c.nodes[0]===c.nodes.at(-1),bbox:bbox(c),start:c.coords[0],end:c.coords.at(-1)})).sort((a,b)=>b.points-a.points);
+ const chosen=stats.find(s=>!s.closed)||stats[0];if(!chosen)throw new Error('no coast '+name);
+ const c=chains[chosen.i];
+ console.log('NORTHSEA_SECTOR_'+name.toUpperCase().replaceAll('-','_')+'_BEGIN');
+ console.log(JSON.stringify({name,query:q,wayCount:c.ways.length,ways:c.ways,bbox:bbox(c),closed:c.nodes[0]===c.nodes.at(-1),nodes:c.nodes,coordinates:c.coords,topStats:stats.slice(0,10)}));
+ console.log('NORTHSEA_SECTOR_'+name.toUpperCase().replaceAll('-','_')+'_END');
 }
-const bbox=c=>{const xs=c.coords.map(p=>p[0]),ys=c.coords.map(p=>p[1]);return [Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];};
-const stats=chains.map((c,i)=>({i,ways:c.ways.length,points:c.coords.length,closed:c.nodes[0]===c.nodes.at(-1),bbox:bbox(c),start:c.coords[0],end:c.coords.at(-1)})).sort((a,b)=>b.points-a.points);
-const mainlandStat=stats.find(s=>!s.closed&&s.bbox[1]<53.35&&s.bbox[3]>55.0) || stats.find(s=>!s.closed) || stats[0];
-if(!mainlandStat) throw new Error('no coastline chains');
-const mainland=chains[mainlandStat.i];
-console.log('NORTHSEA_COAST_STATS='+JSON.stringify(stats.slice(0,20)));
-console.log('NORTHSEA_MAINLAND_BEGIN');
-console.log(JSON.stringify({retrieved:new Date().toISOString(),query:q,wayCount:mainland.ways.length,ways:mainland.ways,bbox:bbox(mainland),closed:mainland.nodes[0]===mainland.nodes.at(-1),nodes:mainland.nodes,coordinates:mainland.coords}));
-console.log('NORTHSEA_MAINLAND_END');
 process.exit(1);
 
 import fs from 'node:fs';
