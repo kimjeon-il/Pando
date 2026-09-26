@@ -1,25 +1,3 @@
-// TEMPORARY CI probe: recover OSM way 273992076 (Düne) coordinates.
-const probeResponse = await fetch('https://api.openstreetmap.org/api/0.6/way/273992076/full.json', { headers: { 'User-Agent': 'PandoLab-Dune-coordinate-audit/1', 'Accept': 'application/json' } });
-if (!probeResponse.ok) throw new Error('OSM HTTP ' + probeResponse.status);
-const probeData = await probeResponse.json();
-const probeElements = Array.isArray(probeData.elements) ? probeData.elements : [];
-const probeWay = probeElements.find(element => element.type === 'way' && Number(element.id) === 273992076);
-if (!probeWay || !Array.isArray(probeWay.nodes)) throw new Error('OSM way 273992076 missing from JSON response');
-const probeNodes = new Map(probeElements.filter(element => element.type === 'node').map(element => [Number(element.id), [Number(element.lon), Number(element.lat)]]));
-const probeCoords = probeWay.nodes.map(ref => probeNodes.get(Number(ref)));
-if (probeCoords.some(value => !value)) throw new Error('OSM way has unresolved node refs');
-const probeXs = probeCoords.map(value => value[0]);
-const probeYs = probeCoords.map(value => value[1]);
-console.log('DUNE_OSM_WAY=273992076');
-console.log('DUNE_COORD_COUNT=' + probeCoords.length);
-console.log('DUNE_CLOSED=' + (probeWay.nodes[0] === probeWay.nodes.at(-1)));
-console.log('DUNE_BBOX=' + JSON.stringify([Math.min(...probeXs), Math.min(...probeYs), Math.max(...probeXs), Math.max(...probeYs)]));
-console.log('DUNE_TAGS=' + JSON.stringify(probeWay.tags || {}));
-console.log('DUNE_COORDS_BEGIN');
-console.log(JSON.stringify(probeCoords));
-console.log('DUNE_COORDS_END');
-process.exit(1);
-
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
