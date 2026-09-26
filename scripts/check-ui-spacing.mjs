@@ -1,3 +1,13 @@
+// TEMP: inspect Niedersachsen PL25 WMS capabilities.
+const u='https://www.geobasisdaten.niedersachsen.de/doorman/auth/pl25?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0';
+const res=await fetch(u,{headers:{'User-Agent':'PandoLab-historical-coast-audit/1'}});
+console.log('PL25_HTTP='+res.status);
+const txt=await res.text();
+console.log('PL25_CAPS_BEGIN');
+console.log(txt.slice(0,200000));
+console.log('PL25_CAPS_END');
+process.exit(1);
+
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
