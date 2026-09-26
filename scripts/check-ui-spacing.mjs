@@ -1,3 +1,19 @@
+// TEMP: discover LGLN noauth PL25 WMS capabilities.
+const url='https://www.geobasisdaten.niedersachsen.de/doorman/noauth/bestand?SERVICE=WMS&REQUEST=GetCapabilities';
+const res=await fetch(url,{headers:{'User-Agent':'PandoLab-PL25-discovery/1'}});
+if(!res.ok) throw new Error('LGLN HTTP '+res.status);
+const xml=await res.text();
+console.log('LGLN_CAP_LEN='+xml.length);
+const lines=xml.split(/\\r?\\n/);
+const hits=lines.filter(line=>/PL25|Preu|Landesaufnahme|25832|GetMap/i.test(line));
+console.log('LGLN_PL25_HITS_BEGIN');
+for(const line of hits.slice(0,500)) console.log(line.trim());
+console.log('LGLN_PL25_HITS_END');
+console.log('LGLN_CAP_PREFIX_BEGIN');
+console.log(xml.slice(0,20000).replaceAll('\\n',' '));
+console.log('LGLN_CAP_PREFIX_END');
+process.exit(1);
+
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
