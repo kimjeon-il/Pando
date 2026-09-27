@@ -24,4 +24,6 @@ The Serbia–Montenegro boundary agreement of 30 October O.S. / 12 November 1913
 5. 1914 Peucker `Südost-Europa mit den endgültigen Grenzen nach authentischen Materialien` as a lower-scale independent check.
 
 ## Current status
-**CANDIDATE ONLY.** The geometry is not promoted to a final historical-library object until the 1:200,000 cartographic evidence is visually checked against the treaty route.
+**PROVISIONAL — treaty verified, LoC georeferenced primary-map series located, partial visual checks completed.**
+
+Detailed sheet-by-sheet work is recorded in `serbia-montenegro-1914-map-crosscheck.md`. The line remains a candidate until Bjelopolje 6763, Peštera 6764, Ipek 6964 and the small 34 XXIII grid-gap sector are resolved.
