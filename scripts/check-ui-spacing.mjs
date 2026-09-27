@@ -40,7 +40,7 @@ async function fetchBox(b,depth=0){
  requestCount++;
  const url='https://api.openstreetmap.org/api/0.6/map?bbox='+b.map(v=>Number(v.toFixed(7))).join(',');
  let res=null,body='';
- for(let attempt=0;attempt<3;attempt++){
+ for(let attempt=0;attempt<5;attempt++){
    res=await fetch(url,{headers:{'User-Agent':'PandoLab-northsea-history-audit/1'}});
    if(res.ok){body=await res.text();parseXml(body);return;}
    body=await res.text();
@@ -49,7 +49,7 @@ async function fetchBox(b,depth=0){
      for(const q of [[w,s,mx,my],[mx,s,e,my],[w,my,mx,n],[mx,my,e,n]]) await fetchBox(q,depth+1);
      return;
    }
-   if([429,500,502,503,504].includes(res.status)){await sleep(700*(attempt+1));continue;}
+   if(res.status===509){await sleep(3000*(attempt+1));continue;}\n   if([429,500,502,503,504].includes(res.status)){await sleep(900*(attempt+1));continue;}
    throw new Error('OSM map HTTP '+res.status+' '+url+' '+body.slice(0,300));
  }
  throw new Error('OSM map failed '+url+' status='+(res&&res.status)+' '+body.slice(0,300));
