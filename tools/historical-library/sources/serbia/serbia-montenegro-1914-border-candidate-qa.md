@@ -27,3 +27,22 @@ The Serbia–Montenegro boundary agreement of 30 October O.S. / 12 November 1913
 **PROVISIONAL — treaty verified, LoC georeferenced primary-map series located, partial visual checks completed.**
 
 Detailed sheet-by-sheet work is recorded in `serbia-montenegro-1914-map-crosscheck.md`. The line remains a candidate until Bjelopolje 6763, Peštera 6764, Ipek 6964 and the small 34 XXIII grid-gap sector are resolved.
+
+
+## Treaty contradiction found — Kanje / Metanac sector
+
+The 1913 Serbia–Montenegro boundary agreement explicitly states that the boundary runs east along the ridge between **Kanje (Serbia)** and **Metanac/Metanjac (Montenegro)** and crosses the **Lim River between those two villages**.
+
+A direct point-in-polygon check against the HistoGIS state polygons used to derive this candidate gives:
+- Kanje (~19.75526, 43.13897): classified inside HistoGIS Montenegro, contrary to the treaty.
+- Metanac/Metanjac (~19.77092, 43.12646): classified inside HistoGIS Montenegro, consistent with the treaty.
+
+Therefore the exact HistoGIS shared-edge run is **not** an exact representation of the treaty frontier in the Kanje–Metanac sector. This is a substantive territorial-side mismatch, not merely a vertex-generalization issue.
+
+Other treaty control settlements checked nearby mostly agree with the HistoGIS side assignment:
+- Montenegro side: Mojstir, Požeginja, Donja Korita, Gornja Korita.
+- Serbia side: Višnjevo, Krajinoviće, Bare, Crvsko, Boljare.
+
+### Consequence
+
+Do not promote this candidate geometry to final. The Kanje–Metanac–Lim segment must be reconstructed from the treaty route and contemporary maps before finalization. The rest of the line remains a candidate pending the same control procedure.
