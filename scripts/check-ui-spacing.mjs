@@ -112,9 +112,9 @@ const sectorDefs=[
  ['Oder estuary–Kolberg',I.greifswald,I.kolberg],['Kolberg–Danzig west',I.kolberg,I.danzigW],['Danzig bay/delta',I.danzigW,I.danzigE],
  ['Vistula lagoon/Pillau',I.danzigE,I.pillau],['Samland coast',I.pillau,I.samlandE],['Curonian lagoon/Memel',I.samlandE,I.memelN]
 ];
-const sectors=sectorDefs.map(([name,a,b])=>({name,start:a,end:b,...stats(sliceForward(a,b),mainGrid)}));
-const northSea=stats(sliceForward(I.westDE,I.westDK),mainGrid);
-const baltic=stats(sliceForward(I.eastDK,I.memelN),mainGrid);
+const sectors=sectorDefs.map(([name,a,b])=>({name,start:a,end:b,...stats(sliceForward(a,b),allGrid)}));
+const northSea=stats(sliceForward(I.westDE,I.westDK),allGrid);
+const baltic=stats(sliceForward(I.eastDK,I.memelN),allGrid);
 
 const islandResults=[];
 for(let pi=1;pi<hpolys.length;pi++){
