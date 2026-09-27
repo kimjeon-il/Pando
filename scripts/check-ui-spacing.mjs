@@ -1,3 +1,80 @@
+// TEMP: recover current OSM coastline around Dollart -> Jade using OSM map API tiles.
+import fs from 'node:fs';
+const base=JSON.parse(fs.readFileSync('tools/historical-library/working/german-empire-1914-base.geojson','utf8'));
+const rings=[];base.features[0].geometry.coordinates.forEach((p,pi)=>p.forEach((ring,ri)=>rings.push({pi,ri,ring})));
+rings.sort((a,b)=>b.ring.length-a.ring.length);const main=rings[0].ring;
+const hist=main.slice(6416).concat(main.slice(0,1));
+const minLon=6.95,maxLon=8.35,minLat=53.15,maxLat=53.76;
+const cells=new Map();
+for(const p of hist){
+ if(p[0]<minLon||p[0]>maxLon||p[1]<minLat||p[1]>maxLat) continue;
+ const gx=Math.floor(p[0]/0.10),gy=Math.floor(p[1]/0.10),k=gx+','+gy;
+ if(!cells.has(k))cells.set(k,{gx,gy});
+}
+const boxes=[...cells.values()].map(({gx,gy})=>{
+ const west=gx*0.10-0.01,south=gy*0.10-0.01,east=(gx+1)*0.10+0.01,north=(gy+1)*0.10+0.01;
+ return [west,south,east,north];
+});
+const nodeMap=new Map(),wayMap=new Map();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const attr=(s,n)=>{const re=new RegExp(n+'="([^"]+)"');const m=s.match(re);return m?m[1]:null;};
+for(let bi=0;bi<boxes.length;bi++){
+ const b=boxes[bi],url='https://api.openstreetmap.org/api/0.6/map?bbox='+b.join(',');
+ let res=null;
+ for(let attempt=0;attempt<3;attempt++){
+   res=await fetch(url,{headers:{'User-Agent':'PandoLab-northsea-history-audit/1'}});
+   if(res.ok)break;
+   if([429,500,502,503,504].includes(res.status)){await sleep(1000*(attempt+1));continue;}
+   throw new Error('OSM map HTTP '+res.status+' '+url);
+ }
+ if(!res||!res.ok)throw new Error('OSM map failed '+url+' status='+(res&&res.status));
+ const xml=await res.text();
+ for(const m of xml.matchAll(new RegExp('<node\\b([^>]*)\\/?>','g'))){
+   const id=attr(m[1],'id'),lat=attr(m[1],'lat'),lon=attr(m[1],'lon');
+   if(id&&lat&&lon)nodeMap.set(Number(id),[Number(lon),Number(lat)]);
+ }
+ for(const m of xml.matchAll(new RegExp('<way\\b([^>]*)>([\\s\\S]*?)<\\/way>','g'))){
+   const id=Number(attr(m[1],'id')); if(!id)continue;
+   const body=m[2];
+   const isCoast=[...body.matchAll(new RegExp('<tag\\b([^>]*)\\/?>','g'))].some(tm=>attr(tm[1],'k')==='natural'&&attr(tm[1],'v')==='coastline');
+   if(!isCoast)continue;
+   const refs=[...body.matchAll(new RegExp('<nd\\b([^>]*)\\/?>','g'))].map(nm=>Number(attr(nm[1],'ref'))).filter(Boolean);
+   if(refs.length>=2)wayMap.set(id,refs);
+ }
+ console.log('OSM_TILE '+(bi+1)+'/'+boxes.length+' coastWays='+wayMap.size+' nodes='+nodeMap.size);
+ await sleep(120);
+}
+const ways=[];
+for(const [id,refs] of wayMap){
+ const coords=refs.map(x=>nodeMap.get(x));
+ if(coords.some(x=>!x))continue;
+ ways.push({id,nodes:refs,coords});
+}
+const chains=ways.map(w=>({ways:[w.id],nodes:w.nodes.slice(),coords:w.coords.slice()}));
+let changed=true;
+while(changed){changed=false;outer:for(let i=0;i<chains.length;i++)for(let j=i+1;j<chains.length;j++){
+ const a=chains[i],b=chains[j],a0=a.nodes[0],a1=a.nodes.at(-1),b0=b.nodes[0],b1=b.nodes.at(-1);let m=null;
+ if(a1===b0)m={ways:a.ways.concat(b.ways),nodes:a.nodes.concat(b.nodes.slice(1)),coords:a.coords.concat(b.coords.slice(1))};
+ else if(a1===b1)m={ways:a.ways.concat(b.ways.slice().reverse()),nodes:a.nodes.concat(b.nodes.slice(0,-1).reverse()),coords:a.coords.concat(b.coords.slice(0,-1).reverse())};
+ else if(a0===b1)m={ways:b.ways.concat(a.ways),nodes:b.nodes.concat(a.nodes.slice(1)),coords:b.coords.concat(a.coords.slice(1))};
+ else if(a0===b0)m={ways:b.ways.slice().reverse().concat(a.ways),nodes:b.nodes.slice().reverse().concat(a.nodes.slice(1)),coords:b.coords.slice().reverse().concat(a.coords.slice(1))};
+ if(m){chains[i]=m;chains.splice(j,1);changed=true;break outer;}
+}}
+const dist=(a,b)=>Math.hypot((a[0]-b[0])*Math.cos((a[1]+b[1])*Math.PI/360),a[1]-b[1])*111.2;
+const start=main[6416],end=main[0];
+const scored=chains.map((c,i)=>{
+ let si=0,sd=Infinity,ei=0,ed=Infinity;for(let k=0;k<c.coords.length;k++){let d=dist(c.coords[k],start);if(d<sd){sd=d;si=k}d=dist(c.coords[k],end);if(d<ed){ed=d;ei=k}}
+ return {i,points:c.coords.length,ways:c.ways.length,startKm:sd,endKm:ed,si,ei,score:sd+ed};
+}).sort((a,b)=>a.score-b.score);
+const best=scored[0];if(!best||best.startKm>5||best.endKm>5)throw new Error('No suitable OSM coastline chain '+JSON.stringify(scored.slice(0,10)));
+let c=chains[best.i],segment;
+if(best.si<=best.ei)segment=c.coords.slice(best.si,best.ei+1);
+else segment=c.coords.slice(best.ei,best.si+1).reverse();
+console.log('NORTHSEA_OSM_BEGIN');
+console.log(JSON.stringify({tileCount:boxes.length,coastWayCount:ways.length,chainCount:chains.length,best,wayIds:c.ways,coordinates:segment}));
+console.log('NORTHSEA_OSM_END');
+process.exit(1);
+
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
