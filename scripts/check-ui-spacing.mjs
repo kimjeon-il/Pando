@@ -1,6 +1,4 @@
 // TEMP: quantify 1914 German Empire coastline difference against max-zoom canonical 1:10m data.
-import fs from 'node:fs';
-
 const hist=JSON.parse(fs.readFileSync('tools/historical-library/working/german-empire-1914-base.geojson','utf8'));
 const cur=JSON.parse(fs.readFileSync('assets/data/countries-ne-5.1.1.geojson','utf8'));
 const hpolys=hist.features[0].geometry.coordinates;
