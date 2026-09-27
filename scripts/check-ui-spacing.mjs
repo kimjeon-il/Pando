@@ -1,6 +1,5 @@
 // TEMP: build conservative Dollart/Ems -> Jadebusen coast densification candidate.
-import fs from 'node:fs';
-import { execFileSync } from 'node:child_process';
+const { execFileSync } = await import('node:child_process');
 execFileSync('bash',['-lc',`set -e
 rm -rf /tmp/osmcoast /tmp/coast.zip /tmp/coast_extract.json
 mkdir -p /tmp/osmcoast
