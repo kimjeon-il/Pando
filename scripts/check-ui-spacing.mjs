@@ -49,7 +49,8 @@ async function fetchBox(b,depth=0){
      for(const q of [[w,s,mx,my],[mx,s,e,my],[w,my,mx,n],[mx,my,e,n]]) await fetchBox(q,depth+1);
      return;
    }
-   if(res.status===509){await sleep(3000*(attempt+1));continue;}\n   if([429,500,502,503,504].includes(res.status)){await sleep(900*(attempt+1));continue;}
+   if(res.status===509){await sleep(3000*(attempt+1));continue;}
+   if([429,500,502,503,504].includes(res.status)){await sleep(900*(attempt+1));continue;}
    throw new Error('OSM map HTTP '+res.status+' '+url+' '+body.slice(0,300));
  }
  throw new Error('OSM map failed '+url+' status='+(res&&res.status)+' '+body.slice(0,300));
