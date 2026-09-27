@@ -88,7 +88,8 @@
       "Haderslev",
       "Eupen",
       "Helgoland",
-      "Dune"
+      "Dune",
+      "Als"
     ],
     "outsidePoints": [
       "Belfort",
@@ -97,16 +98,16 @@
       "LuxembourgCity",
       "Warsaw"
     ],
-    "approxAreaKm2": 541876.026,
+    "approxAreaKm2": 542175.289,
     "bounds": [
       5.875153,
       47.2705079,
       22.8904465,
       55.8937234
     ],
-    "polygonComponentCount": 22,
-    "ringCount": 22,
-    "coordinateCount": 7130
+    "polygonComponentCount": 23,
+    "ringCount": 23,
+    "coordinateCount": 7198
   },
   "notes": [
     "Working skeleton uses the current website's modern coastline as an interim high-resolution reference.",
@@ -490,6 +491,18 @@
           54.55858
         ],
         "coordinateCount": 13
+      },
+      {
+        "source": "DNK",
+        "component": 4,
+        "name": "Als",
+        "bbox": [
+          9.628429,
+          54.859524,
+          10.065115,
+          55.085395
+        ],
+        "coordinateCount": 68
       }
     ],
     "highResolutionOverrides": [
