@@ -135,7 +135,7 @@ export function createSpatialIndex() {
     changed = replaceSpatialDomain('distribution', [distributionRows], () => distributionRows.map(row => {
       mapObjectDistributionRowCache.set(String(row.id), row);
       return {
-        key: `distribution:${row.id}`, domain: 'distribution', type: row.layer.type, id: row.id,
+        key: `distribution:${row.id}`, domain: 'distribution', type: 'distribution', id: row.id,
         bounds: row.bounds,
       };
     })) || changed;

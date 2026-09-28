@@ -303,7 +303,7 @@ export function createCountryCommits() {
         layerId: layer.id,
         mode: dependencies.territorialModel.DISTRIBUTION_MODES.GEOMETRY,
         geometry,
-        share: draft.share,
+        value: draft.value,
       });
       if (!result.ok) {
         (0, dependencies.feedback.setActionStatus)(result.error?.message || '자유 분포 영역을 저장하지 못했습니다.', 'error', 3600);

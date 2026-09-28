@@ -92,8 +92,15 @@ export function createObjectPicking() {
       return dependencies.projectState.state.layerVisibility[group] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id);
     }
     if (ref.domain === 'distribution') {
-      const group = dependencies.distributionPresentation.DISTRIBUTION_TYPE_GROUPS[ref.type] || `${ref.type}s`;
-      return dependencies.projectState.state.layerVisibility[group] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id);
+      const group = 'distributions';
+      const state = dependencies.projectState.state;
+      if (state.layerVisibility[group] === false || !(0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id)) return false;
+      if (state.distributionSettings?.renderMode !== 'single') return true;
+      const firstVisible = state.distributionLayers.find(layer => (0, dependencies.layerPresentation.isLayerItemVisible)(group, layer.id))?.id;
+      const active = state.distributionLayers.some(layer => layer.id === state.distributionSettings.activeLayerId
+        && (0, dependencies.layerPresentation.isLayerItemVisible)(group, layer.id))
+        ? state.distributionSettings.activeLayerId : firstVisible;
+      return ref.id === active;
     }
     if (ref.domain === 'generic') return dependencies.projectState.state.layerVisibility.genericFeatures !== false
       && (0, dependencies.layerPresentation.isLayerItemVisible)('genericFeatures', ref.id);
@@ -107,7 +114,7 @@ export function createObjectPicking() {
     const order = dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS;
     let group = '';
     if (ref.domain === 'generic') group = 'genericFeatures';
-    else if (ref.domain === 'distribution') group = dependencies.distributionPresentation.DISTRIBUTION_TYPE_GROUPS[ref.type] || `${ref.type}s`;
+    else if (ref.domain === 'distribution') group = 'distributions';
     else if (ref.domain === 'territorial') group = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT ? 'subunits' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries' : 'subunits';
     else if (ref.domain === 'label') group = 'labels';
     else if (ref.domain === 'hydro') group = 'hydro';
@@ -144,7 +151,7 @@ export function createObjectPicking() {
       if (entry.domain === 'distribution') {
         const row = (0, dependencies.spatialRecords.indexedDistributionRow)(entry.id);
         dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;
-        if (row && geometryHitsScreenPoint(row.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 12 : 7)) add({ domain: 'distribution', type: row.layer.type, id: row.layer.id });
+        if (row && geometryHitsScreenPoint(row.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 12 : 7)) add({ domain: 'distribution', type: 'distribution', id: row.layer.id });
         continue;
       }
       if (entry.domain === 'territorial') {

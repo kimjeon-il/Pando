@@ -207,7 +207,7 @@ export function createProjectRestore() {
     dependencies.projectState.state.territorialRelations = [];
     dependencies.projectState.state.distributionLayers = [];
     dependencies.projectState.state.distributionEntries = [];
-    dependencies.projectState.state.distributionSettings = { renderMode: dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.DOMINANT, boundaryVisible: true };
+    dependencies.projectState.state.distributionSettings = { renderMode: dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.OVERLAP, activeLayerId: '', boundaryVisible: true };
     dependencies.projectState.state.selectedDistributionLayerId = '';
     dependencies.projectState.state.distributionDraft = null;
     (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);

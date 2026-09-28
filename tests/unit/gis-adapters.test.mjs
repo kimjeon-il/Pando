@@ -33,20 +33,22 @@ test('territorial GIS rows keep hierarchy sovereignty dates and multipart geomet
 test('territorial distributions materialize referenced geometry only in the GIS view', () => {
   const state = {
     countriesData: { type: 'FeatureCollection', features: [{ type: 'Feature', id: 'GR', properties: { name: 'GR' }, geometry: polygon() }] },
-    distributionLayers: [{ id: 'greek', type: 'language', name: '그리스어', color: '#2474c6', locked: false }],
-    itemVisibility: { languages: { greek: false } },
+    distributionLayers: [{ id: 'greek', name: '그리스어', unit: '명', valueScale: { mode: 'manual', min: -10, max: 100 }, color: '#2474c6', locked: false }],
+    itemVisibility: { distributions: { greek: false } },
     distributionEntries: [
-      { id: 'entry-territorial', layerId: 'greek', mode: 'territorial', territorialUnitId: 'GR', geometry: null, share: 95, certainty: 'high' },
-      { id: 'entry-free', layerId: 'greek', mode: 'geometry', territorialUnitId: '', geometry: polygon(4, 5), share: 40, certainty: 'medium' },
+      { id: 'entry-territorial', layerId: 'greek', mode: 'territorial', territorialUnitId: 'GR', geometry: null, value: 95, certainty: 'high' },
+      { id: 'entry-free', layerId: 'greek', mode: 'geometry', territorialUnitId: '', geometry: polygon(4, 5), value: -4.5, certainty: 'medium' },
     ],
   };
   const before = JSON.parse(JSON.stringify(state));
-  const rows = adapters.distributionRows(state).language_distribution;
+  const rows = adapters.distributionRows(state).distributions;
   assert.equal(rows.length, 2);
   assert.deepEqual(rows[0].geometry, polygon());
   assert.equal(rows[0].source_mode, 'territorial');
   assert.equal(rows[0].territorial_unit_id, 'GR');
-  assert.equal(rows[0].share, 95);
+  assert.equal(rows[0].value, 95);
+  assert.equal(rows[0].unit, '명');
+  assert.equal(rows[0].value_scale_min, -10);
   assert.equal(rows[0].layer_visible, 0);
   assert.deepEqual(rows[1].geometry, polygon(4, 5));
   assert.deepEqual(state, before);
@@ -55,17 +57,22 @@ test('territorial distributions materialize referenced geometry only in the GIS 
 test('GIS distribution import keeps stable IDs and reports collisions', () => {
   const feature = id => ({
     type: 'Feature', geometry: polygon(),
-    properties: { entry_id: id, layer_id: 'greek', name: '그리스어', share: 80, source_mode: 'territorial', territorial_unit_id: 'GR' },
+    properties: { entry_id: id, layer_id: 'greek', name: '그리스어', unit: '명', value: 80, source_mode: 'territorial', territorial_unit_id: 'GR' },
   });
-  const imported = adapters.mergeDistributionFeatures([{ tableName: 'language_distribution', features: [feature('entry-1')] }]);
+  const imported = adapters.mergeDistributionFeatures([{ tableName: 'distributions', features: [feature('entry-1')] }]);
   assert.equal(imported.layers[0].id, 'greek');
   assert.deepEqual(imported.entries[0], {
-    ...imported.entries[0], id: 'entry-1', layerId: 'greek', mode: 'territorial', territorialUnitId: 'GR', geometry: null, share: 80,
+    ...imported.entries[0], id: 'entry-1', layerId: 'greek', mode: 'territorial', territorialUnitId: 'GR', geometry: null, value: 80,
   });
   assert.throws(
-    () => adapters.mergeDistributionFeatures([{ tableName: 'language_distribution', features: [feature('duplicate'), feature('duplicate')] }]),
+    () => adapters.mergeDistributionFeatures([{ tableName: 'distributions', features: [feature('duplicate'), feature('duplicate')] }]),
     /ID 충돌/,
   );
+  assert.throws(() => adapters.mergeDistributionFeatures([{
+    tableName: 'distributions', features: [feature('a'), { ...feature('b'), properties: { ...feature('b').properties, unit: 'km²' } }],
+  }]), /단위 또는 색 농도/);
+  assert.throws(() => adapters.mergeDistributionFeatures([{ tableName: 'distributions',
+    features: [{ ...feature('bad'), properties: { ...feature('bad').properties, value: '' } }] }]), /1행/);
 });
 
 test('the canonical administrative table imports through the adapter', () => {

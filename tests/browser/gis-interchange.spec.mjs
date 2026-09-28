@@ -49,14 +49,12 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
 
   await page.locator('#createMenuBtn').click();
-  page.once('dialog', dialog => dialog.accept('스모크 언어'));
+  page.once('dialog', dialog => dialog.accept('스모크 값'));
   await page.locator('#addDistributionBtn').click();
-  await selectUiOption(page, '#distributionTypeInput', 'language');
-  await page.locator('#distributionTypeConfirmBtn').click();
   await page.locator('#actionsTabBtn').click();
   const territorialUnitId = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');
   await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
-  await page.locator('#distributionShareInput').fill('73');
+  await page.locator('#distributionValueInput').fill('73');
   await page.locator('#addTerritorialDistributionBtn').click();
 
   await page.locator('#mobileFileBtn').click();
@@ -72,7 +70,7 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     const tables = new Set(db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(row => row.name));
     for (const table of [
       'countries', 'territories', 'administrative', 'regions',
-      'language_distribution', 'ethnicity_distribution', 'religion_distribution',
+      'distributions',
     ]) expect(tables.has(table)).toBe(true);
 
     const countryColumns = new Set(db.prepare('PRAGMA table_info(countries)').all().map(row => row.name));
@@ -82,13 +80,13 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     for (const field of ['id', 'name', 'type', 'parent_id', 'sovereign_id', 'color']) {
       expect(countryColumns.has(field)).toBe(false);
     }
-    const distributionColumns = new Set(db.prepare('PRAGMA table_info(language_distribution)').all().map(row => row.name));
-    for (const field of ['entry_id', 'layer_id', 'source_mode', 'territorial_unit_id', 'share', 'certainty']) {
+    const distributionColumns = new Set(db.prepare('PRAGMA table_info(distributions)').all().map(row => row.name));
+    for (const field of ['entry_id', 'layer_id', 'unit', 'value_scale_mode', 'value', 'source_mode', 'territorial_unit_id', 'certainty']) {
       expect(distributionColumns.has(field)).toBe(true);
     }
-    const row = db.prepare('SELECT source_mode, territorial_unit_id, share, typeof(geom) AS geometry_type FROM language_distribution').get();
-    expect(row).toMatchObject({ source_mode: 'territorial', territorial_unit_id: territorialUnitId, share: 73, geometry_type: 'blob' });
-    const crs = db.prepare("SELECT srs_id FROM gpkg_geometry_columns WHERE table_name='language_distribution'").get();
+    const row = db.prepare('SELECT source_mode, territorial_unit_id, value, typeof(geom) AS geometry_type FROM distributions').get();
+    expect(row).toMatchObject({ source_mode: 'territorial', territorial_unit_id: territorialUnitId, value: 73, geometry_type: 'blob' });
+    const crs = db.prepare("SELECT srs_id FROM gpkg_geometry_columns WHERE table_name='distributions'").get();
     expect(crs.srs_id).toBe(4326);
     const savedState = JSON.parse(db.prepare("SELECT json_value FROM pandolab_project_settings WHERE setting_key='project_state'").get().json_value);
     expect(savedState.countryOverrides.POL.flagDataUrl).toBeNull();

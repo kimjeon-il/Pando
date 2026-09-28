@@ -1,4 +1,4 @@
-export const LAYER_PRESENTATION_SCHEMA_VERSION = 3;
+export const LAYER_PRESENTATION_SCHEMA_VERSION = 4;
 
 export const TERRITORIAL_SYMBOL_KEYS = Object.freeze({
   countries: Object.freeze({ name: 'basemapLabels', flag: 'countryFlags' }),
@@ -21,9 +21,7 @@ export function territorialSymbolVisibility(state, group) {
 }
 
 export const OVERLAY_GROUPS = Object.freeze([
-  'religions',
-  'ethnicities',
-  'languages',
+  'distributions',
   'subunits',
   'regions',
   'genericFeatures',

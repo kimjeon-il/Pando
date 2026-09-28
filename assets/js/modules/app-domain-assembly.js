@@ -124,7 +124,10 @@ export function createDomainAssembly() {
         renderingDomain?.invalidateProject?.('project-rollback');
       },
       invalidateProject: reason => renderingDomain?.invalidateProject?.(reason),
-      invalidateHistory: reason => renderingDomain?.invalidateCountryPatch?.(reason),
+      invalidateHistory: reason => {
+        renderingDomain?.invalidateCountryPatch?.(reason);
+        renderingDomain?.invalidateOverlayGeometry?.('overlay', reason);
+      },
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'project', ...entry }),
       commandPipeline: dependencies.objectModelB.projectCommandPipeline,
       invariants: { assertProjectReferenceIntegrity: dependencies.territorialModel.assertProjectReferenceIntegrity },
@@ -204,7 +207,6 @@ export function createDomainAssembly() {
       state: dependencies.projectState.state,
       territorialUnitTypes: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES,
       distributionModes: dependencies.territorialModel.DISTRIBUTION_MODES,
-      distributionTypeLabels: dependencies.objectModelA.DISTRIBUTION_TYPE_LABELS,
       colorDomains: dependencies.colorModel.COLOR_DOMAINS,
       defaultGenericFeatureColor: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
       hydroToolConfig: dependencies.hydroPresentation.HYDRO_TOOL_CONFIG,
@@ -949,15 +951,12 @@ export function createDomainAssembly() {
         getState: () => dependencies.projectState.state,
         distributionLayer: dependencies.mapHostViewA.distributionLayer,
         distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
-        dominantDistributionEntries: dependencies.distributionServices.dominantDistributionEntries,
         territorialRepository: dependencies.presentation.territorialRepository,
         featureFromGeometry: dependencies.renderScene.featureFromGeometry,
         geometryBounds: dependencies.spatialQuery.geometryBounds,
         distributionColor: dependencies.distributionPresentation.distributionColor,
-        DISTRIBUTION_TYPES: dependencies.objectCatalog.DISTRIBUTION_TYPES,
         DISTRIBUTION_MODES: dependencies.territorialModel.DISTRIBUTION_MODES,
         DISTRIBUTION_RENDER_MODES: dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES,
-        DISTRIBUTION_TYPE_GROUPS: dependencies.distributionPresentation.DISTRIBUTION_TYPE_GROUPS,
         visibleMapObjectCandidates: dependencies.spatialQuery.visibleMapObjectCandidates,
         geometryMayIntersectViewport: dependencies.spatialRecords.geometryMayIntersectViewport,
         isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,

@@ -148,33 +148,31 @@ export function createPropertySelection() {
     }
     const result = dependencies.objectModelA.distributionService.updateLayer(layer.id, field, value);
     if (!result.ok) {
-      if (result.code === 'invalid') (0, dependencies.feedback.setActionStatus)('자기 자신이나 하위 분류를 상위 분류로 설정할 수 없습니다.', 'error', 3600);
+      if (result.code === 'invalid') (0, dependencies.feedback.setActionStatus)(result.error?.message || '분포 설정이 올바르지 않습니다.', 'error', 3600);
       applyDistributionSelectionIntent(layer.id, true);
       return false;
     }
-    if (field === 'locked') dependencies.domains.layerTreeController?.syncLocks([{ domain: 'distribution', type: layer.type, id: layer.id }]);
+    if (field === 'locked') dependencies.domains.layerTreeController?.syncLocks([{ domain: 'distribution', type: 'distribution', id: layer.id }]);
     else (0, dependencies.layers.markLayerTreeDirty)();
     applyDistributionSelectionIntent(layer.id, true);
-    (0, dependencies.feedback.setActionStatus)(`${dependencies.objectModelA.DISTRIBUTION_TYPE_LABELS[layer.type]} 정보를 변경했습니다.`, 'success');
+    (0, dependencies.feedback.setActionStatus)('분포 정보를 변경했습니다.', 'success');
     return true;
   }
 
-  function createDistributionLayerFromPrompt(type, { beforeCreate } = {}) {
-    const label = dependencies.objectModelA.DISTRIBUTION_TYPE_LABELS[type];
-    const name = prompt(`새 ${label} 항목의 이름을 입력하세요.`, `새 ${label}`);
+  function createDistributionLayerFromPrompt({ beforeCreate } = {}) {
+    const name = prompt('새 분포의 이름을 입력하세요.', '새 분포');
     if (name === null) return false;
     beforeCreate?.();
     const layer = dependencies.objectModelA.distributionService.createLayer({
-      id: (0, dependencies.surfaces.uid)(`distribution_${type}`),
-      type,
-      name: name.trim() || `새 ${label}`,
+      id: (0, dependencies.surfaces.uid)('distribution'),
+      name: name.trim() || '새 분포',
       color: dependencies.platformConfigurationA.COLOR_PRESETS[dependencies.projectState.state.distributionLayers.length % dependencies.platformConfigurationA.COLOR_PRESETS.length] || dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
     });
 
     (0, dependencies.layers.markLayerTreeDirty)();
     dependencies.domains.layerTreeController?.render(true);
     applyDistributionSelectionIntent(layer.id);
-    (0, dependencies.feedback.setActionStatus)(`${layer.name} ${label} 항목을 추가했습니다. 분포를 이어서 입력하세요.`, 'success', 3600);
+    (0, dependencies.feedback.setActionStatus)(`${layer.name} 분포를 추가했습니다. 값을 이어서 입력하세요.`, 'success', 3600);
     return true;
   }
 
@@ -189,7 +187,7 @@ export function createPropertySelection() {
         layerId: layer.id,
         mode: dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL,
         territorialUnitId,
-        share: Number((0, dependencies.platform.$)('distributionShareInput').value),
+        value: (0, dependencies.platform.$)('distributionValueInput').value,
       });
     } catch (error) {
       const validationMessage = (0, dependencies.readiness.compactNotificationMessage)(error?.message || '분포 정보를 검증하지 못했습니다.', { tone: 'error', maxLength: 52 });
@@ -206,12 +204,13 @@ export function createPropertySelection() {
   function startGeometryDistributionDraft() {
     const layer = dependencies.projectState.state.selected?.domain === 'distribution' ? distributionLayerById(dependencies.projectState.state.selected.id) : null;
     if (!layer || layer.locked) return false;
-    const share = Number((0, dependencies.platform.$)('distributionShareInput').value);
-    if (!Number.isFinite(share) || share < 0 || share > 100) {
-      (0, dependencies.feedback.setActionStatus)('분포 비율은 0~100 범위의 숫자여야 합니다.', 'error', 0);
+    const rawValue = (0, dependencies.platform.$)('distributionValueInput').value;
+    const value = Number(rawValue);
+    if (rawValue.trim() === '' || !Number.isFinite(value)) {
+      (0, dependencies.feedback.setActionStatus)('분포 값은 유한한 숫자여야 합니다.', 'error', 0);
       return false;
     }
-    dependencies.projectState.state.distributionDraft = { layerId: layer.id, share };
+    dependencies.projectState.state.distributionDraft = { layerId: layer.id, value };
     dependencies.domains.editingDomain?.setTool('polygon', { announce: false });
     (0, dependencies.taskUi.setModeBanner)('분포 영역을 그리세요.');
     return true;
@@ -228,6 +227,17 @@ export function createPropertySelection() {
     return true;
   }
 
+  function updateDistributionEntryValue(id, value) {
+    const result = dependencies.objectModelA.distributionService.updateEntry(id, value);
+    if (!result.ok) {
+      (0, dependencies.feedback.setActionStatus)(result.error?.message || '분포 값을 변경할 수 없습니다.', 'error', 3600);
+      dependencies.domainControllers.objectPropertyController.present(dependencies.projectState.state.selected, { refreshOnly: true });
+      return false;
+    }
+    if (result.changed) applyDistributionSelectionIntent(result.entry.layerId, true);
+    return true;
+  }
+
   function deleteDistributionLayer(id, { confirm = true } = {}) {
     const layer = distributionLayerById(id);
     if (!layer) return false;
@@ -239,9 +249,13 @@ export function createPropertySelection() {
       const result = dependencies.objectModelA.distributionService.deleteLayer(layer.id);
       if (!result.ok) return false;
       if (dependencies.projectState.state.selectedDistributionLayerId === layer.id) dependencies.projectState.state.selectedDistributionLayerId = '';
+      if (dependencies.projectState.state.distributionSettings.activeLayerId === layer.id) {
+        dependencies.projectState.state.distributionSettings.activeLayerId = '';
+        dependencies.domains.projectDomain.queuePresentationAutosave();
+      }
       (0, dependencies.layers.markLayerTreeDirty)();
       dependencies.domains.selectionUiController.clear({ reason: 'distribution-delete-selection-clear' });
-      (0, dependencies.feedback.setActionStatus)(`${layer.name} ${dependencies.objectModelA.DISTRIBUTION_TYPE_LABELS[layer.type]} 항목을 삭제했습니다.`, 'success');
+      (0, dependencies.feedback.setActionStatus)(`${layer.name} 분포를 삭제했습니다.`, 'success');
       return true;
     };
     if (!confirm) {
@@ -249,9 +263,9 @@ export function createPropertySelection() {
       return true;
     }
     (0, dependencies.projectRestore.openConfirmModal)({
-      title: `${dependencies.objectModelA.DISTRIBUTION_TYPE_LABELS[layer.type]} 삭제`,
+      title: '분포 삭제',
       message: `${layer.name}과 연결된 분포 ${(0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, layer.id).length}개를 함께 삭제합니다.`,
-      impacts: [`${dependencies.objectModelA.DISTRIBUTION_TYPE_LABELS[layer.type]} 항목 1개 삭제`, `연결된 분포 ${(0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, layer.id).length}개 삭제`],
+      impacts: ['분포 항목 1개 삭제', `연결된 분포 ${(0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, layer.id).length}개 삭제`],
       confirmText: '분포 항목 삭제',
       danger: true,
       onConfirm: performDelete,
@@ -262,7 +276,7 @@ export function createPropertySelection() {
   function setDistributionLayerVisible(id, visible) {
     const layer = distributionLayerById(id);
     if (!layer) return false;
-    const group = dependencies.distributionPresentation.DISTRIBUTION_TYPE_GROUPS[layer.type];
+    const group = 'distributions';
     if (!dependencies.projectState.state.itemVisibility[group]) dependencies.projectState.state.itemVisibility[group] = {};
     if (visible === false) dependencies.projectState.state.itemVisibility[group][layer.id] = false;
     else delete dependencies.projectState.state.itemVisibility[group][layer.id];
@@ -387,7 +401,13 @@ export function createPropertySelection() {
 
   function applyDistributionSelectionIntent(id, refreshOnly = false) {
     const layer = distributionLayerById(id);
-    return layer ? dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: layer.type, id: layer.id }), {
+    if (layer) {
+      const changed = dependencies.projectState.state.distributionSettings.activeLayerId !== layer.id;
+      dependencies.projectState.state.distributionSettings.activeLayerId = layer.id;
+      dependencies.projectState.state.selectedDistributionLayerId = layer.id;
+      if (changed) dependencies.domains.projectDomain.queuePresentationAutosave();
+    }
+    return layer ? dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: 'distribution', id: layer.id }), {
       refreshOnly, openEditor: !refreshOnly, reason: 'distribution-selection',
     }) : false;
   }
@@ -427,7 +447,7 @@ export function createPropertySelection() {
 
     window.PANDOLAB_DISTRIBUTIONS = Object.freeze({
       getLayer: id => distributionLayerById(id),
-      listLayers: type => dependencies.objectModelA.distributionService.listLayers(type),
+      listLayers: () => dependencies.objectModelA.distributionService.listLayers(),
       listEntries: layerId => dependencies.objectModelA.distributionService.listEntries(layerId),
       select: applyDistributionSelectionIntent,
       setVisible: setDistributionLayerVisible,
@@ -451,6 +471,7 @@ export function createPropertySelection() {
     get distributionLayerById() { return distributionLayerById; },
     get hydroEditorName() { return hydroEditorName; },
     get removeDistributionEntry() { return removeDistributionEntry; },
+    get updateDistributionEntryValue() { return updateDistributionEntryValue; },
     get replaceSelectOptions() { return replaceSelectOptions; },
     get setEditorShellView() { return setEditorShellView; },
     get startGeometryDistributionDraft() { return startGeometryDistributionDraft; },

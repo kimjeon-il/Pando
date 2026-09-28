@@ -10,7 +10,6 @@ export function createObjectPropertyController(runtime = {}) {
     state,
     territorialUnitTypes,
     distributionModes,
-    distributionTypeLabels,
     colorDomains,
     defaultGenericFeatureColor,
     hydroToolConfig,
@@ -225,7 +224,14 @@ export function createObjectPropertyController(runtime = {}) {
       const label = document.createElement('span');
       label.innerHTML = '<strong></strong><small></small>';
       label.querySelector('strong').textContent = distributionEntryLabel(entry);
-      label.querySelector('small').textContent = `${entry.mode === distributionModes.TERRITORIAL ? '영역 참조' : '자유 형상'} · ${Math.round(entry.share)}%`;
+      label.querySelector('small').textContent = entry.mode === distributionModes.TERRITORIAL ? '영역 참조' : '자유 형상';
+      const valueInput = document.createElement('input');
+      valueInput.type = 'number';
+      valueInput.step = 'any';
+      valueInput.value = String(entry.value);
+      valueInput.dataset.distributionEntryValue = entry.id;
+      valueInput.setAttribute('aria-label', `${distributionEntryLabel(entry)} 값${layer.unit ? ` (${layer.unit})` : ''}`);
+      valueInput.disabled = layer.locked;
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'ui-button icon-btn distribution-entry-delete';
@@ -234,7 +240,7 @@ export function createObjectPropertyController(runtime = {}) {
       remove.dataset.tooltip = `${distributionEntryLabel(entry)} 분포 삭제`;
       remove.append(createSemanticIcon(document, 'delete'));
       remove.disabled = layer.locked;
-      row.append(label, remove);
+      row.append(label, valueInput, remove);
       fragment.appendChild(row);
     }
     container.replaceChildren(fragment);
@@ -246,7 +252,12 @@ export function createObjectPropertyController(runtime = {}) {
     state.selectedDistributionLayerId = layer.id;
     show('distribution', layer.name, { resetScroll: !refreshOnly });
     $('distributionNameInput').value = layer.name;
-    $('distributionTypeValue').textContent = distributionTypeLabels[layer.type] || layer.type;
+    $('distributionUnitInput').value = layer.unit;
+    $('distributionValueUnit').textContent = layer.unit ? `(${layer.unit})` : '';
+    $('distributionValueScaleInput').value = layer.valueScale.mode;
+    $('distributionValueMinInput').value = layer.valueScale.mode === 'manual' ? String(layer.valueScale.min) : '';
+    $('distributionValueMaxInput').value = layer.valueScale.mode === 'manual' ? String(layer.valueScale.max) : '';
+    $('distributionManualScaleFields').classList.toggle('hidden', layer.valueScale.mode !== 'manual');
     const color = readDomainColor(colorDomains.DISTRIBUTION, { layer }, { fallback: defaultGenericFeatureColor });
     $('distributionColorInput').value = color.value;
     syncColorPicker('distribution', { value: color.value, defaultColor: defaultGenericFeatureColor, isDefault: color.isDefault });
@@ -267,7 +278,7 @@ export function createObjectPropertyController(runtime = {}) {
       : [{ value: '', label: '선택 가능한 기준 영역 없음', placeholder: true }], territorialInput.value, { autoSelectSingle: true });
     territorialInput.closest('.field-group')?.classList.toggle('hidden', territorialChoice.single);
     $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
-    for (const idValue of ['distributionNameInput', 'distributionColorTrigger', 'distributionParentInput', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
+    for (const idValue of ['distributionNameInput', 'distributionUnitInput', 'distributionValueScaleInput', 'distributionValueMinInput', 'distributionValueMaxInput', 'distributionColorTrigger', 'distributionParentInput', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
     $('addTerritorialDistributionBtn').disabled = layer.locked || !territorialInput.value;
     renderDistributionEntries(layer);
     $('selectionStatus').textContent = layer.name;
@@ -313,11 +324,18 @@ export function createObjectPropertyController(runtime = {}) {
     ], '', { autoSelectSingle: true });
     distributionField.dataset.singleChoice = String(distributionChoice.single);
     distributionField.classList.toggle('hidden', target !== 'distribution' || distributionChoice.single);
+    const distributionValueInput = $('genericFeatureConvertDistributionValueInput');
+    if (distributionValueInput.dataset.featureId !== String(feature.id)) {
+      distributionValueInput.value = '';
+      distributionValueInput.dataset.featureId = String(feature.id);
+    }
+    $('genericFeatureConvertDistributionValueField').classList.toggle('hidden', target !== 'distribution');
     const targetRequiresCountry = ['subunit', 'region'].includes(target);
     const targetRequiresDistribution = target === 'distribution';
     $('convertGenericFeatureBtn').disabled = !options.length
       || (targetRequiresCountry && (!$('genericFeatureConvertCountryInput').value || countryChoice.invalid))
-      || (targetRequiresDistribution && !$('genericFeatureConvertDistributionInput').value);
+      || (targetRequiresDistribution && (!$('genericFeatureConvertDistributionInput').value
+        || distributionValueInput.value === '' || !Number.isFinite(Number(distributionValueInput.value))));
     $('genericFeatureRoleValue').textContent = genericFeatureRoleLabels[role] || role;
     $('genericFeatureTopologyValue').textContent = feature.properties?.topologyGroup || '—';
     syncActionTab('generic');

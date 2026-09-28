@@ -7,7 +7,7 @@ Generic Feature는 판도연구소의 일반 생성 객체가 아니라 **지원
 정상적으로 의미를 판별할 수 있는 객체는 정식 domain에 저장한다.
 
 - 국가·권역·행정구역·지방 → `territorial`
-- 언어·민족·종교 분포 → `distribution`
+- 단위와 숫자값을 가진 분포 → `distribution`
 - 강·호수 → `hydro`
 - 지명 → `label`
 - 의미를 확정할 수 없는 외부/구버전 객체만 → `generic`

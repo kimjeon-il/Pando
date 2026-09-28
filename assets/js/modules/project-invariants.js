@@ -145,8 +145,6 @@ export function validateProjectReferenceIntegrity({
       const parent = layerById.get(parentId);
       if (!parent) {
         issues.push(issue('PL-INV-MISSING-DIST-PARENT', `${id}의 상위 분포 레이어 ${parentId}이 존재하지 않습니다.`, [id, parentId], 'parentId'));
-      } else if (parent.type !== layer.type) {
-        issues.push(issue('PL-INV-DIST-PARENT-TYPE', `${id}의 상위 분포 레이어 유형이 다릅니다.`, [id, parentId], 'parentId'));
       }
     }
     if (parentCycle(id, layerById, row => row?.parentId)) {
@@ -160,7 +158,7 @@ export function validateProjectReferenceIntegrity({
     const id = text(entry?.id);
     const layerId = text(entry?.layerId);
     const mode = text(entry?.mode);
-    const share = Number(entry?.share);
+    const value = entry?.value;
 
     if (!layerById.has(layerId)) {
       issues.push(issue('PL-INV-MISSING-DIST-LAYER', `${id}의 분포 레이어 ${layerId}이 존재하지 않습니다.`, [id, layerId], 'layerId'));
@@ -168,8 +166,8 @@ export function validateProjectReferenceIntegrity({
     if (!DISTRIBUTION_MODES.has(mode)) {
       issues.push(issue('PL-INV-DIST-MODE', `${id}의 분포 방식이 올바르지 않습니다.`, [id], 'mode'));
     }
-    if (!Number.isFinite(share) || share < 0 || share > 100) {
-      issues.push(issue('PL-INV-DIST-SHARE', `${id}의 비율이 0~100 범위를 벗어났습니다.`, [id], 'share'));
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      issues.push(issue('PL-INV-DIST-VALUE', `${id}의 값은 유한한 숫자여야 합니다.`, [id], 'value'));
     }
     try { normalizeTemporalInterval(entry?.validFrom, entry?.validTo); }
     catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id}의 유효기간이 올바르지 않습니다. ${error.message}`, [id], 'validFrom')); }

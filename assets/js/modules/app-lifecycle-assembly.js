@@ -76,6 +76,7 @@ export function createLifecycleAssembly() {
             commitDistributionMeta: dependencies.propertyEditingA.commitDistributionMeta,
             commitLabelEdit: dependencies.territorialConversion.commitLabelEdit,
             removeDistributionEntry: dependencies.propertyEditingB.removeDistributionEntry,
+            updateDistributionEntryValue: dependencies.propertyEditingB.updateDistributionEntryValue,
             addTerritorialDistributionEntry: dependencies.propertyEditingA.addTerritorialDistributionEntry,
             requestDraftDiscard: dependencies.genericEditingB.requestDraftDiscard,
             completeToolStart: dependencies.workspaceUiA.completeToolStart,

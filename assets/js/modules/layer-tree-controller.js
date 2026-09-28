@@ -27,8 +27,8 @@ export function createLayerTreeController({
     const semanticName = item.layerGroup === 'hydro'
       ? item.typeLabel === '호수' ? 'lake' : 'river'
       : ({
-        countries: 'country', subunits: 'subunit', regions: 'region', languages: 'language',
-        ethnicities: 'ethnicity', religions: 'religion', labels: 'place', genericFeatures: 'territory',
+        countries: 'country', subunits: 'subunit', regions: 'region', distributions: 'area',
+        labels: 'place', genericFeatures: 'territory',
       })[item.layerGroup] || 'map';
     return createIcon?.(semanticName, 'ui-icon layer-search-result-icon') || null;
   }

@@ -52,7 +52,7 @@ async function editorTypographySnapshot(page) {
       editableValue: font('#countryNameInput'),
       readonlyLabel: font('.editor-property-list span'),
       readonlyValue: font('#countryAreaValue'),
-      distributionType: font('#distributionTypeValue'),
+      distributionUnit: font('#distributionUnitInput'),
       helper: font('#territoryNameConflict'),
       colorValue: font('#countryColorValue'),
       propertyHeading: font('.editor-property-heading'),
@@ -133,7 +133,7 @@ for (const layout of layouts) {
       expect(typography.editableValue).toEqual(['15px', '400']);
       expect(typography.readonlyLabel).toEqual(['14px', '500']);
       expect(typography.readonlyValue).toEqual(['15px', '600']);
-      expect(typography.distributionType).toEqual(['15px', '600']);
+      expect(typography.distributionUnit).toEqual(['15px', '400']);
       expect(typography.helper).toEqual(['13px', '400']);
       expect(typography.colorValue).toEqual(['15px', '400']);
       expect(typography.propertyHeading).toEqual(['14px', '500']);
