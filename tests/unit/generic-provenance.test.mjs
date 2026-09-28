@@ -4,6 +4,7 @@ import { assertCurrentProjectSchema, PROJECT_SCHEMA_VERSION } from '../../assets
 import { validateProjectReferenceIntegrity } from '../../assets/js/modules/project-invariants.js';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
+import { DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 const generic = source => ({
@@ -22,8 +23,9 @@ const project = feature => ({
     canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
   },
   territorialModel: { schemaVersion: 2 },
-  distributionModel: { schemaVersion: 2 },
-  layerPresentation: { schemaVersion: 3, overlayOrder: [], styles: {} },
+  distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION },
+  distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
+  layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder: [], styles: {} },
   countriesData: { type: 'FeatureCollection', features: [] },
   genericFeatures: feature ? [feature] : [],
 });
@@ -64,7 +66,7 @@ test('serializer publishes Generic Feature as lossless fallback with provenance 
     appVersion: '0.30.0',
     baseDataset: 'base',
     genericFeatureSchemaVersion: 2,
-    distributionSchemaVersion: 2,
+    distributionSchemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION,
     distributionTypes: ['language'],
     distributionModes: ['territorial', 'geometry'],
     terrainDataset: 'terrain',
