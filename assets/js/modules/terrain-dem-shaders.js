@@ -27,7 +27,6 @@ const common = (sample) => `
   }
   vec3 terrainColor() {
     vec4 encodedPixel = ${sample}(uTerrain, vUv);
-    float heightMeters = elevation(encodedPixel);
     float shade = encodedPixel.b;
     if (uShadeBlend > 0.001 && abs(vLonLat.y) < 89.5) {
       shade = mix(shade, derivedShade(vUv), uShadeBlend);
@@ -35,7 +34,7 @@ const common = (sample) => `
     if (uPhysicalStyle < 0.5) return vec3(shade);
     vec3 baseColor = uLandPass > 0.5
       ? ${sample}(uTint, vec2((vLonLat.x + 180.0) / 360.0, (90.0 - vLonLat.y) / 180.0)).rgb
-      : seaColor(heightMeters);
+      : seaColor(elevation(encodedPixel));
     return baseColor * mix(0.72, 1.12, shade);
   }
 `;

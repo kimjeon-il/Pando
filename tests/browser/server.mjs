@@ -7,7 +7,7 @@ const port = Number.parseInt(process.env.PANDOLAB_TEST_PORT || '4173', 10);
 const mime = {
   '.bin': 'application/octet-stream', '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
-  '.png': 'image/png', '.svg': 'image/svg+xml', '.wasm': 'application/wasm',
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.wasm': 'application/wasm', '.webp': 'image/webp',
 };
 
 createServer((request, response) => {
@@ -19,8 +19,10 @@ createServer((request, response) => {
     return;
   }
   try {
-    if (!statSync(file).isFile()) throw new Error('Not a file');
-    response.writeHead(200, { 'Content-Type': mime[extname(file).toLowerCase()] || 'application/octet-stream' });
+    const stats = statSync(file);
+    if (!stats.isFile()) throw new Error('Not a file');
+    response.writeHead(200, { 'Content-Type': mime[extname(file).toLowerCase()] || 'application/octet-stream',
+      'Content-Length': stats.size });
     const stream = createReadStream(file);
     response.on('close', () => stream.destroy());
     response.on('error', () => stream.destroy());

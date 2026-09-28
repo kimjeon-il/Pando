@@ -10,8 +10,9 @@ export function terrainRasterManifestUrl(baseUrl, revision = '') {
   return url;
 }
 
-export function selectTerrainManifestUrls({ official, raster, dev = null, preview = false, defaultDem = false }) {
+export function selectTerrainManifestUrls({ official, raster, dev = null, preview = false, rasterOnly = false, defaultDem = false }) {
   if (dev) return { primary: dev, fallback: raster, source: 'development' };
+  if (rasterOnly) return { primary: raster, fallback: null, source: 'raster' };
   if (preview || defaultDem) return { primary: official, fallback: raster, source: preview ? 'preview' : 'official' };
   return { primary: raster, fallback: null, source: 'raster' };
 }

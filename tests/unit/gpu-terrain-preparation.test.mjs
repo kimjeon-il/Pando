@@ -119,7 +119,9 @@ test('DEM tint upload is counted in the same budget and released on reset', asyn
   renderer.setManifest({ representation: 'dem-relief-v1', levels: [{ id: 0 }], tint: { width: 2, height: 2 } });
   globalThis.createImageBitmap = async () => ({ width: 2, height: 2, close() {} });
   t.after(() => { delete globalThis.createImageBitmap; });
-  renderer.prepare(null, { visible: true, cacheBudgetBytes: 32 * 1024 * 1024 });
+  renderer.prepare(null, { visible: true, physicalStyle: 'political', cacheBudgetBytes: 32 * 1024 * 1024 });
+  assert.equal(requests.length, 0, 'grayscale DEM must not decode unused tint');
+  renderer.prepare(null, { visible: true, physicalStyle: 'physical', cacheBudgetBytes: 32 * 1024 * 1024 });
   requests[0].resolve({ ok: true, blob: async () => ({}) });
   await settle();
   jobs[0].step();
