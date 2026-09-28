@@ -1,4 +1,5 @@
 import { TERRITORIAL_SYMBOL_KEYS } from './layer-presentation.js';
+import { distributionValueRange } from './distribution-model.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).flatMap(keys => Object.values(keys)));
@@ -12,7 +13,6 @@ export function createMapSettings() {
   let LAYER_STYLE_TARGETS;
   let projectSerializer;
   let desktopViewMenuRoot = null;
-  let desktopDistributionDetail = null;
   let desktopViewMenuOpenTimer = null;
   let desktopViewMenuCloseTimer = null;
   let displayMenuLayout = null;
@@ -21,7 +21,6 @@ export function createMapSettings() {
   let desktopViewMenuPositioner;
   const displayMenuPanels = new Map();
   const displayMenuPresentation = new Map();
-  const DISTRIBUTION_STYLE_GROUPS = new Set(['languages', 'ethnicities', 'religions']);
   function connect(ports) {
     if (dependencies) throw new Error('map-settings already connected');
     dependencies = ports;
@@ -83,7 +82,7 @@ export function createMapSettings() {
     syncMapDisplayDisclosures();
     (0, dependencies.layers.markLayerTreeDirty)();
     dependencies.domains.layerTreeController?.render();
-    if (dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[key]) dependencies.distributionPresentation.bumpVisibilityRevision();
+    if (key === 'distributions') dependencies.distributionPresentation.bumpVisibilityRevision();
     if (key === 'countries') dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
     if (key === 'rivers' || key === 'lakes') dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     if (key === 'labels' || SYMBOL_VISIBILITY_KEYS.has(key)) dependencies.domains.renderingDomain?.invalidateLabels?.('label-visibility');
@@ -331,10 +330,10 @@ export function createMapSettings() {
         separator: visibility ? createMenuSeparator() : null,
       });
     }
-    for (const [group, entry] of displayMenuPanels) {
+    for (const entry of displayMenuPanels.values()) {
       const { panel, anchor, visibility, visibilityAnchor, body, contentNodes, separator } = entry;
       setMenuPresentation(panel, desktop, ['ui-menu-surface', 'ui-menu-list', 'ui-command-menu']);
-      panel.dataset.menuLevel = DISTRIBUTION_STYLE_GROUPS.has(group) ? '2' : '1';
+      panel.dataset.menuLevel = '1';
       if (desktop) {
         if (body) {
           body.append(...contentNodes);
@@ -363,18 +362,13 @@ export function createMapSettings() {
         clearMenuPosition(panel);
       }
     }
-    const distributionSlot = (0, dependencies.platform.$)('distributionTypeSlot');
-    const distributionAnchor = (0, dependencies.platform.$)('distributionMobileItemAnchor');
-    const sections = [...document.querySelectorAll('[data-map-display-group]')].filter(section => DISTRIBUTION_STYLE_GROUPS.has(section.dataset.mapDisplayGroup));
-    if (desktop) distributionSlot?.append(...sections);
-    else distributionAnchor?.after(...sections);
     setMenuPresentation(root, desktop, ['ui-menu-list']);
     if (desktop) root.setAttribute('role', 'menu');
     surface.classList.toggle('view-menu-desktop', desktop);
     surface.classList.toggle('ui-menu-surface', desktop);
     surface.classList.toggle('ui-command-menu', desktop);
     if (!desktop) clearMenuPosition(surface);
-    for (const element of surface.querySelectorAll('.projection-control, .terrain-mode-options, .distribution-type-slot, [role="radiogroup"], [data-menu-group]')) {
+    for (const element of surface.querySelectorAll('.projection-control, .terrain-mode-options, [role="radiogroup"], [data-menu-group]')) {
       element.dataset.menuGroup = '';
       setMenuPresentation(element, desktop, ['ui-menu-group']);
       if (desktop) element.setAttribute('role', 'group');
@@ -385,7 +379,6 @@ export function createMapSettings() {
     syncMenuChoices(surface, desktop);
     if (!desktop) {
       desktopViewMenuRoot = null;
-      desktopDistributionDetail = null;
     }
     displayMenuLayout = desktop;
     pendingDisplayMenuLayout = false;
@@ -406,7 +399,6 @@ export function createMapSettings() {
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     positionRootMenu({ menu: surface, trigger: (0, dependencies.platform.$)('mapDisplayBtn') });
     if (desktopViewMenuRoot) positionDesktopViewMenuGroup(desktopViewMenuRoot);
-    if (desktopDistributionDetail) positionDesktopViewMenuGroup(desktopDistributionDetail);
   }
 
   function positionDesktopViewMenuGroup(group) {
@@ -420,15 +412,8 @@ export function createMapSettings() {
   function setDesktopViewMenuGroup(group, { toggle = false } = {}) {
     if (!desktopMenuOpen() || !group) return false;
     cancelDesktopMenuTimers();
-    if (DISTRIBUTION_STYLE_GROUPS.has(group)) {
-      const unchanged = desktopViewMenuRoot === 'distribution' && desktopDistributionDetail === group;
-      desktopViewMenuRoot = 'distribution';
-      desktopDistributionDetail = toggle && unchanged ? null : group;
-    } else {
-      const unchanged = desktopViewMenuRoot === group;
-      desktopViewMenuRoot = toggle && unchanged ? null : group;
-      desktopDistributionDetail = null;
-    }
+    const unchanged = desktopViewMenuRoot === group;
+    desktopViewMenuRoot = toggle && unchanged ? null : group;
     syncMapDisplayDisclosures();
     desktopViewMenuPositioner.schedule();
     return true;
@@ -436,10 +421,9 @@ export function createMapSettings() {
 
   function closeDesktopViewMenuGroup({ focusParent = false } = {}) {
     cancelDesktopMenuTimers();
-    if (!desktopViewMenuRoot && !desktopDistributionDetail) return false;
+    if (!desktopViewMenuRoot) return false;
     const parent = desktopMenuTrigger(desktopViewMenuRoot);
     desktopViewMenuRoot = null;
-    desktopDistributionDetail = null;
     syncMapDisplayDisclosures();
     if (focusParent) parent?.focus({ preventScroll: true });
     return true;
@@ -448,14 +432,6 @@ export function createMapSettings() {
   function collapseDesktopViewMenuLevel({ focusParent = false } = {}) {
     if (!isDesktopViewMenu()) return false;
     cancelDesktopMenuTimers();
-    if (desktopDistributionDetail) {
-      const parent = desktopMenuTrigger(desktopDistributionDetail);
-      cancelDesktopMenuTimers();
-      desktopDistributionDetail = null;
-      syncMapDisplayDisclosures();
-      if (focusParent) parent?.focus({ preventScroll: true });
-      return true;
-    }
     if (desktopViewMenuRoot) {
       const trigger = desktopViewMenuRoot === 'projection'
         ? (0, dependencies.platform.$)('mapProjectionMenuTrigger')
@@ -472,7 +448,7 @@ export function createMapSettings() {
 
   function scheduleDesktopViewMenuGroup(group) {
     cancelDesktopMenuTimers();
-    if (desktopDistributionDetail === group || (desktopViewMenuRoot === group && !desktopDistributionDetail)) return;
+    if (desktopViewMenuRoot === group) return;
     desktopViewMenuOpenTimer = setTimeout(() => {
       desktopViewMenuOpenTimer = null;
       if (desktopMenuOpen()) setDesktopViewMenuGroup(group);
@@ -515,7 +491,7 @@ export function createMapSettings() {
       const visible = mapDisplayVisible(group);
       if (!menuDesktop && !visible) dependencies.objectModelA.expandedMapDisplayGroups.delete(group);
       const expanded = menuDesktop
-        ? desktopViewMenuRoot === group || desktopDistributionDetail === group
+        ? desktopViewMenuRoot === group
         : visible && dependencies.objectModelA.expandedMapDisplayGroups.has(group);
       const panel = mapDisplayPanel(group);
       if (panel) {
@@ -574,27 +550,19 @@ export function createMapSettings() {
       input.checked = dependencies.projectState.state.layerVisibility[input.dataset.territorialSymbol] !== false;
     }
     const units = dependencies.projectState.state.territorialUnits || [];
-    const distributionGroups = new Set((dependencies.projectState.state.distributionLayers || [])
-      .map(layer => Object.entries(dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES).find(([, type]) => type === layer.type)?.[0])
-      .filter(Boolean));
+    const hasDistribution = (dependencies.projectState.state.distributionLayers || []).length > 0;
     const available = {
       subunitsVisible: units.some(unit => unit.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT),
       genericFeaturesVisible: dependencies.projectState.state.genericFeatures.length > 0,
-      languagesVisible: distributionGroups.has('languages'),
-      ethnicitiesVisible: distributionGroups.has('ethnicities'),
-      religionsVisible: distributionGroups.has('religions'),
     };
     for (const [id, visible] of Object.entries(available)) {
       document.querySelector(`[data-map-display-group="${id.replace(/Visible$/, '')}"]`)?.classList.toggle('hidden', !visible);
-      if (!visible && desktopDistributionDetail === id.replace(/Visible$/, '')) desktopDistributionDetail = null;
       if (!visible && desktopViewMenuRoot === id.replace(/Visible$/, '')) desktopViewMenuRoot = null;
       if (!visible) dependencies.objectModelA.expandedMapDisplayGroups.delete(id.replace(/Visible$/, ''));
     }
-    const hasDistribution = distributionGroups.size > 0;
     (0, dependencies.platform.$)('distributionMenuGroup')?.classList.toggle('hidden', !hasDistribution);
     if (!hasDistribution && desktopViewMenuRoot === 'distribution') {
       desktopViewMenuRoot = null;
-      desktopDistributionDetail = null;
     }
     syncMapDisplayDisclosures();
     syncDistributionPresentationControls();
@@ -607,7 +575,7 @@ export function createMapSettings() {
     if (!surface) return;
     const visibilityInputs = [
       ['countries', 'countriesVisible'], ['subunits', 'subunitsVisible'], ['regions', 'regionsVisible'],
-      ['languages', 'languagesVisible'], ['ethnicities', 'ethnicitiesVisible'], ['religions', 'religionsVisible'],
+      ['distributions', 'distributionsVisible'],
       ['rivers', 'riversVisible'], ['lakes', 'lakesVisible'], ['genericFeatures', 'genericFeaturesVisible'],
       ['labels', 'labelsVisible'],
     ];
@@ -683,10 +651,6 @@ export function createMapSettings() {
       cancelDesktopMenuTimers();
       const menu = row.closest('[role="menu"]');
       if (menu?.classList.contains('view-menu-root')) closeDesktopViewMenuGroup();
-      else if (menu === (0, dependencies.platform.$)('distributionViewSettings') && desktopDistributionDetail) {
-        desktopDistributionDetail = null;
-        syncMapDisplayDisclosures();
-      }
     });
     surface.addEventListener('pointerout', event => {
       if (!desktopMenuOpen() || event.pointerType !== 'mouse' || displayMenuGesture !== null) return;
@@ -792,6 +756,13 @@ export function createMapSettings() {
         dependencies.domains.renderingDomain?.renderDistributions?.();
         dependencies.domains.projectDomain.queuePresentationAutosave();
       }
+      if (event.target.id === 'distributionActiveLayerInput') {
+        dependencies.projectState.state.distributionSettings.activeLayerId = event.target.value;
+        dependencies.distributionPresentation.bumpVisibilityRevision();
+        syncDistributionPresentationControls();
+        dependencies.domains.renderingDomain?.renderDistributions?.();
+        dependencies.domains.projectDomain.queuePresentationAutosave();
+      }
       if (event.target.id === 'distributionBoundaryVisibleInput') {
         dependencies.objectModelA.distributionService.setBoundaryVisible(event.target.checked);
         syncDistributionPresentationControls();
@@ -807,7 +778,7 @@ export function createMapSettings() {
   }
 
   function syncDistributionPresentationControls() {
-    const mode = dependencies.projectState.state.distributionSettings?.renderMode || dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.DOMINANT;
+    const mode = dependencies.projectState.state.distributionSettings?.renderMode || dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.OVERLAP;
     for (const id of ['distributionLayerModeInput', 'distributionRenderModeInput']) {
       const input = (0, dependencies.platform.$)(id);
       if (input) input.value = mode;
@@ -820,9 +791,47 @@ export function createMapSettings() {
     syncDesktopMenuChecks();
     const hint = (0, dependencies.platform.$)('distributionLayerModeHint');
     if (!hint) return;
-    hint.textContent = mode === dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.INTENSITY
-      ? '선택한 분포가 많을수록 색이 진해집니다.'
-      : '각 지역에서 가장 많은 분포 하나만 표시합니다.';
+    hint.textContent = mode === dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.SINGLE
+      ? '선택한 분포 하나를 값의 농도로 표시합니다.'
+      : '표시 중인 분포를 목록 순서대로 겹쳐 그립니다.';
+    const state = dependencies.projectState.state;
+    const visibleLayers = state.layerVisibility.distributions === false ? [] :
+      state.distributionLayers.filter(layer => state.itemVisibility.distributions?.[layer.id] !== false);
+    const active = (0, dependencies.platform.$)('distributionActiveLayerInput');
+    if (active) {
+      active.replaceChildren(...visibleLayers.map(layer => {
+        const option = document.createElement('option');
+        option.value = layer.id;
+        option.textContent = layer.name;
+        return option;
+      }));
+      active.value = visibleLayers.some(layer => layer.id === state.distributionSettings.activeLayerId)
+        ? state.distributionSettings.activeLayerId : visibleLayers[0]?.id || '';
+      active.closest('label')?.classList.toggle('hidden', mode !== dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.SINGLE);
+    }
+    const legend = (0, dependencies.platform.$)('distributionLegend');
+    if (legend) {
+      const layers = mode === dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.SINGLE
+        ? visibleLayers.filter(layer => layer.id === active?.value) : visibleLayers;
+      legend.replaceChildren(...layers.map(layer => {
+        const row = document.createElement('div');
+        row.className = 'distribution-legend-row';
+        const range = distributionValueRange(layer, state.distributionEntries.filter(entry => entry.layerId === layer.id));
+        const title = document.createElement('strong');
+        title.textContent = layer.name;
+        const value = document.createElement('span');
+        const count = state.distributionEntries.filter(entry => entry.layerId === layer.id).length;
+        value.textContent = !count ? '데이터 없음'
+          : range.min === range.max ? `${range.min}${layer.unit ? ` ${layer.unit}` : ''}`
+            : `${range.min}–${range.max}${layer.unit ? ` ${layer.unit}` : ''}`;
+        const bar = document.createElement('span');
+        bar.className = 'distribution-legend-bar';
+        bar.style.background = `linear-gradient(90deg, color-mix(in srgb, ${layer.color} 12%, transparent), color-mix(in srgb, ${layer.color} 70%, transparent))`;
+        bar.style.opacity = String((0, dependencies.applicationServicesB.layerStyle)(state.layerPresentation, 'distributions').opacity);
+        row.append(title, bar, value);
+        return row;
+      }));
+    }
   }
 
   function initializeLAYER_STYLE_TARGETS() {
@@ -830,9 +839,7 @@ export function createMapSettings() {
       countries: { presentationGroup: 'countries', label: '국가', color: true, opacity: true, boundary: true, boundaryLabel: '국경' },
       subunits: { presentationGroup: 'subunits', label: '하위단위', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
       regions: { presentationGroup: 'regions', label: '지방', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
-      languages: { presentationGroup: 'languages', label: '언어', opacity: true, blendMode: true },
-      ethnicities: { presentationGroup: 'ethnicities', label: '민족', opacity: true, blendMode: true },
-      religions: { presentationGroup: 'religions', label: '종교', opacity: true, blendMode: true },
+      distributions: { presentationGroup: 'distributions', label: '분포', opacity: true, blendMode: true },
       rivers: { presentationGroup: 'rivers', label: '강', opacity: true },
       lakes: { presentationGroup: 'lakes', label: '호수', opacity: true },
       genericFeatures: { presentationGroup: 'genericFeatures', label: '기타 객체', opacity: true, opacityLabel: '전체 투명도' },
@@ -844,7 +851,6 @@ export function createMapSettings() {
       baseDataset: dependencies.platformConfigurationA.BASE_DATASET,
       genericFeatureSchemaVersion: dependencies.applicationConstantsA.GENERIC_FEATURE_SCHEMA_VERSION,
       distributionSchemaVersion: dependencies.applicationConstantsA.DISTRIBUTION_SCHEMA_VERSION,
-      distributionTypes: Object.values(dependencies.objectCatalog.DISTRIBUTION_TYPES),
       distributionModes: Object.values(dependencies.territorialModel.DISTRIBUTION_MODES),
       terrainDataset: dependencies.platformConfigurationB.TERRAIN_DATASET,
       hydroDataset: dependencies.platformConfigurationA.HYDRO_DATASET,

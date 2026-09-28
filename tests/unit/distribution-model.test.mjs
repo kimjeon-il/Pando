@@ -1,54 +1,51 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-
 import {
-  DISTRIBUTION_MODES,
-  DISTRIBUTION_SCHEMA_VERSION,
-  createDistributionEntry,
-  createDistributionLayer,
-  dominantDistributionEntries,
-  normalizeDistributionEntries,
-  normalizeDistributionLayers,
+  DISTRIBUTION_MODES, DISTRIBUTION_SCHEMA_VERSION, createDistributionEntry, createDistributionLayer,
+  distributionValueAlpha, distributionValueRange, normalizeDistributionEntries, normalizeDistributionLayers,
   validateDistributionModel,
 } from '../../assets/js/modules/distribution-model.js';
 
 const square = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] };
 
-test('distribution entries allow several independent shares in one territorial unit', () => {
+test('independent distributions preserve signed numbers without comparing layers', () => {
   const layers = [
-    createDistributionLayer({ id: 'greek', type: 'language', name: '그리스어', color: '#3366aa' }),
-    createDistributionLayer({ id: 'turkish', type: 'language', name: '튀르키예어', color: '#cc6644' }),
+    createDistributionLayer({ id: 'population', name: '인구', unit: '명', color: '#3366aa' }),
+    createDistributionLayer({ id: 'temperature', name: '기온', unit: '°C', color: '#cc6644' }),
   ];
   const entries = normalizeDistributionEntries([
-    createDistributionEntry({ id: 'e1', layerId: 'greek', mode: 'territorial', territorialUnitId: 'attica', share: 95 }),
-    createDistributionEntry({ id: 'e2', layerId: 'turkish', mode: 'territorial', territorialUnitId: 'attica', share: 20 }),
+    createDistributionEntry({ id: 'e1', layerId: 'population', mode: 'territorial', territorialUnitId: 'attica', value: 95.5 }),
+    createDistributionEntry({ id: 'e2', layerId: 'temperature', mode: 'territorial', territorialUnitId: 'attica', value: -20 }),
   ], { layerExists: id => layers.some(layer => layer.id === id) });
-  assert.deepEqual(entries.map(entry => entry.share), [95, 20]);
+  assert.deepEqual(entries.map(entry => entry.value), [95.5, -20]);
   assert.equal(validateDistributionModel(layers, entries, { territorialExists: id => id === 'attica' }).ok, true);
-  assert.equal(dominantDistributionEntries(layers, entries)[0].layerId, 'greek');
+  assert.deepEqual(distributionValueRange(layers[0], entries.filter(entry => entry.layerId === layers[0].id)), { min: 95.5, max: 95.5 });
 });
 
-test('territorial and free geometry distribution modes normalize independently', () => {
-  const layer = createDistributionLayer({ id: 'orthodox', type: 'religion', name: '정교회' });
-  const territorial = createDistributionEntry({ id: 'r', layerId: layer.id, mode: DISTRIBUTION_MODES.TERRITORIAL, territorialUnitId: 'unit', share: 80 });
-  const geometry = createDistributionEntry({ id: 'g', layerId: layer.id, mode: DISTRIBUTION_MODES.GEOMETRY, geometry: square, share: 45 });
+test('territorial and free geometry modes normalize independently', () => {
+  const layer = createDistributionLayer({ id: 'temperature', name: '기온' });
+  const territorial = createDistributionEntry({ id: 'r', layerId: layer.id, mode: DISTRIBUTION_MODES.TERRITORIAL, territorialUnitId: 'unit', value: 0 });
+  const geometry = createDistributionEntry({ id: 'g', layerId: layer.id, mode: DISTRIBUTION_MODES.GEOMETRY, geometry: square, value: -4.25 });
   assert.equal(territorial.geometry, null);
   assert.deepEqual(geometry.geometry, square);
 });
 
-test('distribution normalization requires canonical fields and unique IDs', () => {
-  assert.throws(() => normalizeDistributionLayers([{ id: 'invalid', schemaVersion: DISTRIBUTION_SCHEMA_VERSION, type: 'language', unknownField: true }]), /지원하지 않는 필드/);
-  const layer = createDistributionLayer({ id: 'same', type: 'language' });
+test('canonical fields and unique IDs are required', () => {
+  assert.throws(() => normalizeDistributionLayers([{ id: 'invalid', schemaVersion: DISTRIBUTION_SCHEMA_VERSION, type: 'language' }]), /지원하지 않는 필드/);
+  const layer = createDistributionLayer({ id: 'same' });
   assert.throws(() => normalizeDistributionLayers([layer, layer]), /중복/);
   assert.throws(() => normalizeDistributionEntries([{
-    id: 'entry', schemaVersion: DISTRIBUTION_SCHEMA_VERSION, layerId: 'same', mode: 'geometry', geometry: square, unknownField: true,
+    id: 'entry', schemaVersion: DISTRIBUTION_SCHEMA_VERSION, layerId: 'same', mode: 'geometry', geometry: square, value: 1, unknownField: true,
   }]), /지원하지 않는 필드/);
 });
 
-test('invalid distribution shares fail instead of being clamped or defaulted', () => {
+test('missing and non-finite values fail while signed values and clamped display survive', () => {
   const base = { id: 'entry', layerId: 'layer', mode: DISTRIBUTION_MODES.GEOMETRY, geometry: square };
-  assert.throws(() => createDistributionEntry({ ...base, share: Number.NaN }), /유한한 숫자/);
-  assert.throws(() => createDistributionEntry({ ...base, share: -0.1 }), /0~100/);
-  assert.throws(() => createDistributionEntry({ ...base, share: 100.1 }), /0~100/);
-  assert.equal(createDistributionEntry({ ...base, share: 0 }).share, 0);
+  for (const value of [null, '', Number.NaN, Infinity, -Infinity]) {
+    assert.throws(() => createDistributionEntry({ ...base, value }), /유한한 숫자/);
+  }
+  assert.equal(createDistributionEntry({ ...base, value: 0 }).value, 0);
+  assert.equal(createDistributionEntry({ ...base, value: -1.5 }).value, -1.5);
+  assert.equal(distributionValueAlpha(-10, { min: 0, max: 10 }), 0.12);
+  assert.equal(distributionValueAlpha(20, { min: 0, max: 10 }), 0.7);
 });

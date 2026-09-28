@@ -145,7 +145,8 @@ export function createProjectSnapshots() {
         distributionLayers: value => (0, dependencies.platform.deepClone)(value || []),
         distributionEntries: value => fieldCopy('distributionEntries', value),
         distributionSettings: value => ({
-          renderMode: value?.renderMode === dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.INTENSITY ? dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.INTENSITY : dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.DOMINANT,
+          renderMode: value?.renderMode === dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.SINGLE ? dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.SINGLE : dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.OVERLAP,
+          activeLayerId: String(value?.activeLayerId || ''),
           boundaryVisible: value?.boundaryVisible !== false,
         }),
         physicalSettings: (value, current) => (0, dependencies.hydroModel.normalizePhysicalSettings)(value || current),
@@ -168,7 +169,9 @@ export function createProjectSnapshots() {
       ...(history ? { cloneGeometry: geometry => geometry } : {}),
     });
     dependencies.projectState.state.distributionSettings = {
-      renderMode: dependencies.projectState.state.distributionSettings?.renderMode === dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.INTENSITY ? dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.INTENSITY : dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.DOMINANT,
+      renderMode: dependencies.projectState.state.distributionSettings?.renderMode === dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.SINGLE ? dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.SINGLE : dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.OVERLAP,
+      activeLayerId: distributionLayerIds.has(String(dependencies.projectState.state.distributionSettings?.activeLayerId || ''))
+        ? String(dependencies.projectState.state.distributionSettings.activeLayerId) : '',
       boundaryVisible: dependencies.projectState.state.distributionSettings?.boundaryVisible !== false,
     };
     dependencies.projectState.state.selectedDistributionLayerId = distributionLayerIds.has(String(dependencies.projectState.state.selectedDistributionLayerId || ''))

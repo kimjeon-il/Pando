@@ -5,6 +5,7 @@ import { mapInteractionEntries } from './interaction-roles.js';
 import { selectionEntries, selectionDisplayPlan, orderSelectionFillMasks, selectionFrameOwnership, selectionGeometryKinds, planSelectionEntry, planHoverEntry, selectionCoverage } from './selection-overlay-plan.js';
 import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
 import { boundaryViewBounds, queryBoundaryDisplay } from './boundary-display.js';
+import { distributionValueRange, distributionValueAlpha } from './distribution-model.js';
 import {
   createMapRenderCoordinator,
   MAP_RENDER_DIRTY,
@@ -682,7 +683,7 @@ export function createRenderingDomain({
     const settings = state.distributionSettings || {};
     const renderMode = settings.renderMode;
     const modes = d.DISTRIBUTION_RENDER_MODES || {};
-    const selectedLayerId = renderMode === modes.INTENSITY ? String(state.selectedDistributionLayerId || (state.selected?.domain === 'distribution' ? state.selected.id : '') || '') : '';
+    const selectedLayerId = renderMode === modes.SINGLE ? String(settings.activeLayerId || '') : '';
     const visibilityRevision = d.getDistributionVisibilityRevision?.() ?? 0;
     const countryRevision = d.getCountryGeometryRevision?.() ?? 0;
     const cacheCurrent = distributionRenderRowCache.layers === state.distributionLayers
@@ -695,27 +696,21 @@ export function createRenderingDomain({
       && distributionRenderRowCache.visibilityRevision === visibilityRevision;
     if (cacheCurrent) return distributionRenderRowCache.rows;
     const started = globalThis.performance?.now?.() || Date.now();
-    const groups = d.DISTRIBUTION_TYPE_GROUPS || {};
-    const visibleLayers = (state.distributionLayers || []).filter(layer => {
-      const group = groups[layer.type];
-      return state.layerVisibility?.[group] !== false && d.isLayerItemVisible?.(group, layer.id);
-    });
-    const visibleIds = new Set(visibleLayers.map(layer => layer.id));
-    const entries = renderMode === modes.INTENSITY
-      ? (visibleIds.has(selectedLayerId) ? d.distributionEntriesForLayer?.(state.distributionEntries || [], selectedLayerId) || [] : [])
-      : Object.values(d.DISTRIBUTION_TYPES || {}).flatMap(type => {
-      const typeLayers = visibleLayers.filter(layer => layer.type === type);
-      const typeIds = new Set(typeLayers.map(layer => layer.id));
-      return d.dominantDistributionEntries?.(typeLayers, (state.distributionEntries || []).filter(entry => typeIds.has(entry.layerId))) || [];
-    });
-    const byLayer = new Map(visibleLayers.map(layer => [layer.id, layer]));
-    const rows = entries.map(entry => {
-      const layer = byLayer.get(entry.layerId);
+    const visibleLayers = state.layerVisibility?.distributions === false ? [] :
+      (state.distributionLayers || []).filter(layer => d.isLayerItemVisible?.('distributions', layer.id));
+    const activeId = visibleLayers.some(layer => layer.id === selectedLayerId) ? selectedLayerId : visibleLayers[0]?.id;
+    const displayedLayers = renderMode === modes.SINGLE
+      ? visibleLayers.filter(layer => layer.id === activeId) : visibleLayers;
+    const entriesByLayer = new Map(visibleLayers.map(layer => [layer.id, []]));
+    for (const entry of state.distributionEntries || []) entriesByLayer.get(entry.layerId)?.push(entry);
+    const ranges = new Map(visibleLayers.map(layer => [layer.id, distributionValueRange(layer, entriesByLayer.get(layer.id))]));
+    const rows = displayedLayers.flatMap(layer => (entriesByLayer.get(layer.id) || []).map(entry => {
       const geometry = entry.mode === (d.DISTRIBUTION_MODES || {}).TERRITORIAL
         ? d.territorialRepository?.get?.(entry.territorialUnitId)?.geometry : entry.geometry;
       if (!layer || !geometry) return null;
-      return Object.freeze({ id: entry.id, layer, entry, geometry, bounds: d.geometryBounds?.(geometry), type: 'Feature' });
-    }).filter(Boolean);
+      return Object.freeze({ id: entry.id, layer, entry, range: ranges.get(layer.id),
+        geometry, bounds: d.geometryBounds?.(geometry), type: 'Feature' });
+    })).filter(Boolean);
     distributionRenderRowCache = { layers: state.distributionLayers, entries: state.distributionEntries, countries: state.countriesData?.features,
       countryGeometryRevision: countryRevision, territorialUnits: state.territorialUnits, renderMode, selectedLayerId, visibilityRevision,
       rows: Object.freeze(rows), rebuildCount: distributionRenderRowCache.rebuildCount + 1, buildMs: (globalThis.performance?.now?.() || Date.now()) - started };
@@ -728,7 +723,7 @@ export function createRenderingDomain({
     const started = globalThis.performance?.now?.() || Date.now();
     let verificationCount = 0;
     const visible = rows.filter(row => {
-      const selected = d.selectionHas?.(d.normalizeObjectRef?.({ domain: 'distribution', type: row.layer.type, id: row.layer.id }));
+      const selected = d.selectionHas?.(d.normalizeObjectRef?.({ domain: 'distribution', type: 'distribution', id: row.layer.id }));
       if (selected) return true;
       if (!candidates.has(String(row.id))) return false;
       verificationCount += 1;
@@ -749,19 +744,18 @@ export function createRenderingDomain({
     if (!d.distributionLayer) return false;
     const data = visibleDistributionRenderRows();
     const boundaryVisible = state.distributionSettings?.boundaryVisible !== false;
-    const groups = d.DISTRIBUTION_TYPE_GROUPS || {};
     const isArea = row => ['Polygon', 'MultiPolygon'].includes(row.geometry?.type);
     const color = row => d.distributionColor?.(row.layer);
-    const styleFor = row => d.layerStyle?.(state.layerPresentation, groups[row.layer.type]) || {};
+    const styleFor = () => d.layerStyle?.(state.layerPresentation, 'distributions') || {};
     const selection = d.distributionLayer.selectAll('path.distribution-shape').data(data, row => row.id);
     selection.enter().append('path').attr('class', 'distribution-shape')
-      .on('mouseenter.hover', row => d.setMapHover?.('distribution', row.id, d.featureFromGeometry?.(row.geometry), { domain: 'distribution', type: row.layer.type, id: row.layer.id }))
-      .on('mouseleave.hover', row => d.setMapHover?.('', '', null, { domain: 'distribution', type: row.layer.type, id: row.layer.id }))
+      .on('mouseenter.hover', row => d.setMapHover?.('distribution', row.id, d.featureFromGeometry?.(row.geometry), { domain: 'distribution', type: 'distribution', id: row.layer.id }))
+      .on('mouseleave.hover', row => d.setMapHover?.('', '', null, { domain: 'distribution', type: 'distribution', id: row.layer.id }))
       .on('click', function(row) {
         const stateNow = d.getState?.() || {};
         if (d.mapClickBlocked?.() || stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
         d.d3?.event?.stopPropagation?.();
-        d.handleObjectSelectionAt?.(d.d3?.mouse?.(d.svg), { sourceEvent: d.d3?.event, hitRef: { domain: 'distribution', type: row.layer.type, id: row.layer.id } });
+        d.handleObjectSelectionAt?.(d.d3?.mouse?.(d.svg), { sourceEvent: d.d3?.event, hitRef: { domain: 'distribution', type: 'distribution', id: row.layer.id } });
       });
     selection.attr('d', row => d.path?.({ type: 'Feature', properties: {}, geometry: row.geometry }))
       .attr('data-gpu-scene-key', row => `distribution-entry:${row.id}:${isArea(row) ? 'fill' : 'line'}`)
@@ -770,17 +764,17 @@ export function createRenderingDomain({
       .style('stroke-opacity', 0)
       .style('stroke-width', 0)
       .style('mix-blend-mode', 'normal')
-      .attr('data-presentation-group', row => groups[row.layer.type]);
+      .attr('data-presentation-group', 'distributions');
     selection.exit().remove();
     d.distributionLayer.selectAll('path.distribution-boundary').remove();
     const polygons = [], strokes = [];
     for (const row of data) {
-      const group = groups[row.layer.type];
+      const group = 'distributions';
       const renderStyle = styleFor(row);
-      const objectKey = d.normalizeObjectRef?.({ domain: 'distribution', type: row.layer.type, id: row.layer.id })?.key || `distribution:${row.layer.type}:${row.layer.id}`;
+      const objectKey = d.normalizeObjectRef?.({ domain: 'distribution', type: 'distribution', id: row.layer.id })?.key || `distribution:distribution:${row.layer.id}`;
       const feature = d.featureFromGeometry?.(row.geometry);
       const geometryRevision = d.selectionGeometryRevision?.(`distribution-entry:${row.id}`, 'gpu-scene', feature);
-      const fillAlpha = (0.12 + Math.max(0, Math.min(100, row.entry.share)) / 100 * 0.58) * renderStyle.opacity;
+      const fillAlpha = distributionValueAlpha(row.entry.value, row.range, renderStyle.opacity);
       if (isArea(row)) {
         polygons.push({ key: `distribution-entry:${row.id}:fill`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 10), blendMode: renderStyle.blendMode, style: { color: color(row), fillAlpha, blendMode: renderStyle.blendMode } });
         if (boundaryVisible && renderStyle.boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision, geometry: (d.buildRenderableStrokeFeature?.(feature) || feature).geometry, order: d.gpuSceneOrder?.(group, 20), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' } });

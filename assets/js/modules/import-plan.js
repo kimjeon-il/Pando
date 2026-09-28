@@ -44,10 +44,10 @@ export function normalizeImportPlan(raw = {}) {
     featureCount: Math.max(0, Number(raw.featureCount) || 0),
     detectedCrs: text(raw.detectedCrs, 'unknown'),
     targetType,
-    distributionType: targetType === EXCHANGE_TARGETS.DISTRIBUTION && ['language', 'ethnicity', 'religion'].includes(raw.distributionType) ? raw.distributionType : '',
     propertyMapping: {
       id: text(mapping.id), name: text(mapping.name), country: text(mapping.country),
       parent: text(mapping.parent), level: text(mapping.level), color: text(mapping.color),
+      value: text(mapping.value),
     },
     targetCountryId: SOVEREIGN_SELECTION_TARGETS.has(targetType) ? text(raw.targetCountryId) : '',
     useFeatureCountryField: SOVEREIGN_SELECTION_TARGETS.has(targetType) && raw.useFeatureCountryField === true,

@@ -3,7 +3,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     state,
     TERRITORIAL_UNIT_TYPES,
     TERRITORIAL_COVERAGE_MODES,
-    DISTRIBUTION_TYPES,
     DISTRIBUTION_MODES,
     GENERIC_FEATURE_SCHEMA_VERSION,
     DEFAULT_GENERIC_FEATURE_COLOR,
@@ -59,7 +58,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     normalizeCoastDecision,
     planCoastReconciliations,
     validateCoastReplacement,
-    DISTRIBUTION_TYPE_LABELS,
     polygonClipping,
     importedCountryOverrides,
     applyImportedPackageAssets,
@@ -586,13 +584,13 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     return imported.map(feature => String(feature.id));
   }
   
-  function importGeoJsonDistributions(features, type, mapping, fileName) {
-    const layerMap = new Map(state.distributionLayers.map(layer => [layer.id, layer]));
+  function importGeoJsonDistributions(features, mapping, fileName) {
+    const layerMap = new Map();
     const entryIds = new Set(state.distributionEntries.map(entry => entry.id));
     const newLayers = [];
     const newEntries = [];
     const generatedLayerIds = new Map();
-    const fallbackName = fileName.replace(/\.[^.]+$/, '') || DISTRIBUTION_TYPE_LABELS[type];
+    const fallbackName = fileName.replace(/\.[^.]+$/, '') || '분포';
     for (let index = 0; index < features.length; index += 1) {
       const raw = features[index];
       if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
@@ -602,13 +600,31 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       const layerKey = sourceLayerId || `name:${name}`;
       if (!generatedLayerIds.has(layerKey)) generatedLayerIds.set(layerKey, uid());
       const layerId = generatedLayerIds.get(layerKey);
+      const unit = String(properties.unit ?? '').trim();
+      const scaleMode = String(properties.value_scale_mode ?? 'auto').trim();
+      if (!['auto', 'manual'].includes(scaleMode)) throw new Error(`${index + 1}행의 색 농도 방식이 올바르지 않습니다.`);
+      const numeric = (rawValue, label) => {
+        const input = typeof rawValue === 'string' ? rawValue.trim() : rawValue;
+        if ((typeof input !== 'string' && typeof input !== 'number') || input === ''
+          || !Number.isFinite(Number(input))) {
+          throw new Error(`${index + 1}행의 ${label}은 유한한 숫자여야 합니다.`);
+        }
+        return Number(input);
+      };
+      const valueScale = scaleMode === 'manual'
+        ? { mode: 'manual', min: numeric(properties.value_scale_min, '최솟값'), max: numeric(properties.value_scale_max, '최댓값') }
+        : { mode: 'auto' };
+      if (valueScale.mode === 'manual' && valueScale.min >= valueScale.max) throw new Error(`${index + 1}행의 색 농도 범위가 올바르지 않습니다.`);
       let layer = layerMap.get(layerId);
-      if (layer && layer.type !== type) throw new Error(`분포 레이어 ID 충돌: ${layerId}`);
+      if (layer && (layer.unit !== unit || JSON.stringify(layer.valueScale) !== JSON.stringify(valueScale))) {
+        throw new Error(`${index + 1}행의 분포 ID ${sourceLayerId || name}에 서로 다른 단위 또는 색 농도 범위가 있습니다.`);
+      }
       if (!layer) {
         layer = createDistributionLayer({
           id: layerId,
-          type,
           name,
+          unit,
+          valueScale,
           color: properties.color || DEFAULT_GENERIC_FEATURE_COLOR,
           metadata: { sourceId: sourceLayerId },
         });
@@ -628,7 +644,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         mode: useTerritorial ? DISTRIBUTION_MODES.TERRITORIAL : DISTRIBUTION_MODES.GEOMETRY,
         territorialUnitId: useTerritorial ? territorialUnitId : '',
         geometry: useTerritorial ? null : normalizeCountryGeometry(raw.geometry) || raw.geometry,
-        share: properties.share ?? 100,
+        value: numeric(properties[mapping.valueField || 'value'], '분포 값'),
         certainty: properties.certainty || 'unknown',
         validFrom: properties.valid_from || properties.validFrom || null,
         validTo: properties.valid_to || properties.validTo || null,
@@ -638,7 +654,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     if (!newEntries.length) throw new Error('가져올 Polygon 또는 MultiPolygon 분포가 없습니다.');
     distributionService.append({ layers: newLayers, entries: newEntries });
     markLayerTreeDirty();
-    setActionStatus(`${DISTRIBUTION_TYPE_LABELS[type]} 분포 ${newEntries.length}개를 가져왔습니다.`, 'success', 3800);
+    setActionStatus(`분포 영역 ${newEntries.length}개를 가져왔습니다.`, 'success', 3800);
   }
   
   async function importGeoJson(file, { parsed = null, target = 'generic', mapping = {} } = {}) {
@@ -654,8 +670,8 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       await importGeoJsonRegions(features, mapping);
       return;
     }
-    if (Object.values(DISTRIBUTION_TYPES).includes(target)) {
-      importGeoJsonDistributions(features, target, mapping, file.name);
+    if (target === 'distribution') {
+      importGeoJsonDistributions(features, mapping, file.name);
       return;
     }
     const supported = [];

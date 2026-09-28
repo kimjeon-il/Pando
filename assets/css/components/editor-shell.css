@@ -12,10 +12,15 @@
 }
 
 .distribution-entry-row {
-  grid-template-columns: minmax(0, 1fr) var(--ui-control-height);
+  grid-template-columns: minmax(0, 1fr) minmax(5rem, 6rem) var(--ui-control-height);
   gap: var(--ui-space-2);
   align-items: center;
   padding: var(--ui-space-2);
+}
+
+.distribution-entry-row > input {
+  width: 100%;
+  min-width: 0;
 }
 
 .distribution-entry-row > span {

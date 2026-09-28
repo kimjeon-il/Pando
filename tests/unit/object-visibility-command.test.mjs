@@ -11,7 +11,7 @@ function harness(refs, { builtin = false } = {}) {
   }]));
   const feature = { id: refs[0]?.id, properties: { pandolab_id: refs[0]?.id, category: refs[0]?.type, locked: true } };
   const state = {
-    layerVisibility: { countries: false, rivers: false, lakes: false, subunits: false, regions: false, languages: false, labels: false, genericFeatures: false },
+    layerVisibility: { countries: false, rivers: false, lakes: false, subunits: false, regions: false, distributions: false, labels: false, genericFeatures: false },
     itemVisibility: {}, physicalSettings: { hiddenHydroIds: {}, hydroLayers: { rivers_hydro: false, lakes_natural_earth: false } },
     countryOverrides: {}, territorialUnits: [], genericFeatures: [feature], labels: [feature],
   };
@@ -20,7 +20,7 @@ function harness(refs, { builtin = false } = {}) {
   const ports = {
     state, $: id => nodes.get(id), normalizeObjectRef: ref => ref,
     TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
-    DISTRIBUTION_TYPE_GROUPS: { language: 'languages' }, distributionVisibilityRevision: 0,
+    distributionVisibilityRevision: 0,
     bumpVisibilityRevision: () => { ports.distributionVisibilityRevision += 1; },
     selectionDomain: { snapshot: () => ({ selection: { items: refs } }), primary: () => refs[0] },
     countryFeatureById: () => feature, territorialUnitById: () => feature, territorialChildren: () => [],
@@ -56,7 +56,7 @@ test('river and lake display info uses only the object kind without built-in sou
 test('per-object visibility keeps every layer master and selection intact', () => {
   for (const [domain, type, group] of [
     ['territorial', 'country', 'countries'], ['territorial', 'subunit', 'subunits'], ['territorial', 'region', 'regions'],
-    ['hydro', 'river', 'hydro'], ['hydro', 'lake', 'hydro'], ['distribution', 'language', 'languages'],
+    ['hydro', 'river', 'hydro'], ['hydro', 'lake', 'hydro'], ['distribution', 'distribution', 'distributions'],
     ['label', 'label', 'labels'], ['generic', 'feature', 'genericFeatures'],
   ]) {
     const refs = [{ domain, type, id: 'a' }];

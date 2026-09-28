@@ -5619,10 +5619,15 @@ body.file-menu-open .app-root .topbar {
 }
 
 .distribution-entry-row {
-  grid-template-columns: minmax(0, 1fr) var(--ui-control-height);
+  grid-template-columns: minmax(0, 1fr) minmax(5rem, 6rem) var(--ui-control-height);
   gap: var(--ui-space-2);
   align-items: center;
   padding: var(--ui-space-2);
+}
+
+.distribution-entry-row > input {
+  width: 100%;
+  min-width: 0;
 }
 
 .distribution-entry-row > span {
@@ -8179,6 +8184,36 @@ body.file-menu-open .mobile-backdrop {
 
 .surface-display:not(.view-menu-desktop) .distribution-menu-group > .view-menu-parent {
   display: none;
+}
+
+.distribution-legend {
+  display: grid;
+  gap: var(--ui-space-2);
+  max-height: min(12rem, 30vh);
+  overflow-y: auto;
+}
+
+.distribution-legend-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem auto;
+  align-items: center;
+  gap: var(--ui-space-2);
+  font-size: var(--ui-font-sm);
+}
+
+.distribution-legend-row strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.distribution-legend-bar {
+  height: .55rem;
+  border-radius: var(--ui-radius-control);
+}
+
+@media (max-width: 600px) {
+  .distribution-legend-row { grid-template-columns: minmax(0, 1fr) 3rem auto; }
 }
 
 .surface-display:not(.view-menu-desktop) .view-menu-separator {

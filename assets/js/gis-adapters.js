@@ -5,12 +5,7 @@
     subunit: 'subunits',
     region: 'regions',
   });
-  const DISTRIBUTION_TABLES = Object.freeze({
-    language: 'language_distribution',
-    ethnicity: 'ethnicity_distribution',
-    religion: 'religion_distribution',
-  });
-  const DISTRIBUTION_TYPES_BY_TABLE = Object.freeze(Object.fromEntries(Object.entries(DISTRIBUTION_TABLES).map(([type, table]) => [table, type])));
+  const DISTRIBUTION_TABLE = 'distributions';
   const TERRITORIAL_TYPES_BY_TABLE = Object.freeze({
     ...Object.fromEntries(Object.entries(TERRITORIAL_TABLES).map(([type, table]) => [table, type])),
     territories: 'subunit', administrative: 'subunit',
@@ -18,10 +13,13 @@
   const clone = value => value == null ? value : structuredClone(value);
   const text = value => String(value ?? '').trim();
   const polygonGeometry = geometry => ['Polygon', 'MultiPolygon'].includes(geometry?.type) ? clone(geometry) : null;
-  const distributionShare = value => {
-    const share = Number(value);
-    if (!Number.isFinite(share) || share < 0 || share > 100) throw new Error('분포 비율은 0~100 범위의 숫자여야 합니다.');
-    return share;
+  const distributionValue = (value, row) => {
+    const input = typeof value === 'string' ? value.trim() : value;
+    if ((typeof input !== 'string' && typeof input !== 'number') || input === ''
+      || !Number.isFinite(Number(input))) {
+      throw new Error(`분포 ${row}행의 값은 유한한 숫자여야 합니다.`);
+    }
+    return Number(input);
   };
   const parseJson = (value, fallback = {}) => {
     if (!value) return clone(fallback);
@@ -83,29 +81,33 @@
   }
 
   function distributionRows(state) {
-    const rows = Object.fromEntries(Object.values(DISTRIBUTION_TABLES).map(table => [table, []]));
+    const rows = { [DISTRIBUTION_TABLE]: [] };
     const layers = new Map((state?.distributionLayers || []).map(layer => [text(layer.id), layer]));
     const geometryIndex = countryGeometryIndex(state);
-    const presentationGroup = type => ({ language: 'languages', ethnicity: 'ethnicities', religion: 'religions' })[type] || '';
     for (const entry of state?.distributionEntries || []) {
       const layer = layers.get(text(entry.layerId));
-      const table = DISTRIBUTION_TABLES[layer?.type];
       const sourceMode = text(entry.mode) === 'territorial' ? 'territorial' : 'geometry';
       const geometry = sourceMode === 'territorial' ? polygonGeometry(geometryIndex.get(text(entry.territorialUnitId))) : polygonGeometry(entry.geometry);
-      if (!table || !geometry) continue;
-      rows[table].push({
+      if (!layer || !geometry) continue;
+      rows[DISTRIBUTION_TABLE].push({
         geometry,
         entry_id: text(entry.id),
         layer_id: text(layer.id),
         name: text(layer.name),
-        distribution_type: text(layer.type),
+        unit: text(layer.unit),
+        value_scale_mode: layer.valueScale?.mode === 'manual' ? 'manual' : 'auto',
+        value_scale_min: layer.valueScale?.mode === 'manual' ? layer.valueScale.min : null,
+        value_scale_max: layer.valueScale?.mode === 'manual' ? layer.valueScale.max : null,
         parent_layer_id: text(layer.parentId),
+        layer_groups_json: JSON.stringify(layer.groups || []),
+        layer_valid_from: text(layer.validFrom),
+        layer_valid_to: text(layer.validTo),
         color: text(layer.color),
-        layer_visible: state?.itemVisibility?.[presentationGroup(layer.type)]?.[text(layer.id)] === false ? 0 : 1,
+        layer_visible: state?.itemVisibility?.distributions?.[text(layer.id)] === false ? 0 : 1,
         layer_locked: layer.locked === true ? 1 : 0,
         source_mode: sourceMode,
         territorial_unit_id: sourceMode === 'territorial' ? text(entry.territorialUnitId) : '',
-        share: distributionShare(entry.share),
+        value: distributionValue(entry.value, entry.id),
         certainty: text(entry.certainty) || 'unknown',
         valid_from: text(entry.validFrom),
         valid_to: text(entry.validTo),
@@ -152,31 +154,40 @@
 
   function importDistributionFeature(feature, tableName, index = 0) {
     const properties = feature?.properties || {};
-    const type = DISTRIBUTION_TYPES_BY_TABLE[tableName];
     const geometry = polygonGeometry(feature?.geometry);
-    if (!type || !geometry) return null;
-    const layerId = text(properties.layer_id) || `${type}:${index + 1}`;
+    if (tableName !== DISTRIBUTION_TABLE || !geometry) return null;
+    const layerId = text(properties.layer_id) || `distribution:${index + 1}`;
     const entryId = text(properties.entry_id || feature.id) || `${layerId}:entry:${index + 1}`;
     const sourceMode = text(properties.source_mode) === 'territorial' && text(properties.territorial_unit_id) ? 'territorial' : 'geometry';
+    const scaleMode = text(properties.value_scale_mode) || 'auto';
+    if (!['auto', 'manual'].includes(scaleMode)) throw new Error(`분포 ${index + 1}행의 색 농도 방식이 올바르지 않습니다.`);
+    const valueScale = scaleMode === 'manual'
+      ? { mode: 'manual', min: distributionValue(properties.value_scale_min, index + 1), max: distributionValue(properties.value_scale_max, index + 1) }
+      : { mode: 'auto' };
+    if (valueScale.mode === 'manual' && valueScale.min >= valueScale.max) throw new Error(`분포 ${index + 1}행의 색 농도 범위가 올바르지 않습니다.`);
     return {
       layer: {
         id: layerId,
-        schemaVersion: 2,
-        type,
+        schemaVersion: 3,
         name: text(properties.name) || layerId,
+        unit: text(properties.unit),
+        valueScale,
         color: text(properties.color) || '#8c68d8',
         locked: Number(properties.layer_locked ?? 0) === 1,
         parentId: text(properties.parent_layer_id),
+        groups: parseJson(properties.layer_groups_json, []),
+        validFrom: text(properties.layer_valid_from) || null,
+        validTo: text(properties.layer_valid_to) || null,
         metadata: parseJson(properties.layer_metadata_json),
       },
       entry: {
         id: entryId,
-        schemaVersion: 2,
+        schemaVersion: 3,
         layerId,
         mode: sourceMode,
         territorialUnitId: sourceMode === 'territorial' ? text(properties.territorial_unit_id) : '',
         geometry: sourceMode === 'geometry' ? geometry : null,
-        share: distributionShare(properties.share),
+        value: distributionValue(properties.value, index + 1),
         certainty: text(properties.certainty) || 'unknown',
         validFrom: text(properties.valid_from) || null,
         validTo: text(properties.valid_to) || null,
@@ -194,7 +205,10 @@
         const imported = importDistributionFeature(features[index], tableName, index);
         if (!imported) continue;
         const current = layerMap.get(imported.layer.id);
-        if (current && current.type !== imported.layer.type) throw new Error(`분포 레이어 ID 충돌: ${imported.layer.id}`);
+        if (current && (current.unit !== imported.layer.unit
+          || JSON.stringify(current.valueScale) !== JSON.stringify(imported.layer.valueScale))) {
+          throw new Error(`분포 레이어 ${imported.layer.id}의 단위 또는 색 농도 범위가 일치하지 않습니다.`);
+        }
         layerMap.set(imported.layer.id, { ...(current || {}), ...imported.layer });
         if (entryIds.has(imported.entry.id)) throw new Error(`분포 엔트리 ID 충돌: ${imported.entry.id}`);
         entryIds.add(imported.entry.id);
@@ -207,8 +221,7 @@
   global.PandoLabGisAdapters = Object.freeze({
     TERRITORIAL_TABLES,
     TERRITORIAL_TYPES_BY_TABLE,
-    DISTRIBUTION_TABLES,
-    DISTRIBUTION_TYPES_BY_TABLE,
+    DISTRIBUTION_TABLE,
     countryGeometryIndex,
     territorialRows,
     distributionRows,

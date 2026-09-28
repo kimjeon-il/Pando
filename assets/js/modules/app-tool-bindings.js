@@ -24,30 +24,15 @@ export function createToolBindings() {
         (0, dependencies.territorialEditingA.enterTerritorialCreateWorkflow)(dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION), { destination: 'editor' },
       ));
     });
-    const closeDistributionTypeModal = ({ restoreFocus = true } = {}) => {
-      (0, dependencies.platform.$)('distributionTypeModal')?.classList.add('hidden');
-      if (restoreFocus) (0, dependencies.workspaceUiB.focusSurfaceTrigger)('create');
-    };
     (0, dependencies.platform.$)('addDistributionBtn')?.addEventListener('click', () => {
       (0, dependencies.genericEditingB.requestDraftDiscard)(() => {
         (0, dependencies.workspaceUiA.closeSurface)('create');
-        (0, dependencies.platform.$)('distributionTypeModal')?.classList.remove('hidden');
-        requestAnimationFrame(() => (0, dependencies.platform.$)('distributionTypeInput')?.focus());
+        const created = (0, dependencies.propertyEditingA.createDistributionLayerFromPrompt)({
+          beforeCreate: dependencies.genericEditingA.discardActiveDraftSilently,
+        });
+        if (created) (0, dependencies.workspaceUiA.completeToolStart)(true, { destination: 'editor' });
+        else (0, dependencies.workspaceUiB.openSurface)('create');
       });
-    });
-    (0, dependencies.platform.$)('distributionTypeCancelBtn')?.addEventListener('click', closeDistributionTypeModal);
-    (0, dependencies.platform.$)('distributionTypeModal')?.querySelector('.confirm-modal-dim')?.addEventListener('click', closeDistributionTypeModal);
-    (0, dependencies.platform.$)('distributionTypeConfirmBtn')?.addEventListener('click', () => {
-      const type = (0, dependencies.platform.$)('distributionTypeInput')?.value || dependencies.objectCatalog.DISTRIBUTION_TYPES.LANGUAGE;
-      closeDistributionTypeModal({ restoreFocus: false });
-      const created = (0, dependencies.propertyEditingA.createDistributionLayerFromPrompt)(type, {
-        beforeCreate: dependencies.genericEditingA.discardActiveDraftSilently,
-      });
-      if (!created) {
-        (0, dependencies.workspaceUiB.openSurface)('create');
-        return;
-      }
-      (0, dependencies.workspaceUiA.completeToolStart)(true, { destination: 'editor' });
     });
     (0, dependencies.platform.$)('territorialCreateNameInput')?.addEventListener('input', event => (0, dependencies.territorySelectionB.territorySelectionUpdateName)(event.currentTarget.value));
     (0, dependencies.platform.$)('territorialCreateSovereignInput')?.addEventListener('change', event => (0, dependencies.territorialEditingB.updateTerritorialCreateSovereign)(event.currentTarget.value));

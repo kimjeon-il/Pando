@@ -534,6 +534,17 @@
       selected: canonicalIdField || autoField(fields, ['ADM0_A3', 'ISO_A3', 'GID_0', 'id']) || (featureIdAvailable ? '__feature_id__' : '__fid__'),
     });
     populateFieldSelect(document.getElementById('gisNameField'), fields, { ...fieldOptions, roleLabel: '이름', selected: canonicalNameField || autoField(fields, ['NAME_KO', 'NAME_0', 'NAME', 'name', descriptor.qgsLabelField]) });
+    populateFieldSelect(document.getElementById('gisDistributionValueField'), fields, {
+      ...fieldOptions,
+      roleLabel: '분포 값',
+      fieldFilter: field => {
+        const definition = descriptor.fieldDefinitions?.find(candidate => candidate.name === field);
+        const example = descriptor.fieldExamples?.[field];
+        return /int|real|double|float|numeric|decimal/i.test(definition?.type || '')
+          || (example != null && example !== '' && typeof example !== 'boolean' && Number.isFinite(Number(example)));
+      },
+      selected: autoField(fields, ['value', 'VALUE', 'count', 'population', 'density']),
+    });
     populateFieldSelect(document.getElementById('gisColorField'), fields, {
       ...fieldOptions,
       roleLabel: '색상',
@@ -579,7 +590,6 @@
   function updateImportFinalSummary() {
     const layer = document.getElementById('gisLayerSelect')?.selectedOptions?.[0]?.textContent || '자동 선택 레이어';
     const target = compatibilityTarget ? '기타 객체(호환 복원)' : document.getElementById('gisTargetType')?.selectedOptions?.[0]?.textContent || '종류 미선택';
-    const distribution = document.getElementById('gisDistributionType')?.selectedOptions?.[0]?.textContent || '';
     const country = document.getElementById('gisTargetCountry')?.selectedOptions?.[0]?.textContent || '';
     const mode = document.getElementById('gisOpenMode')?.value || 'merge';
     const summary = document.querySelector('#gisFinalSummary p');
@@ -590,7 +600,7 @@
     } else if (SOVEREIGN_SELECTION_TARGETS.has(document.getElementById('gisTargetType')?.value)) {
       summary.textContent = `${layer} → ${country || '선택한 국가'} · ${target}. 영토 이전이 적용됩니다.`;
     } else {
-      summary.textContent = `${layer} → ${target}${distribution && target === '분포' ? ` · ${distribution}` : ''} → ${mode === 'replace' ? '새 프로젝트' : '현재 지도에 추가'}.${mode === 'replace' && wizardOptions.hasUnsavedChanges ? ' 저장하지 않은 변경 사항은 사라집니다.' : ''}`;
+      summary.textContent = `${layer} → ${target} → ${mode === 'replace' ? '새 프로젝트' : '현재 지도에 추가'}.${mode === 'replace' && wizardOptions.hasUnsavedChanges ? ' 저장하지 않은 변경 사항은 사라집니다.' : ''}`;
     }
   }
 
@@ -677,7 +687,7 @@
         .some(value => String(value || '').toLocaleLowerCase('ko') === wanted));
       if (recommendation) countrySelect.value = String(recommendation.id);
     }
-    document.getElementById('gisDistributionTypeRow')?.classList.toggle('hidden', !distribution);
+    document.getElementById('gisDistributionValueRow')?.classList.toggle('hidden', !distribution);
     document.getElementById('gisTargetCountryRow')?.classList.toggle('hidden', !territorial || independentRegion
       || countrySelect?.dataset.singleChoice === 'true');
     document.getElementById('gisIndependentRegionRow')?.classList.toggle('hidden', target !== TERRITORIAL_IMPORT_TARGETS.REGION);
@@ -879,7 +889,7 @@
     const hasPlaces = layerNames.has('places');
     const genericFeatureLayerNames = ['generic_features_point', 'generic_features_line', 'generic_features_polygon'].filter(name => layerNames.has(name));
     const territorialLayerNames = Object.keys(gisAdapters.TERRITORIAL_TYPES_BY_TABLE).filter(name => layerNames.has(name));
-    const distributionLayerNames = Object.keys(gisAdapters.DISTRIBUTION_TYPES_BY_TABLE).filter(name => layerNames.has(name));
+    const distributionLayerNames = layerNames.has(gisAdapters.DISTRIBUTION_TABLE) ? [gisAdapters.DISTRIBUTION_TABLE] : [];
     const state = {};
     if (hasPlaces) {
       const collection = await layerAsGeoJson(gdal, dataset, 'places', 'places');
@@ -991,8 +1001,7 @@
         featureCount: descriptor.featureCount,
         detectedCrs: descriptor.crs.label,
         targetType: atlasMetadata?.projectState ? 'project' : mapping.targetType,
-        distributionType: mapping.distributionType || '',
-        propertyMapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField },
+        propertyMapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField, value: mapping.valueField },
         targetCountryId: mapping.targetCountryId,
         fallbackCountryId: mapping.targetCountryId,
         useFeatureCountryField: mapping.useFeatureCountryField,
@@ -1007,7 +1016,7 @@
         layer: descriptor.layerName,
         sourceCrs: descriptor.crs.label,
         fields: descriptor.fieldDefinitions || [],
-        mapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField },
+        mapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField, value: mapping.valueField },
       },
     };
   }
@@ -1028,7 +1037,7 @@
     return {
       sourceKind: importSourceKind,
       targetType,
-      distributionType: document.getElementById('gisDistributionType').value,
+      valueField: document.getElementById('gisDistributionValueField').value,
       idField: document.getElementById('gisIdField').value,
       nameField: document.getElementById('gisNameField').value,
       countryField: document.getElementById('gisCountryField').value,
@@ -1226,7 +1235,7 @@
       };
       layerSelect.onchange = refresh;
       targetSelect.onchange = () => { invalidatePrepared(); updateTargetFields(); };
-      for (const id of ['gisIdField', 'gisNameField', 'gisCountryField', 'gisParentField', 'gisColorField', 'gisDistributionType', 'gisParentUnit']) {
+      for (const id of ['gisIdField', 'gisNameField', 'gisCountryField', 'gisParentField', 'gisColorField', 'gisDistributionValueField', 'gisParentUnit']) {
         document.getElementById(id).onchange = () => { invalidatePrepared(); updateTargetFields(); };
       }
       document.getElementById('gisUseCountryField').onchange = () => { invalidatePrepared(); updateTargetFields(); };
@@ -1340,7 +1349,6 @@
               ...prepared.converted,
               sourceKind: importSourceKind,
               targetType: mapping.targetType,
-              distributionType: mapping.distributionType,
               mapping,
               impactPlan: prepared.impact,
               identityMappings: prepared.identityMappings,
@@ -1420,11 +1428,8 @@
     add('subunits', 'subunits.geojson', 'subunit', rowsAsFeatureCollection(territorial.subunits));
     add('regions', 'regions.geojson', 'region', rowsAsFeatureCollection(territorial.regions));
     add('genericFeatures', 'generic_features.geojson', 'generic', { type: 'FeatureCollection', features: structuredClone(projectState.genericFeatures || []) });
-    if (selected.has('distributions')) {
-      for (const [distributionType, tableName] of Object.entries(gisAdapters.DISTRIBUTION_TABLES)) {
-        add('distributions', `${distributionType}_distribution.geojson`, 'distribution', rowsAsFeatureCollection(distributions[tableName]), { distributionType });
-      }
-    }
+    add('distributions', 'distributions.geojson', 'distribution',
+      rowsAsFeatureCollection(distributions[gisAdapters.DISTRIBUTION_TABLE]));
     add('labels', 'labels.geojson', 'label', {
       type: 'FeatureCollection',
       features: (projectState.labels || []).filter(label => Array.isArray(label.coordinates)).map(label => ({
@@ -1449,7 +1454,7 @@
       createdAt,
       layers: layers.map(layer => ({
         name: withoutExtension(layer.file), file: layer.file, category: layer.category,
-        targetType: layer.targetType, distributionType: layer.distributionType || '',
+        targetType: layer.targetType,
         crs: 'EPSG:4326', featureCount: layer.collection.features.length,
         ...(layer.targetType === 'country' ? { fields: ['pandolab_id', 'pandolab_name', 'valid_from', 'valid_to'] } : {}),
       })),

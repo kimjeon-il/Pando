@@ -79,15 +79,15 @@ export const MAP_OBJECT_TYPES = Object.freeze({
     type: 'distribution',
     category: 'distribution',
     label: '분포',
-    icon: 'icon-language',
-    layerGroup: '',
-    layerGroups: ['languages', 'ethnicities', 'religions'],
-    presentationGroup: '',
-    presentationGroups: ['languages', 'ethnicities', 'religions'],
+    icon: 'icon-area-draw',
+    layerGroup: 'distributions',
+    layerGroups: ['distributions'],
+    presentationGroup: 'distributions',
+    presentationGroups: ['distributions'],
     editor: 'distribution',
     creatable: true,
     createButton: 'addDistributionBtn',
-    createAction: 'distribution-modal',
+    createAction: 'distribution-create',
   }),
   label: freezeType({
     key: 'label',
@@ -158,8 +158,8 @@ export const MAP_OBJECT_CATEGORIES = Object.freeze({
   }),
   distribution: freezeCategory({
     key: 'distribution',
-    label: '인문 분포',
-    layerGroups: ['languages', 'ethnicities', 'religions'],
+    label: '분포',
+    layerGroups: ['distributions'],
     createItems: ['distribution'],
   }),
   features: freezeCategory({
@@ -172,12 +172,6 @@ export const MAP_OBJECT_CATEGORIES = Object.freeze({
 });
 
 export const MAP_OBJECT_CATEGORY_ORDER = Object.freeze(Object.keys(MAP_OBJECT_CATEGORIES));
-
-const DISTRIBUTION_LAYER_GROUPS = Object.freeze({
-  language: 'languages',
-  ethnicity: 'ethnicities',
-  religion: 'religions',
-});
 
 export function objectTypeKeyForRef(value) {
   if (typeof value === 'string') return MAP_OBJECT_TYPES[value] ? value : '';
@@ -208,16 +202,15 @@ export function categoryForLayerGroup(group) {
   return MAP_OBJECT_CATEGORY_ORDER.find(category => MAP_OBJECT_CATEGORIES[category].layerGroups.includes(group)) || '';
 }
 
-export function layerGroupForObjectType(value, { subtype = '' } = {}) {
+export function layerGroupForObjectType(value) {
   const descriptor = objectTypeDescriptor(value);
   if (!descriptor) return '';
-  if (descriptor.key === 'distribution') return DISTRIBUTION_LAYER_GROUPS[subtype] || '';
   return descriptor.layerGroup || '';
 }
 
-export function presentationGroupForObjectType(value, options = {}) {
+export function presentationGroupForObjectType(value) {
   const descriptor = objectTypeDescriptor(value);
   if (!descriptor) return '';
-  if (descriptor.key === 'distribution') return layerGroupForObjectType(descriptor.key, options);
+  if (descriptor.key === 'distribution') return layerGroupForObjectType(descriptor.key);
   return descriptor.presentationGroup || '';
 }

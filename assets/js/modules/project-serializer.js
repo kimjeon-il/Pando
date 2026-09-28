@@ -46,7 +46,7 @@ function landObjectContract(genericFeatureSchemaVersion, compact = false) {
   };
 }
 
-function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes }, compact = false) {
+function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionModes }, compact = false) {
   return {
     landObjectModel: landObjectContract(genericFeatureSchemaVersion, compact),
     territorialModel: {
@@ -58,10 +58,8 @@ function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion
     },
     distributionModel: {
       schemaVersion: distributionSchemaVersion,
-      types: [...distributionTypes],
       sourceModes: [...distributionModes],
-      shareRange: [0, 100],
-      sharesAreIndependent: true,
+      valueKind: 'finite-number',
     },
   };
 }
@@ -72,14 +70,13 @@ export function createProjectSerializer({
   baseDataset,
   genericFeatureSchemaVersion = GENERIC_FEATURE_SCHEMA_VERSION,
   distributionSchemaVersion = DISTRIBUTION_MODEL_SCHEMA_VERSION,
-  distributionTypes,
   distributionModes,
   terrainDataset,
   hydroDataset,
   readSnapshot,
   now = () => new Date(),
 }) {
-  const contracts = { genericFeatureSchemaVersion, distributionSchemaVersion, distributionTypes, distributionModes };
+  const contracts = { genericFeatureSchemaVersion, distributionSchemaVersion, distributionModes };
   const autosaveCopies = createGeometrySnapshotPool();
 
   function buildProject(snapshot = readSnapshot(), clone = structuredClone) {
