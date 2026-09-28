@@ -10,12 +10,18 @@ export function terrainRasterManifestUrl(baseUrl, revision = '') {
   return url;
 }
 
+export function selectTerrainManifestUrls({ official, raster, dev = null, preview = false, defaultDem = false }) {
+  if (dev) return { primary: dev, fallback: raster, source: 'development' };
+  if (preview || defaultDem) return { primary: official, fallback: raster, source: preview ? 'preview' : 'official' };
+  return { primary: raster, fallback: null, source: 'raster' };
+}
+
 export function terrainAssetUrl(path, { manifestUrl, dataBaseUrl, revision = '' } = {}) {
   const value = String(path || '');
   if (!value) throw new Error('지형 자산 주소가 없습니다.');
   const root = manifestUrl ? new URL('../../', manifestUrl) : dataBaseUrl;
   const url = new URL(value, root);
-  if (revision && url.origin === new URL(dataBaseUrl || root).origin) url.searchParams.set('v', revision);
+  if (revision && url.origin === new URL(root).origin) url.searchParams.set('v', revision);
   return url;
 }
 
@@ -57,6 +63,7 @@ export function validateTerrainManifest(manifest) {
         || manifest.shade?.azimuthDegrees !== 315 || manifest.shade?.altitudeDegrees !== 45
         || manifest.shade?.ambient !== 0.42 || manifest.shade?.diffuse !== 0.58
         || manifest.shade?.polarFallbackDegrees !== 89.5
+        || (manifest.shade?.quantizationStep !== undefined && manifest.shade.quantizationStep !== 4)
         || manifest.levels.length !== 6
         || manifest.levels.some((level, index) => level.width !== 1350 * 2 ** index
           || level.height !== 675 * 2 ** index)

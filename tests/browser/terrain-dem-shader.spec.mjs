@@ -14,11 +14,15 @@ for (const version of [2, 1]) test(`DEM fragment compiles and switches B/height 
     const gl = canvas.getContext(version === 2 ? 'webgl2' : 'webgl', { preserveDrawingBuffer: true });
     if (!gl) return { unavailable: true };
     const vertex = version === 2 ? `#version 300 es
-      in vec2 aPosition; out vec2 vUv; out vec2 vLonLat; out float vDepth;
+      precision highp int;
+      in vec2 aPosition; out vec2 vUv; out vec2 vLonLat; out float vDepth; uniform int uMode;
       void main() { gl_Position = vec4(aPosition, 0.0, 1.0); vUv = (aPosition + 1.0) * 0.5;
+        if (uMode < 0) gl_Position.x = -gl_Position.x;
         vLonLat = vec2(vUv.x * 360.0 - 180.0, 90.0 - vUv.y * 180.0); vDepth = 1.0; }`
-      : `attribute vec2 aPosition; varying vec2 vUv; varying vec2 vLonLat; varying float vDepth;
+      : `precision mediump int;
+        attribute vec2 aPosition; varying vec2 vUv; varying vec2 vLonLat; varying float vDepth; uniform int uMode;
       void main() { gl_Position = vec4(aPosition, 0.0, 1.0); vUv = (aPosition + 1.0) * 0.5;
+        if (uMode < 0) gl_Position.x = -gl_Position.x;
         vLonLat = vec2(vUv.x * 360.0 - 180.0, 90.0 - vUv.y * 180.0); vDepth = 1.0; }`;
     const compile = (kind, source) => {
       const shader = gl.createShader(kind); gl.shaderSource(shader, source); gl.compileShader(shader);
