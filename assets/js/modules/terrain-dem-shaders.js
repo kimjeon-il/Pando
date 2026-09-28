@@ -35,7 +35,8 @@ const common = (sample) => `
     vec3 baseColor = uLandPass > 0.5
       ? ${sample}(uTint, vec2((vLonLat.x + 180.0) / 360.0, (90.0 - vLonLat.y) / 180.0)).rgb
       : seaColor(elevation(encodedPixel));
-    return baseColor * mix(0.72, 1.12, shade);
+    float flatSurfaceShade = 0.42 + 0.58 * 0.70710678;
+    return baseColor * clamp(shade / flatSurfaceShade, 0.5, 1.2);
   }
 `;
 

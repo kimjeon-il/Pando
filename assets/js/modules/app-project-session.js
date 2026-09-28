@@ -108,7 +108,8 @@ export function createProjectSession() {
       layerVisibility: normalizeLayerVisibility(),
       physicalSettings: {
         terrainVisible: true,
-        terrainStyle: 'political',
+        terrainStyle: 'physical',
+        terrainStyleVersion: 1,
         hydroLayers: {
           rivers_hydro: true,
           lakes_natural_earth: true,
