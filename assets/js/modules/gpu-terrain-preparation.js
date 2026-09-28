@@ -180,7 +180,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
         if (requestGeneration !== epoch || disposed || controller.signal.aborted) return;
         if (error.demDecodeFailure && !unusableReported) {
           unusableReported = true;
-          onUnusable?.();
+          onUnusable?.(String(error?.message || error));
         }
         const attempts = Number(previousFailure?.attempts || 0) + 1;
         const retryDelay = attempts <= 3 ? Math.min(4000, 400 * 2 ** (attempts - 1)) : 30000;
@@ -281,7 +281,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
           console.warn('Terrain upload failed', error);
           if (terrainManifest?.representation === 'dem-relief-v1' && !unusableReported) {
             unusableReported = true;
-            onUnusable?.();
+            onUnusable?.(String(error?.message || error));
           }
         }
       }).finally(() => uploadKeys.delete(key));
@@ -393,7 +393,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       if (!prepared.length && targetSpecs.length && !unusableReported
           && targetSpecs.every(spec => Number(terrainTileFailures.get(spec.key)?.attempts || 0) >= 4)) {
         unusableReported = true;
-        onUnusable?.();
+        onUnusable?.('DEM의 표시 가능한 타일을 모두 불러오지 못했습니다.');
       }
       return prepared;
     }
@@ -419,7 +419,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
         if (requestEpoch === epoch && !controller.signal.aborted) {
           tintPending = false;
           console.warn('DEM terrain tint unavailable', error);
-          if (!unusableReported) { unusableReported = true; onUnusable?.(); }
+          if (!unusableReported) { unusableReported = true; onUnusable?.(String(error?.message || error)); }
         }
       }).finally(() => controllers.delete(controller));
     }

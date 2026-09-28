@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGpuTerrainPreparation } from '../../assets/js/modules/gpu-terrain-preparation.js';
 
-function fixture(t) {
+function fixture(t, onUnusable = () => {}) {
   const requests = [];
   const jobs = [];
   const deleted = [];
@@ -11,6 +11,7 @@ function fixture(t) {
   t.mock.method(globalThis, 'fetch', (url, options) => new Promise((resolve, reject) => requests.push({ url, options, resolve, reject })));
   const owner = createGpuTerrainPreparation({
     tileUrl: spec => `https://example.test/${spec.key}`,
+    onUnusable,
     isMobile: () => false,
     invalidate: () => {},
     geoDistance: () => 0,
@@ -87,7 +88,8 @@ test('terrain cache evicts the least recently used unretained tile when the byte
 });
 
 test('DEM decoding never retries with color-managed bitmap defaults', async t => {
-  const { owner, requests } = fixture(t);
+  const failures = [];
+  const { owner, requests } = fixture(t, reason => failures.push(reason));
   owner.setManifest({ representation: 'dem-relief-v1', levels: [{ id: 0 }] });
   let decodeCalls = 0;
   globalThis.createImageBitmap = async () => { decodeCalls += 1; throw new Error('options unsupported'); };
@@ -97,6 +99,7 @@ test('DEM decoding never retries with color-managed bitmap defaults', async t =>
   await settle();
   assert.equal(decodeCalls, 1);
   assert.equal(owner.stats().terrainFailureCount, 1);
+  assert.deepEqual(failures, ['options unsupported']);
   owner.dispose();
 });
 

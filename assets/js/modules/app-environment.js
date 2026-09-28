@@ -1,5 +1,8 @@
 import { interactionCssProperties } from './map-interaction-style.js';
-import { TERRAIN_RASTER_DATASET, terrainRasterManifestUrl } from './terrain-manifest.js';
+import { TERRAIN_DEM_VERSION, TERRAIN_RASTER_DATASET, selectTerrainManifestUrls, terrainRasterManifestUrl } from './terrain-manifest.js';
+
+// Keep the official source gated until the published tiles pass preview checks.
+const TERRAIN_DEM_DEFAULT_ENABLED = false;
 /** Environment: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -18,6 +21,9 @@ export function createEnvironment() {
   let PHYSICAL_DATA_BASE_URL;
   let TERRAIN_RASTER_MANIFEST_URL;
   let TERRAIN_DEV_DEM_MANIFEST_URL;
+  let TERRAIN_PRIMARY_MANIFEST_URL;
+  let TERRAIN_FALLBACK_MANIFEST_URL;
+  let TERRAIN_SOURCE_CHOICE;
   let HISTORICAL_LIBRARY_DATA_URL;
   let PHYSICAL_DATASET;
   let TERRAIN_DATASET;
@@ -222,6 +228,16 @@ export function createEnvironment() {
         ? 'http://127.0.0.1:4174/terrain/v0.13.0/manifest.json' : null;
       return explicit || local ? new URL(String(explicit || local), location.href) : null;
     })());
+    const terrainSelection = selectTerrainManifestUrls({
+      official: new URL(`https://kimjeon-il.github.io/world-map-terrain-v${TERRAIN_DEM_VERSION}/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),
+      raster: TERRAIN_RASTER_MANIFEST_URL,
+      dev: TERRAIN_DEV_DEM_MANIFEST_URL,
+      preview: new URLSearchParams(location.search).get('demTerrain') === 'preview',
+      defaultDem: TERRAIN_DEM_DEFAULT_ENABLED,
+    });
+    (TERRAIN_PRIMARY_MANIFEST_URL = terrainSelection.primary);
+    (TERRAIN_FALLBACK_MANIFEST_URL = terrainSelection.fallback);
+    (TERRAIN_SOURCE_CHOICE = terrainSelection.source);
 
     (HISTORICAL_LIBRARY_DATA_URL = new URL('historical-library-pilot.json', PHYSICAL_DATA_BASE_URL));
 
@@ -445,6 +461,9 @@ export function createEnvironment() {
     get PHYSICAL_DATA_BASE_URL() { return PHYSICAL_DATA_BASE_URL; },
     get TERRAIN_RASTER_MANIFEST_URL() { return TERRAIN_RASTER_MANIFEST_URL; },
     get TERRAIN_DEV_DEM_MANIFEST_URL() { return TERRAIN_DEV_DEM_MANIFEST_URL; },
+    get TERRAIN_PRIMARY_MANIFEST_URL() { return TERRAIN_PRIMARY_MANIFEST_URL; },
+    get TERRAIN_FALLBACK_MANIFEST_URL() { return TERRAIN_FALLBACK_MANIFEST_URL; },
+    get TERRAIN_SOURCE_CHOICE() { return TERRAIN_SOURCE_CHOICE; },
     get STORAGE_KEY() { return STORAGE_KEY; },
     get TERRAIN_DATASET() { return TERRAIN_DATASET; },
     get TERRAIN_OCEAN_REPRESENTATIVE() { return TERRAIN_OCEAN_REPRESENTATIVE; },

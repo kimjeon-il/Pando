@@ -26,9 +26,9 @@ const common = (sample) => `
     return mix(vec3(0.42, 0.66, 0.82), vec3(0.10, 0.24, 0.39), depth);
   }
   vec3 terrainColor() {
-    vec4 packed = ${sample}(uTerrain, vUv);
-    float heightMeters = elevation(packed);
-    float shade = packed.b;
+    vec4 encodedPixel = ${sample}(uTerrain, vUv);
+    float heightMeters = elevation(encodedPixel);
+    float shade = encodedPixel.b;
     if (uShadeBlend > 0.001 && abs(vLonLat.y) < 89.5) {
       shade = mix(shade, derivedShade(vUv), uShadeBlend);
     }
@@ -46,6 +46,7 @@ export function terrainDemFragmentSource(glVersion) {
   // from uTerrain. At texel centers RGBA is exact even with LINEAR filtering.
   const source = `
     precision highp float;
+    precision ${webGl2 ? 'highp' : 'mediump'} int;
     ${webGl2 ? 'in' : 'varying'} vec2 vUv;
     ${webGl2 ? 'in' : 'varying'} vec2 vLonLat;
     ${webGl2 ? 'in' : 'varying'} float vDepth;

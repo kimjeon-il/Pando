@@ -5,7 +5,7 @@ import { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan }
 import { createGpuResourceLifecycle, createGpuUploadScope } from './gpu-resource-lifecycle.js';
 import { createGpuWorkerChannels } from './gpu-worker-channels.js';
 import { createGpuTerrainPreparation } from './gpu-terrain-preparation.js';
-import { TERRAIN_DEM_FORMAT, TERRAIN_RASTER_DATASET, TERRAIN_RASTER_VERSION, terrainAssetUrl, validateTerrainManifest } from './terrain-manifest.js';
+import { TERRAIN_DEM_FORMAT, TERRAIN_RASTER_DATASET, TERRAIN_RASTER_FORMAT, TERRAIN_RASTER_VERSION, terrainAssetUrl, validateTerrainManifest } from './terrain-manifest.js';
 import { terrainDemFragmentSource } from './terrain-dem-shaders.js';
 import { resolveMapInteractionStyle } from './map-interaction-style.js';
 import '../workers/canvas-scene-composition-core.js';
@@ -333,6 +333,8 @@ export function createGpuMapRenderer(deps) {
     });
     let terrainManifest = null;
     let terrainManifestUrl = null;
+    let terrainSource = 'raster';
+    let terrainFallbackReason = null;
     let terrainFallbackPending = false;
     let demShadeBlend = 0;
     let demSettleStartedAt = 0;
@@ -348,7 +350,7 @@ export function createGpuMapRenderer(deps) {
       },
       tintUrl: () => terrainAssetUrl(terrainManifest.tint.url, { manifestUrl: terrainManifestUrl,
         dataBaseUrl: PHYSICAL_DATA_BASE_URL, revision: terrainManifest.assetsSha256.slice(0, 12) }),
-      onUnusable: () => { void fallbackTerrainToRaster('DEM 타일을 사용할 수 없습니다.'); },
+      onUnusable: reason => { void fallbackTerrainToRaster(reason || 'DEM 타일을 사용할 수 없습니다.'); },
     });
     let preparedTerrain = [];
     function prepareTerrain(frame) {
@@ -4172,22 +4174,26 @@ export function createGpuMapRenderer(deps) {
         const fallback = validateTerrainManifest(await response.json());
         if (generation === projectGeneration && terrainManifest === originalManifest) {
           console.warn('DEM terrain fallback:', reason);
-          setTerrainManifest(fallback, TERRAIN_RASTER_MANIFEST_URL);
+          setTerrainManifest(fallback, TERRAIN_RASTER_MANIFEST_URL, { source: 'fallback', fallbackReason: reason });
           onTerrainSourceChanged?.(fallback);
         }
       } catch (error) { console.warn('Raster terrain fallback failed', error); }
       finally { terrainFallbackPending = false; }
     }
 
-    function setTerrainManifest(manifest, manifestUrl = TERRAIN_RASTER_MANIFEST_URL) {
+    function setTerrainManifest(manifest, manifestUrl = TERRAIN_RASTER_MANIFEST_URL,
+      { source = 'raster', fallbackReason = null } = {}) {
       if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
       demShadeBlend = 0; demSettleStartedAt = 0;
       terrainManifest = manifest?.levels?.length ? manifest : null;
       terrainManifestUrl = manifestUrl;
+      terrainSource = source;
+      terrainFallbackReason = fallbackReason;
       terrainPreparation.setManifest(terrainManifest);
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && gl && !ensureTerrainDemProgram()) {
         void fallbackTerrainToRaster('DEM 셰이더 정밀도가 부족합니다.');
       }
+      window.__PANDOLAB_GPU_METRICS__ = getStats();
       invalidatePhysicalScene('terrain-manifest');
     }
 
@@ -4206,6 +4212,14 @@ export function createGpuMapRenderer(deps) {
     function publishLightweightMetrics() {
       const target = window.__PANDOLAB_GPU_METRICS__ ||= {};
       target.renderer = rendererMode;
+      const terrainStats = terrainPreparation.stats();
+      Object.assign(target, terrainStats);
+      target.terrainRepresentation = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d'
+        ? TERRAIN_RASTER_FORMAT : terrainManifest?.representation || null;
+      target.terrainDatasetVersion = activeTerrainSourceInfo().version;
+      target.terrainSource = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource;
+      target.terrainFallbackReason = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason;
+      target.terrainTargetLevel = terrainStats.terrainLevel;
       target.requestedRevision = currentRenderRevision;
       target.displayedRevision = displayedRenderRevision;
       target.p95CpuSubmitMs = cachedDetailedStats.p95CpuSubmitMs;
@@ -4248,8 +4262,11 @@ export function createGpuMapRenderer(deps) {
         firstCanonicalFrameMs,
         canonicalFrameFallbackCount,
         projectGeneration,
-        terrainRepresentation: terrainManifest?.representation || null,
+        terrainRepresentation: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d'
+          ? TERRAIN_RASTER_FORMAT : terrainManifest?.representation || null,
         terrainDatasetVersion: activeTerrainSourceInfo().version,
+        terrainSource: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource,
+        terrainFallbackReason: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason,
         terrainShadeBlend: demShadeBlend,
         projectRenderBlocked,
         sceneCacheValid: sceneColorCache.isValid(),
@@ -4257,6 +4274,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function getStats({ detailed = true } = {}) {
+      const terrainStats = terrainPreparation.stats();
       if (detailed && performance.now() - cachedDetailedStats.at > 250) {
         const sorted = [...frameTimes].sort((a, b) => a - b);
         const p95 = sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] : 0;
@@ -4274,8 +4292,12 @@ export function createGpuMapRenderer(deps) {
         dataRevision: DATA_REVISION,
         dataCacheName: `pandolab-data-${DATA_REVISION}`,
         projectGeneration,
-        terrainRepresentation: terrainManifest?.representation || null,
+        terrainRepresentation: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d'
+          ? TERRAIN_RASTER_FORMAT : terrainManifest?.representation || null,
         terrainDatasetVersion: activeTerrainSourceInfo().version,
+        terrainSource: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource,
+        terrainFallbackReason: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason,
+        terrainTargetLevel: terrainStats.terrainLevel,
         terrainShadeBlend: demShadeBlend,
         projectRenderBlocked,
         activeWebGlContextCount: renderDevice && isWebGlRenderer() ? 1 : 0,
@@ -4364,7 +4386,7 @@ export function createGpuMapRenderer(deps) {
         webGlVersion: glVersion || null,
         forcedRenderer: forcedRenderer || null,
         fallbackReason,
-        ...terrainPreparation.stats(),
+        ...terrainStats,
         hydroFeaturesLoaded: state.hydroFeatureCache?.size || 0,
         interactionActive,
         paletteDirty: { ...paletteDirty },
