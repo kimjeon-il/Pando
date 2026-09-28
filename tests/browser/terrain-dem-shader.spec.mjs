@@ -63,13 +63,16 @@ for (const version of [2, 1]) test(`DEM fragment compiles and switches B/height 
     };
     const quick = sample(0), detailed = sample(1);
     gl.uniform1f(uniform('uPhysicalStyle'), 1);
+    const tintedQuick = sample(0);
     const tinted = sample(1);
-    return { quick, detailed, tinted };
+    return { quick, detailed, tintedQuick, tinted };
   }, { fragment: terrainDemFragmentSource(version), version });
   if (result.unavailable) test.skip(true, `WebGL${version} unavailable`);
   expect(result.quick[0]).toBeGreaterThanOrEqual(127);
   expect(result.quick[0]).toBeLessThanOrEqual(129);
   expect(result.detailed[0]).toBeGreaterThan(result.quick[0] + 50);
+  expect(result.tintedQuick[0]).toBeGreaterThanOrEqual(118);
+  expect(result.tintedQuick[0]).toBeLessThanOrEqual(124);
   expect(result.tinted[0]).toBeGreaterThan(result.tinted[1]);
   expect(result.tinted[1]).toBeGreaterThan(result.tinted[2]);
 });

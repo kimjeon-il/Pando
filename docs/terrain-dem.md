@@ -1,6 +1,6 @@
 # DEM 지형 자료 (0.13.0)
 
-WebGL1·2의 기본 지형은 공개된 ETOPO DEM `0.13.0`이다. DEM manifest, tint 또는 데이터셋을 사용할 수 없으면 Natural Earth raster `0.12.6`으로 전환한다. 개별 고해상도 타일만 실패하면 먼저 같은 DEM의 낮은 LOD를 사용한다. Canvas는 raster `0.12.6`을 계속 사용한다. UI의 없음·흑백·색채 선택과 프로젝트 저장 형식은 그대로다.
+WebGL1·2의 기본 지형은 공개된 ETOPO DEM `0.13.0`의 색채 표현이다. DEM manifest, tint 또는 데이터셋을 사용할 수 없으면 Natural Earth raster `0.12.6`으로 전환한다. 개별 고해상도 타일만 실패하면 먼저 같은 DEM의 낮은 LOD를 사용한다. Canvas는 raster `0.12.6`을 계속 사용한다. 기존 프로젝트는 처음 불러올 때 색채 표현으로 한 번 전환되며, 그 뒤 사용자가 선택한 없음·흑백·색채 설정을 저장한다. 색채 표현은 평면의 기준 밝기를 유지하도록 DEM 음영을 정규화해 지형의 명암이 흐려지지 않게 합성한다.
 
 DEM 데이터는 앱 저장소가 아닌 [별도 공개 저장소](https://github.com/kimjeon-il/world-map-terrain-v0.13.0)의 GitHub Pages에서 제공한다. 앱은 `https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.0/manifest.json`을 읽는다. 데이터 자산은 해당 버전에서 수정하지 않고, 변경이 필요하면 새 버전 경로를 만든다. 배포 순서는 데이터 업로드와 HTTP 검증, `?demTerrain=preview` 검수, 앱의 기본값 전환이다.
 
