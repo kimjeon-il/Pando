@@ -66,8 +66,6 @@ test('WebGL2 uses DEM height tiles and tint through both terrain styles', async 
     { timeout: 60_000 }).toBe('development');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTilesLoaded || 0),
     { timeout: 60_000 }).toBeGreaterThan(0);
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTintReady),
-    { timeout: 60_000 }).toBe(true);
   await page.locator('#mapDisplayBtn').click();
   await page.locator('[data-map-display-row="terrain"]').click();
   await expect(page.locator('label[for="terrainPoliticalRadio"]')).toBeVisible();
@@ -77,6 +75,8 @@ test('WebGL2 uses DEM height tiles and tint through both terrain styles', async 
     await page.locator('[data-map-display-row="terrain"]').click();
   }
   await page.locator('label[for="terrainPhysicalRadio"]').click();
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTintReady),
+    { timeout: 60_000 }).toBe(true);
   const moved = await page.evaluate(() => {
     const host = window.__PANDOLAB_MAP_HOST__;
     const old = host.getViewState();
@@ -94,7 +94,7 @@ test('WebGL2 uses DEM height tiles and tint through both terrain styles', async 
   expect(errors).toEqual([]);
 });
 
-test('official preview uses published URL while an ordinary visit keeps raster', async ({ page }) => {
+test('official preview and default use published URL while raster override keeps the old dataset', async ({ page }) => {
   test.setTimeout(180_000);
   const { requested, errors } = await openDem(page, 'webgl2', false, 'preview');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
@@ -103,27 +103,48 @@ test('official preview uses published URL while an ordinary visit keeps raster',
     { timeout: 60_000 }).toBeGreaterThan(0);
   expect(requested).toContain('manifest.json');
   expect(errors).toEqual([]);
-  const requestCount = requested.length;
   await page.goto('/?renderer=webgl2&debug=1');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
+    { timeout: 60_000 }).toBe('official');
+  await page.goto('/?renderer=webgl2&debug=1&demTerrain=raster');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation),
     { timeout: 60_000 }).toBe('raster-rgba-v1');
-  expect(requested).toHaveLength(requestCount);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
+    { timeout: 60_000 }).toBe('raster');
 });
 
-test('published DEM tiles load in the browser without request routing', async ({ page }) => {
+test('published DEM tiles load by default in the browser without request routing', async ({ page }) => {
   test.skip(process.env.PANDOLAB_VERIFY_LIVE_DEM !== '1', 'Run explicitly against the published terrain Pages site');
   test.setTimeout(180_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?renderer=webgl2&debug=1&demTerrain=preview');
+  const appUrl = process.env.PANDOLAB_VERIFY_LIVE_APP_URL;
+  await page.goto(appUrl
+    ? new URL('?renderer=webgl2&debug=1', appUrl).href
+    : '/?renderer=webgl2&debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
-    { timeout: 60_000 }).toBe('preview');
+    { timeout: 60_000 }).toBe('official');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTilesLoaded || 0),
     { timeout: 60_000 }).toBeGreaterThan(0);
+  await page.locator('#mapDisplayBtn').click();
+  await page.locator('[data-map-display-row="terrain"]').click();
+  await page.locator('label[for="terrainPhysicalRadio"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTintReady),
     { timeout: 60_000 }).toBe(true);
   expect(errors).toEqual([]);
+});
+
+test('official DEM manifest failure switches the whole dataset to raster', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.route(`${officialOrigin}/terrain/v0.13.0/manifest.json*`, route =>
+    route.fulfill({ status: 503, body: 'DEM unavailable' }));
+  await page.goto('/?renderer=webgl2&debug=1');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
+    { timeout: 90_000 }).toBe('fallback');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation),
+    { timeout: 60_000 }).toBe('raster-rgba-v1');
+  expect(await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainFallbackReason)).toBeTruthy();
 });
 
 test('WebGL1 with insufficient fragment precision falls back to raster as a whole', async ({ page }) => {

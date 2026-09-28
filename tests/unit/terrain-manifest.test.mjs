@@ -44,7 +44,7 @@ test('relative and absolute data URLs resolve from the manifest without coupling
   }).href, 'https://tiles.example/0-0.webp');
 });
 
-test('terrain source selection keeps preview gated and supplies a raster fallback', () => {
+test('terrain source selection keeps raster fallback and diagnostic overrides', () => {
   assert.equal(typeof terrainSources.selectTerrainManifestUrls, 'function');
   const official = new URL('https://example.test/terrain/v0.13.0/manifest.json');
   const rasterUrl = new URL('https://example.test/terrain/v0.12.6/manifest.json');
@@ -53,6 +53,7 @@ test('terrain source selection keeps preview gated and supplies a raster fallbac
   assert.deepEqual(select({}), { primary: rasterUrl, fallback: null, source: 'raster' });
   assert.deepEqual(select({ preview: true }), { primary: official, fallback: rasterUrl, source: 'preview' });
   assert.deepEqual(select({ defaultDem: true }), { primary: official, fallback: rasterUrl, source: 'official' });
+  assert.deepEqual(select({ defaultDem: true, rasterOnly: true }), { primary: rasterUrl, fallback: null, source: 'raster' });
   assert.deepEqual(select({ defaultDem: true, dev }), { primary: dev, fallback: rasterUrl, source: 'development' });
 });
 

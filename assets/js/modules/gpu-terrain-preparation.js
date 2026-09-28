@@ -350,7 +350,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
 
     function prepare() {
       if (!view.visible || !terrainManifest?.levels?.length || !gl || disposed) return [];
-      if (terrainManifest.representation === 'dem-relief-v1') requestTint();
+      if (terrainManifest.representation === 'dem-relief-v1' && view.physicalStyle === 'physical') requestTint();
       const frameContext = activeFrameContext;
       if (!frameContext) return false;
       const specsByLevel = terrainCandidateLevels(frameContext);
