@@ -262,7 +262,8 @@ export function createDomainAssembly() {
         for (const [fid, cached] of dependencies.projectState.state.hydroFeatureByFid) {
           if (String(cached?.properties?.pandolab_id || cached?.id) === key) dependencies.projectState.state.hydroFeatureByFid.set(fid, full);
         }
-        if (dependencies.projectState.state.selected?.domain === 'hydro' && dependencies.projectState.state.selected.id === key) objectPropertyController.presentHydro(key, true);
+        const selected = dependencies.projectState.state.selected;
+        if (selected?.domain === 'hydro' && selected.id === key) objectPropertyController.present(selected, { refreshOnly: true });
       },
     });
 
