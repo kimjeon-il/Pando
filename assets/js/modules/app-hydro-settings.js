@@ -4,6 +4,7 @@
  */
 export function createHydroSettings() {
   let dependencies;
+  const TERRAIN_STYLE_VERSION = 1;
 
   function connect(ports) {
     if (dependencies) throw new Error('hydro-settings already connected');
@@ -34,7 +35,9 @@ export function createHydroSettings() {
     )));
     return {
       terrainVisible: value?.terrainVisible !== false,
-      terrainStyle: value?.terrainStyle === 'physical' ? 'physical' : 'political',
+      terrainStyle: value?.terrainStyleVersion === TERRAIN_STYLE_VERSION && value?.terrainStyle === 'political'
+        ? 'political' : 'physical',
+      terrainStyleVersion: TERRAIN_STYLE_VERSION,
       hydroLayers,
       userFeaturesVisible: value?.userFeaturesVisible !== false,
       hiddenHydroIds,
