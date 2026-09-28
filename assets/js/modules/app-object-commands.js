@@ -25,7 +25,7 @@ export function createObjectCommands() {
       const fallback = group === 'subunits' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT : group === 'regions' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION : dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT;
       return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: (0, dependencies.objectPresentation.territorialUnitById)(key)?.properties?.unitType || fallback, id: key });
     }
-    if (dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group]) return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: (0, dependencies.propertyEditingA.distributionLayerById)(key)?.type || dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group], id: key });
+    if (group === 'distributions') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: 'distribution', id: key });
     if (group === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(key)) return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: (0, dependencies.hydroPresentation.hydroEditById)(key)?.properties?.category || 'river', id: key });
     if (group === 'genericFeatures') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'generic', type: 'feature', id: key });
     if (group === 'labels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'label', type: dependencies.projectState.state.labels.find(item => String(item.id) === key)?.kind || 'label', id: key });
@@ -58,7 +58,7 @@ export function createObjectCommands() {
     }
     if (ref.domain === 'distribution') {
       const layer = (0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
-      return { name: layer?.name || ref.id, type: dependencies.objectModelA.DISTRIBUTION_TYPE_LABELS[layer?.type || ref.type] || '분포', detail: `${(0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, ref.id).length}개 분포` };
+      return { name: layer?.name || ref.id, type: '분포', detail: `${(0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, ref.id).length}개 영역` };
     }
     if (ref.domain === 'generic') {
       const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
@@ -114,7 +114,7 @@ export function createObjectCommands() {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return '';
     if (ref.domain === 'territorial') return ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT ? 'subunits' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : 'subunits';
-    if (ref.domain === 'distribution') return dependencies.distributionPresentation.DISTRIBUTION_TYPE_GROUPS[ref.type] || '';
+    if (ref.domain === 'distribution') return 'distributions';
     if (ref.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(ref.id)) return 'hydro';
     if (ref.domain === 'generic') return 'genericFeatures';
     if (ref.domain === 'label') return 'labels';

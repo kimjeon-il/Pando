@@ -42,7 +42,7 @@ export function createInteractionPackets() {
     const order = dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS;
     const objectOrder = new Map((dependencies.projectState.state.layerPresentation?.objectOrder || []).map((key, index) => [key, index]));
     const groupForDatum = datum => datum?.layer
-      ? dependencies.distributionPresentation.DISTRIBUTION_TYPE_GROUPS[datum.layer.type]
+      ? 'distributions'
       : datum?.properties?.unitType
         ? presentationGroupForTerritorialFeature(datum)
         : 'genericFeatures';

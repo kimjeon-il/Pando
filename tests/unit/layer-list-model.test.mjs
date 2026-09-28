@@ -39,14 +39,14 @@ const hydro = [{ id: 'builtin-river', name: 'HydroRIVERS', isBuiltin: true, hydr
   { id: 'user-river', name: '나의 강', hydroCategory: 'river' }];
 
 test('political objects and all hydro occupy two folders; unrelated types remain direct', () => {
-  const m = fixture({ countries, hydro, subunits: [{ id: 's', name: '홍콩' }], languages: [{ id: 'de', name: '독일어권' }], regions: [{ id: 'r', name: '알자스' }], labels: [{ id: 'p', name: '가 지명' }] });
+  const m = fixture({ countries, hydro, subunits: [{ id: 's', name: '홍콩' }], distributions: [{ id: 'de', name: '독일어권' }], regions: [{ id: 'r', name: '알자스' }], labels: [{ id: 'p', name: '가 지명' }] });
   assert.deepEqual(m.bundles.map(b => b.name), ['정치체', '지형지물']);
   assert.deepEqual(m.bundles[0].items.map(i => i.id), ['DEU', 'new', 'r', 's']);
   assert.deepEqual(m.bundles[0].items.map(i => i.typeLabel), ['국가', '국가', '지방', '하위단위']);
   assert.equal(m.bundles[1].items.length, 3);
   assert.ok(m.bundles[1].items.some(i => i.id === 'user-river'));
   assert.deepEqual(m.objects.map(i => i.name), ['가 지명', '독일어권']);
-  assert.deepEqual(m.objects.map(i => i.typeLabel), ['지명', '언어']);
+  assert.deepEqual(m.objects.map(i => i.typeLabel), ['지명', '분포']);
 });
 test('external project countries share the political folder without changing their provenance', () => {
   const m = fixture({ countries }, false);

@@ -63,7 +63,6 @@ export function createGlobalInputBindings() {
         if (!(0, dependencies.platform.$)('objectActionsMenu')?.classList.contains('hidden')) { (0, dependencies.objectOperationsA.closeObjectActionsMenu)({ restoreFocus: true }); return; }
         if (dependencies.libraryUi.historicalLibraryController?.isOpen()) { dependencies.libraryUi.historicalLibraryController.close(); return; }
         if (!(0, dependencies.platform.$)('territorialTypeModal')?.classList.contains('hidden')) { (0, dependencies.territorialConversion.closeTerritorialTypeModal)(); return; }
-        if (!(0, dependencies.platform.$)('distributionTypeModal')?.classList.contains('hidden')) { (0, dependencies.platform.$)('distributionTypeCancelBtn')?.click(); return; }
         if (!(0, dependencies.platform.$)('gisImportModal')?.classList.contains('hidden')) { (0, dependencies.platform.$)('gisImportCancelBtn')?.click(); return; }
         if (!(0, dependencies.platform.$)('gisExportModal')?.classList.contains('hidden')) { dependencies.gisServicesA.gisExportController?.close(); return; }
         if (dependencies.projectRestore.confirmModalController?.isOpen()) { (0, dependencies.projectRestore.closeConfirmModal)(); return; }

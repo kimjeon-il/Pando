@@ -18,7 +18,7 @@ test('country import plans normalize formats, mappings, and merge policy', () =>
   assert.equal(country.openMode, 'merge');
   assert.equal(country.mergePolicy, 'same-id-multipolygon');
   assert.deepEqual(country.propertyMapping, {
-    id: 'iso_a3', name: 'name', country: '', parent: '', level: '', color: '',
+    id: 'iso_a3', name: 'name', country: '', parent: '', level: '', color: '', value: '',
   });
 });
 

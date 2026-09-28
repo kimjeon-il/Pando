@@ -32,11 +32,11 @@ test('object registry exposes canonical domain/category/editor metadata', () => 
 
 test('object refs resolve through one registry key and presentation mapping', () => {
   assert.equal(objectTypeKeyForRef({ domain: 'territorial', type: 'subunit', id: 'a' }), 'subunit');
-  assert.equal(objectTypeKeyForRef({ domain: 'distribution', type: 'language', id: 'd' }), 'distribution');
+  assert.equal(objectTypeKeyForRef({ domain: 'distribution', type: 'distribution', id: 'd' }), 'distribution');
   assert.equal(objectTypeKeyForRef({ domain: 'hydro', type: 'lake', id: 'l' }), 'lake');
   assert.equal(objectTypeDescriptor({ domain: 'generic', type: 'feature' }), MAP_OBJECT_TYPES.generic);
   assert.equal(objectTypeLabel({ domain: 'territorial', type: 'subunit' }), '하위단위');
-  assert.equal(layerGroupForObjectType('distribution', { subtype: 'ethnicity' }), 'ethnicities');
+  assert.equal(layerGroupForObjectType('distribution'), 'distributions');
   assert.equal(presentationGroupForObjectType('river'), 'rivers');
   assert.equal(categoryForLayerGroup('genericFeatures'), 'features');
 });

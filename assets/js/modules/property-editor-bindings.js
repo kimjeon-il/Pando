@@ -9,6 +9,7 @@ export function createPropertyEditorBindings({
   commitDistributionMeta,
   commitLabelEdit,
   removeDistributionEntry,
+  updateDistributionEntryValue,
   addTerritorialDistributionEntry,
   requestDraftDiscard,
   completeToolStart,
@@ -73,14 +74,46 @@ export function createPropertyEditorBindings({
       { id: 'regionValidToInput', field: 'validTo', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
       { id: 'regionNotesInput', field: 'notes', commit: commitTerritorialUnitMeta },
       { id: 'distributionNameInput', field: 'name', commit: commitDistributionMeta, transform: value => value.trim() },
+      { id: 'distributionUnitInput', field: 'unit', commit: commitDistributionMeta, transform: value => value.trim() },
       { id: 'distributionParentInput', field: 'parentId', commit: commitDistributionMeta },
       { id: 'labelNameInput', field: 'name', commit: commitLabelEdit, transform: value => value.trim() },
       { id: 'labelKindInput', field: 'kind', commit: commitLabelEdit },
       { id: 'labelNotesInput', field: 'notes', commit: commitLabelEdit },
     ]);
+    const commitScale = event => {
+      const mode = $('distributionValueScaleInput').value;
+      if (mode === 'auto') return commitDistributionMeta('valueScale', { mode: 'auto' });
+      if (event.target.id === 'distributionValueScaleInput'
+        && $('distributionValueMinInput').value === '' && $('distributionValueMaxInput').value === '') {
+        const values = [...$('distributionEntryList').querySelectorAll('[data-distribution-entry-value]')]
+          .map(input => Number(input.value)).filter(Number.isFinite);
+        let min = 0, max = 1;
+        if (values.length) {
+          min = Infinity;
+          max = -Infinity;
+          for (const value of values) { min = Math.min(min, value); max = Math.max(max, value); }
+        }
+        $('distributionValueMinInput').value = String(min);
+        $('distributionValueMaxInput').value = String(max > min ? max : min + 1);
+      }
+      return commitDistributionMeta('valueScale', {
+        mode: 'manual', min: $('distributionValueMinInput').value, max: $('distributionValueMaxInput').value,
+      });
+    };
+    for (const id of ['distributionValueScaleInput', 'distributionValueMinInput', 'distributionValueMaxInput']) {
+      listen($(id), 'change', commitScale);
+    }
+    listen($('distributionEntryList'), 'change', event => {
+      const input = event.target.closest('[data-distribution-entry-value]');
+      if (input) updateDistributionEntryValue(input.dataset.distributionEntryValue, input.value);
+    });
     listen($('distributionEntryList'), 'click', event => {
       const button = event.target.closest('[data-distribution-entry-delete]');
       if (button) removeDistributionEntry(button.dataset.distributionEntryDelete);
+    });
+    listen($('distributionTerritorialUnitInput'), 'change', event => {
+      $('addTerritorialDistributionBtn').disabled = getPrimary()?.domain !== 'distribution'
+        || $('addGeometryDistributionBtn').disabled || !event.target.value;
     });
     listen($('addTerritorialDistributionBtn'), 'click', addTerritorialDistributionEntry);
     listen($('addGeometryDistributionBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(startGeometryDistributionDraft())));
@@ -122,17 +155,22 @@ export function createPropertyEditorBindings({
       const target = $('genericFeatureConvertType').value;
       const countryField = $('genericFeatureConvertCountryField');
       const distributionField = $('genericFeatureConvertDistributionField');
+      const distributionValueField = $('genericFeatureConvertDistributionValueField');
       countryField?.classList.toggle('hidden', !['subunit', 'region'].includes(target) || countryField.dataset.singleChoice === 'true');
       distributionField?.classList.toggle('hidden', target !== 'distribution' || distributionField.dataset.singleChoice === 'true');
+      distributionValueField?.classList.toggle('hidden', target !== 'distribution');
       const countryRequired = ['subunit', 'region'].includes(target);
       const distributionRequired = target === 'distribution';
       $('convertGenericFeatureBtn').disabled = (countryRequired
         && (!$('genericFeatureConvertCountryInput').value || countryField?.dataset.invalidChoice === 'true'))
-        || (distributionRequired && !$('genericFeatureConvertDistributionInput').value);
+        || (distributionRequired && (!$('genericFeatureConvertDistributionInput').value
+          || $('genericFeatureConvertDistributionValueInput').value === ''
+          || !Number.isFinite(Number($('genericFeatureConvertDistributionValueInput').value))));
     };
     listen($('genericFeatureConvertType'), 'change', syncGenericFeatureConversionFields);
     listen($('genericFeatureConvertCountryInput'), 'change', syncGenericFeatureConversionFields);
     listen($('genericFeatureConvertDistributionInput'), 'change', syncGenericFeatureConversionFields);
+    listen($('genericFeatureConvertDistributionValueInput'), 'input', syncGenericFeatureConversionFields);
     listen($('convertGenericFeatureBtn'), 'click', () => {
       const primary = getPrimary();
       if (primary?.domain !== 'generic') return;
@@ -140,6 +178,7 @@ export function createPropertyEditorBindings({
         target: $('genericFeatureConvertType')?.value,
         sovereignId: $('genericFeatureConvertCountryInput')?.value,
         distributionLayerId: $('genericFeatureConvertDistributionInput')?.value,
+        distributionValue: $('genericFeatureConvertDistributionValueInput')?.value,
       });
     });
 

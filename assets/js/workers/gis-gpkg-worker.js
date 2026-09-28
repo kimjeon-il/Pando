@@ -250,15 +250,17 @@ function writeAtlasTables(db, payload) {
     createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: territorialRows[tableName] || [], columns: territorialColumns, description: `PandoLab ${unitType} territorial units` });
   }
   const distributionColumns = [
-    { name: 'entry_id' }, { name: 'layer_id' }, { name: 'name' }, { name: 'distribution_type' },
-    { name: 'parent_layer_id' }, { name: 'color' }, { name: 'layer_visible', type: 'INTEGER' }, { name: 'layer_locked', type: 'INTEGER' },
-    { name: 'source_mode' }, { name: 'territorial_unit_id' }, { name: 'share', type: 'REAL' }, { name: 'certainty' },
+    { name: 'entry_id' }, { name: 'layer_id' }, { name: 'name' }, { name: 'unit' },
+    { name: 'value_scale_mode' }, { name: 'value_scale_min', type: 'REAL' }, { name: 'value_scale_max', type: 'REAL' },
+    { name: 'parent_layer_id' }, { name: 'layer_groups_json' }, { name: 'layer_valid_from' }, { name: 'layer_valid_to' },
+    { name: 'color' }, { name: 'layer_visible', type: 'INTEGER' }, { name: 'layer_locked', type: 'INTEGER' },
+    { name: 'source_mode' }, { name: 'territorial_unit_id' }, { name: 'value', type: 'REAL' }, { name: 'certainty' },
     { name: 'valid_from' }, { name: 'valid_to' }, { name: 'layer_metadata_json' }, { name: 'entry_metadata_json' },
   ];
   if (includes('distributions')) {
-    for (const [distributionType, tableName] of Object.entries(self.PandoLabGisAdapters.DISTRIBUTION_TABLES)) {
-      createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: distributionRows[tableName] || [], columns: distributionColumns, description: `PandoLab ${distributionType} distribution entries` });
-    }
+    const tableName = self.PandoLabGisAdapters.DISTRIBUTION_TABLE;
+    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON',
+      rows: distributionRows[tableName] || [], columns: distributionColumns, description: 'PandoLab numeric distribution entries' });
   }
 
   if (gisMode) return;

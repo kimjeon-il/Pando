@@ -79,7 +79,7 @@ export function createLayerList() {
           layerVisibility: dependencies.projectState.state.layerVisibility, itemVisibility: dependencies.projectState.state.itemVisibility,
           group, allIds: layerTreeItems(group).map(item => item.id), ids, visible,
         });
-        if (dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group]) dependencies.distributionPresentation.bumpVisibilityRevision();
+        if (group === 'distributions') dependencies.distributionPresentation.bumpVisibilityRevision();
         if (group === 'countries') dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-item-visibility');
       }
     }
@@ -150,9 +150,8 @@ export function createLayerList() {
         };
       });
     }
-    if (dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group]) {
-      const type = dependencies.distributionPresentation.DISTRIBUTION_GROUP_TYPES[group];
-      return dependencies.projectState.state.distributionLayers.filter(layer => layer.type === type).map(layer => ({
+    if (group === 'distributions') {
+      return dependencies.projectState.state.distributionLayers.map(layer => ({
         id: layer.id,
         name: layer.name,
         color: (0, dependencies.distributionPresentation.distributionColor)(layer),
@@ -211,9 +210,7 @@ export function createLayerList() {
       countryLabels: new Set((0, dependencies.countries.builtinRenderCountries)().labelById.keys()),
       subunits: new Set(dependencies.projectState.state.territorialUnits.filter(feature => feature.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT).map(feature => String(feature.id))),
       regions: new Set(dependencies.projectState.state.territorialUnits.filter(feature => feature.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION).map(feature => String(feature.id))),
-      languages: new Set(dependencies.projectState.state.distributionLayers.filter(layer => layer.type === dependencies.objectCatalog.DISTRIBUTION_TYPES.LANGUAGE).map(layer => layer.id)),
-      ethnicities: new Set(dependencies.projectState.state.distributionLayers.filter(layer => layer.type === dependencies.objectCatalog.DISTRIBUTION_TYPES.ETHNICITY).map(layer => layer.id)),
-      religions: new Set(dependencies.projectState.state.distributionLayers.filter(layer => layer.type === dependencies.objectCatalog.DISTRIBUTION_TYPES.RELIGION).map(layer => layer.id)),
+      distributions: new Set(dependencies.projectState.state.distributionLayers.map(layer => layer.id)),
       hydro: new Set([...Object.keys(dependencies.hydroPresentation.HYDRO_LAYER_META), ...dependencies.projectState.state.hydroEdits.map(feature => String(feature.id))]),
       genericFeatures: new Set(dependencies.projectState.state.genericFeatures.map(feature => String(feature.id))),
       labels: new Set(dependencies.projectState.state.labels.map(label => String(label.id))),

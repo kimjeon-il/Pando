@@ -1,5 +1,6 @@
 import { normalizeCountryFeature } from './country-feature.js';
 import { migrateProjectV4ToV5 } from './subunit-migration.js';
+import { normalizeLayerPresentation } from './layer-presentation.js';
 export { migrateProjectV4ToV5 } from './subunit-migration.js';
 import {
   GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS,
@@ -126,9 +127,59 @@ export function migrateProjectV3ToV4(input) {
   return project;
 }
 
+const LEGACY_DISTRIBUTION_GROUPS = Object.freeze({
+  language: 'languages',
+  ethnicity: 'ethnicities',
+  religion: 'religions',
+});
+
+export function migrateProjectV5ToV6(input) {
+  const project = clone(input);
+  if (Number(project?.schemaVersion) !== 5) throw migrationError('Project v5 migration requires schemaVersion 5.', 'PL-MIGRATION-V5');
+  const oldVisibility = project.layerVisibility || {};
+  const oldItems = project.itemVisibility || {};
+  const nextItems = { ...(oldItems.distributions || {}) };
+  project.distributionLayers = (project.distributionLayers || []).map(layer => {
+    const group = LEGACY_DISTRIBUTION_GROUPS[layer.type];
+    if (group && (oldVisibility[group] === false || oldItems[group]?.[layer.id] === false)) nextItems[layer.id] = false;
+    const rest = { ...layer };
+    delete rest.type;
+    return { ...rest, schemaVersion: 3, unit: '%', valueScale: { mode: 'manual', min: 0, max: 100 } };
+  });
+  project.distributionEntries = (project.distributionEntries || []).map(entry => {
+    const { share, ...rest } = entry;
+    return { ...rest, schemaVersion: 3, value: share };
+  });
+  for (const group of Object.values(LEGACY_DISTRIBUTION_GROUPS)) {
+    delete oldVisibility[group];
+    delete oldItems[group];
+  }
+  project.layerVisibility = { ...oldVisibility, distributions: true };
+  project.itemVisibility = { ...oldItems, distributions: nextItems };
+  const oldPresentation = project.layerPresentation || {};
+  const oldStyles = oldPresentation.styles || {};
+  project.layerPresentation = normalizeLayerPresentation({
+    ...oldPresentation,
+    styles: { ...oldStyles, distributions: oldStyles.languages || oldStyles.ethnicities || oldStyles.religions || oldStyles.distributions },
+  });
+  project.distributionSettings = {
+    renderMode: 'overlap',
+    activeLayerId: '',
+    boundaryVisible: project.distributionSettings?.boundaryVisible !== false,
+  };
+  project.distributionModel = {
+    schemaVersion: 3,
+    sourceModes: ['territorial', 'geometry'],
+    valueKind: 'finite-number',
+  };
+  project.schemaVersion = 6;
+  return project;
+}
+
 export const PROJECT_MIGRATIONS = Object.freeze({
   3: migrateProjectV3ToV4,
   4: migrateProjectV4ToV5,
+  5: migrateProjectV5ToV6,
 });
 
 export function migrationPath(fromVersion, toVersion = PROJECT_SCHEMA_VERSION) {

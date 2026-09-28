@@ -808,9 +808,7 @@ export function createEditingDomain({
     if (plan.kind === 'project-replace') return committer.applyImportedReplacement(result);
     if (plan.kind === 'country-merge') return committer.commitGisMerge(result, plan.payload?.plan);
     if (plan.kind === 'territorial') return committer.commitTerritorialImportWithTransfer(result, plan.source.fileName || '벡터 파일');
-    const target = plan.kind === 'distribution'
-      ? result.distributionType
-      : result.targetType || 'generic';
+    const target = plan.kind === 'distribution' ? 'distribution' : result.targetType || 'generic';
     return committer.importGeoJson({ name: plan.source.fileName || '벡터 파일' }, {
       parsed: result.collection,
       target,
@@ -818,6 +816,7 @@ export function createEditingDomain({
         nameField: result.mapping?.nameField || '',
         countryField: result.mapping?.countryField || '',
         parentField: result.mapping?.parentField || '',
+        valueField: result.mapping?.valueField || '',
       },
     });
   };

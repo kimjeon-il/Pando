@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   migrateProjectToCurrent,
   migrateProjectV3ToV4,
+  migrateProjectV5ToV6,
   migrationPath,
 } from '../../assets/js/modules/project-migrations.js';
 import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
@@ -73,8 +74,36 @@ test('v3 -> v4 migration preserves legacy country and Generic data', () => {
 });
 
 test('migration chain is sequential and rejects unsupported schema ranges', () => {
-  assert.deepEqual(migrationPath(3), [{ from: 3, to: 4 }, { from: 4, to: 5 }]);
+  assert.deepEqual(migrationPath(3), [{ from: 3, to: 4 }, { from: 4, to: 5 }, { from: 5, to: 6 }]);
   assert.equal(migrateProjectToCurrent(projectV3()).schemaVersion, PROJECT_SCHEMA_VERSION);
   assert.throws(() => migrateProjectToCurrent({ schemaVersion: 2 }), /지원 범위/);
   assert.throws(() => migrateProjectToCurrent({ schemaVersion: PROJECT_SCHEMA_VERSION + 1 }), /새롭습니다/);
+});
+
+test('v5 distributions become generic numeric layers while geography remains intact', () => {
+  const legacy = {
+    ...projectV3(), schemaVersion: 5,
+    layerVisibility: { countries: false, languages: true, ethnicities: false, religions: true },
+    itemVisibility: { languages: { [uuid(3)]: false } },
+    layerPresentation: { schemaVersion: 3, overlayOrder: ['languages', 'countries'],
+      styles: { languages: { opacity: 0.4 } } },
+    distributionLayers: [{ id: uuid(3), schemaVersion: 2, type: 'language', name: '언어', color: '#123456' }],
+    distributionEntries: [{ id: uuid(4), schemaVersion: 2, layerId: uuid(3), mode: 'geometry',
+      geometry: polygon(), share: 37.5 }],
+    distributionSettings: { renderMode: 'dominant', boundaryVisible: false },
+  };
+  const before = structuredClone(legacy);
+  const migrated = migrateProjectV5ToV6(legacy);
+  assert.deepEqual(legacy, before);
+  assert.deepEqual(migrated.countriesData, legacy.countriesData);
+  assert.equal(migrated.layerVisibility.countries, false);
+  assert.equal(migrated.layerVisibility.distributions, true);
+  assert.equal(migrated.itemVisibility.distributions[uuid(3)], false);
+  assert.equal(migrated.distributionLayers[0].unit, '%');
+  assert.deepEqual(migrated.distributionLayers[0].valueScale, { mode: 'manual', min: 0, max: 100 });
+  assert.equal('type' in migrated.distributionLayers[0], false);
+  assert.equal(migrated.distributionEntries[0].value, 37.5);
+  assert.equal('share' in migrated.distributionEntries[0], false);
+  assert.equal(migrated.distributionSettings.renderMode, 'overlap');
+  assert.equal(migrated.distributionSettings.boundaryVisible, false);
 });

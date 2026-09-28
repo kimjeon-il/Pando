@@ -27,7 +27,7 @@ export function migrateProjectV4ToV5(input) {
   const presentation = project.layerPresentation || { styles: {} };
   const objectStyles = { ...presentation.objectStyles };
   const objectOrder = [...(presentation.objectOrder || [])].map(migrateTerritorialObjectKey);
-  const sourceOrder = [...new Set([...(presentation.overlayOrder || []), 'religions', 'ethnicities', 'languages', 'administrative', 'territories', 'regions', 'genericFeatures'])];
+  const sourceOrder = [...new Set([...(presentation.overlayOrder || []), 'distributions', 'administrative', 'territories', 'regions', 'genericFeatures'])];
   for (const group of sourceOrder) {
     for (const feature of oldUnits) {
       const type = feature.properties?.unitType;

@@ -15,9 +15,6 @@ export function createObjectPresentation() {
   let projectCommandPipeline;
   let runTerritorialUnitTransaction;
   let validateTerritorialUnitRelations;
-  let DISTRIBUTION_GROUP_TYPES;
-  let DISTRIBUTION_TYPE_GROUPS;
-  let DISTRIBUTION_TYPE_LABELS;
   let LAYER_GROUP_KEYS;
   let LAYER_SEARCH_GROUP_KEYS;
   let layerGroupNames;
@@ -194,15 +191,6 @@ export function createObjectPresentation() {
 
     (validateTerritorialUnitRelations = (units, options) => territorialApplicationService.validateRelations(units, options));
 
-    (DISTRIBUTION_GROUP_TYPES = Object.freeze({
-      languages: dependencies.objectCatalog.DISTRIBUTION_TYPES.LANGUAGE,
-      ethnicities: dependencies.objectCatalog.DISTRIBUTION_TYPES.ETHNICITY,
-      religions: dependencies.objectCatalog.DISTRIBUTION_TYPES.RELIGION,
-    }));
-
-    (DISTRIBUTION_TYPE_GROUPS = Object.freeze(Object.fromEntries(Object.entries(DISTRIBUTION_GROUP_TYPES).map(([group, type]) => [type, group]))));
-
-    (DISTRIBUTION_TYPE_LABELS = Object.freeze({ language: '언어', ethnicity: '민족', religion: '종교' }));
 
     (LAYER_GROUP_KEYS = Object.freeze([...new Set([
       ...dependencies.objectCatalog.MAP_OBJECT_CATEGORIES.territorial.layerGroups,
@@ -218,9 +206,7 @@ export function createObjectPresentation() {
       ...Object.fromEntries(Object.values(dependencies.objectCatalog.MAP_OBJECT_TYPES)
         .filter(type => type.layerGroup)
         .map(type => [type.layerGroup, type.label])),
-      languages: '언어',
-      ethnicities: '민족',
-      religions: '종교',
+      distributions: '분포',
       hydro: '강·호수',
       countryLabels: '국가명',
     }));
@@ -235,9 +221,6 @@ export function createObjectPresentation() {
     initializeGenericFeatureLandClipCache,
     initializeTerritorialScope,
     initializeTerritorialRepository,
-    get DISTRIBUTION_GROUP_TYPES() { return DISTRIBUTION_GROUP_TYPES; },
-    get DISTRIBUTION_TYPE_GROUPS() { return DISTRIBUTION_TYPE_GROUPS; },
-    get DISTRIBUTION_TYPE_LABELS() { return DISTRIBUTION_TYPE_LABELS; },
     get LAYER_GROUP_KEYS() { return LAYER_GROUP_KEYS; },
     get LAYER_SEARCH_GROUP_KEYS() { return LAYER_SEARCH_GROUP_KEYS; },
     get countryColor() { return countryColor; },

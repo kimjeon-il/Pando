@@ -13,7 +13,7 @@ import { normalizeSourceProvenance } from '../../assets/js/modules/source-proven
 const state = {
   countryOverrides: { KOR: { name: '대한민국' } }, sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],
   territorialUnits: [{ id: 'territory-1' }], territorialRelations: [{ id: 'relation-1' }],
-  distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'dominant' },
+  distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'overlap', activeLayerId: '' },
   labelSettings: { 'country:KOR': { pinned: true } }, layerPresentation: { styles: {} },
   physicalSettings: { terrainVisible: true }, projection: 'flat',
   layerVisibility: { countries: true }, itemVisibility: { A: false }, layerFolders: { countries: true },
@@ -78,8 +78,8 @@ const currentProject = () => ({
     canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
   },
   territorialModel: { schemaVersion: 2 },
-  distributionModel: { schemaVersion: 2 },
-  layerPresentation: { schemaVersion: 3, overlayOrder: [], styles: {} },
+  distributionModel: { schemaVersion: 3 },
+  layerPresentation: { schemaVersion: 4, overlayOrder: [], styles: {} },
   countriesData: {
     type: 'FeatureCollection',
     features: [{ type: 'Feature', id: 'DEU', properties: { name: '독일' }, geometry: { type: 'MultiPolygon', coordinates: [] } }],
@@ -91,8 +91,10 @@ const currentProject = () => ({
     geometry: { type: 'Polygon', coordinates: [] },
   }],
   territorialRelations: [{ id: uuid(2), schemaVersion: 1 }],
-  distributionLayers: [{ id: uuid(3), schemaVersion: 2, type: 'language' }],
-  distributionEntries: [{ id: uuid(4), schemaVersion: 2, layerId: uuid(3) }],
+  distributionLayers: [{ id: uuid(3), schemaVersion: 3, name: '분포', unit: '', valueScale: { mode: 'auto' } }],
+  distributionEntries: [{ id: uuid(4), schemaVersion: 3, layerId: uuid(3), mode: 'geometry',
+    geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] }, value: 1 }],
+  distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
   genericFeatures: [{
     type: 'Feature', id: uuid(5), geometry: { type: 'Point', coordinates: [1, 2] },
     properties: { schemaVersion: 2, name: '기타', notes: '', color: '#123456', locked: false, source: normalizeSourceProvenance({ kind: 'unsupported' }) },
@@ -117,10 +119,13 @@ test('v4 Subunit migration passes the real load gate and v5 save/reopen preserve
   source.layerVisibility = { administrative: false, territories: true };
   source.itemVisibility = { administrative: {}, territories: {} };
   source.layerPresentation = { schemaVersion: 2, styles: { administrative: { opacity: 0.4, blendMode: 'multiply' } } };
+  source.distributionLayers[0] = { id: uuid(3), schemaVersion: 2, type: 'language', name: '언어' };
+  source.distributionEntries[0] = { ...source.distributionEntries[0], schemaVersion: 2, share: 1 };
+  delete source.distributionEntries[0].value;
   const before = structuredClone(source.territorialUnits[0]);
   const converted = assertCurrentProjectSchema(source);
   const reopened = assertCurrentProjectSchema(JSON.parse(JSON.stringify(converted)));
-  assert.equal(reopened.schemaVersion, 5);
+  assert.equal(reopened.schemaVersion, PROJECT_SCHEMA_VERSION);
   assert.equal(reopened.territorialUnits[0].properties.unitType, 'subunit');
   assert.equal(reopened.territorialUnits[0].id, before.id);
   assert.deepEqual(reopened.territorialUnits[0].geometry, before.geometry);
@@ -131,11 +136,11 @@ test('v4 Subunit migration passes the real load gate and v5 save/reopen preserve
 
 test('distribution boundary visibility is a shared optional presentation setting', () => {
   const current = currentProject();
-  current.distributionSettings = { renderMode: 'intensity', boundaryVisible: false };
+  current.distributionSettings = { renderMode: 'single', activeLayerId: uuid(3), boundaryVisible: false };
   assert.deepEqual(assertCurrentProjectSchema(current).distributionSettings, current.distributionSettings);
 
   const prior = currentProject();
-  prior.distributionSettings = { renderMode: 'dominant' };
+  prior.distributionSettings = { renderMode: 'overlap', activeLayerId: '' };
   assert.deepEqual(assertCurrentProjectSchema(prior).distributionSettings, prior.distributionSettings);
 });
 
@@ -157,6 +162,9 @@ test('previous schema is migrated at the project load gate while unsupported old
   prior.schemaVersion = 3;
   prior.landObjectModel = { schemaVersion: 1, coastlineAuthority: 'countries', roles: ['generic'] };
   prior.genericFeatures[0].properties = { schemaVersion: 1, name: 'legacy', role: 'generic', color: '#123456' };
+  prior.distributionLayers[0] = { id: uuid(3), schemaVersion: 2, type: 'language', name: '언어' };
+  prior.distributionEntries[0] = { ...prior.distributionEntries[0], schemaVersion: 2, share: 1 };
+  delete prior.distributionEntries[0].value;
   assert.equal(assertCurrentProjectSchema(prior).schemaVersion, PROJECT_SCHEMA_VERSION);
   assert.equal(prior.genericFeatures[0].properties.schemaVersion, 2);
 
@@ -223,6 +231,6 @@ test('session state and unsupported model fields are rejected from project files
   unsupportedLayer.distributionLayers[0].unknownField = true;
   assert.throws(() => assertCurrentProjectSchema(unsupportedLayer), /지원하지 않는 필드 unknownField/);
   const unsupportedSettings = currentProject();
-  unsupportedSettings.distributionSettings = { renderMode: 'dominant', unknownField: uuid(3) };
+  unsupportedSettings.distributionSettings = { renderMode: 'overlap', unknownField: uuid(3) };
   assert.throws(() => assertCurrentProjectSchema(unsupportedSettings), /지원하지 않는 필드 unknownField/);
 });

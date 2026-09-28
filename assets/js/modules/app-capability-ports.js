@@ -231,8 +231,6 @@ function createMapResourcePorts(providers) {
     }),
     distributionPresentation: Object.freeze({
       bumpVisibilityRevision: () => { providers.objectPresentation.distributionVisibilityRevision += 1; },
-      get DISTRIBUTION_GROUP_TYPES() { return providers.objectPresentation.DISTRIBUTION_GROUP_TYPES; },
-      get DISTRIBUTION_TYPE_GROUPS() { return providers.objectPresentation.DISTRIBUTION_TYPE_GROUPS; },
       get distributionColor() { return providers.objectPresentation.distributionColor; },
     }),
     draftPresentation: Object.freeze({
@@ -304,7 +302,6 @@ function createMapResourcePorts(providers) {
     }),
     objectCatalog: Object.freeze({
       get builtinSubunitSourceId() { return providers.runtime.builtinSubunitSourceId; },
-      get DISTRIBUTION_TYPES() { return providers.runtime.DISTRIBUTION_TYPES; },
       get GENERIC_FEATURE_ROLE_RULES() { return providers.runtime.GENERIC_FEATURE_ROLE_RULES; },
       get MAP_OBJECT_CATEGORIES() { return providers.runtime.MAP_OBJECT_CATEGORIES; },
       get MAP_OBJECT_CATEGORY_ORDER() { return providers.runtime.MAP_OBJECT_CATEGORY_ORDER; },

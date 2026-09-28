@@ -153,7 +153,7 @@ export function createGenericCommands() {
     return [];
   }
 
-  async function convertSelectedGenericFeature({ target, sovereignId = '', distributionLayerId = '' } = {}) {
+  async function convertSelectedGenericFeature({ target, sovereignId = '', distributionLayerId = '', distributionValue } = {}) {
     if (dependencies.projectState.state.selected?.domain !== 'generic') return false;
     const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.selected.id));
     const kind = (0, dependencies.objectPresentation.genericFeatureGeometryKind)(feature);
@@ -233,7 +233,7 @@ export function createGenericCommands() {
         if (kind !== 'polygon') throw new Error('영역 형상만 분포로 전환할 수 있습니다.');
         const result = dependencies.objectModelA.distributionService.addEntry({
           id: (0, dependencies.surfaces.uid)('distribution_entry'), layerId: String(distributionLayerId), mode: dependencies.territorialModel.DISTRIBUTION_MODES.GEOMETRY,
-          geometry: (0, dependencies.platform.deepClone)(feature.geometry), share: 100,
+          geometry: (0, dependencies.platform.deepClone)(feature.geometry), value: distributionValue,
         });
         if (!result.ok) throw result.error || new Error('분포 레이어를 선택하세요.');
         removeGenericFeatureAfterConversion(feature);

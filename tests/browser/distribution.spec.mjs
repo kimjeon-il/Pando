@@ -14,12 +14,10 @@ async function openApp(page) {
   return errors;
 }
 
-async function createDistribution(page, type, name) {
+async function createDistribution(page, name) {
   await page.locator('#createMenuBtn').click();
-  await page.locator('#addDistributionBtn').click();
-  await selectUiOption(page, '#distributionTypeInput', type);
   page.once('dialog', dialog => dialog.accept(name));
-  await page.locator('#distributionTypeConfirmBtn').click();
+  await page.locator('#addDistributionBtn').click();
   await expect(page.locator('#distributionProperties')).toBeVisible();
 }
 
@@ -46,38 +44,35 @@ async function autosavedDistributions(page) {
   });
 }
 
-test('a language layer stores a territorial share and survives undo and redo', async ({ page }) => {
+test('a numeric distribution stores signed values and survives undo and redo', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await openApp(page);
 
-  await page.locator('#createMenuBtn').click();
-  page.once('dialog', dialog => dialog.accept('그리스어'));
-  await page.locator('#addDistributionBtn').click();
-  await selectUiOption(page, '#distributionTypeInput', 'language');
-  await page.locator('#distributionTypeConfirmBtn').click();
-  await expect(page.locator('#distributionProperties')).toBeVisible();
-  await expect(page.locator('#distributionTypeValue')).toHaveText('언어');
+  await createDistribution(page, '인구 변화');
+  await page.locator('#distributionUnitInput').fill('명');
+  await page.locator('#distributionUnitInput').blur();
   await page.locator('#distributionColorTrigger').click();
   await page.locator('#distributionColorPopover [data-color-value="#3b82f6"]').click();
   await expect(page.locator('#distributionColorInput')).toHaveValue('#3b82f6');
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers('language')[0]?.color)).toBe('#3b82f6');
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()[0]?.color)).toBe('#3b82f6');
   await page.locator('#actionsTabBtn').click();
 
   const territorialUnitId = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');
   expect(territorialUnitId).toBeTruthy();
   await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
-  await page.locator('#distributionShareInput').fill('95');
+  await page.locator('#distributionValueInput').fill('-2.5');
   await page.locator('#addTerritorialDistributionBtn').click();
 
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
   await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
   const stored = await page.evaluate(() => {
-    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers('language')[0];
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
     return { layer, entries: window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id) };
   });
-  expect(stored.layer.name).toBe('그리스어');
+  expect(stored.layer.name).toBe('인구 변화');
+  expect(stored.layer.unit).toBe('명');
   expect(stored.entries).toHaveLength(1);
-  expect(stored.entries[0]).toMatchObject({ mode: 'territorial', territorialUnitId, share: 95 });
+  expect(stored.entries[0]).toMatchObject({ mode: 'territorial', territorialUnitId, value: -2.5 });
 
   await page.locator('#undoBtn').click();
   await expect(page.locator('#map path.distribution-shape')).toHaveCount(0);
@@ -86,18 +81,25 @@ test('a language layer stores a territorial share and survives undo and redo', a
   expect(errors).toEqual([]);
 });
 
-test('all distribution types stay in the distribution model and free geometry round-trips', async ({ page }) => {
+test('overlap and single display preserve independent values and free geometry on reload', async ({ page }) => {
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await openApp(page);
 
-  await createDistribution(page, 'language', '언어 CRUD');
-  await page.locator('#distributionNameInput').fill('언어 수정');
+  await createDistribution(page, '밀도');
+  await page.locator('#distributionNameInput').fill('인구 밀도');
   await page.locator('#distributionNameInput').blur();
-
-  await createDistribution(page, 'ethnicity', '민족 자유영역');
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#distributionShareInput').fill('67');
+  const firstUnit = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');
+  await selectUiOption(page, '#distributionTerritorialUnitInput', firstUnit);
+  await page.locator('#distributionValueInput').fill('100');
+  await page.locator('#addTerritorialDistributionBtn').click();
+
+  await createDistribution(page, '기온');
+  await page.locator('#distributionUnitInput').fill('°C');
+  await page.locator('#distributionUnitInput').blur();
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#distributionValueInput').fill('-4.25');
   await page.locator('#addGeometryDistributionBtn').click();
   const mapBox = await page.locator('#map').boundingBox();
   expect(mapBox).not.toBeNull();
@@ -109,19 +111,22 @@ test('all distribution types stay in the distribution model and free geometry ro
   await page.locator('#actionsTabBtn').click();
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
 
-  await createDistribution(page, 'religion', '종교 삭제');
+  await createDistribution(page, '삭제할 분포');
   await page.locator('#actionsTabBtn').click();
   await page.locator('#objectDeleteBtn').click();
   await page.locator('#confirmModalOkBtn').click();
 
   const current = await page.evaluate(() => ({
-    language: window.PANDOLAB_DISTRIBUTIONS.listLayers('language'),
-    ethnicity: window.PANDOLAB_DISTRIBUTIONS.listLayers('ethnicity'),
-    religion: window.PANDOLAB_DISTRIBUTIONS.listLayers('religion'),
+    layers: window.PANDOLAB_DISTRIBUTIONS.listLayers(),
   }));
-  expect(current.language.map(layer => layer.name)).toContain('언어 수정');
-  expect(current.ethnicity.map(layer => layer.name)).toContain('민족 자유영역');
-  expect(current.religion).toHaveLength(0);
+  expect(current.layers.map(layer => layer.name)).toEqual(['인구 밀도', '기온']);
+  await page.locator('#mapDisplayBtn').click();
+  await page.locator('#distributionMenuTrigger').click();
+  await page.locator('#distributionSingleRadio').check();
+  await selectUiOption(page, '#distributionActiveLayerInput', current.layers[1].id);
+  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
+  await page.locator('#distributionOverlapRadio').check();
+  await expect(page.locator('#map path.distribution-shape')).toHaveCount(2);
 
   await expect.poll(async () => {
     const saved = await autosavedDistributions(page);
@@ -129,22 +134,23 @@ test('all distribution types stay in the distribution model and free geometry ro
       names: saved.layers.map(layer => layer.name).sort(),
       modes: saved.entries.map(entry => entry.mode).sort(),
     };
-  }, { timeout: 10_000 }).toEqual({ names: ['민족 자유영역', '언어 수정'], modes: ['geometry'] });
+  }, { timeout: 10_000 }).toEqual({ names: ['기온', '인구 밀도'], modes: ['geometry', 'territorial'] });
 
   await page.reload();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   const restored = await page.evaluate(() => {
-    const ethnicity = window.PANDOLAB_DISTRIBUTIONS.listLayers('ethnicity')[0];
+    const temperature = window.PANDOLAB_DISTRIBUTIONS.listLayers().find(layer => layer.name === '기온');
     return {
-      languageNames: window.PANDOLAB_DISTRIBUTIONS.listLayers('language').map(layer => layer.name),
-      ethnicityName: ethnicity?.name,
-      entries: ethnicity ? window.PANDOLAB_DISTRIBUTIONS.listEntries(ethnicity.id) : [],
+      names: window.PANDOLAB_DISTRIBUTIONS.listLayers().map(layer => layer.name),
+      unit: temperature?.unit,
+      entries: temperature ? window.PANDOLAB_DISTRIBUTIONS.listEntries(temperature.id) : [],
     };
   });
-  expect(restored.languageNames).toContain('언어 수정');
-  expect(restored.ethnicityName).toBe('민족 자유영역');
-  expect(restored.entries[0]).toMatchObject({ mode: 'geometry', territorialUnitId: '', share: 67 });
+  expect(restored.names).toContain('인구 밀도');
+  expect(restored.names).toContain('기온');
+  expect(restored.unit).toBe('°C');
+  expect(restored.entries[0]).toMatchObject({ mode: 'geometry', territorialUnitId: '', value: -4.25 });
   expect(restored.entries[0].geometry?.type).toBe('Polygon');
   expect(errors).toEqual([]);
 });

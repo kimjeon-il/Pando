@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.33.0-build-c2752dc2d1cd" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.33.0-build-c2752dc2d1cd" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.34.0-build-91a9f7bed2f9" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.34.0-build-91a9f7bed2f9" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -77,7 +77,7 @@
       <div class="ui-progress bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" class="app-root" data-app-version="0.33.0" data-layout="wide" data-od-id="app-shell">
+  <div id="app" class="app-root" data-app-version="0.34.0" data-layout="wide" data-od-id="app-shell">
     <header class="topbar" data-od-id="topbar">
       <nav class="topbar-history" aria-label="편집 기록"><button id="undoBtn" class="ui-button icon-btn" data-tooltip="실행취소" aria-label="실행취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg></button><button id="redoBtn" class="ui-button icon-btn" data-tooltip="다시실행" aria-label="다시실행"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg></button></nav>
       <div class="topbar-actions" role="navigation" aria-label="문서 및 도움말">
@@ -163,19 +163,6 @@
                 </div>
               </section>
               <div class="map-display-row"><label class="ui-choice-row ui-toggle ui-menu-icon-choice"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-place"/></svg><input id="labelsVisible" data-layer-visibility="labels" type="checkbox" checked aria-label="지명" /><span>지명</span></label></div>
-              <div id="distributionMobileItemAnchor" aria-hidden="true" hidden></div>
-              <section class="layer-type-settings" data-map-display-group="languages" aria-label="언어 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="languages" aria-label="언어 표시 설정 펼치기" aria-controls="layerStylePanel-languages" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg><span>언어</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="languagesVisible" data-layer-visibility="languages" type="checkbox" checked aria-label="언어 레이어 표시" /><span>표시</span></label></div>
-                <div id="layerStylePanel-languages" class="layer-inline-style-panel map-display-details" data-layer-style-panel="languages" role="group" aria-label="언어 표시 설정" hidden></div>
-              </section>
-              <section class="layer-type-settings" data-map-display-group="ethnicities" aria-label="민족 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="ethnicities" aria-label="민족 표시 설정 펼치기" aria-controls="layerStylePanel-ethnicities" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-ethnicity"/></svg><span>민족</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="ethnicitiesVisible" data-layer-visibility="ethnicities" type="checkbox" checked aria-label="민족 레이어 표시" /><span>표시</span></label></div>
-                <div id="layerStylePanel-ethnicities" class="layer-inline-style-panel map-display-details" data-layer-style-panel="ethnicities" role="group" aria-label="민족 표시 설정" hidden></div>
-              </section>
-              <section class="layer-type-settings" data-map-display-group="religions" aria-label="종교 표시 설정">
-                <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="religions" aria-label="종교 표시 설정 펼치기" aria-controls="layerStylePanel-religions" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-religion"/></svg><span>종교</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="religionsVisible" data-layer-visibility="religions" type="checkbox" checked aria-label="종교 레이어 표시" /><span>표시</span></label></div>
-                <div id="layerStylePanel-religions" class="layer-inline-style-panel map-display-details" data-layer-style-panel="religions" role="group" aria-label="종교 표시 설정" hidden></div>
-              </section>
               <section class="layer-type-settings" data-map-display-group="rivers" aria-label="강 표시 설정">
                 <div class="layer-type-settings-heading map-display-row"><button class="ui-button map-display-detail-trigger view-menu-parent" type="button" data-map-display-row="rivers" aria-label="강 표시 설정 펼치기" aria-controls="layerStylePanel-rivers" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-river"/></svg><span>강</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button><label class="ui-choice-row ui-toggle"><input id="riversVisible" data-layer-visibility="rivers" type="checkbox" checked aria-label="강 레이어 표시" /><span>표시</span></label></div>
                 <div id="layerStylePanel-rivers" class="layer-inline-style-panel map-display-details" data-layer-style-panel="rivers" role="group" aria-label="강 표시 설정" hidden></div>
@@ -203,14 +190,17 @@
               <span class="ui-menu-separator view-menu-separator" role="separator"></span>
               <button id="distributionMenuTrigger" class="ui-button view-menu-parent view-menu-distribution-trigger" type="button" aria-label="분포 설정 펼치기" aria-controls="distributionViewSettings" aria-expanded="false" aria-haspopup="true"><span class="view-menu-leading"><svg class="ui-icon view-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg><span>분포</span></span><svg class="ui-icon view-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
               <section id="distributionViewSettings" class="distribution-view-settings" aria-labelledby="distributionViewSettingsTitle">
-              <strong id="distributionViewSettingsTitle">인문 분포</strong>
-              <div id="distributionTypeSlot" class="distribution-type-slot"></div>
+              <strong id="distributionViewSettingsTitle">분포</strong>
+              <label class="ui-choice-row ui-toggle"><input id="distributionsVisible" data-layer-visibility="distributions" type="checkbox" checked aria-label="분포 표시" /><span>표시</span></label>
+              <div id="layerStylePanel-distributions" class="layer-inline-style-panel" data-layer-style-panel="distributions"></div>
               <span class="ui-menu-separator view-menu-separator" role="separator"></span>
               <div class="ui-field field-group" role="radiogroup" aria-label="표시 기준" aria-describedby="distributionLayerModeHint">
-                <label class="ui-choice-row"><input id="distributionDominantRadio" type="radio" name="distributionLayerMode" value="dominant" checked /><span class="ui-choice-copy"><strong>가장 많은 분포만 표시</strong><small>각 지역에서 1개만 표시합니다.</small></span></label>
-                <label class="ui-choice-row"><input id="distributionIntensityRadio" type="radio" name="distributionLayerMode" value="intensity" /><span class="ui-choice-copy"><strong>비율을 색 농도로 표시</strong><small>선택한 분포가 많을수록 진하게 표시합니다.</small></span></label>
+                <label class="ui-choice-row"><input id="distributionOverlapRadio" type="radio" name="distributionLayerMode" value="overlap" checked /><span class="ui-choice-copy"><strong>여러 분포 겹쳐 보기</strong></span></label>
+                <label class="ui-choice-row"><input id="distributionSingleRadio" type="radio" name="distributionLayerMode" value="single" /><span class="ui-choice-copy"><strong>분포 하나만 보기</strong></span></label>
               </div>
-              <select id="distributionLayerModeInput" data-native-select hidden><option value="dominant">가장 많은 분포만 표시</option><option value="intensity">비율을 색 농도로 표시</option></select>
+              <select id="distributionLayerModeInput" data-native-select hidden><option value="overlap">여러 분포 겹쳐 보기</option><option value="single">분포 하나만 보기</option></select>
+              <label class="ui-field field-group" for="distributionActiveLayerInput"><span>표시 대상</span><select id="distributionActiveLayerInput"></select></label>
+              <div id="distributionLegend" class="distribution-legend" aria-label="분포 범례"></div>
               <small id="distributionLayerModeHint" class="layer-setting-hint"></small>
               <label class="ui-choice-row ui-toggle"><input id="distributionBoundaryVisibleInput" type="checkbox" checked aria-label="분포 경계 표시" /><span>분포 경계</span></label>
             </section>
@@ -558,7 +548,7 @@
             <section class="editor-section editor-info-section editor-section-primary" aria-label="정보">
               <div class="ui-field field-group editor-field"><label for="distributionNameInput">이름</label><input id="distributionNameInput" type="text" /></div>
               <div class="editor-field-grid editor-field-grid-color">
-                <div class="ui-field field-group editor-field"><label for="distributionTypeValue">종류</label><output id="distributionTypeValue" class="editor-readonly-value">—</output></div>
+                <div class="ui-field field-group editor-field"><label for="distributionUnitInput">단위</label><input id="distributionUnitInput" type="text" placeholder="예: 명/km²" /></div>
                 <div class="ui-field field-group editor-field editor-color-field ui-color-picker" data-color-picker="distribution">
                   <label id="distributionColorLabel">색상</label>
                   <button id="distributionColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="distributionColorPopover" aria-labelledby="distributionColorLabel distributionColorValue"><span class="ui-color-preview" aria-hidden="true"></span><span id="distributionColorValue" class="ui-color-value">색상</span></button>
@@ -566,14 +556,16 @@
                   <div id="distributionColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="분포 색상 팔레트"><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
                 </div>
               </div>
+              <div class="ui-field field-group editor-field"><label for="distributionValueScaleInput">색 농도 범위</label><select id="distributionValueScaleInput"><option value="auto">자동</option><option value="manual">직접 지정</option></select></div>
+              <div id="distributionManualScaleFields" class="editor-field-grid hidden"><div class="ui-field field-group editor-field"><label for="distributionValueMinInput">최솟값</label><input id="distributionValueMinInput" type="number" step="any" /></div><div class="ui-field field-group editor-field"><label for="distributionValueMaxInput">최댓값</label><input id="distributionValueMaxInput" type="number" step="any" /></div></div>
               <details class="ui-disclosure editor-disclosure"><summary><span>고급 설정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="distributionParentInput">상위 분류</label><select id="distributionParentInput"><option value="">상위 분류 없음</option></select></div></div></details>
-              <select id="distributionRenderModeInput" data-native-select hidden><option value="dominant">가장 많은 분포만 표시</option><option value="intensity">비율을 색 농도로 표시</option></select>
+              <select id="distributionRenderModeInput" data-native-select hidden><option value="overlap">여러 분포 겹쳐 보기</option><option value="single">분포 하나만 보기</option></select>
             </section>
             <section class="editor-section editor-action-section" aria-label="편집">
               <div id="distributionEntryList" class="distribution-entry-list"></div>
               <div class="distribution-entry-add">
                 <div class="ui-field field-group editor-field"><label for="distributionTerritorialUnitInput">기준 영역</label><select id="distributionTerritorialUnitInput"></select></div>
-                <div class="ui-field field-group editor-field"><label for="distributionShareInput">비율 (%)</label><input id="distributionShareInput" type="number" min="0" max="100" step="1" value="100" /></div>
+                <div class="ui-field field-group editor-field"><label for="distributionValueInput">값 <span id="distributionValueUnit"></span></label><input id="distributionValueInput" type="number" step="any" value="0" /></div>
                 <div class="editor-action-list">
                   <button id="addTerritorialDistributionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span><strong>영역 분포 추가</strong><small>국가·하위단위·지방 참조</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
                   <button id="addGeometryDistributionBtn" type="button" class="ui-button editor-action-row has-command-row-icon"><svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-area-draw"/></svg><span><strong>자유 영역 그리기</strong><small>행정경계와 무관한 분포</small></span><svg class="ui-icon command-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
@@ -588,6 +580,7 @@
               <div class="ui-field field-group editor-field"><label for="genericFeatureConvertType">대상 종류</label><select id="genericFeatureConvertType"></select></div>
               <div id="genericFeatureConvertCountryField" class="ui-field field-group editor-field hidden"><label for="genericFeatureConvertCountryInput">소속 국가</label><select id="genericFeatureConvertCountryInput"></select></div>
               <div id="genericFeatureConvertDistributionField" class="ui-field field-group editor-field hidden"><label for="genericFeatureConvertDistributionInput">분포 레이어</label><select id="genericFeatureConvertDistributionInput"></select></div>
+              <div id="genericFeatureConvertDistributionValueField" class="ui-field field-group editor-field hidden"><label for="genericFeatureConvertDistributionValueInput">분포 값</label><input id="genericFeatureConvertDistributionValueInput" type="number" step="any" placeholder="값 입력" /></div>
               <button id="convertGenericFeatureBtn" type="button" class="ui-button mode-aux-control">종류 변경</button>
             </section>
 
@@ -671,7 +664,7 @@
             </div>
             <span class="ui-menu-separator" role="separator"></span>
             <div class="ui-menu-group" data-map-category="distribution">
-              <button id="addDistributionBtn" data-map-object-type="distribution" class="ui-button ui-menu-item" role="menuitem" tabindex="-1" type="button" aria-haspopup="dialog" aria-controls="distributionTypeModal"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-language"/></svg><span>분포</span></button>
+              <button id="addDistributionBtn" data-map-object-type="distribution" class="ui-button ui-menu-item" role="menuitem" tabindex="-1" type="button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-area-draw"/></svg><span>분포</span></button>
             </div>
             <span class="ui-menu-separator" role="separator"></span>
             <div class="ui-menu-group" data-map-category="features">
@@ -788,7 +781,6 @@
       </div>
     </section>
   </div>
-  <div id="distributionTypeModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="distributionTypeTitle"><div class="ui-dialog-backdrop confirm-modal-dim"></div><section class="ui-dialog-card ui-workflow-shell confirm-modal-card"><h2 id="distributionTypeTitle">분포 추가</h2><label class="ui-field field-group"><span>종류</span><select id="distributionTypeInput"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label><div class="ui-dialog-actions"><button id="distributionTypeCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="distributionTypeConfirmBtn" class="ui-button btn" type="button">다음</button></div></section></div>
   <div id="territorialTypeModal" class="confirm-modal ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="territorialTypeTitle">
     <div class="ui-dialog-backdrop confirm-modal-dim"></div>
     <section class="ui-dialog-card ui-workflow-shell confirm-modal-card territorial-type-card">
@@ -857,7 +849,7 @@
           <label id="gisLayerRow" class="ui-field field-group gis-wide" data-gis-step="0" data-gis-active="true"><span>가져올 레이어</span><select id="gisLayerSelect"></select><small id="gisLayerDetails">레이어 정보를 불러오는 중입니다.</small></label>
 <label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="" disabled hidden selected data-placeholder="true">종류를 선택하세요</option><option value="country">국가</option><option value="subunit">하위단위</option><option value="region">지방</option><option value="distribution">분포</option></select></label>
           <p id="gisCompatibilityNotice" class="editor-help hidden" data-gis-step="1">기존 파일의 기타 객체를 호환 모드로 복원합니다.</p>
-          <label id="gisDistributionTypeRow" class="ui-field field-group hidden" data-gis-step="1"><span>분포 종류</span><select id="gisDistributionType"><option value="language">언어</option><option value="ethnicity">민족</option><option value="religion">종교</option></select></label>
+          <label id="gisDistributionValueRow" class="ui-field field-group hidden" data-gis-step="1"><span>숫자 속성</span><select id="gisDistributionValueField"></select></label>
           <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden gis-target-country-row" data-gis-step="3"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="" disabled hidden selected data-placeholder="true">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">선택한 국가로 영토가 이전됩니다.</small></label>
           <label id="gisIndependentRegionRow" class="ui-check gis-wide hidden" data-gis-step="3"><input id="gisIndependentRegion" type="checkbox" /><span>국가에 속하지 않는 독립 지방으로 가져오기</span></label>
           <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>상위 단위</span><select id="gisParentUnit"><option value="" disabled hidden selected data-placeholder="true">소속 국가 선택</option></select></label>
@@ -922,10 +914,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.33.0-build-c2752dc2d1cd" defer></script>
+  <script src="assets/js/build-meta.js?v=0.34.0-build-91a9f7bed2f9" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.33.0-build-c2752dc2d1cd" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.34.0-build-91a9f7bed2f9" defer></script>
 </body>
 </html>

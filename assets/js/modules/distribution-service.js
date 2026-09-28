@@ -23,8 +23,8 @@ export function createDistributionService({
   const entries = () => documentStore.readEntries();
   const layerById = id => layers().find(layer => layer.id === text(id)) || null;
 
-  function listLayers(type) {
-    return layers().filter(layer => !type || layer.type === type);
+  function listLayers() {
+    return layers();
   }
 
   function listEntries(layerId) {
@@ -44,8 +44,7 @@ export function createDistributionService({
         queue.push(candidate.id);
       }
     }
-    return layers().filter(candidate => candidate.type === layer.type
-      && candidate.id !== layer.id
+    return layers().filter(candidate => candidate.id !== layer.id
       && !descendants.has(candidate.id));
   }
 
@@ -113,6 +112,25 @@ export function createDistributionService({
     return { ok: true, layer, entry };
   }
 
+  function updateEntry(id, value) {
+    const current = entries().find(candidate => candidate.id === text(id));
+    const layer = current ? layerById(current.layerId) : null;
+    if (!current || !layer) return { ok: false, code: 'not-found' };
+    if (layer.locked) return { ok: false, code: 'locked' };
+    let next;
+    try {
+      next = normalizeDistributionEntries(entries().map(entry => entry.id === current.id ? { ...entry, value } : entry),
+        { layerExists: layerId => !!layerById(layerId) });
+    } catch (error) {
+      return { ok: false, code: 'invalid', error };
+    }
+    if (next.find(entry => entry.id === current.id)?.value === current.value) return { ok: true, changed: false };
+    mutateDocument({ type: 'distribution-entry-update', affectedIds: [current.id, layer.id] }, () => {
+      documentStore.replaceEntries(next);
+    }, { renderDirty: { domain: 'distribution', change: 'value' } });
+    return { ok: true, changed: true, entry: entries().find(entry => entry.id === current.id) };
+  }
+
   function deleteLayer(id) {
     const current = layerById(id);
     if (!current) return { ok: false, code: 'not-found' };
@@ -145,9 +163,9 @@ export function createDistributionService({
   }
 
   function setRenderMode(value) {
-    const mode = value === DISTRIBUTION_RENDER_MODES.INTENSITY
-      ? DISTRIBUTION_RENDER_MODES.INTENSITY
-      : DISTRIBUTION_RENDER_MODES.DOMINANT;
+    const mode = value === DISTRIBUTION_RENDER_MODES.SINGLE
+      ? DISTRIBUTION_RENDER_MODES.SINGLE
+      : DISTRIBUTION_RENDER_MODES.OVERLAP;
     presentationStore.setRenderMode(mode);
     return mode;
   }
@@ -166,6 +184,7 @@ export function createDistributionService({
     createLayer,
     updateLayer,
     addEntry,
+    updateEntry,
     removeEntry,
     deleteLayer,
     append,

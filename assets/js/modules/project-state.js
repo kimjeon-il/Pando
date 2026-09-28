@@ -1,5 +1,6 @@
 import { pruneCountryOverrides } from './country-feature.js';
 import { migrateProjectInPlace } from './project-migrations.js';
+import { normalizeDistributionLayers, normalizeDistributionEntries } from './distribution-model.js';
 import { validateSourceProvenance } from './source-provenance.js';
 import {
   PROJECT_SCHEMA_VERSION,
@@ -19,9 +20,9 @@ const PROJECT_FORMATS = Object.freeze(new Set([
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const text = value => String(value ?? '').trim();
-const LAYER_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels', 'countryFlags', 'subunitLabels', 'subunitFlags', 'regionLabels', 'regionFlags']);
-const ITEM_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'hydro', 'genericFeatures', 'labels', 'countryLabels']);
-const PRESENTATION_GROUP_KEYS = new Set(['countries', 'subunits', 'regions', 'languages', 'ethnicities', 'religions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'countryLabels', 'terrain']);
+const LAYER_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'distributions', 'rivers', 'lakes', 'genericFeatures', 'labels', 'basemapLabels', 'countryFlags', 'subunitLabels', 'subunitFlags', 'regionLabels', 'regionFlags']);
+const ITEM_VISIBILITY_KEYS = new Set(['countries', 'subunits', 'regions', 'distributions', 'hydro', 'genericFeatures', 'labels', 'countryLabels']);
+const PRESENTATION_GROUP_KEYS = new Set(['countries', 'subunits', 'regions', 'distributions', 'rivers', 'lakes', 'hydro', 'genericFeatures', 'labels', 'countryLabels', 'terrain']);
 const GENERIC_PROPERTY_KEYS = new Set(['schemaVersion', 'name', 'notes', 'color', 'locked', 'source']);
 
 export function createProjectObjectId() {
@@ -105,7 +106,10 @@ export function assertCurrentProjectSchema(input) {
   if (Number(project.landObjectModel?.sourceProvenanceSchemaVersion) !== SOURCE_PROVENANCE_SCHEMA_VERSION) {
     throw schemaError('Generic Feature source provenance 버전이 올바르지 않습니다.', 'PL-SCHEMA-SOURCE');
   }
-  assertAllowedKeys(project.distributionSettings, new Set(['renderMode', 'boundaryVisible']), '분포 표시 설정');
+  assertAllowedKeys(project.distributionSettings, new Set(['renderMode', 'activeLayerId', 'boundaryVisible']), '분포 표시 설정');
+  if (!['overlap', 'single'].includes(project.distributionSettings?.renderMode)) {
+    throw schemaError('분포 표시 방식이 올바르지 않습니다.', 'PL-SCHEMA-DISTRIBUTION-MODE');
+  }
   assertAllowedKeys(project.layerVisibility, LAYER_VISIBILITY_KEYS, '레이어 표시 상태');
   assertAllowedKeys(project.itemVisibility, ITEM_VISIBILITY_KEYS, '객체 표시 상태');
   assertAllowedKeys(project.layerPresentation, new Set(['schemaVersion', 'overlayOrder', 'styles', 'objectStyles', 'objectOrder']), '레이어 표현');
@@ -156,12 +160,28 @@ export function assertCurrentProjectSchema(input) {
   }
   for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`, 1);
   for (const layer of project.distributionLayers || []) {
-    requireSchemaVersion(layer?.schemaVersion, `분포 레이어 ${text(layer?.id)}`, 2);
-    assertAllowedKeys(layer, new Set(['id', 'schemaVersion', 'type', 'name', 'color', 'locked', 'parentId', 'groups', 'validFrom', 'validTo', 'metadata']), `분포 레이어 ${text(layer?.id)}`);
+    requireSchemaVersion(layer?.schemaVersion, `분포 레이어 ${text(layer?.id)}`, DISTRIBUTION_MODEL_SCHEMA_VERSION);
+    assertAllowedKeys(layer, new Set(['id', 'schemaVersion', 'name', 'unit', 'valueScale', 'color', 'locked', 'parentId', 'groups', 'validFrom', 'validTo', 'metadata']), `분포 레이어 ${text(layer?.id)}`);
+    if (typeof layer.unit !== 'string' || !['auto', 'manual'].includes(layer.valueScale?.mode)
+      || (layer.valueScale.mode === 'manual' && (typeof layer.valueScale.min !== 'number'
+        || typeof layer.valueScale.max !== 'number' || !Number.isFinite(layer.valueScale.min)
+        || !Number.isFinite(layer.valueScale.max) || layer.valueScale.min >= layer.valueScale.max))) {
+      throw schemaError(`분포 레이어 ${text(layer?.id)}의 단위 또는 색 농도 범위가 올바르지 않습니다.`, 'PL-SCHEMA-DISTRIBUTION-SCALE');
+    }
   }
   for (const entry of project.distributionEntries || []) {
-    requireSchemaVersion(entry?.schemaVersion, `분포 엔트리 ${text(entry?.id)}`, 2);
-    assertAllowedKeys(entry, new Set(['id', 'schemaVersion', 'layerId', 'mode', 'territorialUnitId', 'geometry', 'share', 'certainty', 'validFrom', 'validTo', 'metadata']), `분포 엔트리 ${text(entry?.id)}`);
+    requireSchemaVersion(entry?.schemaVersion, `분포 엔트리 ${text(entry?.id)}`, DISTRIBUTION_MODEL_SCHEMA_VERSION);
+    assertAllowedKeys(entry, new Set(['id', 'schemaVersion', 'layerId', 'mode', 'territorialUnitId', 'geometry', 'value', 'certainty', 'validFrom', 'validTo', 'metadata']), `분포 엔트리 ${text(entry?.id)}`);
+    if (typeof entry.value !== 'number' || !Number.isFinite(entry.value)) {
+      throw schemaError(`분포 엔트리 ${text(entry?.id)}의 값이 올바르지 않습니다.`, 'PL-SCHEMA-DISTRIBUTION-VALUE');
+    }
+  }
+  try {
+    const layers = normalizeDistributionLayers(project.distributionLayers);
+    const ids = new Set(layers.map(layer => layer.id));
+    normalizeDistributionEntries(project.distributionEntries, { layerExists: id => ids.has(id), cloneGeometry: geometry => geometry });
+  } catch (error) {
+    throw schemaError(error.message, 'PL-SCHEMA-DISTRIBUTION');
   }
   for (const feature of project.genericFeatures || []) {
     const label = `기타 객체 ${text(feature?.id)}`;
@@ -187,7 +207,7 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'distributionLayers', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'distributionEntries', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'labelSettings', scope: 'presentation', fallback: () => ({}) }),
-  Object.freeze({ name: 'distributionSettings', scope: 'presentation', fallback: current => current || { renderMode: 'dominant', boundaryVisible: true } }),
+  Object.freeze({ name: 'distributionSettings', scope: 'presentation', fallback: current => current || { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true } }),
   Object.freeze({ name: 'layerPresentation', scope: 'presentation', fallback: () => ({}) }),
   Object.freeze({ name: 'physicalSettings', scope: 'presentation', fallback: current => current || {} }),
   Object.freeze({ name: 'layerVisibility', scope: 'presentation', fallback: current => current || {} }),
