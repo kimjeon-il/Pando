@@ -1,8 +1,8 @@
 import { interactionCssProperties } from './map-interaction-style.js';
 import { TERRAIN_DEM_VERSION, TERRAIN_RASTER_DATASET, selectTerrainManifestUrls, terrainRasterManifestUrl } from './terrain-manifest.js';
 
-// Keep the official source gated until the published tiles pass preview checks.
-const TERRAIN_DEM_DEFAULT_ENABLED = false;
+// The published DEM is the GPU default; the raster dataset remains the fallback.
+const TERRAIN_DEM_DEFAULT_ENABLED = true;
 /** Environment: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -233,6 +233,7 @@ export function createEnvironment() {
       raster: TERRAIN_RASTER_MANIFEST_URL,
       dev: TERRAIN_DEV_DEM_MANIFEST_URL,
       preview: new URLSearchParams(location.search).get('demTerrain') === 'preview',
+      rasterOnly: new URLSearchParams(location.search).get('demTerrain') === 'raster',
       defaultDem: TERRAIN_DEM_DEFAULT_ENABLED,
     });
     (TERRAIN_PRIMARY_MANIFEST_URL = terrainSelection.primary);

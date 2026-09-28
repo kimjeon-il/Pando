@@ -371,6 +371,7 @@ export function createGpuMapRenderer(deps) {
       terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: uploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
       preparedTerrain = terrainPreparation.prepare(frame, {
         visible: state.physicalSettings.terrainVisible, enhanced: state.dataReadiness === 'enhanced',
+        physicalStyle: state.physicalSettings.terrainStyle,
         projection: state.projection, rotation: state.view.globeRotation, flatCenter: state.view.flatCenter,
         width: cssWidth, height: cssHeight, dpr: effectivePixelRatio, devicePixelRatio: window.devicePixelRatio,
         cacheBudgetBytes: renderQuality.terrainCacheBudgetBytes,
@@ -4220,6 +4221,7 @@ export function createGpuMapRenderer(deps) {
       target.terrainSource = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? 'raster' : terrainSource;
       target.terrainFallbackReason = rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? null : terrainFallbackReason;
       target.terrainTargetLevel = terrainStats.terrainLevel;
+      target.terrainShadeBlend = demShadeBlend;
       target.requestedRevision = currentRenderRevision;
       target.displayedRevision = displayedRenderRevision;
       target.p95CpuSubmitMs = cachedDetailedStats.p95CpuSubmitMs;
