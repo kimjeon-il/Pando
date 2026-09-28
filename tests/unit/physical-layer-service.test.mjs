@@ -88,7 +88,7 @@ test('invalid optional DEM manifest falls back to the complete raster source', a
     manifestUrl: () => new URL('https://example.test/dem/manifest.json'),
     fallbackManifestUrl: () => new URL('https://example.test/raster/manifest.json'),
     getLoadState: () => 'idle', onLoading() {}, onRetry() {},
-    acceptManifest: (manifest, url) => accepted.push([manifest.representation, String(url)]),
+    acceptManifest: (manifest, url, context) => accepted.push([manifest.representation, String(url), context]),
     onFailure: assert.fail,
   });
   const warn = console.warn;
@@ -96,7 +96,8 @@ test('invalid optional DEM manifest falls back to the complete raster source', a
   try { assert.equal(await service.load(), true); }
   finally { console.warn = warn; }
   assert.deepEqual(urls, ['https://example.test/dem/manifest.json', 'https://example.test/raster/manifest.json']);
-  assert.deepEqual(accepted, [['raster-rgba-v1', 'https://example.test/raster/manifest.json']]);
+  assert.deepEqual(accepted, [['raster-rgba-v1', 'https://example.test/raster/manifest.json',
+    { usedFallback: true, fallbackReason: '지원하지 않는 지형 표현 형식: unknown' }]]);
 });
 
 test('hydro consumers join initial loading through worker readiness without duplicate fetches', async () => {

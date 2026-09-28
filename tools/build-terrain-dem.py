@@ -38,6 +38,7 @@ LIGHT_AZIMUTH = 315.0
 LIGHT_ALTITUDE = 45.0
 AMBIENT = 0.42
 DIFFUSE = 0.58
+SHADE_QUANTIZATION_STEP = 4
 ETOPO_SHA256 = '8630abc401cc6bdd30b507a68d3eb9eda5b65f5636f7199e4b1eefd476b5a9e2'
 TINT_SHA256 = '29ba984a14d96c3d745065b096eccf0a21207718d8549341c955c64b150e3e09'
 
@@ -129,6 +130,14 @@ def shade(elevation, level_width, level_height, north_pixel_row):
     return np.rint(np.clip(AMBIENT + DIFFUSE * diffuse, 0, 1) * 255).astype(np.uint8)
 
 
+def quantize_shade(values):
+    # Preserve the full elevation channels; only the motion-phase shade may
+    # differ by at most two of 255 display steps.
+    rounded = ((values.astype(np.uint16) + SHADE_QUANTIZATION_STEP // 2)
+               // SHADE_QUANTIZATION_STEP) * SHADE_QUANTIZATION_STEP
+    return np.minimum(rounded, 255).astype(np.uint8)
+
+
 def encode(elevation, level_width, level_height, north_pixel_row):
     if not np.isfinite(elevation).all() or elevation.min() < -BIAS or elevation.max() > 65535-BIAS:
         raise ValueError('Elevation outside valid encoding range')
@@ -136,14 +145,29 @@ def encode(elevation, level_width, level_height, north_pixel_row):
     rgba = np.empty((*packed.shape, 4), dtype=np.uint8)
     rgba[:, :, 0] = (packed >> 8).astype(np.uint8)
     rgba[:, :, 1] = (packed & 255).astype(np.uint8)
-    rgba[:, :, 2] = shade(elevation, level_width, level_height, north_pixel_row)
+    original_shade = shade(elevation, level_width, level_height, north_pixel_row)
+    compact_shade = quantize_shade(original_shade)
+    # Polar gutters lie outside the world grid. Coarse LODs clamp to the
+    # adjacent real row; at finer LODs retain the computed polar shade.
+    world_rows = north_pixel_row + np.arange(original_shade.shape[0])
+    north_gutters = world_rows < 0
+    south_gutters = world_rows >= level_height
+    if level_height <= 1350:
+        if np.any(north_gutters):
+            compact_shade[north_gutters] = compact_shade[np.flatnonzero(world_rows == 0)[0]]
+        if np.any(south_gutters):
+            compact_shade[south_gutters] = compact_shade[np.flatnonzero(world_rows == level_height-1)[0]]
+    else:
+        polar_gutters = north_gutters | south_gutters
+        compact_shade[polar_gutters] = original_shade[polar_gutters]
+    rgba[:, :, 2] = compact_shade
     rgba[:, :, 3] = 255
     return rgba
 
 
 def save_and_verify_webp(rgba, path):
     image = Image.fromarray(rgba, "RGBA")
-    image.save(path, "WEBP", lossless=True, exact=True, method=4)
+    image.save(path, "WEBP", lossless=True, exact=True, method=6)
     with Image.open(path) as decoded:
         if not np.array_equal(np.asarray(decoded.convert("RGBA")), rgba):
             path.unlink(missing_ok=True)
@@ -192,6 +216,56 @@ def reconcile_gutters(output: Path, level):
             if not np.array_equal(prior, pixels):
                 save_and_verify_webp(pixels, path)
                 modified += 1
+    return modified
+
+
+def restore_polar_gutter_shade(output: Path, etopo_path: Path, min_level=0, max_level=5):
+    """Refresh only out-of-grid polar shade after a generator upgrade."""
+    modified = 0
+    with rasterio.open(etopo_path) as source:
+        validate_source(source)
+        for level in levels():
+            if level['id'] < min_level or level['id'] > max_level:
+                continue
+            width, height = level['width'], level['height']
+            if height <= 1350:
+                for row in sorted({0, level['rows']-1}):
+                    for column in range(level['columns']):
+                        path = output/str(level['id'])/f'{column}-{row}.webp'
+                        with Image.open(path) as image:
+                            pixels = np.array(image.convert('RGBA'))
+                        prior = pixels[:, :, 2].copy()
+                        if row == 0:
+                            pixels[0, :, 2] = pixels[1, :, 2]
+                        if row == level['rows']-1:
+                            pixels[-1, :, 2] = pixels[-2, :, 2]
+                        if not np.array_equal(prior, pixels[:, :, 2]):
+                            save_and_verify_webp(pixels, path)
+                            modified += 1
+                print(json.dumps({'level': level['id'], 'polarShadeRestoredTiles': modified}), flush=True)
+                continue
+            with WarpedVRT(source, crs=source.crs,
+                           transform=rasterio.transform.from_bounds(-180, -90, 180, 90, width, height),
+                           width=width, height=height, resampling=Resampling.average) as vrt:
+                for row in sorted({0, level['rows']-1}):
+                    for column in range(level['columns']):
+                        x0, y0 = column*TILE_SIZE, row*TILE_SIZE
+                        x1, y1 = min(width, x0+TILE_SIZE), min(height, y0+TILE_SIZE)
+                        elevation = read_vrt_pixels(vrt, width, height, x0-2, y0-2, x1+2, y1+2)
+                        original_shade = shade(elevation, width, height, y0-2)[1:-1, 1:-1]
+                        path = output/str(level['id'])/f'{column}-{row}.webp'
+                        with Image.open(path) as image:
+                            pixels = np.array(image.convert('RGBA'))
+                        prior = pixels[:, :, 2].copy()
+                        if row == 0:
+                            pixels[0, :, 2] = original_shade[0]
+                        if row == level['rows']-1:
+                            pixels[-1, :, 2] = original_shade[-1]
+                        if not np.array_equal(prior, pixels[:, :, 2]):
+                            save_and_verify_webp(pixels, path)
+                            modified += 1
+                        del elevation, original_shade, pixels, prior
+            print(json.dumps({'level': level['id'], 'polarShadeRestoredTiles': modified}), flush=True)
     return modified
 
 
@@ -294,7 +368,8 @@ def build(etopo_path: Path, tint_zip: Path, output: Path):
         "elevation": {"encode": "round(meters)+12000", "decode": "R*256+G-12000",
                       "biasMeters": BIAS, "spacingMeters": 1, "validEncodedRange": [0, 65535]},
         "shade": {"azimuthDegrees": LIGHT_AZIMUTH, "altitudeDegrees": LIGHT_ALTITUDE,
-                  "ambient": AMBIENT, "diffuse": DIFFUSE, "polarFallbackDegrees": 89.5},
+                  "ambient": AMBIENT, "diffuse": DIFFUSE, "polarFallbackDegrees": 89.5,
+                  "quantizationStep": SHADE_QUANTIZATION_STEP},
         "gutter": 1, "tileSize": TILE_SIZE, "levels": levels(),
         "urlTemplate": f"terrain/v{VERSION}/{{level}}/{{column}}-{{row}}.webp",
         "tint": {"url": f"terrain/v{VERSION}/tint.webp", "width": 2048, "height": 1024,
@@ -309,13 +384,13 @@ def build(etopo_path: Path, tint_zip: Path, output: Path):
         "assetsSha256": assets_sha,
     }
     temporary = output / "manifest.json.tmp"
-    temporary.write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+    temporary.write_bytes((json.dumps(manifest, ensure_ascii=False, indent=2)+"\n").encode("utf-8"))
     temporary.replace(output / "manifest.json")
     report = {"completed": True, "totalBytes": sum(item["bytes"] for item in level_reports)
               + tint_path.stat().st_size, "seconds": round(time.monotonic()-started, 3),
               "peakWorkingSetBytes": peak_working_set, "levelReports": level_reports,
               "manifestSha256": sha256(output / "manifest.json")}
-    (output / "build-report.json").write_text(json.dumps(report, indent=2)+"\n", encoding="utf-8")
+    (output / "build-report.json").write_bytes((json.dumps(report, indent=2)+"\n").encode("utf-8"))
     print(json.dumps(report), flush=True)
 
 
@@ -349,24 +424,30 @@ def main():
     parser.add_argument("--tint-zip", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--repair-output", action="store_true")
+    parser.add_argument("--repair-polar-min-level", type=int, default=0)
+    parser.add_argument("--repair-polar-max-level", type=int, default=5)
     args = parser.parse_args()
     if args.repair_output:
         manifest_path = args.output/'manifest.json'
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        previous_report_path = args.output/'build-report.json'
+        previous_report = json.loads(previous_report_path.read_text(encoding='utf-8')) if previous_report_path.exists() else {}
+        if args.etopo:
+            restore_polar_gutter_shade(args.output, args.etopo, args.repair_polar_min_level, args.repair_polar_max_level)
         for level in manifest['levels']:
             print(json.dumps({'level': level['id'], 'reconciledTiles': reconcile_gutters(args.output, level)}), flush=True)
         assets_sha, reports = asset_summary(args.output, manifest['levels'])
         old_generation = manifest.pop('generation', {})
         manifest['assetsSha256'] = assets_sha
-        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+        manifest_path.write_bytes((json.dumps(manifest, ensure_ascii=False, indent=2)+'\n').encode('utf-8'))
         report = {'completed': True, 'totalBytes': sum(item['bytes'] for item in reports)
                   +(args.output/'tint.webp').stat().st_size,
-                  'seconds': old_generation.get('seconds'),
-                  'peakWorkingSetBytes': old_generation.get('peakWorkingSetBytes') or None,
-                  'levelReports': [dict(report, seconds=old_generation.get('levelReports', [{}]*len(reports))[index].get('seconds'))
+                  'seconds': previous_report.get('seconds', old_generation.get('seconds')),
+                  'peakWorkingSetBytes': previous_report.get('peakWorkingSetBytes', old_generation.get('peakWorkingSetBytes')),
+                  'levelReports': [dict(report, seconds=previous_report.get('levelReports', old_generation.get('levelReports', [{}]*len(reports)))[index].get('seconds'))
                                    for index, report in enumerate(reports)],
                   'manifestSha256': sha256(manifest_path)}
-        (args.output/'build-report.json').write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
+        (args.output/'build-report.json').write_bytes((json.dumps(report, indent=2)+'\n').encode('utf-8'))
         print(json.dumps(report), flush=True)
     else:
         if not args.etopo or not args.tint_zip:

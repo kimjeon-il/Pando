@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { terrainAssetUrl, terrainRasterManifestUrl, validateTerrainManifest } from '../../assets/js/modules/terrain-manifest.js';
+import * as terrainSources from '../../assets/js/modules/terrain-manifest.js';
 
 const raster = {
   version: '0.12.6', crs: 'EPSG:4326', extent: [-180, -90, 180, 90], gutter: 1,
@@ -28,6 +29,7 @@ test('legacy raster and strict DEM manifests select known representations', () =
   assert.throws(() => validateTerrainManifest({ ...dem, representation: 'unknown' }), /지원하지 않는/);
   assert.throws(() => validateTerrainManifest({ ...dem, elevation: { decode: 'G*256+R-12000' } }), /DEM/);
   assert.throws(() => validateTerrainManifest({ ...dem, levels: dem.levels.slice(0, 5) }), /DEM/);
+  assert.throws(() => validateTerrainManifest({ ...dem, shade: { ...dem.shade, quantizationStep: 8 } }), /DEM/);
 });
 
 test('relative and absolute data URLs resolve from the manifest without coupling DEM to app revision', () => {
@@ -40,4 +42,27 @@ test('relative and absolute data URLs resolve from the manifest without coupling
   assert.equal(terrainAssetUrl('https://tiles.example/0-0.webp', {
     manifestUrl: rasterUrl, dataBaseUrl: appBase,
   }).href, 'https://tiles.example/0-0.webp');
+});
+
+test('terrain source selection keeps preview gated and supplies a raster fallback', () => {
+  assert.equal(typeof terrainSources.selectTerrainManifestUrls, 'function');
+  const official = new URL('https://example.test/terrain/v0.13.0/manifest.json');
+  const rasterUrl = new URL('https://example.test/terrain/v0.12.6/manifest.json');
+  const dev = new URL('http://127.0.0.1:4174/terrain/v0.13.0/manifest.json');
+  const select = options => terrainSources.selectTerrainManifestUrls({ official, raster: rasterUrl, ...options });
+  assert.deepEqual(select({}), { primary: rasterUrl, fallback: null, source: 'raster' });
+  assert.deepEqual(select({ preview: true }), { primary: official, fallback: rasterUrl, source: 'preview' });
+  assert.deepEqual(select({ defaultDem: true }), { primary: official, fallback: rasterUrl, source: 'official' });
+  assert.deepEqual(select({ defaultDem: true, dev }), { primary: dev, fallback: rasterUrl, source: 'development' });
+});
+
+test('DEM CDN assets use the manifest hash without applying it to unrelated origins', () => {
+  const manifestUrl = 'https://terrain.example/terrain/v0.13.0/manifest.json';
+  const dataBaseUrl = new URL('https://app.example/assets/data/');
+  assert.equal(terrainAssetUrl('terrain/v0.13.0/5/0-0.webp', {
+    manifestUrl, dataBaseUrl, revision: 'asset-hash',
+  }).href, 'https://terrain.example/terrain/v0.13.0/5/0-0.webp?v=asset-hash');
+  assert.equal(terrainAssetUrl('https://other.example/5/0-0.webp', {
+    manifestUrl, dataBaseUrl, revision: 'asset-hash',
+  }).href, 'https://other.example/5/0-0.webp');
 });

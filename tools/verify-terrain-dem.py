@@ -24,14 +24,32 @@ def rgba(path):
         return np.asarray(image.convert('RGBA'))
 
 
+def validate_shade_values(values, step, excluded_rows=()):
+    invalid = (values != 255) & (values % step != 0)
+    for row in excluded_rows:
+        invalid[row, :] = False
+    if np.any(invalid):
+        raise ValueError('Published DEM shade does not match its quantization step')
+
+
+def compare_reference_tile(pixels, reference, label):
+    if pixels.shape != reference.shape or not np.array_equal(pixels[:, :, [0, 1, 3]], reference[:, :, [0, 1, 3]]):
+        raise ValueError(f'DEM elevation or alpha changed from reference: {label}')
+    if np.any(np.abs(pixels[:, :, 2].astype(np.int16) - reference[:, :, 2].astype(np.int16)) > 2):
+        raise ValueError(f'DEM shade changed by more than two steps: {label}')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--etopo', required=True, type=Path)
+    parser.add_argument('--reference-output', type=Path)
     args = parser.parse_args()
     manifest = json.loads((args.output/'manifest.json').read_text(encoding='utf-8'))
     if manifest['representation'] != 'dem-relief-v1' or manifest['version'] != '0.13.0':
         raise ValueError('Unexpected DEM version or format')
+    if manifest['shade'].get('quantizationStep') != 4:
+        raise ValueError('Unexpected DEM shade quantization')
     if digest_file(args.etopo).hex() != manifest['sources'][0]['sha256']:
         raise ValueError('Source checksum mismatch')
     asset_digest = hashlib.sha256()
@@ -55,6 +73,10 @@ def main():
                         raise ValueError(f'Wrong tile size: {path}: {pixels.shape}')
                     if np.any(pixels[:, :, 3] != 255):
                         raise ValueError(f'Non-opaque DEM alpha: {path}')
+                    excluded_rows = ((0,) if row == 0 else ()) + ((-1,) if row == level['rows']-1 else ())
+                    validate_shade_values(pixels[:, :, 2], manifest['shade']['quantizationStep'], excluded_rows)
+                    if args.reference_output:
+                        compare_reference_tile(pixels, rgba(args.reference_output/str(level_id)/path.name), path)
                     if previous_right is not None and not np.array_equal(previous_right, pixels[:, 1]):
                         raise ValueError(f'Horizontal gutter mismatch before {path}')
                     if column in previous_row and not np.array_equal(previous_row[column], pixels[1, :]):
@@ -87,8 +109,10 @@ def main():
     asset_digest.update(digest_file(tint_path))
     if asset_digest.hexdigest() != manifest['assetsSha256']:
         raise ValueError('DEM asset checksum mismatch')
-    print(json.dumps({'verified': True, 'levels': reports, 'totalBytes':
-        sum(item['bytes'] for item in reports)+tint_path.stat().st_size}, indent=2))
+    published_bytes = sum(item['bytes'] for item in reports)+tint_path.stat().st_size+(args.output/'manifest.json').stat().st_size
+    if published_bytes > 900*1024*1024:
+        raise ValueError(f'DEM exceeds 900 MiB publication budget: {published_bytes} bytes')
+    print(json.dumps({'verified': True, 'levels': reports, 'totalBytes': published_bytes}, indent=2))
 
 
 if __name__ == '__main__':
