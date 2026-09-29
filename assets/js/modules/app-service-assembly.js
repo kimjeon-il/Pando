@@ -132,6 +132,7 @@ export function createServiceAssembly() {
       hydroFeatureById: dependencies.hydroModel.hydroFeatureById,
       hydroVisibilityThreshold: dependencies.physicalResources.hydroVisibilityThreshold,
       isCountryVisibleById: dependencies.builtinCountries.isRenderCountryVisible,
+      renderCountryFeatures: () => dependencies.countries.builtinRenderCountries().collection.features,
       isHydroFeatureVisible: dependencies.physicalServices.isHydroFeatureVisible,
       isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
       isMobile: dependencies.surfaces.isMobile,

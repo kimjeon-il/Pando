@@ -7,6 +7,8 @@ function canvasFallbackWorkerMain() {
     let substrate = null;
     let features = [];
     let geometryRevision = 0;
+    let projectGeneration = 0;
+    let countrySharedBoundary = null;
     let terrainManifest = null;
     let terrainManifestUrl = '';
     const terrainTiles = new Map();
@@ -574,6 +576,7 @@ function canvasFallbackWorkerMain() {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const geoPath = self.d3.geo.path().projection(projection).context(context);
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
+        const hiddenSharedCountryIds = new Set((message.hiddenSharedCountryIds || []).map(String));
         const theme = message.theme || {};
         const defaultLand = theme.defaultLand || '#63758a';
         const fillAlpha = Number.isFinite(theme.fillAlpha) ? theme.fillAlpha : 0.74;
@@ -615,14 +618,22 @@ function canvasFallbackWorkerMain() {
         renderHydroPass(message, projection, dpr, false);
         renderHydroPass(message, projection, dpr, true);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
-        for (let index = 0; message.visible && index < features.length; index += 1) {
+        context.globalAlpha = borderAlpha;
+        context.strokeStyle = border;
+        if (message.visible && message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical') {
+          if (countrySharedBoundary) {
+            const segments = countrySharedBoundary.segments.filter(segment =>
+              segment.ownerIds.some(id => !hiddenSharedCountryIds.has(id)));
+            context.beginPath();
+            geoPath({ type: 'MultiLineString', coordinates: segments.map(({ start, end }) => [start, end]) });
+            context.stroke();
+          }
+        } else for (let index = 0; message.visible && index < features.length; index += 1) {
           const feature = features[index];
           const id = countryId(feature, index);
           if (hiddenCountryIds.has(id)) continue;
           context.beginPath();
           geoPath(countryOutlineFeature(feature));
-          context.globalAlpha = borderAlpha;
-          context.strokeStyle = border;
           context.stroke();
         }
         context.globalAlpha = 1;
@@ -648,6 +659,8 @@ function canvasFallbackWorkerMain() {
       if (message.type === 'init') {
         features = message.features || [];
         geometryRevision = Number(message.geometryRevision || 0);
+        projectGeneration = Number(message.projectGeneration || 0);
+        countrySharedBoundary = message.sharedBoundary || null;
         viewRevision = Number(message.viewRevision || message.revision || 0);
         styleRevision = Number(message.styleRevision || 0);
         physicalStyleRevision = Number(message.physicalStyleRevision || 0);
@@ -678,6 +691,8 @@ function canvasFallbackWorkerMain() {
         }
         features = message.features || [];
         geometryRevision = incomingGeometryRevision;
+        projectGeneration = Number(message.projectGeneration || projectGeneration);
+        countrySharedBoundary = null;
         self.postMessage({
           type: 'data-ready',
           revision: Number(message.revision || 0),
@@ -710,6 +725,8 @@ function canvasFallbackWorkerMain() {
         });
         for (const [id, feature] of updates) if (!seen.has(id)) features.push(feature);
         geometryRevision = incomingGeometryRevision;
+        projectGeneration = Number(message.projectGeneration || projectGeneration);
+        countrySharedBoundary = null;
         self.postMessage({
           type: 'data-ready',
           revision: Number(message.revision || 0),
@@ -718,6 +735,12 @@ function canvasFallbackWorkerMain() {
           ids: message.ids || [],
           replaceAll: false,
         });
+      } else if (message.type === 'country-shared-boundary') {
+        if (Number(message.geometryRevision) !== geometryRevision
+          || Number(message.projectGeneration) !== projectGeneration) return;
+        countrySharedBoundary = message.packet || null;
+        if (countrySharedBoundary) mergeRenderState({ hiddenSharedCountryIds: message.hiddenSharedCountryIds || [] });
+        scheduleHydroRender();
       } else if (message.type === 'style') {
         const incomingRevision = Number(message.styleRevision || 0);
         if (incomingRevision < styleRevision) return;
