@@ -9,6 +9,8 @@
     "check:country-schema": "node tools/normalize-canonical-country-schema.mjs --check",
     "build:mesh": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-mesh.mjs",
     "build:preview": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-preview.mjs && python tools/validate-country-geometry.py",
+    "build:country-shared-boundaries": "node tools/build-country-shared-boundaries.mjs",
+    "check:country-shared-boundaries": "node tools/build-country-shared-boundaries.mjs --check",
     "build:map-assets": "pnpm build:country-schema && pnpm build:mesh && pnpm build:preview",
     "build:historical-library": "python tools/build-historical-library.py",
     "check:historical-library": "python tools/build-historical-library.py --check && node scripts/check-historical-library.mjs",
