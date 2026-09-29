@@ -64,6 +64,11 @@ const supplementalHistoricalChecks = [
     outside: [[18.65, 54.35], [23.9, 54.9]],
   },
   {
+    id: 'historical-country:north-schleswig',
+    version: 'north-schleswig-1900-r3',
+    points: [[9.417, 55.044], [9.483, 55.25], [8.867, 54.933]],
+  },
+  {
     id: 'historical-country:ukraine',
     version: 'historical-country:ukraine:1991-2014-r1',
     points: [[34.1, 44.95], [36.2, 45.3]],
