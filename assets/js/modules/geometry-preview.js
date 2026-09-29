@@ -87,13 +87,19 @@ export function buildGeometryPreview({ operation, beforeFeatures = [], afterFeat
   const afterUnion = unionGeometry(afterFeatures, clipper);
   let removedGeometry = null;
   let addedGeometry = null;
-  if (clipper?.difference && beforeUnion && afterUnion) {
+  if (operation !== 'annex' && clipper?.difference && beforeUnion && afterUnion) {
     const removed = clipper.difference(beforeUnion.coordinates, afterUnion.coordinates);
     const added = clipper.difference(afterUnion.coordinates, beforeUnion.coordinates);
     if (removed?.length) removedGeometry = { type: 'MultiPolygon', coordinates: removed };
     if (added?.length) addedGeometry = { type: 'MultiPolygon', coordinates: added };
   }
-  if (transferredGeometry) {
+  if (operation === 'annex') {
+    if (!transferredGeometry || !['Polygon', 'MultiPolygon'].includes(transferredGeometry.type)) {
+      throw new Error('편입 미리보기의 검증된 형상이 없습니다.');
+    }
+    removedGeometry = clone(transferredGeometry);
+    addedGeometry = clone(transferredGeometry);
+  } else if (transferredGeometry) {
     removedGeometry ||= clone(transferredGeometry);
     addedGeometry ||= clone(transferredGeometry);
   }
