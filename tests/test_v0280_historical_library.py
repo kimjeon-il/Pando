@@ -63,6 +63,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             "historical-country:yugoslavia",
             "historical-country:sudan",
             "historical-country:indonesia",
+            "historical-country:north-schleswig",
         }
         self.assertEqual(east_germany["geometryVersions"][0]["datePrecision"], "reference-date")
         self.assertEqual(east_germany["geometryVersions"][0]["certainty"], "medium")
@@ -132,6 +133,17 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertEqual(entity["metadata"]["validation"]["redistributionPermission"], "unconfirmed")
         self.assertEqual(version["geometry"]["type"], "MultiPolygon")
         self.assertEqual(len(version["geometry"]["coordinates"]), 1)
+
+    def test_north_schleswig_is_registered_as_a_reference_date_country(self):
+        entity = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:north-schleswig")
+        self.assertEqual(entity["type"], "country")
+        self.assertEqual(entity["displayNames"]["ko"], "북슐레스비히")
+        self.assertEqual(entity["geometryVersions"][0]["id"], "north-schleswig-1900-r3")
+        self.assertEqual(entity["geometryVersions"][0]["validFrom"], "1900-01-01")
+        self.assertEqual(entity["geometryVersions"][0]["validTo"], "1900-01-01")
+        self.assertEqual(entity["geometryVersions"][0]["geometry"]["type"], "MultiPolygon")
+        self.assertEqual(entity["instantiation"]["mode"], "territory-replacement")
+        self.assertTrue(entity["metadata"]["approximateGeometry"])
 
     def test_world_snapshot_is_a_template(self):
         self.assertIn("normalizeWorldSnapshot", MODEL)

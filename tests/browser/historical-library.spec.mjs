@@ -63,6 +63,71 @@ test('historical library search previews and instantiates a sourced historical c
   expect(errors).toEqual([]);
 });
 
+test('North Schleswig 1900 is searchable and splits Denmark without changing the source', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 60_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
+
+  const before = await page.evaluate(() => ({
+    count: window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length,
+    denmark: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DNK').geometry),
+  }));
+  await page.locator('#createMenuBtn').click();
+  await page.locator('#addFromLibraryBtn').click();
+  await page.locator('#historicalLibrarySearchInput').fill('북슐레스비히');
+  await page.locator('#historicalLibraryYearInput').fill('1900');
+  const result = page.locator('[data-library-entity-id="historical-country:north-schleswig"]');
+  await expect(result).toBeVisible();
+  await expect(result.locator('.historical-library-result-flag img')).toHaveCount(1);
+  await result.click();
+  await expect(page.locator('#historicalLibraryPreview')).toContainText('북슐레스비히');
+  const source = await page.evaluate(async () => JSON.stringify(
+    (await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:north-schleswig')).geometryVersions[0].geometry,
+  ));
+  await page.locator('#historicalLibraryAddBtn').click();
+  await expect(page.locator('#historicalLibraryModal')).toContainText('덴마크:');
+  await page.locator('#historicalLibraryAddBtn').click();
+  await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 60_000 });
+  const added = await page.evaluate(async () => {
+    const north = window.PANDOLAB_TERRITORIAL.get('historical-country:north-schleswig');
+    const denmark = window.PANDOLAB_TERRITORIAL.get('DNK');
+    return {
+      count: window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length,
+      id: north?.id,
+      name: north?.properties?.name,
+      components: north?.geometry?.coordinates?.length,
+      denmarkExists: Boolean(denmark),
+      overlap: window.polygonClipping.intersection(north.geometry.coordinates, denmark.geometry.coordinates).length,
+      source: JSON.stringify((await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:north-schleswig')).geometryVersions[0].geometry),
+    };
+  });
+  expect(added).toEqual({
+    count: before.count + 1,
+    id: 'historical-country:north-schleswig',
+    name: '북슐레스비히',
+    components: 2,
+    denmarkExists: true,
+    overlap: 0,
+    source,
+  });
+
+  await page.locator('#undoBtn').click();
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('historical-country:north-schleswig'))).toBeNull();
+  const afterUndo = await page.evaluate(() => ({
+    count: window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length,
+    denmark: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DNK').geometry),
+  }));
+  expect(afterUndo).toEqual(before);
+  expect(errors).toEqual([]);
+});
+
 async function autosaveContainsEastGermany(page) {
   return page.evaluate(async () => {
     const database = await new Promise((resolve, reject) => {
