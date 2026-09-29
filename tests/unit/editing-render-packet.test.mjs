@@ -4,6 +4,7 @@ import {
   createDraftRenderPacket,
   createEditingRenderPacket,
   EMPTY_EDITING_RENDER_PACKET,
+  freezeEditingGeometry,
 } from '../../assets/js/modules/editing-render-packet.js';
 import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
@@ -17,6 +18,14 @@ const assertDeepFrozen = value => {
 test('worker split results without presentation keys remain two distinct render entries', () => {
   const packet = createDraftRenderPacket({ splitCandidates: [{ geometry: null, area: 1 }, { geometry: null, area: 2 }] });
   assert.equal(new Set(packet.splitCandidates.map(candidate => candidate.key)).size, 2);
+});
+
+test('validated preview geometry reaches the render packet without another coordinate copy', () => {
+  const transferred = { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 0]]] };
+  freezeEditingGeometry(transferred);
+  const packet = createEditingRenderPacket({ preview: { status: 'ready', delta: { addedGeometry: transferred } } });
+  assert.equal(packet.preview.delta.addedGeometry, transferred);
+  assertDeepFrozen(packet.preview);
 });
 
 test('asynchronous territory results replace cached packets for every active territory tool', () => {

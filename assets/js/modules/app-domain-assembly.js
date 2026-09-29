@@ -514,7 +514,7 @@ export function createDomainAssembly() {
         snapCandidates: ({ coordinate, excludeNodeKey }) => (0, dependencies.pointerInteractionA.localSnapCandidates)(coordinate)
           .filter(candidate => !excludeNodeKey || candidate.nodeKey !== excludeNodeKey),
         cancelPreparation: () => {
-          if (cutRequest?.pending) dependencies.spatialQuery.mapEditClient.stop();
+          if (cutRequest?.pending) cutRequest.abortController.abort();
           cutRequest = null;
           confirmedCutSource = null;
         },
@@ -532,12 +532,12 @@ export function createDomainAssembly() {
           const workerStats = dependencies.spatialQuery.mapEditClient.stats();
           const key = JSON.stringify([sourceKey, coords, view, buildPreview, tool, projectDomain?.getGeneration?.()]);
           if (cutRequest?.key === key) return cutRequest.promise;
-          const entry = { key, sourceKey, promise: null, pending: true };
+          const entry = { key, sourceKey, promise: null, pending: true, abortController: new AbortController() };
           cutRequest = entry;
           entry.promise = dependencies.spatialQuery.mapEditClient.execute('territorial-cut', { payload: {
             sourceKey, source: confirmedCutSource?.key === sourceKey && confirmedCutSource.workerRevision === workerStats.dataRevision && workerStats.ready ? undefined : source,
             coords, view, buildPreview,
-          } }, { jobKey: 'territorial-cut' }).then(response => {
+          } }, { jobKey: 'territorial-cut', signal: entry.abortController.signal }).then(response => {
             for (const candidate of response.result.split?.candidates || []) {
               freezeEditingGeometry(candidate.geometry);
               if (candidate.feature) freezeEditingGeometry(candidate.feature.geometry);
@@ -720,22 +720,30 @@ export function createDomainAssembly() {
         renderPacket: () => {
           const territoryItems = (0, dependencies.territoryComponents.territoryComponentItems)();
           const territorySelection = dependencies.projectState.state.territorySelectionSession;
+          const geometryPreview = dependencies.projectState.state.geometryPreview?.session;
+          const previewDelta = geometryPreview?.delta;
           const selectionVisible = territorySelection?.tool === dependencies.projectState.state.tool && territorySelection.stage === 'selection';
+          const sessionKey = String(territorySelection?.id || 'unknown');
           const candidates = selectionVisible ? territorySelection.candidates.map((item, index) => ({
+            key: `${sessionKey}:candidate:${index}`,
             index,
             geometry: item.geometry,
             selected: index === territorySelection.selectedCandidateIndex,
           })) : [];
           if (selectionVisible && territorySelection.currentGeometry && !candidates.some(item => item.selected)) {
-            candidates.unshift({ index: -1, geometry: territorySelection.currentGeometry, selected: true, interactive: false });
+            candidates.unshift({ key: `${sessionKey}:current`, index: -1, geometry: territorySelection.currentGeometry, selected: true, interactive: false });
           }
           if (selectionVisible && territorySelection.parts.length) {
             candidates.unshift(...territorySelection.parts.map(item => ({
-              index: -1, geometry: item.geometry, selected: true, interactive: false,
+              key: `${sessionKey}:part:${item.id}`, index: -1, geometry: item.geometry, selected: true, interactive: false,
             })));
           }
           return {
             boundaryEdit: dependencies.projectState.state.boundaryPreparation?.status === 'ready' ? dependencies.projectState.state.boundaryPreparation.packet : null,
+            preview: previewDelta ? { status: geometryPreview.status, delta: {
+              removedGeometry: freezeEditingGeometry(previewDelta.removedGeometry),
+              addedGeometry: freezeEditingGeometry(previewDelta.addedGeometry),
+            } } : null,
             territoryOperation: territoryItems.length || candidates.length ? {
               kind: dependencies.projectState.state.tool,
               sourceKey: `${territorySelection?.id}:${territorySelection?.componentIndex?.key}:${territorySelection?.settingsRevision}`,

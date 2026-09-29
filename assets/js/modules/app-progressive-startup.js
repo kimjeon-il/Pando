@@ -84,6 +84,9 @@ export function createProgressiveStartup() {
       : restored?.countriesData
         ? (0, dependencies.geometryMutation.reindexCountries)(restored.countriesData, true)
         : (0, dependencies.geometryMutation.reindexCountries)(geometry.countries, true, { assumeCanonical: true });
+    // A display request may have initialized the edit Worker from preview countries.
+    // Retire it before any canonical edit; its next request lazily rebases from this state.
+    dependencies.spatialQuery.mapEditClient.stop();
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'countries-indexed';
     if (!restored) (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
     if (!restored) (0, dependencies.countryRecords.applyPristineLabelAnchors)(dependencies.projectState.state.countriesData);
