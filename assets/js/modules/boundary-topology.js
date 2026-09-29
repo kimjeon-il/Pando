@@ -1,3 +1,6 @@
+import { buildRenderableBoundarySegments } from './geographic-boundary.js';
+import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
+
 const cloneCoordinate = coordinate => [Number(coordinate[0]), Number(coordinate[1])];
 
 function quantized(value, precision) {
@@ -56,6 +59,67 @@ export function boundarySourceSegments(feature, fallbackId = 0) {
 
 export function buildBoundaryTopology(features = [], options = {}) {
   return buildBoundaryTopologyFromSegments(features.flatMap(boundarySourceSegments), options);
+}
+
+// Display-only geometry. The edit topology remains the single authority for
+// shared/coast classification; geographic boundary handling drops pole and
+// artificial antimeridian closing edges before either renderer sees them.
+export function buildCountrySharedBoundarySegments(features = []) {
+  const boundsOf = feature => {
+    const bounds = [Infinity, Infinity, -Infinity, -Infinity];
+    const visit = value => {
+      if (!Array.isArray(value)) return;
+      if (typeof value[0] === 'number' && typeof value[1] === 'number') {
+        bounds[0] = Math.min(bounds[0], value[0]); bounds[1] = Math.min(bounds[1], value[1]);
+        bounds[2] = Math.max(bounds[2], value[0]); bounds[3] = Math.max(bounds[3], value[1]);
+      } else for (const item of value) visit(item);
+    };
+    visit(feature?.geometry?.coordinates);
+    return bounds;
+  };
+  const rows = features.map(feature => ({ feature, bounds: boundsOf(feature) }));
+  const shared = new Map();
+  for (let leftIndex = 0; leftIndex < rows.length; leftIndex++) {
+    const left = rows[leftIndex];
+    for (let rightIndex = leftIndex + 1; rightIndex < rows.length; rightIndex++) {
+      const right = rows[rightIndex];
+      const overlap = [Math.max(left.bounds[0], right.bounds[0]), Math.max(left.bounds[1], right.bounds[1]),
+        Math.min(left.bounds[2], right.bounds[2]), Math.min(left.bounds[3], right.bounds[3])];
+      if (overlap[0] > overlap[2] + 1e-7 || overlap[1] > overlap[3] + 1e-7) continue;
+      const touches = row => Math.max(row.a[0], row.b[0]) >= overlap[0] - 1e-7
+        && Math.min(row.a[0], row.b[0]) <= overlap[2] + 1e-7
+        && Math.max(row.a[1], row.b[1]) >= overlap[1] - 1e-7
+        && Math.min(row.a[1], row.b[1]) <= overlap[3] + 1e-7;
+      const rightSegments = boundarySourceSegments(right.feature).filter(touches);
+      if (!rightSegments.length) continue;
+      const contactIndex = createBoundarySpatialIndex();
+      rightSegments.forEach((row, index) => contactIndex.insert(index, row, segmentBounds(row)));
+      const candidates = new Set();
+      for (const row of boundarySourceSegments(left.feature).filter(touches)) {
+        const bounds = segmentBounds(row);
+        const nearby = contactIndex.query([
+          bounds[0] - 1e-7, bounds[1] - 1e-7, bounds[2] + 1e-7, bounds[3] + 1e-7,
+        ]);
+        if (!nearby.length) continue;
+        candidates.add(row);
+        for (const other of nearby) candidates.add(other);
+      }
+      if (!candidates.size) continue;
+      const topology = buildBoundaryTopologyFromSegments([...candidates]);
+      for (const segment of topology.segments.values()) {
+        if (segment.kind !== 'shared') continue;
+        const key = segmentKey(segment.a, segment.b, topology.precision);
+        const previous = shared.get(key);
+        if (previous) for (const id of segment.ownerIds) previous.ownerIds.add(id);
+        else shared.set(key, { a: segment.a, b: segment.b, ownerIds: new Set(segment.ownerIds) });
+      }
+    }
+  }
+  return [...shared.values()].flatMap(segment => {
+    const ownerIds = [...segment.ownerIds].sort();
+    return buildRenderableBoundarySegments({ type: 'LineString', coordinates: [segment.a, segment.b] })
+      .map(([start, end]) => ({ start, end, ownerIds }));
+  });
 }
 
 export function buildBoundaryTopologyFromSegments(rawSegments, { precision = 7, epsilon = 1e-7 } = {}) {
