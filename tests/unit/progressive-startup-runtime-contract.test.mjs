@@ -48,3 +48,14 @@ test('saved geometry is classified before any first-map source is chosen', () =>
   assert.match(progressive, /previewSource\.kind === 'restore'/);
   assert.match(progressive, /if \(!hasStoredCountryGeometry\) \{[\s\S]*PREVIEW_READY/);
 });
+
+test('canonical promotion discards a worker initialized from preview geometry before editing resumes', () => {
+  const promote = applicationFunctionSource(source, 'completeGeometryInitialization');
+  const canonicalAssignment = promote.indexOf('state.countriesData = restoredDelta');
+  const discardPreviewWorker = promote.indexOf('mapEditClient.stop()');
+  const editable = promote.indexOf("pandolab:editable");
+  assert.ok(canonicalAssignment >= 0);
+  assert.ok(discardPreviewWorker > canonicalAssignment);
+  assert.ok(editable > discardPreviewWorker);
+  assert.doesNotMatch(promote.slice(canonicalAssignment, editable), /mapEditClient\.rebase\(/);
+});

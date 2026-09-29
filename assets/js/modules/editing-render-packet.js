@@ -25,6 +25,7 @@ const coordinates = values => Object.freeze((values || []).map(coordinate).filte
 const cloneFrozen = value => {
   if (Array.isArray(value)) return Object.freeze(value.map(cloneFrozen));
   if (!value || typeof value !== 'object') return value;
+  if (immutableGeometries.has(value)) return value;
   const output = {};
   for (const [key, item] of Object.entries(value)) output[key] = cloneFrozen(item);
   return Object.freeze(output);
@@ -194,7 +195,8 @@ const territoryPacket = input => {
       usesRiverBoundary: value?.usesRiverBoundary === true,
       riverBoundarySegments: Object.freeze((value?.riverBoundarySegments || []).map(coordinates)),
     })),
-    candidates: freezeList(input.candidates, value => Object.freeze({
+    candidates: freezeList(input.candidates, (value, position) => Object.freeze({
+      key: String(value?.key || `candidate:${position}`),
       index: Number(value?.index || 0),
       geometry: geometry(value?.geometry),
       selected: value?.selected === true,

@@ -1966,9 +1966,9 @@ export function createRenderingDomain({
       .on('mouseleave', d => publishEditingInteraction({ type: 'territory-component-leave', componentKey: d.key }))
       .on('click', d => { stop(); publishEditingInteraction({ type: 'territory-component-toggle', componentKey: d.key, screenPoint: localEditingPoint() }); });
     componentPaths.each(function(d) { const node = d3.select(this); if (node.select('title').empty()) node.append('title'); node.select('title').text(`${d.countryName} · ${formatTerritoryArea?.(d.areaKm2) || d.areaKm2}`); });
-    joinEditingNodes(layer, 'path.territory-candidate', operation?.candidates || [], d => d.index)
+    joinEditingNodes(layer, 'path.territory-candidate', operation?.candidates || [], d => d.key)
       .attr('class', d => `territory-candidate ${d.selected ? 'selected-candidate' : 'alternate-candidate'}`)
-      .attr('aria-label', d => `${String.fromCharCode(65 + d.index)} · ${d.selected ? '선택됨' : '선택 안 됨'}`)
+      .attr('aria-label', d => d.interactive === false ? '선택 영역' : `${String.fromCharCode(65 + d.index)} · ${d.selected ? '선택됨' : '선택 안 됨'}`)
       .style('pointer-events', d => d.interactive === false ? 'none' : null)
       .on('click', d => { if (d.interactive === false) return; stop(); publishEditingInteraction({ type: 'territory-candidate-select', candidateIndex: d.index }); });
     const shapes = [

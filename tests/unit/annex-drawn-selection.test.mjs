@@ -4,6 +4,7 @@ import test from 'node:test';
 import { createCountryCommits } from '../../assets/js/modules/app-country-commits.js';
 import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
+import { buildGeometryPreview } from '../../assets/js/modules/geometry-preview.js';
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
 const box = (x0, y0, x1, y1) => ({
@@ -80,4 +81,27 @@ test('accumulated territory geometry remains a frozen non-interactive render can
   assert.equal(packet.territoryOperation.candidates[0].interactive, false);
   assert.equal(packet.territoryOperation.candidates[0].selected, true);
   assert.equal(Object.isFrozen(packet.territoryOperation.candidates[0].geometry), true);
+});
+
+test('archived and current territory pieces retain distinct presentation keys', () => {
+  const packet = createEditingRenderPacket({ territoryOperation: { candidates: [
+    { key: 'part:one', index: -1, geometry: box(0, 0, 1, 1), selected: true, interactive: false },
+    { key: 'part:two', index: -1, geometry: box(2, 0, 3, 1), selected: true, interactive: false },
+    { key: 'current:session', index: -1, geometry: box(4, 0, 5, 1), selected: true, interactive: false },
+  ] } });
+  assert.deepEqual(packet.territoryOperation.candidates.map(candidate => candidate.key),
+    ['part:one', 'part:two', 'current:session']);
+});
+
+test('annex review uses the validated transferred geometry even when union differences contain only part of it', () => {
+  const transferred = box(1, 1, 4, 4);
+  const partial = box(1, 1, 2, 2);
+  const before = [{ id: 'D', geometry: box(0, 0, 5, 5) }];
+  const after = [{ id: 'D', geometry: box(0, 0, 5, 5) }];
+  const preview = buildGeometryPreview({ operation: 'annex', beforeFeatures: before, afterFeatures: after,
+    transferredGeometry: transferred, clipper: { union: (...polygons) => polygons[0], difference: () => [partial.coordinates] } });
+  assert.deepEqual(preview.delta.addedGeometry, transferred);
+  assert.deepEqual(preview.delta.removedGeometry, transferred);
+  assert.throws(() => buildGeometryPreview({ operation: 'annex', beforeFeatures: before, afterFeatures: after }),
+    /편입.*형상/);
 });
