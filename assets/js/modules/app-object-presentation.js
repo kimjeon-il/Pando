@@ -4,7 +4,6 @@
  */
 export function createObjectPresentation() {
   let dependencies;
-  let genericFeatureLandClipCache;
   let territorialScope;
   let distributionVisibilityRevision;
   let distributionRenderRowCache;
@@ -38,23 +37,11 @@ export function createObjectPresentation() {
   }
 
   function genericFeatureRoleHelp(feature) {
-    return '사용자 정의 객체는 육지 결합 방식을 직접 선택할 수 있습니다.';
+    return '기타 객체는 독립된 형상을 가지며 다른 객체 종류로 전환할 수 있습니다.';
   }
 
   function genericFeatureDisplayFeature(feature) {
-    if ((0, dependencies.objectPresentation.genericFeatureGeometryKind)(feature) !== 'polygon' || (0, dependencies.objectPresentation.genericFeatureLandBinding)(feature) === 'none') return feature;
-    const cached = genericFeatureLandClipCache.get(feature);
-    const ownerId = String(feature.properties?.ownerId || '');
-    if (cached && cached.revision === dependencies.countries.countryLandRevision && cached.geometry === feature.geometry && cached.ownerId === ownerId) return { ...feature, geometry: cached.feature.geometry };
-    const entry = { revision: dependencies.countries.countryLandRevision, geometry: feature.geometry, ownerId, feature: { ...feature, geometry: null } };
-    genericFeatureLandClipCache.set(feature, entry);
-    dependencies.spatialQuery.mapEditClient.execute('territorial-land-clip', { payload: { targetId: String(feature.id) } },
-      { jobKey: `territorial-land-clip:${feature.id}` }).then(response => {
-      if (genericFeatureLandClipCache.get(feature) !== entry || entry.geometry !== feature.geometry || entry.revision !== dependencies.countries.countryLandRevision) return;
-      entry.feature = { ...feature, geometry: response.result.geometry };
-      dependencies.domains.renderingDomain?.invalidateGenericPatch?.('land-clip-ready');
-    }).catch(() => { if (genericFeatureLandClipCache.get(feature) === entry) genericFeatureLandClipCache.delete(feature); });
-    return entry.feature;
+    return feature;
   }
 
   function genericFeatureName(feature) {
@@ -147,10 +134,6 @@ export function createObjectPresentation() {
     }
   }
 
-  function initializeGenericFeatureLandClipCache() {
-    (genericFeatureLandClipCache = new WeakMap());
-  }
-
   function initializeTerritorialScope() {
     (territorialScope = (0, dependencies.objectPresentation.createTerritorialScopeResolver)({
       read: () => ({ units: dependencies.projectState.state.territorialUnits, revision: `${dependencies.projectState.state.stateRevision}:${dependencies.countries.countryLandRevision}:${dependencies.spatialQuery.mapObjectGeometryRevisions.territorial}` }),
@@ -218,7 +201,6 @@ export function createObjectPresentation() {
 
   return Object.freeze({
     connect,
-    initializeGenericFeatureLandClipCache,
     initializeTerritorialScope,
     initializeTerritorialRepository,
     get LAYER_GROUP_KEYS() { return LAYER_GROUP_KEYS; },
@@ -235,8 +217,6 @@ export function createObjectPresentation() {
     get expandedMapDisplayGroups() { return expandedMapDisplayGroups; },
     get genericFeatureColor() { return genericFeatureColor; },
     get genericFeatureDisplayFeature() { return genericFeatureDisplayFeature; },
-    get genericFeatureLandClipCache() { return genericFeatureLandClipCache; },
-    set genericFeatureLandClipCache(value) { genericFeatureLandClipCache = value; },
     get genericFeatureName() { return genericFeatureName; },
     get genericFeatureRoleHelp() { return genericFeatureRoleHelp; },
     get genericFeatureRoleLabel() { return genericFeatureRoleLabel; },

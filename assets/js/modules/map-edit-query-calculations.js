@@ -1,19 +1,6 @@
-import { normalizeCountryGeometry, multiCoordinates, geometryBounds, boundsOverlap, featureId } from './map-edit-geometry.js';
+import { normalizeCountryGeometry, multiCoordinates, featureId } from './map-edit-geometry.js';
 import './territorial-edit-plan.js';
 import { analyzeAdminCountryCoast } from './coast-reconciliation.js';
-
-export function calculateLandClip(feature, countries, clipper) {
-  if (!feature) throw new Error('영역 객체를 찾을 수 없습니다.');
-  const owner = countries.find(country => featureId(country) === String(feature.properties?.ownerId || ''));
-  const bounds = geometryBounds(feature.geometry);
-  const nearby = owner ? [owner] : countries;
-  const pieces = [];
-  for (const country of nearby) {
-    if (!boundsOverlap(bounds, geometryBounds(country.geometry))) continue;
-    pieces.push(...clipper.intersection(multiCoordinates(feature.geometry), multiCoordinates(country.geometry)));
-  }
-  return { geometry: normalizeCountryGeometry(pieces) };
-}
 
 export function calculateParents(feature, candidates, clipper) {
   if (!feature) throw new Error('하위단위를 찾을 수 없습니다.');

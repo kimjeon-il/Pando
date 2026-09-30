@@ -5,7 +5,6 @@ import {
   GENERIC_FEATURE_SCHEMA_VERSION,
   createGenericFeatureService,
   genericFeatureGeometryKind,
-  genericFeatureLandBinding,
   genericFeatureRole,
   normalizeGenericFeatureCollection,
   normalizeGenericFeatureSemantics,
@@ -33,7 +32,7 @@ test('legacy Generic Feature normalizes to fallback v2 without losing old semant
   assert.equal(normalized.properties.source.details.legacyProperties.category, 'custom');
   assert.equal(normalized.properties.source.details.legacyGenericSemantics.ownerId, 'country-a');
   assert.equal(genericFeatureRole(normalized), 'territory');
-  assert.equal(genericFeatureLandBinding(normalized), 'hard');
+  assert.equal(normalized.properties.source.details.legacyGenericSemantics.landBinding, 'hard');
   assert.equal(genericFeatureGeometryKind(normalized), 'point');
   assert.equal(legacy.properties.schemaVersion, 1, 'normalization must not mutate legacy input');
 });
@@ -55,7 +54,7 @@ test('new v2 Generic Feature uses canonical fallback provenance and rejects dupl
   assert.throws(() => normalizeGenericFeatureCollection([genericFeature('one'), genericFeature('one')]), /중복/);
 });
 
-test('genericFeature service keeps canonical fields while compatibility metadata lives in provenance', () => {
+test('genericFeature service edits canonical fields and preserves source metadata without executing old ownership', () => {
   let genericFeatures = [];
   const transactions = [];
   const commandPipeline = {
@@ -73,12 +72,19 @@ test('genericFeature service keeps canonical fields while compatibility metadata
     commandPipeline,
     writeColor(feature, value) { feature.properties.color = value; },
   });
-  service.add(genericFeature('one', undefined, { schemaVersion: 1, role: 'generic' }));
+  service.add(genericFeature('one', undefined, { schemaVersion: 2, source: {
+    kind: 'gis', sourceFormat: 'geojson', sourceId: 'original',
+    details: { legacyGenericSemantics: { ownerId: 'country-a', landBinding: 'hard' } },
+  } }));
+  const sourceBefore = structuredClone(service.get('one').properties.source);
   service.updateMetadata('one', 'color', '#abcdef');
-  service.updateMetadata('one', 'role', 'administrative');
+  service.updateMetadata('one', 'notes', 'Independent object');
   assert.equal(service.get('one').properties.color, '#abcdef');
   assert.equal('role' in service.get('one').properties, false);
-  assert.equal(genericFeatureRole(service.get('one')), 'administrative');
+  for (const field of ['ownerId', 'landBinding', 'role', 'parentId', 'topologyGroup']) {
+    assert.throws(() => service.updateMetadata('one', field, 'new-value'), /지원하지 않는 필드/);
+  }
+  assert.deepEqual(service.get('one').properties.source, sourceBefore);
   let removed = '';
   service.remove('one', { beforeRemove: feature => { removed = feature.id; } });
   assert.equal(removed, 'one');

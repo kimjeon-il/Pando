@@ -12,7 +12,7 @@ export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
   cameraNavigation: Object.freeze(["countries","domains","feedback","mapNavigation","mapView","objectLookup","physicalData","platform","projectState","rendering","surfaces"]),
   readinessNotifications: Object.freeze(["platform","projectState","readiness","surfaces"]),
   countryIndex: Object.freeze(["countries","domains","geometryModel","layers","mapView","platform","projectState","spatialQuery"]),
-  spatialIndex: Object.freeze(["countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","presentationCommands","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
+  spatialIndex: Object.freeze(["countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
   geometryPreview: Object.freeze(["countries","domains","feedback","geometryEditingCore","geometryModel","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry","validation"]),
   territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel"]),
   countryValidation: Object.freeze(["countries","cutGeometry","domains","geometryModel","geometryPreview","presentation","projectState","snapshots","spatialQuery","territoryGeometry"]),
@@ -120,11 +120,7 @@ export function createSpatialDataPorts(providers) {
     presentation: Object.freeze({
       get countryName() { return providers.objectPresentation.countryName; },
       get genericFeatureDisplayFeature() { return providers.objectPresentation.genericFeatureDisplayFeature; },
-      get genericFeatureLandClipCache() { return providers.objectPresentation.genericFeatureLandClipCache; },
       get territorialRepository() { return providers.objectPresentation.territorialRepository; },
-    }),
-    presentationCommands: Object.freeze({
-      resetGenericFeatureLandClipCache: () => { providers.objectPresentation.genericFeatureLandClipCache = new WeakMap(); },
     }),
     projectState: Object.freeze({
       get mapWorkScheduler() { return providers.projectSession.mapWorkScheduler; },
@@ -314,7 +310,6 @@ function createMapResourcePorts(providers) {
       get createTerritorialScopeResolver() { return providers.runtime.createTerritorialScopeResolver; },
       get defaultGeographicName() { return providers.runtime.defaultGeographicName; },
       get genericFeatureGeometryKind() { return providers.runtime.genericFeatureGeometryKind; },
-      get genericFeatureLandBinding() { return providers.runtime.genericFeatureLandBinding; },
       get genericFeatureName() { return providers.objectPresentation.genericFeatureName; },
       get genericFeatureRoleLabel() { return providers.objectPresentation.genericFeatureRoleLabel; },
       get territorialUnitById() { return providers.objectPresentation.territorialUnitById; },

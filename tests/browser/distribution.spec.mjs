@@ -89,6 +89,40 @@ test('distribution controls stay inside the single view submenu on desktop and m
   expect(errors).toEqual([]);
 });
 
+test('single display follows distribution selection without another view menu change', async ({ page }) => {
+  test.setTimeout(90_000);
+  page.setDefaultTimeout(15_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const errors = await openApp(page);
+
+  for (const [name, countryName] of [['분포 A', '독일'], ['분포 B', '프랑스']]) {
+    await createDistribution(page, name);
+    await page.locator('#actionsTabBtn').click();
+    const unitId = await page.locator('#distributionTerritorialUnitInput option')
+      .evaluateAll((options, label) => options.find(option => option.textContent.trim() === `${label} · 국가`)?.value, countryName);
+    expect(unitId).toBeTruthy();
+    await page.locator('#distributionTerritorialUnitInput').selectOption(unitId, { force: true });
+    await page.locator('#distributionValueInput').fill('10');
+    await page.locator('#addTerritorialDistributionBtn').click();
+    await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
+  }
+  const ids = await page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers().map(layer => layer.id));
+  expect(ids).toHaveLength(2);
+  await page.locator('#mapDisplayBtn').click();
+  await page.locator('#distributionMenuTrigger').click();
+  await page.locator('#distributionSingleRadio').locator('..').click();
+  await expect(page.locator('#distributionSingleRadio')).toBeChecked();
+  await page.locator('#mapDisplayBtn').click();
+
+  const renderedLayerIds = () => page.locator('#map path.distribution-shape')
+    .evaluateAll(nodes => nodes.map(node => node.__data__.layer.id));
+  for (const id of ids) {
+    expect(await page.evaluate(layerId => window.PANDOLAB_DISTRIBUTIONS.select(layerId), id)).toBe(true);
+    await expect.poll(renderedLayerIds).toEqual([id]);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('a numeric distribution stores signed values and survives undo and redo', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await openApp(page);

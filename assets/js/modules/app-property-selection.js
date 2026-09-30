@@ -405,7 +405,11 @@ export function createPropertySelection() {
       const changed = dependencies.projectState.state.distributionSettings.activeLayerId !== layer.id;
       dependencies.projectState.state.distributionSettings.activeLayerId = layer.id;
       dependencies.projectState.state.selectedDistributionLayerId = layer.id;
-      if (changed) dependencies.domains.projectDomain.queuePresentationAutosave();
+      if (changed) {
+        dependencies.distributionPresentation.bumpVisibilityRevision();
+        dependencies.domains.renderingDomain.renderDistributions();
+        dependencies.domains.projectDomain.queuePresentationAutosave();
+      }
     }
     return layer ? dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: 'distribution', id: layer.id }), {
       refreshOnly, openEditor: !refreshOnly, reason: 'distribution-selection',

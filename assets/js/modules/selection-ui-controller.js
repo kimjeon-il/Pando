@@ -33,20 +33,6 @@ export function createSelectionUiController({
       || null;
   };
 
-  const presentPrimary = ({ refreshOnly = false, openEditor = false } = {}) => {
-    if (disposed) return false;
-    const ref = primary(selection());
-    if (!ref) {
-      uiActions.clearPresenter?.({ refreshOnly });
-      return false;
-    }
-    const presenter = presenters.resolve?.(ref) || presenters[ref.domain] || presenters.default;
-    presenter?.(ref, { refreshOnly, openEditor });
-    uiActions.syncSelectionToolbar?.(ref);
-    if (openEditor && !refreshOnly) uiActions.openEditor?.(ref);
-    return true;
-  };
-
   const renderMultiple = current => {
     if ((current.items?.length || 0) <= 1) return false;
     const types = [...new Set(current.items.map(item => displayInfo(item).type).filter(Boolean))];
@@ -57,6 +43,29 @@ export function createSelectionUiController({
     return true;
   };
 
+  const presentSelectionState = (current, { refreshOnly = true, openEditor = false } = {}) => {
+    const count = current.items.length;
+    if (!count) {
+      uiActions.clearPresenter?.({ refreshOnly: false });
+      uiActions.clearSelectionToolbar?.();
+      return null;
+    }
+    const ref = primary(current);
+    if (count > 1) renderMultiple(current);
+    else {
+      const presenter = presenters.resolve?.(ref) || presenters[ref.domain] || presenters.default;
+      presenter?.(ref, { refreshOnly, openEditor });
+      uiActions.syncSelectionToolbar?.(ref);
+    }
+    if (openEditor && !refreshOnly) uiActions.openEditor?.(ref);
+    return ref;
+  };
+
+  const presentPrimary = (options = {}) => {
+    if (disposed) return false;
+    return !!presentSelectionState(selection(), { refreshOnly: false, ...options });
+  };
+
   const syncNow = (snapshot, { force = false } = {}) => {
     if (disposed) return false;
     const currentSnapshot = snapshot || selectionDomain?.snapshot?.();
@@ -64,15 +73,13 @@ export function createSelectionUiController({
     lastRevision = currentSnapshot.revision;
     const startedAt = globalThis.performance?.now?.() || Date.now();
     const current = currentSnapshot.selection;
-    const count = current.items.length;
-    const multiple = count > 1;
+    const multiple = current.items.length > 1;
     document?.body?.classList?.toggle('multi-selection-active', multiple);
     if (multiple) {
       // Keep the status bar reserved for single-object context information.
       if (elements.selectionStatus) elements.selectionStatus.textContent = '';
-      renderMultiple(current);
-    } else if (count === 1) uiActions.syncSelectionToolbar?.(primary(current));
-    else uiActions.clearSelectionToolbar?.();
+    }
+    presentSelectionState(current);
     uiActions.syncBatchActions?.(current);
     uiActions.syncMapSurfaces?.(current);
     uiActions.syncLayerRows?.(current);
@@ -113,13 +120,13 @@ export function createSelectionUiController({
     else selectionDomain.replace(ref, { scope, reason: 'object-selection-replace' });
     metrics.controllerMs = (globalThis.performance?.now?.() || Date.now()) - startedAt;
     const selected = selectionDomain.has(ref);
-    if (selected) {
-      const territorialToolbarTarget = ref.domain === 'territorial'
-        && ['country', 'subunit', 'region'].includes(ref.type);
-      const shouldOpenEditor = openEditor == null ? !territorialToolbarTarget : openEditor;
-      presentPrimary({ refreshOnly, openEditor: shouldOpenEditor });
-      if (!refreshOnly && !territorialToolbarTarget) uiActions.focusObject?.(ref);
-    } else if (!selectionDomain.size()) uiActions.clearPresenter?.({ refreshOnly: false });
+    const current = selection();
+    const clickedPrimary = selected && primary(current)?.key === ref.key;
+    const territorialToolbarTarget = ref.domain === 'territorial'
+      && ['country', 'subunit', 'region'].includes(ref.type);
+    const shouldOpenEditor = clickedPrimary && (openEditor == null ? !territorialToolbarTarget : openEditor);
+    presentSelectionState(current, { refreshOnly: clickedPrimary ? refreshOnly : true, openEditor: shouldOpenEditor });
+    if (clickedPrimary && !refreshOnly && !territorialToolbarTarget) uiActions.focusObject?.(ref);
     uiActions.closeChooser?.();
     return selected;
   };
@@ -134,9 +141,7 @@ export function createSelectionUiController({
     const preferredRef = resolveRef(preferred);
     const nextPrimary = normalized.find(ref => ref.key === preferredRef?.key) || normalized.at(-1) || null;
     selectionDomain.setMany(normalized, { primary: nextPrimary, scope, reason });
-    if (present && nextPrimary) presentPrimary({ refreshOnly: true });
-    else if (present) uiActions.clearPresenter?.({ refreshOnly: false });
-    renderMultiple(selection());
+    if (present) presentSelectionState(selection());
     return normalized;
   };
 

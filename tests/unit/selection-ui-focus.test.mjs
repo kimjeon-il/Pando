@@ -14,24 +14,76 @@ function setup() {
   const presented = [];
   const opened = [];
   const toolbarSynced = [];
+  const presentationEvents = [];
+  const toolbarEvents = [];
   let toolbarCleared = 0;
   const ui = createSelectionUiController({
     selectionDomain: domain,
     resolveRef: normalizeObjectRef,
-    presenters: { default: ref => presented.push(ref.key) },
+    presenters: {
+      default: (ref, options) => { presented.push(ref.key); presentationEvents.push({ kind: 'single', key: ref.key, ...options }); },
+      multiple: current => presentationEvents.push({ kind: 'multiple', keys: current.items.map(ref => ref.key) }),
+    },
     uiActions: {
       focusObject: ref => focused.push(ref.key),
       openEditor: ref => opened.push(ref.key),
-      syncSelectionToolbar: ref => toolbarSynced.push(ref?.key || ''),
-      clearSelectionToolbar: () => { toolbarCleared += 1; },
+      clearPresenter: () => presentationEvents.push({ kind: 'clear' }),
+      syncSelectionToolbar: ref => { toolbarSynced.push(ref?.key || ''); toolbarEvents.push(ref.key); },
+      clearSelectionToolbar: () => { toolbarCleared += 1; toolbarEvents.push(null); },
     },
   });
-  return { domain, ui, focused, presented, opened, toolbarSynced, get toolbarCleared() { return toolbarCleared; } };
+  return { domain, ui, focused, presented, opened, toolbarSynced, presentationEvents, toolbarEvents, get toolbarCleared() { return toolbarCleared; } };
 }
+
+test('toggle removal immediately reconciles the remaining presenter and toolbar', () => {
+  const state = setup();
+  const a = country('A');
+  const b = country('B');
+  assert.equal(state.ui.applyIntent(a), true);
+  assert.equal(state.ui.applyIntent(b, { mode: 'toggle' }), true);
+  assert.equal(state.ui.applyIntent(b, { mode: 'toggle' }), false);
+  assert.equal(state.ui.applyIntent(a, { mode: 'toggle' }), false);
+  assert.deepEqual(state.presentationEvents.map(event => event.kind === 'single' ? event.key : event.kind), [a.key, 'multiple', a.key, 'clear']);
+  assert.deepEqual(state.toolbarEvents, [a.key, null, a.key, null]);
+  assert.deepEqual(state.focused, []);
+  assert.deepEqual(state.opened, []);
+});
+
+test('snapshot sync reconciles multi, single and empty presenters without interaction side effects', () => {
+  const state = setup();
+  const a = country('A');
+  const b = country('B');
+  state.domain.setMany([a, b], { primary: b });
+  state.ui.syncNow(state.domain.snapshot());
+  state.domain.toggle(b);
+  state.ui.syncNow(state.domain.snapshot());
+  state.domain.clear();
+  state.ui.syncNow(state.domain.snapshot());
+  assert.deepEqual(state.presentationEvents.map(event => event.kind === 'single' ? event.key : event.kind), ['multiple', a.key, 'clear']);
+  assert.equal(state.presentationEvents[1].refreshOnly, true);
+  assert.deepEqual(state.toolbarEvents, [null, a.key, null]);
+  assert.deepEqual(state.focused, []);
+  assert.deepEqual(state.opened, []);
+});
+
+test('removing a non-territorial primary presents the remaining object without focusing or reopening it', () => {
+  const state = setup();
+  const a = normalizeObjectRef({ domain: 'generic', type: 'polygon', id: 'A' });
+  const b = normalizeObjectRef({ domain: 'label', type: 'label', id: 'B' });
+  state.ui.applyIntent(a);
+  state.ui.applyIntent(b, { mode: 'toggle' });
+  const focusCount = state.focused.length;
+  const openCount = state.opened.length;
+  state.ui.applyIntent(b, { mode: 'toggle' });
+  assert.equal(state.presentationEvents.at(-1).key, a.key);
+  assert.equal(state.presentationEvents.at(-1).refreshOnly, true);
+  assert.equal(state.focused.length, focusCount);
+  assert.equal(state.opened.length, openCount);
+});
 
 for (const type of ['country', 'subunit', 'region']) test(`${type} selection, reselection, toggle and range do not move the map`, () => {
   for (const scope of ['map', 'layer', 'chooser']) {
-    const { domain, ui, focused, presented, opened } = setup();
+    const { domain, ui, focused, presented, opened, presentationEvents } = setup();
     const a = normalizeObjectRef({ domain: 'territorial', type, id: 'A' });
     const b = normalizeObjectRef({ domain: 'territorial', type, id: 'B' });
     ui.applyIntent(a, { scope });
@@ -46,7 +98,8 @@ for (const type of ['country', 'subunit', 'region']) test(`${type} selection, re
     assert.equal(domain.size(), 2);
     assert.equal(domain.primary().key, b.key);
     assert.deepEqual(focused, []);
-    assert.ok(presented.includes(a.key) && presented.includes(b.key));
+    assert.ok(presented.includes(a.key));
+    assert.ok(presentationEvents.some(event => event.kind === 'multiple' && event.keys.includes(b.key)));
     assert.deepEqual(opened, []);
   }
 });

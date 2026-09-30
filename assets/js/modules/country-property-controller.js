@@ -21,7 +21,6 @@ export function createCountryPropertyController({
 } = {}) {
   const areaCache = new WeakMap();
   const pendingAreas = new WeakSet();
-  let presentationToken = 0;
   let disposed = false;
 
   const renderFlag = (dataUrl, displayName = '') => {
@@ -46,7 +45,7 @@ export function createCountryPropertyController({
     preview.appendChild(image);
   };
 
-  const scheduleArea = (view, token) => {
+  const scheduleArea = view => {
     const geometry = view?.feature?.geometry;
     if (!geometry || pendingAreas.has(geometry)) return;
     pendingAreas.add(geometry);
@@ -54,12 +53,18 @@ export function createCountryPropertyController({
       const value = calculateAreaKm2(geometry);
       areaCache.set(geometry, value);
       pendingAreas.delete(geometry);
+      if (disposed) return;
       const primary = getPrimaryRef();
-      if (disposed || token !== presentationToken || primary?.key !== view.ref.key) return;
-      const current = getCountryView(view.ref);
-      if (current?.feature?.geometry !== geometry) return;
-      if (elements.area) elements.area.textContent = formatArea(value);
-      if (elements.selectionStatus) elements.selectionStatus.textContent = countrySelectionStatus(view, formatArea(value));
+      if (primary?.key !== view.ref.key) return;
+      const current = getCountryView(primary);
+      if (!current?.feature) return;
+      if (current.feature.geometry !== geometry) {
+        if (!areaCache.has(current.feature.geometry)) scheduleArea(current);
+        return;
+      }
+      const formatted = formatArea(value);
+      if (elements.area) elements.area.textContent = formatted;
+      if (elements.selectionStatus) elements.selectionStatus.textContent = countrySelectionStatus(current, formatted);
       syncStatus();
     };
     if (typeof window?.requestIdleCallback === 'function') window.requestIdleCallback(calculate, { timeout: 800 });
@@ -71,7 +76,6 @@ export function createCountryPropertyController({
     const view = getCountryView(countryRef);
     if (!view?.feature) return false;
     elements.flagMenu?.hidePopover();
-    const token = ++presentationToken;
     const startedAt = globalThis.performance?.now?.() || Date.now();
     showPropertyForm('country', view.displayName, { resetScroll: !refreshOnly });
     const fieldsStartedAt = globalThis.performance?.now?.() || Date.now();
@@ -91,7 +95,7 @@ export function createCountryPropertyController({
     if (elements.selectionStatus) elements.selectionStatus.textContent = cached
       ? countrySelectionStatus(view, formatArea(area))
       : countrySelectionStatus(view);
-    if (!cached) scheduleArea(view, token);
+    if (!cached) scheduleArea(view);
     syncStatus();
     syncActions(view);
     metrics.propertyPanelMs = fieldsStartedAt - startedAt;
@@ -101,7 +105,7 @@ export function createCountryPropertyController({
   };
 
   const refresh = countryRef => present(countryRef, { refreshOnly: true });
-  const clear = () => { presentationToken += 1; elements.flagMenu?.hidePopover(); };
+  const clear = () => { elements.flagMenu?.hidePopover(); };
 
   const bind = () => {
     const bindField = (element, field, transform = value => value) => element?.addEventListener('change', event => {
@@ -153,7 +157,6 @@ export function createCountryPropertyController({
 
   const dispose = () => {
     disposed = true;
-    presentationToken += 1;
     elements.flagMenu?.hidePopover();
   };
 

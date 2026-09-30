@@ -165,7 +165,6 @@ export function createColorPicker() {
     }
     dependencies.domains.projectDomain.recordHistory();
     (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.GENERIC, { feature }, '', { clear: true, fallback: (0, dependencies.objectModelA.defaultGenericFeatureColor)(feature) });
-    dependencies.presentation.genericFeatureLandClipCache.delete(feature);
     (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(feature.id), true);
     dependencies.domains.projectDomain.queueAutosave();
     (0, dependencies.feedback.setActionStatus)('기타 객체 색상을 기본값으로 되돌렸습니다.', 'success');
