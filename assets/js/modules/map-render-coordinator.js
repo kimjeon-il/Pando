@@ -83,6 +83,9 @@ function validatedMask(value, reason = '') {
 
 function expandedMask(requestedMask) {
   let mask = requestedMask & WORK_DIRTY_MASK;
+  // Editing transitions also change the preview lifetime. Clear/update its SVG
+  // and GPU packets before the same frame submits interaction and selection.
+  if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) mask |= MAP_RENDER_DIRTY.INTERACTION_OVERLAYS;
   if (requestedMask & (MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION)) mask |= REPROJECT_MASK;
   if (requestedMask & MAP_RENDER_DIRTY.PROJECT) mask |= WORK_DIRTY_MASK;
   return mask;
