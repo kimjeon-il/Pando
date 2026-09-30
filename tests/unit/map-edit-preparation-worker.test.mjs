@@ -176,17 +176,14 @@ test('actual worker validates normalized edits and invalidates receipts after lo
   assert.deepEqual(parent.geometry, square(0, 0, 10, 10));
 });
 
-test('actual worker prepares parents, land clipping, indexed snaps and grouped boundaries', { timeout: 15000 }, async t => {
+test('actual worker prepares parents, indexed snaps and grouped boundaries', { timeout: 15000 }, async t => {
   const rows = [
     { kind: 'country', feature: feature('RUS', square(0, 0, 10, 10)) },
     { kind: 'territorial', feature: feature('child', square(0, 0, 5, 10), { unitType: 'subunit', sovereignId: 'RUS', parentId: 'RUS' }) },
-    { kind: 'generic', feature: feature('area', square(-1, -1, 1, 1), { ownerId: 'RUS' }) },
   ];
   const client = harness(t, rows);
   const parents = await client.execute('territorial-parents', { payload: { targetId: 'child', candidateIds: ['RUS', 'missing'] } });
   assert.deepEqual(parents.result.ids, ['RUS']);
-  const clip = await client.execute('territorial-land-clip', { payload: { targetId: 'area' } });
-  assert.ok(clip.result.geometry.coordinates.length);
   const snap = await client.execute('territorial-snap', { payload: { coordinate: [0, 0], margin: 0.1, activeOwnerIds: ['RUS'] } });
   assert.ok(snap.result.candidates.some(candidate => candidate.kind === 'vertex'));
   const boundaries = await client.execute('territorial-display', { payload: { kind: 'boundaries' } });

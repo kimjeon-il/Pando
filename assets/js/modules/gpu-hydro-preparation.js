@@ -110,21 +110,18 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       if (entry.uploadKey) { const key = entry.uploadKey; entry.uploadKey = null; uploadScheduler?.cancelKey(key); }
       entry.uploadQueued = false;
       if (!gl) return;
-      if (entry.uploadState?.resources) {
-        for (const buffer of Object.values(entry.uploadState.resources)) {
-          if (buffer && gl.isBuffer(buffer)) lifecycle.release(buffer);
-        }
-      }
-      entry.uploadState = null;
-      if (!entry.resources) return;
-      for (const key of [
+      for (const resources of [entry.uploadState?.resources, entry.resources]) {
+        if (!resources) continue;
+        for (const key of [
         'riverStartBuffer', 'riverEndBuffer', 'riverFeatureBuffer', 'riverStartWidthBuffer', 'riverEndWidthBuffer',
         'borderRiverStartBuffer', 'borderRiverEndBuffer', 'borderRiverFeatureBuffer', 'borderRiverStartWidthBuffer', 'borderRiverEndWidthBuffer',
         'lakePositionBuffer', 'lakeFeatureBuffer', 'lakeIndexBuffer',
         'lakeBoundaryStartBuffer', 'lakeBoundaryEndBuffer', 'lakeBoundaryFeatureBuffer', 'lakeBoundaryStartWidthBuffer', 'lakeBoundaryEndWidthBuffer',
-      ]) {
-        if (entry.resources[key]) lifecycle.release(entry.resources[key]);
+        ]) {
+          if (resources[key]) lifecycle.release(resources[key]);
+        }
       }
+      entry.uploadState = null;
       entry.resources = null;
     }
 

@@ -242,7 +242,6 @@ export function createSpatialIndex() {
     }
     (0, dependencies.countryCommands.bumpLandRevision)();
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
-    (0, dependencies.presentationCommands.resetGenericFeatureLandClipCache)();
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
     dependencies.rendering.gpuMapRenderer.applyCountryPatch(

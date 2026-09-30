@@ -45,11 +45,6 @@ export function genericFeatureRole(feature) {
   return GENERIC_FEATURE_ROLE_RULES[role] ? role : 'generic';
 }
 
-export function genericFeatureLandBinding(feature) {
-  const requested = text(legacyDetails(feature).landBinding);
-  return ['none', 'clip', 'hard'].includes(requested) ? requested : 'none';
-}
-
 function legacySemanticsFrom(properties = {}) {
   const output = {};
   for (const key of LEGACY_SEMANTIC_KEYS) {
@@ -132,23 +127,9 @@ export function normalizeGenericFeatureCollection(genericFeatures, { cloneFeatur
   return output;
 }
 
-function writeLegacyCompatibilityField(feature, field, value) {
-  const source = normalizeSourceProvenance(feature.properties.source, { kind: SOURCE_KINDS.LEGACY });
-  const details = { ...(source.details || {}) };
-  const semantics = {
-    ...(plainObject(details.legacyGenericSemantics) ? details.legacyGenericSemantics : {}),
-  };
-  if (value == null || value === '') delete semantics[field];
-  else semantics[field] = clone(value);
-  if (Object.keys(semantics).length) details.legacyGenericSemantics = semantics;
-  else delete details.legacyGenericSemantics;
-  feature.properties.source = normalizeSourceProvenance({ ...source, details });
-}
-
 function applyGenericMetadata(feature, field, value, writeColor) {
   if (field === 'color') writeColor(feature, value);
   else if (field === 'source') feature.properties.source = normalizeSourceProvenance(value, { kind: SOURCE_KINDS.UNSUPPORTED });
-  else if (LEGACY_SEMANTIC_KEY_SET.has(field)) writeLegacyCompatibilityField(feature, field, value);
   else if (['name', 'notes', 'locked'].includes(field)) feature.properties[field] = field === 'locked' ? value === true : text(value);
   else throw new Error(`기타 객체에 지원하지 않는 필드 ${field}가 있습니다.`);
 }

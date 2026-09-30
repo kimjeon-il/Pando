@@ -228,7 +228,6 @@ export function createDomainAssembly() {
       genericFeatureRole: dependencies.applicationServicesA.genericFeatureRole,
       genericFeatureRoleLabel: dependencies.objectPresentation.genericFeatureRoleLabel,
       genericFeatureRoleHelp: dependencies.objectModelA.genericFeatureRoleHelp,
-      genericFeatureLandBinding: dependencies.objectPresentation.genericFeatureLandBinding,
       genericFeatureName: dependencies.objectPresentation.genericFeatureName,
       genericFeatureRoleLabels: dependencies.applicationConstantsA.GENERIC_FEATURE_ROLE_LABELS,
       defaultGenericFeatureColorFor: dependencies.objectModelA.defaultGenericFeatureColor,
@@ -603,7 +602,6 @@ export function createDomainAssembly() {
             return false;
           }
           source.geometry = (0, dependencies.platform.deepClone)(feature.geometry);
-          dependencies.presentation.genericFeatureLandClipCache.delete(source);
           if (hydroEdit) dependencies.spatialQuery.mapObjectGeometryRevisions.hydro += 1;
           else dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
           renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-edit-commit');

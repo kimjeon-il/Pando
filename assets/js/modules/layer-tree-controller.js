@@ -18,6 +18,7 @@ export function createLayerTreeController({
   let searchTimer = 0;
   let renderedRevision = -1;
   let renderedSearch = '';
+  let renderedSearchRefs = [];
   let hydrated = false;
   let disposed = false;
 
@@ -104,8 +105,10 @@ export function createLayerTreeController({
     if (!results) return false;
     results.replaceChildren();
     results.classList.toggle('hidden', !query);
+    renderedSearchRefs = [];
     if (query) {
       const rows = rowsFor(query);
+      renderedSearchRefs = rows.map(item => item.ref).filter(Boolean);
       if (rows.length) results.append(...rows.map(rowFor));
       else results.append(createEmptyState('검색 결과가 없습니다.', '다른 이름이나 유형으로 검색해 보세요.'));
       commands.syncCanonicalControls?.(results);
@@ -159,7 +162,7 @@ export function createLayerTreeController({
       id,
       additive,
       range,
-      orderedRefs: [],
+      orderedRefs: range ? renderedSearchRefs : [],
     });
     if (didSelect && !additive && !range) commands.closeAfterSingleSelection?.();
   }
@@ -211,6 +214,7 @@ export function createLayerTreeController({
 
   function dispose() {
     disposed = true;
+    renderedSearchRefs = [];
     window.clearTimeout(searchTimer);
   }
 

@@ -42,52 +42,6 @@ export function createGenericCommands() {
     return (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(pieces.length === 1 ? pieces : clipper.union(...pieces.map(polygon => [polygon])));
   }
 
-  async function applySelectedGenericFeatureToOwnerCountry() {
-    if (dependencies.projectState.state.selected?.domain !== 'generic') return;
-    const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.selected.id));
-    const ownerId = String(feature?.properties?.ownerId || '');
-    const owner = (0, dependencies.countries.countryFeatureById)(ownerId);
-    if (!feature || (0, dependencies.objectPresentation.genericFeatureGeometryKind)(feature) !== 'polygon' || !owner) {
-      (0, dependencies.feedback.setActionStatus)('국가 영토에 반영할 수 없습니다. 면 객체의 소유 국가를 먼저 지정하세요.', 'error', 4000);
-      return;
-    }
-    const transferredGeometry = geometryClippedToCurrentLand(feature.geometry);
-    if (!transferredGeometry) {
-      (0, dependencies.feedback.setActionStatus)('국가 영토에 반영할 육지 영역이 없습니다. 형상과 소유 국가를 확인하세요.', 'error', 3800);
-      return;
-    }
-    const donorIds = countryIdsOverlappingGeometry(transferredGeometry, [ownerId]);
-    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([ownerId, ...donorIds], '국가 영토에 반영')) return;
-    if (!donorIds.length) {
-      dependencies.domains.projectDomain.recordHistory();
-      feature.geometry = (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(window.polygonClipping.intersection(feature.geometry.coordinates, owner.geometry.coordinates)) || feature.geometry;
-      (0, dependencies.modelValidation.normalizeGenericFeatureSemantics)(feature, { inferOwner: false });
-      (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(feature.id), true);
-      dependencies.domains.renderingDomain?.invalidateGenericPatch?.('generic-owner-clip-preview');
-      dependencies.domains.projectDomain.queueAutosave();
-      (0, dependencies.feedback.setActionStatus)('영역이 이미 소유 국가 안에 있습니다. 국가 해안선 결합을 갱신했습니다.', 'success', 3400);
-      return;
-    }
-    const snapshot = (0, dependencies.snapshots.snapshotEditable)();
-    (0, dependencies.feedback.setActionStatus)('영역을 국가 영토에 반영하는 중입니다.', 'working', 0);
-    await (0, dependencies.geometryOperations.transactCountryEdit)({
-      operation: 'annex',
-      payload: { targetId: ownerId, donorIds, transferredGeometry },
-      snapshot,
-      applyResult: result => {
-        (0, dependencies.cutOperations.applyWorkerCountryPatches)(result);
-        (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
-        (0, dependencies.landRelations.transferLandDependents)(transferredGeometry, donorIds, ownerId);
-        (0, dependencies.modelValidation.normalizeGenericFeatureSemantics)(feature, { inferOwner: false });
-        (0, dependencies.countryValidation.refreshCountryCentroids)(new Set(result.affectedIds));
-        (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(feature.id), true);
-        dependencies.domains.renderingDomain?.invalidateGenericPatch?.('generic-owner-clip-committed');
-      },
-      onSuccess: () => (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.objectPresentation.genericFeatureName)(feature)} 영역을 ${(0, dependencies.presentation.countryName)((0, dependencies.countries.countryFeatureById)(ownerId))} 영토에 반영했습니다.`, 'success', 3800),
-      onError: error => (0, dependencies.feedback.reportOperationError)(error, '영역을 국가 영토에 반영하지 못했습니다. 소유 국가와 겹치는 범위를 확인하세요.', 'PL-LAND-001', 4600),
-    });
-  }
-
   async function promoteSelectedGenericFeatureToCountry() {
     if (dependencies.projectState.state.selected?.domain !== 'generic') return;
     const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.selected.id));
@@ -249,31 +203,6 @@ export function createGenericCommands() {
     }
   }
 
-  function alignSelectedGenericFeatureToOwnerLand() {
-    if (dependencies.projectState.state.selected?.domain !== 'generic') return;
-    const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.selected.id));
-    const owner = (0, dependencies.countries.countryFeatureById)(feature?.properties?.ownerId);
-    if (!feature || !owner || (0, dependencies.objectPresentation.genericFeatureGeometryKind)(feature) !== 'polygon') {
-      (0, dependencies.feedback.setActionStatus)('국가 육지에 맞출 수 없습니다. 면 객체의 소유 국가를 먼저 지정하세요.', 'error', 3800);
-      return;
-    }
-    const next = (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(window.polygonClipping.intersection(feature.geometry.coordinates, owner.geometry.coordinates));
-    if (!next) {
-      (0, dependencies.feedback.setActionStatus)('객체와 소유 국가가 겹치지 않습니다. 소유 국가를 다시 지정하세요.', 'error', 3800);
-      return;
-    }
-    dependencies.domains.projectDomain.recordHistory();
-    feature.geometry = next;
-    dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
-    feature.properties.landBinding = 'hard';
-    feature.properties.topologyGroup = `land:${feature.properties.ownerId}`;
-    dependencies.presentation.genericFeatureLandClipCache.delete(feature);
-    (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(feature.id), true);
-    dependencies.domains.renderingDomain?.invalidateGenericPatch?.('generic-owner-align');
-    dependencies.domains.projectDomain.queueAutosave();
-    (0, dependencies.feedback.setActionStatus)('객체를 소유 국가의 현재 육지와 맞췄습니다.', 'success', 3200);
-  }
-
   function enterGenericFeatureSplitMode(id) {
     void id;
     (0, dependencies.feedback.setActionStatus)('기타 객체는 종류 변경으로만 정리할 수 있습니다.', 'error', 3400);
@@ -293,10 +222,6 @@ export function createGenericCommands() {
     if (!source || !target || String(source.id) === String(target.id)) return;
     if ((0, dependencies.applicationServicesA.genericFeatureRole)(source) !== (0, dependencies.applicationServicesA.genericFeatureRole)(target) || (0, dependencies.objectPresentation.genericFeatureGeometryKind)(target) !== 'polygon') {
       (0, dependencies.feedback.setActionStatus)('같은 역할의 면 영역만 합칠 수 있습니다.', 'error', 3200);
-      return;
-    }
-    if (['territory', 'administrative'].includes((0, dependencies.applicationServicesA.genericFeatureRole)(source)) && String(source.properties?.ownerId || '') !== String(target.properties?.ownerId || '')) {
-      (0, dependencies.feedback.setActionStatus)('소유 국가가 같은 영역끼리만 합칠 수 있습니다.', 'error', 3400);
       return;
     }
     const targets = new Set(dependencies.projectState.state.genericFeatureMergeTargetIds.map(String));
@@ -401,8 +326,6 @@ export function createGenericCommands() {
     connect,
 
     get addLabelAt() { return addLabelAt; },
-    get alignSelectedGenericFeatureToOwnerLand() { return alignSelectedGenericFeatureToOwnerLand; },
-    get applySelectedGenericFeatureToOwnerCountry() { return applySelectedGenericFeatureToOwnerCountry; },
     get cancelDraft() { return cancelDraft; },
     get convertSelectedGenericFeature() { return convertSelectedGenericFeature; },
     get completeGenericFeatureMerge() { return completeGenericFeatureMerge; },
