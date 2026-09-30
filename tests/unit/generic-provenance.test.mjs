@@ -5,8 +5,35 @@ import { validateProjectReferenceIntegrity } from '../../assets/js/modules/proje
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
 import { DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
+import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
+import { normalizeGenericFeatureSemantics } from '../../assets/js/modules/generic-feature-service.js';
 
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+
+test('generic GeoJSON reimport preserves provenance and arbitrary attributes while replacing only the internal ID', async () => {
+  const source = normalizeSourceProvenance({ kind: 'gis', dataset: 'rivers', sourceId: 'upstream-9',
+    sourceFormat: 'geojson', details: { licence: 'test', nested: { original: true } } });
+  const original = { type: 'Feature', id: uuid(10), geometry: { type: 'Point', coordinates: [1, 2] },
+    properties: { schemaVersion: 2, name: 'River', notes: 'memo', color: '#123456', locked: false,
+      source, custom: { rank: 2 } } };
+  const state = {};
+  let output;
+  const importer = createGisImportTransactionCommitter({ state, uid: () => uuid(11), deepClone: structuredClone,
+    GENERIC_FEATURE_SCHEMA_VERSION: 2, DEFAULT_GENERIC_FEATURE_COLOR: '#999999', normalizeGenericFeatureSemantics,
+    validateStructuredGeometry: () => [], genericFeatureService: { addMany: values => { output = values; } },
+    activeLayerFolderKeys: () => ['genericFeatures'], markLayerTreeDirty() {}, setActionStatus() {} });
+  await importer.importGeoJson({ name: 'export.geojson' }, { parsed: JSON.parse(JSON.stringify(original)) });
+  assert.equal(output[0].id, uuid(11));
+  assert.equal(output[0].properties.source.sourceId, 'upstream-9');
+  assert.equal(output[0].properties.source.dataset, 'rivers');
+  assert.deepEqual(output[0].properties.source.details.nested, { original: true });
+  assert.deepEqual(output[0].properties.source.details.legacyProperties.custom, { rank: 2 });
+  assert.equal(output[0].properties.notes, 'memo');
+  assert.equal(original.properties.source.sourceId, 'upstream-9');
+  output[0].properties.source = normalizeSourceProvenance({ ...source, sourceId: '' });
+  await importer.importGeoJson({ name: 'export.geojson' }, { parsed: output[0] });
+  assert.equal(output[0].properties.source.sourceId, uuid(11));
+});
 const generic = source => ({
   type: 'Feature', id: uuid(1), geometry: { type: 'Point', coordinates: [1, 2] },
   properties: { schemaVersion: 2, name: 'fallback', notes: '', color: '#123456', locked: false, source },

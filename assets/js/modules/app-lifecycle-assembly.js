@@ -46,7 +46,8 @@ export function createLifecycleAssembly() {
           projectUi = (0, dependencies.uiFactoriesB.createProjectUiBridge)({
             getElement: dependencies.platform.$,
             getSaveSnapshot: () => dependencies.projectSession.saveState.snapshot(),
-            getEditingSnapshot: () => ({ processing: dependencies.projectState.state.modeProcessing, previewActive: !!dependencies.projectState.state.geometryPreview.session }),
+            getEditingSnapshot: () => ({ processing: dependencies.projectState.state.modeProcessing, previewActive: !!dependencies.projectState.state.geometryPreview.session, revision: dependencies.domains.editingDomain.snapshot().revision }),
+            getProjectGeneration: () => dependencies.domains.projectDomain.getGeneration(),
             getDraftSnapshot: dependencies.draftPresentation.editingDraftSnapshot,
             requireCanonicalData: dependencies.readinessUi.requireCanonicalData,
             discardActiveGeometryPreview: dependencies.geometryOperations.discardActiveGeometryPreview,
@@ -62,6 +63,12 @@ export function createLifecycleAssembly() {
             setActionStatus: dependencies.feedback.setActionStatus,
             closeFileMenu: dependencies.workspaceUiA.closeFileMenu,
             openConfirmModal: dependencies.projectRestore.openConfirmModal,
+            getAutosaveRecovery: () => dependencies.domains.projectDomain.getAutosaveRecovery(),
+            restoreAutosave: options => dependencies.domains.projectDomain.restoreAutosave(options),
+            resolveAutosaveRecovery: (source, apply, options) => dependencies.domains.projectDomain.resolveAutosaveRecovery(source, apply, options),
+            completeAutosaveRecovery: () => dependencies.domains.projectDomain.completeAutosaveRecovery(),
+            loadAutosave: project => dependencies.domains.projectDomain.loadAutosave(project),
+            queueAutosave: () => dependencies.domains.projectDomain.queueAutosave(0, { markDirty: false }),
           });
           propertyEditorUi = (0, dependencies.applicationFactories.createPropertyEditorBindings)({
             getElement: dependencies.platform.$,

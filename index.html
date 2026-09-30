@@ -228,6 +228,7 @@
         <nav id="fileMenu" class="ui-menu ui-popover ui-floating-surface top-actions ui-scroll-surface ui-menu-surface ui-menu-list ui-command-menu" role="menu" aria-label="파일 메뉴">
             <button id="mobileFileBackBtn" class="ui-button btn ghost file-menu-item ui-menu-item mobile-file-back" type="button" aria-label="모바일 메뉴로 돌아가기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-left"/></svg><span>메뉴</span></button>
             <button id="newProjectBtn" type="button" class="ui-button btn ghost file-menu-item ui-menu-item new-project-command" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span>새 프로젝트</span></button>
+            <button id="autosaveRecoveryFileBtn" type="button" class="ui-button btn ghost file-menu-item ui-menu-item" role="menuitem" hidden><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg><span>저장본 선택</span></button>
             <button id="openProjectBtn" class="ui-button btn ghost file-menu-item ui-menu-item" type="button" role="menuitem"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>프로젝트 불러오기</span></button>
             <input id="projectFileInput" type="file" accept=".gpkg,application/geopackage+sqlite3" hidden />
             <button id="saveProjectBtn" class="ui-button btn file-menu-item ui-menu-item ghost" type="button" role="menuitem" aria-label="프로젝트 저장" data-tooltip="프로젝트 저장"><svg class="ui-icon file-menu-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-save"/></svg><span>프로젝트 저장</span></button>
@@ -395,6 +396,7 @@
           <div class="status-inner">
             <div id="projectSaveStatus" class="ui-status status-group project-save-status" data-tooltip="저장되지 않은 변경 사항이 있습니다." aria-label="저장되지 않은 변경 사항이 있습니다">
               <span class="project-save-status-dot" aria-hidden="true"></span><span id="projectSaveStatusText" class="project-save-status-text">미저장</span>
+              <button id="autosaveRecoveryBtn" class="ui-button ghost autosave-recovery-action" type="button" hidden>저장본 선택</button>
             </div>
             <div id="statusView" class="status-group status-view" aria-label="보기 정보">
               <span id="projectionStatus" class="status-item">지구본</span>

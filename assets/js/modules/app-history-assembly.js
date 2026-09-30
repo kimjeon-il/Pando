@@ -77,6 +77,7 @@ export function createHistoryAssembly() {
         else dependencies.projectSession.saveState.markDocumentChanged();
       },
       onAutosaveState: (value, options) => dependencies.projectSession.saveState.setAutosave(value, options),
+      onRecoveryState: value => dependencies.projectSession.saveState.setAutosaveRecovery(value !== null),
       onSaved: savedAt => {
         dependencies.projectState.state.lastSavedAt = savedAt;
       },

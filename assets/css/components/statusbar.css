@@ -27,6 +27,15 @@
   color: var(--text-soft);
 }
 
+.autosave-recovery-action {
+  pointer-events: auto;
+  min-height: 0;
+  height: auto;
+  padding-block: 0;
+  margin-inline-start: var(--ui-space-2);
+  flex: 0 0 auto;
+}
+
 .status-primary {
   color: var(--text);
   font-weight: var(--ui-weight-semibold);

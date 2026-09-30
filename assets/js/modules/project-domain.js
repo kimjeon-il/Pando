@@ -101,6 +101,7 @@ export function createProjectDomain({
   const replace = async (serializedProject, reason) => {
     assertActive();
     if (replacing) throw new Error('Project replacement is already running.');
+    if (reason === 'new' && persistence?.getRecovery?.()) throw new Error('저장본 선택을 먼저 완료하세요.');
     if (serializedProject && invariants?.assertProjectReferenceIntegrity) {
       const countries = serializedProject?.countriesData?.features || serializedProject?.countries || [];
       invariants.assertProjectReferenceIntegrity({
@@ -216,9 +217,17 @@ export function createProjectDomain({
     queuePresentationAutosave: persistence?.queuePresentation,
     persistAutosave: persistence?.persist,
     restoreAutosave: persistence?.restore,
+    getAutosaveRecovery: persistence?.getRecovery,
+    resolveAutosaveRecovery: persistence?.resolveRecovery,
+    completeAutosaveRecovery: persistence?.completeRecovery,
+    loadAutosave: project => {
+      const { countryDelta: _delta, ...fields } = project;
+      return load({ ...fields, format: 'pandolab-project-state',
+        countriesData: project.format === 'pandolab-autosave-delta' ? countriesFromAutosaveDelta(project) : project.countriesData });
+    },
     restorePreview: persistence?.restorePreview,
     ensurePreview: persistence?.ensurePreview,
-    flushAutosave: () => persistence?.writeProject(buildAutosave()),
+    flushAutosave: () => persistence?.persist(),
     resetRenderGeneration,
     dispose,
   });
