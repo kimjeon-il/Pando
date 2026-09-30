@@ -644,27 +644,27 @@
 }
 
 .draft-shape.cut-pending {
-  stroke: var(--map-selection-halo);
-  fill: var(--map-selection-halo);
-  fill-opacity: var(--map-primary-fill-alpha);
+  stroke: var(--map-selection-halo, var(--accent, #316fd3));
+  fill: var(--map-selection-halo, var(--accent, #316fd3));
+  fill-opacity: var(--map-primary-fill-alpha, 0.084);
 }
 
 .draft-shape.cut-valid {
-  stroke: var(--map-selection-halo);
-  fill: var(--map-selection-halo);
-  fill-opacity: var(--map-primary-fill-alpha);
+  stroke: var(--map-selection-halo, var(--accent, #316fd3));
+  fill: var(--map-selection-halo, var(--accent, #316fd3));
+  fill-opacity: var(--map-primary-fill-alpha, 0.084);
 }
 
 .draft-shape.cut-invalid {
-  stroke: var(--map-selection-halo);
-  fill: var(--map-selection-halo);
-  fill-opacity: var(--map-primary-fill-alpha);
+  stroke: var(--map-selection-halo, var(--accent, #316fd3));
+  fill: var(--map-selection-halo, var(--accent, #316fd3));
+  fill-opacity: var(--map-primary-fill-alpha, 0.084);
 }
 
 .draft-shape.draft-invalid {
-  stroke: var(--map-selection-halo);
-  fill: var(--map-selection-halo);
-  fill-opacity: var(--map-primary-fill-alpha);
+  stroke: var(--map-selection-halo, var(--accent, #316fd3));
+  fill: var(--map-selection-halo, var(--accent, #316fd3));
+  fill-opacity: var(--map-primary-fill-alpha, 0.084);
 }
 
 .draft-snap-point {
@@ -685,9 +685,9 @@
 }
 
 .territory-candidate {
-  fill: var(--map-selection-halo);
+  fill: var(--map-selection-halo, var(--accent, #316fd3));
   fill-opacity: 0;
-  stroke: var(--map-selection-halo);
+  stroke: var(--map-selection-halo, var(--accent, #316fd3));
   stroke-opacity: var(--map-candidate-stroke-alpha);
   stroke-width: var(--map-candidate-stroke-width);
   vector-effect: non-scaling-stroke;
@@ -715,9 +715,9 @@
 }
 
 .territory-candidate.selected-candidate {
-  fill-opacity: var(--map-primary-fill-alpha);
-  stroke-opacity: var(--map-primary-stroke-alpha);
-  stroke-width: var(--map-primary-stroke-width);
+  fill-opacity: var(--map-primary-fill-alpha, 0.084);
+  stroke-opacity: var(--map-primary-stroke-alpha, 1);
+  stroke-width: var(--map-primary-stroke-width, 2.5px);
 }
 
 .canvas-interaction-fill-proxy {
