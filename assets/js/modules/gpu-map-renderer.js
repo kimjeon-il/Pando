@@ -271,6 +271,8 @@ export function createGpuMapRenderer(deps) {
     let hydroVisibilityWidth = 1;
     let hydroVisibilityHeight = 1;
     const hydroEditFeatureByFid = new Map();
+    const hydroDescriptorPacksByLogicalId = new Map();
+    const hydroDescriptorPacksByFid = new Map();
     let interactionActive = false, hydroVisibilityDirty = true;
     const hydroPreparation = createGpuHydroPreparation({
       createWorker: () => workerChannels.create(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'pandolab-hydro-tiles' }),
@@ -278,7 +280,7 @@ export function createGpuMapRenderer(deps) {
       getCacheBudget: () => renderQuality.hydroCacheBudgetBytes,
       getProtectedPackIds: () => { const feature = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
         return feature?.properties?.pack_ids || [feature?.properties?.pack_id].filter(Number.isFinite); },
-      getView: () => hydroViewSnapshot(), registerHydroFragments, registerHydroDescriptors, unregisterHydroFragments,
+      getView: () => hydroViewSnapshot(), registerHydroPack, unregisterHydroPack,
       queueHydroRender, reportOperationError, setActionStatus, onConnect: connectHydroCanvasWorkers,
       onLoadState: status => Object.assign(state.physicalLoadState, status),
       onReset: () => { hydroVisibilityDirty = true; hydroEditFeatureByFid.clear(); state.hydroFragmentsByLogicalId = new Map();
@@ -2764,42 +2766,89 @@ export function createGpuMapRenderer(deps) {
       });
     }
 
-    function registerHydroDescriptors(descriptors) {
-      const logicalIds = new Set();
-      for (const row of descriptors || []) {
-        const logicalId = String(row.awId || row.logicalFid);
-        let aggregate = state.hydroFeatureCache.get(logicalId);
-        if (!aggregate) {
-          aggregate = {
-            type: 'Feature', id: logicalId, geometry: null,
-            properties: {
-              pandolab_id: logicalId, __logicalFid: Number(row.logicalFid),
-              category: row.category, layer_id: row.layerId,
-              name: row.name || '', name_ko: row.name || '', source: row.source || '',
-              system_id: row.systemId || '', mainstem_name_ko: row.mainstemNameKo || row.name || '', role: row.role || '',
-              source_id: row.sourceId || '', fragment_count: Number(row.fragmentCount || 1),
-              min_zoom: Number(row.minZoom ?? 99), stroke_width: Number(row.width || 1), pack_ids: [],
-            },
-            __awBounds: [Infinity, Infinity, -Infinity, -Infinity],
-          };
-        }
-        aggregate.properties.pack_ids = [...new Set([...(aggregate.properties.pack_ids || []), Number(row.packId)])];
-        aggregate.properties.min_zoom = Math.min(Number(aggregate.properties.min_zoom ?? 99), Number(row.minZoom ?? 99));
-        const bounds = (row.bounds || []).map(value => Number(value) / 1e6);
+    function aggregateHydroDescriptors(logicalId) {
+      const packs = hydroDescriptorPacksByLogicalId.get(logicalId);
+      if (!packs?.size) {
+        hydroDescriptorPacksByLogicalId.delete(logicalId);
+        state.hydroFeatureCache.delete(logicalId);
+        return;
+      }
+      const rows = [...packs.values()].flat();
+      const row = rows[0];
+      const aggregate = state.hydroFeatureCache.get(logicalId) || {
+        type: 'Feature', id: logicalId, geometry: null, properties: {},
+      };
+      Object.assign(aggregate.properties, {
+        pandolab_id: logicalId, __logicalFid: Number(row.logicalFid),
+        category: row.category, layer_id: row.layerId,
+        name: row.name || '', name_ko: row.name || '', source: row.source || '',
+        system_id: row.systemId || '', mainstem_name_ko: row.mainstemNameKo || row.name || '', role: row.role || '',
+        source_id: row.sourceId || '', fragment_count: Number(row.fragmentCount || 1),
+        min_zoom: Number(row.minZoom ?? 99), stroke_width: Number(row.width || 1), pack_ids: [...packs.keys()],
+      });
+      aggregate.__awBounds = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const descriptor of rows) {
+        aggregate.properties.min_zoom = Math.min(aggregate.properties.min_zoom, Number(descriptor.minZoom ?? 99));
+        const bounds = (descriptor.bounds || []).map(value => Number(value) / 1e6);
         if (bounds.length === 4) {
           aggregate.__awBounds = [
             Math.min(aggregate.__awBounds[0], bounds[0]), Math.min(aggregate.__awBounds[1], bounds[1]),
             Math.max(aggregate.__awBounds[2], bounds[2]), Math.max(aggregate.__awBounds[3], bounds[3]),
           ];
         }
-        const b = aggregate.__awBounds;
-        aggregate.__awCentroid = [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
-        aggregate.__awRadius = Math.min(180, Math.hypot(b[2] - b[0], b[3] - b[1]) / 2);
-        state.hydroFeatureCache.set(logicalId, aggregate);
-        state.hydroFeatureByFid.set(Number(row.fid), aggregate);
+      }
+      const b = aggregate.__awBounds;
+      aggregate.__awCentroid = [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
+      aggregate.__awRadius = Math.min(180, Math.hypot(b[2] - b[0], b[3] - b[1]) / 2);
+      state.hydroFeatureCache.set(logicalId, aggregate);
+      for (const descriptor of rows) state.hydroFeatureByFid.set(Number(descriptor.fid), aggregate);
+    }
+
+    function registerHydroDescriptors(packId, descriptors) {
+      const rowsByLogicalId = new Map();
+      for (const row of descriptors) {
+        const logicalId = String(row.awId || row.logicalFid);
+        if (!rowsByLogicalId.has(logicalId)) rowsByLogicalId.set(logicalId, []);
+        rowsByLogicalId.get(logicalId).push(row);
+        const fid = Number(row.fid);
+        if (!hydroDescriptorPacksByFid.has(fid)) hydroDescriptorPacksByFid.set(fid, new Set());
+        hydroDescriptorPacksByFid.get(fid).add(packId);
+      }
+      for (const [logicalId, rows] of rowsByLogicalId) {
+        if (!hydroDescriptorPacksByLogicalId.has(logicalId)) hydroDescriptorPacksByLogicalId.set(logicalId, new Map());
+        hydroDescriptorPacksByLogicalId.get(logicalId).set(packId, rows);
+        aggregateHydroDescriptors(logicalId);
+      }
+      if (rowsByLogicalId.size) hydroVisibilityDirty = true;
+    }
+
+    function unregisterHydroDescriptors(packId, descriptors) {
+      const logicalIds = new Set();
+      for (const row of descriptors) {
+        const logicalId = String(row.awId || row.logicalFid);
         logicalIds.add(logicalId);
       }
+      for (const logicalId of logicalIds) hydroDescriptorPacksByLogicalId.get(logicalId).delete(packId);
+      for (const fid of new Set(descriptors.map(row => Number(row.fid)))) {
+        const packs = hydroDescriptorPacksByFid.get(fid);
+        packs.delete(packId);
+        if (!packs.size) {
+          hydroDescriptorPacksByFid.delete(fid);
+          state.hydroFeatureByFid.delete(fid);
+        }
+      }
+      for (const logicalId of logicalIds) aggregateHydroDescriptors(logicalId);
       if (logicalIds.size) hydroVisibilityDirty = true;
+    }
+
+    function registerHydroPack(entry) {
+      if (entry.features.length) registerHydroFragments(entry.features);
+      else registerHydroDescriptors(entry.id, entry.descriptors);
+    }
+
+    function unregisterHydroPack(entry) {
+      if (entry.features.length) unregisterHydroFragments(entry.features);
+      else unregisterHydroDescriptors(entry.id, entry.descriptors);
     }
 
     function aggregateHydroLogicalFeature(logicalId) {
@@ -4502,6 +4551,9 @@ export function createGpuMapRenderer(deps) {
         fallbackReason,
         ...terrainStats,
         hydroFeaturesLoaded: state.hydroFeatureCache?.size || 0,
+        hydroDescriptorPackCount: new Set([...hydroDescriptorPacksByLogicalId.values()].flatMap(packs => [...packs.keys()])).size,
+        hydroDescriptorLogicalCount: hydroDescriptorPacksByLogicalId.size,
+        hydroDescriptorFidCount: hydroDescriptorPacksByFid.size,
         interactionActive,
         paletteDirty: { ...paletteDirty },
         ...performanceMetrics,

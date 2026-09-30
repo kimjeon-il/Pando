@@ -5,7 +5,7 @@ import { createHydroViewRequests } from './hydro-view-requests.js';
 // Owns hydro transport, revision gates, RPC settlement, pack cache and upload
 // lifetimes. Application feature registration and UI presentation are callbacks.
 export function createGpuHydroPreparation({ createWorker, getMode, getView, getCacheBudget, getProtectedPackIds,
-  isMobile, DATA_REVISION, ASSET_REVISION, registerHydroFragments, registerHydroDescriptors, unregisterHydroFragments,
+  isMobile, DATA_REVISION, ASSET_REVISION, registerHydroPack, unregisterHydroPack,
   queueHydroRender, reportOperationError, setActionStatus, onReset, onConnect, onLoadState }) {
   const lifecycle = createGpuResourceLifecycle();
   const metrics = { hydroUploadBytes: 0, hydroTileWindowRecomputeCount: 0, hydroTileWindowCacheHitCount: 0, hydroViewRequestCount: 0 };
@@ -190,7 +190,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         key, projectGeneration: generation, contextGeneration, priority: 40,
         dispose: () => { entry.uploadKey = null; entry.uploadQueued = false; deleteHydroPackResources(entry); },
         step: ({ byteBudget }) => {
-          if (disposed || epoch !== uploadEpoch || generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale hydro upload'), { name: 'AbortError' });
+          if (disposed || entry.uploadKey !== key || epoch !== uploadEpoch || generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale hydro upload'), { name: 'AbortError' });
           const before = metrics.hydroUploadBytes;
           uploadHydroPack(entry, byteBudget);
           if (entry.resources) { entry.uploadKey = null; entry.uploadQueued = false; queueHydroRender('hydro-upload-ready'); }
@@ -308,10 +308,9 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         };
         entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0);
         const previous = hydroPacks.get(entry.id);
-        if (previous) deleteHydroPackResources(previous);
+        if (previous) retireHydroPack(previous);
         hydroPacks.set(entry.id, entry);
-        if (features.length) registerHydroFragments(features);
-        else registerHydroDescriptors(descriptors);
+        registerHydroPack(entry);
         if (isWebGlRenderer()) scheduleHydroUpload(entry);
         pruneHydroCache();
         return;
@@ -350,6 +349,12 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       }
     }
 
+    function retireHydroPack(entry) {
+      unregisterHydroPack(entry);
+      deleteHydroPackResources(entry);
+      hydroPacks.delete(entry.id);
+    }
+
     function pruneHydroCache() {
       const limit = Math.max(8 * 1024 * 1024, Number(getCacheBudget()) || (isMobile() ? 48 : 96) * 1024 * 1024);
       let total = [...hydroPacks.values()].reduce((sum, entry) => sum + entry.byteLength, 0);
@@ -361,9 +366,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       const released = [];
       for (const entry of candidates) {
         if (total <= limit) break;
-        deleteHydroPackResources(entry);
-        hydroPacks.delete(entry.id);
-        unregisterHydroFragments(entry.features);
+        retireHydroPack(entry);
         total -= entry.byteLength;
         released.push(entry.id);
       }
@@ -394,8 +397,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       hydroAcceptedRevision = 0;
       hydroActivePackIds.clear();
       queueHydroRender('hydro-manifest');
-      for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
-      hydroPacks.clear();
+      for (const entry of hydroPacks.values()) retireHydroPack(entry);
       for (const entry of hydroEditEntries) deleteHydroPackResources(entry);
       hydroEditEntries = [];
       hydroEditRevision = -1;
@@ -457,7 +459,8 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     if (disposed) return;
     disposed = true;
     retireHydroWorkerGeneration(new DOMException('Renderer disposed', 'AbortError'));
-    resetGpu(); lifecycle.dispose(); hydroPacks.clear(); hydroEditEntries = []; hydroActivePackIds.clear();
+    for (const entry of hydroPacks.values()) retireHydroPack(entry);
+    resetGpu(); lifecycle.dispose(); hydroEditEntries = []; hydroActivePackIds.clear();
   }
   return Object.freeze({
     setManifest: setHydroManifest, requestView: requestHydroView, loadFeature: loadHydroLogicalFeature, queryFeatures: queryHydroLogicalFeatures,
