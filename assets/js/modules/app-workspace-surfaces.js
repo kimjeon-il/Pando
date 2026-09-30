@@ -175,8 +175,6 @@ export function createWorkspaceSurfaces() {
     searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();
     dependencies.domainControllers.syncSelectionToolbarInteraction?.();
-    dependencies.domainControllers.syncSelectionToolbarOcclusion?.();
-    requestAnimationFrame(() => dependencies.domainControllers.syncSelectionToolbarOcclusion?.());
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
     syncEditorPanelControls();
@@ -198,8 +196,6 @@ export function createWorkspaceSurfaces() {
     searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();
     dependencies.domainControllers.syncSelectionToolbarInteraction?.();
-    dependencies.domainControllers.syncSelectionToolbarOcclusion?.();
-    requestAnimationFrame(() => dependencies.domainControllers.syncSelectionToolbarOcclusion?.());
     syncEditorPanelControls();
     refreshMapSheetMetrics();
     requestAnimationFrame(dependencies.taskPresentation.syncMapHudBounds);
