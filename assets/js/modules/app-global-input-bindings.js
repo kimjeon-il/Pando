@@ -57,7 +57,7 @@ export function createGlobalInputBindings() {
       }
       if (e.key === 'Escape') {
         if (dependencies.projectState.state.modeProcessing) { e.preventDefault(); return; }
-        if (dependencies.domainControllers.closeSelectionToolbarTransient?.({ restoreFocus: true })) { e.preventDefault(); return; }
+        if (dependencies.domainControllers.closeSelectionToolbarTransient({ restoreFocus: true })) { e.preventDefault(); return; }
         if (!(0, dependencies.platform.$)('preferencesModal')?.classList.contains('hidden')) { (0, dependencies.platform.$)('preferencesCancelBtn')?.click(); return; }
         if (!(0, dependencies.platform.$)('objectChooser')?.classList.contains('hidden')) { (0, dependencies.objectPicking.closeObjectChooser)({ restoreFocus: true }); return; }
         if (!(0, dependencies.platform.$)('objectActionsMenu')?.classList.contains('hidden')) { (0, dependencies.objectOperationsA.closeObjectActionsMenu)({ restoreFocus: true }); return; }
