@@ -5,6 +5,106 @@ const PNG_1X1 = Buffer.from(
   'base64',
 );
 
+test('duplicate raw records survive whole saves and independent completed edits need no shutdown rewrite', async ({ page }) => {
+  await page.goto('/assets/css/app.css');
+  await page.evaluate(async png => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const blob = new Blob([Uint8Array.from(atob(png), char => char.charCodeAt(0))], { type: 'image/png' });
+    await store.replaceStoredReferenceImages([
+      { id: 'shared', name: 'Decoded', order: 0, blob },
+      { id: 'shared', name: 'Duplicate original', order: 1, blob: new Blob(['duplicate-original']), custom: { keep: true } },
+    ]);
+  }, PNG_1X1.toString('base64'));
+  await page.addInitScript(() => {
+    window.referenceWrites = 0;
+    const put = window.IDBObjectStore.prototype.put;
+    window.IDBObjectStore.prototype.put = function (...args) {
+      if (this.transaction.db.name === 'pandolab-reference-images') window.referenceWrites++;
+      return put.apply(this, args);
+    };
+  });
+  await openApp(page);
+  await page.locator('#referenceImageBtn').click();
+  await addImage(page, 'Second.png');
+  await expect(page.locator('.reference-image-list-row')).toHaveCount(2);
+  await page.locator('[data-ref-action="send-backward"]').click();
+  await expect.poll(async () => (await readReferenceStore(page)).length).toBe(3);
+  const original = await page.evaluate(async () => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const raw = (await store.listStoredReferenceImages()).find(record => record.name === 'Duplicate original');
+    return raw ? { bytes: await raw.blob.text(), custom: raw.custom } : null;
+  });
+  expect(original).toEqual({ bytes: 'duplicate-original', custom: { keep: true } });
+  await page.evaluate(() => {
+    for (const [index, id] of window.__PANDOLAB_REFERENCE_IMAGES__.list().map(value => value.id).entries()) {
+      document.querySelector(`[data-reference-image-id="${id}"]`).click();
+      const input = document.querySelector('[data-ref-field="name"]');
+      input.value = `Completed ${index}`;
+      input.dispatchEvent(new window.Event('input', { bubbles: true }));
+    }
+  });
+  await expect.poll(async () => (await readReferenceStore(page)).filter(item => item.name.startsWith('Completed')).length).toBe(2);
+  const writes = await page.evaluate(() => window.referenceWrites);
+  await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.destroy());
+  // A read behind the store's mutation queue is a durability barrier, not a timer.
+  await page.evaluate(async () => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    await store.listStoredReferenceImages();
+  });
+  expect(await page.evaluate(() => window.referenceWrites)).toBe(writes);
+});
+
+test('unchanged image startup and shutdown never rewrite the collection', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.referenceWrites = 0;
+    const put = window.IDBObjectStore.prototype.put;
+    window.IDBObjectStore.prototype.put = function (...args) {
+      if (this.transaction.db.name === 'pandolab-reference-images') window.referenceWrites++;
+      return put.apply(this, args);
+    };
+  });
+  await openApp(page);
+  expect(await page.evaluate(() => window.referenceWrites)).toBe(0);
+  await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.destroy());
+  expect(await page.evaluate(() => window.referenceWrites)).toBe(0);
+});
+
+test('undecodable image originals survive full saves, deletion, undo and a pending shutdown edit', async ({ page }) => {
+  await page.goto('/assets/css/app.css');
+  await page.evaluate(async () => {
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.open('pandolab-reference-images', 2);
+      request.onupgradeneeded = () => request.result.createObjectStore('state-v2');
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction('state-v2', 'readwrite');
+        tx.objectStore('state-v2').put({ version: 1, records: [{ id: 'broken', name: 'Original', order: 0,
+          blob: new Blob(['broken-original'], { type: 'image/png' }), custom: { keep: true } }] }, 'reference-images');
+        tx.oncomplete = () => { db.close(); resolve(); };
+      };
+    });
+  });
+  await openApp(page);
+  await page.locator('#referenceImageBtn').click();
+  await addImage(page, 'Healthy.png');
+  await expect.poll(async () => (await readReferenceStore(page)).length).toBe(2);
+  await page.locator('[data-ref-action="delete"]').click();
+  await page.locator('#confirmModalOkBtn').click();
+  await expect.poll(async () => (await readReferenceStore(page)).length).toBe(1);
+  await page.locator('[data-ref-action="undo"]').click();
+  await expect.poll(async () => (await readReferenceStore(page)).length).toBe(2);
+  await page.locator('[data-ref-field="name"]').fill('Pending shutdown');
+  await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.destroy());
+  await expect.poll(async () => (await readReferenceStore(page)).find(item => item.id !== 'broken')?.name).toBe('Pending shutdown');
+  const original = await page.evaluate(async () => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const item = (await store.listStoredReferenceImages()).find(record => record.id === 'broken');
+    return { bytes: await item.blob.text(), custom: item.custom };
+  });
+  expect(original).toEqual({ bytes: 'broken-original', custom: { keep: true } });
+});
+
 async function openApp(page) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));

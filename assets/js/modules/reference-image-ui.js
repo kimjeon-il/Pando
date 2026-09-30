@@ -27,6 +27,10 @@ export function createReferenceImagePanel() {
       <button type="button" class="ui-button btn ghost" data-ref-action="redo" disabled>다시 실행</button>
       <input data-ref-file type="file" accept="image/png,image/jpeg,image/webp" hidden />
     </div>
+    <div class="reference-image-empty" data-ref-storage-status role="status" hidden>
+      <span data-ref-storage-message></span>
+      <button type="button" class="ui-button btn ghost" data-ref-action="retry-storage">다시 읽기</button>
+    </div>
     <div class="reference-image-list" data-ref-list></div>
     <div class="reference-image-empty" data-ref-empty>PNG, JPG, WebP를 불러와 지도 위에서 기준점을 맞출 수 있습니다.</div>
     <div class="reference-image-editor" data-ref-editor hidden></div>

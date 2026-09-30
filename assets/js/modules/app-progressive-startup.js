@@ -140,6 +140,7 @@ export function createProgressiveStartup() {
       startupMetrics.effectivePixelRatio = renderer.effectivePixelRatio;
     }
     if (restored) {
+      await dependencies.lifecycleUi.projectUi.completeAutosaveRecovery();
       dependencies.projectSession.saveState.markNewProject(`content:${Date.now()}`);
       dependencies.projectSession.saveState.setAutosave(dependencies.applicationConstantsA.AUTOSAVE_STATES.SAVED, { fallback: autosaveRestore.source === 'localstorage' ? '브라우저 로컬 저장소' : '' });
       if (restored.countriesData && restored.baseDataset === dependencies.platformConfigurationA.BASE_DATASET) dependencies.domains.projectDomain.queueAutosave(0);
@@ -261,7 +262,7 @@ export function createProgressiveStartup() {
     if (!window.d3) throw new Error('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.');
     if (!window.PANDOLAB_COUNTRIES?.features?.length) throw new Error('미리보기 국가 데이터를 불러올 수 없습니다. 페이지를 새로고침하세요.');
 
-    const autosavePromise = dependencies.domains.projectDomain.restoreAutosave();
+    const autosavePromise = dependencies.lifecycleUi.projectUi.restoreAutosave();
     const autosaveRestore = await autosavePromise;
     const savedProject = autosaveRestore.project;
     const baseline = window.PANDOLAB_PREVIEW_BASELINE;
@@ -407,7 +408,7 @@ export function createProgressiveStartup() {
       return;
     }
 
-    const autosaveRestore = await dependencies.domains.projectDomain.restoreAutosave();
+    const autosaveRestore = await dependencies.lifecycleUi.projectUi.restoreAutosave();
     const restored = autosaveRestore.project;
     if (restored) (0, dependencies.snapshots.applySharedProjectFields)(restored);
     (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
@@ -458,6 +459,7 @@ export function createProgressiveStartup() {
     await dependencies.domains.layerTreeController?.completeHydration();
 
     if (restored) {
+      await dependencies.lifecycleUi.projectUi.completeAutosaveRecovery();
       dependencies.projectSession.saveState.markNewProject(`content:${Date.now()}`);
       dependencies.projectSession.saveState.setAutosave(dependencies.applicationConstantsA.AUTOSAVE_STATES.SAVED, { fallback: autosaveRestore.source === 'localstorage' ? '브라우저 로컬 저장소' : '' });
       if (restored.countriesData && restored.baseDataset === dependencies.platformConfigurationA.BASE_DATASET) dependencies.domains.projectDomain.queueAutosave(0);
