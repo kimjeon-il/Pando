@@ -6,6 +6,8 @@ import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capabili
 import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
 import { buildGeometryPreview } from '../../assets/js/modules/geometry-preview.js';
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
+import '../../assets/js/vendor/polygon-clipping.min.js';
+import { hasCanonicalCountryWinding, normalizeCountryGeometry } from '../../assets/js/modules/map-edit-geometry.js';
 
 const box = (x0, y0, x1, y1) => ({
   type: 'Polygon',
@@ -104,4 +106,24 @@ test('annex review uses the validated transferred geometry even when union diffe
   assert.deepEqual(preview.delta.removedGeometry, transferred);
   assert.throws(() => buildGeometryPreview({ operation: 'annex', beforeFeatures: before, afterFeatures: after }),
     /편입.*형상/);
+});
+
+test('annex preview rejects reversed transferred rings instead of displaying their globe complement', () => {
+  const transferred = box(30, 38, 31, 39);
+  transferred.coordinates[0].reverse();
+  assert.throws(() => buildGeometryPreview({ operation: 'annex', transferredGeometry: transferred }),
+    /편입.*형상/);
+});
+
+test('preview unions and differences retain canonical outer and hole winding', () => {
+  const hole = box(1, 1, 2, 2).coordinates[0];
+  const before = normalizeCountryGeometry({ type: 'Polygon', coordinates: [box(0, 0, 4, 4).coordinates[0], hole] });
+  const after = normalizeCountryGeometry({ type: 'Polygon', coordinates: [box(-1, 0, 3, 4).coordinates[0], hole] });
+  const preview = buildGeometryPreview({ operation: 'reshape', beforeFeatures: [{ id: 'D', geometry: before }],
+    afterFeatures: [{ id: 'D', geometry: after }], clipper: globalThis.polygonClipping });
+  for (const name of ['beforeUnion', 'afterUnion', 'addedGeometry', 'removedGeometry']) {
+    assert.equal(hasCanonicalCountryWinding(preview.delta[name]), true, name);
+  }
+  assert.equal(preview.delta.beforeUnion.coordinates[0].length, 2);
+  assert.equal(preview.delta.afterUnion.coordinates[0].length, 2);
 });

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import { createCountryCommandCalculator } from '../../assets/js/modules/map-edit-country-commands.js';
+import { hasCanonicalCountryWinding } from '../../assets/js/modules/map-edit-geometry.js';
 
 const pc = globalThis.polygonClipping;
 const api = createCountryCommandCalculator(pc);
@@ -56,6 +57,7 @@ test('tiny explicit whole and partial transfers are not discarded by overlap tol
   const { result } = api.calculate({ operation: 'annex', targetId: 'T', donorIds: ['D'], transferredGeometry: geom([polygon]) },
     new Map([['D', feature('D', [polygon])], ['T', feature('T', [box(0, 0, 1)])]]));
   assert.ok(result.removedIds.includes('D'));
+  assert.equal(hasCanonicalCountryWinding(result.transferredGeometry), true);
 });
 
 test('annex clips only a sub-grid source-boundary fringe before applying', () => {
@@ -81,7 +83,7 @@ test('annex still rejects meaningful territory outside the selected sources', ()
   }, new Map([
     ['D', feature('D', [donor])],
     ['T', feature('T', [box(-2, 0, 1)])],
-  ])), /영토를 가져올 국가 밖/u);
+  ])), /선택 범위가 원본 국가 밖/u);
 });
 
 test('river-partition annex normalizes a meaningful clipping overrun to its proven source', () => {

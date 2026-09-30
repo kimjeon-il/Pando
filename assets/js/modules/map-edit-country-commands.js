@@ -278,9 +278,11 @@ export function createCountryCommandCalculator(clipper) {
     const baseline = captureBaseline(working, affectedIds);
     applyPatch(working, updates, removedIds);
     validateResult(working, new Set([targetId, ...affectedDonorIds]), baseline, { allowAreaChange: allowUnclaimed });
+    const transferredGeometry = normalizeCountryGeometry(transferred);
+    if (!transferredGeometry) throw new Error('편입 결과의 표시 형상이 유효하지 않습니다.');
     return {
       features: updates, removedIds, affectedIds: [targetId, ...affectedDonorIds], affectedDonorIds,
-      transferredArea: area(transferred), transferredGeometry: { type: 'MultiPolygon', coordinates: transferred },
+      transferredArea: area(transferred), transferredGeometry: { type: 'MultiPolygon', coordinates: multiCoordinates(transferredGeometry) },
       autoIncludedSlivers: { count: slivers.polygons.length, areaM2: slivers.areaM2 },
     };
   }
