@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { Worker } from 'node:worker_threads';
 import { readFileSync } from 'node:fs';
 import { createMapEditWorkerClient } from '../../assets/js/modules/map-edit-worker-client.js';
+import '../../assets/js/vendor/polygon-clipping.min.js';
+import { area, multiCoordinates, hasCanonicalCountryWinding } from '../../assets/js/modules/map-edit-geometry.js';
 
 function harness(t, rows, { failFirstClipMethod = '' } = {}) {
   const script = new URL('../../assets/js/workers/map-edit-worker.js', import.meta.url).href;
@@ -47,6 +49,94 @@ function harness(t, rows, { failFirstClipMethod = '' } = {}) {
 }
 const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });
 const feature = (id, geometry, properties = {}) => ({ type: 'Feature', id, geometry, properties });
+
+function assertNewCountryPartition(result, original, selected) {
+  const remaining = result.features.find(item => item.id === 'A');
+  const created = result.features.find(item => item.id === 'B');
+  assert.ok(remaining?.geometry);
+  assert.ok(created?.geometry);
+  assert.equal(result.newCountryId, 'B');
+  assert.equal(result.preview.validation.blocking, false);
+  assert.ok(Number.isFinite(result.transferredArea) && result.transferredArea > 0);
+  const createdArea = area(created.geometry);
+  const areaTolerance = Math.max(1e-12, createdArea * 1e-12);
+  const geometryTolerance = Math.max(1e-10, area(original) * 1e-10);
+  assert.ok(Math.abs(result.transferredArea - createdArea) <= areaTolerance);
+  assert.ok(hasCanonicalCountryWinding(remaining.geometry));
+  assert.ok(hasCanonicalCountryWinding(created.geometry));
+  const clipper = globalThis.polygonClipping;
+  const a = multiCoordinates(remaining.geometry), b = multiCoordinates(created.geometry);
+  assert.ok(area(clipper.xor(b, multiCoordinates(selected))) <= geometryTolerance);
+  assert.ok(area(clipper.intersection(a, b)) <= geometryTolerance);
+  assert.ok(area(clipper.xor(clipper.union(a, b), multiCoordinates(original))) <= geometryTolerance);
+  return created;
+}
+
+test('actual Worker creates a country, discards a preview and commits a reversible partition', async t => {
+  const original = feature('A', square(0, 0, 10, 10));
+  const selected = square(1, 1, 3, 3);
+  const payload = { sourceIds: ['A'], newFeature: feature('B', selected), transferredGeometry: selected };
+  const before = structuredClone({ original, payload });
+  const client = harness(t, [{ kind: 'country', feature: original }]);
+  const first = await client.execute('new-country', payload);
+  assertNewCountryPartition(first.result, original.geometry, selected);
+  assert.ok(Math.abs(first.result.transferredArea - 4) <= 4e-12);
+  assert.ok(Math.abs(area(first.result.features.find(item => item.id === 'A').geometry) - 96) <= 1e-8);
+  client.discard(first.requestId);
+  const second = await client.execute('new-country', payload);
+  assert.deepEqual(second.result.features, first.result.features);
+  assertNewCountryPartition(second.result, original.geometry, selected);
+  client.commit(second.requestId);
+  const merged = await client.execute('merge', { sourceId: 'A', targetIds: ['B'] });
+  assert.deepEqual(merged.result.removedIds, ['B']);
+  assert.equal(merged.result.preview.validation.blocking, false);
+  assert.ok(area(globalThis.polygonClipping.xor(
+    multiCoordinates(merged.result.features[0].geometry), multiCoordinates(original.geometry),
+  )) <= 1e-8);
+  assert.deepEqual({ original, payload }, before);
+});
+
+test('actual Worker returns final clipped new-country area instead of the raw fringe area', async t => {
+  const original = feature('A', square(0, 0, 10, 10));
+  const raw = square(-1e-9, 2, 3, 5);
+  const payload = { sourceIds: ['A'], newFeature: feature('B', raw), transferredGeometry: raw };
+  const before = structuredClone({ original, payload });
+  const client = harness(t, [{ kind: 'country', feature: original }]);
+  const { result } = await client.execute('new-country', payload);
+  const created = assertNewCountryPartition(result, original.geometry, square(0, 2, 3, 5));
+  const tolerance = Math.max(1e-12, area(created.geometry) * 1e-12);
+  assert.ok(Math.abs(result.transferredArea - 9) <= tolerance);
+  assert.ok(Math.abs(result.transferredArea - area(raw)) > tolerance);
+  assert.deepEqual({ original, payload }, before);
+});
+
+test('actual territorial-cut Worker preserves a partition and reuses its cached source', async t => {
+  const source = square(0, 0, 10, 10);
+  const payload = {
+    sourceKey: 'rectangle-cut', source, coords: [[0, 5], [10, 5]], buildPreview: true,
+    view: { kind: 'flat', scale: 1000, translate: [400, 300], rotate: [0, 0, 0], center: [0, 0],
+      size: { width: 800, height: 600 }, coarsePointer: false, snapDistance: { mouse: 10, touch: 18 } },
+  };
+  const before = structuredClone(payload);
+  const client = harness(t, [{ kind: 'country', feature: feature('A', source) }]);
+  const { result } = await client.execute('territorial-cut', { payload });
+  assert.equal(result.valid, true);
+  assert.equal(result.split.candidates.length, 2);
+  for (const candidate of result.split.candidates) {
+    assert.ok(Number.isFinite(candidate.area) && candidate.area > 0);
+    assert.ok(hasCanonicalCountryWinding(candidate.geometry));
+    assert.ok(Math.abs(area(candidate.geometry) - 50) <= 1e-8);
+  }
+  const [a, b] = result.split.candidates.map(candidate => multiCoordinates(candidate.geometry));
+  assert.ok(area(globalThis.polygonClipping.intersection(a, b)) <= 1e-8);
+  assert.ok(area(globalThis.polygonClipping.xor(globalThis.polygonClipping.union(a, b), multiCoordinates(source))) <= 1e-8);
+  const cachedPayload = { ...payload };
+  delete cachedPayload.source;
+  const cached = await client.execute('territorial-cut', { payload: cachedPayload });
+  assert.equal(cached.result.valid, true);
+  assert.deepEqual(cached.result.split.candidates, result.split.candidates);
+  assert.deepEqual(payload, before);
+});
 
 test('country command previews stay pending until commit and discard preserves worker originals', async t => {
   const originals = [feature('a', square(0, 0, 1, 1)), feature('b', square(1, 0, 2, 1))];
