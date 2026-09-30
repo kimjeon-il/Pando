@@ -1,4 +1,5 @@
 import { geometryAreaKm2, percentChange } from './geometry-metrics.js';
+import { hasCanonicalCountryWinding, multiCoordinates, normalizeCountryGeometry } from './map-edit-geometry.js';
 import {
   buildRenderableBoundaryGeometry,
   buildRenderableBoundarySegments,
@@ -77,7 +78,14 @@ function featureMap(features) {
 function unionGeometry(features, clipper) {
   if (!features.length || !clipper?.union) return null;
   const coordinates = clipper.union(...features.map(feature => feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates));
-  return coordinates?.length ? { type: 'MultiPolygon', coordinates } : null;
+  return clippedPreviewGeometry(coordinates);
+}
+
+function clippedPreviewGeometry(coordinates) {
+  if (!coordinates?.length) return null;
+  const normalized = normalizeCountryGeometry(coordinates);
+  if (!normalized) throw new Error('미리보기 계산 형상이 유효하지 않습니다.');
+  return { type: 'MultiPolygon', coordinates: multiCoordinates(normalized) };
 }
 
 export function buildGeometryPreview({ operation, beforeFeatures = [], afterFeatures = [], removedIds = [], clipper = null, transferredGeometry = null } = {}) {
@@ -90,13 +98,14 @@ export function buildGeometryPreview({ operation, beforeFeatures = [], afterFeat
   if (operation !== 'annex' && clipper?.difference && beforeUnion && afterUnion) {
     const removed = clipper.difference(beforeUnion.coordinates, afterUnion.coordinates);
     const added = clipper.difference(afterUnion.coordinates, beforeUnion.coordinates);
-    if (removed?.length) removedGeometry = { type: 'MultiPolygon', coordinates: removed };
-    if (added?.length) addedGeometry = { type: 'MultiPolygon', coordinates: added };
+    removedGeometry = clippedPreviewGeometry(removed);
+    addedGeometry = clippedPreviewGeometry(added);
   }
   if (operation === 'annex') {
     if (!transferredGeometry || !['Polygon', 'MultiPolygon'].includes(transferredGeometry.type)) {
       throw new Error('편입 미리보기의 검증된 형상이 없습니다.');
     }
+    if (!hasCanonicalCountryWinding(transferredGeometry)) throw new Error('편입 미리보기 형상이 canonical 경계 방향 계약을 지키지 않습니다.');
     removedGeometry = clone(transferredGeometry);
     addedGeometry = clone(transferredGeometry);
   } else if (transferredGeometry) {

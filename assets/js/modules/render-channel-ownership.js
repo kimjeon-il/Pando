@@ -15,3 +15,15 @@ export function makeSvgSceneProxy(node) {
   node.style.setProperty('mix-blend-mode', 'normal');
   return true;
 }
+
+/** Paint belongs to the renderer that completed each channel of this frame. */
+export function applySvgInteractionOwnership(node, { fillOwner = 'svg', strokeOwner = 'svg' } = {}) {
+  node.classList.remove('gpu-interaction-hit-proxy');
+  node.classList.toggle('gpu-interaction-fill-proxy', fillOwner === 'gpu');
+  node.classList.toggle('canvas-interaction-fill-proxy', fillOwner === 'canvas');
+  node.classList.toggle('gpu-interaction-stroke-proxy', strokeOwner === 'gpu');
+  for (const [channel, owner] of [['fill', fillOwner], ['stroke', strokeOwner]]) {
+    if (owner === 'svg') node.style.removeProperty(channel);
+    else node.style.setProperty(channel, 'none');
+  }
+}

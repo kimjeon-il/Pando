@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
 
-async function openAnnex(page, center, { renderer = 'webgl2' } = {}) {
+async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' } = {}) {
   await page.addInitScript(() => {
     window.__annexE2e = { workerErrors: [], workerTransfers: [], rebases: [] };
     const NativeWorker = window.Worker;
@@ -37,7 +37,7 @@ async function openAnnex(page, center, { renderer = 'webgl2' } = {}) {
   expect(centerPoint).toBeTruthy();
   await page.mouse.move(map.x + centerPoint[0], map.y + centerPoint[1]);
   await page.mouse.wheel(0, -400);
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'GRC'));
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select('country', id), targetId);
   if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click({ timeout: 10_000 });
   await expect(page.locator('#editorSurface')).toBeVisible();
   await page.locator('#actionsTabBtn').click();
@@ -50,11 +50,11 @@ async function openAnnex(page, center, { renderer = 'webgl2' } = {}) {
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('영역 선택');
-  const before = await page.evaluate(() => ({
-    a: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('GRC').geometry),
+  const before = await page.evaluate(id => ({
+    a: JSON.stringify(window.PANDOLAB_TERRITORIAL.get(id).geometry),
     b: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('TUR').geometry),
-  }));
-  return { errors, before };
+  }), targetId);
+  return { errors, before, targetId };
 }
 
 async function drawStroke(page, coordinates, { closed = true } = {}) {
@@ -226,9 +226,10 @@ async function completeAndCheck(page, context, expectedGeometry = null) {
     .evaluate(element => element.__data__.geometry);
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 90_000 });
   await page.locator('#modePrimaryBtn').click();
-  await expect.poll(() => page.evaluate(before => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('GRC').geometry) !== before, context.before.a),
+  await expect.poll(() => page.evaluate(({ before, targetId }) => JSON.stringify(window.PANDOLAB_TERRITORIAL.get(targetId).geometry) !== before,
+    { before: context.before.a, targetId: context.targetId }),
     { timeout: 90_000 }).toBe(true);
-  const result = await page.evaluate(({ before, expectedGeometry, preview }) => {
+  const result = await page.evaluate(({ before, expectedGeometry, preview, targetId }) => {
     const clipper = window.polygonClipping;
     const multi = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
     const planarArea = polygons => (polygons || []).reduce((sum, polygon) => sum + Math.abs(polygon.reduce((area, ring, index) => {
@@ -237,7 +238,7 @@ async function completeAndCheck(page, context, expectedGeometry = null) {
       return area + (index ? -1 : 1) * Math.abs(ringArea / 2);
     }, 0)), 0);
     const oldA = multi(JSON.parse(before.a)), oldB = multi(JSON.parse(before.b));
-    const newA = multi(window.PANDOLAB_TERRITORIAL.get('GRC').geometry);
+    const newA = multi(window.PANDOLAB_TERRITORIAL.get(targetId).geometry);
     const newB = multi(window.PANDOLAB_TERRITORIAL.get('TUR').geometry);
     const added = clipper.difference(newA, oldA);
     const removed = clipper.difference(oldB, newB);
@@ -251,7 +252,7 @@ async function completeAndCheck(page, context, expectedGeometry = null) {
       workerErrors: window.__annexE2e.workerErrors,
       rebases: window.__annexE2e.rebases,
     };
-  }, { before: context.before, expectedGeometry, preview });
+  }, { before: context.before, expectedGeometry, preview, targetId: context.targetId });
   expect(result.beforeBChanged).toBe(true);
   expect(result.addedArea).toBeGreaterThan(0);
   expect(result.removedArea).toBeGreaterThan(0);
@@ -260,11 +261,13 @@ async function completeAndCheck(page, context, expectedGeometry = null) {
   if (expectedGeometry) expect(result.selectionMissingArea).toBeLessThan(1e-5);
   expect(result.workerErrors).toEqual([]);
   expect(context.errors).toEqual([]);
+  await expect(page.locator('path.editing-preview-path')).toHaveCount(0);
+  await expect(page.locator('path.territory-candidate')).toHaveCount(0);
   await page.locator('#undoBtn').click();
-  await expect.poll(() => page.evaluate(before => ({
-    a: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('GRC').geometry) === before.a,
+  await expect.poll(() => page.evaluate(({ before, targetId }) => ({
+    a: JSON.stringify(window.PANDOLAB_TERRITORIAL.get(targetId).geometry) === before.a,
     b: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('TUR').geometry) === before.b,
-  }), context.before), { timeout: 30_000 }).toEqual({ a: true, b: true });
+  }), { before: context.before, targetId: context.targetId }), { timeout: 30_000 }).toEqual({ a: true, b: true });
 }
 
 test('annex - line', async ({ page }) => {
@@ -319,6 +322,116 @@ test('annex - line candidate stays local on the globe', async ({ page }) => {
   expect(context.errors).toEqual([]);
   expect(await page.evaluate(() => window.__annexE2e.workerErrors)).toEqual([]);
 });
+
+for (const svgFallback of [false, true]) {
+  test(`annex - mainland globe result preview ${svgFallback ? 'SVG fallback' : 'WebGL'}`, async ({ page }, testInfo) => {
+    test.setTimeout(180_000);
+    if (svgFallback) {
+      // Simulate an unavailable interaction fill target, leaving the base map intact.
+      // Exercise the actual SVG ownership path, rather than calling Canvas an SVG fallback.
+      await page.route('**/assets/js/modules/gpu-map-renderer.js*', async route => {
+        const response = await route.fetch();
+        let body = await response.text();
+        const declaration = 'const interactionFillCache = createSceneColorCache();';
+        expect(body).toContain(declaration);
+        body = body.replace(declaration, declaration.replace(/= (.*);$/, '= { ...$1, beginScene: () => false };'));
+        await route.fulfill({ response, body });
+      });
+    }
+    const context = await openAnnex(page, [38, 39], { targetId: 'ARM' });
+    await page.locator('#modeDirectLineMethodInput').check();
+    await expect(page.locator('#modeTaskInstruction')).toHaveText('가져올 영토를 가로질러 선을 그리세요.', { timeout: 60_000 });
+    await drawStroke(page, [[37.5, 43], [37.5, 35]], { closed: false });
+    await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
+    await page.locator('#globeBtn').evaluate(button => button.click());
+    await page.locator('#resetViewBtn').click();
+    await page.locator('#modeDraftDoneBtn').click();
+    await expect(page.locator('path.geometry-preview-add.geometry-preview-fill')).toHaveCount(1, { timeout: 90_000 });
+    await expect.poll(() => page.locator('#modePrimaryBtn').evaluate(button => !button.disabled && button.getAttribute('aria-busy') === 'false'),
+      { timeout: 90_000 }).toBe(true);
+    if (!svgFallback) await expect.poll(() => page.locator('path.geometry-preview-add.geometry-preview-fill')
+      .evaluate(node => node.style.fill), { timeout: 10_000 }).toBe('none');
+    await expect(page.locator('path.geometry-preview-add.geometry-preview-outline'))
+      .toHaveCSS('stroke', 'none', { timeout: 10_000 });
+    const selected = await page.locator('path.territory-candidate.selected-candidate').evaluate(element => element.__data__.geometry);
+    const result = await page.evaluate(async () => {
+      const { hasCanonicalCountryWinding } = await import('/assets/js/modules/map-edit-geometry.js');
+      const candidate = document.querySelector('path.territory-candidate.selected-candidate');
+      const preview = document.querySelector('path.geometry-preview-add.geometry-preview-fill');
+      const transfer = window.__annexE2e.workerTransfers.at(-1);
+      const geometry = preview.__data__.geometry;
+      const multi = value => value.type === 'Polygon' ? [value.coordinates] : value.coordinates;
+      const box = node => {
+        const rect = node.getBBox();
+        return [rect.x, rect.y, rect.width, rect.height];
+      };
+      const paints = node => ({
+        fill: getComputedStyle(node).fill, stroke: getComputedStyle(node).stroke,
+        fillAlpha: Number(getComputedStyle(node).fillOpacity),
+        fillKey: node.getAttribute('data-gpu-interaction-fill-keys'),
+        strokeKey: node.getAttribute('data-gpu-interaction-stroke-keys'),
+        gpuFill: node.style.fill === 'none',
+        gpuStroke: node.style.stroke === 'none',
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = 240; canvas.height = 144;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.scale(canvas.width / preview.ownerSVGElement.clientWidth, canvas.height / preview.ownerSVGElement.clientHeight);
+      ctx.fill(new Path2D(preview.getAttribute('d')));
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let coverage = 0;
+      for (let index = 3; index < pixels.length; index += 4) if (pixels[index]) coverage += 1;
+      return {
+        canonical: hasCanonicalCountryWinding(geometry), transferCanonical: hasCanonicalCountryWinding(transfer),
+        sphericalArea: window.d3.geo.area({ type: 'Feature', geometry }),
+        candidateSphericalArea: window.d3.geo.area({ type: 'Feature', geometry: candidate.__data__.geometry }),
+        mismatch: window.polygonClipping.xor(multi(geometry), multi(candidate.__data__.geometry)),
+        previewBox: box(preview), candidateBox: box(candidate),
+        coverage: coverage / (canvas.width * canvas.height),
+        fill: paints(preview), candidate: paints(candidate),
+        outlines: [...document.querySelectorAll('path.geometry-preview-outline')].map(paints),
+        graticuleFrame: window.__PANDOLAB_RENDER_DEBUG__.snapshot().rendering.graticuleCommittedFrameId,
+        workerErrors: window.__annexE2e.workerErrors,
+      };
+    });
+    await testInfo.attach('result-preview', { body: JSON.stringify(result, null, 2), contentType: 'application/json' });
+    expect(result.canonical).toBe(true);
+    expect(result.transferCanonical).toBe(true);
+    expect(result.sphericalArea).toBeLessThan(0.1);
+    expect(result.sphericalArea).toBeCloseTo(result.candidateSphericalArea, 8);
+    expect(result.mismatch).toEqual([]);
+    for (let index = 0; index < 4; index++) expect(result.previewBox[index]).toBeCloseTo(result.candidateBox[index], 1);
+    expect(result.coverage).toBeGreaterThan(0);
+    expect(result.coverage).toBeLessThan(0.5);
+    expect(result.fill.fillAlpha).toBeCloseTo(0.084, 3);
+    expect(result.candidate.fillAlpha).toBeCloseTo(0.084, 3);
+    expect(result.fill.stroke).toBe('none');
+    expect(result.fill.strokeKey).toBeNull();
+    expect(result.fill.gpuFill).toBe(!svgFallback);
+    expect(result.fill.fill).toBe(svgFallback ? 'rgb(49, 111, 211)' : 'none');
+    expect(result.outlines.length).toBeGreaterThan(0);
+    for (const outline of result.outlines) {
+      expect(outline.fill).toBe('none');
+      expect(outline.fillKey).toBeNull();
+      expect(outline.gpuStroke).toBe(true);
+    }
+    expect(result.graticuleFrame).toBeGreaterThan(0);
+    expect(result.workerErrors).toEqual([]);
+    expect(context.errors).toEqual([]);
+    await testInfo.attach('globe-result-preview', { body: await page.screenshot(), contentType: 'image/png' });
+    if (!svgFallback) await completeAndCheck(page, context, selected);
+    else {
+      await page.locator('#modeCancelBtn').click();
+      if (await page.locator('#modeCancelBtn').isVisible()) await page.locator('#modeCancelBtn').click();
+      await expect(page.locator('path.editing-preview-path')).toHaveCount(0);
+      await expect(page.locator('path.territory-candidate')).toHaveCount(0);
+      expect(await page.evaluate(({ before, targetId }) => ({
+        a: JSON.stringify(window.PANDOLAB_TERRITORIAL.get(targetId).geometry) === before.a,
+        b: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('TUR').geometry) === before.b,
+      }), { before: context.before, targetId: context.targetId })).toEqual({ a: true, b: true });
+    }
+  });
+}
 
 test('annex - polygon', async ({ page }) => {
   test.setTimeout(180_000);

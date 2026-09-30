@@ -1,4 +1,5 @@
 import { interactionNodeRole, interactionRoleStyle, resolveMapInteractionStyle, INTERACTION_ROLE_PRIORITY } from './map-interaction-style.js';
+import { applySvgInteractionOwnership } from './render-channel-ownership.js';
 /** InteractionPackets: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -108,9 +109,7 @@ export function createInteractionPackets() {
     if (channel === 'stroke' && (node.classList.contains('geometry-preview-fill') || node.dataset.commonOutline === 'true')) return null;
     const directManipulation = node.classList.contains('draft-shape');
     const style = interactionRoleStyle(dependencies.preferences.resolvedInteractionStyle || resolveMapInteractionStyle(), role, { directManipulation });
-    node.style.fill = style.color;
     node.style.fillOpacity = String(style.fillAlpha);
-    node.style.stroke = style.color;
     node.style.strokeWidth = `${style.width}px`;
     node.style.strokeOpacity = String(style.alpha);
     node.style.opacity = '1';
@@ -133,7 +132,6 @@ export function createInteractionPackets() {
       node.setAttribute('data-interaction-priority', String(priority));
       const revision = (0, dependencies.renderScene.selectionGeometryRevision)(objectKey, domain, (0, dependencies.renderScene.featureFromGeometry)(geometry));
       const resourceKeys = [];
-      node.classList.remove('gpu-interaction-hit-proxy', 'gpu-interaction-fill-proxy', 'gpu-interaction-stroke-proxy', 'canvas-interaction-fill-proxy');
       node.removeAttribute('data-gpu-interaction-stroke-keys');
       node.removeAttribute('data-gpu-interaction-fill-keys');
       node.removeAttribute('data-gpu-interaction-keys');
@@ -168,6 +166,9 @@ export function createInteractionPackets() {
     const packets = buildGpuInteractionLayerPackets(domain, layer);
     const signature = packets.map(({ kind, packet }) => `${kind}:${packet.key}:${packet.geometryRevision}:${JSON.stringify(packet.style)}`).join('|');
     if (gpuInteractionPacketSignatures[domain] === signature) return false;
+    // A rejoin of the same packets must not expose SVG over an already painted
+    // GPU frame. New geometry/style returns to SVG until its channels complete.
+    layer?.selectAll?.('[data-gpu-interaction-keys]')?.each(function() { applySvgInteractionOwnership(this); });
     gpuInteractionPacketSignatures[domain] = signature;
     if (domain === 'preview') currentGpuPreviewPackets = packets;
     else currentGpuDraftPackets = packets;

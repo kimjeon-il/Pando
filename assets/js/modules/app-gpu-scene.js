@@ -1,5 +1,5 @@
 import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
-import { makeSvgSceneProxy } from './render-channel-ownership.js';
+import { applySvgInteractionOwnership, makeSvgSceneProxy } from './render-channel-ownership.js';
 /** GpuScene: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -286,9 +286,12 @@ export function createGpuScene() {
   }
 
   function applyGpuInteractionCoverage(frameResult) {
-    const canvasFills = ['canvas-worker', 'canvas2d'].includes(dependencies.rendering.gpuMapRenderer.getRuntimeState?.()?.renderer);
-    dependencies.mapHostViewB.interactionSvg?.selectAll?.('[data-gpu-interaction-fill-keys]')?.classed('canvas-interaction-fill-proxy', canvasFills);
-    const webGlReady = ['webgl2', 'webgl1'].includes(dependencies.rendering.gpuMapRenderer.getRuntimeState?.()?.renderer);
+    const runtime = dependencies.rendering.gpuMapRenderer.getRuntimeState();
+    const canvasFills = ['canvas-worker', 'canvas2d'].includes(runtime.renderer);
+    const webGlReady = ['webgl2', 'webgl1'].includes(runtime.renderer);
+    // A presentation-only update carries no new GPU frame and cannot revoke
+    // channels already painted. Context loss still returns those channels to SVG.
+    if (webGlReady && !frameResult?.interactionResult) return;
     const results = [
       ...(frameResult?.interactionResult?.previewResults || []),
       ...(frameResult?.interactionResult?.draftResults || []),
@@ -300,9 +303,12 @@ export function createGpuScene() {
       return webGlReady && keys.length > 0 && keys.every(key => rendered.has(key) && !missing.has(key));
     };
     dependencies.mapHostViewB.interactionSvg?.selectAll?.('[data-gpu-interaction-keys]')
-      ?.classed('gpu-interaction-hit-proxy', false)
-      .classed('gpu-interaction-fill-proxy', function() { return covered(this, 'fill'); })
-      .classed('gpu-interaction-stroke-proxy', function() { return covered(this, 'stroke'); });
+      ?.each(function() {
+        applySvgInteractionOwnership(this, {
+          fillOwner: covered(this, 'fill') ? 'gpu' : canvasFills && this.hasAttribute('data-gpu-interaction-fill-keys') ? 'canvas' : 'svg',
+          strokeOwner: covered(this, 'stroke') ? 'gpu' : 'svg',
+        });
+      });
   }
 
   function setMapHover(type, id, feature, ref = null) {

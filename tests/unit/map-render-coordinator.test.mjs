@@ -74,6 +74,15 @@ test('view render refreshes projection-dependent layers with the shared view sta
   assert.equal(calls.some(call => call[0] === 'viewPresentation'), true);
 });
 
+test('ending an edit clears geometry preview before committing selection and GPU ownership', () => {
+  const { calls, frames, coordinator } = fixture();
+  coordinator.invalidate(MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.COUNTRY_PATCH, 'edit-ended');
+  frames.shift()();
+  const names = calls.map(call => call[0]);
+  assert.ok(names.includes('geometryPreview'));
+  assert.ok(names.indexOf('geometryPreview') < names.indexOf('selectionData'));
+});
+
 test('scheduled view and full renders merge into one full frame', () => {
   const { calls, frames, coordinator } = fixture();
   assert.equal(coordinator.invalidate(MAP_RENDER_MASKS.VIEW, 'pan'), true);
