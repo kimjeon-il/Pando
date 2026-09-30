@@ -98,6 +98,15 @@ export function interactionCssProperties(style) {
   return Object.freeze(properties);
 }
 
+/** The document root owns interaction tokens for both the map and its SVG overlays. */
+export function applyInteractionCssProperties(style, root = globalThis.document?.documentElement) {
+  if (!root?.style) return false;
+  for (const [property, value] of Object.entries(interactionCssProperties(style))) {
+    root.style.setProperty(property, value);
+  }
+  return true;
+}
+
 /** Existing packet roles win; class names are only adapters for older tool views. */
 export function interactionNodeRole(node, domain = 'draft') {
   const explicit = node.getAttribute?.('data-interaction-role');

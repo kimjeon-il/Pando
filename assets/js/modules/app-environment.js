@@ -1,4 +1,4 @@
-import { interactionCssProperties } from './map-interaction-style.js';
+import { applyInteractionCssProperties } from './map-interaction-style.js';
 import { TERRAIN_DEM_VERSION, TERRAIN_RASTER_DATASET, selectTerrainManifestUrls, terrainRasterManifestUrl } from './terrain-manifest.js';
 
 // The published DEM is the GPU default; the raster dataset remains the fallback.
@@ -361,7 +361,7 @@ export function createEnvironment() {
 
     (resolvedInteractionStyle = resolveCurrentInteractionStyle());
 
-    for (const [property, value] of Object.entries(interactionCssProperties(resolvedInteractionStyle))) document.documentElement.style.setProperty(property, value);
+    applyInteractionCssProperties(resolvedInteractionStyle);
 
     (0, dependencies.selectionServices.setSelectionColor)(resolvedInteractionStyle.selection.color);
 

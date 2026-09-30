@@ -1,4 +1,4 @@
-import { interactionCssProperties } from './map-interaction-style.js';
+import { applyInteractionCssProperties } from './map-interaction-style.js';
 /** RenderQuality: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -52,7 +52,7 @@ export function createRenderQuality() {
     (0, dependencies.selectionServices.setSelectionInteractionStyle)(dependencies.preferences.resolvedInteractionStyle);
     dependencies.gpuRenderingA.selectionPass?.updateStyle?.(dependencies.preferences.resolvedInteractionStyle);
     dependencies.rendering.gpuMapRenderer.setInteractionStyle?.(dependencies.preferences.resolvedInteractionStyle);
-    for (const [property, value] of Object.entries(interactionCssProperties(dependencies.preferences.resolvedInteractionStyle))) document.documentElement.style.setProperty(property, value);
+    applyInteractionCssProperties(dependencies.preferences.resolvedInteractionStyle);
     window.__PANDOLAB_INTERACTION_STYLE__ = dependencies.preferences.resolvedInteractionStyle;
     if (redraw) {
       dependencies.domains.renderingDomain?.invalidateSelectionStyle?.('selection-style');
