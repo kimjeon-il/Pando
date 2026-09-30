@@ -754,20 +754,20 @@ export function createMapSettings() {
       if (event.target.matches('input[name="distributionLayerMode"]') && event.target.checked) {
         dependencies.objectModelA.distributionService.setRenderMode(event.target.value);
         syncDistributionPresentationControls();
-        dependencies.domains.renderingDomain?.renderDistributions?.();
+        dependencies.domains.renderingDomain.renderDistributions();
         dependencies.domains.projectDomain.queuePresentationAutosave();
       }
       if (event.target.id === 'distributionActiveLayerInput') {
         dependencies.projectState.state.distributionSettings.activeLayerId = event.target.value;
         dependencies.distributionPresentation.bumpVisibilityRevision();
         syncDistributionPresentationControls();
-        dependencies.domains.renderingDomain?.renderDistributions?.();
+        dependencies.domains.renderingDomain.renderDistributions();
         dependencies.domains.projectDomain.queuePresentationAutosave();
       }
       if (event.target.id === 'distributionBoundaryVisibleInput') {
         dependencies.objectModelA.distributionService.setBoundaryVisible(event.target.checked);
         syncDistributionPresentationControls();
-        dependencies.domains.renderingDomain?.renderDistributions?.();
+        dependencies.domains.renderingDomain.renderDistributions();
         dependencies.domains.projectDomain.queuePresentationAutosave();
       }
     });

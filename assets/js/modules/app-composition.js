@@ -219,7 +219,6 @@ export async function composeApplication({ revision }) {
   lifecycleAssembly.initializeMapInteractionGate();
   spatialIndex.initializeGeometryBoundsCache();
   countryLabels.initializeCountryOutlineCache();
-  objectPresentation.initializeGenericFeatureLandClipCache();
   spatialIndex.initializeMapObjectSpatialIndex();
   objectPresentation.initializeTerritorialScope();
   countryLabels.initializeLabelLayoutMetrics();

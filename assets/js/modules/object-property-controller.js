@@ -310,7 +310,7 @@ export function createObjectPropertyController(runtime = {}) {
     const countryOptions = [{ value: '', label: '국가 선택', placeholder: true }, ...(state.countriesData?.features || []).map(country => ({
       value: String(country.id), label: String(country.properties?.name || country.properties?.NAME || country.id),
     })).sort((left, right) => layerNameCompare(left.label, right.label))];
-    const countryChoice = replaceSelectOptions($('genericFeatureConvertCountryInput'), countryOptions, feature.properties?.ownerId || '', {
+    const countryChoice = replaceSelectOptions($('genericFeatureConvertCountryInput'), countryOptions, $('genericFeatureConvertCountryInput').value, {
       autoSelectSingle: true,
       preserveInvalid: true,
     });

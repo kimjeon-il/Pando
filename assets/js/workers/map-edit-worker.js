@@ -156,7 +156,7 @@ self.onmessage = async event => {
     const {
       createBoundaryPreparation, prepareBoundaryOperation, prepareComponentOperation, calculateLibraryBatch,
       calculateTerritorialPreview, calculateRegionMerge, calculateRegionRedraw, calculateDrawnGeometry,
-      calculateSnapCandidates, prepareCutInWorker, createEditDisplayPreparation, calculateLandClip,
+      calculateSnapCandidates, prepareCutInWorker, createEditDisplayPreparation,
       calculateParents, buildBoundaryTopology, calculateCoastAvailability, calculateUncoveredSource,
       calculateTerritorialEdit, createCountryCommandCalculator, calculateEditPreview, calculateCountryPreview,
     } = await calculationsReady;
@@ -201,8 +201,6 @@ self.onmessage = async event => {
       const service = displayService;
       result = await service.prepare(message.payload, sourceFeatures('country'), sourceFeatures('territorial'),
         requestCheckpoint(message, epoch, true, () => service === displayService), key => editSources.get(key)?.feature);
-    } else if (message.operation === 'territorial-land-clip') {
-      result = calculateLandClip(sourceFeature(message.payload.targetId, ['generic']), sourceFeatures('country'), self.polygonClipping);
     } else if (message.operation === 'territorial-parents') {
       result = calculateParents(sourceFeature(message.payload.targetId, ['territorial']), (message.payload.candidateIds || []).map(id => ({ id, parent: sourceFeature(id) })), self.polygonClipping);
     } else if (message.operation === 'territorial-validation') {

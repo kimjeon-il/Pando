@@ -413,10 +413,13 @@ export function createTerritorialConversion() {
     if (dependencies.projectState.state.selected?.domain !== 'label') return;
     const label = dependencies.projectState.state.labels.find(x => x.id === dependencies.projectState.state.selected.id);
     if (!label) return;
+    if (label[field] === value) return false;
     dependencies.domains.projectDomain.recordHistory();
     label[field] = value;
-    if (field === 'name' || field === 'kind') (0, dependencies.layers.markLayerTreeDirty)();
+    const affectsMapLabel = field === 'name' || field === 'kind';
+    if (affectsMapLabel) (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.propertyEditingA.applyLabelSelectionIntent)(label.id, true);
+    if (affectsMapLabel) dependencies.domains.renderingDomain.invalidateLabels('label-metadata-edited');
     dependencies.domains.projectDomain.queueAutosave();
     (0, dependencies.feedback.setActionStatus)('지명 정보를 변경했습니다.', 'success');
   }

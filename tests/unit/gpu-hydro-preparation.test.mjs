@@ -72,3 +72,37 @@ test('hydro readiness timeout settles false and makes late ready inert', async t
   workers[0].onmessage({ data: { type: 'ready' } });
   assert.equal(owner.hasWorker(), false);
 });
+
+test('replacing an edit during upload releases its buffers without treating segment counts as WebGL buffers', t => {
+  const { owner } = fixture(t);
+  const jobs = new Map(), created = [], deleted = [];
+  const scheduler = {
+    enqueueUpload: job => { jobs.set(job.key, job); return new Promise(() => {}); },
+    cancelKey: key => { const job = jobs.get(key); jobs.delete(key); job?.dispose(); },
+  };
+  const gl = {
+    ARRAY_BUFFER: 1, ELEMENT_ARRAY_BUFFER: 2,
+    createBuffer() { const buffer = {}; created.push(buffer); return buffer; },
+    bindBuffer() {}, bufferData() {}, bufferSubData() {},
+    isBuffer(value) { assert.equal(typeof value, 'object', 'WebGL isBuffer rejects numeric segment counts'); return created.includes(value); },
+    deleteBuffer: value => deleted.push(value),
+  };
+  owner.setContext({ gl, version: 2, projectGeneration: 1, contextGeneration: 1, scheduler });
+  const mesh = Object.fromEntries([
+    'riverStarts', 'riverEnds', 'riverFeatureIds', 'riverStartWidths', 'riverEndWidths',
+    'borderRiverStarts', 'borderRiverEnds', 'borderRiverFeatureIds', 'borderRiverStartWidths', 'borderRiverEndWidths',
+    'lakePositions', 'lakeFeatureIds', 'lakeIndices', 'lakeBoundaryStarts', 'lakeBoundaryEnds', 'lakeBoundaryFeatureIds', 'lakeBoundaryWidths',
+  ].map(key => [key, new Int32Array()]));
+  mesh.riverStarts = new Int32Array([0, 0, 1, 1]);
+  mesh.riverFeatureIds = new Uint32Array([0]);
+  const entry = { id: 'edit:river:#3b82c4', mesh };
+  owner.replaceEdits([entry], 7);
+  [...jobs.values()][0].step({ byteBudget: 8 });
+  assert.equal(entry.uploadState.resources.riverSegmentCount, 1);
+  assert.ok(created.length > 0);
+  owner.replaceEdits([], 8);
+  assert.equal(owner.editRevision, 8);
+  assert.deepEqual(deleted, created);
+  assert.equal(entry.uploadState, null);
+  assert.equal(jobs.size, 0);
+});

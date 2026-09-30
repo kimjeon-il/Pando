@@ -33,7 +33,6 @@ export function createObjectMetadata() {
     if (!f) return;
     const result = dependencies.objectModelA.genericFeatureService.updateMetadata(f.id, field, value);
     if (!result.ok) return;
-    dependencies.presentation.genericFeatureLandClipCache.delete(f);
     if (field === 'name') (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(dependencies.projectState.state.selected.id, true);
     (0, dependencies.feedback.setActionStatus)('기타 객체 정보를 변경했습니다.', 'success');
@@ -46,11 +45,15 @@ export function createObjectMetadata() {
       if (feature?.properties?.locked === true) (0, dependencies.feedback.setActionStatus)(`잠금을 해제한 뒤 ${(0, dependencies.hydroPresentation.hydroCategoryLabel)(feature.properties.category)} 정보를 변경하세요.`, 'error', 3200);
       return;
     }
-    dependencies.domains.projectDomain.recordHistory();
-    feature.properties[field] = field === 'editorColor'
+    const nextValue = field === 'editorColor'
       ? (0, dependencies.colorModel.normalizeEditorColor)(value, dependencies.hydroPresentation.HYDRO_TOOL_CONFIG[feature.properties.category].color)
       : value;
+    if (feature.properties[field] === nextValue) return false;
+    dependencies.domains.projectDomain.recordHistory();
+    feature.properties[field] = nextValue;
+    dependencies.projectState.state.stateRevision += 1;
     if (field === 'name') (0, dependencies.layers.markLayerTreeDirty)();
+    if (field === 'editorColor') dependencies.domains.renderingDomain.invalidateHydroPatch('hydro-color-edited');
     (0, dependencies.propertyEditingA.applyHydroSelectionIntent)(String(feature.id), true);
     dependencies.domains.projectDomain.queueAutosave();
     (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.hydroPresentation.hydroCategoryLabel)(feature.properties.category)} 정보를 변경했습니다.`, 'success');
