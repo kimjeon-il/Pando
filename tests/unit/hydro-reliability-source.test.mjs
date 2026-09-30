@@ -50,6 +50,29 @@ const descriptor = (packId, fid, minZoom = 2, bounds = [0, 0, 2e6, 2e6]) => ({
   packId, fid, logicalFid: 10, awId: 'river:R', category: 'river', name: 'River R', minZoom, bounds,
 });
 
+for (const type of ['river', 'lake']) {
+  test(`selected ${type} packs survive cache pressure by domain until the selection is cleared`, async t => {
+    const { state, renderer, worker, pack } = await hydroRendererFixture(t);
+    const id = `${type}:selected`;
+    pack(7, [{ ...descriptor(7, 100), awId: id, category: type }]);
+    pack(8, [{ ...descriptor(8, 101), awId: 'river:active', logicalFid: 11 }]);
+    state.selected = { domain: 'hydro', type, id, key: `hydro:${type}:${id}` };
+    worker.send({ type: 'active', revision: 1, packIds: [8, 9] });
+    pack(9, [], 9 * 1024 * 1024);
+    assert.deepEqual(state.hydroFeatureCache.get(id)?.properties.pack_ids, [7]);
+    assert.equal(state.hydroFeatureByFid.has(100), true);
+    assert.equal(state.hydroFeatureByFid.has(101), true, 'the active pack protection remains intact');
+    assert.equal(renderer.getStats().hydroPacksLoaded, 3);
+    state.selected = null;
+    worker.send({ type: 'active', revision: 1, packIds: [9] });
+    assert.equal(state.hydroFeatureCache.size, 0);
+    assert.equal(state.hydroFeatureByFid.size, 0);
+    assert.equal(renderer.getStats().hydroDescriptorPackCount, 0);
+    worker.send({ type: 'active', revision: 1, packIds: [] });
+    assert.equal(renderer.getStats().hydroPacksLoaded, 0);
+  });
+}
+
 test('descriptor eviction rebuilds live logical aggregates and removes FIDs only after their last pack', async t => {
   const { state, renderer, worker, pack } = await hydroRendererFixture(t);
   pack(7, [descriptor(7, 100, 0, [-10e6, -10e6, 10e6, 10e6]), descriptor(7, 101)]);
