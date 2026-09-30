@@ -11,6 +11,26 @@ test('foundation toolbar capabilities expose the actual presentation methods wit
   assert.equal(Object.hasOwn(ports.domainControllers, 'syncSelectionToolbarOcclusion'), false);
 });
 
+test('required toolbar capabilities fail before initialization and after their owner is reset', () => {
+  const domainAssembly = { selectionToolbarPresentation: null };
+  const ports = createFoundationPorts({ domainAssembly });
+  for (const capability of ['closeSelectionToolbarTransient', 'syncSelectionToolbarInteraction']) {
+    assert.throws(() => ports.domainControllers[capability], TypeError, capability);
+  }
+  const toolbar = { closeTransient: () => true, syncInteraction: () => false };
+  domainAssembly.selectionToolbarPresentation = toolbar;
+  assert.equal(ports.domainControllers.closeSelectionToolbarTransient(), true);
+  assert.equal(ports.domainControllers.syncSelectionToolbarInteraction(), false);
+  domainAssembly.selectionToolbarPresentation = null;
+  for (const capability of ['closeSelectionToolbarTransient', 'syncSelectionToolbarInteraction']) {
+    assert.throws(() => ports.domainControllers[capability], TypeError, capability);
+  }
+  const replacement = { closeTransient: () => false, syncInteraction: () => true };
+  domainAssembly.selectionToolbarPresentation = replacement;
+  assert.equal(ports.domainControllers.closeSelectionToolbarTransient, replacement.closeTransient);
+  assert.equal(ports.domainControllers.syncSelectionToolbarInteraction, replacement.syncInteraction);
+});
+
 const root = new URL('../../', import.meta.url);
 const read = relativePath => readFileSync(new URL(relativePath, root), 'utf8');
 const spatialOwners = [

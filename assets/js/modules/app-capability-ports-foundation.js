@@ -202,12 +202,12 @@ export function createFoundationPorts(providers) {
   return Object.freeze({
     ...createReadPorts(providers, PORT_SPECS),
     domainControllers: Object.freeze({
-      get closeSelectionToolbarTransient() { return providers.domainAssembly.selectionToolbarPresentation?.closeTransient; },
+      get closeSelectionToolbarTransient() { return providers.domainAssembly.selectionToolbarPresentation.closeTransient; },
       get countryPropertyController() { return providers.domainAssembly.countryPropertyController; },
       get gisDomain() { return providers.domainAssembly.gisDomain; },
       get initializeDomainBoundaries() { return providers.domainAssembly.initializeDomainBoundaries; },
       get objectPropertyController() { return providers.domainAssembly.objectPropertyController; },
-      get syncSelectionToolbarInteraction() { return providers.domainAssembly.selectionToolbarPresentation?.syncInteraction; },
+      get syncSelectionToolbarInteraction() { return providers.domainAssembly.selectionToolbarPresentation.syncInteraction; },
     }),
     preferenceCommands: Object.freeze({
       setResolvedInteractionStyle: value => { providers.environment.resolvedInteractionStyle = value; },

@@ -174,7 +174,7 @@ export function createWorkspaceSurfaces() {
     referenceSurface?.sync();
     searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();
-    dependencies.domainControllers.syncSelectionToolbarInteraction?.();
+    dependencies.domainControllers.syncSelectionToolbarInteraction();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
     syncEditorPanelControls();
@@ -195,7 +195,7 @@ export function createWorkspaceSurfaces() {
     }
     searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();
-    dependencies.domainControllers.syncSelectionToolbarInteraction?.();
+    dependencies.domainControllers.syncSelectionToolbarInteraction();
     syncEditorPanelControls();
     refreshMapSheetMetrics();
     requestAnimationFrame(dependencies.taskPresentation.syncMapHudBounds);
@@ -564,7 +564,7 @@ export function createWorkspaceSurfaces() {
         || [...panel.querySelectorAll('input:not([type="hidden"]):not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled)')].find(visible);
       target?.focus({ preventScroll: true });
     });
-    dependencies.domainControllers.syncSelectionToolbarInteraction?.();
+    dependencies.domainControllers.syncSelectionToolbarInteraction();
     return true;
   }
 
