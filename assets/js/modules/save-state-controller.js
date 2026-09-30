@@ -26,6 +26,7 @@ export function createSaveStateController({ onChange = () => {}, now = () => new
     presentationDirty: false,
     hasUnsavedChanges: false,
     autosaveFallback: '',
+    autosaveRecovery: false,
   };
 
   const snapshot = () => Object.freeze({ ...state });
@@ -162,5 +163,6 @@ export function createSaveStateController({ onChange = () => {}, now = () => new
     markFileSaved,
     markFileError,
     setAutosave,
+    setAutosaveRecovery: value => { state.autosaveRecovery = !!value; return emit('autosave-recovery'); },
   });
 }

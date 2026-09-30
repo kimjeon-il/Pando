@@ -1,3 +1,5 @@
+import { normalizeSourceProvenance, SOURCE_KINDS } from './source-provenance.js';
+
 export function createGisImportTransactionCommitter(runtime = {}) {
   const {
     state,
@@ -678,22 +680,21 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     for (const raw of features) {
       if (!['Point', 'MultiPoint', 'LineString', 'Polygon', 'MultiLineString', 'MultiPolygon'].includes(raw.geometry?.type)) continue;
       const f = deepClone(raw);
-      const sourceId = String(f.id ?? f.properties?.id ?? '').trim();
+      const sourceId = String(f.id ?? '').trim();
       f.id = uid();
       if (['Polygon', 'MultiPolygon'].includes(f.geometry?.type)) f.geometry = normalizeCountryGeometry(f.geometry) || f.geometry;
       const p = f.properties || {};
       f.properties = {
+        ...p,
         schemaVersion: p.schemaVersion ?? GENERIC_FEATURE_SCHEMA_VERSION,
         name: String(p.name || ''),
         color: p.color || DEFAULT_GENERIC_FEATURE_COLOR,
-        role: p.role || 'generic',
-        ownerId: String(p.ownerId || ''),
-        parentId: String(p.parentId || ''),
-        landBinding: p.landBinding || 'none',
-        topologyGroup: String(p.topologyGroup || ''),
         locked: p.locked === true,
         notes: String(p.notes || ''),
-        source: sourceId ? { id: sourceId } : p.source,
+        source: normalizeSourceProvenance(p.source, { kind: SOURCE_KINDS.GIS, sourceFormat: 'geojson' }),
+      };
+      if (!f.properties.source.sourceId && sourceId) f.properties.source = {
+        ...f.properties.source, sourceId,
       };
       supported.push(normalizeGenericFeatureSemantics(f));
     }

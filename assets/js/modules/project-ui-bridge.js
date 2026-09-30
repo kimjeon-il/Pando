@@ -4,6 +4,7 @@ export function createProjectUiBridge({
   getSaveSnapshot,
   getEditingSnapshot,
   getDraftSnapshot,
+  getProjectGeneration,
   requireCanonicalData,
   discardActiveGeometryPreview,
   draftInputActive,
@@ -18,23 +19,86 @@ export function createProjectUiBridge({
   setActionStatus,
   closeFileMenu,
   openConfirmModal,
+  getAutosaveRecovery,
+  restoreAutosave,
+  resolveAutosaveRecovery,
+  completeAutosaveRecovery,
+  loadAutosave,
+  queueAutosave,
 } = {}) {
+  let recoveryRequest = null;
+  const confirm = options => new Promise(resolve => openConfirmModal({ ...options,
+    onConfirm: value => resolve(value ?? true), onCancel: () => resolve(null),
+  }));
+
+  async function chooseAutosave({ startup = false } = {}) {
+    if (!startup && (isProjectReplacing() || !requireCanonicalData() || getEditingSnapshot().processing)) return null;
+    if (!startup && getAutosaveRecovery()?.kind === 'read-error') await restoreAutosave({ deferResolution: true });
+    const recovery = getAutosaveRecovery();
+    if (!recovery || recovery.kind !== 'conflict') return null;
+    const source = await confirm({ title: '저장본 선택',
+      message: '자동저장본의 순서를 확인할 수 없습니다. 복원할 저장본을 선택하세요. 선택하지 않은 저장본은 복구 기록으로 보존합니다.',
+      confirmText: '선택한 저장본 복원', cancelText: '나중에 선택',
+      choices: recovery.candidates.map(candidate => ({ value: candidate.source,
+        label: candidate.source === 'indexeddb' ? 'IndexedDB' : '브라우저 로컬 저장소' })),
+    });
+    if (!source) return null;
+    if (!startup && (getSaveSnapshot().hasUnsavedChanges || draftInputActive() || getEditingSnapshot().previewActive)) {
+      const accepted = await confirm({ title: '저장된 프로젝트 복원',
+        message: '현재 작업을 선택한 저장본으로 교체합니다. 저장되지 않은 변경 사항과 작성 중인 작업이 사라집니다.',
+        confirmText: '교체 후 복원', danger: true });
+      if (!accepted) return null;
+    }
+    const checkpoint = { save: getSaveSnapshot(), editing: getEditingSnapshot().revision,
+      generation: getProjectGeneration() };
+    const apply = async project => {
+      const current = getSaveSnapshot();
+      if (isProjectReplacing() || !requireCanonicalData() || getEditingSnapshot().processing
+        || getProjectGeneration() !== checkpoint.generation
+        || current.currentContentToken !== checkpoint.save.currentContentToken
+        || current.currentPresentationToken !== checkpoint.save.currentPresentationToken
+        || getEditingSnapshot().revision !== checkpoint.editing) {
+        throw new Error('복원 준비 중 작업이 변경되었습니다. 저장본을 다시 선택하세요.');
+      }
+      await loadAutosave(project);
+    };
+    const result = await resolveAutosaveRecovery(source, startup ? undefined : apply, { deferApplication: startup });
+    if (!startup) queueAutosave();
+    return result;
+  }
+
+  function requestAutosaveRecovery(options) {
+    if (recoveryRequest) return recoveryRequest;
+    recoveryRequest = chooseAutosave(options).catch(error => {
+      setActionStatus(`저장본을 복원하지 못했습니다. ${error.message}`, 'error', 0);
+      return null;
+    }).finally(() => { recoveryRequest = null; syncProjectSaveStatus(); });
+    return recoveryRequest;
+  }
+
+  $('autosaveRecoveryBtn')?.addEventListener('click', () => { void requestAutosaveRecovery(); });
+  $('autosaveRecoveryFileBtn')?.addEventListener('click', () => { closeFileMenu(); void requestAutosaveRecovery(); });
 
   function syncProjectSaveStatus(snapshot = getSaveSnapshot()) {
     const status = $('projectSaveStatus');
     if (!status) return;
     const fileState = String(snapshot.file || 'never-saved');
     const autosaveState = String(snapshot.autosave || '');
+    const paused = snapshot.autosaveRecovery === true;
+    const recoveryButton = $('autosaveRecoveryBtn');
+    if (recoveryButton) recoveryButton.hidden = !paused;
+    const fileRecoveryButton = $('autosaveRecoveryFileBtn');
+    if (fileRecoveryButton) fileRecoveryButton.hidden = !paused;
     const isSaving = fileState === 'saving' || autosaveState === AUTOSAVE_STATES.QUEUED || autosaveState === AUTOSAVE_STATES.SAVING;
     const isError = fileState === 'error' || autosaveState === AUTOSAVE_STATES.ERROR;
-    const saveStateLabel = isSaving
+    const saveStateLabel = paused ? '자동저장 중지' : isSaving
       ? '저장 중'
       : isError
         ? '저장 오류'
         : fileState === 'saved' || fileState === 'clean'
         ? '저장됨'
         : '미저장';
-    const saveStateDescription = isSaving
+    const saveStateDescription = paused ? '저장본 선택이 필요하여 자동저장을 중지했습니다.' : isSaving
       ? '변경 사항을 저장하는 중입니다.'
       : isError
         ? '저장하지 못했습니다.'
@@ -42,7 +106,7 @@ export function createProjectUiBridge({
         ? '모든 변경 사항이 저장되었습니다.'
         : '저장되지 않은 변경 사항이 있습니다.';
     status.hidden = false;
-    status.dataset.saveState = isSaving ? 'saving' : isError ? 'error' : fileState;
+    status.dataset.saveState = paused ? 'error' : isSaving ? 'saving' : isError ? 'error' : fileState;
     $('projectSaveStatusText').textContent = saveStateLabel;
     status.dataset.tooltip = saveStateDescription;
     status.setAttribute('aria-label', saveStateDescription);
@@ -104,6 +168,10 @@ export function createProjectUiBridge({
     event?.preventDefault?.();
     event?.stopPropagation?.();
     if (isProjectReplacing()) return;
+    if (getAutosaveRecovery()) {
+      void requestAutosaveRecovery();
+      return;
+    }
 
     closeFileMenu();
     const hasUnsavedChanges = getSaveSnapshot().hasUnsavedChanges;
@@ -125,5 +193,16 @@ export function createProjectUiBridge({
     redo: handleRedoRequest,
     syncHistory: updateHistoryButtons,
     requestNew: requestNewProject,
+    requestAutosaveRecovery,
+    completeAutosaveRecovery: async () => {
+      try { await completeAutosaveRecovery(); }
+      catch (error) { setActionStatus(`저장본 보호를 유지했습니다. ${error.message}`, 'error', 0); }
+      syncProjectSaveStatus();
+    },
+    restoreAutosave: async () => {
+      const result = await restoreAutosave();
+      if (getAutosaveRecovery()?.kind === 'conflict') return await requestAutosaveRecovery({ startup: true }) || result;
+      return result;
+    },
   });
 }

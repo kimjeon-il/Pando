@@ -129,6 +129,19 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   const emptyElement = panel.querySelector('[data-ref-empty]');
   const editorElement = panel.querySelector('[data-ref-editor]');
   const records = [];
+  const retainedRecords = [];
+  const dirtyRecords = new Set();
+  let dirtyCollection = false;
+  let storageState = 'loading';
+  let storageError = '';
+  const recordVersions = new Map();
+  let collectionVersion = 0;
+  const markRecordDirty = id => {
+    dirtyRecords.add(id);
+    const version = (recordVersions.get(id) || 0) + 1;
+    recordVersions.set(id, version);
+    return version;
+  };
   const pendingPersistTimers = new Map();
   let selectedId = '';
   let gcpState = null;
@@ -172,20 +185,30 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function persist(record) {
+    if (storageState !== 'ready') return Promise.resolve(false);
     const index = records.indexOf(record);
     if (index < 0 || !record.blob) return Promise.resolve(false);
     clearScheduledPersist(record.id);
+    const version = markRecordDirty(record.id);
     return putStoredReferenceImage(serializableRecord(record, index))
+      .then(() => {
+        if (version === recordVersions.get(record.id) && !pendingPersistTimers.has(record.id)) dirtyRecords.delete(record.id);
+        return true;
+      })
       .catch(error => {
         console.warn('[reference-image-store]', error);
+        storageError = '참조 이미지를 저장하지 못했습니다. 변경 사항을 유지했습니다.';
+        renderStorageStatus();
         return false;
       });
   }
 
   function schedulePersist(record) {
+    if (storageState !== 'ready') return;
     const index = records.indexOf(record);
     if (index < 0 || !record.blob) return;
     clearScheduledPersist(record.id);
+    markRecordDirty(record.id);
     const token = currentToken();
     const timer = globalThis.setTimeout(() => {
       pendingPersistTimers.delete(record.id);
@@ -195,12 +218,39 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function persistAll() {
+    if (storageState !== 'ready') return Promise.resolve(false);
+    dirtyCollection = true;
+    const version = ++collectionVersion;
+    const versions = new Map(recordVersions);
     for (const recordId of [...pendingPersistTimers.keys()]) clearScheduledPersist(recordId);
-    return replaceStoredReferenceImages(records.map((record, order) => serializableRecord(record, order)))
+    return replaceStoredReferenceImages([...records.map((record, order) => serializableRecord(record, order)), ...retainedRecords])
+      .then(() => {
+        if (version === collectionVersion) dirtyCollection = false;
+        for (const id of dirtyRecords) {
+          if (versions.get(id) === recordVersions.get(id) && !pendingPersistTimers.has(id)) dirtyRecords.delete(id);
+        }
+        return true;
+      })
       .catch(error => {
         console.warn('[reference-image-store]', error);
+        storageError = '참조 이미지를 저장하지 못했습니다. 변경 사항을 유지했습니다.';
+        renderStorageStatus();
         return false;
       });
+  }
+
+  function renderStorageStatus() {
+    const status = panel.querySelector('[data-ref-storage-status]');
+    const retry = panel.querySelector('[data-ref-action="retry-storage"]');
+    const text = storageState === 'loading' ? '저장된 참조 이미지를 읽는 중입니다.'
+      : storageError || (retainedRecords.length ? `${retainedRecords.length}개 이미지를 표시하지 못했습니다. 저장된 원본은 보관했습니다.` : '');
+    status.hidden = !text;
+    panel.querySelector('[data-ref-storage-message]').textContent = text;
+    retry.hidden = !storageError;
+    retry.textContent = storageState === 'error' ? '다시 읽기' : '다시 저장';
+    retry.disabled = storageState === 'loading';
+    panel.querySelector('[data-ref-action="add"]').disabled = storageState !== 'ready';
+    fileInput.disabled = storageState !== 'ready';
   }
 
   function renderList() {
@@ -209,6 +259,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function renderEditor() {
+    renderStorageStatus();
     const historyLocked = records.some(record => record.locked);
     panel.querySelector('[data-ref-action="undo"]').disabled = !history.canUndo() || historyLocked;
     panel.querySelector('[data-ref-action="redo"]').disabled = !history.canRedo() || historyLocked;
@@ -252,7 +303,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function restoreHistory(direction) {
-    if (isBlocked() || records.some(record => record.locked)) return;
+    if (storageState !== 'ready' || isBlocked() || records.some(record => record.locked)) return;
     cancelInteraction();
     const next = history[direction](records);
     if (!next) return;
@@ -290,6 +341,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   async function addBlob(blob, name, persisted = null, { select = true, save = true } = {}) {
+    if (save && storageState !== 'ready') throw new Error('참조 이미지 저장 목록을 먼저 읽어야 합니다.');
     if (!(blob instanceof Blob) || !ACCEPTED_IMAGE_TYPES.has(blob.type)) throw new Error('PNG, JPG, WebP 이미지만 사용할 수 있습니다.');
     const token = currentToken();
     const decoded = await createImageFromBlob(blob);
@@ -597,7 +649,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
 
   function onEditorInput(event) {
     const record = selected();
-    if (!record || isBlocked()) return;
+    if (!record || storageState !== 'ready' || isBlocked()) return;
     const field = event.target?.dataset?.refField;
     if (!field) return;
     const continuous = CONTINUOUS_FIELDS.has(field);
@@ -644,6 +696,12 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     const button = event.target.closest('[data-ref-action]');
     const action = button?.dataset.refAction;
     if (button?.disabled || isBlocked()) return;
+    if (action === 'retry-storage') {
+      if (storageState === 'error') await restoreStoredImages();
+      else if (await persistAll()) { storageError = ''; renderStorageStatus(); }
+      return;
+    }
+    if (storageState !== 'ready' && action !== 'close') return;
     if (!action) {
       const row = event.target.closest('[data-reference-image-id]');
       if (row) {
@@ -730,6 +788,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   async function onFileChange() {
+    if (storageState !== 'ready') return;
     const token = currentToken();
     const files = [...(fileInput.files || [])];
     fileInput.value = '';
@@ -739,11 +798,17 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
         await addBlob(file, file.name);
       } catch (error) {
         console.warn('[reference-image-add]', error);
+        storageError = error.message;
+        renderStorageStatus();
       }
     }
   }
 
-  const onPanelClickEvent = event => { void onPanelClick(event); };
+  const onPanelClickEvent = event => { void onPanelClick(event).catch(error => {
+    console.warn('[reference-image-action]', error);
+    storageError = error.message;
+    renderStorageStatus();
+  }); };
   surface = installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose: cancelInteraction, onOpen: () => renderer.requestRender() });
   const unregisterInput = registerReferenceImageInput({ begin: beginGesture, active: () => !!(gcpState || placementEditingId || controlPointEditingId), key: onKeyDown, cancel: cancelInteraction, reset: resetSession });
   const stopPanelKeys = event => {
@@ -757,25 +822,39 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   editorElement.addEventListener('change', onEditorInput);
   fileInput.addEventListener('change', onFileChange);
 
-  const restoreToken = currentToken();
-  listStoredReferenceImages()
-    .then(async values => {
-      const ordered = [...values].sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+  async function restoreStoredImages() {
+    const restoreToken = currentToken();
+    storageState = 'loading'; storageError = ''; renderStorageStatus();
+    try {
+      const values = await listStoredReferenceImages();
+      const ordered = [...values].sort((a, b) => Number(a?.order || 0) - Number(b?.order || 0));
+      retainedRecords.splice(0);
+      const seenIds = new Set();
       for (const value of ordered) {
-        if (!validToken(restoreToken)) return;
-        if (!value?.blob) continue;
+        if (!validToken(restoreToken)) throw new Error('프로젝트가 변경되었습니다. 저장 목록을 다시 읽으세요.');
+        if (value?.id && seenIds.has(value.id)) { retainedRecords.push(value); continue; }
+        if (value?.id) seenIds.add(value.id);
+        if (!value?.blob) { retainedRecords.push(value); continue; }
+        if (records.some(record => record.id === value.id)) continue;
         try {
-          await addBlob(value.blob, value.name, value, { select: false, save: false });
+          const record = await addBlob(value.blob, value.name, value, { select: false, save: false });
+          if (!record) throw new Error('참조 이미지 읽기가 중단되었습니다.');
         } catch (error) {
+          retainedRecords.push(value);
           console.warn('[reference-image-restore]', error);
         }
       }
-      if (!validToken(restoreToken)) return;
+      if (!validToken(restoreToken)) throw new Error('프로젝트가 변경되었습니다. 저장 목록을 다시 읽으세요.');
+      storageState = 'ready';
       selectedId = records.at(-1)?.id || '';
-      void persistAll();
-      refreshUi();
-    })
-    .catch(error => console.warn('[reference-image-store]', error));
+    } catch (error) {
+      storageState = 'error';
+      storageError = '저장된 참조 이미지를 읽지 못했습니다. 원본을 보존했습니다. 다시 읽기를 눌러 재시도하세요.';
+      console.warn('[reference-image-store]', error);
+    }
+    if (!disposed) refreshUi();
+  }
+  void restoreStoredImages();
 
   const api = Object.freeze({
     list: () => records.map((record, order) => ({
@@ -804,7 +883,8 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       if (disposed) return;
       disposed = true;
       unregisterInput(); cancelInteraction(); surface.destroy(); history.clear();
-      void persistAll();
+      if (storageState === 'ready' && (dirtyCollection || dirtyRecords.size || pendingPersistTimers.size)) void persistAll();
+      else for (const id of [...pendingPersistTimers.keys()]) clearScheduledPersist(id);
       panel.removeEventListener('keydown', stopPanelKeys);
       panel.removeEventListener('click', onPanelClickEvent);
       editorElement.removeEventListener('input', onEditorInput);
