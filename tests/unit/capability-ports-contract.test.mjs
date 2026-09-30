@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import { createFoundationPorts } from '../../assets/js/modules/app-capability-ports-foundation.js';
+
+test('foundation toolbar capabilities expose the actual presentation methods without aliases', () => {
+  const selectionToolbarPresentation = { closeTransient() {}, syncInteraction() {} };
+  const ports = createFoundationPorts({ domainAssembly: { selectionToolbarPresentation } });
+  assert.equal(ports.domainControllers.closeSelectionToolbarTransient, selectionToolbarPresentation.closeTransient);
+  assert.equal(ports.domainControllers.syncSelectionToolbarInteraction, selectionToolbarPresentation.syncInteraction);
+  assert.equal(Object.hasOwn(ports.domainControllers, 'syncSelectionToolbarOcclusion'), false);
+});
 
 const root = new URL('../../', import.meta.url);
 const read = relativePath => readFileSync(new URL(relativePath, root), 'utf8');
