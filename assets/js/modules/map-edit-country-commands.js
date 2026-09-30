@@ -357,7 +357,7 @@ export function createCountryCommandCalculator(clipper) {
     applyPatch(working, updates, removedIds);
     const affectedIds = new Set([...affectedSourceIds, newId]);
     validateResult(working, affectedIds, baseline);
-    return { features: updates, removedIds, affectedIds: [...affectedIds], affectedSourceIds, transferredArea, newCountryId: newId };
+    return { features: updates, removedIds, affectedIds: [...affectedIds], affectedSourceIds, transferredArea: area(transferred), newCountryId: newId };
   }
 
 
