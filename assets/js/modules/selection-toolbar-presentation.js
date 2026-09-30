@@ -237,6 +237,6 @@ export function createSelectionToolbarPresentation({
     return api;
   }
   function dispose() { flagReadRevision += 1; clear(); }
-  const api = Object.freeze({ bind, clear, closeTransient, dispose, sync, syncInteraction, syncOcclusion: () => false });
+  const api = Object.freeze({ bind, clear, closeTransient, dispose, sync, syncInteraction });
   return api;
 }
