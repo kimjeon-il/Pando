@@ -278,7 +278,7 @@ export function createGpuMapRenderer(deps) {
       createWorker: () => workerChannels.create(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'pandolab-hydro-tiles' }),
       getMode: () => rendererMode, isMobile, DATA_REVISION, ASSET_REVISION,
       getCacheBudget: () => renderQuality.hydroCacheBudgetBytes,
-      getProtectedPackIds: () => { const feature = state.selected?.type === 'hydro' ? hydroFeatureById(state.selected.id) : null;
+      getProtectedPackIds: () => { const feature = state.selected?.domain === 'hydro' ? hydroFeatureById(state.selected.id) : null;
         return feature?.properties?.pack_ids || [feature?.properties?.pack_id].filter(Number.isFinite); },
       getView: () => hydroViewSnapshot(), registerHydroPack, unregisterHydroPack,
       queueHydroRender, reportOperationError, setActionStatus, onConnect: connectHydroCanvasWorkers,
