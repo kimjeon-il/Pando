@@ -313,7 +313,8 @@ export function createMapSettings() {
       popups.className = 'view-menu-popups';
       surface.append(popups);
     }
-    const groups = ['projection', ...Object.keys(LAYER_STYLE_TARGETS), 'terrain', 'distribution'];
+    // Distribution styling belongs to distributionViewSettings, not a sibling popup.
+    const groups = ['projection', ...Object.keys(LAYER_STYLE_TARGETS).filter(group => group !== 'distributions'), 'terrain', 'distribution'];
     for (const group of groups) {
       const panel = displayPanelForDesktopGroup(group);
       if (!panel || displayMenuPanels.has(group)) continue;

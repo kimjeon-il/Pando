@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
 
-async function openAnnex(page, center) {
+async function openAnnex(page, center, { renderer = 'webgl2' } = {}) {
   await page.addInitScript(() => {
     window.__annexE2e = { workerErrors: [], workerTransfers: [], rebases: [] };
     const NativeWorker = window.Worker;
@@ -26,7 +26,7 @@ async function openAnnex(page, center) {
   const errors = [];
   page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
   page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
-  await page.goto('/?debug=1&renderer=webgl2');
+  await page.goto(`/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'TUR'));
@@ -66,6 +66,135 @@ async function drawStroke(page, coordinates, { closed = true } = {}) {
     await page.mouse.move(map.x + point[0], map.y + point[1], { steps: 5 });
   }
   await page.mouse.up();
+}
+
+async function inspectLineCandidate(page) {
+  return page.evaluate(async () => {
+    const { buildPolygonGeometryPacket } = await import('/assets/js/modules/render-scene.js');
+    const selected = document.querySelector('path.territory-candidate.selected-candidate');
+    const candidates = [...document.querySelectorAll('path.territory-candidate')];
+    const source = window.PANDOLAB_TERRITORIAL.get('TUR').geometry;
+    const polygons = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+    const points = geometry => polygons(geometry).flat(2);
+    const bounds = geometry => {
+      const coords = points(geometry);
+      return [Math.min(...coords.map(point => point[0])), Math.min(...coords.map(point => point[1])),
+        Math.max(...coords.map(point => point[0])), Math.max(...coords.map(point => point[1]))];
+    };
+    const signedArea = ring => ring.slice(1).reduce((sum, point, index) =>
+      sum + (ring[index][0] * point[1] - point[0] * ring[index][1]), 0) / 2;
+    const area = geometry => polygons(geometry).reduce((sum, polygon) =>
+      sum + Math.abs(polygon.reduce((part, ring, index) => part + (index ? -1 : 1) * Math.abs(signedArea(ring)), 0)), 0);
+    const geometry = selected.__data__.geometry;
+    const packet = buildPolygonGeometryPacket(geometry, { triangulate: window.earcut });
+    const packetArea = Array.from({ length: packet.indices.length / 3 }, (_, index) => {
+      const triangle = Array.from(packet.indices.slice(index * 3, index * 3 + 3), vertex =>
+        [packet.positions[vertex * 2], packet.positions[vertex * 2 + 1]]);
+      return Math.abs((triangle[0][0] * (triangle[1][1] - triangle[2][1])
+        + triangle[1][0] * (triangle[2][1] - triangle[0][1])
+        + triangle[2][0] * (triangle[0][1] - triangle[1][1])) / 2);
+    }).reduce((sum, value) => sum + value, 0);
+    const path = new Path2D(selected.getAttribute('d'));
+    const svg = selected.ownerSVGElement;
+    const mask = document.createElement('canvas');
+    mask.width = 240; mask.height = 144;
+    const context = mask.getContext('2d', { willReadFrequently: true });
+    context.scale(mask.width / svg.clientWidth, mask.height / svg.clientHeight);
+    context.fill(path);
+    const pixels = context.getImageData(0, 0, mask.width, mask.height).data;
+    let filled = 0;
+    for (let index = 3; index < pixels.length; index += 4) if (pixels[index] > 0) filled += 1;
+    const variables = ['--map-selection-halo', '--map-primary-fill-alpha', '--map-primary-stroke-alpha', '--map-primary-stroke-width'];
+    const root = document.documentElement;
+    const rootStyle = getComputedStyle(root);
+    const mapStyle = getComputedStyle(document.querySelector('#map'));
+    const css = Object.fromEntries(variables.map(name => [name, {
+      root: rootStyle.getPropertyValue(name).trim(), map: mapStyle.getPropertyValue(name).trim(),
+      owner: root.style.getPropertyValue(name).trim(),
+    }]));
+    const originalInlineOpacity = selected.style.getPropertyValue('fill-opacity');
+    const saved = variables.map(name => [name, root.style.getPropertyValue(name)]);
+    for (const [name] of saved) root.style.removeProperty(name);
+    selected.style.removeProperty('fill-opacity');
+    const fallbackOpacity = Number(getComputedStyle(selected).fillOpacity);
+    for (const [name, value] of saved) root.style.setProperty(name, value);
+    if (originalInlineOpacity) selected.style.setProperty('fill-opacity', originalInlineOpacity);
+    const selectedBounds = bounds(geometry);
+    const packetBounds = [Math.min(...packet.positions.filter((_, index) => index % 2 === 0)),
+      Math.min(...packet.positions.filter((_, index) => index % 2 === 1)),
+      Math.max(...packet.positions.filter((_, index) => index % 2 === 0)),
+      Math.max(...packet.positions.filter((_, index) => index % 2 === 1))];
+    const rect = selected.getBoundingClientRect();
+    const mapRect = document.querySelector('#map').getBoundingClientRect();
+    return {
+      css, fallbackOpacity, opacity: Number(getComputedStyle(selected).fillOpacity),
+      sourceBounds: bounds(source), selectedBounds, packetBounds, packetArea,
+      areas: candidates.map(node => area(node.__data__.geometry)), selectedArea: area(geometry),
+      canonical: window.PandoLabCountryGeometry.hasCanonicalCountryWinding(geometry),
+      sourceCanonical: window.PandoLabCountryGeometry.hasCanonicalCountryWinding(source),
+      pathLength: selected.getAttribute('d').length,
+      pathCoverage: filled / (mask.width * mask.height),
+      pathRectRatio: rect.width * rect.height / (mapRect.width * mapRect.height),
+      gpuPacketKey: selected.getAttribute('data-gpu-interaction-fill-keys'),
+      graticuleFrame: window.__PANDOLAB_RENDER_DEBUG__.snapshot().rendering.graticuleCommittedFrameId,
+    };
+  });
+}
+
+function expectLineCandidate(result, { gpu }) {
+  for (const name of ['--map-selection-halo', '--map-primary-fill-alpha', '--map-primary-stroke-alpha', '--map-primary-stroke-width']) {
+    expect(result.css[name].root).toBeTruthy();
+    expect(result.css[name].map).toBe(result.css[name].root);
+    expect(result.css[name].owner).toBe(result.css[name].root);
+  }
+  expect(Number(result.css['--map-primary-fill-alpha'].root)).toBeCloseTo(0.084, 3);
+  expect(result.css['--map-selection-halo'].root).toBe('#316fd3');
+  expect(Number(result.css['--map-primary-stroke-alpha'].root)).toBe(1);
+  expect(result.css['--map-primary-stroke-width'].root).toBe('2.5px');
+  expect(result.opacity).toBeCloseTo(0.084, 3);
+  expect(result.fallbackOpacity).toBeCloseTo(0.084, 3);
+  expect(result.areas).toHaveLength(2);
+  expect(result.selectedArea).toBeCloseTo(Math.min(...result.areas), 6);
+  expect(result.canonical).toBe(true);
+  expect(result.sourceCanonical).toBe(true);
+  for (const index of [0, 1]) {
+    expect(result.selectedBounds[index]).toBeGreaterThanOrEqual(result.sourceBounds[index] - 1e-5);
+    expect(result.selectedBounds[index + 2]).toBeLessThanOrEqual(result.sourceBounds[index + 2] + 1e-5);
+    expect(result.packetBounds[index]).toBeCloseTo(result.selectedBounds[index], 3);
+    expect(result.packetBounds[index + 2]).toBeCloseTo(result.selectedBounds[index + 2], 3);
+  }
+  expect(result.packetArea).toBeCloseTo(result.selectedArea, 3);
+  expect(result.pathLength).toBeGreaterThan(100);
+  expect(result.pathCoverage).toBeGreaterThan(0);
+  expect(result.pathCoverage).toBeLessThan(0.5);
+  expect(result.pathRectRatio).toBeLessThan(0.5);
+  expect(result.graticuleFrame).toBeGreaterThan(0);
+  if (gpu) expect(result.gpuPacketKey).toContain(':candidate:');
+}
+
+async function accentViewportCoverage(page) {
+  const screenshot = (await page.screenshot()).toString('base64');
+  return page.evaluate(async encoded => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${encoded}`;
+    await image.decode();
+    const map = document.querySelector('#map').getBoundingClientRect();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width; canvas.height = image.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(image, 0, 0);
+    const x = Math.floor(map.x), y = Math.floor(map.y);
+    const width = Math.floor(map.width), height = Math.floor(map.height);
+    const pixels = context.getImageData(x, y, width, height).data;
+    let accentPixels = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      if (Math.abs(pixels[index] - 49) <= 5 && Math.abs(pixels[index + 1] - 111) <= 5
+        && Math.abs(pixels[index + 2] - 211) <= 5) accentPixels += 1;
+    }
+    const land = window.__PANDOLAB_VIEW_DEBUG__.geoToScreen([35, 39]);
+    const sample = context.getImageData(Math.floor(map.x + land[0]), Math.floor(map.y + land[1]), 1, 1).data;
+    return { accentRatio: accentPixels / (width * height), landColor: Array.from(sample.slice(0, 3)) };
+  }, screenshot);
 }
 
 async function completeAndCheck(page, context, expectedGeometry = null) {
@@ -147,8 +276,48 @@ test('annex - line', async ({ page }) => {
   await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
   await expect(page.locator('.draft-split-preview')).toHaveCount(2);
   await page.locator('#modeDraftDoneBtn').click();
+  await expect(page.locator('path.territory-candidate')).toHaveCount(2);
+  expectLineCandidate(await inspectLineCandidate(page), { gpu: true });
+  const screen = await accentViewportCoverage(page);
+  expect(screen.accentRatio).toBeLessThan(0.5);
+  expect(screen.landColor).not.toEqual([49, 111, 211]);
+  expect(screen.landColor).not.toEqual([255, 255, 255]);
   const selected = await page.locator('path.territory-candidate.selected-candidate').evaluate(element => element.__data__.geometry);
   await completeAndCheck(page, context, selected);
+});
+
+test('annex - line SVG fallback shows the same small candidate', async ({ page }) => {
+  test.setTimeout(120_000);
+  const context = await openAnnex(page, [27.5, 41.8], { renderer: 'canvas' });
+  await page.locator('#modeDirectLineMethodInput').check();
+  await expect(page.locator('#modeTaskInstruction')).toHaveText('가져올 영토를 가로질러 선을 그리세요.', { timeout: 60_000 });
+  await drawStroke(page, [[26, 41.8], [29, 41.8]], { closed: false });
+  await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
+  await page.locator('#modeDraftDoneBtn').click();
+  await expect(page.locator('path.territory-candidate')).toHaveCount(2);
+  expectLineCandidate(await inspectLineCandidate(page), { gpu: false });
+  const screen = await accentViewportCoverage(page);
+  expect(screen.accentRatio).toBeLessThan(0.5);
+  expect(screen.landColor).not.toEqual([49, 111, 211]);
+  expect(screen.landColor).not.toEqual([255, 255, 255]);
+  expect(context.errors).toEqual([]);
+  expect(await page.evaluate(() => window.__annexE2e.workerErrors)).toEqual([]);
+});
+
+test('annex - line candidate stays local on the globe', async ({ page }) => {
+  test.setTimeout(120_000);
+  const context = await openAnnex(page, [27.5, 41.8]);
+  await page.locator('#modeDirectLineMethodInput').check();
+  await expect(page.locator('#modeTaskInstruction')).toHaveText('가져올 영토를 가로질러 선을 그리세요.', { timeout: 60_000 });
+  await drawStroke(page, [[26, 41.8], [29, 41.8]], { closed: false });
+  await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
+  await page.locator('#globeBtn').evaluate(button => button.click());
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_STATE__?.projection)).toBe('globe');
+  await page.locator('#modeDraftDoneBtn').click();
+  expectLineCandidate(await inspectLineCandidate(page), { gpu: true });
+  expect((await accentViewportCoverage(page)).accentRatio).toBeLessThan(0.5);
+  expect(context.errors).toEqual([]);
+  expect(await page.evaluate(() => window.__annexE2e.workerErrors)).toEqual([]);
 });
 
 test('annex - polygon', async ({ page }) => {

@@ -121,7 +121,8 @@ export function createInteractionPackets() {
   function buildGpuInteractionLayerPackets(domain, layer) {
     const polygons = [];
     const strokes = [];
-    const nodes = layer?.selectAll?.('path')?.nodes?.() || [];
+    const nodes = [];
+    layer?.selectAll?.('path')?.each?.(function() { nodes.push(this); });
     nodes.forEach((node, index) => {
       if (node.classList.contains('draft-segment-hit') || node.closest('.draft-issue-marker')) return;
       const geometry = gpuInteractionGeometry(node.__data__);

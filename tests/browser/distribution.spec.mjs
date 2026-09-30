@@ -44,6 +44,51 @@ async function autosavedDistributions(page) {
   });
 }
 
+test('distribution controls stay inside the single view submenu on desktop and mobile', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const errors = await openApp(page);
+  const group = page.locator('#distributionMenuGroup');
+  const settings = page.locator('#distributionViewSettings');
+  const style = page.locator('#layerStylePanel-distributions');
+  await expect(group).toBeHidden();
+  await expect(style).toBeHidden();
+  await expect(settings.locator('#layerStylePanel-distributions')).toHaveCount(1);
+  await page.locator('#mapDisplayBtn').click();
+  await expect(group).toBeHidden();
+  await expect(style).toBeHidden();
+  await expect(page.locator('.view-menu-popups > #layerStylePanel-distributions')).toHaveCount(0);
+  await page.locator('#mapDisplayBtn').click();
+
+  await createDistribution(page, '보기 메뉴 검사');
+  await page.locator('#mapDisplayBtn').click();
+  await expect(page.locator('#mapDisplaySurface')).toHaveClass(/view-menu-desktop/);
+  await expect(group).toBeVisible();
+  await expect(page.locator('#distributionMenuTrigger')).toHaveCount(1);
+  await expect(style).toBeHidden();
+  await expect(page.locator('.view-menu-popups > #layerStylePanel-distributions')).toHaveCount(0);
+  await page.locator('#distributionMenuTrigger').click();
+  await expect(settings).toBeVisible();
+  await expect(style).toBeVisible();
+  await expect(style.locator('[data-layer-style-opacity="distributions"]')).toBeVisible();
+  await expect(style.locator('[data-layer-style-blend-mode="distributions"]')).toBeVisible();
+  await expect(page.locator('#distributionOverlapRadio')).toBeVisible();
+  await page.locator('#distributionSingleRadio').locator('..').click({ timeout: 5_000 });
+  await expect(page.locator('#distributionSingleRadio')).toBeChecked();
+  await expect(page.locator('#distributionActiveLayerInput').locator('..')).toBeVisible();
+  await expect(page.locator('#distributionLegend')).toBeVisible();
+  await expect(page.locator('#distributionBoundaryVisibleInput')).toBeVisible();
+  await page.locator('[data-map-display-row="countries"]').click();
+  await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
+  await expect(style).toBeHidden();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#mapDisplaySurface')).not.toHaveClass(/view-menu-desktop/);
+  await expect(settings.locator('#layerStylePanel-distributions')).toHaveCount(1);
+  await expect(style).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('a numeric distribution stores signed values and survives undo and redo', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await openApp(page);
