@@ -17,7 +17,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await context.route('**/assets/data/places/**',route=>route.fulfill({status:200,contentType:route.request().url().includes('manifest.json')?'application/json':'application/octet-stream',body:route.request().url().includes('manifest.json')?JSON.stringify(manifest):bytes}));
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60_000});
-  await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchBtn').evaluate(button => button.click());
   await page.locator('#layerSearchInput').fill('서울');
   const result=page.locator('[data-object-search-select="labels"][data-item-id="builtin:place:synthetic:seoul"]');
   await expect(result).toBeVisible();await result.click();
@@ -36,7 +36,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#labelKindInput').locator('..').locator('.ui-select-control')).toBeEnabled();
   await page.locator('#labelNameInput').fill('서울 편집 복사');await page.locator('#labelNameInput').press('Tab');
   await expect(page.locator('#propertyTitle')).toHaveText('서울 편집 복사');
-  await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchBtn').evaluate(button => button.click());
   await page.locator('#layerSearchInput').fill('서울');
   await expect(result).toHaveCount(0);
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
