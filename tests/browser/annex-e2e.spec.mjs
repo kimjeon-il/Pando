@@ -42,14 +42,16 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   await expect(page.locator('#editorSurface')).toBeVisible();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexTerritoryBtn').click();
-  await expect(page.locator('#modeTaskStage')).toHaveText('대상 선택');
+  await expect(page.locator('#modeTaskStage')).toHaveText('가져올 국가');
+  await expect(page.locator('#annexCountryFlow')).toContainText('넘겨받는 국가');
+  await expect(page.locator('#annexCountryFlow')).toContainText('넘겨주는 국가');
   const donorPoint = await page.evaluate(coordinate => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate), center);
   await page.locator('#map .map-svg').dispatchEvent('click', {
     clientX: map.x + donorPoint[0], clientY: map.y + donorPoint[1], button: 0,
   });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('#modeTaskStage')).toHaveText('영역 선택');
+  await expect(page.locator('#modeTaskStage')).toHaveText('영토 선택');
   const before = await page.evaluate(id => ({
     a: JSON.stringify(window.PANDOLAB_TERRITORIAL.get(id).geometry),
     b: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('TUR').geometry),
@@ -204,11 +206,16 @@ async function completeAndCheck(page, context, expectedGeometry = null) {
   const workerErrors = await page.evaluate(() => window.__annexE2e.workerErrors);
   expect(workerErrors).toEqual([]);
   await expect(page.locator('path.editing-preview-path.geometry-preview-add.geometry-preview-fill')).toHaveCount(1);
+  if (await page.locator('#modeDraftDoneBtn').isVisible()) {
+    await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 90_000 });
+    await page.locator('#modeDraftDoneBtn').click();
+    await expect(page.locator('#territorySelectionStackList li')).not.toHaveCount(0);
+  }
   await expect.poll(() => page.locator('#modePrimaryBtn').evaluate(button => !button.disabled && button.getAttribute('aria-busy') === 'false'),
     { timeout: 90_000 }).toBe(true);
   await page.locator('#modePrimaryBtn').click();
   try {
-    await expect(page.locator('#modeTaskStage')).toHaveText('결과 확인', { timeout: 5_000 });
+    await expect(page.locator('#modeTaskStage')).toHaveText('편입 확인', { timeout: 5_000 });
   } catch (error) {
     console.log('review transition state', await page.evaluate(() => ({
       stage: document.querySelector('#modeTaskStage')?.textContent,
@@ -455,10 +462,7 @@ test('annex - components', async ({ page }) => {
   await components.evaluateAll(nodes => nodes.slice(0, 2).forEach(node => node.dispatchEvent(new window.MouseEvent('click', {
     bubbles: true, cancelable: true,
   }))));
-  await expect(page.locator('#multiDrawnAddBtn')).toBeEnabled({ timeout: 90_000 });
-  await page.locator('#multiDrawnAddBtn').click();
-  await expect(page.locator('path.territory-candidate')).toHaveCount(2);
-  const keys = await page.locator('path.territory-candidate').evaluateAll(nodes => nodes.map(node => node.__data__.key));
-  expect(new Set(keys).size).toBe(2);
+  await expect(page.locator('#territorySelectionStackList li')).toHaveCount(2, { timeout: 90_000 });
+  await expect(page.locator('#multiDrawnActions')).toBeHidden();
   await completeAndCheck(page, context, { type: 'MultiPolygon', coordinates: selected.flatMap(geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates) });
 });
