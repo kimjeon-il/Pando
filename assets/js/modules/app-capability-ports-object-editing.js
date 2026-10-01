@@ -242,6 +242,7 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "domains",
     "geometryMutation",
     "hydroModel",
+    "labelPresentation",
     "layerTree",
     "layers",
     "lifecycleUi",
