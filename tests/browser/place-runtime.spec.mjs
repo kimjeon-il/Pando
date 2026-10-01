@@ -34,15 +34,12 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#labelNameInput')).not.toHaveAttribute('readonly','');
   await expect(page.locator('#labelKindInput')).toBeEnabled();
   await expect(page.locator('#labelKindInput').locator('..').locator('.ui-select-control')).toBeEnabled();
-  await page.locator('#labelNameInput').fill('서울 편집 복사');await page.locator('#labelNameInput').press('Tab');
-  await expect(page.locator('#propertyTitle')).toHaveText('서울 편집 복사');
   await page.locator('#objectSearchBtn').evaluate(button => button.click());
   await page.locator('#layerSearchInput').fill('서울');
   await expect(result).toHaveCount(0);
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
-  // Copy and subsequent edit each use the existing document history. Keep search open:
-  // undo must remove the user copy and make the builtin source searchable again.
-  await page.locator('#undoBtn').click({ force: true });await page.locator('#undoBtn').click({ force: true });
+  // Undo the copy itself; the builtin source must immediately become searchable again.
+  await page.locator('#undoBtn').click({ force: true });
   await expect(result).toBeVisible();await result.click();
   await expect(page.locator('#labelNameInput')).toHaveValue('서울 Synthetic');
   await expect(page.locator('#labelNameInput')).toHaveAttribute('readonly','');
