@@ -39,7 +39,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(result).toHaveCount(0);
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
   // Undo the copy itself; the builtin source must immediately become searchable again.
-  await page.locator('#undoBtn').click({ force: true });
+  await page.locator('#undoBtn').evaluate(button => button.click());
   await expect(result).toBeVisible();await result.click();
   await expect(page.locator('#labelNameInput')).toHaveValue('서울 Synthetic');
   await expect(page.locator('#labelNameInput')).toHaveAttribute('readonly','');
