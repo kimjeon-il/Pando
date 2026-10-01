@@ -71,6 +71,7 @@ export function createRenderingDomain({
   listenUploadInput(globalThis.window, 'blur', resetUploadInput);
   listenUploadInput(globalThis.document, 'visibilitychange', resetUploadInput);
   let coordinator = null;
+  let placeInteractionActive = false;
   let editingPacket = EMPTY_EDITING_RENDER_PACKET;
   let editingGestureSequence = 0;
   const stats = {
@@ -1073,7 +1074,7 @@ export function createRenderingDomain({
     active();
     stats.invalidations += 1;
     stats.lastReason = String(reason);
-    if (mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION | MAP_RENDER_DIRTY.PROJECT)) labels.preparePlaces?.();
+    if (!placeInteractionActive && mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION | MAP_RENDER_DIRTY.PROJECT)) labels.preparePlaces?.();
     return coordinator?.invalidate?.(mask, reason) ?? false;
   };
   const invalidateView = reason => invalidate(
@@ -1183,11 +1184,13 @@ export function createRenderingDomain({
   );
   const beginInteraction = reason => {
     active();
+    placeInteractionActive = true;
     labels.beginPlaceInteraction?.();
     coordinator?.beginInteraction?.(reason || 'interaction');
   };
   const endInteraction = reason => {
     active();
+    placeInteractionActive = false;
     labels.preparePlaces?.();
     const resolvedReason = reason || 'interaction-end';
     stats.invalidations += 1;
