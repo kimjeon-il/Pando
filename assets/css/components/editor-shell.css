@@ -939,7 +939,11 @@
   overflow: hidden;
 }
 
-.editor-panel[data-editor-content="task"] > :is(.surface-header, .editor-object-header, .editor-view-tabs, .editor-scroll-body) {
+.editor-panel[data-editor-content="task"] > :is(.surface-header, .editor-object-header, .editor-scroll-body) {
+  display: none;
+}
+
+.app-root .editor-panel[data-editor-content="task"] > .editor-view-tabs {
   display: none;
 }
 

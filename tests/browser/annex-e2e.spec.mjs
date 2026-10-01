@@ -43,8 +43,8 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexTerritoryBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('가져올 국가');
-  await expect(page.locator('#annexCountryFlow')).toContainText('넘겨받는 국가');
-  await expect(page.locator('#annexCountryFlow')).toContainText('넘겨주는 국가');
+  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨받는 국가');
+  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨주는 국가');
   const donorPoint = await page.evaluate(coordinate => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate), center);
   await page.locator('#map .map-svg').dispatchEvent('click', {
     clientX: map.x + donorPoint[0], clientY: map.y + donorPoint[1], button: 0,

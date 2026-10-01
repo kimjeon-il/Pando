@@ -90,7 +90,6 @@ export function createTerritorySelectionWorkflow() {
         label: '영토 편입',
         setupStageLabel: '가져올 국가',
         defaultName: '',
-        nameLabel: '',
         referenceLabel: '',
         generatedIdPrefix: '',
         supportsName: false,
@@ -112,7 +111,6 @@ export function createTerritorySelectionWorkflow() {
         actionButtonId: 'annexTerritoryBtn',
         defaultSourceKey: '',
         showReference: () => false,
-        showCountryFlow: true,
         finalLabel: count => `편입 (${count})`,
         sourceInstruction: '영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: (current, id) => id !== current.targetCountryId,
@@ -127,7 +125,6 @@ export function createTerritorySelectionWorkflow() {
         label: '국가 추가',
         setupStageLabel: '국가 정보',
         defaultName: '새 국가',
-        nameLabel: '이름',
         referenceLabel: '원소속 국가',
         generatedIdPrefix: 'USR',
         supportsName: true,
@@ -149,7 +146,6 @@ export function createTerritorySelectionWorkflow() {
         actionButtonId: '',
         defaultSourceKey: '',
         showReference: current => current.stage === 'setup',
-        showCountryFlow: false,
         finalLabel: () => '생성',
         sourceInstruction: '영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: () => true,
@@ -161,9 +157,8 @@ export function createTerritorySelectionWorkflow() {
       ['subunit', Object.freeze({
         tool: 'draw-territorial-unit',
         label: '하위단위 추가',
-        setupStageLabel: '기본 설정',
+        setupStageLabel: '하위단위 정보',
         defaultName: '새 하위단위',
-        nameLabel: '하위단위명',
         referenceLabel: '',
         generatedIdPrefix: 'subunit',
         supportsName: true,
@@ -185,7 +180,6 @@ export function createTerritorySelectionWorkflow() {
         actionButtonId: '',
         defaultSourceKey: 'unassigned',
         showReference: () => false,
-        showCountryFlow: false,
         finalLabel: () => '생성',
         sourceInstruction: '기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: () => false,
@@ -197,9 +191,8 @@ export function createTerritorySelectionWorkflow() {
       ['region', Object.freeze({
         tool: 'draw-territorial-unit',
         label: '지방 추가',
-        setupStageLabel: '기본 설정',
+        setupStageLabel: '지방 정보',
         defaultName: '새 지방',
-        nameLabel: '지방명',
         referenceLabel: '영역 기준 국가',
         generatedIdPrefix: 'region',
         supportsName: true,
@@ -221,7 +214,6 @@ export function createTerritorySelectionWorkflow() {
         actionButtonId: '',
         defaultSourceKey: '',
         showReference: current => current.stage === 'selection' && current.activePhase === 'source',
-        showCountryFlow: false,
         finalLabel: () => '생성',
         sourceInstruction: '영역 기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
         canUseSource: () => true,
@@ -551,8 +543,7 @@ export function createTerritorySelectionWorkflow() {
       return true;
     }
     if (current.stage !== 'selection' || !previewReady(current)
-      || ['annex', 'new-country'].includes(current.kind)
-        && current.activePhase === 'candidate' && !!current.currentGeometry) return false;
+      || current.activePhase === 'candidate' && !!current.currentGeometry) return false;
     current.stage = 'review';
     (0, dependencies.taskUi.setModeBanner)('');
     refresh('territory-selection-review');
@@ -593,7 +584,7 @@ export function createTerritorySelectionWorkflow() {
       return true;
     }
     current.requestedMethod = method;
-    if (['annex', 'new-country'].includes(current.kind) && current.activePhase === 'components'
+    if (current.activePhase === 'components'
       && current.selectedComponentKeys.length && current.activeMethod !== method) {
       if (canAddPart(current)) return archiveComponentsAndActivate(current, method);
       if (current.computationPending || current.previewPending || current.currentGeometry) {
@@ -1012,7 +1003,7 @@ export function createTerritorySelectionWorkflow() {
           current.previewPending = false;
           current.previewReadyKey = prepared && dependencies.projectState.state.geometryPreview.session ? key : null;
           refresh('territory-selection-preview-ready');
-          if (['annex', 'new-country'].includes(current.kind) && current.activePhase === 'components'
+          if (current.activePhase === 'components'
             && current.selectedComponentKeys.length && current.requestedMethod
             && current.requestedMethod !== current.activeMethod) {
             const requested = current.requestedMethod;
@@ -1067,7 +1058,7 @@ export function createTerritorySelectionWorkflow() {
     const scoped = current.kind === 'annex' || current.kind === 'new-country';
     const stageLabel = current.stage === 'setup' ? current.setupStageLabel
       : current.stage === 'selection' ? scoped ? '영토 선택' : '영역 선택'
-        : scoped ? current.kind === 'annex' ? '편입 확인' : '생성 확인' : '결과 확인';
+        : current.kind === 'annex' ? '편입 확인' : '생성 확인';
     const count = partCount(current);
     const primaryLabel = current.stage === 'selection' && current.computationError ? '다시 계산' : current.stage === 'review'
       ? current.editOperation === 'annex' ? '편입' : adapter.finalLabel(count)
@@ -1075,7 +1066,7 @@ export function createTerritorySelectionWorkflow() {
     return {
       current,
       step,
-      taskName: scoped ? current.taskLabel : `${current.taskLabel} ${step}단계`,
+      taskName: current.taskLabel,
       stageLabel,
       setup: current.stage === 'setup',
       selection: current.stage === 'selection',
@@ -1087,17 +1078,11 @@ export function createTerritorySelectionWorkflow() {
       components: current.stage === 'selection' && current.activePhase === 'components',
       activeMethod: current.activeMethod || current.requestedMethod,
       showSetup: current.stage === 'setup' && adapter.showSetup,
-      showReviewSummary: current.stage === 'review' && adapter.supportsName,
-      reviewName: current.name.trim(),
-      reviewSovereignId: current.sovereignId,
-      reviewParentId: current.parentId,
       showName: current.stage === 'setup' && adapter.supportsName,
-      nameLabel: adapter.nameLabel,
       referenceLabel: adapter.referenceLabel,
       showSubunitFields: current.stage === 'setup' && adapter.showSubunitFields,
       showReference: adapter.showReference(current)
         || current.stage === 'selection' && current.activePhase === 'source',
-      showCountryFlow: adapter.showCountryFlow && current.stage === 'setup',
       showMethods: current.stage === 'selection',
       showReferenceStart: current.stage === 'selection' && current.activePhase === 'source',
       showMethodChangeConfirmation: !!current.methodChangeConfirmation,
@@ -1105,17 +1090,13 @@ export function createTerritorySelectionWorkflow() {
         ? '선택한 영역을 모두 지우고 설정을 바꿀까요?'
         : '현재 영역을 버리고 방식을 바꿀까요?',
       showRiver: current.stage === 'selection' && current.activePhase === 'components',
-      showDrawnActions: current.stage === 'selection' && (current.parts.length > 0
-        || ['candidate', 'components', 'result'].includes(current.activePhase)),
       count,
       canAddPart: canAddPart(current),
-      canUndoPart: current.stage === 'selection' && !dependencies.domains.editingDomain?.draftInputActive?.()
-        && (current.selectedComponentKeys.length > 0 || !!current.currentGeometry || current.parts.length > 0),
       primaryLabel,
       primaryIcon: current.stage === 'review' ? '#icon-check' : '#icon-chevron-right',
       primaryDisabled: current.applying || current.previewPending
         || current.stage === 'setup' && !setupValid(current)
-        || scoped && current.stage === 'selection' && current.activePhase === 'candidate' && !!current.currentGeometry
+        || current.stage === 'selection' && current.activePhase === 'candidate' && !!current.currentGeometry
         || current.stage === 'selection' && !current.computationError && !previewReady(current)
         || current.stage === 'review' && !previewReady(current),
       cancelLabel: current.stage === 'setup' ? '취소' : '뒤로',

@@ -151,7 +151,10 @@ export function createTerritorialDrafts() {
         errorMessage: '영역 변경을 적용하지 못해 전체 변경을 되돌렸습니다.',
       });
     } catch (error) {
-      if (current()) (0, dependencies.feedback.reportOperationError)(error, '영역 변경을 계산하지 못했습니다.', 'PL-TERRITORIAL-EDIT', 4400);
+      if (current()) {
+        const message = (0, dependencies.feedback.reportOperationError)(error, '영역 변경을 계산하지 못했습니다.', 'PL-TERRITORIAL-EDIT', 4400);
+        (0, dependencies.taskUi.setModeBanner)(message, { feedback: true });
+      }
       return false;
     }
   }
@@ -465,6 +468,7 @@ export function createTerritorialDrafts() {
     const targets = new Set(dependencies.projectState.state.territorialUnitMergeTargetIds.map(String));
     if (targets.has(String(id))) targets.delete(String(id)); else targets.add(String(id));
     dependencies.projectState.state.territorialUnitMergeTargetIds = [...targets];
+    (0, dependencies.taskUi.setModeBanner)('합칠 인접 영역을 선택하세요.');
     dependencies.domains.renderingDomain?.renderTerritorialUnits?.();
     (0, dependencies.taskUi.updateModeButtons)();
   }
@@ -486,7 +490,10 @@ export function createTerritorialDrafts() {
     try {
       response = await dependencies.spatialQuery.mapEditClient.execute('territorial-region-merge', { payload: { targetId: source.id, targetIds: targets.map(target => target.id) } });
     } catch (error) {
-      if (!error?.cancelled) (0, dependencies.feedback.reportOperationError)(error, '지방 합병을 준비하지 못했습니다.', 'PL-REGION-MERGE', 3600);
+      if (!error?.cancelled) {
+        const message = (0, dependencies.feedback.reportOperationError)(error, '지방 합병을 준비하지 못했습니다.', 'PL-REGION-MERGE', 3600);
+        (0, dependencies.taskUi.setModeBanner)(message, { feedback: true });
+      }
       return false;
     }
     if (dependencies.projectState.state.stateRevision !== revision || text(dependencies.projectState.state.territorialUnitMergeSourceId) !== text(source.id)) return false;

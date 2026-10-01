@@ -49,20 +49,30 @@ export function createToolBindings() {
     });
     (0, dependencies.platform.$)('modePrimaryBtn')?.addEventListener('click', () => { void (0, dependencies.taskPresentation.runModePrimaryAction)(); });
     (0, dependencies.platform.$)('modeTaskTargetsFocusBtn')?.addEventListener('click', dependencies.taskPresentation.focusTaskTargets);
-    (0, dependencies.platform.$)('multiDrawnAddBtn')?.addEventListener('click', () => {
-      const action = dependencies.projectState.state.territorySelectionSession ? dependencies.territorySelectionA.territorySelectionAddPart : dependencies.countryCommitFlow.addMultiDraftPart;
-      void (0, dependencies.taskPresentation.runModePrimaryAction)(action);
-    });
-    (0, dependencies.platform.$)('multiDrawnUndoBtn')?.addEventListener('click', () => {
-      const action = dependencies.projectState.state.territorySelectionSession ? dependencies.territorySelectionB.territorySelectionUndoPart : dependencies.countryCommitFlow.undoMultiDraftPart;
-      void (0, dependencies.taskPresentation.runModePrimaryAction)(action);
-    });
+    for (const [id, command] of [['multiDrawnAddBtn', dependencies.countryCommitFlow.addMultiDraftPart], ['multiDrawnUndoBtn', dependencies.countryCommitFlow.undoMultiDraftPart]]) {
+      dependencies.platform.$(id)?.addEventListener('click', event => {
+        if (event.currentTarget.disabled || dependencies.projectState.state.modeProcessing) return;
+        // These synchronous commands own the idle guard; do not mark them busy before calling.
+        try { command(); }
+        catch (error) { dependencies.feedback.reportOperationError(error, '그리기 목록을 변경하지 못했습니다.', 'PL-MULTI-DRAFT-UI-001', 4200); }
+      });
+    }
     (0, dependencies.platform.$)('territorySelectionStackList')?.addEventListener('click', event => {
       const button = event.target.closest('button[data-item-kind]');
       if (!button || !event.currentTarget.contains(button)) return;
       const action = button.dataset.itemKind === 'part'
         ? () => dependencies.territorySelectionA.removeTerritorySelectionPart(button.dataset.itemId)
         : () => dependencies.territorySelectionC.toggleTerritorySelectionComponent(button.dataset.itemId);
+      void (0, dependencies.taskPresentation.runModePrimaryAction)(action);
+    });
+    (0, dependencies.platform.$)('modeTaskResultsList')?.addEventListener('click', event => {
+      const button = event.target.closest('button[data-object-id]');
+      if (!button || button.disabled || !event.currentTarget.contains(button)) return;
+      const tool = dependencies.projectState.state.tool;
+      if (!['merge-country', 'merge-territorial-unit'].includes(tool)) return;
+      const action = tool === 'merge-country'
+        ? () => dependencies.countryEditingC.toggleMergeTarget(button.dataset.objectId)
+        : () => dependencies.territorialEditingB.toggleTerritorialUnitMergeTarget(button.dataset.objectId);
       void (0, dependencies.taskPresentation.runModePrimaryAction)(action);
     });
     (0, dependencies.platform.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.taskPresentation.toggleMapTaskWindow);
