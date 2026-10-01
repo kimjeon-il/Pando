@@ -14,6 +14,8 @@ synthetic 데이터는 테스트가 임시 폴더에 만들고 종료 후 지운
 - `place-worker-store.js`: 기존 수계 tile window를 재사용한다. 단계는 해당 zoom의
   전체 후보를 담는 누적 LOD이며, query tile 상한을 넘으면 더 거친 단계로 내려간다.
   canonical projection frame으로 화면과 label box를 먼저 판정한 후 후보 상한을 적용한다.
+  manifest의 모든 tile/search row는 SHA-256을 가지며 HTTP 206 Range 응답도 decode 전에
+  해당 row hash를 검증한다.
 - `place-runtime.js`: 기존 Worker RPC와 latest-wins scheduler를 사용하고, 준비된
   불변 snapshot을 한 번에 교체한다. 이후 기존 label layout을 invalidate한다.
 - `app-country-labels.js`: 사용자 지명과 snapshot을 같은 label collision/layout에

@@ -1,7 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { normalizePlace, comparePlaces } from '../../assets/js/modules/place-contract.js';
 import { encodePlaceTile } from '../../assets/js/modules/place-codec.js';
+
+const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 
 /** Offline fixture generator. It streams fine tiles; never holds a million objects. */
 export async function buildSyntheticPlaces(count, directory) {
@@ -13,7 +16,7 @@ export async function buildSyntheticPlaces(count, directory) {
     const key=`${stage.id}/${x}-${y}`, file=`tile-${stage.id}-${x}-${y}.bin`, bytes=encodePlaceTile(records);
     await writeFile(join(directory,file),new Uint8Array(bytes));
     manifest.shards[key]={url:file,bytes:bytes.byteLength};
-    const row={shard:key,offset:0,length:bytes.byteLength}; manifest.tiles[key]=row; return row;
+    const row={shard:key,offset:0,length:bytes.byteLength,sha256:sha256(new Uint8Array(bytes))}; manifest.tiles[key]=row; return row;
   }
   const fine=stages[3], cells=fine.columns*fine.rows;
   for (let cell=0;cell<cells;cell++) {

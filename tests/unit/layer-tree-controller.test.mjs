@@ -25,7 +25,7 @@ function element() {
   };
 }
 
-function setup({ builtinSearch, cancelBuiltinSearch } = {}) {
+function setup({ builtinSearch, cancelBuiltinSearch, builtinRecordVisible } = {}) {
   const rows = {
     countries: [{ id: 'D', name: 'D 항목' }, { id: 'C', name: 'C 항목 묶음' }],
     labels: [{ id: 'B', name: 'B 항목' }],
@@ -40,7 +40,7 @@ function setup({ builtinSearch, cancelBuiltinSearch } = {}) {
   const results = element();
   const snapshot = { revision: 1, search: '항목' };
   const controller = createLayerTreeController({
-    window: { setTimeout, clearTimeout }, builtinSearch, cancelBuiltinSearch,
+    window: { setTimeout, clearTimeout }, builtinSearch, cancelBuiltinSearch, builtinRecordVisible,
     document: { createElement: element }, elements: { searchResults: results },
     groups: { search: Object.keys(rows) },
     model: {
@@ -117,4 +117,28 @@ test('closing search cancels its result lifetime and opening resumes the same pr
   snapshot.searchActive=true;controller.render(true);await tick();jobs[1]({records:[builtin('opened')]});await tick();
   assert.ok(results.children.some(row=>row.children[0]?.dataset.itemId==='builtin:place:synthetic:opened'));
   controller.dispose();
+});
+
+test('editable copies suppress their builtin source in current search rows without another Worker query', async () => {
+  let copied = false;
+  let calls = 0;
+  const { controller, results, snapshot } = setup({
+    builtinSearch: async query => {
+      calls += 1;
+      return query === '서울' ? { records: [builtin('copied-source')] } : { records: [] };
+    },
+    builtinRecordVisible: record => !(copied && record.sourceId === 'copied-source'),
+  });
+  await tick();
+  snapshot.search = '서울';
+  snapshot.revision += 1;
+  controller.render(true);
+  await tick();
+  assert.ok(results.children.some(row => row.children[0]?.dataset.itemId === 'builtin:place:synthetic:copied-source'));
+  const callsAfterLoad = calls;
+  copied = true;
+  snapshot.revision += 1;
+  controller.render();
+  assert.equal(calls, callsAfterLoad);
+  assert.ok(!results.children.some(row => row.children[0]?.dataset.itemId === 'builtin:place:synthetic:copied-source'));
 });
