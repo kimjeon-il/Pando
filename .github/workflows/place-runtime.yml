@@ -19,7 +19,7 @@ on:
       - 'tests/unit/layer-tree-controller.test.mjs'
       - 'tests/unit/place-*.test.mjs'
       - 'tests/unit/project-state.test.mjs'
-      - 'tests/unit/rendering-domain-place-interaction.test.mjs'
+      - 'tests/unit/place-interaction-runtime.test.mjs'
       - 'tests/unit/worker-rpc.test.mjs'
       - 'tests/browser/place-runtime.spec.mjs'
       - '.github/workflows/place-runtime.yml'
@@ -73,7 +73,7 @@ jobs:
           tests/unit/place-runtime.test.mjs
           tests/unit/place-worker-store.test.mjs
           tests/unit/project-state.test.mjs
-          tests/unit/rendering-domain-place-interaction.test.mjs
+          tests/unit/place-interaction-runtime.test.mjs
           tests/unit/worker-rpc.test.mjs
           tests/browser/place-runtime.spec.mjs
       - name: Run focused unit regressions
@@ -87,7 +87,7 @@ jobs:
           tests/unit/place-runtime.test.mjs
           tests/unit/place-worker-store.test.mjs
           tests/unit/project-state.test.mjs
-          tests/unit/rendering-domain-place-interaction.test.mjs
+          tests/unit/place-interaction-runtime.test.mjs
           tests/unit/worker-rpc.test.mjs
       - name: Run million-place gate
         run: node --test tests/unit/place-million.test.mjs
