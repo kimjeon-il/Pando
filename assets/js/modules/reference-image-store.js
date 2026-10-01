@@ -51,7 +51,6 @@ export function createReferenceImageStore(projectStorage) {
       const values = [...records];
       return mutateCollection(() => values);
     },
-    delete: id => mutateCollection(records => records.filter(record => record?.id !== String(id))),
   });
 }
 
@@ -59,5 +58,3 @@ const imageStore = createReferenceImageStore(storage);
 export const listStoredReferenceImages = imageStore.list;
 export const putStoredReferenceImage = imageStore.put;
 export const replaceStoredReferenceImages = imageStore.replace;
-export const deleteStoredReferenceImage = imageStore.delete;
-export const clearStoredReferenceImages = () => imageStore.replace([]);
