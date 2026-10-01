@@ -40,7 +40,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await page.locator('#layerSearchInput').fill('서울');
   await expect(result).toHaveCount(0);
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
-  await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchCloseBtn').click();
   // Copy and subsequent edit each use the existing document history.
   await page.locator('#undoBtn').click();await page.locator('#undoBtn').click();
   await page.locator('#objectSearchBtn').click();await page.locator('#layerSearchInput').fill('서울');
