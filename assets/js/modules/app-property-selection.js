@@ -407,7 +407,7 @@ export function createPropertySelection() {
       dependencies.projectState.state.selectedDistributionLayerId = layer.id;
       if (changed) {
         dependencies.distributionPresentation.bumpVisibilityRevision();
-        dependencies.domains.renderingDomain.renderDistributions();
+        dependencies.domains.renderingDomain.invalidateOverlayStyle('distribution-selection');
         dependencies.domains.projectDomain.queuePresentationAutosave();
       }
     }

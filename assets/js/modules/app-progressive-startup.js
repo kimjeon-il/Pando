@@ -200,7 +200,6 @@ export function createProgressiveStartup() {
       void window.PANDOLAB_SAMPLE_STARTUP_MEMORY?.('preview-released');
       (0, dependencies.renderQuality.applyAdaptiveRenderQuality)({ refreshScene: false, reason: 'canonical-ready' });
     }
-    (0, dependencies.physicalResources.loadTerrainManifest)();
     (0, dependencies.physicalData.loadHydroData)();
     (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.MESH_READY);
     dependencies.projectState.state.meshProgress = 100;
@@ -261,6 +260,14 @@ export function createProgressiveStartup() {
     (0, dependencies.platformConfigurationB.assertRuntimeCompatibility)();
     if (!window.d3) throw new Error('내장 지도 엔진을 불러올 수 없습니다. 페이지를 새로고침하세요.');
     if (!window.PANDOLAB_COUNTRIES?.features?.length) throw new Error('미리보기 국가 데이터를 불러올 수 없습니다. 페이지를 새로고침하세요.');
+
+    const startTerrainLoading = () => {
+      // Terrain can use the painted preview; canonical country data/meshes
+      // are not prerequisites. Keep failures separate from country readiness.
+      dependencies.physicalResources.loadTerrainManifest().catch(error => {
+        dependencies.feedback.reportOperationError(error, '지형 자료를 불러오지 못했습니다.', 'PL-TERRAIN-001', 0);
+      });
+    };
 
     const autosavePromise = dependencies.lifecycleUi.projectUi.restoreAutosave();
     const autosaveRestore = await autosavePromise;
@@ -340,6 +347,7 @@ export function createProgressiveStartup() {
         }
       });
     }
+    if (!hasStoredCountryGeometry) startTerrainLoading();
     dependencies.startupCommands.markRuntimeReady();
     const previewStart = { projection: dependencies.projectState.state.projection, viewJson: JSON.stringify(dependencies.projectState.state.view) };
     (0, dependencies.feedback.setActionStatus)(
@@ -376,6 +384,9 @@ export function createProgressiveStartup() {
       handleGeometryError({ detail: '무손실 편집 지도를 적용하지 못했습니다.' });
       return;
     }
+    // Without a matching project preview, preserve the neutral restore screen
+    // until exact geometry and saved display settings have been applied.
+    if (hasStoredCountryGeometry) startTerrainLoading();
     if (!context.useBuiltInMesh) {
       await completeMeshEnhancement(null, context);
       if (savedProject && !cachedPreview) dependencies.domains.projectDomain.ensurePreview(savedProject);

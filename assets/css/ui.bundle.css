@@ -11329,26 +11329,26 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 .draft-shape.cut-pending {
-  stroke: var(--map-selection-halo, var(--accent, #316fd3));
-  fill: var(--map-selection-halo, var(--accent, #316fd3));
+  stroke: var(--map-selection-halo);
+  fill: var(--map-selection-halo);
   fill-opacity: var(--map-primary-fill-alpha, 0.084);
 }
 
 .draft-shape.cut-valid {
-  stroke: var(--map-selection-halo, var(--accent, #316fd3));
-  fill: var(--map-selection-halo, var(--accent, #316fd3));
+  stroke: var(--map-selection-halo);
+  fill: var(--map-selection-halo);
   fill-opacity: var(--map-primary-fill-alpha, 0.084);
 }
 
 .draft-shape.cut-invalid {
-  stroke: var(--map-selection-halo, var(--accent, #316fd3));
-  fill: var(--map-selection-halo, var(--accent, #316fd3));
+  stroke: var(--map-selection-halo);
+  fill: var(--map-selection-halo);
   fill-opacity: var(--map-primary-fill-alpha, 0.084);
 }
 
 .draft-shape.draft-invalid {
-  stroke: var(--map-selection-halo, var(--accent, #316fd3));
-  fill: var(--map-selection-halo, var(--accent, #316fd3));
+  stroke: var(--map-selection-halo);
+  fill: var(--map-selection-halo);
   fill-opacity: var(--map-primary-fill-alpha, 0.084);
 }
 
@@ -11370,9 +11370,9 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 .territory-candidate {
-  fill: var(--map-selection-halo, var(--accent, #316fd3));
+  fill: var(--map-selection-halo);
   fill-opacity: 0;
-  stroke: var(--map-selection-halo, var(--accent, #316fd3));
+  stroke: var(--map-selection-halo);
   stroke-opacity: var(--map-candidate-stroke-alpha);
   stroke-width: var(--map-candidate-stroke-width);
   vector-effect: non-scaling-stroke;
