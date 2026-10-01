@@ -34,6 +34,7 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
     selectedDistributionLayerId: '', boundaryPreparation: null,
   };
   const owner = createProjectSnapshots();
+  let searchRenders = 0;
   owner.connect({
     projectState: { state },
     applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { SINGLE: 'single', OVERLAP: 'overlap' } },
@@ -59,7 +60,10 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
     layerTree: { normalizeLayerFolderState: value => value || {}, pruneLayerItemVisibility() {} },
     countries: { countryFeatureById: () => null, scheduleCountryLabelAnchors() {} },
     layers: { markLayerTreeDirty() {} },
-    domains: { selectionDomain: { clear() {} } },
+    domains: {
+      layerTreeController: { render(force) { assert.equal(force, true); searchRenders += 1; } },
+      selectionDomain: { clear() {} },
+    },
     countryEditingB: {
       resetBoundaryEditState() {}, resetMergeState() {}, resetGenericFeatureMergeState() {},
       resetTerritorialUnitEditState() {}, resetTerritoryEditingState() {},
@@ -68,12 +72,12 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
     spatialQuery: { mapEditClient: { invalidateBoundaryCache() {} }, markCountryGeometriesChanged() {} },
     taskUi: { updateModeButtons() {} },
   });
-  return { owner, state };
+  return { owner, state, searchRenders: () => searchRenders };
 }
 
 test('label history restores only changed user-label settings and leaves unrelated presentation alone', () => {
   const label = { id: 'label-copy', name: '서울', kind: 'capital', coordinates: [127, 37], notes: '' };
-  const { owner, state } = historySnapshotFixture({
+  const { owner, state, searchRenders } = historySnapshotFixture({
     labels: [label],
     labelSettings: { 'label:label-copy': { pinned: true, manualPosition: [127, 37] }, 'country:KOR': { pinned: true } },
   });
@@ -89,6 +93,7 @@ test('label history restores only changed user-label settings and leaves unrelat
   assert.equal(state.labels.length, 1);
   assert.deepEqual(state.labelSettings['label:label-copy'], { pinned: true, manualPosition: [127, 37] });
   assert.deepEqual(state.labelSettings['country:KOR'], { pinned: false });
+  assert.equal(searchRenders(), 1);
 
   const beforeCopy = owner.snapshotEditable();
   state.labels.push({ ...label, id: 'temporary-copy', coordinates: [128, 37] });
@@ -96,4 +101,5 @@ test('label history restores only changed user-label settings and leaves unrelat
   owner.restoreEditable(beforeCopy);
   assert.equal(state.labels.some(item => item.id === 'temporary-copy'), false);
   assert.equal('label:temporary-copy' in state.labelSettings, false);
+  assert.equal(searchRenders(), 2);
 });
