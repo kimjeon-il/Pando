@@ -1,0 +1,88 @@
+name: Place Runtime
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/modules/app-camera-navigation.js'
+      - 'assets/js/modules/app-object-commands.js'
+      - 'assets/js/modules/app-capability-ports-project-io.js'
+      - 'assets/js/modules/layer-tree-controller.js'
+      - 'assets/js/modules/place-*.js'
+      - 'assets/js/modules/project-state.js'
+      - 'assets/js/workers/place-worker.js'
+      - 'assets/js/workers/worker-rpc-host.js'
+      - 'tests/helpers/place-*.mjs'
+      - 'tests/unit/camera-navigation.test.mjs'
+      - 'tests/unit/layer-tree-controller.test.mjs'
+      - 'tests/unit/place-*.test.mjs'
+      - 'tests/unit/project-state.test.mjs'
+      - 'tests/unit/worker-rpc.test.mjs'
+      - 'tests/browser/place-runtime.spec.mjs'
+      - '.github/workflows/place-runtime.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  place-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint place runtime
+        run: >-
+          pnpm exec eslint
+          assets/js/modules/app-camera-navigation.js
+          assets/js/modules/app-object-commands.js
+          assets/js/modules/app-capability-ports-project-io.js
+          assets/js/modules/layer-tree-controller.js
+          assets/js/modules/place-contract.js
+          assets/js/modules/place-codec.js
+          assets/js/modules/place-runtime.js
+          assets/js/modules/place-worker-store.js
+          assets/js/modules/project-state.js
+          assets/js/workers/place-worker.js
+          assets/js/workers/worker-rpc-host.js
+          tests/helpers/place-synthetic.mjs
+          tests/unit/camera-navigation.test.mjs
+          tests/unit/layer-tree-controller.test.mjs
+          tests/unit/place-codec.test.mjs
+          tests/unit/place-label-workflow.test.mjs
+          tests/unit/place-layout.test.mjs
+          tests/unit/place-million.test.mjs
+          tests/unit/place-runtime.test.mjs
+          tests/unit/place-worker-store.test.mjs
+          tests/unit/project-state.test.mjs
+          tests/unit/worker-rpc.test.mjs
+          tests/browser/place-runtime.spec.mjs
+      - name: Run focused unit regressions
+        run: >-
+          node --test
+          tests/unit/camera-navigation.test.mjs
+          tests/unit/layer-tree-controller.test.mjs
+          tests/unit/place-codec.test.mjs
+          tests/unit/place-label-workflow.test.mjs
+          tests/unit/place-layout.test.mjs
+          tests/unit/place-runtime.test.mjs
+          tests/unit/place-worker-store.test.mjs
+          tests/unit/project-state.test.mjs
+          tests/unit/worker-rpc.test.mjs
+      - name: Run million-place gate
+        run: node --test tests/unit/place-million.test.mjs
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run browser regression
+        run: pnpm exec playwright test tests/browser/place-runtime.spec.mjs
