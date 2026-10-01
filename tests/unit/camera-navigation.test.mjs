@@ -15,13 +15,16 @@ test('continuous zoom can defer Worker settle and view persistence until the ges
       },
     },
     domains: {
-      renderingDomain: { endInteraction: reason => events.push(['settle', reason]) },
+      renderingDomain: {
+        endInteraction: reason => events.push(['settle', reason]),
+        invalidateView: reason => events.push(['view', reason]),
+      },
       projectDomain: { queueViewAutosave: () => events.push(['persist']) },
     },
   });
 
   assert.equal(owner.zoomBy(1.1, false, { settle: false, persist: false }), true);
-  assert.deepEqual(events, []);
+  assert.deepEqual(events, [['view', 'zoom-control-interaction']]);
   assert.equal(owner.zoomBy(1.1, false), true);
-  assert.deepEqual(events, [['settle', 'zoom-control-settle'], ['persist']]);
+  assert.deepEqual(events, [['view', 'zoom-control-interaction'], ['settle', 'zoom-control-settle'], ['persist']]);
 });
