@@ -32,6 +32,7 @@ export function createPropertyEditorBindings({
   focusObjectRef,
   convertSelectedGenericFeature,
   copySelectedHydroForEditing,
+  copySelectedPlaceForEditing,
   undo,
   redo,
   closeObjectActionsMenu,
@@ -59,6 +60,7 @@ export function createPropertyEditorBindings({
   function bindEditorFields() {
     if (bound) return;
     bound = true;
+    listen($('copyPlaceBtn'), 'click', () => copySelectedPlaceForEditing());
     bindColorPickers();
     bindChangeFields([
       { id: 'hydroNameInput', field: 'name', commit: commitHydroEdit, transform: value => value.trim() },

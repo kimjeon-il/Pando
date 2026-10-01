@@ -1,3 +1,5 @@
+import { isBuiltinPlaceId } from './place-contract.js';
+
 /** GenericCommands: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -291,14 +293,34 @@ export function createGenericCommands() {
     (0, dependencies.feedback.setActionStatus)(`${label.name} 지명을 추가했습니다.`, 'success');
   }
 
+  function copySelectedPlaceForEditing() {
+    const selected = dependencies.projectState.state.selected;
+    if (selected?.domain !== 'label' || !isBuiltinPlaceId(selected.id)) return false;
+    const source = dependencies.labelPresentation.labelById(selected.id);
+    if (!source) return false;
+    const label = { id: dependencies.surfaces.uid('label'), name: source.name, kind: source.kind,
+      coordinates: source.coordinates.slice(), notes: '', sourcePlaceId: source.id };
+    dependencies.domains.projectDomain.recordHistory({ type: 'builtin-place-copy', affectedIds: [label.id] });
+    dependencies.projectState.state.labels.push(label);
+    dependencies.projectState.state.labelSettings[dependencies.labelPresentation.labelKey('label', label.id)] = dependencies.labelPresentation.automaticLabelSettings(label.kind, { manualPosition: label.coordinates, pinned: true });
+    dependencies.layers.markLayerTreeDirty();
+    dependencies.propertyEditingA.applyLabelSelectionIntent(label.id);
+    dependencies.domains.renderingDomain.invalidateLabels('builtin-place-copied');
+    dependencies.domains.projectDomain.queueAutosave();
+    dependencies.feedback.setActionStatus(`${label.name} 편집용 복사본을 만들었습니다.`, 'success');
+    return label;
+  }
+
   function labelDragBehavior() {
     return dependencies.platform.d3.behavior.drag()
-      .on('dragstart', function() {
+      .on('dragstart', function(label) {
+        if (isBuiltinPlaceId(label.id)) return;
         if (dependencies.projectState.state.tool !== 'select') return;
         dependencies.domains.projectDomain.recordHistory();
         dependencies.platform.d3.event.sourceEvent?.stopPropagation?.();
       })
       .on('drag', function(label) {
+        if (isBuiltinPlaceId(label.id)) return;
         if (dependencies.projectState.state.tool !== 'select') return;
         const coord = (0, dependencies.mapView.screenToGeo)(dependencies.platform.d3.mouse(dependencies.mapLayers.svg.node()));
         if (!coord) return;
@@ -307,6 +329,7 @@ export function createGenericCommands() {
         dependencies.platform.d3.select(this).attr('transform', `translate(${p[0]},${p[1]})`);
       })
       .on('dragend', function(label) {
+        if (isBuiltinPlaceId(label.id)) return;
         if (dependencies.projectState.state.tool !== 'select') return;
         dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', label.id)] = (0, dependencies.labelServices.normalizeLabelSettings)({
           ...(dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', label.id)] || {}),
@@ -333,6 +356,7 @@ export function createGenericCommands() {
     get enterGenericFeatureMergeMode() { return enterGenericFeatureMergeMode; },
     get enterGenericFeatureSplitMode() { return enterGenericFeatureSplitMode; },
     get finishSplitGenericFeatureDraft() { return finishSplitGenericFeatureDraft; },
+    copySelectedPlaceForEditing,
     get labelDragBehavior() { return labelDragBehavior; },
     get promoteSelectedGenericFeatureToCountry() { return promoteSelectedGenericFeatureToCountry; },
     get requestDraftDiscard() { return requestDraftDiscard; },

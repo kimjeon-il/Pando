@@ -119,9 +119,9 @@ test('quantized globe windows conservatively retain every legacy visible tile', 
 });
 
 test('gpu hydro request cache no longer includes raw view revision', () => {
-  const source = fs.readFileSync(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
+  const source = fs.readFileSync(new URL('../../assets/js/modules/gpu-hydro-preparation.js', import.meta.url), 'utf8');
   const start = source.indexOf('function requestHydroView');
-  const end = source.indexOf('let hydroRenderFrame', start);
+  const end = source.indexOf('function loadHydroLogicalFeature', start);
   const requestSource = source.slice(start, end);
   assert.ok(requestSource.includes('createHydroTileWindow'));
   assert.doesNotMatch(requestSource, /viewState\?\.revision|currentRenderRevision/);

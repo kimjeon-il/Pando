@@ -52,7 +52,7 @@ function coordinateVector(coordinate) {
   return { lon, lat, point: [cosine * Math.cos(lon), cosine * Math.sin(lon), Math.sin(lat)] };
 }
 
-function createFrameProjectors({
+export function createFrameProjectors({
   mode,
   cssTranslate,
   cssScale,

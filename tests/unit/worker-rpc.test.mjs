@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import { setImmediate } from 'node:timers';
 import test from 'node:test';
 
 import {
@@ -7,6 +10,42 @@ import {
   WORKER_RPC_PROTOCOL_VERSION,
   createWorkerRpcClient,
 } from '../../assets/js/modules/worker-rpc.js';
+
+function workerHost(handlers) {
+  const replies=[];
+  const scope={AbortController:globalThis.AbortController,performance,postMessage:message=>replies.push(message)};
+  vm.runInNewContext(readFileSync(new URL('../../assets/js/workers/worker-rpc-host.js',import.meta.url),'utf8'),{self:scope});
+  scope.PandoLabWorkerRpc.install({handlers});
+  const send=(type,requestId=1)=>scope.onmessage({data:{rpc:WORKER_RPC_PROTOCOL,protocolVersion:WORKER_RPC_PROTOCOL_VERSION,type,requestId,operation:'place.viewport'}});
+  return {send,replies};
+}
+const hostTick=()=>new Promise(resolve=>setImmediate(resolve));
+
+test('RPC host cancellation aborts the operation signal and releases the request', async () => {
+  let signal;
+  const host=workerHost({'place.viewport':(_payload,context)=>new Promise((_resolve,reject)=>{
+    signal=context.signal;
+    signal.addEventListener('abort',()=>reject(signal.reason),{once:true});
+  })});
+  host.send('request');host.send('cancel');await hostTick();
+  assert.equal(signal.aborted,true);assert.equal(host.replies[0].ok,false);
+  assert.equal(host.replies[0].error.category,'CANCELLED');
+});
+test('unknown cancellation cannot poison a later request with the same ID', async () => {
+  const host=workerHost({'place.viewport':()=>42});
+  host.send('cancel');host.send('request');await hostTick();
+  assert.equal(host.replies[0].ok,true);assert.equal(host.replies[0].result,42);
+});
+test('failed operation aborts sibling fetch signals instead of retaining batch work', async () => {
+  let siblingAborted=false;
+  const host=workerHost({'place.viewport':(_payload,context)=>Promise.all([
+    Promise.reject(new Error('offline')),
+    new Promise((_resolve,reject)=>context.signal.addEventListener('abort',()=>{siblingAborted=true;reject(context.signal.reason);},{once:true})),
+  ])});
+  host.send('request');await hostTick();
+  assert.equal(siblingAborted,true);assert.equal(host.replies[0].ok,false);
+  assert.equal(host.replies[0].error.message,'offline');
+});
 
 function fakeWorker(responder = null) {
   return {

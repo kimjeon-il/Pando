@@ -18,6 +18,7 @@ const DATA_MANIFEST_PATHS = Object.freeze([
   `assets/data/world-preview-v${appVersion}.json`,
   'assets/data/terrain/v0.12.6/manifest.json',
   'assets/data/hydro/v0.13.1/manifest.json',
+  'assets/data/places/manifest.json',
 ]);
 
 function gitRevision() {

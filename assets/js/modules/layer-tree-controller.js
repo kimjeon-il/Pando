@@ -1,3 +1,5 @@
+import { normalizeObjectRef } from './object-selection-controller.js';
+import { normalizePlaceQuery, PLACE_LIMITS } from './place-contract.js';
 import { createLayerListModel, visibleLayerRows } from './layer-list-model.js';
 
 /**
@@ -14,6 +16,10 @@ export function createLayerTreeController({
   createEmptyState,
   createIcon,
   searchDelay = 120,
+  builtinSearch = null,
+  cancelBuiltinSearch = () => {},
+  builtinRecordVisible = () => true,
+  onSearchError = () => {},
 } = {}) {
   let searchTimer = 0;
   let renderedRevision = -1;
@@ -21,6 +27,10 @@ export function createLayerTreeController({
   let renderedSearchRefs = [];
   let hydrated = false;
   let disposed = false;
+  let searchGeneration = 0;
+  let builtinQuery = null;
+  let builtinRows = [];
+  let builtinTruncated = false;
 
   const selection = () => model.selectionSnapshot?.().selection || { primaryKey: null, items: [] };
 
@@ -96,6 +106,46 @@ export function createLayerTreeController({
     return visibleLayerRows(presentation, {}, query).filter(item => item.kind === 'object');
   }
 
+  function commitRows(query, rows) {
+    const results = elements.searchResults;
+    results.replaceChildren();
+    renderedSearchRefs = rows.map(item => item.ref).filter(Boolean);
+    if (query && rows.length) { results.append(...rows.map(rowFor)); if (builtinTruncated) results.append(createEmptyState('검색 결과를 일부 표시했습니다.', '이름의 앞부분을 더 입력해 범위를 좁히세요.')); }
+    else if (query) results.append(createEmptyState('검색 결과가 없습니다.', '내장 지명은 두 글자 이상으로 이름의 앞부분을 검색하세요.'));
+    commands.syncCanonicalControls?.(results);
+    syncSelection();
+  }
+
+  function combinedRows(query) {
+    const rows = [...rowsFor(query).slice(0, 100), ...builtinRows.filter(row => builtinRecordVisible(row))];
+    return [...new Map(rows.map(row => [row.key, row])).values()].slice(0, 150);
+  }
+
+  function requestBuiltinRows(query) {
+    const normalized = normalizePlaceQuery(query);
+    if (model.snapshot().searchActive === false || builtinQuery === normalized) return;
+    builtinQuery = normalized;
+    const generation = ++searchGeneration;
+    cancelBuiltinSearch();
+    builtinRows = [];
+    builtinTruncated = false;
+    if (!builtinSearch || [...normalized].length < 2) return;
+    Promise.resolve().then(() => builtinSearch(normalized)).then(result => {
+      if (disposed || generation !== searchGeneration || model.snapshot().searchActive === false || normalizePlaceQuery(model.snapshot().search) !== normalized) return;
+      builtinTruncated = result.truncated === true;
+      builtinRows = result.records.slice(0, PLACE_LIMITS.searchResults).map(record => {
+        const ref = normalizeObjectRef({ domain: 'label', type: record.kind, id: record.id });
+        return { ...record, key: ref.key, ref, layerGroup: 'labels', kind: 'object', meta: '내장 지명' };
+      });
+      commitRows(query, combinedRows(query));
+    }).catch(error => {
+      if (disposed || generation !== searchGeneration) return;
+      builtinQuery = null;
+      if (error.cancelled || error.name === 'AbortError') return;
+      onSearchError(error);
+    });
+  }
+
   function render(force = false) {
     if (disposed) return false;
     const snapshot = model.snapshot();
@@ -106,13 +156,8 @@ export function createLayerTreeController({
     results.replaceChildren();
     results.classList.toggle('hidden', !query);
     renderedSearchRefs = [];
-    if (query) {
-      const rows = rowsFor(query);
-      renderedSearchRefs = rows.map(item => item.ref).filter(Boolean);
-      if (rows.length) results.append(...rows.map(rowFor));
-      else results.append(createEmptyState('검색 결과가 없습니다.', '다른 이름이나 유형으로 검색해 보세요.'));
-      commands.syncCanonicalControls?.(results);
-    }
+    requestBuiltinRows(query);
+    commitRows(query, query ? combinedRows(query) : []);
     renderedRevision = snapshot.revision;
     renderedSearch = query;
     syncSelection();
@@ -187,6 +232,9 @@ export function createLayerTreeController({
       if (row && !row.contains(event.relatedTarget)) commands.hoverItem?.(row.dataset.objectSearchSelect, row.dataset.itemId, false);
     });
     elements.search?.addEventListener('input', event => {
+      searchGeneration += 1;
+      builtinQuery = null;
+      cancelBuiltinSearch();
       commands.setSearchValue(event.currentTarget.value || '');
       window.clearTimeout(searchTimer);
       searchTimer = window.setTimeout(() => {
@@ -212,13 +260,25 @@ export function createLayerTreeController({
     });
   }
 
+  function cancelSearch() {
+    searchGeneration += 1;
+    builtinQuery = null;
+    builtinRows = [];
+    builtinTruncated = false;
+    window.clearTimeout(searchTimer);
+    cancelBuiltinSearch();
+  }
+
   function dispose() {
     disposed = true;
+    searchGeneration += 1;
+    cancelBuiltinSearch();
+    builtinRows = [];
     renderedSearchRefs = [];
     window.clearTimeout(searchTimer);
   }
 
-  return Object.freeze({ bind, render, syncSelection, syncLocks, beginHydration, completeHydration, dispose });
+  return Object.freeze({ bind, render, syncSelection, syncLocks, beginHydration, completeHydration, cancelSearch, dispose });
 }
 
 export function createAppLayerTreeController(runtime = {}) {
@@ -239,8 +299,12 @@ export function createAppLayerTreeController(runtime = {}) {
     groups: { search: layerSearchGroupKeys },
     createEmptyState: runtime.createEmptyState,
     createIcon,
+    builtinSearch: runtime.builtinSearch,
+    cancelBuiltinSearch: runtime.cancelBuiltinSearch,
+    builtinRecordVisible: record => !(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
+    onSearchError: runtime.onSearchError,
     model: {
-      snapshot: () => ({ revision: state.layerTreeRevision, search: state.layerSearch }),
+      snapshot: () => ({ revision: state.layerTreeRevision, search: state.layerSearch, searchActive: runtime.isSearchOpen() }),
       items: layerTreeItems,
       itemRef: layerItemObjectRef,
       selectionSnapshot: () => selectionDomain.snapshot(),
