@@ -2182,7 +2182,6 @@ export function createRenderingDomain({
     renderCountries,
     renderHydro,
     renderTerritorialUnits,
-    renderDistributions,
     renderGenericFeatures,
     getDistributionRenderRows: buildDistributionRenderRows,
     resetProjectGeneration,
