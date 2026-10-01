@@ -1,3 +1,4 @@
+import { isBuiltinPlaceId } from './place-contract.js';
 import { applySvgInteractionMasks } from './interaction-svg-mask.js';
 import { rendererOwnsSceneGeometry } from './render-channel-ownership.js';
 import { interactionRoleStyle, resolveMapInteractionStyle, interactionNodeRole, interactionStrokeScale, scaleInteractionStroke } from './map-interaction-style.js';
@@ -352,7 +353,7 @@ export function createRenderingDomain({
       });
     selection.select('text').text(d => d.name);
     selection.on('.drag', null);
-    if (state.tool === 'select' && !state.labelPlacementMode) selection.call(labels.labelDragBehavior?.());
+    if (state.tool === 'select' && !state.labelPlacementMode) selection.filter(label => !isBuiltinPlaceId(label.id)).call(labels.labelDragBehavior?.());
     selection.exit().remove();
     userLabelPositionBindings = [];
     layer.selectAll('g.user-label').each(function(label) {
@@ -1072,6 +1073,7 @@ export function createRenderingDomain({
     active();
     stats.invalidations += 1;
     stats.lastReason = String(reason);
+    if (mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION | MAP_RENDER_DIRTY.PROJECT)) labels.preparePlaces?.();
     return coordinator?.invalidate?.(mask, reason) ?? false;
   };
   const invalidateView = reason => invalidate(
@@ -1181,10 +1183,12 @@ export function createRenderingDomain({
   );
   const beginInteraction = reason => {
     active();
+    labels.beginPlaceInteraction?.();
     coordinator?.beginInteraction?.(reason || 'interaction');
   };
   const endInteraction = reason => {
     active();
+    labels.preparePlaces?.();
     const resolvedReason = reason || 'interaction-end';
     stats.invalidations += 1;
     stats.lastReason = String(resolvedReason);
@@ -1943,6 +1947,7 @@ export function createRenderingDomain({
   });
   const dispose = () => {
     uploadListeners.forEach(remove => remove());
+    labels.disposePlaces?.();
     gpuMapRenderer?.dispose?.();
     uploadScheduler.dispose();
     pendingVisualFrames.clear();

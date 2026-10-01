@@ -39,6 +39,7 @@
 
   function install({ handlers = {}, onEvent = null } = {}) {
     const cancelled = new Set();
+    const controllers = new Map();
     const handlerMap = new Map(Object.entries(handlers || {}));
 
     function emitEvent(operation, payload = null, { projectRevision = 0, timing = null, transfer = [] } = {}) {
@@ -66,8 +67,11 @@
       const operation = text(message.operation);
       const projectRevision = revision(message.projectRevision);
       const startedAt = now();
+      const controller = new scope.AbortController();
+      controllers.set(requestId, controller);
       const context = Object.freeze({
         requestId,
+        signal: controller.signal,
         operation,
         projectRevision,
         priority: Number(message.priority || 0),
@@ -116,6 +120,8 @@
           timing: { durationMs: Math.max(0, now() - startedAt) },
         };
       } finally {
+        controller.abort();
+        controllers.delete(requestId);
         cancelled.delete(requestId);
       }
       if (transferables.length) scope.postMessage(response, transferables);
@@ -126,7 +132,8 @@
       const message = event?.data || {};
       if (message.rpc !== PROTOCOL || Number(message.protocolVersion) !== PROTOCOL_VERSION) return;
       if (message.type === TYPES.CANCEL) {
-        cancelled.add(Number(message.requestId || 0));
+        const requestId = Number(message.requestId || 0);
+        if (controllers.has(requestId)) { cancelled.add(requestId); controllers.get(requestId).abort(createCancellationError()); }
         return;
       }
       if (message.type === TYPES.EVENT) {

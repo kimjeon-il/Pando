@@ -602,9 +602,11 @@
                 <select id="labelKindInput"><option value="capital">수도</option><option value="city">도시</option><option value="town">마을</option><option value="region">지역명</option><option value="mountain">산</option><option value="water">수역</option><option value="custom">기타</option></select>
               </div>
               <div class="ui-info-list editor-info-list editor-property-list"><div><span>위치</span><strong id="labelPositionValue">지도에서 자동 배치</strong></div></div>
+              <div id="labelBuiltinInfo" hidden><p class="ui-help-text">내장 지명입니다. 직접 수정하려면 편집용 복사본을 만드세요.</p><div class="ui-info-list editor-info-list editor-property-list"><div><span>출처</span><strong id="labelBuiltinSource"></strong></div><div><span>원본 ID</span><strong id="labelBuiltinId"></strong></div></div></div>
               <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="label-details"><summary><span>메모</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div></div></details>
             </section>
 
+            <section id="copyPlaceSection" class="editor-section editor-action-section" aria-label="편집" hidden><button id="copyPlaceBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button></section>
           </form>
 
           <section id="hydroProperties" class="editor-view editor-object-form hidden">

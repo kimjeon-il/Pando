@@ -141,7 +141,8 @@ export function createMapRenderCoordinator({
 
   function render({ dirtyMask, reasons = [] }) {
     const requestedMask = dirtyMask;
-    const mask = expandedMask(requestedMask);
+    let mask = expandedMask(requestedMask);
+    if (interactionActive) mask &= ~MAP_RENDER_DIRTY.LABEL_LAYOUT;
     const startedAt = now();
     const rendererTimes = {};
     const full = !!(requestedMask & MAP_RENDER_DIRTY.PROJECT);

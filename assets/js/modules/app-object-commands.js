@@ -1,3 +1,4 @@
+import { isBuiltinPlaceId } from './place-contract.js';
 import { subunitSelectionPolicy, territorialDeletionAllowed, removeTerritorialUnits } from './territorial-interaction-policy.js';
 import './territorial-edit-plan.js';
 /** ObjectCommands: extracted application responsibility.
@@ -28,7 +29,7 @@ export function createObjectCommands() {
     if (group === 'distributions') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: 'distribution', id: key });
     if (group === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(key)) return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: (0, dependencies.hydroPresentation.hydroEditById)(key)?.properties?.category || 'river', id: key });
     if (group === 'genericFeatures') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'generic', type: 'feature', id: key });
-    if (group === 'labels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'label', type: dependencies.projectState.state.labels.find(item => String(item.id) === key)?.kind || 'label', id: key });
+    if (group === 'labels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'label', type: dependencies.labelPresentation.labelById(key)?.kind || 'label', id: key });
     return null;
   }
 
@@ -39,7 +40,7 @@ export function createObjectCommands() {
     if (ref.domain === 'distribution') return !!(0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
     if (ref.domain === 'generic') return dependencies.projectState.state.genericFeatures.some(item => String(item.id) === ref.id);
     if (ref.domain === 'hydro') return !!(0, dependencies.hydroModel.hydroFeatureById)(ref.id);
-    if (ref.domain === 'label') return dependencies.projectState.state.labels.some(item => String(item.id) === ref.id);
+    if (ref.domain === 'label') return !!dependencies.labelPresentation.labelById(ref.id);
     return false;
   }
 
@@ -69,7 +70,7 @@ export function createObjectCommands() {
       const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(feature?.properties?.category || ref.type);
       return { name: (0, dependencies.hydroPresentation.hydroEditorName)(feature?.properties?.name, (0, dependencies.hydroPresentation.hydroFallbackName)(category)), type: (0, dependencies.hydroPresentation.hydroCategoryLabel)(category), detail: '' };
     }
-    const label = dependencies.projectState.state.labels.find(item => String(item.id) === ref.id);
+    const label = dependencies.labelPresentation.labelById(ref.id);
     const labelKind = { capital: '수도', city: '도시', town: '마을', region: '지역명', mountain: '산', water: '수역', custom: '기타' };
     return { name: label?.name || ref.id, type: '지명', detail: labelKind[label?.kind] || '지명' };
   }
@@ -88,7 +89,7 @@ export function createObjectCommands() {
       }).filter(Boolean);
       if (features.length) feature = { type: 'FeatureCollection', features };
     } else if (ref.domain === 'label') {
-      const label = dependencies.projectState.state.labels.find(item => String(item.id) === ref.id);
+      const label = dependencies.labelPresentation.labelById(ref.id);
       if (label) {
         (0, dependencies.navigation.focusCoordinate)(label.coordinates);
         if (announce) (0, dependencies.feedback.setActionStatus)('선택 객체로 이동했습니다.', 'success', 2200);
@@ -124,6 +125,7 @@ export function createObjectCommands() {
   function objectBatchCapabilities(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return new Set();
+    if (ref.domain === 'label' && isBuiltinPlaceId(ref.id)) return new Set();
     if (ref.domain === 'hydro' && !(0, dependencies.hydroPresentation.hydroEditById)(ref.id)) return new Set(['visible']);
     const values = new Set(['visible']);
     if (ref.domain === 'territorial') {
@@ -345,7 +347,7 @@ export function createObjectCommands() {
     const canDelete = refs.length > 1
       ? capabilities.has('delete')
       : !!primary && (primary.domain !== 'hydro' || !!(0, dependencies.hydroPresentation.hydroEditById)(primary.id));
-    const deleteDisabled = !canDelete || !!(primary && objectRefLocked(primary));
+    const deleteDisabled = !canDelete || (primary?.domain === 'label' && isBuiltinPlaceId(primary.id)) || !!(primary && objectRefLocked(primary));
     const lockLabel = locked ? '잠금 해제' : refs.length > 1 ? '모두 잠금' : '잠금';
     const status = (0, dependencies.platform.$)('editorObjectStatus');
     if (status) {

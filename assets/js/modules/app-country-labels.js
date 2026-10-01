@@ -1,3 +1,7 @@
+import { createMapVisualFrame } from './map-visual-frame.js';
+import { placeLabelDimensions } from './label-layout.js';
+import { createPlaceRuntime } from './place-runtime.js';
+import { PLACE_LIMITS } from './place-contract.js';
 import { countryLabelFlag } from './country-label-flags.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
 import { territorialSymbolGroup, territorialSymbolVisibility } from './layer-presentation.js';
@@ -13,9 +17,35 @@ export function createCountryLabels() {
   let countryLabelScreenAreas;
   let countryDisplaySource;
   let countryDisplayIndex;
+  let builtinPlaces;
   function connect(ports) {
     if (dependencies) throw new Error('country-labels already connected');
     dependencies = ports;
+  }
+
+  function placeView() {
+    dependencies.mapView.updateProjection();
+    const state = dependencies.projectState.state;
+    const frame = createMapVisualFrame({ viewState: dependencies.mapHostViewB.projectionViewSnapshot(), projectCoordinate: dependencies.mapView.activeProjection() });
+    const projectionFrame = { mode: frame.mode, cssTranslate: frame.cssTranslate, cssScale: frame.cssScale, cssViewport: frame.cssViewport,
+      safeInset: frame.safeInset, flatCenter: frame.flatCenter, worldOffsets: frame.worldOffsets,
+      rows: { rowX: frame.rowX, rowY: frame.rowY, rowZ: frame.rowZ } };
+    return { projection: state.projection, threshold: currentMapZoom(), width: state.size.width, height: state.size.height,
+      scale: frame.cssScale, flatCenter: state.view.flatCenter, rotation: state.view.globeRotation, projectionFrame };
+  }
+
+  function preparePlaces() {
+    if (dependencies.projectState.state.mapMoving) { builtinPlaces.beginInteraction(); return Promise.resolve(false); }
+    if (dependencies.projectState.state.layerVisibility.labels === false) { builtinPlaces.cancelViewport(); return builtinPlaces.settle(null); }
+    return builtinPlaces.settle(placeView());
+  }
+
+  function labelById(id) {
+    const user = dependencies.projectState.state.labels.find(item => String(item.id) === String(id));
+    if (user) return user;
+    const builtin = builtinPlaces.resolve(id);
+    if (builtin) builtinPlaces.retain(builtin);
+    return builtin;
   }
 
   function currentMapZoom() {
@@ -157,7 +187,7 @@ export function createCountryLabels() {
     patchOutline.exit().remove();
   }
 
-  function visibleLabelLayout() {
+  function visibleLabelLayout(frameContext = null) {
     dependencies.countries.scheduleCountryLabelAnchors?.();
     const candidates = [];
     const indexedLabelIds = dependencies.projectState.state.layerVisibility.labels
@@ -189,7 +219,7 @@ export function createCountryLabels() {
       const anchor = dependencies.labelPresentation.countryLabelAnchors.get(id);
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : anchor;
       if (!Array.isArray(coordinate)) continue;
-      const point = (0, dependencies.mapLayout.projectVisibleCoordinate)(coordinate);
+      const point = (0, dependencies.mapLayout.projectVisibleCoordinate)(coordinate, frameContext);
       if (!point) continue;
       const selected = labelRef ? dependencies.domains.selectionDomain.has(labelRef)
         : (dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY) && dependencies.projectState.state.selected.id === id;
@@ -209,19 +239,24 @@ export function createCountryLabels() {
         selected,
       });
     }
-    if (dependencies.projectState.state.layerVisibility.labels) for (const label of dependencies.projectState.state.labels) {
-      const selected = dependencies.projectState.state.selected?.domain === 'label' && String(dependencies.projectState.state.selected.id) === String(label.id);
-      if (!selected && !indexedLabelIds.has(String(label.id))) continue;
+    const copiedIds = new Set(dependencies.projectState.state.labels.map(label => label.sourcePlaceId).filter(Boolean));
+    const selectedIds = new Set(dependencies.domains.selectionDomain.snapshot().selection.items.filter(ref => ref.domain === 'label').map(ref => String(ref.id)));
+    const builtinLabels = [...new Map([...builtinPlaces.snapshot().records, ...[...selectedIds].map(id => builtinPlaces.resolve(id)).filter(Boolean)].map(label => [label.id, label])).values()].filter(label => !copiedIds.has(label.id));
+    const builtinIds = new Set(builtinLabels.map(label => label.id));
+    const labelSources = [...dependencies.projectState.state.labels, ...builtinLabels];
+    if (dependencies.projectState.state.layerVisibility.labels) for (const label of labelSources) {
+      const selected = selectedIds.has(String(label.id));
+      if (!selected && !builtinIds.has(label.id) && !indexedLabelIds.has(String(label.id))) continue;
       const settings = (0, dependencies.labelPresentation.automaticLabelSettings)(label.kind, dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', label.id)] || {});
       if (zoom < Number(settings.minZoom ?? -Infinity) || zoom > Number(settings.maxZoom ?? Infinity)) continue;
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
-      const point = (0, dependencies.mapLayout.projectVisibleCoordinate)(coordinate);
+      const point = (0, dependencies.mapLayout.projectVisibleCoordinate)(coordinate, frameContext);
       if (!point) continue;
       const priority = settings.priority ?? (label.kind === 'capital' ? dependencies.labelPresentation.LABEL_PRIORITIES.capital : label.kind === 'city' ? dependencies.labelPresentation.LABEL_PRIORITIES.majorCity : label.kind === 'region' ? dependencies.labelPresentation.LABEL_PRIORITIES.administrative : dependencies.labelPresentation.LABEL_PRIORITIES.place);
       candidates.push({
         key: (0, dependencies.labelPresentation.labelKey)('label', label.id), sourceType: 'label', source: label, point,
-        width: Math.max(22, [...String(label.name || '')].length * 9 + 16), height: 19,
-        priority, minZoom: settings.minZoom, maxZoom: settings.maxZoom,
+        ...placeLabelDimensions(label.name),
+        priority, minZoom: Math.max(settings.minZoom, Number(label.minZoom || 0)), maxZoom: settings.maxZoom,
         pinned: settings.pinned, collisionGroup: settings.collisionGroup,
         selected,
       });
@@ -229,7 +264,7 @@ export function createCountryLabels() {
     const labelDensity = Math.max(0.25, Math.min(1, Number(dependencies.renderScene.currentRenderQuality.labelDensity) || 1));
     const viewportArea = Math.max(1, Number(dependencies.projectState.state.size.width || 1) * Number(dependencies.projectState.state.size.height || 1));
     const backgroundLimit = labelDensity >= 0.99
-      ? Number.POSITIVE_INFINITY
+      ? PLACE_LIMITS.layoutCandidates
       : Math.max(labelDensity < 0.6 ? 42 : 72, Math.floor(viewportArea / 8_500 * labelDensity));
     const protectedCandidates = candidates.filter(candidate => candidate.selected || candidate.pinned);
     const protectedCandidateKeys = new Set(protectedCandidates.map(candidate => candidate.key));
@@ -279,6 +314,18 @@ export function createCountryLabels() {
 
   function initializeLabelLayoutMetrics() {
     (labelLayoutMetrics = {});
+    builtinPlaces = createPlaceRuntime({
+      manifestUrl: dependencies.platform.runtimeAssetUrl('../data/places/manifest.json').href,
+      createWorker: () => new Worker(dependencies.platform.runtimeAssetUrl('workers/place-worker.js'), { type: 'module', name: 'pandolab-places' }),
+      getProtectedIds: () => {
+        const selection = dependencies.domains.selectionDomain.snapshot().selection;
+        const refs = selection.items.filter(ref => ref.domain === 'label');
+        return [refs.find(ref => ref.key === selection.primaryKey)?.id, ...refs.map(ref => ref.id)].filter(Boolean);
+      },
+      onSettled: () => { dependencies.domains.layerTreeController.cancelSearch(); dependencies.domains.layerTreeController.render(true); },
+      onSnapshot: () => dependencies.domains.renderingDomain.invalidateLabels('builtin-places-ready'),
+      onError: error => dependencies.feedback.reportOperationError(error, '내장 지명을 불러오지 못했습니다.', 'PL-PLACE-LOAD-001'),
+    });
   }
 
   function initializeCountryLabelScreenAreas() {
@@ -291,6 +338,9 @@ export function createCountryLabels() {
 
   return Object.freeze({
     connect,
+    preparePlaces,
+    labelById,
+    get builtinPlaces() { return builtinPlaces; },
     initializeCountryOutlineCache,
     initializeLabelLayoutMetrics,
     initializeCountryLabelScreenAreas,
