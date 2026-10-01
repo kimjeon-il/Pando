@@ -115,6 +115,7 @@ export function createCameraNavigation() {
     const next = current * factor;
     if (!setMapZoomValue(next)) return false;
     if (settle) dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-settle');
+    else dependencies.domains.renderingDomain?.invalidateView?.('zoom-control-interaction');
     if (persist) dependencies.domains.projectDomain.queueViewAutosave();
     return true;
   }
