@@ -692,7 +692,7 @@
   display: grid;
 }
 
-.editor-panel:not([data-editor-view="actions"]) .editor-delete-section {
+.editor-panel:not([data-editor-view="actions"]) .editor-delete-control {
   display: none;
 }
 
@@ -769,22 +769,21 @@
   line-height: var(--ui-line-normal);
 }
 
-.editor-delete-section {
-  margin-top: var(--ui-space-6);
-  padding-top: var(--ui-space-3);
-  border-top: 1px solid var(--border);
+.editor-action-list > .editor-delete-control {
+  display: contents;
 }
 
-.editor-delete-row:not(:disabled) {
-  color: var(--danger-text);
-}
-
-.editor-delete-row:not(:disabled) .command-row-icon {
-  color: var(--danger-text);
-}
-
-.editor-delete-row:hover:not(:disabled) {
+.editor-action-row.editor-delete-row:hover:not(:disabled) {
   background: color-mix(in srgb, var(--danger) 8%, var(--panel));
+  color: var(--danger-text);
+}
+
+.editor-action-row.editor-delete-row:hover:not(:disabled) :is(.command-row-icon, strong) {
+  color: var(--danger-text);
+}
+
+.editor-action-row.editor-delete-row:hover:not(:disabled) > span > small {
+  color: color-mix(in srgb, var(--danger-text) 75%, var(--panel));
 }
 
 [data-layout="wide"] .map-bottom-status {

@@ -13,6 +13,8 @@ test('map command bar owns add while floating selection and editor body own obje
   assert.match(selectionToolbar, /<button id="objectVisibilityBtn"/);
   assert.doesNotMatch(editorHeader, /id="objectLockBtn"|id="objectVisibilityBtn"|id="objectDeleteBtn"/);
   assert.match(html, /id="editorDeleteSection"[\s\S]*?id="objectDeleteBtn"/);
+  assert.match(html, /<div id="editorDeleteSection" class="editor-action-list editor-delete-control hidden">/);
+  assert.doesNotMatch(html, /<section id="editorDeleteSection"|editor-delete-section/);
   const add = toolbar.match(/<button id="createMenuBtn"[\s\S]*?<\/button>/)[0];
   assert.match(add, /aria-haspopup="menu"/);
   assert.match(add, /aria-label="추가"/);

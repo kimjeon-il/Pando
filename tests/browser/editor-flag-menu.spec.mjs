@@ -86,3 +86,77 @@ test('territorial selection appears as a label-anchored card and enters the edit
   await expect(page.locator('#flagDefaultBtn')).toBeEnabled();
   await expect(page.locator('#flagRemoveBtn')).toBeDisabled();
 });
+
+test('object deletion shares the coast action spacing and is destructive only on hover', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#selectionToolbarEditBtn').click();
+  await page.locator('#actionsTabBtn').click();
+  const deletion = page.locator('#objectDeleteBtn');
+  const readAppearance = selector => page.locator(selector).evaluate(row => ({
+    icon: getComputedStyle(row.querySelector('.command-row-icon')).color,
+    title: getComputedStyle(row.querySelector('strong')).color,
+    help: getComputedStyle(row.querySelector('small')).color,
+    background: getComputedStyle(row).backgroundColor,
+  }));
+  const resolveColor = value => page.evaluate(color => {
+    const probe = document.createElement('span');
+    probe.style.color = color;
+    document.body.append(probe);
+    const result = getComputedStyle(probe).color;
+    probe.remove();
+    return result;
+  }, value);
+
+  for (const width of [1440, 1024, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.mouse.move(0, 0);
+    await expect(deletion).toBeVisible();
+    expect(await deletion.evaluate(row => ({
+      host: row.parentElement.parentElement.classList.contains('editor-action-list'),
+      previous: row.parentElement.previousElementSibling?.id,
+      section: row.parentElement.tagName,
+    }))).toEqual({ host: true, previous: 'editCoastBtn', section: 'DIV' });
+    const border = await page.locator('#editBorderBtn').boundingBox();
+    const coast = await page.locator('#editCoastBtn').boundingBox();
+    const remove = await deletion.boundingBox();
+    expect(remove.y - coast.y - coast.height).toBeCloseTo(coast.y - border.y - border.height, 1);
+    expect(remove.x).toBeCloseTo(coast.x, 1);
+    expect(remove.width).toBeCloseTo(coast.width, 1);
+    expect(await readAppearance('#objectDeleteBtn')).toEqual(await readAppearance('#editCoastBtn'));
+  }
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    await page.mouse.move(0, 0);
+    await expect.poll(async () => (await readAppearance('#objectDeleteBtn')).title).toBe(await resolveColor('var(--text)'));
+    const normal = await readAppearance('#objectDeleteBtn');
+    await deletion.hover();
+    await expect.poll(async () => (await readAppearance('#objectDeleteBtn')).background).toBe(await resolveColor('color-mix(in srgb, var(--danger) 8%, var(--panel))'));
+    const hovered = await readAppearance('#objectDeleteBtn');
+    expect(hovered.icon).toBe(await resolveColor('var(--danger-text)'));
+    expect(hovered.title).toBe(hovered.icon);
+    expect(hovered.help).toBe(await resolveColor('color-mix(in srgb, var(--danger-text) 75%, var(--panel))'));
+    expect(hovered.background).not.toBe(normal.background);
+    await page.mouse.move(0, 0);
+    await expect.poll(() => readAppearance('#objectDeleteBtn')).toEqual(normal);
+    await deletion.focus();
+    expect((await readAppearance('#objectDeleteBtn')).title).not.toBe(hovered.title);
+    await deletion.evaluate(row => row.blur());
+  }
+
+  await deletion.click();
+  await expect(page.locator('#confirmModal')).toBeVisible();
+  await expect(page.locator('#confirmModalOkBtn')).toHaveClass(/danger-confirm/);
+  await expect(page.locator('#confirmModalOkBtn')).toHaveText('국가 삭제');
+  await page.locator('#confirmModalCancelBtn').click();
+  await expect(page.locator('#confirmModal')).toBeHidden();
+  await expect(page.locator('#propertyTitle')).toHaveText('독일');
+
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'BGR'));
+  await expect(page.locator('#countryProperties #objectDeleteBtn')).toHaveCount(1);
+  await expect(deletion).toBeEnabled();
+});
