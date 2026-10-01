@@ -18,6 +18,7 @@ export function createLayerTreeController({
   searchDelay = 120,
   builtinSearch = null,
   cancelBuiltinSearch = () => {},
+  builtinRecordVisible = () => true,
   onSearchError = () => {},
 } = {}) {
   let searchTimer = 0;
@@ -116,7 +117,7 @@ export function createLayerTreeController({
   }
 
   function combinedRows(query) {
-    const rows = [...rowsFor(query).slice(0, 100), ...builtinRows];
+    const rows = [...rowsFor(query).slice(0, 100), ...builtinRows.filter(row => builtinRecordVisible(row))];
     return [...new Map(rows.map(row => [row.key, row])).values()].slice(0, 150);
   }
 
@@ -300,6 +301,7 @@ export function createAppLayerTreeController(runtime = {}) {
     createIcon,
     builtinSearch: runtime.builtinSearch,
     cancelBuiltinSearch: runtime.cancelBuiltinSearch,
+    builtinRecordVisible: record => !(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
     onSearchError: runtime.onSearchError,
     model: {
       snapshot: () => ({ revision: state.layerTreeRevision, search: state.layerSearch, searchActive: runtime.isSearchOpen() }),
