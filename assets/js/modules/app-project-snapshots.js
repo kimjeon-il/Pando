@@ -249,6 +249,7 @@ export function createProjectSnapshots() {
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
+    dependencies.domains.layerTreeController?.render?.(true);
     dependencies.domains.selectionDomain.clear({ reason: `${mode}-clear-selection` });
     dependencies.projectState.state.coastEditCountryId = null;
     dependencies.projectState.state.coastEditScopeGenericFeatureId = null;
