@@ -256,6 +256,7 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "territorialModel",
     "territorySelectionA",
     "territorySelectionB",
+    "territorySelectionC",
     "workspaceUiA",
     "workspaceUiB"
   ]
