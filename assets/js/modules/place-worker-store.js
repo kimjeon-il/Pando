@@ -4,6 +4,12 @@ import { comparePlaces, normalizePlaceQuery, PLACE_LIMITS } from './place-contra
 import { createFrameProjectors } from './map-visual-frame.js';
 import { placeLabelDimensions, automaticLabelSettings } from './label-layout.js';
 const noCancellation = Object.freeze({ throwIfCancelled() {} });
+const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
+
+async function sha256Hex(bytes) {
+  const hash = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(hash), value => value.toString(16).padStart(2, '0')).join('');
+}
 
 // Cull within the conservative tile window before spending the candidate budget.
 function viewportPredicate(view) {
@@ -43,6 +49,7 @@ export function validatePlaceManifest(raw) {
   const checkTile = row => {
     const shard = raw.shards[row?.shard];
     if (!shard || !Number.isInteger(row.offset) || row.offset < 0 || !Number.isInteger(row.length) || row.length < 32 || row.offset + row.length > shard.bytes) throw new RangeError('Invalid place tile range');
+    if (!SHA256_PATTERN.test(String(row.sha256 || ''))) throw new TypeError('Invalid place tile hash');
   };
   for (const [key,row] of Object.entries(raw.tiles)) {
     const match = /^(\d+)\/(\d+)-(\d+)$/u.exec(key), stage = match && raw.stages.find(s => s.id === Number(match[1]));
@@ -94,11 +101,13 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
           else throw new RangeError('Invalid place shard response');
         }
         if (full) {
-          if (spec.sha256) { const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',full)), n => n.toString(16).padStart(2,'0')).join(''); if (hash !== spec.sha256) throw new Error('Invalid place shard hash'); }
+          if (spec.sha256 && await sha256Hex(full) !== spec.sha256) throw new Error('Invalid place shard hash');
           context.throwIfCancelled(); put(`shard:${row.shard}`,full,full.byteLength);
         }
       }
       context.throwIfCancelled(); bytes ||= full.subarray(row.offset,row.offset+row.length);
+      if (await sha256Hex(bytes) !== row.sha256) throw new Error('Invalid place tile hash');
+      context.throwIfCancelled();
       const records=decodePlaceTile(bytes);
       const decodedBytes=records.reduce((total,record) => total+512+Object.values(record).reduce((sum,value)=>sum+(typeof value === 'string' ? value.length*2 : 0),0),0);
       context.throwIfCancelled(); return put(`tile:${key}`,records,decodedBytes);

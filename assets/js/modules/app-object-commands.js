@@ -347,7 +347,8 @@ export function createObjectCommands() {
     const canDelete = refs.length > 1
       ? capabilities.has('delete')
       : !!primary && (primary.domain !== 'hydro' || !!(0, dependencies.hydroPresentation.hydroEditById)(primary.id));
-    const deleteDisabled = !canDelete || (primary?.domain === 'label' && isBuiltinPlaceId(primary.id)) || !!(primary && objectRefLocked(primary));
+    const builtinPlaceDelete = primary?.domain === 'label' && isBuiltinPlaceId(primary.id);
+    const deleteDisabled = !canDelete || builtinPlaceDelete || !!(primary && objectRefLocked(primary));
     const lockLabel = locked ? '잠금 해제' : refs.length > 1 ? '모두 잠금' : '잠금';
     const status = (0, dependencies.platform.$)('editorObjectStatus');
     if (status) {
@@ -382,7 +383,7 @@ export function createObjectCommands() {
     const deleteButton = (0, dependencies.platform.$)('objectDeleteBtn');
     if (deleteButton) {
       deleteButton.disabled = deleteDisabled;
-      deleteButton.dataset.tooltip = deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
+      deleteButton.dataset.tooltip = builtinPlaceDelete ? '내장 지명은 삭제할 수 없습니다.' : deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
       deleteButton.setAttribute('aria-label', deleteButton.dataset.tooltip);
     }
     const deleteSection = (0, dependencies.platform.$)('editorDeleteSection');

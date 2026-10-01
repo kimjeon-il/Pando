@@ -219,7 +219,8 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
 
 const fieldsFor = scope => {
   if (scope === 'project') return PROJECT_STATE_FIELDS.filter(field => ['document', 'presentation'].includes(field.scope));
-  if (scope === 'history' || scope === 'document') return PROJECT_STATE_FIELDS.filter(field => field.scope === 'document');
+  if (scope === 'history') return PROJECT_STATE_FIELDS.filter(field => field.scope === 'document' || field.name === 'labelSettings');
+  if (scope === 'document') return PROJECT_STATE_FIELDS.filter(field => field.scope === 'document');
   if (scope === 'presentation') return PROJECT_STATE_FIELDS.filter(field => field.scope === 'presentation');
   if (scope === 'session') return PROJECT_STATE_FIELDS.filter(field => field.scope === 'session');
   throw new Error(`알 수 없는 프로젝트 상태 범위입니다: ${scope}`);
