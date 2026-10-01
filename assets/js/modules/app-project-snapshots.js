@@ -122,10 +122,38 @@ export function createProjectSnapshots() {
     dependencies.projectState.state.historyDirtyCountryIds = new Set(snapshot.historyDirtyCountryIds || [...changed.keys(), ...removed]);
   }
 
+  function historyLabelSettings(labels = dependencies.projectState.state.labels) {
+    const saved = {};
+    for (const label of labels || []) {
+      const key = (0, dependencies.labelPresentation.labelKey)('label', label.id);
+      if (Object.hasOwn(dependencies.projectState.state.labelSettings || {}, key)) {
+        saved[key] = (0, dependencies.platform.deepClone)(dependencies.projectState.state.labelSettings[key]);
+      }
+    }
+    return saved;
+  }
+
+  function changedHistoryLabelIds(targetLabels, currentLabels) {
+    const target = new Map((targetLabels || []).map(label => [String(label.id), JSON.stringify(label)]));
+    const current = new Map((currentLabels || []).map(label => [String(label.id), JSON.stringify(label)]));
+    const ids = new Set([...target.keys(), ...current.keys()]);
+    return [...ids].filter(id => target.get(id) !== current.get(id));
+  }
+
+  function restoreHistoryLabelSettings(snapshot, currentLabels) {
+    const saved = snapshot.historyLabelSettings || {};
+    for (const id of changedHistoryLabelIds(snapshot.labels, currentLabels)) {
+      const key = (0, dependencies.labelPresentation.labelKey)('label', id);
+      if (Object.hasOwn(saved, key)) dependencies.projectState.state.labelSettings[key] = (0, dependencies.platform.deepClone)(saved[key]);
+      else delete dependencies.projectState.state.labelSettings[key];
+    }
+  }
+
   function snapshotEditable() {
     return {
       countryDelta: buildCountryDelta(),
       historyDirtyCountryIds: [...dependencies.projectState.state.historyDirtyCountryIds],
+      historyLabelSettings: historyLabelSettings(),
       ...(0, dependencies.projectServices.pickProjectFields)(dependencies.projectState.state, { scope: 'history', clone: geometrySnapshots.clone }),
     };
   }
@@ -209,7 +237,9 @@ export function createProjectSnapshots() {
 
   function restoreEditable(snapshot, { mode = 'history' } = {}) {
     const changedCountryIds = new Set(dependencies.projectState.state.historyDirtyCountryIds);
+    const currentLabels = (0, dependencies.platform.deepClone)(dependencies.projectState.state.labels || []);
     applySharedProjectFields(snapshot, 'history');
+    restoreHistoryLabelSettings(snapshot, currentLabels);
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     (0, dependencies.hydroModel.syncPhysicalControls)();
     restoreCountriesFromSnapshot(snapshot);
@@ -219,6 +249,8 @@ export function createProjectSnapshots() {
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
+    dependencies.domains.layerTreeController?.cancelSearch?.();
+    dependencies.domains.layerTreeController?.render?.(true);
     dependencies.domains.selectionDomain.clear({ reason: `${mode}-clear-selection` });
     dependencies.projectState.state.coastEditCountryId = null;
     dependencies.projectState.state.coastEditScopeGenericFeatureId = null;

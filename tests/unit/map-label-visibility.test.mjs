@@ -43,7 +43,8 @@ function fixture(visibility = {}) {
       projectVisibleCoordinate: coordinate => coordinate,
       activeProjection: () => ({ scale: () => 1000 }),
     },
-    domainAssembly: { selectionDomain: { has: () => false } },
+    domainAssembly: { selectionDomain: { has: () => false, snapshot: () => ({ selection: { items: [], primaryKey: null } }) } },
+    environment: { runtimeAssetUrl: path => new URL(path, 'http://localhost/assets/js/') },
     renderQuality: { currentRenderQuality: { labelDensity: 1, tier: 'high' } },
     objectPresentation: { countryName: feature => feature.properties.name },
     workspaceSurfaces: { isMobile: () => false },
@@ -53,6 +54,7 @@ function fixture(visibility = {}) {
     MAP_RESOURCE_OWNER_PORTS.countryLabels.map(portName => [portName, ports[portName]]),
   )));
   controller.initializeCountryLabelScreenAreas();
+  controller.initializeLabelLayoutMetrics();
   return { controller, state, anchors, hiddenIds, features };
 }
 

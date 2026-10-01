@@ -424,7 +424,7 @@ export function createPropertySelection() {
   }
 
   function applyLabelSelectionIntent(id, refreshOnly = false) {
-    const label = dependencies.projectState.state.labels.find(item => String(item.id) === String(id));
+    const label = dependencies.labelPresentation.labelById(id);
     return label ? dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'label', type: label.kind || 'label', id: String(id) }), {
       refreshOnly, openEditor: !refreshOnly, reason: 'label-selection',
     }) : false;
