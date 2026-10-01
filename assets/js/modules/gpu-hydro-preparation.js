@@ -5,7 +5,7 @@ import { createHydroViewRequests } from './hydro-view-requests.js';
 // Owns hydro transport, revision gates, RPC settlement, pack cache and upload
 // lifetimes. Application feature registration and UI presentation are callbacks.
 export function createGpuHydroPreparation({ createWorker, getMode, getView, getCacheBudget, getProtectedPackIds,
-  isMobile, DATA_REVISION, ASSET_REVISION, registerHydroFragments, registerHydroDescriptors, unregisterHydroFragments,
+  isMobile, DATA_REVISION, ASSET_REVISION, registerHydroPack, unregisterHydroPack,
   queueHydroRender, reportOperationError, setActionStatus, onReset, onConnect, onLoadState }) {
   const lifecycle = createGpuResourceLifecycle();
   const metrics = { hydroUploadBytes: 0, hydroTileWindowRecomputeCount: 0, hydroTileWindowCacheHitCount: 0, hydroViewRequestCount: 0 };
@@ -44,6 +44,61 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     const hydroLogicalQueryRequests = new Map();
     let hydroFeatureRequestId = 0;
     let hydroCacheCompletionNotified = false;
+
+    function settleHydroRpc(requests, requestId, value, error = null) {
+      const pending = requests.get(requestId);
+      if (!pending) return false;
+      lifecycle.cancelTimeout(pending.timeoutHandle);
+      requests.delete(requestId);
+      if (error) pending.reject(error);
+      else pending.resolve(value);
+      return true;
+    }
+
+    function retireHydroWorkerGeneration(error, { failed = false, notify = false } = {}) {
+      const wasReady = hydroWorkerReady;
+      const worker = hydroWorker;
+      hydroWorkerGeneration += 1;
+      hydroWorker = null;
+      hydroWorkerReady = false;
+      if (hydroWorkerReadyTimer) lifecycle.cancelTimeout(hydroWorkerReadyTimer);
+      hydroWorkerReadyTimer = 0;
+      hydroWorkerReadyResolve?.(false);
+      hydroWorkerReadyResolve = null;
+      hydroViewRequests.reset();
+      for (const requests of [hydroFeatureRequests, hydroLogicalQueryRequests]) {
+        for (const requestId of requests.keys()) settleHydroRpc(requests, requestId, null, error);
+      }
+      worker?.terminate();
+      if (failed) {
+        loadState.hydroWorker = 'error';
+        if (['loading', 'retrying'].includes(loadState.hydroView)) loadState.hydroView = 'error';
+        metrics.hydroLastError = { name: error.name, message: error.message, stack: error.stack,
+          requestType: error.requestType, requestId: error.requestId };
+        onLoadState({ ...loadState });
+      }
+      if (notify) reportOperationError(error, wasReady
+        ? '강·호수 처리 중 오류가 발생했습니다. 현재 지도는 계속 사용할 수 있습니다.'
+        : '강·호수 로더를 준비하지 못했습니다. 다시 시도하세요.', 'PL-WATER-003', 4200);
+    }
+
+    function requestHydroRpc(requests, requestType, payload) {
+      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
+      const requestId = ++hydroFeatureRequestId;
+      const generation = hydroWorkerGeneration;
+      return new Promise((resolve, reject) => {
+        const timeoutHandle = lifecycle.timeout(() => {
+          if (generation !== hydroWorkerGeneration || !requests.has(requestId)) return;
+          const error = Object.assign(new Error(`강·호수 ${requestType} 응답 제한 시간(30000ms)을 초과했습니다.`), {
+            name: 'TimeoutError', requestType, requestId,
+          });
+          retireHydroWorkerGeneration(error, { failed: true, notify: true });
+        }, 30000);
+        requests.set(requestId, { resolve, reject, timeoutHandle, requestType });
+        try { hydroWorker.postMessage({ type: requestType, requestId, ...payload }); }
+        catch (error) { retireHydroWorkerGeneration(error, { failed: true, notify: true }); }
+      });
+    }
     function uploadHydroPack(entry, sharedByteBudget = 256 * 1024) {
       if (!gl || !isWebGlRenderer() || entry.resources) return;
       const meshData = entry.mesh;
@@ -135,7 +190,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         key, projectGeneration: generation, contextGeneration, priority: 40,
         dispose: () => { entry.uploadKey = null; entry.uploadQueued = false; deleteHydroPackResources(entry); },
         step: ({ byteBudget }) => {
-          if (disposed || epoch !== uploadEpoch || generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale hydro upload'), { name: 'AbortError' });
+          if (disposed || entry.uploadKey !== key || epoch !== uploadEpoch || generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale hydro upload'), { name: 'AbortError' });
           const before = metrics.hydroUploadBytes;
           uploadHydroPack(entry, byteBudget);
           if (entry.resources) { entry.uploadKey = null; entry.uploadQueued = false; queueHydroRender('hydro-upload-ready'); }
@@ -173,21 +228,11 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     }
 
     function loadHydroLogicalFeature(logicalFid) {
-      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
-      const requestId = ++hydroFeatureRequestId;
-      return new Promise((resolve, reject) => {
-        hydroFeatureRequests.set(requestId, { resolve, reject });
-        hydroWorker.postMessage({ type: 'load-feature', requestId, logicalFid });
-      });
+      return requestHydroRpc(hydroFeatureRequests, 'load-feature', { logicalFid });
     }
 
     function queryHydroLogicalFeatures(bounds, { category = 'river' } = {}) {
-      if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
-      const requestId = ++hydroFeatureRequestId;
-      return new Promise((resolve, reject) => {
-        hydroLogicalQueryRequests.set(requestId, { resolve, reject });
-        hydroWorker.postMessage({ type: 'query-logical-features', requestId, bounds, category });
-      });
+      return requestHydroRpc(hydroLogicalQueryRequests, 'query-logical-features', { bounds, category });
     }
 
     function retryHydroCache() {
@@ -210,15 +255,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         return;
       }
       if (message.type === 'init-error') {
-        hydroWorkerReady = false;
-        loadState.hydroWorker = 'error';
-        if (hydroWorkerReadyTimer) lifecycle.cancelTimeout(hydroWorkerReadyTimer);
-        hydroWorkerReadyTimer = 0;
-        hydroWorkerReadyResolve?.(false);
-        hydroWorkerReadyResolve = null;
-        hydroWorker?.terminate();
-        hydroWorker = null;
-        console.warn('Hydro worker initialization failed', message.message);
+        retireHydroWorkerGeneration(new Error(message.message || '강·호수 Worker 초기화 오류'), { failed: true, notify: true });
         return;
       }
       if (message.type === 'view-ready') {
@@ -271,28 +308,21 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         };
         entry.byteLength = Object.values(entry.mesh).reduce((sum, value) => sum + value.byteLength, 0);
         const previous = hydroPacks.get(entry.id);
-        if (previous) deleteHydroPackResources(previous);
+        if (previous) retireHydroPack(previous);
         hydroPacks.set(entry.id, entry);
-        if (features.length) registerHydroFragments(features);
-        else registerHydroDescriptors(descriptors);
+        registerHydroPack(entry);
         if (isWebGlRenderer()) scheduleHydroUpload(entry);
         pruneHydroCache();
         return;
       }
       if (message.type === 'feature' || message.type === 'feature-error') {
-        const pending = hydroFeatureRequests.get(Number(message.requestId));
-        if (!pending) return;
-        hydroFeatureRequests.delete(Number(message.requestId));
-        if (message.type === 'feature-error') pending.reject(new Error(message.message || '강·호수 전체 형상을 불러오지 못했습니다.'));
-        else pending.resolve(message.feature || null);
+        const error = message.type === 'feature-error' ? new Error(message.message || '강·호수 전체 형상을 불러오지 못했습니다.') : null;
+        settleHydroRpc(hydroFeatureRequests, Number(message.requestId), message.feature || null, error);
         return;
       }
       if (message.type === 'logical-features' || message.type === 'logical-features-error') {
-        const pending = hydroLogicalQueryRequests.get(Number(message.requestId));
-        if (!pending) return;
-        hydroLogicalQueryRequests.delete(Number(message.requestId));
-        if (message.type === 'logical-features-error') pending.reject(new Error(message.message || '수계 후보를 찾지 못했습니다.'));
-        else pending.resolve((message.logicalFids || []).map(Number).filter(Number.isFinite));
+        const error = message.type === 'logical-features-error' ? new Error(message.message || '수계 후보를 찾지 못했습니다.') : null;
+        settleHydroRpc(hydroLogicalQueryRequests, Number(message.requestId), (message.logicalFids || []).map(Number).filter(Number.isFinite), error);
         return;
       }
       if (message.type === 'cache-progress') {
@@ -315,19 +345,14 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         return;
       }
       if (message.type === 'error') {
-        console.warn('Hydro tile worker failed', message.message);
-        if (!hydroWorkerReady) {
-          loadState.hydroWorker = 'error';
-          if (hydroWorkerReadyTimer) lifecycle.cancelTimeout(hydroWorkerReadyTimer);
-          hydroWorkerReadyTimer = 0;
-          hydroWorkerReadyResolve?.(false);
-          hydroWorkerReadyResolve = null;
-          hydroWorker?.terminate();
-          hydroWorker = null;
-        } else {
-          reportOperationError(new Error(message.message || ''), '강·호수 처리 중 오류가 발생했습니다. 현재 지도는 계속 사용할 수 있습니다.', 'PL-WATER-003', 4200);
-        }
+        retireHydroWorkerGeneration(message.error || new Error(message.message || '강·호수 Worker 실행 오류'), { failed: true, notify: true });
       }
+    }
+
+    function retireHydroPack(entry) {
+      unregisterHydroPack(entry);
+      deleteHydroPackResources(entry);
+      hydroPacks.delete(entry.id);
     }
 
     function pruneHydroCache() {
@@ -341,16 +366,14 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       const released = [];
       for (const entry of candidates) {
         if (total <= limit) break;
-        deleteHydroPackResources(entry);
-        hydroPacks.delete(entry.id);
-        unregisterHydroFragments(entry.features);
+        retireHydroPack(entry);
         total -= entry.byteLength;
         released.push(entry.id);
       }
       if (released.length) hydroWorker?.postMessage({ type: 'release', packIds: released });
     }
 
-    function setHydroManifest(nextManifest, sourceUrl) {
+    function setHydroManifest(nextManifest, sourceUrl, { restart = false } = {}) {
       if (disposed) return Promise.resolve(false);
       const normalizedManifest = nextManifest?.stages?.length ? nextManifest : null;
       const normalizedUrl = sourceUrl ? new URL(sourceUrl) : null;
@@ -358,18 +381,15 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       const sameManifest = hydroManifest === normalizedManifest
         && String(hydroManifestUrl || '') === String(normalizedUrl || '');
 
-      if (sameManifest && hydroWorker && hydroWorkerIncludesGeometry === wantedIncludeGeometry) {
+      if (!restart && sameManifest && hydroWorker && hydroWorkerIncludesGeometry === wantedIncludeGeometry) {
         onConnect();
         return hydroWorkerReady ? Promise.resolve(true) : hydroWorkerReadyPromise;
       }
 
       hydroManifest = normalizedManifest;
       hydroManifestUrl = normalizedUrl;
-      hydroWorkerGeneration += 1;
+      retireHydroWorkerGeneration(new Error('강·호수 로더가 다시 시작되었습니다.'));
       const generation = hydroWorkerGeneration;
-      hydroWorker?.terminate();
-      hydroWorker = null;
-      hydroWorkerReady = false;
       hydroWorkerIncludesGeometry = wantedIncludeGeometry;
       hydroViewRequestedRevision = 0;
       hydroViewRequests.reset();
@@ -377,22 +397,11 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       hydroAcceptedRevision = 0;
       hydroActivePackIds.clear();
       queueHydroRender('hydro-manifest');
-      for (const entry of hydroPacks.values()) deleteHydroPackResources(entry);
-      hydroPacks.clear();
+      for (const entry of hydroPacks.values()) retireHydroPack(entry);
       for (const entry of hydroEditEntries) deleteHydroPackResources(entry);
       hydroEditEntries = [];
       hydroEditRevision = -1;
       onReset();
-      for (const pending of hydroFeatureRequests.values()) pending.reject(new Error('강·호수 로더가 다시 시작되었습니다.'));
-      hydroFeatureRequests.clear();
-      for (const pending of hydroLogicalQueryRequests.values()) pending.reject(new Error('강·호수 로더가 다시 시작되었습니다.'));
-      hydroLogicalQueryRequests.clear();
-
-      if (hydroWorkerReadyTimer) lifecycle.cancelTimeout(hydroWorkerReadyTimer);
-      hydroWorkerReadyTimer = 0;
-      hydroWorkerReadyResolve?.(false);
-      hydroWorkerReadyResolve = null;
-
       if (!hydroManifest || !hydroManifestUrl || typeof Worker !== 'function') {
         hydroWorkerReadyPromise = Promise.resolve(false);
         return hydroWorkerReadyPromise;
@@ -407,7 +416,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       };
       hydroWorker.onerror = event => {
         if (generation !== hydroWorkerGeneration) return;
-        receiveHydroWorkerMessage({ data: { type: 'error', message: event.message || '강·호수 Worker 실행 오류' } }); onLoadState({ ...loadState });
+        receiveHydroWorkerMessage({ data: { type: 'error', error: event.error, message: event.message || '강·호수 Worker 실행 오류' } }); onLoadState({ ...loadState });
       };
       const hydroRevision = `${DATA_REVISION || ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
       hydroWorker.postMessage({
@@ -420,12 +429,9 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       });
       hydroWorkerReadyTimer = lifecycle.timeout(() => {
         if (generation !== hydroWorkerGeneration || hydroWorkerReady) return;
-        loadState.hydroWorker = 'error';
-        hydroWorker?.terminate();
-        hydroWorker = null;
-        hydroWorkerGeneration += 1;
-        hydroWorkerReadyResolve?.(false);
-        hydroWorkerReadyResolve = null; onLoadState({ ...loadState });
+        retireHydroWorkerGeneration(Object.assign(new Error('강·호수 Worker 준비 제한 시간(30000ms)을 초과했습니다.'), {
+          name: 'TimeoutError', requestType: 'init',
+        }), { failed: true, notify: true });
       }, 30000);
       onConnect(); onLoadState({ ...loadState });
       return hydroWorkerReadyPromise;
@@ -451,19 +457,15 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
   }
   function dispose() {
     if (disposed) return;
-    disposed = true; hydroWorkerGeneration++;
-    hydroWorker?.terminate(); hydroWorker = null; hydroWorkerReady = false;
-    hydroWorkerReadyResolve?.(false); hydroWorkerReadyResolve = null;
-    hydroViewRequests.reset();
-    const error = new DOMException('Renderer disposed', 'AbortError');
-    for (const pending of [...hydroFeatureRequests.values(), ...hydroLogicalQueryRequests.values()]) pending.reject(error);
-    hydroFeatureRequests.clear(); hydroLogicalQueryRequests.clear();
-    resetGpu(); lifecycle.dispose(); hydroPacks.clear(); hydroEditEntries = []; hydroActivePackIds.clear();
+    disposed = true;
+    retireHydroWorkerGeneration(new DOMException('Renderer disposed', 'AbortError'));
+    for (const entry of hydroPacks.values()) retireHydroPack(entry);
+    resetGpu(); lifecycle.dispose(); hydroEditEntries = []; hydroActivePackIds.clear();
   }
   return Object.freeze({
     setManifest: setHydroManifest, requestView: requestHydroView, loadFeature: loadHydroLogicalFeature, queryFeatures: queryHydroLogicalFeatures,
     retry: retryHydroCache, setContext, resetGpu, replaceEdits, dispose,
-    restart() { hydroWorker?.terminate(); hydroWorker = null; return setHydroManifest(hydroManifest, hydroManifestUrl); },
+    restart() { return setHydroManifest(hydroManifest, hydroManifestUrl, { restart: true }); },
     connectPort(port) { hydroWorker?.postMessage({ type: 'hydro-port', port }, [port]); },
     setInteraction(active) { hydroWorker?.postMessage({ type: 'interaction', active }); },
     hasWorker: () => !!hydroWorker,
@@ -472,6 +474,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     activeIds: () => [...hydroActivePackIds], pack: id => hydroPacks.get(id), entries: () => [...hydroPacks.values()], editEntries: () => [...hydroEditEntries],
     metrics: () => ({ ...metrics, hydroTileWindowSignature: hydroVisibleTileCache.signature }),
     stats: () => ({ ...metrics, hydroTileWindowSignature: hydroVisibleTileCache.signature, hydroPacksLoaded: hydroPacks.size,
+      hydroFeaturePendingCount: hydroFeatureRequests.size, hydroLogicalQueryPendingCount: hydroLogicalQueryRequests.size,
       hydroPacksActive: hydroActivePackIds.size, hydroEditRevision, hydroEditBatchCount: hydroEditEntries.length,
       hydroCacheBytes: [...hydroPacks.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0) }),
   });

@@ -5,18 +5,162 @@ import { createGpuHydroPreparation } from '../../assets/js/modules/gpu-hydro-pre
 function fixture(t) {
   globalThis.Worker = class {};
   t.after(() => { delete globalThis.Worker; });
-  const workers = [], messages = [], phases = [], registrations = [];
+  const workers = [], messages = [], phases = [], registrations = [], errors = [];
   const owner = createGpuHydroPreparation({
-    createWorker: () => { const worker = { postMessage: message => messages.push(message), terminate() {} }; workers.push(worker); return worker; },
+    createWorker: () => { const worker = { postMessage: message => messages.push(message), terminate() { this.terminated = true; } }; workers.push(worker); return worker; },
     getMode: () => 'webgl2', getView: () => ({ projection: 'flat', threshold: 1, width: 100, height: 100, scale: 100, flatCenter: [0, 0] }),
     getCacheBudget: () => 8 * 1024 * 1024, getProtectedPackIds: () => [], isMobile: () => false, DATA_REVISION: 'data', ASSET_REVISION: 'asset',
-    registerHydroFragments: rows => registrations.push(rows), registerHydroDescriptors: rows => registrations.push(rows), unregisterHydroFragments() {},
-    queueHydroRender() {}, reportOperationError() {}, setActionStatus() {}, onReset() {}, onConnect() {}, onLoadState: phase => phases.push(phase),
+    registerHydroPack: entry => registrations.push(['register', entry]),
+    unregisterHydroPack: entry => registrations.push(['unregister', entry]),
+    queueHydroRender() {}, reportOperationError: error => errors.push(error), setActionStatus() {}, onReset() {}, onConnect() {}, onLoadState: phase => phases.push(phase),
   });
   t.after(() => owner.dispose());
   const manifest = { stages: [{ id: 0, minZoom: 0, columns: 1, rows: 1 }], index: { sha256: '123456789012345' } };
-  return { owner, workers, messages, phases, registrations, manifest };
+  return { owner, workers, messages, phases, registrations, manifest, errors };
 }
+
+function fakeTimers(t) {
+  const timers = new Map();
+  let next = 0;
+  t.mock.method(globalThis, 'setTimeout', (callback, delay) => {
+    const id = ++next; timers.set(id, { callback, delay }); return id;
+  });
+  t.mock.method(globalThis, 'clearTimeout', id => timers.delete(id));
+  return timers;
+}
+
+test('a ready Worker crash retires its generation and settles both RPC kinds without removing packs', async t => {
+  const timers = fakeTimers(t);
+  const { owner, workers, manifest, phases, errors } = fixture(t);
+  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
+  const worker = workers[0];
+  worker.onmessage({ data: { type: 'ready' } }); await ready;
+  worker.onmessage({ data: { type: 'pack', packId: 7, revision: 1, mesh: {} } });
+  const pack = owner.pack(7);
+  const feature = owner.loadFeature(12).catch(error => error);
+  const query = owner.queryFeatures([0, 0, 1, 1]).catch(error => error);
+  const crash = new Error('Worker crashed after ready');
+  worker.onerror({ message: crash.message, error: crash });
+  assert.equal(owner.hasWorker(), false);
+  assert.equal(worker.terminated, true);
+  assert.strictEqual(await feature, crash);
+  assert.strictEqual(await query, crash);
+  assert.equal(owner.stats().hydroFeaturePendingCount, 0);
+  assert.equal(owner.stats().hydroLogicalQueryPendingCount, 0);
+  assert.equal(timers.size, 0);
+  assert.equal(phases.at(-1).hydroWorker, 'error');
+  assert.strictEqual(errors[0], crash);
+  worker.onmessage({ data: { type: 'ready' } });
+  worker.onmessage({ data: { type: 'feature', requestId: 1, feature: {} } });
+  worker.onmessage({ data: { type: 'pack', packId: 8, revision: 100, mesh: {} } });
+  assert.strictEqual(owner.pack(7), pack);
+  assert.equal(owner.pack(8), undefined);
+  await assert.rejects(owner.loadFeature(12), /준비되지/);
+});
+
+test('pack replacement, pruning, manifest reset and disposal pair each registration with retirement', async t => {
+  const { owner, workers, manifest, registrations, messages } = fixture(t);
+  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
+  const worker = workers[0];
+  worker.onmessage({ data: { type: 'ready' } }); await ready;
+  const send = (packId, bytes = 0) => worker.onmessage({ data: {
+    type: 'pack', packId, revision: 1, descriptors: [{ fid: packId }], mesh: { riverStarts: new ArrayBuffer(bytes) },
+  } });
+  send(7);
+  const old = owner.pack(7);
+  send(7);
+  const replacement = owner.pack(7);
+  assert.notStrictEqual(replacement, old);
+  assert.deepEqual(registrations, [['register', old], ['unregister', old], ['register', replacement]]);
+  send(8, 9 * 1024 * 1024);
+  assert.equal(owner.entries().length, 0);
+  assert.deepEqual(messages.at(-1), { type: 'release', packIds: [7, 8] });
+  send(9);
+  const resetPack = owner.pack(9);
+  const restarted = owner.restart();
+  assert.deepEqual(registrations.at(-1), ['unregister', resetPack]);
+  workers[1].onmessage({ data: { type: 'ready' } }); await restarted;
+  workers[1].onmessage({ data: { type: 'pack', packId: 10, revision: 1, mesh: {} } });
+  const finalPack = owner.pack(10);
+  owner.dispose();
+  assert.deepEqual(registrations.at(-1), ['unregister', finalPack]);
+  assert.equal(owner.entries().length, 0);
+  assert.equal(registrations.filter(([event]) => event === 'register').length,
+    registrations.filter(([event]) => event === 'unregister').length);
+});
+
+test('retiring a replaced pack unregisters it before cancelling upload and releasing its buffers', async t => {
+  const { owner, workers, manifest, registrations } = fixture(t);
+  const jobs = new Map(), deleted = [];
+  const scheduler = {
+    enqueueUpload: job => { jobs.set(job.key, job); return new Promise(() => {}); },
+    cancelKey: key => {
+      assert.equal(registrations.at(-1)[0], 'unregister');
+      const job = jobs.get(key); jobs.delete(key); job?.dispose();
+    },
+  };
+  const gl = { createBuffer: () => ({}), bindBuffer() {}, bufferData() {}, bufferSubData() {},
+    isBuffer: value => typeof value === 'object', deleteBuffer: value => deleted.push(value) };
+  owner.setContext({ gl, version: 2, projectGeneration: 1, contextGeneration: 1, scheduler });
+  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
+  workers[0].onmessage({ data: { type: 'ready' } }); await ready;
+  const send = () => workers[0].onmessage({ data: { type: 'pack', revision: 1, packId: 7,
+    mesh: { riverStarts: new Int32Array([1, 2, 3, 4]) } } });
+  send();
+  const old = owner.pack(7);
+  const oldJob = [...jobs.values()][0];
+  oldJob.step({ byteBudget: 8 });
+  send();
+  assert.equal(deleted.length, 1);
+  assert.equal(old.uploadState, null);
+  assert.equal(jobs.size, 1);
+  assert.throws(() => oldJob.step({ byteBudget: 8 }), { name: 'AbortError' });
+});
+
+for (const operation of ['feature', 'query']) {
+  test(`${operation} RPC timeout retires the entire Worker and ignores late replies`, async t => {
+    const timers = fakeTimers(t);
+    const { owner, workers, manifest } = fixture(t);
+    const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
+    workers[0].onmessage({ data: { type: 'ready' } }); await ready;
+    const feature = owner.loadFeature(12).catch(error => error);
+    const query = owner.queryFeatures([0, 0, 1, 1]).catch(error => error);
+    assert.equal(timers.size, 2);
+    const timeout = [...timers.values()][operation === 'feature' ? 0 : 1];
+    assert.equal(timeout.delay, 30000);
+    timeout.callback();
+    const failure = await feature;
+    assert.equal(failure.name, 'TimeoutError');
+    assert.equal(failure.requestType, operation === 'feature' ? 'load-feature' : 'query-logical-features');
+    assert.strictEqual(await query, failure);
+    assert.equal(owner.hasWorker(), false);
+    assert.equal(workers[0].terminated, true);
+    assert.equal(owner.stats().hydroFeaturePendingCount, 0);
+    assert.equal(owner.stats().hydroLogicalQueryPendingCount, 0);
+    assert.equal(timers.size, 0);
+    workers[0].onmessage({ data: { type: 'logical-features', requestId: 2, logicalFids: [9] } });
+    workers[0].onmessage({ data: { type: 'ready' } });
+    assert.equal(owner.hasWorker(), false);
+  });
+}
+
+test('RPC replies and typed errors cancel their timers without retiring a healthy Worker', async t => {
+  const timers = fakeTimers(t);
+  const { owner, workers, manifest } = fixture(t);
+  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
+  workers[0].onmessage({ data: { type: 'ready' } }); await ready;
+  const feature = owner.loadFeature(12).catch(error => error);
+  const query = owner.queryFeatures([0, 0, 1, 1]).catch(error => error);
+  assert.equal(timers.size, 2);
+  workers[0].onmessage({ data: { type: 'feature', requestId: 1, feature: { id: 'river' } } });
+  workers[0].onmessage({ data: { type: 'logical-features-error', requestId: 2, message: 'query failed' } });
+  assert.deepEqual(await feature, { id: 'river' });
+  assert.match((await query).message, /query failed/);
+  assert.equal(timers.size, 0);
+  assert.equal(owner.hasWorker(), true);
+  assert.equal(owner.stats().hydroFeaturePendingCount, 0);
+  assert.equal(owner.stats().hydroLogicalQueryPendingCount, 0);
+});
 
 test('hydro owner owns readiness, restart RPC settlement, stale delivery and request payloads', async t => {
   const { owner, workers, messages, manifest } = fixture(t);
