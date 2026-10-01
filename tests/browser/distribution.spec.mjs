@@ -120,6 +120,20 @@ test('single display follows distribution selection without another view menu ch
     expect(await page.evaluate(layerId => window.PANDOLAB_DISTRIBUTIONS.select(layerId), id)).toBe(true);
     await expect.poll(renderedLayerIds).toEqual([id]);
   }
+  await page.locator('#mapDisplayBtn').click();
+  await page.locator('#distributionMenuTrigger').click();
+  await selectUiOption(page, '#distributionActiveLayerInput', ids[0]);
+  await expect.poll(renderedLayerIds).toEqual([ids[0]]);
+  // The select's external popover closes the view menu; reopen it for the next command.
+  await page.locator('#mapDisplayBtn').click();
+  await page.locator('#distributionMenuTrigger').click();
+  await page.locator('#distributionOverlapRadio').locator('..').click();
+  await expect.poll(renderedLayerIds).toEqual(ids);
+  await page.locator('#distributionBoundaryVisibleInput').locator('..').click();
+  await expect(page.locator('#distributionBoundaryVisibleInput')).not.toBeChecked();
+  await expect.poll(renderedLayerIds).toEqual(ids);
+  await page.locator('#distributionBoundaryVisibleInput').locator('..').click();
+  await expect(page.locator('#distributionBoundaryVisibleInput')).toBeChecked();
   expect(errors).toEqual([]);
 });
 
