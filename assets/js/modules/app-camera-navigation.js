@@ -110,12 +110,12 @@ export function createCameraNavigation() {
     return changed;
   }
 
-  function zoomBy(factor, announce = true) {
+  function zoomBy(factor, announce = true, { settle = true, persist = true } = {}) {
     const current = dependencies.projectState.state.projection === 'globe' ? dependencies.projectState.state.view.globeZoom : dependencies.projectState.state.view.flatZoom;
     const next = current * factor;
     if (!setMapZoomValue(next)) return false;
-    dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-settle');
-    dependencies.domains.projectDomain.queueViewAutosave();
+    if (settle) dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-settle');
+    if (persist) dependencies.domains.projectDomain.queueViewAutosave();
     return true;
   }
 
@@ -227,6 +227,7 @@ export function createCameraNavigation() {
     const clear = () => {
       clearTimeout(timer); clearInterval(repeater); timer = repeater = null;
       if (repeated) {
+        dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-hold-settle');
         dependencies.domains.projectDomain.queueViewAutosave();
         suppressNextClick = true;
       }
@@ -239,8 +240,9 @@ export function createCameraNavigation() {
       button.setPointerCapture?.(event.pointerId);
       timer = setTimeout(() => {
         repeated = true;
-        zoomBy(factor, false);
-        repeater = setInterval(() => zoomBy(factor, false), 115);
+        dependencies.domains.renderingDomain?.beginInteraction?.('zoom-control-hold');
+        zoomBy(factor, false, { settle: false, persist: false });
+        repeater = setInterval(() => zoomBy(factor, false, { settle: false, persist: false }), 115);
       }, 360);
     });
     button.addEventListener('pointerup', clear);
