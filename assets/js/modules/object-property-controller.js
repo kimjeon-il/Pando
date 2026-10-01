@@ -131,6 +131,14 @@ export function createObjectPropertyController(runtime = {}) {
       $('focusSelectedObjectBtn')?.classList.add('hidden');
     }
     document.querySelector('.editor-object-heading')?.setAttribute('aria-label', type ? `${String(title || '')}, ${visibleTypeLabel}` : '');
+    const deleteControl = $('editorDeleteSection');
+    const actionList = ['country', 'subunit', 'region'].includes(type)
+      ? activeForm(type).querySelector('.editor-action-section:not(.editor-relation-section) > .editor-action-list')
+      : null;
+    const coastAction = actionList?.querySelector('#editCoastBtn, #editSubunitCoastBtn');
+    const deleteHost = actionList || $('editorScrollBody');
+    if (coastAction && deleteControl.previousElementSibling !== coastAction) coastAction.after(deleteControl);
+    else if (!coastAction && deleteControl.parentElement !== deleteHost) deleteHost.append(deleteControl);
     if (type) syncObjectActionsMenu();
     else closeObjectActionsMenu();
     syncActionTab(type);
