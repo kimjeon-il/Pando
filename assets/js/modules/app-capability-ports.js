@@ -15,7 +15,7 @@ export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
   spatialIndex: Object.freeze(["countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
   geometryPreview: Object.freeze(["countries","domains","feedback","geometryEditingCore","geometryModel","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry","validation"]),
   territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel"]),
-  countryValidation: Object.freeze(["countries","cutGeometry","domains","geometryModel","geometryPreview","presentation","projectState","snapshots","spatialQuery","territoryGeometry"]),
+  countryValidation: Object.freeze(["countries","domains","geometryModel","geometryPreview","projectState","snapshots","spatialQuery"]),
   landRelations: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","layers","presentation","projectState","surfaces","territorialModel","territoryGeometry"]),
 });
 
