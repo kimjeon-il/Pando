@@ -899,6 +899,7 @@
         kind: String(feature.properties?.kind || 'custom'),
         countryId: String(feature.properties?.country_id || ''),
         notes: String(feature.properties?.notes || ''),
+        ...(feature.properties?.source_place_id ? { sourcePlaceId: String(feature.properties.source_place_id) } : {}),
         coordinates: feature.geometry.coordinates.slice(0, 2),
       }));
     }
@@ -1434,7 +1435,7 @@
       type: 'FeatureCollection',
       features: (projectState.labels || []).filter(label => Array.isArray(label.coordinates)).map(label => ({
         type: 'Feature', id: label.id,
-        properties: { pandolab_id: label.id, name: label.name || '', kind: label.kind || 'custom', country_id: label.countryId || '', notes: label.notes || '' },
+        properties: { pandolab_id: label.id, name: label.name || '', kind: label.kind || 'custom', country_id: label.countryId || '', notes: label.notes || '', source_place_id: label.sourcePlaceId || '' },
         geometry: { type: 'Point', coordinates: label.coordinates },
       })),
     });

@@ -1,3 +1,7 @@
+import { PLACE_LIMITS } from './place-contract.js';
+
+export const placeLabelDimensions = name => ({ width: Math.max(22, [...String(name || '')].length * 9 + 16), height: 19 });
+
 export const LABEL_PRIORITIES = Object.freeze({ country: 100, capital: 90, majorCity: 70, administrative: 60, place: 40 });
 
 const AUTOMATIC_LABEL_POLICIES = Object.freeze({
@@ -84,7 +88,8 @@ function screenCellRange(box, cellSize, padding = 0) {
 
 export function layoutLabels(candidates = [], { zoom = 1, padding = 3, cellSize = 64, bounds = null, metrics = null } = {}) {
   const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  const visible = sortedVisibleCandidates(candidates, zoom, bounds);
+  const ordered = sortedVisibleCandidates(candidates, zoom, bounds);
+  const visible = ordered.slice(0, PLACE_LIMITS.layoutCandidates);
   const resolvedCellSize = Math.max(16, Number(cellSize) || 64);
   const gridsByGroup = new Map();
   let collisionCheckCount = 0;
@@ -138,6 +143,7 @@ export function layoutLabels(candidates = [], { zoom = 1, padding = 3, cellSize 
   }
   if (metrics) Object.assign(metrics, {
     candidateCount: candidates.length,
+    hardCulledCount: Math.max(0, ordered.length - visible.length),
     visibleByZoomCount: visible.length,
     placedCount: output.length,
     collisionCheckCount,
