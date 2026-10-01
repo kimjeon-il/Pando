@@ -1,13 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createHash } from 'node:crypto';
 import { placeView } from '../helpers/place-view.mjs';
 import { createPlaceWorkerStore, readPlaceResponse } from '../../assets/js/modules/place-worker-store.js';
 import { normalizePlace, PLACE_LIMITS } from '../../assets/js/modules/place-contract.js';
 import { encodePlaceTile } from '../../assets/js/modules/place-codec.js';
+const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const records = Array.from({ length: 20 }, (_, i) => normalizePlace({ source: 'synthetic', sourceId: String(i), name: `서울 ${i}`, coordinates: [127 + i / 100, 37], kind: 'city', minZoom: 0, priority: i }));
 function fixture() {
   const bytes = new Uint8Array(encodePlaceTile(records));
-  const manifest = { version: 1, revision: 'test', stages: [{ id: 0, minZoom: 0, columns: 1, rows: 1 }], tiles: { '0/0-0': { shard: 's', offset: 0, length: bytes.length } }, shards: { s: { url: 's.bin', bytes: bytes.length } }, search: { '서울': [{ first: '서울', last: '서울\uffff', shard: 's', offset: 0, length: bytes.length }] } };
+  const row = { shard: 's', offset: 0, length: bytes.length, sha256: sha256(bytes) };
+  const manifest = { version: 1, revision: 'test', stages: [{ id: 0, minZoom: 0, columns: 1, rows: 1 }], tiles: { '0/0-0': row }, shards: { s: { url: 's.bin', bytes: bytes.length } }, search: { '서울': [{ ...row, first: '서울', last: '서울\uffff' }] } };
   return { bytes, manifest };
 }
 test('Worker queries wrapped tile window and returns bounded canonical records', async () => {
@@ -38,12 +41,13 @@ test('Worker validates manifest budgets before allocating or fetching', () => {
   const { manifest } = fixture();
   assert.throws(() => createPlaceWorkerStore({ manifest: { ...manifest, shards: { s: { url: 's.bin', bytes: PLACE_LIMITS.shardBytes + 1 } } } }));
   assert.throws(() => createPlaceWorkerStore({ manifest: { ...manifest, version: 2 } }));
+  assert.throws(() => createPlaceWorkerStore({ manifest: { ...manifest, tiles: { '0/0-0': { ...manifest.tiles['0/0-0'], sha256: '' } } } }), /hash/u);
 });
 test('viewport culling happens before candidate cap so offscreen priority cannot starve visible places',async()=>{
   const offscreen=Array.from({length:20},(_,i)=>normalizePlace({source:'synthetic',sourceId:`off-${i}`,name:'Offscreen',kind:'city',coordinates:[120,30],priority:100}));
   const visible=normalizePlace({source:'synthetic',sourceId:'visible',name:'Visible',kind:'city',coordinates:[0,0],priority:1});
   const bytes=new Uint8Array(encodePlaceTile([...offscreen,visible]));
-  const {manifest}=fixture();manifest.shards.s.bytes=bytes.length;manifest.tiles['0/0-0'].length=bytes.length;manifest.search={};
+  const {manifest}=fixture();manifest.shards.s.bytes=bytes.length;manifest.tiles['0/0-0'].length=bytes.length;manifest.tiles['0/0-0'].sha256=sha256(bytes);manifest.search={};
   const store=createPlaceWorkerStore({manifest,fetchBytes:async()=>bytes});
   const result=await store.queryViewport(placeView({projection:'flat',threshold:10,flatCenter:[0,0],width:400,height:400,scale:1000}));
   assert.deepEqual(result.records.map(record=>record.id),[visible.id]);
@@ -55,7 +59,7 @@ test('dense overscan tiles cannot consume the cap ahead of an on-screen place',a
   for(const [x,lon] of [[253,-2.1],[254,-1.3],[256,0],[257,1.3],[258,2.1]]){
     const records=Array.from({length:lon===0?1:512},(_,i)=>normalizePlace({source:'synthetic',sourceId:`${x}-${i}`,name:'Place',kind:'city',coordinates:[lon,0],priority:lon===0?1:100}));
     const bytes=new Uint8Array(encodePlaceTile(records));shards.set(String(x),bytes);
-    manifest.shards[x]={url:String(x),bytes:bytes.length};manifest.tiles[`0/${x}-0`]={shard:String(x),offset:0,length:bytes.length};
+    manifest.shards[x]={url:String(x),bytes:bytes.length};manifest.tiles[`0/${x}-0`]={shard:String(x),offset:0,length:bytes.length,sha256:sha256(bytes)};
   }
   const store=createPlaceWorkerStore({manifest,fetchBytes:async spec=>shards.get(spec.url)});
   const result=await store.queryViewport(placeView({scale:16000}));
@@ -69,7 +73,7 @@ test('canonical projection preserves date-line and rolled polar visibility while
     {view:{projection:'globe',rotation:[0,-90,40],scale:500},coordinates:[[0,90],[0,-90]],expected:'0'},
   ]){
     const records=coordinates.map((coordinates,i)=>normalizePlace({source:'synthetic',sourceId:String(i),name:'Place',kind:'capital',coordinates,minZoom:0}));
-    const bytes=new Uint8Array(encodePlaceTile(records));const {manifest}=fixture();manifest.shards.s.bytes=bytes.length;manifest.tiles['0/0-0'].length=bytes.length;manifest.search={};
+    const bytes=new Uint8Array(encodePlaceTile(records));const {manifest}=fixture();manifest.shards.s.bytes=bytes.length;manifest.tiles['0/0-0'].length=bytes.length;manifest.tiles['0/0-0'].sha256=sha256(bytes);manifest.search={};
     const store=createPlaceWorkerStore({manifest,fetchBytes:async()=>bytes});
     const result=await store.queryViewport(placeView(view));
     assert.deepEqual(result.records.map(record=>record.sourceId),[expected]);
@@ -77,7 +81,7 @@ test('canonical projection preserves date-line and rolled polar visibility while
 });
 test('decoded cache accounts every string field including worst-case Unicode metadata',async()=>{
   const records=Array.from({length:4},(_,i)=>normalizePlace({source:'s'.repeat(32),sourceId:'🗺'.repeat(127)+i,name:'🗺'.repeat(256),kind:'capital',coordinates:[0,0],countryCode:'🗺'.repeat(8),featureCode:'🗺'.repeat(32)}));
-  const bytes=new Uint8Array(encodePlaceTile(records));const {manifest}=fixture();manifest.shards.s.bytes=bytes.length;manifest.tiles['0/0-0'].length=bytes.length;manifest.search={};
+  const bytes=new Uint8Array(encodePlaceTile(records));const {manifest}=fixture();manifest.shards.s.bytes=bytes.length;manifest.tiles['0/0-0'].length=bytes.length;manifest.tiles['0/0-0'].sha256=sha256(bytes);manifest.search={};
   const store=createPlaceWorkerStore({manifest,fetchBytes:async()=>bytes});
   await store.queryViewport(placeView());
   const conservativeBytes=records.reduce((sum,record)=>sum+512+Object.values(record).reduce((size,value)=>size+(typeof value==='string'?value.length*2:0),0),bytes.length);
@@ -89,7 +93,7 @@ test('dense visible tiles enforce candidate, working-set and LRU cache budgets o
   for(let x=0;x<4;x++) {
     const records=Array.from({length:512},(_,i)=>normalizePlace({source:'synthetic',sourceId:`${x}-${i}`,name:'Visible',kind:'capital',coordinates:[-135+x*90,0],priority:x*512+i}));
     const bytes=new Uint8Array(encodePlaceTile(records));shards.set(String(x),bytes);
-    manifest.shards[x]={url:String(x),bytes:bytes.length};manifest.tiles[`0/${x}-0`]={shard:String(x),offset:0,length:bytes.length};
+    manifest.shards[x]={url:String(x),bytes:bytes.length};manifest.tiles[`0/${x}-0`]={shard:String(x),offset:0,length:bytes.length,sha256:sha256(bytes)};
   }
   const store=createPlaceWorkerStore({manifest,cacheBytes:400000,fetchBytes:async spec=>shards.get(spec.url)});
   for(let i=0;i<3;i++) {
@@ -114,4 +118,17 @@ test('range responses must identify the requested offset and complete shard size
   const store=createPlaceWorkerStore({manifest});
   await assert.rejects(store.queryViewport(placeView({flatCenter:[127,37]})),/range/u);
   assert.equal(store.stats().cacheBytes,0);
+});
+
+test('valid range metadata still rejects corrupted tile bytes', async t => {
+  const { manifest, bytes } = fixture();
+  const corrupted = Uint8Array.from(bytes);
+  corrupted[corrupted.length - 1] ^= 1;
+  t.mock.method(globalThis, 'fetch', async () => new Response(corrupted, {
+    status: 206,
+    headers: { 'Content-Range': `bytes 0-${bytes.length - 1}/${bytes.length}` },
+  }));
+  const store = createPlaceWorkerStore({ manifest });
+  await assert.rejects(store.queryViewport(placeView({ flatCenter: [127, 37] })), /tile hash/u);
+  assert.equal(store.stats().cacheBytes, 0);
 });

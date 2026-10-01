@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { createHash } from 'node:crypto';
 import { encodePlaceTile } from '../../assets/js/modules/place-codec.js';
 
 test.use({ viewport:{width:1440,height:900} });
@@ -10,7 +11,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   const records=[{source:'synthetic',sourceId:'seoul',name:'서울 Synthetic',kind:'capital',coordinates:[127,37],minZoom:0,priority:90},
     {source:'synthetic',sourceId:'london',name:'London Synthetic',kind:'capital',coordinates:[0,51],minZoom:0,priority:90}];
   const bytes=Buffer.from(encodePlaceTile(records));
-  const row={shard:'test',offset:0,length:bytes.length};
+  const row={shard:'test',offset:0,length:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
   const manifest={version:1,revision:'browser-synthetic',stages:[{id:0,minZoom:0,columns:1,rows:1}],tiles:{'0/0-0':row},shards:{test:{url:'test.bin',bytes:bytes.length}},
     search:{'서울':[{...row,first:'서울 synthetic',last:'서울 synthetic'}],lo:[{...row,first:'london synthetic',last:'london synthetic'}]}};
   await context.route('**/assets/data/places/**',route=>route.fulfill({status:200,contentType:route.request().url().includes('manifest.json')?'application/json':'application/octet-stream',body:route.request().url().includes('manifest.json')?JSON.stringify(manifest):bytes}));
@@ -26,6 +27,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#labelKindInput').locator('..').locator('.ui-select-control')).toBeDisabled();
   await expect(page.locator('#labelBuiltinSource')).toHaveText('synthetic');
   await expect(page.locator('#objectDeleteBtn')).toBeDisabled();
+  await expect(page.locator('#objectDeleteBtn')).toHaveAttribute('data-tooltip','내장 지명은 삭제할 수 없습니다.');
   await page.locator('#actionsTabBtn').click();
   await page.locator('#copyPlaceBtn').click();
   await expect(page.locator('#labelNameInput')).toBeVisible();
@@ -34,6 +36,11 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#labelKindInput').locator('..').locator('.ui-select-control')).toBeEnabled();
   await page.locator('#labelNameInput').fill('서울 편집 복사');await page.locator('#labelNameInput').press('Tab');
   await expect(page.locator('#propertyTitle')).toHaveText('서울 편집 복사');
+  await page.locator('#objectSearchBtn').click();
+  await page.locator('#layerSearchInput').fill('서울');
+  await expect(result).toHaveCount(0);
+  await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
+  await page.locator('#objectSearchBtn').click();
   // Copy and subsequent edit each use the existing document history.
   await page.locator('#undoBtn').click();await page.locator('#undoBtn').click();
   await page.locator('#objectSearchBtn').click();await page.locator('#layerSearchInput').fill('서울');
