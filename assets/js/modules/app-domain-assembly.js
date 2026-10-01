@@ -444,7 +444,6 @@ export function createDomainAssembly() {
     });
     countryPropertyController.bind();
     selectionToolbarPresentation.bind();
-    selectionUiController.bind();
 
     editingDomain = (0, dependencies.domainFactories.createEditingDomain)({
       context: domainContext,

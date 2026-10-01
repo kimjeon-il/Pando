@@ -29,7 +29,7 @@ function moveControlsToMapUi() {
   const overlayLayer = mapElement?.closest('.map-wrap')?.querySelector('.map-overlay-layer');
   const commandToolbar = overlayLayer?.querySelector('.map-command-toolbar');
   if (!mapElement || !overlayLayer) return;
-  const launcher = overlayLayer.querySelector('#referenceImageBtn') || mapElement.querySelector(':scope > .reference-image-launcher');
+  const launcher = overlayLayer.querySelector('#referenceImageBtn');
   const panel = mapElement.querySelector(':scope > .reference-image-panel');
   if (launcher && commandToolbar && !commandToolbar.contains(launcher)) {
     const resetViewButton = commandToolbar.querySelector('#resetViewBtn');

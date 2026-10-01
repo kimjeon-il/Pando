@@ -193,7 +193,6 @@ export function createReadinessNotifications() {
       stack: error?.stack || '',
       rollback,
     });
-    const hasSpecificUserMessage = !!String(error?.userMessage || '').trim() || isSafeKoreanErrorMessage(error);
     const userMessage = String(error?.userMessage || '').trim()
       || (isSafeKoreanErrorMessage(error) ? technicalMessage.trim() : '파일을 불러오지 못했습니다. 파일 형식과 구성을 확인하세요.');
     setActionStatus(`${userMessage} · ${code}`, 'error', 5600);
