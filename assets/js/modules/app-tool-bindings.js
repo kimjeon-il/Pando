@@ -57,24 +57,37 @@ export function createToolBindings() {
       const action = dependencies.projectState.state.territorySelectionSession ? dependencies.territorySelectionB.territorySelectionUndoPart : dependencies.countryCommitFlow.undoMultiDraftPart;
       void (0, dependencies.taskPresentation.runModePrimaryAction)(action);
     });
+    (0, dependencies.platform.$)('territorySelectionStackList')?.addEventListener('click', event => {
+      const button = event.target.closest('button[data-item-kind]');
+      if (!button || !event.currentTarget.contains(button)) return;
+      const action = button.dataset.itemKind === 'part'
+        ? () => dependencies.territorySelectionA.removeTerritorySelectionPart(button.dataset.itemId)
+        : () => dependencies.territorySelectionC.toggleTerritorySelectionComponent(button.dataset.itemId);
+      void (0, dependencies.taskPresentation.runModePrimaryAction)(action);
+    });
     (0, dependencies.platform.$)('modeTaskMinimizeBtn')?.addEventListener('click', dependencies.taskPresentation.toggleMapTaskWindow);
     (0, dependencies.platform.$)('modeDirectLineMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) void (0, dependencies.territorySelectionB.territorySelectionSelectMethod)('line');
+      if (event.currentTarget.checked) void (0, dependencies.taskPresentation.runModePrimaryAction)(
+        () => (0, dependencies.territorySelectionB.territorySelectionSelectMethod)('line'));
     });
     (0, dependencies.platform.$)('modePolygonMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) void (0, dependencies.territorySelectionB.territorySelectionSelectMethod)('polygon');
+      if (event.currentTarget.checked) void (0, dependencies.taskPresentation.runModePrimaryAction)(
+        () => (0, dependencies.territorySelectionB.territorySelectionSelectMethod)('polygon'));
     });
     (0, dependencies.platform.$)('modeComponentsMethodInput')?.addEventListener('change', event => {
-      if (event.currentTarget.checked) void (0, dependencies.territorySelectionB.territorySelectionSelectMethod)('components');
+      if (event.currentTarget.checked) void (0, dependencies.taskPresentation.runModePrimaryAction)(
+        () => (0, dependencies.territorySelectionB.territorySelectionSelectMethod)('components'));
     });
     (0, dependencies.platform.$)('territorialReferenceStartBtn')?.addEventListener('click', () => {
-      void (0, dependencies.territorySelectionB.territorySelectionStartReferenceMethod)();
+      void (0, dependencies.taskPresentation.runModePrimaryAction)(
+        dependencies.territorySelectionB.territorySelectionStartReferenceMethod);
     });
     (0, dependencies.platform.$)('modeMethodChangeKeepBtn')?.addEventListener('click', () => {
       (0, dependencies.territorySelectionB.territorySelectionCancelMethodChange)();
     });
     (0, dependencies.platform.$)('modeMethodChangeConfirmBtn')?.addEventListener('click', () => {
-      void (0, dependencies.territorySelectionB.territorySelectionConfirmMethodChange)();
+      void (0, dependencies.taskPresentation.runModePrimaryAction)(
+        dependencies.territorySelectionB.territorySelectionConfirmMethodChange);
     });
     (0, dependencies.platform.$)('modeRiverBoundaryInput')?.addEventListener('change', event => (0, dependencies.territorySelectionB.territorySelectionToggleRiverBoundaries)(event.currentTarget.checked));
     (0, dependencies.platform.$)('modeDraftInsertBtn')?.addEventListener('click', () => {

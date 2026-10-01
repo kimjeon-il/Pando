@@ -1035,6 +1035,202 @@
   color: var(--accent-text);
 }
 
+.workflow-map-session .mode-draft-actions .ui-icon {
+  display: none;
+}
+
+.workflow-map-session[data-territory-ui] .mode-task-heading {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+.workflow-map-session[data-territory-ui] .mode-task-step {
+  margin-left: auto;
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: var(--ui-font-caption);
+  white-space: nowrap;
+}
+
+.workflow-map-session[data-territory-ui] .annex-country-flow {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: var(--ui-space-2);
+  margin: 0;
+}
+
+.workflow-map-session[data-territory-ui] .annex-country-flow-country,
+.workflow-map-session[data-territory-ui="new-country"] .territorial-create-reference {
+  min-width: 0;
+  min-height: var(--ui-touch-height);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: center;
+  align-items: center;
+  gap: var(--ui-space-1) var(--ui-space-2);
+  padding: var(--ui-space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--surface-subtle);
+}
+
+.workflow-map-session[data-territory-ui] .annex-country-flow-role {
+  grid-column: 1 / -1;
+  color: var(--text-soft);
+  font-size: var(--ui-font-caption);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.workflow-map-session[data-territory-ui] .annex-country-flow-donor {
+  justify-content: initial;
+}
+
+.workflow-map-session[data-territory-ui] .annex-country-flow-name {
+  font-size: var(--ui-font-sm);
+}
+
+.workflow-map-session[data-territory-ui] .annex-country-flow-arrow {
+  align-self: center;
+}
+
+.workflow-map-session[data-territory-ui="new-country"] .territorial-create-reference {
+  display: grid;
+  gap: var(--ui-space-2);
+  margin-top: var(--ui-space-2);
+}
+
+.workflow-map-session[data-territory-ui="new-country"] .territorial-create-reference-heading,
+.workflow-map-session[data-territory-ui="new-country"] .territorial-create-reference-list {
+  grid-column: 1 / -1;
+}
+
+.workflow-map-session[data-territory-ui] .mode-method-switch {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--surface-subtle);
+}
+
+.workflow-map-session[data-territory-ui] .mode-direct-method-option {
+  position: relative;
+  justify-content: center;
+  padding-inline: var(--ui-space-1);
+  text-align: center;
+  font-size: var(--ui-font-sm);
+  white-space: nowrap;
+}
+
+.workflow-map-session[data-territory-ui] .mode-direct-method-option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.workflow-map-session[data-territory-ui] .mode-direct-method-option:has(input:checked) {
+  background: var(--panel);
+  box-shadow: var(--control-shadow);
+}
+
+.workflow-map-session[data-territory-ui] .mode-direct-method-option:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: var(--design-focus-offset);
+}
+
+.workflow-map-session[data-territory-ui] .mode-draft-actions:not(.hidden) {
+  display: flex;
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-control);
+  background: var(--panel);
+}
+
+.workflow-map-session[data-territory-ui] .mode-draft-actions .ui-icon {
+  display: block;
+}
+
+.workflow-map-session[data-territory-ui] .mode-draft-actions .mode-draft-label {
+  display: none;
+}
+
+.workflow-map-session[data-territory-ui] .mode-draft-actions .mode-aux-control {
+  flex: 0 0 var(--ui-control-height);
+  width: var(--ui-control-height);
+  min-width: var(--ui-control-height);
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}
+
+.workflow-map-session[data-territory-ui] .mode-draft-actions .mode-aux-control:hover:not(:disabled) {
+  background: var(--ui-button-subtle-hover);
+}
+
+.workflow-map-session[data-territory-ui] .mode-draft-confirm {
+  margin-left: auto;
+  color: var(--accent);
+}
+
+.workflow-map-session[data-territory-ui] .territory-selection-stack {
+  display: grid;
+  gap: var(--ui-space-2);
+  min-width: 0;
+  padding-top: var(--ui-space-2);
+  border-top: 1px solid var(--border);
+}
+
+.workflow-map-session[data-territory-ui] .territory-selection-stack > strong {
+  color: var(--text-strong);
+  font-size: var(--ui-font-sm);
+}
+
+.workflow-map-session[data-territory-ui] .territory-selection-stack-list {
+  display: grid;
+  gap: var(--ui-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workflow-map-session[data-territory-ui] .territory-selection-stack-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ui-space-2);
+  min-height: var(--ui-control-height);
+  color: var(--text-soft);
+  font-size: var(--ui-font-sm);
+}
+
+.workflow-map-session[data-territory-ui] .territory-selection-stack-area {
+  min-width: 0;
+}
+
+.workflow-map-session[data-territory-ui] .territory-selection-stack-remove {
+  width: var(--ui-control-height);
+  min-width: var(--ui-control-height);
+  height: var(--ui-control-height);
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-soft);
+}
+
+@media (max-width: 799px) {
+  .app-root[data-layout="mobile"] .workflow-map-session[data-territory-ui] .mode-draft-actions .mode-aux-control,
+  .app-root[data-layout="mobile"] .workflow-map-session[data-territory-ui] .territory-selection-stack-remove {
+    flex-basis: var(--ui-touch-height);
+    width: var(--ui-touch-height);
+    min-width: var(--ui-touch-height);
+    height: var(--ui-touch-height);
+    min-height: var(--ui-touch-height);
+  }
+}
+
 .workflow-dialog--compact {
   width: min(var(--ui-confirm-modal-width), calc(100vw - (var(--ui-dialog-edge) * 2)));
 }

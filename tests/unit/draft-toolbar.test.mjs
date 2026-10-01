@@ -112,6 +112,7 @@ test('completion awaits the drawing operation, rejects duplicate clicks and neve
     isGenericFeatureDraftTool: () => true, draftMinimumPoints: () => 2,
     describeTool: () => ({ name: '강 추가', stage: '경로 그리기' }),
     hydroToolConfig: () => null, isSpecialTool: () => true,
+    syncSelectionToolbarInteraction() {},
     TERRITORIAL_UNIT_TYPES: { SUBUNIT: 'subunit' },
     editorWorkspacePresentation: { sync() {} }, projectUi: { syncHistory() {} },
     syncStatusBar() {}, layoutMode: 'wide', territorySelectionPresentation: () => null,

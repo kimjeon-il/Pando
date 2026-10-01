@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.34.0-build-efa3d4d39b4d" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.34.0-build-efa3d4d39b4d" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.34.0-build-65401de4bd73" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.34.0-build-65401de4bd73" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -297,7 +297,7 @@
           <div id="modeEditingContext" class="mode-editing-context hidden">
             <section id="modeEditingHud" class="ui-floating-surface ui-workflow-shell workflow-map-session mode-task-window" role="region" aria-label="지도 편집 작업">
               <header class="mode-task-window-header">
-                <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">-</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span><span id="modeTaskStatus" class="mode-task-status" data-task-state="editable">편집 가능</span></div>
+                <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">-</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span><span id="modeTaskStep" class="mode-task-step hidden"></span><span id="modeTaskStatus" class="mode-task-status" data-task-state="editable">편집 가능</span></div>
                 <div class="mode-task-window-controls"><button id="modeTaskMinimizeBtn" class="mode-task-minimize-btn ui-button icon-btn compact" type="button" aria-label="지도 작업창 최소화" aria-controls="modeTaskWindowContent" aria-expanded="true" data-tooltip="최소화"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button></div>
               </header>
               <div id="modeTaskWindowContent" class="mode-task-window-content">
@@ -306,11 +306,13 @@
                     <div class="mode-task-detail">
                       <div id="annexCountryFlow" class="annex-country-flow hidden" role="group" aria-live="polite">
                         <div class="annex-country-flow-country annex-country-flow-target">
+                          <span class="annex-country-flow-role">넘겨받는 국가</span>
                           <img id="annexTargetCountryFlag" class="annex-country-flow-flag" alt="" hidden />
                           <strong id="annexTargetCountryName" class="annex-country-flow-name"></strong>
                         </div>
                         <span class="annex-country-flow-arrow" aria-hidden="true">←</span>
                         <div class="annex-country-flow-country annex-country-flow-donor">
+                          <span class="annex-country-flow-role">넘겨주는 국가</span>
                           <img id="annexDonorCountryFlag" class="annex-country-flow-flag" alt="" hidden />
                           <strong id="annexDonorCountryName" class="annex-country-flow-name annex-country-flow-placeholder">국가 선택</strong>
                         </div>
@@ -338,7 +340,7 @@
                     <div id="modeMethodSwitch" class="mode-method-switch hidden" role="radiogroup" aria-label="영토 선택 방식">
                       <label class="mode-direct-method-option"><input id="modeDirectLineMethodInput" type="radio" name="modeSelectionMethod" value="line" /><span>선 그리기</span></label>
                       <label id="modePolygonMethodOption" class="mode-direct-method-option"><input id="modePolygonMethodInput" type="radio" name="modeSelectionMethod" value="polygon" /><span>영역 그리기</span></label>
-                      <label class="mode-direct-method-option"><input id="modeComponentsMethodInput" type="radio" name="modeSelectionMethod" value="components" /><span>영토 조각 선택</span></label>
+                      <label class="mode-direct-method-option"><input id="modeComponentsMethodInput" type="radio" name="modeSelectionMethod" value="components" /><span>영역 선택</span></label>
                     </div>
                     <div id="modeMethodChangeConfirm" class="mode-method-change-confirm hidden" role="alert">
                       <p id="modeMethodChangeConfirmMessage">현재 영역을 버리고 방식을 바꿀까요?</p>
@@ -355,17 +357,21 @@
                       <div id="territorialCreateReferenceList" class="territorial-create-reference-list" role="list" aria-label="기준 국가 목록"></div>
                       <button id="territorialReferenceStartBtn" type="button" class="ui-button mode-aux-control hidden">시작</button>
                     </div>
-                    <label id="modeRiverBoundaryOption" class="mode-river-boundary-option mode-aux-control hidden" for="modeRiverBoundaryInput" aria-label="하천 경계 취급">
+                    <label id="modeRiverBoundaryOption" class="mode-river-boundary-option mode-aux-control hidden" for="modeRiverBoundaryInput" aria-label="하천을 경계로 사용">
                       <input id="modeRiverBoundaryInput" type="checkbox" />
-                      <span>하천 경계 취급</span>
+                      <span>하천을 경계로 사용</span>
                     </label>
                   </div>
                   <div id="modeDraftActions" class="mode-draft-actions hidden" role="group" aria-label="그리기 도구">
-                    <button id="modeDraftInsertBtn" type="button" class="ui-button mode-aux-control" aria-pressed="false" data-tooltip="선분을 눌러 꼭짓점 추가" aria-label="꼭짓점 추가">꼭짓점 추가</button>
-                    <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-aux-control" data-tooltip="지도에서 선택한 꼭짓점 삭제" aria-label="선택한 꼭짓점 삭제">꼭짓점 삭제</button>
-                    <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-aux-control" data-tooltip="현재 경로 다시 그리기" aria-label="현재 경로 다시 그리기">다시 그리기</button>
-                    <button id="modeDraftDoneBtn" type="button" class="ui-button mode-aux-control" data-tooltip="그리기 완료" aria-label="그리기 완료">완료</button>
+                    <button id="modeDraftInsertBtn" type="button" class="ui-button mode-aux-control" aria-pressed="false" data-tooltip="선분을 눌러 꼭짓점 추가" aria-label="꼭짓점 추가"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg><span class="mode-draft-label">꼭짓점 추가</span></button>
+                    <button id="modeDraftDeleteBtn" type="button" class="ui-button mode-aux-control" data-tooltip="지도에서 선택한 꼭짓점 삭제" aria-label="선택한 꼭짓점 삭제"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg><span class="mode-draft-label">꼭짓점 삭제</span></button>
+                    <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-aux-control" data-tooltip="현재 경로 다시 그리기" aria-label="현재 경로 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-restore-default"/></svg><span class="mode-draft-label">다시 그리기</span></button>
+                    <button id="modeDraftDoneBtn" type="button" class="ui-button mode-aux-control mode-draft-confirm" data-tooltip="그리기 완료" aria-label="그리기 완료"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-draft-label">완료</span></button>
                   </div>
+                  <section id="territorySelectionStack" class="territory-selection-stack hidden" aria-label="선택 영토">
+                    <strong id="territorySelectionStackSummary" role="status">선택 영토 0개 · 0 km²</strong>
+                    <ol id="territorySelectionStackList" class="territory-selection-stack-list"></ol>
+                  </section>
                   <div id="multiDrawnActions" class="multi-drawn-actions hidden" role="group" aria-label="다중 영역 선택">
                     <span id="multiDrawnCount" class="multi-drawn-count" role="status">영역 0개</span>
                     <div class="multi-drawn-buttons">
@@ -918,10 +924,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.34.0-build-efa3d4d39b4d" defer></script>
+  <script src="assets/js/build-meta.js?v=0.34.0-build-65401de4bd73" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.34.0-build-efa3d4d39b4d" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.34.0-build-65401de4bd73" defer></script>
 </body>
 </html>
