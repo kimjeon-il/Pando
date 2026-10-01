@@ -9,6 +9,7 @@ on:
       - 'assets/js/modules/layer-tree-controller.js'
       - 'assets/js/modules/place-*.js'
       - 'assets/js/modules/project-state.js'
+      - 'assets/js/modules/rendering-domain.js'
       - 'assets/js/workers/place-worker.js'
       - 'assets/js/workers/worker-rpc-host.js'
       - 'tests/helpers/place-*.mjs'
@@ -54,6 +55,7 @@ jobs:
           assets/js/modules/place-runtime.js
           assets/js/modules/place-worker-store.js
           assets/js/modules/project-state.js
+          assets/js/modules/rendering-domain.js
           assets/js/workers/place-worker.js
           assets/js/workers/worker-rpc-host.js
           tests/helpers/place-synthetic.mjs
