@@ -1,3 +1,5 @@
+import { isBuiltinPlaceId } from './place-contract.js';
+
 const PROPERTY_TYPE_LABELS = Object.freeze({
   country: '국가', subunit: '하위단위', region: '지방',
   distribution: '분포', generic: '기타 객체', label: '지명', hydro: '강·호수', multi: '다중선택',
@@ -29,6 +31,7 @@ export function createObjectPropertyController(runtime = {}) {
     genericFeatureRole,
     genericFeatureName,
     genericFeatureRoleLabels,
+    labelById,
     labelKey,
     automaticLabelSettings,
     hydroFeatureById,
@@ -356,15 +359,24 @@ export function createObjectPropertyController(runtime = {}) {
   }
 
   function presentLabel(id, refreshOnly = false) {
-    const label = state.labels.find(item => item.id === id);
+    const label = labelById(id);
     if (!label) return false;
     show('label', label.name, { resetScroll: !refreshOnly });
     $('labelNameInput').value = label.name;
     $('labelKindInput').value = label.kind;
     $('labelNotesInput').value = label.notes || '';
+    const builtin = isBuiltinPlaceId(label.id);
+    $('labelNameInput').readOnly = builtin;
+    $('labelKindInput').disabled = builtin;
+    $('labelNotesInput').readOnly = builtin;
+    $('labelBuiltinInfo').hidden = !builtin;
+    $('labelBuiltinSource').textContent = builtin ? label.source : '';
+    $('labelBuiltinId').textContent = builtin ? label.sourceId : '';
+    $('copyPlaceSection').hidden = !builtin;
     const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});
     $('labelPositionValue').textContent = settings.pinned ? '사용자 위치에 고정됨' : '종류별 정책으로 자동 배치';
     $('selectionStatus').textContent = label.name;
+    syncActionTab('label');
     syncStatusBar();
     layerTreeController()?.syncSelection();
     return true;

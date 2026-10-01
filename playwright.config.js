@@ -15,6 +15,7 @@ export default defineConfig({
     baseURL: testBaseUrl,
     browserName: 'chromium',
     channel: browserChannel,
+    launchOptions: { executablePath: process.env.PANDOLAB_BROWSER_EXECUTABLE || undefined },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

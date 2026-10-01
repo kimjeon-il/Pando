@@ -234,7 +234,8 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "uiRegistryCommands",
     "workspaceUiA",
     "workspaceUiB",
-    "workspaceUiC"
+    "workspaceUiC",
+    "labelPresentation"
   ],
   "toolBindings": [
     "countryCommitFlow",

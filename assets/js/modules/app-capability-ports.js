@@ -207,7 +207,7 @@ export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
   objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectCatalog","objectPresentation","platform","projectState","spatialQuery"]),
   hydroSettings: Object.freeze(["colorModel","hydroPresentation","layerPresentation","mapLayout","objectPresentation","physicalConfig","platform","preferences","projectState","surfaces"]),
   layerList: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectCatalog","objectPresentation","platform","projectState","rendering"]),
-  countryLabels: Object.freeze(["colorModel","countries","domains","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces"]),
+  countryLabels: Object.freeze(["colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces"]),
   physicalResources: Object.freeze(["cutGeometry","domains","feedback","hydroPresentation","labelPresentation","layerPresentation","mapView","operationFeedback","physicalConfig","physicalServices","platform","projectState","rendering"]),
   interactionPackets: Object.freeze(["distributionPresentation","domains","draftPresentation","mapLayers","objectCatalog","platform","preferences","projectState","renderScene","surfaces"]),
 });
@@ -260,6 +260,8 @@ function createMapResourcePorts(providers) {
       get hydroLineParts() { return providers.pointerTargets.hydroLineParts; },
     }),
     labelPresentation: Object.freeze({
+      get labelById() { return providers.countryLabels.labelById; },
+      get builtinPlaces() { return providers.countryLabels.builtinPlaces; },
       get automaticLabelSettings() { return providers.runtime.automaticLabelSettings; },
       get buildRenderableStrokeFeature() { return providers.runtime.buildRenderableStrokeFeature; },
       get countryLabelAnchors() { return providers.countryIndex.countryLabelAnchors; },

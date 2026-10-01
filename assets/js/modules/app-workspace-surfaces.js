@@ -190,8 +190,11 @@ export function createWorkspaceSurfaces() {
     const view = surfaceController.render({ fileOpen });
     referenceSurface?.sync();
     if (!surfaceController.isOpen('search')) {
+      dependencies.domains.layerTreeController?.cancelSearch();
       cancelAnimationFrame(searchFocusFrame);
       searchFocusFrame = 0;
+    } else {
+      dependencies.domains.layerTreeController?.render(true);
     }
     searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();

@@ -126,7 +126,8 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "territorialModel",
     "territorialServicesA",
     "territorialServicesB",
-    "workspaceUiA"
+    "workspaceUiA",
+    "labelPresentation"
   ],
   "territorialDrafts": [
     "applicationServicesB",
