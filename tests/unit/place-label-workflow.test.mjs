@@ -36,6 +36,7 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
   const owner = createProjectSnapshots();
   owner.connect({
     projectState: { state },
+    applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { SINGLE: 'single', OVERLAP: 'overlap' } },
     projectServices: { pickProjectFields, applyProjectFields },
     platform: { deepClone: structuredClone, $: () => ({ textContent: '' }) },
     labelPresentation: { labelKey: (domain, id) => `${domain}:${id}` },
