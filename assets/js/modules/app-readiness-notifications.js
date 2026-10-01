@@ -154,6 +154,7 @@ export function createReadinessNotifications() {
       ? `${detail} · ${code}`
       : `${fallbackSummary} · ${code}`;
     setActionStatus(message, 'error', timeout);
+    return message;
   }
 
   function createGisImportError(userMessage, {

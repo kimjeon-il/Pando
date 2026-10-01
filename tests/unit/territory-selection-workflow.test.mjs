@@ -144,14 +144,16 @@ const starts = Object.freeze([
   ['region', { name: '새 지방' }],
 ]);
 
-test('country and annex workflows expose the three concise stage labels without changing other workflows', async t => {
+test('all four territory workflows expose concise setup, selection and review headings', async t => {
   const h = harness(t);
   for (const [kind, options, labels] of [
     ['annex', starts[0][1], ['가져올 국가', '영토 선택', '편입 확인']],
     ['new-country', starts[1][1], ['국가 정보', '영토 선택', '생성 확인']],
+    ['subunit', starts[2][1], ['하위단위 정보', '영역 선택', '생성 확인']],
+    ['region', starts[3][1], ['지방 정보', '영역 선택', '생성 확인']],
   ]) {
     h.workflow.start(kind, options);
-    assert.equal(h.workflow.presentation().taskName, kind === 'annex' ? '영토 편입' : '국가 추가');
+    assert.equal(h.workflow.presentation().taskName, { annex: '영토 편입', 'new-country': '국가 추가', subunit: '하위단위 추가', region: '지방 추가' }[kind]);
     assert.equal(h.workflow.presentation().stageLabel, labels[0]);
     await h.workflow.advance();
     assert.equal(h.workflow.presentation().stageLabel, labels[1]);
@@ -164,14 +166,12 @@ test('country and annex workflows expose the three concise stage labels without 
     assert.equal(h.workflow.presentation().stageLabel, labels[2]);
     h.workflow.clear();
   }
-  h.workflow.start('subunit', starts[2][1]);
-  assert.equal(h.workflow.presentation().taskName, '하위단위 추가 1단계');
-  assert.equal(h.workflow.presentation().stageLabel, '기본 설정');
 });
 
-test('country draw candidates cannot advance to review before the check control archives them', async t => {
+test('all territory draw candidates must be archived through validation before advancing', async t => {
   const h = harness(t);
-  const current = h.workflow.start('annex', starts[0][1]);
+  for (const [kind, options] of starts) {
+  const current = h.workflow.start(kind, options);
   await h.workflow.advance();
   await h.workflow.selectMethod('polygon');
   h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
@@ -184,6 +184,30 @@ test('country draw candidates cannot advance to review before the check control 
   await settle(t);
   assert.equal(await h.workflow.advance(), true);
   assert.equal(current.stage, 'review');
+  h.workflow.clear();
+  }
+});
+
+test('subunit and region selected components archive on method change with their exact snapshots', async t => {
+  const h = harness(t);
+  for (const [kind, options] of starts.slice(2)) {
+    const current = h.workflow.start(kind, { ...options, sourceCountryIds: ['B'] });
+    await h.workflow.advance();
+    await h.workflow.selectMethod('components');
+    await settle(t);
+    assert.equal(h.workflow.toggleComponent('first'), true);
+    await settle(t);
+    assert.equal(await h.workflow.selectMethod('polygon'), true);
+    await settle(t);
+    assert.equal(current.parts.length, 1);
+    assert.equal(current.parts[0].component.key, 'first');
+    assert.equal(current.componentSnapshots.length, 1);
+    assert.equal(h.workflow.removePart(current.parts[0].id), true);
+    await settle(t);
+    assert.equal(current.parts.length, 0);
+    assert.equal(current.componentSnapshots.length, 0);
+    h.workflow.clear();
+  }
 });
 
 test('new-country setup retains every selected source country and its reference count', t => {
@@ -207,21 +231,19 @@ test('all four operations use setup, selection, review and preserve a selection 
     assert.equal(current.activePhase, 'drawing');
     h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
     await settle(t);
-    if (kind === 'annex' || kind === 'new-country') {
-      assert.equal(h.workflow.addPart(), true);
-      await settle(t);
-    }
+    assert.equal(h.workflow.addPart(), true);
+    await settle(t);
     assert.equal(await h.workflow.advance(), true);
     assert.equal(current.stage, 'review');
-    assert.equal(h.workflow.presentation().showReviewSummary, kind !== 'annex');
-    assert.equal(h.workflow.presentation().reviewName, current.name.trim());
+    assert.equal(current.parts.length, 1);
+    assert.ok(current.combinedGeometry);
     assert.equal(h.workflow.back(), true);
     assert.equal(current.stage, 'selection');
-    assert.equal(current.activePhase, kind === 'annex' || kind === 'new-country' ? null : 'candidate');
+    assert.equal(current.activePhase, null);
     assert.equal(h.workflow.back(), true);
     assert.equal(current.stage, 'setup');
     assert.equal(await h.workflow.advance(), true);
-    assert.equal(current.activePhase, kind === 'annex' || kind === 'new-country' ? null : 'candidate');
+    assert.equal(current.activePhase, null);
     assert.equal(Object.hasOwn(current, 'requestedMethod'), true);
     h.workflow.clear();
   }

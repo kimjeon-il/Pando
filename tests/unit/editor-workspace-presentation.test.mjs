@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+/* global Event, EventTarget */
 import { createEditorWorkspacePresentation } from '../../assets/js/modules/editor-workspace-presentation.js';
 
-function fixture() {
+function fixture({ initiallyBlocked = false } = {}) {
   const node = () => ({
     dataset: {}, hidden: false, moves: 0,
     setAttribute(name, value) { this[name] = value; },
@@ -13,11 +14,11 @@ function fixture() {
   document.defaultView = new EventTarget();
   const panel = node(), task = node(), dockSlot = node(), floatingSlot = node(), content = node(), minimize = node();
   task.parentElement = floatingSlot;
-  let open = false, invalidations = 0, opens = 0;
+  let open = false, invalidations = 0, opens = 0, blocked = initiallyBlocked;
   const controller = createEditorWorkspacePresentation({
     document, panel, task, dockSlot, floatingSlot, content, minimize,
     isEditorOpen: () => open,
-    openEditor: () => { open = true; opens++; },
+    openEditor: () => { if (!blocked) { open = true; opens++; } },
     onLayoutChange: () => invalidations++,
   });
   const pointer = (type, id = 1) => {
@@ -26,9 +27,30 @@ function fixture() {
     document.dispatchEvent(event);
   };
   return { controller, panel, task, dockSlot, floatingSlot, content, minimize, document, pointer,
+    releaseCreateMenu: () => { blocked = false; },
+    switchToAnotherSurface: () => { open = false; },
     stats: () => ({ open, opens, invalidations }),
   };
 }
+
+test('a task opens after the create menu releases its temporary open block', () => {
+  const f = fixture({ initiallyBlocked: true });
+  f.controller.sync({ active: true });
+  assert.equal(f.stats().open, false);
+  f.releaseCreateMenu();
+  f.controller.sync({ active: true });
+  assert.equal(f.stats().open, true);
+  assert.equal(f.dockSlot.moves, 1);
+});
+
+test('an already opened task does not override a subsequent explicit mobile surface switch', () => {
+  const f = fixture();
+  f.controller.sync({ active: true });
+  f.switchToAnotherSurface();
+  f.controller.sync({ active: true });
+  assert.equal(f.stats().open, false);
+  assert.equal(f.stats().opens, 1);
+});
 
 test('active tasks reuse one editor slot, open the inspector and ignore minimization', () => {
   const f = fixture();

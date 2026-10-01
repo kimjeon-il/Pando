@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.34.0-build-a949b0bb0ace" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.34.0-build-a949b0bb0ace" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.34.0-build-0dddccd68bda" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.34.0-build-0dddccd68bda" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -297,44 +297,20 @@
           <div id="modeEditingContext" class="mode-editing-context hidden">
             <section id="modeEditingHud" class="ui-floating-surface ui-workflow-shell workflow-map-session mode-task-window" role="region" aria-label="지도 편집 작업">
               <header class="mode-task-window-header">
-                <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">-</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span><span id="modeTaskStep" class="mode-task-step hidden"></span><span id="modeTaskStatus" class="mode-task-status" data-task-state="editable">편집 가능</span></div>
-                <div class="mode-task-window-controls"><button id="modeTaskMinimizeBtn" class="mode-task-minimize-btn ui-button icon-btn compact" type="button" aria-label="지도 작업창 최소화" aria-controls="modeTaskWindowContent" aria-expanded="true" data-tooltip="최소화"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button></div>
+                <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">·</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span><span id="modeTaskStep" class="mode-task-step hidden"></span><span id="modeTaskStatus" class="mode-task-status hidden" data-task-state="editable">편집 가능</span></div>
+                <div class="mode-task-window-controls">
+                  <button id="modeTaskTargetsFocusBtn" class="ui-button icon-btn compact" type="button" aria-label="대상으로 이동" data-tooltip="대상으로 이동"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-target"/></svg></button>
+                  <button id="modeTaskMinimizeBtn" class="mode-task-minimize-btn ui-button icon-btn compact" type="button" aria-label="지도 작업창 최소화" aria-controls="modeTaskWindowContent" aria-expanded="true" data-tooltip="최소화"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
+                </div>
               </header>
               <div id="modeTaskWindowContent" class="mode-task-window-content">
                 <div class="mode-task-window-body">
-                  <div class="mode-task-context">
-                    <div class="mode-task-detail">
-                      <div id="annexCountryFlow" class="annex-country-flow hidden" role="group" aria-live="polite">
-                        <div class="annex-country-flow-country annex-country-flow-target">
-                          <span class="annex-country-flow-role">넘겨받는 국가</span>
-                          <img id="annexTargetCountryFlag" class="annex-country-flow-flag" alt="" hidden />
-                          <strong id="annexTargetCountryName" class="annex-country-flow-name"></strong>
-                        </div>
-                        <span class="annex-country-flow-arrow" aria-hidden="true">←</span>
-                        <div class="annex-country-flow-country annex-country-flow-donor">
-                          <span class="annex-country-flow-role">넘겨주는 국가</span>
-                          <img id="annexDonorCountryFlag" class="annex-country-flow-flag" alt="" hidden />
-                          <strong id="annexDonorCountryName" class="annex-country-flow-name annex-country-flow-placeholder">국가 선택</strong>
-                        </div>
-                      </div>
-                      <div id="territorialReviewSummary" class="territorial-review-summary hidden" role="status">
-                        <strong id="territorialReviewName"></strong>
-                        <span id="territorialReviewDetail"></span>
-                      </div>
-                      <p id="modeTaskInstruction" class="mode-task-instruction"></p>
-                      <section id="modeTaskTargets" class="mode-task-targets hidden" aria-labelledby="modeTaskTargetsLabel">
-                        <div class="mode-task-targets-heading"><span id="modeTaskTargetsLabel">선택 대상</span><button id="modeTaskTargetsFocusBtn" class="ui-button mode-task-targets-focus" type="button">대상으로 이동</button></div>
-                        <ul id="modeTaskTargetList" class="mode-task-target-list"></ul>
-                      </section>
-                      <p id="modeTaskDisabledReason" class="mode-task-disabled-reason hidden"></p>
-                      <div id="geometryPreviewSummary" class="geometry-preview-summary hidden"></div>
-                    </div>
-                  </div>
+                  <div id="modeTaskObjects" class="workflow-object-cards hidden"></div>
                   <div id="territorialCreateSetup" class="territorial-create-setup hidden">
                     <label class="ui-field field-group"><span id="territorialCreateNameLabel">이름</span><input id="territorialCreateNameInput" type="text" maxlength="120" autocomplete="off" /></label>
-                    <label id="territorialCreateSovereignRow" class="ui-field field-group"><span>소속 국가</span><select id="territorialCreateSovereignInput"></select></label>
-                    <label id="territorialCreateParentRow" class="ui-field field-group"><span>상위 단위</span><select id="territorialCreateParentInput"></select></label>
-                    <label id="territorialCreateSourceRow" class="ui-field field-group"><span>기준 영역</span><select id="territorialCreateSourceInput"></select></label>
+                    <label id="territorialCreateSovereignRow" class="ui-field field-group workflow-object-card"><span>소속 국가</span><span class="workflow-select-identity"><img id="territorialCreateSovereignFlag" class="workflow-object-flag" alt="" hidden /><select id="territorialCreateSovereignInput"></select></span></label>
+                    <label id="territorialCreateParentRow" class="ui-field field-group workflow-object-card"><span>상위 단위</span><select id="territorialCreateParentInput"></select></label>
+                    <label id="territorialCreateSourceRow" class="ui-field field-group workflow-object-card"><span>기준 영역</span><select id="territorialCreateSourceInput"></select></label>
                   </div>
                   <div class="mode-task-section mode-task-method-section">
                     <div id="modeMethodSwitch" class="mode-method-switch hidden" role="radiogroup" aria-label="영토 선택 방식">
@@ -349,7 +325,7 @@
                         <button id="modeMethodChangeConfirmBtn" type="button" class="ui-button mode-aux-control">변경</button>
                       </div>
                     </div>
-                    <div id="territorialCreateReference" class="territorial-create-reference hidden" aria-live="polite">
+                    <div id="territorialCreateReference" class="territorial-create-reference workflow-object-card hidden" aria-live="polite">
                       <div class="territorial-create-reference-heading">
                         <span id="territorialCreateReferenceLabel">기준 국가</span>
                         <span id="territorialCreateReferenceCount" class="territorial-create-reference-count">0개</span>
@@ -368,16 +344,25 @@
                     <button id="modeDraftRedrawBtn" type="button" class="ui-button mode-aux-control" data-tooltip="현재 경로 다시 그리기" aria-label="현재 경로 다시 그리기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-restore-default"/></svg><span class="mode-draft-label">다시 그리기</span></button>
                     <button id="modeDraftDoneBtn" type="button" class="ui-button mode-aux-control mode-draft-confirm" data-tooltip="그리기 완료" aria-label="그리기 완료"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-check"/></svg><span class="mode-draft-label">완료</span></button>
                   </div>
-                  <section id="territorySelectionStack" class="territory-selection-stack hidden" aria-label="선택 영토">
-                    <strong id="territorySelectionStackSummary" role="status">선택 영토 0개 · 0 km²</strong>
-                    <ol id="territorySelectionStackList" class="territory-selection-stack-list"></ol>
+                  <section id="territorySelectionStack" class="workflow-result-list hidden" aria-label="선택 영토">
+                    <header class="workflow-result-heading"><strong id="territorySelectionStackSummary" role="status">선택 영토 0개 · 0 km²</strong></header>
+                    <ol id="territorySelectionStackList" class="workflow-result-rows"></ol>
                   </section>
-                  <div id="multiDrawnActions" class="multi-drawn-actions hidden" role="group" aria-label="다중 영역 선택">
-                    <span id="multiDrawnCount" class="multi-drawn-count" role="status">영역 0개</span>
-                    <div class="multi-drawn-buttons">
+                  <section id="modeTaskResults" class="workflow-result-list hidden" aria-label="작업 결과">
+                    <header class="workflow-result-heading">
+                      <strong id="modeTaskResultsSummary" role="status"></strong>
+                      <div id="multiDrawnActions" class="multi-drawn-buttons hidden" role="group" aria-label="다중 그리기">
                       <button id="multiDrawnAddBtn" type="button" class="ui-button mode-aux-control" data-tooltip="선택을 유지하고 다른 영역 그리기" aria-label="선택을 유지하고 다른 영역 그리기">추가</button>
                       <button id="multiDrawnUndoBtn" type="button" class="ui-button mode-aux-control" data-tooltip="직전 영역 선택 취소" aria-label="직전 영역 선택 취소">되돌리기</button>
-                    </div>
+                      </div>
+                    </header>
+                    <ol id="modeTaskResultsList" class="workflow-result-rows"></ol>
+                  </section>
+                  <dl id="geometryPreviewSummary" class="workflow-review-summary hidden" aria-label="검토 요약"></dl>
+                  <div id="modeTaskFeedback" class="workflow-feedback workflow-feedback-idle" aria-live="polite">
+                    <p id="modeTaskInstruction" class="mode-task-instruction workflow-a11y-description"></p>
+                    <p id="modeTaskDisabledReason" class="mode-task-disabled-reason hidden"></p>
+                    <p id="modeTaskCandidateFeedback" class="hidden"></p>
                   </div>
                 </div>
                 <footer id="modeActionBar" class="ui-context-toolbar ui-floating-surface mode-action-bar hidden" aria-label="지도 편집 작업 실행">
@@ -922,10 +907,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.34.0-build-a949b0bb0ace" defer></script>
+  <script src="assets/js/build-meta.js?v=0.34.0-build-0dddccd68bda" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.34.0-build-a949b0bb0ace" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.34.0-build-0dddccd68bda" defer></script>
 </body>
 </html>

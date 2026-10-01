@@ -1,4 +1,5 @@
-import { taskStagePresentation, taskTargetRefs } from './app-task-stage-model.js';
+import { taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
+import { lineDistanceKm } from './geometry-metrics.js';
 
 /** Task surface presentation. Territory selection is rendered from one shared model. */
 export function draftToolbarStatus({ state, draft, draftMode, hasDraftTool, minimumPoints, cutLineReady }) {
@@ -34,19 +35,9 @@ export function multiDraftReviewActive(state) {
   return !!draft && draft.kind === 'hydro' && ((draft.parts?.length || 0) > 0 || !!draft.current);
 }
 
-const compactTerritoryKind = kind => kind === 'annex' || kind === 'new-country';
-
-const routineTerritoryInstructions = new Set([
-  '가져올 국가를 선택하세요.',
-  '가져올 영토를 가로질러 선을 그리세요.',
-  '가져올 영역을 지도에 그리세요.',
-  '가져올 영토 조각을 선택하세요.',
-  '새 국가로 만들 영토 조각을 선택하세요.',
-  '선택한 영역을 확인하세요.',
-]);
-
 export function createTaskPresentation() {
   let dependencies;
+  let operationFeedback = '';
 
   function connect(ports) {
     if (dependencies) throw new Error('task-presentation already connected');
@@ -67,14 +58,14 @@ export function createTaskPresentation() {
     for (const [id, active] of buttons) (0, dependencies.platform.$)(id)?.classList.toggle('active', !!active);
   }
 
-  function setModeBanner(text = '') {
+  function setModeBanner(text = '', { feedback = false } = {}) {
+    operationFeedback = feedback ? text : '';
     const instruction = (0, dependencies.platform.$)('modeTaskInstruction');
     if (!instruction) return;
     if (instruction.textContent !== text) instruction.textContent = text;
     instruction.classList.remove('cut-valid', 'cut-invalid', 'cut-pending');
-    const selection = dependencies.projectState.state.territorySelectionSession;
-    instruction.classList.toggle('hidden', !text
-      || compactTerritoryKind(selection?.kind) && routineTerritoryInstructions.has(text));
+    instruction.classList.toggle('hidden', !text);
+    // Visibility is decided together with validation feedback during the UI sync.
     syncTaskActionDescription();
     (0, dependencies.readinessUi.syncStatusBar)();
   }
@@ -100,7 +91,7 @@ export function createTaskPresentation() {
 
   function countryDisplay(countryId) {
     const id = String(countryId || '');
-    const feature = id ? dependencies.countries.countryFeatureById?.(id) : null;
+    const feature = id ? dependencies.countries.countryFeatureById(id) : null;
     if (!feature) return null;
     const override = dependencies.projectState.state.countryOverrides?.[id] || {};
     return {
@@ -109,58 +100,71 @@ export function createTaskPresentation() {
     };
   }
 
-  function setCountryDisplay({ flag, name }, display, fallback) {
-    const label = display?.name || fallback;
-    if (name) {
-      name.textContent = label;
-      name.classList.toggle('annex-country-flow-placeholder', !display);
-    }
-    if (!flag) return;
-    flag.hidden = !display?.flagUrl;
-    if (display?.flagUrl) flag.src = display.flagUrl;
-    else flag.removeAttribute('src');
+
+  function displayObject(ref) {
+    const display = dependencies.objectOperationsA.objectDisplayInfo(ref);
+    const country = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+      ? countryDisplay(ref.id) : null;
+    return { name: display.name, flagUrl: country?.flagUrl || '' };
   }
 
-  function syncTerritoryTransferFlow(model) {
-    const selection = model?.current;
-    const flow = (0, dependencies.platform.$)('annexCountryFlow');
-    if (!flow) return;
-    const active = !!model?.showCountryFlow;
-    flow.classList.toggle('hidden', !active);
-    if (!active) {
-      flow.removeAttribute('aria-label');
-      return;
+  function appendIdentity(parent, display) {
+    const document = parent.ownerDocument;
+    if (display.flagUrl) {
+      const flag = document.createElement('img');
+      flag.className = 'workflow-object-flag';
+      flag.src = display.flagUrl;
+      flag.alt = '';
+      parent.append(flag);
     }
-    const target = countryDisplay(selection.targetCountryId);
-    const donors = selection.sourceCountryIds.map(countryDisplay).filter(Boolean);
-    const donor = donors[0] || null;
-    const donorLabel = donor ? `${donor.name}${donors.length > 1 ? ` 외 ${donors.length - 1}개` : ''}` : '국가 선택';
-    setCountryDisplay({ flag: (0, dependencies.platform.$)('annexTargetCountryFlag'), name: (0, dependencies.platform.$)('annexTargetCountryName') }, target, '국가');
-    setCountryDisplay({ flag: (0, dependencies.platform.$)('annexDonorCountryFlag'), name: (0, dependencies.platform.$)('annexDonorCountryName') }, donor ? { ...donor, name: donorLabel } : null, '국가 선택');
-    flow.setAttribute('aria-label', donor
-      ? `${donors.map(country => country.name).join(', ')}의 영토를 ${target?.name || '국가'}에 편입`
-      : `${target?.name || '국가'}에 편입할 국가를 선택`);
+    const name = document.createElement('strong');
+    name.textContent = display.name;
+    parent.append(name);
   }
 
-  function syncGeometryPreviewSummary(selection) {
-    const element = (0, dependencies.platform.$)('geometryPreviewSummary');
+  function syncGeometryPreviewSummary(view, selection) {
+    const element = dependencies.platform.$('geometryPreviewSummary');
     if (!element) return;
-    const preview = dependencies.projectState.state.geometryPreview.session;
-    const suspended = !!selection && selection.stage !== 'review';
-    const blocking = preview?.validation?.blocking === true;
-    element.classList.toggle('hidden', !preview || blocking || suspended);
-    if (!preview || blocking || suspended) {
-      element.textContent = '';
-      element.removeAttribute('aria-label');
+    const state = dependencies.projectState.state;
+    const preview = state.geometryPreview.session;
+    const visible = (view === null || view.review) && !!preview && !preview.validation?.blocking;
+    element.classList.toggle('hidden', !visible);
+    if (!visible) {
+      element.replaceChildren();
+      delete element.dataset.signature;
       return;
+    }
+    const rows = [];
+    const names = ids => ids.map(id => countryDisplay(id)?.name || territorialUnitDisplay(id)).filter(Boolean).join(', ');
+    if (selection) {
+      if (selection.kind === 'annex') rows.push(['넘겨받는 국가', names([selection.targetCountryId])]);
+      else rows.push(['이름', selection.name]);
+      if (selection.sovereignId) rows.push(['소속 국가', names([selection.sovereignId])]);
+      if (selection.parentId && selection.parentId !== selection.sovereignId) rows.push(['상위 단위', names([selection.parentId])]);
+      if (selection.sourceCountryIds.length) rows.push([selection.kind === 'annex' ? '넘겨주는 국가' : '원소속 국가', names(selection.sourceCountryIds)]);
+      rows.push([['annex', 'new-country'].includes(selection.kind) ? '선택 영토' : '선택 영역', `${dependencies.territorySelectionB.territorySelectionPresentation().count}개`]);
+    } else {
+      const refs = currentTaskTargets();
+      if (refs.length) rows.push(['대상', refs.map(ref => displayObject(ref).name).join(', ')]);
     }
     const metrics = preview.metrics || {};
-    const fragments = [];
-    if (metrics.transferredAreaKm2 > 0) fragments.push(`이동 ${(0, dependencies.applicationServicesA.formatArea)(metrics.transferredAreaKm2)}`);
-    if (metrics.finalAreaKm2 > 0) fragments.push(`최종 ${(0, dependencies.applicationServicesA.formatArea)(metrics.finalAreaKm2)}`);
-    const value = fragments.length ? fragments.join(' · ') : '변경 결과를 확인하세요.';
-    element.textContent = value;
-    element.setAttribute('aria-label', value);
+    for (const [key, label] of [['transferredAreaKm2', '이동 면적'], ['finalAreaKm2', '결과 면적']]) {
+      if (Number.isFinite(metrics[key])) rows.push([label, dependencies.applicationServicesA.formatArea(metrics[key], 'ko-KR', { approximate: false })]);
+    }
+    const signature = JSON.stringify(rows);
+    if (element.dataset.signature === signature) return;
+    const fragment = element.ownerDocument.createDocumentFragment();
+    for (const [label, value] of rows.filter(([, value]) => value !== '')) {
+      const row = element.ownerDocument.createElement('div');
+      const term = element.ownerDocument.createElement('dt');
+      const detail = element.ownerDocument.createElement('dd');
+      term.textContent = label;
+      detail.textContent = value;
+      row.append(term, detail);
+      fragment.append(row);
+    }
+    element.replaceChildren(fragment);
+    element.dataset.signature = signature;
   }
 
   function mapModeContextActive() {
@@ -246,19 +250,26 @@ export function createTaskPresentation() {
     }
     if (model?.showSetup) {
       const nameLabel = (0, dependencies.platform.$)('territorialCreateNameLabel');
-      if (nameLabel) nameLabel.textContent = model.nameLabel || '이름';
+      if (nameLabel) nameLabel.textContent = '이름';
       const name = (0, dependencies.platform.$)('territorialCreateNameInput');
       if (name && name.value !== selection.name) name.value = selection.name;
       if (name) name.closest('.field-group')?.classList.toggle('hidden', !!selection.editOperation);
       if (model?.showSubunitFields) {
         const setupModel = (0, dependencies.territorialEditingB.territorialCreateSetupModel)();
         if (setupModel) {
-          const countryChoice = (0, dependencies.propertyEditingB.replaceSelectOptions)((0, dependencies.platform.$)('territorialCreateSovereignInput'), setupModel.countryOptions, selection.sovereignId, { autoSelectSingle: true });
+          (0, dependencies.propertyEditingB.replaceSelectOptions)((0, dependencies.platform.$)('territorialCreateSovereignInput'), setupModel.countryOptions, selection.sovereignId, { autoSelectSingle: true });
           (0, dependencies.propertyEditingB.replaceSelectOptions)((0, dependencies.platform.$)('territorialCreateParentInput'), setupModel.parentOptions, selection.parentId, { autoSelectSingle: true });
           (0, dependencies.platform.$)('territorialCreateSovereignInput').disabled = !!selection.editOperation;
           (0, dependencies.platform.$)('territorialCreateParentInput').disabled = !!selection.editOperation;
           const sourceChoice = (0, dependencies.propertyEditingB.replaceSelectOptions)((0, dependencies.platform.$)('territorialCreateSourceInput'), setupModel.sourceOptions, selection.sourceKey, { autoSelectSingle: true });
-          (0, dependencies.platform.$)('territorialCreateSovereignRow')?.classList.toggle('hidden', countryChoice.single);
+          (0, dependencies.platform.$)('territorialCreateSovereignRow')?.classList.toggle('hidden', !setupModel.countryOptions.length);
+          const flag = dependencies.platform.$('territorialCreateSovereignFlag');
+          if (flag) {
+            const country = countryDisplay(selection.sovereignId);
+            flag.hidden = !country?.flagUrl;
+            if (country?.flagUrl) flag.src = country.flagUrl;
+            else flag.removeAttribute('src');
+          }
           (0, dependencies.platform.$)('territorialCreateParentRow')?.classList.toggle('hidden', !(0, dependencies.territorialServicesA.shouldShowTerritorialParentChoice)({
             sovereignId: selection.sovereignId,
             parentId: selection.parentId,
@@ -314,7 +325,7 @@ export function createTaskPresentation() {
     const list = (0, dependencies.platform.$)('territorySelectionStackList');
     const summary = (0, dependencies.platform.$)('territorySelectionStackSummary');
     const current = model?.current;
-    const visible = compactTerritoryKind(current?.kind) && model.selection;
+    const visible = !!model?.selection;
     section?.classList.toggle('hidden', !visible);
     if (!visible || !list || !summary) return;
 
@@ -326,13 +337,16 @@ export function createTaskPresentation() {
       ...activeComponents.map(item => ({ kind: 'component', id: item.key, geometry: item.geometry })),
     ];
     const pending = current.computationPending || current.computationError;
+    const busy = !!(pending || current.previewPending || current.applying || dependencies.projectState.state.modeProcessing);
+    const label = ['annex', 'new-country'].includes(current.kind) ? '선택 영토' : '선택 영역';
+    section.setAttribute('aria-label', label);
     const aggregate = items.length
       ? current.activePhase === 'components' ? current.combinedGeometry : current.archivedGeometry
       : null;
-    const totalArea = pending ? '계산 중…' : dependencies.applicationServicesA.formatArea(
+    const totalArea = pending ? current.computationError ? '계산 실패' : '계산 중…' : dependencies.applicationServicesA.formatArea(
       dependencies.applicationServicesB.sphericalGeometryAreaKm2(aggregate), 'ko-KR', { approximate: false },
     );
-    const summaryText = `선택 영토 ${items.length}개 · ${totalArea}`;
+    const summaryText = `${label} ${items.length}개 · ${totalArea}`;
     if (summary.textContent !== summaryText) summary.textContent = summaryText;
     const rows = items.map((item, index) => ({
       ...item,
@@ -341,24 +355,25 @@ export function createTaskPresentation() {
         dependencies.applicationServicesB.sphericalGeometryAreaKm2(item.geometry), 'ko-KR', { approximate: false },
       ),
     }));
-    const signature = JSON.stringify(rows.map(({ kind, id, area }) => [kind, id, area]));
+    const signature = JSON.stringify([busy, rows.map(({ kind, id, area }) => [kind, id, area])]);
     if (list.dataset.signature === signature) return;
     const fragment = list.ownerDocument.createDocumentFragment();
     for (const row of rows) {
       const item = list.ownerDocument.createElement('li');
-      item.className = 'territory-selection-stack-item';
+      item.className = 'workflow-result-row';
       const number = list.ownerDocument.createElement('span');
-      number.className = 'territory-selection-stack-number';
+      number.className = 'workflow-result-number';
       number.textContent = row.ordinal <= 9 ? String.fromCodePoint(0x2460 + row.ordinal - 1) : `${row.ordinal}.`;
       const area = list.ownerDocument.createElement('span');
-      area.className = 'territory-selection-stack-area';
+      area.className = 'workflow-result-value';
       area.textContent = row.area;
       const remove = list.ownerDocument.createElement('button');
-      remove.className = 'ui-button territory-selection-stack-remove';
+      remove.className = 'ui-button workflow-result-remove';
       remove.type = 'button';
       remove.dataset.itemKind = row.kind;
       remove.dataset.itemId = row.id;
-      remove.setAttribute('aria-label', `${row.ordinal}번째 선택 영토 삭제`);
+      remove.setAttribute('aria-label', `${row.ordinal}번째 ${label} 삭제`);
+      remove.disabled = busy;
       remove.textContent = '−';
       item.append(number, area, remove);
       fragment.append(item);
@@ -375,31 +390,60 @@ export function createTaskPresentation() {
     return name || null;
   }
 
-  function syncTerritoryReviewSummary(model) {
-    const summary = (0, dependencies.platform.$)('territorialReviewSummary');
-    const visible = !!model?.showReviewSummary;
-    summary?.classList.toggle('hidden', !visible);
-    if (!summary) return;
-    const name = (0, dependencies.platform.$)('territorialReviewName');
-    const detail = (0, dependencies.platform.$)('territorialReviewDetail');
-    if (!visible) {
-      if (name) name.textContent = '';
-      if (detail) detail.textContent = '';
-      summary.removeAttribute('aria-label');
-      return;
-    }
-    const label = model.reviewName || '새 항목';
-    if (name) name.textContent = label;
-    const current = model.current;
-    const sovereign = countryDisplay(model.reviewSovereignId);
-    const parent = model.reviewParentId && model.reviewParentId !== model.reviewSovereignId
-      ? territorialUnitDisplay(model.reviewParentId)
-      : null;
-    const detailText = current?.kind === 'subunit'
-      ? [sovereign?.name, parent].filter(Boolean).join(' · ')
-      : '';
-    if (detail) detail.textContent = detailText;
-    summary.setAttribute('aria-label', detailText ? `${label}, ${detailText}` : label);
+
+  function syncTaskResults(view, draft) {
+    const state = dependencies.projectState.state;
+    const section = dependencies.platform.$('modeTaskResults');
+    const list = dependencies.platform.$('modeTaskResultsList');
+    const summary = dependencies.platform.$('modeTaskResultsSummary');
+    if (!section || !list || !summary) return;
+    const hydro = state.multiDraft?.kind === 'hydro' && ['river', 'lake'].includes(state.tool);
+    const merge = ['merge-country', 'merge-territorial-unit'].includes(state.tool) && !view?.review;
+    section.classList.toggle('hidden', !hydro && !merge);
+    if (!hydro && !merge) return;
+    const busy = !!(state.modeProcessing || state.multiDraft?.previewPending || draft.strokeActive);
+    const length = geometry => (geometry?.type === 'MultiLineString' ? geometry.coordinates : [geometry?.coordinates || []])
+      .reduce((sum, line) => sum + lineDistanceKm(line), 0);
+    const measure = geometry => state.tool === 'river'
+      ? `${length(geometry).toLocaleString('ko-KR', { maximumFractionDigits: 1 })} km`
+      : dependencies.applicationServicesA.formatArea(dependencies.applicationServicesB.sphericalGeometryAreaKm2(geometry), 'ko-KR', { approximate: false });
+    const parts = hydro ? [...state.multiDraft.parts, ...(state.multiDraft.current ? [state.multiDraft.current] : [])] : [];
+    const rows = hydro
+      ? parts.map(part => ({ value: measure(part.geometry) }))
+      : (view?.resultRefs || []).map(ref => ({ ref, ...displayObject(ref) }));
+    const total = hydro ? state.multiDraft.previewPending ? '계산 중…'
+      : state.multiDraft.previewIssues?.length ? '검증 필요'
+        : parts.length && !state.multiDraft.previewGeometry ? '계산 중…' : measure(state.multiDraft.previewGeometry) : '';
+    summary.textContent = `${view.resultLabel} ${rows.length}개${hydro ? ` · ${total}` : ''}`;
+    section.setAttribute('aria-label', view.resultLabel);
+    const signature = JSON.stringify([busy, rows]);
+    if (list.dataset.signature === signature) return;
+    const fragment = list.ownerDocument.createDocumentFragment();
+    rows.forEach((row, index) => {
+      const item = list.ownerDocument.createElement('li');
+      item.className = 'workflow-result-row';
+      const number = list.ownerDocument.createElement('span');
+      number.className = 'workflow-result-number';
+      number.textContent = index < 9 ? String.fromCodePoint(0x2460 + index) : `${index + 1}.`;
+      const value = list.ownerDocument.createElement('span');
+      value.className = 'workflow-result-value';
+      if (row.ref) appendIdentity(value, row);
+      else value.textContent = row.value;
+      item.append(number, value);
+      if (row.ref) {
+        const remove = list.ownerDocument.createElement('button');
+        remove.className = 'ui-button workflow-result-remove';
+        remove.type = 'button';
+        remove.dataset.objectId = row.ref.id;
+        remove.disabled = busy;
+        remove.setAttribute('aria-label', `${row.name} 합병 대상에서 제외`);
+        remove.textContent = '−';
+        item.append(remove);
+      }
+      fragment.append(item);
+    });
+    list.replaceChildren(fragment);
+    list.dataset.signature = signature;
   }
 
   function setButtonLabel(button, label) {
@@ -412,8 +456,8 @@ export function createTaskPresentation() {
     const instruction = (0, dependencies.platform.$)('modeTaskInstruction');
     const reason = (0, dependencies.platform.$)('modeTaskDisabledReason');
     const describedBy = [];
-    if (instruction?.textContent?.trim() && !instruction.classList.contains('hidden')) describedBy.push('modeTaskInstruction');
-    if (reason?.textContent?.trim() && !reason.classList.contains('hidden')) describedBy.push('modeTaskDisabledReason');
+    if (instruction?.textContent?.trim()) describedBy.push('modeTaskInstruction');
+    if (reason?.textContent?.trim()) describedBy.push('modeTaskDisabledReason');
     for (const id of ['modePrimaryBtn', 'modeDraftDoneBtn']) {
       const button = (0, dependencies.platform.$)(id);
       if (!button) continue;
@@ -431,8 +475,8 @@ export function createTaskPresentation() {
     const draftActions = (0, dependencies.platform.$)('modeDraftActions');
     const primaryDisabled = !!primary?.disabled && !primary.classList.contains('hidden');
     const draftDisabled = !!draftDone?.disabled && !draftActions?.classList.contains('hidden');
-    const { status, label, reason } = taskStagePresentation({
-      state, selection, selectionModel, draft, toolbar, primaryDisabled, draftDisabled, boundaryAnalysis,
+    const { status, label, reason, feedbackVisible, instructionFeedback } = taskStagePresentation({
+      state, selection, selectionModel, draft, toolbar, primaryDisabled, draftDisabled, boundaryAnalysis, operationFeedback,
       boundaryPending, boundaryFailed, calculating, busy, cutLineMode, cutLineReady,
       mergeTargetMode, genericMergeMode, unitMergeMode, unitRedrawMode, hydroReview, hydroCount,
     });
@@ -441,15 +485,26 @@ export function createTaskPresentation() {
     if (statusNode) {
       statusNode.dataset.taskState = status;
       if (statusNode.textContent !== label) statusNode.textContent = label;
-      statusNode.classList.toggle('hidden', compactTerritoryKind(selection?.kind) && status === 'editable');
+      statusNode.classList.add('hidden');
       for (const value of ['preparing', 'needs-target', 'editable', 'invalid']) statusNode.classList.toggle(`is-${value}`, value === status);
     }
     if (taskRoot) taskRoot.dataset.taskState = status;
     const reasonNode = (0, dependencies.platform.$)('modeTaskDisabledReason');
     if (reasonNode) {
       if (reasonNode.textContent !== reason) reasonNode.textContent = reason;
-      reasonNode.classList.toggle('hidden', !reason);
+      reasonNode.classList.toggle('hidden', !reason || !feedbackVisible);
     }
+    const instruction = dependencies.platform.$('modeTaskInstruction');
+    const candidate = !!selectionModel?.candidate && !!selection?.candidates.length;
+    const instructionError = instruction?.classList.contains('cut-invalid') && !feedbackVisible;
+    instruction?.classList.toggle('hidden', !instructionFeedback && ((!instructionError && !candidate) || feedbackVisible));
+    const candidateNode = dependencies.platform.$('modeTaskCandidateFeedback');
+    if (candidateNode) {
+      candidateNode.textContent = candidate ? selection.candidates.map((_, index) =>
+        `${String.fromCharCode(65 + index)} · ${index === selection.selectedCandidateIndex ? '선택됨' : '선택 안 됨'}`).join(' / ') : '';
+      candidateNode.classList.toggle('hidden', !candidate || feedbackVisible);
+    }
+    dependencies.platform.$('modeTaskFeedback')?.classList.toggle('workflow-feedback-idle', !feedbackVisible && !candidate && !instructionError && !instructionFeedback);
     syncTaskActionDescription();
   }
 
@@ -461,38 +516,56 @@ export function createTaskPresentation() {
     });
   }
 
-  function syncTaskTargets() {
+
+  function syncTaskObjectCards(view) {
     const targets = currentTaskTargets();
-    const section = (0, dependencies.platform.$)('modeTaskTargets');
-    const list = (0, dependencies.platform.$)('modeTaskTargetList');
-    const focus = (0, dependencies.platform.$)('modeTaskTargetsFocusBtn');
-    section?.classList.toggle('hidden', targets.length === 0);
+    const focus = dependencies.platform.$('modeTaskTargetsFocusBtn');
     if (focus) {
       focus.disabled = targets.length === 0;
+      focus.classList.toggle('hidden', targets.length === 0);
       focus.setAttribute('aria-label', targets.length > 1 ? `선택한 ${targets.length}개 대상으로 이동` : '대상으로 이동');
     }
-    if (!list) return targets;
-    const rows = targets.map(ref => ({ ref, display: (0, dependencies.objectOperationsA.objectDisplayInfo)(ref) }));
-    const signature = JSON.stringify(rows.map(({ ref, display }) => [ref.key, display.name, display.type]));
-    if (list.dataset.signature !== signature) {
-      const fragment = list.ownerDocument.createDocumentFragment();
-      for (const { ref, display } of rows) {
-        const item = list.ownerDocument.createElement('li');
-        item.className = 'mode-task-target';
-        item.dataset.objectKey = ref.key;
-        const name = list.ownerDocument.createElement('strong');
-        name.className = 'mode-task-target-name';
-        name.textContent = display.name;
-        const type = list.ownerDocument.createElement('span');
-        type.className = 'mode-task-target-type';
-        type.textContent = display.type;
-        item.append(name, type);
-        fragment.append(item);
-      }
-      list.replaceChildren(fragment);
-      list.dataset.signature = signature;
+    const root = dependencies.platform.$('modeTaskObjects');
+    if (!root) return;
+    const targetKeys = new Set(targets.map(ref => ref.key));
+    const cards = (view?.cards || []).map(card => ({
+      ...card, objects: card.refs.filter(ref => targetKeys.has(ref.key)).map(displayObject),
+    }));
+    if (dependencies.projectState.state.distributionDraft && view) {
+      const { layerId, value } = dependencies.projectState.state.distributionDraft;
+      const layer = dependencies.projectState.state.distributionLayers.find(layer => layer.id === layerId);
+      cards.push({ role: '분포', objects: [{ name: layer.name }] }, { role: '값', objects: [{ name: String(value) }] });
     }
-    return targets;
+    root.classList.toggle('hidden', !cards.length);
+    const signature = JSON.stringify([cards, view?.relation]);
+    if (root.dataset.signature === signature) return;
+    const fragment = root.ownerDocument.createDocumentFragment();
+    cards.forEach((card, index) => {
+      if (index && view?.relation) {
+        const arrow = root.ownerDocument.createElement('span');
+        arrow.className = 'workflow-object-relation';
+        arrow.setAttribute('aria-hidden', 'true');
+        arrow.textContent = view.relation;
+        fragment.append(arrow);
+      }
+      const element = root.ownerDocument.createElement('section');
+      element.className = 'workflow-object-card';
+      element.setAttribute('aria-label', card.role);
+      const role = root.ownerDocument.createElement('span');
+      role.className = 'workflow-object-role';
+      role.textContent = card.role;
+      element.append(role);
+      const objects = card.objects.length ? card.objects : [{ name: card.placeholder }];
+      for (const display of objects) {
+        const identity = root.ownerDocument.createElement('span');
+        identity.className = 'workflow-object-identity';
+        appendIdentity(identity, display);
+        element.append(identity);
+      }
+      fragment.append(element);
+    });
+    root.replaceChildren(fragment);
+    root.dataset.signature = signature;
   }
 
   function focusTaskTargets() {
@@ -515,7 +588,7 @@ export function createTaskPresentation() {
     const state = dependencies.projectState.state;
     const selectionModel = (0, dependencies.territorySelectionB.territorySelectionPresentation)();
     const selection = selectionModel?.current || null;
-    const compactTerritory = compactTerritoryKind(selection?.kind);
+    const territoryWorkflow = !!selection;
     const draft = (0, dependencies.draftPresentation.editingDraftSnapshot)();
     const labelMode = state.labelPlacementMode || state.tool === 'label';
     const terrainMode = !!(0, dependencies.draftPresentation.hydroToolConfig)(state.tool);
@@ -541,53 +614,25 @@ export function createTaskPresentation() {
       minimumPoints: dependencies.countryEditingA.draftMinimumPoints(), cutLineReady,
     });
     const task = activeModeTaskDescriptor();
+    const view = taskWorkflowPresentation(state, selectionModel, draft);
     const taskName = (0, dependencies.platform.$)('modeTaskName');
     const taskStage = (0, dependencies.platform.$)('modeTaskStage');
     const taskStep = (0, dependencies.platform.$)('modeTaskStep');
     const taskRoot = (0, dependencies.platform.$)('modeEditingHud');
-    if (taskRoot) {
-      if (compactTerritory) taskRoot.dataset.territoryUi = selection.kind;
-      else delete taskRoot.dataset.territoryUi;
-    }
-    if (taskName) taskName.textContent = selectionModel?.taskName || task.name;
-    if (taskStage) taskStage.textContent = boundaryPending ? '경계 준비 중…' : boundaryFailed ? boundaryPreparation.message : selectionModel?.stageLabel || task.stage;
+    if (taskName) taskName.textContent = view?.name || task.name;
+    if (taskStage) taskStage.textContent = view?.stage || task.stage;
     const taskSeparator = taskRoot?.querySelector('.mode-task-separator');
-    if (taskSeparator) taskSeparator.textContent = compactTerritory ? '·' : '-';
+    if (taskSeparator) taskSeparator.textContent = '·';
     if (taskStep) {
-      taskStep.textContent = compactTerritory ? `${selectionModel.step} / 3` : '';
-      taskStep.classList.toggle('hidden', !compactTerritory);
+      taskStep.textContent = view ? `${view.step} / ${view.total}` : '';
+      taskStep.classList.toggle('hidden', !view);
+      if (view) taskStep.setAttribute('aria-label', `${view.name} ${view.total}단계 중 ${view.step}단계`);
+      else taskStep.removeAttribute('aria-label');
     }
-    syncTaskTargets();
-    syncTerritoryTransferFlow(selectionModel);
+    syncTaskObjectCards(view);
     syncTerritorySetup(selectionModel);
     syncTerritorySelectionStack(selectionModel);
-    syncTerritoryReviewSummary(selectionModel);
-    const instruction = (0, dependencies.platform.$)('modeTaskInstruction');
-    let legend = instruction?.parentElement?.querySelector('[data-interaction-legend]');
-    if (!legend && instruction) {
-      legend = instruction.ownerDocument.createElement('small');
-      legend.dataset.interactionLegend = '';
-      instruction.insertAdjacentElement('afterend', legend);
-    }
-    if (legend) {
-      const candidates = state.territorySelectionSession?.candidates || [];
-      const chosen = state.territorySelectionSession?.selectedCandidateIndex;
-      legend.textContent = candidates.length
-        ? candidates.map((_, index) => `${String.fromCharCode(65 + index)} · ${index === chosen ? '선택됨' : '선택 안 됨'}`).join(' / ')
-        : mergeTargetMode || genericMergeMode || unitMergeMode ? '굵은 선: 남길 대상 · 가는 선: 합칠 대상'
-          : state.territorySelectionSession?.kind === 'annex' ? '굵은 선: 편입받는 대상 · 가는 선: 제공 영역'
-            : selection ? '옅은 선: 기준 영역 · 굵은 선: 새 영역 · 가는 선: 선택한 조각' : '';
-      legend.hidden = !legend.textContent;
-    }
-    const methodLabel = (0, dependencies.platform.$)('modeComponentsMethodInput')?.nextElementSibling;
-    if (methodLabel) methodLabel.textContent = compactTerritory ? '영역 선택' : '영토 조각 선택';
-    const riverOptionLabel = (0, dependencies.platform.$)('modeRiverBoundaryOption');
-    if (riverOptionLabel) {
-      const label = compactTerritory ? '하천을 경계로 사용' : '하천 경계 취급';
-      riverOptionLabel.setAttribute('aria-label', label);
-      const text = riverOptionLabel.querySelector('span');
-      if (text) text.textContent = label;
-    }
+    syncTaskResults(view, draft);
 
     const specialMode = !!(selection || labelMode || terrainMode || previewMode || (0, dependencies.toolServices.isSpecialTool)(state.tool) || draftMode);
     const busy = state.modeProcessing || selection?.previewPending;
@@ -628,9 +673,9 @@ export function createTaskPresentation() {
     referenceStart?.classList.toggle('hidden', !selectionModel?.showReferenceStart);
     if (referenceStart) referenceStart.disabled = !!busy || !selection?.sourceCountryIds?.length;
 
-    const scopedDraw = compactTerritory && selectionModel?.selection
+    const scopedDraw = territoryWorkflow && selectionModel?.selection
       && ['line', 'polygon'].includes(selection?.activeMethod);
-    const showDraftActions = compactTerritory && selectionModel?.selection
+    const showDraftActions = territoryWorkflow && selectionModel?.selection
       ? scopedDraw && (toolbar.visible || selectionModel.candidate || selectionModel.result)
       : toolbar.visible;
     const canConfirmDraw = scopedDraw && ['candidate', 'result'].includes(selection.activePhase)
@@ -641,7 +686,7 @@ export function createTaskPresentation() {
       const button = (0, dependencies.platform.$)(id);
       if (button) button.disabled = disabled;
     }
-    (0, dependencies.platform.$)('modeDraftDeleteBtn')?.classList.toggle('hidden', !!scopedDraw && !toolbar.remove);
+    (0, dependencies.platform.$)('modeDraftDeleteBtn')?.classList.toggle('hidden', !toolbar.remove);
     const done = (0, dependencies.platform.$)('modeDraftDoneBtn');
     if (done) {
       const label = scopedDraw && ['candidate', 'result'].includes(selection.activePhase) ? '현재 영역 확정' : '그리기 완료';
@@ -653,19 +698,11 @@ export function createTaskPresentation() {
 
     const hydroReview = multiDraftReviewActive(state);
     const hydroCount = hydroReview ? (0, dependencies.countryCommitFlow.multiDraftPartCount)() : 0;
-    const showSelectionActions = !!selectionModel?.selection && !compactTerritory && !!selectionModel.showDrawnActions;
-    (0, dependencies.platform.$)('multiDrawnActions')?.classList.toggle('hidden', !showSelectionActions && !hydroReview);
-    const count = showSelectionActions ? selectionModel.count : hydroCount;
-    const countNode = (0, dependencies.platform.$)('multiDrawnCount');
-    if (countNode) countNode.textContent = `${hydroReview && state.multiDraft?.shape === 'line' ? '경로' : '영역'} ${count}개`;
+    (0, dependencies.platform.$)('multiDrawnActions')?.classList.toggle('hidden', !terrainMode);
     const add = (0, dependencies.platform.$)('multiDrawnAddBtn');
-    if (add) add.disabled = showSelectionActions
-      ? !!busy || draft.strokeActive || !selectionModel.canAddPart
-      : !!busy || draft.strokeActive || !state.multiDraft?.current;
+    if (add) add.disabled = !!busy || draft.strokeActive || !state.multiDraft?.current;
     const undo = (0, dependencies.platform.$)('multiDrawnUndoBtn');
-    if (undo) undo.disabled = showSelectionActions
-      ? !!busy || draft.strokeActive || !selectionModel.canUndoPart
-      : !!busy || draft.strokeActive || !count || (!!draftMode && draft.coords.length > 0);
+    if (undo) undo.disabled = !!busy || draft.strokeActive || !hydroCount || (!!draftMode && draft.coords.length > 0);
 
     const primary = (0, dependencies.platform.$)('modePrimaryBtn');
     if (primary) {
@@ -719,7 +756,7 @@ export function createTaskPresentation() {
       boundaryPending, boundaryFailed, calculating, busy, cutLineMode, cutLineReady,
       mergeTargetMode, genericMergeMode, unitMergeMode, unitRedrawMode, hydroReview, hydroCount,
     });
-    syncGeometryPreviewSummary(selection);
+    syncGeometryPreviewSummary(view, selection);
     syncMapContextSurfaces();
     syncMapCursorMode();
     syncCountryActionButtons();
@@ -751,12 +788,14 @@ export function createTaskPresentation() {
   async function runModePrimaryAction(action = dispatchModePrimaryAction) {
     if (dependencies.projectState.state.modeProcessing) return false;
     if (action === dispatchModePrimaryAction && (0, dependencies.platform.$)('modePrimaryBtn')?.disabled) return false;
+    operationFeedback = '';
     dependencies.projectState.state.modeProcessing = true;
     updateModeButtons();
     try {
       return await action();
     } catch (error) {
-      (0, dependencies.feedback.reportOperationError)(error, '지도 작업을 완료하지 못했습니다. 현재 상태를 확인한 뒤 다시 시도하세요.', 'PL-MODE-001', 4200);
+      const message = (0, dependencies.feedback.reportOperationError)(error, '지도 작업을 완료하지 못했습니다. 현재 상태를 확인한 뒤 다시 시도하세요.', 'PL-MODE-001', 4200);
+      setModeBanner(message, { feedback: true });
       return false;
     } finally {
       dependencies.projectState.state.modeProcessing = false;
@@ -767,7 +806,7 @@ export function createTaskPresentation() {
   function completeCurrentDraft() {
     if ((0, dependencies.platform.$)('modeDraftDoneBtn')?.disabled) return false;
     const current = dependencies.projectState.state.territorySelectionSession;
-    if (compactTerritoryKind(current?.kind)) {
+    if (current) {
       if (current.stage !== 'selection' || !['line', 'polygon'].includes(current.activeMethod)) return false;
       if (current.activePhase === 'candidate' || current.activePhase === 'result') {
         return runModePrimaryAction(dependencies.territorySelectionA.territorySelectionAddPart);

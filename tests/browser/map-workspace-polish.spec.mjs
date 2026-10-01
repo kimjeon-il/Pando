@@ -118,14 +118,14 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
       await expect(page.locator('[data-sheet-handle="editorSurface"]')).toBeVisible();
     } else await expect(page.locator('#editorSurface > .surface-header')).toBeHidden();
     await expect(page.locator('#modeTaskName')).toContainText('국경 조정');
-    await expect(page.locator('#modeTaskTargetList')).toContainText('독일');
+    await expect(page.locator('#modeTaskObjects')).toContainText('독일');
     await expect(page.locator('#modeTaskTargetsFocusBtn')).toBeVisible();
     expect(await page.locator('#modeEditingContext').evaluate((node, original) => node === original, taskNode)).toBe(true);
     expect(await cameraSnapshot(page)).toEqual(beforeTask);
     await expect(page.locator('#modeTaskStatus')).toHaveAttribute('data-task-state', 'needs-target', { timeout: 60_000 });
     expect(await cameraSnapshot(page)).toEqual(beforeTask);
     await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
-    await expect(page.locator('#modeTaskDisabledReason')).toBeVisible();
+    await expect(page.locator('#modeTaskDisabledReason')).toBeHidden();
     if (mobile) {
       const handle = page.locator('[data-sheet-handle="editorSurface"]');
       const initialSnap = await handle.getAttribute('aria-valuenow');

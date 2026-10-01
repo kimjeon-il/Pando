@@ -5,6 +5,7 @@ export function createEditorWorkspacePresentation({
 }) {
   let active = false;
   let docked = false;
+  let needsInitialOpen = false;
   let disposed = false;
   const pointers = new Set();
 
@@ -14,6 +15,7 @@ export function createEditorWorkspacePresentation({
     if (nextDocked !== docked && pointers.size) return;
     const destination = nextDocked ? dockSlot : floatingSlot;
     const changed = nextDocked !== docked;
+    if (changed) needsInitialOpen = nextDocked;
     if (task.parentElement !== destination) destination.append(task);
     docked = nextDocked;
     if (panel.dataset.editorContent !== (docked ? 'task' : 'properties')) {
@@ -25,7 +27,8 @@ export function createEditorWorkspacePresentation({
     task.classList.toggle('is-minimized', false);
     if (content.hidden) content.hidden = false;
     if (!minimize.hidden) minimize.hidden = true;
-    if (changed && docked && !isEditorOpen()) openEditor();
+    if (needsInitialOpen && !isEditorOpen()) openEditor();
+    if (isEditorOpen()) needsInitialOpen = false;
     if (changed) onLayoutChange();
   };
   const sync = (input = {}) => {
