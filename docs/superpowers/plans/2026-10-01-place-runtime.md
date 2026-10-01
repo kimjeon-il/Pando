@@ -12,7 +12,7 @@ on an isolated branch. Stage 8 is explicitly excluded.
 - [x] 6. Existing object search controller merged with bounded Worker prefix search.
 - [x] 7. Editable user copy with provenance, existing history/autosave and Undo.
 - [x] Focused tests, affected browser workflows and independent review.
-- [ ] Commit and publish the isolated branch; verify remote SHA.
+- [x] Commit and publish the isolated branch; verify remote source tree.
 
 No real dataset or production-data build pipeline is part of this work. The
 production manifest remains empty. Detailed ownership, limits, commands,
