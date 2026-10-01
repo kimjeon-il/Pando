@@ -65,19 +65,6 @@ export function createCountryValidation() {
     return false;
   }
 
-  function countryGeometryIsValid(geometry) {
-    const polygons = (0, dependencies.territoryGeometry.geometryMultiCoordinates)(geometry);
-    if (!polygons.length) return false;
-    return polygons.every(polygon => polygon?.length && polygon.every(ring => {
-      const closed = (0, dependencies.geometryModel.ensureClosedRing)(ring);
-      const unique = new Set(closed.slice(0, -1).map(coord => (0, dependencies.geometryPreview.coordKey)(coord, 8)));
-      return closed.length >= 4 && unique.size >= 3 &&
-        (0, dependencies.geometryPreview.coordNear)(closed[0], closed[closed.length - 1], 1e-9) &&
-        Math.abs((0, dependencies.geometryModel.ringSignedArea)(closed)) > 1e-14 &&
-        !ringHasSelfIntersection(closed);
-    }));
-  }
-
   function snapGeometryToGrid(geometry, precision = 7) {
     if (!geometry?.coordinates) return geometry;
     const factor = 10 ** precision;
@@ -88,93 +75,6 @@ export function createCountryValidation() {
       return Array.isArray(value) ? value.map(snap) : value;
     };
     return { ...geometry, coordinates: snap(geometry.coordinates) };
-  }
-
-  function validateCountryGeometryEdit(affectedIds, baselineOrUnion = null, { featureOverrides = null } = {}) {
-    const clipper = window.polygonClipping;
-    const affected = new Set([...affectedIds].map(String));
-    const baseline = baselineOrUnion?.union
-      ? baselineOrUnion
-      : { union: baselineOrUnion, overlaps: new Map(), boundaryLength: 0 };
-    const areaTolerance = Math.max(1e-8, Number(baseline.boundaryLength || 0) * 2e-7);
-    const overrideMap = featureOverrides instanceof Map ? featureOverrides : new Map();
-    const features = (dependencies.projectState.state.countriesData?.features || []).map(feature => (
-      overrideMap.get(String(feature?.id || '')) || feature
-    ));
-    const ids = features.map(feature => String(feature?.id || ''));
-    if (ids.some(id => !id) || new Set(ids).size !== ids.length) {
-      return { ok: false, message: '국가 ID가 비어 있거나 중복되었습니다.' };
-    }
-    for (const feature of features) {
-      const id = String(feature?.id || '');
-      if (affected.has(id) && !countryGeometryIsValid(feature.geometry)) {
-        return { ok: false, message: `${(0, dependencies.presentation.countryName)(feature)}의 경계가 유효하지 않습니다.` };
-      }
-    }
-
-    const tested = new Set();
-    for (const feature of features) {
-      const id = String(feature?.id || '');
-      if (!affected.has(id)) continue;
-      const bounds = (0, dependencies.spatialQuery.geometryBounds)(feature.geometry);
-      const nearby = overrideMap.size
-        ? features.filter(other => (0, dependencies.cutGeometry.boundsOverlap)(bounds, (0, dependencies.spatialQuery.geometryBounds)(other.geometry)))
-        : (0, dependencies.spatialQuery.spatialFeatures)(bounds);
-      for (const other of nearby) {
-        const otherId = String(other?.id || '');
-        if (id === otherId) continue;
-        const pairKey = id < otherId ? `${id}|${otherId}` : `${otherId}|${id}`;
-        if (tested.has(pairKey)) continue;
-        tested.add(pairKey);
-        const overlapArea = (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(clipper.intersection(feature.geometry.coordinates, other.geometry.coordinates));
-        const previousArea = Number(baseline.overlaps?.get(pairKey) || 0);
-        if (overlapArea > previousArea + areaTolerance) {
-          return { ok: false, message: `${(0, dependencies.presentation.countryName)(feature)}과(와) ${(0, dependencies.presentation.countryName)(other)} 사이에 ${(overlapArea - previousArea).toExponential(3)}deg²의 새 중첩이 생겼습니다. 편입 영역을 줄이거나 국경선을 다시 지정하세요.` };
-        }
-      }
-    }
-
-    if (baseline.union) {
-      const unionAfter = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(features, affected);
-      const changedArea = (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(clipper.xor(baseline.union, unionAfter));
-      if (changedArea > areaTolerance) return { ok: false, message: `편집 영역에 ${changedArea.toExponential(3)}deg²의 새 빈틈 또는 면적 변화가 생겼습니다. 편입선을 다시 지정하세요.` };
-    }
-    return { ok: true };
-  }
-
-  function captureCountryGeometryValidationBaseline(affectedIds) {
-    const ids = new Set([...affectedIds].map(String));
-    const features = dependencies.projectState.state.countriesData?.features || [];
-    const clipper = window.polygonClipping;
-    const overlaps = new Map();
-    let boundaryLength = 0;
-    for (const feature of features) {
-      const id = String(feature?.id || '');
-      if (!ids.has(id)) continue;
-      for (const polygon of (0, dependencies.geometryPreview.geometryPolygonSets)(feature.geometry)) for (const ring of polygon || []) {
-        for (let index = 0; index < ring.length - 1; index += 1) boundaryLength += Math.hypot(ring[index + 1][0] - ring[index][0], ring[index + 1][1] - ring[index][1]);
-      }
-      for (const other of (0, dependencies.spatialQuery.spatialFeatures)((0, dependencies.spatialQuery.geometryBounds)(feature.geometry))) {
-        const otherId = String(other?.id || '');
-        if (!otherId || otherId === id) continue;
-        const pairKey = id < otherId ? `${id}|${otherId}` : `${otherId}|${id}`;
-        if (overlaps.has(pairKey)) continue;
-        overlaps.set(pairKey, (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(clipper.intersection(feature.geometry.coordinates, other.geometry.coordinates)));
-      }
-    }
-    return { union: (0, dependencies.territoryGeometry.countryUnionFromFeatures)(features, ids), overlaps, boundaryLength };
-  }
-
-  function structuredGeometryIssueKey(issue = {}) {
-    const entityRefs = [...(issue.entityRefs || [])].map(String).sort().join('|');
-    return [
-      issue.kind || 'geometry',
-      entityRefs,
-      issue.polygonIndex ?? '',
-      issue.ringIndex ?? '',
-      issue.vertexIndex ?? '',
-      issue.segmentIndex ?? '',
-    ].join(':');
   }
 
   function restoreCountryEditSnapshot(snapshot) {
@@ -210,14 +110,11 @@ export function createCountryValidation() {
   return Object.freeze({
     connect,
 
-    get captureCountryGeometryValidationBaseline() { return captureCountryGeometryValidationBaseline; },
     get interpolateCoordinate() { return interpolateCoordinate; },
     get refreshCountryCentroids() { return refreshCountryCentroids; },
     get restoreCountryEditSnapshot() { return restoreCountryEditSnapshot; },
     get ringHasSelfIntersection() { return ringHasSelfIntersection; },
     get segmentsProperlyIntersect() { return segmentsProperlyIntersect; },
     get snapGeometryToGrid() { return snapGeometryToGrid; },
-    get structuredGeometryIssueKey() { return structuredGeometryIssueKey; },
-    get validateCountryGeometryEdit() { return validateCountryGeometryEdit; },
   });
 }
