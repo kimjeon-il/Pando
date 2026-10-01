@@ -149,10 +149,12 @@ test('annex territory exposes river boundaries as a retained component-selection
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1' });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexTerritoryBtn').click();
-  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
-  await expect(page.locator('#modeTaskStage')).toHaveText('대상 선택');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
+  await expect(page.locator('#modeTaskStage')).toHaveText('가져올 국가');
+  await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
   await expect(page.locator('#annexCountryFlow')).toBeVisible();
   await expect(page.locator('#modeMethodSwitch')).toBeHidden();
   const donorPoint = await page.evaluate(() => {
@@ -167,11 +169,12 @@ test('annex territory exposes river boundaries as a retained component-selection
   });
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await expect(page.locator('#modePrimaryBtn')).toContainText('다음');
-  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
   await expect(page.locator('#modeMethodSwitch')).toBeHidden();
   await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 2단계');
-  await expect(page.locator('#modeTaskStage')).toHaveText('영역 선택');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
+  await expect(page.locator('#modeTaskStage')).toHaveText('영토 선택');
+  await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
   await expect(page.locator('#modeMethodSwitch')).toBeVisible();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await expect(page.locator('#modeMethodSwitch .mode-direct-method-option')).toHaveCount(3);
@@ -183,6 +186,8 @@ test('annex territory exposes river boundaries as a retained component-selection
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await expect(page.locator('#modeMethodSwitch')).toBeVisible();
   await expect(page.locator('#modeRiverBoundaryOption')).toBeVisible();
+  await expect(page.locator('#modeRiverBoundaryOption')).toContainText('하천을 경계로 사용');
+  await expect(page.locator('#modeDraftActions')).toBeHidden();
   await expect(page.locator('#modeRiverBoundaryInput')).not.toBeChecked();
   const components = page.locator('.draft-layer path.territory-component');
   await expect(components.first()).toBeVisible();
@@ -212,8 +217,9 @@ test('annex territory exposes river boundaries as a retained component-selection
   })));
   await expect(page.locator('#modePrimaryBtn')).toContainText('다음', { timeout: 120_000 });
   await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 3단계');
-  await expect(page.locator('#modeTaskStage')).toHaveText('결과 확인');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
+  await expect(page.locator('#modeTaskStage')).toHaveText('편입 확인');
+  await expect(page.locator('#modeTaskStep')).toHaveText('3 / 3');
   await expect(page.locator('#modeMethodSwitch')).toBeHidden();
   await expect(page.locator('#modeRiverBoundaryOption')).toBeHidden();
   await expect(page.locator('#modePrimaryBtn')).toContainText('편입 (1)');
@@ -223,14 +229,41 @@ test('annex territory exposes river boundaries as a retained component-selection
   expect(errors).toEqual([]);
 });
 
+test('annex role cards show actual flags and retain every donor country name', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page, { url: '/?debug=1' });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#selectionToolbarEditBtn').click();
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#annexTerritoryBtn').click();
+  await expect(page.locator('#annexTargetCountryName')).toHaveText('독일');
+  await expect(page.locator('#annexTargetCountryFlag')).toBeVisible();
+  const mapBox = await page.locator('#map').boundingBox();
+  for (const id of ['POL', 'CZE']) {
+    const point = await page.evaluate(countryId => {
+      const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor(countryId);
+      return window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(anchor);
+    }, id);
+    await page.locator('#map .map-svg').dispatchEvent('click', {
+      clientX: mapBox.x + point[0], clientY: mapBox.y + point[1], button: 0,
+    });
+  }
+  await expect(page.locator('#annexDonorCountryName')).toContainText('외 1개');
+  await expect(page.locator('#annexDonorCountryFlag')).toBeVisible();
+  await expect(page.locator('#annexCountryFlow')).toHaveAttribute('aria-label', /폴란드, 체코.*독일/);
+  expect(errors).toEqual([]);
+});
+
 test('annex archives a component and starts the next method without losing the combined selection', async ({ page }) => {
   test.setTimeout(180_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1' });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexTerritoryBtn').click();
-  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
+  await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
   const donorPoint = await page.evaluate(() => {
     const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL');
     return window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(anchor);
@@ -248,21 +281,48 @@ test('annex archives a component and starts the next method without losing the c
     bubbles: true, cancelable: true, clientX: -1000, clientY: -1000,
   })));
   await expect(page.locator('#modePrimaryBtn')).toContainText('다음', { timeout: 120_000 });
-  await expect(page.locator('#multiDrawnAddBtn')).toBeEnabled();
-  await page.locator('#multiDrawnAddBtn').click();
-  await expect(page.locator('#modeMethodSwitch')).toBeVisible();
-  await expect(page.locator('#modeDirectLineMethodInput')).not.toBeChecked();
-  await expect(page.locator('#modePolygonMethodInput')).not.toBeChecked();
-  await expect(page.locator('#modeComponentsMethodInput')).not.toBeChecked();
-  await expect(page.locator('#multiDrawnCount')).toHaveText('영역 1개');
-  await expect(page.locator('#multiDrawnAddBtn')).toBeDisabled();
-  await expect(page.locator('#multiDrawnUndoBtn')).toBeEnabled();
+  await expect(page.locator('#territorySelectionStackList li')).toHaveCount(1);
+  await expect(page.locator('#multiDrawnActions')).toBeHidden();
   await page.locator('#modePolygonMethodInput').check();
+  await expect(page.locator('#modePolygonMethodInput')).toBeChecked();
+  await expect(page.locator('#territorySelectionStackList li')).toHaveCount(1);
   await expect(page.locator('#modeDraftActions')).toBeVisible();
+  await page.locator('#territorySelectionStackList button').click();
+  await expect(page.locator('#territorySelectionStackList li')).toHaveCount(0);
+  await expect(page.locator('#territorySelectionStackSummary')).toContainText('0 km²');
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await page.locator('#modeCancelBtn').click();
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#modeActionBar')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test('new-country setup shows the origin-country card and keeps multiple source selections', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize(layouts[0].viewport);
+  const errors = await openApp(page, { url: '/?debug=1' });
+  await page.locator('#addCountryBtn').evaluate(button => button.click());
+  await expect(page.locator('#modeTaskName')).toHaveText('국가 추가');
+  await expect(page.locator('#modeTaskStage')).toHaveText('국가 정보');
+  await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
+  await expect(page.locator('#territorialCreateNameLabel')).toHaveText('이름');
+  await expect(page.locator('#territorialCreateReference')).toBeVisible();
+  await expect(page.locator('#territorialCreateReferenceLabel')).toHaveText('원소속 국가');
+  const mapBox = await page.locator('#map').boundingBox();
+  for (const id of ['DEU', 'POL']) {
+    const point = await page.evaluate(countryId => {
+      const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor(countryId);
+      return window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(anchor);
+    }, id);
+    await page.locator('#map .map-svg').dispatchEvent('click', {
+      clientX: mapBox.x + point[0], clientY: mapBox.y + point[1], button: 0,
+    });
+  }
+  await expect(page.locator('#territorialCreateReferenceList [role="listitem"]')).toHaveCount(2);
+  await expect(page.locator('#territorialCreateReference')).toHaveAttribute('aria-label', /원소속 국가 2개/);
+  await expect(page.locator('#territorialCreateReferenceList img')).toHaveCount(2);
+  await expect(page.locator('#territorialCreateReferenceList')).toContainText('독일');
+  await expect(page.locator('#territorialCreateReferenceList')).toContainText('폴란드');
   expect(errors).toEqual([]);
 });
 

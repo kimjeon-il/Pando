@@ -34,6 +34,17 @@ export function multiDraftReviewActive(state) {
   return !!draft && draft.kind === 'hydro' && ((draft.parts?.length || 0) > 0 || !!draft.current);
 }
 
+const compactTerritoryKind = kind => kind === 'annex' || kind === 'new-country';
+
+const routineTerritoryInstructions = new Set([
+  '가져올 국가를 선택하세요.',
+  '가져올 영토를 가로질러 선을 그리세요.',
+  '가져올 영역을 지도에 그리세요.',
+  '가져올 영토 조각을 선택하세요.',
+  '새 국가로 만들 영토 조각을 선택하세요.',
+  '선택한 영역을 확인하세요.',
+]);
+
 export function createTaskPresentation() {
   let dependencies;
 
@@ -61,7 +72,9 @@ export function createTaskPresentation() {
     if (!instruction) return;
     if (instruction.textContent !== text) instruction.textContent = text;
     instruction.classList.remove('cut-valid', 'cut-invalid', 'cut-pending');
-    instruction.classList.toggle('hidden', !text);
+    const selection = dependencies.projectState.state.territorySelectionSession;
+    instruction.classList.toggle('hidden', !text
+      || compactTerritoryKind(selection?.kind) && routineTerritoryInstructions.has(text));
     syncTaskActionDescription();
     (0, dependencies.readinessUi.syncStatusBar)();
   }
@@ -125,7 +138,7 @@ export function createTaskPresentation() {
     setCountryDisplay({ flag: (0, dependencies.platform.$)('annexTargetCountryFlag'), name: (0, dependencies.platform.$)('annexTargetCountryName') }, target, '국가');
     setCountryDisplay({ flag: (0, dependencies.platform.$)('annexDonorCountryFlag'), name: (0, dependencies.platform.$)('annexDonorCountryName') }, donor ? { ...donor, name: donorLabel } : null, '국가 선택');
     flow.setAttribute('aria-label', donor
-      ? `${donorLabel}의 영토를 ${target?.name || '국가'}에 편입`
+      ? `${donors.map(country => country.name).join(', ')}의 영토를 ${target?.name || '국가'}에 편입`
       : `${target?.name || '국가'}에 편입할 국가를 선택`);
   }
 
@@ -296,6 +309,64 @@ export function createTaskPresentation() {
     }
   }
 
+  function syncTerritorySelectionStack(model) {
+    const section = (0, dependencies.platform.$)('territorySelectionStack');
+    const list = (0, dependencies.platform.$)('territorySelectionStackList');
+    const summary = (0, dependencies.platform.$)('territorySelectionStackSummary');
+    const current = model?.current;
+    const visible = compactTerritoryKind(current?.kind) && model.selection;
+    section?.classList.toggle('hidden', !visible);
+    if (!visible || !list || !summary) return;
+
+    const activeComponents = current.activePhase === 'components'
+      ? dependencies.territoryComponents.territoryComponentItems().filter(item => item.selected)
+      : [];
+    const items = [
+      ...current.parts.map(part => ({ kind: 'part', id: part.id, geometry: part.geometry })),
+      ...activeComponents.map(item => ({ kind: 'component', id: item.key, geometry: item.geometry })),
+    ];
+    const pending = current.computationPending || current.computationError;
+    const aggregate = items.length
+      ? current.activePhase === 'components' ? current.combinedGeometry : current.archivedGeometry
+      : null;
+    const totalArea = pending ? '계산 중…' : dependencies.applicationServicesA.formatArea(
+      dependencies.applicationServicesB.sphericalGeometryAreaKm2(aggregate), 'ko-KR', { approximate: false },
+    );
+    const summaryText = `선택 영토 ${items.length}개 · ${totalArea}`;
+    if (summary.textContent !== summaryText) summary.textContent = summaryText;
+    const rows = items.map((item, index) => ({
+      ...item,
+      ordinal: index + 1,
+      area: dependencies.applicationServicesA.formatArea(
+        dependencies.applicationServicesB.sphericalGeometryAreaKm2(item.geometry), 'ko-KR', { approximate: false },
+      ),
+    }));
+    const signature = JSON.stringify(rows.map(({ kind, id, area }) => [kind, id, area]));
+    if (list.dataset.signature === signature) return;
+    const fragment = list.ownerDocument.createDocumentFragment();
+    for (const row of rows) {
+      const item = list.ownerDocument.createElement('li');
+      item.className = 'territory-selection-stack-item';
+      const number = list.ownerDocument.createElement('span');
+      number.className = 'territory-selection-stack-number';
+      number.textContent = row.ordinal <= 9 ? String.fromCodePoint(0x2460 + row.ordinal - 1) : `${row.ordinal}.`;
+      const area = list.ownerDocument.createElement('span');
+      area.className = 'territory-selection-stack-area';
+      area.textContent = row.area;
+      const remove = list.ownerDocument.createElement('button');
+      remove.className = 'ui-button territory-selection-stack-remove';
+      remove.type = 'button';
+      remove.dataset.itemKind = row.kind;
+      remove.dataset.itemId = row.id;
+      remove.setAttribute('aria-label', `${row.ordinal}번째 선택 영토 삭제`);
+      remove.textContent = '−';
+      item.append(number, area, remove);
+      fragment.append(item);
+    }
+    list.replaceChildren(fragment);
+    list.dataset.signature = signature;
+  }
+
   function territorialUnitDisplay(unitId) {
     const id = String(unitId || '');
     if (!id) return null;
@@ -370,6 +441,7 @@ export function createTaskPresentation() {
     if (statusNode) {
       statusNode.dataset.taskState = status;
       if (statusNode.textContent !== label) statusNode.textContent = label;
+      statusNode.classList.toggle('hidden', compactTerritoryKind(selection?.kind) && status === 'editable');
       for (const value of ['preparing', 'needs-target', 'editable', 'invalid']) statusNode.classList.toggle(`is-${value}`, value === status);
     }
     if (taskRoot) taskRoot.dataset.taskState = status;
@@ -443,6 +515,7 @@ export function createTaskPresentation() {
     const state = dependencies.projectState.state;
     const selectionModel = (0, dependencies.territorySelectionB.territorySelectionPresentation)();
     const selection = selectionModel?.current || null;
+    const compactTerritory = compactTerritoryKind(selection?.kind);
     const draft = (0, dependencies.draftPresentation.editingDraftSnapshot)();
     const labelMode = state.labelPlacementMode || state.tool === 'label';
     const terrainMode = !!(0, dependencies.draftPresentation.hydroToolConfig)(state.tool);
@@ -470,11 +543,24 @@ export function createTaskPresentation() {
     const task = activeModeTaskDescriptor();
     const taskName = (0, dependencies.platform.$)('modeTaskName');
     const taskStage = (0, dependencies.platform.$)('modeTaskStage');
+    const taskStep = (0, dependencies.platform.$)('modeTaskStep');
+    const taskRoot = (0, dependencies.platform.$)('modeEditingHud');
+    if (taskRoot) {
+      if (compactTerritory) taskRoot.dataset.territoryUi = selection.kind;
+      else delete taskRoot.dataset.territoryUi;
+    }
     if (taskName) taskName.textContent = selectionModel?.taskName || task.name;
     if (taskStage) taskStage.textContent = boundaryPending ? '경계 준비 중…' : boundaryFailed ? boundaryPreparation.message : selectionModel?.stageLabel || task.stage;
+    const taskSeparator = taskRoot?.querySelector('.mode-task-separator');
+    if (taskSeparator) taskSeparator.textContent = compactTerritory ? '·' : '-';
+    if (taskStep) {
+      taskStep.textContent = compactTerritory ? `${selectionModel.step} / 3` : '';
+      taskStep.classList.toggle('hidden', !compactTerritory);
+    }
     syncTaskTargets();
     syncTerritoryTransferFlow(selectionModel);
     syncTerritorySetup(selectionModel);
+    syncTerritorySelectionStack(selectionModel);
     syncTerritoryReviewSummary(selectionModel);
     const instruction = (0, dependencies.platform.$)('modeTaskInstruction');
     let legend = instruction?.parentElement?.querySelector('[data-interaction-legend]');
@@ -492,6 +578,15 @@ export function createTaskPresentation() {
           : state.territorySelectionSession?.kind === 'annex' ? '굵은 선: 편입받는 대상 · 가는 선: 제공 영역'
             : selection ? '옅은 선: 기준 영역 · 굵은 선: 새 영역 · 가는 선: 선택한 조각' : '';
       legend.hidden = !legend.textContent;
+    }
+    const methodLabel = (0, dependencies.platform.$)('modeComponentsMethodInput')?.nextElementSibling;
+    if (methodLabel) methodLabel.textContent = compactTerritory ? '영역 선택' : '영토 조각 선택';
+    const riverOptionLabel = (0, dependencies.platform.$)('modeRiverBoundaryOption');
+    if (riverOptionLabel) {
+      const label = compactTerritory ? '하천을 경계로 사용' : '하천 경계 취급';
+      riverOptionLabel.setAttribute('aria-label', label);
+      const text = riverOptionLabel.querySelector('span');
+      if (text) text.textContent = label;
     }
 
     const specialMode = !!(selection || labelMode || terrainMode || previewMode || (0, dependencies.toolServices.isSpecialTool)(state.tool) || draftMode);
@@ -533,18 +628,32 @@ export function createTaskPresentation() {
     referenceStart?.classList.toggle('hidden', !selectionModel?.showReferenceStart);
     if (referenceStart) referenceStart.disabled = !!busy || !selection?.sourceCountryIds?.length;
 
-    (0, dependencies.platform.$)('modeDraftActions')?.classList.toggle('hidden', !toolbar.visible);
-    const controls = { modeDraftRedrawBtn: !toolbar.redraw, modeDraftDeleteBtn: !toolbar.remove, modeDraftInsertBtn: !toolbar.insert, modeDraftDoneBtn: !toolbar.complete };
+    const scopedDraw = compactTerritory && selectionModel?.selection
+      && ['line', 'polygon'].includes(selection?.activeMethod);
+    const showDraftActions = compactTerritory && selectionModel?.selection
+      ? scopedDraw && (toolbar.visible || selectionModel.candidate || selectionModel.result)
+      : toolbar.visible;
+    const canConfirmDraw = scopedDraw && ['candidate', 'result'].includes(selection.activePhase)
+      ? selectionModel.canAddPart : toolbar.complete;
+    (0, dependencies.platform.$)('modeDraftActions')?.classList.toggle('hidden', !showDraftActions);
+    const controls = { modeDraftRedrawBtn: !toolbar.redraw, modeDraftDeleteBtn: !toolbar.remove, modeDraftInsertBtn: !toolbar.insert, modeDraftDoneBtn: !canConfirmDraw };
     for (const [id, disabled] of Object.entries(controls)) {
       const button = (0, dependencies.platform.$)(id);
       if (button) button.disabled = disabled;
+    }
+    (0, dependencies.platform.$)('modeDraftDeleteBtn')?.classList.toggle('hidden', !!scopedDraw && !toolbar.remove);
+    const done = (0, dependencies.platform.$)('modeDraftDoneBtn');
+    if (done) {
+      const label = scopedDraw && ['candidate', 'result'].includes(selection.activePhase) ? '현재 영역 확정' : '그리기 완료';
+      done.setAttribute('aria-label', label);
+      done.setAttribute('data-tooltip', label);
     }
     (0, dependencies.platform.$)('modeDraftInsertBtn')?.setAttribute('aria-pressed', String(toolbar.editable && !!draft.vertexInsertMode));
     (0, dependencies.platform.$)('modeDraftDoneBtn')?.setAttribute('aria-busy', String(state.modeProcessing));
 
     const hydroReview = multiDraftReviewActive(state);
     const hydroCount = hydroReview ? (0, dependencies.countryCommitFlow.multiDraftPartCount)() : 0;
-    const showSelectionActions = !!selectionModel?.selection && !!selectionModel.showDrawnActions;
+    const showSelectionActions = !!selectionModel?.selection && !compactTerritory && !!selectionModel.showDrawnActions;
     (0, dependencies.platform.$)('multiDrawnActions')?.classList.toggle('hidden', !showSelectionActions && !hydroReview);
     const count = showSelectionActions ? selectionModel.count : hydroCount;
     const countNode = (0, dependencies.platform.$)('multiDrawnCount');
@@ -656,7 +765,20 @@ export function createTaskPresentation() {
   }
 
   function completeCurrentDraft() {
-    if ((0, dependencies.platform.$)('modeDraftDoneBtn')?.disabled || !dependencies.domains.editingDomain?.draftInputActive?.()
+    if ((0, dependencies.platform.$)('modeDraftDoneBtn')?.disabled) return false;
+    const current = dependencies.projectState.state.territorySelectionSession;
+    if (compactTerritoryKind(current?.kind)) {
+      if (current.stage !== 'selection' || !['line', 'polygon'].includes(current.activeMethod)) return false;
+      if (current.activePhase === 'candidate' || current.activePhase === 'result') {
+        return runModePrimaryAction(dependencies.territorySelectionA.territorySelectionAddPart);
+      }
+      if (current.activePhase === 'drawing'
+        && (dependencies.domains.editingDomain?.draftInputActive?.() || current.parts.length)) {
+        return runModePrimaryAction(dependencies.territorySelectionA.finishTerritorySelectionDraft);
+      }
+      return false;
+    }
+    if (!dependencies.domains.editingDomain?.draftInputActive?.()
       || dependencies.projectState.state.geometryPreview.session) return false;
     return runModePrimaryAction(dependencies.countryCommitFlow.finishDraft);
   }

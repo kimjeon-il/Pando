@@ -88,7 +88,7 @@ export function createTerritorySelectionWorkflow() {
       ['annex', Object.freeze({
         tool: 'annex-territory',
         label: '영토 편입',
-        setupStageLabel: '대상 선택',
+        setupStageLabel: '가져올 국가',
         defaultName: '',
         nameLabel: '',
         referenceLabel: '',
@@ -125,10 +125,10 @@ export function createTerritorySelectionWorkflow() {
       ['new-country', Object.freeze({
         tool: 'new-country',
         label: '국가 추가',
-        setupStageLabel: '기본 설정',
+        setupStageLabel: '국가 정보',
         defaultName: '새 국가',
-        nameLabel: '국가명',
-        referenceLabel: '영토를 가져올 국가',
+        nameLabel: '이름',
+        referenceLabel: '원소속 국가',
         generatedIdPrefix: 'USR',
         supportsName: true,
         showSetup: true,
@@ -550,7 +550,9 @@ export function createTerritorySelectionWorkflow() {
       refresh('territory-selection-open');
       return true;
     }
-    if (current.stage !== 'selection' || !previewReady(current)) return false;
+    if (current.stage !== 'selection' || !previewReady(current)
+      || ['annex', 'new-country'].includes(current.kind)
+        && current.activePhase === 'candidate' && !!current.currentGeometry) return false;
     current.stage = 'review';
     (0, dependencies.taskUi.setModeBanner)('');
     refresh('territory-selection-review');
@@ -591,6 +593,17 @@ export function createTerritorySelectionWorkflow() {
       return true;
     }
     current.requestedMethod = method;
+    if (['annex', 'new-country'].includes(current.kind) && current.activePhase === 'components'
+      && current.selectedComponentKeys.length && current.activeMethod !== method) {
+      if (canAddPart(current)) return archiveComponentsAndActivate(current, method);
+      if (current.computationPending || current.previewPending || current.currentGeometry) {
+        if (current.currentGeometry && !current.previewPending) schedulePreview();
+        refresh('territory-selection-method-awaiting-preview');
+        return false;
+      }
+      current.requestedMethod = current.activeMethod;
+      return false;
+    }
     if (current.activeMethod && current.activeMethod !== method && activeCurrentWork(current)) {
       current.methodChangeConfirmation = { type: 'method', method };
       refresh('territory-selection-method-change-confirm');
@@ -601,6 +614,12 @@ export function createTerritorySelectionWorkflow() {
       refresh('territory-selection-source-required');
       return false;
     }
+    return activateMethod(current, method);
+  }
+
+  async function archiveComponentsAndActivate(current, method) {
+    if (current !== session() || current.stage !== 'selection' || !canAddPart(current)) return false;
+    if (!addPart()) return false;
     return activateMethod(current, method);
   }
 
@@ -728,6 +747,7 @@ export function createTerritorySelectionWorkflow() {
     current.computationError = false;
     if (!current.parts.length && !current.currentGeometry && !current.selectedComponentKeys.length) {
       current.computationPending = false;
+      current.archivedGeometry = null;
       return null;
     }
     const key = previewKey(current);
@@ -909,6 +929,21 @@ export function createTerritorySelectionWorkflow() {
     return true;
   }
 
+  function removePart(partId) {
+    const current = session();
+    if (!current || current.stage !== 'selection') return false;
+    const index = current.parts.findIndex(part => part.id === partId);
+    if (index < 0) return false;
+    touchSelection(current);
+    current.parts.splice(index, 1);
+    const referenced = new Set(current.parts.map(part => part.component?.snapshotId).filter(Boolean));
+    current.componentSnapshots = current.componentSnapshots.filter(snapshot => referenced.has(snapshot.id));
+    refreshCombinedGeometry(current);
+    if (selectionGeometryReady(current)) schedulePreview();
+    refresh('territory-selection-part-removed');
+    return true;
+  }
+
   function redraw() {
     const current = session();
     if (!current || current.stage !== 'selection' || current.activePhase === 'components') return false;
@@ -977,6 +1012,20 @@ export function createTerritorySelectionWorkflow() {
           current.previewPending = false;
           current.previewReadyKey = prepared && dependencies.projectState.state.geometryPreview.session ? key : null;
           refresh('territory-selection-preview-ready');
+          if (['annex', 'new-country'].includes(current.kind) && current.activePhase === 'components'
+            && current.selectedComponentKeys.length && current.requestedMethod
+            && current.requestedMethod !== current.activeMethod) {
+            const requested = current.requestedMethod;
+            if (canAddPart(current)) {
+              try { await archiveComponentsAndActivate(current, requested); }
+              catch (error) {
+                dependencies.feedback.reportOperationError(error, '선택한 영역을 보관하지 못했습니다.', 'PL-TERRITORY-SELECTION-002', 3800);
+              }
+            } else {
+              current.requestedMethod = current.activeMethod;
+              refresh('territory-selection-method-await-failed');
+            }
+          }
         }
       }
     }, Math.max(0, Number(delay) || 0));
@@ -1015,8 +1064,10 @@ export function createTerritorySelectionWorkflow() {
     const adapter = adapterFor(current);
     if (!adapter) return null;
     const step = current.stage === 'setup' ? 1 : current.stage === 'selection' ? 2 : 3;
+    const scoped = current.kind === 'annex' || current.kind === 'new-country';
     const stageLabel = current.stage === 'setup' ? current.setupStageLabel
-      : current.stage === 'selection' ? '영역 선택' : '결과 확인';
+      : current.stage === 'selection' ? scoped ? '영토 선택' : '영역 선택'
+        : scoped ? current.kind === 'annex' ? '편입 확인' : '생성 확인' : '결과 확인';
     const count = partCount(current);
     const primaryLabel = current.stage === 'selection' && current.computationError ? '다시 계산' : current.stage === 'review'
       ? current.editOperation === 'annex' ? '편입' : adapter.finalLabel(count)
@@ -1024,7 +1075,7 @@ export function createTerritorySelectionWorkflow() {
     return {
       current,
       step,
-      taskName: `${current.taskLabel} ${step}단계`,
+      taskName: scoped ? current.taskLabel : `${current.taskLabel} ${step}단계`,
       stageLabel,
       setup: current.stage === 'setup',
       selection: current.stage === 'selection',
@@ -1046,7 +1097,7 @@ export function createTerritorySelectionWorkflow() {
       showSubunitFields: current.stage === 'setup' && adapter.showSubunitFields,
       showReference: adapter.showReference(current)
         || current.stage === 'selection' && current.activePhase === 'source',
-      showCountryFlow: adapter.showCountryFlow,
+      showCountryFlow: adapter.showCountryFlow && current.stage === 'setup',
       showMethods: current.stage === 'selection',
       showReferenceStart: current.stage === 'selection' && current.activePhase === 'source',
       showMethodChangeConfirmation: !!current.methodChangeConfirmation,
@@ -1064,6 +1115,7 @@ export function createTerritorySelectionWorkflow() {
       primaryIcon: current.stage === 'review' ? '#icon-check' : '#icon-chevron-right',
       primaryDisabled: current.applying || current.previewPending
         || current.stage === 'setup' && !setupValid(current)
+        || scoped && current.stage === 'selection' && current.activePhase === 'candidate' && !!current.currentGeometry
         || current.stage === 'selection' && !current.computationError && !previewReady(current)
         || current.stage === 'review' && !previewReady(current),
       cancelLabel: current.stage === 'setup' ? '취소' : '뒤로',
@@ -1093,6 +1145,7 @@ export function createTerritorySelectionWorkflow() {
     get previewKey() { return previewKey; },
     get previewReady() { return previewReady; },
     get redraw() { return redraw; },
+    get removePart() { return removePart; },
     get refreshCombinedGeometry() { return refreshCombinedGeometry; },
     get resetSelection() { return resetSelection; },
     get schedulePreview() { return schedulePreview; },
