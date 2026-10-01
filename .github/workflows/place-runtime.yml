@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'assets/js/modules/app-camera-navigation.js'
+      - 'assets/js/modules/app-capability-ports-object-editing.js'
+      - 'assets/js/modules/app-project-snapshots.js'
       - 'assets/js/modules/app-object-commands.js'
       - 'assets/js/modules/app-capability-ports-project-io.js'
       - 'assets/js/modules/layer-tree-controller.js'
@@ -48,6 +50,8 @@ jobs:
         run: >-
           pnpm exec eslint
           assets/js/modules/app-camera-navigation.js
+          assets/js/modules/app-capability-ports-object-editing.js
+          assets/js/modules/app-project-snapshots.js
           assets/js/modules/app-object-commands.js
           assets/js/modules/app-capability-ports-project-io.js
           assets/js/modules/layer-tree-controller.js
