@@ -36,7 +36,7 @@ test('history snapshots preserve editable object state through the shared schema
   assert.deepEqual(history.hydroEdits, state.hydroEdits);
   assert.deepEqual(history.territorialUnits, state.territorialUnits);
   assert.deepEqual(history.territorialRelations, state.territorialRelations);
-  assert.equal('labelSettings' in history, false);
+  assert.deepEqual(history.labelSettings, state.labelSettings);
   assert.equal('layerVisibility' in history, false);
   assert.equal('projection' in history, false);
 });
