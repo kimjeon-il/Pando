@@ -158,8 +158,6 @@ export function createSelectionUiController({
     return changed;
   };
 
-  const bind = () => api;
-
   const resetProject = () => {
     lastRevision = -1;
     pendingSnapshot = null;
@@ -176,6 +174,6 @@ export function createSelectionUiController({
     pendingSnapshot = null;
   };
 
-  const api = Object.freeze({ bind, applyIntent, replaceMany, restore, sync, syncNow, presentPrimary, clear, resetProject, dispose });
+  const api = Object.freeze({ applyIntent, replaceMany, restore, sync, syncNow, presentPrimary, clear, resetProject, dispose });
   return api;
 }

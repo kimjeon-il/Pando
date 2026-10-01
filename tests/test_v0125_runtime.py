@@ -9,6 +9,7 @@ ROOT = Path(__file__).parents[1]
 APP = read_application_sources(ROOT)
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
 TRANSACTION = (ROOT / "assets" / "js" / "modules" / "country-edit-transaction.js").read_text(encoding="utf-8")
+COUNTRY_COMMANDS = (ROOT / "assets" / "js" / "modules" / "map-edit-country-commands.js").read_text(encoding="utf-8")
 WORKER = (ROOT / "assets" / "js" / "workers" / "hydro-tile-worker.js").read_text(encoding="utf-8")
 CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
 
@@ -48,9 +49,8 @@ class V0125RuntimeTests(unittest.TestCase):
         annex = section(APP, "function completeLinearAnnexation", "function completeNewCountryCreation")
         self.assertIn("operation: 'annex'", annex)
         self.assertIn("client.execute(operation, payload)", TRANSACTION)
-        validator = section(APP, "function validateCountryGeometryEdit", "function restoreCountryEditSnapshot")
-        self.assertIn("overlapArea > previousArea + areaTolerance", validator)
-        self.assertIn("boundaryLength || 0) * 2e-7", validator)
+        self.assertIn("overlap > Number(baseline.overlaps.get(key) || 0) + tolerance", COUNTRY_COMMANDS)
+        self.assertIn("boundaryLength || 0) * 2e-7", COUNTRY_COMMANDS)
 
 
 if __name__ == "__main__":
