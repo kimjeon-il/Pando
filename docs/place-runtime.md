@@ -80,3 +80,10 @@ npx playwright test tests/browser/place-runtime.spec.mjs tests/browser/label-met
 `check-runtime-boundaries.mjs`의 `renderDistributions` public facade 오류는 기준 commit의
 별도 복사본에서도 동일하게 재현됐다. 이번 변경과 무관한 기존 실패로 남겨 두었다.
 전체 테스트 suite를 실행하거나 관련 없는 구조를 변경하지 않았다.
+
+## 게시 범위
+
+검증한 소스 tree와 GitHub의 tree가 동일함을 확인하고 별도 브랜치에 게시했다.
+`main` 병합과 기존 GitHub Pages 사이트의 배포 브랜치 전환은 수행하지 않았다.
+저장소의 workflow에는 브랜치별 웹 배포 작업이 없으며, 연결된 도구에서 별도
+브랜치의 웹 배포 경로를 확인할 수 없어 실사이트 배포는 수행하지 않았다.
