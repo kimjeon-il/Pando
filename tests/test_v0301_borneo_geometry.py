@@ -1,4 +1,3 @@
-from tests.application_source import read_application_sources
 import gzip
 import hashlib
 import json
@@ -9,7 +8,7 @@ from shapely.geometry import shape
 
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = read_application_sources(ROOT)
+COUNTRY_PREVIEW = (ROOT / "assets/js/modules/map-edit-preview-calculations.js").read_text(encoding="utf-8")
 COUNTRY_GEOMETRY = (ROOT / "assets/js/modules/country-geometry.js").read_text(encoding="utf-8")
 COUNTRIES = json.loads((ROOT / "assets/data/countries-ne-5.1.1.geojson").read_text(encoding="utf-8"))
 PREVIEW_COUNTRIES = json.loads(gzip.decompress((ROOT / "assets/data/countries-preview-v0.30.0.geojson.gz").read_bytes()))
@@ -73,8 +72,8 @@ class BorneoGeometryRegressionTests(unittest.TestCase):
         self.assertIn("ring[ring.length - 1] = ring[0].slice()", COUNTRY_GEOMETRY)
 
     def test_coast_edit_only_blocks_new_structured_issues(self):
-        self.assertIn("structuredValidationBaseline = new Set", APP)
-        self.assertIn("!structuredValidationBaseline.has(structuredGeometryIssueKey(issue))", APP)
+        self.assertIn("new Set(validateTerritorialGeometry(before, { clipper, affectedIds }).map(issueKey))", COUNTRY_PREVIEW)
+        self.assertIn("validateTerritorialGeometry(after, { clipper, affectedIds }).filter(issue => !baseline.has(issueKey(issue)))", COUNTRY_PREVIEW)
 
 
 if __name__ == "__main__":

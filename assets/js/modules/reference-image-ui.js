@@ -38,17 +38,6 @@ export function createReferenceImagePanel() {
   return panel;
 }
 
-export function createReferenceImageLauncher() {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'ui-button icon-btn reference-image-launcher';
-  button.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-reference-image"/></svg>';
-  button.setAttribute('aria-label', '이미지 추가');
-  button.dataset.tooltip = '이미지 추가';
-  button.setAttribute('aria-expanded', 'false');
-  return button;
-}
-
 export function renderReferenceImageList(listElement, records, selectedId) {
   listElement.replaceChildren();
   for (let index = records.length - 1; index >= 0; index -= 1) {
