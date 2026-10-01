@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 /* global Event, EventTarget */
 import { createTaskPresentation } from '../../assets/js/modules/app-task-presentation.js';
@@ -7,7 +6,6 @@ import { createToolBindings } from '../../assets/js/modules/app-tool-bindings.js
 import { MAP_INTERACTION_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
-const htmlSource = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
 
 class FakeClassList {
   #values = new Set();
@@ -69,8 +67,9 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
   const document = createFakeDocument();
   const ids = [
     'modeEditingHud', 'modeTaskName', 'modeTaskStage', 'modeTaskStatus', 'modeTaskInstruction',
-    'modeTaskTargets', 'modeTaskTargetList', 'modeTaskTargetsFocusBtn', 'modeTaskDisabledReason',
-    'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn',
+    'modeTaskObjects', 'modeTaskTargetsFocusBtn', 'modeTaskDisabledReason',
+    'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
+    'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
   ];
   const elements = Object.fromEntries(ids.map(id => [id, new FakeElement(document)]));
   const state = {
@@ -107,6 +106,8 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
     boundaryEditSelectionAnalysis: () => ({ valid: false, message: '접경 대상을 선택하세요.' }),
     countryFeatureById: id => id === 'COUNTRY' ? { type: 'Feature', id, properties: { name: 'Country' }, geometry: { type: 'Polygon', coordinates: [] } } : null,
+    countryName: feature => feature.properties.name,
+    effectiveCountryFlagUrl: () => '',
     objectDisplayInfo: ref => ({ name: ref.id === 'SUB' ? 'Subunit' : 'Country', type: ref.type }),
     focusObjectRef: ref => focusCalls.push(['single', ref]),
     mapFeatureForObjectRef: ref => ({ type: 'Feature', id: ref.id, properties: {}, geometry: { type: 'Polygon', coordinates: [] } }),
@@ -117,32 +118,76 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     syncSelectionToolbarInteraction() {},
     projectUi: { syncHistory() {} },
     syncStatusBar() {},
+    formatArea: area => `${area} km²`,
     ...portOverrides,
   }));
   return { presentation, elements, state, focusCalls };
 }
 
-test('task sync lists true country and subunit targets once without focusing the map', t => {
-  const f = fixture(t, {
-    boundaryEditCountryIds: ['SUB', 'COUNTRY', 'SUB', 'MISSING'],
-    territorialUnits: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
-  });
-
+test('operation errors use the common feedback slot and clear on a new normal banner', t => {
+  const f = fixture(t, { tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'SUB', territorialUnitMergeTargetIds: ['OTHER'] });
+  f.presentation.setModeBanner('선택한 하위단위들이 서로 연결되어야 합니다.', { feedback: true });
   f.presentation.updateModeButtons();
-
-  assert.deepEqual(f.elements.modeTaskTargetList.children.map(item => item.dataset.objectKey), [
-    'territorial:subunit:SUB',
-    'territorial:country:COUNTRY',
-  ]);
-  assert.deepEqual(f.elements.modeTaskTargetList.children.map(item => item.children[0].textContent), ['Subunit', 'Country']);
-  assert.equal(f.elements.modeTaskTargets.classList.contains('hidden'), false);
-  assert.equal(f.elements.modeTaskTargetsFocusBtn.attributes.get('aria-label'), '선택한 2개 대상으로 이동');
-  assert.deepEqual(f.focusCalls, []);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '선택한 하위단위들이 서로 연결되어야 합니다.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskInstruction.classList.contains('hidden'), true);
+  f.presentation.setModeBanner('합칠 인접 영역을 선택하세요.');
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
 });
 
-test('task target focus uses the approved visible label', () => {
-  const button = htmlSource.match(/<button id="modeTaskTargetsFocusBtn"[^>]*>([^<]+)<\/button>/);
-  assert.equal(button?.[1], '대상으로 이동');
+test('existing redraw preview keeps its real metrics and survives closing and reopening', t => {
+  const preview = { validation: { blocking: false }, metrics: { finalAreaKm2: 123 } };
+  const f = fixture(t, { tool: 'redraw-territorial-unit', geometryPreview: { session: preview } });
+  f.presentation.updateModeButtons();
+  const summary = f.elements.geometryPreviewSummary;
+  assert.equal(summary.classList.contains('hidden'), false);
+  assert.equal(summary.children[0].children[1].textContent, '123 km²');
+  f.state.geometryPreview.session = null;
+  f.presentation.updateModeButtons();
+  assert.equal(summary.children.length, 0);
+  f.state.geometryPreview.session = preview;
+  f.presentation.updateModeButtons();
+  assert.equal(summary.children[0].children[1].textContent, '123 km²');
+});
+
+test('territory list uses the authoritative union, pending state and stable part IDs', t => {
+  const current = { kind: 'annex', taskLabel: '영토 편입', tool: 'annex-territory', stage: 'selection', activePhase: 'drawing', activeMethod: 'polygon',
+    sourceCountryIds: [], parts: [{ id: 'first', geometry: { area: 10 } }, { id: 'middle', geometry: { area: 10 } }], archivedGeometry: { area: 15 } };
+  const model = { current, step: 2, stageLabel: '영토 선택', selection: true, showMethods: true, primaryDisabled: false };
+  const f = fixture(t, { tool: current.tool, territorySelectionSession: current }, {
+    territorySelectionPresentation: () => model, sphericalGeometryAreaKm2: geometry => geometry?.area || 0,
+  });
+  f.presentation.updateModeButtons();
+  const summary = f.elements.territorySelectionStackSummary;
+  const list = f.elements.territorySelectionStackList;
+  assert.equal(summary.textContent, '선택 영토 2개 · 15 km²', 'overlap must not be counted twice');
+  assert.equal(list.children[1].children[2].dataset.itemId, 'middle');
+  current.computationPending = true;
+  f.presentation.updateModeButtons();
+  assert.equal(summary.textContent, '선택 영토 2개 · 계산 중…');
+  assert.equal(list.children[1].children[2].disabled, true);
+  current.computationPending = false;
+  current.parts.splice(0, 1);
+  current.archivedGeometry = { area: 10 };
+  f.presentation.updateModeButtons();
+  assert.equal(summary.textContent, '선택 영토 1개 · 10 km²');
+  assert.equal(list.children[0].children[0].textContent, '①');
+  assert.equal(list.children[0].children[2].dataset.itemId, 'middle');
+});
+
+test('task sync derives role cards without duplicate type labels or focusing the map', t => {
+  const f = fixture(t, {
+    boundaryEditCountryIds: ['SUB', 'COUNTRY', 'SUB'],
+    territorialUnits: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
+  });
+  f.presentation.updateModeButtons();
+  const cards = f.elements.modeTaskObjects.children.filter(item => item.className === 'workflow-object-card');
+  assert.deepEqual(cards.map(item => item.children[0].textContent), ['기준 하위단위', '상대 하위단위']);
+  assert.deepEqual(cards.map(item => item.children[1].children[0].textContent), ['Subunit', 'Country']);
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskTargetsFocusBtn.attributes.get('aria-label'), '선택한 2개 대상으로 이동');
+  assert.deepEqual(f.focusCalls, []);
 });
 
 test('task target labels refresh from the repository while object refs stay stable', t => {
@@ -151,13 +196,13 @@ test('task target labels refresh from the repository while object refs stay stab
     objectDisplayInfo: ref => ({ name, type: ref.type }),
   });
   f.presentation.updateModeButtons();
-  assert.equal(f.elements.modeTaskTargetList.children[0].children[0].textContent, 'Before');
+  assert.equal(f.elements.modeTaskObjects.children[0].children[1].children[0].textContent, 'Before');
   assert.equal(f.elements.modeTaskTargetsFocusBtn.attributes.get('aria-label'), '대상으로 이동');
 
   name = 'After';
   f.presentation.updateModeButtons();
 
-  assert.equal(f.elements.modeTaskTargetList.children[0].children[0].textContent, 'After');
+  assert.equal(f.elements.modeTaskObjects.children[0].children[1].children[0].textContent, 'After');
 });
 
 test('task status explains pending and missing-target decisions without changing retry eligibility', async t => {
@@ -182,7 +227,8 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(failed.elements.modeTaskStatus.textContent, '확인 필요');
   assert.equal(failed.elements.modePrimaryBtn.disabled, false);
   assert.equal(failed.elements.modePrimaryBtn.textContent, '다시 시도');
-  assert.equal(failed.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(failed.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  assert.equal(failed.elements.modeTaskDisabledReason.textContent, '경계 계산에 실패했습니다.');
 
   const needsTarget = fixture(t, {
     tool: 'merge-country',
@@ -198,6 +244,9 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(needsTarget.elements.modeTaskStatus.textContent, '대상 필요');
   assert.equal(needsTarget.elements.modePrimaryBtn.disabled, true);
   assert.equal(needsTarget.elements.modeTaskDisabledReason.textContent, '합칠 대상을 하나 이상 선택하세요.');
+  assert.equal(needsTarget.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(needsTarget.elements.modeTaskStatus.classList.contains('hidden'), true);
+  assert.equal(needsTarget.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
 });
 
 test('a disabled draft completion shows its authoritative validation reason in the shared task area', t => {
@@ -299,4 +348,25 @@ test('the shared task focus button is explicitly bound to task target focus', ()
   focusButton.dispatchEvent(new Event('click'));
 
   assert.equal(calls, 1);
+});
+
+test('hydro auxiliary commands run while idle and preserve their own busy guard', () => {
+  const buttons = Object.fromEntries(['multiDrawnAddBtn', 'multiDrawnUndoBtn', 'resetViewBtn'].map(id => [id, new FakeElement()]));
+  const state = { modeProcessing: false };
+  const calls = [];
+  const bindings = createToolBindings();
+  bindings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.toolBindings, {
+    state, $: id => buttons[id] || null, resetView() {},
+    addMultiDraftPart: () => { assert.equal(state.modeProcessing, false); calls.push('add'); },
+    undoMultiDraftPart: () => { assert.equal(state.modeProcessing, false); calls.push('undo'); },
+    runModePrimaryAction: action => { state.modeProcessing = true; action(); },
+    reportOperationError: error => { throw error; },
+  }));
+  bindings.bindToolUI();
+  buttons.multiDrawnAddBtn.dispatchEvent(new Event('click'));
+  buttons.multiDrawnUndoBtn.dispatchEvent(new Event('click'));
+  assert.deepEqual(calls, ['add', 'undo']);
+  state.modeProcessing = true;
+  buttons.multiDrawnAddBtn.dispatchEvent(new Event('click'));
+  assert.equal(calls.length, 2);
 });

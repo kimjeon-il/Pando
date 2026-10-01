@@ -16,8 +16,8 @@ test('Subunit editor and creation use one desktop/mobile surface', async ({ page
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
   await page.locator('#addCountrySubunitBtn').evaluate(button => button.click());
   await expect(page.locator('#editorTaskSlot #territorialCreateSetup')).toBeVisible();
-  await expect(page.locator('#modeTaskName')).toContainText('하위단위 추가 1단계');
-  await expect(page.locator('#territorialCreateNameLabel')).toHaveText('하위단위명');
+  await expect(page.locator('#modeTaskName')).toContainText('하위단위 추가');
+  await expect(page.locator('#territorialCreateNameLabel')).toHaveText('이름');
   await expect(page.locator('#territorialCreateNameInput')).toHaveValue('새 하위단위');
   await page.locator('#modeCancelBtn').click();
   const chooserPromise = page.waitForEvent('filechooser');

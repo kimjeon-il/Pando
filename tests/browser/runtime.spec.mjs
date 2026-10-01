@@ -155,7 +155,7 @@ test('annex territory exposes river boundaries as a retained component-selection
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
   await expect(page.locator('#modeTaskStage')).toHaveText('가져올 국가');
   await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
-  await expect(page.locator('#annexCountryFlow')).toBeVisible();
+  await expect(page.locator('#modeTaskObjects')).toBeVisible();
   await expect(page.locator('#modeMethodSwitch')).toBeHidden();
   const donorPoint = await page.evaluate(() => {
     const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL');
@@ -237,8 +237,8 @@ test('annex role cards show actual flags and retain every donor country name', a
   await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexTerritoryBtn').click();
-  await expect(page.locator('#annexTargetCountryName')).toHaveText('독일');
-  await expect(page.locator('#annexTargetCountryFlag')).toBeVisible();
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨받는 국가"] strong')).toHaveText('독일');
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨받는 국가"] img')).toBeVisible();
   const mapBox = await page.locator('#map').boundingBox();
   for (const id of ['POL', 'CZE']) {
     const point = await page.evaluate(countryId => {
@@ -249,9 +249,11 @@ test('annex role cards show actual flags and retain every donor country name', a
       clientX: mapBox.x + point[0], clientY: mapBox.y + point[1], button: 0,
     });
   }
-  await expect(page.locator('#annexDonorCountryName')).toContainText('외 1개');
-  await expect(page.locator('#annexDonorCountryFlag')).toBeVisible();
-  await expect(page.locator('#annexCountryFlow')).toHaveAttribute('aria-label', /폴란드, 체코.*독일/);
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"]')).toContainText('체코');
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"] img').nth(0)).toBeVisible();
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"] img').nth(1)).toBeVisible();
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"]')).toContainText('폴란드');
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"] img')).toHaveCount(2);
   expect(errors).toEqual([]);
 });
 
