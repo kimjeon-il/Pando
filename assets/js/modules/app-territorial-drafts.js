@@ -128,13 +128,11 @@ export function createTerritorialDrafts() {
           });
           const countryCollectionsChanged = newCountries.length > 0 || changedCountries.length > 0 || removedCountryIds.length > 0;
           if (countryCollectionsChanged) {
-            const nextOverrides = {
-              ...dependencies.territorialModel.entityStore.countryOverrides(),
-              ...Object.fromEntries(newCountries.map(country => [
-                String(country.id),
-                (0, dependencies.platform.deepClone)(request.countryOverride || {}),
-              ])),
-            };
+            const nextOverrides = { ...dependencies.territorialModel.entityStore.countryOverrides() };
+            for (const country of newCountries) {
+              const override = (0, dependencies.platform.deepClone)(request.countryOverride || {});
+              if (Object.keys(override).length) nextOverrides[String(country.id)] = override;
+            }
             dependencies.territorialModel.entityStore.replaceCollections({
               countriesData: {
                 type: 'FeatureCollection',
