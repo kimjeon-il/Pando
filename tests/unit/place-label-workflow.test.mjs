@@ -6,7 +6,7 @@ import { createGenericCommands } from '../../assets/js/modules/app-generic-comma
 import { createProjectSnapshots } from '../../assets/js/modules/app-project-snapshots.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
+import { TERRITORIAL_UNIT_TYPES, validateTerritorialRelations } from '../../assets/js/modules/territorial-units.js';
 import { applyProjectFields, pickProjectFields } from '../../assets/js/modules/project-state.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 const source=normalizePlace({source:'synthetic',sourceId:'1',name:'서울',kind:'capital',coordinates:[127,37]});
@@ -71,8 +71,7 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
       normalizeTerritorialUnits: value => value || [],
       TERRITORIAL_UNIT_TYPES,
     },
-    territorialServicesA: { normalizeTerritorialRelations: value => value || [] },
-    objectModelB: { territorialApplicationService: { validateRelations: () => ({ ok: true }) } },
+    territorialServicesA: { normalizeTerritorialRelations: value => value || [], validateTerritorialRelations },
     presentation: { territorialRepository: { get: () => null } },
     layerTree: { normalizeLayerFolderState: value => value || {}, pruneLayerItemVisibility() {} },
     countries: { countryFeatureById: () => null, scheduleCountryLabelAnchors() {} },

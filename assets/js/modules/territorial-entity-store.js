@@ -42,6 +42,9 @@ function defaultWriteUnitColor(feature, value) {
   else delete feature.properties.style.color;
 }
 
+/** Owns physical country/unit/override writes and collection replacement callbacks.
+ * The Repository reads these collections; it does not publish document changes.
+ */
 export function createTerritorialEntityStore({
   getState,
   writeCountryColor = defaultWriteCountryColor,

@@ -42,7 +42,7 @@ The inventory above records the pre-extraction responsibility map. Phase 06 keep
 | `project-serializer.js` | current project and autosave materialization | browser storage, UI |
 | `persistence-service.js` | IndexedDB/local fallback, autosave queues, view record | document mutation, DOM |
 | `physical-layer-service.js` | terrain and hydro manifest/retry lifecycle | renderer internals, project objects |
-| `territorial-service.js` | territorial metadata and geometry transaction commands | form values, DOM |
+| `territorial-service.js` | territorial metadata, hierarchy and lock commands through the entity Store | form values, DOM |
 | `distribution-service.js` | distribution layer/entry CRUD and validation | generic feature objects, UI rendering |
 | `generic-feature-service.js` | generic feature CRUD and semantics | hydro objects, UI rendering |
 | `history-service.js` | bounded document undo/redo snapshots and metadata | draft-local history, project serialization |

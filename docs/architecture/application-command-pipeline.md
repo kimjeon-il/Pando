@@ -49,11 +49,15 @@ mutation 또는 canonical validation이 실패하면 snapshot을 복원하고 �
 
 `ProjectCommandPipeline`은 ordinary UI mutation을 위한 동기 경로다. Worker, GIS, 대규모 geometry 편집처럼 비동기 준비·검증·외부 commit이 필요한 작업은 기존 `project-transaction.js` 경계를 유지한다. 두 경로를 억지로 하나의 거대한 command runner로 합치지 않는다.
 
-## Domain Service migration
+## Domain Service ownership
 
 `territorial-service.js`, `distribution-service.js`, `generic-feature-service.js`는 `createDocumentMutationRunner()`를 사용하며, app bootstrap이 만든 하나의 `ProjectCommandPipeline`만 주입받는다. legacy mutation callback이나 서비스별 history 우회 경로는 지원하지 않는다.
 
 서비스 자체에는 history/render/autosave 호출을 넣지 않는다. 해당 side effect는 application command pipeline 소유다.
+
+`TerritorialEntityStore`는 국가·하위단위·국가 override의 실제 쓰기와 컬렉션 교체를 소유한다. `TerritorialEntityRepository`는 이 Store를 읽어 공통 엔티티와 계층 인덱스를 제공한다. 국가 조회 결과의 공통 properties는 표시용 파생 자료이며, 변경은 Store와 application service를 통해 게시한다.
+
+관계 검증과 비동기 종류 변환은 `territorial-units.js`의 `validateTerritorialRelations()`·`runTerritorialTransaction()`을 직접 사용한다. presentation이나 application service에 같은 함수를 전달만 하는 alias를 두지 않는다.
 
 ## Object Action 연결
 

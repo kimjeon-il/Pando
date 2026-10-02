@@ -2,8 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
+import { createObjectPresentation } from '../../assets/js/modules/app-object-presentation.js';
 
 const read = name => readFile(new URL(`../../assets/js/modules/${name}`, import.meta.url), 'utf8');
+
+test('presentation does not expose migration transaction or validation APIs', () => {
+  const presentation = createObjectPresentation();
+  assert.equal(Object.hasOwn(presentation, 'runTerritorialUnitTransaction'), false);
+  assert.equal(Object.hasOwn(presentation, 'validateTerritorialUnitRelations'), false);
+});
 
 test('every production territorial storage access is classified at its function owner', () => {
   const output = execFileSync(process.execPath, ['scripts/check-territorial-storage.mjs'], { encoding: 'utf8' });

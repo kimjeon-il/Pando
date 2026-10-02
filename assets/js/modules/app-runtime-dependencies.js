@@ -338,6 +338,8 @@ const {
   createTerritorialFeature,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
+  runTerritorialTransaction,
+  validateTerritorialRelations,
 } = territorialUnitsModule;
 const {
   DISTRIBUTION_SCHEMA_VERSION,
@@ -631,6 +633,8 @@ export {
   createTerritorialEntityStore,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
+  runTerritorialTransaction,
+  validateTerritorialRelations,
   DISTRIBUTION_SCHEMA_VERSION,
   DISTRIBUTION_MODES,
   DISTRIBUTION_RENDER_MODES,

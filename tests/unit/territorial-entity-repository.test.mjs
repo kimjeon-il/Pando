@@ -16,7 +16,7 @@ const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
   coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]],
 });
 
-test('country read model exposes common territorial properties without moving country storage', () => {
+test('country projection detaches common properties and retains canonical geometry identity', () => {
   const country = {
     type: 'Feature',
     id: 'PL',
@@ -44,9 +44,11 @@ test('country read model exposes common territorial properties without moving co
   assert.deepEqual(entity.properties.style, { color: '#123456' });
   assert.deepEqual(entity.properties.metadata, { capital: '바르샤바', flagDataUrl: null });
   assert.equal(entity.geometry, country.geometry);
+  entity.properties.name = 'Projection edit';
+  assert.equal(country.properties.name, 'Poland');
 });
 
-test('repository can read directly from the physical entity store', () => {
+test('repository reads the canonical store through the current hierarchy API', () => {
   const state = {
     countriesData: { type: 'FeatureCollection', features: [
       { type: 'Feature', id: 'PL', properties: { name: 'Poland' }, geometry: square() },

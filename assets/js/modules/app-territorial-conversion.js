@@ -280,7 +280,7 @@ export function createTerritorialConversion() {
       return false;
     }
     try {
-      await (0, dependencies.objectModelB.runTerritorialUnitTransaction)({
+      await (0, dependencies.territorialServicesA.runTerritorialTransaction)({
         snapshot: dependencies.snapshots.snapshotEditable,
         calculate: async () => {
           const nextUnits = (0, dependencies.platform.deepClone)(dependencies.territorialModel.entityStore.units());
@@ -293,7 +293,7 @@ export function createTerritorialConversion() {
           nextUnits[index] = converted;
           return (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, { countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY });
         },
-        validate: nextUnits => (0, dependencies.objectModelB.validateTerritorialUnitRelations)(nextUnits, {
+        validate: nextUnits => (0, dependencies.territorialServicesA.validateTerritorialRelations)(nextUnits, {
           countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
           relations: dependencies.projectState.state.territorialRelations,
         }),
@@ -400,7 +400,7 @@ export function createTerritorialConversion() {
             },
           ),
          });
-        const territorialValidation = (0, dependencies.objectModelB.validateTerritorialUnitRelations)(dependencies.territorialModel.entityStore.units(), {
+        const territorialValidation = (0, dependencies.territorialServicesA.validateTerritorialRelations)(dependencies.territorialModel.entityStore.units(), {
           countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
             === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
           relations: dependencies.projectState.state.territorialRelations,
