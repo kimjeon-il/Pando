@@ -159,7 +159,7 @@ export function createObjectPresentation() {
     });
   }
 
-  function initializeTerritorialRepository() {
+  function initializeTerritorialEntityRepository() {
 
 
 
@@ -202,7 +202,7 @@ export function createObjectPresentation() {
   return Object.freeze({
     connect,
     initializeTerritorialScope,
-    initializeTerritorialRepository,
+    initializeTerritorialEntityRepository,
     get LAYER_GROUP_KEYS() { return LAYER_GROUP_KEYS; },
     get LAYER_SEARCH_GROUP_KEYS() { return LAYER_SEARCH_GROUP_KEYS; },
     get countryColor() { return countryColor; },
