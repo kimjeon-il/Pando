@@ -111,15 +111,21 @@ export function createTerritorialEntityRepository({
     return entityFrom(snapshot(), id);
   }
 
-  function list({ type = '', parentId = null, sovereignId = null } = {}) {
+  function list({
+    type = '',
+    parentId = null,
+    administrativeCountryId = null,
+    sovereignId = null,
+  } = {}) {
     let values = snapshot().values;
     if (type) values = values.filter(entity => entity.properties?.unitType === type);
     if (parentId !== null) {
       const key = text(parentId);
       values = values.filter(entity => text(entity.properties?.parentId) === key);
     }
-    if (sovereignId !== null) {
-      const key = text(sovereignId);
+    const countryId = administrativeCountryId !== null ? administrativeCountryId : sovereignId;
+    if (countryId !== null) {
+      const key = text(countryId);
       values = values.filter(entity => text(entity.properties?.sovereignId) === key);
     }
     return values;
@@ -207,9 +213,13 @@ export function createTerritorialEntityRepository({
     has: id => !!get(id),
     list,
     children,
+    administrativeChildren: children,
     parent,
+    administrativeParent: parent,
     ancestors,
+    administrativeAncestors: ancestors,
     descendants,
+    administrativeDescendants: descendants,
     root,
     administrativeRoot: root,
     administrativeCountry,
