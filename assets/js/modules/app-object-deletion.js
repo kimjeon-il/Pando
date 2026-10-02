@@ -49,11 +49,14 @@ export function createObjectDeletion() {
           (0, dependencies.spatialQuery.markCountryGeometriesChanged)([key]);
           dependencies.projectState.state.boundaryPreparation?.cancel();
           dependencies.projectState.state.boundaryPreparation = null;
-          if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.projectState.state.selected.id) === key) dependencies.domains.selectionUiController.clear({ reason: 'country-delete-selection-clear' });
-          else {
-            (0, dependencies.layers.markLayerTreeDirty)();
-            dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-deleted');
+          if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.projectState.state.selected.id) === key) {
+            dependencies.domains.selectionUiController.clear({ reason: 'country-delete-selection-clear' });
           }
+          (0, dependencies.layers.markLayerTreeDirty)();
+          dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-deleted');
+          dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('country-deleted');
+          dependencies.domains.renderingDomain?.invalidateOverlayGeometry?.('distribution', 'country-deleted');
+          dependencies.domains.renderingDomain?.invalidateLabels?.('country-deleted');
           dependencies.domains.projectDomain.commitHistorySnapshot(snapshot, {
             type: 'country-delete',
             affectedIds: [key],
@@ -149,9 +152,16 @@ export function createObjectDeletion() {
             dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL,
           );
           (0, dependencies.layers.markLayerTreeDirty)();
-          if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.projectState.state.selected.id) === String(feature.id)) dependencies.domains.selectionUiController.clear({ reason: 'territorial-delete-selection-clear' });
+          if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.projectState.state.selected.id) === String(feature.id)) {
+            dependencies.domains.selectionUiController.clear({ reason: 'territorial-delete-selection-clear' });
+          }
           dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-unit-deleted');
-          dependencies.domains.projectDomain.commitHistorySnapshot(snapshot);
+          dependencies.domains.renderingDomain?.invalidateOverlayGeometry?.('distribution', 'territorial-unit-deleted');
+          dependencies.domains.renderingDomain?.invalidateLabels?.('territorial-unit-deleted');
+          dependencies.domains.projectDomain.commitHistorySnapshot(snapshot, {
+            type: 'territorial-delete',
+            affectedIds: [String(feature.id)],
+          });
           dependencies.projectState.state.stateRevision += 1;
           dependencies.domains.projectDomain.queueAutosave();
           (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.objectPresentation.territorialUnitName)(feature)}을(를) 삭제했습니다.`, 'success');
