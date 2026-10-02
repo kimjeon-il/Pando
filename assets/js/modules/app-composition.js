@@ -240,7 +240,7 @@ export async function composeApplication({ revision }) {
   countryIndex.initializeLabelFallbackQueue();
   spatialIndex.initializeApplyingMapEditWorkerResult();
   landRelations.initializeRingHitTester();
-  objectPresentation.initializeTerritorialEntityRepository();
+  objectPresentation.initializeObjectPresentationModel();
   physicalResources.initializeTerrainService();
   propertySelection.initializePropertySelection();
   territorialConversion.initializeTerritorialTypeSource();
