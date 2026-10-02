@@ -120,7 +120,10 @@ export function createTerritorialDrafts() {
               if (labelKey === `subunit:${key}` || labelKey === `territorial:subunit:${key}`) delete dependencies.projectState.state.labelSettings[labelKey];
             }
           }
-          const newCountries = nextCountries.filter(country => !dependencies.territorialModel.entityStore.countryFeature(country.id));
+          const newCountries = nextCountries.filter(country => !dependencies.territorialModel.entityStore.rawEntity(
+              dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+              country.id,
+            ));
           const removedCountryIds = countries.filter(country => removed.has(text(country.id))).map(country => text(country.id));
           const normalizedUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, {
             countryExists: key => countryIds.has(text(key)),
