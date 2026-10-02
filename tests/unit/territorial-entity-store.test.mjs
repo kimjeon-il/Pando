@@ -170,3 +170,13 @@ test('country replacement forwards reindex options to the storage adapter', () =
 
   assert.deepEqual(received, { assumeCanonical: true });
 });
+
+
+test('country override replacement stays behind the physical store', () => {
+  const { state, store } = fixture();
+  const overrides = { A: { name: 'Renamed', locked: true } };
+  const stored = store.replaceCountryOverrides(overrides);
+  assert.notEqual(stored, overrides);
+  assert.deepEqual(state.countryOverrides, overrides);
+  assert.equal(store.countryOverride('A').name, 'Renamed');
+});
