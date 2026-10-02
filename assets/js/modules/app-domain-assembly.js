@@ -1042,6 +1042,9 @@ export function createDomainAssembly() {
         countrySubunitExtent: id => dependencies.objectModelB.territorialScope.scope(id).extra,
         mapFeatureForObjectRef: dependencies.gpuRenderingA.mapFeatureForObjectRef,
         objectRefVisible: dependencies.objectOperationsA.objectRefVisible,
+        territorialEntityById: id => territorialEntityRepository.get(id),
+        territorialUnits: () => territorialEntityRepository.list()
+          .filter(feature => feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY),
         selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
         buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
         buildSelectionBoundarySegments: dependencies.selectionServices.buildSelectionBoundarySegments,
