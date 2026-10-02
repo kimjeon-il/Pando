@@ -247,3 +247,27 @@ test('generic entity operations partition countries and units behind one store A
   assert.equal(countryReplacements(), 2);
   assert.equal(unitReplacements(), 2);
 });
+
+
+test('replaceCollections commits country overrides, countries, and units as one store boundary', () => {
+  const { state, store, countryReplacements, unitReplacements } = fixture();
+  const nextCountries = {
+    type: 'FeatureCollection',
+    features: [{ type: 'Feature', id: 'B', properties: { name: 'B' }, geometry: null }],
+  };
+  const nextUnits = [{ id: 'S', properties: { unitType: 'subunit', parentId: 'B', sovereignId: 'B' } }];
+
+  const result = store.replaceCollections({
+    countriesData: nextCountries,
+    countryOverrides: { B: { name: 'Bee' } },
+    units: nextUnits,
+  });
+
+  assert.equal(result.countriesData, state.countriesData);
+  assert.equal(result.units, state.territorialUnits);
+  assert.deepEqual(result.countryOverrides, { B: { name: 'Bee' } });
+  assert.equal(state.countriesData.features[0].id, 'B');
+  assert.equal(state.territorialUnits[0].id, 'S');
+  assert.equal(countryReplacements(), 1);
+  assert.equal(unitReplacements(), 1);
+});
