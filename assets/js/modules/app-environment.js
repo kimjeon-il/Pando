@@ -225,11 +225,12 @@ export function createEnvironment() {
     (TERRAIN_DEV_DEM_MANIFEST_URL = (() => {
       const explicit = window.PANDOLAB_DEV_DEM_MANIFEST_URL;
       const local = new URLSearchParams(location.search).get('demTerrain') === 'local'
-        ? 'http://127.0.0.1:4174/terrain/v0.13.0/manifest.json' : null;
+        ? `http://127.0.0.1:4174/terrain/v${TERRAIN_DEM_VERSION}/manifest.json` : null;
       return explicit || local ? new URL(String(explicit || local), location.href) : null;
     })());
     const terrainSelection = selectTerrainManifestUrls({
-      official: new URL(`https://kimjeon-il.github.io/world-map-terrain-v${TERRAIN_DEM_VERSION}/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),
+      // The storage repository is stable; data versions are immutable paths.
+      official: new URL(`https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),
       raster: TERRAIN_RASTER_MANIFEST_URL,
       dev: TERRAIN_DEV_DEM_MANIFEST_URL,
       preview: new URLSearchParams(location.search).get('demTerrain') === 'preview',
