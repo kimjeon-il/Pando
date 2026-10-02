@@ -158,6 +158,7 @@ export function createDomainAssembly() {
       },
       onProjectReset: event => {
         selectionDomain?.resetProject(event.generation);
+        selectionUiController?.resetProject?.();
         editingDomain?.resetProject?.(event.generation);
         renderingDomain?.resetProjectGeneration(event.generation, { preserveBuiltinMesh: event.preserveBuiltinMesh === true });
       },
