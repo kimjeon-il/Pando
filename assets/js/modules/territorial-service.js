@@ -24,7 +24,31 @@ export function createTerritorialApplicationService({
     return feature?.properties?.unitType === type && type !== TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
   };
 
-
+  function validateCountryRelationEdit(id, field, value) {
+    const key = text(id);
+    const targetId = text(value);
+    if (field === 'parentId') {
+      if (!targetId) return { ok: true };
+      if (targetId === key || !country(targetId)) {
+        return { ok: false, code: 'invalid-parent', issues: [`${key}의 상위 국가는 다른 국가여야 합니다.`] };
+      }
+      try {
+        if (entityRepository.ancestors(targetId).some(candidate => text(candidate?.id) === key)) {
+          return { ok: false, code: 'invalid-parent', issues: [`${key}의 상위 국가 관계가 순환합니다.`] };
+        }
+      } catch (error) {
+        return { ok: false, code: 'invalid-parent', issues: [String(error?.message || error)] };
+      }
+      return { ok: true };
+    }
+    if (field === 'sovereignId') {
+      if (!targetId || targetId === key) return { ok: true };
+      if (!country(targetId)) {
+        return { ok: false, code: 'invalid-sovereign', issues: [`${key}의 종주국은 국가 엔터티여야 합니다.`] };
+      }
+    }
+    return { ok: true };
+  }
 
   function isLocked(type, id) {
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) return !!country(id) && countryCommands.isLocked(id);
@@ -36,13 +60,22 @@ export function createTerritorialApplicationService({
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       const feature = country(key);
       if (!feature) return { ok: false, code: 'not-found' };
+      const nextValue = field === 'parentId'
+        ? text(value)
+        : field === 'sovereignId'
+          ? (text(value) || key)
+          : value;
+      if (field === 'parentId' || field === 'sovereignId') {
+        const validation = validateCountryRelationEdit(key, field, nextValue);
+        if (!validation.ok) return { ...validation, unit: feature };
+      }
       const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
       const hasExplicitValue = field === 'flagDataUrl'
         ? countryCommands.hasField?.(key, field) === true
         : currentValue !== undefined;
-      if (currentValue === value && (value !== undefined || !hasExplicitValue)) return { ok: true, changed: false, unit: feature };
+      if (currentValue === nextValue && (nextValue !== undefined || !hasExplicitValue)) return { ok: true, changed: false, unit: feature };
       mutateDocument({ type: 'country-metadata', affectedIds: [key] }, () => {
-        countryCommands.setField(key, field, value);
+        countryCommands.setField(key, field, nextValue);
       }, { renderDirty: { domain: 'country', change: 'metadata' } });
       return { ok: true, changed: true, unit: entityRepository.get(key) };
     }
