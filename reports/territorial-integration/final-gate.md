@@ -103,6 +103,8 @@ CI/branch cleanup is recorded below; published integration commits are retained.
 - Presentation/service forwarding aliases for geometry transactions and relation
   validation are removed. Conversion and snapshot restoration consume the
   canonical territorial-units functions directly through runtime capability ports.
+  These functions use the existing territorial validation group and explicit
+  consumer declarations; the twelve-member capability limit remains unchanged.
 - Store owns physical writes; Repository owns derived reads/indexes. Documentation,
   error names and test descriptions now distinguish these responsibilities.
 - Active project schema migrations and detached validation providers are retained

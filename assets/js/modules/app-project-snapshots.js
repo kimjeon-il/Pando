@@ -222,7 +222,7 @@ export function createProjectSnapshots() {
       }),
     });
     dependencies.projectState.state.territorialRelations = (0, dependencies.territorialServicesA.normalizeTerritorialRelations)(dependencies.projectState.state.territorialRelations);
-    const relationValidation = (0, dependencies.territorialServicesA.validateTerritorialRelations)(dependencies.territorialModel.entityStore.units(), {
+    const relationValidation = (0, dependencies.territorialServicesB.validateTerritorialRelations)(dependencies.territorialModel.entityStore.units(), {
       countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
         === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
       relations: dependencies.projectState.state.territorialRelations,
