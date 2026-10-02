@@ -56,8 +56,10 @@ export function createBuiltinSession() {
     const result = (0, dependencies.applicationServicesA.classifyBuiltinCountries)(
       dependencies.territorialModel.entityStore.countriesData(),
     );
-    dependencies.territorialModel.entityStore.replaceUnits(result.subunits);
-    dependencies.territorialModel.entityStore.replaceCountries(result.countries);
+    dependencies.territorialModel.entityStore.replaceCollections({
+      countriesData: result.countries,
+      units: result.subunits,
+    });
     (0, dependencies.countryRecords.applyPristineLabelAnchors)({ features: result.subunits.map(unit => ({ id: (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit) })) });
   }
 
