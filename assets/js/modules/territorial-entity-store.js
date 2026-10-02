@@ -137,6 +137,15 @@ export function createTerritorialEntityStore({
     return true;
   }
 
+  function replaceCountries(collection) {
+    const next = collection?.type === 'FeatureCollection'
+      ? collection
+      : { type: 'FeatureCollection', features: Array.isArray(collection) ? collection : [] };
+    state().countriesData = next;
+    onCountriesReplaced(next, next.features.map(feature => text(feature?.id)).filter(Boolean));
+    return state().countriesData;
+  }
+
   function appendCountries(features, overrides = {}) {
     const additions = Array.isArray(features) ? features.filter(Boolean) : [];
     if (!additions.length) return [];
@@ -202,6 +211,7 @@ export function createTerritorialEntityStore({
     isLocked,
     rawEntity,
     removeCountries,
+    replaceCountries,
     removeUnits,
     replaceUnits,
     setField,
