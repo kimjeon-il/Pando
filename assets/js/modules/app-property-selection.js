@@ -317,7 +317,7 @@ export function createPropertySelection() {
     const key = String(id || '');
     const result = dependencies.objectModelB.territorialApplicationService.setLocked(type, key, locked, {
       history: type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? { description: `${(0, dependencies.presentation.countryName)((0, dependencies.countries.countryFeatureById)(key))} ${locked ? '잠금' : '잠금 해제'}` }
+        ? { description: `${(0, dependencies.presentation.countryName)(dependencies.territorialModel.entityRepository.get(key))} ${locked ? '잠금' : '잠금 해제'}` }
         : {},
     });
     if (!result.ok) return false;
