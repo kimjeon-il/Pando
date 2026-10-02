@@ -144,6 +144,7 @@ export function createNavigationBindings() {
     (0, dependencies.platform.$)('objectSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));
     (0, dependencies.platform.$)('resetViewBtn')?.addEventListener('click', () => {
       if (dependencies.surfaces.layoutMode !== 'mobile') (0, dependencies.workspaceUiA.closeSurface)('search');
+      (0, dependencies.navigation.resetView)();
     });
     const searchPanel = (0, dependencies.platform.$)('objectSearchSurface');
     searchPanel?.addEventListener('keydown', event => {
