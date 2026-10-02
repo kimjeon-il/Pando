@@ -126,7 +126,13 @@ test('tool receivers, donors and nested parents keep their semantic roles indepe
   const units = [{ id: 'parent', properties: { unitType: 'subunit', sovereignId: 'RUS' } }, { id: 'child', properties: { unitType: 'subunit', parentId: 'parent', sovereignId: 'RUS' } }];
   const refs = units.map(unit => normalizeObjectRef({ domain: 'territorial', type: 'subunit', id: unit.id }));
   const snapshot = { selection: { items: refs, primaryKey: refs[1].key } };
-  const rows = mapInteractionEntries(snapshot, { tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'parent', territorialUnitMergeTargetIds: ['child'], territorialUnits: units });
+  const byId = new Map(units.map(unit => [unit.id, unit]));
+  const rows = mapInteractionEntries(snapshot, {
+    tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'parent', territorialUnitMergeTargetIds: ['child'],
+  }, {
+    territorialEntityById: id => byId.get(String(id)) || null,
+    territorialUnits: () => units,
+  });
   assert.equal(rows[0].ref.id, 'parent'); assert.equal(rows[0].role, 'edit-target');
   assert.equal(rows[1].role, 'primary'); assert.ok(rows[1].roles.includes('selected-provider'));
   assert.equal(rows[1].depth, 2);
