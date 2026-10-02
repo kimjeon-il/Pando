@@ -95,6 +95,25 @@ test('simple unit metadata writes keep the territorial collection identity', () 
   ]);
 });
 
+test('temporal unit metadata is normalized and rejected before mutation when invalid', () => {
+  const { service, entityRepository, transactions, units } = fixture();
+  const before = units();
+
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'validFrom', '1900').changed, true);
+  assert.equal(entityRepository.get('unit-a').properties.validFrom, '1900');
+
+  const count = transactions.length;
+  const invalid = service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'validTo', '1899');
+  assert.equal(invalid.ok, false);
+  assert.equal(invalid.code, 'invalid-temporal');
+  assert.equal(transactions.length, count);
+  assert.equal(entityRepository.get('unit-a').properties.validTo, undefined);
+
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'validFrom', '').changed, true);
+  assert.equal(entityRepository.get('unit-a').properties.validFrom, null);
+  assert.equal(units(), before);
+});
+
 test('territorial service routes country commands and replaces units atomically', () => {
   const { service, entityRepository, transactions, units } = fixture();
   service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'name', 'Renamed');
