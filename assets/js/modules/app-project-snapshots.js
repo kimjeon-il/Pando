@@ -74,9 +74,12 @@ export function createProjectSnapshots() {
 
   function restoreCountriesFromSnapshot(snapshot) {
     if (snapshot.countriesData) {
-      dependencies.territorialModel.entityStore.replaceCountries(
-        geometrySnapshots.restore(snapshot.countriesData, dependencies.territorialModel.entityStore.countriesData()),
-      );
+      dependencies.territorialModel.entityStore.replaceCollections({
+        countriesData: geometrySnapshots.restore(
+          snapshot.countriesData,
+          dependencies.territorialModel.entityStore.countriesData(),
+        ),
+      });
       dependencies.projectState.state.historyDirtyCountryIds = new Set();
       return;
     }
@@ -118,7 +121,7 @@ export function createProjectSnapshots() {
       });
     }
     for (const [id, feature] of changed) if (!seen.has(id)) base.features.push(geometrySnapshots.restore(feature, currentById.get(id)));
-    dependencies.territorialModel.entityStore.replaceCountries(base);
+    dependencies.territorialModel.entityStore.replaceCollections({ countriesData: base });
     const currentCountries = dependencies.territorialModel.entityStore.countriesData();
     const unchangedIds = (currentCountries.features || []).map(feature => String(feature.id || '')).filter(id => !changed.has(id));
     if (!dependencies.projectState.state.sessionBaseCountriesJson) (0, dependencies.countryRecords.applyPristineLabelAnchors)(currentCountries, unchangedIds);
@@ -209,13 +212,13 @@ export function createProjectSnapshots() {
       ? String(dependencies.projectState.state.selectedDistributionLayerId)
       : '';
     const currentUnits = dependencies.territorialModel.entityStore.units();
-    dependencies.territorialModel.entityStore.replaceUnits(
-      (0, dependencies.territorialModel.normalizeTerritorialUnits)(currentUnits, {
+    dependencies.territorialModel.entityStore.replaceCollections({
+      units: (0, dependencies.territorialModel.normalizeTerritorialUnits)(currentUnits, {
         countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
           === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
         validatedUnchanged: history ? new Set(currentUnits) : undefined,
       }),
-    );
+    });
     dependencies.projectState.state.territorialRelations = (0, dependencies.territorialServicesA.normalizeTerritorialRelations)(dependencies.projectState.state.territorialRelations);
     const relationValidation = dependencies.objectModelB.territorialApplicationService.validateRelations(dependencies.territorialModel.entityStore.units(), {
       countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
