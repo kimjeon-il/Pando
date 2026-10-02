@@ -74,6 +74,7 @@ export function createTerritorialDrafts() {
       const nextUnits = replace(units).filter(feature => !countryIds.has(text(feature.id))).concat(result.features.filter(feature => !units.some(unit => text(unit.id) === text(feature.id))
         && !countryIds.has(text(feature.id))));
       const nextCountries = replace(countries).concat(result.features.filter(feature => countryIds.has(text(feature.id)) && !countries.some(country => text(country.id) === text(feature.id))));
+      const changedCountries = nextCountries.filter(country => changed.has(text(country.id))).map(country => text(country.id));
       const partial = result.impacts.filter(impact => ['clip-child', 'remove-child'].includes(impact.kind));
       return (0, dependencies.geometryOperations.beginLocalGeometryPreview)({
         operation: `territorial-${request.operation}`,
@@ -128,7 +129,6 @@ export function createTerritorialDrafts() {
           if (newCountries.length) (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
           dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, { countryExists: key => countryIds.has(text(key)), validatedUnchanged: new Set(units.filter(unit => !changed.has(text(unit.id)))) });
           if (request.operation === 'create') dependencies.projectState.state.layerVisibility.subunits = true;
-          const changedCountries = nextCountries.filter(country => changed.has(text(country.id))).map(country => text(country.id));
           if (changedCountries.length) {
             for (const key of changedCountries) {
               (0, dependencies.countries.countryFeatureById)(key).geometry = (0, dependencies.platform.deepClone)(changed.get(key).geometry);
@@ -144,7 +144,9 @@ export function createTerritorialDrafts() {
           (0, dependencies.layers.markLayerTreeDirty)();
           if ((0, dependencies.countries.countryFeatureById)(selectedId)) (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(selectedId, true);
           else (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(selectedId, true);
-          if (changedCountries.length) dependencies.domains.renderingDomain?.invalidateCountryPatch?.('territorial-coast-applied');
+        },
+        invalidateAfterApply: () => {
+          if (changedCountries.length) dependencies.domains.renderingDomain?.invalidateCountryPatch?.('territorial-edit-applied');
           dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-edit-applied');
         },
         successMessage: '하위단위와 관련 소속 변경을 함께 적용했습니다.',
