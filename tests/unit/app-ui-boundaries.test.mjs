@@ -31,7 +31,8 @@ test('composition runs before startup once, and BFCache does not dispose domains
     getDisposables: () => [{ dispose: () => events.push('dispose') }],
   });
   const start = lifecycle.start();
-  assert.equal(lifecycle.start(), start);\n  assert.equal(await start, true);
+  assert.equal(lifecycle.start(), start);
+  assert.equal(await start, true);
   assert.deepEqual(events, ['ui', 'domains', 'input', 'startup', 'ready']);
   window.dispatchEvent(Object.assign(new Event('pagehide'), { persisted: true }));
   assert.equal(events.includes('dispose'), false);
