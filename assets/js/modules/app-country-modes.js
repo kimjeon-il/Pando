@@ -277,8 +277,8 @@ export function createCountryModes() {
 
   function finishCountryBorderEdit() {
     if (dependencies.projectState.state.tool !== 'country-border') return false;
-    const subunit = dependencies.projectState.state.territorialUnits.find(unit => String(unit.id) === String(dependencies.projectState.state.boundaryEditSeedCountryId));
-    if (subunit) {
+    const seedEntity = dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.boundaryEditSeedCountryId);
+    if (seedEntity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT) {
       dependencies.domains.editingDomain?.setTool('select', { announce: false });
       dependencies.projectState.state.boundaryPreparation?.cancel();
       dependencies.projectState.state.boundaryPreparation = null;
