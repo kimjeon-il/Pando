@@ -49,7 +49,7 @@ export function createTerritorialApplicationService({
         return { ok: false, code: 'unsupported-relation-field', unit: feature };
       }
       const currentValue = field === 'color'
-        ? feature.properties?.style?.color
+        ? text(feature.properties?.style?.color)
         : field === 'capital' || field === 'flagDataUrl'
           ? feature.properties?.metadata?.[field]
           : feature.properties?.[field];
@@ -80,7 +80,7 @@ export function createTerritorialApplicationService({
         return { ok: false, code: 'invalid-temporal', issues: [String(error?.message || error)], unit: feature };
       }
     }
-    const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
+    const currentValue = field === 'color' ? text(feature.properties?.style?.color) : feature.properties?.[field];
     if (currentValue === nextValue) return { ok: true, changed: false, unit: feature };
     mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => {
       unitCommands.setField(key, field, nextValue);
