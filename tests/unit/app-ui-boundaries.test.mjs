@@ -150,8 +150,14 @@ test('compatibility object bindings expose only one geometry-aware conversion co
   getElement('genericFeatureConvertType').value = 'river';
   getElement('genericFeatureConvertCountryInput').value = 'country-1';
   getElement('genericFeatureConvertDistributionInput').value = 'layer-1';
+  getElement('genericFeatureConvertDistributionValueInput').value = '';
   getElement('convertGenericFeatureBtn').dispatchEvent(new Event('click'));
-  assert.deepEqual(conversions, [{ target: 'river', sovereignId: 'country-1', distributionLayerId: 'layer-1' }]);
+  assert.deepEqual(conversions, [{
+    target: 'river',
+    sovereignId: 'country-1',
+    distributionLayerId: 'layer-1',
+    distributionValue: '',
+  }]);
   bindings.dispose();
   getElement('convertGenericFeatureBtn').dispatchEvent(new Event('click'));
   assert.equal(conversions.length, 1);
