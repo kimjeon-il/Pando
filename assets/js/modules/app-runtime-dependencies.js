@@ -333,8 +333,6 @@ const { runCountryEditTransaction } = countryEditTransactionModule;
 const {
   TERRITORIAL_COVERAGE_MODES,
   TERRITORIAL_UNIT_TYPES,
-  changeParent,
-  changeSovereign,
   changeUnitType,
   createTerritorialFeature,
   normalizeTerritorialRelations,
@@ -626,8 +624,6 @@ export {
   runCountryEditTransaction,
   TERRITORIAL_COVERAGE_MODES,
   TERRITORIAL_UNIT_TYPES,
-  changeParent,
-  changeSovereign,
   changeUnitType,
   createTerritorialFeature,
   createTerritorialEntityRepository,
