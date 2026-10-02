@@ -9,7 +9,7 @@ function harness(refs, { builtin = false } = {}) {
     attrs: {}, dataset: {}, classList: { toggle() {} },
     setAttribute(key, value) { this.attrs[key] = value; },
   }]));
-  const feature = { id: refs[0]?.id, properties: { pandolab_id: refs[0]?.id, category: refs[0]?.type, locked: true } };
+  const feature = { id: refs[0]?.id, properties: { pandolab_id: refs[0]?.id, category: refs[0]?.type, unitType: refs[0]?.type, locked: true } };
   const state = {
     layerVisibility: { countries: false, rivers: false, lakes: false, subunits: false, regions: false, distributions: false, labels: false, genericFeatures: false },
     itemVisibility: {}, physicalSettings: { hiddenHydroIds: {}, hydroLayers: { rivers_hydro: false, lakes_natural_earth: false } },
@@ -23,9 +23,12 @@ function harness(refs, { builtin = false } = {}) {
     distributionVisibilityRevision: 0,
     bumpVisibilityRevision: () => { ports.distributionVisibilityRevision += 1; },
     selectionDomain: { snapshot: () => ({ selection: { items: refs } }), primary: () => refs[0] },
+    entityRepository: { get: () => feature, list: () => [feature] },
     countryFeatureById: () => feature, territorialUnitById: () => feature, territorialChildren: () => [],
     distributionLayerById: () => feature,
     hydroFeatureById: () => feature, hydroEditById: () => builtin ? null : feature,
+    labelById: () => feature,
+    syncSelectionToolbarInteraction() {},
     hydroCategoryKey: value => value === 'lake' ? 'lake' : 'river',
     hydroCategoryLabel: value => value === 'lake' ? '호수' : '강',
     hydroFallbackName: value => `이름 없는 ${value === 'lake' ? '호수' : '강'}`,
