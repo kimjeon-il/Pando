@@ -203,7 +203,7 @@ export function createSpatialDataPorts(providers) {
 }
 
 export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
-  cutGeometry: Object.freeze(["geometryModel","geometryMutation","geometryPreview","geometryValidation","mapView","objectPresentation","platform","projectState","spatialQuery","territoryGeometry"]),
+  cutGeometry: Object.freeze(["geometryModel","geometryMutation","geometryPreview","geometryValidation","mapView","objectPresentation","platform","projectState","spatialQuery","territorialModel","territoryGeometry"]),
   mapProjection: Object.freeze(["mapLayers","mapLayout","platform","projectState","surfaces"]),
   objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectCatalog","objectPresentation","platform","projectState","spatialQuery","territorialModel"]),
   hydroSettings: Object.freeze(["colorModel","hydroPresentation","layerPresentation","mapLayout","objectPresentation","physicalConfig","platform","preferences","projectState","surfaces"]),
