@@ -160,27 +160,60 @@ export function createTerritorialEntityStore({
         throw new Error(`지원하지 않는 영역 종류입니다: ${type || '(empty)'}`);
       }
     }
-    if (countries.length) appendCountries(countries, overrides, { reindexOptions });
-    if (unitValues.length) appendUnits(unitValues);
+
+    const current = state();
+    const nextOverrides = { ...current.countryOverrides };
+    for (const feature of countries) {
+      const key = text(feature?.id);
+      const override = key ? overrides[key] : null;
+      if (key && override && Object.keys(override).length) nextOverrides[key] = { ...override };
+    }
+    replaceCollections({
+      ...(countries.length ? {
+        countriesData: {
+          type: 'FeatureCollection',
+          features: [...current.countriesData.features, ...countries],
+        },
+        countryOverrides: nextOverrides,
+      } : {}),
+      ...(unitValues.length ? { units: [...current.territorialUnits, ...unitValues] } : {}),
+    }, { reindexOptions });
     return { countries, units: unitValues };
   }
 
-  function removeEntities(refs) {
+  function removeEntities(refs, { reindexOptions = {} } = {}) {
     const values = Array.isArray(refs) ? refs : [];
-    const countryIds = [];
-    const unitIds = [];
+    const countryIds = new Set();
+    const unitIds = new Set();
     for (const ref of values) {
       const type = text(ref?.type);
       const id = text(ref?.id);
       if (!id) continue;
-      if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) countryIds.push(id);
-      else if ([TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(type)) unitIds.push(id);
+      if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) countryIds.add(id);
+      else if ([TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(type)) unitIds.add(id);
       else throw new Error(`지원하지 않는 영역 종류입니다: ${type || '(empty)'}`);
     }
-    return {
-      countries: countryIds.length ? removeCountries(countryIds) : [],
-      units: unitIds.length ? removeUnits(unitIds) : [],
-    };
+
+    const current = state();
+    const deletedCountries = current.countriesData.features.filter(feature => countryIds.has(text(feature?.id)));
+    const deletedUnits = current.territorialUnits.filter(feature => unitIds.has(text(feature?.id)));
+    if (!deletedCountries.length && !deletedUnits.length) return { countries: [], units: [] };
+
+    const nextOverrides = { ...current.countryOverrides };
+    for (const id of countryIds) delete nextOverrides[id];
+    replaceCollections({
+      ...(deletedCountries.length ? {
+        countriesData: {
+          type: 'FeatureCollection',
+          features: current.countriesData.features.filter(feature => !countryIds.has(text(feature?.id))),
+        },
+        countryOverrides: nextOverrides,
+      } : {}),
+      ...(deletedUnits.length ? {
+        units: current.territorialUnits.filter(feature => !unitIds.has(text(feature?.id))),
+      } : {}),
+    }, { reindexOptions });
+    return { countries: deletedCountries, units: deletedUnits };
   }
 
   function replaceCollections({
