@@ -141,6 +141,26 @@ export function createTerritorialEntityRepository({
     return parentFrom(snapshot(), id);
   }
 
+  function siblings(id, { type = '' } = {}) {
+    const state = snapshot();
+    const entity = entityFrom(state, id);
+    if (!entity) return [];
+    const parentId = text(entity.properties?.parentId);
+    const unitType = entity.properties?.unitType;
+    const sovereignId = text(entity.properties?.sovereignId);
+    const values = parentId
+      ? [...(state.childrenByParent.get(parentId) || [])]
+      : state.values.filter(candidate => !text(candidate.properties?.parentId));
+    return values.filter(candidate => {
+      if (text(candidate.id) === text(entity.id)) return false;
+      if (type && candidate.properties?.unitType !== type) return false;
+      if (!type && candidate.properties?.unitType !== unitType) return false;
+      if (unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT
+        && text(candidate.properties?.sovereignId) !== sovereignId) return false;
+      return true;
+    });
+  }
+
   function ancestors(id) {
     const state = snapshot();
     const result = [];
@@ -216,6 +236,8 @@ export function createTerritorialEntityRepository({
     administrativeChildren: children,
     parent,
     administrativeParent: parent,
+    siblings,
+    administrativeSiblings: siblings,
     ancestors,
     administrativeAncestors: ancestors,
     descendants,
