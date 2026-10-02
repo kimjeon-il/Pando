@@ -164,8 +164,10 @@ export function createGenericCommands() {
       }
       if (target === 'subunit' || target === 'region') {
         if (kind !== 'polygon') throw new Error('영역 형상만 하위단위 또는 지방으로 전환할 수 있습니다.');
-        const country = (0, dependencies.countries.countryFeatureById)(sovereignId);
-        if (!country) throw new Error('소속 국가를 선택하세요.');
+        const country = dependencies.territorialModel.entityRepository.get(sovereignId);
+        if (country?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+          throw new Error('소속 국가를 선택하세요.');
+        }
         const unitType = target === 'subunit' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT : dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION;
         const unit = (0, dependencies.territorialServicesA.createTerritorialFeature)({
           id: (0, dependencies.surfaces.uid)(unitType), unitType, name, geometry: (0, dependencies.platform.deepClone)(feature.geometry),
@@ -175,8 +177,15 @@ export function createGenericCommands() {
           notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
         });
         dependencies.domains.projectDomain.recordHistory({ type: 'generic-convert-territorial', affectedIds: [String(feature.id), String(unit.id)] });
-        dependencies.projectState.state.territorialUnits.push(unit);
-        dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(dependencies.projectState.state.territorialUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
+        dependencies.territorialModel.entityStore.replaceUnits(
+          (0, dependencies.territorialModel.normalizeTerritorialUnits)(
+            [...dependencies.territorialModel.entityStore.units(), unit],
+            {
+              countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
+                === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+            },
+          ),
+        );
         removeGenericFeatureAfterConversion(feature);
         (0, dependencies.layers.markLayerTreeDirty)();
         dependencies.domains.projectDomain.queueAutosave();
