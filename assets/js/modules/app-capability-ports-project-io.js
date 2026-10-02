@@ -109,7 +109,6 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "countries",
     "domains",
     "feedback",
-    "geometryMutation",
     "hydroModel",
     "hydroPresentation",
     "labelPresentation",
