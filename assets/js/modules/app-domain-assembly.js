@@ -23,6 +23,7 @@ export function createDomainAssembly() {
   let countryPropertyController;
   let objectPropertyController;
   let layerTreeController;
+  let territorialEntityStore;
   let territorialEntityRepository;
   function connect(ports) {
     if (dependencies) throw new Error('domain-assembly already connected');
@@ -1174,10 +1175,29 @@ export function createDomainAssembly() {
   }
 
   function initializeDomainState() {
+    (territorialEntityStore = (0, dependencies.territorialServicesA.createTerritorialEntityStore)({
+      getState: () => dependencies.projectState.state,
+      writeCountryColor: (feature, override, value) => (0, dependencies.colorModel.writeDomainColor)(
+        dependencies.colorModel.COLOR_DOMAINS.COUNTRY,
+        { feature, override },
+        value,
+        { clear: !value, fallback: (0, dependencies.colorModel.defaultCountryColor)() },
+      ),
+      writeUnitColor: (feature, value) => (0, dependencies.colorModel.writeDomainColor)(
+        dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL,
+        { feature },
+        value,
+        { clear: !value, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR },
+      ),
+      onUnitsReplaced: () => {
+        dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
+      },
+    }));
+
     (territorialEntityRepository = (0, dependencies.territorialServicesA.createTerritorialEntityRepository)({
-      getCountries: () => dependencies.projectState.state.countriesData,
-      getUnits: () => dependencies.projectState.state.territorialUnits,
-      getCountryOverride: id => dependencies.projectState.state.countryOverrides[id] || {},
+      getCountries: territorialEntityStore.countriesData,
+      getUnits: territorialEntityStore.units,
+      getCountryOverride: territorialEntityStore.countryOverride,
       getRevision: () => dependencies.projectState.state.stateRevision,
     }));
 
@@ -1219,5 +1239,6 @@ export function createDomainAssembly() {
     get selectionToolbarPresentation() { return selectionToolbarPresentation; },
     get selectionUiController() { return selectionUiController; },
     get territorialEntityRepository() { return territorialEntityRepository; },
+    get territorialEntityStore() { return territorialEntityStore; },
   });
 }
