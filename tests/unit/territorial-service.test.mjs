@@ -76,6 +76,25 @@ test('territorial service owns metadata transaction and lock enforcement', () =>
   ]);
 });
 
+test('simple unit metadata writes keep the territorial collection identity', () => {
+  const { service, entityRepository, transactions, units } = fixture();
+  const before = units();
+
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'name', 'Renamed').changed, true);
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'notes', 'Memo').changed, true);
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'color', '#123456').changed, true);
+
+  assert.equal(units(), before);
+  assert.equal(entityRepository.get('unit-a').properties.name, 'Renamed');
+  assert.equal(entityRepository.get('unit-a').properties.notes, 'Memo');
+  assert.equal(entityRepository.get('unit-a').properties.style.color, '#123456');
+  assert.deepEqual(transactions.map(item => item.type), [
+    'territorial-metadata',
+    'territorial-metadata',
+    'territorial-metadata',
+  ]);
+});
+
 test('territorial service routes country commands and replaces units atomically', () => {
   const { service, entityRepository, transactions, units } = fixture();
   service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'name', 'Renamed');
