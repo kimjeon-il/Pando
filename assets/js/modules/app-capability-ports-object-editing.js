@@ -240,7 +240,6 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "lifecycleUi",
     "modelValidation",
     "objectCatalog",
-    "objectModelB",
     "objectOperationsA",
     "platform",
     "platformConfigurationA",

@@ -60,7 +60,7 @@ the actual history snapshot owner. Browser validation remains limited to delete
 UI, place copy/Undo/reselection and the changed GIS round-trip.
 
 No schema/history/app version/map data/CSS changes are part of this gate. Temporary
-CI/branch removal, main merge and deployment remain separate integration actions.
+CI/branch cleanup is recorded below; published integration commits are retained.
 
 ## Place browser evidence and limitation
 
@@ -87,3 +87,24 @@ CI/branch removal, main merge and deployment remain separate integration actions
 - The Windows UI layering checker now normalizes checked-out CRLF bundle line
   endings just as the generator already normalizes sources. CSS content/order
   validation remains strict; no CSS inputs or generated bundle were changed.
+
+## Final cleanup
+
+- PR #72 was merged into main. PR #73 was a validation-only PR and is closed;
+  its temporary base branch `tmp/territorial-entity-ci-base` is deleted.
+- Both retired TEMP verification workflows are disabled. Their historic run
+  evidence is retained; no TEMP workflow file remains in the current tree.
+- Application Architecture owns the permanent storage audit and full unit gate.
+  Its redundant per-file JavaScript path entries, separate focused Store unit
+  step and duplicate regex checks are removed. The classified AST audit and
+  behavioral boundary tests remain enforced. Full unit tests run once there.
+- Regular workflows support manual dispatch, so final verification does not
+  require a temporary base branch or validation PR.
+- Presentation/service forwarding aliases for geometry transactions and relation
+  validation are removed. Conversion and snapshot restoration consume the
+  canonical territorial-units functions directly through runtime capability ports.
+- Store owns physical writes; Repository owns derived reads/indexes. Documentation,
+  error names and test descriptions now distinguish these responsibilities.
+- Active project schema migrations and detached validation providers are retained
+  for the explicit current contracts described above. No compatibility API is added.
+- Broad country/subunit function consolidation remains a separate follow-up audit.

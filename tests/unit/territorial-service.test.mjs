@@ -58,6 +58,12 @@ function fixture() {
   };
 }
 
+test('territorial service exposes commands without transaction or validation forwarding aliases', () => {
+  const { service } = fixture();
+  assert.equal(Object.hasOwn(service, 'runGeometryTransaction'), false);
+  assert.equal(Object.hasOwn(service, 'validateRelations'), false);
+});
+
 test('territorial deletion preflight shares lock and child rules across entity types', () => {
   const { service } = fixture();
 

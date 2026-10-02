@@ -1,11 +1,7 @@
 import { createDocumentMutationRunner } from './document-mutation-runner.js';
 import { normalizeTemporalInterval } from './temporal.js';
 import { validateSubunitParentChanges } from './territorial-scope.js';
-import {
-  TERRITORIAL_UNIT_TYPES,
-  runTerritorialTransaction,
-  validateTerritorialRelations,
-} from './territorial-units.js';
+import { TERRITORIAL_UNIT_TYPES } from './territorial-units.js';
 
 const text = value => String(value ?? '').trim();
 
@@ -269,7 +265,5 @@ export function createTerritorialApplicationService({
     setColorBatch,
     setLocked,
     setLockedBatch,
-    runGeometryTransaction: options => runTerritorialTransaction(options),
-    validateRelations: (units, options) => validateTerritorialRelations(units, options),
   });
 }
