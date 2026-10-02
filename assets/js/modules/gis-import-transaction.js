@@ -89,10 +89,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         const key = String(id ?? '');
         return countriesData().features.find(feature => String(feature?.id ?? '') === key) || null;
       },
-      replaceCountryOverrides(overrides) {
-        state.countryOverrides = overrides && typeof overrides === 'object' ? { ...overrides } : {};
-        return state.countryOverrides;
-      },
       replaceCollections({
         countriesData: nextCountriesData = null,
         units: nextUnits = null,
@@ -118,25 +114,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
           units: units(),
         };
       },
-      replaceCountries(collection) {
-        const next = collection?.type === 'FeatureCollection'
-          ? collection
-          : { type: 'FeatureCollection', features: Array.isArray(collection) ? collection : [] };
-        state.countriesData = typeof runtime.reindexCountries === 'function'
-          ? runtime.reindexCountries(next, true)
-          : next;
-        return state.countriesData;
-      },
-      replaceUnits(nextUnits) {
-        state.territorialUnits = Array.isArray(nextUnits) ? nextUnits : [];
-        return state.territorialUnits;
-      },
-      appendUnits(features) {
-        const additions = Array.isArray(features) ? features.filter(Boolean) : [];
-        if (!additions.length) return [];
-        state.territorialUnits = [...units(), ...additions];
-        return additions;
-      },
       appendEntities(items) {
         const entries = Array.isArray(items) ? items.filter(item => item?.feature) : [];
         const unitValues = [];
@@ -145,7 +122,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
           if (type === 'country') throw new Error('standalone GIS fallback에서는 국가 추가를 appendEntities로 처리하지 않습니다.');
           unitValues.push(item.feature);
         }
-        if (unitValues.length) this.appendUnits(unitValues);
+        if (unitValues.length) state.territorialUnits = [...units(), ...unitValues];
         return { countries: [], units: unitValues };
       },
     });
