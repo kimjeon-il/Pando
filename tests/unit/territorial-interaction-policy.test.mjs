@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { subunitSelectionPolicy, territorialDeletionAllowed, removeTerritorialEntities, removeTerritorialUnits, boundaryTouchesGeometry } from '../../assets/js/modules/territorial-interaction-policy.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 
 const unit = (id, parentId = 'KR', locked = false) => ({ id, properties: { unitType: 'subunit', sovereignId: 'KR', parentId, locked } });
 test('multiple subunits require one parent, unlocked objects and a connected selection', () => {
@@ -66,6 +67,39 @@ test('country deletion uses the same territorial cleanup surface and removes dan
   assert.deepEqual(state.itemVisibility.countries, {});
   assert.deepEqual(state.itemVisibility.countryLabels, {});
   assert.deepEqual(state.labelSettings, {});
+});
+
+test('territorial deletion can delegate physical collection writes to the entity store', () => {
+  const state = {
+    countriesData: { type: 'FeatureCollection', features: [{ id: 'A', properties: {} }, { id: 'B', properties: {} }] },
+    countryOverrides: { A: { notes: 'remove' } },
+    territorialUnits: [{ id: 'r', properties: { unitType: 'region', sovereignId: 'A', parentId: '', locked: false } }],
+    territorialRelations: [],
+    distributionEntries: [],
+    labels: [],
+    genericFeatures: [],
+    itemVisibility: { countries: {}, countryLabels: {}, subunits: {}, regions: {} },
+    labelSettings: {},
+  };
+  let countryWrites = 0;
+  let unitWrites = 0;
+  const store = createTerritorialEntityStore({
+    getState: () => state,
+    onCountriesReplaced() { countryWrites += 1; },
+    onUnitsReplaced() { unitWrites += 1; },
+  });
+
+  removeTerritorialEntities(
+    state,
+    { countryIds: ['A'] },
+    'territorial',
+    { entityStore: store },
+  );
+
+  assert.deepEqual(state.countriesData.features.map(feature => feature.id), ['B']);
+  assert.equal(state.territorialUnits[0].properties.sovereignId, '');
+  assert.equal(countryWrites, 1);
+  assert.equal(unitWrites, 1);
 });
 
 test('country deletion rejects current administrative children before changing state', () => {
