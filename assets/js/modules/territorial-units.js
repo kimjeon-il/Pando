@@ -329,17 +329,30 @@ export function createTerritorialEntityRepository({
   function snapshot() {
     const values = [...countries(), ...units()];
     const byId = new Map();
+    const childrenByParent = new Map();
     for (const entity of values) {
       const id = text(entity?.id);
       if (!id) throw new Error('영역 엔티티 ID가 비어 있습니다.');
       if (byId.has(id)) throw new Error(`영역 엔티티 ID가 중복되었습니다: ${id}`);
       byId.set(id, entity);
+      const parentId = text(entity?.properties?.parentId);
+      if (!parentId) continue;
+      const children = childrenByParent.get(parentId) || [];
+      children.push(entity);
+      childrenByParent.set(parentId, children);
     }
-    return { values, byId };
+    return { values, byId, childrenByParent };
   }
 
+  const entityFrom = (state, id) => state.byId.get(text(id)) || null;
+  const parentFrom = (state, id) => {
+    const entity = entityFrom(state, id);
+    const parentId = text(entity?.properties?.parentId);
+    return parentId ? entityFrom(state, parentId) : null;
+  };
+
   function get(id) {
-    return snapshot().byId.get(text(id)) || null;
+    return entityFrom(snapshot(), id);
   }
 
   function list({ type = '', parentId = null, sovereignId = null } = {}) {
@@ -357,57 +370,69 @@ export function createTerritorialEntityRepository({
   }
 
   function children(id, { type = '' } = {}) {
-    return list({ type, parentId: text(id) });
+    const state = snapshot();
+    const values = [...(state.childrenByParent.get(text(id)) || [])];
+    return type ? values.filter(entity => entity.properties?.unitType === type) : values;
   }
 
   function parent(id) {
-    const entity = get(id);
-    const parentId = text(entity?.properties?.parentId);
-    return parentId ? get(parentId) : null;
+    return parentFrom(snapshot(), id);
   }
 
   function ancestors(id) {
+    const state = snapshot();
     const result = [];
     const seen = new Set([text(id)]);
-    let cursor = parent(id);
+    let cursor = parentFrom(state, id);
     while (cursor) {
       const key = text(cursor.id);
       if (seen.has(key)) throw new Error(`영역 엔티티 상위 관계가 순환합니다: ${key}`);
       seen.add(key);
       result.push(cursor);
-      cursor = parent(key);
+      cursor = parentFrom(state, key);
     }
     return result;
   }
 
   function descendants(id, { type = '' } = {}) {
+    const state = snapshot();
     const result = [];
     const seen = new Set([text(id)]);
-    const pending = [...children(id)];
+    const pending = [...(state.childrenByParent.get(text(id)) || [])];
     while (pending.length) {
       const entity = pending.shift();
       const key = text(entity?.id);
       if (!key || seen.has(key)) continue;
       seen.add(key);
       if (!type || entity.properties?.unitType === type) result.push(entity);
-      pending.push(...children(key));
+      pending.push(...(state.childrenByParent.get(key) || []));
     }
     return result;
   }
 
   function root(id) {
-    const entity = get(id);
+    const state = snapshot();
+    const entity = entityFrom(state, id);
     if (!entity) return null;
-    const lineage = ancestors(id);
-    return lineage.at(-1) || entity;
+    const seen = new Set([text(entity.id)]);
+    let cursor = entity;
+    while (true) {
+      const next = parentFrom(state, cursor.id);
+      if (!next) return cursor;
+      const key = text(next.id);
+      if (seen.has(key)) throw new Error(`영역 엔티티 상위 관계가 순환합니다: ${key}`);
+      seen.add(key);
+      cursor = next;
+    }
   }
 
   function sovereign(id) {
-    const entity = get(id);
+    const state = snapshot();
+    const entity = entityFrom(state, id);
     if (!entity) return null;
     if (entity.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) return entity;
     const sovereignId = text(entity.properties?.sovereignId);
-    const sovereignEntity = sovereignId ? get(sovereignId) : null;
+    const sovereignEntity = sovereignId ? entityFrom(state, sovereignId) : null;
     return sovereignEntity?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? sovereignEntity : null;
   }
 
