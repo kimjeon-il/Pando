@@ -78,17 +78,18 @@ test('repository exposes countries and nested units through one hierarchy surfac
   assert.equal(repository.get('PL').properties.unitType, 'country');
   assert.equal(repository.get('t1').properties.unitType, 'subunit');
   assert.equal(repository.has('missing'), false);
-  assert.deepEqual(repository.children('PL').map(item => item.id), ['t1']);
-  assert.equal(repository.parent('t1').id, 'PL');
+  assert.deepEqual(repository.administrativeChildren('PL').map(item => item.id), ['t1']);
+  assert.equal(repository.administrativeParent('t1').id, 'PL');
   assert.deepEqual(repository.ancestors('t2').map(item => item.id), ['t1', 'PL']);
-  assert.deepEqual(repository.descendants('PL').map(item => item.id), ['t1', 't2']);
-  assert.deepEqual(repository.descendants('PL', { type: 'subunit' }).map(item => item.id), ['t1', 't2']);
+  assert.deepEqual(repository.administrativeDescendants('PL').map(item => item.id), ['t1', 't2']);
+  assert.deepEqual(repository.administrativeDescendants('PL', { type: 'subunit' }).map(item => item.id), ['t1', 't2']);
   assert.equal(repository.root('t2').id, 'PL');
   assert.equal(repository.root('r1').id, 'r1');
   assert.equal(repository.administrativeCountry('t2').id, 'PL');
   assert.equal(repository.administrativeCountry('r1'), null);
   assert.equal(repository.sovereign('t2').id, 'PL');
   assert.deepEqual(repository.list({ type: 'subunit', parentId: 't1' }).map(item => item.id), ['t2']);
+  assert.deepEqual(repository.list({ administrativeCountryId: 'PL' }).map(item => item.id), ['PL', 't1', 't2']);
   assert.deepEqual(repository.list({ sovereignId: 'PL' }).map(item => item.id), ['PL', 't1', 't2']);
 });
 
