@@ -16,7 +16,7 @@ export function createObjectDeletion() {
     if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([key], '삭제')) return;
     const feature = (0, dependencies.countries.countryFeatureById)(key);
     if (!feature) return;
-    const children = dependencies.presentation.territorialRepository.children(key);
+    const children = dependencies.presentation.territorialEntityRepository.children(key);
     if (children.length) {
       (0, dependencies.feedback.setActionStatus)(`하위 영역 ${children.length}개를 먼저 옮기거나 삭제하세요.`, 'error', 4400);
       return;
