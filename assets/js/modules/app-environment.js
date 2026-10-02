@@ -10,7 +10,6 @@ const TERRAIN_DEM_DEFAULT_ENABLED = true;
 export function createEnvironment() {
   let dependencies;
   let d3;
-  let territorialGeometry;
   let APP_VERSION;
   let HYDRO_DATA_VERSION;
   let FLAT_PROJECTION_KIND;
@@ -201,8 +200,6 @@ export function createEnvironment() {
   }
 
   function initializeTerritorialGeometry() {
-    (territorialGeometry = (0, dependencies.territorialServicesA.createTerritorialGeometryKernel)(window.polygonClipping));
-
     (APP_VERSION = String(globalThis.PANDOLAB_BUILD_META?.appVersion || ''));
 
     (HYDRO_DATA_VERSION = '0.13.1');
@@ -495,7 +492,6 @@ export function createEnvironment() {
     get syncSearchClearButton() { return syncSearchClearButton; },
     get systemTheme() { return systemTheme; },
     get systemThemeQuery() { return systemThemeQuery; },
-    get territorialGeometry() { return territorialGeometry; },
     get userPreferences() { return userPreferences; },
     set userPreferences(value) { userPreferences = value; },
   });
