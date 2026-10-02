@@ -174,6 +174,7 @@ export function createSpatialDataPorts(providers) {
     }),
     territorialModel: Object.freeze({
       get entityRepository() { return providers.domainAssembly.territorialEntityRepository; },
+      get entityStore() { return providers.domainAssembly.territorialEntityStore; },
       get assertProjectReferenceIntegrity() { return providers.runtime.assertProjectReferenceIntegrity; },
       get buildSharedBoundaryTopology() { return providers.runtime.buildSharedBoundaryTopology; },
       get composeRiverBoundaryTerritoryComponents() { return providers.runtime.composeRiverBoundaryTerritoryComponents; },
