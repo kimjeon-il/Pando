@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 
 function fixture() {
   const state = {
@@ -18,7 +19,8 @@ function fixture() {
     ],
     countryIndex: new Map([['A', 0]]),
   };
-  let replacements = 0;
+  let countryReplacements = 0;
+  let unitReplacements = 0;
   const store = createTerritorialEntityStore({
     getState: () => state,
     writeCountryColor(_feature, override, value) {
@@ -30,9 +32,15 @@ function fixture() {
       if (value) feature.properties.style.color = String(value).toLowerCase();
       else delete feature.properties.style.color;
     },
-    onUnitsReplaced() { replacements += 1; },
+    onCountriesReplaced() { countryReplacements += 1; },
+    onUnitsReplaced() { unitReplacements += 1; },
   });
-  return { state, store, replacements: () => replacements };
+  return {
+    state,
+    store,
+    countryReplacements: () => countryReplacements,
+    unitReplacements: () => unitReplacements,
+  };
 }
 
 test('territorial entity store exposes raw country and unit storage without merging them', () => {
@@ -75,10 +83,55 @@ test('country flag removal and lock clearing prune empty override records', () =
 });
 
 test('unit replacement swaps only physical unit storage and emits one replacement hook', () => {
-  const { state, store, replacements } = fixture();
+  const { state, store, unitReplacements } = fixture();
   const next = [{ id: 'S', properties: { unitType: 'subunit', locked: false } }];
   assert.equal(store.replaceUnits(next), next);
   assert.equal(state.territorialUnits, next);
-  assert.equal(replacements(), 1);
+  assert.equal(unitReplacements(), 1);
   assert.equal(state.countriesData.features[0].id, 'A');
+});
+
+
+test('structural writes replace collection identity so repository reads update before revision advances', () => {
+  const { state, store, countryReplacements, unitReplacements } = fixture();
+  const repository = createTerritorialEntityRepository({
+    getCountries: store.countriesData,
+    getUnits: store.units,
+    getCountryOverride: store.countryOverride,
+    getRevision: () => 1,
+  });
+
+  assert.equal(repository.get('B'), null);
+  assert.equal(repository.get('S'), null);
+
+  const beforeCountryFeatures = state.countriesData.features;
+  const beforeUnits = state.territorialUnits;
+  store.appendCountries([{
+    type: 'Feature',
+    id: 'B',
+    properties: { name: 'B' },
+    geometry: { type: 'Polygon', coordinates: [] },
+  }], {
+    B: { name: 'Bee' },
+  });
+  store.appendUnits([{
+    type: 'Feature',
+    id: 'S',
+    properties: { unitType: 'subunit', parentId: 'A', sovereignId: 'A', locked: false },
+    geometry: null,
+  }]);
+
+  assert.notEqual(state.countriesData.features, beforeCountryFeatures);
+  assert.notEqual(state.territorialUnits, beforeUnits);
+  assert.equal(repository.get('B').properties.name, 'Bee');
+  assert.equal(repository.get('S').properties.unitType, 'subunit');
+  assert.equal(countryReplacements(), 1);
+  assert.equal(unitReplacements(), 1);
+
+  store.removeCountries(['B']);
+  store.removeUnits(['S']);
+  assert.equal(repository.get('B'), null);
+  assert.equal(repository.get('S'), null);
+  assert.equal(countryReplacements(), 2);
+  assert.equal(unitReplacements(), 2);
 });
