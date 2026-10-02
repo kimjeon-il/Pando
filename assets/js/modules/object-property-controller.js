@@ -22,7 +22,7 @@ export function createObjectPropertyController(runtime = {}) {
     territorialUnitParentOptions,
     territorialParentOptions,
     territorialUnitColor,
-    territorialRepository,
+    territorialEntityRepository,
     distributionService,
     distributionEntriesForLayer,
     genericFeatureById,
@@ -217,7 +217,7 @@ export function createObjectPropertyController(runtime = {}) {
 
   function distributionEntryLabel(entry) {
     return entry.mode === distributionModes.TERRITORIAL
-      ? territorialRepository.get(entry.territorialUnitId)?.properties?.name || entry.territorialUnitId
+      ? territorialEntityRepository.get(entry.territorialUnitId)?.properties?.name || entry.territorialUnitId
       : '자유 영역';
   }
 
@@ -274,7 +274,7 @@ export function createObjectPropertyController(runtime = {}) {
     syncColorPicker('distribution', { value: color.value, defaultColor: defaultGenericFeatureColor, isDefault: color.isDefault });
     const parentOptions = [{ value: '', label: '상위 분류 없음' }, ...distributionService.parentCandidates(layer.id)
       .map(candidate => ({ value: candidate.id, label: candidate.name })).sort((a, b) => layerNameCompare(a.label, b.label))];
-    const unitOptions = territorialRepository.list().map(unit => ({
+    const unitOptions = territorialEntityRepository.list().map(unit => ({
       value: unit.id,
       label: `${unit.properties?.name || unit.id} · ${runtime.territorialTypeLabel(unit.properties?.unitType)}`,
     })).sort((a, b) => layerNameCompare(a.label, b.label));
