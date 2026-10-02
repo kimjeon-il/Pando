@@ -62,9 +62,10 @@ export function createObjectMetadata() {
   function territorialUnitContainer(feature, { sovereignId = feature?.properties?.sovereignId, parentId = feature?.properties?.parentId } = {}) {
     if (parentId && (feature?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
       || feature?.properties?.coverageMode === dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT)) {
-      return (0, dependencies.objectPresentation.territorialUnitById)(parentId) || (0, dependencies.countries.countryFeatureById)(parentId);
+      return dependencies.territorialModel.entityRepository.get(parentId);
     }
-    return (0, dependencies.countries.countryFeatureById)(sovereignId);
+    const country = dependencies.territorialModel.entityRepository.get(sovereignId);
+    return country?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? country : null;
   }
 
   function territorialUnitInsideContainer(feature, container) {
