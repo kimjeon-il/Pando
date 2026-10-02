@@ -35,6 +35,12 @@ export function createObjectDeletion() {
           unit.properties.sovereignId = '';
           unit.properties.parentId = '';
         }
+        for (const [countryId, override] of Object.entries(dependencies.projectState.state.countryOverrides || {})) {
+          if (countryId === key || !override || typeof override !== 'object') continue;
+          if (String(override.parentId || '') === key) delete override.parentId;
+          if (String(override.sovereignId || '') === key) delete override.sovereignId;
+          if (!Object.keys(override).length) delete dependencies.projectState.state.countryOverrides[countryId];
+        }
         dependencies.projectState.state.countriesData.features = dependencies.projectState.state.countriesData.features.filter(f => String(f.id) !== key);
         delete dependencies.projectState.state.countryOverrides[key];
         (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
@@ -103,7 +109,7 @@ export function createObjectDeletion() {
   }
 
   function requestExplicitTerritorialUnitDelete(feature) {
-    const children = (0, dependencies.territorialServicesA.territorialChildren)(dependencies.projectState.state.territorialUnits, feature.id);
+    const children = dependencies.territorialModel.entityRepository.children(feature.id);
     if (children.length) {
       (0, dependencies.feedback.setActionStatus)(`하위 영역 ${children.length}개를 먼저 다른 부모로 옮기거나 삭제해야 합니다.`, 'error', 4200);
       return false;
@@ -154,7 +160,7 @@ export function createObjectDeletion() {
     }
     const feature = (0, dependencies.objectPresentation.territorialUnitById)(id);
     if (!feature || feature.properties?.unitType !== type) return false;
-    if ((0, dependencies.territorialServicesA.territorialChildren)(dependencies.projectState.state.territorialUnits, feature.id).length) {
+    if (dependencies.territorialModel.entityRepository.children(feature.id).length) {
       (0, dependencies.feedback.setActionStatus)('하위 영역을 먼저 다른 부모로 옮기거나 삭제해야 합니다.', 'error', 4200);
       return false;
     }
