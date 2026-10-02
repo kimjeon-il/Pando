@@ -148,7 +148,7 @@ export function createTerritorialDrafts() {
             });
             for (const country of newCountries) delete dependencies.projectState.state.itemVisibility.subunits?.[country.id];
           } else {
-            dependencies.territorialModel.entityStore.replaceUnits(normalizedUnits);
+            dependencies.territorialModel.entityStore.replaceCollections({ units: normalizedUnits });
           }
           if (request.operation === 'create') dependencies.projectState.state.layerVisibility.subunits = true;
           if (changedCountries.length) {
@@ -537,11 +537,11 @@ export function createTerritorialDrafts() {
       afterFeatures: [result.survivor], removedIds: result.removedIds, commitHistorySnapshot: true,
       applyResult: () => {
         const removed = new Set(result.removedIds);
-        dependencies.territorialModel.entityStore.replaceUnits(
+        dependencies.territorialModel.entityStore.replaceCollections({ units: 
           dependencies.territorialModel.entityStore.units()
             .filter(unit => !removed.has(text(unit.id)))
             .map(unit => text(unit.id) === text(source.id) ? result.survivor : unit),
-        );
+         });
         dependencies.projectState.state.distributionEntries = dependencies.projectState.state.distributionEntries.map(entry => removed.has(text(entry.territorialUnitId)) ? { ...entry, territorialUnitId: text(source.id) } : entry);
         dependencies.projectState.state.territorialRelations = dependencies.projectState.state.territorialRelations.filter(relation => !removed.has(text(relation.unitId)))
           .map(relation => removed.has(text(relation.parentId)) ? { ...relation, parentId: text(source.id) } : relation);
@@ -683,7 +683,7 @@ export function createTerritorialDrafts() {
                 === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
             },
           );
-          dependencies.territorialModel.entityStore.replaceUnits(nextUnits);
+          dependencies.territorialModel.entityStore.replaceCollections({ units: nextUnits });
           dependencies.projectState.state.layerVisibility.regions = true;
           delete dependencies.projectState.state.itemVisibility.regions?.[String(region.id)];
           dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territorial-created', render: false });
