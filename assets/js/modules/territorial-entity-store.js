@@ -137,6 +137,12 @@ export function createTerritorialEntityStore({
     return true;
   }
 
+  function replaceCountryOverrides(overrides) {
+    const next = overrides && typeof overrides === 'object' ? { ...overrides } : {};
+    state().countryOverrides = next;
+    return state().countryOverrides;
+  }
+
   function replaceCountries(collection, { pruneOverrides = true, reindexOptions = {} } = {}) {
     const next = collection?.type === 'FeatureCollection'
       ? collection
@@ -217,6 +223,7 @@ export function createTerritorialEntityStore({
     rawEntity,
     removeCountries,
     replaceCountries,
+    replaceCountryOverrides,
     removeUnits,
     replaceUnits,
     setField,
