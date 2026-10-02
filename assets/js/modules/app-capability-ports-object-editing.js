@@ -235,7 +235,6 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "distributionServices",
     "domainControllers",
     "domains",
-    "geometryMutation",
     "hydroModel",
     "labelPresentation",
     "layerTree",
