@@ -205,13 +205,18 @@ export function createProjectSnapshots() {
     dependencies.projectState.state.selectedDistributionLayerId = distributionLayerIds.has(String(dependencies.projectState.state.selectedDistributionLayerId || ''))
       ? String(dependencies.projectState.state.selectedDistributionLayerId)
       : '';
-    dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(dependencies.projectState.state.territorialUnits, {
-      countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id),
-      validatedUnchanged: history ? new Set(dependencies.projectState.state.territorialUnits) : undefined,
-    });
+    const currentUnits = dependencies.territorialModel.entityStore.units();
+    dependencies.territorialModel.entityStore.replaceUnits(
+      (0, dependencies.territorialModel.normalizeTerritorialUnits)(currentUnits, {
+        countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
+          === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+        validatedUnchanged: history ? new Set(currentUnits) : undefined,
+      }),
+    );
     dependencies.projectState.state.territorialRelations = (0, dependencies.territorialServicesA.normalizeTerritorialRelations)(dependencies.projectState.state.territorialRelations);
-    const relationValidation = dependencies.objectModelB.territorialApplicationService.validateRelations(dependencies.projectState.state.territorialUnits, {
-      countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id),
+    const relationValidation = dependencies.objectModelB.territorialApplicationService.validateRelations(dependencies.territorialModel.entityStore.units(), {
+      countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
+        === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
       relations: dependencies.projectState.state.territorialRelations,
     });
     if (!relationValidation.ok) throw new Error(relationValidation.issues[0] || '영역 관계가 올바르지 않습니다.');
