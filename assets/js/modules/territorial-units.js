@@ -266,23 +266,6 @@ export function createTerritorialFeature({
   return feature;
 }
 
-export function changeParent(unit, newParentId) {
-  if (!unit) throw new Error('상위 단위를 변경할 대상을 찾을 수 없습니다.');
-  if (text(unit.id) === text(newParentId)) throw new Error('영역 자신을 상위 단위로 지정할 수 없습니다.');
-  const next = clone(unit);
-  next.properties.parentId = text(newParentId);
-  return next;
-}
-
-// Legacy storage helper: sovereignId currently means the administrative
-// country membership of a non-country unit, not a political sovereignty link.
-export function changeSovereign(unit, newSovereignId) {
-  if (!unit) throw new Error('소속 국가를 변경할 대상을 찾을 수 없습니다.');
-  const next = clone(unit);
-  next.properties.sovereignId = text(newSovereignId);
-  return next;
-}
-
 export function changeUnitType(unit, newType) {
   if (!unit) throw new Error('유형을 변경할 영역을 찾을 수 없습니다.');
   const type = text(newType);
