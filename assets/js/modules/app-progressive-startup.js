@@ -85,6 +85,8 @@ export function createProgressiveStartup() {
         : restored?.countriesData
           ? (0, dependencies.platform.deepClone)(restored.countriesData)
           : geometry.countries,
+    }, {
+      reindexOptions: restored ? {} : { assumeCanonical: true },
     });
     // A display request may have initialized the edit Worker from preview countries.
     // Retire it before any canonical edit; its next request lazily rebases from this state.
