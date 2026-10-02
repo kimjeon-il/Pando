@@ -117,14 +117,14 @@ export function createHistoryAssembly() {
       },
     }));
 
-    dependencies.projectServiceCommands.installTerritorialRepository((0, dependencies.territorialServicesA.createTerritorialRepository)({
+    dependencies.projectServiceCommands.installTerritorialEntityRepository((0, dependencies.territorialServicesA.createTerritorialEntityRepository)({
       getCountries: () => dependencies.projectState.state.countriesData,
       getUnits: () => dependencies.projectState.state.territorialUnits,
       getCountryOverride: id => dependencies.projectState.state.countryOverrides[id] || {},
     }));
 
     dependencies.projectServiceCommands.installTerritorialApplicationService((0, dependencies.territorialServicesA.createTerritorialApplicationService)({
-      repository: dependencies.presentation.territorialRepository,
+      entityRepository: dependencies.presentation.territorialEntityRepository,
       commandPipeline: dependencies.objectModelB.projectCommandPipeline,
       countryCommands: {
         isLocked: id => (0, dependencies.objectOperationsA.isCountryLocked)(id),
@@ -192,7 +192,7 @@ export function createHistoryAssembly() {
         color,
         { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR },
       ),
-      territorialExists: id => !!dependencies.presentation.territorialRepository.get(id),
+      territorialExists: id => !!dependencies.presentation.territorialEntityRepository.get(id),
     }));
 
     dependencies.projectServiceCommands.installGenericFeatureService((0, dependencies.applicationFactories.createGenericFeatureService)({
