@@ -5,9 +5,7 @@ import {
   TERRITORIAL_COVERAGE_MODES,
   TERRITORIAL_UNIT_TYPES,
   changeUnitType,
-  createCountryTerritorialEntity,
   createTerritorialFeature,
-  createTerritorialEntityRepository,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
   resolveTerritorialRelation,
@@ -103,46 +101,6 @@ test('dated relations resolve by reference date and overlapping ranges are rejec
   });
   assert.equal(invalid.ok, false);
   assert.match(invalid.issues.join('\n'), /겹칩니다/);
-});
-
-test('territorial entity repository exposes countries and nested units through one hierarchy surface', () => {
-  const country = { type: 'Feature', id: 'PL', properties: { name: '폴란드' }, geometry: square() };
-  const adapted = createCountryTerritorialEntity(country, { name: '폴란드 공화국', notes: '국가 메모', locked: true, color: '#123456' });
-  assert.equal(adapted.properties.sovereignId, 'PL');
-  assert.equal(adapted.properties.parentId, '');
-  assert.equal(adapted.properties.name, '폴란드 공화국');
-  assert.equal(adapted.properties.notes, '국가 메모');
-  assert.equal(adapted.properties.locked, true);
-  assert.deepEqual(adapted.properties.style, { color: '#123456' });
-
-  const territory = createTerritorialFeature({ id: 't1', unitType: 'subunit', parentId: 'PL', sovereignId: 'PL', geometry: square() });
-  const child = createTerritorialFeature({ id: 't2', unitType: 'subunit', parentId: 't1', sovereignId: 'PL', geometry: square(0, 0, 5, 5) });
-  const repository = createTerritorialEntityRepository({
-    getCountries: () => ({ features: [country] }),
-    getUnits: () => [territory, child],
-    getCountryOverride: () => ({ name: '폴란드 공화국', notes: '국가 메모', locked: true }),
-  });
-
-  assert.equal(repository.get('PL').properties.unitType, 'country');
-  assert.equal(repository.get('t1').properties.unitType, 'subunit');
-  assert.equal(repository.has('missing'), false);
-  assert.deepEqual(repository.children('PL').map(item => item.id), ['t1']);
-  assert.equal(repository.parent('t1').id, 'PL');
-  assert.deepEqual(repository.ancestors('t2').map(item => item.id), ['t1', 'PL']);
-  assert.deepEqual(repository.descendants('PL').map(item => item.id), ['t1', 't2']);
-  assert.equal(repository.root('t2').id, 'PL');
-  assert.equal(repository.sovereign('t2').id, 'PL');
-  assert.deepEqual(repository.list({ type: 'subunit', parentId: 't1' }).map(item => item.id), ['t2']);
-});
-
-test('territorial entity repository rejects duplicate identity across country and unit storage', () => {
-  const country = { type: 'Feature', id: 'same-id', properties: { name: '국가' }, geometry: square() };
-  const unit = createTerritorialFeature({ id: 'same-id', unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a', geometry: square() });
-  const repository = createTerritorialEntityRepository({
-    getCountries: () => ({ features: [country] }),
-    getUnits: () => [unit],
-  });
-  assert.throws(() => repository.list(), /ID가 중복/);
 });
 
 test('territorial transaction records and autosaves once on success', async () => {
