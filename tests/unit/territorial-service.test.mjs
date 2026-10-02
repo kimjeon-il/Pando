@@ -132,20 +132,46 @@ test('territorial service routes country commands and replaces units atomically'
   });
 });
 
-test('metadata parent edits cannot bypass Subunit parent and cycle validation', () => {
+test('administrative parent changes use the explicit relation command and validate cycles', () => {
   const { service, entityRepository, transactions } = fixture();
   service.replaceUnits([
-    { id: 's', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a' } },
-    { id: 'r', properties: { unitType: 'region' } },
+    { id: 'p', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a', locked: false } },
+    { id: 's', properties: { unitType: 'subunit', parentId: 'p', sovereignId: 'country-a', locked: false } },
   ]);
   const count = transactions.length;
-  assert.equal(service.updateMetadata('subunit', 's', 'parentId', 'r').code, 'invalid-parent');
-  assert.equal(service.updateMetadata('subunit', 's', 'parentId', 's').code, 'invalid-parent');
+
+  const cycle = service.changeAdministrativeParent('subunit', 'p', 's');
+  assert.equal(cycle.ok, false);
+  assert.equal(cycle.code, 'invalid-parent');
   assert.equal(transactions.length, count);
+
+  const rejectedByGeometry = service.changeAdministrativeParent('subunit', 's', 'country-a', {
+    validateCandidate: () => ({ ok: false, issues: ['outside-parent'] }),
+  });
+  assert.equal(rejectedByGeometry.code, 'invalid-parent-geometry');
+  assert.equal(transactions.length, count);
+
+  const changed = service.changeAdministrativeParent('subunit', 's', 'country-a');
+  assert.equal(changed.changed, true);
   assert.equal(entityRepository.get('s').properties.parentId, 'country-a');
+  assert.deepEqual(transactions.at(-1), {
+    type: 'territorial-parent',
+    affectedIds: ['s'],
+    renderDirty: { domain: 'territorial', change: 'structure' },
+  });
 });
 
 
+
+test('unit metadata service also rejects administrative relation fields', () => {
+  const { service, transactions } = fixture();
+  for (const field of ['parentId', 'sovereignId', 'unitType']) {
+    const result = service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', field, 'other');
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'unsupported-relation-field');
+  }
+  assert.equal(transactions.length, 0);
+});
 
 test('country metadata service does not accept administrative or political relation fields', () => {
   const { service, entityRepository, transactions } = fixture();
@@ -158,15 +184,29 @@ test('country metadata service does not accept administrative or political relat
   assert.equal(entityRepository.get('country-a').properties.parentId, undefined);
 });
 
-test('subunit sovereign changes are validated with the same administrative hierarchy rules', () => {
+test('administrative country changes are explicit and subunits require geometry transfer', () => {
   const { service, entityRepository, transactions } = fixture();
+
+  const missing = service.changeAdministrativeCountry('region', 'unit-a', 'missing-country');
+  assert.equal(missing.ok, false);
+  assert.equal(missing.code, 'invalid-country');
+
+  const changed = service.changeAdministrativeCountry('region', 'unit-a', 'country-a');
+  assert.equal(changed.changed, true);
+  assert.equal(entityRepository.get('unit-a').properties.sovereignId, 'country-a');
+  assert.deepEqual(transactions.at(-1), {
+    type: 'territorial-country-membership',
+    affectedIds: ['unit-a'],
+    renderDirty: { domain: 'territorial', change: 'structure' },
+  });
+
   service.replaceUnits([
-    { id: 's', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a' } },
+    { id: 's', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a', locked: false } },
   ]);
   const count = transactions.length;
-  const result = service.updateMetadata('subunit', 's', 'sovereignId', 'missing-country');
-  assert.equal(result.ok, false);
-  assert.equal(result.code, 'invalid-parent');
+  const transfer = service.changeAdministrativeCountry('subunit', 's', '');
+  assert.equal(transfer.ok, false);
+  assert.equal(transfer.code, 'requires-geometry-transfer');
   assert.equal(transactions.length, count);
   assert.equal(entityRepository.get('s').properties.sovereignId, 'country-a');
 });
