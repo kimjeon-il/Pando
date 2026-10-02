@@ -22,7 +22,11 @@ function fixture() {
   };
   const entityRepository = {
     get(id) { return [...countries, ...units].find(item => item.id === String(id)) || null; },
-    list({ type } = {}) { return [...countries, ...units].filter(item => !type || item.properties.unitType === type); }
+    list({ type } = {}) { return [...countries, ...units].filter(item => !type || item.properties.unitType === type); },
+    administrativeChildren(id, { type = '' } = {}) {
+      return [...countries, ...units].filter(item => String(item.properties?.parentId || '') === String(id)
+        && (!type || item.properties?.unitType === type));
+    },
   };
   const service = createTerritorialApplicationService({
     entityRepository,
