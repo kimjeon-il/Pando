@@ -13,7 +13,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     countryFeatureById,
     countryName,
     territorialUnitName,
-    territorialRepository,
+    territorialEntityRepository,
     distributionService,
     genericFeatureService,
     resolveImportedCountryId,
@@ -639,7 +639,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       if (entryIds.has(entryId)) throw new Error(`분포 엔트리 ID 충돌: ${entryId}`);
       entryIds.add(entryId);
       const territorialUnitId = String(properties.territorial_unit_id || '').trim();
-      const useTerritorial = !!territorialUnitId && !!territorialRepository.get(territorialUnitId);
+      const useTerritorial = !!territorialUnitId && !!territorialEntityRepository.get(territorialUnitId);
       newEntries.push(createDistributionEntry({
         id: entryId,
         layerId,
