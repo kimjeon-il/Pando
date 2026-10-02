@@ -35,12 +35,6 @@ export function createObjectDeletion() {
           unit.properties.sovereignId = '';
           unit.properties.parentId = '';
         }
-        for (const [countryId, override] of Object.entries(dependencies.projectState.state.countryOverrides || {})) {
-          if (countryId === key || !override || typeof override !== 'object') continue;
-          if (String(override.parentId || '') === key) delete override.parentId;
-          if (String(override.sovereignId || '') === key) delete override.sovereignId;
-          if (!Object.keys(override).length) delete dependencies.projectState.state.countryOverrides[countryId];
-        }
         dependencies.projectState.state.countriesData.features = dependencies.projectState.state.countriesData.features.filter(f => String(f.id) !== key);
         delete dependencies.projectState.state.countryOverrides[key];
         (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
@@ -122,7 +116,7 @@ export function createObjectDeletion() {
       danger: true,
       onConfirm: () => {
         const current = (0, dependencies.objectPresentation.territorialUnitById)(feature.id);
-        if (!territorialDeletionAllowed([current], dependencies.projectState.state.territorialUnits)) return false;
+        if (!territorialDeletionAllowed([current], dependencies.territorialModel.entityRepository.list())) return false;
         const snapshot = (0, dependencies.snapshots.snapshotEditable)();
         try {
           removeTerritorialUnits(dependencies.projectState.state, [feature.id], dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL);
