@@ -293,7 +293,7 @@ export function createProjectIoPorts(providers) {
       installDistributionService: value => { providers.objectPresentation.distributionService = value; },
       installGenericFeatureService: value => { providers.objectPresentation.genericFeatureService = value; },
       installTerritorialApplicationService: value => { providers.objectPresentation.territorialApplicationService = value; },
-      installTerritorialRepository: value => { providers.objectPresentation.territorialRepository = value; },
+      installTerritorialEntityRepository: value => { providers.objectPresentation.territorialEntityRepository = value; },
     }),
     uiRegistryCommands: Object.freeze({
       installLayerTreeController: value => { providers.domainAssembly.layerTreeController = value; },
