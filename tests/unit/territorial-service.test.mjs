@@ -163,10 +163,12 @@ test('administrative parent changes use the explicit relation command and valida
 
 
 
-test('unit metadata service also rejects administrative relation fields', () => {
-  const { service, transactions } = fixture();
-  for (const field of ['parentId', 'sovereignId', 'unitType']) {
-    const result = service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', field, 'other');
+test('unit metadata service also rejects administrative relation fields, including no-op values', () => {
+  const { service, entityRepository, transactions } = fixture();
+  entityRepository.get('unit-a').properties.parentId = '';
+  entityRepository.get('unit-a').properties.sovereignId = '';
+  for (const [field, value] of [['parentId', ''], ['sovereignId', ''], ['unitType', TERRITORIAL_UNIT_TYPES.REGION]]) {
+    const result = service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', field, value);
     assert.equal(result.ok, false);
     assert.equal(result.code, 'unsupported-relation-field');
   }
