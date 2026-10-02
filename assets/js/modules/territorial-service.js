@@ -9,27 +9,27 @@ import {
 const text = value => String(value ?? '').trim();
 
 export function createTerritorialApplicationService({
-  repository,
+  entityRepository,
   commandPipeline,
   countryCommands,
   unitCommands,
 }) {
   const mutateDocument = createDocumentMutationRunner({ commandPipeline });
   const country = id => {
-    const feature = repository.get(id);
+    const feature = entityRepository.get(id);
     return feature?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
   };
   const unit = (type, id) => {
-    const feature = repository.get(id);
+    const feature = entityRepository.get(id);
     return feature?.properties?.unitType === type && type !== TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
   };
 
   function get(id) {
-    return repository.get(id);
+    return entityRepository.get(id);
   }
 
   function list(options) {
-    return repository.list(options);
+    return entityRepository.list(options);
   }
 
   function isLocked(type, id) {
@@ -50,7 +50,7 @@ export function createTerritorialApplicationService({
       mutateDocument({ type: 'country-metadata', affectedIds: [key] }, () => {
         countryCommands.setField(key, field, value);
       }, { renderDirty: { domain: 'country', change: 'metadata' } });
-      return { ok: true, changed: true, unit: repository.get(key) };
+      return { ok: true, changed: true, unit: entityRepository.get(key) };
     }
     const feature = unit(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
@@ -58,7 +58,7 @@ export function createTerritorialApplicationService({
     const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
     if (currentValue === value) return { ok: true, changed: false, unit: feature };
     if (field === 'parentId' || field === 'unitType') {
-      const previous = repository.list();
+      const previous = entityRepository.list();
       const candidate = previous.map(item => String(item.id) === key
         ? { ...item, properties: { ...item.properties, [field]: value } } : item);
       const validation = validateSubunitParentChanges(previous, candidate, id => !!country(id));
@@ -67,13 +67,13 @@ export function createTerritorialApplicationService({
     mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => {
       unitCommands.setField(key, field, value);
     }, { renderDirty: { domain: 'territorial', change: 'metadata' } });
-    return { ok: true, changed: true, unit: repository.get(key) };
+    return { ok: true, changed: true, unit: entityRepository.get(key) };
   }
 
   function replaceUnits(units, { type = 'territorial-metadata', affectedIds = [] } = {}) {
-    const parentValidation = validateSubunitParentChanges(repository.list(), units, id => !!country(id));
+    const parentValidation = validateSubunitParentChanges(entityRepository.list(), units, id => !!country(id));
     if (!parentValidation.ok) throw new Error(parentValidation.issues[0]);
-    if (JSON.stringify(repository.list().filter(feature => feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY)) === JSON.stringify(units)) {
+    if (JSON.stringify(entityRepository.list().filter(feature => feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY)) === JSON.stringify(units)) {
       return { ok: true, changed: false };
     }
     mutateDocument({ type, affectedIds: affectedIds.map(text).filter(Boolean) }, () => {
@@ -87,13 +87,13 @@ export function createTerritorialApplicationService({
     const next = !!locked;
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       if (!country(key)) return { ok: false, code: 'not-found' };
-      if (countryCommands.isLocked(key) === next) return { ok: true, changed: false, unit: repository.get(key) };
+      if (countryCommands.isLocked(key) === next) return { ok: true, changed: false, unit: entityRepository.get(key) };
       mutateDocument(
         { ...history, type: 'country-lock', affectedIds: [key] },
         () => countryCommands.setLocked(key, next),
         { renderDirty: { domain: 'country', change: 'metadata' } },
       );
-      return { ok: true, changed: true, unit: repository.get(key) };
+      return { ok: true, changed: true, unit: entityRepository.get(key) };
     }
     const feature = unit(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
@@ -103,7 +103,7 @@ export function createTerritorialApplicationService({
       () => unitCommands.setField(key, 'locked', next),
       { renderDirty: { domain: 'territorial', change: 'metadata' } },
     );
-    return { ok: true, changed: true, unit: repository.get(key) };
+    return { ok: true, changed: true, unit: entityRepository.get(key) };
   }
 
   return Object.freeze({
