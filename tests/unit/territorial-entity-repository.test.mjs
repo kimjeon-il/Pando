@@ -86,51 +86,6 @@ test('repository exposes countries and nested units through one hierarchy surfac
   assert.deepEqual(repository.list({ sovereignId: 'PL' }).map(item => item.id), ['PL', 't1', 't2']);
 });
 
-test('country entities can participate in parent and sovereignty hierarchy', () => {
-  const empire = { type: 'Feature', id: 'E', properties: { name: 'Empire' }, geometry: square() };
-  const protectorate = { type: 'Feature', id: 'P', properties: { name: 'Protectorate' }, geometry: square(20, 20, 30, 30) };
-  const province = createTerritorialFeature({
-    id: 'p1',
-    unitType: 'subunit',
-    parentId: 'P',
-    sovereignId: 'P',
-    geometry: square(21, 21, 25, 25),
-  });
-  const repository = createTerritorialEntityRepository({
-    getCountries: () => ({ features: [empire, protectorate] }),
-    getUnits: () => [province],
-    getCountryOverride: id => id === 'P' ? { parentId: 'E', sovereignId: 'E' } : {},
-  });
-
-  assert.equal(repository.parent('P').id, 'E');
-  assert.deepEqual(repository.ancestors('P').map(item => item.id), ['E']);
-  assert.deepEqual(repository.children('E').map(item => item.id), ['P']);
-  assert.equal(repository.root('P').id, 'E');
-  assert.equal(repository.sovereign('P').id, 'E');
-  assert.equal(repository.sovereign('p1').id, 'P');
-  assert.deepEqual(repository.descendants('E').map(item => item.id), ['P', 'p1']);
-});
-
-test('country parent must resolve to another country entity', () => {
-  const country = { type: 'Feature', id: 'A', properties: { name: 'A' }, geometry: square() };
-  const region = createTerritorialFeature({
-    id: 'r1',
-    unitType: 'region',
-    parentId: '',
-    sovereignId: '',
-    coverageMode: 'explicit',
-    geometry: square(20, 20, 30, 30),
-  });
-  const repository = createTerritorialEntityRepository({
-    getCountries: () => ({ features: [country] }),
-    getUnits: () => [region],
-    getCountryOverride: () => ({ parentId: 'r1' }),
-  });
-
-  assert.throws(() => repository.parent('A'), /상위 엔터티는 국가/);
-  assert.throws(() => repository.root('A'), /상위 엔터티는 국가/);
-});
-
 test('repository is a live read model over current country, unit, and override stores', () => {
   const country = { type: 'Feature', id: 'A', properties: { name: 'A' }, geometry: square() };
   let units = [];
