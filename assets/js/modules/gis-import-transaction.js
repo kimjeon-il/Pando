@@ -48,7 +48,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     buildTerritorialImportTransactionPlan,
     mapEditClient,
     validateGisCountryCollection,
-    reindexCountries,
     transferLandDependents,
     assertCurrentProjectReferences,
     commitHistorySnapshot,
