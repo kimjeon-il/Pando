@@ -206,7 +206,7 @@ export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
   mapProjection: Object.freeze(["mapLayers","mapLayout","platform","projectState","surfaces"]),
   objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectCatalog","objectPresentation","platform","projectState","spatialQuery","territorialModel"]),
   hydroSettings: Object.freeze(["colorModel","hydroPresentation","layerPresentation","mapLayout","objectPresentation","physicalConfig","platform","preferences","projectState","surfaces"]),
-  layerList: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectCatalog","objectPresentation","platform","projectState","rendering"]),
+  layerList: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectCatalog","objectPresentation","platform","projectState","rendering","territorialModel"]),
   countryLabels: Object.freeze(["colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces"]),
   physicalResources: Object.freeze(["cutGeometry","domains","feedback","hydroPresentation","labelPresentation","layerPresentation","mapView","operationFeedback","physicalConfig","physicalServices","platform","projectState","rendering"]),
   interactionPackets: Object.freeze(["distributionPresentation","domains","draftPresentation","mapLayers","objectCatalog","platform","preferences","projectState","renderScene","surfaces"]),
