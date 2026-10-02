@@ -266,7 +266,7 @@ export function createTerritorialConversion() {
     }
     const sovereignId = String(source.properties?.sovereignId || '');
     const parent = targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
-      ? dependencies.presentation.territorialEntityRepository.get(parentId || sovereignId)
+      ? dependencies.territorialModel.entityRepository.get(parentId || sovereignId)
       : (0, dependencies.countries.countryFeatureById)(sovereignId);
     if (!parent || (targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT && !(0, dependencies.objectMetadata.territorialUnitInsideContainer)(source, parent))) {
       (0, dependencies.feedback.setActionStatus)('영역 전체를 포함하는 올바른 상위 단위를 선택하세요.', 'error', 3900);
@@ -322,7 +322,7 @@ export function createTerritorialConversion() {
       (0, dependencies.feedback.setActionStatus)('같은 ID의 영역이 이미 있어 종류를 변경할 수 없습니다.', 'error', 4000);
       return false;
     }
-    const parent = targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT ? dependencies.presentation.territorialEntityRepository.get(parentId || targetCountryId) : target;
+    const parent = targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT ? dependencies.territorialModel.entityRepository.get(parentId || targetCountryId) : target;
     if (!parent || (String(parent.id || '') !== String(targetCountryId) && !(0, dependencies.objectMetadata.territorialUnitInsideContainer)(source, parent))) {
       (0, dependencies.feedback.setActionStatus)('국가 영역 전체를 포함하는 올바른 상위 단위를 선택하세요.', 'error', 3900);
       return false;
