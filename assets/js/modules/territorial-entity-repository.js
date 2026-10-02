@@ -46,11 +46,17 @@ export function createCountryTerritorialEntity(feature, override = {}) {
 }
 
 export function createTerritorialEntityRepository({
-  getCountries,
-  getUnits,
-  getCountryOverride = () => ({}),
+  entityStore = null,
+  getCountries = entityStore?.countriesData,
+  getUnits = entityStore?.units,
+  getCountryOverride = entityStore?.countryOverride || (() => ({})),
   getRevision = () => null,
 }) {
+  if (entityStore && (typeof entityStore.countriesData !== 'function'
+    || typeof entityStore.units !== 'function'
+    || typeof entityStore.countryOverride !== 'function')) {
+    throw new TypeError('영역 엔티티 저장소가 공통 read 계약을 제공하지 않습니다.');
+  }
   if (typeof getCountries !== 'function' || typeof getUnits !== 'function') {
     throw new TypeError('영역 엔티티 저장소에는 국가와 하위 영역 공급자가 필요합니다.');
   }
