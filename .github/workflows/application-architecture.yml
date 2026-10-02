@@ -7,7 +7,30 @@ on:
       - 'assets/js/modules/object-adapter-registry.js'
       - 'assets/js/modules/object-command-definitions.js'
       - 'assets/js/modules/document-mutation-runner.js'
+      - 'assets/js/modules/territorial-entity-store.js'
+      - 'assets/js/modules/territorial-entity-repository.js'
       - 'assets/js/modules/territorial-service.js'
+      - 'assets/js/modules/app-domain-assembly.js'
+      - 'assets/js/modules/app-history-assembly.js'
+      - 'assets/js/modules/app-runtime-dependencies.js'
+      - 'assets/js/modules/app-capability-ports-foundation.js'
+      - 'assets/js/modules/app-capability-ports.js'
+      - 'assets/js/modules/app-capability-ports-lifecycle-ui.js'
+      - 'assets/js/modules/app-capability-ports-project-io.js'
+      - 'assets/js/modules/app-capability-ports-object-editing.js'
+      - 'assets/js/modules/app-builtin-session.js'
+      - 'assets/js/modules/app-progressive-startup.js'
+      - 'assets/js/modules/app-gis-assembly.js'
+      - 'assets/js/modules/gis-import-transaction.js'
+      - 'assets/js/modules/app-project-snapshots.js'
+      - 'assets/js/modules/app-project-restore.js'
+      - 'assets/js/modules/app-cut-geometry.js'
+      - 'assets/js/modules/territorial-interaction-policy.js'
+      - 'assets/js/modules/app-object-deletion.js'
+      - 'assets/js/modules/app-land-relations.js'
+      - 'assets/js/modules/app-generic-commands.js'
+      - 'assets/js/modules/app-territorial-conversion.js'
+      - 'assets/js/modules/app-territorial-drafts.js'
       - 'assets/js/modules/distribution-service.js'
       - 'assets/js/modules/generic-feature-service.js'
       - 'assets/js/modules/source-provenance.js'
@@ -54,6 +77,11 @@ on:
       - 'tests/unit/project-command-pipeline.test.mjs'
       - 'tests/unit/object-adapter-registry.test.mjs'
       - 'tests/unit/service-command-pipeline.test.mjs'
+      - 'tests/unit/territorial-entity-store.test.mjs'
+      - 'tests/unit/territorial-entity-repository.test.mjs'
+      - 'tests/unit/territorial-service.test.mjs'
+      - 'tests/unit/territorial-interaction-policy.test.mjs'
+      - 'tests/unit/territorial-store-boundary.test.mjs'
       - 'tests/unit/source-provenance.test.mjs'
       - 'tests/unit/generic-feature-service.test.mjs'
       - 'tests/unit/generic-provenance.test.mjs'
@@ -79,6 +107,7 @@ on:
       - 'docs/architecture/worker-rpc.md'
       - 'docs/architecture/renderer-v2.md'
       - 'package.json'
+      - 'pnpm-lock.yaml'
       - 'eslint.config.js'
       - '.github/workflows/application-architecture.yml'
   push:
@@ -89,7 +118,30 @@ on:
       - 'assets/js/modules/object-adapter-registry.js'
       - 'assets/js/modules/object-command-definitions.js'
       - 'assets/js/modules/document-mutation-runner.js'
+      - 'assets/js/modules/territorial-entity-store.js'
+      - 'assets/js/modules/territorial-entity-repository.js'
       - 'assets/js/modules/territorial-service.js'
+      - 'assets/js/modules/app-domain-assembly.js'
+      - 'assets/js/modules/app-history-assembly.js'
+      - 'assets/js/modules/app-runtime-dependencies.js'
+      - 'assets/js/modules/app-capability-ports-foundation.js'
+      - 'assets/js/modules/app-capability-ports.js'
+      - 'assets/js/modules/app-capability-ports-lifecycle-ui.js'
+      - 'assets/js/modules/app-capability-ports-project-io.js'
+      - 'assets/js/modules/app-capability-ports-object-editing.js'
+      - 'assets/js/modules/app-builtin-session.js'
+      - 'assets/js/modules/app-progressive-startup.js'
+      - 'assets/js/modules/app-gis-assembly.js'
+      - 'assets/js/modules/gis-import-transaction.js'
+      - 'assets/js/modules/app-project-snapshots.js'
+      - 'assets/js/modules/app-project-restore.js'
+      - 'assets/js/modules/app-cut-geometry.js'
+      - 'assets/js/modules/territorial-interaction-policy.js'
+      - 'assets/js/modules/app-object-deletion.js'
+      - 'assets/js/modules/app-land-relations.js'
+      - 'assets/js/modules/app-generic-commands.js'
+      - 'assets/js/modules/app-territorial-conversion.js'
+      - 'assets/js/modules/app-territorial-drafts.js'
       - 'assets/js/modules/distribution-service.js'
       - 'assets/js/modules/generic-feature-service.js'
       - 'assets/js/modules/source-provenance.js'
@@ -136,6 +188,11 @@ on:
       - 'tests/unit/project-command-pipeline.test.mjs'
       - 'tests/unit/object-adapter-registry.test.mjs'
       - 'tests/unit/service-command-pipeline.test.mjs'
+      - 'tests/unit/territorial-entity-store.test.mjs'
+      - 'tests/unit/territorial-entity-repository.test.mjs'
+      - 'tests/unit/territorial-service.test.mjs'
+      - 'tests/unit/territorial-interaction-policy.test.mjs'
+      - 'tests/unit/territorial-store-boundary.test.mjs'
       - 'tests/unit/source-provenance.test.mjs'
       - 'tests/unit/generic-feature-service.test.mjs'
       - 'tests/unit/generic-provenance.test.mjs'
@@ -161,6 +218,7 @@ on:
       - 'docs/architecture/worker-rpc.md'
       - 'docs/architecture/renderer-v2.md'
       - 'package.json'
+      - 'pnpm-lock.yaml'
       - 'eslint.config.js'
       - '.github/workflows/application-architecture.yml'
 
@@ -168,6 +226,34 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect application scopes
+    runs-on: ubuntu-latest
+    outputs:
+      territorial-store: ${{ steps.scope.outputs.territorial_store }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect territorial Store changes
+        id: scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          territorial_store=false
+          while IFS= read -r file; do
+            case "$file" in
+              assets/js/modules/territorial-entity-store.js|              assets/js/modules/territorial-entity-repository.js|              assets/js/modules/territorial-service.js|              assets/js/modules/app-domain-assembly.js|              assets/js/modules/app-history-assembly.js|              assets/js/modules/app-runtime-dependencies.js|              assets/js/modules/app-capability-ports-foundation.js|              assets/js/modules/app-capability-ports.js|              assets/js/modules/app-capability-ports-lifecycle-ui.js|              assets/js/modules/app-capability-ports-project-io.js|              assets/js/modules/app-capability-ports-object-editing.js|              assets/js/modules/app-builtin-session.js|              assets/js/modules/app-progressive-startup.js|              assets/js/modules/app-gis-assembly.js|              assets/js/modules/gis-import-transaction.js|              assets/js/modules/app-project-snapshots.js|              assets/js/modules/app-project-restore.js|              assets/js/modules/app-cut-geometry.js|              assets/js/modules/territorial-interaction-policy.js|              assets/js/modules/app-object-deletion.js|              assets/js/modules/app-land-relations.js|              assets/js/modules/app-generic-commands.js|              assets/js/modules/app-territorial-conversion.js|              assets/js/modules/app-territorial-drafts.js|              tests/unit/territorial-entity-store.test.mjs|              tests/unit/territorial-entity-repository.test.mjs|              tests/unit/territorial-service.test.mjs|              tests/unit/territorial-interaction-policy.test.mjs|              tests/unit/territorial-store-boundary.test.mjs|              package.json|pnpm-lock.yaml|eslint.config.js|              .github/workflows/application-architecture.yml)
+                territorial_store=true
+                break
+                ;;
+            esac
+          done < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          echo "territorial_store=$territorial_store" >> "$GITHUB_OUTPUT"
+
   command-contract:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -188,3 +274,112 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Check application architecture
         run: pnpm check:architecture
+
+  territorial-store-contract:
+    name: Territorial Store contract
+    needs: changes
+    if: needs.changes.outputs.territorial-store == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Focused lint
+        run: >
+          pnpm exec eslint
+          assets/js/modules/territorial-entity-store.js
+          assets/js/modules/territorial-entity-repository.js
+          assets/js/modules/territorial-service.js
+          assets/js/modules/app-domain-assembly.js
+          assets/js/modules/app-history-assembly.js
+          assets/js/modules/app-runtime-dependencies.js
+          assets/js/modules/app-capability-ports-foundation.js
+          assets/js/modules/app-capability-ports.js
+          assets/js/modules/app-capability-ports-lifecycle-ui.js
+          assets/js/modules/app-builtin-session.js
+          assets/js/modules/app-progressive-startup.js
+          assets/js/modules/app-gis-assembly.js
+          assets/js/modules/gis-import-transaction.js
+          assets/js/modules/app-project-snapshots.js
+          assets/js/modules/app-project-restore.js
+          assets/js/modules/app-cut-geometry.js
+          assets/js/modules/app-capability-ports-project-io.js
+          assets/js/modules/app-capability-ports-object-editing.js
+          assets/js/modules/territorial-interaction-policy.js
+          assets/js/modules/app-object-deletion.js
+          assets/js/modules/app-land-relations.js
+          assets/js/modules/app-generic-commands.js
+          assets/js/modules/app-territorial-conversion.js
+          assets/js/modules/app-territorial-drafts.js
+          tests/unit/territorial-entity-store.test.mjs
+          tests/unit/territorial-entity-repository.test.mjs
+          tests/unit/territorial-service.test.mjs
+          tests/unit/territorial-store-boundary.test.mjs
+          tests/unit/territorial-interaction-policy.test.mjs
+      - name: Reject legacy service storage adapters
+        run: |
+          if grep -R -n -E '\b(countryCommands|unitCommands)\b' assets/js/modules/territorial-service.js assets/js/modules/app-history-assembly.js; then
+            echo "Legacy territorial service storage adapter remains."
+            exit 1
+          fi
+      - name: Audit application raw territorial writes
+        run: |
+          grep -R -n -E 'state\.(countriesData|territorialUnits)\s*(=|\.features\s*=|\.push\()' assets/js/modules/app-*.js || true
+      - name: Reject raw territorial unit writes in migrated edit modules
+        run: |
+          if grep -n -E 'state\.territorialUnits\s*(=|\.push|\.splice)' \
+            assets/js/modules/app-territorial-drafts.js \
+            assets/js/modules/app-territorial-conversion.js \
+            assets/js/modules/app-generic-commands.js \
+            assets/js/modules/app-land-relations.js \
+            assets/js/modules/app-object-deletion.js; then
+            echo "Migrated territorial edit module writes raw territorialUnits."
+            exit 1
+          fi
+      - name: Audit remaining structural territorial writes
+        run: |
+          grep -R -n -E 'state\.territorialUnits\s*(=|\.push|\.splice)|state\.countriesData(\.features)?\s*(=|\.push|\.splice)' assets/js/modules || true
+      - name: Focused unit tests
+        run: >
+          node --test
+          tests/unit/territorial-entity-store.test.mjs
+          tests/unit/territorial-entity-repository.test.mjs
+          tests/unit/territorial-service.test.mjs
+          tests/unit/territorial-interaction-policy.test.mjs
+          tests/unit/territorial-store-boundary.test.mjs
+
+  full-unit-suite:
+    name: Full unit suite
+    needs: changes
+    if: needs.changes.outputs.territorial-store == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run full unit suite
+        run: pnpm test:unit
