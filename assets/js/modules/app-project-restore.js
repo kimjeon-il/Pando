@@ -205,7 +205,7 @@ export function createProjectRestore() {
     dependencies.projectState.state.labelSettings = {};
     dependencies.projectState.state.genericFeatures = [];
     dependencies.projectState.state.hydroEdits = [];
-    dependencies.projectState.state.territorialUnits = [];
+    dependencies.territorialModel.entityStore.replaceUnits([]);
     dependencies.projectState.state.territorialRelations = [];
     dependencies.projectState.state.distributionLayers = [];
     dependencies.projectState.state.distributionEntries = [];
