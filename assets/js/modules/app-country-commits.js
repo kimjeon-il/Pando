@@ -26,8 +26,6 @@ export function createCountryCommits() {
     clearDraftReason = '',
     clearMultiDraft = false,
     selectedId = '',
-    invalidateCountryReason = '',
-    invalidateTerritorialReason = '',
   } = {}) {
     (0, dependencies.cutOperations.applyWorkerCountryPatches)(plan, patchOptions);
     beforeReindex(plan);
@@ -43,8 +41,6 @@ export function createCountryCommits() {
     if (clearDraftReason) dependencies.domains.editingDomain?.clearDraft?.({ reason: clearDraftReason, render: false });
     dependencies.domains.editingDomain?.setTool('select', { announce: false });
     if (selectedId) (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(selectedId);
-    if (invalidateCountryReason) dependencies.domains.renderingDomain?.invalidateCountryPatch?.(invalidateCountryReason);
-    if (invalidateTerritorialReason) dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.(invalidateTerritorialReason);
   }
 
   function cancelScheduledMultiDraftPreview() {
@@ -473,8 +469,11 @@ export function createCountryCommits() {
         requireCountryId: targetId,
         clearDraftReason: 'annex-committed',
         selectedId: targetId,
-        invalidateTerritorialReason: 'territory-annex-committed',
       }),
+      invalidateAfterApply: () => {
+        dependencies.domains.renderingDomain?.invalidateCountryPatch?.('territory-annex-committed');
+        dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territory-annex-committed');
+      },
       onSuccess: plan => {
         const removedText = plan.removedIds.length ? ` · ${plan.removedIds.length}개국 완전 흡수` : '';
         const selectedText = selectedComponents.length ? `선택한 ${selectedComponents.length}개 영토 조각을 포함해 ` : '선택한 ';
@@ -521,8 +520,8 @@ export function createCountryCommits() {
         clearMultiDraft: true,
         clearDraftReason: 'country-created',
         selectedId: feature.id,
-        invalidateCountryReason: 'new-country-committed',
       }),
+      invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateCountryPatch?.('new-country-committed'),
       onSuccess: transferPlan => {
         const removedText = transferPlan.removedIds.length ? ` · 원본 ${transferPlan.removedIds.length}개국 완전 흡수` : '';
         (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.presentation.countryName)(feature)} 국가를 추가했습니다${removedText}.`, 'success', 4200);
@@ -566,8 +565,8 @@ export function createCountryCommits() {
         updateDependents: () => (0, dependencies.landRelations.reassignLandDependents)(targetIds, sourceId),
         centroidIds: [sourceId],
         selectedId: sourceId,
-        invalidateCountryReason: 'country-merge-committed',
       }),
+      invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-merge-committed'),
       onSuccess: () => (0, dependencies.feedback.setActionStatus)(`${targetIds.length}개국을 ${sourceName}에 합병했습니다.`, 'success', 3200),
       onError: error => (0, dependencies.feedback.reportOperationError)(error, '국가를 합병하지 못해 변경을 되돌렸습니다. 대상을 다시 확인하세요.', 'PL-MERGE-001'),
     });
