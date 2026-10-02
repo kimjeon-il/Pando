@@ -107,7 +107,9 @@ export function createLayerList() {
 
   function layerTreeItems(group) {
     if (group === 'countries' || group === 'countryLabels') {
-      return (dependencies.projectState.state.countriesData?.features || []).map(feature => {
+      return dependencies.territorialModel.entityRepository
+        .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY })
+        .map(feature => {
         const id = String(feature.id || '');
         return {
           id,
@@ -128,7 +130,7 @@ export function createLayerList() {
       const kind = group === 'subunits'
         ? dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT
         : dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION;
-      return dependencies.projectState.state.territorialUnits.filter(feature => feature.properties?.unitType === kind).map(feature => {
+      return dependencies.territorialModel.entityRepository.list({ type: kind }).map(feature => {
         const countryLabel = (0, dependencies.objectPresentation.territorialUnitCountryName)(feature);
 
         return {
@@ -206,10 +208,16 @@ export function createLayerList() {
 
   function pruneLayerItemVisibility() {
     const valid = {
-      countries: new Set((dependencies.projectState.state.countriesData?.features || []).map(feature => String(feature.id || ''))),
+      countries: new Set(dependencies.territorialModel.entityRepository
+        .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY })
+        .map(feature => String(feature.id || ''))),
       countryLabels: new Set((0, dependencies.countries.builtinRenderCountries)().labelById.keys()),
-      subunits: new Set(dependencies.projectState.state.territorialUnits.filter(feature => feature.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT).map(feature => String(feature.id))),
-      regions: new Set(dependencies.projectState.state.territorialUnits.filter(feature => feature.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION).map(feature => String(feature.id))),
+      subunits: new Set(dependencies.territorialModel.entityRepository
+        .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT })
+        .map(feature => String(feature.id))),
+      regions: new Set(dependencies.territorialModel.entityRepository
+        .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION })
+        .map(feature => String(feature.id))),
       distributions: new Set(dependencies.projectState.state.distributionLayers.map(layer => layer.id)),
       hydro: new Set([...Object.keys(dependencies.hydroPresentation.HYDRO_LAYER_META), ...dependencies.projectState.state.hydroEdits.map(feature => String(feature.id))]),
       genericFeatures: new Set(dependencies.projectState.state.genericFeatures.map(feature => String(feature.id))),
