@@ -537,9 +537,11 @@ export function createCutGeometry() {
       return [feature];
     });
     for (const feature of updates.values()) nextFeatures.push(feature);
-    dependencies.territorialModel.entityStore.replaceCountries({
-      type: 'FeatureCollection',
-      features: nextFeatures,
+    dependencies.territorialModel.entityStore.replaceCollections({
+      countriesData: {
+        type: 'FeatureCollection',
+        features: nextFeatures,
+      },
     });
     dependencies.geometryMutation.setApplyingWorkerResult(true);
     try {
