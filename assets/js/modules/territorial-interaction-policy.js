@@ -28,19 +28,94 @@ export function boundaryTouchesGeometry(geometry, point, epsilon = 1e-7) {
   })));
 }
 
-export function removeTerritorialUnits(state, ids, territorialMode) {
-  const removed = new Set([...ids].map(String));
-  const targets = [...removed].map(id => state.territorialUnits.find(unit => String(unit.id) === id));
-  if (!territorialDeletionAllowed(targets, state.territorialUnits)) throw new Error('잠금 또는 자식 관계 때문에 삭제할 수 없습니다.');
-  state.territorialUnits = state.territorialUnits.filter(unit => !removed.has(String(unit.id)));
-  state.territorialRelations = state.territorialRelations.filter(relation => !removed.has(String(relation.unitId)) && !removed.has(String(relation.parentId)));
-  state.distributionEntries = state.distributionEntries.filter(entry => entry.mode !== territorialMode || !removed.has(String(entry.territorialUnitId)));
-  for (const id of removed) {
-    delete state.itemVisibility.subunits?.[id];
-    delete state.itemVisibility.regions?.[id];
+export function removeTerritorialEntities(state, {
+  countryIds = [],
+  unitIds = [],
+} = {}, territorialMode = 'territorial') {
+  const removedCountries = new Set([...countryIds].map(String).filter(Boolean));
+  const removedUnits = new Set([...unitIds].map(String).filter(Boolean));
+  const removedAll = new Set([...removedCountries, ...removedUnits]);
+
+  const unitTargets = [...removedUnits].map(id => state.territorialUnits.find(unit => String(unit.id) === id));
+  if (!territorialDeletionAllowed(unitTargets, state.territorialUnits)) {
+    throw new Error('잠금 또는 자식 관계 때문에 삭제할 수 없습니다.');
+  }
+  if (removedCountries.size && state.territorialUnits.some(unit => removedCountries.has(String(unit.properties?.parentId || '')))) {
+    throw new Error('하위 영역이 있는 국가는 삭제할 수 없습니다.');
+  }
+
+  if (removedCountries.size) {
+    state.countriesData.features = state.countriesData.features.filter(feature => !removedCountries.has(String(feature.id)));
+    for (const id of removedCountries) delete state.countryOverrides?.[id];
+  }
+
+  state.territorialUnits = state.territorialUnits
+    .filter(unit => !removedUnits.has(String(unit.id)))
+    .map(unit => {
+      const sovereignRemoved = removedCountries.has(String(unit.properties?.sovereignId || ''));
+      const parentRemoved = removedCountries.has(String(unit.properties?.parentId || ''));
+      if (!sovereignRemoved && !parentRemoved) return unit;
+      const next = { ...unit, properties: { ...unit.properties } };
+      if (sovereignRemoved) next.properties.sovereignId = '';
+      if (parentRemoved) next.properties.parentId = '';
+      return next;
+    });
+
+  state.territorialRelations = (state.territorialRelations || [])
+    .filter(relation => !removedAll.has(String(relation.unitId || ''))
+      && !removedUnits.has(String(relation.parentId || '')))
+    .map(relation => {
+      const parentRemoved = removedCountries.has(String(relation.parentId || ''));
+      const sovereignRemoved = removedCountries.has(String(relation.sovereignId || ''));
+      if (!parentRemoved && !sovereignRemoved) return relation;
+      return {
+        ...relation,
+        parentId: parentRemoved ? '' : relation.parentId,
+        sovereignId: sovereignRemoved ? '' : relation.sovereignId,
+      };
+    });
+
+  state.distributionEntries = (state.distributionEntries || []).filter(entry => (
+    entry.mode !== territorialMode || !removedAll.has(String(entry.territorialUnitId || ''))
+  ));
+
+  state.labels = (state.labels || []).map(label => {
+    const countryId = String(label.countryId || label.country_id || '');
+    if (!removedCountries.has(countryId)) return label;
+    const next = { ...label };
+    if ('countryId' in next) next.countryId = '';
+    if ('country_id' in next) next.country_id = '';
+    return next;
+  });
+
+  for (const feature of state.genericFeatures || []) {
+    const ownerId = String(feature.properties?.ownerId || '');
+    if (removedAll.has(ownerId)) feature.properties.ownerId = '';
+    const topologyGroup = String(feature.properties?.topologyGroup || '');
+    if (topologyGroup.startsWith('land:') && removedAll.has(topologyGroup.slice(5))) feature.properties.topologyGroup = '';
+  }
+
+  for (const id of removedCountries) {
+    delete state.itemVisibility?.countries?.[id];
+    delete state.itemVisibility?.countryLabels?.[id];
+    delete state.labelSettings?.[`country:${id}`];
+    delete state.labelSettings?.[`territorial:country:${id}`];
+  }
+  for (const id of removedUnits) {
+    delete state.itemVisibility?.subunits?.[id];
+    delete state.itemVisibility?.regions?.[id];
     for (const type of ['subunit', 'region']) {
       delete state.labelSettings?.[`${type}:${id}`];
       delete state.labelSettings?.[`territorial:${type}:${id}`];
     }
   }
+
+  return {
+    countryIds: [...removedCountries],
+    unitIds: [...removedUnits],
+  };
+}
+
+export function removeTerritorialUnits(state, ids, territorialMode) {
+  return removeTerritorialEntities(state, { unitIds: ids }, territorialMode);
 }
