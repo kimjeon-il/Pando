@@ -46,41 +46,35 @@ export function removeTerritorialEntities(state, {
     throw new Error('하위 영역이 있는 국가는 삭제할 수 없습니다.');
   }
 
-  if (removedCountries.size) {
-    if (entityStore?.removeCountries) entityStore.removeCountries([...removedCountries]);
-    else {
+  const genericRemoval = typeof entityStore?.removeEntities === 'function';
+  if (genericRemoval && removedAll.size) {
+    entityStore.removeEntities([
+      ...[...removedCountries].map(id => ({ type: 'country', id })),
+      ...unitTargets.map(unit => ({ type: unit.properties?.unitType, id: unit.id })),
+    ]);
+  } else {
+    if (removedCountries.size) {
       state.countriesData.features = state.countriesData.features.filter(feature => !removedCountries.has(String(feature.id)));
       for (const id of removedCountries) delete state.countryOverrides?.[id];
     }
   }
 
-  const genericUnitRemoval = !removedCountries.size
-    && removedUnits.size > 0
-    && typeof entityStore?.removeEntities === 'function';
-  if (genericUnitRemoval) {
-    entityStore.removeEntities(unitTargets.map(unit => ({
-      type: unit.properties?.unitType,
-      id: unit.id,
-    })));
-  }
-
-  const nextUnits = genericUnitRemoval
+  const storedAfterRemoval = genericRemoval
     ? entityStore.units()
-    : beforeUnits
-      .filter(unit => !removedUnits.has(String(unit.id)))
-      .map(unit => {
-        const sovereignRemoved = removedCountries.has(String(unit.properties?.sovereignId || ''));
-        const parentRemoved = removedCountries.has(String(unit.properties?.parentId || ''));
-        if (!sovereignRemoved && !parentRemoved) return unit;
-        const next = { ...unit, properties: { ...unit.properties } };
-        if (sovereignRemoved) next.properties.sovereignId = '';
-        if (parentRemoved) next.properties.parentId = '';
-        return next;
-      });
-  const unitsChanged = !genericUnitRemoval && (nextUnits.length !== beforeUnits.length
-    || nextUnits.some((unit, index) => unit !== beforeUnits[index]));
+    : beforeUnits.filter(unit => !removedUnits.has(String(unit.id)));
+  const nextUnits = storedAfterRemoval.map(unit => {
+    const sovereignRemoved = removedCountries.has(String(unit.properties?.sovereignId || ''));
+    const parentRemoved = removedCountries.has(String(unit.properties?.parentId || ''));
+    if (!sovereignRemoved && !parentRemoved) return unit;
+    const next = { ...unit, properties: { ...unit.properties } };
+    if (sovereignRemoved) next.properties.sovereignId = '';
+    if (parentRemoved) next.properties.parentId = '';
+    return next;
+  });
+  const unitsChanged = nextUnits.length !== storedAfterRemoval.length
+    || nextUnits.some((unit, index) => unit !== storedAfterRemoval[index]);
   if (unitsChanged) {
-    if (entityStore?.replaceUnits) entityStore.replaceUnits(nextUnits);
+    if (entityStore?.replaceCollections) entityStore.replaceCollections({ units: nextUnits });
     else state.territorialUnits = nextUnits;
   }
 
