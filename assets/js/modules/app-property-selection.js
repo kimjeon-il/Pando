@@ -67,7 +67,7 @@ export function createPropertySelection() {
   function territorialUnitCountryOptions() {
     return [
       { value: '', label: '소속 국가 미지정' },
-      ...(dependencies.projectState.state.countriesData?.features || []).map(feature => {
+      ...dependencies.territorialModel.entityRepository.list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY }).map(feature => {
         const properties = feature.properties || {};
         return {
           value: String(feature.id || ''),
@@ -110,7 +110,7 @@ export function createPropertySelection() {
     const queue = [...excluded];
     while (queue.length) {
       const current = queue.shift();
-      for (const child of (0, dependencies.territorialServicesA.territorialChildren)(dependencies.projectState.state.territorialUnits, current)) {
+      for (const child of dependencies.territorialModel.entityRepository.children(current)) {
         if (excluded.has(String(child.id))) continue;
         excluded.add(String(child.id));
         queue.push(String(child.id));
