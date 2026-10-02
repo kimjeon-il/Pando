@@ -2,7 +2,12 @@ import { resolveInteractionEntries } from './map-interaction-style.js';
 import { normalizeObjectRef } from './object-selection-controller.js';
 
 /** A read-only projection of the existing selection and tool session. */
-export function mapInteractionEntries(snapshot, state, { countryType = 'country', visible = () => true } = {}) {
+export function mapInteractionEntries(snapshot, state, {
+  countryType = 'country',
+  visible = () => true,
+  territorialEntityById = () => null,
+  territorialUnits = () => [],
+} = {}) {
   const rows = snapshot.selection.items.filter(visible).map(ref => ({ key: ref.key, ref,
     role: ref.key === snapshot.selection.primaryKey ? 'primary' : 'secondary' }));
   if (snapshot.hover && visible(snapshot.hover)) rows.push({ key: snapshot.hover.key, ref: snapshot.hover, role: 'hover' });
@@ -14,8 +19,10 @@ export function mapInteractionEntries(snapshot, state, { countryType = 'country'
   };
   const country = (id, role) => add('territorial', countryType, id, role);
   const unit = (id, role) => {
-    const feature = (state.territorialUnits || []).find(item => String(item.id) === String(id));
-    if (feature) add('territorial', feature.properties.unitType, id, role);
+    const feature = territorialEntityById(id);
+    if (feature?.properties?.unitType && feature.properties.unitType !== countryType) {
+      add('territorial', feature.properties.unitType, id, role);
+    }
   };
   const session = state.territorySelectionSession?.tool === state.tool ? state.territorySelectionSession : null;
   if (session) {
@@ -52,7 +59,7 @@ export function mapInteractionEntries(snapshot, state, { countryType = 'country'
     add('generic', 'feature', state.genericFeatureMergeSourceId, 'edit-target');
     for (const id of state.genericFeatureMergeTargetIds || []) add('generic', 'feature', id, 'selected-provider');
   }
-  const parents = new Map((state.territorialUnits || []).map(feature => [String(feature.id), feature.properties]));
+  const parents = new Map((territorialUnits() || []).map(feature => [String(feature.id), feature.properties]));
   for (const row of rows) {
     const seen = new Set();
     let id = row.ref.domain === 'territorial' && row.ref.type !== countryType ? row.ref.id : '';
