@@ -385,8 +385,9 @@ export function createTaskPresentation() {
   function territorialUnitDisplay(unitId) {
     const id = String(unitId || '');
     if (!id) return null;
-    const unit = (dependencies.projectState.state.territorialUnits || []).find(item => String(item?.id || '') === id);
-    const name = String(unit?.properties?.name || '').trim();
+    const unit = dependencies.territorialModel.entityRepository.get(id);
+    if (!unit || unit.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
+    const name = String(unit.properties?.name || '').trim();
     return name || null;
   }
 
