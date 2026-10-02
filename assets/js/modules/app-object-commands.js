@@ -19,6 +19,12 @@ export function createObjectCommands() {
     return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, id: String(id) });
   }
 
+  function territorialEntityForRef(ref) {
+    if (ref?.domain !== 'territorial') return null;
+    const entity = dependencies.territorialModel.entityRepository.get(ref.id);
+    return entity?.properties?.unitType === ref.type ? entity : null;
+  }
+
   function layerItemObjectRef(group, id) {
     const key = String(id);
     if (group === 'countries' || group === 'countryLabels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, id: key });
@@ -36,7 +42,7 @@ export function createObjectCommands() {
   function objectRefExists(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return false;
-    if (ref.domain === 'territorial') return ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? !!(0, dependencies.countries.countryFeatureById)(ref.id) : !!(0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+    if (ref.domain === 'territorial') return !!territorialEntityForRef(ref);
     if (ref.domain === 'distribution') return !!(0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
     if (ref.domain === 'generic') return dependencies.projectState.state.genericFeatures.some(item => String(item.id) === ref.id);
     if (ref.domain === 'hydro') return !!(0, dependencies.hydroModel.hydroFeatureById)(ref.id);
@@ -47,12 +53,11 @@ export function createObjectCommands() {
   function objectDisplayInfo(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return { name: '알 수 없는 객체', type: '' };
-    if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      const feature = (0, dependencies.countries.countryFeatureById)(ref.id);
-      return { name: feature ? (0, dependencies.presentation.countryName)(feature) : ref.id, type: '국가', detail: '' };
-    }
     if (ref.domain === 'territorial') {
-      const feature = (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+      const feature = territorialEntityForRef(ref);
+      if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+        return { name: feature ? (0, dependencies.presentation.countryName)(feature) : ref.id, type: '국가', detail: '' };
+      }
       const type = (0, dependencies.territorialServicesB.territorialTypeLabel)(ref.type);
       const context = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? '' : (0, dependencies.objectPresentation.territorialUnitCountryName)(feature);
       return { name: feature ? (0, dependencies.objectPresentation.territorialUnitName)(feature) : ref.id, type, detail: context };
@@ -79,7 +84,7 @@ export function createObjectCommands() {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return false;
     let feature = null;
-    if (ref.domain === 'territorial') feature = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.countries.countryFeatureById)(ref.id) : (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+    if (ref.domain === 'territorial') feature = territorialEntityForRef(ref);
     else if (ref.domain === 'generic') feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
     else if (ref.domain === 'hydro') feature = (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
     else if (ref.domain === 'distribution') {
@@ -157,7 +162,8 @@ export function createObjectCommands() {
 
   function setCountryLockedState(id, locked) {
     const key = String(id || '');
-    if (!key || !(0, dependencies.countries.countryFeatureById)(key)) return false;
+    const entity = dependencies.territorialModel.entityRepository.get(key);
+    if (!key || entity?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return false;
     const override = { ...(dependencies.projectState.state.countryOverrides[key] || {}) };
     if (locked) override.locked = true;
     else delete override.locked;
@@ -180,7 +186,7 @@ export function createObjectCommands() {
   function objectRefLocked(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return false;
-    if (ref.domain === 'territorial') return ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? isCountryLocked(ref.id) : (0, dependencies.objectPresentation.territorialUnitById)(ref.id)?.properties?.locked === true;
+    if (ref.domain === 'territorial') return territorialEntityForRef(ref)?.properties?.locked === true;
     if (ref.domain === 'distribution') return (0, dependencies.propertyEditingA.distributionLayerById)(ref.id)?.locked === true;
     if (ref.domain === 'generic') return dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id)?.properties?.locked === true;
     if (ref.domain === 'hydro') return (0, dependencies.hydroPresentation.hydroEditById)(ref.id)?.properties?.locked === true;
