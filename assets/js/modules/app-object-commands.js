@@ -131,7 +131,7 @@ export function createObjectCommands() {
     if (ref.domain === 'territorial') {
       values.add('color');
       values.add('lock');
-      if (ref.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY && territorialDeletionAllowed([(0, dependencies.objectPresentation.territorialUnitById)(ref.id)], dependencies.projectState.state.territorialUnits)) values.add('delete');
+      if (ref.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY && territorialDeletionAllowed([(0, dependencies.objectPresentation.territorialUnitById)(ref.id)], dependencies.territorialModel.entityRepository.list())) values.add('delete');
     } else if (ref.domain === 'distribution') {
       values.add('color'); values.add('lock'); values.add('delete');
     } else if (ref.domain === 'hydro') {
@@ -150,7 +150,9 @@ export function createObjectCommands() {
   }
 
   function isCountryLocked(id) {
-    return dependencies.projectState.state.countryOverrides?.[String(id)]?.locked === true;
+    const entity = dependencies.territorialModel.entityRepository.get(id);
+    return entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+      && entity.properties?.locked === true;
   }
 
   function setCountryLockedState(id, locked) {
