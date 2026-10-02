@@ -133,8 +133,9 @@ test('country extent includes detached descendants once and caches geometry work
   let revision = 1, unions = 0;
   const units = [unit('p'), unit('c', 'p', { geometry: geometry(4.5), color: '#ee8800' })];
   const before = structuredClone({ country, units });
+  const countries = { type: 'FeatureCollection', features: [country] };
   const repository = createTerritorialEntityRepository({
-    getCountries: () => ({ type: 'FeatureCollection', features: [country] }),
+    getCountries: () => countries,
     getUnits: () => units,
     getRevision: () => revision,
   });
