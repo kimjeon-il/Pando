@@ -210,3 +210,40 @@ test('atomic collection replacement updates both repository domains before revis
   assert.equal(repository.get('B').properties.name, 'Bee');
   assert.equal(repository.get('S').properties.sovereignId, 'B');
 });
+
+
+test('generic entity operations partition countries and units behind one store API', () => {
+  const { state, store, countryReplacements, unitReplacements } = fixture();
+
+  const appended = store.appendEntities([
+    {
+      type: TERRITORIAL_UNIT_TYPES.COUNTRY,
+      feature: { type: 'Feature', id: 'B', properties: { name: 'B' }, geometry: null },
+      countryOverride: { name: 'Bee' },
+    },
+    {
+      type: TERRITORIAL_UNIT_TYPES.SUBUNIT,
+      feature: { type: 'Feature', id: 'S', properties: { unitType: 'subunit', parentId: 'A', sovereignId: 'A' }, geometry: null },
+    },
+  ]);
+
+  assert.deepEqual(appended.countries.map(feature => feature.id), ['B']);
+  assert.deepEqual(appended.units.map(feature => feature.id), ['S']);
+  assert.equal(state.countryOverrides.B.name, 'Bee');
+  assert.equal(store.countryFeature('B').id, 'B');
+  assert.equal(store.unitFeature('S').id, 'S');
+  assert.equal(countryReplacements(), 1);
+  assert.equal(unitReplacements(), 1);
+
+  const removed = store.removeEntities([
+    { type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: 'B' },
+    { type: TERRITORIAL_UNIT_TYPES.SUBUNIT, id: 'S' },
+  ]);
+
+  assert.deepEqual(removed.countries.map(feature => feature.id), ['B']);
+  assert.deepEqual(removed.units.map(feature => feature.id), ['S']);
+  assert.equal(store.countryFeature('B'), null);
+  assert.equal(store.unitFeature('S'), null);
+  assert.equal(countryReplacements(), 2);
+  assert.equal(unitReplacements(), 2);
+});
