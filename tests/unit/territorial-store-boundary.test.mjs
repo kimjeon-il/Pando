@@ -29,6 +29,7 @@ test('migrated interactive territorial modules do not write raw territorial unit
     'app-generic-commands.js',
     'app-land-relations.js',
     'app-object-deletion.js',
+    'gis-import-transaction.js',
   ];
   const sources = await Promise.all(names.map(read));
   const rawWrite = /(?:dependencies\.projectState\.)?state\.territorialUnits\s*(?:=|\.push\s*\(|\.splice\s*\()/;
@@ -39,12 +40,13 @@ test('migrated interactive territorial modules do not write raw territorial unit
 });
 
 test('structural editing modules use the entity store for collection writes', async () => {
-  const [drafts, conversion, generic, land, deletion] = await Promise.all([
+  const [drafts, conversion, generic, land, deletion, gis] = await Promise.all([
     read('app-territorial-drafts.js'),
     read('app-territorial-conversion.js'),
     read('app-generic-commands.js'),
     read('app-land-relations.js'),
     read('app-object-deletion.js'),
+    read('gis-import-transaction.js'),
   ]);
 
   assert.match(drafts, /entityStore\.(?:appendCountries|replaceUnits)/);
@@ -52,4 +54,5 @@ test('structural editing modules use the entity store for collection writes', as
   assert.match(generic, /entityStore\.replaceUnits/);
   assert.match(land, /entityStore\.replaceUnits/);
   assert.match(deletion, /entityStore/);
+  assert.match(gis, /entityStore\.(?:replaceCountries|replaceUnits|appendUnits)/);
 });
