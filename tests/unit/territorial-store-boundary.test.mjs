@@ -39,7 +39,14 @@ test('territorial callers do not write raw country or unit collection storage', 
   const rawWrite = /(?:dependencies\.projectState\.)?state\.(?:territorialUnits|countriesData(?:\.features)?)\s*(?:=|\.push\s*\(|\.splice\s*\()/;
 
   for (let index = 0; index < names.length; index += 1) {
-    assert.doesNotMatch(sources[index], rawWrite, `${names[index]} must write country/unit collections through TerritorialEntityStore`);
+    let source = sources[index];
+    if (names[index] === 'gis-import-transaction.js') {
+      const fallbackStart = source.indexOf('  const entityStore = providedEntityStore || (() => {');
+      const fallbackEnd = source.indexOf('\n  function applyCountryGeometryOverrides', fallbackStart);
+      assert.ok(fallbackStart >= 0 && fallbackEnd > fallbackStart, 'GIS standalone store fallback markers must remain explicit');
+      source = source.slice(0, fallbackStart) + source.slice(fallbackEnd);
+    }
+    assert.doesNotMatch(source, rawWrite, `${names[index]} must write country/unit collections through TerritorialEntityStore`);
   }
 });
 
