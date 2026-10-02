@@ -137,8 +137,29 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         state.territorialUnits = [...units(), ...additions];
         return additions;
       },
+      appendEntities(items) {
+        const entries = Array.isArray(items) ? items.filter(item => item?.feature) : [];
+        const unitValues = [];
+        for (const item of entries) {
+          const type = String(item.type || item.feature?.properties?.unitType || '');
+          if (type === 'country') throw new Error('standalone GIS fallback에서는 국가 추가를 appendEntities로 처리하지 않습니다.');
+          unitValues.push(item.feature);
+        }
+        if (unitValues.length) this.appendUnits(unitValues);
+        return { countries: [], units: unitValues };
+      },
     });
   })();
+
+  function appendTerritorialEntities(features) {
+    const additions = Array.isArray(features) ? features.filter(Boolean) : [];
+    if (!additions.length) return [];
+    entityStore.appendEntities(additions.map(feature => ({
+      type: feature.properties?.unitType,
+      feature,
+    })));
+    return additions;
+  }
 
   function applyCountryGeometryOverrides(overrides) {
     if (!overrides?.size) return new Set();
@@ -433,7 +454,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       }
       let importedCountries;
       if (kind === TERRITORIAL_UNIT_TYPES.REGION) {
-        entityStore.appendUnits(deepClone(imported));
+        appendTerritorialEntities(deepClone(imported));
         importedCountries = new Set(imported.map(feature => String(feature.properties?.sovereignId || '')).filter(Boolean));
       } else {
         importedCountries = appendPreparedTerritorialUnits(imported, kind, { preserveIds: [...preservedIds] });
@@ -651,7 +672,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     if (!imported.length) throw new Error('가져올 Polygon 또는 MultiPolygon 지방이 없습니다.');
     recordHistory();
     const changedCountryIds = applyCountryGeometryOverrides(countryGeometryOverrides);
-    entityStore.appendUnits(imported);
+    appendTerritorialEntities(imported);
     normalizeProjectObjects();
     if (changedCountryIds.size) {
       refreshCountryCentroids(changedCountryIds);
@@ -855,7 +876,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         transferLandDependents(transfer.geometry, transfer.donorIds, transfer.targetId);
       }
       if (preparedUnits.length) {
-        entityStore.appendUnits(deepClone(preparedUnits));
+        appendTerritorialEntities(deepClone(preparedUnits));
         normalizeProjectObjects();
         markLayerTreeDirty();
       }
