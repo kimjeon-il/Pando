@@ -23,7 +23,6 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
   ],
   "countryCommits": [
     "applicationServicesB",
-    "countries",
     "countryEditingA",
     "countryValidation",
     "cutGeometry",
@@ -33,7 +32,6 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "feedback",
     "genericEditingA",
     "geometryModel",
-    "geometryMutation",
     "geometryOperations",
     "hydroModel",
     "interactionPresentation",
