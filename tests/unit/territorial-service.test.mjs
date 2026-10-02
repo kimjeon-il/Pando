@@ -89,3 +89,28 @@ test('metadata parent edits cannot bypass Subunit parent and cycle validation', 
   assert.equal(entityRepository.get('s').properties.parentId, 'country-a');
 });
 
+
+
+test('country metadata service does not accept administrative or political relation fields', () => {
+  const { service, entityRepository, transactions } = fixture();
+  for (const field of ['parentId', 'sovereignId', 'unitType']) {
+    const result = service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', field, 'other');
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 'unsupported-relation-field');
+  }
+  assert.equal(transactions.length, 0);
+  assert.equal(entityRepository.get('country-a').properties.parentId, undefined);
+});
+
+test('subunit sovereign changes are validated with the same administrative hierarchy rules', () => {
+  const { service, entityRepository, transactions } = fixture();
+  service.replaceUnits([
+    { id: 's', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a' } },
+  ]);
+  const count = transactions.length;
+  const result = service.updateMetadata('subunit', 's', 'sovereignId', 'missing-country');
+  assert.equal(result.ok, false);
+  assert.equal(result.code, 'invalid-parent');
+  assert.equal(transactions.length, count);
+  assert.equal(entityRepository.get('s').properties.sovereignId, 'country-a');
+});
