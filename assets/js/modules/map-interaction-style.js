@@ -75,15 +75,16 @@ export function resolveInteractionEntries(entries = []) {
 export function interactionRoleStyle(style, role = 'candidate', { directManipulation = false } = {}) {
   const priority = INTERACTION_ROLE_PRIORITY[role] || 1;
   const selection = style.selection;
-  if (priority === 1) return Object.freeze({ color: selection.color, width: 1, alpha: 0.45, fillAlpha: 0, scaleWithView: true });
-  if (priority === 2) return Object.freeze({ ...style.hover, scaleWithView: true });
+  const antiAlias = style.antiAlias !== false;
+  if (priority === 1) return Object.freeze({ color: selection.color, width: 1, alpha: 0.45, fillAlpha: 0, scaleWithView: true, antiAlias });
+  if (priority === 2) return Object.freeze({ ...style.hover, scaleWithView: true, antiAlias });
   const source = priority >= 4 ? selection.primary : selection.secondary;
   return Object.freeze({ color: selection.color,
     width: directManipulation ? (priority >= 4 ? 2.5 : 1.5) : source.innerWidth,
     alpha: directManipulation ? (priority >= 4 ? 1 : 0.72) : source.innerAlpha,
     fillAlpha: source.fillAlpha,
     scaleWithView: true,
-    antiAlias: globalThis.document?.documentElement?.dataset.smoothLines !== 'false' });
+    antiAlias });
 }
 
 export function interactionCssProperties(style) {
@@ -126,6 +127,7 @@ export function resolveMapInteractionStyle({
   selectionColor = null,
   outlineVisible = true,
   fillStrength = 0.35,
+  antiAlias = true,
   tokens = {},
 } = {}) {
   const resolvedTheme = THEMES.has(theme) ? theme : 'dark';
@@ -142,6 +144,7 @@ export function resolveMapInteractionStyle({
   const hoverFillAlpha = (dark ? 0.10 : 0.08) * resolvedFillStrength;
   return Object.freeze({
     theme: resolvedTheme,
+    antiAlias: antiAlias !== false,
     hover: Object.freeze({ color: resolvedSelectionColor, width: 1.5, alpha: 0.85, fillAlpha: hoverFillAlpha }),
     selection: Object.freeze({
       color: resolvedSelectionColor,
