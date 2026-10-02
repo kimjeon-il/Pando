@@ -45,7 +45,13 @@ function fixture() {
       },
     },
     unitCommands: {
-      setField(id, field, value) { entityRepository.get(id).properties[field] = value; },
+      setField(id, field, value) {
+        const feature = entityRepository.get(id);
+        if (field === 'color') {
+          feature.properties.style ||= {};
+          feature.properties.style.color = value;
+        } else feature.properties[field] = value;
+      },
       replaceAll(value) { units = value; },
     },
   });
