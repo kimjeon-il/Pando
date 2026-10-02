@@ -121,7 +121,6 @@ export function createTerritorialEntityRepository({
     type = '',
     parentId = null,
     administrativeCountryId = null,
-    sovereignId = null,
   } = {}) {
     let values = snapshot().values;
     if (type) values = values.filter(entity => entity.properties?.unitType === type);
@@ -129,7 +128,7 @@ export function createTerritorialEntityRepository({
       const key = text(parentId);
       values = values.filter(entity => text(entity.properties?.parentId) === key);
     }
-    const countryId = administrativeCountryId !== null ? administrativeCountryId : sovereignId;
+    const countryId = administrativeCountryId;
     if (countryId !== null) {
       const key = text(countryId);
       values = values.filter(entity => text(entity.properties?.sovereignId) === key);
@@ -230,27 +229,16 @@ export function createTerritorialEntityRepository({
     return countryEntity;
   }
 
-  // Compatibility alias for the legacy sovereignId storage field. Political
-  // dependency/sovereignty relations belong to TerritorialRelation, not here.
-  const sovereign = administrativeCountry;
-
   return Object.freeze({
     get,
     has: id => !!get(id),
     list,
     children,
-    administrativeChildren: children,
     parent,
-    administrativeParent: parent,
     siblings,
-    administrativeSiblings: siblings,
     ancestors,
-    administrativeAncestors: ancestors,
     descendants,
-    administrativeDescendants: descendants,
     root,
-    administrativeRoot: root,
     administrativeCountry,
-    sovereign,
   });
 }

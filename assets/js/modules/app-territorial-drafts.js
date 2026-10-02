@@ -206,7 +206,7 @@ export function createTerritorialDrafts() {
   }
 
   function directSubunitChildren(session) {
-    return dependencies.territorialModel.entityRepository.administrativeChildren(session.parentId, {
+    return dependencies.territorialModel.entityRepository.children(session.parentId, {
       type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT,
     }).filter(feature => text(feature.properties?.sovereignId) === text(session.sovereignId));
   }
@@ -489,7 +489,7 @@ export function createTerritorialDrafts() {
     const source = dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.territorialUnitMergeSourceId);
     const target = dependencies.territorialModel.entityRepository.get(id);
     if (!source || !target || String(source.id) === String(target.id)) return;
-    if (!dependencies.territorialModel.entityRepository.administrativeSiblings(source.id)
+    if (!dependencies.territorialModel.entityRepository.siblings(source.id)
       .some(candidate => String(candidate.id) === String(target.id))) {
       (0, dependencies.feedback.setActionStatus)('같은 소속 국가·상위 단위의 하위단위만 합칠 수 있습니다.', 'error', 3400);
       return;
@@ -557,7 +557,7 @@ export function createTerritorialDrafts() {
     const source = (0, dependencies.objectPresentation.territorialUnitById)(id);
     if (!source) return false;
     if (source.properties.unitType === 'subunit') {
-      const siblings = dependencies.territorialModel.entityRepository.administrativeSiblings(source.id);
+      const siblings = dependencies.territorialModel.entityRepository.siblings(source.id);
       if (source.properties.locked || !siblings.length) {
         (0, dependencies.feedback.setActionStatus)('경계를 공유하는 하위단위가 있어야 경계를 조정할 수 있습니다.', 'error', 3400);
         return false;
@@ -588,7 +588,7 @@ export function createTerritorialDrafts() {
     const coords = (0, dependencies.countryEditingA.editingDraftCoordinates)().map(coord => coord.slice());
     try {
       const drawn = { type: 'Polygon', coordinates: [(0, dependencies.applicationServicesB.orientRing)(coords, true)] };
-      const siblings = dependencies.territorialModel.entityRepository.administrativeSiblings(source.id);
+      const siblings = dependencies.territorialModel.entityRepository.siblings(source.id);
       const response = await dependencies.spatialQuery.mapEditClient.execute('territorial-region-redraw', { payload: {
         targetId: source.id, containerId: container.id, siblingIds: siblings.map(sibling => sibling.id), draft: drawn,
       } });
@@ -598,7 +598,10 @@ export function createTerritorialDrafts() {
       return (0, dependencies.geometryOperations.beginLocalGeometryPreview)({ operation: 'redraw-region', beforeFeatures: [source], afterFeatures: [next],
         commitHistorySnapshot: true,
         applyResult: () => {
-          source.geometry = (0, dependencies.platform.deepClone)(geometry);
+          dependencies.territorialModel.entityStore.replaceCollections({
+            units: dependencies.territorialModel.entityStore.units().map(feature => String(feature.id) === String(source.id)
+              ? { ...feature, geometry: (0, dependencies.platform.deepClone)(geometry) } : feature),
+          });
           dependencies.domains.editingDomain?.clearDraft?.(true);
           dependencies.domains.editingDomain?.setTool('select', { announce: false });
           (0, dependencies.layers.markLayerTreeDirty)();

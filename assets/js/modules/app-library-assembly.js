@@ -105,7 +105,7 @@ export function createLibraryAssembly() {
         });
         if (!prepared.length) return { prepared };
         const countryFeatures = prepared.filter(item => item.type === 'country').map(item => {
-          const feature = (0, dependencies.objectPicking.createCountryFeature)(item.name, [], null, item.geometry);
+          const feature = (0, dependencies.objectPicking.createCountryFeature)(item.name, [], item.geometry);
           feature.id = item.id;
           if (item.validFrom) feature.properties.validFrom = item.validFrom;
           if (item.validTo) feature.properties.validTo = item.validTo;

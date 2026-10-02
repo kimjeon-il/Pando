@@ -61,7 +61,7 @@ export function createGenericCommands() {
     if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)(sourceIds, '국가로 전환')) return;
     const name = String(feature.properties?.name || '').trim() || '이름 없음';
     const snapshot = (0, dependencies.snapshots.snapshotEditable)();
-    const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], feature.properties?.color || null, (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
+    const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
     country.properties.metadata = legacyGenericMetadata(feature);
     (0, dependencies.feedback.setActionStatus)('영역을 국가로 전환하는 중입니다.', 'working', 0);
     await (0, dependencies.geometryOperations.transactCountryEdit)({
@@ -70,6 +70,9 @@ export function createGenericCommands() {
       snapshot,
       applyResult: result => {
         (0, dependencies.cutOperations.applyWorkerCountryPatches)(result, { presentation: 'preserve-existing-scene' });
+        if (feature.properties?.color) {
+          dependencies.territorialModel.entityStore.setField('country', country.id, 'color', feature.properties.color);
+        }
         (0, dependencies.landRelations.transferLandDependents)(transferredGeometry, sourceIds, country.id, [feature.id]);
         dependencies.projectState.state.genericFeatures = dependencies.projectState.state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
         dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;

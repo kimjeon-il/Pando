@@ -3,6 +3,7 @@ name: Application Architecture
 on:
   pull_request:
     paths:
+      - 'assets/js/**'
       - 'assets/js/modules/project-command-pipeline.js'
       - 'assets/js/modules/object-adapter-registry.js'
       - 'assets/js/modules/object-command-definitions.js'
@@ -68,6 +69,10 @@ on:
       - 'scripts/generate-build-metadata.mjs'
       - 'scripts/check-version.mjs'
       - 'scripts/check-command-architecture.mjs'
+      - 'scripts/check-territorial-storage.mjs'
+      - 'scripts/lib/territorial-storage-audit.mjs'
+      - 'scripts/contracts/territorial-storage-access.json'
+      - 'tests/unit/territorial-storage-audit.test.mjs'
       - 'scripts/check-generic-provenance.mjs'
       - 'scripts/check-version-architecture.mjs'
       - 'scripts/check-worker-architecture.mjs'
@@ -114,6 +119,11 @@ on:
     branches:
       - main
     paths:
+      - 'assets/js/**'
+      - 'scripts/check-territorial-storage.mjs'
+      - 'scripts/lib/territorial-storage-audit.mjs'
+      - 'scripts/contracts/territorial-storage-access.json'
+      - 'tests/unit/territorial-storage-audit.test.mjs'
       - 'assets/js/modules/project-command-pipeline.js'
       - 'assets/js/modules/object-adapter-registry.js'
       - 'assets/js/modules/object-command-definitions.js'
@@ -246,7 +256,7 @@ jobs:
           territorial_store=false
           while IFS= read -r file; do
             case "$file" in
-              assets/js/modules/territorial-entity-store.js|              assets/js/modules/territorial-entity-repository.js|              assets/js/modules/territorial-service.js|              assets/js/modules/app-domain-assembly.js|              assets/js/modules/app-history-assembly.js|              assets/js/modules/app-runtime-dependencies.js|              assets/js/modules/app-capability-ports-foundation.js|              assets/js/modules/app-capability-ports.js|              assets/js/modules/app-capability-ports-lifecycle-ui.js|              assets/js/modules/app-capability-ports-project-io.js|              assets/js/modules/app-capability-ports-object-editing.js|              assets/js/modules/app-builtin-session.js|              assets/js/modules/app-progressive-startup.js|              assets/js/modules/app-gis-assembly.js|              assets/js/modules/gis-import-transaction.js|              assets/js/modules/app-project-snapshots.js|              assets/js/modules/app-project-restore.js|              assets/js/modules/app-cut-geometry.js|              assets/js/modules/territorial-interaction-policy.js|              assets/js/modules/app-object-deletion.js|              assets/js/modules/app-land-relations.js|              assets/js/modules/app-generic-commands.js|              assets/js/modules/app-territorial-conversion.js|              assets/js/modules/app-territorial-drafts.js|              tests/unit/territorial-entity-store.test.mjs|              tests/unit/territorial-entity-repository.test.mjs|              tests/unit/territorial-service.test.mjs|              tests/unit/territorial-interaction-policy.test.mjs|              tests/unit/territorial-store-boundary.test.mjs|              package.json|pnpm-lock.yaml|eslint.config.js|              .github/workflows/application-architecture.yml)
+              assets/js/*|assets/js/modules/territorial-entity-store.js|              assets/js/modules/territorial-entity-repository.js|              assets/js/modules/territorial-service.js|              assets/js/modules/app-domain-assembly.js|              assets/js/modules/app-history-assembly.js|              assets/js/modules/app-runtime-dependencies.js|              assets/js/modules/app-capability-ports-foundation.js|              assets/js/modules/app-capability-ports.js|              assets/js/modules/app-capability-ports-lifecycle-ui.js|              assets/js/modules/app-capability-ports-project-io.js|              assets/js/modules/app-capability-ports-object-editing.js|              assets/js/modules/app-builtin-session.js|              assets/js/modules/app-progressive-startup.js|              assets/js/modules/app-gis-assembly.js|              assets/js/modules/gis-import-transaction.js|              assets/js/modules/app-project-snapshots.js|              assets/js/modules/app-project-restore.js|              assets/js/modules/app-cut-geometry.js|              assets/js/modules/territorial-interaction-policy.js|              assets/js/modules/app-object-deletion.js|              assets/js/modules/app-land-relations.js|              assets/js/modules/app-generic-commands.js|              assets/js/modules/app-territorial-conversion.js|              assets/js/modules/app-territorial-drafts.js|              tests/unit/territorial-entity-store.test.mjs|              tests/unit/territorial-entity-repository.test.mjs|              tests/unit/territorial-service.test.mjs|              tests/unit/territorial-interaction-policy.test.mjs|              tests/unit/territorial-store-boundary.test.mjs|              package.json|pnpm-lock.yaml|eslint.config.js|              scripts/check-territorial-storage.mjs|scripts/lib/territorial-storage-audit.mjs|scripts/contracts/territorial-storage-access.json|tests/unit/territorial-storage-audit.test.mjs|.github/workflows/application-architecture.yml)
                 territorial_store=true
                 break
                 ;;
@@ -334,9 +344,8 @@ jobs:
             echo "Legacy territorial service storage adapter remains."
             exit 1
           fi
-      - name: Audit application raw territorial writes
-        run: |
-          grep -R -n -E 'state\.(countriesData|territorialUnits)\s*(=|\.features\s*=|\.push\()' assets/js/modules/app-*.js || true
+      - name: Audit classified territorial storage access
+        run: node scripts/check-territorial-storage.mjs
       - name: Reject raw territorial unit writes in migrated edit modules
         run: |
           if grep -n -E 'state\.territorialUnits\s*(=|\.push|\.splice)' \
@@ -348,9 +357,6 @@ jobs:
             echo "Migrated territorial edit module writes raw territorialUnits."
             exit 1
           fi
-      - name: Audit remaining structural territorial writes
-        run: |
-          grep -R -n -E 'state\.territorialUnits\s*(=|\.push|\.splice)|state\.countriesData(\.features)?\s*(=|\.push|\.splice)' assets/js/modules || true
       - name: Focused unit tests
         run: >
           node --test
@@ -359,6 +365,7 @@ jobs:
           tests/unit/territorial-service.test.mjs
           tests/unit/territorial-interaction-policy.test.mjs
           tests/unit/territorial-store-boundary.test.mjs
+          tests/unit/territorial-storage-audit.test.mjs
 
   full-unit-suite:
     name: Full unit suite

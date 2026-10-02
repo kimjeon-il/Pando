@@ -13,7 +13,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     countryName,
     territorialUnitName,
     territorialEntityRepository,
-    entityStore: providedEntityStore,
+    entityStore,
     distributionService,
     genericFeatureService,
     resolveImportedCountryId,
@@ -70,63 +70,11 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     selectionUiController,
   } = runtime;
 
-  const entityStore = providedEntityStore || (() => {
-    if (!state || typeof state !== 'object') {
-      throw new TypeError('GIS 가져오기 커미터에는 엔티티 저장소 또는 프로젝트 상태가 필요합니다.');
+  for (const method of ['countriesData', 'units', 'countryOverrides', 'rawEntity', 'replaceCollections', 'appendEntities']) {
+    if (typeof entityStore?.[method] !== 'function') {
+      throw new TypeError(`GIS 가져오기 커미터에는 공통 엔티티 저장소의 ${method}가 필요합니다.`);
     }
-    const countriesData = () => {
-      state.countriesData ||= { type: 'FeatureCollection', features: [] };
-      state.countriesData.features ||= [];
-      return state.countriesData;
-    };
-    const units = () => (state.territorialUnits ||= []);
-    const countryOverrides = () => (state.countryOverrides ||= {});
-    return Object.freeze({
-      countriesData,
-      units,
-      countryOverrides,
-      countryFeature(id) {
-        const key = String(id ?? '');
-        return countriesData().features.find(feature => String(feature?.id ?? '') === key) || null;
-      },
-      replaceCollections({
-        countriesData: nextCountriesData = null,
-        units: nextUnits = null,
-        countryOverrides: nextCountryOverrides = undefined,
-      } = {}) {
-        if (nextCountryOverrides !== undefined) {
-          state.countryOverrides = nextCountryOverrides && typeof nextCountryOverrides === 'object'
-            ? { ...nextCountryOverrides }
-            : {};
-        }
-        if (nextCountriesData) {
-          const next = nextCountriesData?.type === 'FeatureCollection'
-            ? nextCountriesData
-            : { type: 'FeatureCollection', features: Array.isArray(nextCountriesData) ? nextCountriesData : [] };
-          state.countriesData = typeof runtime.reindexCountries === 'function'
-            ? runtime.reindexCountries(next, true)
-            : next;
-        }
-        if (Array.isArray(nextUnits)) state.territorialUnits = nextUnits;
-        return {
-          countriesData: countriesData(),
-          countryOverrides: countryOverrides(),
-          units: units(),
-        };
-      },
-      appendEntities(items) {
-        const entries = Array.isArray(items) ? items.filter(item => item?.feature) : [];
-        const unitValues = [];
-        for (const item of entries) {
-          const type = String(item.type || item.feature?.properties?.unitType || '');
-          if (type === 'country') throw new Error('standalone GIS fallback에서는 국가 추가를 appendEntities로 처리하지 않습니다.');
-          unitValues.push(item.feature);
-        }
-        if (unitValues.length) state.territorialUnits = [...units(), ...unitValues];
-        return { countries: [], units: unitValues };
-      },
-    });
-  })();
+  }
 
   function appendTerritorialEntities(features) {
     const additions = Array.isArray(features) ? features.filter(Boolean) : [];

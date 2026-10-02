@@ -1,8 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 
 const read = name => readFile(new URL(`../../assets/js/modules/${name}`, import.meta.url), 'utf8');
+
+test('every production territorial storage access is classified at its function owner', () => {
+  const output = execFileSync(process.execPath, ['scripts/check-territorial-storage.mjs'], { encoding: 'utf8' });
+  assert.match(output, /no unclassified or forbidden writes/);
+});
 
 test('territorial application service depends on one physical entity store', async () => {
   const [service, history, domain] = await Promise.all([
@@ -27,6 +33,8 @@ test('territorial callers do not write raw country or unit collection storage', 
     'app-generic-commands.js',
     'app-land-relations.js',
     'app-object-deletion.js',
+    'app-object-commands.js',
+    'territorial-interaction-policy.js',
     'app-cut-geometry.js',
     'app-progressive-startup.js',
     'app-project-restore.js',
@@ -38,13 +46,7 @@ test('territorial callers do not write raw country or unit collection storage', 
   const rawWrite = /(?:dependencies\.projectState\.)?state\.(?:territorialUnits|countriesData(?:\.features)?)\s*(?:=|\.push\s*\(|\.splice\s*\()/;
 
   for (let index = 0; index < names.length; index += 1) {
-    let source = sources[index];
-    if (names[index] === 'gis-import-transaction.js') {
-      const fallbackStart = source.indexOf('  const entityStore = providedEntityStore || (() => {');
-      const fallbackEnd = source.indexOf('\n  function applyCountryGeometryOverrides', fallbackStart);
-      assert.ok(fallbackStart >= 0 && fallbackEnd > fallbackStart, 'GIS standalone store fallback markers must remain explicit');
-      source = source.slice(0, fallbackStart) + source.slice(fallbackEnd);
-    }
+    const source = sources[index];
     assert.doesNotMatch(source, rawWrite, `${names[index]} must write country/unit collections through TerritorialEntityStore`);
   }
 });

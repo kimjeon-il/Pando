@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 /* global Event, EventTarget */
 import { createTaskPresentation } from '../../assets/js/modules/app-task-presentation.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createToolBindings } from '../../assets/js/modules/app-tool-bindings.js';
 import { MAP_INTERACTION_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
@@ -108,6 +109,8 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     },
   };
   const presentation = createTaskPresentation();
+  state.countriesData = { type: 'FeatureCollection', features: [countryFeatureById('COUNTRY')].filter(Boolean) };
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
   presentation.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
     state,
     $: id => elements[id] || null,
@@ -122,6 +125,7 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     boundaryEditSelectionAnalysis: () => ({ valid: false, message: '접경 대상을 선택하세요.' }),
     countryFeatureById,
     entityRepository,
+    entityStore,
     countryName: feature => feature.properties.name,
     effectiveCountryFlagUrl: () => '',
     objectDisplayInfo: ref => ({ name: ref.id === 'SUB' ? 'Subunit' : 'Country', type: ref.type }),
