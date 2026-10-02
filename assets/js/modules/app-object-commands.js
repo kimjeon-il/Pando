@@ -295,6 +295,26 @@ export function createObjectCommands() {
     if (!refs.length || refs.some(ref => !objectRefExists(ref)) || !commonBatchCapabilities(refs).has('lock')) return;
     const locked = typeof nextLocked === 'boolean' ? nextLocked : !refs.every(objectRefLocked);
     if (refs.every(ref => objectRefLocked(ref) === locked)) return;
+    const territorialOnly = refs.every(ref => ref.domain === 'territorial');
+    if (territorialOnly) {
+      const result = dependencies.objectModelB.territorialApplicationService.setLockedBatch(
+        refs.map(ref => ({ type: ref.type, id: ref.id })),
+        locked,
+        {
+          history: {
+            type: 'batch-lock',
+            description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`,
+          },
+        },
+      );
+      if (!result.ok || !result.changed) return;
+      dependencies.domains.layerTreeController?.syncLocks(refs);
+      dependencies.domains.renderingDomain?.invalidateSelection?.('batch-lock');
+      const primary = dependencies.domains.selectionDomain.primary();
+      if (primary) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
+      syncBatchActionAvailability();
+      return;
+    }
     dependencies.domains.projectDomain.recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
       if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) setCountryLockedState(ref.id, locked);
