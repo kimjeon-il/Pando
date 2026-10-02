@@ -1189,6 +1189,9 @@ export function createDomainAssembly() {
         value,
         { clear: !value, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR },
       ),
+      onCountriesReplaced: collection => {
+        dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(collection, true);
+      },
       onUnitsReplaced: () => {
         dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
       },
