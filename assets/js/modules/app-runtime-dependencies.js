@@ -12,6 +12,7 @@ const { layoutCountryFlags } = await import(`./country-label-flags.js?v=${encode
 const { countryDisplayName, defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityRepository } = await import(`./territorial-entity-repository.js?v=${encodeURIComponent(moduleRevision)}`);
+const { createTerritorialEntityStore } = await import(`./territorial-entity-store.js?v=${encodeURIComponent(moduleRevision)}`);
 const { classifyBuiltinCountries, builtinSubunitSourceId } = await import(`./builtin-subunits.js?v=${encodeURIComponent(moduleRevision)}`);
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, new URL('../app.js', import.meta.url));
@@ -627,6 +628,7 @@ export {
   changeUnitType,
   createTerritorialFeature,
   createTerritorialEntityRepository,
+  createTerritorialEntityStore,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
   DISTRIBUTION_SCHEMA_VERSION,
