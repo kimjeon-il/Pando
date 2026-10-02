@@ -202,7 +202,7 @@ export function createCountryLabels() {
       zoom, enabled: true,
       isVisible: feature => visibility[territorialSymbolGroup(feature)].flag,
       flagUrl: feature => territorialSymbolGroup(feature) === 'countries'
-        ? (0, dependencies.labelPresentation.effectiveCountryFlagUrl)({ countryId: feature.id, override: dependencies.projectState.state.countryOverrides[String(feature.id)] || {}, assetRevision: dependencies.layerPresentation.ASSET_REVISION })
+        ? (0, dependencies.labelPresentation.effectiveCountryFlagUrl)({ countryId: feature.id, override: dependencies.territorialModel.entityStore.countryOverride(feature.id), assetRevision: dependencies.layerPresentation.ASSET_REVISION })
         : effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
     };
     for (const feature of renderCountries.labelById.values()) {
