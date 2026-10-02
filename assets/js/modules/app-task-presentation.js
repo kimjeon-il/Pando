@@ -513,7 +513,7 @@ export function createTaskPresentation() {
     const state = dependencies.projectState.state;
     return taskTargetRefs(state, {
       countryType: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
-      countryFeatureById: dependencies.countries.countryFeatureById,
+      territorialEntityById: id => dependencies.territorialModel.entityRepository.get(id),
     });
   }
 
@@ -615,7 +615,10 @@ export function createTaskPresentation() {
       minimumPoints: dependencies.countryEditingA.draftMinimumPoints(), cutLineReady,
     });
     const task = activeModeTaskDescriptor();
-    const view = taskWorkflowPresentation(state, selectionModel, draft);
+    const view = taskWorkflowPresentation(state, selectionModel, draft, {
+      countryType: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+      territorialEntityById: id => dependencies.territorialModel.entityRepository.get(id),
+    });
     const taskName = (0, dependencies.platform.$)('modeTaskName');
     const taskStage = (0, dependencies.platform.$)('modeTaskStage');
     const taskStep = (0, dependencies.platform.$)('modeTaskStep');
