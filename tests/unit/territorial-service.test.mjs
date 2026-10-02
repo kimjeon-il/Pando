@@ -6,7 +6,7 @@ import { createTerritorialApplicationService } from '../../assets/js/modules/ter
 
 function fixture() {
   const countries = [{
-    type: 'Feature', id: 'country-a', properties: { unitType: 'country', name: 'A' }, geometry: { type: 'Polygon', coordinates: [] },
+    type: 'Feature', id: 'country-a', properties: { unitType: 'country', name: 'A', metadata: {} }, geometry: { type: 'Polygon', coordinates: [] },
   }];
   let units = [{
     type: 'Feature', id: 'unit-a', properties: { unitType: 'region', name: 'Region', locked: false }, geometry: { type: 'Polygon', coordinates: [] },
@@ -29,8 +29,20 @@ function fixture() {
     commandPipeline,
     countryCommands: {
       isLocked: id => lockedCountries.has(id),
+      hasField(id, field) {
+        const feature = entityRepository.get(id);
+        return field === 'capital' || field === 'flagDataUrl'
+          ? Object.hasOwn(feature.properties.metadata || {}, field)
+          : Object.hasOwn(feature.properties || {}, field);
+      },
       setLocked(id, value) { if (value) lockedCountries.add(id); else lockedCountries.delete(id); },
-      setField(id, field, value) { entityRepository.get(id).properties[field] = value; },
+      setField(id, field, value) {
+        const feature = entityRepository.get(id);
+        if (field === 'capital' || field === 'flagDataUrl') {
+          feature.properties.metadata ||= {};
+          feature.properties.metadata[field] = value;
+        } else feature.properties[field] = value;
+      },
     },
     unitCommands: {
       setField(id, field, value) { entityRepository.get(id).properties[field] = value; },
@@ -113,4 +125,19 @@ test('subunit sovereign changes are validated with the same administrative hiera
   assert.equal(result.code, 'invalid-parent');
   assert.equal(transactions.length, count);
   assert.equal(entityRepository.get('s').properties.sovereignId, 'country-a');
+});
+
+
+test('country-specific metadata uses the common entity metadata surface for no-op detection', () => {
+  const { service, entityRepository, transactions } = fixture();
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'capital', 'Capital').changed, true);
+  assert.equal(entityRepository.get('country-a').properties.metadata.capital, 'Capital');
+  const count = transactions.length;
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'capital', 'Capital').changed, false);
+  assert.equal(transactions.length, count);
+
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'flagDataUrl', null).changed, true);
+  const flagCount = transactions.length;
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'flagDataUrl', null).changed, false);
+  assert.equal(transactions.length, flagCount);
 });
