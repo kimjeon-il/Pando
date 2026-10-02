@@ -11,8 +11,6 @@ export function createObjectPresentation() {
   let distributionService;
   let genericFeatureService;
   let projectCommandPipeline;
-  let runTerritorialUnitTransaction;
-  let validateTerritorialUnitRelations;
   let LAYER_GROUP_KEYS;
   let LAYER_SEARCH_GROUP_KEYS;
   let layerGroupNames;
@@ -158,21 +156,6 @@ export function createObjectPresentation() {
   }
 
   function initializeObjectPresentationModel() {
-
-
-
-
-
-
-
-
-
-
-    (runTerritorialUnitTransaction = options => territorialApplicationService.runGeometryTransaction(options));
-
-    (validateTerritorialUnitRelations = (units, options) => territorialApplicationService.validateRelations(units, options));
-
-
     (LAYER_GROUP_KEYS = Object.freeze([...new Set([
       ...dependencies.objectCatalog.MAP_OBJECT_CATEGORIES.territorial.layerGroups,
       ...dependencies.objectCatalog.MAP_OBJECT_CATEGORIES.distribution.layerGroups,
@@ -228,7 +211,6 @@ export function createObjectPresentation() {
     get layerNameCollator() { return layerNameCollator; },
     get projectCommandPipeline() { return projectCommandPipeline; },
     set projectCommandPipeline(value) { projectCommandPipeline = value; },
-    get runTerritorialUnitTransaction() { return runTerritorialUnitTransaction; },
     get setTerritorialStyleColor() { return setTerritorialStyleColor; },
     get syncMapObjectCategoryLabels() { return syncMapObjectCategoryLabels; },
     get territorialApplicationService() { return territorialApplicationService; },
@@ -239,6 +221,5 @@ export function createObjectPresentation() {
     get territorialUnitColor() { return territorialUnitColor; },
     get territorialUnitCountryName() { return territorialUnitCountryName; },
     get territorialUnitName() { return territorialUnitName; },
-    get validateTerritorialUnitRelations() { return validateTerritorialUnitRelations; },
   });
 }

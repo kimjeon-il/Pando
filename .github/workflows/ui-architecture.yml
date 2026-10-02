@@ -1,6 +1,7 @@
 name: UI Architecture
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'assets/css/**'

@@ -1,6 +1,7 @@
 name: Place Runtime
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'assets/js/modules/app-camera-navigation.js'

@@ -7,6 +7,9 @@ import {
 
 const text = value => String(value ?? '').trim();
 
+/** Country projection: detached common properties, shared canonical geometry.
+ * Publish changes through the Store, never by mutating this read projection.
+ */
 export function createCountryTerritorialEntity(feature, override = {}) {
   if (!feature?.geometry) return null;
   const properties = feature.properties || {};
@@ -45,6 +48,9 @@ export function createCountryTerritorialEntity(feature, override = {}) {
   };
 }
 
+/** Reads countries and units through one hierarchy; owns only derived indexes.
+ * Production injects the Store. Explicit providers support detached validation.
+ */
 export function createTerritorialEntityRepository({
   entityStore = null,
   getCountries = entityStore?.countriesData,
@@ -55,10 +61,10 @@ export function createTerritorialEntityRepository({
   if (entityStore && (typeof entityStore.countriesData !== 'function'
     || typeof entityStore.units !== 'function'
     || typeof entityStore.countryOverride !== 'function')) {
-    throw new TypeError('영역 엔티티 저장소가 공통 read 계약을 제공하지 않습니다.');
+    throw new TypeError('영역 엔티티 Store가 공통 읽기 계약을 제공하지 않습니다.');
   }
   if (typeof getCountries !== 'function' || typeof getUnits !== 'function') {
-    throw new TypeError('영역 엔티티 저장소에는 국가와 하위 영역 공급자가 필요합니다.');
+    throw new TypeError('영역 엔티티 Repository에는 국가와 하위 영역 공급자가 필요합니다.');
   }
 
   let cached = null;
