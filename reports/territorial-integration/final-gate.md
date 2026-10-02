@@ -61,3 +61,29 @@ UI, place copy/Undo/reselection and the changed GIS round-trip.
 
 No schema/history/app version/map data/CSS changes are part of this gate. Temporary
 CI/branch removal, main merge and deployment remain separate integration actions.
+
+## Place browser evidence and limitation
+
+- The original default-WebGL case repeatedly timed out on bundled headless
+  Chromium/Linux CI, at different operations (editor tab, Undo evaluation or
+  restored-row click). Its CPU trace was dominated by native `(program)` time,
+  not a single failing Place computation. This is not reported as a fixed GPU
+  stall or a proven shader-specific root cause.
+- With unchanged assertions, real default-WebGL Edge completed the entire case
+  in 17.6 seconds. Bundled Chromium on the existing production Canvas backend
+  completed it in 17.0 seconds. The fixture now explicitly selects that supported
+  backend to verify Place/History contracts without software-WebGL throughput.
+  It still uses the real Place Worker, actual DOM clicks, copy/history/selection
+  owners and the restored result; there is no force click, added wait, timeout
+  increase, production stub or removed assertion.
+- The separate production fix avoids repatching persistently dirty countries for
+  label-only Undo. Its regression verifies unchanged geometry does not invalidate,
+  while real geometry Undo does. It alone did not eliminate the default-headless
+  WebGL timeout; investigating GPU throughput remains outside this entity gate.
+- Full local unit result: 1,148 passed, zero failed. Lint, JS syntax, application
+  architecture, UI contracts, classified Store audit and diff checks passed.
+  Delete UI (wide/compact/mobile and both themes), Edge Place and real GIS
+  GeoJSON export/reimport were the only browser cases run.
+- The Windows UI layering checker now normalizes checked-out CRLF bundle line
+  endings just as the generator already normalizes sources. CSS content/order
+  validation remains strict; no CSS inputs or generated bundle were changed.
