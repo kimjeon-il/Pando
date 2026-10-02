@@ -25,7 +25,7 @@ export function createHistoryAssembly() {
   function validateCanonicalProjectState() {
     (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
       countries: dependencies.territorialModel.entityStore.countriesData().features,
-      countryOverrides: dependencies.projectState.state.countryOverrides,
+      countryOverrides: dependencies.territorialModel.entityStore.countryOverrides(),
       territorialUnits: dependencies.territorialModel.entityStore.units(),
       territorialRelations: dependencies.projectState.state.territorialRelations,
       distributionLayers: dependencies.projectState.state.distributionLayers,
