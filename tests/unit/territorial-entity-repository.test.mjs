@@ -113,6 +113,53 @@ test('repository is a live read model over current country, unit, and override s
   assert.deepEqual(repository.children('A').map(item => item.id), ['a1']);
 });
 
+
+test('repository reuses one indexed snapshot until the supplied revision changes', () => {
+  const country = { type: 'Feature', id: 'A', properties: { name: 'A' }, geometry: square() };
+  const units = [createTerritorialFeature({
+    id: 'a1',
+    unitType: 'subunit',
+    parentId: 'A',
+    sovereignId: 'A',
+    geometry: square(),
+  })];
+  let revision = 1;
+  let countryReads = 0;
+  let unitReads = 0;
+  const repository = createTerritorialEntityRepository({
+    getCountries: () => { countryReads += 1; return { features: [country] }; },
+    getUnits: () => { unitReads += 1; return units; },
+    getRevision: () => revision,
+  });
+
+  repository.get('A');
+  repository.get('a1');
+  repository.children('A');
+  assert.equal(countryReads, 3);
+  assert.equal(unitReads, 3);
+
+  // The country collection wrapper above is recreated each call, so source identity
+  // intentionally invalidates the cache even when the revision is unchanged.
+  const countries = { features: [country] };
+  countryReads = 0;
+  unitReads = 0;
+  const stableRepository = createTerritorialEntityRepository({
+    getCountries: () => { countryReads += 1; return countries; },
+    getUnits: () => { unitReads += 1; return units; },
+    getRevision: () => revision,
+  });
+  stableRepository.get('A');
+  stableRepository.get('a1');
+  stableRepository.children('A');
+  assert.equal(countryReads, 3);
+  assert.equal(unitReads, 3);
+
+  revision += 1;
+  stableRepository.get('A');
+  assert.equal(countryReads, 4);
+  assert.equal(unitReads, 4);
+});
+
 test('repository rejects duplicate identity across country and unit storage', () => {
   const country = { type: 'Feature', id: 'same-id', properties: { name: '국가' }, geometry: square() };
   const unit = createTerritorialFeature({
