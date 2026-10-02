@@ -161,10 +161,11 @@ export function createTerritorialDrafts() {
 
   function selectedTerritorialCreateDefaults(unitType) {
     const selected = dependencies.projectState.state.selected?.domain === 'territorial' ? dependencies.projectState.state.selected : null;
-    const selectedCountry = selected?.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-      ? (0, dependencies.countries.countryFeatureById)(selected.id) : null;
-    const selectedUnit = selected && selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-      ? (0, dependencies.objectPresentation.territorialUnitById)(selected.id) : null;
+    const selectedEntity = selected ? dependencies.territorialModel.entityRepository.get(selected.id) : null;
+    const selectedCountry = selectedEntity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+      ? selectedEntity : null;
+    const selectedUnit = selectedEntity && selectedEntity.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+      ? selectedEntity : null;
     const sovereignId = unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
       ? text(selectedUnit?.properties?.sovereignId || selectedCountry?.id) : '';
     const parentId = unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
@@ -174,13 +175,15 @@ export function createTerritorialDrafts() {
 
   function parentFeatureForSession(session) {
     if (!session || session.kind !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT) return null;
-    return (0, dependencies.objectPresentation.territorialUnitById)(session.parentId) || (0, dependencies.countries.countryFeatureById)(session.parentId);
+    const parent = dependencies.territorialModel.entityRepository.get(session.parentId);
+    return [dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT]
+      .includes(parent?.properties?.unitType) ? parent : null;
   }
 
   function directSubunitChildren(session) {
-    return dependencies.projectState.state.territorialUnits.filter(feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
-      && text(feature.properties?.sovereignId) === text(session.sovereignId)
-      && text(feature.properties?.parentId) === text(session.parentId));
+    return dependencies.territorialModel.entityRepository.administrativeChildren(session.parentId, {
+      type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT,
+    }).filter(feature => text(feature.properties?.sovereignId) === text(session.sovereignId));
   }
 
   function unassignedSourceForSession(session) {
@@ -229,7 +232,7 @@ export function createTerritorialDrafts() {
   function resolveTerritorialCreateSource(session = dependencies.projectState.state.territorySelectionSession) {
     if (!session || session.kind !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT) return null;
     if (session.sourceKey === 'unassigned') return unassignedSourceForSession(session);
-    const feature = (0, dependencies.objectPresentation.territorialUnitById)(session.sourceKey);
+    const feature = dependencies.territorialModel.entityRepository.get(session.sourceKey);
     if (!feature?.geometry || feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
       || text(feature.properties?.sovereignId) !== text(session.sovereignId)
       || text(feature.properties?.parentId) !== text(session.parentId)) return null;
@@ -251,8 +254,10 @@ export function createTerritorialDrafts() {
       session.setupSourceCache = null;
     }
     const rawParentOptions = session.kind === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT && session.sovereignId
-      ? (0, dependencies.territorialServicesA.subunitParentChoices)(session.sovereignId, dependencies.projectState.state.countriesData.features, dependencies.projectState.state.territorialUnits, {
-        name: feature => feature.properties?.unitType ? (0, dependencies.objectPresentation.territorialUnitName)(feature) : (0, dependencies.presentation.countryName)(feature),
+      ? (0, dependencies.territorialServicesA.subunitParentChoices)(session.sovereignId, dependencies.territorialModel.entityRepository, {
+        name: feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+          ? (0, dependencies.presentation.countryName)(feature)
+          : (0, dependencies.objectPresentation.territorialUnitName)(feature),
       }) : [];
     const parentOptions = rawParentOptions.length ? rawParentOptions : [{ value: '', label: '상위 단위 선택', placeholder: true }];
     const parentChoice = resolveSelectChoice(parentOptions, session.parentId, { autoSelectSingle: true });
@@ -453,14 +458,16 @@ export function createTerritorialDrafts() {
 
   function toggleTerritorialUnitMergeTarget(id) {
     if (dependencies.projectState.state.tool !== 'merge-territorial-unit') return;
-    const source = (0, dependencies.objectPresentation.territorialUnitById)(dependencies.projectState.state.territorialUnitMergeSourceId);
-    const target = (0, dependencies.objectPresentation.territorialUnitById)(id);
+    const source = dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.territorialUnitMergeSourceId);
+    const target = dependencies.territorialModel.entityRepository.get(id);
     if (!source || !target || String(source.id) === String(target.id)) return;
-    if (!(0, dependencies.territorialServicesB.territorialSiblings)(dependencies.projectState.state.territorialUnits, source).some(candidate => String(candidate.id) === String(target.id))) {
+    if (!dependencies.territorialModel.entityRepository.administrativeSiblings(source.id)
+      .some(candidate => String(candidate.id) === String(target.id))) {
       (0, dependencies.feedback.setActionStatus)('같은 소속 국가·상위 단위의 하위단위만 합칠 수 있습니다.', 'error', 3400);
       return;
     }
-    const selected = [source, ...dependencies.projectState.state.territorialUnitMergeTargetIds.map(dependencies.objectPresentation.territorialUnitById).filter(Boolean)];
+    const selected = [source, ...dependencies.projectState.state.territorialUnitMergeTargetIds
+      .map(targetId => dependencies.territorialModel.entityRepository.get(targetId)).filter(Boolean)];
     if (!selected.some(item => text(item.id) === text(target.id) || territorialUnitsAreAdjacent(item, target))) {
       (0, dependencies.feedback.setActionStatus)('경계를 공유하는 인접 영역만 합칠 수 있습니다.', 'error', 3400);
       return;
