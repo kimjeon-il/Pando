@@ -12,6 +12,11 @@ export function createCountryCommits() {
     dependencies = ports;
   }
 
+  function countryEntityById(id) {
+    const entity = dependencies.territorialModel.entityRepository.get(id);
+    return entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity : null;
+  }
+
   function cancelScheduledMultiDraftPreview() {
     multiDraftPreviewGeneration += 1;
     if (multiDraftPreviewTimer !== null) {
@@ -187,7 +192,7 @@ export function createCountryCommits() {
 
   function prepareAnnexDraftCandidates(session = dependencies.projectState.state.territorySelectionSession) {
     const targetId = String(session?.targetCountryId || '');
-    const target = (0, dependencies.countries.countryFeatureById)(targetId);
+    const target = countryEntityById(targetId);
     if (session?.kind !== 'annex' || session.activePhase !== 'drawing' || session.activeMethod !== 'line' || !target || !session.sourceCountryIds.length) {
       (0, dependencies.feedback.setActionStatus)('편입을 진행할 수 없습니다. 편입받을 국가와 영토를 가져올 국가를 먼저 선택하세요.', 'error', 3800);
       return;
@@ -231,8 +236,8 @@ export function createCountryCommits() {
   }
 
   function prepareAnnexPolygon(session = dependencies.projectState.state.territorySelectionSession) {
-    const target = (0, dependencies.countries.countryFeatureById)(String(session?.targetCountryId || ''));
-    const donors = (session?.sourceCountryIds || []).map(dependencies.countries.countryFeatureById).filter(Boolean);
+    const target = countryEntityById(String(session?.targetCountryId || ''));
+    const donors = (session?.sourceCountryIds || []).map(countryEntityById).filter(Boolean);
     if (session?.kind !== 'annex' || session.activePhase !== 'drawing' || session.activeMethod !== 'polygon' || !target || !donors.length) return;
     const plan = (0, dependencies.territorialServicesA.planDrawnTerritoryAnnex)({
       drawnGeometry: { type: 'Polygon', coordinates: [(0, dependencies.geometryModel.ensureClosedRing)((0, dependencies.countryEditingA.editingDraftCoordinates)())] },
@@ -416,8 +421,8 @@ export function createCountryCommits() {
     ])];
     if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([targetId, ...donorIds], '영토를 편입')) return;
     const candidate = { geometry: session.combinedGeometry };
-    const targetBefore = (0, dependencies.countries.countryFeatureById)(targetId);
-    const donorsBefore = donorIds.map(dependencies.countries.countryFeatureById).filter(Boolean);
+    const targetBefore = countryEntityById(targetId);
+    const donorsBefore = donorIds.map(countryEntityById).filter(Boolean);
     if (!candidate?.geometry || !targetBefore || !donorsBefore.length) {
       (0, dependencies.feedback.setActionStatus)('편입 후보나 국가 데이터를 찾을 수 없습니다.', 'error', 3800);
       return;
@@ -517,8 +522,8 @@ export function createCountryCommits() {
       return;
     }
     if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([sourceId, ...targetIds], '국가를 합병')) return;
-    const source = (0, dependencies.countries.countryFeatureById)(sourceId);
-    const targets = targetIds.map(dependencies.countries.countryFeatureById).filter(Boolean);
+    const source = countryEntityById(sourceId);
+    const targets = targetIds.map(countryEntityById).filter(Boolean);
     if (!source || targets.length !== targetIds.length) {
       (0, dependencies.feedback.setActionStatus)('합병할 국가를 찾을 수 없습니다. 대상을 다시 선택하세요.', 'error');
       return;
