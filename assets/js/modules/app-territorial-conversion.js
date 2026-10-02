@@ -342,7 +342,7 @@ export function createTerritorialConversion() {
       (0, dependencies.feedback.setActionStatus)('국가 영역 전체를 포함하는 올바른 상위 단위를 선택하세요.', 'error', 3900);
       return false;
     }
-    const sourceOverride = (0, dependencies.platform.deepClone)(dependencies.projectState.state.countryOverrides[countryId] || {});
+    const sourceOverride = (0, dependencies.platform.deepClone)(dependencies.territorialModel.entityStore.countryOverride(countryId));
     const sourceProperties = (0, dependencies.platform.deepClone)(source.properties || {});
     const name = (0, dependencies.presentation.countryName)(source);
     const sourceGeometry = (0, dependencies.platform.deepClone)(source.geometry);
