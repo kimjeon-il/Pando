@@ -1,6 +1,32 @@
 import { TERRITORIAL_UNIT_TYPES } from './territorial-units.js';
 
 const text = value => String(value ?? '').trim();
+const UNIT_TYPES = new Set([TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION]);
+
+function validateCollectionIdentity(countries, units) {
+  if (!Array.isArray(countries)) throw new TypeError('국가 저장소에는 features 배열이 필요합니다.');
+  if (!Array.isArray(units)) throw new TypeError('영역 저장소에는 배열이 필요합니다.');
+  const ids = new Set();
+  const register = feature => {
+    const id = text(feature?.id);
+    if (!id) throw new Error('영역 엔티티 ID가 비어 있습니다.');
+    if (ids.has(id)) throw new Error(`영역 엔티티 ID가 중복되었습니다: ${id}`);
+    ids.add(id);
+  };
+  for (const feature of countries) {
+    const type = feature?.properties?.unitType;
+    if (type && type !== TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      throw new Error('국가 저장소의 영역 종류가 일치하지 않습니다.');
+    }
+    register(feature);
+  }
+  for (const feature of units) {
+    if (!UNIT_TYPES.has(feature?.properties?.unitType)) {
+      throw new Error('영역 저장소의 영역 종류가 올바르지 않습니다.');
+    }
+    register(feature);
+  }
+}
 
 function defaultWriteCountryColor(_feature, override, value) {
   const color = text(value);
@@ -138,23 +164,26 @@ export function createTerritorialEntityStore({
   }
 
   function appendEntities(items, { reindexOptions = {} } = {}) {
-    const entries = Array.isArray(items) ? items.filter(item => item?.feature) : [];
+    const entries = Array.isArray(items) ? items : [];
     if (!entries.length) return { countries: [], units: [] };
     const countries = [];
     const unitValues = [];
     const overrides = {};
     for (const item of entries) {
-      const type = text(item.type || item.feature?.properties?.unitType);
+      if (!item?.feature || typeof item.feature !== 'object') {
+        throw new TypeError('추가할 영역 형식이 올바르지 않습니다.');
+      }
+      const type = text(item.type || item.feature.properties?.unitType);
+      if (item.feature.properties?.unitType && item.feature.properties.unitType !== type) {
+        throw new Error('추가할 영역의 종류와 저장 종류가 일치하지 않습니다.');
+      }
       if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
         countries.push(item.feature);
         const key = text(item.feature?.id);
         if (key && item.countryOverride && typeof item.countryOverride === 'object') {
           overrides[key] = item.countryOverride;
         }
-      } else if ([TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(type)) {
-        if (item.feature?.properties?.unitType && item.feature.properties.unitType !== type) {
-          throw new Error('추가할 영역의 종류와 저장 종류가 일치하지 않습니다.');
-        }
+      } else if (UNIT_TYPES.has(type)) {
         unitValues.push(item.feature);
       } else {
         throw new Error(`지원하지 않는 영역 종류입니다: ${type || '(empty)'}`);
@@ -184,19 +213,20 @@ export function createTerritorialEntityStore({
   function removeEntities(refs, { reindexOptions = {} } = {}) {
     const values = Array.isArray(refs) ? refs : [];
     const countryIds = new Set();
-    const unitIds = new Set();
+    const unitRefs = new Set();
     for (const ref of values) {
       const type = text(ref?.type);
       const id = text(ref?.id);
       if (!id) continue;
       if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) countryIds.add(id);
-      else if ([TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(type)) unitIds.add(id);
+      else if (UNIT_TYPES.has(type)) unitRefs.add(`${type}:${id}`);
       else throw new Error(`지원하지 않는 영역 종류입니다: ${type || '(empty)'}`);
     }
 
     const current = state();
     const deletedCountries = current.countriesData.features.filter(feature => countryIds.has(text(feature?.id)));
-    const deletedUnits = current.territorialUnits.filter(feature => unitIds.has(text(feature?.id)));
+    const matchesUnit = feature => unitRefs.has(`${feature?.properties?.unitType}:${text(feature?.id)}`);
+    const deletedUnits = current.territorialUnits.filter(matchesUnit);
     if (!deletedCountries.length && !deletedUnits.length) return { countries: [], units: [] };
 
     const nextOverrides = { ...current.countryOverrides };
@@ -210,7 +240,7 @@ export function createTerritorialEntityStore({
         countryOverrides: nextOverrides,
       } : {}),
       ...(deletedUnits.length ? {
-        units: current.territorialUnits.filter(feature => !unitIds.has(text(feature?.id))),
+        units: current.territorialUnits.filter(feature => !matchesUnit(feature)),
       } : {}),
     }, { reindexOptions });
     return { countries: deletedCountries, units: deletedUnits };
@@ -225,26 +255,42 @@ export function createTerritorialEntityStore({
     reindexOptions = {},
   } = {}) {
     const current = state();
-    const hasCountryReplacement = !!nextCountriesData;
-    const hasUnitReplacement = Array.isArray(nextUnits);
+    const hasCountryReplacement = nextCountriesData !== null;
+    const hasUnitReplacement = nextUnits !== null;
+    let replacementCountries = current.countriesData;
+    if (hasCountryReplacement) {
+      if (Array.isArray(nextCountriesData)) {
+        replacementCountries = { type: 'FeatureCollection', features: nextCountriesData };
+      } else if (nextCountriesData?.type === 'FeatureCollection' && Array.isArray(nextCountriesData.features)) {
+        replacementCountries = nextCountriesData;
+      } else {
+        throw new TypeError('국가 저장소에는 FeatureCollection 또는 features 배열이 필요합니다.');
+      }
+    }
+    const replacementUnits = hasUnitReplacement ? nextUnits : current.territorialUnits;
 
+    // Validate the complete candidate, including unchanged storage, before
+    // publishing any collection or override. Same-ID type conversion is valid
+    // when the source removal and destination addition are committed together.
+    if (hasCountryReplacement || hasUnitReplacement) {
+      validateCollectionIdentity(replacementCountries.features, replacementUnits);
+    }
+
+    let replacementOverrides = current.countryOverrides;
     if (nextCountryOverrides !== undefined) {
-      current.countryOverrides = nextCountryOverrides && typeof nextCountryOverrides === 'object'
+      replacementOverrides = nextCountryOverrides && typeof nextCountryOverrides === 'object'
         ? { ...nextCountryOverrides }
         : {};
     }
-
-    if (hasCountryReplacement) {
-      current.countriesData = nextCountriesData.type === 'FeatureCollection'
-        ? nextCountriesData
-        : { type: 'FeatureCollection', features: Array.isArray(nextCountriesData) ? nextCountriesData : [] };
-      if (pruneOverrides) {
-        const valid = new Set(current.countriesData.features.map(feature => text(feature?.id)).filter(Boolean));
-        for (const id of Object.keys(current.countryOverrides)) if (!valid.has(id)) delete current.countryOverrides[id];
-      }
+    if (hasCountryReplacement && pruneOverrides) {
+      replacementOverrides = { ...replacementOverrides };
+      const valid = new Set(replacementCountries.features.map(feature => text(feature.id)));
+      for (const id of Object.keys(replacementOverrides)) if (!valid.has(id)) delete replacementOverrides[id];
     }
 
-    if (hasUnitReplacement) current.territorialUnits = nextUnits;
+    current.countryOverrides = replacementOverrides;
+    if (hasCountryReplacement) current.countriesData = replacementCountries;
+    if (hasUnitReplacement) current.territorialUnits = replacementUnits;
 
     if (hasCountryReplacement) {
       onCountriesReplaced(
