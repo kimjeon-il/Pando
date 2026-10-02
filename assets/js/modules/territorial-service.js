@@ -163,6 +163,39 @@ export function createTerritorialApplicationService({
     return { ok: true, changed: true };
   }
 
+  function setColorBatch(items, color, { history = {} } = {}) {
+    const requested = (items || []).map(item => ({ type: text(item?.type), id: text(item?.id) }))
+      .filter(item => item.type && item.id);
+    if (!requested.length) return { ok: true, changed: false, units: [] };
+
+    const units = [];
+    for (const item of requested) {
+      const feature = item.type === TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? country(item.id)
+        : unit(item.type, item.id);
+      if (!feature) return { ok: false, code: 'not-found', id: item.id, type: item.type };
+      units.push(feature);
+    }
+    const changed = requested.filter((item, index) => units[index].properties?.style?.color !== color);
+    if (!changed.length) return { ok: true, changed: false, units };
+
+    mutateDocument(
+      {
+        ...history,
+        type: history.type || 'territorial-color-batch',
+        affectedIds: changed.map(item => item.id),
+      },
+      () => {
+        for (const item of changed) {
+          if (item.type === TERRITORIAL_UNIT_TYPES.COUNTRY) countryCommands.setField(item.id, 'color', color);
+          else unitCommands.setField(item.id, 'color', color);
+        }
+      },
+      { renderDirty: { domain: 'territorial', change: 'metadata' } },
+    );
+    return { ok: true, changed: true, units: requested.map(item => entityRepository.get(item.id)).filter(Boolean) };
+  }
+
   function setLockedBatch(items, locked, { history = {} } = {}) {
     const next = !!locked;
     const requested = (items || []).map(item => ({ type: text(item?.type), id: text(item?.id) }))
@@ -233,6 +266,7 @@ export function createTerritorialApplicationService({
     changeAdministrativeParent,
     changeAdministrativeCountry,
     replaceUnits,
+    setColorBatch,
     setLocked,
     setLockedBatch,
     runGeometryTransaction: options => runTerritorialTransaction(options),
