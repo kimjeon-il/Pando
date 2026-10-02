@@ -75,7 +75,7 @@ export function createObjectPresentation() {
   }
 
   function territorialUnitCountryName(feature) {
-    const country = dependencies.territorialModel.entityRepository.sovereign(feature?.id);
+    const country = dependencies.territorialModel.entityRepository.administrativeCountry(feature?.id);
     return country ? countryName(country) : '소속 국가 미지정';
   }
 
