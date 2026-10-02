@@ -37,7 +37,7 @@ export function createTerritorialConversion() {
     const queue = [String(source.id)];
     while (queue.length) {
       const parentId = queue.shift();
-      for (const child of dependencies.territorialModel.entityRepository.administrativeChildren(parentId)) {
+      for (const child of dependencies.territorialModel.entityRepository.children(parentId)) {
         if (descendantIds.has(String(child.id))) continue;
         descendantIds.add(String(child.id));
         queue.push(String(child.id));
@@ -48,7 +48,7 @@ export function createTerritorialConversion() {
       return false;
     }
     const convertedMetadata = source.properties?.metadata?.convertedFromCountry || {};
-    const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], (0, dependencies.objectModelB.territorialStyleColor)(source) || null, (0, dependencies.countryValidation.snapGeometryToGrid)(source.geometry, 7));
+    const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(source.geometry, 7));
     country.id = String(source.id);
     country.properties = { name };
     const restoredOverride = convertedMetadata.override && typeof convertedMetadata.override === 'object'
@@ -76,7 +76,7 @@ export function createTerritorialConversion() {
     const childCount = sourceIsCountry
       ? dependencies.territorialModel.entityRepository.list({ administrativeCountryId: String(source.id || '') })
         .filter(candidate => String(candidate.id) !== String(source.id || '')).length
-      : dependencies.territorialModel.entityRepository.administrativeChildren(source.id).length;
+      : dependencies.territorialModel.entityRepository.children(source.id).length;
     const targetCountry = countryEntityById(sovereignId);
     const targetParent = (0, dependencies.objectPresentation.territorialUnitById)(parentId);
     const impacts = [];

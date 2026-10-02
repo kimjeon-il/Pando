@@ -1,15 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 
 function harness(fail = false) {
-  const state = { countriesData: { features: [{ id: 'A' }] }, countryOverrides: {}, territorialUnits: [], sourceInfo: null };
+  const state = { countriesData: { type: 'FeatureCollection', features: [{ id: 'A' }] }, countryOverrides: {}, territorialUnits: [], sourceInfo: null };
   const before = structuredClone(state);
   const history = [], events = [];
   const noop = () => {};
   const commit = createGisImportTransactionCommitter({
-    state, deepClone: structuredClone, importedCountryOverrides: () => ({}), applyImportedPackageAssets: (_meta, values) => values,
-    validateGisCountryCollection: async () => ({ overlapAreaKm2: 0 }), reindexCountries: data => data,
+    state, entityStore: createTerritorialEntityStore({ getState: () => state }),
+    deepClone: structuredClone, importedCountryOverrides: () => ({}), applyImportedPackageAssets: (_meta, values) => values,
+    validateGisCountryCollection: async () => ({ overlapAreaKm2: 0 }),
     snapshotEditable: () => structuredClone(state), restoreCountryEditSnapshot: snapshot => Object.assign(state, structuredClone(snapshot)),
     normalizeProjectObjects: noop, markLayerTreeDirty: noop, pruneLayerItemVisibility: noop,
     transferLandDependents: () => { events.push('transfer'); },
@@ -22,9 +24,9 @@ function harness(fail = false) {
     commitHistorySnapshot: snapshot => { events.push('history'); history.push(snapshot); },
     selectionUiController: { clear: noop }, renderingDomain: { invalidateCountryPatch: noop }, queueAutosave: noop, setActionStatus: noop,
   });
-  const result = { countriesData: { features: [{ id: 'NEW' }] }, preparedTerritorialUnits: [{ id: 'CHILD', properties: { parentId: 'NEW', sovereignId: 'NEW' } }],
+  const result = { countriesData: { type: 'FeatureCollection', features: [{ id: 'NEW' }] }, preparedTerritorialUnits: [{ id: 'CHILD', properties: { unitType: 'subunit', parentId: 'NEW', sovereignId: 'NEW' } }],
     landTransfers: [{ targetId: 'NEW', geometry: {}, donorIds: ['A'] }], sourceInfo: { sourceId: 'library' } };
-  const plan = { countriesData: { features: [{ id: 'NEW' }] }, affectedIds: ['A', 'NEW'], counts: { added: 2 } };
+  const plan = { countriesData: { type: 'FeatureCollection', features: [{ id: 'NEW' }] }, affectedIds: ['A', 'NEW'], counts: { added: 2 } };
   return { state, before, history, events, run: () => commit.commitGisMerge(result, plan), result };
 }
 

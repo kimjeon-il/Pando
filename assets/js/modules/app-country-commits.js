@@ -498,7 +498,6 @@ export function createCountryCommits() {
     const feature = (0, dependencies.objectPicking.createCountryFeature)(
       session.name.trim(),
       (0, dependencies.countryEditingA.editingDraftCoordinates)(),
-      null,
       (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7),
     );
     feature.id = session.generatedId;

@@ -112,7 +112,7 @@ export function createPropertySelection() {
     const queue = [...excluded];
     while (queue.length) {
       const current = queue.shift();
-      for (const child of dependencies.territorialModel.entityRepository.administrativeChildren(current)) {
+      for (const child of dependencies.territorialModel.entityRepository.children(current)) {
         if (excluded.has(String(child.id))) continue;
         excluded.add(String(child.id));
         queue.push(String(child.id));

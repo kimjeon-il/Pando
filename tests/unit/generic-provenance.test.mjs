@@ -6,9 +6,16 @@ import { createProjectSerializer } from '../../assets/js/modules/project-seriali
 import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
 import { DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { normalizeGenericFeatureSemantics } from '../../assets/js/modules/generic-feature-service.js';
 
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+
+test('GIS committer requires the canonical store instead of creating a second state adapter', () => {
+  const state = {};
+  assert.throws(() => createGisImportTransactionCommitter({ state }), /엔티티 저장소/);
+  assert.deepEqual(state, {});
+});
 
 test('generic GeoJSON reimport preserves provenance and arbitrary attributes while replacing only the internal ID', async () => {
   const source = normalizeSourceProvenance({ kind: 'gis', dataset: 'rivers', sourceId: 'upstream-9',
@@ -19,6 +26,7 @@ test('generic GeoJSON reimport preserves provenance and arbitrary attributes whi
   const state = {};
   let output;
   const importer = createGisImportTransactionCommitter({ state, uid: () => uuid(11), deepClone: structuredClone,
+    entityStore: createTerritorialEntityStore({ getState: () => state }),
     GENERIC_FEATURE_SCHEMA_VERSION: 2, DEFAULT_GENERIC_FEATURE_COLOR: '#999999', normalizeGenericFeatureSemantics,
     validateStructuredGeometry: () => [], genericFeatureService: { addMany: values => { output = values; } },
     activeLayerFolderKeys: () => ['genericFeatures'], markLayerTreeDirty() {}, setActionStatus() {} });

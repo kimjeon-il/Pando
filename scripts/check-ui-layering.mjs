@@ -68,7 +68,7 @@ if (!fs.existsSync(componentDocPath)) {
 if (!fs.existsSync(bundlePath)) {
   failures.push('missing canonical UI bundle: assets/css/ui.bundle.css');
 } else {
-  const bundle = fs.readFileSync(bundlePath, 'utf8');
+  const bundle = fs.readFileSync(bundlePath, 'utf8').replace(/\r\n?/g, '\n');
   const sourceContents = requiredLayeredFiles.map(relativePath => ({
     relativePath,
     content: readStylesheet(relativePath),
@@ -102,7 +102,7 @@ if (!fs.existsSync(bundlePath)) {
     '',
   ].join('\n\n');
   if (!fs.existsSync(modalBundlePath)) failures.push('missing lazy modal UI bundle: assets/css/ui-modal.bundle.css');
-  else if (fs.readFileSync(modalBundlePath, 'utf8') !== expectedModalBundle) failures.push('modal UI bundle is stale; run pnpm build:ui-bundle');
+  else if (fs.readFileSync(modalBundlePath, 'utf8').replace(/\r\n?/g, '\n') !== expectedModalBundle) failures.push('modal UI bundle is stale; run pnpm build:ui-bundle');
 
   if (fs.existsSync(appStylesheetPath)) {
     const appModalDeclarations = collectModalDeclarationKeys(fs.readFileSync(appStylesheetPath, 'utf8'));

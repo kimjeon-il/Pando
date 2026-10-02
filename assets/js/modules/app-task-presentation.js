@@ -91,9 +91,9 @@ export function createTaskPresentation() {
 
   function countryDisplay(countryId) {
     const id = String(countryId || '');
-    const feature = id ? dependencies.countries.countryFeatureById(id) : null;
+    const feature = id ? dependencies.territorialModel.entityStore.countryFeature(id) : null;
     if (!feature) return null;
-    const override = dependencies.projectState.state.countryOverrides?.[id] || {};
+    const override = dependencies.territorialModel.entityStore.countryOverride(id);
     return {
       name: dependencies.presentation.countryName(feature, override),
       flagUrl: dependencies.labelPresentation.effectiveCountryFlagUrl({ countryId: id, override, assetRevision: dependencies.layerPresentation.ASSET_REVISION }),

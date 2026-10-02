@@ -199,13 +199,11 @@ export function createProjectRestore() {
 
     (0, dependencies.countryRecords.resetCountryLabelAnchorRuntime)();
 
-    dependencies.projectState.state.countryOverrides = {};
     dependencies.projectState.state.sourceInfo = null;
     dependencies.projectState.state.labels = [];
     dependencies.projectState.state.labelSettings = {};
     dependencies.projectState.state.genericFeatures = [];
     dependencies.projectState.state.hydroEdits = [];
-    dependencies.territorialModel.entityStore.replaceCollections({ units: [] });
     dependencies.projectState.state.territorialRelations = [];
     dependencies.projectState.state.distributionLayers = [];
     dependencies.projectState.state.distributionEntries = [];
@@ -244,6 +242,8 @@ export function createProjectRestore() {
     dependencies.projectState.state.countryIndex.clear();
     dependencies.territorialModel.entityStore.replaceCollections({
       countriesData: preparedCountries,
+      countryOverrides: {},
+      units: [],
     }, {
       reindexOptions: { assumeCanonical: true },
     });
