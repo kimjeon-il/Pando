@@ -85,7 +85,8 @@ test('country flag removal and lock clearing prune empty override records', () =
 test('unit replacement swaps only physical unit storage and emits one replacement hook', () => {
   const { state, store, unitReplacements } = fixture();
   const next = [{ id: 'S', properties: { unitType: 'subunit', locked: false } }];
-  assert.equal(store.replaceUnits(next), next);
+  const replaced = store.replaceCollections({ units: next });
+  assert.equal(replaced.units, next);
   assert.equal(state.territorialUnits, next);
   assert.equal(unitReplacements(), 1);
   assert.equal(state.countriesData.features[0].id, 'A');
@@ -106,20 +107,27 @@ test('structural writes replace collection identity so repository reads update b
 
   const beforeCountryFeatures = state.countriesData.features;
   const beforeUnits = state.territorialUnits;
-  store.appendCountries([{
-    type: 'Feature',
-    id: 'B',
-    properties: { name: 'B' },
-    geometry: { type: 'Polygon', coordinates: [] },
-  }], {
-    B: { name: 'Bee' },
-  });
-  store.appendUnits([{
-    type: 'Feature',
-    id: 'S',
-    properties: { unitType: 'subunit', parentId: 'A', sovereignId: 'A', locked: false },
-    geometry: null,
-  }]);
+  store.appendEntities([
+    {
+      type: TERRITORIAL_UNIT_TYPES.COUNTRY,
+      feature: {
+        type: 'Feature',
+        id: 'B',
+        properties: { name: 'B' },
+        geometry: { type: 'Polygon', coordinates: [] },
+      },
+      countryOverride: { name: 'Bee' },
+    },
+    {
+      type: TERRITORIAL_UNIT_TYPES.SUBUNIT,
+      feature: {
+        type: 'Feature',
+        id: 'S',
+        properties: { unitType: 'subunit', parentId: 'A', sovereignId: 'A', locked: false },
+        geometry: null,
+      },
+    },
+  ]);
 
   assert.notEqual(state.countriesData.features, beforeCountryFeatures);
   assert.notEqual(state.territorialUnits, beforeUnits);
@@ -128,8 +136,10 @@ test('structural writes replace collection identity so repository reads update b
   assert.equal(countryReplacements(), 1);
   assert.equal(unitReplacements(), 1);
 
-  store.removeCountries(['B']);
-  store.removeUnits(['S']);
+  store.removeEntities([
+    { type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: 'B' },
+    { type: TERRITORIAL_UNIT_TYPES.SUBUNIT, id: 'S' },
+  ]);
   assert.equal(repository.get('B'), null);
   assert.equal(repository.get('S'), null);
   assert.equal(countryReplacements(), 2);
@@ -140,9 +150,11 @@ test('structural writes replace collection identity so repository reads update b
 test('country replacement prunes overrides for removed countries', () => {
   const { state, store } = fixture();
   state.countryOverrides.A = { name: 'Old' };
-  store.replaceCountries({
-    type: 'FeatureCollection',
-    features: [{ type: 'Feature', id: 'B', properties: { name: 'B' }, geometry: null }],
+  store.replaceCollections({
+    countriesData: {
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', id: 'B', properties: { name: 'B' }, geometry: null }],
+    },
   });
   assert.equal(state.countryOverrides.A, undefined);
   assert.equal(store.countryFeature('A'), null);
@@ -161,9 +173,11 @@ test('country replacement forwards reindex options to the storage adapter', () =
     getState: () => state,
     onCountriesReplaced(_collection, _ids, options) { received = options; },
   });
-  store.replaceCountries({
-    type: 'FeatureCollection',
-    features: [{ id: 'A', properties: {}, geometry: null }],
+  store.replaceCollections({
+    countriesData: {
+      type: 'FeatureCollection',
+      features: [{ id: 'A', properties: {}, geometry: null }],
+    },
   }, {
     reindexOptions: { assumeCanonical: true },
   });
@@ -175,8 +189,8 @@ test('country replacement forwards reindex options to the storage adapter', () =
 test('country override replacement stays behind the physical store', () => {
   const { state, store } = fixture();
   const overrides = { A: { name: 'Renamed', locked: true } };
-  const stored = store.replaceCountryOverrides(overrides);
-  assert.notEqual(stored, overrides);
+  const stored = store.replaceCollections({ countryOverrides: overrides });
+  assert.notEqual(stored.countryOverrides, overrides);
   assert.deepEqual(state.countryOverrides, overrides);
   assert.equal(store.countryOverride('A').name, 'Renamed');
 });
