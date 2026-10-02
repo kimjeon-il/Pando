@@ -55,6 +55,9 @@ export function createTerritorialApplicationService({
     const feature = unit(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
     if (feature.properties?.locked === true && field !== 'locked') return { ok: false, code: 'locked', unit: feature };
+    if (field === 'parentId' || field === 'sovereignId' || field === 'unitType') {
+      return { ok: false, code: 'unsupported-relation-field', unit: feature };
+    }
     let nextValue = value;
     if (field === 'validFrom' || field === 'validTo') {
       try {
@@ -69,9 +72,6 @@ export function createTerritorialApplicationService({
     }
     const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
     if (currentValue === nextValue) return { ok: true, changed: false, unit: feature };
-    if (field === 'parentId' || field === 'sovereignId' || field === 'unitType') {
-      return { ok: false, code: 'unsupported-relation-field', unit: feature };
-    }
     mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => {
       unitCommands.setField(key, field, nextValue);
     }, { renderDirty: { domain: 'territorial', change: 'metadata' } });
