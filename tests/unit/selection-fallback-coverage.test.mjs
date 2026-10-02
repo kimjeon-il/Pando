@@ -88,7 +88,8 @@ test('prepared library-country GPU resource transitions from upload pending to c
   coordinator.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION, 'interaction-resource-ready');
   frames.shift()();
   assert.deepEqual(events, ['gpu', 'svg']);
-  // Each frame draws the casing and inner stroke, without rebuilding data.
-  assert.equal(draws, 4);
+  // SelectionPass submits one grouped stroke batch per frame; the stroke renderer
+  // owns casing + inner-stroke expansion inside that batch.
+  assert.equal(draws, 2);
   assert.equal(nodes.length, 2);
 });
