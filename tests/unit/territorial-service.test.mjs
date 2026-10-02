@@ -45,6 +45,9 @@ function fixture() {
         if (field === 'capital' || field === 'flagDataUrl') {
           feature.properties.metadata ||= {};
           feature.properties.metadata[field] = value;
+        } else if (field === 'color') {
+          feature.properties.style ||= {};
+          feature.properties.style.color = value;
         } else feature.properties[field] = value;
       },
     },
@@ -99,6 +102,35 @@ test('territorial service owns metadata transaction and lock enforcement', () =>
     { domain: 'territorial', change: 'metadata' },
     { domain: 'territorial', change: 'metadata' },
   ]);
+});
+
+test('batch color command updates countries and units in one document mutation', () => {
+  const { service, entityRepository, transactions } = fixture();
+  const result = service.setColorBatch([
+    { type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: 'country-a' },
+    { type: TERRITORIAL_UNIT_TYPES.REGION, id: 'unit-a' },
+  ], '#123456', {
+    history: { type: 'batch-color', description: '2개 객체 색상 변경' },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.changed, true);
+  assert.equal(entityRepository.get('country-a').properties.style.color, '#123456');
+  assert.equal(entityRepository.get('unit-a').properties.style.color, '#123456');
+  assert.equal(transactions.length, 1);
+  assert.deepEqual(transactions[0], {
+    type: 'batch-color',
+    description: '2개 객체 색상 변경',
+    affectedIds: ['country-a', 'unit-a'],
+    renderDirty: { domain: 'territorial', change: 'metadata' },
+  });
+
+  const count = transactions.length;
+  assert.equal(service.setColorBatch([
+    { type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: 'country-a' },
+    { type: TERRITORIAL_UNIT_TYPES.REGION, id: 'unit-a' },
+  ], '#123456').changed, false);
+  assert.equal(transactions.length, count);
 });
 
 test('batch lock command updates countries and units in one document mutation', () => {
