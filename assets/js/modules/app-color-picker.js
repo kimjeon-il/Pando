@@ -132,8 +132,8 @@ export function createColorPicker() {
   function resetCountryColor() {
     if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return false;
     const id = dependencies.projectState.state.selected.id;
-    const idx = dependencies.projectState.state.countryIndex.get(id);
-    const feature = idx === undefined ? null : dependencies.projectState.state.countriesData.features[idx];
+    const entity = dependencies.territorialModel.entityRepository.get(id);
+    const feature = entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity : null;
     const override = { ...(dependencies.projectState.state.countryOverrides[id] || {}) };
     const color = (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() });
     if (color.isDefault) {
