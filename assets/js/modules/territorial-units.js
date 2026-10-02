@@ -289,8 +289,10 @@ export function changeParent(unit, newParentId) {
   return next;
 }
 
+// Legacy storage helper: sovereignId currently means the administrative
+// country membership of a non-country unit, not a political sovereignty link.
 export function changeSovereign(unit, newSovereignId) {
-  if (!unit) throw new Error('주권을 변경할 대상을 찾을 수 없습니다.');
+  if (!unit) throw new Error('소속 국가를 변경할 대상을 찾을 수 없습니다.');
   const next = clone(unit);
   next.properties.sovereignId = text(newSovereignId);
   return next;
