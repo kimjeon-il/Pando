@@ -626,7 +626,7 @@ export function createDomainAssembly() {
           const borderMode = dependencies.projectState.state.tool === 'country-border';
           const coastId = String(dependencies.projectState.state.coastEditCountryId || event.targetRef?.id || '');
           const affectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
-          const boundaryFeature = id => (0, dependencies.countries.countryFeatureById)(id) || dependencies.projectState.state.territorialUnits.find(unit => String(unit.id) === String(id));
+          const boundaryFeature = id => territorialEntityRepository.get(id);
           if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([...affectedIds], borderMode ? '국경을 조정' : '해안선을 조정')) return false;
           if ([...affectedIds].some(id => boundaryFeature(id)?.properties?.locked)) {
             (0, dependencies.feedback.setActionStatus)('잠긴 객체와 공유하는 경계는 이동할 수 없습니다.', 'error', 3400);
@@ -643,8 +643,8 @@ export function createDomainAssembly() {
             }
           }
           if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([...hierarchyIds], '경계를 조정')) return false;
-          const lockedHierarchy = dependencies.projectState.state.territorialUnits.some(unit => unit.properties?.locked && (
-            hierarchyIds.has(String(unit.id)) || (hierarchyIds.has(String(unit.properties.sovereignId)) && boundaryTouchesGeometry(unit.geometry, node.coordinate))
+          const lockedHierarchy = territorialEntityRepository.list().some(entity => entity.properties?.locked && (
+            hierarchyIds.has(String(entity.id)) || (hierarchyIds.has(String(entity.properties?.sovereignId)) && boundaryTouchesGeometry(entity.geometry, node.coordinate))
           ));
           if (lockedHierarchy) {
             (0, dependencies.feedback.setActionStatus)('변경 구간의 상위 단위 또는 자식이 잠겨 있습니다.', 'error', 3400);
@@ -697,8 +697,8 @@ export function createDomainAssembly() {
             if (preparation.status === 'moving') preparation.status = 'ready';
             (0, dependencies.taskUi.updateModeButtons)();
           }
-          const unitTarget = dependencies.projectState.state.territorialUnits.find(unit => String(unit.id) === String(dependencies.projectState.state.boundaryEditSeedCountryId));
-          if (session.borderMode && unitTarget) {
+          const unitTarget = territorialEntityRepository.get(dependencies.projectState.state.boundaryEditSeedCountryId);
+          if (session.borderMode && unitTarget?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
             return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'boundary', targetId: unitTarget.id,
               parentId: unitTarget.properties.parentId, featurePatches: [...session.features.values()],
             }, { selectedId: unitTarget.id, shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'country-border'
