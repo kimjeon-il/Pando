@@ -550,10 +550,10 @@ export function createMapSettings() {
     for (const input of document.querySelectorAll('[data-territorial-symbol]')) {
       input.checked = dependencies.projectState.state.layerVisibility[input.dataset.territorialSymbol] !== false;
     }
-    const units = dependencies.projectState.state.territorialUnits || [];
     const hasDistribution = (dependencies.projectState.state.distributionLayers || []).length > 0;
     const available = {
-      subunitsVisible: units.some(unit => unit.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT),
+      subunitsVisible: dependencies.territorialModel.entityRepository
+        .list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT }).length > 0,
       genericFeaturesVisible: dependencies.projectState.state.genericFeatures.length > 0,
     };
     for (const [id, visible] of Object.entries(available)) {
