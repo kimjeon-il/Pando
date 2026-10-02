@@ -14,13 +14,17 @@ export function createObjectDeletion() {
   function requestDeleteCountry(id) {
     const key = String(id);
     if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([key], '삭제')) return;
-    const feature = dependencies.territorialModel.entityRepository.get(key);
-    if (feature?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return;
-    const children = dependencies.territorialModel.entityRepository.administrativeChildren(key);
-    if (children.length) {
-      (0, dependencies.feedback.setActionStatus)(`하위 영역 ${children.length}개를 먼저 옮기거나 삭제하세요.`, 'error', 4400);
+    const preflight = dependencies.objectModelB.territorialApplicationService.canDelete(
+      dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+      key,
+    );
+    if (!preflight.ok) {
+      if (preflight.code === 'has-children') {
+        (0, dependencies.feedback.setActionStatus)(`하위 영역 ${preflight.children.length}개를 먼저 옮기거나 삭제하세요.`, 'error', 4400);
+      }
       return;
     }
+    const feature = preflight.unit;
     const name = (0, dependencies.presentation.countryName)(feature);
     (0, dependencies.projectRestore.openConfirmModal)({
       title: '국가 삭제',
@@ -103,11 +107,16 @@ export function createObjectDeletion() {
   }
 
   function requestExplicitTerritorialUnitDelete(feature) {
-    const children = dependencies.territorialModel.entityRepository.administrativeChildren(feature.id);
-    if (children.length) {
-      (0, dependencies.feedback.setActionStatus)(`하위 영역 ${children.length}개를 먼저 다른 부모로 옮기거나 삭제해야 합니다.`, 'error', 4200);
+    const preflight = dependencies.objectModelB.territorialApplicationService.canDelete(feature.properties?.unitType, feature.id);
+    if (!preflight.ok) {
+      if (preflight.code === 'locked') {
+        (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 영역을 삭제할 수 있습니다.', 'error', 3200);
+      } else if (preflight.code === 'has-children') {
+        (0, dependencies.feedback.setActionStatus)(`하위 영역 ${preflight.children.length}개를 먼저 다른 부모로 옮기거나 삭제해야 합니다.`, 'error', 4200);
+      }
       return false;
     }
+    feature = preflight.unit;
     (0, dependencies.projectRestore.openConfirmModal)({
       title: `${(0, dependencies.territorialServicesB.territorialTypeLabel)(feature.properties.unitType)} 삭제`,
       message: `${(0, dependencies.objectPresentation.territorialUnitName)(feature)}을(를) 프로젝트에서 삭제합니다. 국가나 다른 영역의 형상은 변경하지 않습니다.`,
@@ -115,8 +124,8 @@ export function createObjectDeletion() {
       confirmText: `${(0, dependencies.territorialServicesB.territorialTypeLabel)(feature.properties.unitType)} 삭제`,
       danger: true,
       onConfirm: () => {
-        const current = (0, dependencies.objectPresentation.territorialUnitById)(feature.id);
-        if (!territorialDeletionAllowed([current], dependencies.territorialModel.entityRepository.list())) return false;
+        const current = dependencies.objectModelB.territorialApplicationService.canDelete(feature.properties?.unitType, feature.id);
+        if (!current.ok || !territorialDeletionAllowed([current.unit], dependencies.territorialModel.entityRepository.list())) return false;
         const snapshot = (0, dependencies.snapshots.snapshotEditable)();
         try {
           removeTerritorialUnits(dependencies.projectState.state, [feature.id], dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL);
@@ -138,12 +147,8 @@ export function createObjectDeletion() {
   }
 
   function requestTerritorialUnitDivisionRemoval(id) {
-    const feature = (0, dependencies.objectPresentation.territorialUnitById)(id);
-    if (!feature) return false;
-    if (feature.properties?.locked) {
-      (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 영역을 삭제할 수 있습니다.', 'error', 3200);
-      return false;
-    }
+    const feature = dependencies.territorialModel.entityRepository.get(id);
+    if (!feature || feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return false;
     return requestExplicitTerritorialUnitDelete(feature);
   }
 
@@ -152,12 +157,8 @@ export function createObjectDeletion() {
       requestDeleteCountry(id);
       return true;
     }
-    const feature = (0, dependencies.objectPresentation.territorialUnitById)(id);
+    const feature = dependencies.territorialModel.entityRepository.get(id);
     if (!feature || feature.properties?.unitType !== type) return false;
-    if (dependencies.territorialModel.entityRepository.administrativeChildren(feature.id).length) {
-      (0, dependencies.feedback.setActionStatus)('하위 영역을 먼저 다른 부모로 옮기거나 삭제해야 합니다.', 'error', 4200);
-      return false;
-    }
     requestTerritorialUnitDivisionRemoval(id);
     return true;
   }
