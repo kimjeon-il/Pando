@@ -121,27 +121,37 @@ export function createTerritorialDrafts() {
             }
           }
           const newCountries = nextCountries.filter(country => !dependencies.territorialModel.entityStore.countryFeature(country.id));
-          if (newCountries.length) {
-            const additions = newCountries.map(country => (0, dependencies.platform.deepClone)(country));
-            const overrides = Object.fromEntries(additions.map(country => [
-              String(country.id),
-              (0, dependencies.platform.deepClone)(request.countryOverride || {}),
-            ]));
-            dependencies.territorialModel.entityStore.appendCountries(additions, overrides);
-            for (const country of additions) delete dependencies.projectState.state.itemVisibility.subunits?.[country.id];
+          const removedCountryIds = countries.filter(country => removed.has(text(country.id))).map(country => text(country.id));
+          const normalizedUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, {
+            countryExists: key => countryIds.has(text(key)),
+            validatedUnchanged: new Set(units.filter(unit => !changed.has(text(unit.id)))),
+          });
+          const countryCollectionsChanged = newCountries.length > 0 || changedCountries.length > 0 || removedCountryIds.length > 0;
+          if (countryCollectionsChanged) {
+            const nextOverrides = {
+              ...dependencies.territorialModel.entityStore.countryOverrides(),
+              ...Object.fromEntries(newCountries.map(country => [
+                String(country.id),
+                (0, dependencies.platform.deepClone)(request.countryOverride || {}),
+              ])),
+            };
+            dependencies.territorialModel.entityStore.replaceCollections({
+              countriesData: {
+                type: 'FeatureCollection',
+                features: nextCountries.map(country => changed.has(text(country.id))
+                  ? (0, dependencies.platform.deepClone)(country)
+                  : country),
+              },
+              countryOverrides: nextOverrides,
+              units: normalizedUnits,
+            });
+            for (const country of newCountries) delete dependencies.projectState.state.itemVisibility.subunits?.[country.id];
+          } else {
+            dependencies.territorialModel.entityStore.replaceUnits(normalizedUnits);
           }
-          dependencies.territorialModel.entityStore.replaceUnits(
-            (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, {
-              countryExists: key => countryIds.has(text(key)),
-              validatedUnchanged: new Set(units.filter(unit => !changed.has(text(unit.id)))),
-            }),
-          );
           if (request.operation === 'create') dependencies.projectState.state.layerVisibility.subunits = true;
           if (changedCountries.length) {
-            for (const key of changedCountries) {
-              dependencies.territorialModel.entityStore.countryFeature(key).geometry = (0, dependencies.platform.deepClone)(changed.get(key).geometry);
-              dependencies.projectState.state.historyDirtyCountryIds.add(key);
-            }
+            for (const key of changedCountries) dependencies.projectState.state.historyDirtyCountryIds.add(key);
             (0, dependencies.spatialQuery.markCountryGeometriesChanged)(changedCountries);
             (0, dependencies.countryValidation.refreshCountryCentroids)(changedCountries);
             dependencies.projectState.state.boundaryPreparation?.cancel();
