@@ -373,7 +373,7 @@ const { createEditorWorkspacePresentation } = await import(versionedModuleUrl('.
 const { describeTool, dispatchTool, isSpecialTool, toolCursorMode, toolDraftDefinition, toolLabel } = toolControllerModule;
 const { createMapInputController } = mapInputControllerModule;
 const { createGpuMapRenderer } = gpuMapRendererModule;
-const { createTerritorialGeometryKernel, snapLineEndpointsToBoundary } = territorialGeometryModule;
+const { snapLineEndpointsToBoundary } = territorialGeometryModule;
 const {
   buildBoundaryTopology: buildSharedBoundaryTopology,
   buildTerritorialInternalBoundarySegments,
@@ -651,7 +651,6 @@ export {
   toolLabel,
   createMapInputController,
   createGpuMapRenderer,
-  createTerritorialGeometryKernel,
   snapLineEndpointsToBoundary,
   buildSharedBoundaryTopology,
   buildTerritorialInternalBoundarySegments,
