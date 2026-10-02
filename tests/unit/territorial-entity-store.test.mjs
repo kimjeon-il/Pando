@@ -148,3 +148,25 @@ test('country replacement prunes overrides for removed countries', () => {
   assert.equal(store.countryFeature('A'), null);
   assert.equal(store.countryFeature('B').id, 'B');
 });
+
+
+test('country replacement forwards reindex options to the storage adapter', () => {
+  const state = {
+    countriesData: { type: 'FeatureCollection', features: [] },
+    countryOverrides: {},
+    territorialUnits: [],
+  };
+  let received = null;
+  const store = createTerritorialEntityStore({
+    getState: () => state,
+    onCountriesReplaced(_collection, _ids, options) { received = options; },
+  });
+  store.replaceCountries({
+    type: 'FeatureCollection',
+    features: [{ id: 'A', properties: {}, geometry: null }],
+  }, {
+    reindexOptions: { assumeCanonical: true },
+  });
+
+  assert.deepEqual(received, { assumeCanonical: true });
+});
