@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { TERRAIN_DEM_VERSION } from '../../assets/js/modules/terrain-manifest.js';
 
 const output = process.env.PANDOLAB_DEM_OUTPUT_DIR;
 const available = !!output && existsSync(path.join(output, 'manifest.json'));
@@ -11,15 +12,15 @@ test.use({
   launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] },
   trace: 'retain-on-failure',
 });
-test.skip(!available, 'Set PANDOLAB_DEM_OUTPUT_DIR to the complete external v0.13.0 output directory');
+test.skip(!available, `Set PANDOLAB_DEM_OUTPUT_DIR to the complete external v${TERRAIN_DEM_VERSION} output directory`);
 
 async function openDem(page, renderer, lowPrecision = false, source = 'development') {
   const requested = [];
   const origin = source === 'preview' ? officialOrigin : demOrigin;
-  await page.route(`${origin}/terrain/v0.13.0/**`, async route => {
+  await page.route(`${origin}/terrain/**`, async route => {
     const pathname = new URL(route.request().url()).pathname;
-    const assetPrefix = '/terrain/v0.13.0/';
-    const relative = pathname.slice(pathname.lastIndexOf(assetPrefix) + assetPrefix.length);
+    // New manifests may reuse immutable height tiles from an earlier dataset.
+    const relative = pathname.split('/').slice(3).join('/');
     requested.push(relative);
     const file = path.resolve(output, relative);
     if (!file.startsWith(path.resolve(output) + path.sep) || !existsSync(file)) {
@@ -39,7 +40,7 @@ async function openDem(page, renderer, lowPrecision = false, source = 'developme
         return original.call(this, shader, precision);
       };
     }
-  }, { url: `${demOrigin}/terrain/v0.13.0/manifest.json`, lowPrecision, source });
+  }, { url: `${demOrigin}/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`, lowPrecision, source });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(`/?renderer=${renderer}&debug=1${source === 'preview' ? '&demTerrain=preview' : ''}`);
@@ -137,7 +138,7 @@ test('published DEM tiles load by default in the browser without request routing
 
 test('official DEM manifest failure switches the whole dataset to raster', async ({ page }) => {
   test.setTimeout(120_000);
-  await page.route(`${officialOrigin}/terrain/v0.13.0/manifest.json*`, route =>
+  await page.route(`${officialOrigin}/terrain/v${TERRAIN_DEM_VERSION}/manifest.json*`, route =>
     route.fulfill({ status: 503, body: 'DEM unavailable' }));
   await page.goto('/?renderer=webgl2&debug=1');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
