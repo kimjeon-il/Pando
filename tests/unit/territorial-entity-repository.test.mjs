@@ -9,6 +9,7 @@ import {
   createTerritorialFeature,
   TERRITORIAL_UNIT_TYPES,
 } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 
 const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
   type: 'Polygon',
@@ -43,6 +44,31 @@ test('country read model exposes common territorial properties without moving co
   assert.deepEqual(entity.properties.style, { color: '#123456' });
   assert.deepEqual(entity.properties.metadata, { capital: '바르샤바', flagDataUrl: null });
   assert.equal(entity.geometry, country.geometry);
+});
+
+test('repository can read directly from the physical entity store', () => {
+  const state = {
+    countriesData: { type: 'FeatureCollection', features: [
+      { type: 'Feature', id: 'PL', properties: { name: 'Poland' }, geometry: square() },
+    ] },
+    countryOverrides: { PL: { name: '폴란드', color: '#123456' } },
+    territorialUnits: [
+      createTerritorialFeature({
+        id: 't1',
+        unitType: TERRITORIAL_UNIT_TYPES.SUBUNIT,
+        parentId: 'PL',
+        sovereignId: 'PL',
+        geometry: square(),
+      }),
+    ],
+  };
+  const store = createTerritorialEntityStore({ getState: () => state });
+  const repository = createTerritorialEntityRepository({ entityStore: store });
+
+  assert.equal(repository.get('PL').properties.name, '폴란드');
+  assert.equal(repository.get('PL').properties.style.color, '#123456');
+  assert.equal(repository.get('t1').properties.unitType, TERRITORIAL_UNIT_TYPES.SUBUNIT);
+  assert.deepEqual(repository.administrativeChildren('PL').map(item => item.id), ['t1']);
 });
 
 test('repository exposes countries and nested units through one hierarchy surface', () => {
