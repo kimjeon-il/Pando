@@ -34,6 +34,9 @@ export function createTerritorialApplicationService({
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       const feature = country(key);
       if (!feature) return { ok: false, code: 'not-found' };
+      if (field === 'parentId' || field === 'sovereignId' || field === 'unitType') {
+        return { ok: false, code: 'unsupported-relation-field', unit: feature };
+      }
       const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
       const hasExplicitValue = field === 'flagDataUrl'
         ? countryCommands.hasField?.(key, field) === true
@@ -49,7 +52,7 @@ export function createTerritorialApplicationService({
     if (feature.properties?.locked === true && field !== 'locked') return { ok: false, code: 'locked', unit: feature };
     const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
     if (currentValue === value) return { ok: true, changed: false, unit: feature };
-    if (field === 'parentId' || field === 'unitType') {
+    if (field === 'parentId' || field === 'sovereignId' || field === 'unitType') {
       const previous = entityRepository.list();
       const candidate = previous.map(item => String(item.id) === key
         ? { ...item, properties: { ...item.properties, [field]: value } } : item);
