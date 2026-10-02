@@ -2,23 +2,22 @@ import { normalizeObjectRef } from './object-selection-controller.js';
 
 const text = value => String(value ?? '').trim();
 
-export function taskTargetRefs(state, { countryType = 'country', countryFeatureById = () => null } = {}) {
+export function taskTargetRefs(state, { countryType = 'country', territorialEntityById = () => null } = {}) {
   const refs = new Map();
-  const units = new Map((state.territorialUnits || []).map(feature => [text(feature?.id), feature]));
   const add = ref => {
     const normalized = normalizeObjectRef(ref);
     if (normalized && !refs.has(normalized.key)) refs.set(normalized.key, normalized);
   };
   const addCountry = id => {
     const key = text(id);
-    if (key && countryFeatureById(key)) add({ domain: 'territorial', type: countryType, id: key });
+    const entity = key ? territorialEntityById(key) : null;
+    if (entity?.properties?.unitType === countryType) add({ domain: 'territorial', type: countryType, id: key });
   };
   const addTerritorial = id => {
     const key = text(id);
     if (!key) return;
-    const unit = units.get(key);
-    if (unit?.properties?.unitType) add({ domain: 'territorial', type: unit.properties.unitType, id: key });
-    else addCountry(key);
+    const entity = territorialEntityById(key);
+    if (entity?.properties?.unitType) add({ domain: 'territorial', type: entity.properties.unitType, id: key });
   };
   const addGeneric = id => {
     const key = text(id);
@@ -55,12 +54,17 @@ export function taskTargetRefs(state, { countryType = 'country', countryFeatureB
 }
 
 /** Derive UI roles and steps from existing workflows; never own an editing state. */
-export function taskWorkflowPresentation(state, selectionModel = null, draft = {}) {
+export function taskWorkflowPresentation(state, selectionModel = null, draft = {}, {
+  countryType = 'country',
+  territorialEntityById = () => null,
+} = {}) {
   const preview = !!state.geometryPreview?.session;
   const cards = [];
   const ref = id => {
-    const unit = (state.territorialUnits || []).find(item => text(item.id) === text(id));
-    return normalizeObjectRef({ domain: 'territorial', type: unit?.properties?.unitType || 'country', id });
+    const key = text(id);
+    if (!key) return null;
+    const entity = territorialEntityById(key);
+    return normalizeObjectRef({ domain: 'territorial', type: entity?.properties?.unitType || countryType, id: key });
   };
   const card = (role, ids, placeholder = '선택') => ({ role, refs: ids.map(ref).filter(Boolean), placeholder });
   const current = selectionModel?.current;
