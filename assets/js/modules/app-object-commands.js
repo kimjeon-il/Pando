@@ -84,7 +84,7 @@ export function createObjectCommands() {
     else if (ref.domain === 'hydro') feature = (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
     else if (ref.domain === 'distribution') {
       const features = (0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, ref.id).map(entry => {
-        const geometry = entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL ? dependencies.presentation.territorialRepository.get(entry.territorialUnitId)?.geometry : entry.geometry;
+        const geometry = entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL ? dependencies.presentation.territorialEntityRepository.get(entry.territorialUnitId)?.geometry : entry.geometry;
         return geometry ? { type: 'Feature', properties: {}, geometry } : null;
       }).filter(Boolean);
       if (features.length) feature = { type: 'FeatureCollection', features };
