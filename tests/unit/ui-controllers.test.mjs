@@ -52,27 +52,23 @@ test('confirm modal controller owns focus, choice, and confirm lifecycle', t => 
   assert.equal(controller.isOpen(), false);
 });
 
-test('layer tree controller translates DOM events into commands', () => {
-  const visibility = fakeElement();
+test('object search controller translates search DOM events into commands', () => {
   const search = fakeElement();
   const calls = [];
   const controller = createLayerTreeController({
     window: { clearTimeout() {}, setTimeout: callback => { callback(); return 1; }, Event: class { constructor(type) { this.type = type; } } },
-    elements: { visibilityInputs: { countries: visibility }, search },
+    elements: { search },
     groups: { tree: [], search: [], names: {} },
     model: { snapshot: () => ({ revision: 0, search: '', folders: {} }), items: () => [] },
     commands: {
-      setLayerVisibility: (...args) => calls.push(['visibility', ...args]),
       setSearchValue: value => calls.push(['search', value]),
       commitSearch: () => calls.push(['commit']),
     },
   });
   controller.bind();
-  visibility.checked = false;
-  visibility.dispatch('change');
   search.value = '독일';
   search.dispatch('input');
-  assert.deepEqual(calls, [['visibility', 'countries', false], ['search', '독일'], ['commit']]);
+  assert.deepEqual(calls, [['search', '독일'], ['commit']]);
 });
 
 test('tooltip controller owns accessible show and hide state', () => {
