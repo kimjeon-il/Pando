@@ -12,15 +12,15 @@ test('removed entrypoints have no DOM or app bindings', () => {
     assert.ok(!html.includes(`id="${id}"`), id);
     assert.ok(!app.includes(id), id);
   }
-  assert.equal((html.match(/class="[^"]*map-view-toolbar/g) || []).length, 1);
+  assert.equal((html.match(/class="[^"]*map-view-toolbar/g) || []).length, 0);
   assert.ok(html.includes('id="icon-flask"'));
 });
-test('theme updates retain persisted label and legacy selection values', () => {
+test('theme updates retain persisted label and selection values', () => {
   const original = { version: 2, labels: { country: { font: 'serif', color: '#123456' }, place: { font: 'gothic', color: '#abcdef', pointColor: '#987654' } }, selection: { color: '#123456', outlineVisible: false, fillStrength: 0.8 } };
   const result = saveUserPreferences({ ...original, appearance: { theme: 'dark' } }, { setItem() {} });
   assert.deepEqual(result.labels, original.labels);
   assert.deepEqual(result.selection, original.selection);
-  assert.match(app, /selectionColor: resolvedAccentColor,\s+outlineVisible: true,\s+fillStrength: 0\.35/);
+  assert.match(app, /selectionColor: userPreferences\.selection\.color \|\| resolvedAccentColor,\s+outlineVisible: userPreferences\.selection\.outlineVisible,\s+fillStrength: userPreferences\.selection\.fillStrength/);
   const fields = html.slice(html.indexOf('id="preferencesModal"'), html.indexOf('id="coastReconciliationModal"'));
   assert.ok(fields.includes('id="preferencesThemeInput"'));
   assert.match(fields, /data-preference-theme="light"/);

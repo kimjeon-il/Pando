@@ -61,9 +61,13 @@ export function createLibraryAssembly() {
     if (!libraryId) return '';
     const entity = historicalLibraryService.get(libraryId);
     const currentCountryId = String(entity?.metadata?.currentCountryId || '');
-    if (currentCountryId && (0, dependencies.countries.countryFeatureById)(currentCountryId)) return currentCountryId;
-    if ((0, dependencies.countries.countryFeatureById)(libraryId)) return String(libraryId);
-    const unit = dependencies.projectState.state.territorialUnits.find(feature => String(feature.properties?.sourceLibraryId || '') === String(libraryId));
+    const currentCountry = currentCountryId ? dependencies.territorialModel.entityRepository.get(currentCountryId) : null;
+    if (currentCountry?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return currentCountryId;
+    const sameId = dependencies.territorialModel.entityRepository.get(libraryId);
+    if (sameId?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return String(libraryId);
+    const unit = dependencies.territorialModel.entityRepository.list().find(feature =>
+      feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+      && String(feature.properties?.sourceLibraryId || '') === String(libraryId));
     return unit ? String(unit.id) : '';
   }
 
@@ -87,16 +91,21 @@ export function createLibraryAssembly() {
       batchPreparation = entry;
       entry.promise = (async () => {
         const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth, versionOverrides);
+        const countries = dependencies.territorialModel.entityRepository.list({
+          type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+        });
+        const existingUnits = dependencies.territorialModel.entityRepository.list()
+          .filter(feature => feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY);
         const prepared = (0, dependencies.libraryServices.prepareLibraryOwnership)({
-          descriptors, resolve: libraryInstanceId, countries: dependencies.projectState.state.countriesData.features,
-          units: dependencies.projectState.state.territorialUnits, choices: options.ownership || {},
+          descriptors, resolve: libraryInstanceId, countries,
+          units: existingUnits, choices: options.ownership || {},
           allocateId: type => (0, dependencies.surfaces.uid)(`library_${type}`),
           // Exact containment is checked in the batch Worker before applying anything.
           contains: null,
         });
         if (!prepared.length) return { prepared };
         const countryFeatures = prepared.filter(item => item.type === 'country').map(item => {
-          const feature = (0, dependencies.objectPicking.createCountryFeature)(item.name, [], null, item.geometry);
+          const feature = (0, dependencies.objectPicking.createCountryFeature)(item.name, [], item.geometry);
           feature.id = item.id;
           if (item.validFrom) feature.properties.validFrom = item.validFrom;
           if (item.validTo) feature.properties.validTo = item.validTo;
@@ -236,11 +245,31 @@ export function createLibraryAssembly() {
       closeSurface: dependencies.workspaceUiA.closeSurface,
       focusSurfaceTrigger: dependencies.workspaceUiB.focusSurfaceTrigger,
       instantiate: instantiateHistoricalLibraryEntities,
-      ownershipContext: (ids, year, depth, versions) => ({
-        missing: (0, dependencies.libraryServices.missingLibraryOwnership)(historicalLibraryService.instantiateDescriptors(ids, year, depth, versions), libraryInstanceId, dependencies.projectState.state.countriesData.features, dependencies.projectState.state.territorialUnits),
-        countries: (0, dependencies.propertyEditingB.territorialUnitCountryOptions)().filter(option => option.value),
-        parents: id => (0, dependencies.territorialServicesA.subunitParentChoices)(id, dependencies.projectState.state.countriesData.features, dependencies.projectState.state.territorialUnits, { name: feature => feature.properties?.unitType ? (0, dependencies.objectPresentation.territorialUnitName)(feature) : (0, dependencies.presentation.countryName)(feature) }),
-      }),
+      ownershipContext: (ids, year, depth, versions) => {
+        const countries = dependencies.territorialModel.entityRepository.list({
+          type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+        });
+        const units = dependencies.territorialModel.entityRepository.list()
+          .filter(feature => feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY);
+        return {
+          missing: (0, dependencies.libraryServices.missingLibraryOwnership)(
+            historicalLibraryService.instantiateDescriptors(ids, year, depth, versions),
+            libraryInstanceId,
+            countries,
+            units,
+          ),
+          countries: (0, dependencies.propertyEditingB.territorialUnitCountryOptions)().filter(option => option.value),
+          parents: id => (0, dependencies.territorialServicesA.subunitParentChoices)(
+            id,
+            dependencies.territorialModel.entityRepository,
+            {
+              name: feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+                ? (0, dependencies.presentation.countryName)(feature)
+                : (0, dependencies.objectPresentation.territorialUnitName)(feature),
+            },
+          ),
+        };
+      },
       confirm: dependencies.projectRestore.openConfirmModal,
       setStatus: dependencies.feedback.setActionStatus,
       reportError: dependencies.feedback.reportOperationError,

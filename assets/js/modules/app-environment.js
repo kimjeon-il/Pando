@@ -10,7 +10,6 @@ const TERRAIN_DEM_DEFAULT_ENABLED = true;
 export function createEnvironment() {
   let dependencies;
   let d3;
-  let territorialGeometry;
   let APP_VERSION;
   let HYDRO_DATA_VERSION;
   let FLAT_PROJECTION_KIND;
@@ -91,6 +90,7 @@ export function createEnvironment() {
       selectionColor: userPreferences.selection.color || resolvedAccentColor,
       outlineVisible: userPreferences.selection.outlineVisible,
       fillStrength: userPreferences.selection.fillStrength,
+      antiAlias: userPreferences.appearance?.smoothLines !== false,
       tokens: {
         accent: computed.getPropertyValue('--accent').trim(),
         textStrong: computed.getPropertyValue('--text-strong').trim(),
@@ -151,7 +151,7 @@ export function createEnvironment() {
     if (dependencies.projectState.state?.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
       const id = String(dependencies.projectState.state.selected.id);
       const feature = (0, dependencies.countries.countryFeatureById)(id);
-      const color = (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.projectState.state.countryOverrides[id] }, { fallback: defaultCountryColor() });
+      const color = (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.territorialModel.entityStore.countryOverride(id) }, { fallback: defaultCountryColor() });
       if (color.isDefault && $('countryColorInput')) $('countryColorInput').value = color.value;
       (0, dependencies.colorPicker.syncColorPicker)('country', {
         value: color.value,
@@ -201,8 +201,6 @@ export function createEnvironment() {
   }
 
   function initializeTerritorialGeometry() {
-    (territorialGeometry = (0, dependencies.territorialServicesA.createTerritorialGeometryKernel)(window.polygonClipping));
-
     (APP_VERSION = String(globalThis.PANDOLAB_BUILD_META?.appVersion || ''));
 
     (HYDRO_DATA_VERSION = '0.13.1');
@@ -496,7 +494,6 @@ export function createEnvironment() {
     get syncSearchClearButton() { return syncSearchClearButton; },
     get systemTheme() { return systemTheme; },
     get systemThemeQuery() { return systemThemeQuery; },
-    get territorialGeometry() { return territorialGeometry; },
     get userPreferences() { return userPreferences; },
     set userPreferences(value) { userPreferences = value; },
   });

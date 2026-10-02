@@ -67,7 +67,7 @@ export function createPropertySelection() {
   function territorialUnitCountryOptions() {
     return [
       { value: '', label: '소속 국가 미지정' },
-      ...(dependencies.projectState.state.countriesData?.features || []).map(feature => {
+      ...dependencies.territorialModel.entityRepository.list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY }).map(feature => {
         const properties = feature.properties || {};
         return {
           value: String(feature.id || ''),
@@ -80,12 +80,14 @@ export function createPropertySelection() {
 
   function territorialUnitParentOptions(feature) {
     const countryId = String(feature?.properties?.sovereignId || '');
-    const options = (0, dependencies.territorialServicesA.subunitParentChoices)(countryId, dependencies.projectState.state.countriesData.features, dependencies.projectState.state.territorialUnits, {
-      exclude: [feature.id], name: item => item.properties?.unitType ? (0, dependencies.objectPresentation.territorialUnitName)(item) : (0, dependencies.presentation.countryName)(item),
+    const options = (0, dependencies.territorialServicesA.subunitParentChoices)(countryId, dependencies.territorialModel.entityRepository, {
+      exclude: [feature.id], name: item => item.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? (0, dependencies.presentation.countryName)(item)
+        : (0, dependencies.objectPresentation.territorialUnitName)(item),
     });
     const signature = JSON.stringify([parentGeometryToken(feature.geometry), feature.properties.parentId, countryId,
       options.map(option => {
-        const parent = (0, dependencies.objectPresentation.territorialUnitById)(option.value) || (0, dependencies.countries.countryFeatureById)(option.value);
+        const parent = dependencies.territorialModel.entityRepository.get(option.value);
         return [option.value, parentGeometryToken(parent?.geometry), parent?.properties?.parentId, parent?.properties?.locked];
       })]);
     let entry = parentPreparations.get(String(feature.id));
@@ -110,7 +112,7 @@ export function createPropertySelection() {
     const queue = [...excluded];
     while (queue.length) {
       const current = queue.shift();
-      for (const child of (0, dependencies.territorialServicesA.territorialChildren)(dependencies.projectState.state.territorialUnits, current)) {
+      for (const child of dependencies.territorialModel.entityRepository.children(current)) {
         if (excluded.has(String(child.id))) continue;
         excluded.add(String(child.id));
         queue.push(String(child.id));
@@ -118,7 +120,7 @@ export function createPropertySelection() {
     }
     return [
       { value: '', label: '상위 단위 없음' },
-      ...dependencies.presentation.territorialRepository.list()
+      ...dependencies.territorialModel.entityRepository.list()
         .filter(candidate => !excluded.has(String(candidate.id)))
         .map(candidate => ({
           value: String(candidate.id),
@@ -133,7 +135,7 @@ export function createPropertySelection() {
   }
 
   function distributionEntryLabel(entry) {
-    if (entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL) return dependencies.presentation.territorialRepository.get(entry.territorialUnitId)?.properties?.name || entry.territorialUnitId;
+    if (entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL) return dependencies.territorialModel.entityRepository.get(entry.territorialUnitId)?.properties?.name || entry.territorialUnitId;
     return '자유 영역';
   }
 
@@ -179,7 +181,7 @@ export function createPropertySelection() {
   function addTerritorialDistributionEntry() {
     const layer = dependencies.projectState.state.selected?.domain === 'distribution' ? distributionLayerById(dependencies.projectState.state.selected.id) : null;
     const territorialUnitId = (0, dependencies.platform.$)('distributionTerritorialUnitInput').value;
-    if (!layer || layer.locked || !dependencies.presentation.territorialRepository.get(territorialUnitId)) return false;
+    if (!layer || layer.locked || !dependencies.territorialModel.entityRepository.get(territorialUnitId)) return false;
     let entry;
     try {
       entry = (0, dependencies.distributionServices.createDistributionEntry)({
@@ -315,7 +317,7 @@ export function createPropertySelection() {
     const key = String(id || '');
     const result = dependencies.objectModelB.territorialApplicationService.setLocked(type, key, locked, {
       history: type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? { description: `${(0, dependencies.presentation.countryName)((0, dependencies.countries.countryFeatureById)(key))} ${locked ? '잠금' : '잠금 해제'}` }
+        ? { description: `${(0, dependencies.presentation.countryName)(dependencies.territorialModel.entityRepository.get(key))} ${locked ? '잠금' : '잠금 해제'}` }
         : {},
     });
     if (!result.ok) return false;
@@ -440,8 +442,8 @@ export function createPropertySelection() {
 
   function initializePropertySelection() {
     window.PANDOLAB_TERRITORIAL = Object.freeze({
-      get: id => dependencies.objectModelB.territorialApplicationService.get(id),
-      list: options => dependencies.objectModelB.territorialApplicationService.list(options),
+      get: id => dependencies.territorialModel.entityRepository.get(id),
+      list: options => dependencies.territorialModel.entityRepository.list(options),
       select: applyTerritorialSelectionIntent,
       setName: setTerritorialUnitName,
       setColor: setTerritorialUnitColor,

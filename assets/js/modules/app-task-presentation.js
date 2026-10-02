@@ -91,9 +91,9 @@ export function createTaskPresentation() {
 
   function countryDisplay(countryId) {
     const id = String(countryId || '');
-    const feature = id ? dependencies.countries.countryFeatureById(id) : null;
+    const feature = id ? dependencies.territorialModel.entityStore.countryFeature(id) : null;
     if (!feature) return null;
-    const override = dependencies.projectState.state.countryOverrides?.[id] || {};
+    const override = dependencies.territorialModel.entityStore.countryOverride(id);
     return {
       name: dependencies.presentation.countryName(feature, override),
       flagUrl: dependencies.labelPresentation.effectiveCountryFlagUrl({ countryId: id, override, assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
@@ -385,8 +385,9 @@ export function createTaskPresentation() {
   function territorialUnitDisplay(unitId) {
     const id = String(unitId || '');
     if (!id) return null;
-    const unit = (dependencies.projectState.state.territorialUnits || []).find(item => String(item?.id || '') === id);
-    const name = String(unit?.properties?.name || '').trim();
+    const unit = dependencies.territorialModel.entityRepository.get(id);
+    if (!unit || unit.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
+    const name = String(unit.properties?.name || '').trim();
     return name || null;
   }
 
@@ -512,7 +513,7 @@ export function createTaskPresentation() {
     const state = dependencies.projectState.state;
     return taskTargetRefs(state, {
       countryType: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
-      countryFeatureById: dependencies.countries.countryFeatureById,
+      territorialEntityById: id => dependencies.territorialModel.entityRepository.get(id),
     });
   }
 
@@ -614,7 +615,10 @@ export function createTaskPresentation() {
       minimumPoints: dependencies.countryEditingA.draftMinimumPoints(), cutLineReady,
     });
     const task = activeModeTaskDescriptor();
-    const view = taskWorkflowPresentation(state, selectionModel, draft);
+    const view = taskWorkflowPresentation(state, selectionModel, draft, {
+      countryType: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+      territorialEntityById: id => dependencies.territorialModel.entityRepository.get(id),
+    });
     const taskName = (0, dependencies.platform.$)('modeTaskName');
     const taskStage = (0, dependencies.platform.$)('modeTaskStage');
     const taskStep = (0, dependencies.platform.$)('modeTaskStep');

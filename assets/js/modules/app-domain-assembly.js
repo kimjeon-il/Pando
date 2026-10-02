@@ -23,6 +23,8 @@ export function createDomainAssembly() {
   let countryPropertyController;
   let objectPropertyController;
   let layerTreeController;
+  let territorialEntityStore;
+  let territorialEntityRepository;
   function connect(ports) {
     if (dependencies) throw new Error('domain-assembly already connected');
     dependencies = ports;
@@ -156,6 +158,7 @@ export function createDomainAssembly() {
       },
       onProjectReset: event => {
         selectionDomain?.resetProject(event.generation);
+        selectionUiController?.resetProject?.();
         editingDomain?.resetProject?.(event.generation);
         renderingDomain?.resetProjectGeneration(event.generation, { preserveBuiltinMesh: event.preserveBuiltinMesh === true });
       },
@@ -218,8 +221,7 @@ export function createDomainAssembly() {
       territorialUnitParentOptions: dependencies.propertyEditingB.territorialUnitParentOptions,
       territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
       territorialUnitColor: dependencies.colorModel.territorialUnitColor,
-      territorialRepository: dependencies.presentation.territorialRepository,
-      territorialChildren: dependencies.territorialServicesA.territorialChildren,
+      territorialEntityRepository: territorialEntityRepository,
       distributionService: dependencies.objectModelA.distributionService,
       distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
       genericFeatureById: id => dependencies.projectState.state.genericFeatures.find(feature => String(feature.id) === String(id)),
@@ -282,10 +284,10 @@ export function createDomainAssembly() {
       getCountryView: value => {
         const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
         const id = String(ref?.id || value?.id || value || '');
-        const feature = (0, dependencies.countries.countryFeatureById)(id);
-        if (!feature) return null;
+        const feature = territorialEntityRepository.get(id);
+        if (feature?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
         const properties = feature.properties || {};
-        const override = dependencies.projectState.state.countryOverrides[id] || {};
+        const override = dependencies.territorialModel.entityStore.countryOverride(id);
         return { ref: (0, dependencies.objectOperationsA.countryObjectRef)(id), id, feature, properties, override, displayName: (0, dependencies.presentation.countryName)(feature) };
       },
       getPrimaryRef: () => selectionDomain.primary(),
@@ -313,7 +315,8 @@ export function createDomainAssembly() {
     const territorialLabelId = ref => {
       if (!ref?.id || ref.domain !== 'territorial') return '';
       if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-        return String((0, dependencies.countries.countryFeatureById)(ref.id)?.id || ref.id);
+        const entity = territorialEntityRepository.get(ref.id);
+        return String(entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity.id : ref.id);
       }
       for (const [labelId, labelRef] of dependencies.countries.builtinRenderCountries().labelRefs || []) {
         if (labelRef?.domain === 'territorial' && labelRef.type === ref.type && String(labelRef.id) === String(ref.id)) return String(labelId);
@@ -341,9 +344,9 @@ export function createDomainAssembly() {
         const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
         if (!ref?.id || ref.domain !== 'territorial') return null;
         if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-          const feature = (0, dependencies.countries.countryFeatureById)(ref.id);
-          if (!feature) return null;
-          const override = dependencies.projectState.state.countryOverrides[String(ref.id)] || {};
+          const feature = territorialEntityRepository.get(ref.id);
+          if (feature?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
+          const override = dependencies.territorialModel.entityStore.countryOverride(ref.id);
           return {
             ref,
             feature,
@@ -625,7 +628,7 @@ export function createDomainAssembly() {
           const borderMode = dependencies.projectState.state.tool === 'country-border';
           const coastId = String(dependencies.projectState.state.coastEditCountryId || event.targetRef?.id || '');
           const affectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
-          const boundaryFeature = id => (0, dependencies.countries.countryFeatureById)(id) || dependencies.projectState.state.territorialUnits.find(unit => String(unit.id) === String(id));
+          const boundaryFeature = id => territorialEntityRepository.get(id);
           if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([...affectedIds], borderMode ? '국경을 조정' : '해안선을 조정')) return false;
           if ([...affectedIds].some(id => boundaryFeature(id)?.properties?.locked)) {
             (0, dependencies.feedback.setActionStatus)('잠긴 객체와 공유하는 경계는 이동할 수 없습니다.', 'error', 3400);
@@ -642,8 +645,8 @@ export function createDomainAssembly() {
             }
           }
           if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([...hierarchyIds], '경계를 조정')) return false;
-          const lockedHierarchy = dependencies.projectState.state.territorialUnits.some(unit => unit.properties?.locked && (
-            hierarchyIds.has(String(unit.id)) || (hierarchyIds.has(String(unit.properties.sovereignId)) && boundaryTouchesGeometry(unit.geometry, node.coordinate))
+          const lockedHierarchy = territorialEntityRepository.list().some(entity => entity.properties?.locked && (
+            hierarchyIds.has(String(entity.id)) || (hierarchyIds.has(String(entity.properties?.sovereignId)) && boundaryTouchesGeometry(entity.geometry, node.coordinate))
           ));
           if (lockedHierarchy) {
             (0, dependencies.feedback.setActionStatus)('변경 구간의 상위 단위 또는 자식이 잠겨 있습니다.', 'error', 3400);
@@ -696,8 +699,8 @@ export function createDomainAssembly() {
             if (preparation.status === 'moving') preparation.status = 'ready';
             (0, dependencies.taskUi.updateModeButtons)();
           }
-          const unitTarget = dependencies.projectState.state.territorialUnits.find(unit => String(unit.id) === String(dependencies.projectState.state.boundaryEditSeedCountryId));
-          if (session.borderMode && unitTarget) {
+          const unitTarget = territorialEntityRepository.get(dependencies.projectState.state.boundaryEditSeedCountryId);
+          if (session.borderMode && unitTarget?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
             return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'boundary', targetId: unitTarget.id,
               parentId: unitTarget.properties.parentId, featurePatches: [...session.features.values()],
             }, { selectedId: unitTarget.id, shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'country-border'
@@ -961,7 +964,7 @@ export function createDomainAssembly() {
         getState: () => dependencies.projectState.state,
         distributionLayer: dependencies.mapHostViewA.distributionLayer,
         distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
-        territorialRepository: dependencies.presentation.territorialRepository,
+        territorialEntityRepository: territorialEntityRepository,
         featureFromGeometry: dependencies.renderScene.featureFromGeometry,
         geometryBounds: dependencies.spatialQuery.geometryBounds,
         distributionColor: dependencies.distributionPresentation.distributionColor,
@@ -1041,6 +1044,9 @@ export function createDomainAssembly() {
         countrySubunitExtent: id => dependencies.objectModelB.territorialScope.scope(id).extra,
         mapFeatureForObjectRef: dependencies.gpuRenderingA.mapFeatureForObjectRef,
         objectRefVisible: dependencies.objectOperationsA.objectRefVisible,
+        territorialEntityById: id => territorialEntityRepository.get(id),
+        territorialUnits: () => territorialEntityRepository.list()
+          .filter(feature => feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY),
         selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
         buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
         buildSelectionBoundarySegments: dependencies.selectionServices.buildSelectionBoundarySegments,
@@ -1169,7 +1175,38 @@ export function createDomainAssembly() {
 
   }
 
-  function initializeProjectDomain() {
+  function initializeDomainState() {
+    (territorialEntityStore = (0, dependencies.territorialServicesA.createTerritorialEntityStore)({
+      getState: () => dependencies.projectState.state,
+      writeCountryColor: (feature, override, value) => (0, dependencies.colorModel.writeDomainColor)(
+        dependencies.colorModel.COLOR_DOMAINS.COUNTRY,
+        { feature, override },
+        value,
+        { clear: !value, fallback: (0, dependencies.colorModel.defaultCountryColor)() },
+      ),
+      writeUnitColor: (feature, value) => (0, dependencies.colorModel.writeDomainColor)(
+        dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL,
+        { feature },
+        value,
+        { clear: !value, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR },
+      ),
+      onCountriesReplaced: (collection, _affectedIds, reindexOptions = {}) => {
+        dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(
+          collection,
+          true,
+          reindexOptions,
+        );
+      },
+      onUnitsReplaced: () => {
+        dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
+      },
+    }));
+
+    (territorialEntityRepository = (0, dependencies.territorialServicesA.createTerritorialEntityRepository)({
+      entityStore: territorialEntityStore,
+      getRevision: () => dependencies.projectState.state.stateRevision,
+    }));
+
     (projectDomain = null);
 
     (selectionDomain = null);
@@ -1194,7 +1231,7 @@ export function createDomainAssembly() {
 
   return Object.freeze({
     connect,
-    initializeProjectDomain,
+    initializeDomainState,
     get countryPropertyController() { return countryPropertyController; },
     get editingDomain() { return editingDomain; },
     get gisDomain() { return gisDomain; },
@@ -1207,5 +1244,7 @@ export function createDomainAssembly() {
     get selectionDomain() { return selectionDomain; },
     get selectionToolbarPresentation() { return selectionToolbarPresentation; },
     get selectionUiController() { return selectionUiController; },
+    get territorialEntityRepository() { return territorialEntityRepository; },
+    get territorialEntityStore() { return territorialEntityStore; },
   });
 }

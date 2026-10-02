@@ -100,7 +100,10 @@ test('display planning orders country, subunit and region ownership without chan
   const snapshot = { selection: { items: [region, subunit, country], primaryKey: '' }, hover: null };
   const state = { territorialUnits: [{ id: 'a', properties: { unitType: 'subunit', sovereignId: 'DEU' } },
     { id: 'b', properties: { unitType: 'region', parentId: 'a', sovereignId: 'DEU' } }] };
-  const entries = plans.selectionEntries(snapshot, state, { countryType: 'country' });
+  const entries = plans.selectionEntries(snapshot, state, {
+    countryType: 'country',
+    territorialUnits: () => state.territorialUnits,
+  });
   const before = structuredClone({ snapshot, state, entries });
   const style = resolveMapInteractionStyle();
   const plan = plans.selectionDisplayPlan({ entries, style });

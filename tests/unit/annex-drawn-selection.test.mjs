@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createCountryCommits } from '../../assets/js/modules/app-country-commits.js';
+import { createCountryTerritorialEntity } from '../../assets/js/modules/territorial-entity-repository.js';
 import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
 import { buildGeometryPreview } from '../../assets/js/modules/geometry-preview.js';
@@ -35,6 +36,13 @@ function harness(kind) {
   commits.connect(capabilityPortsForFixture(OBJECT_EDITING_OWNER_PORTS.countryCommits, {
     state,
     countryFeatureById: id => features.find(feature => String(feature.id) === String(id)),
+    entityRepository: {
+      get(id) {
+        const feature = features.find(candidate => String(candidate.id) === String(id));
+        return feature ? createCountryTerritorialEntity(feature) : null;
+      },
+    },
+    TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
     countryName: feature => feature?.properties?.name || '',
     territoryComponentItems: () => [],
     requireCountriesUnlocked: () => true,

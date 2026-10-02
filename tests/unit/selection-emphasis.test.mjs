@@ -195,17 +195,18 @@ test('country interaction boundaries reuse stable shared resources and draw only
   assert.doesNotMatch(gpu.slice(gpu.indexOf('function renderWebGl'), gpu.indexOf('function renderCanvasHydro')), /primaryBoundaryPaletteTexture/);
 });
 
-test('country interaction fill draws only emphasized country owner ranges', async () => {
+test('country interaction fill consumes only the prepared emphasized ranges', async () => {
   const gpu = await readFile(new URL('../../assets/js/modules/gpu-map-renderer.js', import.meta.url), 'utf8');
   const start = gpu.indexOf('function drawCountryInteractionFills');
-  const end = gpu.indexOf('function drawInteractionPasses', start);
+  const end = gpu.indexOf('function drawCountryBoundaryMask', start);
+  assert.ok(start >= 0 && end > start, 'country interaction fill helper must remain isolated');
   const interactionFill = gpu.slice(start, end);
   assert.match(gpu, /function ensureCountryIdScene/);
   assert.doesNotMatch(interactionFill, /ensureCountryIdScene\(\)/);
-  assert.match(interactionFill, /mesh\?\.triangleRangesByCountryId\?\.get\(id\)/);
-  assert.match(interactionFill, /visibleBaseRanges/);
-  assert.match(interactionFill, /drawProgram\(fillProgram[^;]+visibleBaseRanges\)/s);
-  assert.match(gpu.slice(end, gpu.indexOf('function sceneViewSignature', end)), /performanceMetrics\.countryInteractionIndexCount = 0/);
+  assert.match(interactionFill, /function drawCountryInteractionFills\(\{ base, override \}\)/);
+  assert.match(interactionFill, /if \(base\.length\) drawProgram\([^;]+base\)/s);
+  assert.match(interactionFill, /if \(override\.length\) drawProgram\([^;]+override\)/s);
+  assert.doesNotMatch(interactionFill, /triangleRangesByCountryId/);
 });
 
 test('territorial persistent boundaries use the shared GPU scene stroke domain', async () => {

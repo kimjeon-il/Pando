@@ -4,6 +4,9 @@ import { normalizePlace } from '../../assets/js/modules/place-contract.js';
 import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
 import { createGenericCommands } from '../../assets/js/modules/app-generic-commands.js';
 import { createProjectSnapshots } from '../../assets/js/modules/app-project-snapshots.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
 import { applyProjectFields, pickProjectFields } from '../../assets/js/modules/project-state.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 const source=normalizePlace({source:'synthetic',sourceId:'1',name:'서울',kind:'capital',coordinates:[127,37]});
@@ -34,8 +37,16 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
     selectedDistributionLayerId: '', boundaryPreparation: null,
   };
   const owner = createProjectSnapshots();
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const entityRepository = createTerritorialEntityRepository({
+    getCountries: entityStore.countriesData,
+    getUnits: entityStore.units,
+    getCountryOverride: entityStore.countryOverride,
+    getRevision: () => 0,
+  });
   let searchRenders = 0;
   let searchCancels = 0;
+  const geometryChanges = [];
   owner.connect({
     projectState: { state },
     applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { SINGLE: 'single', OVERLAP: 'overlap' } },
@@ -54,7 +65,12 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
       normalizeDistributionEntries: value => value || [],
       validateDistributionModel: () => ({ ok: true }),
     },
-    territorialModel: { normalizeTerritorialUnits: value => value || [] },
+    territorialModel: {
+      entityStore,
+      entityRepository,
+      normalizeTerritorialUnits: value => value || [],
+      TERRITORIAL_UNIT_TYPES,
+    },
     territorialServicesA: { normalizeTerritorialRelations: value => value || [] },
     objectModelB: { territorialApplicationService: { validateRelations: () => ({ ok: true }) } },
     presentation: { territorialRepository: { get: () => null } },
@@ -73,11 +89,28 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
       resetTerritorialUnitEditState() {}, resetTerritoryEditingState() {},
     },
     domainControllers: { objectPropertyController: { show() {} } },
-    spatialQuery: { mapEditClient: { invalidateBoundaryCache() {} }, markCountryGeometriesChanged() {} },
+    spatialQuery: { mapEditClient: { invalidateBoundaryCache() {} }, markCountryGeometriesChanged(ids) { geometryChanges.push([...ids]); } },
     taskUi: { updateModeButtons() {} },
   });
-  return { owner, state, searchRenders: () => searchRenders, searchCancels: () => searchCancels };
+  return { owner, state, geometryChanges, searchRenders: () => searchRenders, searchCancels: () => searchCancels };
 }
+
+test('label-only undo does not republish persistently dirty country geometry; actual geometry undo still does', () => {
+  const { owner, state, geometryChanges } = historySnapshotFixture();
+  const geometry = { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 0]]] };
+  state.countriesData.features.push({ type: 'Feature', id: 'KOR', properties: { name: '한국' }, geometry });
+  state.historyDirtyCountryIds.add('KOR');
+  const snapshot = owner.snapshotEditable();
+  state.labels.push({ id: 'copy', name: '서울', coordinates: [127, 37] });
+  owner.restoreEditable(snapshot);
+  assert.equal(state.countriesData.features[0].geometry, geometry);
+  assert.deepEqual(geometryChanges, []);
+  assert.deepEqual([...state.historyDirtyCountryIds], ['KOR']);
+  state.countriesData.features[0].geometry = { type: 'Polygon', coordinates: [[[0, 0], [3, 0], [3, 3], [0, 0]]] };
+  owner.restoreEditable(snapshot);
+  assert.deepEqual(geometryChanges, [['KOR']]);
+  assert.deepEqual(state.countriesData.features[0].geometry, geometry);
+});
 
 test('label history restores only changed user-label settings and leaves unrelated presentation alone', () => {
   const label = { id: 'label-copy', name: '서울', kind: 'capital', coordinates: [127, 37], notes: '' };

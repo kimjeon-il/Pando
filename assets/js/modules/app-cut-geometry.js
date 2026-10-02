@@ -508,7 +508,10 @@ export function createCutGeometry() {
   function selectedCountryUnionGeometry(sourceIds) {
     const ids = new Set((sourceIds || []).map(String));
     if (!ids.size) throw new Error('영토를 가져올 국가를 하나 이상 선택하세요.');
-    const union = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(dependencies.projectState.state.countriesData?.features || [], ids);
+    const union = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(
+      dependencies.territorialModel.entityStore.countriesData().features,
+      ids,
+    );
     const geometry = normalizeClippedLandGeometry(union);
     if (!geometry) throw new Error('선택 국가의 영토 합집합을 만들 수 없습니다.');
     return geometry;
@@ -523,12 +526,9 @@ export function createCutGeometry() {
       return [String(next.id || ''), next];
     }));
     const removed = new Set((result.removedIds || []).map(String));
-    dependencies.projectState.state.countriesData.features = dependencies.projectState.state.countriesData.features.flatMap(feature => {
+    const nextFeatures = dependencies.territorialModel.entityStore.countriesData().features.flatMap(feature => {
       const id = String(feature.id || '');
-      if (removed.has(id)) {
-        delete dependencies.projectState.state.countryOverrides[id];
-        return [];
-      }
+      if (removed.has(id)) return [];
       if (updates.has(id)) {
         const next = updates.get(id);
         updates.delete(id);
@@ -536,8 +536,13 @@ export function createCutGeometry() {
       }
       return [feature];
     });
-    for (const feature of updates.values()) dependencies.projectState.state.countriesData.features.push(feature);
-    (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
+    for (const feature of updates.values()) nextFeatures.push(feature);
+    dependencies.territorialModel.entityStore.replaceCollections({
+      countriesData: {
+        type: 'FeatureCollection',
+        features: nextFeatures,
+      },
+    });
     dependencies.geometryMutation.setApplyingWorkerResult(true);
     try {
       (0, dependencies.spatialQuery.markCountryGeometriesChanged)(
