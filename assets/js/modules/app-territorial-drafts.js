@@ -523,6 +523,7 @@ export function createTerritorialDrafts() {
         (0, dependencies.layers.markLayerTreeDirty)();
         (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(source.id, true);
       },
+      invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('region-merge-applied'),
     });
   }
 
@@ -577,6 +578,7 @@ export function createTerritorialDrafts() {
           (0, dependencies.layers.markLayerTreeDirty)();
           (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(source.id, true);
         },
+        invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('region-redraw-applied'),
       });
     } catch (error) {
       (0, dependencies.feedback.reportOperationError)(error, '지방 영역을 다시 지정하지 못했습니다.', 'PL-REGION-REDRAW-001', 4300);
@@ -659,6 +661,7 @@ export function createTerritorialDrafts() {
           (0, dependencies.layers.markLayerTreeDirty)();
           (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(region.id, true);
         },
+        invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-region-created'),
         successMessage: `${typeLabel}을 만들었습니다.`,
         errorMessage: `${typeLabel}을 만들지 못했습니다.`,
       });
