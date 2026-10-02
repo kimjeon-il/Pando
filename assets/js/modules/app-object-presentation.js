@@ -7,7 +7,6 @@ export function createObjectPresentation() {
   let territorialScope;
   let distributionVisibilityRevision;
   let distributionRenderRowCache;
-  let territorialEntityRepository;
   let territorialApplicationService;
   let distributionService;
   let genericFeatureService;
@@ -49,7 +48,7 @@ export function createObjectPresentation() {
   }
 
   function territorialUnitById(id) {
-    return territorialEntityRepository.get(id);
+    return dependencies.territorialModel.entityRepository.get(id);
   }
 
   function territorialStyleColor(feature) {
@@ -76,7 +75,7 @@ export function createObjectPresentation() {
   }
 
   function territorialUnitCountryName(feature) {
-    const country = territorialEntityRepository.sovereign(feature?.id);
+    const country = dependencies.territorialModel.entityRepository.sovereign(feature?.id);
     return country ? countryName(country) : '소속 국가 미지정';
   }
 
@@ -159,7 +158,7 @@ export function createObjectPresentation() {
     });
   }
 
-  function initializeTerritorialEntityRepository() {
+  function initializeObjectPresentationModel() {
 
 
 
@@ -202,7 +201,7 @@ export function createObjectPresentation() {
   return Object.freeze({
     connect,
     initializeTerritorialScope,
-    initializeTerritorialEntityRepository,
+    initializeObjectPresentationModel,
     get LAYER_GROUP_KEYS() { return LAYER_GROUP_KEYS; },
     get LAYER_SEARCH_GROUP_KEYS() { return LAYER_SEARCH_GROUP_KEYS; },
     get countryColor() { return countryColor; },
@@ -235,8 +234,6 @@ export function createObjectPresentation() {
     get syncMapObjectCategoryLabels() { return syncMapObjectCategoryLabels; },
     get territorialApplicationService() { return territorialApplicationService; },
     set territorialApplicationService(value) { territorialApplicationService = value; },
-    get territorialEntityRepository() { return territorialEntityRepository; },
-    set territorialEntityRepository(value) { territorialEntityRepository = value; },
     get territorialScope() { return territorialScope; },
     get territorialStyleColor() { return territorialStyleColor; },
     get territorialUnitById() { return territorialUnitById; },
