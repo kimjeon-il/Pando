@@ -37,18 +37,18 @@ function fixture() {
       replaceAll(value) { units = value; },
     },
   });
-  return { service, transactions, units: () => units };
+  return { service, entityRepository, transactions, units: () => units };
 }
 
 test('territorial service owns metadata transaction and lock enforcement', () => {
-  const { service, transactions } = fixture();
+  const { service, entityRepository, transactions } = fixture();
   assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'name', 'Changed').ok, true);
-  assert.equal(service.get('unit-a').properties.name, 'Changed');
+  assert.equal(entityRepository.get('unit-a').properties.name, 'Changed');
   assert.equal(service.setLocked(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', true).changed, true);
   assert.deepEqual(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'name', 'Blocked'), {
-    ok: false, code: 'locked', unit: service.get('unit-a'),
+    ok: false, code: 'locked', unit: entityRepository.get('unit-a'),
   });
-  assert.equal(service.get('unit-a').properties.name, 'Changed');
+  assert.equal(entityRepository.get('unit-a').properties.name, 'Changed');
   assert.deepEqual(transactions.map(item => item.type), ['territorial-metadata', 'territorial-lock']);
   assert.deepEqual(transactions.map(item => item.renderDirty), [
     { domain: 'territorial', change: 'metadata' },
@@ -57,9 +57,9 @@ test('territorial service owns metadata transaction and lock enforcement', () =>
 });
 
 test('territorial service routes country commands and replaces units atomically', () => {
-  const { service, transactions, units } = fixture();
+  const { service, entityRepository, transactions, units } = fixture();
   service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'name', 'Renamed');
-  assert.equal(service.get('country-a').properties.name, 'Renamed');
+  assert.equal(entityRepository.get('country-a').properties.name, 'Renamed');
   const replacement = [{
     type: 'Feature', id: 'unit-b', properties: {
       unitType: 'subunit', name: 'Subunit', parentId: 'country-a', sovereignId: 'country-a', locked: false,
@@ -75,7 +75,7 @@ test('territorial service routes country commands and replaces units atomically'
 });
 
 test('metadata parent edits cannot bypass Subunit parent and cycle validation', () => {
-  const { service, transactions } = fixture();
+  const { service, entityRepository, transactions } = fixture();
   service.replaceUnits([
     { id: 's', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a' } },
     { id: 'r', properties: { unitType: 'region' } },
@@ -84,5 +84,5 @@ test('metadata parent edits cannot bypass Subunit parent and cycle validation', 
   assert.equal(service.updateMetadata('subunit', 's', 'parentId', 'r').code, 'invalid-parent');
   assert.equal(service.updateMetadata('subunit', 's', 'parentId', 's').code, 'invalid-parent');
   assert.equal(transactions.length, count);
-  assert.equal(service.get('s').properties.parentId, 'country-a');
+  assert.equal(entityRepository.get('s').properties.parentId, 'country-a');
 });
