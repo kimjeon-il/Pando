@@ -32,7 +32,6 @@ export function createGisAssembly() {
       territorialUnitName: dependencies.objectPresentation.territorialUnitName,
       territorialEntityRepository: dependencies.territorialModel.entityRepository,
       entityStore: dependencies.territorialModel.entityStore,
-      territorialEntityStore: dependencies.territorialModel.entityStore,
       distributionService: dependencies.objectModelA.distributionService,
       genericFeatureService: dependencies.objectModelA.genericFeatureService,
       resolveImportedCountryId: dependencies.gisServicesA.resolveImportedCountryId,
