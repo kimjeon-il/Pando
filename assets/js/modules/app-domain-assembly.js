@@ -23,6 +23,7 @@ export function createDomainAssembly() {
   let countryPropertyController;
   let objectPropertyController;
   let layerTreeController;
+  let territorialEntityRepository;
   function connect(ports) {
     if (dependencies) throw new Error('domain-assembly already connected');
     dependencies = ports;
@@ -218,7 +219,7 @@ export function createDomainAssembly() {
       territorialUnitParentOptions: dependencies.propertyEditingB.territorialUnitParentOptions,
       territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
       territorialUnitColor: dependencies.colorModel.territorialUnitColor,
-      territorialEntityRepository: dependencies.presentation.territorialEntityRepository,
+      territorialEntityRepository: territorialEntityRepository,
       territorialChildren: dependencies.territorialServicesA.territorialChildren,
       distributionService: dependencies.objectModelA.distributionService,
       distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
@@ -961,7 +962,7 @@ export function createDomainAssembly() {
         getState: () => dependencies.projectState.state,
         distributionLayer: dependencies.mapHostViewA.distributionLayer,
         distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
-        territorialEntityRepository: dependencies.presentation.territorialEntityRepository,
+        territorialEntityRepository: territorialEntityRepository,
         featureFromGeometry: dependencies.renderScene.featureFromGeometry,
         geometryBounds: dependencies.spatialQuery.geometryBounds,
         distributionColor: dependencies.distributionPresentation.distributionColor,
@@ -1170,6 +1171,12 @@ export function createDomainAssembly() {
   }
 
   function initializeProjectDomain() {
+    (territorialEntityRepository = (0, dependencies.territorialServicesA.createTerritorialEntityRepository)({
+      getCountries: () => dependencies.projectState.state.countriesData,
+      getUnits: () => dependencies.projectState.state.territorialUnits,
+      getCountryOverride: id => dependencies.projectState.state.countryOverrides[id] || {},
+    }));
+
     (projectDomain = null);
 
     (selectionDomain = null);
@@ -1207,5 +1214,6 @@ export function createDomainAssembly() {
     get selectionDomain() { return selectionDomain; },
     get selectionToolbarPresentation() { return selectionToolbarPresentation; },
     get selectionUiController() { return selectionUiController; },
+    get territorialEntityRepository() { return territorialEntityRepository; },
   });
 }
