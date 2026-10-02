@@ -32,7 +32,7 @@ export function createTerritorialConversion() {
     const queue = [String(source.id)];
     while (queue.length) {
       const parentId = queue.shift();
-      for (const child of dependencies.territorialModel.entityRepository.children(parentId)) {
+      for (const child of dependencies.territorialModel.entityRepository.administrativeChildren(parentId)) {
         if (descendantIds.has(String(child.id))) continue;
         descendantIds.add(String(child.id));
         queue.push(String(child.id));
@@ -69,9 +69,9 @@ export function createTerritorialConversion() {
     const sourceIsCountry = sourceType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY;
     const targetIsCountry = targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY;
     const childCount = sourceIsCountry
-      ? dependencies.territorialModel.entityRepository.list({ sovereignId: String(source.id || '') })
+      ? dependencies.territorialModel.entityRepository.list({ administrativeCountryId: String(source.id || '') })
         .filter(candidate => String(candidate.id) !== String(source.id || '')).length
-      : dependencies.territorialModel.entityRepository.children(source.id).length;
+      : dependencies.territorialModel.entityRepository.administrativeChildren(source.id).length;
     const targetCountry = (0, dependencies.countries.countryFeatureById)(sovereignId);
     const targetParent = (0, dependencies.objectPresentation.territorialUnitById)(parentId);
     const impacts = [];
