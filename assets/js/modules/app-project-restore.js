@@ -41,9 +41,11 @@ export function createProjectRestore() {
     (0, dependencies.snapshots.applySharedProjectFields)(project);
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     dependencies.projectState.state.layerSearch = '';
-    dependencies.projectState.state.countriesData = project.countriesData
-      ? (0, dependencies.geometryMutation.reindexCountries)((0, dependencies.platform.deepClone)(project.countriesData), true)
-      : (0, dependencies.builtinCountries.freshPristineCountries)(true);
+    dependencies.territorialModel.entityStore.replaceCountries(
+      project.countriesData
+        ? (0, dependencies.platform.deepClone)(project.countriesData)
+        : (0, dependencies.builtinCountries.freshPristineCountries)(true),
+    );
     dependencies.projectState.state.auditPreviewCountries = null;
     (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
@@ -240,7 +242,7 @@ export function createProjectRestore() {
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     dependencies.projectState.state.countryIndex.clear();
-    dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(preparedCountries, false, { assumeCanonical: true });
+    dependencies.territorialModel.entityStore.replaceCountries(preparedCountries);
     const restoredExactly = dependencies.builtinCountries.canonicalCountryStore
       ? dependencies.projectState.state.countriesData.features.length === dependencies.builtinCountries.canonicalCountryStore.ids().length
         && dependencies.projectState.state.countriesData.features.every(feature => dependencies.builtinCountries.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))
