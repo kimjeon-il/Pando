@@ -42,18 +42,31 @@ export function createTerritorialEntityRepository({
   getCountries,
   getUnits,
   getCountryOverride = () => ({}),
+  getRevision = () => null,
 }) {
   if (typeof getCountries !== 'function' || typeof getUnits !== 'function') {
     throw new TypeError('영역 엔티티 저장소에는 국가와 하위 영역 공급자가 필요합니다.');
   }
 
-  const countries = () => (getCountries()?.features || [])
-    .map(feature => createCountryTerritorialEntity(feature, getCountryOverride(text(feature?.id))))
-    .filter(Boolean);
-  const units = () => Array.isArray(getUnits()) ? getUnits() : [];
+  let cached = null;
 
   function snapshot() {
-    const values = [...countries(), ...units()];
+    const countryFeatures = getCountries()?.features || [];
+    const unitValues = Array.isArray(getUnits()) ? getUnits() : [];
+    const revision = getRevision();
+    if (revision != null && cached
+      && cached.revision === revision
+      && cached.countryFeatures === countryFeatures
+      && cached.unitValues === unitValues) {
+      return cached.state;
+    }
+
+    const values = [
+      ...countryFeatures
+        .map(feature => createCountryTerritorialEntity(feature, getCountryOverride(text(feature?.id))))
+        .filter(Boolean),
+      ...unitValues,
+    ];
     const byId = new Map();
     const childrenByParent = new Map();
     for (const entity of values) {
@@ -67,7 +80,14 @@ export function createTerritorialEntityRepository({
       children.push(entity);
       childrenByParent.set(parentId, children);
     }
-    return { values, byId, childrenByParent };
+    const state = { values, byId, childrenByParent };
+    cached = revision == null ? null : {
+      revision,
+      countryFeatures,
+      unitValues,
+      state,
+    };
+    return state;
   }
 
   const entityFrom = (state, id) => state.byId.get(text(id)) || null;
