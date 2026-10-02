@@ -119,44 +119,8 @@ export function createHistoryAssembly() {
 
     dependencies.projectServiceCommands.installTerritorialApplicationService((0, dependencies.territorialServicesA.createTerritorialApplicationService)({
       entityRepository: dependencies.territorialModel.entityRepository,
+      entityStore: dependencies.territorialModel.entityStore,
       commandPipeline: dependencies.objectModelB.projectCommandPipeline,
-      countryCommands: {
-        isLocked: id => (0, dependencies.objectOperationsA.isCountryLocked)(id),
-        hasField: (id, field) => Object.hasOwn(dependencies.projectState.state.countryOverrides[id] || {}, field),
-        setLocked: (id, locked) => (0, dependencies.objectOperationsB.setCountryLockedState)(id, locked),
-        setField: (id, field, value) => {
-          const previous = dependencies.projectState.state.countryOverrides[id] || {};
-          if (field === 'flagDataUrl' && value === undefined) {
-            if (!Object.hasOwn(previous, field)) return;
-            const next = { ...previous };
-            delete next[field];
-            if (Object.keys(next).length) dependencies.projectState.state.countryOverrides[id] = next;
-            else delete dependencies.projectState.state.countryOverrides[id];
-            return;
-          }
-          dependencies.projectState.state.countryOverrides[id] = { ...previous };
-          if (field === 'color') {
-            (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, {
-              feature: (0, dependencies.countries.countryFeatureById)(id), override: dependencies.projectState.state.countryOverrides[id],
-            }, value, { clear: !value, fallback: (0, dependencies.colorModel.defaultCountryColor)() });
-            if (!Object.keys(dependencies.projectState.state.countryOverrides[id]).length) {
-              delete dependencies.projectState.state.countryOverrides[id];
-            }
-          } else dependencies.projectState.state.countryOverrides[id][field] = value;
-        },
-      },
-      unitCommands: {
-        setField: (id, field, value) => {
-          const feature = (0, dependencies.objectPresentation.territorialUnitById)(id);
-          if (!feature) return;
-          if (field === 'color') (0, dependencies.objectModelB.setTerritorialStyleColor)(feature, value);
-          else feature.properties[field] = value;
-        },
-        replaceAll: units => {
-          dependencies.projectState.state.territorialUnits = units;
-          dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
-        },
-      },
     }));
 
     dependencies.projectServiceCommands.installDistributionService((0, dependencies.distributionServices.createDistributionService)({
