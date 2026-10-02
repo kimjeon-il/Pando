@@ -242,7 +242,9 @@ export function createProjectRestore() {
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     dependencies.projectState.state.countryIndex.clear();
-    dependencies.territorialModel.entityStore.replaceCountries(preparedCountries);
+    dependencies.territorialModel.entityStore.replaceCountries(preparedCountries, {
+      reindexOptions: { assumeCanonical: true },
+    });
     const restoredExactly = dependencies.builtinCountries.canonicalCountryStore
       ? dependencies.projectState.state.countriesData.features.length === dependencies.builtinCountries.canonicalCountryStore.ids().length
         && dependencies.projectState.state.countriesData.features.every(feature => dependencies.builtinCountries.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))
