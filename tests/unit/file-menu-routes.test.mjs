@@ -20,9 +20,9 @@ test('topbar separates history, file, view, settings and help commands', () => {
   assert.match(mobileMenu, /mobileDisplayBtn[\s\S]*#icon-tune/);
   assert.match(mobileMenu, /mobileHelpBtn[\s\S]*#icon-help/);
   assert.deepEqual([...menu.matchAll(/<button id="([^"]+)"/g)].map(m => m[1]).filter(id => id !== 'mobileFileBackBtn'),
-    ['newProjectBtn', 'openProjectBtn', 'saveProjectBtn', 'openGisBtn', 'dataExportBtn']);
+    ['newProjectBtn', 'autosaveRecoveryFileBtn', 'openProjectBtn', 'saveProjectBtn', 'openGisBtn', 'dataExportBtn']);
   assert.deepEqual([...menu.matchAll(/<use href="#([^"]+)"/g)].map(m => m[1]).filter(icon => icon !== 'icon-chevron-left'),
-    ['icon-plus', 'icon-folder-open', 'icon-save', 'icon-map-import', 'icon-map-export']);
+    ['icon-plus', 'icon-undo', 'icon-folder-open', 'icon-save', 'icon-map-import', 'icon-map-export']);
   assert.equal((menu.match(/role="separator"/g) || []).length, 1);
   assert.match(menu, /class="[^"]*\bui-command-menu\b/);
   assert.match(tokens, /--ui-menu-width:\s*17\.5rem;/);
