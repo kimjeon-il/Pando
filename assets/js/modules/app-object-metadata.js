@@ -85,23 +85,26 @@ export function createObjectMetadata() {
     }
     const explicitCoverage = feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION;
     if (field === 'sovereignId' && explicitCoverage && String(value) !== String(feature.properties.sovereignId || '')) {
-      const candidateUnits = (0, dependencies.platform.deepClone)(dependencies.projectState.state.territorialUnits);
-      const candidateFeature = candidateUnits.find(item => String(item.id) === String(feature.id));
-      Object.assign(candidateFeature, (0, dependencies.applicationServicesA.changeSovereign)(candidateFeature, value));
-      const normalizedUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(candidateUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
-      dependencies.objectModelB.territorialApplicationService.replaceUnits(normalizedUnits, {
-        type: 'territorial-sovereign', affectedIds: [feature.id],
-      });
+      const result = dependencies.objectModelB.territorialApplicationService.changeAdministrativeCountry(
+        feature.properties.unitType,
+        feature.id,
+        value,
+      );
+      if (!result.ok) {
+        (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+        (0, dependencies.feedback.setActionStatus)(result.issues?.[0] || '지방의 소속 국가를 변경할 수 없습니다.', 'error', 4200);
+        return;
+      }
       (0, dependencies.layers.markLayerTreeDirty)();
       (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
-      (0, dependencies.feedback.setActionStatus)('지방의 주권 관계를 변경했습니다. 형상은 변경하지 않았습니다.', 'success');
+      (0, dependencies.feedback.setActionStatus)('지방의 소속 국가를 변경했습니다. 형상은 변경하지 않았습니다.', 'success');
       return;
     }
     if (field === 'sovereignId' && String(value) !== String(feature.properties.sovereignId || '')) {
-      const nextCountry = (0, dependencies.countries.countryFeatureById)(value);
+      const nextCountry = dependencies.territorialModel.entityRepository.get(value);
       const prefix = 'subunit';
       (0, dependencies.platform.$)(`${prefix}CountryInput`).value = String(feature.properties.sovereignId || '');
-      if (!nextCountry) {
+      if (nextCountry?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
         (0, dependencies.feedback.setActionStatus)('소속 국가를 선택하세요.', 'error', 3200);
         return;
       }
@@ -115,6 +118,32 @@ export function createObjectMetadata() {
         (0, dependencies.feedback.setActionStatus)('하위단위 전체가 새 부모 안에 들어갈 때만 상위 단위를 변경할 수 있습니다.', 'error', 4200);
         return;
       }
+      const result = dependencies.objectModelB.territorialApplicationService.changeAdministrativeParent(
+        feature.properties.unitType,
+        feature.id,
+        value,
+        {
+          validateCandidate: ({ candidateUnits }) => {
+            globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).validate(
+              dependencies.projectState.state.countriesData.features,
+              candidateUnits,
+              dependencies.projectState.state.territorialUnits,
+              [String(feature.id)],
+            );
+            return true;
+          },
+        },
+      );
+      if (!result.ok) {
+        (0, dependencies.platform.$)('subunitParentInput').value = String(feature.properties.parentId || '');
+        (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+        (0, dependencies.feedback.setActionStatus)(result.issues?.[0] || '상위 단위를 변경할 수 없습니다.', 'error', 4200);
+        return;
+      }
+      (0, dependencies.layers.markLayerTreeDirty)();
+      (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+      (0, dependencies.feedback.setActionStatus)('하위단위의 상위 단위를 변경했습니다.', 'success');
+      return;
     }
     const canonicalField = field;
     if (['name', 'notes', 'color', 'validFrom', 'validTo'].includes(canonicalField)) {
