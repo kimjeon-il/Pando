@@ -286,7 +286,7 @@ export function createDomainAssembly() {
         const feature = territorialEntityRepository.get(id);
         if (feature?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
         const properties = feature.properties || {};
-        const override = dependencies.projectState.state.countryOverrides[id] || {};
+        const override = dependencies.territorialModel.entityStore.countryOverride(id);
         return { ref: (0, dependencies.objectOperationsA.countryObjectRef)(id), id, feature, properties, override, displayName: (0, dependencies.presentation.countryName)(feature) };
       },
       getPrimaryRef: () => selectionDomain.primary(),
@@ -345,7 +345,7 @@ export function createDomainAssembly() {
         if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
           const feature = territorialEntityRepository.get(ref.id);
           if (feature?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
-          const override = dependencies.projectState.state.countryOverrides[String(ref.id)] || {};
+          const override = dependencies.territorialModel.entityStore.countryOverride(ref.id);
           return {
             ref,
             feature,
