@@ -43,7 +43,12 @@ function fixture(visibility = {}) {
       projectVisibleCoordinate: coordinate => coordinate,
       activeProjection: () => ({ scale: () => 1000 }),
     },
-    domainAssembly: { selectionDomain: { has: () => false, snapshot: () => ({ selection: { items: [], primaryKey: null } }) } },
+    domainAssembly: {
+      selectionDomain: { has: () => false, snapshot: () => ({ selection: { items: [], primaryKey: null } }) },
+      territorialEntityStore: {
+        countryOverride: id => state.countryOverrides[String(id)] || {},
+      },
+    },
     environment: { runtimeAssetUrl: path => new URL(path, 'http://localhost/assets/js/') },
     renderQuality: { currentRenderQuality: { labelDensity: 1, tier: 'high' } },
     objectPresentation: { countryName: feature => feature.properties.name },
