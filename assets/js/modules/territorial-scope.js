@@ -45,7 +45,8 @@ export function createTerritorialScopeResolver({ entityRepository, countryColor,
     refresh();
     const id = String(countryId);
     if (scopes.has(id)) return scopes.get(id);
-    const country = entityRepository.get(id);
+    const candidate = entityRepository.get(id);
+    const country = candidate?.properties?.unitType === 'country' ? candidate : null;
     const descendants = members(id);
     const base = polygons(country?.geometry);
     let extent = country, extra = null;
