@@ -57,6 +57,7 @@ test('country fields stay in overrides while unit fields stay on unit properties
 
   assert.equal(store.setField(TERRITORIAL_UNIT_TYPES.COUNTRY, 'A', 'name', 'Renamed'), true);
   assert.equal(state.countriesData.features[0].properties.name, 'A');
+
   assert.equal(state.countryOverrides.A.name, 'Renamed');
 
   assert.equal(store.setField(TERRITORIAL_UNIT_TYPES.COUNTRY, 'A', 'color', '#ABCDEF'), true);
@@ -282,6 +283,143 @@ test('replaceCollections commits country overrides, countries, and units as one 
   assert.deepEqual(result.countryOverrides, { B: { name: 'Bee' } });
   assert.equal(state.countriesData.features[0].id, 'B');
   assert.equal(state.territorialUnits[0].id, 'S');
+  assert.equal(countryReplacements(), 1);
+  assert.equal(unitReplacements(), 1);
+});
+
+function assertRejectedWithoutMutation(context, operation, pattern) {
+  const { state, store, countryReplacements, unitReplacements } = context;
+  const before = structuredClone(state);
+  const countries = state.countriesData;
+  const countryFeatures = countries.features;
+  const overrides = state.countryOverrides;
+  const units = state.territorialUnits;
+  assert.throws(() => operation(store), pattern);
+  assert.deepEqual(state, before);
+  assert.equal(state.countriesData, countries);
+  assert.equal(state.countriesData.features, countryFeatures);
+  assert.equal(state.countryOverrides, overrides);
+  assert.equal(state.territorialUnits, units);
+  assert.equal(countryReplacements(), 0);
+  assert.equal(unitReplacements(), 0);
+}
+
+test('deletion with a stale unit type leaves the current entity and hooks untouched', () => {
+  const context = fixture();
+  const { state, store, countryReplacements, unitReplacements } = context;
+  const before = structuredClone(state);
+  const units = state.territorialUnits;
+  assert.deepEqual(store.removeEntities([{ type: TERRITORIAL_UNIT_TYPES.SUBUNIT, id: 'R' }]), {
+    countries: [], units: [],
+  });
+  assert.deepEqual(state, before);
+  assert.equal(state.territorialUnits, units);
+  assert.equal(countryReplacements(), 0);
+  assert.equal(unitReplacements(), 0);
+});
+
+test('mixed deletion resolves both unit type and ID and emits each hook once', () => {
+  const { state, store, countryReplacements, unitReplacements } = fixture();
+  state.territorialUnits.push({ id: 'S', properties: { unitType: 'subunit' } });
+  const result = store.removeEntities([
+    { type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: 'A' },
+    { type: TERRITORIAL_UNIT_TYPES.SUBUNIT, id: 'R' },
+    { type: TERRITORIAL_UNIT_TYPES.SUBUNIT, id: 'S' },
+    { type: TERRITORIAL_UNIT_TYPES.SUBUNIT, id: 'S' },
+  ]);
+  assert.deepEqual(result.countries.map(feature => feature.id), ['A']);
+  assert.deepEqual(result.units.map(feature => feature.id), ['S']);
+  assert.deepEqual(state.territorialUnits.map(feature => feature.id), ['R']);
+  assert.equal(countryReplacements(), 1);
+  assert.equal(unitReplacements(), 1);
+});
+
+test('invalid appended identities are rejected before any collection or override changes', async t => {
+  const country = id => ({ type: 'country', feature: { id, properties: {} } });
+  const unit = id => ({ type: 'region', feature: { id, properties: { unitType: 'region' } } });
+  const cases = [
+    ['existing country ID', [country('A')], /ID.*중복/],
+    ['existing unit ID', [unit('R')], /ID.*중복/],
+    ['cross-domain ID', [country('R')], /ID.*중복/],
+    ['duplicate batch ID', [country('B'), unit('B')], /ID.*중복/],
+    ['empty ID', [unit(' ')], /ID.*비어/],
+    ['missing feature', [null], /형식/],
+    ['country type mismatch', [{ type: 'country', feature: { id: 'B', properties: { unitType: 'region' } } }], /종류/],
+    ['unit type missing', [{ type: 'region', feature: { id: 'B', properties: {} } }], /종류/],
+  ];
+  for (const [name, invalid, pattern] of cases) {
+    await t.test(name, () => {
+      const context = fixture();
+      const valid = { ...country('C'), countryOverride: { name: 'See' } };
+      assertRejectedWithoutMutation(context, store => store.appendEntities([valid, ...invalid]), pattern);
+    });
+  }
+});
+
+test('invalid collection replacement preserves the complete previous state', async t => {
+  const unit = (id, unitType = 'region') => ({ id, properties: { unitType } });
+  const cases = [
+    ['malformed feature collection', { countriesData: { type: 'FeatureCollection' } }, /국가.*배열/],
+    ['non-collection country input', { countriesData: {} }, /국가.*배열/],
+    ['non-array units', { units: {} }, /영역.*배열/],
+    ['cross-domain ID', { units: [unit('A')] }, /ID.*중복/],
+    ['duplicate unit IDs', { units: [unit('S'), unit(' S ')] }, /ID.*중복/],
+    ['missing unit ID', { units: [unit('')] }, /ID.*비어/],
+    ['country in unit storage', { units: [unit('B', 'country')] }, /종류/],
+    ['unit in country storage', { countriesData: [unit('B')] }, /종류/],
+  ];
+  for (const [name, invalid, pattern] of cases) {
+    await t.test(name, () => {
+      const context = fixture();
+      context.state.countryOverrides.A = { name: 'Original', locked: true };
+      assertRejectedWithoutMutation(context, store => store.replaceCollections({
+        countryOverrides: { B: { name: 'Replacement' } },
+        ...invalid,
+      }), pattern);
+    });
+  }
+});
+
+test('same-ID country-to-unit conversion and snapshot restore stay atomic for repository readers', () => {
+  const { state } = fixture();
+  state.countryOverrides.A = { name: 'Original', color: '#123456' };
+  const before = structuredClone(state);
+  const notifications = [];
+  let repository;
+  const store = createTerritorialEntityStore({
+    getState: () => state,
+    onCountriesReplaced() { notifications.push(repository.get('A')?.properties.unitType); },
+    onUnitsReplaced() { notifications.push(repository.get('A')?.properties.unitType); },
+  });
+  repository = createTerritorialEntityRepository({ entityStore: store, getRevision: () => 1 });
+  assert.equal(repository.get('A').properties.unitType, 'country');
+
+  store.replaceCollections({
+    countriesData: { type: 'FeatureCollection', features: [] },
+    units: [...state.territorialUnits, { id: 'A', properties: { unitType: 'region', name: 'Converted' } }],
+  });
+  assert.equal(repository.get('A').properties.unitType, 'region');
+  assert.equal(state.countryOverrides.A, undefined);
+  assert.deepEqual(notifications, ['region', 'region']);
+
+  store.replaceCollections({
+    countriesData: before.countriesData,
+    countryOverrides: before.countryOverrides,
+    units: before.territorialUnits,
+  });
+  assert.equal(repository.get('A').properties.unitType, 'country');
+  assert.equal(repository.get('A').properties.name, 'Original');
+  assert.equal(repository.get('A').properties.style.color, '#123456');
+  assert.deepEqual(notifications, ['region', 'region', 'country', 'country']);
+});
+
+test('clearing both physical collections is valid and prunes overrides', () => {
+  const { state, store, countryReplacements, unitReplacements } = fixture();
+  state.countryOverrides.A = { locked: true };
+  store.replaceCollections({ countriesData: [], units: [] });
+  assert.deepEqual(state.countriesData, { type: 'FeatureCollection', features: [] });
+  assert.deepEqual(state.territorialUnits, []);
+  assert.deepEqual(state.countryOverrides, {});
   assert.equal(countryReplacements(), 1);
   assert.equal(unitReplacements(), 1);
 });
