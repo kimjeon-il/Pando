@@ -57,6 +57,7 @@ export const FOUNDATION_OWNER_PORTS = Object.freeze({
     "workspaceUiA"
   ],
   "objectCommands": [
+    "spatialQuery",
     "colorModel",
     "countries",
     "distributionPresentation",

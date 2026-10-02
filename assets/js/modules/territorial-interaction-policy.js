@@ -32,12 +32,16 @@ export function removeTerritorialEntities(state, {
   countryIds = [],
   unitIds = [],
 } = {}, territorialMode = 'territorial', { entityStore = null } = {}) {
+  for (const method of ['units', 'removeEntities', 'replaceCollections']) {
+    if (typeof entityStore?.[method] !== 'function') {
+      throw new TypeError(`영역 삭제에는 공통 엔티티 저장소의 ${method}가 필요합니다.`);
+    }
+  }
   const removedCountries = new Set([...countryIds].map(String).filter(Boolean));
   const removedUnits = new Set([...unitIds].map(String).filter(Boolean));
   const removedAll = new Set([...removedCountries, ...removedUnits]);
 
-  const storedUnits = () => entityStore?.units?.() || state.territorialUnits;
-  const beforeUnits = storedUnits();
+  const beforeUnits = entityStore.units();
   const unitTargets = [...removedUnits].map(id => beforeUnits.find(unit => String(unit.id) === id));
   if (!territorialDeletionAllowed(unitTargets, beforeUnits)) {
     throw new Error('잠금 또는 자식 관계 때문에 삭제할 수 없습니다.');
@@ -46,22 +50,14 @@ export function removeTerritorialEntities(state, {
     throw new Error('하위 영역이 있는 국가는 삭제할 수 없습니다.');
   }
 
-  const genericRemoval = typeof entityStore?.removeEntities === 'function';
-  if (genericRemoval && removedAll.size) {
+  if (removedAll.size) {
     entityStore.removeEntities([
       ...[...removedCountries].map(id => ({ type: 'country', id })),
       ...unitTargets.map(unit => ({ type: unit.properties?.unitType, id: unit.id })),
     ]);
-  } else {
-    if (removedCountries.size) {
-      state.countriesData.features = state.countriesData.features.filter(feature => !removedCountries.has(String(feature.id)));
-      for (const id of removedCountries) delete state.countryOverrides?.[id];
-    }
   }
 
-  const storedAfterRemoval = genericRemoval
-    ? entityStore.units()
-    : beforeUnits.filter(unit => !removedUnits.has(String(unit.id)));
+  const storedAfterRemoval = entityStore.units();
   const nextUnits = storedAfterRemoval.map(unit => {
     const sovereignRemoved = removedCountries.has(String(unit.properties?.sovereignId || ''));
     const parentRemoved = removedCountries.has(String(unit.properties?.parentId || ''));
@@ -71,11 +67,9 @@ export function removeTerritorialEntities(state, {
     if (parentRemoved) next.properties.parentId = '';
     return next;
   });
-  const unitsChanged = (!genericRemoval && storedAfterRemoval.length !== beforeUnits.length)
-    || nextUnits.some((unit, index) => unit !== storedAfterRemoval[index]);
+  const unitsChanged = nextUnits.some((unit, index) => unit !== storedAfterRemoval[index]);
   if (unitsChanged) {
-    if (entityStore?.replaceCollections) entityStore.replaceCollections({ units: nextUnits });
-    else state.territorialUnits = nextUnits;
+    entityStore.replaceCollections({ units: nextUnits });
   }
 
   state.territorialRelations = (state.territorialRelations || [])
@@ -131,8 +125,4 @@ export function removeTerritorialEntities(state, {
     countryIds: [...removedCountries],
     unitIds: [...removedUnits],
   };
-}
-
-export function removeTerritorialUnits(state, ids, territorialMode) {
-  return removeTerritorialEntities(state, { unitIds: ids }, territorialMode);
 }

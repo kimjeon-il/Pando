@@ -193,7 +193,9 @@ export function createProjectSnapshots() {
 
   function normalizeProjectObjects({ history = false } = {}) {
     const countryIds = new Set((dependencies.projectState.state.countriesData?.features || []).map(feature => String(feature?.id || '')).filter(Boolean));
-    dependencies.projectState.state.countryOverrides = (0, dependencies.countryServices.pruneCountryOverrides)(dependencies.projectState.state.countryOverrides, countryIds);
+    dependencies.territorialModel.entityStore.replaceCollections({
+      countryOverrides: (0, dependencies.countryServices.pruneCountryOverrides)(dependencies.territorialModel.entityStore.countryOverrides(), countryIds),
+    });
     dependencies.projectState.state.hydroEdits = (0, dependencies.hydroModel.normalizeHydroEditCollection)(dependencies.projectState.state.hydroEdits);
     dependencies.projectState.state.genericFeatures = (0, dependencies.modelValidation.normalizeGenericFeatureCollection)(dependencies.projectState.state.genericFeatures || [], history ? { cloneFeature: feature => ({ ...feature }) } : {});
     dependencies.projectState.state.distributionLayers = (0, dependencies.distributionServices.normalizeDistributionLayers)(dependencies.projectState.state.distributionLayers);
@@ -247,7 +249,8 @@ export function createProjectSnapshots() {
   }
 
   function restoreEditable(snapshot, { mode = 'history' } = {}) {
-    const changedCountryIds = new Set(dependencies.projectState.state.historyDirtyCountryIds);
+    const previousGeometries = new Map(dependencies.territorialModel.entityStore.countriesData().features
+      .map(feature => [String(feature.id), feature.geometry]));
     const currentLabels = (0, dependencies.platform.deepClone)(dependencies.projectState.state.labels || []);
     applySharedProjectFields(snapshot, 'history');
     restoreHistoryLabelSettings(snapshot, currentLabels);
@@ -256,7 +259,12 @@ export function createProjectSnapshots() {
     restoreCountriesFromSnapshot(snapshot);
     normalizeProjectObjects({ history: true });
     const restoredDirtyIds = new Set(dependencies.projectState.state.historyDirtyCountryIds);
-    for (const id of dependencies.projectState.state.historyDirtyCountryIds) changedCountryIds.add(String(id));
+    const restoredGeometries = new Map(dependencies.territorialModel.entityStore.countriesData().features
+      .map(feature => [String(feature.id), feature.geometry]));
+    // Persistent delta IDs describe differences from the built-in dataset, not
+    // changes made by this Undo. History reuses unchanged geometry references.
+    const changedCountryIds = new Set([...previousGeometries.keys(), ...restoredGeometries.keys()]
+      .filter(id => previousGeometries.get(id) !== restoredGeometries.get(id)));
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();

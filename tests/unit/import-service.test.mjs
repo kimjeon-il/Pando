@@ -10,6 +10,7 @@ import {
   importedCountryOverrides,
 } from '../../assets/js/modules/import-service.js';
 import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 
 const country = (id, name = id) => ({
   type: 'Feature',
@@ -176,7 +177,7 @@ test('historical replacement commits full country deletion and transfers depende
   const state = {
     countriesData: { type: 'FeatureCollection', features: [existing] },
     countryOverrides: { KAZ: { color: '#123456' } },
-    territorialUnits: [{ id: 'KAB', properties: { sovereignId: 'KAZ' } }],
+    territorialUnits: [{ id: 'KAB', properties: { unitType: 'subunit', sovereignId: 'KAZ', parentId: 'KAZ' } }],
     territorialRelations: [], distributionLayers: [], distributionEntries: [], labels: [], genericFeatures: [],
     itemVisibility: {}, labelSettings: {}, sourceInfo: null,
   };
@@ -184,11 +185,11 @@ test('historical replacement commits full country deletion and transfers depende
   let committedSnapshot = null;
   const committer = createGisImportTransactionCommitter({
     state,
+    entityStore: createTerritorialEntityStore({ getState: () => state }),
     deepClone: value => JSON.parse(JSON.stringify(value)),
     importedCountryOverrides: () => ({}),
     applyImportedPackageAssets: (_metadata, overrides) => overrides,
     validateGisCountryCollection: async () => ({ overlapAreaKm2: 0 }),
-    reindexCountries: collection => collection,
     transferLandDependents: (geometry, donorIds, targetId) => {
       transferred = { geometry, donorIds, targetId };
       state.territorialUnits = [];

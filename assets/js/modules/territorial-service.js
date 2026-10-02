@@ -30,7 +30,7 @@ export function createTerritorialApplicationService({
     const feature = type === TERRITORIAL_UNIT_TYPES.COUNTRY ? country(key) : unit(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
     if (isLocked(type, key)) return { ok: false, code: 'locked', unit: feature };
-    const children = entityRepository.administrativeChildren(key);
+    const children = entityRepository.children(key);
     if (children.length) return { ok: false, code: 'has-children', unit: feature, children };
     return { ok: true, unit: feature, children: [] };
   }

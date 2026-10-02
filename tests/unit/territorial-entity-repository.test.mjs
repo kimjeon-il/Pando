@@ -64,11 +64,15 @@ test('repository can read directly from the physical entity store', () => {
   };
   const store = createTerritorialEntityStore({ getState: () => state });
   const repository = createTerritorialEntityRepository({ entityStore: store });
+  for (const retired of ['administrativeChildren', 'administrativeParent', 'administrativeSiblings',
+    'administrativeAncestors', 'administrativeDescendants', 'administrativeRoot', 'sovereign']) {
+    assert.equal(Object.hasOwn(repository, retired), false);
+  }
 
   assert.equal(repository.get('PL').properties.name, '폴란드');
   assert.equal(repository.get('PL').properties.style.color, '#123456');
   assert.equal(repository.get('t1').properties.unitType, TERRITORIAL_UNIT_TYPES.SUBUNIT);
-  assert.deepEqual(repository.administrativeChildren('PL').map(item => item.id), ['t1']);
+  assert.deepEqual(repository.children('PL').map(item => item.id), ['t1']);
 });
 
 test('repository exposes countries and nested units through one hierarchy surface', () => {
@@ -104,21 +108,21 @@ test('repository exposes countries and nested units through one hierarchy surfac
   assert.equal(repository.get('PL').properties.unitType, 'country');
   assert.equal(repository.get('t1').properties.unitType, 'subunit');
   assert.equal(repository.has('missing'), false);
-  assert.deepEqual(repository.administrativeChildren('PL').map(item => item.id), ['t1']);
-  assert.equal(repository.administrativeParent('t1').id, 'PL');
-  assert.deepEqual(repository.administrativeSiblings('t1').map(item => item.id), []);
+  assert.deepEqual(repository.children('PL').map(item => item.id), ['t1']);
+  assert.equal(repository.parent('t1').id, 'PL');
+  assert.deepEqual(repository.siblings('t1').map(item => item.id), []);
   assert.deepEqual(repository.siblings('r1').map(item => item.id), []);
   assert.deepEqual(repository.ancestors('t2').map(item => item.id), ['t1', 'PL']);
-  assert.deepEqual(repository.administrativeDescendants('PL').map(item => item.id), ['t1', 't2']);
-  assert.deepEqual(repository.administrativeDescendants('PL', { type: 'subunit' }).map(item => item.id), ['t1', 't2']);
+  assert.deepEqual(repository.descendants('PL').map(item => item.id), ['t1', 't2']);
+  assert.deepEqual(repository.descendants('PL', { type: 'subunit' }).map(item => item.id), ['t1', 't2']);
   assert.equal(repository.root('t2').id, 'PL');
   assert.equal(repository.root('r1').id, 'r1');
   assert.equal(repository.administrativeCountry('t2').id, 'PL');
   assert.equal(repository.administrativeCountry('r1'), null);
-  assert.equal(repository.sovereign('t2').id, 'PL');
+  assert.equal(repository.administrativeCountry('t2').id, 'PL');
   assert.deepEqual(repository.list({ type: 'subunit', parentId: 't1' }).map(item => item.id), ['t2']);
   assert.deepEqual(repository.list({ administrativeCountryId: 'PL' }).map(item => item.id), ['PL', 't1', 't2']);
-  assert.deepEqual(repository.list({ sovereignId: 'PL' }).map(item => item.id), ['PL', 't1', 't2']);
+  assert.deepEqual(repository.list({ administrativeCountryId: 'PL' }).map(item => item.id), ['PL', 't1', 't2']);
 });
 
 test('repository sibling queries preserve type, parent, and administrative country semantics', () => {
@@ -256,5 +260,5 @@ test('repository reports dangling parent and sovereign references instead of hid
 
   assert.throws(() => repository.parent('x'), /상위 영역 엔티티/);
   assert.throws(() => repository.root('x'), /상위 영역 엔티티/);
-  assert.throws(() => repository.sovereign('y'), /소속 국가/);
+  assert.throws(() => repository.administrativeCountry('y'), /소속 국가/);
 });

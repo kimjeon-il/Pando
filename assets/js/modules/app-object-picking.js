@@ -13,7 +13,7 @@ export function createObjectPicking() {
     dependencies = ports;
   }
 
-  function createCountryFeature(name, rawRing, color = null, geometryOverride = null) {
+  function createCountryFeature(name, rawRing, geometryOverride = null) {
     const id = (0, dependencies.surfaces.uid)('USR');
     const geometry = geometryOverride
       ? (0, dependencies.platform.deepClone)(geometryOverride)
@@ -24,7 +24,6 @@ export function createObjectPicking() {
       properties: { name },
       geometry,
     };
-    if (color) dependencies.projectState.state.countryOverrides[id] = { ...(dependencies.projectState.state.countryOverrides[id] || {}), color };
     return feature;
   }
 

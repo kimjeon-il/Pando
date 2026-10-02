@@ -1,5 +1,5 @@
 import { isBuiltinPlaceId } from './place-contract.js';
-import { subunitSelectionPolicy, territorialDeletionAllowed, removeTerritorialUnits } from './territorial-interaction-policy.js';
+import { subunitSelectionPolicy, territorialDeletionAllowed, removeTerritorialEntities } from './territorial-interaction-policy.js';
 import './territorial-edit-plan.js';
 /** ObjectCommands: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -136,7 +136,7 @@ export function createObjectCommands() {
     if (ref.domain === 'territorial') {
       values.add('color');
       values.add('lock');
-      if (ref.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY && territorialDeletionAllowed([(0, dependencies.objectPresentation.territorialUnitById)(ref.id)], dependencies.territorialModel.entityRepository.list())) values.add('delete');
+      if (territorialDeletionAllowed([territorialEntityForRef(ref)], dependencies.territorialModel.entityRepository.list())) values.add('delete');
     } else if (ref.domain === 'distribution') {
       values.add('color'); values.add('lock'); values.add('delete');
     } else if (ref.domain === 'hydro') {
@@ -550,6 +550,7 @@ export function createObjectCommands() {
           const removedHydroEditIds = new Set(refs.filter(ref => ref.domain === 'hydro').map(ref => ref.id));
           const removedGenericFeatureIds = new Set(refs.filter(ref => ref.domain === 'generic').map(ref => ref.id));
           const removedLabelIds = new Set(refs.filter(ref => ref.domain === 'label').map(ref => ref.id));
+          const removedCountryIds = refs.filter(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id);
           const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && ref.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id));
           dependencies.projectState.state.distributionLayers = dependencies.projectState.state.distributionLayers.filter(layer => !removedDistributionIds.has(String(layer.id)));
           dependencies.projectState.state.distributionEntries = dependencies.projectState.state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId))
@@ -565,7 +566,16 @@ export function createObjectCommands() {
           dependencies.projectState.state.genericFeatures = dependencies.projectState.state.genericFeatures.filter(feature => !removedGenericFeatureIds.has(String(feature.id)));
           dependencies.projectState.state.labels = dependencies.projectState.state.labels.filter(label => !removedLabelIds.has(String(label.id)));
           for (const id of removedLabelIds) delete dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', id)];
-          removeTerritorialUnits(dependencies.projectState.state, removedUnitIds, dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL);
+          removeTerritorialEntities(
+            dependencies.projectState.state,
+            { countryIds: removedCountryIds, unitIds: removedUnitIds },
+            dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL,
+            { entityStore: dependencies.territorialModel.entityStore },
+          );
+          if (removedCountryIds.length) {
+            (0, dependencies.spatialQuery.markCountryGeometriesChanged)(removedCountryIds);
+            dependencies.domains.renderingDomain?.invalidateCountryPatch?.('batch-delete');
+          }
           dependencies.projectState.state.stateRevision += 1;
           dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('batch-delete');
           dependencies.domains.selectionDomain.clear({ reason: 'batch-delete-clear' });
