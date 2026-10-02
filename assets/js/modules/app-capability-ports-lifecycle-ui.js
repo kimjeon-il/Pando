@@ -74,7 +74,6 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "domains",
     "editorBindings",
     "feedback",
-    "geometryMutation",
     "geometryPreview",
     "labelCacheCommands",
     "layerTree",

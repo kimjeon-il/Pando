@@ -53,9 +53,13 @@ export function createBuiltinSession() {
   }
 
   function applyFreshBuiltinClassification() {
-    const result = (0, dependencies.applicationServicesA.classifyBuiltinCountries)(dependencies.projectState.state.countriesData);
-    dependencies.projectState.state.territorialUnits = result.subunits;
-    dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(result.countries, true, { assumeCanonical: true });
+    const result = (0, dependencies.applicationServicesA.classifyBuiltinCountries)(
+      dependencies.territorialModel.entityStore.countriesData(),
+    );
+    dependencies.territorialModel.entityStore.replaceCollections({
+      countriesData: result.countries,
+      units: result.subunits,
+    });
     (0, dependencies.countryRecords.applyPristineLabelAnchors)({ features: result.subunits.map(unit => ({ id: (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit) })) });
   }
 

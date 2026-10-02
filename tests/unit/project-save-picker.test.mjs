@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createGisFileController } from '../../assets/js/modules/gis-file-controller.js';
+const { Blob } = globalThis;
 
 test('destination picker opens synchronously before encoding and writes the chosen file', async () => {
   const calls = [];

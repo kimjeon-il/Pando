@@ -34,6 +34,25 @@ test('parent choices use actual country name and depth, exclude cycles and other
   assert.deepEqual(subunitParentChoices('A', [country('A')], units, { exclude: ['Z'] }).map(item => item.value), ['A']);
 });
 
+test('parent choices accept the common territorial entity repository read surface', () => {
+  const countries = [country('A'), country('B')];
+  const units = [unit('Z'), unit('X', 'Z'), unit('C', 'B', 'B')];
+  const entities = [...countries.map(feature => ({
+    ...feature,
+    properties: { ...feature.properties, unitType: 'country', sovereignId: feature.id },
+  })), ...units];
+  const repository = {
+    get(id) { return entities.find(feature => String(feature.id) === String(id)) || null; },
+    list({ type = '', administrativeCountryId = null } = {}) {
+      return entities.filter(feature => (!type || feature.properties?.unitType === type)
+        && (administrativeCountryId === null || String(feature.properties?.sovereignId || '') === String(administrativeCountryId)));
+    },
+  };
+
+  assert.deepEqual(subunitParentChoices('A', repository).map(item => item.value), ['A', 'Z', 'X']);
+  assert.deepEqual(subunitParentChoices('A', repository, { exclude: ['Z'] }).map(item => item.value), ['A']);
+});
+
 test('parent selector is hidden only when the sovereign is its sole valid choice', () => {
   assert.equal(shouldShowTerritorialParentChoice({
     sovereignId: 'A', parentId: 'A', options: [{ value: 'A', label: 'Country A' }],
@@ -65,7 +84,7 @@ test('explicit country and nested parent apply once; children inherit the chosen
   assert.equal(nested.parentId, parent.id);
   assert.equal(nested.sovereignId, 'B');
   assert.equal(JSON.stringify([root, child]), before);
-  assert.throws(() => prepare([root], { root: { mode: 'subunit', countryId: 'A', parentId: 'P' } }, [unit('P', 'B', 'B')]), /상위 소속/);
+  assert.throws(() => prepare([root], { root: { mode: 'subunit', countryId: 'A', parentId: 'P' } }, [unit('P', 'B', 'B')]), /상위 단위/);
 });
 
 test('promotion clears active parents, preserves source refs/version/period, and reparents children', () => {

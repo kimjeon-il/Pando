@@ -61,7 +61,7 @@ export function createGenericCommands() {
     if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)(sourceIds, '국가로 전환')) return;
     const name = String(feature.properties?.name || '').trim() || '이름 없음';
     const snapshot = (0, dependencies.snapshots.snapshotEditable)();
-    const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], feature.properties?.color || null, (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
+    const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
     country.properties.metadata = legacyGenericMetadata(feature);
     (0, dependencies.feedback.setActionStatus)('영역을 국가로 전환하는 중입니다.', 'working', 0);
     await (0, dependencies.geometryOperations.transactCountryEdit)({
@@ -70,10 +70,12 @@ export function createGenericCommands() {
       snapshot,
       applyResult: result => {
         (0, dependencies.cutOperations.applyWorkerCountryPatches)(result, { presentation: 'preserve-existing-scene' });
+        if (feature.properties?.color) {
+          dependencies.territorialModel.entityStore.setField('country', country.id, 'color', feature.properties.color);
+        }
         (0, dependencies.landRelations.transferLandDependents)(transferredGeometry, sourceIds, country.id, [feature.id]);
         dependencies.projectState.state.genericFeatures = dependencies.projectState.state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
         dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
-        (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
         (0, dependencies.countryValidation.refreshCountryCentroids)(new Set(result.affectedIds));
         (0, dependencies.layers.markLayerTreeDirty)();
         (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(country.id);
@@ -164,8 +166,10 @@ export function createGenericCommands() {
       }
       if (target === 'subunit' || target === 'region') {
         if (kind !== 'polygon') throw new Error('영역 형상만 하위단위 또는 지방으로 전환할 수 있습니다.');
-        const country = (0, dependencies.countries.countryFeatureById)(sovereignId);
-        if (!country) throw new Error('소속 국가를 선택하세요.');
+        const country = dependencies.territorialModel.entityRepository.get(sovereignId);
+        if (country?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+          throw new Error('소속 국가를 선택하세요.');
+        }
         const unitType = target === 'subunit' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT : dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION;
         const unit = (0, dependencies.territorialServicesA.createTerritorialFeature)({
           id: (0, dependencies.surfaces.uid)(unitType), unitType, name, geometry: (0, dependencies.platform.deepClone)(feature.geometry),
@@ -175,8 +179,15 @@ export function createGenericCommands() {
           notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
         });
         dependencies.domains.projectDomain.recordHistory({ type: 'generic-convert-territorial', affectedIds: [String(feature.id), String(unit.id)] });
-        dependencies.projectState.state.territorialUnits.push(unit);
-        dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(dependencies.projectState.state.territorialUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
+        dependencies.territorialModel.entityStore.replaceCollections({ units: 
+          (0, dependencies.territorialModel.normalizeTerritorialUnits)(
+            [...dependencies.territorialModel.entityStore.units(), unit],
+            {
+              countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
+                === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+            },
+          ),
+         });
         removeGenericFeatureAfterConversion(feature);
         (0, dependencies.layers.markLayerTreeDirty)();
         dependencies.domains.projectDomain.queueAutosave();

@@ -24,9 +24,9 @@ export function createHistoryAssembly() {
 
   function validateCanonicalProjectState() {
     (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
-      countries: dependencies.projectState.state.countriesData?.features || [],
-      countryOverrides: dependencies.projectState.state.countryOverrides,
-      territorialUnits: dependencies.projectState.state.territorialUnits,
+      countries: dependencies.territorialModel.entityStore.countriesData().features,
+      countryOverrides: dependencies.territorialModel.entityStore.countryOverrides(),
+      territorialUnits: dependencies.territorialModel.entityStore.units(),
       territorialRelations: dependencies.projectState.state.territorialRelations,
       distributionLayers: dependencies.projectState.state.distributionLayers,
       distributionEntries: dependencies.projectState.state.distributionEntries,
@@ -66,8 +66,8 @@ export function createHistoryAssembly() {
       buildAutosave: () => dependencies.domains.projectDomain?.buildAutosave?.() || dependencies.mapSettingsUi.projectSerializer.buildAutosave(),
       previewBaseline: () => window.PANDOLAB_PREVIEW_BASELINE,
       previewGeometry: () => ({
-        features: dependencies.projectState.state.countriesData?.features || [],
-        territorialUnits: dependencies.projectState.state.territorialUnits || [],
+        features: dependencies.territorialModel.entityStore.countriesData().features,
+        territorialUnits: dependencies.territorialModel.entityStore.units(),
         project: dependencies.domains.projectDomain?.buildAutosave?.() || dependencies.mapSettingsUi.projectSerializer.buildAutosave(),
       }),
       readView: () => ({ projection: dependencies.projectState.state.projection, view: (0, dependencies.platform.deepClone)(dependencies.projectState.state.view) }),
@@ -117,49 +117,10 @@ export function createHistoryAssembly() {
       },
     }));
 
-    dependencies.projectServiceCommands.installTerritorialRepository((0, dependencies.territorialServicesA.createTerritorialRepository)({
-      getCountries: () => dependencies.projectState.state.countriesData,
-      getUnits: () => dependencies.projectState.state.territorialUnits,
-      getCountryOverride: id => dependencies.projectState.state.countryOverrides[id] || {},
-    }));
-
     dependencies.projectServiceCommands.installTerritorialApplicationService((0, dependencies.territorialServicesA.createTerritorialApplicationService)({
-      repository: dependencies.presentation.territorialRepository,
+      entityRepository: dependencies.territorialModel.entityRepository,
+      entityStore: dependencies.territorialModel.entityStore,
       commandPipeline: dependencies.objectModelB.projectCommandPipeline,
-      countryCommands: {
-        isLocked: id => (0, dependencies.objectOperationsA.isCountryLocked)(id),
-        hasField: (id, field) => Object.hasOwn(dependencies.projectState.state.countryOverrides[id] || {}, field),
-        setLocked: (id, locked) => (0, dependencies.objectOperationsB.setCountryLockedState)(id, locked),
-        setField: (id, field, value) => {
-          const previous = dependencies.projectState.state.countryOverrides[id] || {};
-          if (field === 'flagDataUrl' && value === undefined) {
-            if (!Object.hasOwn(previous, field)) return;
-            const next = { ...previous };
-            delete next[field];
-            if (Object.keys(next).length) dependencies.projectState.state.countryOverrides[id] = next;
-            else delete dependencies.projectState.state.countryOverrides[id];
-            return;
-          }
-          dependencies.projectState.state.countryOverrides[id] = { ...previous };
-          if (field === 'color') {
-            (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, {
-              feature: (0, dependencies.countries.countryFeatureById)(id), override: dependencies.projectState.state.countryOverrides[id],
-            }, value, { fallback: (0, dependencies.colorModel.defaultCountryColor)() });
-          } else dependencies.projectState.state.countryOverrides[id][field] = value;
-        },
-      },
-      unitCommands: {
-        setField: (id, field, value) => {
-          const feature = (0, dependencies.objectPresentation.territorialUnitById)(id);
-          if (!feature) return;
-          if (field === 'color') (0, dependencies.objectModelB.setTerritorialStyleColor)(feature, value);
-          else feature.properties[field] = value;
-        },
-        replaceAll: units => {
-          dependencies.projectState.state.territorialUnits = units;
-          dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
-        },
-      },
     }));
 
     dependencies.projectServiceCommands.installDistributionService((0, dependencies.distributionServices.createDistributionService)({
@@ -192,7 +153,7 @@ export function createHistoryAssembly() {
         color,
         { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR },
       ),
-      territorialExists: id => !!dependencies.presentation.territorialRepository.get(id),
+      territorialExists: id => !!dependencies.territorialModel.entityRepository.get(id),
     }));
 
     dependencies.projectServiceCommands.installGenericFeatureService((0, dependencies.applicationFactories.createGenericFeatureService)({

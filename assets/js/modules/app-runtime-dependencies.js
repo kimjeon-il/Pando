@@ -11,6 +11,8 @@ const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js
 const { layoutCountryFlags } = await import(`./country-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
 const { countryDisplayName, defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
+const { createTerritorialEntityRepository } = await import(`./territorial-entity-repository.js?v=${encodeURIComponent(moduleRevision)}`);
+const { createTerritorialEntityStore } = await import(`./territorial-entity-store.js?v=${encodeURIComponent(moduleRevision)}`);
 const { classifyBuiltinCountries, builtinSubunitSourceId } = await import(`./builtin-subunits.js?v=${encodeURIComponent(moduleRevision)}`);
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, new URL('../app.js', import.meta.url));
@@ -332,15 +334,10 @@ const { runCountryEditTransaction } = countryEditTransactionModule;
 const {
   TERRITORIAL_COVERAGE_MODES,
   TERRITORIAL_UNIT_TYPES,
-  changeParent,
-  changeSovereign,
   changeUnitType,
   createTerritorialFeature,
-  createTerritorialRepository,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
-  territorialChildren,
-  territorialSiblings,
 } = territorialUnitsModule;
 const {
   DISTRIBUTION_SCHEMA_VERSION,
@@ -377,7 +374,7 @@ const { createEditorWorkspacePresentation } = await import(versionedModuleUrl('.
 const { describeTool, dispatchTool, isSpecialTool, toolCursorMode, toolDraftDefinition, toolLabel } = toolControllerModule;
 const { createMapInputController } = mapInputControllerModule;
 const { createGpuMapRenderer } = gpuMapRendererModule;
-const { createTerritorialGeometryKernel, snapLineEndpointsToBoundary } = territorialGeometryModule;
+const { snapLineEndpointsToBoundary } = territorialGeometryModule;
 const {
   buildBoundaryTopology: buildSharedBoundaryTopology,
   buildTerritorialInternalBoundarySegments,
@@ -628,15 +625,12 @@ export {
   runCountryEditTransaction,
   TERRITORIAL_COVERAGE_MODES,
   TERRITORIAL_UNIT_TYPES,
-  changeParent,
-  changeSovereign,
   changeUnitType,
   createTerritorialFeature,
-  createTerritorialRepository,
+  createTerritorialEntityRepository,
+  createTerritorialEntityStore,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
-  territorialChildren,
-  territorialSiblings,
   DISTRIBUTION_SCHEMA_VERSION,
   DISTRIBUTION_MODES,
   DISTRIBUTION_RENDER_MODES,
@@ -659,7 +653,6 @@ export {
   toolLabel,
   createMapInputController,
   createGpuMapRenderer,
-  createTerritorialGeometryKernel,
   snapLineEndpointsToBoundary,
   buildSharedBoundaryTopology,
   buildTerritorialInternalBoundarySegments,

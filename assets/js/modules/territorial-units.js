@@ -132,21 +132,6 @@ export function normalizeTerritorialUnits(value, {
   return normalized;
 }
 
-export function territorialChildren(units, id) {
-  const key = text(id);
-  return (units || []).filter(feature => text(feature.properties?.parentId) === key);
-}
-
-export function territorialSiblings(units, source) {
-  if (!source) return [];
-  const properties = source.properties || {};
-  return (units || []).filter(candidate => candidate.id !== source.id
-    && candidate.properties?.unitType === properties.unitType
-    && text(candidate.properties?.parentId) === text(properties.parentId)
-    && (properties.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT
-      || text(candidate.properties?.sovereignId) === text(properties.sovereignId)));
-}
-
 export function validateTerritorialRelations(units, {
   countryExists = () => true,
   relations = [],
@@ -279,74 +264,6 @@ export function createTerritorialFeature({
   });
   if (!feature) throw new Error('영역 형식이 올바르지 않습니다.');
   return feature;
-}
-
-export function createCountryTerritorialAdapter(feature, override = {}) {
-  if (!feature?.geometry) return null;
-  const properties = feature.properties || {};
-  const id = text(feature.id);
-  if (!id) return null;
-  return {
-    type: 'Feature',
-    id,
-    properties: {
-      schemaVersion: TERRITORIAL_SCHEMA_VERSION,
-      unitType: TERRITORIAL_UNIT_TYPES.COUNTRY,
-      name: text(override.name || properties.name || id),
-      parentId: '',
-      sovereignId: id,
-      coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
-      style: { color: text(override.color) },
-      locked: false,
-      validFrom: normalizeTemporalInterval(properties.validFrom, properties.validTo).validFrom,
-      validTo: normalizeTemporalInterval(properties.validFrom, properties.validTo).validTo,
-      metadata: { adapter: 'countriesData' },
-      sourceLibraryId: '',
-      sourceGeometryVersion: '',
-    },
-    geometry: feature.geometry,
-  };
-}
-
-export function createTerritorialRepository({
-  getCountries,
-  getUnits,
-  getCountryOverride = () => ({}),
-}) {
-  const countries = () => (getCountries()?.features || [])
-    .map(feature => createCountryTerritorialAdapter(feature, getCountryOverride(text(feature?.id))))
-    .filter(Boolean);
-  const units = () => Array.isArray(getUnits()) ? getUnits() : [];
-  return Object.freeze({
-    get(id) {
-      const key = text(id);
-      return units().find(feature => text(feature.id) === key)
-        || countries().find(feature => text(feature.id) === key)
-        || null;
-    },
-    list({ type } = {}) {
-      const values = [...countries(), ...units()];
-      return type ? values.filter(feature => feature.properties?.unitType === type) : values;
-    },
-    children(id) {
-      return territorialChildren(units(), id);
-    },
-  });
-}
-
-export function changeParent(unit, newParentId) {
-  if (!unit) throw new Error('상위 단위를 변경할 대상을 찾을 수 없습니다.');
-  if (text(unit.id) === text(newParentId)) throw new Error('영역 자신을 상위 단위로 지정할 수 없습니다.');
-  const next = clone(unit);
-  next.properties.parentId = text(newParentId);
-  return next;
-}
-
-export function changeSovereign(unit, newSovereignId) {
-  if (!unit) throw new Error('주권을 변경할 대상을 찾을 수 없습니다.');
-  const next = clone(unit);
-  next.properties.sovereignId = text(newSovereignId);
-  return next;
 }
 
 export function changeUnitType(unit, newType) {

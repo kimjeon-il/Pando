@@ -5,9 +5,7 @@ import {
   TERRITORIAL_COVERAGE_MODES,
   TERRITORIAL_UNIT_TYPES,
   changeUnitType,
-  createCountryTerritorialAdapter,
   createTerritorialFeature,
-  createTerritorialRepository,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
   resolveTerritorialRelation,
@@ -103,16 +101,6 @@ test('dated relations resolve by reference date and overlapping ranges are rejec
   });
   assert.equal(invalid.ok, false);
   assert.match(invalid.issues.join('\n'), /겹칩니다/);
-});
-
-test('country adapter and repository expose one territorial lookup surface', () => {
-  const country = { type: 'Feature', id: 'PL', properties: { name: '폴란드' }, geometry: square() };
-  assert.equal(createCountryTerritorialAdapter(country).properties.sovereignId, 'PL');
-  const territory = createTerritorialFeature({ id: 't1', unitType: 'subunit', parentId: 'PL', sovereignId: 'PL', geometry: square() });
-  const repository = createTerritorialRepository({ getCountries: () => ({ features: [country] }), getUnits: () => [territory] });
-  assert.equal(repository.get('PL').properties.unitType, 'country');
-  assert.equal(repository.get('t1').properties.unitType, 'subunit');
-  assert.deepEqual(repository.children('PL').map(item => item.id), ['t1']);
 });
 
 test('territorial transaction records and autosaves once on success', async () => {

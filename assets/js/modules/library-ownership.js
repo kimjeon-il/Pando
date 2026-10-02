@@ -1,9 +1,22 @@
 const text = value => String(value || '');
 
 // Relation choices share stored IDs; labels never participate in identity resolution.
-export function subunitParentChoices(countryId, countries, units, { exclude = [], name = feature => feature.properties?.name || feature.id } = {}) {
-  const country = countries.find(feature => text(feature.id) === text(countryId));
-  if (!country) return [];
+// Read-only callers may pass TerritorialEntityRepository instead of raw country/unit arrays.
+export function subunitParentChoices(countryId, countriesOrRepository, unitsOrOptions = [], maybeOptions = {}) {
+  const repository = countriesOrRepository
+    && typeof countriesOrRepository.get === 'function'
+    && typeof countriesOrRepository.list === 'function'
+    ? countriesOrRepository
+    : null;
+  const options = repository && !Array.isArray(unitsOrOptions) ? unitsOrOptions || {} : maybeOptions || {};
+  const { exclude = [], name = feature => feature.properties?.name || feature.id } = options;
+  const country = repository
+    ? repository.get(countryId)
+    : (countriesOrRepository || []).find(feature => text(feature.id) === text(countryId));
+  if (!country || (repository && country.properties?.unitType !== 'country')) return [];
+  const units = repository
+    ? repository.list({ type: 'subunit', administrativeCountryId: text(countryId) })
+    : Array.isArray(unitsOrOptions) ? unitsOrOptions : [];
   const blocked = new Set(exclude.map(text));
   let changed = true;
   while (changed) {

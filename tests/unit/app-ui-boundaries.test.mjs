@@ -70,6 +70,7 @@ test('history UI routes preview/draft/project actions without owning history mut
   let preview = true;
   let draft = false;
   const ui = createProjectUiBridge({
+    getElement: () => null,
     requireCanonicalData: () => true, getEditingSnapshot: () => ({ processing: false, previewActive: preview }),
     discardActiveGeometryPreview: () => calls.push('preview'), draftInputActive: () => draft,
     undoDraft: () => calls.push('draft'), undoProject: () => { calls.push('project'); return true; },
@@ -92,14 +93,45 @@ test('new project waits for confirmation and save presenter only changes DOM', (
   const snapshot = Object.freeze({ file: 'saved', hasUnsavedChanges: false });
   const ui = createProjectUiBridge({
     getElement, getSaveSnapshot: () => snapshot, closeFileMenu() {},
+    getAutosaveRecovery: () => null,
     openConfirmModal: options => { confirmation = options; }, createEmptyProject: () => resets++,
   });
   ui.requestNew();
+  assert.equal(confirmation.title, '새 프로젝트');
   assert.equal(resets, 0);
   confirmation.onConfirm();
   assert.equal(resets, 1);
   ui.syncSaveStatus();
   assert.equal(getElement('projectSaveStatusText').textContent, '저장됨');
+});
+
+test('new project defers to pending autosave recovery without resetting', async () => {
+  const confirmations = [];
+  const statuses = [];
+  let resets = 0;
+  let menuCloses = 0;
+  const recovery = { kind: 'conflict', candidates: [{ source: 'indexeddb' }, { source: 'localstorage' }] };
+  const ui = createProjectUiBridge({
+    getElement: () => null,
+    getSaveSnapshot: () => ({ file: 'saved', hasUnsavedChanges: false, autosaveRecovery: true }),
+    getEditingSnapshot: () => ({ processing: false }), requireCanonicalData: () => true,
+    getAutosaveRecovery: () => recovery,
+    closeFileMenu: () => menuCloses++, openConfirmModal: options => confirmations.push(options),
+    createEmptyProject: () => resets++, setActionStatus: (...args) => statuses.push(args),
+  });
+  ui.requestNew();
+  assert.equal(confirmations.length, 1);
+  assert.equal(confirmations[0].title, '저장본 선택');
+  assert.deepEqual(confirmations[0].choices.map(choice => choice.value), ['indexeddb', 'localstorage']);
+  assert.equal(resets, 0);
+  assert.equal(menuCloses, 0);
+  const pending = ui.requestAutosaveRecovery();
+  assert.equal(confirmations.length, 1);
+  confirmations[0].onCancel();
+  assert.equal(await pending, null);
+  assert.equal(resets, 0);
+  assert.equal(menuCloses, 0);
+  assert.deepEqual(statuses, []);
 });
 
 test('compatibility object bindings expose only one geometry-aware conversion command and detach on dispose', () => {
@@ -118,8 +150,14 @@ test('compatibility object bindings expose only one geometry-aware conversion co
   getElement('genericFeatureConvertType').value = 'river';
   getElement('genericFeatureConvertCountryInput').value = 'country-1';
   getElement('genericFeatureConvertDistributionInput').value = 'layer-1';
+  getElement('genericFeatureConvertDistributionValueInput').value = '';
   getElement('convertGenericFeatureBtn').dispatchEvent(new Event('click'));
-  assert.deepEqual(conversions, [{ target: 'river', sovereignId: 'country-1', distributionLayerId: 'layer-1' }]);
+  assert.deepEqual(conversions, [{
+    target: 'river',
+    sovereignId: 'country-1',
+    distributionLayerId: 'layer-1',
+    distributionValue: '',
+  }]);
   bindings.dispose();
   getElement('convertGenericFeatureBtn').dispatchEvent(new Event('click'));
   assert.equal(conversions.length, 1);

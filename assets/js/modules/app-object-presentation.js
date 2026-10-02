@@ -7,7 +7,6 @@ export function createObjectPresentation() {
   let territorialScope;
   let distributionVisibilityRevision;
   let distributionRenderRowCache;
-  let territorialRepository;
   let territorialApplicationService;
   let distributionService;
   let genericFeatureService;
@@ -49,7 +48,7 @@ export function createObjectPresentation() {
   }
 
   function territorialUnitById(id) {
-    return territorialApplicationService.get(id);
+    return dependencies.territorialModel.entityRepository.get(id);
   }
 
   function territorialStyleColor(feature) {
@@ -76,13 +75,13 @@ export function createObjectPresentation() {
   }
 
   function territorialUnitCountryName(feature) {
-    const country = (0, dependencies.countries.countryFeatureById)(feature?.properties?.sovereignId);
+    const country = dependencies.territorialModel.entityRepository.administrativeCountry(feature?.id);
     return country ? countryName(country) : '소속 국가 미지정';
   }
 
   function countryColor(feature) {
     const id = String(feature?.id || '');
-    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.projectState.state.countryOverrides[id] }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() }).value;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.territorialModel.entityStore.countryOverride(id) }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() }).value;
   }
 
   function distributionColor(layer) {
@@ -90,7 +89,7 @@ export function createObjectPresentation() {
   }
 
   function countryName(feature) {
-    return (0, dependencies.objectPresentation.countryDisplayName)(feature, dependencies.projectState.state.countryOverrides[String(feature?.id || '')]);
+    return (0, dependencies.objectPresentation.countryDisplayName)(feature, dependencies.territorialModel.entityStore.countryOverride(feature?.id));
   }
 
   function hydroCategoryKey(value) {
@@ -136,8 +135,7 @@ export function createObjectPresentation() {
 
   function initializeTerritorialScope() {
     (territorialScope = (0, dependencies.objectPresentation.createTerritorialScopeResolver)({
-      read: () => ({ units: dependencies.projectState.state.territorialUnits, revision: `${dependencies.projectState.state.stateRevision}:${dependencies.countries.countryLandRevision}:${dependencies.spatialQuery.mapObjectGeometryRevisions.territorial}` }),
-      countryById: dependencies.countries.countryFeatureById,
+      entityRepository: dependencies.territorialModel.entityRepository,
       countryColor,
       clipper: () => window.polygonClipping,
     }));
@@ -159,7 +157,7 @@ export function createObjectPresentation() {
     });
   }
 
-  function initializeTerritorialRepository() {
+  function initializeObjectPresentationModel() {
 
 
 
@@ -202,7 +200,7 @@ export function createObjectPresentation() {
   return Object.freeze({
     connect,
     initializeTerritorialScope,
-    initializeTerritorialRepository,
+    initializeObjectPresentationModel,
     get LAYER_GROUP_KEYS() { return LAYER_GROUP_KEYS; },
     get LAYER_SEARCH_GROUP_KEYS() { return LAYER_SEARCH_GROUP_KEYS; },
     get countryColor() { return countryColor; },
@@ -235,8 +233,6 @@ export function createObjectPresentation() {
     get syncMapObjectCategoryLabels() { return syncMapObjectCategoryLabels; },
     get territorialApplicationService() { return territorialApplicationService; },
     set territorialApplicationService(value) { territorialApplicationService = value; },
-    get territorialRepository() { return territorialRepository; },
-    set territorialRepository(value) { territorialRepository = value; },
     get territorialScope() { return territorialScope; },
     get territorialStyleColor() { return territorialStyleColor; },
     get territorialUnitById() { return territorialUnitById; },

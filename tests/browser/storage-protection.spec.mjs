@@ -84,6 +84,7 @@ test('real GIS GeoJSON export and reimport preserve original provenance and deta
     const { normalizeSourceProvenance } = await import('/assets/js/modules/source-provenance.js');
     const { normalizeGenericFeatureSemantics } = await import('/assets/js/modules/generic-feature-service.js');
     const { createGisImportTransactionCommitter } = await import('/assets/js/modules/gis-import-transaction.js');
+    const { createTerritorialEntityStore } = await import('/assets/js/modules/territorial-entity-store.js');
     const source = normalizeSourceProvenance({ kind: 'gis', dataset: 'survey', sourceId: 'fid-42', sourceFormat: 'geojson',
       details: { licence: 'test', attributes: { rank: 3 } } });
     const original = { type: 'Feature', id: '00000000-0000-4000-8000-000000000010',
@@ -93,7 +94,8 @@ test('real GIS GeoJSON export and reimport preserve original provenance and deta
     const files = window.fflate.unzipSync(new Uint8Array(await bundle.blob.arrayBuffer()));
     const parsed = JSON.parse(window.fflate.strFromU8(files['generic_features.geojson']));
     let imported;
-    const importer = createGisImportTransactionCommitter({ state: {}, deepClone: structuredClone,
+    const state = {};
+    const importer = createGisImportTransactionCommitter({ state, entityStore: createTerritorialEntityStore({ getState: () => state }), deepClone: structuredClone,
       uid: () => '00000000-0000-4000-8000-000000000011', GENERIC_FEATURE_SCHEMA_VERSION: 2,
       DEFAULT_GENERIC_FEATURE_COLOR: '#888888', normalizeGenericFeatureSemantics, validateStructuredGeometry: () => [],
       genericFeatureService: { addMany: values => { imported = values[0]; } }, activeLayerFolderKeys: () => [],
