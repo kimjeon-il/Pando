@@ -298,9 +298,9 @@ export function createTerritorialConversion() {
           relations: dependencies.projectState.state.territorialRelations,
         }),
         apply: async nextUnits => {
-          dependencies.territorialModel.entityStore.replaceUnits(nextUnits);
+          dependencies.territorialModel.entityStore.replaceCollections({ units: nextUnits });
           (0, dependencies.landRelations.reconcileTerritorialUnitCompleteness)([sovereignId]);
-          dependencies.territorialModel.entityStore.replaceUnits(
+          dependencies.territorialModel.entityStore.replaceCollections({ units: 
             (0, dependencies.territorialModel.normalizeTerritorialUnits)(
               dependencies.territorialModel.entityStore.units(),
               {
@@ -308,7 +308,7 @@ export function createTerritorialConversion() {
                   === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
               },
             ),
-          );
+           });
           (0, dependencies.layers.markLayerTreeDirty)();
           (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(unitId, true);
           dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-type-converted');
@@ -384,14 +384,14 @@ export function createTerritorialConversion() {
           genericFeature.properties.ownerId = String(targetCountryId);
           if (String(genericFeature.properties.topologyGroup || '') === `land:${countryId}`) genericFeature.properties.topologyGroup = `land:${targetCountryId}`;
         }
-        dependencies.territorialModel.entityStore.replaceUnits(
+        dependencies.territorialModel.entityStore.replaceCollections({ units: 
           (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, {
             countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
               === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
           }),
-        );
+         });
         (0, dependencies.landRelations.reconcileTerritorialUnitCompleteness)([targetCountryId]);
-        dependencies.territorialModel.entityStore.replaceUnits(
+        dependencies.territorialModel.entityStore.replaceCollections({ units: 
           (0, dependencies.territorialModel.normalizeTerritorialUnits)(
             dependencies.territorialModel.entityStore.units(),
             {
@@ -399,7 +399,7 @@ export function createTerritorialConversion() {
                 === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
             },
           ),
-        );
+         });
         const territorialValidation = (0, dependencies.objectModelB.validateTerritorialUnitRelations)(dependencies.territorialModel.entityStore.units(), {
           countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
             === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
