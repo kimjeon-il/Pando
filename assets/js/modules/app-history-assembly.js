@@ -139,6 +139,9 @@ export function createHistoryAssembly() {
             (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, {
               feature: (0, dependencies.countries.countryFeatureById)(id), override: dependencies.projectState.state.countryOverrides[id],
             }, value, { clear: !value, fallback: (0, dependencies.colorModel.defaultCountryColor)() });
+            if (!Object.keys(dependencies.projectState.state.countryOverrides[id]).length) {
+              delete dependencies.projectState.state.countryOverrides[id];
+            }
           } else dependencies.projectState.state.countryOverrides[id][field] = value;
         },
       },
