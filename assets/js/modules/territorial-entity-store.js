@@ -225,8 +225,8 @@ export function createTerritorialEntityStore({
     reindexOptions = {},
   } = {}) {
     const current = state();
-    const replaceCountries = !!nextCountriesData;
-    const replaceUnits = Array.isArray(nextUnits);
+    const hasCountryReplacement = !!nextCountriesData;
+    const hasUnitReplacement = Array.isArray(nextUnits);
 
     if (nextCountryOverrides !== undefined) {
       current.countryOverrides = nextCountryOverrides && typeof nextCountryOverrides === 'object'
@@ -234,7 +234,7 @@ export function createTerritorialEntityStore({
         : {};
     }
 
-    if (replaceCountries) {
+    if (hasCountryReplacement) {
       current.countriesData = nextCountriesData.type === 'FeatureCollection'
         ? nextCountriesData
         : { type: 'FeatureCollection', features: Array.isArray(nextCountriesData) ? nextCountriesData : [] };
@@ -244,16 +244,16 @@ export function createTerritorialEntityStore({
       }
     }
 
-    if (replaceUnits) current.territorialUnits = nextUnits;
+    if (hasUnitReplacement) current.territorialUnits = nextUnits;
 
-    if (replaceCountries) {
+    if (hasCountryReplacement) {
       onCountriesReplaced(
         current.countriesData,
         current.countriesData.features.map(feature => text(feature?.id)).filter(Boolean),
         reindexOptions,
       );
     }
-    if (replaceUnits) onUnitsReplaced(current.territorialUnits);
+    if (hasUnitReplacement) onUnitsReplaced(current.territorialUnits);
 
     return {
       countriesData: current.countriesData,
@@ -262,89 +262,8 @@ export function createTerritorialEntityStore({
     };
   }
 
-  function replaceCountryOverrides(overrides) {
-    const next = overrides && typeof overrides === 'object' ? { ...overrides } : {};
-    state().countryOverrides = next;
-    return state().countryOverrides;
-  }
-
-  function replaceCountries(collection, { pruneOverrides = true, reindexOptions = {} } = {}) {
-    const next = collection?.type === 'FeatureCollection'
-      ? collection
-      : { type: 'FeatureCollection', features: Array.isArray(collection) ? collection : [] };
-    const current = state();
-    current.countriesData = next;
-    if (pruneOverrides) {
-      const valid = new Set(next.features.map(feature => text(feature?.id)).filter(Boolean));
-      for (const id of Object.keys(current.countryOverrides)) if (!valid.has(id)) delete current.countryOverrides[id];
-    }
-    onCountriesReplaced(next, next.features.map(feature => text(feature?.id)).filter(Boolean), reindexOptions);
-    return state().countriesData;
-  }
-
-  function appendCountries(features, overrides = {}, { reindexOptions = {} } = {}) {
-    const additions = Array.isArray(features) ? features.filter(Boolean) : [];
-    if (!additions.length) return [];
-    const current = state();
-    current.countriesData.features = [...current.countriesData.features, ...additions];
-    for (const feature of additions) {
-      const key = text(feature?.id);
-      const override = key ? overrides?.[key] : null;
-      if (key && override && typeof override === 'object' && Object.keys(override).length) {
-        current.countryOverrides[key] = { ...override };
-      }
-    }
-    onCountriesReplaced(
-      current.countriesData,
-      additions.map(feature => text(feature?.id)).filter(Boolean),
-      reindexOptions,
-    );
-    return additions;
-  }
-
-  function appendUnits(features) {
-    const additions = Array.isArray(features) ? features.filter(Boolean) : [];
-    if (!additions.length) return [];
-    const current = state();
-    current.territorialUnits = [...current.territorialUnits, ...additions];
-    onUnitsReplaced(current.territorialUnits);
-    return additions;
-  }
-
-  function removeCountries(ids) {
-    const removed = new Set((ids || []).map(text).filter(Boolean));
-    if (!removed.size) return [];
-    const current = state();
-    const deleted = current.countriesData.features.filter(feature => removed.has(text(feature?.id)));
-    if (!deleted.length) return [];
-    current.countriesData.features = current.countriesData.features.filter(feature => !removed.has(text(feature?.id)));
-    for (const id of removed) delete current.countryOverrides[id];
-    onCountriesReplaced(current.countriesData, [...removed], {});
-    return deleted;
-  }
-
-  function removeUnits(ids) {
-    const removed = new Set((ids || []).map(text).filter(Boolean));
-    if (!removed.size) return [];
-    const current = state();
-    const deleted = current.territorialUnits.filter(feature => removed.has(text(feature?.id)));
-    if (!deleted.length) return [];
-    current.territorialUnits = current.territorialUnits.filter(feature => !removed.has(text(feature?.id)));
-    onUnitsReplaced(current.territorialUnits);
-    return deleted;
-  }
-
-  function replaceUnits(nextUnits) {
-    if (!Array.isArray(nextUnits)) throw new TypeError('하위 영역 저장값은 배열이어야 합니다.');
-    state().territorialUnits = nextUnits;
-    onUnitsReplaced(nextUnits);
-    return nextUnits;
-  }
-
   return Object.freeze({
-    appendCountries,
     appendEntities,
-    appendUnits,
     countriesData,
     countryFeature,
     countryOverride,
@@ -352,13 +271,8 @@ export function createTerritorialEntityStore({
     hasField,
     isLocked,
     rawEntity,
-    removeCountries,
     removeEntities,
     replaceCollections,
-    replaceCountries,
-    replaceCountryOverrides,
-    removeUnits,
-    replaceUnits,
     setField,
     setLocked,
     unitFeature,
