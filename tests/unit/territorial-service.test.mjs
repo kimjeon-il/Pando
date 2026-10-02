@@ -58,6 +58,27 @@ function fixture() {
   return { service, entityRepository, transactions, units: () => units };
 }
 
+test('territorial deletion preflight shares lock and child rules across entity types', () => {
+  const { service } = fixture();
+
+  assert.equal(service.canDelete(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a').ok, true);
+  service.setLocked(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', true);
+  assert.equal(service.canDelete(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a').code, 'locked');
+  service.setLocked(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', false);
+
+  service.replaceUnits([
+    { id: 'parent', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a', locked: false } },
+    { id: 'child', properties: { unitType: 'subunit', parentId: 'parent', sovereignId: 'country-a', locked: false } },
+  ]);
+  const parent = service.canDelete(TERRITORIAL_UNIT_TYPES.SUBUNIT, 'parent');
+  assert.equal(parent.code, 'has-children');
+  assert.deepEqual(parent.children.map(item => item.id), ['child']);
+
+  const country = service.canDelete(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a');
+  assert.equal(country.code, 'has-children');
+  assert.deepEqual(country.children.map(item => item.id), ['parent']);
+});
+
 test('territorial service owns metadata transaction and lock enforcement', () => {
   const { service, entityRepository, transactions } = fixture();
   assert.equal(entityRepository.get('country-a')?.id, 'country-a');
