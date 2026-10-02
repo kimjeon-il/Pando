@@ -19,7 +19,7 @@ export function createCountryCommits() {
 
   function applyCountryGeometryPlan(plan, {
     patchOptions = undefined,
-    beforeReindex = () => {},
+    afterPatch = () => {},
     updateDependents = () => {},
     centroidIds = plan?.affectedIds || [],
     requireCountryId = '',
@@ -28,13 +28,12 @@ export function createCountryCommits() {
     selectedId = '',
   } = {}) {
     (0, dependencies.cutOperations.applyWorkerCountryPatches)(plan, patchOptions);
-    beforeReindex(plan);
-    (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
+    afterPatch(plan);
     updateDependents(plan);
     (0, dependencies.countryValidation.refreshCountryCentroids)(new Set([...(centroidIds || [])].map(String)));
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
-    if (requireCountryId && !(0, dependencies.countries.countryFeatureById)(requireCountryId)) {
+    if (requireCountryId && !countryEntityById(requireCountryId)) {
       throw new Error('국가 geometry 적용 결과에서 대상 국가가 사라졌습니다.');
     }
     if (clearMultiDraft) dependencies.projectState.state.multiDraft = null;
@@ -555,12 +554,13 @@ export function createCountryCommits() {
       payload: { sourceId, targetIds },
       snapshot,
       applyResult: result => applyCountryGeometryPlan(result, {
-        beforeReindex: () => {
-          dependencies.projectState.state.countryOverrides[sourceId] = {
-            ...(dependencies.projectState.state.countryOverrides[sourceId] || {}),
-            name: sourceName,
-          };
-          for (const targetId of targetIds) delete dependencies.projectState.state.countryOverrides[targetId];
+        afterPatch: () => {
+          dependencies.territorialModel.entityStore.setField(
+            dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+            sourceId,
+            'name',
+            sourceName,
+          );
         },
         updateDependents: () => (0, dependencies.landRelations.reassignLandDependents)(targetIds, sourceId),
         centroidIds: [sourceId],
