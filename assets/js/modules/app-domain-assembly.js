@@ -1170,7 +1170,7 @@ export function createDomainAssembly() {
 
   }
 
-  function initializeProjectDomain() {
+  function initializeDomainState() {
     (territorialEntityRepository = (0, dependencies.territorialServicesA.createTerritorialEntityRepository)({
       getCountries: () => dependencies.projectState.state.countriesData,
       getUnits: () => dependencies.projectState.state.territorialUnits,
@@ -1202,7 +1202,7 @@ export function createDomainAssembly() {
 
   return Object.freeze({
     connect,
-    initializeProjectDomain,
+    initializeDomainState,
     get countryPropertyController() { return countryPropertyController; },
     get editingDomain() { return editingDomain; },
     get gisDomain() { return gisDomain; },
