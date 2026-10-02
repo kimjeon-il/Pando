@@ -10,10 +10,15 @@ export function createTerritorialConversion() {
     dependencies = ports;
   }
 
+  function countryEntityById(id) {
+    const entity = dependencies.territorialModel.entityRepository.get(id);
+    return entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity : null;
+  }
+
   async function promoteTerritorialUnitToCountry(unitId) {
     const source = (0, dependencies.objectPresentation.territorialUnitById)(unitId);
     const sourceCountryId = String(source?.properties?.sovereignId || '');
-    const sourceCountry = (0, dependencies.countries.countryFeatureById)(sourceCountryId);
+    const sourceCountry = countryEntityById(sourceCountryId);
     const name = String(source?.properties?.name || '').trim();
     if (!source || !sourceCountry || !name) {
       (0, dependencies.feedback.setActionStatus)('새 국가로 독립하려면 이름과 소속 국가가 있는 하위단위를 선택하세요.', 'error', 3800);
@@ -24,7 +29,7 @@ export function createTerritorialConversion() {
       return false;
     }
     if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([sourceCountryId], '하위단위를 국가로 전환')) return false;
-    if ((0, dependencies.countries.countryFeatureById)(source.id)) {
+    if (countryEntityById(source.id)) {
       (0, dependencies.feedback.setActionStatus)('영역 ID가 국가 ID와 겹칩니다. ID를 바꾸세요.', 'error', 4200);
       return false;
     }
@@ -72,7 +77,7 @@ export function createTerritorialConversion() {
       ? dependencies.territorialModel.entityRepository.list({ administrativeCountryId: String(source.id || '') })
         .filter(candidate => String(candidate.id) !== String(source.id || '')).length
       : dependencies.territorialModel.entityRepository.administrativeChildren(source.id).length;
-    const targetCountry = (0, dependencies.countries.countryFeatureById)(sovereignId);
+    const targetCountry = countryEntityById(sovereignId);
     const targetParent = (0, dependencies.objectPresentation.territorialUnitById)(parentId);
     const impacts = [];
     let summary = `${sourceName}의 종류를 ${targetLabel}(으)로 변경합니다.`;
@@ -93,7 +98,7 @@ export function createTerritorialConversion() {
       summary = `${sourceName}의 영역을 현재 소속 국가에서 분리해 독립 국가로 전환합니다.`;
       impacts.push('기존 상위 단위와 소속 국가 관계 해제', '기존 국가 국경 변경 및 새 국가 1개 생성');
     } else {
-      const sovereign = (0, dependencies.countries.countryFeatureById)(sovereignId || source.properties?.sovereignId);
+      const sovereign = countryEntityById(sovereignId || source.properties?.sovereignId);
       impacts.push(`소속 국가 유지${sovereign ? `: ${(0, dependencies.presentation.countryName)(sovereign)}` : ''}`);
       if (targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT) {
         const parentName = targetParent ? (0, dependencies.objectPresentation.territorialUnitName)(targetParent) : sovereign ? (0, dependencies.presentation.countryName)(sovereign) : '선택한 상위 단위';
@@ -313,9 +318,9 @@ export function createTerritorialConversion() {
   }
 
   async function convertCountryToRegionType(countryId, targetType, targetCountryId, parentId = '') {
-    const source = (0, dependencies.countries.countryFeatureById)(countryId);
-    const target = (0, dependencies.countries.countryFeatureById)(targetCountryId);
-    if (!source || !target || source === target || ![dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(targetType)) {
+    const source = countryEntityById(countryId);
+    const target = countryEntityById(targetCountryId);
+    if (!source || !target || String(source.id) === String(target.id) || ![dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(targetType)) {
       (0, dependencies.feedback.setActionStatus)('종류를 변경할 국가와 소속 국가를 다시 선택하세요.', 'error', 3800);
       return false;
     }
