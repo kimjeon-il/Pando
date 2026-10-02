@@ -93,6 +93,31 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         state.countryOverrides = overrides && typeof overrides === 'object' ? { ...overrides } : {};
         return state.countryOverrides;
       },
+      replaceCollections({
+        countriesData: nextCountriesData = null,
+        units: nextUnits = null,
+        countryOverrides: nextCountryOverrides = undefined,
+      } = {}) {
+        if (nextCountryOverrides !== undefined) {
+          state.countryOverrides = nextCountryOverrides && typeof nextCountryOverrides === 'object'
+            ? { ...nextCountryOverrides }
+            : {};
+        }
+        if (nextCountriesData) {
+          const next = nextCountriesData?.type === 'FeatureCollection'
+            ? nextCountriesData
+            : { type: 'FeatureCollection', features: Array.isArray(nextCountriesData) ? nextCountriesData : [] };
+          state.countriesData = typeof runtime.reindexCountries === 'function'
+            ? runtime.reindexCountries(next, true)
+            : next;
+        }
+        if (Array.isArray(nextUnits)) state.territorialUnits = nextUnits;
+        return {
+          countriesData: countriesData(),
+          countryOverrides: countryOverrides(),
+          units: units(),
+        };
+      },
       replaceCountries(collection) {
         const next = collection?.type === 'FeatureCollection'
           ? collection
@@ -818,8 +843,10 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     }
     const before = snapshotEditable();
     try {
-      entityStore.replaceCountryOverrides(draftOverrides);
-      entityStore.replaceCountries(draftCountries);
+      entityStore.replaceCollections({
+        countriesData: draftCountries,
+        countryOverrides: draftOverrides,
+      });
       const dependentTargetId = String(result.landDependentsTargetId || '');
       if (dependentTargetId && plan.transferredGeometry && Array.isArray(plan.donorIds)) {
         transferLandDependents(plan.transferredGeometry, plan.donorIds, dependentTargetId);
