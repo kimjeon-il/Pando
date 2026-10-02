@@ -59,7 +59,6 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
   ],
   "genericCommands": [
     "applicationServicesA",
-    "countries",
     "countryEditingA",
     "countryEditingB",
     "countryValidation",
