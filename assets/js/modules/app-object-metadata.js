@@ -117,7 +117,7 @@ export function createObjectMetadata() {
       }
     }
     const canonicalField = field;
-    if (['name', 'notes', 'color'].includes(canonicalField)) {
+    if (['name', 'notes', 'color', 'validFrom', 'validTo'].includes(canonicalField)) {
       const result = dependencies.objectModelB.territorialApplicationService.updateMetadata(
         feature.properties.unitType,
         feature.id,
@@ -126,6 +126,8 @@ export function createObjectMetadata() {
       );
       if (!result.ok) {
         (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+        const message = result.issues?.[0] || '영역 정보를 변경할 수 없습니다.';
+        (0, dependencies.feedback.setActionStatus)(message, 'error', 4200);
         return;
       }
       if (canonicalField === 'name') (0, dependencies.layers.markLayerTreeDirty)();
