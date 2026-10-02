@@ -1,6 +1,6 @@
 export const TERRAIN_RASTER_VERSION = '0.12.6';
 export const TERRAIN_RASTER_DATASET = 'Natural Earth raster 3.2.0 1:10m';
-export const TERRAIN_DEM_VERSION = '0.13.0';
+export const TERRAIN_DEM_VERSION = '0.13.1';
 export const TERRAIN_DEM_FORMAT = 'dem-relief-v1';
 export const TERRAIN_RASTER_FORMAT = 'raster-rgba-v1';
 
@@ -51,7 +51,9 @@ export function validateTerrainManifest(manifest) {
   }
   if (format === TERRAIN_DEM_FORMAT) {
     const resolution = manifest.sourceResolutionDegrees;
-    if (manifest.version !== TERRAIN_DEM_VERSION || manifest.tileFormat !== 'lossless WebP RGBA'
+    // The representation owns the decoding contract; a data-only patch release
+    // may change tint/checksums without changing the official default URL.
+    if (!/^\d+\.\d+\.\d+$/.test(String(manifest.version || '')) || manifest.tileFormat !== 'lossless WebP RGBA'
         || manifest.registration !== 'cell-center' || manifest.elevation?.decode !== 'R*256+G-12000'
         || JSON.stringify(manifest.sourceGridOrigin) !== '[-180,90]'
         || !Array.isArray(resolution) || resolution.length !== 2

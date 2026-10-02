@@ -9,7 +9,7 @@ async function measure(page, source) {
   let bytes = 0;
   const onResponse = response => {
     const url = response.url();
-    if (url.includes('/terrain/v0.13.0/') || url.includes('/terrain/v0.12.6/')) {
+    if (url.includes('/terrain/')) {
       bytes += Number(response.headers()['content-length'] || 0);
     }
   };

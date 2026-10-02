@@ -2,7 +2,8 @@
 
 Example (rasterio, numpy and Pillow required):
   python tools/build-terrain-dem.py --etopo ETOPO_2022_v1_30s_N90W180_surface.tif \
-      --tint-zip HYP_HR.zip --output F:/map-editor-dem-0.13.0/output
+      --tint-zip HYP_HR.zip --glaciated-areas ne_10m_glaciated_areas.geojson \
+      --output F:/map-editor-dem-0.13.0/terrain/v0.13.1
 
 The source is read in windows. No full-resolution elevation array is kept in RAM.
 The manifest is published only after every tile has been encoded and verified.
@@ -15,7 +16,9 @@ import hashlib
 import json
 import math
 import os
+import shutil
 from pathlib import Path
+import tempfile
 import time
 import zipfile
 
@@ -23,11 +26,13 @@ import numpy as np
 from PIL import Image
 import rasterio
 from rasterio.enums import Resampling
+from rasterio.features import geometry_mask
+from rasterio.fill import fillnodata
 from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 
 
-VERSION = "0.13.0"
+VERSION = "0.13.1"
 FORMAT = "dem-relief-v1"
 TILE_SIZE = 1024
 BIAS = 12000
@@ -41,6 +46,9 @@ DIFFUSE = 0.58
 SHADE_QUANTIZATION_STEP = 4
 ETOPO_SHA256 = '8630abc401cc6bdd30b507a68d3eb9eda5b65f5636f7199e4b1eefd476b5a9e2'
 TINT_SHA256 = '29ba984a14d96c3d745065b096eccf0a21207718d8549341c955c64b150e3e09'
+ICE_SHA256 = '04fd2303d5f0ece2cf482af19d06731d745db9690501d7b0a2a4b7fe23a7726f'
+TINT_ALGORITHM = 'masked-land-average-regional-fill-v1'
+ICE_URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/693f11422f4e08d2da4566b854dda53eb7c39fb3/geojson/ne_10m_glaciated_areas.geojson'
 
 
 def sha256(path: Path) -> str:
@@ -287,7 +295,75 @@ def asset_summary(output: Path, level_definitions):
     return asset_digest.hexdigest(), reports
 
 
-def build_tint(tint_zip: Path, output: Path):
+def tint_validity(rgb, protected_ice):
+    """HYP_HR white water background is not an elevation NoData value.
+
+    Keep white in the independently supplied glaciated-area mask. Non-white
+    colours, including nearly white snow, remain valid everywhere.
+    """
+    return np.any(rgb != 255, axis=0) | protected_ice
+
+
+def fill_tint_background(rgb, valid):
+    """Derive missing colours from surrounding valid tint, never from DEM.
+
+    Ocean tint is display-only padding: the renderer's country mask decides
+    where it is used. Wrap longitude so islands near 180 degrees use neighbours
+    across the seam. Existing valid colours (including white ice) are untouched.
+    """
+    if not valid.any():
+        raise ValueError('Tint has no valid land colours')
+    width = valid.shape[1]
+    wrapped_valid = np.tile(valid, (1, 3)).astype(np.uint8)
+    result = rgb.copy()
+    for channel in range(3):
+        values = np.where(valid, rgb[channel], np.nan).astype(np.float32)
+        filled = fillnodata(np.tile(values, (1, 3)), mask=wrapped_valid,
+                            max_search_distance=width, smoothing_iterations=0)
+        result[channel] = filled[:, width:2*width]
+    if not np.isfinite(result).all():
+        raise ValueError('Tint regional fill left unresolved cells')
+    return np.clip(np.rint(result), 0, 255).astype(np.uint8)
+
+
+def resample_tint(source, ice_geometries, output, width=2048, height=1024):
+    # A temporary masked raster keeps full-resolution arrays off the heap.
+    # The source mask makes GDAL average only valid colours, so small islands
+    # are not diluted by the white water background.
+    with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
+        masked_path = Path(temporary)/'masked-tint.tif'
+        with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True, GDAL_CACHEMAX=64*1024*1024):
+            with rasterio.open(masked_path, 'w', driver='GTiff', count=3,
+                               width=source.width, height=source.height, dtype='uint8',
+                               crs=source.crs, transform=source.transform,
+                               compress='deflate', tiled=True) as masked:
+                for y in range(0, source.height, 128):
+                    window = Window(0, y, source.width, min(128, source.height-y))
+                    rgb = source.read([1, 2, 3], window=window)
+                    north = source.xy(y, 0, offset='ul')[1]
+                    south = source.xy(y+window.height, 0, offset='ul')[1]
+                    relevant = [geometry for geometry, bounds in ice_geometries
+                                if bounds[1] <= north and bounds[3] >= south]
+                    ice = geometry_mask(relevant, rgb.shape[1:], source.window_transform(window),
+                                        invert=True, all_touched=True) if relevant else np.zeros(rgb.shape[1:], dtype=bool)
+                    valid = tint_validity(rgb, ice)
+                    masked.write(rgb, window=window)
+                    masked.write_mask(valid.astype(np.uint8)*255, window=window)
+            with rasterio.open(masked_path) as masked:
+                averaged = masked.read(out_shape=(3, height, width), masked=True,
+                                       resampling=Resampling.average)
+                valid = ~np.ma.getmaskarray(averaged).any(axis=0)
+                repaired = fill_tint_background(averaged.astype(np.float32).filled(np.nan), valid)
+    image = Image.fromarray(np.transpose(repaired, (1, 2, 0)), 'RGB')
+    image.save(output, 'WEBP', lossless=True, method=4)
+    with Image.open(output) as decoded:
+        if not np.array_equal(np.asarray(decoded.convert('RGB')), np.transpose(repaired, (1, 2, 0))):
+            raise ValueError('Tint WebP round-trip mismatch')
+    return {'algorithm': TINT_ALGORITHM, 'validCells': int(valid.sum()),
+            'regionalFillCells': int((~valid).sum())}
+
+
+def build_tint(tint_zip: Path, output: Path, ice_path: Path):
     # HYP_HR is the Natural Earth tint without pre-rendered relief shading.
     with zipfile.ZipFile(tint_zip) as archive:
         tiffs = [name for name in archive.namelist() if name.lower().endswith((".tif", ".tiff"))]
@@ -295,23 +371,67 @@ def build_tint(tint_zip: Path, output: Path):
             raise ValueError(f"Expected one HYP_HR TIFF in ZIP, got {tiffs}")
         # Extraction is disk-backed; do not hold the 700 MB source TIFF in RAM.
         tiff_path = Path(archive.extract(tiffs[0], tint_zip.parent))
+    ice_source = json.loads(ice_path.read_text(encoding='utf-8'))
+    from rasterio.features import bounds
+    ice_geometries = [(feature['geometry'], bounds(feature['geometry']))
+                      for feature in ice_source['features']]
+    if not ice_geometries:
+        raise ValueError('Glaciated-area protection mask is empty')
     with rasterio.open(tiff_path) as source:
         if source.width < 2048 or source.height < 1024 or source.count < 3:
             raise ValueError("Natural Earth tint is smaller than 2048x1024 RGB")
-        rgb = source.read([1, 2, 3], out_shape=(3, 1024, 2048), resampling=Resampling.average)
-        tint = Image.fromarray(np.transpose(rgb, (1, 2, 0)).astype(np.uint8), "RGB")
-        tint.save(output, "WEBP", lossless=True, method=4)
-    return tiffs[0]
+        if source.crs is None or source.crs.to_epsg() != 4326 or any(
+                abs(a-b) > 1e-7 for a, b in zip(source.bounds, [-180, -90, 180, 90])):
+            raise ValueError('Tint source grid is not global EPSG:4326')
+        report = resample_tint(source, ice_geometries, output)
+    return dict(report, sourceEntry=tiffs[0], iceSourceSha256=sha256(ice_path))
 
 
-def build(etopo_path: Path, tint_zip: Path, output: Path):
+def rebuild_tint_release(source_output: Path, tint_zip: Path, ice_path: Path, output: Path):
+    """Publish a new immutable dataset locally, copying every DEM tile unchanged."""
+    if output.exists():
+        raise FileExistsError(f'Refusing to overwrite dataset: {output}')
+    if sha256(tint_zip) != TINT_SHA256 or sha256(ice_path) != ICE_SHA256:
+        raise ValueError('Tint or glaciated-area source checksum mismatch')
+    manifest = json.loads((source_output/'manifest.json').read_text(encoding='utf-8'))
+    if manifest['representation'] != FORMAT or manifest['version'] == VERSION:
+        raise ValueError('Expected an earlier DEM dataset to copy')
+    output.mkdir(parents=True)
     started = time.monotonic()
+    tint = build_tint(tint_zip, output/'tint.webp', ice_path)
+    # Checksum the source dataset before copying; no decoded tile is modified.
+    source_assets, _ = asset_summary(source_output, manifest['levels'])
+    if source_assets != manifest['assetsSha256']:
+        raise ValueError('Source DEM dataset checksum mismatch')
+    for level in manifest['levels']:
+        shutil.copytree(source_output/str(level['id']), output/str(level['id']))
+    manifest['version'] = VERSION
+    manifest['urlTemplate'] = f'terrain/v{VERSION}/{{level}}/{{column}}-{{row}}.webp'
+    manifest['tint'] = dict(tint, url=f'terrain/v{VERSION}/tint.webp', width=2048,
+                            height=1024, sha256=sha256(output/'tint.webp'))
+    manifest['sources'].append({'url': ICE_URL,
+                               'sha256': sha256(ice_path), 'bytes': ice_path.stat().st_size})
+    manifest['assetsSha256'], reports = asset_summary(output, manifest['levels'])
+    (output/'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
+    report = {'completed': True, 'copiedFromVersion': json.loads((source_output/'manifest.json').read_text(encoding='utf-8'))['version'],
+              'demTilesUnchanged': True, 'tint': tint, 'levelReports': reports,
+              'totalBytes': sum(item['bytes'] for item in reports) + (output/'tint.webp').stat().st_size,
+              'manifestSha256': sha256(output/'manifest.json'),
+              'seconds': round(time.monotonic()-started, 3), 'peakWorkingSetBytes': current_working_set()}
+    (output/'build-report.json').write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
+    print(json.dumps(report), flush=True)
+
+
+def build(etopo_path: Path, tint_zip: Path, output: Path, ice_path: Path):
+    started = time.monotonic()
+    if output.exists():
+        raise FileExistsError(f'Refusing to overwrite dataset: {output}')
     if not etopo_path.is_file() or not tint_zip.is_file():
         raise FileNotFoundError("ETOPO GeoTIFF and Natural Earth HYP_HR.zip are required")
     output.mkdir(parents=True, exist_ok=True)
     source_sha = sha256(etopo_path)
     tint_sha = sha256(tint_zip)
-    if source_sha != ETOPO_SHA256 or tint_sha != TINT_SHA256:
+    if source_sha != ETOPO_SHA256 or tint_sha != TINT_SHA256 or sha256(ice_path) != ICE_SHA256:
         raise ValueError(f'Source checksum mismatch: ETOPO={source_sha}, tint={tint_sha}')
     level_reports = []
     peak_working_set = 0
@@ -348,7 +468,8 @@ def build(etopo_path: Path, tint_zip: Path, output: Path):
             level_reports.append(report)
             print(json.dumps(report), flush=True)
     tint_path = output / "tint.webp"
-    tint_entry = build_tint(tint_zip, tint_path)
+    tint_report = build_tint(tint_zip, tint_path, ice_path)
+    peak_working_set = max(peak_working_set, current_working_set())
     for level in levels():
         changed = reconcile_gutters(output, level)
         level_reports[level['id']]['reconciledTiles'] = changed
@@ -373,13 +494,15 @@ def build(etopo_path: Path, tint_zip: Path, output: Path):
         "gutter": 1, "tileSize": TILE_SIZE, "levels": levels(),
         "urlTemplate": f"terrain/v{VERSION}/{{level}}/{{column}}-{{row}}.webp",
         "tint": {"url": f"terrain/v{VERSION}/tint.webp", "width": 2048, "height": 1024,
-                 "sha256": sha256(tint_path), "sourceEntry": tint_entry},
+                 "sha256": sha256(tint_path), **tint_report},
         "sources": [
             {"url": "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2022/data/30s/30s_surface_elev_gtif/ETOPO_2022_v1_30s_N90W180_surface.tif",
              "sha256": source_sha, "bytes": etopo_path.stat().st_size, "nodata": source_nodata,
              "dtype": source_dtype, "width": SOURCE_WIDTH, "height": SOURCE_HEIGHT},
             {"url": "https://naturalearth.s3.amazonaws.com/10m_raster/HYP_HR.zip",
              "sha256": tint_sha, "bytes": tint_zip.stat().st_size},
+            {"url": ICE_URL,
+             "sha256": sha256(ice_path), "bytes": ice_path.stat().st_size},
         ],
         "assetsSha256": assets_sha,
     }
@@ -422,12 +545,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--etopo", type=Path)
     parser.add_argument("--tint-zip", type=Path)
+    parser.add_argument("--glaciated-areas", type=Path)
+    parser.add_argument("--reuse-dem", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--repair-output", action="store_true")
     parser.add_argument("--repair-polar-min-level", type=int, default=0)
     parser.add_argument("--repair-polar-max-level", type=int, default=5)
     args = parser.parse_args()
-    if args.repair_output:
+    if args.reuse_dem:
+        if not args.tint_zip or not args.glaciated_areas:
+            parser.error('--reuse-dem requires --tint-zip and --glaciated-areas')
+        rebuild_tint_release(args.reuse_dem, args.tint_zip, args.glaciated_areas, args.output)
+    elif args.repair_output:
         manifest_path = args.output/'manifest.json'
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         previous_report_path = args.output/'build-report.json'
@@ -450,9 +579,9 @@ def main():
         (args.output/'build-report.json').write_bytes((json.dumps(report, indent=2)+'\n').encode('utf-8'))
         print(json.dumps(report), flush=True)
     else:
-        if not args.etopo or not args.tint_zip:
-            parser.error('--etopo and --tint-zip are required for generation')
-        build(args.etopo, args.tint_zip, args.output)
+        if not args.etopo or not args.tint_zip or not args.glaciated_areas:
+            parser.error('--etopo, --tint-zip and --glaciated-areas are required for generation')
+        build(args.etopo, args.tint_zip, args.output, args.glaciated_areas)
 
 
 if __name__ == "__main__":

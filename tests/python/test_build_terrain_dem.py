@@ -23,6 +23,52 @@ VERIFY_SPEC.loader.exec_module(verifier)
 
 
 class TerrainDemTest(unittest.TestCase):
+    def test_generator_refuses_to_overwrite_existing_dataset(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            missing = root/'missing'
+            with self.assertRaises(FileExistsError):
+                dem.build(missing, missing, root, missing)
+            with self.assertRaises(FileExistsError):
+                dem.rebuild_tint_release(missing, missing, missing, root)
+
+    def test_tint_keeps_white_ice_and_excludes_white_water(self):
+        rgb = np.array([[[255, 255, 180]], [[255, 255, 190]], [[255, 255, 170]]], dtype=np.uint8)
+        valid = dem.tint_validity(rgb, np.array([[False, True, False]]))
+        np.testing.assert_array_equal(valid, [[False, True, True]])
+
+    def test_tint_fill_wraps_longitude_and_preserves_existing_colour(self):
+        rgb = np.full((3, 2, 8), np.nan, dtype=np.float32)
+        rgb[:, :, 0] = np.array([120, 160, 140])[:, None]
+        rgb[:, :, 4] = np.array([180, 140, 100])[:, None]
+        valid = np.zeros((2, 8), dtype=bool)
+        valid[:, [0, 4]] = True
+        result = dem.fill_tint_background(rgb, valid)
+        np.testing.assert_array_equal(result[:, :, 0], rgb[:, :, 0])
+        # Right edge must borrow from the adjacent left edge across the seam.
+        self.assertLess(int(result[0, 0, -1]), int(result[0, 0, 3]))
+        self.assertFalse(np.any(np.all(result == 255, axis=0)))
+        with self.assertRaisesRegex(ValueError, 'no valid land'):
+            dem.fill_tint_background(rgb, np.zeros_like(valid))
+
+    def test_tint_average_does_not_dilute_a_small_island_with_white_sea(self):
+        transform = rasterio.transform.from_bounds(-180, -90, 180, 90, 8, 4)
+        rgb = np.full((3, 4, 8), 255, dtype=np.uint8)
+        rgb[:, 1, 1] = [100, 160, 120]
+        ice = {'type': 'Polygon', 'coordinates': [[[90, 90], [180, 90], [180, 0], [90, 0], [90, 90]]]}
+        with MemoryFile() as memory, tempfile.TemporaryDirectory() as folder:
+            with memory.open(driver='GTiff', width=8, height=4, count=3, dtype='uint8',
+                             crs='EPSG:4326', transform=transform) as source:
+                source.write(rgb)
+                first, second = Path(folder)/'first.webp', Path(folder)/'second.webp'
+                shapes = [(ice, (90, 0, 180, 90))]
+                dem.resample_tint(source, shapes, first, width=4, height=2)
+                dem.resample_tint(source, shapes, second, width=4, height=2)
+                pixels = np.asarray(Image.open(first).convert('RGB'))
+                np.testing.assert_array_equal(pixels[0, 0], [100, 160, 120])
+                np.testing.assert_array_equal(pixels[0, -1], [255, 255, 255])
+                self.assertEqual(first.read_bytes(), second.read_bytes())
+
     def test_signed_elevation_and_byte_boundary(self):
         values = np.array([[-12000, -11745, -11744, 0, 53535]], dtype=np.float32)
         rgba = dem.encode(values, 5, 1, 0)

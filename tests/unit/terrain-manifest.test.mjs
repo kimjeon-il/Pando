@@ -32,6 +32,14 @@ test('legacy raster and strict DEM manifests select known representations', () =
   assert.throws(() => validateTerrainManifest({ ...dem, shade: { ...dem.shade, quantizationStep: 8 } }), /DEM/);
 });
 
+test('a tint-only data release uses the same strict DEM representation contract', () => {
+  assert.equal(validateTerrainManifest({ ...dem, version: '0.13.1' }).version, '0.13.1');
+  assert.throws(() => validateTerrainManifest({ ...dem, version: 'local' }), /DEM/);
+  assert.throws(() => validateTerrainManifest({ ...dem, version: '0.13.1',
+    channels: { ...dem.channels, g: 'colour' } }), /DEM/);
+  assert.equal(terrainSources.TERRAIN_DEM_VERSION, '0.13.1');
+});
+
 test('relative and absolute data URLs resolve from the manifest without coupling DEM to app revision', () => {
   const appBase = new URL('https://app.example/assets/data/');
   const rasterUrl = terrainRasterManifestUrl(appBase, 'build-1');
