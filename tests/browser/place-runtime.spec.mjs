@@ -15,7 +15,9 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   const manifest={version:1,revision:'browser-synthetic',stages:[{id:0,minZoom:0,columns:1,rows:1}],tiles:{'0/0-0':row},shards:{test:{url:'test.bin',bytes:bytes.length}},
     search:{'서울':[{...row,first:'서울 synthetic',last:'서울 synthetic'}],lo:[{...row,first:'london synthetic',last:'london synthetic'}]}};
   await context.route('**/assets/data/places/**',route=>route.fulfill({status:200,contentType:route.request().url().includes('manifest.json')?'application/json':'application/octet-stream',body:route.request().url().includes('manifest.json')?JSON.stringify(manifest):bytes}));
-  await page.goto('/');
+  // Exercise the real supported Canvas backend: this gate owns Place/History
+  // contracts, not headless software-WebGL throughput. Keep native UI clicks.
+  await page.goto('/?renderer=canvas');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60_000});
   await page.locator('#objectSearchBtn').evaluate(button => button.click());
   await page.locator('#layerSearchInput').fill('서울');
