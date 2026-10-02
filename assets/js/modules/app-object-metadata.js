@@ -166,51 +166,11 @@ export function createObjectMetadata() {
       (0, dependencies.feedback.setActionStatus)(`${unitLabel} 정보를 변경했습니다.`, 'success');
       return;
     }
-    const candidateUnits = (0, dependencies.platform.deepClone)(dependencies.projectState.state.territorialUnits);
-    const candidateFeature = candidateUnits.find(item => String(item.id) === String(feature.id));
-    if (field === 'color') (0, dependencies.objectModelB.setTerritorialStyleColor)(candidateFeature, value);
-    else if (canonicalField === 'parentId') Object.assign(candidateFeature, (0, dependencies.applicationServicesA.changeParent)(candidateFeature, value));
-    else if (canonicalField === 'sovereignId') Object.assign(candidateFeature, (0, dependencies.applicationServicesA.changeSovereign)(candidateFeature, value));
-    else if (canonicalField === 'unitType') Object.assign(candidateFeature, (0, dependencies.applicationServicesA.changeUnitType)(candidateFeature, value));
-    else if (canonicalField === 'flagDataUrl') {
-      candidateFeature.properties ||= {};
-      candidateFeature.properties.metadata ||= {};
-      if (value === undefined) delete candidateFeature.properties.metadata.flagDataUrl;
-      else candidateFeature.properties.metadata.flagDataUrl = value;
-    }
-    else candidateFeature.properties[canonicalField] = value;
-    const parentValidation = (0, dependencies.territorialServicesB.validateSubunitParentChanges)(dependencies.projectState.state.territorialUnits, candidateUnits, id => !!(0, dependencies.countries.countryFeatureById)(id));
-    if (!parentValidation.ok) {
-      (0, dependencies.feedback.setActionStatus)(parentValidation.issues[0], 'error', 4200);
-      (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
-      return;
-    }
-    let normalizedUnits;
-    try {
-      if (canonicalField === 'parentId' && !explicitCoverage) {
-        globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).validate(
-          dependencies.projectState.state.countriesData.features, candidateUnits, dependencies.projectState.state.territorialUnits, [String(feature.id)],
-        );
-      }
-      normalizedUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(candidateUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
-    } catch (error) {
-      (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
-      const validationMessage = (0, dependencies.readiness.compactNotificationMessage)(error?.message || '영역 정보를 검증하지 못했습니다.', { tone: 'error', maxLength: 52 });
-      (0, dependencies.feedback.setActionStatus)(validationMessage, 'error', 0);
-      return;
-    }
-    dependencies.objectModelB.territorialApplicationService.replaceUnits(normalizedUnits, {
-      type: 'territorial-metadata', affectedIds: [feature.id],
-    });
-    if (canonicalField === 'flagDataUrl') dependencies.domains.renderingDomain?.invalidateLabels?.('territorial-flag-edited');
-    (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
-    const unitLabel = feature.properties.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
-      ? '하위단위'
-      : feature.properties.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION
-        ? '지방'
-        : '하위단위';
-    (0, dependencies.feedback.setActionStatus)(`${unitLabel} 정보를 변경했습니다.`, 'success');
+    if (canonicalField === 'parentId' && explicitCoverage) {
+      (0, dependencies.feedback.setActionStatus)('지방의 상위 단위는 직접 편집하지 않습니다.', 'error', 3200);
+    }
+    return false;
   }
 
   function requestTerritorialUnitTransfer(unitId, targetCountryId) {
