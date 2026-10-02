@@ -52,6 +52,12 @@ jobs:
           tests/unit/territorial-entity-repository.test.mjs
           tests/unit/territorial-service.test.mjs
           tests/unit/library-ownership.test.mjs
+      - name: Reject legacy hierarchy helper references
+        run: |
+          if grep -R -n -E '\bterritorial(Children|Siblings)\b' assets/js/modules; then
+            echo "Legacy territorial hierarchy helper reference remains."
+            exit 1
+          fi
       - name: Focused unit tests
         run: >
           node --test
