@@ -41,11 +41,11 @@ export function createProjectRestore() {
     (0, dependencies.snapshots.applySharedProjectFields)(project);
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     dependencies.projectState.state.layerSearch = '';
-    dependencies.territorialModel.entityStore.replaceCountries(
-      project.countriesData
+    dependencies.territorialModel.entityStore.replaceCollections({
+      countriesData: project.countriesData
         ? (0, dependencies.platform.deepClone)(project.countriesData)
         : (0, dependencies.builtinCountries.freshPristineCountries)(true),
-    );
+    });
     dependencies.projectState.state.auditPreviewCountries = null;
     (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
@@ -205,7 +205,7 @@ export function createProjectRestore() {
     dependencies.projectState.state.labelSettings = {};
     dependencies.projectState.state.genericFeatures = [];
     dependencies.projectState.state.hydroEdits = [];
-    dependencies.territorialModel.entityStore.replaceUnits([]);
+    dependencies.territorialModel.entityStore.replaceCollections({ units: [] });
     dependencies.projectState.state.territorialRelations = [];
     dependencies.projectState.state.distributionLayers = [];
     dependencies.projectState.state.distributionEntries = [];
@@ -242,7 +242,9 @@ export function createProjectRestore() {
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     dependencies.projectState.state.countryIndex.clear();
-    dependencies.territorialModel.entityStore.replaceCountries(preparedCountries, {
+    dependencies.territorialModel.entityStore.replaceCollections({
+      countriesData: preparedCountries,
+    }, {
       reindexOptions: { assumeCanonical: true },
     });
     const restoredExactly = dependencies.builtinCountries.canonicalCountryStore
