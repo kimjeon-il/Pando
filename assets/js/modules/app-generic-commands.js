@@ -73,7 +73,6 @@ export function createGenericCommands() {
         (0, dependencies.landRelations.transferLandDependents)(transferredGeometry, sourceIds, country.id, [feature.id]);
         dependencies.projectState.state.genericFeatures = dependencies.projectState.state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
         dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
-        (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
         (0, dependencies.countryValidation.refreshCountryCentroids)(new Set(result.affectedIds));
         (0, dependencies.layers.markLayerTreeDirty)();
         (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(country.id);
