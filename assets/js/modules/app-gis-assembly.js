@@ -137,7 +137,6 @@ export function createGisAssembly() {
   function getGisExportController() {
     if (dependencies.gisServicesA.gisExportControllerPromise) return dependencies.gisServicesA.gisExportControllerPromise;
     const controllerPromise = import((0, dependencies.applicationServicesB.versionedModuleUrl)('./modules/gis-export-controller.js')).then(({ createGisExportController }) => {
-      const units = () => dependencies.projectState.state.territorialUnits || [];
       const controller = createGisExportController({
         window,
         document,
@@ -156,9 +155,9 @@ export function createGisAssembly() {
         requireReady: dependencies.readinessUi.requireCanonicalData,
         getProject: () => dependencies.domains.projectDomain.buildProject(),
         getCounts: () => ({
-          countries: dependencies.projectState.state.countriesData?.features?.length || 0,
-          subunits: units().filter(feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT).length,
-          regions: units().filter(feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION).length,
+          countries: dependencies.territorialModel.entityRepository.list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY }).length,
+          subunits: dependencies.territorialModel.entityRepository.list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT }).length,
+          regions: dependencies.territorialModel.entityRepository.list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION }).length,
           genericFeatures: dependencies.projectState.state.genericFeatures.length,
           distributions: dependencies.projectState.state.distributionEntries.length,
           labels: dependencies.projectState.state.labels.length,
