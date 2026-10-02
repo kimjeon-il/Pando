@@ -13,7 +13,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     countryName,
     territorialUnitName,
     territorialEntityRepository,
-    entityStore,
+    entityStore: providedEntityStore,
     distributionService,
     genericFeatureService,
     resolveImportedCountryId,
@@ -69,6 +69,51 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     scheduleCountryLabelAnchors,
     selectionUiController,
   } = runtime;
+
+  const entityStore = providedEntityStore || (() => {
+    if (!state || typeof state !== 'object') {
+      throw new TypeError('GIS 가져오기 커미터에는 엔티티 저장소 또는 프로젝트 상태가 필요합니다.');
+    }
+    const countriesData = () => {
+      state.countriesData ||= { type: 'FeatureCollection', features: [] };
+      state.countriesData.features ||= [];
+      return state.countriesData;
+    };
+    const units = () => (state.territorialUnits ||= []);
+    const countryOverrides = () => (state.countryOverrides ||= {});
+    return Object.freeze({
+      countriesData,
+      units,
+      countryOverrides,
+      countryFeature(id) {
+        const key = String(id ?? '');
+        return countriesData().features.find(feature => String(feature?.id ?? '') === key) || null;
+      },
+      replaceCountryOverrides(overrides) {
+        state.countryOverrides = overrides && typeof overrides === 'object' ? { ...overrides } : {};
+        return state.countryOverrides;
+      },
+      replaceCountries(collection) {
+        const next = collection?.type === 'FeatureCollection'
+          ? collection
+          : { type: 'FeatureCollection', features: Array.isArray(collection) ? collection : [] };
+        state.countriesData = typeof runtime.reindexCountries === 'function'
+          ? runtime.reindexCountries(next, true)
+          : next;
+        return state.countriesData;
+      },
+      replaceUnits(nextUnits) {
+        state.territorialUnits = Array.isArray(nextUnits) ? nextUnits : [];
+        return state.territorialUnits;
+      },
+      appendUnits(features) {
+        const additions = Array.isArray(features) ? features.filter(Boolean) : [];
+        if (!additions.length) return [];
+        state.territorialUnits = [...units(), ...additions];
+        return additions;
+      },
+    });
+  })();
 
   function applyCountryGeometryOverrides(overrides) {
     if (!overrides?.size) return new Set();
