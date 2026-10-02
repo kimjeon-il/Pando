@@ -1202,9 +1202,7 @@ export function createDomainAssembly() {
     }));
 
     (territorialEntityRepository = (0, dependencies.territorialServicesA.createTerritorialEntityRepository)({
-      getCountries: territorialEntityStore.countriesData,
-      getUnits: territorialEntityStore.units,
-      getCountryOverride: territorialEntityStore.countryOverride,
+      entityStore: territorialEntityStore,
       getRevision: () => dependencies.projectState.state.stateRevision,
     }));
 
