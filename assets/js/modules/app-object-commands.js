@@ -160,18 +160,6 @@ export function createObjectCommands() {
       && entity.properties?.locked === true;
   }
 
-  function setCountryLockedState(id, locked) {
-    const key = String(id || '');
-    const entity = dependencies.territorialModel.entityRepository.get(key);
-    if (!key || entity?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return false;
-    const override = { ...(dependencies.projectState.state.countryOverrides[key] || {}) };
-    if (locked) override.locked = true;
-    else delete override.locked;
-    if (Object.keys(override).length) dependencies.projectState.state.countryOverrides[key] = override;
-    else delete dependencies.projectState.state.countryOverrides[key];
-    return true;
-  }
-
   function lockedCountryIds(ids = []) {
     return [...new Set(ids.map(String).filter(Boolean))].filter(isCountryLocked);
   }
@@ -317,8 +305,7 @@ export function createObjectCommands() {
     }
     dependencies.domains.projectDomain.recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
-      if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) setCountryLockedState(ref.id, locked);
-      else if (ref.domain === 'territorial') (0, dependencies.objectPresentation.territorialUnitById)(ref.id).properties.locked = locked;
+      if (ref.domain === 'territorial') dependencies.territorialModel.entityStore.setLocked(ref.type, ref.id, locked);
       else if (ref.domain === 'distribution') (0, dependencies.propertyEditingA.distributionLayerById)(ref.id).locked = locked;
       else if (ref.domain === 'generic') {
         const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
@@ -636,7 +623,6 @@ export function createObjectCommands() {
     get openObjectActionsMenu() { return openObjectActionsMenu; },
     get requestBatchDelete() { return requestBatchDelete; },
     get requireCountriesUnlocked() { return requireCountriesUnlocked; },
-    get setCountryLockedState() { return setCountryLockedState; },
     get syncBatchActionAvailability() { return syncBatchActionAvailability; },
     get syncObjectActionsMenu() { return syncObjectActionsMenu; },
   });
