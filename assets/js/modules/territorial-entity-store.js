@@ -137,11 +137,16 @@ export function createTerritorialEntityStore({
     return true;
   }
 
-  function replaceCountries(collection) {
+  function replaceCountries(collection, { pruneOverrides = true } = {}) {
     const next = collection?.type === 'FeatureCollection'
       ? collection
       : { type: 'FeatureCollection', features: Array.isArray(collection) ? collection : [] };
-    state().countriesData = next;
+    const current = state();
+    current.countriesData = next;
+    if (pruneOverrides) {
+      const valid = new Set(next.features.map(feature => text(feature?.id)).filter(Boolean));
+      for (const id of Object.keys(current.countryOverrides)) if (!valid.has(id)) delete current.countryOverrides[id];
+    }
     onCountriesReplaced(next, next.features.map(feature => text(feature?.id)).filter(Boolean));
     return state().countriesData;
   }
