@@ -201,7 +201,7 @@ export function createTerritorialConversion() {
       }));
     }
 
-    const targetCountry = (0, dependencies.countries.countryFeatureById)(sovereignId);
+    const targetCountry = dependencies.territorialModel.entityRepository.get(sovereignId);
     const preview = buildTerritorialStructurePreview({
       source,
       sourceType,
@@ -225,7 +225,7 @@ export function createTerritorialConversion() {
   }
 
   function openTerritorialTypeModal(unitType, id) {
-    const source = unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.countries.countryFeatureById)(id) : (0, dependencies.objectPresentation.territorialUnitById)(id);
+    const source = dependencies.territorialModel.entityRepository.get(id);
     if (!source || ![dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(unitType)) return;
     if (!(0, dependencies.readinessUi.requireCanonicalData)()) return;
     const sourceLocked = unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.objectOperationsA.isCountryLocked)(id) : source.properties?.locked === true;
@@ -266,9 +266,7 @@ export function createTerritorialConversion() {
       return false;
     }
     const sovereignId = String(source.properties?.sovereignId || '');
-    const parent = targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
-      ? dependencies.territorialModel.entityRepository.get(parentId || sovereignId)
-      : (0, dependencies.countries.countryFeatureById)(sovereignId);
+    const parent = dependencies.territorialModel.entityRepository.get(parentId || sovereignId);
     if (!parent || (targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT && !(0, dependencies.objectMetadata.territorialUnitInsideContainer)(source, parent))) {
       (0, dependencies.feedback.setActionStatus)('영역 전체를 포함하는 올바른 상위 단위를 선택하세요.', 'error', 3900);
       return false;
@@ -285,16 +283,16 @@ export function createTerritorialConversion() {
             ? String(parentId || sovereignId)
             : sovereignId;
           nextUnits[index] = converted;
-          return (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
+          return (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, { countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY });
         },
         validate: nextUnits => (0, dependencies.objectModelB.validateTerritorialUnitRelations)(nextUnits, {
-          countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id),
+          countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
           relations: dependencies.projectState.state.territorialRelations,
         }),
         apply: async nextUnits => {
           dependencies.projectState.state.territorialUnits = nextUnits;
           (0, dependencies.landRelations.reconcileTerritorialUnitCompleteness)([sovereignId]);
-          dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(dependencies.projectState.state.territorialUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
+          dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(dependencies.projectState.state.territorialUnits, { countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY });
           (0, dependencies.layers.markLayerTreeDirty)();
           (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(unitId, true);
           dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-type-converted');
