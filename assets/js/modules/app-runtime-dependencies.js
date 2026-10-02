@@ -339,8 +339,6 @@ const {
   createTerritorialFeature,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
-  territorialChildren,
-  territorialSiblings,
 } = territorialUnitsModule;
 const {
   DISTRIBUTION_SCHEMA_VERSION,
@@ -635,8 +633,6 @@ export {
   createTerritorialEntityRepository,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
-  territorialChildren,
-  territorialSiblings,
   DISTRIBUTION_SCHEMA_VERSION,
   DISTRIBUTION_MODES,
   DISTRIBUTION_RENDER_MODES,
