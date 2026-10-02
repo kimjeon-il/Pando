@@ -19,6 +19,9 @@ test('territorial application service depends on one physical entity store', asy
   assert.match(domain, /getUnits:\s*territorialEntityStore\.units/);
 });
 
+// Bootstrap/startup, whole-project restore/history, and GIS import remain explicit
+// canonical ingest/restore boundaries. This contract covers interactive editing,
+// where all structural country/unit writes must go through TerritorialEntityStore.
 test('migrated interactive territorial modules do not write raw territorial unit storage', async () => {
   const names = [
     'app-territorial-drafts.js',
