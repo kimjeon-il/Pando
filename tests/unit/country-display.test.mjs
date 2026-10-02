@@ -19,9 +19,27 @@ test('default country names are updated without replacing custom names', () => {
   assert.equal(countryDisplayName(turkey, { name: '내 나라' }), '내 나라');
   assert.equal(countryDisplayName({ id: 'TUR', properties: { name: '사용자 국명' } }), '사용자 국명');
 });
-test('selection status retains code before and after area calculation, without UUIDs', () => {
+test('selection status shows the name and optional area without a type prefix or internal ID', () => {
   const view = { id: 'TUR', displayName: '튀르키예' };
-  assert.equal(countrySelectionStatus(view), '국가 · 튀르키예 · TUR');
-  assert.equal(countrySelectionStatus(view, '10 km²'), '국가 · 튀르키예 · TUR · 10 km²');
-  assert.equal(countrySelectionStatus({ id: 'country-custom-123', displayName: '새 나라' }), '국가 · 새 나라');
+  assert.equal(countrySelectionStatus(view), '튀르키예');
+  assert.equal(countrySelectionStatus(view, '10 km²'), '튀르키예 · 10 km²');
+  assert.equal(countrySelectionStatus({ id: 'country-custom-123', displayName: '새 나라' }), '새 나라');
+});
+
+test('selection status preserves user names and does not mutate identity metadata', () => {
+  const view = Object.freeze({ id: 'country-custom-123', type: 'country', displayName: '국가 · 내 나라 (TUR)' });
+  assert.equal(countrySelectionStatus(view), '국가 · 내 나라 (TUR)');
+  assert.equal(countrySelectionStatus(view, '0 km²'), '국가 · 내 나라 (TUR) · 0 km²');
+  assert.equal(view.id, 'country-custom-123');
+  assert.equal(view.type, 'country');
+  assert.equal(view.displayName, '국가 · 내 나라 (TUR)');
+});
+
+test('renaming changes only the presented name before and after area calculation', () => {
+  const original = Object.freeze({ id: 'TUR', displayName: '튀르키예' });
+  const renamed = Object.freeze({ ...original, displayName: '내 나라' });
+  assert.equal(countrySelectionStatus(renamed), '내 나라');
+  assert.equal(countrySelectionStatus(renamed, '10 km²'), '내 나라 · 10 km²');
+  assert.equal(renamed.id, original.id);
+  assert.equal(original.displayName, '튀르키예');
 });
