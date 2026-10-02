@@ -20,6 +20,7 @@ export function createTerritorialEntityStore({
   getState,
   writeCountryColor = defaultWriteCountryColor,
   writeUnitColor = defaultWriteUnitColor,
+  onCountriesReplaced = () => {},
   onUnitsReplaced = () => {},
 } = {}) {
   if (typeof getState !== 'function') {
@@ -136,6 +137,54 @@ export function createTerritorialEntityStore({
     return true;
   }
 
+  function appendCountries(features, overrides = {}) {
+    const additions = Array.isArray(features) ? features.filter(Boolean) : [];
+    if (!additions.length) return [];
+    const current = state();
+    current.countriesData.features = [...current.countriesData.features, ...additions];
+    for (const feature of additions) {
+      const key = text(feature?.id);
+      const override = key ? overrides?.[key] : null;
+      if (key && override && typeof override === 'object' && Object.keys(override).length) {
+        current.countryOverrides[key] = { ...override };
+      }
+    }
+    onCountriesReplaced(current.countriesData, additions.map(feature => text(feature?.id)).filter(Boolean));
+    return additions;
+  }
+
+  function appendUnits(features) {
+    const additions = Array.isArray(features) ? features.filter(Boolean) : [];
+    if (!additions.length) return [];
+    const current = state();
+    current.territorialUnits = [...current.territorialUnits, ...additions];
+    onUnitsReplaced(current.territorialUnits);
+    return additions;
+  }
+
+  function removeCountries(ids) {
+    const removed = new Set((ids || []).map(text).filter(Boolean));
+    if (!removed.size) return [];
+    const current = state();
+    const deleted = current.countriesData.features.filter(feature => removed.has(text(feature?.id)));
+    if (!deleted.length) return [];
+    current.countriesData.features = current.countriesData.features.filter(feature => !removed.has(text(feature?.id)));
+    for (const id of removed) delete current.countryOverrides[id];
+    onCountriesReplaced(current.countriesData, [...removed]);
+    return deleted;
+  }
+
+  function removeUnits(ids) {
+    const removed = new Set((ids || []).map(text).filter(Boolean));
+    if (!removed.size) return [];
+    const current = state();
+    const deleted = current.territorialUnits.filter(feature => removed.has(text(feature?.id)));
+    if (!deleted.length) return [];
+    current.territorialUnits = current.territorialUnits.filter(feature => !removed.has(text(feature?.id)));
+    onUnitsReplaced(current.territorialUnits);
+    return deleted;
+  }
+
   function replaceUnits(nextUnits) {
     if (!Array.isArray(nextUnits)) throw new TypeError('하위 영역 저장값은 배열이어야 합니다.');
     state().territorialUnits = nextUnits;
@@ -144,12 +193,16 @@ export function createTerritorialEntityStore({
   }
 
   return Object.freeze({
+    appendCountries,
+    appendUnits,
     countriesData,
     countryFeature,
     countryOverride,
     hasField,
     isLocked,
     rawEntity,
+    removeCountries,
+    removeUnits,
     replaceUnits,
     setField,
     setLocked,
