@@ -4,6 +4,9 @@ import { normalizePlace } from '../../assets/js/modules/place-contract.js';
 import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
 import { createGenericCommands } from '../../assets/js/modules/app-generic-commands.js';
 import { createProjectSnapshots } from '../../assets/js/modules/app-project-snapshots.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
 import { applyProjectFields, pickProjectFields } from '../../assets/js/modules/project-state.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 const source=normalizePlace({source:'synthetic',sourceId:'1',name:'서울',kind:'capital',coordinates:[127,37]});
@@ -34,6 +37,13 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
     selectedDistributionLayerId: '', boundaryPreparation: null,
   };
   const owner = createProjectSnapshots();
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const entityRepository = createTerritorialEntityRepository({
+    getCountries: entityStore.countriesData,
+    getUnits: entityStore.units,
+    getCountryOverride: entityStore.countryOverride,
+    getRevision: () => 0,
+  });
   let searchRenders = 0;
   let searchCancels = 0;
   owner.connect({
@@ -54,7 +64,12 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
       normalizeDistributionEntries: value => value || [],
       validateDistributionModel: () => ({ ok: true }),
     },
-    territorialModel: { normalizeTerritorialUnits: value => value || [] },
+    territorialModel: {
+      entityStore,
+      entityRepository,
+      normalizeTerritorialUnits: value => value || [],
+      TERRITORIAL_UNIT_TYPES,
+    },
     territorialServicesA: { normalizeTerritorialRelations: value => value || [] },
     objectModelB: { territorialApplicationService: { validateRelations: () => ({ ok: true }) } },
     presentation: { territorialRepository: { get: () => null } },
