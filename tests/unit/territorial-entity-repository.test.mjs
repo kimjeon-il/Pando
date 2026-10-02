@@ -27,6 +27,8 @@ test('country read model exposes common territorial properties without moving co
     notes: '국가 메모',
     locked: true,
     color: '#123456',
+    parentId: 'SHOULD_NOT_BECOME_ADMIN_PARENT',
+    sovereignId: 'SHOULD_NOT_BECOME_POLITICAL_RELATION',
   });
 
   assert.equal(entity.id, 'PL');
@@ -80,8 +82,9 @@ test('repository exposes countries and nested units through one hierarchy surfac
   assert.deepEqual(repository.descendants('PL', { type: 'subunit' }).map(item => item.id), ['t1', 't2']);
   assert.equal(repository.root('t2').id, 'PL');
   assert.equal(repository.root('r1').id, 'r1');
+  assert.equal(repository.administrativeCountry('t2').id, 'PL');
+  assert.equal(repository.administrativeCountry('r1'), null);
   assert.equal(repository.sovereign('t2').id, 'PL');
-  assert.equal(repository.sovereign('r1'), null);
   assert.deepEqual(repository.list({ type: 'subunit', parentId: 't1' }).map(item => item.id), ['t2']);
   assert.deepEqual(repository.list({ sovereignId: 'PL' }).map(item => item.id), ['PL', 't1', 't2']);
 });
