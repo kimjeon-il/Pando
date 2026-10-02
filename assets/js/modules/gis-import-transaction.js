@@ -14,6 +14,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     countryName,
     territorialUnitName,
     territorialEntityRepository,
+    entityStore,
     distributionService,
     genericFeatureService,
     resolveImportedCountryId,
@@ -70,6 +71,23 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     scheduleCountryLabelAnchors,
     selectionUiController,
   } = runtime;
+
+  function applyCountryGeometryOverrides(overrides) {
+    if (!overrides?.size) return new Set();
+    const changedIds = new Set();
+    const nextFeatures = entityStore.countriesData().features.map(feature => {
+      const key = String(feature.id || '');
+      const geometry = overrides.get(key);
+      if (!geometry) return feature;
+      changedIds.add(key);
+      return { ...feature, geometry };
+    });
+    if (changedIds.size) {
+      entityStore.replaceCountries({ type: 'FeatureCollection', features: nextFeatures });
+      for (const id of changedIds) state.historyDirtyCountryIds.add(id);
+    }
+    return changedIds;
+  }
 
   function territorialUnitMatchesFromImportedValue(value, countryId = '', units = state.territorialUnits) {
     const key = String(value ?? '').trim();
