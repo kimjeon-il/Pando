@@ -202,6 +202,7 @@ export function createTerritorialConversion() {
     }
 
     const targetCountry = dependencies.territorialModel.entityRepository.get(sovereignId);
+    const validTargetCountry = targetCountry?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY;
     const preview = buildTerritorialStructurePreview({
       source,
       sourceType,
@@ -220,13 +221,15 @@ export function createTerritorialConversion() {
     const confirm = (0, dependencies.platform.$)('territorialTypeConfirmBtn');
     confirm.textContent = preview?.confirmText || '종류 변경';
     confirm.classList.toggle('danger-confirm', preview?.danger === true);
-    confirm.disabled = sourceType === targetType || (sourceIsCountry && !targetIsCountry && !targetCountry)
+    confirm.disabled = sourceType === targetType || (sourceIsCountry && !targetIsCountry && !validTargetCountry)
       || (targetIsAdmin && !(0, dependencies.platform.$)('territorialTypeParentInput').value);
   }
 
   function openTerritorialTypeModal(unitType, id) {
     const source = dependencies.territorialModel.entityRepository.get(id);
-    if (!source || ![dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(unitType)) return;
+    if (!source
+      || source.properties?.unitType !== unitType
+      || ![dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(unitType)) return;
     if (!(0, dependencies.readinessUi.requireCanonicalData)()) return;
     const sourceLocked = unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.objectOperationsA.isCountryLocked)(id) : source.properties?.locked === true;
     if (sourceLocked) {
