@@ -282,8 +282,8 @@ export function createDomainAssembly() {
       getCountryView: value => {
         const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
         const id = String(ref?.id || value?.id || value || '');
-        const feature = (0, dependencies.countries.countryFeatureById)(id);
-        if (!feature) return null;
+        const feature = territorialEntityRepository.get(id);
+        if (feature?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
         const properties = feature.properties || {};
         const override = dependencies.projectState.state.countryOverrides[id] || {};
         return { ref: (0, dependencies.objectOperationsA.countryObjectRef)(id), id, feature, properties, override, displayName: (0, dependencies.presentation.countryName)(feature) };
@@ -313,7 +313,8 @@ export function createDomainAssembly() {
     const territorialLabelId = ref => {
       if (!ref?.id || ref.domain !== 'territorial') return '';
       if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-        return String((0, dependencies.countries.countryFeatureById)(ref.id)?.id || ref.id);
+        const entity = territorialEntityRepository.get(ref.id);
+        return String(entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity.id : ref.id);
       }
       for (const [labelId, labelRef] of dependencies.countries.builtinRenderCountries().labelRefs || []) {
         if (labelRef?.domain === 'territorial' && labelRef.type === ref.type && String(labelRef.id) === String(ref.id)) return String(labelId);
@@ -341,8 +342,8 @@ export function createDomainAssembly() {
         const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
         if (!ref?.id || ref.domain !== 'territorial') return null;
         if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-          const feature = (0, dependencies.countries.countryFeatureById)(ref.id);
-          if (!feature) return null;
+          const feature = territorialEntityRepository.get(ref.id);
+          if (feature?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
           const override = dependencies.projectState.state.countryOverrides[String(ref.id)] || {};
           return {
             ref,
