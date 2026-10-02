@@ -440,8 +440,8 @@ export function createPropertySelection() {
 
   function initializePropertySelection() {
     window.PANDOLAB_TERRITORIAL = Object.freeze({
-      get: id => dependencies.objectModelB.territorialApplicationService.get(id),
-      list: options => dependencies.objectModelB.territorialApplicationService.list(options),
+      get: id => dependencies.presentation.territorialEntityRepository.get(id),
+      list: options => dependencies.presentation.territorialEntityRepository.list(options),
       select: applyTerritorialSelectionIntent,
       setName: setTerritorialUnitName,
       setColor: setTerritorialUnitColor,
