@@ -33,7 +33,7 @@ test('single and batch deletion never expands into descendants and rechecks chan
 test('country deletion uses the same territorial cleanup surface and removes dangling references', () => {
   const region = {
     id: 'r',
-    properties: { unitType: 'region', sovereignId: 'A', parentId: 'A', locked: false },
+    properties: { unitType: 'region', sovereignId: 'A', parentId: '', locked: false },
   };
   const state = {
     countriesData: { features: [{ id: 'A', properties: {} }, { id: 'B', properties: {} }] },
