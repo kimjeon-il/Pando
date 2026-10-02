@@ -33,7 +33,7 @@ export function createCountryCommits() {
     beforeReindex(plan);
     (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
     updateDependents(plan);
-    (0, dependencies.countryValidation.refreshCountryCentroids)(new Set((centroidIds || []).map(String)));
+    (0, dependencies.countryValidation.refreshCountryCentroids)(new Set([...(centroidIds || [])].map(String)));
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
     if (requireCountryId && !(0, dependencies.countries.countryFeatureById)(requireCountryId)) {
