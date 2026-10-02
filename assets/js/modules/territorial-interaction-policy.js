@@ -71,7 +71,7 @@ export function removeTerritorialEntities(state, {
     if (parentRemoved) next.properties.parentId = '';
     return next;
   });
-  const unitsChanged = nextUnits.length !== storedAfterRemoval.length
+  const unitsChanged = (!genericRemoval && storedAfterRemoval.length !== beforeUnits.length)
     || nextUnits.some((unit, index) => unit !== storedAfterRemoval[index]);
   if (unitsChanged) {
     if (entityStore?.replaceCollections) entityStore.replaceCollections({ units: nextUnits });
