@@ -330,6 +330,7 @@ export function createGeometryPreview() {
     beforeApply = async () => true,
     preparedPreview = null,
     validatePrepared = async () => true,
+    invalidateAfterApply = () => dependencies.domains.renderingDomain?.invalidateGenericPatch?.('local-geometry-preview-applied'),
     successMessage = '변경을 적용했습니다.',
     errorMessage = '변경을 적용하지 못했습니다.',
   }) {
@@ -399,7 +400,7 @@ export function createGeometryPreview() {
         if (commitHistorySnapshot) dependencies.domains.projectDomain.commitHistorySnapshot(snapshot);
         dependencies.projectState.state.stateRevision += 1;
         dependencies.domains.projectDomain.queueAutosave();
-        dependencies.domains.renderingDomain?.invalidateGenericPatch?.('local-geometry-preview-applied');
+        invalidateAfterApply();
         (0, dependencies.taskUi.updateModeButtons)();
         (0, dependencies.feedback.setActionStatus)(successMessage, 'success', 3600);
         return true;
