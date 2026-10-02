@@ -44,7 +44,10 @@ test('merge presents the survivor separately and derives exact removable targets
 test('subunit boundary uses logical unit identities and does not invent a target-picking phase', () => {
   const input = state({ tool: 'country-border', boundaryEditPhase: 'editing', boundaryEditSeedCountryId: 'SUB-1',
     boundaryEditCountryIds: ['SUB-1', 'SUB-2', 'SUB-3'], territorialUnits: ['SUB-1', 'SUB-2', 'SUB-3'].map(id => ({ id, properties: { unitType: 'subunit' } })) });
-  const view = stage.taskWorkflowPresentation(input);
+  const byId = new Map(input.territorialUnits.map(unit => [String(unit.id), unit]));
+  const view = stage.taskWorkflowPresentation(input, null, {}, {
+    territorialEntityById: id => byId.get(String(id)) || null,
+  });
   assert.deepEqual([view.name, view.stage, view.step, view.total], ['경계 조정', '경계 편집', 1, 2]);
   assert.equal(view.relation, '↔');
   assert.deepEqual(view.cards[1].refs.map(ref => [ref.type, ref.id]), [['subunit', 'SUB-2'], ['subunit', 'SUB-3']]);
