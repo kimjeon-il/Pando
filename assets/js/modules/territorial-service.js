@@ -1,4 +1,5 @@
 import { createDocumentMutationRunner } from './document-mutation-runner.js';
+import { normalizeTemporalInterval } from './temporal.js';
 import { validateSubunitParentChanges } from './territorial-scope.js';
 import {
   TERRITORIAL_UNIT_TYPES,
@@ -54,8 +55,20 @@ export function createTerritorialApplicationService({
     const feature = unit(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
     if (feature.properties?.locked === true && field !== 'locked') return { ok: false, code: 'locked', unit: feature };
+    let nextValue = value;
+    if (field === 'validFrom' || field === 'validTo') {
+      try {
+        const interval = normalizeTemporalInterval(
+          field === 'validFrom' ? value : feature.properties?.validFrom,
+          field === 'validTo' ? value : feature.properties?.validTo,
+        );
+        nextValue = interval[field];
+      } catch (error) {
+        return { ok: false, code: 'invalid-temporal', issues: [String(error?.message || error)], unit: feature };
+      }
+    }
     const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
-    if (currentValue === value) return { ok: true, changed: false, unit: feature };
+    if (currentValue === nextValue) return { ok: true, changed: false, unit: feature };
     if (field === 'parentId' || field === 'sovereignId' || field === 'unitType') {
       const previous = entityRepository.list();
       const candidate = previous.map(item => String(item.id) === key
@@ -64,7 +77,7 @@ export function createTerritorialApplicationService({
       if (!validation.ok) return { ok: false, code: 'invalid-parent', issues: validation.issues, unit: feature };
     }
     mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => {
-      unitCommands.setField(key, field, value);
+      unitCommands.setField(key, field, nextValue);
     }, { renderDirty: { domain: 'territorial', change: 'metadata' } });
     return { ok: true, changed: true, unit: entityRepository.get(key) };
   }
