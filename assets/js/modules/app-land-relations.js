@@ -57,12 +57,12 @@ export function createLandRelations() {
       return [{ ...feature, geometry: clipped }];
     });
 
-    dependencies.territorialModel.entityStore.replaceUnits(
+    dependencies.territorialModel.entityStore.replaceCollections({ units: 
       (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, {
         countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
           === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
       }),
-    );
+     });
   }
 
   function syncHardLandDependents(ownerId, _ownerBeforeGeometry, _ownerAfterGeometry, _changedAnchor = null) {
@@ -106,12 +106,12 @@ export function createLandRelations() {
     for (const entry of dependencies.projectState.state.distributionEntries) {
       if (entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL && removed.has(String(entry.territorialUnitId))) entry.territorialUnitId = String(targetOwnerId);
     }
-    dependencies.territorialModel.entityStore.replaceUnits(
+    dependencies.territorialModel.entityStore.replaceCollections({ units: 
       (0, dependencies.territorialModel.normalizeTerritorialUnits)(reassignedUnits, {
         countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
           === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
       }),
-    );
+     });
     reconcileTerritorialUnitCompleteness([targetOwnerId]);
     (0, dependencies.layers.markLayerTreeDirty)();
   }
