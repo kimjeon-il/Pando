@@ -25,6 +25,16 @@ export function createTerritorialApplicationService({
     return feature?.properties?.unitType === type && type !== TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
   };
 
+  function canDelete(type, id) {
+    const key = text(id);
+    const feature = type === TERRITORIAL_UNIT_TYPES.COUNTRY ? country(key) : unit(type, key);
+    if (!feature) return { ok: false, code: 'not-found' };
+    if (isLocked(type, key)) return { ok: false, code: 'locked', unit: feature };
+    const children = entityRepository.administrativeChildren(key);
+    if (children.length) return { ok: false, code: 'has-children', unit: feature, children };
+    return { ok: true, unit: feature, children: [] };
+  }
+
   function isLocked(type, id) {
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) return !!country(id) && countryCommands.isLocked(id);
     return unit(type, id)?.properties?.locked === true;
@@ -217,6 +227,7 @@ export function createTerritorialApplicationService({
   }
 
   return Object.freeze({
+    canDelete,
     isLocked,
     updateMetadata,
     changeAdministrativeParent,
