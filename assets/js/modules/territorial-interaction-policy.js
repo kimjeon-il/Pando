@@ -54,19 +54,31 @@ export function removeTerritorialEntities(state, {
     }
   }
 
-  const nextUnits = beforeUnits
-    .filter(unit => !removedUnits.has(String(unit.id)))
-    .map(unit => {
-      const sovereignRemoved = removedCountries.has(String(unit.properties?.sovereignId || ''));
-      const parentRemoved = removedCountries.has(String(unit.properties?.parentId || ''));
-      if (!sovereignRemoved && !parentRemoved) return unit;
-      const next = { ...unit, properties: { ...unit.properties } };
-      if (sovereignRemoved) next.properties.sovereignId = '';
-      if (parentRemoved) next.properties.parentId = '';
-      return next;
-    });
-  const unitsChanged = nextUnits.length !== beforeUnits.length
-    || nextUnits.some((unit, index) => unit !== beforeUnits[index]);
+  const genericUnitRemoval = !removedCountries.size
+    && removedUnits.size > 0
+    && typeof entityStore?.removeEntities === 'function';
+  if (genericUnitRemoval) {
+    entityStore.removeEntities(unitTargets.map(unit => ({
+      type: unit.properties?.unitType,
+      id: unit.id,
+    })));
+  }
+
+  const nextUnits = genericUnitRemoval
+    ? entityStore.units()
+    : beforeUnits
+      .filter(unit => !removedUnits.has(String(unit.id)))
+      .map(unit => {
+        const sovereignRemoved = removedCountries.has(String(unit.properties?.sovereignId || ''));
+        const parentRemoved = removedCountries.has(String(unit.properties?.parentId || ''));
+        if (!sovereignRemoved && !parentRemoved) return unit;
+        const next = { ...unit, properties: { ...unit.properties } };
+        if (sovereignRemoved) next.properties.sovereignId = '';
+        if (parentRemoved) next.properties.parentId = '';
+        return next;
+      });
+  const unitsChanged = !genericUnitRemoval && (nextUnits.length !== beforeUnits.length
+    || nextUnits.some((unit, index) => unit !== beforeUnits[index]));
   if (unitsChanged) {
     if (entityStore?.replaceUnits) entityStore.replaceUnits(nextUnits);
     else state.territorialUnits = nextUnits;
