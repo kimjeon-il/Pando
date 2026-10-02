@@ -24,13 +24,6 @@ export function createTerritorialApplicationService({
     return feature?.properties?.unitType === type && type !== TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
   };
 
-  function get(id) {
-    return entityRepository.get(id);
-  }
-
-  function list(options) {
-    return entityRepository.list(options);
-  }
 
   function isLocked(type, id) {
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) return !!country(id) && countryCommands.isLocked(id);
@@ -107,8 +100,6 @@ export function createTerritorialApplicationService({
   }
 
   return Object.freeze({
-    get,
-    list,
     isLocked,
     updateMetadata,
     replaceUnits,
