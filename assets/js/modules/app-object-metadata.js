@@ -109,7 +109,7 @@ export function createObjectMetadata() {
       return;
     }
     if (field === 'parentId' && !explicitCoverage) {
-      const parent = value ? dependencies.presentation.territorialEntityRepository.get(value) : (0, dependencies.countries.countryFeatureById)(feature.properties.sovereignId);
+      const parent = value ? dependencies.territorialModel.entityRepository.get(value) : (0, dependencies.countries.countryFeatureById)(feature.properties.sovereignId);
       if (!parent || !territorialUnitInsideContainer(feature, parent)) {
         (0, dependencies.platform.$)('subunitParentInput').value = String(feature.properties.parentId || '');
         (0, dependencies.feedback.setActionStatus)('하위단위 전체가 새 부모 안에 들어갈 때만 상위 단위를 변경할 수 있습니다.', 'error', 4200);
