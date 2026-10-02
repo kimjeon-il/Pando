@@ -84,7 +84,7 @@ test('explicit country and nested parent apply once; children inherit the chosen
   assert.equal(nested.parentId, parent.id);
   assert.equal(nested.sovereignId, 'B');
   assert.equal(JSON.stringify([root, child]), before);
-  assert.throws(() => prepare([root], { root: { mode: 'subunit', countryId: 'A', parentId: 'P' } }, [unit('P', 'B', 'B')]), /상위 소속/);
+  assert.throws(() => prepare([root], { root: { mode: 'subunit', countryId: 'A', parentId: 'P' } }, [unit('P', 'B', 'B')]), /상위 단위/);
 });
 
 test('promotion clears active parents, preserves source refs/version/period, and reparents children', () => {
