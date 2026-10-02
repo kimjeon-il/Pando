@@ -11,6 +11,7 @@ const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js
 const { layoutCountryFlags } = await import(`./country-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
 const { countryDisplayName, defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
+const { createTerritorialEntityRepository } = await import(`./territorial-entity-repository.js?v=${encodeURIComponent(moduleRevision)}`);
 const { classifyBuiltinCountries, builtinSubunitSourceId } = await import(`./builtin-subunits.js?v=${encodeURIComponent(moduleRevision)}`);
 const versionedModuleUrl = relativePath => {
   const url = new URL(relativePath, new URL('../app.js', import.meta.url));
@@ -336,7 +337,6 @@ const {
   changeSovereign,
   changeUnitType,
   createTerritorialFeature,
-  createTerritorialEntityRepository,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
   territorialChildren,
