@@ -109,7 +109,7 @@ export function createObjectMetadata() {
       return;
     }
     if (field === 'parentId' && !explicitCoverage) {
-      const parent = value ? dependencies.territorialModel.entityRepository.get(value) : (0, dependencies.countries.countryFeatureById)(feature.properties.sovereignId);
+      const parent = value ? dependencies.territorialModel.entityRepository.get(value) : dependencies.territorialModel.entityRepository.administrativeCountry(feature.id);
       if (!parent || !territorialUnitInsideContainer(feature, parent)) {
         (0, dependencies.platform.$)('subunitParentInput').value = String(feature.properties.parentId || '');
         (0, dependencies.feedback.setActionStatus)('하위단위 전체가 새 부모 안에 들어갈 때만 상위 단위를 변경할 수 있습니다.', 'error', 4200);
@@ -117,6 +117,23 @@ export function createObjectMetadata() {
       }
     }
     const canonicalField = field;
+    if (['name', 'notes', 'color'].includes(canonicalField)) {
+      const result = dependencies.objectModelB.territorialApplicationService.updateMetadata(
+        feature.properties.unitType,
+        feature.id,
+        canonicalField,
+        value,
+      );
+      if (!result.ok) {
+        (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+        return;
+      }
+      if (canonicalField === 'name') (0, dependencies.layers.markLayerTreeDirty)();
+      (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+      const unitLabel = feature.properties.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? '지방' : '하위단위';
+      (0, dependencies.feedback.setActionStatus)(`${unitLabel} 정보를 변경했습니다.`, 'success');
+      return;
+    }
     const candidateUnits = (0, dependencies.platform.deepClone)(dependencies.projectState.state.territorialUnits);
     const candidateFeature = candidateUnits.find(item => String(item.id) === String(feature.id));
     if (field === 'color') (0, dependencies.objectModelB.setTerritorialStyleColor)(candidateFeature, value);
