@@ -20,20 +20,20 @@ function fixture() {
       return { ok: true, value };
     },
   };
-  const repository = {
+  const entityRepository = {
     get(id) { return [...countries, ...units].find(item => item.id === String(id)) || null; },
     list({ type } = {}) { return [...countries, ...units].filter(item => !type || item.properties.unitType === type); },
   };
   const service = createTerritorialApplicationService({
-    repository,
+    entityRepository,
     commandPipeline,
     countryCommands: {
       isLocked: id => lockedCountries.has(id),
       setLocked(id, value) { if (value) lockedCountries.add(id); else lockedCountries.delete(id); },
-      setField(id, field, value) { repository.get(id).properties[field] = value; },
+      setField(id, field, value) { entityRepository.get(id).properties[field] = value; },
     },
     unitCommands: {
-      setField(id, field, value) { repository.get(id).properties[field] = value; },
+      setField(id, field, value) { entityRepository.get(id).properties[field] = value; },
       replaceAll(value) { units = value; },
     },
   });
