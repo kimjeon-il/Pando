@@ -21,8 +21,8 @@ export function createCountryTerritorialEntity(feature, override = {}) {
       schemaVersion: TERRITORIAL_SCHEMA_VERSION,
       unitType: TERRITORIAL_UNIT_TYPES.COUNTRY,
       name: text(override.name || properties.name || id),
-      parentId: text(override.parentId),
-      sovereignId: text(override.sovereignId) || id,
+      parentId: '',
+      sovereignId: id,
       coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
       style: color ? { color } : {},
       locked: override.locked === true,
@@ -97,10 +97,6 @@ export function createTerritorialEntityRepository({
     if (!parentId) return null;
     const parent = entityFrom(state, parentId);
     if (!parent) throw new Error(`${text(entity?.id) || text(id)}의 상위 영역 엔티티 ${parentId}이 존재하지 않습니다.`);
-    if (entity?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY
-      && parent.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      throw new Error(`${text(entity?.id) || text(id)} 국가의 상위 엔터티는 국가여야 합니다: ${parentId}`);
-    }
     return parent;
   };
 
@@ -184,8 +180,8 @@ export function createTerritorialEntityRepository({
     const state = snapshot();
     const entity = entityFrom(state, id);
     if (!entity) return null;
-    const sovereignId = text(entity.properties?.sovereignId)
-      || (entity.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? text(entity.id) : '');
+    if (entity.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) return entity;
+    const sovereignId = text(entity.properties?.sovereignId);
     if (!sovereignId) return null;
     const sovereignEntity = entityFrom(state, sovereignId);
     if (!sovereignEntity) throw new Error(`${text(entity.id)}의 소속 국가 ${sovereignId}이 존재하지 않습니다.`);
