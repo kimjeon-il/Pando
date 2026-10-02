@@ -526,8 +526,11 @@ export function createTerritorialDrafts() {
       afterFeatures: [result.survivor], removedIds: result.removedIds, commitHistorySnapshot: true,
       applyResult: () => {
         const removed = new Set(result.removedIds);
-        dependencies.projectState.state.territorialUnits = dependencies.projectState.state.territorialUnits.filter(unit => !removed.has(text(unit.id)))
-          .map(unit => text(unit.id) === text(source.id) ? result.survivor : unit);
+        dependencies.territorialModel.entityStore.replaceUnits(
+          dependencies.territorialModel.entityStore.units()
+            .filter(unit => !removed.has(text(unit.id)))
+            .map(unit => text(unit.id) === text(source.id) ? result.survivor : unit),
+        );
         dependencies.projectState.state.distributionEntries = dependencies.projectState.state.distributionEntries.map(entry => removed.has(text(entry.territorialUnitId)) ? { ...entry, territorialUnitId: text(source.id) } : entry);
         dependencies.projectState.state.territorialRelations = dependencies.projectState.state.territorialRelations.filter(relation => !removed.has(text(relation.unitId)))
           .map(relation => removed.has(text(relation.parentId)) ? { ...relation, parentId: text(source.id) } : relation);
@@ -662,10 +665,14 @@ export function createTerritorialDrafts() {
         shouldKeepResult,
         commitHistorySnapshot: true,
         applyResult: () => {
-          dependencies.projectState.state.territorialUnits.push((0, dependencies.platform.deepClone)(region));
-          dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(dependencies.projectState.state.territorialUnits, {
-            countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id),
-          });
+          const nextUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(
+            [...dependencies.territorialModel.entityStore.units(), (0, dependencies.platform.deepClone)(region)],
+            {
+              countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
+                === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+            },
+          );
+          dependencies.territorialModel.entityStore.replaceUnits(nextUnits);
           dependencies.projectState.state.layerVisibility.regions = true;
           delete dependencies.projectState.state.itemVisibility.regions?.[String(region.id)];
           dependencies.domains.editingDomain?.clearDraft?.({ reason: 'territorial-created', render: false });
