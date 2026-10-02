@@ -117,7 +117,7 @@ export function createLayerList() {
           color: (0, dependencies.colorModel.countryColor)(feature),
           flagUrl: effectiveCountryFlagUrl({
             countryId: id,
-            override: dependencies.projectState.state.countryOverrides[id] || {},
+            override: dependencies.territorialModel.entityStore.countryOverride(id),
             assetRevision: dependencies.layerPresentation.ASSET_REVISION,
           }),
           searchText: id,
