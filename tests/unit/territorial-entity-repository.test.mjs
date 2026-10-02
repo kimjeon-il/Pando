@@ -80,6 +80,8 @@ test('repository exposes countries and nested units through one hierarchy surfac
   assert.equal(repository.has('missing'), false);
   assert.deepEqual(repository.administrativeChildren('PL').map(item => item.id), ['t1']);
   assert.equal(repository.administrativeParent('t1').id, 'PL');
+  assert.deepEqual(repository.administrativeSiblings('t1').map(item => item.id), []);
+  assert.deepEqual(repository.siblings('r1').map(item => item.id), []);
   assert.deepEqual(repository.ancestors('t2').map(item => item.id), ['t1', 'PL']);
   assert.deepEqual(repository.administrativeDescendants('PL').map(item => item.id), ['t1', 't2']);
   assert.deepEqual(repository.administrativeDescendants('PL', { type: 'subunit' }).map(item => item.id), ['t1', 't2']);
@@ -91,6 +93,30 @@ test('repository exposes countries and nested units through one hierarchy surfac
   assert.deepEqual(repository.list({ type: 'subunit', parentId: 't1' }).map(item => item.id), ['t2']);
   assert.deepEqual(repository.list({ administrativeCountryId: 'PL' }).map(item => item.id), ['PL', 't1', 't2']);
   assert.deepEqual(repository.list({ sovereignId: 'PL' }).map(item => item.id), ['PL', 't1', 't2']);
+});
+
+test('repository sibling queries preserve type, parent, and administrative country semantics', () => {
+  const country = { type: 'Feature', id: 'A', properties: { name: 'A' }, geometry: square() };
+  const siblingA = createTerritorialFeature({
+    id: 'a1', unitType: 'subunit', parentId: 'A', sovereignId: 'A', geometry: square(),
+  });
+  const siblingB = createTerritorialFeature({
+    id: 'a2', unitType: 'subunit', parentId: 'A', sovereignId: 'A', geometry: square(10, 0, 20, 10),
+  });
+  const nested = createTerritorialFeature({
+    id: 'a3', unitType: 'subunit', parentId: 'a1', sovereignId: 'A', geometry: square(0, 0, 5, 5),
+  });
+  const region = createTerritorialFeature({
+    id: 'r1', unitType: 'region', parentId: '', sovereignId: '', coverageMode: 'explicit', geometry: square(20, 20, 30, 30),
+  });
+  const repository = createTerritorialEntityRepository({
+    getCountries: () => ({ features: [country] }),
+    getUnits: () => [siblingA, siblingB, nested, region],
+  });
+
+  assert.deepEqual(repository.siblings('a1').map(item => item.id), ['a2']);
+  assert.deepEqual(repository.siblings('a3').map(item => item.id), []);
+  assert.deepEqual(repository.siblings('r1').map(item => item.id), []);
 });
 
 test('repository is a live read model over current country, unit, and override stores', () => {
