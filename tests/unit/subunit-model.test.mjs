@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import { migrateProjectToCurrent, migrateProjectV4ToV5 } from '../../assets/js/modules/project-migrations.js';
 import { createTerritorialFeature, normalizeTerritorialUnits, TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialScopeResolver, validateSubunitParentChanges } from '../../assets/js/modules/territorial-scope.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { layerStyle, normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 import { normalizeHistoricalLibraryEntity } from '../../assets/js/modules/historical-library.js';
 import { MAP_OBJECT_TYPES } from '../../assets/js/modules/map-object-categories.js';
@@ -132,9 +133,16 @@ test('country extent includes detached descendants once and caches geometry work
   let revision = 1, unions = 0;
   const units = [unit('p'), unit('c', 'p', { geometry: geometry(4.5), color: '#ee8800' })];
   const before = structuredClone({ country, units });
-  const resolver = createTerritorialScopeResolver({ read: () => ({ units, revision }),
-    countryById: id => id === 'DNK' ? country : null, countryColor: () => '#123456',
-    clipper: () => ({ difference: engine.difference, union: (...args) => { unions++; return engine.union(...args); } }) });
+  const repository = createTerritorialEntityRepository({
+    getCountries: () => ({ type: 'FeatureCollection', features: [country] }),
+    getUnits: () => units,
+    getRevision: () => revision,
+  });
+  const resolver = createTerritorialScopeResolver({
+    entityRepository: repository,
+    countryColor: () => '#123456',
+    clipper: () => ({ difference: engine.difference, union: (...args) => { unions++; return engine.union(...args); } }),
+  });
   const first = resolver.scope('DNK');
   assert.deepEqual(first.members.map(item => item.id), ['p', 'c']);
   assert.equal(first.extent.geometry.coordinates.length, 2);
@@ -150,7 +158,18 @@ test('country extent includes detached descendants once and caches geometry work
 
 test('parent style inheritance stops at explicit style without changing country palette', () => {
   const units = [unit('p', 'DNK', { color: '#ff9900' }), unit('c', 'p')];
-  const resolver = createTerritorialScopeResolver({ read: () => ({ units, revision: 1 }), countryById: () => ({}), countryColor: () => '#112233', clipper: () => engine });
+  const repository = createTerritorialEntityRepository({
+    getCountries: () => ({ type: 'FeatureCollection', features: [
+      { type: 'Feature', id: 'DNK', properties: { name: 'DNK' }, geometry: geometry() },
+    ] }),
+    getUnits: () => units,
+    getRevision: () => 1,
+  });
+  const resolver = createTerritorialScopeResolver({
+    entityRepository: repository,
+    countryColor: () => '#112233',
+    clipper: () => engine,
+  });
   assert.equal(resolver.color(units[1]), '#ff9900');
 });
 
