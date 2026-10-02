@@ -142,5 +142,30 @@ test('repository rejects hierarchy cycles even when raw stores are temporarily i
   });
 
   assert.throws(() => repository.ancestors('x'), /순환/);
+  assert.throws(() => repository.descendants('x'), /순환/);
   assert.throws(() => repository.root('x'), /순환/);
+});
+
+test('repository reports dangling parent and sovereign references instead of hiding them', () => {
+  const country = { type: 'Feature', id: 'A', properties: { name: 'A' }, geometry: square() };
+  const danglingParent = {
+    type: 'Feature',
+    id: 'x',
+    properties: { unitType: 'subunit', parentId: 'missing-parent', sovereignId: 'A' },
+    geometry: square(),
+  };
+  const danglingSovereign = {
+    type: 'Feature',
+    id: 'y',
+    properties: { unitType: 'region', parentId: '', sovereignId: 'missing-country' },
+    geometry: square(),
+  };
+  const repository = createTerritorialEntityRepository({
+    getCountries: () => ({ features: [country] }),
+    getUnits: () => [danglingParent, danglingSovereign],
+  });
+
+  assert.throws(() => repository.parent('x'), /상위 영역 엔티티/);
+  assert.throws(() => repository.root('x'), /상위 영역 엔티티/);
+  assert.throws(() => repository.sovereign('y'), /소속 국가/);
 });
