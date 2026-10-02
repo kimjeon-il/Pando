@@ -137,7 +137,7 @@ export function createTerritorialEntityStore({
     return true;
   }
 
-  function replaceCountries(collection, { pruneOverrides = true } = {}) {
+  function replaceCountries(collection, { pruneOverrides = true, reindexOptions = {} } = {}) {
     const next = collection?.type === 'FeatureCollection'
       ? collection
       : { type: 'FeatureCollection', features: Array.isArray(collection) ? collection : [] };
@@ -147,7 +147,7 @@ export function createTerritorialEntityStore({
       const valid = new Set(next.features.map(feature => text(feature?.id)).filter(Boolean));
       for (const id of Object.keys(current.countryOverrides)) if (!valid.has(id)) delete current.countryOverrides[id];
     }
-    onCountriesReplaced(next, next.features.map(feature => text(feature?.id)).filter(Boolean));
+    onCountriesReplaced(next, next.features.map(feature => text(feature?.id)).filter(Boolean), reindexOptions);
     return state().countriesData;
   }
 
@@ -163,7 +163,7 @@ export function createTerritorialEntityStore({
         current.countryOverrides[key] = { ...override };
       }
     }
-    onCountriesReplaced(current.countriesData, additions.map(feature => text(feature?.id)).filter(Boolean));
+    onCountriesReplaced(current.countriesData, additions.map(feature => text(feature?.id)).filter(Boolean), {});
     return additions;
   }
 
@@ -184,7 +184,7 @@ export function createTerritorialEntityStore({
     if (!deleted.length) return [];
     current.countriesData.features = current.countriesData.features.filter(feature => !removed.has(text(feature?.id)));
     for (const id of removed) delete current.countryOverrides[id];
-    onCountriesReplaced(current.countriesData, [...removed]);
+    onCountriesReplaced(current.countriesData, [...removed], {});
     return deleted;
   }
 
