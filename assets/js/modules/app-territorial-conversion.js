@@ -283,7 +283,7 @@ export function createTerritorialConversion() {
       await (0, dependencies.objectModelB.runTerritorialUnitTransaction)({
         snapshot: dependencies.snapshots.snapshotEditable,
         calculate: async () => {
-          const nextUnits = (0, dependencies.platform.deepClone)(dependencies.projectState.state.territorialUnits);
+          const nextUnits = (0, dependencies.platform.deepClone)(dependencies.territorialModel.entityStore.units());
           const index = nextUnits.findIndex(feature => String(feature.id) === String(unitId));
           if (index < 0) throw new Error('종류를 변경할 영역을 찾을 수 없습니다.');
           const converted = (0, dependencies.applicationServicesA.changeUnitType)(nextUnits[index], targetType);
@@ -298,9 +298,17 @@ export function createTerritorialConversion() {
           relations: dependencies.projectState.state.territorialRelations,
         }),
         apply: async nextUnits => {
-          dependencies.projectState.state.territorialUnits = nextUnits;
+          dependencies.territorialModel.entityStore.replaceUnits(nextUnits);
           (0, dependencies.landRelations.reconcileTerritorialUnitCompleteness)([sovereignId]);
-          dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(dependencies.projectState.state.territorialUnits, { countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY });
+          dependencies.territorialModel.entityStore.replaceUnits(
+            (0, dependencies.territorialModel.normalizeTerritorialUnits)(
+              dependencies.territorialModel.entityStore.units(),
+              {
+                countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
+                  === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+              },
+            ),
+          );
           (0, dependencies.layers.markLayerTreeDirty)();
           (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(unitId, true);
           dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-type-converted');
@@ -325,7 +333,7 @@ export function createTerritorialConversion() {
       return false;
     }
     if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([countryId, targetCountryId], '국가 종류를 변경')) return false;
-    if (dependencies.projectState.state.territorialUnits.some(feature => String(feature.id) === String(countryId))) {
+    if (dependencies.territorialModel.entityStore.unitFeature(countryId)) {
       (0, dependencies.feedback.setActionStatus)('같은 ID의 영역이 이미 있어 종류를 변경할 수 없습니다.', 'error', 4000);
       return false;
     }
@@ -358,12 +366,12 @@ export function createTerritorialConversion() {
       snapshot,
       applyResult: plan => {
         (0, dependencies.cutOperations.applyWorkerCountryPatches)(plan);
-        dependencies.projectState.state.territorialUnits.push(converted);
-        for (const feature of dependencies.projectState.state.territorialUnits) {
-          if (String(feature.properties?.sovereignId || '') !== String(countryId)) continue;
-          feature.properties.sovereignId = String(targetCountryId);
-          if (String(feature.properties?.parentId || '') === String(countryId)) feature.properties.parentId = String(converted.id);
-        }
+        const nextUnits = [...dependencies.territorialModel.entityStore.units(), converted].map(feature => {
+          if (String(feature.properties?.sovereignId || '') !== String(countryId)) return feature;
+          const next = { ...feature, properties: { ...feature.properties, sovereignId: String(targetCountryId) } };
+          if (String(feature.properties?.parentId || '') === String(countryId)) next.properties.parentId = String(converted.id);
+          return next;
+        });
         for (const relation of dependencies.projectState.state.territorialRelations) {
           if (String(relation.sovereignId || '') === String(countryId)) relation.sovereignId = String(targetCountryId);
           if (String(relation.parentId || '') === String(countryId)) relation.parentId = String(converted.id);
@@ -376,11 +384,25 @@ export function createTerritorialConversion() {
           genericFeature.properties.ownerId = String(targetCountryId);
           if (String(genericFeature.properties.topologyGroup || '') === `land:${countryId}`) genericFeature.properties.topologyGroup = `land:${targetCountryId}`;
         }
-        dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(dependencies.projectState.state.territorialUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
+        dependencies.territorialModel.entityStore.replaceUnits(
+          (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, {
+            countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
+              === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+          }),
+        );
         (0, dependencies.landRelations.reconcileTerritorialUnitCompleteness)([targetCountryId]);
-        dependencies.projectState.state.territorialUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(dependencies.projectState.state.territorialUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
-        const territorialValidation = (0, dependencies.objectModelB.validateTerritorialUnitRelations)(dependencies.projectState.state.territorialUnits, {
-          countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id),
+        dependencies.territorialModel.entityStore.replaceUnits(
+          (0, dependencies.territorialModel.normalizeTerritorialUnits)(
+            dependencies.territorialModel.entityStore.units(),
+            {
+              countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
+                === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+            },
+          ),
+        );
+        const territorialValidation = (0, dependencies.objectModelB.validateTerritorialUnitRelations)(dependencies.territorialModel.entityStore.units(), {
+          countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
+            === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
           relations: dependencies.projectState.state.territorialRelations,
         });
         if (!territorialValidation.ok) throw new Error(territorialValidation.issues[0] || '영역 관계가 올바르지 않습니다.');
