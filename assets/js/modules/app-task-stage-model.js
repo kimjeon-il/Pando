@@ -33,7 +33,7 @@ export function taskTargetRefs(state, { countryType = 'country', territorialEnti
     addTerritorial(session.parentId);
     if (session.sourceKey !== 'unassigned') addTerritorial(session.sourceKey);
   }
-  if (state.tool === 'country-border') for (const id of state.boundaryEditCountryIds || []) addTerritorial(id);
+  if (state.tool === 'territorial-border') for (const id of state.boundaryEditEntityIds || []) addTerritorial(id);
   if (state.tool === 'country-coast') addCountry(state.coastEditCountryId);
   if (state.tool === 'merge-country') {
     addCountry(state.mergeSourceCountryId);
@@ -90,9 +90,9 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
     if (!preview) cards.push(card(`남길 ${type}`, [source]));
     resultLabel = `합칠 ${type}`;
     resultRefs = (ids || []).map(ref).filter(Boolean);
-  } else if (state.tool === 'country-border') {
-    const ids = [...new Set((state.boundaryEditCountryIds || []).map(text))];
-    const source = state.boundaryEditSeedCountryId || ids[0];
+  } else if (state.tool === 'territorial-border') {
+    const ids = [...new Set((state.boundaryEditEntityIds || []).map(text))];
+    const source = state.boundaryEditSeedEntityId || ids[0];
     const subunit = ref(source)?.type === 'subunit';
     const type = subunit ? '하위단위' : '국가';
     const selecting = state.boundaryEditPhase === 'selecting';

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { countrySelectionStatus } from '../../assets/js/modules/country-display.js';
+import { territorialSelectionStatus } from '../../assets/js/modules/country-display.js';
 import { createObjectSelectionController, normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 
 const namedRef = (type, id, displayName = '같은 이름') => ({ domain: 'territorial', type, id, displayName });
@@ -8,8 +8,8 @@ const namedRef = (type, id, displayName = '같은 이름') => ({ domain: 'territ
 test('same-name countries retain separate identities without adding display codes', () => {
   const first = namedRef('country', 'TUR');
   const second = namedRef('country', 'country-custom-123');
-  assert.equal(countrySelectionStatus(first), '같은 이름');
-  assert.equal(countrySelectionStatus(second), '같은 이름');
+  assert.equal(territorialSelectionStatus(first), '같은 이름');
+  assert.equal(territorialSelectionStatus(second), '같은 이름');
   const selection = createObjectSelectionController();
   selection.setMany([first, second], { primary: first });
   assert.equal(selection.size(), 2);
@@ -18,7 +18,7 @@ test('same-name countries retain separate identities without adding display code
   selection.remove(first);
   assert.equal(selection.size(), 1);
   assert.equal(selection.primary().id, 'country-custom-123');
-  assert.equal(countrySelectionStatus(second, '10 km²'), '같은 이름 · 10 km²');
+  assert.equal(territorialSelectionStatus(second, '10 km²'), '같은 이름 · 10 km²');
 });
 
 test('a country and subunit remain distinct even when their names and raw IDs match', () => {
@@ -46,7 +46,7 @@ test('renaming a selected object does not change its identity or emit a replacem
   const renamed = { ...original, displayName: '새 이름 (국가)' };
   selection.replace(original);
   selection.replace(renamed);
-  assert.equal(countrySelectionStatus(renamed), '새 이름 (국가)');
+  assert.equal(territorialSelectionStatus(renamed), '새 이름 (국가)');
   assert.deepEqual(selection.primary(), normalizeObjectRef(original));
   assert.deepEqual(changes, ['replace']);
   assert.equal(Object.isFrozen(selection.primary()), true);

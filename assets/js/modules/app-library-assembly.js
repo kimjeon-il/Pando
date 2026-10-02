@@ -200,7 +200,7 @@ export function createLibraryAssembly() {
       },
       getCountriesData: () => dependencies.projectState.state.countriesData,
       getMaterializationCountriesData: () => (0, dependencies.builtinCountries.materializePristineCountriesSync)(),
-      displayName: dependencies.presentation.countryName,
+      displayName: dependencies.objectPresentation.territorialEntityName,
       combineGeometries: combineHistoricalLibraryGeometries,
       subtractGeometries: subtractHistoricalLibraryGeometry,
     });
@@ -264,8 +264,8 @@ export function createLibraryAssembly() {
             dependencies.territorialModel.entityRepository,
             {
               name: feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-                ? (0, dependencies.presentation.countryName)(feature)
-                : (0, dependencies.objectPresentation.territorialUnitName)(feature),
+                ? (0, dependencies.objectPresentation.territorialEntityName)(feature)
+                : (0, dependencies.objectPresentation.territorialEntityName)(feature),
             },
           ),
         };

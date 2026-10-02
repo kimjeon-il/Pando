@@ -674,7 +674,7 @@ export function createTerritorySelectionWorkflow() {
   function toggleSourceCountry(countryId) {
     const current = session();
     const id = text(countryId);
-    if (!countryPickingActive(current) || !id || !(0, dependencies.countries.countryFeatureById)(id)) return false;
+    if (!countryPickingActive(current) || !id || !dependencies.territorialModel.entityStore.countryFeature(id)) return false;
     const adapter = adapterFor(current);
     if (adapter?.canUseSource?.(current, id) !== true) {
       if (adapter?.sourceRejectedMessage) (0, dependencies.feedback.setActionStatus)(adapter.sourceRejectedMessage, 'error', 3000);

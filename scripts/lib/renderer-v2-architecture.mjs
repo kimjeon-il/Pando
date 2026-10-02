@@ -16,7 +16,7 @@ export const PROJECT_RENDERER_SEQUENCE = Object.freeze([
   'snapIndicator',
   'selectionData',
   'labelLayout',
-  'countryLabels',
+  'territorialLabels',
   'userLabels',
   'viewPresentation',
   'layerTree',

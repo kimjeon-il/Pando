@@ -20,7 +20,7 @@ test('whole-map view resets only the active projection zoom', () => {
   assert.match(source, /state\.view\.flatZoom = 1/);
   assert.doesNotMatch(source, /state\.view\.globeRotation\s*=/);
   assert.doesNotMatch(source, /state\.view\.flatCenter\s*=/);
-  assert.doesNotMatch(source, /fitBounds|focusCountry|panMapBy/);
+  assert.doesNotMatch(source, /fitBounds|fitMapToFeature|panMapBy/);
   assert.match(source, /syncMapHostFromState\(\)/);
   assert.match(source, /renderingDomain\?\.endInteraction\?\.\('world-view-settle'\)/);
   assert.match(source, /projectDomain\.queueViewAutosave\(\)/);
@@ -28,7 +28,7 @@ test('whole-map view resets only the active projection zoom', () => {
 });
 
 test('object focus uses the actual viewport center and safe insets only for zoom sizing', () => {
-  const source = functionSource('focusCountry', 'focusCoordinate');
+  const source = functionSource('fitMapToFeature', 'focusCoordinate');
   assert.match(source, /const safe = currentObjectFitInsets\(\)/);
   assert.match(source, /const viewportCenter = \[width \/ 2, height \/ 2\]/);
   assert.match(source, /alignGeographicAnchor\(anchor, viewportCenter\)/);
@@ -44,7 +44,7 @@ test('country focus uses its own label anchor while scope extent remains zoom-on
   assert.match(source, /validLabelAnchor\(runtimeAnchor\)/);
   assert.match(source, /if \(countryScope\?\.members\.length\) feature = countryScope\.extent;/);
   assert.doesNotMatch(source, /editor_label_anchor/);
-  assert.match(source, /focusCountry\(feature, \{ maxZoom: isMobile\(\) \? 12 : 10, preferredAnchor \}\)/);
+  assert.match(source, /fitMapToFeature\(feature, \{ maxZoom: isMobile\(\) \? 12 : 10, preferredAnchor \}\)/);
   assert.doesNotMatch(source, /sovereignId|parentId|territorialChildren|territorialRelations/);
 });
 

@@ -95,7 +95,7 @@
     return Array.isArray(value) ? value : [];
   }
 
-  function normalizeCountryGeometry(value) {
+  function normalizePolygonGeometry(value) {
     const polygons = multiPolygonCoordinates(value).map(polygon => {
       const outer = orientRing(polygon?.[0], true);
       if (outer.length < 4 || ringDistinctCoordinateCount(outer) < 3 || Math.abs(ringSignedArea(outer)) <= MIN_RING_AREA) return null;
@@ -110,7 +110,7 @@
       : { type: 'MultiPolygon', coordinates: polygons };
   }
 
-  function hasCanonicalCountryWinding(value) {
+  function hasCanonicalPolygonWinding(value) {
     const polygons = multiPolygonCoordinates(value);
     if (!polygons.length) return false;
     return polygons.every(polygon => Array.isArray(polygon) && polygon.length
@@ -122,10 +122,10 @@
       }));
   }
 
-  root.PandoLabCountryGeometry = Object.freeze({
+  root.PandoLabPolygonGeometry = Object.freeze({
     ensureClosedRing,
-    hasCanonicalCountryWinding,
-    normalizeCountryGeometry,
+    hasCanonicalPolygonWinding,
+    normalizePolygonGeometry,
     orientRing,
     ringDistinctCoordinateCount,
     ringSignedArea,

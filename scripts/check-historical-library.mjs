@@ -17,7 +17,7 @@ function loadClassic(relativePath, globalName) {
 }
 
 const polygonClipping = loadClassic(path.join('assets', 'js', 'vendor', 'polygon-clipping.min.js'), 'polygonClipping');
-const countryGeometry = loadClassic(path.join('assets', 'js', 'modules', 'country-geometry.js'), 'PandoLabCountryGeometry');
+const countryGeometry = loadClassic(path.join('assets', 'js', 'modules', 'polygon-geometry.js'), 'PandoLabPolygonGeometry');
 const countries = JSON.parse(fs.readFileSync(path.join(root, 'assets', 'data', 'countries-ne-5.1.1.geojson'), 'utf8'));
 const library = JSON.parse(fs.readFileSync(path.join(root, 'assets', 'data', 'historical-library-pilot.json'), 'utf8'));
 const historicalCountries = library.entities.filter(item => item.type === 'country');
@@ -44,9 +44,9 @@ const combineGeometries = geometries => {
   const coordinates = geometries.length === 1
     ? (geometries[0].type === 'Polygon' ? [geometries[0].coordinates] : geometries[0].coordinates)
     : polygonClipping.union(...geometries.map(geometry => geometry.coordinates));
-  return countryGeometry.normalizeCountryGeometry(coordinates);
+  return countryGeometry.normalizePolygonGeometry(coordinates);
 };
-const subtractGeometries = (geometry, excluded) => countryGeometry.normalizeCountryGeometry(
+const subtractGeometries = (geometry, excluded) => countryGeometry.normalizePolygonGeometry(
   polygonClipping.difference(geometry.coordinates, excluded.coordinates),
 );
 const materializedEntities = materializePilotEntities(
@@ -180,7 +180,7 @@ for (let leftIndex = 0; leftIndex < sovietChildGeometries.length; leftIndex += 1
   for (let rightIndex = leftIndex + 1; rightIndex < sovietChildGeometries.length; rightIndex += 1) {
     const [leftId, leftGeometry] = sovietChildGeometries[leftIndex];
     const [rightId, rightGeometry] = sovietChildGeometries[rightIndex];
-    const overlap = countryGeometry.normalizeCountryGeometry(polygonClipping.intersection(
+    const overlap = countryGeometry.normalizePolygonGeometry(polygonClipping.intersection(
       leftGeometry.coordinates,
       rightGeometry.coordinates,
     ));
@@ -208,7 +208,7 @@ if (!germany) throw new Error('Canonical DEU feature is missing');
 const eastIssues = validateGeometry(eastGermany);
 if (eastIssues.length) throw new Error(`East Germany fails app geometry validation: ${eastIssues[0].message}`);
 const remainderCoordinates = polygonClipping.difference(germany.geometry.coordinates, geometry.coordinates);
-const remainderGeometry = countryGeometry.normalizeCountryGeometry(remainderCoordinates);
+const remainderGeometry = countryGeometry.normalizePolygonGeometry(remainderCoordinates);
 const remainder = { type: 'Feature', id: 'DEU', properties: { name: '독일' }, geometry: remainderGeometry };
 const remainderIssues = validateGeometry(remainder);
 if (remainderIssues.length) throw new Error(`Subtracted Germany fails app geometry validation: ${remainderIssues[0].message}`);

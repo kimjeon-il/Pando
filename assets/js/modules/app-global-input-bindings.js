@@ -46,7 +46,7 @@ export function createGlobalInputBindings() {
       }
       // Let focused controls handle Enter/Space once, through their normal click/change event.
       if (['Enter', ' '].includes(e.key) && document.activeElement?.closest('button, [role="button"]')) return;
-      if (e.code === 'Space' && !editingText && (dependencies.domains.editingDomain?.draftInputActive?.() || ['country-border', 'country-coast'].includes(dependencies.projectState.state.tool) || dependencies.projectState.state.selected?.domain === 'generic' || (dependencies.projectState.state.selected?.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(dependencies.projectState.state.selected.id)))) {
+      if (e.code === 'Space' && !editingText && (dependencies.domains.editingDomain?.draftInputActive?.() || ['territorial-border', 'country-coast'].includes(dependencies.projectState.state.tool) || dependencies.projectState.state.selected?.domain === 'generic' || (dependencies.projectState.state.selected?.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(dependencies.projectState.state.selected.id)))) {
         dependencies.projectState.state.spacePanActive = true;
         dependencies.lifecycleUi.mapInteractionGate.setForcedPan(true);
         dependencies.mapView.mapHost?.setForcedPan?.(true);
@@ -74,7 +74,7 @@ export function createGlobalInputBindings() {
         if (dependencies.projectState.state.geometryPreview.session) { (0, dependencies.geometryOperations.discardActiveGeometryPreview)(); return; }
         if (dependencies.projectState.state.labelPlacementMode) (0, dependencies.countryEditingB.exitLabelMode)();
         else if (dependencies.domains.editingDomain?.draftInputActive?.()) (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool) ? (0, dependencies.genericEditingA.cancelDraft)(true) : (0, dependencies.countryEditingA.cancelActiveMode)());
-        else if (['new-country', 'annex-territory', 'draw-territorial-unit', 'merge-country', 'merge-generic-feature', 'country-border', 'country-coast'].includes(dependencies.projectState.state.tool)) (0, dependencies.countryEditingA.cancelActiveMode)();
+        else if (['new-country', 'annex-territory', 'draw-territorial-unit', 'merge-country', 'merge-generic-feature', 'territorial-border', 'country-coast'].includes(dependencies.projectState.state.tool)) (0, dependencies.countryEditingA.cancelActiveMode)();
         else if ((0, dependencies.countryEditingA.editingDraftCoordinates)().length) (0, dependencies.genericEditingA.cancelDraft)(true);
         else if ((0, dependencies.platform.$)('editorSurface')?.classList.contains('mobile-open')) {
           (0, dependencies.workspaceUiA.closeSurface)('editor', { manual: dependencies.surfaces.layoutMode === 'wide', restoreFocus: true });
@@ -122,7 +122,7 @@ export function createGlobalInputBindings() {
         }
         if (dependencies.projectState.state.selected) {
           e.preventDefault();
-          if (dependencies.domains.selectionDomain.size() > 1) (0, dependencies.objectOperationsA.requestBatchDelete)();
+          if (dependencies.domains.selectionDomain.size() > 1) (0, dependencies.objectOperationsA.requestObjectDeletion)();
           else (0, dependencies.objectDeletion.deleteSelected)();
         }
       }

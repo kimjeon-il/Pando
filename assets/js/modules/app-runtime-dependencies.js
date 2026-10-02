@@ -8,7 +8,7 @@
 const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
 const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, subunitParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
-const { layoutCountryFlags } = await import(`./country-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
+const { layoutTerritorialFlags } = await import(`./territorial-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
 const { countryDisplayName, defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityRepository } = await import(`./territorial-entity-repository.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -19,14 +19,14 @@ const versionedModuleUrl = relativePath => {
   url.searchParams.set('v', moduleRevision);
   return url.href;
 };
-await import(versionedModuleUrl('./modules/country-geometry.js'));
+await import(versionedModuleUrl('./modules/polygon-geometry.js'));
 const { createGisFileController } = await import(versionedModuleUrl('./modules/gis-file-controller.js'));
-const countryGeometry = globalThis.PandoLabCountryGeometry;
-if (!countryGeometry) throw new Error('국가 지오메트리 정규화 모듈을 불러오지 못했습니다.');
+const polygonGeometry = globalThis.PandoLabPolygonGeometry;
+if (!polygonGeometry) throw new Error('폴리곤 지오메트리 정규화 모듈을 불러오지 못했습니다.');
 
-const [projectStateModule, countryEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectRefModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, tooltipControllerModule, layerTreeControllerModule, historyServiceModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
+const [projectStateModule, mapEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectRefModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, tooltipControllerModule, layerTreeControllerModule, historyServiceModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
-  import(versionedModuleUrl('./modules/country-edit-transaction.js')),
+  import(versionedModuleUrl('./modules/map-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
   import(versionedModuleUrl('./modules/distribution-model.js')),
   import(versionedModuleUrl('./modules/surface-controller.js')),
@@ -130,9 +130,9 @@ const gisDomainModule = await import(versionedModuleUrl('./modules/gis-domain.js
 const editingDomainModule = await import(versionedModuleUrl('./modules/editing-domain.js'));
 const selectionUiControllerModule = await import(versionedModuleUrl('./modules/selection-ui-controller.js'));
 const selectionToolbarPresentationModule = await import(versionedModuleUrl('./modules/selection-toolbar-presentation.js'));
-const countryPropertyControllerModule = await import(versionedModuleUrl('./modules/country-property-controller.js'));
+const territorialPropertyControllerModule = await import(versionedModuleUrl('./modules/territorial-property-controller.js'));
 const objectPropertyControllerModule = await import(versionedModuleUrl('./modules/object-property-controller.js'));
-const { effectiveCountryFlagUrl, effectiveTerritorialFlagUrl } = countryFlagsModule;
+const { effectiveTerritorialFlagUrl } = countryFlagsModule;
 const { createProjectDomain } = projectDomainModule;
 const { createProjectCommandPipeline } = projectCommandPipelineModule;
 const { createSelectionDomain } = selectionDomainModule;
@@ -141,7 +141,7 @@ const { createGisDomain } = gisDomainModule;
 const { createEditingDomain } = editingDomainModule;
 const { createSelectionUiController } = selectionUiControllerModule;
 const { createSelectionToolbarPresentation } = selectionToolbarPresentationModule;
-const { createCountryPropertyController } = countryPropertyControllerModule;
+const { createTerritorialPropertyController } = territorialPropertyControllerModule;
 const { createObjectPropertyController } = objectPropertyControllerModule;
 
 const { createProjectUiBridge } = await import(versionedModuleUrl('./modules/project-ui-bridge.js'));
@@ -330,7 +330,7 @@ const {
 const { createMapVisualFrame } = mapVisualFrameModule;
 const { createSelectController } = selectControllerModule;
 const { DATA_READINESS, READINESS_EVENTS, canMutateProject, transitionDataReadiness } = startupReadinessModule;
-const { runCountryEditTransaction } = countryEditTransactionModule;
+const { runMapEditTransaction } = mapEditTransactionModule;
 const {
   TERRITORIAL_COVERAGE_MODES,
   TERRITORIAL_UNIT_TYPES,
@@ -404,11 +404,11 @@ const { OVERLAY_GROUPS, layerStyle, layerObjectRank, normalizeLayerPresentation,
 const { AUTOSAVE_STATES, createSaveStateController } = saveStateModule;
 const {
   ensureClosedRing,
-  hasCanonicalCountryWinding,
-  normalizeCountryGeometry,
+  hasCanonicalPolygonWinding,
+  normalizePolygonGeometry,
   orientRing,
   ringSignedArea,
-} = countryGeometry;
+} = polygonGeometry;
 
 export {
   moduleRevision,
@@ -417,7 +417,7 @@ export {
   shouldShowTerritorialParentChoice,
   subunitParentChoices,
   BUILTIN_TERRITORY_MERGES,
-  layoutCountryFlags,
+  layoutTerritorialFlags,
   countryDisplayName,
   defaultGeographicName,
   createTerritorialScopeResolver,
@@ -426,9 +426,9 @@ export {
   builtinSubunitSourceId,
   versionedModuleUrl,
   createGisFileController,
-  countryGeometry,
+  polygonGeometry,
   projectStateModule,
-  countryEditTransactionModule,
+  mapEditTransactionModule,
   territorialUnitsModule,
   distributionModelModule,
   surfaceControllerModule,
@@ -528,9 +528,8 @@ export {
   editingDomainModule,
   selectionUiControllerModule,
   selectionToolbarPresentationModule,
-  countryPropertyControllerModule,
+  territorialPropertyControllerModule,
   objectPropertyControllerModule,
-  effectiveCountryFlagUrl,
   effectiveTerritorialFlagUrl,
   createProjectDomain,
   createProjectCommandPipeline,
@@ -540,7 +539,7 @@ export {
   createEditingDomain,
   createSelectionUiController,
   createSelectionToolbarPresentation,
-  createCountryPropertyController,
+  createTerritorialPropertyController,
   createObjectPropertyController,
   createProjectUiBridge,
   createPropertyEditorBindings,
@@ -624,7 +623,7 @@ export {
   READINESS_EVENTS,
   canMutateProject,
   transitionDataReadiness,
-  runCountryEditTransaction,
+  runMapEditTransaction,
   TERRITORIAL_COVERAGE_MODES,
   TERRITORIAL_UNIT_TYPES,
   changeUnitType,
@@ -688,8 +687,8 @@ export {
   AUTOSAVE_STATES,
   createSaveStateController,
   ensureClosedRing,
-  hasCanonicalCountryWinding,
-  normalizeCountryGeometry,
+  hasCanonicalPolygonWinding,
+  normalizePolygonGeometry,
   orientRing,
   ringSignedArea
 };

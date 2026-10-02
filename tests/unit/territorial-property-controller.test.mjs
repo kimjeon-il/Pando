@@ -1,22 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCountryPropertyController } from '../../assets/js/modules/country-property-controller.js';
+import { createTerritorialPropertyController } from '../../assets/js/modules/territorial-property-controller.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 
 const square = side => ({ type: 'Polygon', coordinates: [[[0, 0], [0, side], [side, side], [side, 0], [0, 0]]] });
 
 function setup() {
   const a = normalizeObjectRef({ domain: 'territorial', type: 'country', id: 'A' });
-  const views = new Map([[a.key, { ref: a, displayName: 'A', feature: { geometry: square(1) }, override: {} }]]);
+  const views = new Map([[a.key, { ref: a, displayName: 'A', feature: { geometry: square(1) }, properties: {} }]]);
   let primary = a;
   const callbacks = [];
   const calculations = [];
   const area = { textContent: '', dataset: {} };
   const selectionStatus = { textContent: '' };
-  const controller = createCountryPropertyController({
+  const controller = createTerritorialPropertyController({
     window: { requestIdleCallback: callback => callbacks.push(callback) },
     elements: { area, selectionStatus },
-    getCountryView: ref => views.get(ref.key), getPrimaryRef: () => primary,
+    getTerritorialView: ref => views.get(ref.key), getPrimaryRef: () => primary,
     showPropertyForm() {}, resolveColor: () => ({ value: '#888888', isDefault: true }),
     defaultColor: () => '#888888', syncColorPicker() {}, resolveFlagUrl: () => null,
     calculateAreaKm2: geometry => {

@@ -84,7 +84,7 @@ export function createMapAudit() {
     if (!issue) return;
     dependencies.projectState.state.audit.selectedIssueId = issue.id;
     renderMapAuditPanel();
-    if (issue.geometry) (0, dependencies.navigation.focusCountry)((0, dependencies.renderScene.featureFromGeometry)(issue.geometry), { maxZoom: (0, dependencies.surfaces.isMobile)() ? 12 : 10 });
+    if (issue.geometry) (0, dependencies.navigation.fitMapToFeature)((0, dependencies.renderScene.featureFromGeometry)(issue.geometry), { maxZoom: (0, dependencies.surfaces.isMobile)() ? 12 : 10 });
     else {
       const coordinate = issueCoordinate(issue);
       if (coordinate) (0, dependencies.navigation.focusCoordinate)(coordinate);

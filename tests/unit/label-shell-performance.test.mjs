@@ -24,12 +24,12 @@ test('globe shell uses frame-context circles instead of rebuilding a D3 Sphere p
 
 test('label positioning commits inside the shared visual frame without a private cadence', () => {
   assert.doesNotMatch(rendering, /labelCadenceIntervalMs|scheduleLabelPositions|pendingLabelPositionFrameContext/);
-  assert.match(rendering, /renderCountryLabelPositions = frameContext => \{/);
+  assert.match(rendering, /renderTerritorialLabelPositions = frameContext => \{/);
   assert.match(rendering, /renderUserLabelPositions = frameContext => applyUserLabelPositions\(frameContext\)/);
-  assert.match(rendering, /renderCountryLabelPositions\(frame\)/);
+  assert.match(rendering, /renderTerritorialLabelPositions\(frame\)/);
   assert.match(rendering, /renderUserLabelPositions\(frame\)/);
   assert.match(rendering, /projectVisibleCoordinate\(coordinate, frameContext\)/);
-  assert.match(app, /countryLabelPoints: new Map/);
+  assert.match(app, /territorialLabelPoints: new Map/);
   assert.match(app, /userLabelPoints: new Map/);
   assert.doesNotMatch(app, /if \(!isCoordVisible\(coordinate\)\) continue;\s*const point = activeProjection\(\)\(coordinate\)/);
 });

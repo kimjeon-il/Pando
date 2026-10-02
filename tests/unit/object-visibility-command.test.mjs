@@ -24,7 +24,7 @@ function harness(refs, { builtin = false } = {}) {
     bumpVisibilityRevision: () => { ports.distributionVisibilityRevision += 1; },
     selectionDomain: { snapshot: () => ({ selection: { items: refs } }), primary: () => refs[0] },
     entityRepository: { get: () => feature, list: () => [feature] },
-    countryFeatureById: () => feature, territorialUnitById: () => feature, territorialChildren: () => [],
+    territorialApplicationService: { canDelete: () => ({ ok: false, code: 'locked' }) },
     distributionLayerById: () => feature,
     hydroFeatureById: () => feature, hydroEditById: () => builtin ? null : feature,
     labelById: () => feature,

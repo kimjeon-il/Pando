@@ -6,7 +6,7 @@ importScripts(
   '../vendor/topojson-simplify.min.js',
   '../vendor/polygon-clipping.min.js',
   '../vendor/earcut.min.js',
-  '../modules/country-geometry.js',
+  '../modules/polygon-geometry.js',
   './gpu-mesh-core.js',
 );
 
@@ -268,8 +268,8 @@ async function buildCache(project, baseline, features, territorialUnits) {
   };
   const preview = shared.buildTopologyPreview([...current, ...units], {
     maxCoordinates: 150_000,
-    normalizeGeometry: self.PandoLabCountryGeometry.normalizeCountryGeometry,
-    hasCanonicalWinding: self.PandoLabCountryGeometry.hasCanonicalCountryWinding,
+    normalizeGeometry: self.PandoLabPolygonGeometry.normalizePolygonGeometry,
+    hasCanonicalWinding: self.PandoLabPolygonGeometry.hasCanonicalPolygonWinding,
     topology: self.topojson.topology,
     presimplify: self.topojson.presimplify,
     quantile: self.topojson.quantile,

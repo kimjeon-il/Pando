@@ -257,6 +257,21 @@
     function planMerge(request) {
       const draft = createDraft(request);
       const { byId, target, removed, ownershipChanges, children, put } = draft;
+      if (target.properties?.unitType === 'region') {
+        const targets = [...new Set((request.sourceIds || []).map(id))]
+          .filter(key => key !== id(target.id)).map(key => byId.get(key));
+        if (!targets.length) throw new Error('합병 대상을 선택하세요.');
+        for (const feature of [target, ...targets]) {
+          if (feature?.properties?.unitType !== 'region') throw new Error('지방끼리만 합병할 수 있습니다.');
+          if (feature.properties.locked) throw new Error('잠긴 지방은 변경할 수 없습니다.');
+        }
+        put(target, union(target.geometry, ...targets.map(feature => feature.geometry)));
+        for (const donor of targets) {
+          removed.add(id(donor.id));
+          ownershipChanges.push({ id: id(donor.id), replacementId: id(target.id) });
+        }
+        return draft;
+      }
       const { assertSibling } = siblingScope(request, draft);
       assertSibling(target);
       const targets = [...new Set((request.sourceIds || []).map(id))].filter(key => key !== id(target.id)).map(key => byId.get(key));

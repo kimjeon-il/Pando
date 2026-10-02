@@ -9,7 +9,7 @@ from shapely.geometry import shape
 
 ROOT = Path(__file__).resolve().parents[1]
 COUNTRY_PREVIEW = (ROOT / "assets/js/modules/map-edit-preview-calculations.js").read_text(encoding="utf-8")
-COUNTRY_GEOMETRY = (ROOT / "assets/js/modules/country-geometry.js").read_text(encoding="utf-8")
+COUNTRY_GEOMETRY = (ROOT / "assets/js/modules/polygon-geometry.js").read_text(encoding="utf-8")
 COUNTRIES = json.loads((ROOT / "assets/data/countries-ne-5.1.1.geojson").read_text(encoding="utf-8"))
 PREVIEW_COUNTRIES = json.loads(gzip.decompress((ROOT / "assets/data/countries-preview-v0.30.0.geojson.gz").read_bytes()))
 

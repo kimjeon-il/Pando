@@ -122,7 +122,7 @@ export function createRiverCandidates() {
 
   function riverPartitionResultMessage(composition, donorResults, donors) {
     const invalidIds = new Set((donorResults || []).filter(result => result.status === 'invalid').map(result => String(result.donorCountryId)));
-    const invalidNames = donors.filter(feature => invalidIds.has(String(feature.id))).map(feature => (0, dependencies.presentation.countryName)(feature) || feature.properties?.name || '기준 영역');
+    const invalidNames = donors.filter(feature => invalidIds.has(String(feature.id))).map(feature => (0, dependencies.objectPresentation.territorialEntityName)(feature) || feature.properties?.name || '기준 영역');
     const suffix = invalidNames.length ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외했습니다.` : '';
     if (composition.riverCandidateCount > 0) return `하천으로 나뉜 영토 조각을 선택하세요.${suffix}`;
     if (composition.items.length) return `분할 가능한 하천이 없어 기존 영토 조각을 표시합니다.${suffix}`;

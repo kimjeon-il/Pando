@@ -1,4 +1,4 @@
-import { normalizeCountryGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, featureId } from './map-edit-geometry.js';
+import { normalizePolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, featureId } from './map-edit-geometry.js';
 import { createCountryImportMergePlanner } from './import-service.js';
 import { validateCollection } from './gis-geometry-validation.js';
 import { geometryAreaKm2 } from './geometry-metrics.js';
@@ -7,7 +7,7 @@ import { geometryAreaKm2 } from './geometry-metrics.js';
 export async function calculateLibraryBatch(payload, originals, existingUnits, clipper, checkpoint) {
   const planner = createCountryImportMergePlanner({ clipper, clone: structuredClone,
     featureCountryId: featureId, countryName: feature => feature.properties?.name || featureId(feature),
-    geometryBounds, boundsOverlap, normalizeGeometry: normalizeCountryGeometry, geometryCoordinates: multiCoordinates,
+    geometryBounds, boundsOverlap, normalizeGeometry: normalizePolygonGeometry, geometryCoordinates: multiCoordinates,
     planarArea: area, areaKm2: geometryAreaKm2, validateCountryCollection: () => ({ overlapAreaKm2: 0 }) });
   let draft = { type: 'FeatureCollection', features: originals };
   const originalsById = new Map(originals.map(feature => [featureId(feature), feature]));
@@ -39,10 +39,10 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
   for (const [id, geometries] of groups) {
     const owner = draft.features.find(feature => featureId(feature) === id);
     if (!owner) throw new Error('소속 국가가 영토 변경으로 사라집니다. 소속을 다시 선택하세요.');
-    const geometry = normalizeCountryGeometry(clipper.union(...geometries.map(multiCoordinates)));
+    const geometry = normalizePolygonGeometry(clipper.union(...geometries.map(multiCoordinates)));
     if (!clipper.difference(multiCoordinates(geometry), multiCoordinates(owner.geometry)).length) continue;
     impacts.push({ id, name: owner.properties?.name || id, expansion: true });
-    await merge({ ...owner, geometry: normalizeCountryGeometry(clipper.union(multiCoordinates(owner.geometry), multiCoordinates(geometry))) }, geometry);
+    await merge({ ...owner, geometry: normalizePolygonGeometry(clipper.union(multiCoordinates(owner.geometry), multiCoordinates(geometry))) }, geometry);
   }
   const byId = new Map([...draft.features, ...existingUnits, ...units].map(feature => [featureId(feature), feature]));
   for (const unit of units.filter(unit => unit.properties.unitType === 'subunit')) {

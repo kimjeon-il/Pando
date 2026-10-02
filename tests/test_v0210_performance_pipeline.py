@@ -9,11 +9,11 @@ ROOT = Path(__file__).parents[1]
 APP = read_application_sources(ROOT)
 EDIT_WORKER = (ROOT / "assets" / "js" / "workers" / "map-edit-worker.js").read_text(encoding="utf-8")
 CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
-TRANSACTION = (ROOT / "assets" / "js" / "modules" / "country-edit-transaction.js").read_text(encoding="utf-8")
+TRANSACTION = (ROOT / "assets" / "js" / "modules" / "map-edit-transaction.js").read_text(encoding="utf-8")
 MAP_INPUT = (ROOT / "assets" / "js" / "modules" / "map-input-controller.js").read_text(encoding="utf-8")
 RENDERING_DOMAIN = (ROOT / "assets" / "js" / "modules" / "rendering-domain.js").read_text(encoding="utf-8")
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
-COUNTRY_GEOMETRY = (ROOT / "assets" / "js" / "modules" / "country-geometry.js").read_text(encoding="utf-8")
+COUNTRY_GEOMETRY = (ROOT / "assets" / "js" / "modules" / "polygon-geometry.js").read_text(encoding="utf-8")
 PERSISTENCE = (ROOT / "assets" / "js" / "modules" / "persistence-service.js").read_text(encoding="utf-8")
 
 
@@ -39,10 +39,10 @@ class V0210PerformancePipelineTests(unittest.TestCase):
         self.assertIn("executeNewCountry", EDIT_WORKER)
         self.assertIn("subtractAreaFromGeometry", EDIT_WORKER)
         self.assertIn("areaPolygonsNearFeatures", EDIT_WORKER)
-        self.assertIn("normalizeCountryGeometry", EDIT_WORKER)
-        self.assertIn("hasCanonicalCountryWinding", EDIT_WORKER)
-        self.assertIn("root.PandoLabCountryGeometry", COUNTRY_GEOMETRY)
-        self.assertIn("normalizeCountryGeometry(feature.geometry)", APP)
+        self.assertIn("normalizePolygonGeometry", EDIT_WORKER)
+        self.assertIn("hasCanonicalPolygonWinding", EDIT_WORKER)
+        self.assertIn("root.PandoLabPolygonGeometry", COUNTRY_GEOMETRY)
+        self.assertIn("normalizePolygonGeometry(feature.geometry)", APP)
         self.assertIn("client.execute(operation, payload)", TRANSACTION)
         for operation in ("operation: 'annex'", "operation: 'merge'", "operation: 'new-country'"):
             self.assertIn(operation, APP)

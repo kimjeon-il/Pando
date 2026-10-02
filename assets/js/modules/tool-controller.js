@@ -10,7 +10,7 @@ const TOOL_DEFINITIONS = Object.freeze({
   'split-territorial-unit': Object.freeze({ label: '영역 나누기', task: '영역 나누기', stage: '경계 그리기', cursor: 'generic', special: true, icon: 'split', draft: Object.freeze({ shape: 'line', profile: 'boundary' }) }),
   'redraw-territorial-unit': Object.freeze({ label: '영역 다시 지정', task: '영역 다시 지정', stage: '영역 그리기', cursor: 'generic', special: true, icon: 'boundary', draft: Object.freeze({ shape: 'polygon', profile: 'area' }) }),
   'draw-territorial-unit': Object.freeze({ label: '영역 추가', task: '영역 추가', cursor: 'phased', special: true, icon: 'boundary' }),
-  'country-border': Object.freeze({ label: '국경 조정', task: '국경 조정', stage: '공유국경 편집', cursor: 'phased', special: true, icon: 'boundary' }),
+  'territorial-border': Object.freeze({ label: '국경 조정', task: '국경 조정', stage: '공유국경 편집', cursor: 'phased', special: true, icon: 'boundary' }),
   'country-coast': Object.freeze({ label: '해안선 조정', task: '해안선 조정', stage: '해안선 편집', cursor: 'select', special: true, icon: 'coastline' }),
   label: Object.freeze({ label: '지명 배치', task: '지명 추가', stage: '위치 선택', cursor: 'generic', special: true, icon: 'place' }),
   river: Object.freeze({ label: '강 추가', task: '강 추가', stage: '경로 그리기', cursor: 'generic', special: true, icon: 'river', draft: Object.freeze({ shape: 'line', profile: 'river' }) }),
@@ -35,7 +35,7 @@ export function describeTool(tool, state, { labelPlacement = false } = {}) {
       : territorySelection.stage === 'review' ? '결과 확인' : '영역 선택';
     return { name: territorySelection.taskLabel, stage, icon: definition.icon };
   }
-  if (tool === 'country-border') return { name: definition.task, stage: state.boundaryEditPhase === 'selecting' ? '맞닿은 국가 선택' : '공유국경 편집', icon: definition.icon };
+  if (tool === 'territorial-border') return { name: definition.task, stage: state.boundaryEditPhase === 'selecting' ? '맞닿은 국가 선택' : '공유국경 편집', icon: definition.icon };
   return { name: definition.task, stage: definition.stage || '작업 진행', icon: definition.icon };
 }
 
@@ -45,7 +45,7 @@ export function toolCursorMode(tool, state, { labelPlacement = false } = {}) {
     || (territorySelection?.stage === 'selection' && territorySelection.activePhase === 'source'
       && territorySelection.methodsRequiringSources?.includes(territorySelection.requestedMethod))
     || (tool === 'merge-country' && !!state.mergeSourceCountryId)
-    || (tool === 'country-border' && state.boundaryEditPhase === 'selecting')
+    || (tool === 'territorial-border' && state.boundaryEditPhase === 'selecting')
     || tool === 'merge-generic-feature'
     || tool === 'merge-territorial-unit';
   const generic = labelPlacement

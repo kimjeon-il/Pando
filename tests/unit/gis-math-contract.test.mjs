@@ -132,7 +132,7 @@ test('main validator and actual GIS Worker agree on normal, empty, invalid, prec
 test('country normalizer and GPU mesh preserve winding, finite packets and owner ranges', () => {
   const classicContext = vm.createContext({ console, self: null });
   classicContext.self = classicContext;
-  const countryGeometry = loadClassic('assets/js/modules/country-geometry.js', 'PandoLabCountryGeometry', classicContext);
+  const countryGeometry = loadClassic('assets/js/modules/polygon-geometry.js', 'PandoLabPolygonGeometry', classicContext);
   const earcut = loadClassic('assets/js/vendor/earcut.min.js', 'earcut', classicContext);
   const meshCore = loadClassic('assets/js/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore', classicContext);
   const fixtures = [
@@ -142,8 +142,8 @@ test('country normalizer and GPU mesh preserve winding, finite packets and owner
     { type: 'Feature', id: 'multi', properties: {}, geometry: { type: 'MultiPolygon', coordinates: [[ring(10, 0, 11, 1)], [ring(12, 0, 13, 1)]] } },
   ];
   const snapshot = clone(fixtures);
-  const normalized = fixtures.map(feature => ({ ...feature, geometry: countryGeometry.normalizeCountryGeometry(feature.geometry) })).filter(feature => feature.geometry);
-  assert.ok(normalized.every(feature => countryGeometry.hasCanonicalCountryWinding(feature.geometry)));
+  const normalized = fixtures.map(feature => ({ ...feature, geometry: countryGeometry.normalizePolygonGeometry(feature.geometry) })).filter(feature => feature.geometry);
+  assert.ok(normalized.every(feature => countryGeometry.hasCanonicalPolygonWinding(feature.geometry)));
   const mesh = meshCore.buildGpuMeshFeatures(normalized, earcut, { validate: true });
   assert.ok(Array.from(mesh.positions).every(Number.isFinite));
   assert.ok(Array.from(mesh.strokeStartsEnds).every(Number.isFinite));

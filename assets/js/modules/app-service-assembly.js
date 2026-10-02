@@ -110,17 +110,17 @@ export function createServiceAssembly() {
       activeProjection: dependencies.mapView.activeProjection,
       countryColor: feature => {
         const unit = feature.properties?.unitType === 'subunit'
-          ? (0, dependencies.countries.builtinRenderCountries)().nativeUnits.get(String(feature.id)) || feature
+          ? (0, dependencies.countries.builtinTerritorialScene)().nativeUnits.get(String(feature.id)) || feature
           : null;
         const group = unit ? 'subunits' : 'countries';
         const objectKey = unit ? `territorial:subunit:${unit.id}` : '';
         return (0, dependencies.applicationServicesB.resolveLayerDisplayColor)(dependencies.projectState.state.layerPresentation, group, {
           objectKey,
-          explicitColor: unit ? (0, dependencies.colorModel.territorialUnitColor)(unit) : (0, dependencies.colorModel.countryColor)(feature),
+          explicitColor: unit ? (0, dependencies.colorModel.territorialEntityColor)(unit) : (0, dependencies.colorModel.territorialEntityColor)(feature),
           fallbackColor: (0, dependencies.preferences.mapTheme)().defaultLand,
         });
       },
-      countryFeatureById: dependencies.builtinCountries.renderCountryFeatureById,
+      baseSceneFeatureById: dependencies.builtinCountries.baseSceneFeatureById,
       countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,
       d3: dependencies.platform.d3,
       deepClone: dependencies.platform.deepClone,
@@ -132,7 +132,7 @@ export function createServiceAssembly() {
       hydroFeatureById: dependencies.hydroModel.hydroFeatureById,
       hydroVisibilityThreshold: dependencies.physicalResources.hydroVisibilityThreshold,
       isCountryVisibleById: dependencies.builtinCountries.isRenderCountryVisible,
-      renderCountryFeatures: () => dependencies.countries.builtinRenderCountries().collection.features,
+      renderCountryFeatures: () => dependencies.countries.builtinTerritorialScene().collection.features,
       isHydroFeatureVisible: dependencies.physicalServices.isHydroFeatureVisible,
       isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
       isMobile: dependencies.surfaces.isMobile,
@@ -159,9 +159,9 @@ export function createServiceAssembly() {
       scheduleGpuMeshRebuild: dependencies.renderQuality.scheduleGpuMeshRebuild,
       setActionStatus: dependencies.feedback.setActionStatus,
       state: new Proxy(dependencies.projectState.state, { get: (target, key) => {
-        if (key === 'countriesData') return (0, dependencies.countries.builtinRenderCountries)().collection;
+        if (key === 'countriesData') return (0, dependencies.countries.builtinTerritorialScene)().collection;
         if (key === 'layerVisibility') return { ...target.layerVisibility, countries: target.layerVisibility.countries
-          || [...(0, dependencies.countries.builtinRenderCountries)().nativeUnits.keys()].some(dependencies.builtinCountries.isRenderCountryVisible) };
+          || [...(0, dependencies.countries.builtinTerritorialScene)().nativeUnits.keys()].some(dependencies.builtinCountries.isRenderCountryVisible) };
         return Reflect.get(target, key);
       } }),
     }));

@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { resolveTerritorialColor } from '../../assets/js/modules/color-adapter.js';
 
 const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
   type: 'Polygon',
@@ -45,8 +46,8 @@ test('territorial scope reads the administrative hierarchy from the common entit
   });
 
   assert.deepEqual(resolver.members('A').map(entity => entity.id), ['a1', 'a2']);
-  assert.equal(resolver.color(child), '#123456');
-  assert.equal(resolver.color(parent), '#123456');
+  assert.equal(resolveTerritorialColor(child, { entityRepository: repository, countryColor: () => '#abcdef' }), '#123456');
+  assert.equal(resolveTerritorialColor(parent, { entityRepository: repository, countryColor: () => '#abcdef' }), '#123456');
 
   const scope = resolver.scope('A');
   assert.equal(scope.country.id, 'A');
@@ -69,11 +70,5 @@ test('territorial scope inherits country color without treating regions as admin
     getUnits: () => [child],
     getRevision: () => 1,
   });
-  const resolver = createTerritorialScopeResolver({
-    entityRepository: repository,
-    countryColor: () => '#abcdef',
-    clipper: () => null,
-  });
-
-  assert.equal(resolver.color(child), '#abcdef');
+  assert.equal(resolveTerritorialColor(child, { entityRepository: repository, countryColor: () => '#abcdef' }), '#abcdef');
 });

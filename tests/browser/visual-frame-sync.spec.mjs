@@ -6,7 +6,7 @@ const visualSelectors = [
   '.map-overlay-svg',
   '.map-interaction-svg',
   '.map-graticule',
-  '.country-label-layer',
+  '.territorial-label-layer',
   '.labels-layer',
 ];
 

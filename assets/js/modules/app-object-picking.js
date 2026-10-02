@@ -154,7 +154,7 @@ export function createObjectPicking() {
         continue;
       }
       if (entry.domain === 'territorial') {
-        const feature = (0, dependencies.objectPresentation.territorialUnitById)(entry.id);
+        const feature = dependencies.territorialModel.entityRepository.get(entry.id);
         if (!feature) continue;
         const group = feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT ? 'subunits' : feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : 'subunits';
         if (dependencies.projectState.state.layerVisibility[group] === false || !(0, dependencies.layerPresentation.isLayerItemVisible)(group, feature.id)) continue;
@@ -312,7 +312,7 @@ export function createObjectPicking() {
     const territoryCountryPicking = (0, dependencies.territorySelectionB.territorySelectionCountryPickingActive)();
     const needsCountryHit = (dependencies.projectState.state.tool === 'select' && !dependencies.projectState.state.labelPlacementMode) ||
       territoryCountryPicking ||
-      (dependencies.projectState.state.tool === 'country-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') ||
+      (dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') ||
       (dependencies.projectState.state.tool === 'merge-country' && !!dependencies.projectState.state.mergeSourceCountryId);
     const clickedCountry = needsCountryHit && dependencies.projectState.state.layerVisibility.countries
       ? (0, dependencies.pointerInteractionA.countryAtScreenPoint)(screenPoint, coord)
@@ -327,7 +327,7 @@ export function createObjectPicking() {
       else (0, dependencies.feedback.setActionStatus)('합병 대상을 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
       return;
     }
-    if (dependencies.projectState.state.tool === 'country-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') {
+    if (dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') {
       if (clickedCountry) (0, dependencies.countryEditingC.toggleBoundaryEditCountry)(clickedCountry.id);
       else (0, dependencies.feedback.setActionStatus)('접경국을 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.', 'error', 2600);
       return;
@@ -360,8 +360,6 @@ export function createObjectPicking() {
     }
     if (dependencies.projectState.state.tool === 'select') dependencies.domains.selectionUiController.clear({ reason: 'map-background-selection-clear' });
   }
-
-
 
   return Object.freeze({
     connect,

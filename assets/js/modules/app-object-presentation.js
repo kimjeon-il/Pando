@@ -1,3 +1,4 @@
+import { resolveTerritorialColor } from './color-adapter.js';
 /** ObjectPresentation: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -45,34 +46,28 @@ export function createObjectPresentation() {
     return feature.properties?.name || `이름 없는 ${genericFeatureRoleLabel(feature)} ${String(feature.id || '').slice(0, 8)}`;
   }
 
-  function territorialUnitById(id) {
-    return dependencies.territorialModel.entityRepository.get(id);
-  }
-
   function territorialStyleColor(feature) {
     return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }).explicit;
   }
 
-  function setTerritorialStyleColor(feature, color) {
-    if (!feature?.properties) return '';
-    return (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }, color, { clear: !color, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
-  }
-
-  function territorialUnitName(feature) {
+  function territorialEntityName(feature) {
+    if (feature?.properties?.unitType === 'country' || !feature?.properties?.unitType) return countryName(feature);
     const properties = feature?.properties || {};
-    if (properties.name) return (0, dependencies.objectPresentation.defaultGeographicName)((0, dependencies.objectCatalog.builtinSubunitSourceId)(feature), properties.name);
+    // Fresh built-in classification normalizes defaults; edited names are literal.
+    if (properties.name) return properties.name;
     if (properties.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
     return '이름 없는 하위단위';
   }
 
-  function territorialUnitColor(feature) {
+  function territorialEntityColor(feature) {
+    if (feature?.properties?.unitType === 'country' || !feature?.properties?.unitType) return countryColor(feature);
     return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }, {
-      inherited: territorialScope.color(feature, dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR),
+      inherited: resolveTerritorialColor(feature, { entityRepository: dependencies.territorialModel.entityRepository, countryColor, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR }),
       fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
     }).value;
   }
 
-  function territorialUnitCountryName(feature) {
+  function administrativeCountryName(feature) {
     const country = dependencies.territorialModel.entityRepository.administrativeCountry(feature?.id);
     return country ? countryName(country) : '소속 국가 미지정';
   }
@@ -134,7 +129,6 @@ export function createObjectPresentation() {
   function initializeTerritorialScope() {
     (territorialScope = (0, dependencies.objectPresentation.createTerritorialScopeResolver)({
       entityRepository: dependencies.territorialModel.entityRepository,
-      countryColor,
       clipper: () => window.polygonClipping,
     }));
 
@@ -186,8 +180,6 @@ export function createObjectPresentation() {
     initializeObjectPresentationModel,
     get LAYER_GROUP_KEYS() { return LAYER_GROUP_KEYS; },
     get LAYER_SEARCH_GROUP_KEYS() { return LAYER_SEARCH_GROUP_KEYS; },
-    get countryColor() { return countryColor; },
-    get countryName() { return countryName; },
     get defaultGenericFeatureColor() { return defaultGenericFeatureColor; },
     get distributionColor() { return distributionColor; },
     get distributionRenderRowCache() { return distributionRenderRowCache; },
@@ -211,15 +203,15 @@ export function createObjectPresentation() {
     get layerNameCollator() { return layerNameCollator; },
     get projectCommandPipeline() { return projectCommandPipeline; },
     set projectCommandPipeline(value) { projectCommandPipeline = value; },
-    get setTerritorialStyleColor() { return setTerritorialStyleColor; },
+
     get syncMapObjectCategoryLabels() { return syncMapObjectCategoryLabels; },
     get territorialApplicationService() { return territorialApplicationService; },
     set territorialApplicationService(value) { territorialApplicationService = value; },
     get territorialScope() { return territorialScope; },
     get territorialStyleColor() { return territorialStyleColor; },
-    get territorialUnitById() { return territorialUnitById; },
-    get territorialUnitColor() { return territorialUnitColor; },
-    get territorialUnitCountryName() { return territorialUnitCountryName; },
-    get territorialUnitName() { return territorialUnitName; },
+
+    get territorialEntityColor() { return territorialEntityColor; },
+    get administrativeCountryName() { return administrativeCountryName; },
+    get territorialEntityName() { return territorialEntityName; },
   });
 }

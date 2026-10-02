@@ -33,11 +33,11 @@ export function createGpuScene() {
     if (ref.domain === 'territorial') {
       const state = dependencies.projectState.state;
       if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-        const current = (0, dependencies.countries.countryFeatureById)(ref.id);
+        const current = dependencies.territorialModel.entityStore.countryFeature(ref.id);
         if (state.countryVisualPhase !== 'preview') return current;
         return state.auditPreviewCountries?.features?.find(feature => String(feature.id) === String(ref.id)) || current;
       }
-      const current = (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
+      const current = dependencies.territorialModel.entityRepository.get(ref.id);
       if (state.countryVisualPhase !== 'preview') return current;
       return state.auditPreviewTerritorialUnits?.find(unit => String(unit.id) === String(ref.id)) || current;
     }

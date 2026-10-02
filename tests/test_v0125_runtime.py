@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 APP = read_application_sources(ROOT)
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
-TRANSACTION = (ROOT / "assets" / "js" / "modules" / "country-edit-transaction.js").read_text(encoding="utf-8")
+TRANSACTION = (ROOT / "assets" / "js" / "modules" / "map-edit-transaction.js").read_text(encoding="utf-8")
 COUNTRY_COMMANDS = (ROOT / "assets" / "js" / "modules" / "map-edit-country-commands.js").read_text(encoding="utf-8")
 WORKER = (ROOT / "assets" / "js" / "workers" / "hydro-tile-worker.js").read_text(encoding="utf-8")
 CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")

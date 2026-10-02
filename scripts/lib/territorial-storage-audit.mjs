@@ -128,9 +128,6 @@ export function auditTerritorialStorage(source, file = '<source>') {
       if (callee?.type === 'Identifier' && file.endsWith('/territorial-entity-store.js') && storeReads.has(name)) {
         return { field: name, via: 'store', node, detachedArray: false };
       }
-      if (['countryFeatureById', 'territorialUnitById'].includes(name)) {
-        return { field: 'entity', via: 'lookup', node, detachedArray: false };
-      }
       if (callee?.type === 'MemberExpression') {
         const receiver = parsed.getText(callee.object);
         if (/\b(?:entityStore|territorialEntityStore|store)\b/.test(receiver) && storeReads.has(name)) {

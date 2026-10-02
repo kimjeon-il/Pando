@@ -16,7 +16,7 @@ export function drawGpuInteractionPass({ gl, frame, viewState, viewport, fillTar
   try {
     // Reserve water before claiming land, then one winner per sample.
     gl.stencilFunc(gl.ALWAYS, 1, 0xff); gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE); gl.colorMask(false, false, false, false);
-    // Interaction fills must not tint the base water or country-border pixels below them.
+    // Interaction fills must not tint the base water or territorial-border pixels below them.
     drawHydro('lake'); drawHydro('river'); drawHydro('border-river'); drawCountryBoundaryMask();
     gl.colorMask(true, true, true, true); gl.stencilFunc(gl.EQUAL, 0, 0xff); gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
     for (const group of fillReady ? prepared.priorities : []) {

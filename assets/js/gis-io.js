@@ -1393,7 +1393,7 @@
   function countryAssets(overrides) {
     const assets = [];
     for (const [countryId, override] of Object.entries(overrides || {})) {
-      const match = String(override?.flagDataUrl || '').match(/^data:([^;,]+);base64,(.+)$/s);
+      const match = String(override?.flagDataUrl || '').match(/^data:([^;]+);base64,(.+)$/s);
       if (match) assets.push({ countryId, mimeType: match[1], base64: match[2] });
     }
     return assets;

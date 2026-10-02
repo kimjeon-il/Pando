@@ -77,19 +77,6 @@ export function createCountryValidation() {
     return { ...geometry, coordinates: snap(geometry.coordinates) };
   }
 
-  function restoreCountryEditSnapshot(snapshot) {
-    const changedIds = new Set(dependencies.projectState.state.historyDirtyCountryIds);
-    (0, dependencies.snapshots.applySharedProjectFields)(snapshot, 'history');
-    (0, dependencies.snapshots.restoreCountriesFromSnapshot)(snapshot);
-    (0, dependencies.snapshots.normalizeProjectObjects)();
-    const restoredDirtyIds = new Set(dependencies.projectState.state.historyDirtyCountryIds);
-    for (const id of dependencies.projectState.state.historyDirtyCountryIds) changedIds.add(String(id));
-    (0, dependencies.spatialQuery.markCountryGeometriesChanged)(changedIds);
-    dependencies.projectState.state.historyDirtyCountryIds = restoredDirtyIds;
-    (0, dependencies.geometryPreview.rebuildBoundaryTopology)(dependencies.projectState.state.tool === 'country-border' ? dependencies.projectState.state.boundaryEditCountryIds : dependencies.projectState.state.coastEditCountryId);
-    dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-edit-snapshot-restored');
-  }
-
   function interpolateCoordinate(a, b, t) {
     let targetLon = b[0];
     while (targetLon - a[0] > 180) targetLon -= 360;
@@ -105,14 +92,12 @@ export function createCountryValidation() {
     (0, dependencies.countries.scheduleCountryLabelAnchors)(filter, 20);
   }
 
-
-
   return Object.freeze({
     connect,
 
     get interpolateCoordinate() { return interpolateCoordinate; },
     get refreshCountryCentroids() { return refreshCountryCentroids; },
-    get restoreCountryEditSnapshot() { return restoreCountryEditSnapshot; },
+
     get ringHasSelfIntersection() { return ringHasSelfIntersection; },
     get segmentsProperlyIntersect() { return segmentsProperlyIntersect; },
     get snapGeometryToGrid() { return snapGeometryToGrid; },

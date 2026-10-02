@@ -30,7 +30,6 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertNotIn(".layer-folder-name::after", CSS)
         self.assertNotRegex(CSS, r'content:\s*["\']\s*잠금')
         self.assertNotIn("state.countriesLocked", APP)
-        self.assertIn("function isCountryLocked(id)", APP)
 
     def test_checkbox_uses_one_border_and_matching_checked_fill(self):
         base_rule = re.search(r'input\[type="checkbox"\]\s*\{([^}]*)\}', CSS)

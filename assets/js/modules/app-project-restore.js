@@ -124,9 +124,9 @@ export function createProjectRestore() {
   }
 
   function analyzeAdminCountryCoastConflicts(adminId) {
-    const admin = (0, dependencies.objectPresentation.territorialUnitById)(adminId);
+    const admin = dependencies.territorialModel.entityRepository.get(adminId);
     const countryId = String(admin?.properties?.sovereignId || '');
-    const country = (0, dependencies.countries.countryFeatureById)(countryId);
+    const country = dependencies.territorialModel.entityStore.countryFeature(countryId);
     if (!admin || admin.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT || !country) return { admin, country, status: 'unavailable', conflicts: [] };
     const topology = (0, dependencies.territorialModel.buildSharedBoundaryTopology)(dependencies.projectState.state.countriesData?.features || []);
     const result = (0, dependencies.gisServicesA.analyzeAdminCountryCoast)({ adminFeature: admin, countryFeature: country, countryTopology: topology });
@@ -150,9 +150,9 @@ export function createProjectRestore() {
       return { ok: true, changed: false };
     }
     const decision = await (await getCoastReconciliationController()).open({
-      subjectName: (0, dependencies.objectPresentation.territorialUnitName)(analysis.admin),
+      subjectName: (0, dependencies.objectPresentation.territorialEntityName)(analysis.admin),
       subjectActionLabel: '하위단위',
-      countryName: (0, dependencies.presentation.countryName)(analysis.country),
+      countryName: (0, dependencies.objectPresentation.territorialEntityName)(analysis.country),
       conflicts: analysis.conflicts,
     });
     if (decision.direction === 'cancel') return { ok: false, cancelled: true };
@@ -278,7 +278,7 @@ export function createProjectRestore() {
       // them only when the canonical mesh is staged, so labels never arrive
       // before the corresponding country surface.
       dependencies.mapLayers.countryLayer?.selectAll('*').remove();
-      dependencies.mapHostViewA.countryLabelLayer?.selectAll('*').remove();
+      dependencies.mapHostViewA.territorialLabelLayer?.selectAll('*').remove();
       dependencies.mapHostViewB.selectionLayer?.selectAll('*').remove();
       dependencies.mapHostViewA.hoverLayer?.selectAll('*').remove();
       dependencies.mapHostViewA.boundaryEditLayer?.selectAll('*').remove();

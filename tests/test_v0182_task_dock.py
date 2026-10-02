@@ -45,7 +45,7 @@ class TaskDockV0182Tests(unittest.TestCase):
         self.assertIn("stage: '합칠 국가 선택'", TOOLS)
 
     def test_selection_counts_live_in_primary_action_labels(self):
-        self.assertIn("`국경 편집 (${state.boundaryEditCountryIds.length})`", APP)
+        self.assertIn("`국경 편집 (${state.boundaryEditEntityIds.length})`", APP)
         self.assertIn("`합병 (${state.mergeTargetCountryIds.length})`", APP)
         self.assertIn("finalLabel: count => `편입 (${count})`", APP)
         self.assertNotIn("annexDonorCountryIds", APP)

@@ -1,6 +1,6 @@
 import { runProjectTransaction } from './project-transaction.js';
 
-export async function runCountryEditTransaction({
+export async function runMapEditTransaction({
   client,
   operation,
   payload,

@@ -303,7 +303,7 @@
   {
     "file": "assets/js/modules/app-builtin-session.js",
     "function": "applyFreshBuiltinClassification",
-    "line": 57,
+    "line": 58,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -312,7 +312,7 @@
       "file": "assets/js/modules/app-builtin-session.js",
       "functions": [
         "applyFreshBuiltinClassification",
-        "builtinRenderCountries"
+        "builtinTerritorialScene"
       ],
       "access": [
         "read"
@@ -323,8 +323,8 @@
   },
   {
     "file": "assets/js/modules/app-builtin-session.js",
-    "function": "builtinRenderCountries",
-    "line": 72,
+    "function": "builtinTerritorialScene",
+    "line": 73,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -333,7 +333,7 @@
       "file": "assets/js/modules/app-builtin-session.js",
       "functions": [
         "applyFreshBuiltinClassification",
-        "builtinRenderCountries"
+        "builtinTerritorialScene"
       ],
       "access": [
         "read"
@@ -344,8 +344,8 @@
   },
   {
     "file": "assets/js/modules/app-builtin-session.js",
-    "function": "builtinRenderCountries",
-    "line": 72,
+    "function": "builtinTerritorialScene",
+    "line": 73,
     "access": "read",
     "field": "territorialUnits",
     "via": "raw",
@@ -354,7 +354,7 @@
       "file": "assets/js/modules/app-builtin-session.js",
       "functions": [
         "applyFreshBuiltinClassification",
-        "builtinRenderCountries"
+        "builtinTerritorialScene"
       ],
       "access": [
         "read"
@@ -365,8 +365,8 @@
   },
   {
     "file": "assets/js/modules/app-builtin-session.js",
-    "function": "builtinRenderCountries",
-    "line": 74,
+    "function": "builtinTerritorialScene",
+    "line": 75,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -375,7 +375,7 @@
       "file": "assets/js/modules/app-builtin-session.js",
       "functions": [
         "applyFreshBuiltinClassification",
-        "builtinRenderCountries"
+        "builtinTerritorialScene"
       ],
       "access": [
         "read"
@@ -386,8 +386,8 @@
   },
   {
     "file": "assets/js/modules/app-builtin-session.js",
-    "function": "builtinRenderCountries",
-    "line": 79,
+    "function": "builtinTerritorialScene",
+    "line": 81,
     "access": "read",
     "field": "territorialUnits",
     "via": "raw",
@@ -396,7 +396,7 @@
       "file": "assets/js/modules/app-builtin-session.js",
       "functions": [
         "applyFreshBuiltinClassification",
-        "builtinRenderCountries"
+        "builtinTerritorialScene"
       ],
       "access": [
         "read"
@@ -407,8 +407,8 @@
   },
   {
     "file": "assets/js/modules/app-builtin-session.js",
-    "function": "builtinRenderCountries",
-    "line": 99,
+    "function": "builtinTerritorialScene",
+    "line": 101,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -417,7 +417,7 @@
       "file": "assets/js/modules/app-builtin-session.js",
       "functions": [
         "applyFreshBuiltinClassification",
-        "builtinRenderCountries"
+        "builtinTerritorialScene"
       ],
       "access": [
         "read"
@@ -428,8 +428,8 @@
   },
   {
     "file": "assets/js/modules/app-builtin-session.js",
-    "function": "builtinRenderCountries",
-    "line": 99,
+    "function": "builtinTerritorialScene",
+    "line": 101,
     "access": "read",
     "field": "territorialUnits",
     "via": "raw",
@@ -438,60 +438,19 @@
       "file": "assets/js/modules/app-builtin-session.js",
       "functions": [
         "applyFreshBuiltinClassification",
-        "builtinRenderCountries"
+        "builtinTerritorialScene"
       ],
       "access": [
         "read"
       ],
       "owner": "Built-in startup/presentation",
       "reason": "Reads startup/render sources; classification publishes through Store."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-country-index.js",
-    "function": "countryFeatureById",
-    "line": 251,
-    "access": "read",
-    "field": "countriesData",
-    "via": "raw",
-    "expression": "dependencies.projectState.state.countriesData",
-    "classification": {
-      "file": "assets/js/modules/app-country-index.js",
-      "functions": [
-        "countryFeatureById"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "Country physical index",
-      "reason": "Index-backed read of the Store-owned country collection."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-cut-geometry.js",
-    "function": "selectedCountryUnionGeometry",
-    "line": 512,
-    "access": "read",
-    "field": "countriesData",
-    "via": "raw",
-    "expression": "dependencies.territorialModel.entityStore.countriesData",
-    "classification": {
-      "file": "assets/js/modules/app-cut-geometry.js",
-      "functions": [
-        "applyWorkerCountryPatches",
-        "selectedCountryUnionGeometry"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "Worker geometry adapter",
-      "reason": "Calculation inputs/results; patches publish through Store."
     }
   },
   {
     "file": "assets/js/modules/app-cut-geometry.js",
     "function": "applyWorkerCountryPatches",
-    "line": 529,
+    "line": 517,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -499,8 +458,7 @@
     "classification": {
       "file": "assets/js/modules/app-cut-geometry.js",
       "functions": [
-        "applyWorkerCountryPatches",
-        "selectedCountryUnionGeometry"
+        "applyWorkerCountryPatches"
       ],
       "access": [
         "read"
@@ -512,7 +470,7 @@
   {
     "file": "assets/js/modules/app-domain-assembly.js",
     "function": "onCountriesReplaced",
-    "line": 1194,
+    "line": 1157,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -533,11 +491,11 @@
   {
     "file": "assets/js/modules/app-domain-assembly.js",
     "function": "onCountriesReplaced",
-    "line": 1194,
+    "line": 1157,
     "access": "write",
     "field": "countriesData",
     "via": "raw",
-    "expression": "dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(\r\n          collection,\r\n          true,\r\n          reindexOptions,\r\n        )",
+    "expression": "dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(\n          collection,\n          true,\n          reindexOptions,\n        )",
     "classification": {
       "file": "assets/js/modules/app-domain-assembly.js",
       "functions": [
@@ -554,7 +512,7 @@
   {
     "file": "assets/js/modules/app-geometry-preview.js",
     "function": "assertCurrentProjectReferences",
-    "line": 24,
+    "line": 23,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -576,7 +534,7 @@
   {
     "file": "assets/js/modules/app-geometry-preview.js",
     "function": "assertCurrentProjectReferences",
-    "line": 25,
+    "line": 24,
     "access": "read",
     "field": "countryOverrides",
     "via": "raw",
@@ -598,7 +556,7 @@
   {
     "file": "assets/js/modules/app-geometry-preview.js",
     "function": "assertCurrentProjectReferences",
-    "line": 26,
+    "line": 25,
     "access": "read",
     "field": "territorialUnits",
     "via": "raw",
@@ -620,7 +578,7 @@
   {
     "file": "assets/js/modules/app-geometry-preview.js",
     "function": "restore",
-    "line": 48,
+    "line": 47,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -642,7 +600,7 @@
   {
     "file": "assets/js/modules/app-geometry-preview.js",
     "function": "boundaryRevision",
-    "line": 108,
+    "line": 84,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -664,7 +622,7 @@
   {
     "file": "assets/js/modules/app-geometry-preview.js",
     "function": "boundaryRevision",
-    "line": 108,
+    "line": 84,
     "access": "read",
     "field": "territorialUnits",
     "via": "raw",
@@ -686,7 +644,7 @@
   {
     "file": "assets/js/modules/app-geometry-preview.js",
     "function": "boundaryRevision",
-    "line": 110,
+    "line": 86,
     "access": "read",
     "field": "countryOverrides",
     "via": "raw",
@@ -837,7 +795,7 @@
   {
     "file": "assets/js/modules/app-lifecycle-assembly.js",
     "function": "getCountries",
-    "line": 125,
+    "line": 117,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -858,7 +816,7 @@
   {
     "file": "assets/js/modules/app-lifecycle-assembly.js",
     "function": "getTerritorialUnits",
-    "line": 126,
+    "line": 118,
     "access": "read",
     "field": "territorialUnits",
     "via": "raw",
@@ -939,7 +897,7 @@
   {
     "file": "assets/js/modules/app-object-metadata.js",
     "function": "validateCandidate",
-    "line": 129,
+    "line": 137,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -959,7 +917,7 @@
   {
     "file": "assets/js/modules/app-object-metadata.js",
     "function": "validateCandidate",
-    "line": 131,
+    "line": 139,
     "access": "read",
     "field": "territorialUnits",
     "via": "raw",
@@ -1640,7 +1598,7 @@
   {
     "file": "assets/js/modules/app-project-snapshots.js",
     "function": "buildCountryDelta",
-    "line": 64,
+    "line": 65,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -1664,31 +1622,7 @@
   {
     "file": "assets/js/modules/app-project-snapshots.js",
     "function": "restoreCountriesFromSnapshot",
-    "line": 76,
-    "access": "read",
-    "field": "countriesData",
-    "via": "raw",
-    "expression": "snapshot.countriesData",
-    "classification": {
-      "file": "assets/js/modules/app-project-snapshots.js",
-      "functions": [
-        "buildCountryDelta",
-        "configureDatasetSession",
-        "normalizeProjectObjects",
-        "restoreCountriesFromSnapshot",
-        "restoreEditable"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "History snapshot lifecycle",
-      "reason": "Serialization/delta calculation and validation; restored collections/overrides publish through Store."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-project-snapshots.js",
-    "function": "restoreCountriesFromSnapshot",
-    "line": 79,
+    "line": 77,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -1716,6 +1650,30 @@
     "access": "read",
     "field": "countriesData",
     "via": "raw",
+    "expression": "snapshot.countriesData",
+    "classification": {
+      "file": "assets/js/modules/app-project-snapshots.js",
+      "functions": [
+        "buildCountryDelta",
+        "configureDatasetSession",
+        "normalizeProjectObjects",
+        "restoreCountriesFromSnapshot",
+        "restoreEditable"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "History snapshot lifecycle",
+      "reason": "Serialization/delta calculation and validation; restored collections/overrides publish through Store."
+    }
+  },
+  {
+    "file": "assets/js/modules/app-project-snapshots.js",
+    "function": "restoreCountriesFromSnapshot",
+    "line": 81,
+    "access": "read",
+    "field": "countriesData",
+    "via": "raw",
     "expression": "dependencies.territorialModel.entityStore.countriesData",
     "classification": {
       "file": "assets/js/modules/app-project-snapshots.js",
@@ -1736,7 +1694,7 @@
   {
     "file": "assets/js/modules/app-project-snapshots.js",
     "function": "restoreCountriesFromSnapshot",
-    "line": 90,
+    "line": 91,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -1760,7 +1718,7 @@
   {
     "file": "assets/js/modules/app-project-snapshots.js",
     "function": "restoreCountriesFromSnapshot",
-    "line": 125,
+    "line": 126,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -1784,7 +1742,7 @@
   {
     "file": "assets/js/modules/app-project-snapshots.js",
     "function": "normalizeProjectObjects",
-    "line": 195,
+    "line": 209,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -1808,7 +1766,7 @@
   {
     "file": "assets/js/modules/app-project-snapshots.js",
     "function": "normalizeProjectObjects",
-    "line": 197,
+    "line": 211,
     "access": "read",
     "field": "countryOverrides",
     "via": "raw",
@@ -1832,7 +1790,7 @@
   {
     "file": "assets/js/modules/app-project-snapshots.js",
     "function": "restoreEditable",
-    "line": 252,
+    "line": 266,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -1856,7 +1814,7 @@
   {
     "file": "assets/js/modules/app-project-snapshots.js",
     "function": "restoreEditable",
-    "line": 262,
+    "line": 276,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2238,7 +2196,7 @@
   {
     "file": "assets/js/modules/app-territorial-drafts.js",
     "function": "previewTerritorialEdit",
-    "line": 48,
+    "line": 49,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2259,7 +2217,7 @@
   {
     "file": "assets/js/modules/app-territorial-drafts.js",
     "function": "applyResult",
-    "line": 134,
+    "line": 138,
     "access": "read",
     "field": "countryOverrides",
     "via": "raw",
@@ -2280,7 +2238,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "applyCountryGeometryOverrides",
-    "line": 92,
+    "line": 91,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2306,7 +2264,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "importedTerritorialUnitFeature",
-    "line": 124,
+    "line": 123,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2332,7 +2290,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "importedTerritorialUnitFeature",
-    "line": 130,
+    "line": 129,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2358,7 +2316,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitTerritorialImportWithTransfer",
-    "line": 282,
+    "line": 281,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2384,7 +2342,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitTerritorialImportWithTransfer",
-    "line": 404,
+    "line": 403,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2410,7 +2368,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitTerritorialImportWithTransfer",
-    "line": 408,
+    "line": 407,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2436,7 +2394,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "resolveTerritorialCoast",
-    "line": 428,
+    "line": 427,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2462,7 +2420,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "importGeoJsonRegions",
-    "line": 549,
+    "line": 548,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2488,7 +2446,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "applyImportedReplacement",
-    "line": 740,
+    "line": 739,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2514,7 +2472,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "applyImportedReplacement",
-    "line": 741,
+    "line": 740,
     "access": "read",
     "field": "countryOverrides",
     "via": "raw",
@@ -2540,7 +2498,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "applyImportedReplacement",
-    "line": 745,
+    "line": 744,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2566,7 +2524,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "applyImportedReplacement",
-    "line": 750,
+    "line": 749,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2592,7 +2550,33 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitGisMerge",
-    "line": 754,
+    "line": 753,
+    "access": "read",
+    "field": "countriesData",
+    "via": "raw",
+    "expression": "result.countriesData",
+    "classification": {
+      "file": "assets/js/modules/gis-import-transaction.js",
+      "functions": [
+        "applyCountryGeometryOverrides",
+        "applyImportedReplacement",
+        "commitGisMerge",
+        "commitTerritorialImportWithTransfer",
+        "importedTerritorialUnitFeature",
+        "importGeoJsonRegions",
+        "resolveTerritorialCoast"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "GIS transaction",
+      "reason": "Explicit input/Worker result DTOs and Store getter calls; mandatory injected Store owns writes."
+    }
+  },
+  {
+    "file": "assets/js/modules/gis-import-transaction.js",
+    "function": "commitGisMerge",
+    "line": 755,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2620,32 +2604,6 @@
     "function": "commitGisMerge",
     "line": 756,
     "access": "read",
-    "field": "countriesData",
-    "via": "raw",
-    "expression": "result.countriesData",
-    "classification": {
-      "file": "assets/js/modules/gis-import-transaction.js",
-      "functions": [
-        "applyCountryGeometryOverrides",
-        "applyImportedReplacement",
-        "commitGisMerge",
-        "commitTerritorialImportWithTransfer",
-        "importedTerritorialUnitFeature",
-        "importGeoJsonRegions",
-        "resolveTerritorialCoast"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "GIS transaction",
-      "reason": "Explicit input/Worker result DTOs and Store getter calls; mandatory injected Store owns writes."
-    }
-  },
-  {
-    "file": "assets/js/modules/gis-import-transaction.js",
-    "function": "commitGisMerge",
-    "line": 757,
-    "access": "read",
     "field": "countryOverrides",
     "via": "raw",
     "expression": "result.atlasMetadata?.projectState?.countryOverrides",
@@ -2670,7 +2628,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitGisMerge",
-    "line": 759,
+    "line": 758,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2696,7 +2654,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitGisMerge",
-    "line": 761,
+    "line": 760,
     "access": "read",
     "field": "countryOverrides",
     "via": "raw",
@@ -2722,7 +2680,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitGisMerge",
-    "line": 763,
+    "line": 762,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2748,7 +2706,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitGisMerge",
-    "line": 815,
+    "line": 814,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -2774,7 +2732,7 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitGisMerge",
-    "line": 816,
+    "line": 815,
     "access": "read",
     "field": "countryOverrides",
     "via": "raw",
@@ -4545,7 +4503,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "setLocked",
-    "line": 130,
+    "line": 132,
     "access": "write",
     "field": "countryOverrides",
     "via": "store",
@@ -4569,7 +4527,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "setLocked",
-    "line": 131,
+    "line": 133,
     "access": "write",
     "field": "countryOverrides",
     "via": "store",
@@ -4593,7 +4551,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "setLocked",
-    "line": 134,
+    "line": 136,
     "access": "write",
     "field": "countriesData",
     "via": "raw",
@@ -4617,7 +4575,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "setLocked",
-    "line": 135,
+    "line": 137,
     "access": "write",
     "field": "countriesData",
     "via": "raw",
@@ -4641,11 +4599,11 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "setField",
-    "line": 150,
+    "line": 148,
     "access": "write",
-    "field": "countryOverrides",
-    "via": "store",
-    "expression": "countryOverrides()[key] = next",
+    "field": "countriesData",
+    "via": "raw",
+    "expression": "feature.properties = { ...feature.properties, [field]: value }",
     "classification": {
       "file": "assets/js/modules/territorial-entity-store.js",
       "functions": [
@@ -4665,31 +4623,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "setField",
-    "line": 151,
-    "access": "write",
-    "field": "countryOverrides",
-    "via": "store",
-    "expression": "delete countryOverrides()[key]",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "state",
-        "replaceCollections",
-        "setField",
-        "setLocked"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Single canonical physical publisher; identity validated before structural publication."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "setField",
-    "line": 156,
+    "line": 158,
     "access": "write",
     "field": "countryOverrides",
     "via": "store",
@@ -4737,7 +4671,55 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "setField",
-    "line": 163,
+    "line": 164,
+    "access": "write",
+    "field": "countryOverrides",
+    "via": "store",
+    "expression": "countryOverrides()[key] = next",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "setField",
+    "line": 168,
+    "access": "write",
+    "field": "countryOverrides",
+    "via": "store",
+    "expression": "delete countryOverrides()[key]",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "setField",
+    "line": 172,
     "access": "write",
     "field": "countriesData",
     "via": "raw",
@@ -4761,7 +4743,79 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "setField",
-    "line": 165,
+    "line": 175,
+    "access": "write",
+    "field": "countriesData",
+    "via": "raw",
+    "expression": "feature.properties.metadata = { ...feature.properties.metadata }",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "setField",
+    "line": 176,
+    "access": "write",
+    "field": "countriesData",
+    "via": "raw",
+    "expression": "delete feature.properties.metadata[field]",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "setField",
+    "line": 177,
+    "access": "write",
+    "field": "countriesData",
+    "via": "raw",
+    "expression": "feature.properties.metadata[field] = value",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "setField",
+    "line": 179,
     "access": "write",
     "field": "countriesData",
     "via": "raw",
@@ -4785,61 +4839,11 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "appendEntities",
-    "line": 197,
-    "access": "read",
-    "field": "countryOverrides",
-    "via": "raw",
-    "expression": "current.countryOverrides",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "appendEntities",
-        "countriesData",
-        "countryFeature",
-        "countryOverrides",
-        "removeEntities",
-        "units"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Physical storage owner/indexed lookup and candidate construction."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "appendEntities",
-    "line": 207,
-    "access": "read",
-    "field": "countriesData",
-    "via": "raw",
-    "expression": "current.countriesData",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "appendEntities",
-        "countriesData",
-        "countryFeature",
-        "countryOverrides",
-        "removeEntities",
-        "units"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Physical storage owner/indexed lookup and candidate construction."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "appendEntities",
     "line": 211,
     "access": "read",
-    "field": "territorialUnits",
+    "field": "countryOverrides",
     "via": "raw",
-    "expression": "current.territorialUnits",
+    "expression": "current.countryOverrides",
     "classification": {
       "file": "assets/js/modules/territorial-entity-store.js",
       "functions": [
@@ -4859,8 +4863,8 @@
   },
   {
     "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "removeEntities",
-    "line": 230,
+    "function": "appendEntities",
+    "line": 221,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -4884,8 +4888,8 @@
   },
   {
     "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "removeEntities",
-    "line": 232,
+    "function": "appendEntities",
+    "line": 225,
     "access": "read",
     "field": "territorialUnits",
     "via": "raw",
@@ -4910,32 +4914,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "removeEntities",
-    "line": 235,
-    "access": "read",
-    "field": "countryOverrides",
-    "via": "raw",
-    "expression": "current.countryOverrides",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "appendEntities",
-        "countriesData",
-        "countryFeature",
-        "countryOverrides",
-        "removeEntities",
-        "units"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Physical storage owner/indexed lookup and candidate construction."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "removeEntities",
-    "line": 241,
+    "line": 244,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -4984,8 +4963,83 @@
   },
   {
     "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "removeEntities",
+    "line": 249,
+    "access": "read",
+    "field": "countryOverrides",
+    "via": "raw",
+    "expression": "current.countryOverrides",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "appendEntities",
+        "countriesData",
+        "countryFeature",
+        "countryOverrides",
+        "removeEntities",
+        "units"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Physical storage owner/indexed lookup and candidate construction."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "removeEntities",
+    "line": 255,
+    "access": "read",
+    "field": "countriesData",
+    "via": "raw",
+    "expression": "current.countriesData",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "appendEntities",
+        "countriesData",
+        "countryFeature",
+        "countryOverrides",
+        "removeEntities",
+        "units"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Physical storage owner/indexed lookup and candidate construction."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "removeEntities",
+    "line": 260,
+    "access": "read",
+    "field": "territorialUnits",
+    "via": "raw",
+    "expression": "current.territorialUnits",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "appendEntities",
+        "countriesData",
+        "countryFeature",
+        "countryOverrides",
+        "removeEntities",
+        "units"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Physical storage owner/indexed lookup and candidate construction."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
     "function": "replaceCollections",
-    "line": 263,
+    "line": 277,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -5009,7 +5063,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "replaceCollections",
-    "line": 273,
+    "line": 287,
     "access": "read",
     "field": "territorialUnits",
     "via": "raw",
@@ -5033,7 +5087,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "replaceCollections",
-    "line": 282,
+    "line": 296,
     "access": "read",
     "field": "countryOverrides",
     "via": "raw",
@@ -5057,7 +5111,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "replaceCollections",
-    "line": 294,
+    "line": 308,
     "access": "read",
     "field": "countryOverrides",
     "via": "raw",
@@ -5081,7 +5135,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "replaceCollections",
-    "line": 294,
+    "line": 308,
     "access": "write",
     "field": "countryOverrides",
     "via": "raw",
@@ -5105,175 +5159,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "replaceCollections",
-    "line": 295,
-    "access": "read",
-    "field": "countriesData",
-    "via": "raw",
-    "expression": "current.countriesData",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "state",
-        "replaceCollections",
-        "setField",
-        "setLocked"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Single canonical physical publisher; identity validated before structural publication."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "replaceCollections",
-    "line": 295,
-    "access": "write",
-    "field": "countriesData",
-    "via": "raw",
-    "expression": "current.countriesData = replacementCountries",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "state",
-        "replaceCollections",
-        "setField",
-        "setLocked"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Single canonical physical publisher; identity validated before structural publication."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "replaceCollections",
-    "line": 296,
-    "access": "read",
-    "field": "territorialUnits",
-    "via": "raw",
-    "expression": "current.territorialUnits",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "state",
-        "replaceCollections",
-        "setField",
-        "setLocked"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Single canonical physical publisher; identity validated before structural publication."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "replaceCollections",
-    "line": 296,
-    "access": "write",
-    "field": "territorialUnits",
-    "via": "raw",
-    "expression": "current.territorialUnits = replacementUnits",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "state",
-        "replaceCollections",
-        "setField",
-        "setLocked"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Single canonical physical publisher; identity validated before structural publication."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "replaceCollections",
-    "line": 300,
-    "access": "read",
-    "field": "countriesData",
-    "via": "raw",
-    "expression": "current.countriesData",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "state",
-        "replaceCollections",
-        "setField",
-        "setLocked"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Single canonical physical publisher; identity validated before structural publication."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "replaceCollections",
-    "line": 301,
-    "access": "read",
-    "field": "countriesData",
-    "via": "raw",
-    "expression": "current.countriesData",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "state",
-        "replaceCollections",
-        "setField",
-        "setLocked"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Single canonical physical publisher; identity validated before structural publication."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "replaceCollections",
-    "line": 305,
-    "access": "read",
-    "field": "territorialUnits",
-    "via": "raw",
-    "expression": "current.territorialUnits",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "state",
-        "replaceCollections",
-        "setField",
-        "setLocked"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Single canonical physical publisher; identity validated before structural publication."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "replaceCollections",
-    "line": 308,
+    "line": 309,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
@@ -5298,10 +5184,10 @@
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "replaceCollections",
     "line": 309,
-    "access": "read",
-    "field": "countryOverrides",
+    "access": "write",
+    "field": "countriesData",
     "via": "raw",
-    "expression": "current.countryOverrides",
+    "expression": "current.countriesData = replacementCountries",
     "classification": {
       "file": "assets/js/modules/territorial-entity-store.js",
       "functions": [
@@ -5343,43 +5229,191 @@
     }
   },
   {
-    "file": "assets/js/modules/territorial-fill-style.js",
-    "function": "createTerritorialFillResolver",
-    "line": 5,
-    "access": "read",
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "replaceCollections",
+    "line": 310,
+    "access": "write",
     "field": "territorialUnits",
     "via": "raw",
-    "expression": "state.territorialUnits",
+    "expression": "current.territorialUnits = replacementUnits",
     "classification": {
-      "file": "assets/js/modules/territorial-fill-style.js",
+      "file": "assets/js/modules/territorial-entity-store.js",
       "functions": [
-        "createTerritorialFillResolver"
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
       ],
       "access": [
-        "read"
+        "read",
+        "write"
       ],
-      "owner": "Pure territorial presentation",
-      "reason": "Explicit color/style input snapshots."
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
     }
   },
   {
-    "file": "assets/js/modules/territorial-fill-style.js",
-    "function": "createTerritorialFillResolver",
-    "line": 6,
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "replaceCollections",
+    "line": 314,
     "access": "read",
     "field": "countriesData",
     "via": "raw",
-    "expression": "state.countriesData",
+    "expression": "current.countriesData",
     "classification": {
-      "file": "assets/js/modules/territorial-fill-style.js",
+      "file": "assets/js/modules/territorial-entity-store.js",
       "functions": [
-        "createTerritorialFillResolver"
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "replaceCollections",
+    "line": 315,
+    "access": "read",
+    "field": "countriesData",
+    "via": "raw",
+    "expression": "current.countriesData",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "replaceCollections",
+    "line": 319,
+    "access": "read",
+    "field": "territorialUnits",
+    "via": "raw",
+    "expression": "current.territorialUnits",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "replaceCollections",
+    "line": 322,
+    "access": "read",
+    "field": "countriesData",
+    "via": "raw",
+    "expression": "current.countriesData",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "replaceCollections",
+    "line": 323,
+    "access": "read",
+    "field": "countryOverrides",
+    "via": "raw",
+    "expression": "current.countryOverrides",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "replaceCollections",
+    "line": 324,
+    "access": "read",
+    "field": "territorialUnits",
+    "via": "raw",
+    "expression": "current.territorialUnits",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "state",
+        "replaceCollections",
+        "setField",
+        "setLocked"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "TerritorialEntityStore",
+      "reason": "Single canonical physical publisher; identity validated before structural publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-interaction-policy.js",
+    "function": "removeTerritorialEntities",
+    "line": 46,
+    "access": "read",
+    "field": "countriesData",
+    "via": "raw",
+    "expression": "entityStore.countriesData",
+    "classification": {
+      "file": "assets/js/modules/territorial-interaction-policy.js",
+      "functions": [
+        "removeTerritorialEntities"
       ],
       "access": [
         "read"
       ],
-      "owner": "Pure territorial presentation",
-      "reason": "Explicit color/style input snapshots."
+      "owner": "Territorial deletion cleanup",
+      "reason": "Reads the pre-delete Store collection only to derive scene IDs; removal and relationship publication remain Store commands."
     }
   },
   {

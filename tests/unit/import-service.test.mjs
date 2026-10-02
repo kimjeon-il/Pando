@@ -200,7 +200,7 @@ test('historical replacement commits full country deletion and transfers depende
       assert.deepEqual(input.countries.map(feature => feature.id), ['historical-country:soviet-union']);
     },
     snapshotEditable: () => ({ marker: 'before' }),
-    restoreCountryEditSnapshot() { throw new Error('unexpected rollback'); },
+    restoreEditTransactionSnapshot() { throw new Error('unexpected rollback'); },
     appendImportedSourceInfo: (_previous, next) => next,
     scheduleCountryLabelAnchors() {},
     markCountryGeometriesChanged() {},

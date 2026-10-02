@@ -22,7 +22,7 @@ export function createColorPicker() {
     if (!picker) return;
     const fallback = kind === 'country' ? (0, dependencies.colorModel.defaultCountryColor)()
       : (kind === 'subunit') && (dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)
-        ? (0, dependencies.colorModel.territorialUnitColor)((0, dependencies.objectPresentation.territorialUnitById)(dependencies.projectState.state.selected.id))
+        ? (0, dependencies.colorModel.territorialEntityColor)(dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected.id))
         : dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR;
     const resolvedDefault = normalizeEditorColor(defaultColor, fallback);
     const resolvedValue = normalizeEditorColor(value, resolvedDefault);
@@ -129,29 +129,10 @@ export function createColorPicker() {
     if (picker.hasAttribute('data-color-custom-only')) control.element.scrollIntoView({ block: 'nearest' });
   }
 
-  function resetCountryColor() {
-    if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return false;
-    const id = dependencies.projectState.state.selected.id;
-    const entity = dependencies.territorialModel.entityRepository.get(id);
-    const feature = entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity : null;
-    const override = { ...dependencies.territorialModel.entityStore.countryOverride(id) };
-    const color = (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() });
-    if (color.isDefault) {
-      syncColorPicker('country', { value: (0, dependencies.colorModel.defaultCountryColor)(), defaultColor: (0, dependencies.colorModel.defaultCountryColor)(), isDefault: true });
-      return true;
-    }
-    const result = dependencies.objectModelB.territorialApplicationService.updateMetadata(
-      dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
-      id,
-      'color',
-      '',
-    );
-    if (!result.ok) return false;
-    dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-color-reset');
-    dependencies.domains.renderingDomain?.invalidateBaseScene?.('country-color-reset');
-    (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(id, true);
-    (0, dependencies.feedback.setActionStatus)('국가 색상을 기본값으로 되돌렸습니다.', 'success');
-    return true;
+  function resetTerritorialColor(kind) {
+    const ref = dependencies.projectState.state.selected;
+    if (ref?.domain !== 'territorial' || ref.type !== kind) return false;
+    return dependencies.objectMetadata.commitTerritorialMetadata(ref, 'color', '').ok;
   }
 
   function resetGenericFeatureColor() {
@@ -173,19 +154,6 @@ export function createColorPicker() {
     return true;
   }
 
-  function resetTerritorialUnitColor(kind) {
-    if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return false;
-    const feature = (0, dependencies.objectPresentation.territorialUnitById)(dependencies.projectState.state.selected.id);
-    if (!feature) return false;
-    if (!(0, dependencies.objectModelB.territorialStyleColor)(feature)) {
-      const inherited = (0, dependencies.colorModel.territorialUnitColor)(feature);
-      syncColorPicker(kind, { value: inherited, defaultColor: inherited, isDefault: true });
-      return true;
-    }
-    (0, dependencies.objectMetadata.commitTerritorialUnitMeta)('color', '');
-    return true;
-  }
-
   function applyColorPickerSelection(kind, value, isDefault = false) {
     if (kind === 'multiProperties') {
       const color = normalizeEditorColor(value, '#3f6fae');
@@ -194,19 +162,19 @@ export function createColorPicker() {
       return true;
     }
     if (isDefault) {
-      if (kind === 'country') return resetCountryColor();
-      if (kind === 'subunit' || kind === 'region') return resetTerritorialUnitColor(kind);
+      if (kind === 'country') return resetTerritorialColor('country');
+      if (kind === 'subunit' || kind === 'region') return resetTerritorialColor(kind);
       return resetGenericFeatureColor();
     }
     const color = normalizeEditorColor(value, kind === 'country' ? (0, dependencies.colorModel.defaultCountryColor)() : dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR);
     if (kind === 'country') {
       if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return false;
-      (0, dependencies.objectMetadata.commitCountryEdit)('color', color);
+      dependencies.objectMetadata.commitTerritorialMetadata(dependencies.projectState.state.selected, 'color', color);
       return true;
     }
     if (kind === 'subunit' || kind === 'region') {
       if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return false;
-      (0, dependencies.objectMetadata.commitTerritorialUnitMeta)('color', color);
+      dependencies.objectMetadata.commitTerritorialMetadata(dependencies.projectState.state.selected, 'color', color);
       return true;
     }
     if (kind === 'distribution') {
@@ -316,8 +284,6 @@ export function createColorPicker() {
       document.querySelectorAll('[data-color-picker].is-open .ui-color-popover').forEach(alignColorPopoverToViewport);
     });
   }
-
-
 
   return Object.freeze({
     connect,

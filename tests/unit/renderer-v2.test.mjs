@@ -63,7 +63,7 @@ test('view-only coordinator frames do not invoke scene geometry rendering', () =
       view: () => { calls.push('view'); return gpuFrameResult; },
       countries: () => calls.push('countries'),
       selectionView: () => calls.push('selection-view'),
-      countryLabelPositions: () => calls.push('country-labels'),
+      territorialLabelPositions: () => calls.push('country-labels'),
       userLabelPositions: () => calls.push('user-labels'),
     },
   });
