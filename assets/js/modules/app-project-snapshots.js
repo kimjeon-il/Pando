@@ -216,7 +216,7 @@ export function createProjectSnapshots() {
     });
     if (!relationValidation.ok) throw new Error(relationValidation.issues[0] || '영역 관계가 올바르지 않습니다.');
     const distributionValidation = (0, dependencies.distributionServices.validateDistributionModel)(dependencies.projectState.state.distributionLayers, dependencies.projectState.state.distributionEntries, {
-      territorialExists: id => !!dependencies.presentation.territorialRepository.get(id),
+      territorialExists: id => !!dependencies.presentation.territorialEntityRepository.get(id),
     });
     if (!distributionValidation.ok) throw new Error(distributionValidation.issues[0] || '분포 참조가 올바르지 않습니다.');
     dependencies.projectState.state.layerFolders = (0, dependencies.layerTree.normalizeLayerFolderState)(dependencies.projectState.state.layerFolders);
