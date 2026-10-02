@@ -94,11 +94,11 @@ export function createLibraryAssembly() {
         const countries = dependencies.territorialModel.entityRepository.list({
           type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
         });
-        const units = dependencies.territorialModel.entityRepository.list()
+        const existingUnits = dependencies.territorialModel.entityRepository.list()
           .filter(feature => feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY);
         const prepared = (0, dependencies.libraryServices.prepareLibraryOwnership)({
           descriptors, resolve: libraryInstanceId, countries,
-          units, choices: options.ownership || {},
+          units: existingUnits, choices: options.ownership || {},
           allocateId: type => (0, dependencies.surfaces.uid)(`library_${type}`),
           // Exact containment is checked in the batch Worker before applying anything.
           contains: null,
