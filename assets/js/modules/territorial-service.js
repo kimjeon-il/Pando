@@ -37,7 +37,11 @@ export function createTerritorialApplicationService({
       if (field === 'parentId' || field === 'sovereignId' || field === 'unitType') {
         return { ok: false, code: 'unsupported-relation-field', unit: feature };
       }
-      const currentValue = field === 'color' ? feature.properties?.style?.color : feature.properties?.[field];
+      const currentValue = field === 'color'
+        ? feature.properties?.style?.color
+        : field === 'capital' || field === 'flagDataUrl'
+          ? feature.properties?.metadata?.[field]
+          : feature.properties?.[field];
       const hasExplicitValue = field === 'flagDataUrl'
         ? countryCommands.hasField?.(key, field) === true
         : currentValue !== undefined;
