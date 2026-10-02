@@ -14,7 +14,7 @@ export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
   countryIndex: Object.freeze(["countries","domains","geometryModel","layers","mapView","platform","projectState","spatialQuery"]),
   spatialIndex: Object.freeze(["countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
   geometryPreview: Object.freeze(["domains","feedback","geometryEditingCore","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry","validation"]),
-  territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel"]),
+  territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel","objectPresentation"]),
   countryValidation: Object.freeze(["countries","domains","geometryModel","geometryPreview","projectState","snapshots","spatialQuery"]),
   landRelations: Object.freeze(["cutGeometry","geometryModel","geometryPreview","layers","presentation","projectState","surfaces","territorialModel","territoryGeometry"]),
 });
@@ -22,9 +22,8 @@ export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
 export function createSpatialDataPorts(providers) {
   const ports = {
     countries: Object.freeze({
-      get builtinRenderCountries() { return providers.builtinSession.builtinRenderCountries; },
-      get countryFeatureById() { return providers.countryIndex.countryFeatureById; },
-      get countryLabelFeatureById() { return providers.builtinSession.countryLabelFeatureById; },
+      get builtinTerritorialScene() { return providers.builtinSession.builtinTerritorialScene; },
+      get territorialLabelFeatureById() { return providers.builtinSession.territorialLabelFeatureById; },
       get countryLandRevision() { return providers.countryIndex.countryLandRevision; },
       get PRISTINE_LABEL_ANCHORS() { return providers.builtinSession.PRISTINE_LABEL_ANCHORS; },
       get scheduleCountryLabelAnchors() { return providers.countryIndex.scheduleCountryLabelAnchors; },
@@ -57,12 +56,12 @@ export function createSpatialDataPorts(providers) {
       get planCoastEdit() { return providers.runtime.planCoastEdit; },
       get planSharedBoundaryEdit() { return providers.runtime.planSharedBoundaryEdit; },
       get previewIsCurrent() { return providers.runtime.previewIsCurrent; },
-      get runCountryEditTransaction() { return providers.runtime.runCountryEditTransaction; },
+      get runMapEditTransaction() { return providers.runtime.runMapEditTransaction; },
     }),
     geometryModel: Object.freeze({
       get ensureClosedRing() { return providers.runtime.ensureClosedRing; },
-      get hasCanonicalCountryWinding() { return providers.runtime.hasCanonicalCountryWinding; },
-      get normalizeCountryGeometry() { return providers.runtime.normalizeCountryGeometry; },
+      get hasCanonicalPolygonWinding() { return providers.runtime.hasCanonicalPolygonWinding; },
+      get normalizePolygonGeometry() { return providers.runtime.normalizePolygonGeometry; },
       get ringSignedArea() { return providers.runtime.ringSignedArea; },
       get snapLineEndpointsToBoundary() { return providers.runtime.snapLineEndpointsToBoundary; },
       get validateStructuredGeometry() { return providers.runtime.validateStructuredGeometry; },
@@ -76,7 +75,7 @@ export function createSpatialDataPorts(providers) {
       get rebuildBoundaryTopology() { return providers.geometryPreview.rebuildBoundaryTopology; },
     }),
     labels: Object.freeze({
-      get countryOutlineCache() { return providers.countryLabels.countryOutlineCache; },
+      get countryOutlineCache() { return providers.territorialLabels.countryOutlineCache; },
     }),
     layers: Object.freeze({
       get markLayerTreeDirty() { return providers.layerList.markLayerTreeDirty; },
@@ -118,7 +117,6 @@ export function createSpatialDataPorts(providers) {
       get runtimeAssetUrl() { return providers.environment.runtimeAssetUrl; },
     }),
     presentation: Object.freeze({
-      get countryName() { return providers.objectPresentation.countryName; },
       get genericFeatureDisplayFeature() { return providers.objectPresentation.genericFeatureDisplayFeature; },
     }),
     projectState: Object.freeze({
@@ -186,7 +184,6 @@ export function createSpatialDataPorts(providers) {
       get TERRITORIAL_UNIT_TYPES() { return providers.runtime.TERRITORIAL_UNIT_TYPES; },
     }),
     territoryGeometry: Object.freeze({
-      get countryUnionFromFeatures() { return providers.territoryComponents.countryUnionFromFeatures; },
       get geometryMultiCoordinates() { return providers.territoryComponents.geometryMultiCoordinates; },
       get multiPolygonPlanarArea() { return providers.territoryComponents.multiPolygonPlanarArea; },
       get pointInGenericFeature() { return providers.landRelations.pointInGenericFeature; },
@@ -196,7 +193,7 @@ export function createSpatialDataPorts(providers) {
       get territorialUnitContainer() { return providers.objectMetadata.territorialUnitContainer; },
     }),
     validation: Object.freeze({
-      get restoreCountryEditSnapshot() { return providers.countryValidation.restoreCountryEditSnapshot; },
+      get restoreEditTransactionSnapshot() { return providers.projectSnapshots.restoreEditTransactionSnapshot; },
     }),
   };
   return Object.freeze(ports);
@@ -208,7 +205,7 @@ export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
   objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectCatalog","objectPresentation","platform","projectState","spatialQuery","territorialModel"]),
   hydroSettings: Object.freeze(["colorModel","hydroPresentation","layerPresentation","mapLayout","objectPresentation","physicalConfig","platform","preferences","projectState","surfaces"]),
   layerList: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectCatalog","objectPresentation","platform","projectState","rendering","territorialModel"]),
-  countryLabels: Object.freeze(["colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces","territorialModel"]),
+  territorialLabels: Object.freeze(["colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces","territorialModel"]),
   physicalResources: Object.freeze(["cutGeometry","domains","feedback","hydroPresentation","labelPresentation","layerPresentation","mapView","operationFeedback","physicalConfig","physicalServices","platform","projectState","rendering"]),
   interactionPackets: Object.freeze(["distributionPresentation","domains","draftPresentation","mapLayers","objectCatalog","platform","preferences","projectState","renderScene","surfaces"]),
 });
@@ -217,13 +214,12 @@ function createMapResourcePorts(providers) {
   return Object.freeze({
     colorModel: Object.freeze({
       get COLOR_DOMAINS() { return providers.runtime.COLOR_DOMAINS; },
-      get countryColor() { return providers.objectPresentation.countryColor; },
       get DEFAULT_GENERIC_FEATURE_COLOR() { return providers.environment.DEFAULT_GENERIC_FEATURE_COLOR; },
       get defaultCountryColor() { return providers.environment.defaultCountryColor; },
       get genericFeatureColor() { return providers.objectPresentation.genericFeatureColor; },
       get normalizeEditorColor() { return providers.colorPicker.normalizeEditorColor; },
       get readDomainColor() { return providers.runtime.readDomainColor; },
-      get territorialUnitColor() { return providers.objectPresentation.territorialUnitColor; },
+      get territorialEntityColor() { return providers.objectPresentation.territorialEntityColor; },
       get writeDomainColor() { return providers.runtime.writeDomainColor; },
     }),
     distributionPresentation: Object.freeze({
@@ -261,16 +257,15 @@ function createMapResourcePorts(providers) {
       get hydroLineParts() { return providers.pointerTargets.hydroLineParts; },
     }),
     labelPresentation: Object.freeze({
-      get labelById() { return providers.countryLabels.labelById; },
-      get builtinPlaces() { return providers.countryLabels.builtinPlaces; },
+      get labelById() { return providers.territorialLabels.labelById; },
+      get builtinPlaces() { return providers.territorialLabels.builtinPlaces; },
       get automaticLabelSettings() { return providers.runtime.automaticLabelSettings; },
       get buildRenderableStrokeFeature() { return providers.runtime.buildRenderableStrokeFeature; },
       get countryLabelAnchors() { return providers.countryIndex.countryLabelAnchors; },
-      get currentMapZoom() { return providers.countryLabels.currentMapZoom; },
-      get effectiveCountryFlagUrl() { return providers.runtime.effectiveCountryFlagUrl; },
+      get currentMapZoom() { return providers.territorialLabels.currentMapZoom; },
       get LABEL_PRIORITIES() { return providers.runtime.LABEL_PRIORITIES; },
       get labelKey() { return providers.runtime.labelKey; },
-      get layoutCountryFlags() { return providers.runtime.layoutCountryFlags; },
+      get layoutTerritorialFlags() { return providers.runtime.layoutTerritorialFlags; },
       get layoutLabels() { return providers.runtime.layoutLabels; },
       get pendingCountryLabelAnchors() { return providers.countryIndex.pendingCountryLabelAnchors; },
     }),
@@ -309,15 +304,13 @@ function createMapResourcePorts(providers) {
     }),
     objectPresentation: Object.freeze({
       get countryDisplayName() { return providers.runtime.countryDisplayName; },
-      get countryName() { return providers.objectPresentation.countryName; },
       get createTerritorialScopeResolver() { return providers.runtime.createTerritorialScopeResolver; },
       get defaultGeographicName() { return providers.runtime.defaultGeographicName; },
       get genericFeatureGeometryKind() { return providers.runtime.genericFeatureGeometryKind; },
       get genericFeatureName() { return providers.objectPresentation.genericFeatureName; },
       get genericFeatureRoleLabel() { return providers.objectPresentation.genericFeatureRoleLabel; },
-      get territorialUnitById() { return providers.objectPresentation.territorialUnitById; },
-      get territorialUnitCountryName() { return providers.objectPresentation.territorialUnitCountryName; },
-      get territorialUnitName() { return providers.objectPresentation.territorialUnitName; },
+      get administrativeCountryName() { return providers.objectPresentation.administrativeCountryName; },
+      get territorialEntityName() { return providers.objectPresentation.territorialEntityName; },
     }),
     operationFeedback: Object.freeze({
       get reliabilityDiagnostic() { return providers.environment.reliabilityDiagnostic; },

@@ -11,6 +11,24 @@ const unit = (id, parentId, geometry, sovereignId = 'KR') => createTerritorialFe
 const created = geometry => unit('new', 'KR', geometry);
 const patch = (result, id) => result.features.find(feature => feature.id === id);
 
+test('region merge uses the common plan without administrative containment or adjacency and preserves its inputs', () => {
+  const regions = [createTerritorialFeature({ id: 'r1', unitType: 'region', name: 'R1', geometry: square(1, 1, 2, 2) }),
+    createTerritorialFeature({ id: 'r2', unitType: 'region', name: 'R2', geometry: square(20, 20, 21, 21) })];
+  const request = { operation: 'merge', targetId: 'r1', sourceIds: ['r2'], countries: [country()], units: regions };
+  const before = structuredClone(request);
+  const result = kernel.plan(request);
+  assert.deepEqual(request, before);
+  assert.equal(kernel.area(patch(result, 'r1').geometry), 2);
+  assert.deepEqual(result.removedIds, ['r2']);
+  assert.deepEqual(result.ownershipChanges, [{ id: 'r2', replacementId: 'r1' }]);
+  assert.equal(patch(result, 'KR'), undefined);
+  regions[1].properties.locked = true;
+  assert.throws(() => kernel.plan(request), /잠긴/);
+  regions[1].properties.locked = false;
+  regions[1].properties.unitType = 'subunit';
+  assert.throws(() => kernel.plan(request), /지방끼리/);
+});
+
 test('transfer preserves its input snapshot and rejects locked descendants at final validation', () => {
   const countries = [country('KR', square(0, 0, 5, 5)), country('JP', square(5, 0, 10, 5))];
   const source = unit('source', 'KR', square(4, 0, 5, 5));

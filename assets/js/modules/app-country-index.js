@@ -32,8 +32,8 @@ export function createCountryIndex() {
     const out = fc?.type === 'FeatureCollection' ? fc : { type: 'FeatureCollection', features: [] };
     dependencies.projectState.state.countryIndex.clear();
     out.features.forEach((feature, index) => {
-      if (!assumeCanonical && !(0, dependencies.geometryModel.hasCanonicalCountryWinding)(feature.geometry)) {
-        const normalizedGeometry = (0, dependencies.geometryModel.normalizeCountryGeometry)(feature.geometry);
+      if (!assumeCanonical && !(0, dependencies.geometryModel.hasCanonicalPolygonWinding)(feature.geometry)) {
+        const normalizedGeometry = (0, dependencies.geometryModel.normalizePolygonGeometry)(feature.geometry);
         if (normalizedGeometry) feature.geometry = normalizedGeometry;
       }
       feature.properties = feature.properties || {};
@@ -109,7 +109,7 @@ export function createCountryIndex() {
     for (const [id, task] of labelFallbackQueue) {
       labelFallbackQueue.delete(id);
       if (task.generation !== dependencies.domains.projectDomain.getGeneration() || task.version !== countryLabelAnchorVersions.get(id)) continue;
-      const feature = (0, dependencies.countries.countryLabelFeatureById)(id);
+      const feature = (0, dependencies.countries.territorialLabelFeatureById)(id);
       if (feature && !validLabelAnchor(countryLabelAnchors.get(id))) { countryLabelAnchors.set(id, fallbackCountryLabelAnchor(feature)); changed = true; }
       if (performance.now() - start >= 4) break;
     }
@@ -132,7 +132,7 @@ export function createCountryIndex() {
       if (message.type === 'error') {
         console.warn('Country label anchor worker failed', message.message);
         for (const { id } of flight.items) {
-          const feature = (0, dependencies.countries.countryLabelFeatureById)(id);
+          const feature = (0, dependencies.countries.territorialLabelFeatureById)(id);
           if (feature) queueCountryLabelFallback(id);
           pendingCountryLabelAnchors.delete(id);
         }
@@ -143,7 +143,7 @@ export function createCountryIndex() {
       for (const result of message.results || []) {
         const id = String(result.id || '');
         if (countryLabelAnchorVersions.get(id) !== Number(result.version || 0)) continue;
-        const feature = (0, dependencies.countries.countryLabelFeatureById)(id);
+        const feature = (0, dependencies.countries.territorialLabelFeatureById)(id);
         if (feature && validLabelAnchor(result.anchor)) countryLabelAnchors.set(id, [Number(result.anchor[0]), Number(result.anchor[1])]);
         else if (feature) queueCountryLabelFallback(id);
         pendingCountryLabelAnchors.delete(id);
@@ -156,7 +156,7 @@ export function createCountryIndex() {
       countryLabelAnchorWorker?.terminate();
       countryLabelAnchorWorker = null;
       for (const id of [...pendingCountryLabelAnchors]) {
-        const feature = (0, dependencies.countries.countryLabelFeatureById)(id);
+        const feature = (0, dependencies.countries.territorialLabelFeatureById)(id);
         if (feature) queueCountryLabelFallback(id);
         pendingCountryLabelAnchors.delete(id);
       }
@@ -192,7 +192,7 @@ export function createCountryIndex() {
     const batchStartedAt = performance.now();
     const items = [];
     for (const id of pendingCountryLabelAnchors) {
-      const feature = (0, dependencies.countries.countryLabelFeatureById)(id);
+      const feature = (0, dependencies.countries.territorialLabelFeatureById)(id);
       if (!feature?.geometry) continue;
       items.push({
         id,
@@ -210,7 +210,7 @@ export function createCountryIndex() {
       countryLabelAnchorFlight = null;
       countryLabelAnchorWorker = null;
       for (const item of items) {
-        const feature = (0, dependencies.countries.countryLabelFeatureById)(item.id);
+        const feature = (0, dependencies.countries.territorialLabelFeatureById)(item.id);
         if (feature) queueCountryLabelFallback(item.id);
         pendingCountryLabelAnchors.delete(item.id);
       }
@@ -219,7 +219,7 @@ export function createCountryIndex() {
 
   function scheduleCountryLabelAnchors(ids = null, delay = 30) {
     const requested = ids ? new Set([...ids].map(String)) : null;
-    const sources = (0, dependencies.countries.builtinRenderCountries)();
+    const sources = (0, dependencies.countries.builtinTerritorialScene)();
     for (const id of countryLabelAnchorGeometries.keys()) {
       if (sources.labelById.has(id)) continue;
       countryLabelAnchorGeometries.delete(id);
@@ -244,11 +244,6 @@ export function createCountryIndex() {
     (0, dependencies.layers.markLayerTreeDirty)();
     clearTimeout(countryLabelAnchorTimer);
     countryLabelAnchorTimer = setTimeout(flushCountryLabelAnchorQueue, delay);
-  }
-
-  function countryFeatureById(id) {
-    const idx = dependencies.projectState.state.countryIndex.get(String(id));
-    return idx === undefined ? null : dependencies.projectState.state.countriesData?.features?.[idx] || null;
   }
 
   function initializeCountryLandRevision() {
@@ -281,7 +276,7 @@ export function createCountryIndex() {
     initializeCountryLabelAnchorWorker,
     initializeLabelFallbackQueue,
     get applyPristineLabelAnchors() { return applyPristineLabelAnchors; },
-    get countryFeatureById() { return countryFeatureById; },
+
     get countryLabelAnchors() { return countryLabelAnchors; },
     get countryLandRevision() { return countryLandRevision; },
     set countryLandRevision(value) { countryLandRevision = value; },

@@ -38,7 +38,7 @@ function loadClassicScript(relativePath, globalName) {
 
 const d3 = loadClassicScript(path.join('assets', 'js', 'vendor', 'd3.min.js'), 'd3');
 const earcut = loadClassicScript(path.join('assets', 'js', 'vendor', 'earcut.min.js'), 'earcut');
-const countryGeometry = loadClassicScript(path.join('assets', 'js', 'modules', 'country-geometry.js'), 'PandoLabCountryGeometry');
+const countryGeometry = loadClassicScript(path.join('assets', 'js', 'modules', 'polygon-geometry.js'), 'PandoLabPolygonGeometry');
 const meshCore = loadClassicScript(path.join('assets', 'js', 'workers', 'gpu-mesh-core.js'), 'PandoLabGpuMeshCore');
 
 function sha256(value) {
@@ -68,7 +68,7 @@ function minimalFeature(featureValue, index) {
 
 function canonicalFeatureIssues(featureValue) {
   const issues = validateGeometry(featureValue);
-  if (!countryGeometry.hasCanonicalCountryWinding(featureValue?.geometry)) {
+  if (!countryGeometry.hasCanonicalPolygonWinding(featureValue?.geometry)) {
     issues.push({ kind: 'noncanonical-winding', message: '국가 고리 방향 또는 구조가 canonical 규격과 다릅니다.' });
   }
   return issues;
@@ -80,8 +80,8 @@ function buildPreview(canonicalSource) {
   if (canonicalFeatures.length !== 258 || new Set(canonicalIds).size !== 258) throw new Error('canonical 국가 목록은 중복 없는 258개여야 합니다.');
   const { features, coordinateCount, simplificationQuantile } = buildTopologyPreview(canonicalFeatures, {
     maxCoordinates: MAX_COORDINATES,
-    normalizeGeometry: countryGeometry.normalizeCountryGeometry,
-    hasCanonicalWinding: countryGeometry.hasCanonicalCountryWinding,
+    normalizeGeometry: countryGeometry.normalizePolygonGeometry,
+    hasCanonicalWinding: countryGeometry.hasCanonicalPolygonWinding,
   });
   for (const featureValue of features) {
     const issues = canonicalFeatureIssues(featureValue);

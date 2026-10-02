@@ -8,7 +8,6 @@ import {
   createTerritorialFeature,
   normalizeTerritorialRelations,
   normalizeTerritorialUnits,
-  resolveTerritorialRelation,
   runTerritorialTransaction,
   validateTerritorialRelations,
 } from '../../assets/js/modules/territorial-units.js';
@@ -92,9 +91,6 @@ test('dated relations resolve by reference date and overlapping ranges are rejec
   const relations = normalizeTerritorialRelations([
     { id: 'r1', schemaVersion: 1, unitId: 't1', parentId: 'B', sovereignId: 'B', validFrom: '1900-01-01', validTo: '1910-12-31' },
   ]);
-  const resolved = resolveTerritorialRelation(unit, relations, '1905-01-01');
-  assert.equal(resolved.properties.parentId, 'B');
-  assert.equal(resolved.properties.sovereignId, 'B');
   const invalid = validateTerritorialRelations([unit], {
     countryExists: id => ['A', 'B'].includes(id),
     relations: [...relations, { id: 'r2', unitId: 't1', parentId: 'A', sovereignId: 'A', validFrom: '1905-01-01', validTo: '1920-01-01' }],

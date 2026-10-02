@@ -25,10 +25,10 @@ export function createProjectSnapshots() {
     // removals in delta/history snapshots so old sources cannot resurrect them.
     for (const unit of dependencies.projectState.state.territorialUnits) {
       const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
-      if (sourceId && !(0, dependencies.countries.countryFeatureById)(sourceId)) dependencies.projectState.state.historyDirtyCountryIds.add(sourceId);
+      if (sourceId && !dependencies.territorialModel.entityStore.countryFeature(sourceId)) dependencies.projectState.state.historyDirtyCountryIds.add(sourceId);
     }
     if (!project) for (const policy of dependencies.applicationConstantsA.BUILTIN_TERRITORY_MERGES) {
-      if (!(0, dependencies.countries.countryFeatureById)(policy.sourceId) && (0, dependencies.countries.countryFeatureById)(policy.controller)) {
+      if (!dependencies.territorialModel.entityStore.countryFeature(policy.sourceId) && dependencies.territorialModel.entityStore.countryFeature(policy.controller)) {
         dependencies.projectState.state.historyDirtyCountryIds.add(policy.sourceId);
         dependencies.projectState.state.historyDirtyCountryIds.add(policy.controller);
       }
@@ -48,10 +48,11 @@ export function createProjectSnapshots() {
         currentIds.add(id);
         if (dependencies.builtinCountries.canonicalCountryStore) {
           if (!dependencies.builtinCountries.canonicalCountryStore.getFingerprint(id)
-              || !dependencies.builtinCountries.canonicalCountryStore.geometryEquals(id, feature.geometry)) dependencies.projectState.state.historyDirtyCountryIds.add(id);
+              || !dependencies.builtinCountries.canonicalCountryStore.geometryEquals(id, feature.geometry)
+              || JSON.stringify(feature.properties) !== JSON.stringify(dependencies.builtinCountries.canonicalCountryStore.properties(id))) dependencies.projectState.state.historyDirtyCountryIds.add(id);
         } else {
           const pristine = (dependencies.builtinCountries.pristineCountriesFallback?.features || []).find(candidate => String(candidate.id || '') === id);
-          if (!pristine || JSON.stringify(pristine.geometry) !== JSON.stringify(feature.geometry)) dependencies.projectState.state.historyDirtyCountryIds.add(id);
+          if (!pristine || JSON.stringify(pristine.geometry) !== JSON.stringify(feature.geometry) || JSON.stringify(pristine.properties) !== JSON.stringify(feature.properties)) dependencies.projectState.state.historyDirtyCountryIds.add(id);
         }
       }
       const pristineIds = dependencies.builtinCountries.canonicalCountryStore?.ids?.()
@@ -107,7 +108,7 @@ export function createProjectSnapshots() {
           continue;
         }
         const current = currentById.get(id);
-        base.features.push(current && dependencies.builtinCountries.canonicalCountryStore.geometryEquals(id, current.geometry)
+        base.features.push(current && !dependencies.projectState.state.historyDirtyCountryIds.has(id) && dependencies.builtinCountries.canonicalCountryStore.geometryEquals(id, current.geometry)
           ? current
           : dependencies.builtinCountries.canonicalCountryStore.materializeFeature(id));
       }
@@ -153,6 +154,19 @@ export function createProjectSnapshots() {
       if (Object.hasOwn(saved, key)) dependencies.projectState.state.labelSettings[key] = (0, dependencies.platform.deepClone)(saved[key]);
       else delete dependencies.projectState.state.labelSettings[key];
     }
+  }
+
+  function restoreEditTransactionSnapshot(snapshot) {
+    const changedIds = new Set(dependencies.projectState.state.historyDirtyCountryIds);
+    applySharedProjectFields(snapshot, 'history');
+    restoreCountriesFromSnapshot(snapshot);
+    normalizeProjectObjects();
+    const restoredDirtyIds = new Set(dependencies.projectState.state.historyDirtyCountryIds);
+    for (const id of dependencies.projectState.state.historyDirtyCountryIds) changedIds.add(String(id));
+    (0, dependencies.spatialQuery.markCountryGeometriesChanged)(changedIds);
+    dependencies.projectState.state.historyDirtyCountryIds = restoredDirtyIds;
+    (0, dependencies.geometryPreview.rebuildBoundaryTopology)(dependencies.projectState.state.tool === 'territorial-border' ? dependencies.projectState.state.boundaryEditEntityIds : dependencies.projectState.state.coastEditCountryId);
+    dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-edit-snapshot-restored');
   }
 
   function snapshotEditable() {
@@ -326,6 +340,7 @@ export function createProjectSnapshots() {
     get normalizeProjectObjects() { return normalizeProjectObjects; },
     get restoreCountriesFromSnapshot() { return restoreCountriesFromSnapshot; },
     get restoreEditable() { return restoreEditable; },
+    get restoreEditTransactionSnapshot() { return restoreEditTransactionSnapshot; },
     get snapshotEditable() { return snapshotEditable; },
   });
 }

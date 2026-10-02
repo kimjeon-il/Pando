@@ -6,7 +6,7 @@ export async function composeApplication({ revision }) {
     factoryCameraNavigation, factoryReadinessNotifications, factoryCountryIndex, factorySpatialIndex,
     factoryGeometryPreview, factoryTerritorySelectionWorkflow, factoryTerritoryComponents, factoryCountryValidation, factoryLandRelations,
     factoryCutGeometry, factoryMapProjection, factoryObjectPresentation, factoryHydroSettings,
-    factoryLayerList, factoryCountryLabels, factoryPhysicalResources, factoryInteractionPackets,
+    factoryLayerList, factoryTerritorialLabels, factoryPhysicalResources, factoryInteractionPackets,
     factoryTerritoryComponentUi, factoryGpuScene, factoryMapAudit, factoryMapHost, factoryTaskPresentation,
     factoryCountryModes, factoryObjectPicking, factoryRiverCandidates, factoryCountryCommits,
     factoryGenericCommands, factoryPropertySelection, factoryTerritorialDrafts, factoryColorPicker,
@@ -40,7 +40,7 @@ export async function composeApplication({ revision }) {
     import(new URL(`./app-object-presentation.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-hydro-settings.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-layer-list.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
-    import(new URL(`./app-country-labels.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
+    import(new URL(`./app-territorial-labels.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-physical-resources.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-interaction-packets.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
     import(new URL(`./app-territory-component-ui.js?v=${encodeURIComponent(revision)}`, import.meta.url)),
@@ -104,7 +104,7 @@ export async function composeApplication({ revision }) {
   const objectPresentation = factoryObjectPresentation.createObjectPresentation();
   const hydroSettings = factoryHydroSettings.createHydroSettings();
   const layerList = factoryLayerList.createLayerList();
-  const countryLabels = factoryCountryLabels.createCountryLabels();
+  const territorialLabels = factoryTerritorialLabels.createTerritorialLabels();
   const physicalResources = factoryPhysicalResources.createPhysicalResources();
   const interactionPackets = factoryInteractionPackets.createInteractionPackets();
   const territoryComponentUi = factoryTerritoryComponentUi.createTerritoryComponentUi();
@@ -142,7 +142,7 @@ export async function composeApplication({ revision }) {
     serviceAssembly, renderQuality, pointerTargets, cameraNavigation, readinessNotifications,
     countryIndex, spatialIndex, geometryPreview, territorySelectionWorkflow, territoryComponents,
     countryValidation, landRelations, cutGeometry, mapProjection, objectPresentation, hydroSettings,
-    layerList, countryLabels, physicalResources, interactionPackets, territoryComponentUi, gpuScene,
+    layerList, territorialLabels, physicalResources, interactionPackets, territoryComponentUi, gpuScene,
     mapAudit, mapHost, taskPresentation, countryModes, objectPicking, riverCandidates, countryCommits,
     genericCommands, propertySelection, territorialDrafts, colorPicker, objectMetadata,
     territorialConversion, projectSnapshots, mapSettings, historyAssembly, projectRestore,
@@ -162,7 +162,7 @@ export async function composeApplication({ revision }) {
   });
   mapResourcesConnector.connectMapResources({
     ports: applicationPorts,
-    cutGeometry, mapProjection, objectPresentation, hydroSettings, layerList, countryLabels,
+    cutGeometry, mapProjection, objectPresentation, hydroSettings, layerList, territorialLabels,
     physicalResources, interactionPackets,
   });
   mapInteractionConnector.connectMapInteraction({
@@ -218,14 +218,14 @@ export async function composeApplication({ revision }) {
   mapHost.initializeMapHostBindings();
   lifecycleAssembly.initializeMapInteractionGate();
   spatialIndex.initializeGeometryBoundsCache();
-  countryLabels.initializeCountryOutlineCache();
+  territorialLabels.initializeCountryOutlineCache();
   spatialIndex.initializeMapObjectSpatialIndex();
   objectPresentation.initializeTerritorialScope();
-  countryLabels.initializeLabelLayoutMetrics();
+  territorialLabels.initializeLabelLayoutMetrics();
   spatialIndex.initializeViewportCullingMetrics();
   serviceAssembly.initializeSelectionPerformanceMetrics();
   countryIndex.initializeCountryLandRevision();
-  countryLabels.initializeCountryLabelScreenAreas();
+  territorialLabels.initializeTerritorialLabelScreenAreas();
   pointerTargets.initializeHoverPickFrame();
   countryIndex.initializeCountryLabelAnchorWorker();
   mapAudit.initializeGeometryValidationWorker();

@@ -32,7 +32,7 @@ export function createCutGeometry() {
   }
 
   function normalizeClippedLandGeometry(multiPolygon) {
-    return (0, dependencies.geometryModel.normalizeCountryGeometry)(multiPolygon);
+    return (0, dependencies.geometryModel.normalizePolygonGeometry)(multiPolygon);
   }
 
   function pointOnRingBoundary(point, rawRing, tolerance = 1e-7) {
@@ -132,7 +132,7 @@ export function createCutGeometry() {
       return dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.genericFeatureSplitSourceId))?.geometry || null;
     }
     if (dependencies.projectState.state.tool === 'split-territorial-unit') {
-      return ((0, dependencies.objectPresentation.territorialUnitById)(dependencies.projectState.state.territorialUnitSplitSourceId) || dependencies.projectState.state.territorialUnitSplitVirtualSource)?.geometry || null;
+      return (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.territorialUnitSplitSourceId) || dependencies.projectState.state.territorialUnitSplitVirtualSource)?.geometry || null;
     }
     const territorySelection = dependencies.projectState.state.territorySelectionSession;
     if (territorySelection?.tool === dependencies.projectState.state.tool && territorySelection.stage === 'selection'
@@ -505,23 +505,11 @@ export function createCutGeometry() {
     };
   }
 
-  function selectedCountryUnionGeometry(sourceIds) {
-    const ids = new Set((sourceIds || []).map(String));
-    if (!ids.size) throw new Error('영토를 가져올 국가를 하나 이상 선택하세요.');
-    const union = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(
-      dependencies.territorialModel.entityStore.countriesData().features,
-      ids,
-    );
-    const geometry = normalizeClippedLandGeometry(union);
-    if (!geometry) throw new Error('선택 국가의 영토 합집합을 만들 수 없습니다.');
-    return geometry;
-  }
-
   function applyWorkerCountryPatches(result, options = {}) {
     const updates = new Map((result.features || []).map(feature => {
       const next = (0, dependencies.platform.deepClone)(feature);
-      const normalizedGeometry = (0, dependencies.geometryModel.normalizeCountryGeometry)(next.geometry);
-      if (!normalizedGeometry) throw new Error(`${(0, dependencies.objectPresentation.countryName)(next)}의 편집 결과가 유효하지 않습니다.`);
+      const normalizedGeometry = (0, dependencies.geometryModel.normalizePolygonGeometry)(next.geometry);
+      if (!normalizedGeometry) throw new Error(`${(0, dependencies.objectPresentation.territorialEntityName)(next)}의 편집 결과가 유효하지 않습니다.`);
       next.geometry = normalizedGeometry;
       return [String(next.id || ''), next];
     }));
@@ -554,8 +542,6 @@ export function createCutGeometry() {
     }
   }
 
-
-
   return Object.freeze({
     connect,
 
@@ -567,6 +553,6 @@ export function createCutGeometry() {
     get coordinateBounds() { return coordinateBounds; },
     get normalizeClippedLandGeometry() { return normalizeClippedLandGeometry; },
     get segmentIntersectionDetail() { return segmentIntersectionDetail; },
-    get selectedCountryUnionGeometry() { return selectedCountryUnionGeometry; },
+
   });
 }

@@ -132,8 +132,8 @@ async function inspectLineCandidate(page) {
       css, fallbackOpacity, opacity: Number(getComputedStyle(selected).fillOpacity),
       sourceBounds: bounds(source), selectedBounds, packetBounds, packetArea,
       areas: candidates.map(node => area(node.__data__.geometry)), selectedArea: area(geometry),
-      canonical: window.PandoLabCountryGeometry.hasCanonicalCountryWinding(geometry),
-      sourceCanonical: window.PandoLabCountryGeometry.hasCanonicalCountryWinding(source),
+      canonical: window.PandoLabPolygonGeometry.hasCanonicalPolygonWinding(geometry),
+      sourceCanonical: window.PandoLabPolygonGeometry.hasCanonicalPolygonWinding(source),
       pathLength: selected.getAttribute('d').length,
       pathCoverage: filled / (mask.width * mask.height),
       pathRectRatio: rect.width * rect.height / (mapRect.width * mapRect.height),
@@ -362,7 +362,7 @@ for (const svgFallback of [false, true]) {
       .toHaveCSS('stroke', 'none', { timeout: 10_000 });
     const selected = await page.locator('path.territory-candidate.selected-candidate').evaluate(element => element.__data__.geometry);
     const result = await page.evaluate(async () => {
-      const { hasCanonicalCountryWinding } = await import('/assets/js/modules/map-edit-geometry.js');
+      const { hasCanonicalPolygonWinding } = await import('/assets/js/modules/map-edit-geometry.js');
       const candidate = document.querySelector('path.territory-candidate.selected-candidate');
       const preview = document.querySelector('path.geometry-preview-add.geometry-preview-fill');
       const transfer = window.__annexE2e.workerTransfers.at(-1);
@@ -389,7 +389,7 @@ for (const svgFallback of [false, true]) {
       let coverage = 0;
       for (let index = 3; index < pixels.length; index += 4) if (pixels[index]) coverage += 1;
       return {
-        canonical: hasCanonicalCountryWinding(geometry), transferCanonical: hasCanonicalCountryWinding(transfer),
+        canonical: hasCanonicalPolygonWinding(geometry), transferCanonical: hasCanonicalPolygonWinding(transfer),
         sphericalArea: window.d3.geo.area({ type: 'Feature', geometry }),
         candidateSphericalArea: window.d3.geo.area({ type: 'Feature', geometry: candidate.__data__.geometry }),
         mismatch: window.polygonClipping.xor(multi(geometry), multi(candidate.__data__.geometry)),

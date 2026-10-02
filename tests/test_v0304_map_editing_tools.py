@@ -35,9 +35,9 @@ class MapEditingToolsV0304Tests(unittest.TestCase):
         ):
             positions = [INDEX.index(f'id="{element_id}"') for element_id in ids]
             self.assertEqual(positions, sorted(positions))
-        self.assertIn("'country-border'", TOOLS)
+        self.assertIn("'territorial-border'", TOOLS)
         self.assertIn("'country-coast'", TOOLS)
-        self.assertIn("boundaryEditCountryIds", APP)
+        self.assertIn("boundaryEditEntityIds", APP)
 
     def test_removed_user_tools_and_ghost_controls_are_absent(self):
         removed_ids = (

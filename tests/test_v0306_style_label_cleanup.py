@@ -30,7 +30,7 @@ class StyleLabelCleanupTests(unittest.TestCase):
         self.assertIn("metrics.textWidth", block)
         self.assertIn("metrics.area", block)
         self.assertNotIn("pop_est", block)
-        layout = APP[APP.index("function visibleLabelLayout"):APP.index("function renderCountryLabels")]
+        layout = APP[APP.index("function visibleLabelLayout"):APP.index("function renderTerritorialLabels")]
         self.assertIn("countryLabelScreenMetrics(displayFeature", layout)
         self.assertIn("layoutLabels(qualityCandidates", layout)
         self.assertIn("protectedCandidates", layout)

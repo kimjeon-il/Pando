@@ -63,25 +63,19 @@ function normalizedFlagUrl(value) {
   return typeof value === 'string' && value.trim() ? value : null;
 }
 
-export function effectiveCountryFlagUrl({
-  countryId,
-  override = {},
-  assetRevision = '',
-} = {}) {
-  if (hasOwn(override, 'flagDataUrl')) return normalizedFlagUrl(override.flagDataUrl);
-  return currentCountryFlagUrl(countryId, { assetRevision });
-}
-
 export function effectiveTerritorialFlagUrl(feature, { assetRevision = '' } = {}) {
   const metadata = feature?.properties?.metadata || {};
+  if (feature?.properties?.unitType === 'country') {
+    if (hasOwn(metadata, 'flagDataUrl')) return normalizedFlagUrl(metadata.flagDataUrl);
+    return currentCountryFlagUrl(feature.id, { assetRevision });
+  }
   if (hasOwn(metadata, 'flagDataUrl')) return normalizedFlagUrl(metadata.flagDataUrl);
   if (metadata.defaultFlagDataUrl) return normalizedFlagUrl(metadata.defaultFlagDataUrl);
   const converted = metadata.convertedFromCountry;
-  if (converted) return effectiveCountryFlagUrl({
-    countryId: converted.countryId,
-    override: converted.override || {},
-    assetRevision,
-  });
+  if (converted) {
+    if (hasOwn(converted.override, 'flagDataUrl')) return normalizedFlagUrl(converted.override.flagDataUrl);
+    return currentCountryFlagUrl(converted.countryId, { assetRevision });
+  }
   const sourceCountryId = metadata.builtinSubunit?.sourceCountryId;
   return sourceCountryId ? currentCountryFlagUrl(sourceCountryId, { assetRevision }) : null;
 }

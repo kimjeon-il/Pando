@@ -1,4 +1,4 @@
-import { normalizeCountryGeometry, multiCoordinates, featureId } from './map-edit-geometry.js';
+import { normalizePolygonGeometry, multiCoordinates, featureId } from './map-edit-geometry.js';
 import './territorial-edit-plan.js';
 import { analyzeAdminCountryCoast } from './coast-reconciliation.js';
 
@@ -11,7 +11,7 @@ export function calculateParents(feature, candidates, clipper) {
 export function calculateUncoveredSource(parent, children, clipper) {
   if (!parent) throw new Error('상위 단위를 찾을 수 없습니다.');
   const occupied = children.length ? clipper.union(...children.map(feature => multiCoordinates(feature.geometry))) : [];
-  return { geometry: normalizeCountryGeometry({ type: 'MultiPolygon', coordinates: occupied.length
+  return { geometry: normalizePolygonGeometry({ type: 'MultiPolygon', coordinates: occupied.length
     ? clipper.difference(multiCoordinates(parent.geometry), occupied) : multiCoordinates(parent.geometry) }) };
 }
 

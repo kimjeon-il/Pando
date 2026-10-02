@@ -11,17 +11,11 @@ export function createObjectPropertyController(runtime = {}) {
     getElement,
     state,
     territorialUnitTypes,
+    replaceSelectOptions,
     distributionModes,
     colorDomains,
     defaultGenericFeatureColor,
     hydroToolConfig,
-    refreshTerritorialCoastAvailability,
-    territorialUnitById,
-    territorialUnitName,
-    territorialUnitCountryOptions,
-    territorialUnitParentOptions,
-    territorialParentOptions,
-    territorialUnitColor,
     territorialEntityRepository,
     distributionService,
     distributionEntriesForLayer,
@@ -44,8 +38,6 @@ export function createObjectPropertyController(runtime = {}) {
     gpuMapRenderer,
     readDomainColor,
     syncColorPicker,
-    replaceSelectOptions,
-    shouldShowTerritorialParentChoice,
     formatArea,
     geometryAreaKm2,
     layerNameCompare,
@@ -154,64 +146,6 @@ export function createObjectPropertyController(runtime = {}) {
       geometryAreaDisplayCache.set(geometry, area);
     }
     return ` · ${formatArea(area)}`;
-  }
-
-  function presentTerritorial(id, refreshOnly = false) {
-    const feature = territorialUnitById(id);
-    if (!feature) return false;
-    const properties = feature.properties || {};
-    const subunits = properties.unitType === territorialUnitTypes.SUBUNIT;
-    const region = properties.unitType === territorialUnitTypes.REGION;
-    const formType = region ? 'region' : 'subunit';
-    const displayName = territorialUnitName(feature);
-    show(formType, displayName, { resetScroll: !refreshOnly });
-    const prefix = region ? 'region' : 'subunit';
-    const normalizedName = String(properties.name || '').trim().toLocaleLowerCase('ko');
-    const conflict = !!normalizedName && territorialEntityRepository.list({ type: properties.unitType }).some(candidate => candidate.id !== feature.id
-      && String(candidate.properties?.sovereignId || '') === String(properties.sovereignId || '')
-      && String(candidate.properties?.name || '').trim().toLocaleLowerCase('ko') === normalizedName);
-    $(`${prefix}NameConflict`).classList.toggle('hidden', !conflict);
-    $(`${prefix}NameInput`).value = properties.name || '';
-    const countrySelect = $(`${prefix}CountryInput`);
-    const countryChoice = replaceSelectOptions(countrySelect, territorialUnitCountryOptions().filter(option => !subunits || option.value), properties.sovereignId, {
-      autoSelectSingle: true,
-      preserveInvalid: true,
-    });
-    countrySelect.closest('.field-group')?.classList.toggle('hidden', countryChoice.single);
-    const inheritedColor = territorialUnitColor({ ...feature, properties: { ...properties, style: {} } });
-    const color = readDomainColor(colorDomains.TERRITORIAL, { feature }, { inherited: inheritedColor, fallback: defaultGenericFeatureColor });
-    $(`${prefix}ColorInput`).value = color.value;
-    syncColorPicker(prefix, { value: color.value, defaultColor: inheritedColor, isDefault: color.isDefault });
-    $(`${prefix}NotesInput`).value = properties.notes || '';
-    const actionIds = region
-      ? ['reassignRegionShapeBtn', 'mergeRegionBtn', 'transferRegionBtn']
-      : ['addSubunitChildBtn', 'annexSubunitBtn', 'mergeSubunitBtn', 'reassignSubunitShapeBtn', 'editSubunitCoastBtn', 'reconcileSubunitCoastBtn', 'promoteSubunitBtn', 'removeSubunitDivisionBtn'];
-    for (const actionId of actionIds) $(actionId).disabled = properties.locked === true;
-    if (subunits) {
-      refreshTerritorialCoastAvailability?.(feature);
-      const parentOptions = territorialUnitParentOptions(feature);
-      $('subunitParentInput').disabled = properties.locked === true || parentOptions.pending === true;
-      $('subunitParentInput').setAttribute('aria-busy', String(parentOptions.pending === true));
-      replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId, { autoSelectSingle: true, preserveInvalid: false });
-      $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', !shouldShowTerritorialParentChoice({
-        sovereignId: properties.sovereignId,
-        parentId: properties.parentId,
-        options: parentOptions,
-      }));
-    } else if (region) {
-      replaceSelectOptions($('regionParentInput'), territorialParentOptions(feature), properties.parentId);
-      // Kept only to display pre-v5 relationship data; Region is not a new
-      // branch in the Country/Subunit hierarchy.
-      $('regionParentInput').disabled = true;
-      $('regionParentInput').closest('.field-group')?.classList.toggle('hidden', !properties.parentId
-        || String(properties.parentId) === String(properties.sovereignId));
-      $('regionValidFromInput').value = properties.validFrom || '';
-      $('regionValidToInput').value = properties.validTo || '';
-    }
-    $('selectionStatus').textContent = `${displayName}${areaSuffix(feature.geometry)}`;
-    syncStatusBar();
-    layerTreeController()?.syncSelection();
-    return true;
   }
 
   function distributionEntryLabel(entry) {
@@ -438,7 +372,6 @@ export function createObjectPropertyController(runtime = {}) {
 
   function present(ref, { refreshOnly = false } = {}) {
     if (!ref) return false;
-    if (ref.domain === 'territorial' && ref.type !== territorialUnitTypes.COUNTRY) return presentTerritorial(ref.id, refreshOnly);
     if (ref.domain === 'distribution') return presentDistribution(ref.id, refreshOnly);
     if (ref.domain === 'generic') return presentGeneric(ref.id, refreshOnly);
     if (ref.domain === 'label') return presentLabel(ref.id, refreshOnly);
@@ -446,5 +379,5 @@ export function createObjectPropertyController(runtime = {}) {
     return false;
   }
 
-  return Object.freeze({ show, syncActionTab, present, presentTerritorial, distributionEntryLabel });
+  return Object.freeze({ show, syncActionTab, present, distributionEntryLabel });
 }

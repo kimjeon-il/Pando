@@ -40,8 +40,8 @@ test('render resources use frame snapshots instead of Proxy traps', () => {
 });
 
 test('label and terrain view work scales with the visible frame', () => {
-  const labelMetricsStart = app.indexOf('function countryLabelScreenMetrics');
-  const labelMetricsEnd = app.indexOf('function shouldShowCountryLabel', labelMetricsStart);
+  const labelMetricsStart = app.indexOf('function territorialLabelScreenMetrics');
+  const labelMetricsEnd = app.indexOf('function shouldShowTerritorialLabel', labelMetricsStart);
   const labelMetricsSource = app.slice(labelMetricsStart, labelMetricsEnd);
   assert.ok(labelMetricsStart >= 0 && labelMetricsEnd > labelMetricsStart);
   assert.doesNotMatch(labelMetricsSource, /path\.bounds/);

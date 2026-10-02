@@ -1,4 +1,4 @@
-import { effectiveCountryFlagUrl, effectiveTerritorialFlagUrl } from './country-flags.js';
+import { effectiveTerritorialFlagUrl } from './country-flags.js';
 
 /** LayerList: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -113,13 +113,9 @@ export function createLayerList() {
         const id = String(feature.id || '');
         return {
           id,
-          name: (0, dependencies.objectPresentation.countryName)(feature),
-          color: (0, dependencies.colorModel.countryColor)(feature),
-          flagUrl: effectiveCountryFlagUrl({
-            countryId: id,
-            override: dependencies.territorialModel.entityStore.countryOverride(id),
-            assetRevision: dependencies.layerPresentation.ASSET_REVISION,
-          }),
+          name: (0, dependencies.objectPresentation.territorialEntityName)(feature),
+          color: (0, dependencies.colorModel.territorialEntityColor)(feature),
+          flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
           searchText: id,
           meta: group === 'countryLabels' && dependencies.labelPresentation.pendingCountryLabelAnchors.has(id) ? '계산 중' : '',
           selected: (dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY) && dependencies.projectState.state.selected.id === id,
@@ -131,12 +127,12 @@ export function createLayerList() {
         ? dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT
         : dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION;
       return dependencies.territorialModel.entityRepository.list({ type: kind }).map(feature => {
-        const countryLabel = (0, dependencies.objectPresentation.territorialUnitCountryName)(feature);
+        const countryLabel = (0, dependencies.objectPresentation.administrativeCountryName)(feature);
 
         return {
           id: String(feature.id),
-          name: (0, dependencies.objectPresentation.territorialUnitName)(feature),
-          color: (0, dependencies.colorModel.territorialUnitColor)(feature),
+          name: (0, dependencies.objectPresentation.territorialEntityName)(feature),
+          color: (0, dependencies.colorModel.territorialEntityColor)(feature),
           flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
           meta: '',
           searchText: countryLabel,
@@ -211,7 +207,7 @@ export function createLayerList() {
       countries: new Set(dependencies.territorialModel.entityRepository
         .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY })
         .map(feature => String(feature.id || ''))),
-      countryLabels: new Set((0, dependencies.countries.builtinRenderCountries)().labelById.keys()),
+      countryLabels: new Set((0, dependencies.countries.builtinTerritorialScene)().labelById.keys()),
       subunits: new Set(dependencies.territorialModel.entityRepository
         .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT })
         .map(feature => String(feature.id))),
@@ -230,8 +226,6 @@ export function createLayerList() {
 
     dependencies.domains.selectionDomain?.prune?.(null, { reason: 'prune-invalid-selection' });
   }
-
-
 
   return Object.freeze({
     connect,

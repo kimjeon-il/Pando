@@ -102,11 +102,13 @@ export function createTerritorialEntityStore({
     const key = text(id);
     if (!key) return false;
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      if (field === 'validFrom' || field === 'validTo') return Object.hasOwn(countryFeature(key)?.properties || {}, field);
       return Object.hasOwn(countryOverride(key), field);
     }
     const feature = rawEntity(type, key);
     if (!feature) return false;
     if (field === 'color') return Object.hasOwn(feature.properties?.style || {}, 'color');
+    if (field === 'flagDataUrl' || field === 'capital') return Object.hasOwn(feature.properties?.metadata || {}, field);
     return Object.hasOwn(feature.properties || {}, field);
   }
 
@@ -142,6 +144,12 @@ export function createTerritorialEntityStore({
     if (!feature) return false;
 
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      if (field === 'validFrom' || field === 'validTo') {
+        feature.properties = { ...feature.properties, [field]: value };
+        state().historyDirtyCountryIds ||= new Set();
+        state().historyDirtyCountryIds.add(key);
+        return true;
+      }
       const previous = countryOverride(key);
       if (field === 'flagDataUrl' && value === undefined) {
         if (!Object.hasOwn(previous, field)) return true;
@@ -155,6 +163,7 @@ export function createTerritorialEntityStore({
       const next = { ...previous };
       countryOverrides()[key] = next;
       if (field === 'color') writeCountryColor(feature, next, value);
+      else if (field === 'name' && !value) delete next.name;
       else next[field] = value;
       if (!Object.keys(next).length) delete countryOverrides()[key];
       return true;
@@ -162,6 +171,11 @@ export function createTerritorialEntityStore({
 
     feature.properties ||= {};
     if (field === 'color') writeUnitColor(feature, value);
+    else if (field === 'flagDataUrl' || field === 'capital') {
+      feature.properties.metadata = { ...feature.properties.metadata };
+      if (value === undefined) delete feature.properties.metadata[field];
+      else feature.properties.metadata[field] = value;
+    }
     else feature.properties[field] = value;
     return true;
   }

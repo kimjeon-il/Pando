@@ -51,7 +51,7 @@ export function createTaskPresentation() {
     const selection = dependencies.projectState.state.territorySelectionSession;
     const buttons = [
       ['annexTerritoryBtn', selection?.actionButtonId === 'annexTerritoryBtn' && selection.targetCountryId === selectedId],
-      ['editBorderBtn', dependencies.projectState.state.tool === 'country-border' && dependencies.projectState.state.boundaryEditCountryIds.includes(String(selectedId))],
+      ['editBorderBtn', dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditEntityIds.includes(String(selectedId))],
       ['editCoastBtn', dependencies.projectState.state.tool === 'country-coast' && dependencies.projectState.state.coastEditCountryId === selectedId],
       ['mergeCountryBtn', dependencies.projectState.state.tool === 'merge-country' && dependencies.projectState.state.mergeSourceCountryId === selectedId],
     ];
@@ -91,15 +91,13 @@ export function createTaskPresentation() {
 
   function countryDisplay(countryId) {
     const id = String(countryId || '');
-    const feature = id ? dependencies.territorialModel.entityStore.countryFeature(id) : null;
+    const feature = id ? dependencies.territorialModel.entityRepository.get(id) : null;
     if (!feature) return null;
-    const override = dependencies.territorialModel.entityStore.countryOverride(id);
     return {
-      name: dependencies.presentation.countryName(feature, override),
-      flagUrl: dependencies.labelPresentation.effectiveCountryFlagUrl({ countryId: id, override, assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
+      name: dependencies.objectPresentation.territorialEntityName(feature),
+      flagUrl: dependencies.territorialServicesA.effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
     };
   }
-
 
   function displayObject(ref) {
     const display = dependencies.objectOperationsA.objectDisplayInfo(ref);
@@ -391,7 +389,6 @@ export function createTaskPresentation() {
     return name || null;
   }
 
-
   function syncTaskResults(view, draft) {
     const state = dependencies.projectState.state;
     const section = dependencies.platform.$('modeTaskResults');
@@ -517,7 +514,6 @@ export function createTaskPresentation() {
     });
   }
 
-
   function syncTaskObjectCards(view) {
     const targets = currentTaskTargets();
     const focus = dependencies.platform.$('modeTaskTargetsFocusBtn');
@@ -579,7 +575,7 @@ export function createTaskPresentation() {
       return feature?.geometry ? [feature] : [];
     });
     if (!features.length) return false;
-    (0, dependencies.navigation.focusCountry)({ type: 'FeatureCollection', features }, {
+    (0, dependencies.navigation.fitMapToFeature)({ type: 'FeatureCollection', features }, {
       maxZoom: (0, dependencies.surfaces.isMobile)() ? 12 : 10,
     });
     return true;
@@ -601,12 +597,12 @@ export function createTaskPresentation() {
     const unitMergeMode = state.tool === 'merge-territorial-unit' && !!state.territorialUnitMergeSourceId;
     const unitSplitMode = state.tool === 'split-territorial-unit' && !!(state.territorialUnitSplitSourceId || state.territorialUnitSplitVirtualSource);
     const unitRedrawMode = state.tool === 'redraw-territorial-unit' && !!state.territorialUnitRedrawSourceId;
-    const boundarySelectMode = state.tool === 'country-border' && state.boundaryEditPhase === 'selecting';
-    const boundaryEditMode = state.tool === 'country-border' && state.boundaryEditPhase === 'editing';
-    const boundaryPreparation = ['country-border', 'country-coast'].includes(state.tool) ? state.boundaryPreparation : null;
+    const boundarySelectMode = state.tool === 'territorial-border' && state.boundaryEditPhase === 'selecting';
+    const boundaryEditMode = state.tool === 'territorial-border' && state.boundaryEditPhase === 'editing';
+    const boundaryPreparation = ['territorial-border', 'country-coast'].includes(state.tool) ? state.boundaryPreparation : null;
     const boundaryPending = ['pending', 'moving'].includes(boundaryPreparation?.status);
     const boundaryFailed = boundaryPreparation?.status === 'error';
-    const boundaryAnalysis = boundarySelectMode ? (0, dependencies.geometryOperations.boundaryEditSelectionAnalysis)(state.boundaryEditCountryIds) : null;
+    const boundaryAnalysis = boundarySelectMode ? (0, dependencies.geometryOperations.boundaryEditSelectionAnalysis)(state.boundaryEditEntityIds) : null;
     const boundaryReady = !boundarySelectMode || boundaryAnalysis.valid;
     const cutLineMode = genericSplitMode || unitSplitMode || selectionModel?.line;
     const cutLineReady = !cutLineMode || draft.cutAssessment?.valid === true;
@@ -730,7 +726,7 @@ export function createTaskPresentation() {
         disabled ||= previewMode && state.geometryPreview.session.validation?.blocking === true;
         if (hydroReview) label = '생성';
         else if (previewMode) label = '변경 적용';
-        else if (boundarySelectMode) label = `국경 편집 (${state.boundaryEditCountryIds.length})`;
+        else if (boundarySelectMode) label = `국경 편집 (${state.boundaryEditEntityIds.length})`;
         else if (boundaryEditMode || state.tool === 'country-coast') label = '수정 완료';
         else if (terrainMode) label = '그리기 완료';
         else if (mergeTargetMode) label = `합병 (${state.mergeTargetCountryIds.length})`;
@@ -775,12 +771,12 @@ export function createTaskPresentation() {
       : (0, dependencies.territorySelectionA.territorySelectionAdvance)();
     if (dependencies.projectState.state.geometryPreview.session) return (0, dependencies.geometryOperations.applyActiveGeometryPreview)();
     if (multiDraftReviewActive(dependencies.projectState.state) && !dependencies.domains.editingDomain?.draftInputActive?.()) return (0, dependencies.countryCommitFlow.completeMultiDraftCreation)();
-    if (['country-border', 'country-coast'].includes(dependencies.projectState.state.tool) && dependencies.projectState.state.boundaryPreparation?.status === 'error') {
+    if (['territorial-border', 'country-coast'].includes(dependencies.projectState.state.tool) && dependencies.projectState.state.boundaryPreparation?.status === 'error') {
       dependencies.projectState.state.boundaryPreparation.retry();
       return true;
     }
-    if (dependencies.projectState.state.tool === 'country-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') return (0, dependencies.countryEditingA.beginCountryBorderEditing)();
-    if (dependencies.projectState.state.tool === 'country-border') return (0, dependencies.countryEditingB.finishCountryBorderEdit)();
+    if (dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'selecting') return (0, dependencies.countryEditingA.beginTerritorialBorderEditing)();
+    if (dependencies.projectState.state.tool === 'territorial-border') return (0, dependencies.countryEditingB.finishTerritorialBorderEdit)();
     if (dependencies.projectState.state.tool === 'country-coast') return (0, dependencies.countryEditingB.finishCountryCoastEdit)();
     if (dependencies.projectState.state.tool === 'merge-generic-feature') return (0, dependencies.genericEditingA.completeGenericFeatureMerge)();
     if (dependencies.projectState.state.tool === 'merge-territorial-unit') return (0, dependencies.territorialEditingA.completeTerritorialUnitMerge)();

@@ -291,6 +291,10 @@ export function createCanonicalCountryStore(buffer, { expectedHeader = null } = 
       const index = resolveIndex(value);
       return Number.isInteger(index) ? `${fingerprints[index * 2].toString(16).padStart(8, '0')}${fingerprints[index * 2 + 1].toString(16).padStart(8, '0')}` : '';
     },
+    properties: value => {
+      const index = resolveIndex(value);
+      return Number.isInteger(index) ? { ...metadata[index].properties } : null;
+    },
     geometryEquals,
     materializeFeature,
     materializeCollection,

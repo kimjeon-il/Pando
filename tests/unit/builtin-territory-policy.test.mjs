@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from '../../assets/js/modules/builtin-territory-policy.js';
-import { effectiveCountryFlagUrl } from '../../assets/js/modules/country-flags.js';
+import { effectiveTerritorialFlagUrl } from '../../assets/js/modules/country-flags.js';
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
 const context = vm.createContext({});
 vm.runInContext(readFileSync(new URL('../../assets/js/vendor/polygon-clipping.min.js', import.meta.url), 'utf8'), context);
@@ -31,11 +31,11 @@ test('four island merges are disjoint, input-preserving, idempotent and preserve
 
 test('special flags are local SVGs; explicit removal and buffer-zone exception remain', () => {
   for (const id of ['CYN', 'SOL']) {
-    const url = effectiveCountryFlagUrl({ countryId: id });
+    const url = effectiveTerritorialFlagUrl({ id: id, properties: { unitType: 'country', metadata: {} } });
     const svg = readFileSync(new URL(url), 'utf8');
     assert.match(svg, /<svg\b/);
     assert.doesNotMatch(svg, /<script\b|<foreignObject\b|(?:href|src)=["']https?:/i);
-    assert.equal(effectiveCountryFlagUrl({ countryId: id, override: { flagDataUrl: null } }), null);
+    assert.equal(effectiveTerritorialFlagUrl({ id: id, properties: { unitType: 'country', metadata: { flagDataUrl: null } } }), null);
   }
-  assert.equal(effectiveCountryFlagUrl({ countryId: 'CNM' }), null);
+  assert.equal(effectiveTerritorialFlagUrl({ id: 'CNM', properties: { unitType: 'country', metadata: {} } }), null);
 });

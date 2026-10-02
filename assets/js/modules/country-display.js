@@ -19,6 +19,6 @@ export function countryDisplayName(feature, override = {}) {
   return defaultGeographicName(feature?.id, name) || '국가';
 }
 
-export function countrySelectionStatus(view, area = '') {
-  return [view.displayName, area].filter(Boolean).join(' · ');
+export function territorialSelectionStatus(view, area = '') {
+  return [view.statusName || view.displayName, area].filter(Boolean).join(' · ');
 }

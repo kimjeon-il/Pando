@@ -124,7 +124,7 @@ export function createCameraNavigation() {
     return { ...(0, dependencies.mapView.projectionLayoutMetrics)().fitInsets };
   }
 
-  function focusCountry(feature, { announce = false, maxZoom = null, preferredAnchor = null } = {}) {
+  function fitMapToFeature(feature, { announce = false, maxZoom = null, preferredAnchor = null } = {}) {
     if (!feature?.geometry && feature?.type !== 'FeatureCollection') return;
     const geometryCenter = dependencies.platform.d3.geo.centroid(feature);
     const anchor = (0, dependencies.countries.validLabelAnchor)(preferredAnchor) ? preferredAnchor.map(Number) : geometryCenter;
@@ -262,8 +262,6 @@ export function createCameraNavigation() {
     });
   }
 
-
-
   return Object.freeze({
     connect,
 
@@ -271,7 +269,7 @@ export function createCameraNavigation() {
     get dragLegacyMapViewBy() { return dragLegacyMapViewBy; },
     get dragMapBy() { return dragMapBy; },
     get focusCoordinate() { return focusCoordinate; },
-    get focusCountry() { return focusCountry; },
+    get fitMapToFeature() { return fitMapToFeature; },
     get resetView() { return resetView; },
     get selectLayerTreeItem() { return selectLayerTreeItem; },
     get transformMapView() { return transformMapView; },

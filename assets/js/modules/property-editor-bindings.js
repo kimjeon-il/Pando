@@ -5,7 +5,6 @@ export function createPropertyEditorBindings({
   TERRITORIAL_UNIT_TYPES,
   bindColorPickers,
   commitHydroEdit,
-  commitTerritorialUnitMeta,
   commitDistributionMeta,
   commitLabelEdit,
   removeDistributionEntry,
@@ -14,13 +13,13 @@ export function createPropertyEditorBindings({
   requestDraftDiscard,
   completeToolStart,
   startGeometryDistributionDraft,
-  requestTerritorialUnitDivisionRemoval,
+  requestObjectDeletion,
   enterTerritorialUnitCoastMode,
   enterTerritorialCreateWorkflow,
   enterTerritorialUnitAnnexMode,
   enterTerritorialUnitMergeMode,
   enterTerritorialUnitRedrawMode,
-  territorialUnitById,
+  entityRepository,
   reconcileAdminCountryCoast,
   requestTerritorialUnitPromotion,
   openTerritorialTypeModal,
@@ -36,7 +35,7 @@ export function createPropertyEditorBindings({
   undo,
   redo,
   closeObjectActionsMenu,
-  enterCountryBorderEditFromSelection,
+  enterTerritorialBorderEditFromSelection,
 } = {}) {
 
   let bound = false;
@@ -65,16 +64,6 @@ export function createPropertyEditorBindings({
     bindChangeFields([
       { id: 'hydroNameInput', field: 'name', commit: commitHydroEdit, transform: value => value.trim() },
       { id: 'hydroNotesInput', field: 'notes', commit: commitHydroEdit },
-      { id: 'subunitNameInput', field: 'name', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
-      { id: 'subunitCountryInput', field: 'sovereignId', commit: commitTerritorialUnitMeta },
-      { id: 'subunitParentInput', field: 'parentId', commit: commitTerritorialUnitMeta },
-      { id: 'subunitNotesInput', field: 'notes', commit: commitTerritorialUnitMeta },
-      { id: 'regionNameInput', field: 'name', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
-      { id: 'regionCountryInput', field: 'sovereignId', commit: commitTerritorialUnitMeta },
-      { id: 'regionParentInput', field: 'parentId', commit: commitTerritorialUnitMeta },
-      { id: 'regionValidFromInput', field: 'validFrom', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
-      { id: 'regionValidToInput', field: 'validTo', commit: commitTerritorialUnitMeta, transform: value => value.trim() },
-      { id: 'regionNotesInput', field: 'notes', commit: commitTerritorialUnitMeta },
       { id: 'distributionNameInput', field: 'name', commit: commitDistributionMeta, transform: value => value.trim() },
       { id: 'distributionUnitInput', field: 'unit', commit: commitDistributionMeta, transform: value => value.trim() },
       { id: 'distributionParentInput', field: 'parentId', commit: commitDistributionMeta },
@@ -119,7 +108,7 @@ export function createPropertyEditorBindings({
     });
     listen($('addTerritorialDistributionBtn'), 'click', addTerritorialDistributionEntry);
     listen($('addGeometryDistributionBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(startGeometryDistributionDraft())));
-    listen($('removeSubunitDivisionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitDivisionRemoval(getPrimary().id));
+    listen($('removeSubunitDivisionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestObjectDeletion([getPrimary()]));
     for (const id of ['addCountrySubunitBtn', 'addSubunitChildBtn']) {
       listen($(id), 'click', () => requestDraftDiscard(() => completeToolStart(enterTerritorialCreateWorkflow(TERRITORIAL_UNIT_TYPES.SUBUNIT))));
     }
@@ -130,7 +119,7 @@ export function createPropertyEditorBindings({
     listen($('reassignSubunitShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitRedrawMode(getPrimary().id))));
     listen($('reconcileSubunitCoastBtn'), 'click', () => {
       if (!(getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
-      const feature = territorialUnitById(getPrimary().id);
+      const feature = entityRepository.get(getPrimary().id);
       if (feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT || feature.properties?.locked === true) return;
       reconcileAdminCountryCoast(getPrimary().id);
     });
@@ -202,8 +191,8 @@ export function createPropertyEditorBindings({
       event.preventDefault();
       items[(current + delta + items.length) % items.length]?.focus();
     });
-    listen($('multiSubunitMergeBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterCountryBorderEditFromSelection('merge'))));
-    listen($('multiBorderEditBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterCountryBorderEditFromSelection())));
+    listen($('multiSubunitMergeBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterTerritorialBorderEditFromSelection('merge'))));
+    listen($('multiBorderEditBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterTerritorialBorderEditFromSelection())));
   }
 
   return Object.freeze({

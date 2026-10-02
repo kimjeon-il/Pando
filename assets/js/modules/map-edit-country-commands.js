@@ -1,5 +1,5 @@
-import { normalizeCountryGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, polygonBounds, featureId, clone } from './map-edit-geometry.js';
-import { ringSignedArea, hasCanonicalCountryWinding } from './map-edit-geometry.js';
+import { normalizePolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, polygonBounds, featureId, clone } from './map-edit-geometry.js';
+import { ringSignedArea, hasCanonicalPolygonWinding } from './map-edit-geometry.js';
 import { clippingOperationWithPrecisionRetry } from './polygon-clipping-calculation.js';
 
 /** Calculation kernel; every command owns a private working map. */
@@ -128,7 +128,7 @@ export function createCountryCommandCalculator(clipper) {
         } else polygons.push(piece);
       }
     }
-    return { affected, geometry: normalizeCountryGeometry(polygons) };
+    return { affected, geometry: normalizePolygonGeometry(polygons) };
   }
 
   function unionAreaWithGeometry(geometry, areaCoordinates) {
@@ -140,7 +140,7 @@ export function createCountryCommandCalculator(clipper) {
       else untouched.push(clone(polygon));
     }
     const merged = nearby.length ? clippingOperation('union', ...nearby, areaCoordinates) : clone(areaCoordinates);
-    return normalizeCountryGeometry([...untouched, ...merged]);
+    return normalizePolygonGeometry([...untouched, ...merged]);
   }
 
   function boundaryLength(geometry) {
@@ -158,7 +158,7 @@ export function createCountryCommandCalculator(clipper) {
 
   function geometryValid(geometry) {
     const polygons = multiCoordinates(geometry);
-    if (!polygons.length || !hasCanonicalCountryWinding(geometry)) return false;
+    if (!polygons.length || !hasCanonicalPolygonWinding(geometry)) return false;
     return polygons.every(polygon => polygon?.length && polygon.every(ring => {
       if (!Array.isArray(ring) || ring.length < 4) return false;
       const first = ring[0], last = ring[ring.length - 1];
@@ -278,7 +278,7 @@ export function createCountryCommandCalculator(clipper) {
     const baseline = captureBaseline(working, affectedIds);
     applyPatch(working, updates, removedIds);
     validateResult(working, new Set([targetId, ...affectedDonorIds]), baseline, { allowAreaChange: allowUnclaimed });
-    const transferredGeometry = normalizeCountryGeometry(transferred);
+    const transferredGeometry = normalizePolygonGeometry(transferred);
     if (!transferredGeometry) throw new Error('편입 결과의 표시 형상이 유효하지 않습니다.');
     return {
       features: updates, removedIds, affectedIds: [targetId, ...affectedDonorIds], affectedDonorIds,
@@ -317,7 +317,7 @@ export function createCountryCommandCalculator(clipper) {
     const affectedIds = new Set([sourceId, ...targetIds]);
     const baseline = captureBaseline(working, affectedIds);
     const next = clone(source);
-    next.geometry = normalizeCountryGeometry(clippingOperation('union', source.geometry.coordinates, ...targets.map(feature => feature.geometry.coordinates)));
+    next.geometry = normalizePolygonGeometry(clippingOperation('union', source.geometry.coordinates, ...targets.map(feature => feature.geometry.coordinates)));
     applyPatch(working, [next], targetIds);
     validateResult(working, affectedIds, baseline);
     return { features: [next], removedIds: targetIds, affectedIds: [...affectedIds], seamless: true };
@@ -352,14 +352,13 @@ export function createCountryCommandCalculator(clipper) {
     }
     if (!affectedSourceIds.length) throw new Error('선택 영역과 겹치는 국가가 없습니다.');
     const baseline = captureBaseline(working, new Set(affectedSourceIds));
-    newFeature.geometry = normalizeCountryGeometry(transferred);
+    newFeature.geometry = normalizePolygonGeometry(transferred);
     updates.push(newFeature);
     applyPatch(working, updates, removedIds);
     const affectedIds = new Set([...affectedSourceIds, newId]);
     validateResult(working, affectedIds, baseline);
     return { features: updates, removedIds, affectedIds: [...affectedIds], affectedSourceIds, transferredArea: area(transferred), newCountryId: newId };
   }
-
 
   function calculate(message, countries) {
     const working = new Map(countries);

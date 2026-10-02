@@ -222,7 +222,6 @@ export function createMapRenderCoordinator({
         callRenderer('snapIndicator', rendererTimes, viewState);
       }
 
-
       if (mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.EDITING_OVERLAYS)) {
         callRenderer('selectionData', rendererTimes, viewState);
       } else if (mask & MAP_RENDER_DIRTY.SELECTION_STYLE) {
@@ -254,11 +253,10 @@ export function createMapRenderCoordinator({
         });
       }
 
-
       if (mask & MAP_RENDER_DIRTY.LABEL_LAYOUT) {
         const labelLayout = callRenderer('labelLayout', rendererTimes, viewState);
         if (renderers.labelLayout) metrics.labelLayoutCount += 1;
-        callRenderer('countryLabels', rendererTimes, labelLayout, viewState);
+        callRenderer('territorialLabels', rendererTimes, labelLayout, viewState);
         callRenderer('userLabels', rendererTimes, labelLayout, viewState);
       }
 

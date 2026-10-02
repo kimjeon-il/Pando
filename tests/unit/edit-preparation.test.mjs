@@ -4,10 +4,10 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 vm.runInThisContext(readFileSync(new URL('../../assets/js/vendor/d3.min.js', import.meta.url), 'utf8'));
 import '../../assets/js/vendor/polygon-clipping.min.js';
-import '../../assets/js/modules/country-geometry.js';
+import '../../assets/js/modules/polygon-geometry.js';
 import { prepareCutInWorker } from '../../assets/js/modules/cut-worker-preparation.js';
 import { createTerritoryComponentPlan } from '../../assets/js/modules/territory-component-plan.js';
-import { normalizeCountryGeometry } from '../../assets/js/modules/map-edit-geometry.js';
+import { normalizePolygonGeometry } from '../../assets/js/modules/map-edit-geometry.js';
 import { geometrySegmentIndex, segmentQueryBounds, territorialSegmentCandidates } from '../../assets/js/modules/geometry-segment-index.js';
 import '../../assets/js/modules/territorial-edit-plan.js';
 import { createEditDisplayPreparation } from '../../assets/js/modules/edit-display-preparation.js';
@@ -69,7 +69,7 @@ test('worker cut assessment and split share the exact validated cut and preserve
   const result = prepareCutInWorker({ source, coords: [[-1, 5], [11, 5]], buildPreview: true,
     view: { kind: 'flat', scale: 200, translate: [200, 200], rotate: [0, 0, 0], center: [0, 0],
       size: { width: 800, height: 600 }, coarsePointer: false, snapDistance: { mouse: 10, touch: 20 } } },
-  globalThis.PandoLabCountryGeometry, globalThis.d3, globalThis.polygonClipping);
+  globalThis.PandoLabPolygonGeometry, globalThis.d3, globalThis.polygonClipping);
   assert.equal(result.valid, true, result.message);
   assert.ok(result.split, result.splitError);
   assert.equal(result.split.candidates.length, 2);
@@ -84,11 +84,11 @@ test('Turkey cut candidates remain usable by territory selection preparation', a
   const cut = prepareCutInWorker({ source, coords: [[26, 41.8], [29, 41.8]], buildPreview: true,
     view: { kind: 'flat', scale: 200, translate: [200, 200], rotate: [0, 0, 0], center: [0, 0],
       size: { width: 800, height: 600 }, coarsePointer: false, snapDistance: { mouse: 10, touch: 20 } } },
-  globalThis.PandoLabCountryGeometry, globalThis.d3, globalThis.polygonClipping);
+  globalThis.PandoLabPolygonGeometry, globalThis.d3, globalThis.polygonClipping);
   assert.equal(cut.valid, true, cut.message);
   assert.equal(cut.split.candidates.length, 2);
   const candidate = cut.split.candidates.reduce((smaller, next) => next.area < smaller.area ? next : smaller);
-  const plan = createTerritoryComponentPlan({ clipper: globalThis.polygonClipping, normalize: normalizeCountryGeometry });
+  const plan = createTerritoryComponentPlan({ clipper: globalThis.polygonClipping, normalize: normalizePolygonGeometry });
   const result = await plan.selection({ currentGeometry: candidate.geometry, workingSourceGeometry: source });
   assert.ok(result.combinedGeometry);
   assert.ok(result.remainingGeometry);

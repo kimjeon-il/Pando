@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 import {
   currentCountryFlagCode,
   currentCountryFlagUrl,
-  effectiveCountryFlagUrl,
-} from '../../assets/js/modules/country-flags.js';
+  effectiveTerritorialFlagUrl,
+  } from '../../assets/js/modules/country-flags.js';
 import {
   EXPECTED_COUNTRY_FLAG_EXCLUDED_IDS,
   EXPECTED_COUNTRY_FLAG_LEGACY_4X3_CODES,
@@ -91,14 +91,10 @@ test('representative and exceptional country IDs resolve to the intended flags',
 
 test('effective flags honor project overrides, the built-in default, and explicit-none precedence', () => {
   const custom = 'data:image/svg+xml;base64,PHN2Zy8+';
-  assert.equal(effectiveCountryFlagUrl({
-    countryId: 'KOR', override: { flagDataUrl: custom },
-  }), custom);
-  assert.equal(effectiveCountryFlagUrl({
-    countryId: 'KOR', override: { flagDataUrl: null },
-  }), null);
-  assert.match(effectiveCountryFlagUrl({ countryId: 'KOR' }), /\/kr\.svg$/);
-  assert.equal(effectiveCountryFlagUrl({ countryId: 'BRT' }), null);
+  assert.equal(effectiveTerritorialFlagUrl({ id: 'KOR', properties: { unitType: 'country', metadata: { flagDataUrl: custom } } }), custom);
+  assert.equal(effectiveTerritorialFlagUrl({ id: 'KOR', properties: { unitType: 'country', metadata: { flagDataUrl: null } } }), null);
+  assert.match(effectiveTerritorialFlagUrl({ id: 'KOR', properties: { unitType: 'country', metadata: {} } }), /\/kr\.svg$/);
+  assert.equal(effectiveTerritorialFlagUrl({ id: 'BRT', properties: { unitType: 'country', metadata: {} } }), null);
 
   const bundled = new URL(currentCountryFlagUrl('KOR', { assetRevision: 'test-build' }));
   assert.match(decodeURIComponent(bundled.pathname), /assets\/vendor\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/kr\.svg$/);

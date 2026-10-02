@@ -78,7 +78,7 @@
   mix-blend-mode: normal;
 }
 
-.country-label-layer {
+.territorial-label-layer {
   user-select: none;
   -webkit-user-select: none;
 }
@@ -345,8 +345,8 @@
   cursor: pointer;
 }
 
-.country-label-flag {
-  filter: var(--country-label-flag-filter);
+.territorial-label-flag {
+  filter: var(--territorial-label-flag-filter);
 }
 
 .territorial-unit-shape {

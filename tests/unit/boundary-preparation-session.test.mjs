@@ -5,7 +5,7 @@ import { createGeometryPreview } from '../../assets/js/modules/app-geometry-prev
 function fixture() {
   const requests = [], counters = { stop: 0, refresh: 0 };
   let generation = 1;
-  const state = { tool: 'country-border', boundaryEditPhase: 'selecting', boundaryEditCountryIds: ['A', 'B'],
+  const state = { tool: 'territorial-border', boundaryEditPhase: 'selecting', boundaryEditEntityIds: ['A', 'B'],
     coastEditScopeGenericFeatureId: null, countriesData: { features: [{ id: 'A', geometry: {} }, { id: 'B', geometry: {} }] },
     territorialUnits: [], countryOverrides: {}, genericFeatures: [] };
   const app = createGeometryPreview();
@@ -26,7 +26,7 @@ test('identical in-flight entry requests share the promise and getters never pre
   assert.strictEqual(first, f.app.rebuildBoundaryTopology(['A', 'B']));
   assert.equal(f.requests.length, 1);
   assert.deepEqual(f.requests[0].payload.payload.targetIds, ['A', 'B']);
-  for (let i = 0; i < 10; i++) { f.app.getCountryBoundaryHandles(); f.app.getCountryBoundarySegments(); f.app.boundaryEditSelectionAnalysis(); }
+  for (let i = 0; i < 10; i++) { f.app.boundaryEditSelectionAnalysis(); }
   assert.equal(f.requests.length, 1);
   f.requests[0].resolve(f.result()); await first;
   assert.equal(f.counters.refresh, 2, 'pending and ready boundary packets both invalidate editing presentation');
@@ -47,7 +47,7 @@ test('cancel terminates a pending worker and a late result cannot reopen editing
 
 test('changing targets replaces the pending request and discards the old response', async () => {
   const f = fixture(), first = f.app.rebuildBoundaryTopology(['A', 'B']);
-  f.state.boundaryEditCountryIds = ['B'];
+  f.state.boundaryEditEntityIds = ['B'];
   const second = f.app.rebuildBoundaryTopology(['B']);
   f.requests[0].resolve(f.result()); assert.equal(await first, false);
   assert.equal(f.state.boundaryPreparation.status, 'pending');
@@ -71,7 +71,7 @@ test('worker failure keeps the tool open and retry does not run a main-thread fa
   const f = fixture(), pending = f.app.rebuildBoundaryTopology(['A', 'B']);
   f.requests[0].reject(new Error('timeout')); await pending;
   assert.equal(f.state.boundaryPreparation.status, 'error');
-  assert.equal(f.state.tool, 'country-border');
+  assert.equal(f.state.tool, 'territorial-border');
   f.state.boundaryPreparation.retry();
   f.requests[1].resolve(f.result()); await f.state.boundaryPreparation.promise;
   assert.equal(f.state.boundaryPreparation.status, 'ready');

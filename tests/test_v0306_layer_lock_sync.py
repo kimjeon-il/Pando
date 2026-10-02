@@ -15,7 +15,7 @@ class LayerLockSyncTests(unittest.TestCase):
         row_factory = LAYER_TREE
         batch_lock = APP[APP.index("function batchSetLocked"):APP.index("function batchToggleLocked")]
         distribution_lock = APP[APP.index("function commitDistributionMeta"):APP.index("function createDistributionLayerFromPrompt")]
-        territorial_lock = APP[APP.index("function setTerritorialUnitLocked"):APP.index("window.PANDOLAB_TERRITORIAL")]
+        territorial_lock = APP[APP.index("function setTerritorialEntityLocked"):APP.index("window.PANDOLAB_TERRITORIAL")]
 
         self.assertIn("const syncLock =", row_factory)
         self.assertIn("rowRef.key !== ref.key", row_factory)

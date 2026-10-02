@@ -10,17 +10,12 @@ export function createTerritorialConversion() {
     dependencies = ports;
   }
 
-  function countryEntityById(id) {
-    const entity = dependencies.territorialModel.entityRepository.get(id);
-    return entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity : null;
-  }
-
   async function promoteTerritorialUnitToCountry(unitId) {
-    const source = (0, dependencies.objectPresentation.territorialUnitById)(unitId);
+    const source = dependencies.territorialModel.entityRepository.get(unitId);
     const sourceCountryId = String(source?.properties?.sovereignId || '');
-    const sourceCountry = countryEntityById(sourceCountryId);
+    const sourceCountry = dependencies.territorialModel.entityRepository.get(sourceCountryId);
     const name = String(source?.properties?.name || '').trim();
-    if (!source || !sourceCountry || !name) {
+    if (source?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT || sourceCountry?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY || !name) {
       (0, dependencies.feedback.setActionStatus)('새 국가로 독립하려면 이름과 소속 국가가 있는 하위단위를 선택하세요.', 'error', 3800);
       return false;
     }
@@ -28,11 +23,7 @@ export function createTerritorialConversion() {
       (0, dependencies.feedback.setActionStatus)('영역 잠금을 해제한 뒤 국가로 전환하세요.', 'error', 3400);
       return false;
     }
-    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([sourceCountryId], '하위단위를 국가로 전환')) return false;
-    if (countryEntityById(source.id)) {
-      (0, dependencies.feedback.setActionStatus)('영역 ID가 국가 ID와 겹칩니다. ID를 바꾸세요.', 'error', 4200);
-      return false;
-    }
+    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([sourceCountryId].map(id => ({ domain: 'territorial', type: 'country', id: String(id) })), '하위단위를 국가로 전환')) return false;
     const descendantIds = new Set();
     const queue = [String(source.id)];
     while (queue.length) {
@@ -66,7 +57,7 @@ export function createTerritorialConversion() {
 
   function buildTerritorialStructurePreview({ source, sourceType, targetType, sovereignId = '', parentId = '' } = {}) {
     if (!source || !sourceType || !targetType) return null;
-    const sourceName = territorialTypeSourceName(source);
+    const sourceName = (0, dependencies.objectPresentation.territorialEntityName)(source);
     const sourceLabel = dependencies.applicationConstantsB.TERRITORIAL_TYPE_LABELS[sourceType] || '영역';
     const targetLabel = dependencies.applicationConstantsB.TERRITORIAL_TYPE_LABELS[targetType] || '영역';
     const subjectLabel = ({ 국가: '국가를', 하위단위: '하위단위를', 지방: '지방을' })[sourceLabel] || `${sourceLabel}을`;
@@ -77,8 +68,8 @@ export function createTerritorialConversion() {
       ? dependencies.territorialModel.entityRepository.list({ administrativeCountryId: String(source.id || '') })
         .filter(candidate => String(candidate.id) !== String(source.id || '')).length
       : dependencies.territorialModel.entityRepository.children(source.id).length;
-    const targetCountry = countryEntityById(sovereignId);
-    const targetParent = (0, dependencies.objectPresentation.territorialUnitById)(parentId);
+    const targetCountry = dependencies.territorialModel.entityRepository.get(sovereignId);
+    const targetParent = dependencies.territorialModel.entityRepository.get(parentId);
     const impacts = [];
     let summary = `${sourceName}의 종류를 ${targetLabel}(으)로 변경합니다.`;
 
@@ -92,16 +83,16 @@ export function createTerritorialConversion() {
           danger: true,
         };
       }
-      summary = `${sourceName}의 국토를 ${(0, dependencies.presentation.countryName)(targetCountry)}에 합치고 같은 객체를 ${targetLabel}(으)로 유지합니다.`;
-      impacts.push(`${(0, dependencies.presentation.countryName)(targetCountry)} 국경 변경 및 기존 국가 관계 해제`);
+      summary = `${sourceName}의 국토를 ${(0, dependencies.objectPresentation.territorialEntityName)(targetCountry)}에 합치고 같은 객체를 ${targetLabel}(으)로 유지합니다.`;
+      impacts.push(`${(0, dependencies.objectPresentation.territorialEntityName)(targetCountry)} 국경 변경 및 기존 국가 관계 해제`);
     } else if (targetIsCountry) {
       summary = `${sourceName}의 영역을 현재 소속 국가에서 분리해 독립 국가로 전환합니다.`;
       impacts.push('기존 상위 단위와 소속 국가 관계 해제', '기존 국가 국경 변경 및 새 국가 1개 생성');
     } else {
-      const sovereign = countryEntityById(sovereignId || source.properties?.sovereignId);
-      impacts.push(`소속 국가 유지${sovereign ? `: ${(0, dependencies.presentation.countryName)(sovereign)}` : ''}`);
+      const sovereign = dependencies.territorialModel.entityRepository.get(sovereignId || source.properties?.sovereignId);
+      impacts.push(`소속 국가 유지${sovereign ? `: ${(0, dependencies.objectPresentation.territorialEntityName)(sovereign)}` : ''}`);
       if (targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT) {
-        const parentName = targetParent ? (0, dependencies.objectPresentation.territorialUnitName)(targetParent) : sovereign ? (0, dependencies.presentation.countryName)(sovereign) : '선택한 상위 단위';
+        const parentName = targetParent ? (0, dependencies.objectPresentation.territorialEntityName)(targetParent) : sovereign ? (0, dependencies.objectPresentation.territorialEntityName)(sovereign) : '선택한 상위 단위';
         if (String(parentId) !== String(sovereignId)) impacts.push(`상위 단위: ${parentName}`);
       }
     }
@@ -117,7 +108,7 @@ export function createTerritorialConversion() {
   }
 
   function requestTerritorialUnitPromotion(unitId) {
-    const feature = (0, dependencies.objectPresentation.territorialUnitById)(unitId);
+    const feature = dependencies.territorialModel.entityRepository.get(unitId);
     if (!feature) return;
     const preview = buildTerritorialStructurePreview({
       source: feature,
@@ -141,17 +132,9 @@ export function createTerritorialConversion() {
     return dependencies.territorialModel.entityRepository.get(territorialTypeSource.id);
   }
 
-  function territorialTypeSourceName(feature = territorialTypeSourceFeature()) {
-    return territorialTypeSource?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-      ? (0, dependencies.presentation.countryName)(feature)
-      : (0, dependencies.objectPresentation.territorialUnitName)(feature);
-  }
-
   function territorialTypeParentOptions(source, sovereignId) {
     const choices = (0, dependencies.territorialServicesA.subunitParentChoices)(sovereignId, dependencies.territorialModel.entityRepository, {
-      exclude: [source.id], name: item => item.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? (0, dependencies.presentation.countryName)(item)
-        : (0, dependencies.objectPresentation.territorialUnitName)(item),
+      exclude: [source.id], name: item => (0, dependencies.objectPresentation.territorialEntityName)(item),
     }).filter(option => option.value === String(sovereignId) || (0, dependencies.objectMetadata.territorialUnitInsideContainer)(source, dependencies.territorialModel.entityRepository.get(option.value)));
     const oldParent = String(source.properties?.parentId || '');
     if (oldParent && String(source.properties?.sovereignId || '') === String(sovereignId) && !choices.some(option => option.value === oldParent)) {
@@ -236,7 +219,7 @@ export function createTerritorialConversion() {
       || source.properties?.unitType !== unitType
       || ![dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(unitType)) return;
     if (!(0, dependencies.readinessUi.requireCanonicalData)()) return;
-    const sourceLocked = unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? (0, dependencies.objectOperationsA.isCountryLocked)(id) : source.properties?.locked === true;
+    const sourceLocked = source.properties.locked === true;
     if (sourceLocked) {
       (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 종류를 변경하세요.', 'error', 3400);
       return;
@@ -248,7 +231,7 @@ export function createTerritorialConversion() {
     const preferred = unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT : dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY;
     const targetChoice = (0, dependencies.propertyEditingB.replaceSelectOptions)((0, dependencies.platform.$)('territorialTypeInput'), options, preferred, { autoSelectSingle: true });
     (0, dependencies.platform.$)('territorialTypeInput').closest('.field-group')?.classList.toggle('hidden', targetChoice.single);
-    (0, dependencies.platform.$)('territorialTypeContext').textContent = `${territorialTypeSourceName(source)} · 현재 ${dependencies.applicationConstantsB.TERRITORIAL_TYPE_LABELS[unitType]}`;
+    (0, dependencies.platform.$)('territorialTypeContext').textContent = `${(0, dependencies.objectPresentation.territorialEntityName)(source)} · 현재 ${dependencies.applicationConstantsB.TERRITORIAL_TYPE_LABELS[unitType]}`;
     (0, dependencies.platform.$)('territorialTypeSovereignInput').value = '';
     (0, dependencies.platform.$)('territorialTypeParentInput').value = '';
     (0, dependencies.platform.$)('territorialTypeModal').classList.remove('hidden');
@@ -267,7 +250,7 @@ export function createTerritorialConversion() {
   }
 
   async function convertTerritorialUnitType(unitId, targetType, parentId = '') {
-    const source = (0, dependencies.objectPresentation.territorialUnitById)(unitId);
+    const source = dependencies.territorialModel.entityRepository.get(unitId);
     if (!source || ![dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(targetType)) return false;
     if (source.properties?.locked) {
       (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 종류를 변경하세요.', 'error', 3200);
@@ -300,7 +283,7 @@ export function createTerritorialConversion() {
         apply: async nextUnits => {
           dependencies.territorialModel.entityStore.replaceCollections({ units: nextUnits });
           (0, dependencies.landRelations.reconcileTerritorialUnitCompleteness)([sovereignId]);
-          dependencies.territorialModel.entityStore.replaceCollections({ units: 
+          dependencies.territorialModel.entityStore.replaceCollections({ units:
             (0, dependencies.territorialModel.normalizeTerritorialUnits)(
               dependencies.territorialModel.entityStore.units(),
               {
@@ -310,14 +293,14 @@ export function createTerritorialConversion() {
             ),
            });
           (0, dependencies.layers.markLayerTreeDirty)();
-          (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(unitId, true);
+          dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: dependencies.territorialModel.entityRepository.get(unitId)?.properties?.unitType, id: String(unitId) }, { refreshOnly: true, openEditor: false });
           dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-type-converted');
         },
         restore: before => (0, dependencies.projectSnapshots.restoreEditable)(before),
         recordHistory: before => dependencies.domains.projectDomain.commitHistorySnapshot(before),
         autosave: (...args) => dependencies.domains.projectDomain.queueAutosave(...args),
       });
-      (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.objectPresentation.territorialUnitName)((0, dependencies.objectPresentation.territorialUnitById)(unitId))}을(를) ${dependencies.applicationConstantsB.TERRITORIAL_TYPE_LABELS[targetType]}(으)로 변경했습니다.`, 'success', 3600);
+      (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.objectPresentation.territorialEntityName)(dependencies.territorialModel.entityRepository.get(unitId))}을(를) ${dependencies.applicationConstantsB.TERRITORIAL_TYPE_LABELS[targetType]}(으)로 변경했습니다.`, 'success', 3600);
       return true;
     } catch (error) {
       (0, dependencies.feedback.reportOperationError)(error, '영역 종류를 변경하지 못해 변경을 되돌렸습니다.', 'PL-TYPE-001', 4500);
@@ -326,13 +309,13 @@ export function createTerritorialConversion() {
   }
 
   async function convertCountryToRegionType(countryId, targetType, targetCountryId, parentId = '') {
-    const source = countryEntityById(countryId);
-    const target = countryEntityById(targetCountryId);
+    const source = dependencies.territorialModel.entityRepository.get(countryId);
+    const target = dependencies.territorialModel.entityRepository.get(targetCountryId);
     if (!source || !target || String(source.id) === String(target.id) || ![dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(targetType)) {
       (0, dependencies.feedback.setActionStatus)('종류를 변경할 국가와 소속 국가를 다시 선택하세요.', 'error', 3800);
       return false;
     }
-    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([countryId, targetCountryId], '국가 종류를 변경')) return false;
+    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([countryId, targetCountryId].map(id => ({ domain: 'territorial', type: 'country', id: String(id) })), '국가 종류를 변경')) return false;
     if (dependencies.territorialModel.entityStore.unitFeature(countryId)) {
       (0, dependencies.feedback.setActionStatus)('같은 ID의 영역이 이미 있어 종류를 변경할 수 없습니다.', 'error', 4000);
       return false;
@@ -344,7 +327,7 @@ export function createTerritorialConversion() {
     }
     const sourceOverride = (0, dependencies.platform.deepClone)(dependencies.territorialModel.entityStore.countryOverride(countryId));
     const sourceProperties = (0, dependencies.platform.deepClone)(source.properties || {});
-    const name = (0, dependencies.presentation.countryName)(source);
+    const name = (0, dependencies.objectPresentation.territorialEntityName)(source);
     const sourceGeometry = (0, dependencies.platform.deepClone)(source.geometry);
     const converted = (0, dependencies.territorialServicesA.createTerritorialFeature)({
       id: (0, dependencies.surfaces.uid)(),
@@ -360,7 +343,7 @@ export function createTerritorialConversion() {
     });
     const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     (0, dependencies.feedback.setActionStatus)(`${name}의 국가 경계를 대상 국가에 합치는 중입니다.`, 'working', 0);
-    const result = await (0, dependencies.geometryOperations.transactCountryEdit)({
+    const result = await (0, dependencies.geometryOperations.transactMapEdit)({
       operation: 'merge',
       payload: { sourceId: String(targetCountryId), targetIds: [String(countryId)] },
       snapshot,
@@ -379,19 +362,14 @@ export function createTerritorialConversion() {
         for (const entry of dependencies.projectState.state.distributionEntries) {
           if (entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL && String(entry.territorialUnitId) === String(countryId)) entry.territorialUnitId = String(converted.id);
         }
-        for (const genericFeature of dependencies.projectState.state.genericFeatures) {
-          if (String(genericFeature.properties?.ownerId || '') !== String(countryId)) continue;
-          genericFeature.properties.ownerId = String(targetCountryId);
-          if (String(genericFeature.properties.topologyGroup || '') === `land:${countryId}`) genericFeature.properties.topologyGroup = `land:${targetCountryId}`;
-        }
-        dependencies.territorialModel.entityStore.replaceCollections({ units: 
+        dependencies.territorialModel.entityStore.replaceCollections({ units:
           (0, dependencies.territorialModel.normalizeTerritorialUnits)(nextUnits, {
             countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
               === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
           }),
          });
         (0, dependencies.landRelations.reconcileTerritorialUnitCompleteness)([targetCountryId]);
-        dependencies.territorialModel.entityStore.replaceCollections({ units: 
+        dependencies.territorialModel.entityStore.replaceCollections({ units:
           (0, dependencies.territorialModel.normalizeTerritorialUnits)(
             dependencies.territorialModel.entityStore.units(),
             {
@@ -410,10 +388,10 @@ export function createTerritorialConversion() {
         dependencies.projectState.state.boundaryPreparation?.cancel();
         dependencies.projectState.state.boundaryPreparation = null;
         (0, dependencies.layers.markLayerTreeDirty)();
-        (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(converted.id, true);
+        dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: dependencies.territorialModel.entityRepository.get(converted.id)?.properties?.unitType, id: String(converted.id) }, { refreshOnly: true, openEditor: false });
         dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-converted-to-region');
       },
-      onSuccess: () => (0, dependencies.feedback.setActionStatus)(`${name}을(를) ${(0, dependencies.presentation.countryName)(target)} 소속 ${dependencies.applicationConstantsB.TERRITORIAL_TYPE_LABELS[targetType]}(으)로 변경했습니다.`, 'success', 4300),
+      onSuccess: () => (0, dependencies.feedback.setActionStatus)(`${name}을(를) ${(0, dependencies.objectPresentation.territorialEntityName)(target)} 소속 ${dependencies.applicationConstantsB.TERRITORIAL_TYPE_LABELS[targetType]}(으)로 변경했습니다.`, 'success', 4300),
       onError: error => (0, dependencies.feedback.reportOperationError)(error, '국가 종류를 변경하지 못해 변경을 되돌렸습니다.', 'PL-TYPE-002', 4800),
     });
     return result.ok;

@@ -6,7 +6,7 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  const flags = page.locator('.country-label-flag[href]');
+  const flags = page.locator('.territorial-label-flag[href]');
   await expect(flags).toHaveCount(0);
   for (let i = 0; i < 5; i++) await page.locator('#zoomInBtn').click();
   await expect.poll(() => flags.count()).toBeGreaterThan(0);
@@ -17,6 +17,6 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   await expect(page.locator('#countryProperties')).toBeVisible();
   await page.locator('#flagRemoveBtn').click();
   await expect.poll(() => flags.evaluateAll((images, id) => images.some(el => el.parentNode.__data__.id === id), id)).toBe(false);
-  await expect(page.locator('.country-label-item').filter({ hasText: await page.locator('#countryNameInput').inputValue() }).first()).toBeAttached();
+  await expect(page.locator('.territorial-label-item').filter({ hasText: await page.locator('#countryNameInput').inputValue() }).first()).toBeAttached();
   expect(errors).toEqual([]);
 });

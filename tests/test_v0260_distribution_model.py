@@ -67,7 +67,7 @@ class V0260DistributionModelTests(unittest.TestCase):
         self.assertIn("DOMINANT: 'dominant'", MODEL)
         self.assertIn("INTENSITY: 'intensity'", MODEL)
         self.assertIn("function renderDistributions", APP)
-        self.assertNotIn("distributionEntries", APP[APP.index("function setTerritorialUnitName"):APP.index("window.PANDOLAB_TERRITORIAL")])
+        self.assertNotIn("distributionEntries", APP[APP.index("function setTerritorialEntityName"):APP.index("window.PANDOLAB_TERRITORIAL")])
 
 
 if __name__ == "__main__":

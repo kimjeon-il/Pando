@@ -45,6 +45,14 @@ export function builtinSubunitSourceId(feature) {
     && feature.properties.metadata?.builtinSubunit?.sourceCountryId === row?.sourceCountryId ? row?.sourceCountryId || '' : '';
 }
 
+/** Derived scene/label ID. Logical entity IDs remain unchanged. */
+export function territorialSceneDisplayId(feature, countryIds) {
+  const type = feature.properties?.unitType;
+  if (!type || type === 'country') return String(feature.id);
+  const sourceId = builtinSubunitSourceId(feature);
+  return sourceId && !countryIds.has(sourceId) ? sourceId : `territorial:${type}:${feature.id}`;
+}
+
 /** Only call for fresh built-in projects. Never a project-file migration. */
 export function classifyBuiltinCountries(collection) {
   const features = collection?.features || [];

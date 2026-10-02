@@ -17,13 +17,13 @@ function fixture() {
     'view',
     'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
     'territorialUnits', 'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
-    'selectionData', 'selectionView', 'selectionStyle', 'validation', 'countryLabelPositions', 'userLabelPositions',
-    'labelLayout', 'countryLabels', 'userLabels', 'viewPresentation', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
+    'selectionData', 'selectionView', 'selectionStyle', 'validation', 'territorialLabelPositions', 'userLabelPositions',
+    'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'vertices', 'draft', 'snapIndicator', 'debug', 'layerTree',
   ];
   const renderers = Object.fromEntries(names.map(name => [name, (...args) => {
     calls.push([name, ...args]);
     if (name === 'view') return viewFrameResult;
-    return name === 'labelLayout' ? { countryLabels: [], userLabels: [] } : undefined;
+    return name === 'labelLayout' ? { territorialLabels: [], userLabels: [] } : undefined;
   }]));
   const coordinator = createMapRenderCoordinator({
     requestFrame: callback => frames.push(callback),
@@ -44,14 +44,14 @@ test('full render preserves canonical layer order and revision', () => {
   assert.deepEqual(calls.map(call => call[0]), [
     'prepare', 'base', 'hydro', 'hydroEdits', 'territorialUnits',
     'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'countries', 'geometryPreview', 'validation',
-    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'selectionData', 'labelLayout', 'countryLabels', 'userLabels', 'viewPresentation', 'layerTree', 'debug',
+    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'selectionData', 'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'layerTree', 'debug',
   ]);
   assert.equal(calls.find(call => call[0] === 'countries')[1], viewState);
-  assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'countryLabels', 'userLabels', 'debug', 'layerTree'].includes(call[0])).every(call => call[1] === viewState), true);
-  assert.equal(calls.find(call => call[0] === 'countryLabels')[2], viewState);
+  assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'territorialLabels', 'userLabels', 'debug', 'layerTree'].includes(call[0])).every(call => call[1] === viewState), true);
+  assert.equal(calls.find(call => call[0] === 'territorialLabels')[2], viewState);
   assert.equal(calls.find(call => call[0] === 'userLabels')[2], viewState);
   assert.equal(calls.filter(call => call[0] === 'labelLayout').length, 1);
-  assert.deepEqual(calls.find(call => call[0] === 'countryLabels')[1], { countryLabels: [], userLabels: [] });
+  assert.deepEqual(calls.find(call => call[0] === 'territorialLabels')[1], { territorialLabels: [], userLabels: [] });
 });
 
 test('view render refreshes projection-dependent layers with the shared view state', () => {
@@ -70,7 +70,7 @@ test('view render refreshes projection-dependent layers with the shared view sta
   assert.deepEqual(fallbackCall[3], { viewOnly: true, updateData: false, sparseFallbackOnly: true });
   assert.equal(coordinator.getStats().lastDirtyMask & MAP_RENDER_DIRTY.SELECTION_VIEW, 0);
   assert.equal(calls.some(call => call[0] === 'countries'), false);
-  assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), false);
+  assert.equal(calls.some(call => call[0] === 'territorialLabelPositions'), false);
   assert.equal(calls.some(call => call[0] === 'viewPresentation'), true);
 });
 
@@ -92,7 +92,7 @@ test('scheduled view and full renders merge into one full frame', () => {
   frames.shift()();
   assert.equal(coordinator.getStats().renderRevision, 1);
   assert.equal(calls.some(call => call[0] === 'hydro'), true);
-  assert.equal(calls.some(call => call[0] === 'countryLabelPositions'), false);
+  assert.equal(calls.some(call => call[0] === 'territorialLabelPositions'), false);
   assert.deepEqual(coordinator.getStats().lastReasons, ['pan', 'selection', 'resize']);
 });
 

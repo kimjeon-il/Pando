@@ -126,7 +126,7 @@ export function createProgressiveStartup() {
     // its interaction packet remain active until the canonical mesh commits.
     // The mesh commit performs the first full canonical render atomically.
     dependencies.domains.renderingDomain?.invalidateView?.('canonical-geometry-applied');
-    if (previewSelection && (0, dependencies.countries.countryFeatureById)(previewSelection)) (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(previewSelection, true);
+    if (previewSelection && dependencies.territorialModel.entityStore.countryFeature(previewSelection)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'country', id: String(previewSelection) }, { refreshOnly: true, openEditor: false });
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'layer-hydration';
     await dependencies.domains.layerTreeController?.completeHydration();
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'complete';
@@ -168,7 +168,7 @@ export function createProgressiveStartup() {
     let meshApplied;
     const projectGeneration = context?.projectGeneration ?? dependencies.rendering.gpuMapRenderer.getProjectGeneration?.();
     if (!context.useBuiltInMesh || dependencies.projectState.state.sessionBaseCountriesJson) {
-      meshApplied = (await dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinRenderCountries)().collection.features, { projectGeneration })) !== false;
+      meshApplied = (await dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinTerritorialScene)().collection.features, { projectGeneration })) !== false;
     } else {
       const dirtyIds = new Set([...dependencies.projectState.state.historyDirtyCountryIds, ...dependencies.projectState.state.pendingCountryRenderIds]);
       meshApplied = (await dependencies.rendering.gpuMapRenderer.replaceBuiltInMesh({
@@ -510,8 +510,6 @@ export function createProgressiveStartup() {
       }
     }
   }
-
-
 
   return Object.freeze({
     connect,

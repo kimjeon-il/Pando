@@ -1,4 +1,3 @@
-import { removeTerritorialEntities } from './territorial-interaction-policy.js';
 /** ObjectDeletion: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -9,69 +8,6 @@ export function createObjectDeletion() {
   function connect(ports) {
     if (dependencies) throw new Error('object-deletion already connected');
     dependencies = ports;
-  }
-
-  function requestDeleteCountry(id) {
-    const key = String(id);
-    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([key], '삭제')) return;
-    const preflight = dependencies.objectModelB.territorialApplicationService.canDelete(
-      dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
-      key,
-    );
-    if (!preflight.ok) {
-      if (preflight.code === 'has-children') {
-        (0, dependencies.feedback.setActionStatus)(`하위 영역 ${preflight.children.length}개를 먼저 옮기거나 삭제하세요.`, 'error', 4400);
-      }
-      return;
-    }
-    const feature = preflight.unit;
-    const name = (0, dependencies.presentation.countryName)(feature);
-    (0, dependencies.projectRestore.openConfirmModal)({
-      title: '국가 삭제',
-      message: `${name} 국가 객체를 지도에서 삭제합니다. 실행취소로 복구할 수 있습니다.`,
-      impacts: ['국가 1개 삭제', '국가명 제거', '하위 영역 없음'],
-      confirmText: '국가 삭제',
-      danger: true,
-      onConfirm: () => {
-        const current = dependencies.objectModelB.territorialApplicationService.canDelete(
-          dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
-          key,
-        );
-        if (!current.ok) return false;
-        const snapshot = (0, dependencies.snapshots.snapshotEditable)();
-        try {
-          removeTerritorialEntities(
-            dependencies.projectState.state,
-            { countryIds: [key] },
-            dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL,
-            { entityStore: dependencies.territorialModel.entityStore },
-          );
-          (0, dependencies.spatialQuery.markCountryGeometriesChanged)([key]);
-          dependencies.projectState.state.boundaryPreparation?.cancel();
-          dependencies.projectState.state.boundaryPreparation = null;
-          if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.projectState.state.selected.id) === key) {
-            dependencies.domains.selectionUiController.clear({ reason: 'country-delete-selection-clear' });
-          }
-          (0, dependencies.layers.markLayerTreeDirty)();
-          dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-deleted');
-          dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('country-deleted');
-          dependencies.domains.renderingDomain?.invalidateOverlayGeometry?.('distribution', 'country-deleted');
-          dependencies.domains.renderingDomain?.invalidateLabels?.('country-deleted');
-          dependencies.domains.projectDomain.commitHistorySnapshot(snapshot, {
-            type: 'country-delete',
-            affectedIds: [key],
-          });
-          dependencies.projectState.state.stateRevision += 1;
-          dependencies.domains.projectDomain.queueAutosave();
-          (0, dependencies.feedback.setActionStatus)(`${name} 국가를 삭제했습니다.`, 'success');
-          return true;
-        } catch (error) {
-          (0, dependencies.projectSnapshots.restoreEditable)(snapshot);
-          (0, dependencies.feedback.reportOperationError)(error, '국가 삭제를 적용하지 못해 변경을 되돌렸습니다.', 'PL-COUNTRY-DELETE', 4200);
-          return false;
-        }
-      },
-    });
   }
 
   function removeGenericFeatureById(id, statusText = '') {
@@ -124,84 +60,14 @@ export function createObjectDeletion() {
     return true;
   }
 
-  function requestExplicitTerritorialUnitDelete(feature) {
-    const preflight = dependencies.objectModelB.territorialApplicationService.canDelete(feature.properties?.unitType, feature.id);
-    if (!preflight.ok) {
-      if (preflight.code === 'locked') {
-        (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 영역을 삭제할 수 있습니다.', 'error', 3200);
-      } else if (preflight.code === 'has-children') {
-        (0, dependencies.feedback.setActionStatus)(`하위 영역 ${preflight.children.length}개를 먼저 다른 부모로 옮기거나 삭제해야 합니다.`, 'error', 4200);
-      }
-      return false;
-    }
-    feature = preflight.unit;
-    (0, dependencies.projectRestore.openConfirmModal)({
-      title: `${(0, dependencies.territorialServicesB.territorialTypeLabel)(feature.properties.unitType)} 삭제`,
-      message: `${(0, dependencies.objectPresentation.territorialUnitName)(feature)}을(를) 프로젝트에서 삭제합니다. 국가나 다른 영역의 형상은 변경하지 않습니다.`,
-      impacts: [`${(0, dependencies.territorialServicesB.territorialTypeLabel)(feature.properties.unitType)} 1개 삭제`, '국가 및 다른 영역 형상 변경 없음'],
-      confirmText: `${(0, dependencies.territorialServicesB.territorialTypeLabel)(feature.properties.unitType)} 삭제`,
-      danger: true,
-      onConfirm: () => {
-        const current = dependencies.objectModelB.territorialApplicationService.canDelete(feature.properties?.unitType, feature.id);
-        if (!current.ok) return false;
-        const snapshot = (0, dependencies.snapshots.snapshotEditable)();
-        try {
-          removeTerritorialEntities(
-            dependencies.projectState.state,
-            { unitIds: [feature.id] },
-            dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL,
-            { entityStore: dependencies.territorialModel.entityStore },
-          );
-          (0, dependencies.layers.markLayerTreeDirty)();
-          if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.projectState.state.selected.id) === String(feature.id)) {
-            dependencies.domains.selectionUiController.clear({ reason: 'territorial-delete-selection-clear' });
-          }
-          dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-unit-deleted');
-          dependencies.domains.renderingDomain?.invalidateOverlayGeometry?.('distribution', 'territorial-unit-deleted');
-          dependencies.domains.renderingDomain?.invalidateLabels?.('territorial-unit-deleted');
-          dependencies.domains.projectDomain.commitHistorySnapshot(snapshot, {
-            type: 'territorial-delete',
-            affectedIds: [String(feature.id)],
-          });
-          dependencies.projectState.state.stateRevision += 1;
-          dependencies.domains.projectDomain.queueAutosave();
-          (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.objectPresentation.territorialUnitName)(feature)}을(를) 삭제했습니다.`, 'success');
-        } catch (error) {
-          (0, dependencies.projectSnapshots.restoreEditable)(snapshot);
-          (0, dependencies.feedback.reportOperationError)(error, '삭제를 적용하지 못해 변경을 되돌렸습니다.', 'PL-SUBUNIT-DELETE', 4200);
-          return false;
-        }
-      },
-    });
-    return true;
-  }
-
-  function requestTerritorialUnitDivisionRemoval(id) {
-    const feature = dependencies.territorialModel.entityRepository.get(id);
-    if (!feature || feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return false;
-    return requestExplicitTerritorialUnitDelete(feature);
-  }
-
-  function deleteTerritorialUnit(type, id) {
-    if (type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      requestDeleteCountry(id);
-      return true;
-    }
-    const feature = dependencies.territorialModel.entityRepository.get(id);
-    if (!feature || feature.properties?.unitType !== type) return false;
-    requestTerritorialUnitDivisionRemoval(id);
-    return true;
-  }
-
   function deleteSelected() {
     if (!(0, dependencies.readinessUi.requireCanonicalData)()) return;
     if (!dependencies.projectState.state.selected) {
       (0, dependencies.feedback.setActionStatus)('삭제할 객체를 선택하세요', 'error');
       return;
     }
-    if ((dependencies.projectState.state.selected.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
-      deleteTerritorialUnit(dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.projectState.state.selected.id);
-      return;
+    if (dependencies.projectState.state.selected.domain === 'territorial') {
+      return dependencies.objectOperationsA.requestObjectDeletion([dependencies.projectState.state.selected]);
     }
     if (dependencies.projectState.state.selected.domain === 'hydro') {
       const feature = (0, dependencies.hydroModel.hydroFeatureById)(dependencies.projectState.state.selected.id);
@@ -214,20 +80,15 @@ export function createObjectDeletion() {
       removeGenericFeatureById(dependencies.projectState.state.selected.id, '선택한 객체를 삭제했습니다.');
     } else if (dependencies.projectState.state.selected.domain === 'distribution') {
       (0, dependencies.propertyEditingA.deleteDistributionLayer)(dependencies.projectState.state.selected.id, { confirm: false });
-    } else if ((dependencies.projectState.state.selected.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
-      deleteTerritorialUnit(dependencies.projectState.state.selected.type, dependencies.projectState.state.selected.id);
     } else if (dependencies.projectState.state.selected.domain === 'label') {
       removeLabelById(dependencies.projectState.state.selected.id, '선택한 객체를 삭제했습니다.');
     }
   }
 
-
-
   return Object.freeze({
     connect,
 
     get deleteSelected() { return deleteSelected; },
-    get requestDeleteCountry() { return requestDeleteCountry; },
-    get requestTerritorialUnitDivisionRemoval() { return requestTerritorialUnitDivisionRemoval; },
+
   });
 }

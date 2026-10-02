@@ -12,7 +12,7 @@ function harness(fail = false) {
     state, entityStore: createTerritorialEntityStore({ getState: () => state }),
     deepClone: structuredClone, importedCountryOverrides: () => ({}), applyImportedPackageAssets: (_meta, values) => values,
     validateGisCountryCollection: async () => ({ overlapAreaKm2: 0 }),
-    snapshotEditable: () => structuredClone(state), restoreCountryEditSnapshot: snapshot => Object.assign(state, structuredClone(snapshot)),
+    snapshotEditable: () => structuredClone(state), restoreEditTransactionSnapshot: snapshot => Object.assign(state, structuredClone(snapshot)),
     normalizeProjectObjects: noop, markLayerTreeDirty: noop, pruneLayerItemVisibility: noop,
     transferLandDependents: () => { events.push('transfer'); },
     assertProjectReferenceIntegrity: snapshot => {

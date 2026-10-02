@@ -8,7 +8,7 @@ export function connectMapResources({
   objectPresentation,
   hydroSettings,
   layerList,
-  countryLabels,
+  territorialLabels,
   physicalResources,
   interactionPackets,
 }) {
@@ -18,7 +18,7 @@ export function connectMapResources({
     objectPresentation,
     hydroSettings,
     layerList,
-    countryLabels,
+    territorialLabels,
     physicalResources,
     interactionPackets,
   };

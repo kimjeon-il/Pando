@@ -131,7 +131,7 @@ export function createToolBindings() {
     (0, dependencies.platform.$)('editBorderBtn')?.addEventListener('click', () => {
       if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
       (0, dependencies.genericEditingB.requestDraftDiscard)(() => {
-        if (dependencies.projectState.state.tool === 'country-border' && dependencies.projectState.state.boundaryEditPhase === 'editing') (0, dependencies.countryEditingB.finishCountryBorderEdit)();
+        if (dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'editing') (0, dependencies.countryEditingB.finishTerritorialBorderEdit)();
         else (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingA.enterCountryBorderSelection)(dependencies.projectState.state.selected.id));
       });
     });
@@ -147,8 +147,6 @@ export function createToolBindings() {
     });
     (0, dependencies.platform.$)('resetViewBtn').addEventListener('click', dependencies.navigation.resetView);
   }
-
-
 
   return Object.freeze({
     connect,

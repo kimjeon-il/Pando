@@ -27,16 +27,16 @@ test('foundation transient capability closes the actual toolbar flag popover and
   assert.equal(Object.hasOwn(selectionToolbarPresentation, 'syncOcclusion'), false);
 });
 
-test('territorial selection presents the toolbar without automatically opening the editor', () => {
+test('territorial selection presents the toolbar through the common controller without opening the editor', t => {
+  const previousWindow = globalThis.window;
+  globalThis.window = {};
+  t.after(() => { globalThis.window = previousWindow; });
   const intents = [];
   const propertySelection = createPropertySelection();
   propertySelection.connect(capabilityPortsForFixture(OBJECT_EDITING_OWNER_PORTS.propertySelection, {
     TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
-    countryObjectRef: id => ({ domain: 'territorial', type: 'country', id: String(id), key: `territorial:country:${id}` }),
     normalizeObjectRef: ref => ({ ...ref, key: `${ref.domain}:${ref.type}:${ref.id}` }),
-    territorialUnitById: id => id === 'subunit-1'
-      ? { id, properties: { unitType: 'subunit' } }
-      : null,
+    entityRepository: { get: id => ({ id, properties: { unitType: id === 'DEU' ? 'country' : 'subunit' } }) },
     selectionUiController: {
       applyIntent: (ref, options) => {
         intents.push({ ref, options });
@@ -45,8 +45,9 @@ test('territorial selection presents the toolbar without automatically opening t
     },
   }));
 
-  assert.equal(propertySelection.applyCountrySelectionIntent('DEU'), true);
-  assert.equal(propertySelection.applyTerritorialUnitSelectionIntent('subunit-1'), true);
+  propertySelection.initializePropertySelection();
+  assert.equal(globalThis.window.PANDOLAB_TERRITORIAL.select('country', 'DEU'), true);
+  assert.equal(globalThis.window.PANDOLAB_TERRITORIAL.select('subunit', 'subunit-1'), true);
   assert.deepEqual(intents.map(intent => intent.options.openEditor), [false, false]);
   assert.deepEqual(intents.map(intent => intent.ref.type), ['country', 'subunit']);
 });
