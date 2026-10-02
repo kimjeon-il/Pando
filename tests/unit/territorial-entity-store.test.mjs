@@ -180,3 +180,33 @@ test('country override replacement stays behind the physical store', () => {
   assert.deepEqual(state.countryOverrides, overrides);
   assert.equal(store.countryOverride('A').name, 'Renamed');
 });
+
+
+test('atomic collection replacement updates both repository domains before revision advances', () => {
+  const { state, store } = fixture();
+  const repository = createTerritorialEntityRepository({
+    getCountries: store.countriesData,
+    getUnits: store.units,
+    getCountryOverride: store.countryOverride,
+    getRevision: () => 7,
+  });
+
+  assert.equal(repository.get('A')?.id, 'A');
+  assert.equal(repository.get('R')?.id, 'R');
+
+  store.replaceCollections({
+    countriesData: {
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', id: 'B', properties: { name: 'B' }, geometry: { type: 'Polygon', coordinates: [] } }],
+    },
+    countryOverrides: { B: { name: 'Bee' } },
+    units: [{ type: 'Feature', id: 'S', properties: { unitType: 'subunit', parentId: 'B', sovereignId: 'B', locked: false }, geometry: null }],
+  });
+
+  assert.equal(state.countriesData.features[0].id, 'B');
+  assert.equal(state.territorialUnits[0].id, 'S');
+  assert.equal(repository.get('A'), null);
+  assert.equal(repository.get('R'), null);
+  assert.equal(repository.get('B').properties.name, 'Bee');
+  assert.equal(repository.get('S').properties.sovereignId, 'B');
+});
