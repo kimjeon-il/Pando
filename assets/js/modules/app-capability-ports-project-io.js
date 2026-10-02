@@ -116,6 +116,7 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "landRelations",
     "layers",
     "objectModelA",
+    "objectModelB",
     "objectOperationsB",
     "objectPresentation",
     "presentation",
@@ -128,7 +129,6 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "snapshots",
     "spatialQuery",
     "territorialModel",
-    "territorialServicesA",
     "territorialServicesB"
   ],
   "gisAssembly": [
