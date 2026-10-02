@@ -67,7 +67,6 @@ export function createGisAssembly() {
       buildTerritorialImportTransactionPlan: dependencies.gisServicesA.buildTerritorialImportTransactionPlan,
       mapEditClient: dependencies.spatialQuery.mapEditClient,
       validateGisCountryCollection: (...args) => gisWorkflow.validateCountries(...args),
-      reindexCountries: dependencies.geometryMutation.reindexCountries,
       transferLandDependents: dependencies.landRelations.transferLandDependents,
       assertCurrentProjectReferences: dependencies.geometryOperations.assertCurrentProjectReferences,
       commitHistorySnapshot: (...args) => dependencies.domains.projectDomain.commitHistorySnapshot(...args),
