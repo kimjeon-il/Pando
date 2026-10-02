@@ -120,7 +120,7 @@ export function createSpatialDataPorts(providers) {
     presentation: Object.freeze({
       get countryName() { return providers.objectPresentation.countryName; },
       get genericFeatureDisplayFeature() { return providers.objectPresentation.genericFeatureDisplayFeature; },
-      get territorialRepository() { return providers.objectPresentation.territorialRepository; },
+      get territorialEntityRepository() { return providers.objectPresentation.territorialEntityRepository; },
     }),
     projectState: Object.freeze({
       get mapWorkScheduler() { return providers.projectSession.mapWorkScheduler; },
