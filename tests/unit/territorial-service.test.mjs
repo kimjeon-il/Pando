@@ -5,9 +5,10 @@ import { TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-unit
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
 
 function fixture() {
-  const countries = [{
-    type: 'Feature', id: 'country-a', properties: { unitType: 'country', name: 'A' }, geometry: { type: 'Polygon', coordinates: [] },
-  }];
+  const countries = [
+    { type: 'Feature', id: 'country-a', properties: { unitType: 'country', name: 'A', parentId: '', sovereignId: 'country-a' }, geometry: { type: 'Polygon', coordinates: [] } },
+    { type: 'Feature', id: 'country-b', properties: { unitType: 'country', name: 'B', parentId: '', sovereignId: 'country-b' }, geometry: { type: 'Polygon', coordinates: [] } },
+  ];
   let units = [{
     type: 'Feature', id: 'unit-a', properties: { unitType: 'region', name: 'Region', locked: false }, geometry: { type: 'Polygon', coordinates: [] },
   }];
@@ -23,6 +24,19 @@ function fixture() {
   const entityRepository = {
     get(id) { return [...countries, ...units].find(item => item.id === String(id)) || null; },
     list({ type } = {}) { return [...countries, ...units].filter(item => !type || item.properties.unitType === type); },
+    ancestors(id) {
+      const result = [];
+      const seen = new Set([String(id)]);
+      let current = this.get(id);
+      while (current?.properties?.parentId) {
+        const parent = this.get(current.properties.parentId);
+        if (!parent || seen.has(String(parent.id))) throw new Error('상위 관계가 순환합니다.');
+        seen.add(String(parent.id));
+        result.push(parent);
+        current = parent;
+      }
+      return result;
+    },
   };
   const service = createTerritorialApplicationService({
     entityRepository,
@@ -87,4 +101,24 @@ test('metadata parent edits cannot bypass Subunit parent and cycle validation', 
   assert.equal(service.updateMetadata('subunit', 's', 'parentId', 's').code, 'invalid-parent');
   assert.equal(transactions.length, count);
   assert.equal(entityRepository.get('s').properties.parentId, 'country-a');
+});
+
+
+test('country hierarchy edits accept country parents and reject cycles or non-country sovereigns', () => {
+  const { service, entityRepository, transactions } = fixture();
+
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'parentId', 'country-b').changed, true);
+  assert.equal(entityRepository.get('country-a').properties.parentId, 'country-b');
+
+  const cycle = service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-b', 'parentId', 'country-a');
+  assert.equal(cycle.ok, false);
+  assert.equal(cycle.code, 'invalid-parent');
+
+  assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'sovereignId', 'country-b').changed, true);
+  assert.equal(entityRepository.get('country-a').properties.sovereignId, 'country-b');
+
+  const invalidSovereign = service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', 'sovereignId', 'unit-a');
+  assert.equal(invalidSovereign.ok, false);
+  assert.equal(invalidSovereign.code, 'invalid-sovereign');
+  assert.deepEqual(transactions.map(item => item.type).slice(-2), ['country-metadata', 'country-metadata']);
 });
