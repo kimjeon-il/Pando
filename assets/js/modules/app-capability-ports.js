@@ -16,7 +16,7 @@ export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
   geometryPreview: Object.freeze(["domains","feedback","geometryEditingCore","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry","validation"]),
   territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel"]),
   countryValidation: Object.freeze(["countries","domains","geometryModel","geometryPreview","projectState","snapshots","spatialQuery"]),
-  landRelations: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","layers","presentation","projectState","surfaces","territorialModel","territoryGeometry"]),
+  landRelations: Object.freeze(["cutGeometry","geometryModel","geometryPreview","layers","presentation","projectState","surfaces","territorialModel","territoryGeometry"]),
 });
 
 export function createSpatialDataPorts(providers) {
