@@ -1,0 +1,61 @@
+name: TEMP Territorial Entity Refactor Verify
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/modules/app-geometry-preview.js'
+      - 'assets/js/modules/app-country-commits.js'
+      - 'assets/js/modules/app-country-modes.js'
+      - 'assets/js/modules/app-territorial-drafts.js'
+      - 'assets/js/modules/app-object-metadata.js'
+      - 'assets/js/modules/app-territorial-conversion.js'
+      - 'assets/js/modules/territorial-entity-repository.js'
+      - 'assets/js/modules/territorial-service.js'
+      - 'assets/js/modules/library-ownership.js'
+      - 'tests/unit/app-geometry-preview.test.mjs'
+      - 'tests/unit/territorial-entity-repository.test.mjs'
+      - 'tests/unit/territorial-service.test.mjs'
+      - 'tests/unit/library-ownership.test.mjs'
+      - '.github/workflows/territorial-entity-refactor-verify.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  focused-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Focused lint
+        run: >
+          pnpm exec eslint
+          assets/js/modules/app-geometry-preview.js
+          assets/js/modules/app-country-commits.js
+          assets/js/modules/app-country-modes.js
+          assets/js/modules/app-territorial-drafts.js
+          assets/js/modules/app-object-metadata.js
+          assets/js/modules/app-territorial-conversion.js
+          assets/js/modules/territorial-entity-repository.js
+          assets/js/modules/territorial-service.js
+          assets/js/modules/library-ownership.js
+          tests/unit/app-geometry-preview.test.mjs
+          tests/unit/territorial-entity-repository.test.mjs
+          tests/unit/territorial-service.test.mjs
+          tests/unit/library-ownership.test.mjs
+      - name: Focused unit tests
+        run: >
+          node --test
+          tests/unit/app-geometry-preview.test.mjs
+          tests/unit/territorial-entity-repository.test.mjs
+          tests/unit/territorial-service.test.mjs
+          tests/unit/library-ownership.test.mjs
