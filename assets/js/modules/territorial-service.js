@@ -158,7 +158,7 @@ export function createTerritorialApplicationService({
       return { ok: true, changed: false };
     }
     mutateDocument({ type, affectedIds: affectedIds.map(text).filter(Boolean) }, () => {
-      entityStore.replaceUnits(units);
+      entityStore.replaceCollections({ units });
     }, { renderDirty: { domain: 'territorial', change: 'structure' } });
     return { ok: true, changed: true };
   }
