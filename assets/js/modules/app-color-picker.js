@@ -140,14 +140,16 @@ export function createColorPicker() {
       syncColorPicker('country', { value: (0, dependencies.colorModel.defaultCountryColor)(), defaultColor: (0, dependencies.colorModel.defaultCountryColor)(), isDefault: true });
       return true;
     }
-    dependencies.domains.projectDomain.recordHistory();
-    (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override }, '', { clear: true, fallback: (0, dependencies.colorModel.defaultCountryColor)() });
-    if (Object.keys(override).length) dependencies.projectState.state.countryOverrides[id] = override;
-    else delete dependencies.projectState.state.countryOverrides[id];
+    const result = dependencies.objectModelB.territorialApplicationService.updateMetadata(
+      dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+      id,
+      'color',
+      '',
+    );
+    if (!result.ok) return false;
     dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-color-reset');
     dependencies.domains.renderingDomain?.invalidateBaseScene?.('country-color-reset');
     (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(id, true);
-    dependencies.domains.projectDomain.queueAutosave();
     (0, dependencies.feedback.setActionStatus)('국가 색상을 기본값으로 되돌렸습니다.', 'success');
     return true;
   }
