@@ -362,7 +362,9 @@ export function createTerritorialDrafts() {
   function createTerritorialSourceFeature(session) {
     if (session.kind === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT) return resolveTerritorialCreateSource(session);
     if (session.activeMethod === 'polygon') return null;
-    const features = session.sourceCountryIds.map(id => dependencies.countries.countryFeatureById(id)).filter(feature => feature?.geometry);
+    const features = session.sourceCountryIds
+      .map(id => dependencies.territorialModel.entityRepository.get(id))
+      .filter(feature => feature?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY && feature.geometry);
     if (!features.length) return null;
     const geometry = { type: 'MultiPolygon', coordinates: features.flatMap(feature => dependencies.territoryGeometry.geometryMultiCoordinates(feature.geometry)) };
     return {
