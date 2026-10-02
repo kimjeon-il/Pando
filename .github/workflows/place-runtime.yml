@@ -93,5 +93,5 @@ jobs:
         run: node --test tests/unit/place-million.test.mjs
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Run browser regression
+      - name: Run browser regression (production Canvas backend)
         run: pnpm exec playwright test tests/browser/place-runtime.spec.mjs
