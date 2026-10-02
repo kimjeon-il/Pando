@@ -172,7 +172,9 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       return { ...feature, geometry };
     });
     if (changedIds.size) {
-      entityStore.replaceCountries({ type: 'FeatureCollection', features: nextFeatures });
+      entityStore.replaceCollections({
+        countriesData: { type: 'FeatureCollection', features: nextFeatures },
+      });
       for (const id of changedIds) state.historyDirtyCountryIds.add(id);
     }
     return changedIds;
@@ -319,11 +321,11 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       nextUnits.push(feature);
       affectedCountries.add(countryId);
     }
-    entityStore.replaceUnits(
-      normalizeTerritorialUnits(nextUnits, {
+    entityStore.replaceCollections({
+      units: normalizeTerritorialUnits(nextUnits, {
         countryExists: id => territorialEntityRepository.get(id)?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY,
       }),
-    );
+    });
     reconcileTerritorialUnitCompleteness(affectedCountries, { preserveIds: [...preserved] });
     return affectedCountries;
   }
@@ -445,7 +447,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       // Canonical mutation begins only after coast, impact, worker and geometry
       // validation have all succeeded. The surrounding snapshot restores this
       // short synchronous commit if project reference validation fails.
-      entityStore.replaceCountries(draftCountries);
+      entityStore.replaceCollections({ countriesData: draftCountries });
       for (const id of affectedCountryIds) state.historyDirtyCountryIds.add(id);
       for (const group of impact.groups || []) {
         const targetId = String(group.targetCountryId);
@@ -591,11 +593,11 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     if (!importedCount) throw new Error('가져올 Polygon 또는 MultiPolygon 객체가 없습니다.');
     recordHistory();
     applyCountryGeometryOverrides(countryGeometryOverrides);
-    entityStore.replaceUnits(
-      normalizeTerritorialUnits(nextUnits, {
+    entityStore.replaceCollections({
+      units: normalizeTerritorialUnits(nextUnits, {
         countryExists: id => territorialEntityRepository.get(id)?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY,
       }),
-    );
+    });
     const affectedCountryIds = new Set(entityStore.units().map(feature => String(feature.properties?.sovereignId || '')).filter(Boolean));
     reconcileTerritorialUnitCompleteness(affectedCountryIds, { preserveIds: [...preservedIds] });
     markLayerTreeDirty();
