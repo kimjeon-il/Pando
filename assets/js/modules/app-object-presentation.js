@@ -81,7 +81,7 @@ export function createObjectPresentation() {
 
   function countryColor(feature) {
     const id = String(feature?.id || '');
-    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.projectState.state.countryOverrides[id] }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() }).value;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.territorialModel.entityStore.countryOverride(id) }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() }).value;
   }
 
   function distributionColor(layer) {
@@ -89,7 +89,7 @@ export function createObjectPresentation() {
   }
 
   function countryName(feature) {
-    return (0, dependencies.objectPresentation.countryDisplayName)(feature, dependencies.projectState.state.countryOverrides[String(feature?.id || '')]);
+    return (0, dependencies.objectPresentation.countryDisplayName)(feature, dependencies.territorialModel.entityStore.countryOverride(feature?.id));
   }
 
   function hydroCategoryKey(value) {
