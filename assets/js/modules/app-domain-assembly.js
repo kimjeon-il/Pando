@@ -220,7 +220,6 @@ export function createDomainAssembly() {
       territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
       territorialUnitColor: dependencies.colorModel.territorialUnitColor,
       territorialEntityRepository: territorialEntityRepository,
-      territorialChildren: dependencies.territorialServicesA.territorialChildren,
       distributionService: dependencies.objectModelA.distributionService,
       distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
       genericFeatureById: id => dependencies.projectState.state.genericFeatures.find(feature => String(feature.id) === String(id)),
