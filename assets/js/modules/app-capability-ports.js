@@ -204,7 +204,7 @@ export function createSpatialDataPorts(providers) {
 export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
   cutGeometry: Object.freeze(["geometryModel","geometryMutation","geometryPreview","geometryValidation","mapView","objectPresentation","platform","projectState","spatialQuery","territoryGeometry"]),
   mapProjection: Object.freeze(["mapLayers","mapLayout","platform","projectState","surfaces"]),
-  objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectCatalog","objectPresentation","platform","projectState","spatialQuery"]),
+  objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectCatalog","objectPresentation","platform","projectState","spatialQuery","territorialModel"]),
   hydroSettings: Object.freeze(["colorModel","hydroPresentation","layerPresentation","mapLayout","objectPresentation","physicalConfig","platform","preferences","projectState","surfaces"]),
   layerList: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectCatalog","objectPresentation","platform","projectState","rendering"]),
   countryLabels: Object.freeze(["colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces"]),
