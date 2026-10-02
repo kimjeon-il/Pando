@@ -135,8 +135,7 @@ export function createObjectPresentation() {
 
   function initializeTerritorialScope() {
     (territorialScope = (0, dependencies.objectPresentation.createTerritorialScopeResolver)({
-      read: () => ({ units: dependencies.projectState.state.territorialUnits, revision: `${dependencies.projectState.state.stateRevision}:${dependencies.countries.countryLandRevision}:${dependencies.spatialQuery.mapObjectGeometryRevisions.territorial}` }),
-      countryById: dependencies.countries.countryFeatureById,
+      entityRepository: dependencies.territorialModel.entityRepository,
       countryColor,
       clipper: () => window.polygonClipping,
     }));
