@@ -28,7 +28,6 @@ export function createGisAssembly() {
       polygonClipping: window.polygonClipping,
       uid: dependencies.surfaces.uid,
       deepClone: dependencies.platform.deepClone,
-      countryFeatureById: dependencies.countries.countryFeatureById,
       countryName: dependencies.presentation.countryName,
       territorialUnitName: dependencies.objectPresentation.territorialUnitName,
       territorialEntityRepository: dependencies.territorialModel.entityRepository,
