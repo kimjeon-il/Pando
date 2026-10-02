@@ -27,7 +27,8 @@ export const FOUNDATION_OWNER_PORTS = Object.freeze({
     "objectCatalog",
     "platform",
     "projectState",
-    "rendering"
+    "rendering",
+    "territorialModel"
   ],
   "workspaceSurfaces": [
     "colorPicker",
