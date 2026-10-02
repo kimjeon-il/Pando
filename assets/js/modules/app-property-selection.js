@@ -118,7 +118,7 @@ export function createPropertySelection() {
     }
     return [
       { value: '', label: '상위 단위 없음' },
-      ...dependencies.presentation.territorialRepository.list()
+      ...dependencies.presentation.territorialEntityRepository.list()
         .filter(candidate => !excluded.has(String(candidate.id)))
         .map(candidate => ({
           value: String(candidate.id),
@@ -133,7 +133,7 @@ export function createPropertySelection() {
   }
 
   function distributionEntryLabel(entry) {
-    if (entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL) return dependencies.presentation.territorialRepository.get(entry.territorialUnitId)?.properties?.name || entry.territorialUnitId;
+    if (entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL) return dependencies.presentation.territorialEntityRepository.get(entry.territorialUnitId)?.properties?.name || entry.territorialUnitId;
     return '자유 영역';
   }
 
@@ -179,7 +179,7 @@ export function createPropertySelection() {
   function addTerritorialDistributionEntry() {
     const layer = dependencies.projectState.state.selected?.domain === 'distribution' ? distributionLayerById(dependencies.projectState.state.selected.id) : null;
     const territorialUnitId = (0, dependencies.platform.$)('distributionTerritorialUnitInput').value;
-    if (!layer || layer.locked || !dependencies.presentation.territorialRepository.get(territorialUnitId)) return false;
+    if (!layer || layer.locked || !dependencies.presentation.territorialEntityRepository.get(territorialUnitId)) return false;
     let entry;
     try {
       entry = (0, dependencies.distributionServices.createDistributionEntry)({
