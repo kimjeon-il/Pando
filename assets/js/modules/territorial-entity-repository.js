@@ -74,7 +74,10 @@ export function createTerritorialEntityRepository({
   const parentFrom = (state, id) => {
     const entity = entityFrom(state, id);
     const parentId = text(entity?.properties?.parentId);
-    return parentId ? entityFrom(state, parentId) : null;
+    if (!parentId) return null;
+    const parent = entityFrom(state, parentId);
+    if (!parent) throw new Error(`${text(entity?.id) || text(id)}의 상위 영역 엔티티 ${parentId}이 존재하지 않습니다.`);
+    return parent;
   };
 
   function get(id) {
@@ -128,7 +131,8 @@ export function createTerritorialEntityRepository({
     while (pending.length) {
       const entity = pending.shift();
       const key = text(entity?.id);
-      if (!key || seen.has(key)) continue;
+      if (!key) continue;
+      if (seen.has(key)) throw new Error(`영역 엔티티 상위 관계가 순환합니다: ${key}`);
       seen.add(key);
       if (!type || entity.properties?.unitType === type) result.push(entity);
       pending.push(...(state.childrenByParent.get(key) || []));
@@ -158,8 +162,13 @@ export function createTerritorialEntityRepository({
     if (!entity) return null;
     if (entity.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) return entity;
     const sovereignId = text(entity.properties?.sovereignId);
-    const sovereignEntity = sovereignId ? entityFrom(state, sovereignId) : null;
-    return sovereignEntity?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? sovereignEntity : null;
+    if (!sovereignId) return null;
+    const sovereignEntity = entityFrom(state, sovereignId);
+    if (!sovereignEntity) throw new Error(`${text(entity.id)}의 소속 국가 ${sovereignId}이 존재하지 않습니다.`);
+    if (sovereignEntity.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      throw new Error(`${text(entity.id)}의 sovereignId는 국가를 가리켜야 합니다: ${sovereignId}`);
+    }
+    return sovereignEntity;
   }
 
   return Object.freeze({
