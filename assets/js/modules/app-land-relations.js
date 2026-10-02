@@ -77,15 +77,15 @@ export function createLandRelations() {
     if (!transferredGeometry || !clipper?.difference) return [];
     const sources = new Set(sourceOwnerIds.map(String));
     const changedIds = [];
-    dependencies.territorialModel.entityStore.replaceUnits(
-      dependencies.territorialModel.entityStore.units().flatMap(feature => {
+    dependencies.territorialModel.entityStore.replaceCollections({
+      units: dependencies.territorialModel.entityStore.units().flatMap(feature => {
         if (!sources.has(String(feature.properties?.sovereignId || ''))) return [feature];
         const remainder = (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(clipper.difference(feature.geometry.coordinates, transferredGeometry.coordinates));
         changedIds.push(String(feature.id));
         if (!remainder) return [];
         return [{ ...feature, geometry: remainder }];
       }),
-    );
+    });
     reconcileTerritorialUnitCompleteness([...sources, String(targetOwnerId)]);
     (0, dependencies.layers.markLayerTreeDirty)();
     return changedIds;
