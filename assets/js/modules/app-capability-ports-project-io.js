@@ -30,7 +30,6 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
   "historyAssembly": [
     "applicationFactories",
     "colorModel",
-    "countries",
     "distributionPresentation",
     "distributionServices",
     "domains",
@@ -38,9 +37,6 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "mapSettingsUi",
     "objectModelA",
     "objectModelB",
-    "objectOperationsA",
-    "objectOperationsB",
-    "objectPresentation",
     "platform",
     "platformConfigurationA",
     "platformConfigurationB",
@@ -52,7 +48,6 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "projectState",
     "readiness",
     "snapshots",
-    "spatialQuery",
     "territorialModel",
     "territorialServicesA",
     "workspaceUiA"
