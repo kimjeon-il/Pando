@@ -96,7 +96,7 @@ export function createTerritorialDrafts() {
             impacts: result.ownershipChanges.map(change => (units.find(unit => text(unit.id) === change.id)?.properties.name || change.id) + ': ' + (change.replacementId ? '합병 후 참조 이전' : '상위 단위 ' + change.to + (change.sovereignId ? ' · 소속 국가 ' + change.sovereignId : ''))).concat(partial.map(impact => `${impact.name}: ${impact.kind === 'remove-child' ? '객체와 참조 삭제' : '일부 영역 절단 · ' + (0, dependencies.applicationServicesB.sphericalGeometryAreaKm2)(impact.geometry).toFixed(3) + ' km²'}`)),
             confirmText: '반영', cancelText: '반영 안 함',
             onConfirm: () => resolve(true), onCancel: () => {
-              if (dependencies.projectState.state.territorySelectionSession?.stage === 'review') (0, dependencies.territorySelectionA.backToTerritorialSelection)();
+              if (dependencies.projectState.state.territorySelectionSession?.stage === 'review') (0, dependencies.territorySelectionB.territorySelectionBack)();
               else (0, dependencies.geometryOperations.discardActiveGeometryPreview)({ announce: false });
               (0, dependencies.taskUi.setModeBanner)('변경을 반영하지 않았습니다. 경계를 다시 편집하세요.');
               resolve(false);
