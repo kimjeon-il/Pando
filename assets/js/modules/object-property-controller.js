@@ -22,7 +22,7 @@ export function createObjectPropertyController(runtime = {}) {
     territorialUnitParentOptions,
     territorialParentOptions,
     territorialUnitColor,
-    territorialRepository,
+    territorialEntityRepository,
     distributionService,
     distributionEntriesForLayer,
     genericFeatureById,
@@ -167,8 +167,7 @@ export function createObjectPropertyController(runtime = {}) {
     show(formType, displayName, { resetScroll: !refreshOnly });
     const prefix = region ? 'region' : 'subunit';
     const normalizedName = String(properties.name || '').trim().toLocaleLowerCase('ko');
-    const conflict = !!normalizedName && state.territorialUnits.some(candidate => candidate.id !== feature.id
-      && candidate.properties?.unitType === properties.unitType
+    const conflict = !!normalizedName && territorialEntityRepository.list({ type: properties.unitType }).some(candidate => candidate.id !== feature.id
       && String(candidate.properties?.sovereignId || '') === String(properties.sovereignId || '')
       && String(candidate.properties?.name || '').trim().toLocaleLowerCase('ko') === normalizedName);
     $(`${prefix}NameConflict`).classList.toggle('hidden', !conflict);
@@ -217,7 +216,7 @@ export function createObjectPropertyController(runtime = {}) {
 
   function distributionEntryLabel(entry) {
     return entry.mode === distributionModes.TERRITORIAL
-      ? territorialRepository.get(entry.territorialUnitId)?.properties?.name || entry.territorialUnitId
+      ? territorialEntityRepository.get(entry.territorialUnitId)?.properties?.name || entry.territorialUnitId
       : '자유 영역';
   }
 
@@ -274,7 +273,7 @@ export function createObjectPropertyController(runtime = {}) {
     syncColorPicker('distribution', { value: color.value, defaultColor: defaultGenericFeatureColor, isDefault: color.isDefault });
     const parentOptions = [{ value: '', label: '상위 분류 없음' }, ...distributionService.parentCandidates(layer.id)
       .map(candidate => ({ value: candidate.id, label: candidate.name })).sort((a, b) => layerNameCompare(a.label, b.label))];
-    const unitOptions = territorialRepository.list().map(unit => ({
+    const unitOptions = territorialEntityRepository.list().map(unit => ({
       value: unit.id,
       label: `${unit.properties?.name || unit.id} · ${runtime.territorialTypeLabel(unit.properties?.unitType)}`,
     })).sort((a, b) => layerNameCompare(a.label, b.label));
@@ -318,8 +317,8 @@ export function createObjectPropertyController(runtime = {}) {
     typeInput.closest('.field-group')?.classList.toggle('hidden', typeChoice.single);
     const target = $('genericFeatureConvertType').value;
     const countryField = $('genericFeatureConvertCountryField');
-    const countryOptions = [{ value: '', label: '국가 선택', placeholder: true }, ...(state.countriesData?.features || []).map(country => ({
-      value: String(country.id), label: String(country.properties?.name || country.properties?.NAME || country.id),
+    const countryOptions = [{ value: '', label: '국가 선택', placeholder: true }, ...territorialEntityRepository.list({ type: territorialUnitTypes.COUNTRY }).map(country => ({
+      value: String(country.id), label: String(country.properties?.name || country.id),
     })).sort((left, right) => layerNameCompare(left.label, right.label))];
     const countryChoice = replaceSelectOptions($('genericFeatureConvertCountryInput'), countryOptions, $('genericFeatureConvertCountryInput').value, {
       autoSelectSingle: true,

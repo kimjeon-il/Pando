@@ -2,19 +2,24 @@ const polygons = geometry => geometry?.type === 'Polygon' ? [geometry.coordinate
   : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
 const featureFor = coordinates => coordinates?.length ? { type: 'Feature', properties: {}, geometry: { type: 'MultiPolygon', coordinates } } : null;
 
-/** Read model only. Its geometry never replaces countriesData or a subunit. */
-export function createTerritorialScopeResolver({ read, countryById, countryColor, clipper }) {
-  let signature = null, sourceUnits = null;
+/** Read model only. Its geometry never replaces countriesData or a subunit.
+ * parentId here is strictly the administrative/spatial hierarchy. Political
+ * dependency relations must not participate in scope geometry.
+ */
+export function createTerritorialScopeResolver({ entityRepository, countryColor, clipper }) {
+  if (!entityRepository?.list || !entityRepository?.get) {
+    throw new TypeError('영역 범위 계산에는 TerritorialEntityRepository가 필요합니다.');
+  }
+  let sourceEntities = null;
   let byId = new Map(), children = new Map(), scopes = new Map();
   function refresh() {
-    const snapshot = read();
-    if (signature === snapshot.revision && sourceUnits === snapshot.units) return;
-    signature = snapshot.revision;
-    sourceUnits = snapshot.units;
-    byId = new Map((snapshot.units || []).map(unit => [String(unit.id), unit]));
+    const entities = entityRepository.list();
+    if (sourceEntities === entities) return;
+    sourceEntities = entities;
+    byId = new Map(entities.map(entity => [String(entity.id), entity]));
     children = new Map();
     scopes = new Map();
-    for (const unit of snapshot.units || []) {
+    for (const unit of entities) {
       if (unit.properties?.unitType !== 'subunit') continue;
       const storedParent = String(unit.properties.parentId || '');
       const parentId = byId.get(storedParent)?.properties?.unitType === 'region'
@@ -40,7 +45,8 @@ export function createTerritorialScopeResolver({ read, countryById, countryColor
     refresh();
     const id = String(countryId);
     if (scopes.has(id)) return scopes.get(id);
-    const country = countryById(id);
+    const candidate = entityRepository.get(id);
+    const country = candidate?.properties?.unitType === 'country' ? candidate : null;
     const descendants = members(id);
     const base = polygons(country?.geometry);
     let extent = country, extra = null;
@@ -65,7 +71,8 @@ export function createTerritorialScopeResolver({ read, countryById, countryColor
       const parentId = String(current.properties?.parentId || '');
       const parent = byId.get(parentId);
       if (parent?.properties?.unitType === 'subunit') { current = parent; continue; }
-      const country = countryById(parentId) || countryById(current.properties?.sovereignId);
+      const candidate = byId.get(parentId) || byId.get(String(current.properties?.sovereignId || ''));
+      const country = candidate?.properties?.unitType === 'country' ? candidate : null;
       return country ? countryColor(country) : fallback;
     }
     return fallback;

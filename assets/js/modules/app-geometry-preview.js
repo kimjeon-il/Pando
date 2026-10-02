@@ -216,6 +216,8 @@ export function createGeometryPreview() {
     snapshot,
     transferredGeometry = null,
     applyResult,
+    resolveFeature = id => dependencies.territorialModel.entityRepository.get(id),
+    invalidateAfterApply = () => dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-geometry-preview-applied'),
     onSuccess = () => {},
     onError = () => {},
     shouldKeepResult = () => true,
@@ -236,11 +238,11 @@ export function createGeometryPreview() {
       const affectedIds = new Set((result.affectedIds || []).map(String));
       const removedIds = new Set((result.removedIds || []).map(String));
       const beforeFeatures = [...affectedIds]
-        .map(id => (0, dependencies.countries.countryFeatureById)(id))
+        .map(id => resolveFeature(id))
         .filter(Boolean);
       const patchById = new Map((result.features || []).map(feature => [String(feature?.id || ''), feature]));
       const afterFeatures = [...affectedIds].filter(id => !removedIds.has(id))
-        .map(id => patchById.get(id) || (0, dependencies.countries.countryFeatureById)(id))
+        .map(id => patchById.get(id) || resolveFeature(id))
         .filter(Boolean);
       const preview = result.preview;
       if (!preview?.validation) throw new Error('Worker 미리보기 검증 결과를 받지 못했습니다.');
@@ -285,7 +287,7 @@ export function createGeometryPreview() {
           dependencies.domains.projectDomain.commitHistorySnapshot(snapshot);
           dependencies.domains.projectDomain.queueAutosave();
           onSuccess(result);
-          dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-geometry-preview-applied');
+          invalidateAfterApply(result);
           (0, dependencies.taskUi.updateModeButtons)();
           return true;
         } catch (error) {
@@ -328,6 +330,7 @@ export function createGeometryPreview() {
     beforeApply = async () => true,
     preparedPreview = null,
     validatePrepared = async () => true,
+    invalidateAfterApply = () => dependencies.domains.renderingDomain?.invalidateGenericPatch?.('local-geometry-preview-applied'),
     successMessage = '변경을 적용했습니다.',
     errorMessage = '변경을 적용하지 못했습니다.',
   }) {
@@ -397,7 +400,7 @@ export function createGeometryPreview() {
         if (commitHistorySnapshot) dependencies.domains.projectDomain.commitHistorySnapshot(snapshot);
         dependencies.projectState.state.stateRevision += 1;
         dependencies.domains.projectDomain.queueAutosave();
-        dependencies.domains.renderingDomain?.invalidateGenericPatch?.('local-geometry-preview-applied');
+        invalidateAfterApply();
         (0, dependencies.taskUi.updateModeButtons)();
         (0, dependencies.feedback.setActionStatus)(successMessage, 'success', 3600);
         return true;

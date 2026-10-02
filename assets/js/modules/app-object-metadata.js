@@ -62,9 +62,10 @@ export function createObjectMetadata() {
   function territorialUnitContainer(feature, { sovereignId = feature?.properties?.sovereignId, parentId = feature?.properties?.parentId } = {}) {
     if (parentId && (feature?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
       || feature?.properties?.coverageMode === dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT)) {
-      return (0, dependencies.objectPresentation.territorialUnitById)(parentId) || (0, dependencies.countries.countryFeatureById)(parentId);
+      return dependencies.territorialModel.entityRepository.get(parentId);
     }
-    return (0, dependencies.countries.countryFeatureById)(sovereignId);
+    const country = dependencies.territorialModel.entityRepository.get(sovereignId);
+    return country?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? country : null;
   }
 
   function territorialUnitInsideContainer(feature, container) {
@@ -85,23 +86,26 @@ export function createObjectMetadata() {
     }
     const explicitCoverage = feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION;
     if (field === 'sovereignId' && explicitCoverage && String(value) !== String(feature.properties.sovereignId || '')) {
-      const candidateUnits = (0, dependencies.platform.deepClone)(dependencies.projectState.state.territorialUnits);
-      const candidateFeature = candidateUnits.find(item => String(item.id) === String(feature.id));
-      Object.assign(candidateFeature, (0, dependencies.applicationServicesA.changeSovereign)(candidateFeature, value));
-      const normalizedUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(candidateUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
-      dependencies.objectModelB.territorialApplicationService.replaceUnits(normalizedUnits, {
-        type: 'territorial-sovereign', affectedIds: [feature.id],
-      });
+      const result = dependencies.objectModelB.territorialApplicationService.changeAdministrativeCountry(
+        feature.properties.unitType,
+        feature.id,
+        value,
+      );
+      if (!result.ok) {
+        (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+        (0, dependencies.feedback.setActionStatus)(result.issues?.[0] || '지방의 소속 국가를 변경할 수 없습니다.', 'error', 4200);
+        return;
+      }
       (0, dependencies.layers.markLayerTreeDirty)();
       (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
-      (0, dependencies.feedback.setActionStatus)('지방의 주권 관계를 변경했습니다. 형상은 변경하지 않았습니다.', 'success');
+      (0, dependencies.feedback.setActionStatus)('지방의 소속 국가를 변경했습니다. 형상은 변경하지 않았습니다.', 'success');
       return;
     }
     if (field === 'sovereignId' && String(value) !== String(feature.properties.sovereignId || '')) {
-      const nextCountry = (0, dependencies.countries.countryFeatureById)(value);
+      const nextCountry = dependencies.territorialModel.entityRepository.get(value);
       const prefix = 'subunit';
       (0, dependencies.platform.$)(`${prefix}CountryInput`).value = String(feature.properties.sovereignId || '');
-      if (!nextCountry) {
+      if (nextCountry?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
         (0, dependencies.feedback.setActionStatus)('소속 국가를 선택하세요.', 'error', 3200);
         return;
       }
@@ -109,59 +113,64 @@ export function createObjectMetadata() {
       return;
     }
     if (field === 'parentId' && !explicitCoverage) {
-      const parent = value ? dependencies.presentation.territorialRepository.get(value) : (0, dependencies.countries.countryFeatureById)(feature.properties.sovereignId);
+      const parent = value ? dependencies.territorialModel.entityRepository.get(value) : dependencies.territorialModel.entityRepository.administrativeCountry(feature.id);
       if (!parent || !territorialUnitInsideContainer(feature, parent)) {
         (0, dependencies.platform.$)('subunitParentInput').value = String(feature.properties.parentId || '');
         (0, dependencies.feedback.setActionStatus)('하위단위 전체가 새 부모 안에 들어갈 때만 상위 단위를 변경할 수 있습니다.', 'error', 4200);
         return;
       }
+      const result = dependencies.objectModelB.territorialApplicationService.changeAdministrativeParent(
+        feature.properties.unitType,
+        feature.id,
+        value,
+        {
+          validateCandidate: ({ candidateUnits }) => {
+            globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).validate(
+              dependencies.projectState.state.countriesData.features,
+              candidateUnits,
+              dependencies.projectState.state.territorialUnits,
+              [String(feature.id)],
+            );
+            return true;
+          },
+        },
+      );
+      if (!result.ok) {
+        (0, dependencies.platform.$)('subunitParentInput').value = String(feature.properties.parentId || '');
+        (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+        (0, dependencies.feedback.setActionStatus)(result.issues?.[0] || '상위 단위를 변경할 수 없습니다.', 'error', 4200);
+        return;
+      }
+      (0, dependencies.layers.markLayerTreeDirty)();
+      (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+      (0, dependencies.feedback.setActionStatus)('하위단위의 상위 단위를 변경했습니다.', 'success');
+      return;
     }
     const canonicalField = field;
-    const candidateUnits = (0, dependencies.platform.deepClone)(dependencies.projectState.state.territorialUnits);
-    const candidateFeature = candidateUnits.find(item => String(item.id) === String(feature.id));
-    if (field === 'color') (0, dependencies.objectModelB.setTerritorialStyleColor)(candidateFeature, value);
-    else if (canonicalField === 'parentId') Object.assign(candidateFeature, (0, dependencies.applicationServicesA.changeParent)(candidateFeature, value));
-    else if (canonicalField === 'sovereignId') Object.assign(candidateFeature, (0, dependencies.applicationServicesA.changeSovereign)(candidateFeature, value));
-    else if (canonicalField === 'unitType') Object.assign(candidateFeature, (0, dependencies.applicationServicesA.changeUnitType)(candidateFeature, value));
-    else if (canonicalField === 'flagDataUrl') {
-      candidateFeature.properties ||= {};
-      candidateFeature.properties.metadata ||= {};
-      if (value === undefined) delete candidateFeature.properties.metadata.flagDataUrl;
-      else candidateFeature.properties.metadata.flagDataUrl = value;
-    }
-    else candidateFeature.properties[canonicalField] = value;
-    const parentValidation = (0, dependencies.territorialServicesB.validateSubunitParentChanges)(dependencies.projectState.state.territorialUnits, candidateUnits, id => !!(0, dependencies.countries.countryFeatureById)(id));
-    if (!parentValidation.ok) {
-      (0, dependencies.feedback.setActionStatus)(parentValidation.issues[0], 'error', 4200);
-      (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
-      return;
-    }
-    let normalizedUnits;
-    try {
-      if (canonicalField === 'parentId' && !explicitCoverage) {
-        globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).validate(
-          dependencies.projectState.state.countriesData.features, candidateUnits, dependencies.projectState.state.territorialUnits, [String(feature.id)],
-        );
+    if (['name', 'notes', 'color', 'validFrom', 'validTo'].includes(canonicalField)) {
+      const result = dependencies.objectModelB.territorialApplicationService.updateMetadata(
+        feature.properties.unitType,
+        feature.id,
+        canonicalField,
+        value,
+      );
+      if (!result.ok) {
+        (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
+        const message = result.issues?.[0] || '영역 정보를 변경할 수 없습니다.';
+        (0, dependencies.feedback.setActionStatus)(message, 'error', 4200);
+        return;
       }
-      normalizedUnits = (0, dependencies.territorialModel.normalizeTerritorialUnits)(candidateUnits, { countryExists: id => !!(0, dependencies.countries.countryFeatureById)(id) });
-    } catch (error) {
+      if (canonicalField === 'name') (0, dependencies.layers.markLayerTreeDirty)();
       (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
-      const validationMessage = (0, dependencies.readiness.compactNotificationMessage)(error?.message || '영역 정보를 검증하지 못했습니다.', { tone: 'error', maxLength: 52 });
-      (0, dependencies.feedback.setActionStatus)(validationMessage, 'error', 0);
+      const unitLabel = feature.properties.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? '지방' : '하위단위';
+      (0, dependencies.feedback.setActionStatus)(`${unitLabel} 정보를 변경했습니다.`, 'success');
       return;
     }
-    dependencies.objectModelB.territorialApplicationService.replaceUnits(normalizedUnits, {
-      type: 'territorial-metadata', affectedIds: [feature.id],
-    });
-    if (canonicalField === 'flagDataUrl') dependencies.domains.renderingDomain?.invalidateLabels?.('territorial-flag-edited');
-    (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.propertyEditingA.applyTerritorialUnitSelectionIntent)(feature.id, true);
-    const unitLabel = feature.properties.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
-      ? '하위단위'
-      : feature.properties.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION
-        ? '지방'
-        : '하위단위';
-    (0, dependencies.feedback.setActionStatus)(`${unitLabel} 정보를 변경했습니다.`, 'success');
+    if (canonicalField === 'parentId' && explicitCoverage) {
+      (0, dependencies.feedback.setActionStatus)('지방의 상위 단위는 직접 편집하지 않습니다.', 'error', 3200);
+    }
+    return false;
   }
 
   function requestTerritorialUnitTransfer(unitId, targetCountryId) {

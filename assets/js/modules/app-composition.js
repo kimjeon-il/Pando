@@ -198,7 +198,7 @@ export async function composeApplication({ revision }) {
   objectCommands.initializeObjectActionsMenuTrigger();
   mapHost.initializeSvg();
   gpuScene.initializeSelectionPass();
-  domainAssembly.initializeProjectDomain();
+  domainAssembly.initializeDomainState();
   countryModes.initializeEmptyDraftSession();
   renderQuality.initializeRenderQualityController();
   gpuScene.initializeRenderSceneBuilder();
@@ -240,7 +240,7 @@ export async function composeApplication({ revision }) {
   countryIndex.initializeLabelFallbackQueue();
   spatialIndex.initializeApplyingMapEditWorkerResult();
   landRelations.initializeRingHitTester();
-  objectPresentation.initializeTerritorialRepository();
+  objectPresentation.initializeObjectPresentationModel();
   physicalResources.initializeTerrainService();
   propertySelection.initializePropertySelection();
   territorialConversion.initializeTerritorialTypeSource();

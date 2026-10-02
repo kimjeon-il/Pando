@@ -28,10 +28,10 @@ export function createGisAssembly() {
       polygonClipping: window.polygonClipping,
       uid: dependencies.surfaces.uid,
       deepClone: dependencies.platform.deepClone,
-      countryFeatureById: dependencies.countries.countryFeatureById,
       countryName: dependencies.presentation.countryName,
       territorialUnitName: dependencies.objectPresentation.territorialUnitName,
-      territorialRepository: dependencies.presentation.territorialRepository,
+      territorialEntityRepository: dependencies.territorialModel.entityRepository,
+      entityStore: dependencies.territorialModel.entityStore,
       distributionService: dependencies.objectModelA.distributionService,
       genericFeatureService: dependencies.objectModelA.genericFeatureService,
       resolveImportedCountryId: dependencies.gisServicesA.resolveImportedCountryId,
@@ -65,7 +65,6 @@ export function createGisAssembly() {
       buildTerritorialImportTransactionPlan: dependencies.gisServicesA.buildTerritorialImportTransactionPlan,
       mapEditClient: dependencies.spatialQuery.mapEditClient,
       validateGisCountryCollection: (...args) => gisWorkflow.validateCountries(...args),
-      reindexCountries: dependencies.geometryMutation.reindexCountries,
       transferLandDependents: dependencies.landRelations.transferLandDependents,
       assertCurrentProjectReferences: dependencies.geometryOperations.assertCurrentProjectReferences,
       commitHistorySnapshot: (...args) => dependencies.domains.projectDomain.commitHistorySnapshot(...args),
@@ -137,7 +136,6 @@ export function createGisAssembly() {
   function getGisExportController() {
     if (dependencies.gisServicesA.gisExportControllerPromise) return dependencies.gisServicesA.gisExportControllerPromise;
     const controllerPromise = import((0, dependencies.applicationServicesB.versionedModuleUrl)('./modules/gis-export-controller.js')).then(({ createGisExportController }) => {
-      const units = () => dependencies.projectState.state.territorialUnits || [];
       const controller = createGisExportController({
         window,
         document,
@@ -156,9 +154,9 @@ export function createGisAssembly() {
         requireReady: dependencies.readinessUi.requireCanonicalData,
         getProject: () => dependencies.domains.projectDomain.buildProject(),
         getCounts: () => ({
-          countries: dependencies.projectState.state.countriesData?.features?.length || 0,
-          subunits: units().filter(feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT).length,
-          regions: units().filter(feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION).length,
+          countries: dependencies.territorialModel.entityRepository.list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY }).length,
+          subunits: dependencies.territorialModel.entityRepository.list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT }).length,
+          regions: dependencies.territorialModel.entityRepository.list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION }).length,
           genericFeatures: dependencies.projectState.state.genericFeatures.length,
           distributions: dependencies.projectState.state.distributionEntries.length,
           labels: dependencies.projectState.state.labels.length,
