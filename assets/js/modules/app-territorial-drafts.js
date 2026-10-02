@@ -277,9 +277,10 @@ export function createTerritorialDrafts() {
     if (session.kind === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION) return true;
     const parentValid = (0, dependencies.territorialServicesA.subunitParentChoices)(
       session.sovereignId,
-      dependencies.projectState.state.countriesData.features,
-      dependencies.projectState.state.territorialUnits,
-      { name: feature => feature.properties?.unitType ? (0, dependencies.objectPresentation.territorialUnitName)(feature) : (0, dependencies.presentation.countryName)(feature) },
+      dependencies.territorialModel.entityRepository,
+      { name: feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? (0, dependencies.presentation.countryName)(feature)
+        : (0, dependencies.objectPresentation.territorialUnitName)(feature) },
     ).some(option => text(option.value) === text(session.parentId));
     const source = resolveTerritorialCreateSource(session);
     return !!(session.sovereignId && parentValid && parentFeatureForSession(session) && source && source.feature?.properties?.locked !== true);
@@ -525,7 +526,7 @@ export function createTerritorialDrafts() {
     const source = (0, dependencies.objectPresentation.territorialUnitById)(id);
     if (!source) return false;
     if (source.properties.unitType === 'subunit') {
-      const siblings = (0, dependencies.territorialServicesB.territorialSiblings)(dependencies.projectState.state.territorialUnits, source);
+      const siblings = dependencies.territorialModel.entityRepository.administrativeSiblings(source.id);
       if (source.properties.locked || !siblings.length) {
         (0, dependencies.feedback.setActionStatus)('경계를 공유하는 하위단위가 있어야 경계를 조정할 수 있습니다.', 'error', 3400);
         return false;
@@ -556,7 +557,7 @@ export function createTerritorialDrafts() {
     const coords = (0, dependencies.countryEditingA.editingDraftCoordinates)().map(coord => coord.slice());
     try {
       const drawn = { type: 'Polygon', coordinates: [(0, dependencies.applicationServicesB.orientRing)(coords, true)] };
-      const siblings = (0, dependencies.territorialServicesB.territorialSiblings)(dependencies.projectState.state.territorialUnits, source);
+      const siblings = dependencies.territorialModel.entityRepository.administrativeSiblings(source.id);
       const response = await dependencies.spatialQuery.mapEditClient.execute('territorial-region-redraw', { payload: {
         targetId: source.id, containerId: container.id, siblingIds: siblings.map(sibling => sibling.id), draft: drawn,
       } });
