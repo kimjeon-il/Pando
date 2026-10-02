@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const appSource = readApplicationOwners('camera-navigation', 'object-commands');
+const navigationBindingsSource = readApplicationOwners('navigation-bindings');
 const htmlSource = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
 
 function functionSource(name, nextName) {
@@ -20,7 +21,10 @@ test('whole-map view resets only the active projection zoom', () => {
   assert.doesNotMatch(source, /state\.view\.globeRotation\s*=/);
   assert.doesNotMatch(source, /state\.view\.flatCenter\s*=/);
   assert.doesNotMatch(source, /fitBounds|focusCountry|panMapBy/);
-  assert.match(source, /renderViewFrame\(\)/);
+  assert.match(source, /syncMapHostFromState\(\)/);
+  assert.match(source, /renderingDomain\?\.endInteraction\?\.\('world-view-settle'\)/);
+  assert.match(source, /projectDomain\.queueViewAutosave\(\)/);
+  assert.doesNotMatch(source, /renderViewFrame\(\)/);
 });
 
 test('object focus uses the actual viewport center and safe insets only for zoom sizing', () => {
@@ -44,12 +48,18 @@ test('country focus uses its own label anchor while scope extent remains zoom-on
   assert.doesNotMatch(source, /sovereignId|parentId|territorialChildren|territorialRelations/);
 });
 
-test('desktop and mobile controls call the action whole-map view', () => {
-  for (const id of ['resetViewBtn', 'mobileWorldBtn']) {
-    const button = htmlSource.match(new RegExp(`<button[^>]*id="${id}"[^>]*>`))?.[0] || '';
-    assert.match(button, /aria-label="전체 지도 보기"/);
-    assert.match(button, /data-tooltip="전체 지도 보기"/);
-  }
-  assert.equal((htmlSource.match(/aria-label="전체 지도 보기"/g) || []).length, 2);
+test('the shared whole-map control calls the camera action without restoring a removed mobile duplicate', () => {
+  const button = htmlSource.match(/<button[^>]*id="resetViewBtn"[^>]*>/)?.[0] || '';
+  assert.match(button, /aria-label="전체 지도 보기"/);
+  assert.match(button, /data-tooltip="전체 지도 보기"/);
+  assert.doesNotMatch(htmlSource, /id="mobileWorldBtn"/);
+  assert.match(htmlSource, /id="mobileDisplayBtn"/);
+  assert.equal((htmlSource.match(/aria-label="전체 지도 보기"/g) || []).length, 1);
   assert.doesNotMatch(htmlSource, /전체 지도 맞춤/);
+
+  const start = navigationBindingsSource.indexOf("$('resetViewBtn')");
+  const end = navigationBindingsSource.indexOf('const searchPanel', start);
+  assert.ok(start >= 0 && end > start, 'reset view binding must exist');
+  const binding = navigationBindingsSource.slice(start, end);
+  assert.match(binding, /navigation\.resetView\(\)/);
 });
