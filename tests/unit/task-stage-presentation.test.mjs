@@ -92,6 +92,21 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     ...stateOverrides,
   };
   const focusCalls = [];
+  const countryFeatureById = portOverrides.countryFeatureById || (id => id === 'COUNTRY'
+    ? { type: 'Feature', id, properties: { name: 'Country' }, geometry: { type: 'Polygon', coordinates: [] } }
+    : null);
+  const entityRepository = portOverrides.entityRepository || {
+    get(id) {
+      const key = String(id || '');
+      const unit = (state.territorialUnits || []).find(item => String(item?.id || '') === key);
+      if (unit) return unit;
+      const country = countryFeatureById(key);
+      return country ? {
+        ...country,
+        properties: { ...(country.properties || {}), unitType: 'country' },
+      } : null;
+    },
+  };
   const presentation = createTaskPresentation();
   presentation.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
     state,
@@ -105,7 +120,8 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     isSpecialTool: () => true,
     TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
     boundaryEditSelectionAnalysis: () => ({ valid: false, message: '접경 대상을 선택하세요.' }),
-    countryFeatureById: id => id === 'COUNTRY' ? { type: 'Feature', id, properties: { name: 'Country' }, geometry: { type: 'Polygon', coordinates: [] } } : null,
+    countryFeatureById,
+    entityRepository,
     countryName: feature => feature.properties.name,
     effectiveCountryFlagUrl: () => '',
     objectDisplayInfo: ref => ({ name: ref.id === 'SUB' ? 'Subunit' : 'Country', type: ref.type }),
