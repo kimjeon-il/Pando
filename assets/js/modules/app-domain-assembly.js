@@ -1175,6 +1175,7 @@ export function createDomainAssembly() {
       getCountries: () => dependencies.projectState.state.countriesData,
       getUnits: () => dependencies.projectState.state.territorialUnits,
       getCountryOverride: id => dependencies.projectState.state.countryOverrides[id] || {},
+      getRevision: () => `${dependencies.projectState.state.stateRevision}:${dependencies.countries.countryLandRevision}:${dependencies.spatialQuery.mapObjectGeometryRevisions.territorial}`,
     }));
 
     (projectDomain = null);
