@@ -211,7 +211,7 @@ export function createSpatialIndex() {
     if (!wanted.size) rebuildSpatialIndex();
     else for (const item of dependencies.projectState.state.spatialIndex || []) {
       if (!wanted.has(item.id)) continue;
-      const feature = (0, dependencies.countries.countryFeatureById)(item.id);
+      const feature = dependencies.territorialModel.entityStore.countryFeature(item.id);
       if (feature) { item.feature = feature; item.bounds = geometryBounds(feature.geometry); }
     }
   }
@@ -282,7 +282,7 @@ export function createSpatialIndex() {
     (mapEditClient = (0, dependencies.spatialFactories.createMapEditWorkerClient)({
       createWorker: () => new Worker((0, dependencies.platform.runtimeAssetUrl)('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' }),
       getFeatures: () => dependencies.projectState.state.countriesData?.features || [],
-      getFeatureById: dependencies.countries.countryFeatureById,
+      getFeatureById: dependencies.territorialModel.entityStore.countryFeature,
       getBoundaryFeatures: () => [
         ...(dependencies.projectState.state.countriesData?.features || []).map(feature => ({ ...feature,
           boundaryLocked: dependencies.projectState.state.countryOverrides?.[String(feature.id)]?.locked === true })),

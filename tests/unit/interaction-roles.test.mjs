@@ -42,7 +42,7 @@ test('country border keeps the selected countries primary and secondary while th
   const mda = normalizeObjectRef({ domain: 'territorial', type: 'country', id: 'MDA' });
   const snapshot = { selection: { primaryKey: mda.key, items: [rou, mda] }, hover: null };
   const entries = mapInteractionEntries(snapshot, {
-    tool: 'country-border', boundaryEditPhase: 'editing', boundaryEditCountryIds: ['ROU', 'MDA'],
+    tool: 'territorial-border', boundaryEditPhase: 'editing', boundaryEditEntityIds: ['ROU', 'MDA'],
   });
   assert.equal(entries.find(entry => entry.ref.id === 'MDA').role, 'primary');
   assert.equal(entries.find(entry => entry.ref.id === 'ROU').role, 'secondary');

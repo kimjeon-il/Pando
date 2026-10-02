@@ -150,7 +150,7 @@ export function createEnvironment() {
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('system-theme');
     if (dependencies.projectState.state?.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
       const id = String(dependencies.projectState.state.selected.id);
-      const feature = (0, dependencies.countries.countryFeatureById)(id);
+      const feature = dependencies.territorialModel.entityStore.countryFeature(id);
       const color = (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.territorialModel.entityStore.countryOverride(id) }, { fallback: defaultCountryColor() });
       if (color.isDefault && $('countryColorInput')) $('countryColorInput').value = color.value;
       (0, dependencies.colorPicker.syncColorPicker)('country', {

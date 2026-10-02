@@ -12,11 +12,6 @@ export function createCountryCommits() {
     dependencies = ports;
   }
 
-  function countryEntityById(id) {
-    const entity = dependencies.territorialModel.entityRepository.get(id);
-    return entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity : null;
-  }
-
   function applyCountryGeometryPlan(plan, {
     patchOptions = undefined,
     afterPatch = () => {},
@@ -33,13 +28,13 @@ export function createCountryCommits() {
     (0, dependencies.countryValidation.refreshCountryCentroids)(new Set([...(centroidIds || [])].map(String)));
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
-    if (requireCountryId && !countryEntityById(requireCountryId)) {
+    if (requireCountryId && dependencies.territorialModel.entityRepository.get(requireCountryId)?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
       throw new Error('국가 geometry 적용 결과에서 대상 국가가 사라졌습니다.');
     }
     if (clearMultiDraft) dependencies.projectState.state.multiDraft = null;
     if (clearDraftReason) dependencies.domains.editingDomain?.clearDraft?.({ reason: clearDraftReason, render: false });
     dependencies.domains.editingDomain?.setTool('select', { announce: false });
-    if (selectedId) (0, dependencies.propertyEditingA.applyCountrySelectionIntent)(selectedId);
+    if (selectedId) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'country', id: String(selectedId) }, { refreshOnly: false, openEditor: false });
   }
 
   function cancelScheduledMultiDraftPreview() {
@@ -217,7 +212,7 @@ export function createCountryCommits() {
 
   function prepareAnnexDraftCandidates(session = dependencies.projectState.state.territorySelectionSession) {
     const targetId = String(session?.targetCountryId || '');
-    const target = countryEntityById(targetId);
+    const target = dependencies.territorialModel.entityRepository.get(targetId);
     if (session?.kind !== 'annex' || session.activePhase !== 'drawing' || session.activeMethod !== 'line' || !target || !session.sourceCountryIds.length) {
       (0, dependencies.feedback.setActionStatus)('편입을 진행할 수 없습니다. 편입받을 국가와 영토를 가져올 국가를 먼저 선택하세요.', 'error', 3800);
       return;
@@ -261,8 +256,8 @@ export function createCountryCommits() {
   }
 
   function prepareAnnexPolygon(session = dependencies.projectState.state.territorySelectionSession) {
-    const target = countryEntityById(String(session?.targetCountryId || ''));
-    const donors = (session?.sourceCountryIds || []).map(countryEntityById).filter(Boolean);
+    const target = dependencies.territorialModel.entityRepository.get(String(session?.targetCountryId || ''));
+    const donors = (session?.sourceCountryIds || []).map(dependencies.territorialModel.entityRepository.get).filter(Boolean);
     if (session?.kind !== 'annex' || session.activePhase !== 'drawing' || session.activeMethod !== 'polygon' || !target || !donors.length) return;
     const plan = (0, dependencies.territorialServicesA.planDrawnTerritoryAnnex)({
       drawnGeometry: { type: 'Polygon', coordinates: [(0, dependencies.geometryModel.ensureClosedRing)((0, dependencies.countryEditingA.editingDraftCoordinates)())] },
@@ -444,15 +439,15 @@ export function createCountryCommits() {
       ...session.sourceCountryIds.map(String),
       ...selectedComponents.map(item => String(item.countryId)).filter(Boolean),
     ])];
-    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([targetId, ...donorIds], '영토를 편입')) return;
+    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([targetId, ...donorIds].map(id => ({ domain: 'territorial', type: 'country', id: String(id) })), '영토를 편입')) return;
     const candidate = { geometry: session.combinedGeometry };
-    const targetBefore = countryEntityById(targetId);
-    const donorsBefore = donorIds.map(countryEntityById).filter(Boolean);
+    const targetBefore = dependencies.territorialModel.entityRepository.get(targetId);
+    const donorsBefore = donorIds.map(dependencies.territorialModel.entityRepository.get).filter(Boolean);
     if (!candidate?.geometry || !targetBefore || !donorsBefore.length) {
       (0, dependencies.feedback.setActionStatus)('편입 후보나 국가 데이터를 찾을 수 없습니다.', 'error', 3800);
       return;
     }
-    const targetName = (0, dependencies.presentation.countryName)(targetBefore);
+    const targetName = (0, dependencies.objectPresentation.territorialEntityName)(targetBefore);
     const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     await (0, dependencies.geometryOperations.beginWorkerGeometryPreview)({
       operation: 'annex',
@@ -492,7 +487,7 @@ export function createCountryCommits() {
       (0, dependencies.feedback.setActionStatus)('신생국 영토 후보를 찾을 수 없습니다.', 'error', 3800);
       return null;
     }
-    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)(session.sourceCountryIds, '새 국가를 분리')) return null;
+    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(session.sourceCountryIds.map(id => ({ domain: 'territorial', type: 'country', id: String(id) })), '새 국가를 분리')) return null;
     const sourceIds = session.sourceCountryIds.map(String);
     const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     const feature = (0, dependencies.objectPicking.createCountryFeature)(
@@ -522,7 +517,7 @@ export function createCountryCommits() {
       invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateCountryPatch?.('new-country-committed'),
       onSuccess: transferPlan => {
         const removedText = transferPlan.removedIds.length ? ` · 원본 ${transferPlan.removedIds.length}개국 완전 흡수` : '';
-        (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.presentation.countryName)(feature)} 국가를 추가했습니다${removedText}.`, 'success', 4200);
+        (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.objectPresentation.territorialEntityName)(feature)} 국가를 추가했습니다${removedText}.`, 'success', 4200);
       },
       onError: error => (0, dependencies.feedback.reportOperationError)(error, '국가를 추가하지 못해 변경을 되돌렸습니다. 선택 범위를 조정한 뒤 다시 시도하세요.', 'PL-COUNTRY-002'),
       shouldKeepResult: () => dependencies.projectState.state.territorySelectionSession === session
@@ -531,7 +526,6 @@ export function createCountryCommits() {
     return true;
   }
 
-
   async function completeCountryMerge() {
     const sourceId = String(dependencies.projectState.state.mergeSourceCountryId || '');
     const targetIds = [...new Set(dependencies.projectState.state.mergeTargetCountryIds.map(String))].filter(id => id && id !== sourceId);
@@ -539,14 +533,14 @@ export function createCountryCommits() {
       (0, dependencies.feedback.setActionStatus)('합병할 국가를 하나 이상 선택하세요.', 'error', 3200);
       return;
     }
-    if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([sourceId, ...targetIds], '국가를 합병')) return;
-    const source = countryEntityById(sourceId);
-    const targets = targetIds.map(countryEntityById).filter(Boolean);
+    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([sourceId, ...targetIds].map(id => ({ domain: 'territorial', type: 'country', id: String(id) })), '국가를 합병')) return;
+    const source = dependencies.territorialModel.entityRepository.get(sourceId);
+    const targets = targetIds.map(dependencies.territorialModel.entityRepository.get).filter(Boolean);
     if (!source || targets.length !== targetIds.length) {
       (0, dependencies.feedback.setActionStatus)('합병할 국가를 찾을 수 없습니다. 대상을 다시 선택하세요.', 'error');
       return;
     }
-    const sourceName = (0, dependencies.presentation.countryName)(source);
+    const sourceName = (0, dependencies.objectPresentation.territorialEntityName)(source);
     const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     await (0, dependencies.geometryOperations.beginWorkerGeometryPreview)({
       operation: 'merge',
@@ -570,8 +564,6 @@ export function createCountryCommits() {
       onError: error => (0, dependencies.feedback.reportOperationError)(error, '국가를 합병하지 못해 변경을 되돌렸습니다. 대상을 다시 확인하세요.', 'PL-MERGE-001'),
     });
   }
-
-
 
   return Object.freeze({
     connect,

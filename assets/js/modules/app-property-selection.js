@@ -71,7 +71,7 @@ export function createPropertySelection() {
         const properties = feature.properties || {};
         return {
           value: String(feature.id || ''),
-          label: (0, dependencies.presentation.countryName)(feature),
+          label: (0, dependencies.objectPresentation.territorialEntityName)(feature),
           searchText: [properties.name, feature.id].filter(Boolean).join(' '),
         };
       }).sort((a, b) => dependencies.objectModelA.layerNameCollator.compare(a.label, b.label)),
@@ -81,9 +81,7 @@ export function createPropertySelection() {
   function territorialUnitParentOptions(feature) {
     const countryId = String(feature?.properties?.sovereignId || '');
     const options = (0, dependencies.territorialServicesA.subunitParentChoices)(countryId, dependencies.territorialModel.entityRepository, {
-      exclude: [feature.id], name: item => item.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? (0, dependencies.presentation.countryName)(item)
-        : (0, dependencies.objectPresentation.territorialUnitName)(item),
+      exclude: [feature.id], name: item => (0, dependencies.objectPresentation.territorialEntityName)(item),
     });
     const signature = JSON.stringify([parentGeometryToken(feature.geometry), feature.properties.parentId, countryId,
       options.map(option => {
@@ -124,7 +122,7 @@ export function createPropertySelection() {
         .filter(candidate => !excluded.has(String(candidate.id)))
         .map(candidate => ({
           value: String(candidate.id),
-          label: `${candidate.properties?.name || (0, dependencies.objectPresentation.territorialUnitName)(candidate)} · ${(0, dependencies.territorialServicesB.territorialTypeLabel)(candidate.properties?.unitType)}`,
+          label: `${candidate.properties?.name || (0, dependencies.objectPresentation.territorialEntityName)(candidate)} · ${(0, dependencies.territorialServicesB.territorialTypeLabel)(candidate.properties?.unitType)}`,
         }))
         .sort((left, right) => dependencies.objectModelA.layerNameCollator.compare(left.label, right.label)),
     ];
@@ -290,46 +288,35 @@ export function createPropertySelection() {
   }
 
   function applyTerritorialSelectionIntent(type, id, refreshOnly = false) {
-    const unitType = String(type || (0, dependencies.objectPresentation.territorialUnitById)(id)?.properties?.unitType || '');
+    const unitType = String(type || dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType || '');
     if (unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      return dependencies.domains.selectionUiController.applyIntent((0, dependencies.objectOperationsA.countryObjectRef)(id), { refreshOnly, openEditor: false });
+      return dependencies.domains.selectionUiController.applyIntent(dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'country', id: String(id) }), { refreshOnly, openEditor: false });
     }
-    const unit = (0, dependencies.objectPresentation.territorialUnitById)(id);
+    const unit = dependencies.territorialModel.entityRepository.get(id);
     if (!unit || unit.properties?.unitType !== unitType) return false;
     return dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: unitType, id }), { refreshOnly, openEditor: false });
   }
 
-  function setTerritorialUnitName(type, id, name) {
-    if (!applyTerritorialSelectionIntent(type, id, true)) return false;
-    if (type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) (0, dependencies.objectMetadata.commitCountryEdit)('name', name);
-    else (0, dependencies.objectMetadata.commitTerritorialUnitMeta)('name', name);
-    return true;
+  function setTerritorialEntityName(type, id, value) {
+    return dependencies.objectMetadata.commitTerritorialMetadata({ domain: 'territorial', type, id: String(id) }, 'name', value);
   }
 
-  function setTerritorialUnitColor(type, id, color) {
-    if (!applyTerritorialSelectionIntent(type, id, true)) return false;
-    if (type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) (0, dependencies.objectMetadata.commitCountryEdit)('color', color);
-    else (0, dependencies.objectMetadata.commitTerritorialUnitMeta)('color', color);
-    return true;
+  function setTerritorialEntityColor(type, id, value) {
+    return dependencies.objectMetadata.commitTerritorialMetadata({ domain: 'territorial', type, id: String(id) }, 'color', value);
   }
 
-  function setTerritorialUnitLocked(type, id, locked) {
+  function setTerritorialEntityLocked(type, id, locked) {
     const key = String(id || '');
     const result = dependencies.objectModelB.territorialApplicationService.setLocked(type, key, locked, {
       history: type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? { description: `${(0, dependencies.presentation.countryName)(dependencies.territorialModel.entityRepository.get(key))} ${locked ? '잠금' : '잠금 해제'}` }
+        ? { description: `${(0, dependencies.objectPresentation.territorialEntityName)(dependencies.territorialModel.entityRepository.get(key))} ${locked ? '잠금' : '잠금 해제'}` }
         : {},
     });
     if (!result.ok) return false;
     if (!result.changed) return true;
     dependencies.domains.layerTreeController?.syncLocks([{ domain: 'territorial', type, id: key }]);
-    if (type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.projectState.state.selected.id) === key) dependencies.domainControllers.countryPropertyController.refresh((0, dependencies.objectOperationsA.countryObjectRef)(key));
-      (0, dependencies.objectOperationsB.syncBatchActionAvailability)();
-    } else if (dependencies.projectState.state.selected?.domain === 'territorial' && String(dependencies.projectState.state.selected.id) === key) {
-      dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
-    }
-    (0, dependencies.objectOperationsB.syncBatchActionAvailability)();
+    if (dependencies.projectState.state.selected?.domain === 'territorial' && String(dependencies.projectState.state.selected.id) === key) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
+    dependencies.objectOperationsB.syncBatchActionAvailability();
     return true;
   }
 
@@ -385,22 +372,6 @@ export function createPropertySelection() {
     (0, dependencies.feedback.setActionStatus)(`${source.properties?.name || (category === 'lake' ? '호수' : '강')} 편집 복사본을 만들었습니다.`, 'success', 3600);
   }
 
-  function applyCountrySelectionIntent(id, refreshOnly = false) {
-    return dependencies.domains.selectionUiController.applyIntent(
-      (0, dependencies.objectOperationsA.countryObjectRef)(id),
-      { refreshOnly, openEditor: false, reason: 'country-selection' },
-    );
-  }
-
-  function applyTerritorialUnitSelectionIntent(id, refreshOnly = false) {
-    const feature = (0, dependencies.objectPresentation.territorialUnitById)(id);
-    return feature ? dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({
-      domain: 'territorial',
-      type: feature.properties?.unitType || dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT,
-      id: String(id),
-    }), { refreshOnly, openEditor: false, reason: 'territorial-selection' }) : false;
-  }
-
   function applyDistributionSelectionIntent(id, refreshOnly = false) {
     const layer = distributionLayerById(id);
     if (layer) {
@@ -445,9 +416,9 @@ export function createPropertySelection() {
       get: id => dependencies.territorialModel.entityRepository.get(id),
       list: options => dependencies.territorialModel.entityRepository.list(options),
       select: applyTerritorialSelectionIntent,
-      setName: setTerritorialUnitName,
-      setColor: setTerritorialUnitColor,
-      setLocked: setTerritorialUnitLocked,
+      setName: setTerritorialEntityName,
+      setColor: setTerritorialEntityColor,
+      setLocked: setTerritorialEntityLocked,
       isLocked: (type, id) => dependencies.objectModelB.territorialApplicationService.isLocked(type, id),
     });
 
@@ -464,12 +435,12 @@ export function createPropertySelection() {
     connect,
     initializePropertySelection,
     get addTerritorialDistributionEntry() { return addTerritorialDistributionEntry; },
-    get applyCountrySelectionIntent() { return applyCountrySelectionIntent; },
+
     get applyDistributionSelectionIntent() { return applyDistributionSelectionIntent; },
     get applyGenericSelectionIntent() { return applyGenericSelectionIntent; },
     get applyHydroSelectionIntent() { return applyHydroSelectionIntent; },
     get applyLabelSelectionIntent() { return applyLabelSelectionIntent; },
-    get applyTerritorialUnitSelectionIntent() { return applyTerritorialUnitSelectionIntent; },
+
     get commitDistributionMeta() { return commitDistributionMeta; },
     get copySelectedHydroForEditing() { return copySelectedHydroForEditing; },
     get createDistributionLayerFromPrompt() { return createDistributionLayerFromPrompt; },

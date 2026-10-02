@@ -20,7 +20,7 @@ export function createDomainAssembly() {
   let editingDomain;
   let selectionUiController;
   let selectionToolbarPresentation;
-  let countryPropertyController;
+  let territorialPropertyController;
   let objectPropertyController;
   let layerTreeController;
   let territorialEntityStore;
@@ -209,18 +209,11 @@ export function createDomainAssembly() {
       getElement: dependencies.platform.$,
       state: dependencies.projectState.state,
       territorialUnitTypes: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES,
+      replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
       distributionModes: dependencies.territorialModel.DISTRIBUTION_MODES,
       colorDomains: dependencies.colorModel.COLOR_DOMAINS,
       defaultGenericFeatureColor: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
       hydroToolConfig: dependencies.hydroPresentation.HYDRO_TOOL_CONFIG,
-      refreshTerritorialCoastAvailability: dependencies.territorialEditingB.refreshTerritorialCoastAvailability,
-      territorialUnitById: dependencies.objectPresentation.territorialUnitById,
-      territorialUnitName: dependencies.objectPresentation.territorialUnitName,
-      territorialUnitCountryName: dependencies.objectPresentation.territorialUnitCountryName,
-      territorialUnitCountryOptions: dependencies.propertyEditingB.territorialUnitCountryOptions,
-      territorialUnitParentOptions: dependencies.propertyEditingB.territorialUnitParentOptions,
-      territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
-      territorialUnitColor: dependencies.colorModel.territorialUnitColor,
       territorialEntityRepository: territorialEntityRepository,
       distributionService: dependencies.objectModelA.distributionService,
       distributionEntriesForLayer: dependencies.distributionServices.distributionEntriesForLayer,
@@ -246,8 +239,6 @@ export function createDomainAssembly() {
       gpuMapRenderer: dependencies.rendering.gpuMapRenderer,
       readDomainColor: dependencies.colorModel.readDomainColor,
       syncColorPicker: dependencies.colorPicker.syncColorPicker,
-      replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
-      shouldShowTerritorialParentChoice: dependencies.territorialServicesA.shouldShowTerritorialParentChoice,
       formatArea: dependencies.applicationServicesA.formatArea,
       geometryAreaKm2: dependencies.applicationServicesB.sphericalGeometryAreaKm2,
       layerNameCompare: (left, right) => dependencies.objectModelA.layerNameCollator.compare(left, right),
@@ -259,7 +250,6 @@ export function createDomainAssembly() {
       createEmptyState: dependencies.platformConfigurationB.createEmptyState,
       createSemanticIcon: dependencies.applicationFactories.createSemanticIcon,
       territorialTypeLabel: dependencies.territorialServicesB.territorialTypeLabel,
-      countryFeatureById: dependencies.countries.countryFeatureById,
       onHydroLoaded: full => {
         const key = String(full.properties?.pandolab_id || full.id);
         dependencies.projectState.state.hydroFeatureCache.set(key, full);
@@ -271,7 +261,21 @@ export function createDomainAssembly() {
       },
     });
 
-    countryPropertyController = (0, dependencies.uiFactoriesA.createCountryPropertyController)({
+    const getTerritorialView = value => {
+      const ref = dependencies.selectionServices.normalizeObjectRef(value);
+      if (ref?.domain !== 'territorial') return null;
+      const feature = territorialEntityRepository.get(ref.id);
+      if (!feature || feature.properties?.unitType !== ref.type) return null;
+      const displayName = dependencies.objectPresentation.territorialEntityName(feature);
+      const country = ref.type === 'subunit' ? territorialEntityRepository.administrativeCountry(ref.id) : null;
+      const statusName = ref.type === 'country' ? displayName
+        : [ref.type === 'subunit' ? '하위단위' : '지방', country && dependencies.objectPresentation.territorialEntityName(country), displayName].filter(Boolean).join(' · ');
+      return { ref, id: String(feature.id), feature, properties: feature.properties, displayName, name: displayName,
+        statusName,
+        flagUrl: dependencies.territorialServicesA.effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
+        hasFlagOverride: Object.hasOwn(feature.properties?.metadata || {}, 'flagDataUrl') };
+    };
+    territorialPropertyController = (0, dependencies.uiFactoriesA.createTerritorialPropertyController)({
       window,
       document,
       elements: {
@@ -281,34 +285,28 @@ export function createDomainAssembly() {
         area: (0, dependencies.platform.$)('countryAreaValue'),
         selectionStatus: (0, dependencies.platform.$)('selectionStatus'),
       },
-      getCountryView: value => {
-        const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
-        const id = String(ref?.id || value?.id || value || '');
-        const feature = territorialEntityRepository.get(id);
-        if (feature?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
-        const properties = feature.properties || {};
-        const override = dependencies.territorialModel.entityStore.countryOverride(id);
-        return { ref: (0, dependencies.objectOperationsA.countryObjectRef)(id), id, feature, properties, override, displayName: (0, dependencies.presentation.countryName)(feature) };
-      },
+      getTerritorialView,
       getPrimaryRef: () => selectionDomain.primary(),
       showPropertyForm: (...args) => objectPropertyController.show(...args),
-      resolveColor: view => (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, {
-        feature: view.feature,
-        override: view.override,
-      }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() }),
-      defaultColor: dependencies.colorModel.defaultCountryColor,
+      resolveColor: view => dependencies.colorModel.readDomainColor(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature: view.feature }, { inherited: dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }), fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR }),
+      defaultColor: view => view.ref.type === 'country' ? dependencies.colorModel.defaultCountryColor() : dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }),
       syncColorPicker: dependencies.colorPicker.syncColorPicker,
-      resolveFlagUrl: view => (0, dependencies.labelPresentation.effectiveCountryFlagUrl)({
-        countryId: view.id,
-        properties: view.properties,
-        override: view.override,
-        assetRevision: dependencies.layerPresentation.ASSET_REVISION,
-      }),
       calculateAreaKm2: dependencies.applicationServicesB.sphericalGeometryAreaKm2,
       formatArea: dependencies.applicationServicesA.formatArea,
       syncActions: dependencies.taskPresentation.syncCountryActionButtons,
       syncStatus: dependencies.readinessUi.syncStatusBar,
-      commitField: dependencies.objectMetadata.commitCountryEdit,
+      commitField: dependencies.objectMetadata.commitTerritorialMetadata,
+      commitRelation: dependencies.objectMetadata.commitTerritorialRelation,
+      getElement: dependencies.platform.$,
+      territorialUnitTypes: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES,
+      territorialEntityRepository,
+      territorialUnitCountryOptions: dependencies.propertyEditingB.territorialUnitCountryOptions,
+      territorialUnitParentOptions: dependencies.propertyEditingB.territorialUnitParentOptions,
+      territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
+      refreshTerritorialCoastAvailability: dependencies.territorialEditingB.refreshTerritorialCoastAvailability,
+      replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
+      shouldShowTerritorialParentChoice: dependencies.territorialServicesA.shouldShowTerritorialParentChoice,
+      syncLayerSelection: () => layerTreeController?.syncSelection(),
       metrics: dependencies.rendering.selectionPerformanceMetrics,
     });
 
@@ -318,7 +316,7 @@ export function createDomainAssembly() {
         const entity = territorialEntityRepository.get(ref.id);
         return String(entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity.id : ref.id);
       }
-      for (const [labelId, labelRef] of dependencies.countries.builtinRenderCountries().labelRefs || []) {
+      for (const [labelId, labelRef] of dependencies.countries.builtinTerritorialScene().labelRefs || []) {
         if (labelRef?.domain === 'territorial' && labelRef.type === ref.type && String(labelRef.id) === String(ref.id)) return String(labelId);
       }
       return '';
@@ -326,8 +324,8 @@ export function createDomainAssembly() {
     const selectionCardAnchor = ref => {
       const labelId = territorialLabelId(ref);
       if (!labelId) return null;
-      const layer = dependencies.mapHostViewA.countryLabelLayer?.node?.();
-      const node = [...(layer?.querySelectorAll?.('g.country-label-item[data-label-id]') || [])]
+      const layer = dependencies.mapHostViewA.territorialLabelLayer?.node?.();
+      const node = [...(layer?.querySelectorAll?.('g.territorial-label-item[data-label-id]') || [])]
         .find(element => element.dataset.labelId === labelId);
       if (node) return { node, rect: node.getBoundingClientRect() };
       const coordinate = dependencies.labelPresentation.countryLabelAnchors.get(labelId);
@@ -340,40 +338,8 @@ export function createDomainAssembly() {
       document,
       getElement: dependencies.platform.$,
       getSelection: () => selectionDomain.snapshot().selection,
-      getView: value => {
-        const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
-        if (!ref?.id || ref.domain !== 'territorial') return null;
-        if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-          const feature = territorialEntityRepository.get(ref.id);
-          if (feature?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
-          const override = dependencies.territorialModel.entityStore.countryOverride(ref.id);
-          return {
-            ref,
-            feature,
-            name: (0, dependencies.presentation.countryName)(feature),
-            flagUrl: (0, dependencies.labelPresentation.effectiveCountryFlagUrl)({
-              countryId: ref.id,
-              override,
-              assetRevision: dependencies.layerPresentation.ASSET_REVISION,
-            }),
-            hasFlagOverride: Object.hasOwn(override, 'flagDataUrl'),
-          };
-        }
-        const feature = (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
-        if (!feature || feature.properties?.unitType !== ref.type) return null;
-        return {
-          ref,
-          feature,
-          name: (0, dependencies.objectPresentation.territorialUnitName)(feature),
-          flagUrl: (0, dependencies.territorialServicesA.effectiveTerritorialFlagUrl)(feature, {
-            assetRevision: dependencies.layerPresentation.ASSET_REVISION,
-          }),
-          hasFlagOverride: Object.hasOwn(feature.properties?.metadata || {}, 'flagDataUrl'),
-        };
-      },
-      commitFlag: (ref, value) => ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? (0, dependencies.objectMetadata.commitCountryEdit)('flagDataUrl', value)
-        : (0, dependencies.objectMetadata.commitTerritorialUnitMeta)('flagDataUrl', value),
+      getView: getTerritorialView,
+      commitFlag: (ref, value) => dependencies.objectMetadata.commitTerritorialMetadata(ref, 'flagDataUrl', value),
       openFlagLibrary: dependencies.flagLibrary.openFlagLibraryPicker,
       openEditor: (_ref, trigger) => (0, dependencies.workspaceUiB.openSelectionEditor)({ explicit: true, trigger, focus: true }),
       closeEditor: () => (0, dependencies.workspaceUiA.closeSurface)('editor', { manual: true }),
@@ -407,13 +373,10 @@ export function createDomainAssembly() {
       displayInfo: dependencies.objectOperationsA.objectDisplayInfo,
       presenters: {
         resolve: ref => {
-          if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-            return (value, options) => countryPropertyController.present(value, options);
+          if (ref.domain === 'territorial') {
+            return (value, options) => territorialPropertyController.present(value, options);
           }
-          if (ref.domain !== 'territorial' || ref.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-            return (value, options) => objectPropertyController.present(value, options);
-          }
-          return null;
+          return (value, options) => objectPropertyController.present(value, options);
         },
         multiple: (selection, detail) => objectPropertyController.show('multi', '공통 속성', {
           resetScroll: false,
@@ -428,7 +391,7 @@ export function createDomainAssembly() {
           dependencies.rendering.selectionPerformanceMetrics.editorOpenMs = performance.now() - startedAt;
         },
         clearPresenter: () => {
-          countryPropertyController.clear();
+          territorialPropertyController.clear();
           if ((0, dependencies.platform.$)('selectionStatus')) (0, dependencies.platform.$)('selectionStatus').textContent = '';
           objectPropertyController.show(null);
           (0, dependencies.taskPresentation.syncCountryActionButtons)();
@@ -446,7 +409,7 @@ export function createDomainAssembly() {
       },
       metrics: dependencies.rendering.selectionPerformanceMetrics,
     });
-    countryPropertyController.bind();
+    territorialPropertyController.bind();
     selectionToolbarPresentation.bind();
 
     editingDomain = (0, dependencies.domainFactories.createEditingDomain)({
@@ -472,7 +435,7 @@ export function createDomainAssembly() {
             dependencies.projectState.state.coastEditScopeGenericFeatureId = null;
             dependencies.projectState.state.coastEditReturnSelection = null;
           }
-          if (tool !== 'country-border') (0, dependencies.countryEditingB.resetBoundaryEditState)();
+          if (tool !== 'territorial-border') (0, dependencies.countryEditingB.resetBoundaryEditState)();
           if (tool !== 'merge-country') (0, dependencies.countryEditingB.resetMergeState)();
           if (tool !== 'merge-generic-feature') (0, dependencies.countryEditingB.resetGenericFeatureMergeState)();
           if (tool !== 'split-generic-feature') dependencies.projectState.state.genericFeatureSplitSourceId = null;
@@ -614,7 +577,7 @@ export function createDomainAssembly() {
           return true;
         },
         beginBoundaryGesture: event => {
-          if (!['country-border', 'country-coast'].includes(dependencies.projectState.state.tool)) return false;
+          if (!['territorial-border', 'country-coast'].includes(dependencies.projectState.state.tool)) return false;
           const preparation = dependencies.projectState.state.boundaryPreparation;
           if (preparation?.status !== 'ready') return false;
           if (!preparation.current()) {
@@ -625,11 +588,11 @@ export function createDomainAssembly() {
           }
           const node = preparation.nodes.get(String(event.vertexKey || ''));
           if (!node || node.fixed) return false;
-          const borderMode = dependencies.projectState.state.tool === 'country-border';
+          const borderMode = dependencies.projectState.state.tool === 'territorial-border';
           const coastId = String(dependencies.projectState.state.coastEditCountryId || event.targetRef?.id || '');
           const affectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
           const boundaryFeature = id => territorialEntityRepository.get(id);
-          if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([...affectedIds], borderMode ? '국경을 조정' : '해안선을 조정')) return false;
+          if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([...affectedIds].map(id => ({ domain: 'territorial', type: territorialEntityRepository.get(id)?.properties?.unitType, id: String(id) })), borderMode ? '국경을 조정' : '해안선을 조정')) return false;
           if ([...affectedIds].some(id => boundaryFeature(id)?.properties?.locked)) {
             (0, dependencies.feedback.setActionStatus)('잠긴 객체와 공유하는 경계는 이동할 수 없습니다.', 'error', 3400);
             return false;
@@ -644,7 +607,7 @@ export function createDomainAssembly() {
               parent = boundaryFeature(parent.properties.parentId);
             }
           }
-          if (!(0, dependencies.objectOperationsB.requireCountriesUnlocked)([...hierarchyIds], '경계를 조정')) return false;
+          if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([...hierarchyIds].map(id => ({ domain: 'territorial', type: territorialEntityRepository.get(id)?.properties?.unitType, id: String(id) })), '경계를 조정')) return false;
           const lockedHierarchy = territorialEntityRepository.list().some(entity => entity.properties?.locked && (
             hierarchyIds.has(String(entity.id)) || (hierarchyIds.has(String(entity.properties?.sovereignId)) && boundaryTouchesGeometry(entity.geometry, node.coordinate))
           ));
@@ -699,12 +662,12 @@ export function createDomainAssembly() {
             if (preparation.status === 'moving') preparation.status = 'ready';
             (0, dependencies.taskUi.updateModeButtons)();
           }
-          const unitTarget = territorialEntityRepository.get(dependencies.projectState.state.boundaryEditSeedCountryId);
+          const unitTarget = territorialEntityRepository.get(dependencies.projectState.state.boundaryEditSeedEntityId);
           if (session.borderMode && unitTarget?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
             return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'boundary', targetId: unitTarget.id,
               parentId: unitTarget.properties.parentId, featurePatches: [...session.features.values()],
-            }, { selectedId: unitTarget.id, shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'country-border'
-              && String(dependencies.projectState.state.boundaryEditSeedCountryId) === String(unitTarget.id) });
+            }, { selectedId: unitTarget.id, shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'territorial-border'
+              && String(dependencies.projectState.state.boundaryEditSeedEntityId) === String(unitTarget.id) });
           }
           if (!session.borderMode) {
             const countryId = [...session.affectedIds][0];
@@ -716,7 +679,7 @@ export function createDomainAssembly() {
           const ids = [...session.affectedIds];
           return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'country-boundary', targetId: ids[0],
             featurePatches: [...session.features.values()],
-          }, { selectedId: ids[0], shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'country-border' });
+          }, { selectedId: ids[0], shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'territorial-border' });
         },
         renderPacket: () => {
           const territoryItems = (0, dependencies.territoryComponents.territoryComponentItems)();
@@ -813,7 +776,7 @@ export function createDomainAssembly() {
       }),
       labelResources: createResourceSnapshot('labels', {
         d3: dependencies.platform.d3,
-        countryLabelLayer: dependencies.mapHostViewA.countryLabelLayer,
+        territorialLabelLayer: dependencies.mapHostViewA.territorialLabelLayer,
         labelLayer: dependencies.mapHostViewB.labelLayer,
         svg: dependencies.mapLayers.svg,
         getState: () => dependencies.projectState.state,
@@ -824,7 +787,7 @@ export function createDomainAssembly() {
         mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
         handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
         handleMapClick: dependencies.objectPicking.handleMapClick,
-        countryName: dependencies.presentation.countryName,
+        countryName: dependencies.objectPresentation.territorialEntityName,
         layerStyle: dependencies.applicationServicesB.layerStyle,
         isMobile: dependencies.surfaces.isMobile,
         automaticLabelSettings: dependencies.labelPresentation.automaticLabelSettings,
@@ -840,7 +803,7 @@ export function createDomainAssembly() {
         selectionSnapshot: () => selectionDomain.snapshot().selection,
         selectionHas: ref => selectionDomain.has(ref),
       }, {
-        countryLabelLayer: () => dependencies.mapHostViewA.countryLabelLayer,
+        territorialLabelLayer: () => dependencies.mapHostViewA.territorialLabelLayer,
         labelLayer: () => dependencies.mapHostViewB.labelLayer,
         svg: () => dependencies.mapLayers.svg,
       }),
@@ -850,13 +813,13 @@ export function createDomainAssembly() {
         countryLayer: dependencies.mapLayers.countryLayer,
         path: dependencies.mapView.path,
         countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,
-        countryFeatureById: dependencies.countries.countryFeatureById,
+        getRawCountryFeature: dependencies.territorialModel.entityStore.countryFeature,
         isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
         renderPendingCountryOverlays: dependencies.countryLabelModel.renderPendingCountryOverlays,
         selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
         countryColor: feature => (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'countries').colorVisible === false
           ? dependencies.preferences.mapTheme().defaultLand
-          : dependencies.colorModel.countryColor(feature),
+          : dependencies.colorModel.territorialEntityColor(feature),
         mapTheme: dependencies.preferences.mapTheme,
         resolvedInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
         replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
@@ -898,6 +861,7 @@ export function createDomainAssembly() {
         svg: () => dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
       }),
       territorialResources: createResourceSnapshot('territorial', {
+        entityRepository: territorialEntityRepository,
         isNativeBuiltinSubunit: dependencies.builtinCountries.isNativeBuiltinSubunit,
         syncBuiltinPalette: dependencies.builtinCountries.syncBuiltinPalette,
         getState: () => dependencies.projectState.state,
@@ -918,7 +882,7 @@ export function createDomainAssembly() {
         handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
         path: dependencies.mapView.path,
         territorialStyleColor: dependencies.objectModelB.territorialStyleColor,
-        territorialUnitColor: dependencies.colorModel.territorialUnitColor,
+        territorialEntityColor: dependencies.colorModel.territorialEntityColor,
         presentationGroupForTerritorialFeature: dependencies.interactionPresentation.presentationGroupForTerritorialFeature,
         layerStyle: dependencies.applicationServicesB.layerStyle,
         selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
@@ -998,7 +962,7 @@ export function createDomainAssembly() {
         getTerritorialGeometryRevision: () => dependencies.spatialQuery.mapObjectGeometryRevisions.territorial,
         geometryToken: geometry => (0, dependencies.interactionPresentation.territorialBoundaryGeometryToken)(geometry),
         buildTerritorialInternalBoundarySegments: dependencies.territorialServicesA.buildTerritorialInternalBoundarySegments,
-        territorialUnitColor: dependencies.colorModel.territorialUnitColor,
+        territorialEntityColor: dependencies.colorModel.territorialEntityColor,
         layerStyle: dependencies.applicationServicesB.layerStyle,
         presentationGroupForTerritorialFeature: dependencies.interactionPresentation.presentationGroupForTerritorialFeature,
         mapTheme: dependencies.preferences.mapTheme,
@@ -1041,7 +1005,6 @@ export function createDomainAssembly() {
         resolvedInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
         countryDisplayFeature: dependencies.countryLabelModel.countryDisplayFeature,
         countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,
-        countrySubunitExtent: id => dependencies.objectModelB.territorialScope.scope(id).extra,
         mapFeatureForObjectRef: dependencies.gpuRenderingA.mapFeatureForObjectRef,
         objectRefVisible: dependencies.objectOperationsA.objectRefVisible,
         territorialEntityById: id => territorialEntityRepository.get(id),
@@ -1222,7 +1185,7 @@ export function createDomainAssembly() {
     selectionToolbarPresentation?.dispose?.();
     (selectionToolbarPresentation = null);
 
-    (countryPropertyController = null);
+    (territorialPropertyController = null);
 
     (objectPropertyController = null);
 
@@ -1232,7 +1195,7 @@ export function createDomainAssembly() {
   return Object.freeze({
     connect,
     initializeDomainState,
-    get countryPropertyController() { return countryPropertyController; },
+    get territorialPropertyController() { return territorialPropertyController; },
     get editingDomain() { return editingDomain; },
     get gisDomain() { return gisDomain; },
     get initializeDomainBoundaries() { return initializeDomainBoundaries; },

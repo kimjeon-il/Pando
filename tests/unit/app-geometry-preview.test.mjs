@@ -60,7 +60,7 @@ function fixture({ execute } = {}) {
       beginGeometryPreview,
       clearGeometryPreview,
       previewIsCurrent,
-      runCountryEditTransaction() { throw new Error('unused'); },
+      runMapEditTransaction() { throw new Error('unused'); },
     },
     platform: {
       $() { return null; },
@@ -90,7 +90,7 @@ function fixture({ execute } = {}) {
       pointInGenericFeature() { return true; },
     },
     validation: {
-      restoreCountryEditSnapshot(snapshot) { calls.push(['restore', snapshot]); },
+      restoreEditTransactionSnapshot(snapshot) { calls.push(['restore', snapshot]); },
     },
   });
   return { preview, state, calls, mapEditClient };

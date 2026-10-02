@@ -1,5 +1,5 @@
 import { isBuiltinPlaceId } from './place-contract.js';
-import { subunitSelectionPolicy, territorialDeletionAllowed, removeTerritorialEntities } from './territorial-interaction-policy.js';
+import { subunitSelectionPolicy, removeTerritorialEntities } from './territorial-interaction-policy.js';
 import './territorial-edit-plan.js';
 /** ObjectCommands: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -15,10 +15,6 @@ export function createObjectCommands() {
     dependencies = ports;
   }
 
-  function countryObjectRef(id) {
-    return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, id: String(id) });
-  }
-
   function territorialEntityForRef(ref) {
     if (ref?.domain !== 'territorial') return null;
     const entity = dependencies.territorialModel.entityRepository.get(ref.id);
@@ -30,7 +26,7 @@ export function createObjectCommands() {
     if (group === 'countries' || group === 'countryLabels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, id: key });
     if (group === 'subunits' || group === 'regions') {
       const fallback = group === 'subunits' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT : group === 'regions' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION : dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT;
-      return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: (0, dependencies.objectPresentation.territorialUnitById)(key)?.properties?.unitType || fallback, id: key });
+      return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: dependencies.territorialModel.entityRepository.get(key)?.properties?.unitType || fallback, id: key });
     }
     if (group === 'distributions') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: 'distribution', id: key });
     if (group === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(key)) return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: (0, dependencies.hydroPresentation.hydroEditById)(key)?.properties?.category || 'river', id: key });
@@ -56,11 +52,11 @@ export function createObjectCommands() {
     if (ref.domain === 'territorial') {
       const feature = territorialEntityForRef(ref);
       if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-        return { name: feature ? (0, dependencies.presentation.countryName)(feature) : ref.id, type: '국가', detail: '' };
+        return { name: feature ? (0, dependencies.objectPresentation.territorialEntityName)(feature) : ref.id, type: '국가', detail: '' };
       }
       const type = (0, dependencies.territorialServicesB.territorialTypeLabel)(ref.type);
-      const context = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? '' : (0, dependencies.objectPresentation.territorialUnitCountryName)(feature);
-      return { name: feature ? (0, dependencies.objectPresentation.territorialUnitName)(feature) : ref.id, type, detail: context };
+      const context = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? '' : (0, dependencies.objectPresentation.administrativeCountryName)(feature);
+      return { name: feature ? (0, dependencies.objectPresentation.territorialEntityName)(feature) : ref.id, type, detail: context };
     }
     if (ref.domain === 'distribution') {
       const layer = (0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
@@ -111,7 +107,7 @@ export function createObjectCommands() {
       ? runtimeAnchor
       : null;
     if (countryScope?.members.length) feature = countryScope.extent;
-    (0, dependencies.navigation.focusCountry)(feature, { maxZoom: (0, dependencies.surfaces.isMobile)() ? 12 : 10, preferredAnchor });
+    (0, dependencies.navigation.fitMapToFeature)(feature, { maxZoom: (0, dependencies.surfaces.isMobile)() ? 12 : 10, preferredAnchor });
     if (announce) (0, dependencies.feedback.setActionStatus)('선택 객체로 이동했습니다.', 'success', 2200);
     return true;
   }
@@ -136,7 +132,7 @@ export function createObjectCommands() {
     if (ref.domain === 'territorial') {
       values.add('color');
       values.add('lock');
-      if (territorialDeletionAllowed([territorialEntityForRef(ref)], dependencies.territorialModel.entityRepository.list())) values.add('delete');
+      if (dependencies.objectModelB.territorialApplicationService.canDelete(ref.type, ref.id).ok) values.add('delete');
     } else if (ref.domain === 'distribution') {
       values.add('color'); values.add('lock'); values.add('delete');
     } else if (ref.domain === 'hydro') {
@@ -154,20 +150,15 @@ export function createObjectCommands() {
     return common;
   }
 
-  function isCountryLocked(id) {
-    const entity = dependencies.territorialModel.entityRepository.get(id);
-    return entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-      && entity.properties?.locked === true;
-  }
-
-  function lockedCountryIds(ids = []) {
-    return [...new Set(ids.map(String).filter(Boolean))].filter(isCountryLocked);
-  }
-
-  function requireCountriesUnlocked(ids, action = '편집') {
-    const lockedIds = lockedCountryIds(ids);
-    if (!lockedIds.length) return true;
-    (0, dependencies.feedback.setActionStatus)(`${lockedIds.length}개국 잠금 해제 후 ${action}하세요`, 'error', 3800);
+  function requireObjectsUnlocked(refs, action = '편집') {
+    const normalized = refs.map(ref => (0, dependencies.selectionServices.normalizeObjectRef)(ref));
+    if (normalized.some(ref => !ref || !objectRefExists(ref))) {
+      (0, dependencies.feedback.setActionStatus)('편집 대상을 찾을 수 없습니다.', 'error', 3800);
+      return false;
+    }
+    const locked = new Set(normalized.filter(objectRefLocked).map(ref => ref.key));
+    if (!locked.size) return true;
+    (0, dependencies.feedback.setActionStatus)(`${locked.size}개 객체 잠금 해제 후 ${action}하세요`, 'error', 3800);
     return false;
   }
 
@@ -199,7 +190,7 @@ export function createObjectCommands() {
     if ((0, dependencies.platform.$)('multiPropertiesColorTrigger')) (0, dependencies.platform.$)('multiPropertiesColorTrigger').disabled = !capabilities.has('color');
     const countryOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY);
     const subunitOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === 'subunit');
-    const subunitPolicy = subunitOnly ? subunitSelectionPolicy(refs.map(ref => (0, dependencies.objectPresentation.territorialUnitById)(ref.id)), {
+    const subunitPolicy = subunitOnly ? subunitSelectionPolicy(refs.map(ref => dependencies.territorialModel.entityRepository.get(ref.id)), {
       adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry),
     }) : null;
     (0, dependencies.platform.$)('multiCountryActions')?.classList.toggle('hidden', !countryOnly && !subunitOnly);
@@ -213,7 +204,7 @@ export function createObjectCommands() {
     const borderHelp = (0, dependencies.platform.$)('multiBorderEditHelp');
     if (countryOnly) {
       const analysis = (0, dependencies.geometryOperations.boundaryEditSelectionAnalysis)(refs.map(ref => ref.id));
-      const lockedIds = refs.map(ref => ref.id).filter(isCountryLocked);
+      const lockedIds = refs.filter(objectRefLocked).map(ref => ref.id);
       if (borderButton) {
         borderButton.disabled = lockedIds.length > 0 || !analysis.valid;
         borderButton.dataset.tooltip = lockedIds.length
@@ -459,9 +450,7 @@ export function createObjectCommands() {
   function deleteSelectedFromObjectMenu() {
     closeObjectActionsMenu();
     const primary = dependencies.domains.selectionDomain.primary();
-    if (dependencies.domains.selectionDomain.size() > 1) requestBatchDelete();
-    else if (primary?.domain === 'territorial' && primary.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) (0, dependencies.objectDeletion.requestDeleteCountry)(primary.id);
-    else if (primary?.domain === 'territorial') (0, dependencies.objectDeletion.requestTerritorialUnitDivisionRemoval)(primary.id);
+    if (dependencies.domains.selectionDomain.size() > 1 || primary?.domain === 'territorial') requestObjectDeletion();
     else {
       if (!primary) return;
       const info = objectDisplayInfo(primary);
@@ -525,9 +514,11 @@ export function createObjectCommands() {
     syncBatchActionAvailability();
   }
 
-  function requestBatchDelete() {
-    const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
-    if (!refs.length || !commonBatchCapabilities(refs).has('delete')) return;
+  function requestObjectDeletion(requestedRefs = dependencies.domains.selectionDomain.snapshot().selection.items) {
+    if (dependencies.projectState.state.projectReplacing) return false;
+    const refs = requestedRefs.map(dependencies.selectionServices.normalizeObjectRef).filter(Boolean);
+    const generation = dependencies.domains.projectDomain.getGeneration();
+    if (!refs.length || refs.some(ref => !objectRefExists(ref)) || !commonBatchCapabilities(refs).has('delete')) return false;
     const typeCounts = new Map();
     for (const ref of refs) {
       const type = objectDisplayInfo(ref).type;
@@ -540,7 +531,7 @@ export function createObjectCommands() {
       confirmText: '선택 객체 삭제',
       danger: true,
       onConfirm: () => {
-        if (refs.some(ref => !objectRefExists(ref) || objectRefLocked(ref)) || !commonBatchCapabilities(refs).has('delete')) {
+        if (generation !== dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing || refs.some(ref => !objectRefExists(ref) || objectRefLocked(ref)) || !commonBatchCapabilities(refs).has('delete')) {
           (0, dependencies.feedback.setActionStatus)('객체의 잠금 또는 자식 관계가 바뀌어 삭제를 중단했습니다.', 'error', 3600);
           return false;
         }
@@ -576,10 +567,11 @@ export function createObjectCommands() {
             (0, dependencies.spatialQuery.markCountryGeometriesChanged)(removedCountryIds);
             dependencies.domains.renderingDomain?.invalidateCountryPatch?.('batch-delete');
           }
+          dependencies.projectState.state.boundaryPreparation?.cancel();
+          dependencies.projectState.state.boundaryPreparation = null;
           dependencies.projectState.state.stateRevision += 1;
           dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('batch-delete');
-          dependencies.domains.selectionDomain.clear({ reason: 'batch-delete-clear' });
-          dependencies.domainControllers.objectPropertyController?.show(null);
+          dependencies.domains.selectionUiController.clear({ reason: 'object-delete-clear' });
           (0, dependencies.layers.markLayerTreeDirty)();
           dependencies.domains.renderingDomain?.invalidateOverlayGeometry?.('batch', 'batch-delete');
           dependencies.domains.renderingDomain?.invalidateSelection?.('batch-delete');
@@ -587,20 +579,19 @@ export function createObjectCommands() {
           dependencies.domains.projectDomain.commitHistorySnapshot(snapshot);
           dependencies.domains.projectDomain.queueAutosave();
           (0, dependencies.feedback.setActionStatus)(`${refs.length}개 객체 삭제 완료`, 'success', 2800);
+          return true;
         } catch (error) {
           (0, dependencies.projectSnapshots.restoreEditable)(snapshot);
-          (0, dependencies.feedback.setActionStatus)(error.message || '삭제를 적용하지 못해 전체 변경을 복구했습니다.', 'error', 4000);
+          dependencies.feedback.reportOperationError(error, '삭제를 적용하지 못해 전체 변경을 복구했습니다.', 'PL-TERRITORIAL-DELETE-001', 4000);
           return false;
         }
       },
     });
+    return true;
   }
 
   function initializeObjectActionsMenuTrigger() {
     (objectActionsMenuTrigger = null);
-
-
-
 
   }
 
@@ -613,20 +604,19 @@ export function createObjectCommands() {
     get batchSetVisibility() { return batchSetVisibility; },
     get batchToggleLocked() { return batchToggleLocked; },
     get closeObjectActionsMenu() { return closeObjectActionsMenu; },
-    get countryObjectRef() { return countryObjectRef; },
+
     get deleteSelectedFromObjectMenu() { return deleteSelectedFromObjectMenu; },
     get flatOceanLayer() { return flatOceanLayer; },
     set flatOceanLayer(value) { flatOceanLayer = value; },
     get focusObjectRef() { return focusObjectRef; },
-    get isCountryLocked() { return isCountryLocked; },
     get layerItemObjectRef() { return layerItemObjectRef; },
     get objectDisplayInfo() { return objectDisplayInfo; },
     get objectRefExists() { return objectRefExists; },
     get objectRefLocked() { return objectRefLocked; },
     get objectRefVisible() { return objectRefVisible; },
     get openObjectActionsMenu() { return openObjectActionsMenu; },
-    get requestBatchDelete() { return requestBatchDelete; },
-    get requireCountriesUnlocked() { return requireCountriesUnlocked; },
+    get requestObjectDeletion() { return requestObjectDeletion; },
+    get requireObjectsUnlocked() { return requireObjectsUnlocked; },
     get syncBatchActionAvailability() { return syncBatchActionAvailability; },
     get syncObjectActionsMenu() { return syncObjectActionsMenu; },
   });

@@ -37,9 +37,9 @@ export function mapInteractionEntries(snapshot, state, {
   // The shared boundary and its handles are the edit target. Keep each
   // participating country's existing primary/secondary selection role so the
   // country on the other side is not promoted to the same full-area fill.
-  if (state.tool === 'country-border') {
+  if (state.tool === 'territorial-border') {
     const selectedKeys = new Set(rows.map(row => row.key));
-    for (const id of state.boundaryEditCountryIds || []) {
+    for (const id of state.boundaryEditEntityIds || []) {
       const ref = normalizeObjectRef({ domain: 'territorial', type: countryType, id });
       if (!selectedKeys.has(ref.key)) rows.push({ key: ref.key, ref, role: 'secondary' });
     }

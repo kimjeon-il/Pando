@@ -1,9 +1,8 @@
 import { layerStyle, resolveLayerDisplayColor } from './layer-presentation.js';
+import { resolveTerritorialColor } from './color-adapter.js';
 
 // Resolve only presentation values. Never persist inherited defaults on a child.
-export function createTerritorialFillResolver({ state, countryColor, defaultColor, terrainAlpha = 1 }) {
-  const units = new Map((state.territorialUnits || []).map(unit => [String(unit.id), unit]));
-  const countries = new Map((state.countriesData?.features || []).map(country => [String(country.id), country]));
+export function createTerritorialFillResolver({ state, entityRepository, countryColor, defaultColor, terrainAlpha = 1 }) {
   const cache = new Map();
   const presentation = state.layerPresentation;
   const countryStyle = layerStyle(presentation, 'countries');
@@ -11,10 +10,10 @@ export function createTerritorialFillResolver({ state, countryColor, defaultColo
     const id = String(unit.id);
     if (cache.has(id)) return cache.get(id);
     const properties = unit.properties || {};
-    const country = countries.get(String(properties.sovereignId || properties.parentId || ''));
+    const country = entityRepository.administrativeCountry(id);
     let inherited = { color: countryStyle.colorVisible && country ? countryColor(country) : defaultColor,
       opacity: countryStyle.opacity, blendMode: countryStyle.blendMode, depth: 0 };
-    const parent = units.get(String(properties.parentId || ''));
+    const parent = entityRepository.parent(id);
     if (parent?.properties?.unitType === 'subunit' && !visiting.has(id)) {
       visiting.add(id);
       if (!visiting.has(String(parent.id))) inherited = resolve(parent, visiting);
@@ -23,15 +22,17 @@ export function createTerritorialFillResolver({ state, countryColor, defaultColo
     const group = properties.unitType === 'region' ? 'regions' : 'subunits';
     const groupStyle = presentation?.styles?.[group] || {};
     const explicit = presentation?.objectStyles?.[`territorial:${properties.unitType}:${id}`] || {};
-    // Legacy group records contain materialized defaults. Neutral group values
-    // do not turn an otherwise inherited child into an opaque overlay.
+    // Neutral group values preserve the parent's material opacity and blend.
     const opacity = explicit.opacity ?? (groupStyle.opacity !== undefined && groupStyle.opacity !== 1
       ? groupStyle.opacity : inherited.opacity);
     const blendMode = explicit.blendMode ?? (groupStyle.blendMode === 'multiply' ? 'multiply' : inherited.blendMode);
     const result = Object.freeze({ color: resolveLayerDisplayColor(presentation, group, {
       objectKey: `territorial:${properties.unitType}:${id}`,
       explicitColor: properties.style?.color,
-      inheritedColor: inherited.color,
+      inheritedColor: resolveTerritorialColor({ ...unit, properties: { ...properties, style: {} } }, {
+        entityRepository, countryColor, fallback: defaultColor,
+        colorVisible: feature => layerStyle(presentation, feature.properties?.unitType === 'country' ? 'countries' : feature.properties?.unitType === 'region' ? 'regions' : 'subunits', `territorial:${feature.properties?.unitType}:${feature.id}`).colorVisible,
+      }),
       fallbackColor: defaultColor,
     }),
       opacity: Math.max(0, Math.min(1, Number(opacity))), blendMode,

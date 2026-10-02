@@ -16,13 +16,7 @@ export function createLifecycleAssembly() {
     dependencies = ports;
   }
 
-
-
   function initializeProjectUi() {
-
-
-
-
 
   }
 
@@ -79,7 +73,6 @@ export function createLifecycleAssembly() {
             bindColorPickers: dependencies.colorPicker.bindColorPickers,
             commitGenericFeatureMeta: dependencies.objectMetadata.commitGenericFeatureMeta,
             commitHydroEdit: dependencies.objectMetadata.commitHydroEdit,
-            commitTerritorialUnitMeta: dependencies.objectMetadata.commitTerritorialUnitMeta,
             commitDistributionMeta: dependencies.propertyEditingA.commitDistributionMeta,
             commitLabelEdit: dependencies.territorialConversion.commitLabelEdit,
             removeDistributionEntry: dependencies.propertyEditingB.removeDistributionEntry,
@@ -88,14 +81,14 @@ export function createLifecycleAssembly() {
             requestDraftDiscard: dependencies.genericEditingB.requestDraftDiscard,
             completeToolStart: dependencies.workspaceUiA.completeToolStart,
             startGeometryDistributionDraft: dependencies.propertyEditingB.startGeometryDistributionDraft,
-            requestTerritorialUnitDivisionRemoval: dependencies.objectDeletion.requestTerritorialUnitDivisionRemoval,
+            requestObjectDeletion: dependencies.objectOperationsA.requestObjectDeletion,
             enterTerritorialUnitCoastMode: dependencies.territorialEditingA.enterTerritorialUnitCoastMode,
             enterTerritorialCreateWorkflow: dependencies.territorialEditingA.enterTerritorialCreateWorkflow,
             enterTerritorialUnitAnnexMode: dependencies.territorialEditingA.enterTerritorialUnitAnnexMode,
             enterTerritorialUnitSplitMode: dependencies.territorialEditingA.enterTerritorialUnitSplitMode,
             enterTerritorialUnitMergeMode: dependencies.territorialEditingA.enterTerritorialUnitMergeMode,
             enterTerritorialUnitRedrawMode: dependencies.territorialEditingA.enterTerritorialUnitRedrawMode,
-            territorialUnitById: dependencies.objectPresentation.territorialUnitById,
+            entityRepository: dependencies.territorialModel.entityRepository,
             reconcileAdminCountryCoast: dependencies.projectRestore.reconcileAdminCountryCoast,
             requestTerritorialUnitPromotion: dependencies.territorialConversion.requestTerritorialUnitPromotion,
             openTerritorialTypeModal: dependencies.territorialConversion.openTerritorialTypeModal,
@@ -107,7 +100,6 @@ export function createLifecycleAssembly() {
             focusObjectRef: dependencies.objectOperationsA.focusObjectRef,
             enterGenericFeatureSplitMode: dependencies.genericEditingA.enterGenericFeatureSplitMode,
             enterGenericFeatureMergeMode: dependencies.genericEditingA.enterGenericFeatureMergeMode,
-            countryFeatureById: dependencies.countries.countryFeatureById,
             enterCountryCoastEdit: dependencies.countryEditingA.enterCountryCoastEdit,
             openConfirmModal: dependencies.projectRestore.openConfirmModal,
             promoteSelectedGenericFeatureToCountry: dependencies.genericEditingA.promoteSelectedGenericFeatureToCountry,
@@ -115,7 +107,7 @@ export function createLifecycleAssembly() {
             copySelectedHydroForEditing: dependencies.propertyEditingA.copySelectedHydroForEditing,
             copySelectedPlaceForEditing: dependencies.genericEditingA.copySelectedPlaceForEditing,
             closeObjectActionsMenu: dependencies.objectOperationsA.closeObjectActionsMenu,
-            enterCountryBorderEditFromSelection: dependencies.countryEditingA.enterCountryBorderEditFromSelection,
+            enterTerritorialBorderEditFromSelection: dependencies.countryEditingA.enterTerritorialBorderEditFromSelection,
             undo: () => projectUi.undo(),
             redo: () => projectUi.redo(),
           });
@@ -129,10 +121,10 @@ export function createLifecycleAssembly() {
             getGisIo: async () => { await (0, dependencies.gisServicesA.ensureGisIoRuntime)(); return window.PandoLabGIS; },
             createGeometryWorker: () => new Worker((0, dependencies.platform.runtimeAssetUrl)('workers/gis-geometry-worker.js'), { name: 'pandolab-gis-geometry' }),
             clipper: window.polygonClipping,
-            countryName: dependencies.presentation.countryName,
+            countryName: dependencies.objectPresentation.territorialEntityName,
             layerNameCollator: dependencies.objectModelA.layerNameCollator,
             TERRITORIAL_UNIT_TYPES: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES,
-            territorialUnitName: dependencies.objectPresentation.territorialUnitName,
+            territorialEntityName: dependencies.objectPresentation.territorialEntityName,
             sphericalGeometryAreaKm2: dependencies.applicationServicesB.sphericalGeometryAreaKm2,
             createProjectObjectId: dependencies.projectServices.createProjectObjectId,
             deepClone: dependencies.platform.deepClone,

@@ -26,7 +26,7 @@ export function createMapHost() {
   let hydroLakeLayer;
   let hydroRiverLayer;
   let hydroEditLayer;
-  let countryLabelLayer;
+  let territorialLabelLayer;
   let labelLayer;
   let vertexLayer;
   let draftLayer;
@@ -265,9 +265,9 @@ export function createMapHost() {
     draftLayer = root.append('g').attr('class', 'draft-layer');
     snapLayer = root.append('g').attr('class', 'snap-indicator-layer');
     territorialOperationLayer = interactionRoot.append('g').attr('class', 'territorial-operation-layer');
-    countryLabelLayer = root.append('g').attr('class', 'country-label-layer');
+    territorialLabelLayer = root.append('g').attr('class', 'territorial-label-layer');
     labelLayer = root.append('g').attr('class', 'labels-layer');
-    [previewLayer, validationLayer, vertexLayer, draftLayer, snapLayer, countryLabelLayer, labelLayer]
+    [previewLayer, validationLayer, vertexLayer, draftLayer, snapLayer, territorialLabelLayer, labelLayer]
       .forEach(layer => interactionRoot.node().appendChild(layer.node()));
 
     dependencies.mapHostCommands.installMapInputController(dependencies.lifecycleUi.mapInputPresentation.bindSvg(svg));
@@ -342,59 +342,9 @@ export function createMapHost() {
 
   function initializeSvg() {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   }
 
   function initializeValidationLayer() {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   }
 
@@ -434,7 +384,7 @@ export function createMapHost() {
     initializeResolutionQuery,
     initializeMapHostBindings,
     get boundaryEditLayer() { return boundaryEditLayer; },
-    get countryLabelLayer() { return countryLabelLayer; },
+    get territorialLabelLayer() { return territorialLabelLayer; },
     get countryLayer() { return countryLayer; },
     get distributionLayer() { return distributionLayer; },
     get draftLayer() { return draftLayer; },

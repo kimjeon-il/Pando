@@ -71,7 +71,7 @@ export function createPointerTargets() {
         ? countryAtScreenPoint(pending.screenPoint, pending.coord, { verify: false })
         : null;
       const nextId = hoveredCountry ? String(hoveredCountry?.id || '') : '';
-      const nextRef = hoveredCountry ? (0, dependencies.objectOperationsA.countryObjectRef)(nextId) : null;
+      const nextRef = hoveredCountry ? dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'country', id: String(nextId) }) : null;
       lastHoverHit = hoveredCountry ? { ref: nextRef, feature: hoveredCountry } : null;
       dependencies.domains.selectionDomain.setHover(nextRef, { source: 'map' });
     }, 50);
@@ -124,11 +124,11 @@ export function createPointerTargets() {
 
   function mapNavigationEnabled() {
     return !dependencies.projectState.state.labelPlacementMode
-      && (dependencies.domains.editingDomain?.draftInputActive?.() || ['select', 'move', 'country-border', 'country-coast', 'merge-country', 'merge-generic-feature', 'new-country', 'annex-territory'].includes(dependencies.projectState.state.tool));
+      && (dependencies.domains.editingDomain?.draftInputActive?.() || ['select', 'move', 'territorial-border', 'country-coast', 'merge-country', 'merge-generic-feature', 'new-country', 'annex-territory'].includes(dependencies.projectState.state.tool));
   }
 
   function activeSnapOwnerIds() {
-    if (dependencies.projectState.state.tool === 'country-border') return dependencies.projectState.state.boundaryEditCountryIds.map(String);
+    if (dependencies.projectState.state.tool === 'territorial-border') return dependencies.projectState.state.boundaryEditEntityIds.map(String);
     if (dependencies.projectState.state.coastEditCountryId) return [String(dependencies.projectState.state.coastEditCountryId)];
     if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return [String(dependencies.projectState.state.selected.id)];
     if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return [String(dependencies.projectState.state.selected.id)];

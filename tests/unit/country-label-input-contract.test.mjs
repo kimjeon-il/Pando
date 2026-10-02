@@ -6,8 +6,8 @@ const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'ut
 
 test('automatic country names dispatch once to the shared ground input handler', () => {
   const rendering = read('assets/js/modules/rendering-domain.js');
-  const countryLabels = rendering.slice(rendering.indexOf('const renderCountryLabels ='), rendering.indexOf('enter.append(\'image\')', rendering.indexOf('const renderCountryLabels =')));
-  assert.match(countryLabels, /attr\('class', 'country-label-item'\)/);
+  const countryLabels = rendering.slice(rendering.indexOf('const renderTerritorialLabels ='), rendering.indexOf('enter.append(\'image\')', rendering.indexOf('const renderTerritorialLabels =')));
+  assert.match(countryLabels, /attr\('class', 'territorial-label-item'\)/);
   assert.doesNotMatch(countryLabels, /forcedRef|toggleNewCountrySource|toggleAnnexDonor|toggleMergeTarget|toggleBoundaryEditCountry/);
   assert.match(countryLabels, /if \(labels\.mapClickBlocked\?\.\(\)\) return;/);
   assert.match(countryLabels, /stopPropagation\(\);\s*labels\.handleMapClick\(labels\.d3\.mouse\(labels\.svg\.node\(\)\)\)/);

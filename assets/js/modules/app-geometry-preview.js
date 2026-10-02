@@ -1,4 +1,3 @@
-import { touchGeometry } from './geometry-versions.js';
 import { adoptBoundaryRenderPacketAsync } from './editing-render-packet.js';
 /** GeometryPreview: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -34,8 +33,8 @@ export function createGeometryPreview() {
     });
   }
 
-  function transactCountryEdit({ operation, payload, snapshot, applyResult, onSuccess, onError }) {
-    return (0, dependencies.geometryEditingCore.runCountryEditTransaction)({
+  function transactMapEdit({ operation, payload, snapshot, applyResult, onSuccess, onError }) {
+    return (0, dependencies.geometryEditingCore.runMapEditTransaction)({
       client: dependencies.spatialQuery.mapEditClient,
       operation,
       payload,
@@ -44,7 +43,7 @@ export function createGeometryPreview() {
       validateCanonical: assertCurrentProjectReferences,
       commitHistory: (...args) => dependencies.domains.projectDomain.commitHistorySnapshot(...args),
       restore: (editableSnapshot, { rebaseWorker }) => {
-        (0, dependencies.validation.restoreCountryEditSnapshot)(editableSnapshot);
+        (0, dependencies.validation.restoreEditTransactionSnapshot)(editableSnapshot);
         if (rebaseWorker) dependencies.spatialQuery.mapEditClient.rebase(dependencies.projectState.state.countriesData?.features || []);
       },
       queueAutosave: (...args) => dependencies.domains.projectDomain.queueAutosave(...args),
@@ -61,32 +60,9 @@ export function createGeometryPreview() {
     return [];
   }
 
-  function countryRingForVertex(feature, vertex) {
-    if (!feature?.geometry || !vertex) return null;
-    if (feature.geometry.type === 'Polygon') return feature.geometry.coordinates?.[vertex.ringIndex] || null;
-    if (feature.geometry.type === 'MultiPolygon') return feature.geometry.coordinates?.[vertex.polygonIndex]?.[vertex.ringIndex] || null;
-    return null;
-  }
-
-  function setCountryVertexCoord(feature, vertex, coord) {
-    const ring = countryRingForVertex(feature, vertex);
-    if (!ring || vertex.index < 0 || vertex.index >= ring.length - 1) return false;
-    touchGeometry(feature.geometry);
-    // 배열 객체를 교체하지 않고 값만 바꿔 토폴로지 세그먼트 참조가 드래그 중에도 유지되게 한다.
-    ring[vertex.index][0] = coord[0];
-    ring[vertex.index][1] = coord[1];
-    if (vertex.index === 0) {
-      ring[ring.length - 1][0] = coord[0];
-      ring[ring.length - 1][1] = coord[1];
-    }
-    return true;
-  }
-
   function coordKey(coord, precision = 7) {
     return `${Number(coord?.[0] || 0).toFixed(precision)},${Number(coord?.[1] || 0).toFixed(precision)}`;
   }
-
-
 
   function coordNear(a, b, tolerance = 0.00008) {
     if (!a || !b) return false;
@@ -114,7 +90,7 @@ export function createGeometryPreview() {
   function rebuildBoundaryTopology(targetCountryIds = dependencies.projectState.state.coastEditCountryId) {
     const state = dependencies.projectState.state;
     const targetIds = [...new Set((Array.isArray(targetCountryIds) ? targetCountryIds : [targetCountryIds]).filter(id => id != null).map(String))].sort();
-    if (!['country-border', 'country-coast'].includes(state.tool) || !targetIds.length) return Promise.resolve(false);
+    if (!['territorial-border', 'country-coast'].includes(state.tool) || !targetIds.length) return Promise.resolve(false);
     const tool = state.tool;
     const mode = tool === 'country-coast' ? 'coast' : 'border';
     const neighborsOnly = mode === 'border' && state.boundaryEditPhase === 'selecting';
@@ -131,7 +107,7 @@ export function createGeometryPreview() {
       && tool === state.tool && revision === boundaryRevision() && !controller.signal.aborted
       && scopeId === state.coastEditScopeGenericFeatureId
       && neighborsOnly === (mode === 'border' && state.boundaryEditPhase === 'selecting')
-      && selectionKey === JSON.stringify((mode === 'coast' ? [String(state.coastEditCountryId)] : [...state.boundaryEditCountryIds].map(String)).sort());
+      && selectionKey === JSON.stringify((mode === 'coast' ? [String(state.coastEditCountryId)] : [...state.boundaryEditEntityIds].map(String)).sort());
     const stale = () => {
       if (state.boundaryPreparation === preparation && tool === state.tool && !controller.signal.aborted) {
         preparation.status = 'error';
@@ -197,7 +173,7 @@ export function createGeometryPreview() {
     return preparation.promise;
   }
 
-  function boundaryEditSelectionAnalysis(countryIds = dependencies.projectState.state.boundaryEditCountryIds) {
+  function boundaryEditSelectionAnalysis(countryIds = dependencies.projectState.state.boundaryEditEntityIds) {
     const ids = [...new Set(countryIds.map(String))].sort();
     const preparation = dependencies.projectState.state.boundaryPreparation;
     const result = preparation?.status === 'ready' ? preparation.result : null;
@@ -292,7 +268,7 @@ export function createGeometryPreview() {
           return true;
         } catch (error) {
           dependencies.spatialQuery.mapEditClient.discard(requestId);
-          (0, dependencies.validation.restoreCountryEditSnapshot)(snapshot);
+          (0, dependencies.validation.restoreEditTransactionSnapshot)(snapshot);
           onError(error);
           return false;
         }
@@ -405,7 +381,7 @@ export function createGeometryPreview() {
         (0, dependencies.feedback.setActionStatus)(successMessage, 'success', 3600);
         return true;
       } catch (error) {
-        (0, dependencies.validation.restoreCountryEditSnapshot)(snapshot);
+        (0, dependencies.validation.restoreEditTransactionSnapshot)(snapshot);
         (0, dependencies.feedback.reportOperationError)(error, errorMessage, 'PL-PREVIEW-001', 4400);
         return false;
       }
@@ -440,16 +416,6 @@ export function createGeometryPreview() {
     (0, dependencies.taskUi.updateModeButtons)();
     if (announce) (0, dependencies.feedback.setActionStatus)('미리보기를 닫았습니다.', 'success', 2600);
     return true;
-  }
-
-  const emptyBoundaryRows = Object.freeze([]);
-  function getCountryBoundaryHandles() {
-    const preparation = dependencies.projectState.state.boundaryPreparation;
-    return preparation?.status === 'ready' ? preparation.result.handles : emptyBoundaryRows;
-  }
-  function getCountryBoundarySegments() {
-    const preparation = dependencies.projectState.state.boundaryPreparation;
-    return preparation?.status === 'ready' ? preparation.result.segments : emptyBoundaryRows;
   }
 
   function initializeEditPreviewController() {
@@ -491,15 +457,14 @@ export function createGeometryPreview() {
     get boundarySelectionAnalysisMetrics() { return boundarySelectionAnalysisMetrics; },
     get coordKey() { return coordKey; },
     get coordNear() { return coordNear; },
-    get countryRingForVertex() { return countryRingForVertex; },
+
     get discardActiveGeometryPreview() { return discardActiveGeometryPreview; },
     get editPipelineMetrics() { return editPipelineMetrics; },
     get editPreviewController() { return editPreviewController; },
     get geometryPolygonSets() { return geometryPolygonSets; },
-    get getCountryBoundaryHandles() { return getCountryBoundaryHandles; },
-    get getCountryBoundarySegments() { return getCountryBoundarySegments; },
+
     get rebuildBoundaryTopology() { return rebuildBoundaryTopology; },
-    get setCountryVertexCoord() { return setCountryVertexCoord; },
-    get transactCountryEdit() { return transactCountryEdit; },
+
+    get transactMapEdit() { return transactMapEdit; },
   });
 }

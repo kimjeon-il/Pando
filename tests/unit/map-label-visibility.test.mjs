@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCountryLabels } from '../../assets/js/modules/app-country-labels.js';
+import { createTerritorialLabels } from '../../assets/js/modules/app-territorial-labels.js';
 import { createApplicationPorts, MAP_RESOURCE_OWNER_PORTS, PROJECT_IO_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { createMapSettings } from '../../assets/js/modules/app-map-settings.js';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
-import { layoutCountryFlags } from '../../assets/js/modules/country-label-flags.js';
+import { layoutTerritorialFlags } from '../../assets/js/modules/territorial-label-flags.js';
 import { automaticLabelSettings, labelKey, layoutLabels, LABEL_PRIORITIES } from '../../assets/js/modules/label-layout.js';
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 
@@ -21,15 +21,14 @@ function fixture(visibility = {}) {
     countryOverrides: {}, labelSettings: {}, size: { width: 1000, height: 600 },
     labels: [{ id: 'PLACE', kind: 'capital', name: 'Place', coordinates: [100, 300] }],
   };
-  const controller = createCountryLabels();
+  const controller = createTerritorialLabels();
   const providers = new Proxy({
     projectSession: { state },
-    runtime: { automaticLabelSettings, labelKey, layoutLabels, layoutCountryFlags, LABEL_PRIORITIES,
+    runtime: { automaticLabelSettings, labelKey, layoutLabels, layoutTerritorialFlags, LABEL_PRIORITIES,
       TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country' },
-      effectiveCountryFlagUrl: ({ countryId }) => countryId === 'NOFLAG' ? null : `/${countryId}.svg`,
     },
     countryIndex: { countryLabelAnchors: anchors, pendingCountryLabelAnchors: new Set() },
-    builtinSession: { builtinRenderCountries: () => ({
+    builtinSession: { builtinTerritorialScene: () => ({
       labelById: new Map(features.map(feature => [feature.id, feature])),
       labelRefs: new Map([['SUBUNIT', { domain: 'territorial', type: 'subunit', id: 'SUBUNIT' }]]),
     }) },
@@ -44,6 +43,7 @@ function fixture(visibility = {}) {
       activeProjection: () => ({ scale: () => 1000 }),
     },
     domainAssembly: {
+      territorialEntityRepository: { get: id => ({ ...features.find(feature => feature.id === id), properties: { unitType: 'country', name: id, metadata: ['AAA','BBB'].includes(id) ? { flagDataUrl: `/${id}.svg` } : {} } }) },
       selectionDomain: { has: () => false, snapshot: () => ({ selection: { items: [], primaryKey: null } }) },
       territorialEntityStore: {
         countryOverride: id => state.countryOverrides[String(id)] || {},
@@ -51,14 +51,14 @@ function fixture(visibility = {}) {
     },
     environment: { runtimeAssetUrl: path => new URL(path, 'http://localhost/assets/js/') },
     renderQuality: { currentRenderQuality: { labelDensity: 1, tier: 'high' } },
-    objectPresentation: { countryName: feature => feature.properties.name },
+    objectPresentation: { territorialEntityName: feature => feature.properties.name },
     workspaceSurfaces: { isMobile: () => false },
   }, { get: (target, key) => target[key] ||= {} });
   const ports = createApplicationPorts(providers);
   controller.connect(Object.freeze(Object.fromEntries(
-    MAP_RESOURCE_OWNER_PORTS.countryLabels.map(portName => [portName, ports[portName]]),
+    MAP_RESOURCE_OWNER_PORTS.territorialLabels.map(portName => [portName, ports[portName]]),
   )));
-  controller.initializeCountryLabelScreenAreas();
+  controller.initializeTerritorialLabelScreenAreas();
   controller.initializeLabelLayoutMetrics();
   return { controller, state, anchors, hiddenIds, features };
 }
@@ -67,8 +67,8 @@ for (const names of [true, false]) for (const flags of [true, false]) for (const
   test(`label visibility stays independent: names=${names}, flags=${flags}, places=${places}`, () => {
     const { controller } = fixture({ basemapLabels: names, countryFlags: flags, labels: places });
     const layout = controller.visibleLabelLayout();
-    assert.equal(layout.countryLabels.length, names ? 4 : flags ? 2 : 0);
-    assert.equal(layout.countryFlags.size, flags ? 2 : 0);
+    assert.equal(layout.territorialLabels.length, names ? 4 : flags ? 2 : 0);
+    assert.equal(layout.territorialFlags.size, flags ? 2 : 0);
     assert.equal(layout.userLabels.length, places ? 1 : 0);
   });
 }
@@ -76,16 +76,16 @@ for (const names of [true, false]) for (const flags of [true, false]) for (const
 test('flag-only layout uses flag dimensions without reserving invisible name space', () => {
   const { controller, anchors } = fixture({ basemapLabels: false, labels: false });
   anchors.set('BBB', [130, 100]);
-  assert.deepEqual([...controller.visibleLabelLayout().countryFlags.keys()], ['AAA', 'BBB']);
+  assert.deepEqual([...controller.visibleLabelLayout().territorialFlags.keys()], ['AAA', 'BBB']);
 });
 
 test('flag-only markers keep zoom and per-object visibility rules', () => {
   const { controller, state, hiddenIds } = fixture({ basemapLabels: false });
   state.view.globeZoom = 1;
-  assert.equal(controller.visibleLabelLayout().countryLabels.length, 0);
+  assert.equal(controller.visibleLabelLayout().territorialLabels.length, 0);
   state.view.globeZoom = 2;
   hiddenIds.add('AAA');
-  assert.deepEqual(controller.visibleLabelLayout().countryLabels.map(feature => feature.id), ['BBB']);
+  assert.deepEqual(controller.visibleLabelLayout().territorialLabels.map(feature => feature.id), ['BBB']);
 });
 
 test('all symbol switches schedule a fresh label layout without redrawing country geometry', t => {
@@ -117,10 +117,10 @@ test('all symbol switches schedule a fresh label layout without redrawing countr
   }));
   settings.setLayerVisibility('basemapLabels', false);
   frames.shift()();
-  assert.equal(layouts.at(-1).countryFlags.size, 2);
+  assert.equal(layouts.at(-1).territorialFlags.size, 2);
   settings.setLayerVisibility('countryFlags', false);
   frames.shift()();
-  assert.deepEqual(layouts.at(-1).countryLabels.map(feature => feature.id), ['SUBUNIT']);
+  assert.deepEqual(layouts.at(-1).territorialLabels.map(feature => feature.id), ['SUBUNIT']);
   settings.setLayerVisibility('labels', false);
   frames.shift()();
   assert.equal(layouts.at(-1).userLabels.length, 0);
@@ -129,8 +129,8 @@ test('all symbol switches schedule a fresh label layout without redrawing countr
   settings.setLayerVisibility('labels', true);
   assert.equal(frames.length, 1, 'successive visibility changes share a frame');
   frames.shift()();
-  assert.equal(layouts.at(-1).countryLabels.length, 4);
-  assert.equal(layouts.at(-1).countryFlags.size, 2);
+  assert.equal(layouts.at(-1).territorialLabels.length, 4);
+  assert.equal(layouts.at(-1).territorialFlags.size, 2);
   assert.equal(layouts.at(-1).userLabels.length, 1);
   assert.equal(baseInvalidations, 0);
   assert.equal(autosaves, 6);
@@ -150,18 +150,18 @@ for (const [id, group, nameKey, flagKey] of [
     }
     state.layerVisibility[nameKey] = false;
     let layout = controller.visibleLabelLayout();
-    assert.equal(layout.countryLabelNames.get(id), false);
-    assert.equal(layout.countryFlags.has(id), true, 'hiding a name retains its flag');
+    assert.equal(layout.territorialLabelNames.get(id), false);
+    assert.equal(layout.territorialFlags.has(id), true, 'hiding a name retains its flag');
     for (const other of ['AAA', 'SUBUNIT', 'BBB'].filter(key => key !== id)) {
-      assert.equal(layout.countryLabelNames.get(other), true, 'other types retain names');
+      assert.equal(layout.territorialLabelNames.get(other), true, 'other types retain names');
     }
     state.layerVisibility[flagKey] = false;
     layout = controller.visibleLabelLayout();
-    assert.equal(layout.countryLabels.some(feature => feature.id === id), false);
+    assert.equal(layout.territorialLabels.some(feature => feature.id === id), false);
     state.layerVisibility[flagKey] = true;
     state.layerVisibility[group] = false;
     layout = controller.visibleLabelLayout();
-    assert.equal(layout.countryLabels.some(feature => feature.id === id), false);
+    assert.equal(layout.territorialLabels.some(feature => feature.id === id), false);
     assert.equal(state.layerVisibility[flagKey], true, 'hiding a type retains its symbol preferences');
   });
 }

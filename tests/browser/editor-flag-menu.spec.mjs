@@ -13,7 +13,7 @@ test('territorial selection appears as a label-anchored card and enters the edit
   await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
   await expect(page.locator('#selectionCardName')).toHaveText('독일');
   await expect(page.locator('#selectionCardFlagPreview')).toBeVisible();
-  await expect(page.locator('g.country-label-item.selection-card-source-hidden')).toHaveCount(1);
+  await expect(page.locator('g.territorial-label-item.selection-card-source-hidden')).toHaveCount(1);
   await expect(page.locator('#editorSurface #countryNameInput, #editorSurface #flagMenuBtn')).toHaveCount(2);
   await expect(page.locator('#editorSurface #notesInput')).toHaveCount(1);
   await expect(page.locator('#selectionToolbar #objectVisibilityBtn, #selectionToolbar #objectLockBtn')).toHaveCount(2);
@@ -38,7 +38,7 @@ test('territorial selection appears as a label-anchored card and enters the edit
   await expect(page.locator('#editorSurface #changeCountryTypeBtn')).toHaveCount(1);
   await expect(page.locator('#editorObjectHeader')).toBeVisible();
   await expect(page.locator('#selectionToolbar')).toBeHidden();
-  await expect(page.locator('g.country-label-item.selection-card-source-hidden')).toHaveCount(0);
+  await expect(page.locator('g.territorial-label-item.selection-card-source-hidden')).toHaveCount(0);
   await expect(page.locator('#editorTabBtn')).toBeVisible();
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
   await expect(page.locator('#relationTabBtn')).toBeVisible();

@@ -83,8 +83,8 @@ class V0131RuntimeTests(unittest.TestCase):
         self.assertIn("feature => path(feature)", APP)
         annex_entry = source_section(APP, "function enterAnnexTerritoryMode", "function toggleAnnexDonor")
         annex_donor = source_section(APP, "function toggleAnnexDonor", "function enterCountryCoastEdit")
-        self.assertNotIn("focusCountry(", annex_entry)
-        self.assertNotIn("focusCountry(", annex_donor)
+        self.assertNotIn("fitMapToFeature(", annex_entry)
+        self.assertNotIn("fitMapToFeature(", annex_donor)
 
     def test_pointer_focus_layer_folders_and_water_labels_are_simplified(self):
         self.assertIn("html.keyboard-navigation", CSS)

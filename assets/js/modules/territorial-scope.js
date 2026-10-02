@@ -6,41 +6,22 @@ const featureFor = coordinates => coordinates?.length ? { type: 'Feature', prope
  * parentId here is strictly the administrative/spatial hierarchy. Political
  * dependency relations must not participate in scope geometry.
  */
-export function createTerritorialScopeResolver({ entityRepository, countryColor, clipper }) {
+export function createTerritorialScopeResolver({ entityRepository, clipper }) {
   if (!entityRepository?.list || !entityRepository?.get) {
     throw new TypeError('영역 범위 계산에는 TerritorialEntityRepository가 필요합니다.');
   }
   let sourceEntities = null;
-  let byId = new Map(), children = new Map(), scopes = new Map();
+  let scopes = new Map();
   function refresh() {
     const entities = entityRepository.list();
     if (sourceEntities === entities) return;
     sourceEntities = entities;
-    byId = new Map(entities.map(entity => [String(entity.id), entity]));
-    children = new Map();
     scopes = new Map();
-    for (const unit of entities) {
-      if (unit.properties?.unitType !== 'subunit') continue;
-      const storedParent = String(unit.properties.parentId || '');
-      const parentId = byId.get(storedParent)?.properties?.unitType === 'region'
-        ? String(unit.properties.sovereignId || '') : storedParent || String(unit.properties.sovereignId || '');
-      const siblings = children.get(parentId) || [];
-      siblings.push(unit);
-      children.set(parentId, siblings);
-    }
   }
   function members(countryId) {
-    refresh();
-    const result = [], seen = new Set([String(countryId)]), pending = [String(countryId)];
-    while (pending.length) {
-      for (const unit of children.get(pending.pop()) || []) {
-        const id = String(unit.id);
-        if (seen.has(id)) continue;
-        seen.add(id); result.push(unit); pending.push(id);
-      }
-    }
-    return result;
+    return entityRepository.descendants(countryId, { type: 'subunit' });
   }
+
   function scope(countryId) {
     refresh();
     const id = String(countryId);
@@ -61,23 +42,8 @@ export function createTerritorialScopeResolver({ entityRepository, countryColor,
     scopes.set(id, result);
     return result;
   }
-  function color(unit, fallback = '') {
-    refresh();
-    const seen = new Set();
-    let current = unit;
-    while (current && !seen.has(String(current.id))) {
-      seen.add(String(current.id));
-      if (current.properties?.style?.color) return current.properties.style.color;
-      const parentId = String(current.properties?.parentId || '');
-      const parent = byId.get(parentId);
-      if (parent?.properties?.unitType === 'subunit') { current = parent; continue; }
-      const candidate = byId.get(parentId) || byId.get(String(current.properties?.sovereignId || ''));
-      const country = candidate?.properties?.unitType === 'country' ? candidate : null;
-      return country ? countryColor(country) : fallback;
-    }
-    return fallback;
-  }
-  return Object.freeze({ members, scope, color });
+
+  return Object.freeze({ members, scope,  });
 }
 
 export function validateSubunitParentChanges(previous, next, countryExists) {

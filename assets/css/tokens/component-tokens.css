@@ -9,7 +9,7 @@
   --layer-search-color: #77818c;
   --toolbar-divider-height: 26px;
   --field-group-color: #aeb7c1;
-  --country-label-flag-filter: drop-shadow(0 0 .4px rgba(0, 0, 0, .55));
+  --territorial-label-flag-filter: drop-shadow(0 0 .4px rgba(0, 0, 0, .55));
   --preferences-card-width: min(520px, calc(100vw - var(--ui-dialog-edge) * 2));
   --ui-preferences-swatch-gap: 4px;
   --ui-preferences-chip-size: 24px;

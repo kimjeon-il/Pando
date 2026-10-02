@@ -27,9 +27,9 @@ export function createTerritoryComponentUi() {
         .filter(result => result.status === 'invalid')
         .map(result => String(result.donorCountryId)));
       const invalidNames = session.sourceCountryIds
-        .map(dependencies.countries.countryFeatureById)
+        .map(dependencies.territorialModel.entityStore.countryFeature)
         .filter(feature => feature && invalidIds.has(String(feature.id)))
-        .map(dependencies.presentation.countryName);
+        .map(dependencies.objectPresentation.territorialEntityName);
       const suffix = session.useRiverBoundaries && invalidNames.length
         ? ` ${invalidNames.join(', ')}은(는) 분할 오류로 제외됨.`
         : '';
@@ -42,8 +42,6 @@ export function createTerritoryComponentUi() {
   function toggleTerritoryComponentSelection(componentKey) {
     return (0, dependencies.territorySelectionC.toggleTerritorySelectionComponent)(componentKey);
   }
-
-
 
   return Object.freeze({
     connect,

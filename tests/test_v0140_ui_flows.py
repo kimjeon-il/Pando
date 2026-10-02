@@ -63,7 +63,7 @@ class V0140UiFlowTests(unittest.TestCase):
         self.assertNotIn("confirm(", merge)
         self.assertNotIn("합병 후 국명을 입력하세요", APP)
         self.assertIn("state.mergeTargetCountryIds", merge)
-        self.assertIn("await transactCountryEdit({", merge)
+        self.assertIn("await transactMapEdit({", merge)
 
     def test_annex_and_merge_support_multiple_targets(self):
         self.assertIn("sourceCountryIds,", APP)
@@ -80,12 +80,6 @@ class V0140UiFlowTests(unittest.TestCase):
     def test_buttons_use_css_pressed_state_without_transient_flash(self):
         self.assertNotIn("function flashButton", APP)
         self.assertNotIn("button-flash", CSS)
-
-    def test_country_colour_edits_invalidate_the_map_palette(self):
-        commit = source_section(APP, "function commitCountryEdit", "function commitGenericFeatureMeta")
-        self.assertIn("field === 'color'", commit)
-        self.assertIn("invalidateCountryPalette({ base: true, emphasis: true }, 'country-color-edited')", commit)
-        self.assertIn("invalidateBaseScene?.('country-color-edited')", commit)
 
     def test_projection_controls_live_in_the_map_view_for_every_layout(self):
         self.assertNotIn('class="panel-section compact-view-section"', INDEX)

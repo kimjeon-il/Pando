@@ -1,3 +1,4 @@
+import { territorialSceneDisplayId } from './builtin-subunits.js';
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -11,8 +12,8 @@ export function createBuiltinSession() {
   let builtinRenderCache;
   let builtinGeometryCache;
   let builtinGeometryStore;
-  let renderCountryFeatureById;
-  let countryLabelFeatureById;
+  let baseSceneFeatureById;
+  let territorialLabelFeatureById;
   let builtinPaletteKey;
   let builtinPaletteVisibility;
   function connect(ports) {
@@ -63,7 +64,7 @@ export function createBuiltinSession() {
     (0, dependencies.countryRecords.applyPristineLabelAnchors)({ features: result.subunits.map(unit => ({ id: (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit) })) });
   }
 
-  function builtinRenderCountries() {
+  function builtinTerritorialScene() {
     if (builtinGeometryStore !== canonicalCountryStore) {
       builtinGeometryStore = canonicalCountryStore;
       builtinGeometryCache = new WeakMap();
@@ -73,12 +74,13 @@ export function createBuiltinSession() {
       && builtinRenderCache.presentation === dependencies.projectState.state.layerPresentation) return builtinRenderCache;
     const features = [...(dependencies.projectState.state.countriesData?.features || [])];
     const byId = new Map(features.map(feature => [String(feature.id), feature]));
+    const countryIds = new Set(byId.keys());
     const labelById = new Map(byId);
     const labelRefs = new Map();
     const units = new Map();
     for (const unit of dependencies.projectState.state.territorialUnits || []) {
       const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
-      const id = sourceId && !byId.has(sourceId) ? sourceId : `territorial:${unit.properties.unitType}:${unit.id}`;
+      const id = territorialSceneDisplayId(unit, countryIds);
       const feature = { type: 'Feature', id, properties: unit.properties, geometry: unit.geometry };
       labelById.set(id, feature);
       labelRefs.set(id, { domain: 'territorial', type: unit.properties.unitType, id: unit.id });
@@ -102,7 +104,7 @@ export function createBuiltinSession() {
   }
 
   function syncBuiltinPalette() {
-    const cache = builtinRenderCountries();
+    const cache = builtinTerritorialScene();
     const visibility = JSON.stringify([dependencies.projectState.state.layerVisibility.subunits, dependencies.projectState.state.itemVisibility.subunits]);
     if (builtinPaletteKey === cache && builtinPaletteVisibility === visibility) return;
     builtinPaletteKey = cache;
@@ -112,13 +114,13 @@ export function createBuiltinSession() {
 
   function isNativeBuiltinSubunit(unit) {
     const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
-    return !!sourceId && builtinRenderCountries().nativeUnits.get(sourceId) === unit;
+    return !!sourceId && builtinTerritorialScene().nativeUnits.get(sourceId) === unit;
   }
 
   function isRenderCountryVisible(id) {
-    const unit = builtinRenderCountries().nativeUnits.get(String(id));
+    const unit = builtinTerritorialScene().nativeUnits.get(String(id));
     return unit ? dependencies.projectState.state.layerVisibility.subunits !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('subunits', unit.id)
-      : !!(0, dependencies.countries.countryFeatureById)(id) && (0, dependencies.layerPresentation.isCountryVisibleById)(id);
+      : !!dependencies.territorialModel.entityStore.countryFeature(id) && (0, dependencies.layerPresentation.isCountryVisibleById)(id);
   }
 
   function initializePristineCountriesFallback() {
@@ -136,9 +138,9 @@ export function createBuiltinSession() {
 
     (builtinGeometryStore = null);
 
-    (renderCountryFeatureById = id => builtinRenderCountries().byId.get(String(id)) || null);
+    (baseSceneFeatureById = id => builtinTerritorialScene().byId.get(String(id)) || null);
 
-    (countryLabelFeatureById = id => builtinRenderCountries().labelById.get(String(id)) || null);
+    (territorialLabelFeatureById = id => builtinTerritorialScene().labelById.get(String(id)) || null);
 
     (builtinPaletteKey = null);
 
@@ -151,9 +153,9 @@ export function createBuiltinSession() {
     get PRISTINE_LABEL_ANCHORS() { return PRISTINE_LABEL_ANCHORS; },
     get applyFreshBuiltinClassification() { return applyFreshBuiltinClassification; },
     get builtinCountryIds() { return builtinCountryIds; },
-    get builtinRenderCountries() { return builtinRenderCountries; },
+    get builtinTerritorialScene() { return builtinTerritorialScene; },
     get canonicalCountryStore() { return canonicalCountryStore; },
-    get countryLabelFeatureById() { return countryLabelFeatureById; },
+    get territorialLabelFeatureById() { return territorialLabelFeatureById; },
     get freshPristineCountries() { return freshPristineCountries; },
     get installCanonicalCountryStore() { return installCanonicalCountryStore; },
     get isNativeBuiltinSubunit() { return isNativeBuiltinSubunit; },
@@ -161,7 +163,7 @@ export function createBuiltinSession() {
     get materializePristineCountries() { return materializePristineCountries; },
     get materializePristineCountriesSync() { return materializePristineCountriesSync; },
     get pristineCountriesFallback() { return pristineCountriesFallback; },
-    get renderCountryFeatureById() { return renderCountryFeatureById; },
+    get baseSceneFeatureById() { return baseSceneFeatureById; },
     get syncBuiltinPalette() { return syncBuiltinPalette; },
   });
 }

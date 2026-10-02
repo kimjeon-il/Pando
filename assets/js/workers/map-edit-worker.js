@@ -8,7 +8,7 @@ function versionedWorkerAssetUrl(relativePath) {
 }
 
 importScripts(
-  versionedWorkerAssetUrl('../modules/country-geometry.js'),
+  versionedWorkerAssetUrl('../modules/polygon-geometry.js'),
   versionedWorkerAssetUrl('../modules/territorial-edit-plan.js'),
   versionedWorkerAssetUrl('../vendor/polygon-clipping.min.js'),
 );
@@ -155,7 +155,7 @@ self.onmessage = async event => {
     assertRequestCurrent(message, epoch);
     const {
       createBoundaryPreparation, prepareBoundaryOperation, prepareComponentOperation, calculateLibraryBatch,
-      calculateTerritorialPreview, calculateRegionMerge, calculateRegionRedraw, calculateDrawnGeometry,
+      calculateTerritorialPreview, calculateRegionRedraw, calculateDrawnGeometry,
       calculateSnapCandidates, prepareCutInWorker, createEditDisplayPreparation,
       calculateParents, buildBoundaryTopology, calculateCoastAvailability, calculateUncoveredSource,
       calculateTerritorialEdit, createCountryCommandCalculator, calculateEditPreview, calculateCountryPreview,
@@ -180,8 +180,6 @@ self.onmessage = async event => {
       result = calculateTerritorialPreview(message.payload, before, self.polygonClipping);
       result.preparationId = 'preview:' + ++previewSequence;
       if (!result.validation.blocking) retainReceipt(result.preparationId, message, epoch);
-    } else if (message.operation === 'territorial-region-merge') {
-      result = calculateRegionMerge(sourceFeature(message.payload.targetId, ['territorial']), message.payload.targetIds.map(id => sourceFeature(id, ['territorial'])), self.polygonClipping);
     } else if (message.operation === 'territorial-region-redraw') {
       const { targetId, containerId, siblingIds, draft } = message.payload;
       result = calculateRegionRedraw(sourceFeature(targetId, ['territorial']), sourceFeature(containerId), siblingIds.map(id => sourceFeature(id, ['territorial'])), draft, self.polygonClipping);
@@ -195,7 +193,7 @@ self.onmessage = async event => {
       if (!self.d3) importScripts(versionedWorkerAssetUrl('../vendor/d3.min.js'));
       const source = rememberCutSource(message.payload);
       if (!source) throw new Error('분할 원본을 다시 준비하세요.');
-      result = prepareCutInWorker({ ...message.payload, source }, self.PandoLabCountryGeometry, self.d3, self.polygonClipping);
+      result = prepareCutInWorker({ ...message.payload, source }, self.PandoLabPolygonGeometry, self.d3, self.polygonClipping);
     } else if (message.operation === 'territorial-display') {
       displayService ||= createEditDisplayPreparation();
       const service = displayService;

@@ -53,3 +53,18 @@ export function writeDomainColor(domain, target = {}, value, { clear = false, fa
   }
   return color;
 }
+/** Intrinsic territorial color inheritance; layer opacity/blending stays in rendering. */
+export function resolveTerritorialColor(feature, { entityRepository, countryColor, fallback = '', colorVisible = () => true }) {
+  let current = feature;
+  const seen = new Set();
+  while (current) {
+    const id = String(current.id);
+    if (seen.has(id)) throw new Error(`영역 색상 상위 관계가 순환합니다: ${id}`);
+    seen.add(id);
+    if (!colorVisible(current)) return fallback;
+    if (current.properties?.style?.color) return current.properties.style.color;
+    if (current.properties?.unitType === 'country') return countryColor(current);
+    current = entityRepository.parent(id) || entityRepository.administrativeCountry(id);
+  }
+  return fallback;
+}

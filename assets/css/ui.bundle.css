@@ -276,7 +276,7 @@
   --layer-search-color: #77818c;
   --toolbar-divider-height: 26px;
   --field-group-color: #aeb7c1;
-  --country-label-flag-filter: drop-shadow(0 0 .4px rgba(0, 0, 0, .55));
+  --territorial-label-flag-filter: drop-shadow(0 0 .4px rgba(0, 0, 0, .55));
   --preferences-card-width: min(520px, calc(100vw - var(--ui-dialog-edge) * 2));
   --ui-preferences-swatch-gap: 4px;
   --ui-preferences-chip-size: 24px;
@@ -7190,7 +7190,7 @@ body.file-menu-open .app-root .topbar {
 .selection-toolbar-color .ui-color-value { display: none; }
 .selection-toolbar-color .ui-color-preview { width: 1.0625rem; min-width: 1.0625rem; height: 1.0625rem; }
 
-.country-label-item.selection-card-source-hidden { visibility: hidden; }
+.territorial-label-item.selection-card-source-hidden { visibility: hidden; }
 
 @media (max-width: 799px) {
   .selection-card { width: min(21rem, calc(100% - 1.25rem)); min-height: 8.75rem; }
@@ -10762,7 +10762,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   mix-blend-mode: normal;
 }
 
-.country-label-layer {
+.territorial-label-layer {
   user-select: none;
   -webkit-user-select: none;
 }
@@ -11029,8 +11029,8 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   cursor: pointer;
 }
 
-.country-label-flag {
-  filter: var(--country-label-flag-filter);
+.territorial-label-flag {
+  filter: var(--territorial-label-flag-filter);
 }
 
 .territorial-unit-shape {

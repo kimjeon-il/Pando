@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { topology } from 'topojson-server';
 
 import { validateGeometry } from '../../assets/js/modules/geometry-validation.js';
-await import('../../assets/js/modules/country-geometry.js');
+await import('../../assets/js/modules/polygon-geometry.js');
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const appVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
@@ -16,7 +16,7 @@ const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, `asse
 const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
 const canonicalBytes = Buffer.from(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8').replaceAll('\r\n', '\n'));
 const manifest = JSON.parse(fs.readFileSync(path.join(root, `assets/data/world-preview-v${appVersion}.json`), 'utf8'));
-const { hasCanonicalCountryWinding } = globalThis.PandoLabCountryGeometry;
+const { hasCanonicalPolygonWinding } = globalThis.PandoLabPolygonGeometry;
 
 function consecutiveDuplicates(geometry) {
   const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
@@ -43,7 +43,7 @@ test('canonical and preview built-in countries require no runtime geometry repai
     for (const feature of collection.features) {
       const id = feature.id;
       assert.deepEqual(validateGeometry(feature), [], `${label}:${id}`);
-      assert.equal(hasCanonicalCountryWinding(feature.geometry), true, `${label}:${id}`);
+      assert.equal(hasCanonicalPolygonWinding(feature.geometry), true, `${label}:${id}`);
       assert.deepEqual(consecutiveDuplicates(feature.geometry), [], `${label}:${id}`);
     }
   }

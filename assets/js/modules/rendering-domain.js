@@ -101,7 +101,7 @@ export function createRenderingDomain({
   const active = () => { if (disposed) throw new Error('Rendering domain is disposed.'); };
   const labels = labelResources || {};
   const pendingVisualFrames = new Map();
-  let countryLabelPositionBindings = [];
+  let territorialLabelPositionBindings = [];
   let userLabelPositionBindings = [];
   const countries = countryResources || {};
   const hydro = hydroResources || {};
@@ -254,25 +254,25 @@ export function createRenderingDomain({
     stats.labelPositionProjectionCount += 1;
     return point;
   };
-  const renderCountryLabels = (layout = null) => {
+  const renderTerritorialLabels = (layout = null) => {
     active();
     const state = labelState();
-    const layer = labels.countryLabelLayer;
+    const layer = labels.territorialLabelLayer;
     if (!layer) return false;
     const resolvedLayout = layout || labels.visibleLabelLayout?.();
-    const namesVisible = feature => resolvedLayout?.countryLabelNames?.get(String(feature.id)) !== false;
-    const data = resolvedLayout?.countryLabels || [];
-    const selection = layer.selectAll('g.country-label-item').data(data, d => d.id);
+    const namesVisible = feature => resolvedLayout?.territorialLabelNames?.get(String(feature.id)) !== false;
+    const data = resolvedLayout?.territorialLabels || [];
+    const selection = layer.selectAll('g.territorial-label-item').data(data, d => d.id);
     selection.exit().remove();
     // Use ground hit-testing and tool dispatch, rather than forcing the named object.
     const enter = selection.enter().append('g')
-      .attr('class', 'country-label-item')
+      .attr('class', 'territorial-label-item')
       .on('click', function() {
         if (labels.mapClickBlocked?.()) return;
         labels.d3.event.stopPropagation();
         labels.handleMapClick(labels.d3.mouse(labels.svg.node()));
       });
-    enter.append('image').attr('class', 'country-label-flag').attr('preserveAspectRatio', 'xMidYMid meet')
+    enter.append('image').attr('class', 'territorial-label-flag').attr('preserveAspectRatio', 'xMidYMid meet')
       .attr('aria-hidden', 'true').style('pointer-events', 'none')
       .on('error', function() {
         this.dataset.failedUrl = this.getAttribute('href');
@@ -280,27 +280,27 @@ export function createRenderingDomain({
         this.parentNode.querySelector('text')?.setAttribute('x', '0');
       });
     enter.append('text').attr('class', 'country-label').attr('dy', '.35em');
-    const all = layer.selectAll('g.country-label-item');
+    const all = layer.selectAll('g.territorial-label-item');
     all.attr('data-label-id', feature => String(feature.id || ''));
     all.select('text').text(feature => namesVisible(feature) ? labels.countryName?.(feature) || feature.properties?.name || '' : '')
       .style('display', feature => namesVisible(feature) ? null : 'none')
-      .classed('major', d => (resolvedLayout?.countryScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));
+      .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));
     all
       .style('opacity', labels.layerStyle?.(state.layerPresentation, 'countryLabels').opacity)
-      .classed('major', d => (resolvedLayout?.countryScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200))
+      .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200))
       .attr('transform', d => {
         const settings = labels.automaticLabelSettings?.('country', labels.labelSettings?.(state, 'country', d.id) || {});
         const anchor = settings?.pinned && settings.manualPosition
           ? settings.manualPosition
           : labels.countryLabelAnchors?.()?.get?.(String(d.id || ''));
-        const point = resolvedLayout?.countryLabelPoints?.get?.(String(d.id || ''))
+        const point = resolvedLayout?.territorialLabelPoints?.get?.(String(d.id || ''))
           || (Array.isArray(anchor) && anchor.length >= 2 ? projectLabelCoordinate(anchor) : null);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
-    countryLabelPositionBindings = [];
+    territorialLabelPositionBindings = [];
     all.each(function(feature) {
       const nameVisible = namesVisible(feature);
-      let flag = resolvedLayout?.countryFlags?.get(String(feature.id));
+      let flag = resolvedLayout?.territorialFlags?.get(String(feature.id));
       const text = this.querySelector('text');
       const image = this.querySelector('image');
       if (flag?.url === image.dataset.failedUrl) flag = null;
@@ -315,7 +315,7 @@ export function createRenderingDomain({
       } else image.removeAttribute('href');
       const settings = labels.automaticLabelSettings?.('country', labels.labelSettings?.(state, 'country', feature.id) || {});
       const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : labels.countryLabelAnchors?.()?.get?.(String(feature.id || ''));
-      countryLabelPositionBindings.push({ node: this, coordinate: coordinate?.slice() });
+      territorialLabelPositionBindings.push({ node: this, coordinate: coordinate?.slice() });
     });
     return true;
   };
@@ -366,7 +366,7 @@ export function createRenderingDomain({
   };
   const applyCountryLabelPositions = (frameContext = null) => {
     active();
-    for (const { node, coordinate: anchor } of countryLabelPositionBindings) {
+    for (const { node, coordinate: anchor } of territorialLabelPositionBindings) {
       const point = Array.isArray(anchor) && anchor.length >= 2 ? projectLabelCoordinate(anchor, frameContext) : null;
       node?.setAttribute?.('transform', point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)');
     }
@@ -380,7 +380,7 @@ export function createRenderingDomain({
     }
     return true;
   };
-  const renderCountryLabelPositions = frameContext => {
+  const renderTerritorialLabelPositions = frameContext => {
     stats.labelPositionRequestCount += 1;
     const result = applyCountryLabelPositions(frameContext);
     stats.labelPositionCommitCount += 1;
@@ -397,7 +397,7 @@ export function createRenderingDomain({
     const renderViewState = viewStateOrRevision && typeof viewStateOrRevision === 'object' ? viewStateOrRevision : null;
     countries.renderPendingCountryOverlays?.();
     const pending = state.layerVisibility?.countries && state.pendingCountryRenderIds?.size
-      ? [...state.pendingCountryRenderIds].map(countries.countryFeatureById).filter(Boolean)
+      ? [...state.pendingCountryRenderIds].map(countries.getRawCountryFeature).filter(Boolean)
       : [];
     const pendingPolygons = [];
     const pendingStrokes = [];
@@ -516,7 +516,7 @@ export function createRenderingDomain({
     const t = territorial;
     const state = t.getState?.() || {};
     const theme = countries.mapTheme?.() || {};
-    const resolveFill = createTerritorialFillResolver({ state, countryColor: feature => countries.countryColor?.(feature),
+    const resolveFill = createTerritorialFillResolver({ state, entityRepository: t.entityRepository, countryColor: feature => countries.countryColor(feature),
       defaultColor: theme.defaultLand, terrainAlpha: theme.countryColorAlpha ?? theme.terrainColorAlpha ?? 1 });
     t.syncBuiltinPalette?.();
     const types = t.TERRITORIAL_UNIT_TYPES || {};
@@ -837,7 +837,7 @@ export function createRenderingDomain({
     ]);
     const visibleSignature = [...visibleIds].sort().map(id => {
       const feature = visibleFeatures.find(item => String(item.id) === id);
-      return `${id}:${t.territorialUnitColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${id}`))}`;
+      return `${id}:${t.territorialEntityColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${id}`))}`;
     }).join('|');
     const styleSignature = [...styleByType].map(([type, definition]) => {
       const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup) || {};
@@ -984,7 +984,7 @@ export function createRenderingDomain({
   const renderVertices = (frameContext = null, packet = editingPacket) => {
     active();
     const boundaryHandles = packet?.boundaryEdit?.handles || [];
-    const boundaryMode = ['country-border', 'country-coast'].includes(packet?.tool) && boundaryHandles.length > 0;
+    const boundaryMode = ['territorial-border', 'country-coast'].includes(packet?.tool) && boundaryHandles.length > 0;
     const objectPacket = boundaryMode ? {
       mode: packet.tool,
       handles: boundaryHandles,
@@ -2062,7 +2062,7 @@ export function createRenderingDomain({
     syncBaseView(frame);
     renderProjectedOverlays(frame);
     renderCountries(frame, { presentationOnly: true, gpuResult });
-    renderCountryLabelPositions(frame);
+    renderTerritorialLabelPositions(frame);
     renderUserLabelPositions(frame);
     if (editingPacketHasViewContent(editingPacket)) {
       renderGeometryPreview(frame, editingPacket);
@@ -2078,7 +2078,7 @@ export function createRenderingDomain({
     markVisualRoot(roots.svg, frame);
     markVisualRoot(roots.interactionSvg, frame);
     markVisualRoot(base.graticuleLayer, frame);
-    markVisualRoot(labels.countryLabelLayer, frame);
+    markVisualRoot(labels.territorialLabelLayer, frame);
     markVisualRoot(labels.labelLayer, frame);
     markVisualRoot(selection.selectionLayer, frame);
     markVisualRoot(selection.hoverLayer, frame);
@@ -2149,9 +2149,9 @@ export function createRenderingDomain({
       hover: renderHoverOverlay,
       validation: frameContext => renderValidation(frameContext, editingPacket),
       labelLayout: (...args) => renderPass('labelLayout', ...args),
-      countryLabelPositions: renderCountryLabelPositions,
+      territorialLabelPositions: renderTerritorialLabelPositions,
       userLabelPositions: renderUserLabelPositions,
-      countryLabels: renderCountryLabels,
+      territorialLabels: renderTerritorialLabels,
       userLabels: renderUserLabels,
       viewPresentation: commitViewAttachedLayers,
       vertices: frameContext => renderVertices(frameContext, editingPacket),

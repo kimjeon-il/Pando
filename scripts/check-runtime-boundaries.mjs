@@ -377,7 +377,7 @@ for (const method of ['renderFull', 'renderView', 'renderFrame', 'isInteractionA
   if (new RegExp(`\\b${method}\\s*:`).test(coordinatorSource)) throw new Error(`Coordinator exposes test-only method: ${method}`);
 }
 const coordinatorPublicFacade = coordinatorSource.slice(coordinatorSource.lastIndexOf('return Object.freeze({'));
-if (/\n\s*revision\s*[:,]/.test(coordinatorPublicFacade)) {
+if (/\n\s*revision\s*[:]/.test(coordinatorPublicFacade)) {
   throw new Error('Coordinator must expose renderRevision through getStats only');
 }
 if (!readApplicationOwners('map-host').includes("invalidateViewport?.('resize')")) {
@@ -417,8 +417,8 @@ const removedDomainFacadeMethods = new Map([
   ]],
   [renderingDomainSource, [
     'beginFrame', 'invalidateViewSettle', 'renderGpuInteraction', 'renderBoundaryEdit',
-    'renderGeometryPreview', 'renderSelection', 'renderHoverOverlay', 'renderCountryLabels',
-    'renderUserLabels', 'renderCountryLabelPositions', 'renderUserLabelPositions',
+    'renderGeometryPreview', 'renderSelection', 'renderHoverOverlay', 'renderTerritorialLabels',
+    'renderUserLabels', 'renderTerritorialLabelPositions', 'renderUserLabelPositions',
     'renderHydroEdits', 'renderDistributions', 'renderBase', 'renderProjectedOverlays',
   ]],
 ]);

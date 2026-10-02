@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import { createCountryCommandCalculator } from '../../assets/js/modules/map-edit-country-commands.js';
-import { hasCanonicalCountryWinding } from '../../assets/js/modules/map-edit-geometry.js';
+import { hasCanonicalPolygonWinding } from '../../assets/js/modules/map-edit-geometry.js';
 
 const pc = globalThis.polygonClipping;
 const api = createCountryCommandCalculator(pc);
@@ -57,7 +57,7 @@ test('tiny explicit whole and partial transfers are not discarded by overlap tol
   const { result } = api.calculate({ operation: 'annex', targetId: 'T', donorIds: ['D'], transferredGeometry: geom([polygon]) },
     new Map([['D', feature('D', [polygon])], ['T', feature('T', [box(0, 0, 1)])]]));
   assert.ok(result.removedIds.includes('D'));
-  assert.equal(hasCanonicalCountryWinding(result.transferredGeometry), true);
+  assert.equal(hasCanonicalPolygonWinding(result.transferredGeometry), true);
 });
 
 test('annex clips only a sub-grid source-boundary fringe before applying', () => {

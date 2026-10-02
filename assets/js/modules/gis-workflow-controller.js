@@ -11,7 +11,7 @@ export function createGisWorkflowController({
   countryName,
   layerNameCollator,
   TERRITORIAL_UNIT_TYPES,
-  territorialUnitName,
+  territorialEntityName,
   sphericalGeometryAreaKm2,
   createProjectObjectId,
   deepClone,
@@ -69,7 +69,7 @@ export function createGisWorkflowController({
   function gisImportParentOptions() {
     return (getTerritorialUnits() || []).filter(feature => [TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(feature.properties?.unitType)).map(feature => ({
       id: String(feature.id),
-      name: territorialUnitName(feature),
+      name: territorialEntityName(feature),
       countryId: String(feature.properties?.sovereignId || ''),
       parentId: String(feature.properties?.parentId || ''),
       type: feature.properties?.unitType,

@@ -4,7 +4,7 @@ import { Worker } from 'node:worker_threads';
 import { readFileSync } from 'node:fs';
 import { createMapEditWorkerClient } from '../../assets/js/modules/map-edit-worker-client.js';
 import '../../assets/js/vendor/polygon-clipping.min.js';
-import { area, multiCoordinates, hasCanonicalCountryWinding } from '../../assets/js/modules/map-edit-geometry.js';
+import { area, multiCoordinates, hasCanonicalPolygonWinding } from '../../assets/js/modules/map-edit-geometry.js';
 
 function harness(t, rows, { failFirstClipMethod = '' } = {}) {
   const script = new URL('../../assets/js/workers/map-edit-worker.js', import.meta.url).href;
@@ -62,8 +62,8 @@ function assertNewCountryPartition(result, original, selected) {
   const areaTolerance = Math.max(1e-12, createdArea * 1e-12);
   const geometryTolerance = Math.max(1e-10, area(original) * 1e-10);
   assert.ok(Math.abs(result.transferredArea - createdArea) <= areaTolerance);
-  assert.ok(hasCanonicalCountryWinding(remaining.geometry));
-  assert.ok(hasCanonicalCountryWinding(created.geometry));
+  assert.ok(hasCanonicalPolygonWinding(remaining.geometry));
+  assert.ok(hasCanonicalPolygonWinding(created.geometry));
   const clipper = globalThis.polygonClipping;
   const a = multiCoordinates(remaining.geometry), b = multiCoordinates(created.geometry);
   assert.ok(area(clipper.xor(b, multiCoordinates(selected))) <= geometryTolerance);
@@ -124,7 +124,7 @@ test('actual territorial-cut Worker preserves a partition and reuses its cached 
   assert.equal(result.split.candidates.length, 2);
   for (const candidate of result.split.candidates) {
     assert.ok(Number.isFinite(candidate.area) && candidate.area > 0);
-    assert.ok(hasCanonicalCountryWinding(candidate.geometry));
+    assert.ok(hasCanonicalPolygonWinding(candidate.geometry));
     assert.ok(Math.abs(area(candidate.geometry) - 50) <= 1e-8);
   }
   const [a, b] = result.split.candidates.map(candidate => multiCoordinates(candidate.geometry));
@@ -230,9 +230,10 @@ test('drawn clipping and region previews stay in the worker and reject changed l
     { kind: 'territorial', feature: a }, { kind: 'territorial', feature: b }]);
   const drawn = await client.execute('territorial-drawn', { payload: { draft: square(-2, -2, 2, 2), source: square(0, 0, 10, 10) } });
   assert.ok(drawn.result.geometry.coordinates);
-  const merged = await client.execute('territorial-region-merge', { payload: { targetId: 'a', targetIds: ['b'] } });
+  const merged = await client.execute('territorial-edit', { payload: { operation: 'merge', targetId: 'a', sourceIds: ['b'] } });
   assert.deepEqual(merged.result.removedIds, ['b']);
-  const preview = await client.execute('territorial-preview', { payload: { operation: 'merge-region', beforeIds: ['a', 'b'], afterFeatures: [merged.result.survivor], removedIds: ['b'] } });
+  const preview = { result: merged.result.preview };
+  preview.result.preparationId = merged.result.preparationId;
   assert.equal(preview.result.validation.blocking, false);
   await assert.rejects(client.execute('territorial-region-redraw', { payload: { targetId: 'a', containerId: 'RUS', siblingIds: ['b'], draft: square(0, 0, 5, 4) } }), /겹칩니다/);
   b.properties.locked = true;

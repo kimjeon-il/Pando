@@ -74,13 +74,13 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
   ];
   const elements = Object.fromEntries(ids.map(id => [id, new FakeElement(document)]));
   const state = {
-    tool: 'country-border',
+    tool: 'territorial-border',
     selected: null,
     territorySelectionSession: null,
     geometryPreview: { session: null },
     labelPlacementMode: false,
     boundaryEditPhase: 'selecting',
-    boundaryEditCountryIds: [],
+    boundaryEditEntityIds: [],
     boundaryPreparation: { status: 'ready', result: null },
     countryOverrides: {},
     territorialUnits: [],
@@ -93,7 +93,7 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     ...stateOverrides,
   };
   const focusCalls = [];
-  const countryFeatureById = portOverrides.countryFeatureById || (id => id === 'COUNTRY'
+  const countrySourceFeature = portOverrides.countrySourceFeature || (id => id === 'COUNTRY'
     ? { type: 'Feature', id, properties: { name: 'Country' }, geometry: { type: 'Polygon', coordinates: [] } }
     : null);
   const entityRepository = portOverrides.entityRepository || {
@@ -101,7 +101,7 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
       const key = String(id || '');
       const unit = (state.territorialUnits || []).find(item => String(item?.id || '') === key);
       if (unit) return unit;
-      const country = countryFeatureById(key);
+      const country = countrySourceFeature(key);
       return country ? {
         ...country,
         properties: { ...(country.properties || {}), unitType: 'country' },
@@ -109,7 +109,7 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     },
   };
   const presentation = createTaskPresentation();
-  state.countriesData = { type: 'FeatureCollection', features: [countryFeatureById('COUNTRY')].filter(Boolean) };
+  state.countriesData = { type: 'FeatureCollection', features: [countrySourceFeature('COUNTRY')].filter(Boolean) };
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   presentation.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
     state,
@@ -123,15 +123,15 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     isSpecialTool: () => true,
     TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
     boundaryEditSelectionAnalysis: () => ({ valid: false, message: '접경 대상을 선택하세요.' }),
-    countryFeatureById,
+    countrySourceFeature,
     entityRepository,
     entityStore,
-    countryName: feature => feature.properties.name,
-    effectiveCountryFlagUrl: () => '',
+    territorialEntityName: feature => feature.properties.name,
+    effectiveTerritorialFlagUrl: () => '',
     objectDisplayInfo: ref => ({ name: ref.id === 'SUB' ? 'Subunit' : 'Country', type: ref.type }),
     focusObjectRef: ref => focusCalls.push(['single', ref]),
     mapFeatureForObjectRef: ref => ({ type: 'Feature', id: ref.id, properties: {}, geometry: { type: 'Polygon', coordinates: [] } }),
-    focusCountry: (feature, options) => focusCalls.push(['multi', feature, options]),
+    fitMapToFeature: (feature, options) => focusCalls.push(['multi', feature, options]),
     isMobile: () => false,
     setMapModeContextActive() {},
     editorWorkspacePresentation: { sync() {} },
@@ -198,7 +198,7 @@ test('territory list uses the authoritative union, pending state and stable part
 
 test('task sync derives role cards without duplicate type labels or focusing the map', t => {
   const f = fixture(t, {
-    boundaryEditCountryIds: ['SUB', 'COUNTRY', 'SUB'],
+    boundaryEditEntityIds: ['SUB', 'COUNTRY', 'SUB'],
     territorialUnits: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
   });
   f.presentation.updateModeButtons();
@@ -212,7 +212,7 @@ test('task sync derives role cards without duplicate type labels or focusing the
 
 test('task target labels refresh from the repository while object refs stay stable', t => {
   let name = 'Before';
-  const f = fixture(t, { boundaryEditCountryIds: ['COUNTRY'] }, {
+  const f = fixture(t, { boundaryEditEntityIds: ['COUNTRY'] }, {
     objectDisplayInfo: ref => ({ name, type: ref.type }),
   });
   f.presentation.updateModeButtons();
@@ -227,7 +227,7 @@ test('task target labels refresh from the repository while object refs stay stab
 
 test('task status explains pending and missing-target decisions without changing retry eligibility', async t => {
   const pending = fixture(t, {
-    boundaryEditCountryIds: ['COUNTRY'],
+    boundaryEditEntityIds: ['COUNTRY'],
     boundaryPreparation: { status: 'pending' },
   });
   pending.presentation.updateModeButtons();
@@ -239,7 +239,7 @@ test('task status explains pending and missing-target decisions without changing
   assert.equal(pending.elements.modePrimaryBtn.attributes.get('aria-describedby'), 'modeTaskDisabledReason');
 
   const failed = fixture(t, {
-    boundaryEditCountryIds: ['COUNTRY'],
+    boundaryEditEntityIds: ['COUNTRY'],
     boundaryPreparation: { status: 'error', message: '경계 계산에 실패했습니다.', retry() {} },
   });
   failed.presentation.updateModeButtons();
@@ -322,7 +322,7 @@ test('editable redraw with fewer than three vertices uses the precise redraw rea
 
 test('explicit task focus delegates a single true object ref to the existing object focus command', t => {
   const f = fixture(t, {
-    boundaryEditCountryIds: ['SUB'],
+    boundaryEditEntityIds: ['SUB'],
     territorialUnits: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
   });
 
@@ -335,7 +335,7 @@ test('explicit task focus delegates a single true object ref to the existing obj
 
 test('explicit task focus fits multiple target features with the current layout max zoom', t => {
   const f = fixture(t, {
-    boundaryEditCountryIds: ['SUB', 'COUNTRY'],
+    boundaryEditEntityIds: ['SUB', 'COUNTRY'],
     territorialUnits: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
   });
 

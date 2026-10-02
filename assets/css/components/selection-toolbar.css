@@ -177,7 +177,7 @@
 .selection-toolbar-color .ui-color-value { display: none; }
 .selection-toolbar-color .ui-color-preview { width: 1.0625rem; min-width: 1.0625rem; height: 1.0625rem; }
 
-.country-label-item.selection-card-source-hidden { visibility: hidden; }
+.territorial-label-item.selection-card-source-hidden { visibility: hidden; }
 
 @media (max-width: 799px) {
   .selection-card { width: min(21rem, calc(100% - 1.25rem)); min-height: 8.75rem; }

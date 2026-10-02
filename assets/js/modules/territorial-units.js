@@ -1,7 +1,5 @@
 import {
   normalizeTemporalInterval,
-  parseTemporal,
-  temporalContains,
   temporalIntervalsOverlap,
 } from './temporal.js';
 
@@ -196,23 +194,6 @@ export function normalizeTerritorialRelations(value) {
     });
   }
   return output;
-}
-
-export function resolveTerritorialRelation(unit, relations, referenceDate) {
-  if (!unit) return null;
-  const date = parseTemporal(referenceDate);
-  if (!date) return unit;
-  const relation = (relations || []).find(candidate => text(candidate.unitId) === text(unit.id)
-    && temporalContains(candidate, date));
-  if (!relation) return unit;
-  return {
-    ...unit,
-    properties: {
-      ...unit.properties,
-      parentId: text(relation.parentId),
-      sovereignId: text(relation.sovereignId),
-    },
-  };
 }
 
 export function createTerritorialFeature({

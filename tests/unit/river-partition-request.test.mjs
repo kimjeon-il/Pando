@@ -22,14 +22,14 @@ function harness() {
     state, countryLandRevision: 1,
     projectDomain: { getGeneration: () => 1 },
     RIVER_TERRITORY_PARTITION_CONFIG: {}, RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION: 'river-partitions-v2',
-    riverTerritoryPartitionConfigFingerprint: () => '', countryFeatureById: () => country,
+    riverTerritoryPartitionConfigFingerprint: () => '', entityStore: { countryFeature: () => country },
     activeTerritorySelectionSession: () => state.territorySelectionSession,
     riverBoundaryComposition: (_base, { candidates = [] } = {}) => ({
       items: candidates.length ? candidates : [{}],
       riverCandidateCount: candidates.length,
     }),
     territoryBaseComponentItems: () => [],
-    countryName: feature => feature.id,
+    territorialEntityName: feature => feature.id,
     ensureGisRuntime: async () => {},
     loadHydroData: async () => {
       await gate;

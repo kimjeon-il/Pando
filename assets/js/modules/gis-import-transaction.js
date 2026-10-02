@@ -11,13 +11,13 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     uid,
     deepClone,
     countryName,
-    territorialUnitName,
+    territorialEntityName,
     territorialEntityRepository,
     entityStore,
     distributionService,
     genericFeatureService,
     resolveImportedCountryId,
-    normalizeCountryGeometry,
+    normalizePolygonGeometry,
     normalizeClippedLandGeometry,
     createTerritorialFeature,
     createPartitionTerritorialFeature,
@@ -33,7 +33,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     refreshCountryCentroids,
     normalizeProjectObjects,
     markLayerTreeDirty,
-    applyTerritorialUnitSelectionIntent,
     renderingDomain,
     queueAutosave,
     setActionStatus,
@@ -50,7 +49,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     transferLandDependents,
     assertCurrentProjectReferences,
     commitHistorySnapshot,
-    restoreCountryEditSnapshot,
+    restoreEditTransactionSnapshot,
     createCancellationError,
     buildSharedBoundaryTopology,
     analyzeAdminCountryCoast,
@@ -110,10 +109,10 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     if (!key) return [];
     const exact = units.filter(feature => String(feature.id) === key);
     if (exact.length) return exact;
-    return units.filter(feature => territorialUnitName(feature).toLocaleLowerCase('ko') === key.toLocaleLowerCase('ko')
+    return units.filter(feature => territorialEntityName(feature).toLocaleLowerCase('ko') === key.toLocaleLowerCase('ko')
       && (!countryId || String(feature.properties?.sovereignId || '') === String(countryId)));
   }
-  
+
   function importedTerritorialUnitFeature(raw, index, kind, mapping, sourceFolderId, knownUnits) {
     if (!['Polygon', 'MultiPolygon'].includes(raw.geometry?.type)) return null;
     const properties = raw.properties || {};
@@ -160,7 +159,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       notes: properties.notes || '',
       sourceFolderId,
       metadata: { sourceId },
-      geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
+      geometry: normalizePolygonGeometry(raw.geometry) || raw.geometry,
     };
     if (kind === TERRITORIAL_UNIT_TYPES.REGION) {
       return createTerritorialFeature({
@@ -170,7 +169,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     }
     return createPartitionTerritorialFeature(baseOptions);
   }
-  
+
   function prepareImportedTerritorialUnitFeatures(features, kind, mapping, sourceFolderId) {
     const knownUnits = deepClone(entityStore.units());
     const imported = [];
@@ -178,7 +177,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     for (let index = 0; index < features.length; index += 1) {
       const feature = importedTerritorialUnitFeature(features[index], index, kind, mapping, sourceFolderId, [...knownUnits, ...imported]);
       if (!feature) continue;
-      if (!feature.properties?.sovereignId && kind !== TERRITORIAL_UNIT_TYPES.REGION) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가를 정하지 못했습니다.`, {
+      if (!feature.properties?.sovereignId && kind !== TERRITORIAL_UNIT_TYPES.REGION) throw createGisImportError(`${territorialEntityName(feature)}의 소속 국가를 정하지 못했습니다.`, {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [feature.id],
       });
@@ -189,7 +188,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     if (!imported.length) throw new Error('가져올 Polygon 또는 MultiPolygon 객체가 없습니다.');
     return imported;
   }
-  
+
   function importedTerritorialParent(parentId, sovereignId, country, units = entityStore.units()) {
     const normalizedParentId = String(parentId || '');
     if (!normalizedParentId) return null;
@@ -197,7 +196,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     if (territorialParent) return territorialParent;
     return normalizedParentId === String(sovereignId || '') ? country : null;
   }
-  
+
   function appendPreparedTerritorialUnits(imported, kind, { preserveIds = [] } = {}) {
     const clipper = polygonClipping;
     const nextUnits = deepClone(entityStore.units());
@@ -213,15 +212,15 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         nextUnits,
       );
       const container = parent || country;
-      if (!country?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가를 찾을 수 없습니다.`, {
+      if (!country?.geometry) throw createGisImportError(`${territorialEntityName(feature)}의 소속 국가를 찾을 수 없습니다.`, {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [feature.id, countryId],
       });
-      if (feature.properties.parentId && !parent?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 지정된 부모 영역을 찾을 수 없습니다.`, {
+      if (feature.properties.parentId && !parent?.geometry) throw createGisImportError(`${territorialEntityName(feature)}의 지정된 부모 영역을 찾을 수 없습니다.`, {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [feature.id, feature.properties.parentId],
       });
-      if (!container?.geometry) throw createGisImportError(`${territorialUnitName(feature)}의 소속 국가 또는 상위 단위를 찾을 수 없습니다.`, {
+      if (!container?.geometry) throw createGisImportError(`${territorialEntityName(feature)}의 소속 국가 또는 상위 단위를 찾을 수 없습니다.`, {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [feature.id, countryId, feature.properties.parentId],
       });
@@ -229,7 +228,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         ? null
         : normalizeClippedLandGeometry(clipper.difference(feature.geometry.coordinates, container.geometry.coordinates));
       if (outside && sphericalGeometryAreaKm2(outside) > Math.max(0.0001, sphericalGeometryAreaKm2(feature.geometry) * 1e-9)) {
-        throw new Error(`${territorialUnitName(feature)}의 전체 geometry가 선택한 국가 또는 상위 단위 안에 포함되지 않습니다.`);
+        throw new Error(`${territorialEntityName(feature)}의 전체 geometry가 선택한 국가 또는 상위 단위 안에 포함되지 않습니다.`);
       }
       const context = {
         unitType: kind,
@@ -240,7 +239,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       for (const sibling of siblings) {
         const overlap = clipper.intersection(feature.geometry.coordinates, sibling.geometry.coordinates);
         if (multiPolygonPlanarArea(overlap) > Math.max(1e-9, multiPolygonPlanarArea(feature.geometry.coordinates) * 1e-9)) {
-          throw new Error(`${territorialUnitName(feature)}이(가) 기존 ${territorialUnitName(sibling)}과(와) 겹칩니다.`);
+          throw new Error(`${territorialEntityName(feature)}이(가) 기존 ${territorialEntityName(sibling)}과(와) 겹칩니다.`);
         }
       }
       nextUnits.push(feature);
@@ -254,7 +253,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     reconcileTerritorialUnitCompleteness(affectedCountries, { preserveIds: [...preserved] });
     return affectedCountries;
   }
-  
+
   async function commitTerritorialImportWithTransfer(result, fileName) {
     const kind = result.targetType === 'subunit'
       ? TERRITORIAL_UNIT_TYPES.SUBUNIT
@@ -278,14 +277,14 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         const resolution = requireImportCoastResolution(await resolveTerritorialCoast(feature, country, countryGeometryOverrides));
         if (resolution.direction === 'admin-to-country' || resolution.direction === 'independent') preservedIds.add(String(feature.id));
       }
-  
+
       const draftCountries = deepClone(entityStore.countriesData());
       const draftById = new Map((draftCountries.features || []).map(feature => [String(feature.id || ''), feature]));
       for (const [countryId, geometry] of countryGeometryOverrides) {
         const country = draftById.get(String(countryId));
         if (country) country.geometry = deepClone(geometry);
       }
-  
+
       let impact = { groups: [], absorbedCountryIds: [] };
       let annexResponse = null;
       if (kind !== TERRITORIAL_UNIT_TYPES.REGION) {
@@ -321,7 +320,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         for (const id of annexResponse.result.affectedIds || []) affectedCountryIds.add(String(id));
       }
       for (const id of countryGeometryOverrides.keys()) affectedCountryIds.add(String(id));
-  
+
       const draftCountryById = new Map((draftCountries.features || [])
         .map(feature => [String(feature.id || ''), feature]));
       for (const feature of imported) {
@@ -362,13 +361,13 @@ export function createGisImportTransactionCommitter(runtime = {}) {
           }
         }
       }
-  
+
       const draftValidation = await validateGisCountryCollection(draftCountries, affectedCountryIds);
       if (Number(draftValidation?.overlapAreaKm2 || 0) > 0.001) throw createGisImportError('해안선 정합 및 영토 이전 결과에 국가 간 중첩이 남았습니다.', {
         category: RELIABILITY_ERROR_CATEGORIES.GEOMETRY,
         objectIds: draftValidation?.firstOverlap || [...affectedCountryIds],
       });
-  
+
       // Canonical mutation begins only after coast, impact, worker and geometry
       // validation have all succeeded. The surrounding snapshot restores this
       // short synchronous commit if project reference validation fails.
@@ -404,17 +403,17 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       mapEditClient.rebase(entityStore.countriesData().features);
     } catch (error) {
       if (activeRequestId != null) mapEditClient.discard(activeRequestId);
-      restoreCountryEditSnapshot(snapshot);
+      restoreEditTransactionSnapshot(snapshot);
       mapEditClient.rebase(entityStore.countriesData().features);
       throw error;
     }
   }
-  
+
   function requireImportCoastResolution(resolution) {
     if (resolution?.direction === 'cancel') throw createCancellationError('해안선 정합을 취소했습니다.');
     return resolution;
   }
-  
+
   async function resolveTerritorialCoast(feature, country, countryGeometryOverrides) {
     const unitType = feature?.properties?.unitType;
     if (![TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(unitType)) return { direction: 'none' };
@@ -439,7 +438,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     if (analysis.status !== 'unavailable' && !analysis.conflicts.length) return { direction: 'none' };
     await ensureGisRuntime();
     const choice = await (await getCoastReconciliationController()).open({
-      subjectName: territorialUnitName(feature),
+      subjectName: territorialEntityName(feature),
       subjectActionLabel: '가져온 영역',
       countryName: countryName(country),
       conflicts: analysis.conflicts,
@@ -468,7 +467,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     else countryGeometryOverrides.set(String(country.id || ''), nextCountry);
     return { direction };
   }
-  
+
   async function importGeoJsonTerritorialUnits(features, kind, mapping) {
     const clipper = polygonClipping;
     const sourceFolderId = `geojson:${uid('source')}`;
@@ -497,7 +496,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       const clipped = preservedIds.has(String(feature.id))
         ? normalizeClippedLandGeometry(feature.geometry)
         : normalizeClippedLandGeometry(clipper.intersection(feature.geometry.coordinates, container.geometry.coordinates));
-      if (!clipped) throw new Error(`${territorialUnitName(feature)}이(가) 지정된 국가 또는 부모와 겹치지 않습니다.`);
+      if (!clipped) throw new Error(`${territorialEntityName(feature)}이(가) 지정된 국가 또는 부모와 겹치지 않습니다.`);
       feature.geometry = clipped;
       const context = {
         unitType: kind,
@@ -508,7 +507,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       for (const sibling of siblings) {
         const overlap = clipper.intersection(feature.geometry.coordinates, sibling.geometry.coordinates);
         if (multiPolygonPlanarArea(overlap) > Math.max(1e-9, multiPolygonPlanarArea(feature.geometry.coordinates) * 1e-9)) {
-          throw new Error(`${territorialUnitName(feature)}이(가) 기존 ${territorialUnitName(sibling)}과(와) 겹칩니다.`);
+          throw new Error(`${territorialEntityName(feature)}이(가) 기존 ${territorialEntityName(sibling)}과(와) 겹칩니다.`);
         }
       }
       nextUnits.push(feature);
@@ -531,7 +530,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     setActionStatus(`${territorialTypeLabel(kind)} ${importedCount}개를 가져왔습니다.`, 'success', 3800);
     return importedIds;
   }
-  
+
   async function importGeoJsonRegions(features, mapping) {
     const imported = [];
     const defaultContext = { sovereignId: '', parentId: '' };
@@ -578,7 +577,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         validTo: properties.valid_to || properties.validTo || null,
         color: properties.color || properties.editorColor || '',
         metadata: { sourceId },
-        geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
+        geometry: normalizePolygonGeometry(raw.geometry) || raw.geometry,
       });
       const country = sovereignId ? entityStore.rawEntity(TERRITORIAL_UNIT_TYPES.COUNTRY, sovereignId) : null;
       if (sovereignId && !country?.geometry) throw createGisImportError('소속 국가를 찾을 수 없습니다.', {
@@ -608,13 +607,13 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     state.layerVisibility.regions = true;
     for (const feature of imported) delete state.itemVisibility.regions?.[String(feature.id)];
     markLayerTreeDirty();
-    if (imported.length === 1) applyTerritorialUnitSelectionIntent(imported[0].id, true);
+    if (imported.length === 1) selectionUiController.applyIntent({ domain: 'territorial', type: imported[0].properties.unitType, id: String(imported[0].id) }, { refreshOnly: true, openEditor: false });
     else renderingDomain?.invalidateTerritorialPatch?.('region-import');
     queueAutosave();
     setActionStatus(`지방 ${imported.length}개를 가져왔습니다.`, 'success', 3800);
     return imported.map(feature => String(feature.id));
   }
-  
+
   function importGeoJsonDistributions(features, mapping, fileName) {
     const layerMap = new Map();
     const entryIds = new Set(state.distributionEntries.map(entry => entry.id));
@@ -674,7 +673,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         layerId,
         mode: useTerritorial ? DISTRIBUTION_MODES.TERRITORIAL : DISTRIBUTION_MODES.GEOMETRY,
         territorialUnitId: useTerritorial ? territorialUnitId : '',
-        geometry: useTerritorial ? null : normalizeCountryGeometry(raw.geometry) || raw.geometry,
+        geometry: useTerritorial ? null : normalizePolygonGeometry(raw.geometry) || raw.geometry,
         value: numeric(properties[mapping.valueField || 'value'], '분포 값'),
         certainty: properties.certainty || 'unknown',
         validFrom: properties.valid_from || properties.validFrom || null,
@@ -687,7 +686,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     markLayerTreeDirty();
     setActionStatus(`분포 영역 ${newEntries.length}개를 가져왔습니다.`, 'success', 3800);
   }
-  
+
   async function importGeoJson(file, { parsed = null, target = 'generic', mapping = {} } = {}) {
     parsed ||= JSON.parse(await file.text());
     const features = parsed.type === 'FeatureCollection' ? parsed.features : parsed.type === 'Feature' ? [parsed] : [];
@@ -711,7 +710,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       const f = deepClone(raw);
       const sourceId = String(f.id ?? '').trim();
       f.id = uid();
-      if (['Polygon', 'MultiPolygon'].includes(f.geometry?.type)) f.geometry = normalizeCountryGeometry(f.geometry) || f.geometry;
+      if (['Polygon', 'MultiPolygon'].includes(f.geometry?.type)) f.geometry = normalizePolygonGeometry(f.geometry) || f.geometry;
       const p = f.properties || {};
       f.properties = {
         ...p,
@@ -733,7 +732,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     markLayerTreeDirty();
     setActionStatus(`GeoJSON 기타 객체 ${supported.length}개를 가져왔습니다.`, 'success', 3200);
   }
-  
+
   async function applyImportedReplacement(result) {
     const packageState = result.atlasMetadata?.projectState || {};
     const restoredOverrides = {
@@ -749,7 +748,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     await projectDomain.load(mergedState);
     setActionStatus(`국가 경계 ${entityStore.countriesData().features.length}개를 새 프로젝트로 열었습니다.`, 'success', 3200);
   }
-  
+
   async function commitGisMerge(result, plan) {
     const importedIds = new Set((result.countriesData?.features || []).map(feature => String(feature.id || '')));
     const packagedOverrides = applyImportedPackageAssets(result.atlasMetadata, {
@@ -831,7 +830,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       });
       commitHistorySnapshot(before);
     } catch (error) {
-      restoreCountryEditSnapshot(before);
+      restoreEditTransactionSnapshot(before);
       throw error;
     }
     // Canonical data and history are committed. Notification/autosave failures

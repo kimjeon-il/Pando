@@ -147,7 +147,7 @@ export function createGpuMapRenderer(deps) {
     onTerrainSourceChanged,
     activeProjection,
     countryColor,
-    countryFeatureById,
+    baseSceneFeatureById,
     countryOutlineFeature,
     d3,
     deepClone,
@@ -1834,7 +1834,7 @@ export function createGpuMapRenderer(deps) {
       const features = [];
       const removedIds = [];
       for (const id of ids) {
-        const feature = countryFeatureById(id);
+        const feature = baseSceneFeatureById(id);
         if (feature && String(feature?.id || '') === id) features.push(feature);
         else removedIds.push(id);
       }
@@ -2269,7 +2269,7 @@ export function createGpuMapRenderer(deps) {
         pendingOldMeshVisibleCount = 0;
         for (let index = 0; index < meshCountryIds.length; index += 1) {
           const id = meshCountryIds[index];
-          const feature = countryFeatureById(id);
+          const feature = baseSceneFeatureById(id);
           const color = parseColor(feature ? countryColor(feature) : '#000000');
           const offset = index * 4;
           base[offset] = override[offset] = color[0];
@@ -4151,10 +4151,6 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function clearCountryEmphasis() {
-      return setCountryEmphasis();
-    }
-
     function setInteractionStyle(nextStyle) {
       if (!nextStyle?.hover || !nextStyle?.selection) return false;
       interactionStyle = nextStyle;
@@ -4179,10 +4175,6 @@ export function createGpuMapRenderer(deps) {
         visibleIds,
         strokeResources,
       };
-    }
-
-    function supportsCountryEmphasis() {
-      return isWebGlRenderer();
     }
 
     function setSelectionPass(nextPass) {
@@ -4613,7 +4605,7 @@ export function createGpuMapRenderer(deps) {
       hasBuiltinMeshBaseline: () => !!builtinMeshBaseline?.mesh,
       getProjectGeneration: () => projectGeneration,
       invalidateCountryPalette,
-      setCountryEmphasis, clearCountryEmphasis, supportsCountryEmphasis,
+      setCountryEmphasis,
       setInteractionStyle, getCountryInteractionBoundaryData,
       setSelectionPass, setRenderScene, setInteractionState, invalidateSceneCache,
       setFramePresentationListener,

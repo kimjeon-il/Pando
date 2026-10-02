@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTerritorialFillResolver } from '../../assets/js/modules/territorial-fill-style.js';
 import { resolveLayerDisplayColor } from '../../assets/js/modules/layer-presentation.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 
-const country = { id: 'A', properties: {} };
-const subunit = { id: 'S', properties: { unitType: 'subunit', sovereignId: 'A', style: { color: '#cc5500' } } };
+const country = { id: 'A', properties: {}, geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } };
+const subunit = { id: 'S', properties: { unitType: 'subunit', parentId: 'A', sovereignId: 'A', style: { color: '#cc5500' } } };
 const region = { id: 'R', properties: { unitType: 'region', sovereignId: 'A', style: { color: '#0055cc' } } };
 
 test('territorial color visibility independently falls back to the theme land color', () => {
@@ -17,7 +18,8 @@ test('territorial color visibility independently falls back to the theme land co
       regions: { colorVisible: false },
     } },
   };
-  const resolve = createTerritorialFillResolver({ state, countryColor: () => '#aa0000', defaultColor: '#f1f2f3' });
+  const entityRepository = createTerritorialEntityRepository({ getCountries: () => state.countriesData, getUnits: () => state.territorialUnits });
+  const resolve = createTerritorialFillResolver({ state, entityRepository, countryColor: () => '#aa0000', defaultColor: '#f1f2f3' });
   assert.equal(resolve(subunit).color, '#cc5500');
   assert.equal(resolve(region).color, '#f1f2f3');
 });

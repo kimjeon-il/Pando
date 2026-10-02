@@ -38,33 +38,25 @@ export function createTerritorialApplicationService({
 
   function updateMetadata(type, id, field, value) {
     const key = text(id);
-    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      const feature = country(key);
-      if (!feature) return { ok: false, code: 'not-found' };
-      if (field === 'parentId' || field === 'sovereignId' || field === 'unitType') {
-        return { ok: false, code: 'unsupported-relation-field', unit: feature };
-      }
-      const currentValue = field === 'color'
-        ? text(feature.properties?.style?.color)
-        : field === 'capital' || field === 'flagDataUrl'
-          ? feature.properties?.metadata?.[field]
-          : feature.properties?.[field];
-      const hasExplicitValue = field === 'flagDataUrl'
-        ? entityStore.hasField(TERRITORIAL_UNIT_TYPES.COUNTRY, key, field)
-        : currentValue !== undefined;
-      if (currentValue === value && (value !== undefined || !hasExplicitValue)) return { ok: true, changed: false, unit: feature };
-      mutateDocument({ type: 'country-metadata', affectedIds: [key] }, () => {
-        entityStore.setField(TERRITORIAL_UNIT_TYPES.COUNTRY, key, field, value);
-      }, { renderDirty: { domain: 'country', change: 'metadata' } });
-      return { ok: true, changed: true, unit: entityRepository.get(key) };
-    }
-    const feature = unit(type, key);
+    const feature = entityRepository.get(key);
+    if (feature?.properties?.unitType !== type) return { ok: false, code: 'not-found' };
     if (!feature) return { ok: false, code: 'not-found' };
-    if (feature.properties?.locked === true && field !== 'locked') return { ok: false, code: 'locked', unit: feature };
+    if (isLocked(type, key)) return { ok: false, code: 'locked', unit: feature };
     if (field === 'parentId' || field === 'sovereignId' || field === 'unitType') {
       return { ok: false, code: 'unsupported-relation-field', unit: feature };
     }
+    if (!['name', 'notes', 'color', 'capital', 'flagDataUrl', 'validFrom', 'validTo'].includes(field)) {
+      return { ok: false, code: 'unsupported-field', unit: feature };
+    }
     let nextValue = value;
+    if (['name', 'color', 'capital'].includes(field)) nextValue = text(value);
+    if (field === 'name' && type === TERRITORIAL_UNIT_TYPES.COUNTRY && !nextValue
+      && !entityStore.hasField(type, key, field)) return { ok: true, changed: false, unit: feature };
+    if (field === 'notes') nextValue = String(value ?? '');
+    if (field === 'flagDataUrl' && value !== null && value !== undefined) {
+      if (typeof value !== 'string' || !value.trim()) return { ok: false, code: 'invalid-flag', unit: feature };
+      nextValue = value.trim();
+    }
     if (field === 'validFrom' || field === 'validTo') {
       try {
         const interval = normalizeTemporalInterval(
@@ -76,8 +68,12 @@ export function createTerritorialApplicationService({
         return { ok: false, code: 'invalid-temporal', issues: [String(error?.message || error)], unit: feature };
       }
     }
-    const currentValue = field === 'color' ? text(feature.properties?.style?.color) : feature.properties?.[field];
-    if (currentValue === nextValue) return { ok: true, changed: false, unit: feature };
+    const currentValue = field === 'color' ? text(feature.properties?.style?.color)
+      : ['capital', 'flagDataUrl'].includes(field) ? feature.properties?.metadata?.[field] : feature.properties?.[field];
+    const comparable = ['validFrom', 'validTo'].includes(field) ? currentValue ?? null
+      : ['name', 'color', 'capital'].includes(field) ? text(currentValue)
+      : field === 'notes' ? String(currentValue ?? '') : currentValue;
+    if (comparable === nextValue && (nextValue !== undefined || !entityStore.hasField(type, key, field))) return { ok: true, changed: false, unit: feature };
     mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => {
       entityStore.setField(type, key, field, nextValue);
     }, { renderDirty: { domain: 'territorial', change: 'metadata' } });
@@ -145,18 +141,6 @@ export function createTerritorialApplicationService({
       entityStore.setField(type, key, 'sovereignId', nextCountryId);
     }, { renderDirty: { domain: 'territorial', change: 'structure' } });
     return { ok: true, changed: true, unit: entityRepository.get(key) };
-  }
-
-  function replaceUnits(units, { type = 'territorial-metadata', affectedIds = [] } = {}) {
-    const parentValidation = validateSubunitParentChanges(entityRepository.list(), units, id => !!country(id));
-    if (!parentValidation.ok) throw new Error(parentValidation.issues[0]);
-    if (JSON.stringify(entityRepository.list().filter(feature => feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY)) === JSON.stringify(units)) {
-      return { ok: true, changed: false };
-    }
-    mutateDocument({ type, affectedIds: affectedIds.map(text).filter(Boolean) }, () => {
-      entityStore.replaceCollections({ units });
-    }, { renderDirty: { domain: 'territorial', change: 'structure' } });
-    return { ok: true, changed: true };
   }
 
   function setColorBatch(items, color, { history = {} } = {}) {
@@ -261,7 +245,7 @@ export function createTerritorialApplicationService({
     updateMetadata,
     changeAdministrativeParent,
     changeAdministrativeCountry,
-    replaceUnits,
+
     setColorBatch,
     setLocked,
     setLockedBatch,

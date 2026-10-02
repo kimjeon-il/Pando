@@ -37,7 +37,7 @@ export function createTerritoryComponents() {
 
   function installComponentIndex(session, result, key) {
     const names = new Map((session.baseSourceFeatures || []).map(feature => [String(feature.id),
-      (0, dependencies.presentation.countryName)(feature) || feature.properties?.name || '기준 영역']));
+      (0, dependencies.objectPresentation.territorialEntityName)(feature) || feature.properties?.name || '기준 영역']));
     const items = result.items.map(item => ({ ...item, geometry: freezeEditingGeometry(item.geometry),
       countryName: names.get(item.countryId) || '기준 영역',
       areaKm2: Math.max(0, dependencies.platform.d3.geo.area(item.geometry) * 6371.0088 ** 2),
@@ -105,26 +105,13 @@ export function createTerritoryComponents() {
     return `${area.toLocaleString('ko-KR', { maximumFractionDigits })} km²`;
   }
 
-  function countryUnionFromFeatures(features, ids) {
-    const clipper = window.polygonClipping;
-    const wanted = new Set([...ids].map(String));
-    const pieces = (features || [])
-      .filter(feature => wanted.has(String(feature?.id || '')))
-      .map(feature => feature.geometry?.coordinates)
-      .filter(Boolean);
-    if (!pieces.length) return [];
-    return clipper.union(...pieces);
-  }
-
-
-
   return Object.freeze({
     connect,
 
     get installRiverComponentIndex() { return installRiverComponentIndex; },
     get installComponentIndex() { return installComponentIndex; },
     get riverBoundaryComposition() { return riverBoundaryComposition; },
-    get countryUnionFromFeatures() { return countryUnionFromFeatures; },
+
     get formatTerritoryArea() { return formatTerritoryArea; },
     get geometryMultiCoordinates() { return geometryMultiCoordinates; },
     get multiPolygonPlanarArea() { return multiPolygonPlanarArea; },

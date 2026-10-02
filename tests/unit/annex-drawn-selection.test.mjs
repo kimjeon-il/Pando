@@ -8,7 +8,7 @@ import { createEditingRenderPacket } from '../../assets/js/modules/editing-rende
 import { buildGeometryPreview } from '../../assets/js/modules/geometry-preview.js';
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 import '../../assets/js/vendor/polygon-clipping.min.js';
-import { hasCanonicalCountryWinding, normalizeCountryGeometry } from '../../assets/js/modules/map-edit-geometry.js';
+import { hasCanonicalPolygonWinding, normalizePolygonGeometry } from '../../assets/js/modules/map-edit-geometry.js';
 
 const box = (x0, y0, x1, y1) => ({
   type: 'Polygon',
@@ -35,7 +35,6 @@ function harness(kind) {
   const commits = createCountryCommits();
   commits.connect(capabilityPortsForFixture(OBJECT_EDITING_OWNER_PORTS.countryCommits, {
     state,
-    countryFeatureById: id => features.find(feature => String(feature.id) === String(id)),
     entityRepository: {
       get(id) {
         const feature = features.find(candidate => String(candidate.id) === String(id));
@@ -43,9 +42,9 @@ function harness(kind) {
       },
     },
     TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
-    countryName: feature => feature?.properties?.name || '',
+    territorialEntityName: feature => feature?.properties?.name || '',
     territoryComponentItems: () => [],
-    requireCountriesUnlocked: () => true,
+    requireObjectsUnlocked: () => true,
     snapshotEditable: () => structuredClone(features),
     beginWorkerGeometryPreview: async options => { requests.push(options); return true; },
     createCountryFeature: name => ({ type: 'Feature', id: 'temporary', properties: { name }, geometry: null }),
@@ -125,12 +124,12 @@ test('annex preview rejects reversed transferred rings instead of displaying the
 
 test('preview unions and differences retain canonical outer and hole winding', () => {
   const hole = box(1, 1, 2, 2).coordinates[0];
-  const before = normalizeCountryGeometry({ type: 'Polygon', coordinates: [box(0, 0, 4, 4).coordinates[0], hole] });
-  const after = normalizeCountryGeometry({ type: 'Polygon', coordinates: [box(-1, 0, 3, 4).coordinates[0], hole] });
+  const before = normalizePolygonGeometry({ type: 'Polygon', coordinates: [box(0, 0, 4, 4).coordinates[0], hole] });
+  const after = normalizePolygonGeometry({ type: 'Polygon', coordinates: [box(-1, 0, 3, 4).coordinates[0], hole] });
   const preview = buildGeometryPreview({ operation: 'reshape', beforeFeatures: [{ id: 'D', geometry: before }],
     afterFeatures: [{ id: 'D', geometry: after }], clipper: globalThis.polygonClipping });
   for (const name of ['beforeUnion', 'afterUnion', 'addedGeometry', 'removedGeometry']) {
-    assert.equal(hasCanonicalCountryWinding(preview.delta[name]), true, name);
+    assert.equal(hasCanonicalPolygonWinding(preview.delta[name]), true, name);
   }
   assert.equal(preview.delta.beforeUnion.coordinates[0].length, 2);
   assert.equal(preview.delta.afterUnion.coordinates[0].length, 2);

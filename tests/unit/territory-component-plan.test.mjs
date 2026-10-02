@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import '../../assets/js/vendor/polygon-clipping.min.js';
-import '../../assets/js/modules/country-geometry.js';
+import '../../assets/js/modules/polygon-geometry.js';
 import { createTerritoryComponentPlan } from '../../assets/js/modules/territory-component-plan.js';
 import { createTerritoryComponents } from '../../assets/js/modules/app-territory-components.js';
 import { composeRiverBoundaryTerritoryComponents } from '../../assets/js/modules/river-territory-partition.js';
 import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
 
-const normalize = globalThis.PandoLabCountryGeometry.normalizeCountryGeometry;
+const normalize = globalThis.PandoLabPolygonGeometry.normalizePolygonGeometry;
 const clipper = globalThis.polygonClipping;
 const square = (a, b, c, d) => normalize({ type: 'Polygon', coordinates: [[[a,b],[c,b],[c,d],[a,d],[a,b]]] });
 const feature = geometry => ({ type: 'Feature', id: 'source', properties: { name: '기준' }, geometry });

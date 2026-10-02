@@ -125,7 +125,7 @@ export function createMapInputPresentation({
         return input.labelPlacementMode || draftTap || input.tool === 'point';
       },
       directTap: handleMapClick,
-      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'country-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
+      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'territorial-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
       suppressClick: suppressNextMapClick,
       canDrawStroke: () => {
         if (getInputSnapshot().projectReplacing) return false;
