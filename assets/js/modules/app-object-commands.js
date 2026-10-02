@@ -503,14 +503,8 @@ export function createObjectCommands() {
     }
     dependencies.domains.projectDomain.recordHistory({ type: 'batch-color', description: `${refs.length}개 객체 색상 변경`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
-      if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-        dependencies.projectState.state.countryOverrides[ref.id] ||= {};
-        (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, {
-          feature: (0, dependencies.countries.countryFeatureById)(ref.id), override: dependencies.projectState.state.countryOverrides[ref.id],
-        }, normalizedColor, { fallback: (0, dependencies.colorModel.defaultCountryColor)() });
-      } else if (ref.domain === 'territorial') {
-        const feature = (0, dependencies.objectPresentation.territorialUnitById)(ref.id);
-        if (feature) (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }, normalizedColor, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
+      if (ref.domain === 'territorial') {
+        dependencies.territorialModel.entityStore.setField(ref.type, ref.id, 'color', normalizedColor);
       } else if (ref.domain === 'distribution') {
         const layer = (0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
         if (layer) (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.DISTRIBUTION, { layer }, normalizedColor, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
