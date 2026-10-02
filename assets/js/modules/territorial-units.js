@@ -132,21 +132,6 @@ export function normalizeTerritorialUnits(value, {
   return normalized;
 }
 
-export function territorialChildren(units, id) {
-  const key = text(id);
-  return (units || []).filter(feature => text(feature.properties?.parentId) === key);
-}
-
-export function territorialSiblings(units, source) {
-  if (!source) return [];
-  const properties = source.properties || {};
-  return (units || []).filter(candidate => candidate.id !== source.id
-    && candidate.properties?.unitType === properties.unitType
-    && text(candidate.properties?.parentId) === text(properties.parentId)
-    && (properties.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT
-      || text(candidate.properties?.sovereignId) === text(properties.sovereignId)));
-}
-
 export function validateTerritorialRelations(units, {
   countryExists = () => true,
   relations = [],
