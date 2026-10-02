@@ -176,20 +176,24 @@ export function createTerritorialEntityRepository({
     }
   }
 
-  function sovereign(id) {
+  function administrativeCountry(id) {
     const state = snapshot();
     const entity = entityFrom(state, id);
     if (!entity) return null;
     if (entity.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) return entity;
-    const sovereignId = text(entity.properties?.sovereignId);
-    if (!sovereignId) return null;
-    const sovereignEntity = entityFrom(state, sovereignId);
-    if (!sovereignEntity) throw new Error(`${text(entity.id)}의 소속 국가 ${sovereignId}이 존재하지 않습니다.`);
-    if (sovereignEntity.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      throw new Error(`${text(entity.id)}의 sovereignId는 국가를 가리켜야 합니다: ${sovereignId}`);
+    const countryId = text(entity.properties?.sovereignId);
+    if (!countryId) return null;
+    const countryEntity = entityFrom(state, countryId);
+    if (!countryEntity) throw new Error(`${text(entity.id)}의 소속 국가 ${countryId}이 존재하지 않습니다.`);
+    if (countryEntity.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      throw new Error(`${text(entity.id)}의 sovereignId는 국가를 가리켜야 합니다: ${countryId}`);
     }
-    return sovereignEntity;
+    return countryEntity;
   }
+
+  // Compatibility alias for the legacy sovereignId storage field. Political
+  // dependency/sovereignty relations belong to TerritorialRelation, not here.
+  const sovereign = administrativeCountry;
 
   return Object.freeze({
     get,
@@ -200,6 +204,8 @@ export function createTerritorialEntityRepository({
     ancestors,
     descendants,
     root,
+    administrativeRoot: root,
+    administrativeCountry,
     sovereign,
   });
 }
