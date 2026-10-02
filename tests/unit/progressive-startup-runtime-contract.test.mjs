@@ -4,6 +4,8 @@ import test from 'node:test';
 import { setImmediate } from 'node:timers';
 import { applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
 import { createProgressiveStartup } from '../../assets/js/modules/app-progressive-startup.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
 
 const source = readFileSync(new URL('../../assets/js/modules/app-progressive-startup.js', import.meta.url), 'utf8');
 
@@ -45,7 +47,7 @@ test('progressive and canonical startup share one ordered runtime initializer', 
 
 test('saved geometry is classified before any first-map source is chosen', () => {
   const progressive = applicationFunctionSource(source, 'initProgressive');
-  assert.ok(progressive.indexOf('restoreAutosave()') < progressive.indexOf('reindexCountries)(window.PANDOLAB_COUNTRIES'));
+  assert.ok(progressive.indexOf('restoreAutosave()') < progressive.indexOf('entityStore.replaceCollections'));
   assert.ok(progressive.indexOf('restorePreview(savedProject)') < progressive.indexOf('initializeStartupRuntime'));
   assert.match(progressive, /previewSource\.kind === 'restore'/);
   assert.match(progressive, /if \(!hasStoredCountryGeometry\) \{[\s\S]*PREVIEW_READY/);
@@ -53,7 +55,7 @@ test('saved geometry is classified before any first-map source is chosen', () =>
 
 test('canonical promotion discards a worker initialized from preview geometry before editing resumes', () => {
   const promote = applicationFunctionSource(source, 'completeGeometryInitialization');
-  const canonicalAssignment = promote.indexOf('state.countriesData = restoredDelta');
+  const canonicalAssignment = promote.indexOf('entityStore.replaceCollections');
   const discardPreviewWorker = promote.indexOf('mapEditClient.stop()');
   const editable = promote.indexOf("pandolab:editable");
   assert.ok(canonicalAssignment >= 0);
@@ -75,7 +77,15 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
   const interactive = deferred();
   const calls = [];
   const errors = [];
-  const state = { view: {}, projection: 'globe', territorialUnits: [], dataReadiness: 'loading' };
+  const state = {
+    view: {},
+    projection: 'globe',
+    countriesData: { type: 'FeatureCollection', features: [] },
+    countryOverrides: {},
+    territorialUnits: [],
+    dataReadiness: 'loading',
+  };
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
   t.mock.method(globalThis, 'setTimeout', () => {
     // Only the host-frame fallback and preview deadline are scheduled here.
     // requestAnimationFrame supplies the host frame; the test owns preview paint.
@@ -106,8 +116,13 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
       layerTreeController: { beginHydration: noop }, editingDomain: { setTool: noop },
     },
     snapshots: { normalizeProjectObjects: noop }, persistence: { applyAutosavedView: noop },
+    territorialModel: {
+      entityStore,
+      TERRITORIAL_UNIT_TYPES,
+    },
     geometryMutation: { reindexCountries: collection => collection },
     builtinCountries: { applyFreshBuiltinClassification: noop },
+    countryRecords: { applyPristineLabelAnchors: noop },
     layerTree: { pruneLayerItemVisibility: noop }, countries: { scheduleCountryLabelAnchors: noop },
     layers: { markLayerTreeDirty: noop }, projectSnapshots: { configureDatasetSession: noop },
     workspaceUiA: { applyLayoutMode: noop }, editorBindings: { bindUI: noop, syncProjectControls: noop },
