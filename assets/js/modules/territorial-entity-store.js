@@ -218,6 +218,7 @@ export function createTerritorialEntityStore({
     countriesData,
     countryFeature,
     countryOverride,
+    countryOverrides,
     hasField,
     isLocked,
     rawEntity,
