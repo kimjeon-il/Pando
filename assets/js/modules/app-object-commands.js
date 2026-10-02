@@ -493,6 +493,27 @@ export function createObjectCommands() {
     const refs = dependencies.domains.selectionDomain.snapshot().selection.items;
     if (!refs.length || !commonBatchCapabilities(refs).has('color')) return;
     const normalizedColor = (0, dependencies.colorModel.normalizeEditorColor)(color, dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR);
+    const territorialOnly = refs.every(ref => ref.domain === 'territorial');
+    if (territorialOnly) {
+      const result = dependencies.objectModelB.territorialApplicationService.setColorBatch(
+        refs.map(ref => ({ type: ref.type, id: ref.id })),
+        normalizedColor,
+        {
+          history: {
+            type: 'batch-color',
+            description: `${refs.length}개 객체 색상 변경`,
+          },
+        },
+      );
+      if (!result.ok || !result.changed) return;
+      if (refs.some(ref => ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
+        dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
+      }
+      (0, dependencies.layers.markLayerTreeDirty)();
+      dependencies.domains.renderingDomain?.invalidateBaseScene?.('batch-country-color');
+      syncBatchActionAvailability();
+      return;
+    }
     dependencies.domains.projectDomain.recordHistory({ type: 'batch-color', description: `${refs.length}개 객체 색상 변경`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
       if (ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
