@@ -131,13 +131,11 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
   ],
   "territorialDrafts": [
     "applicationServicesB",
-    "countries",
     "countryEditingA",
     "countryValidation",
     "cutOperations",
     "domains",
     "feedback",
-    "geometryMutation",
     "geometryOperations",
     "geometryPreview",
     "interactionPresentation",
