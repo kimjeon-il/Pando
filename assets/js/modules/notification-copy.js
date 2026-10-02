@@ -53,7 +53,9 @@ function errorFallback(value) {
 }
 
 function withErrorCode(value, code) {
-  return code ? `${stripEnd(value)} · ${code}` : value;
+  if (!code) return value;
+  const title = stripEnd(value);
+  return title.includes(code) ? title : `${title} · ${code}`;
 }
 
 export function compactNotificationMessage(message, { tone = 'success', maxLength = 22 } = {}) {
