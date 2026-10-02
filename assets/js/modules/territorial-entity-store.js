@@ -137,6 +137,52 @@ export function createTerritorialEntityStore({
     return true;
   }
 
+  function replaceCollections({
+    countriesData: nextCountriesData = null,
+    units: nextUnits = null,
+    countryOverrides: nextCountryOverrides = undefined,
+  } = {}, {
+    pruneOverrides = true,
+    reindexOptions = {},
+  } = {}) {
+    const current = state();
+    const replaceCountries = !!nextCountriesData;
+    const replaceUnits = Array.isArray(nextUnits);
+
+    if (nextCountryOverrides !== undefined) {
+      current.countryOverrides = nextCountryOverrides && typeof nextCountryOverrides === 'object'
+        ? { ...nextCountryOverrides }
+        : {};
+    }
+
+    if (replaceCountries) {
+      current.countriesData = nextCountriesData.type === 'FeatureCollection'
+        ? nextCountriesData
+        : { type: 'FeatureCollection', features: Array.isArray(nextCountriesData) ? nextCountriesData : [] };
+      if (pruneOverrides) {
+        const valid = new Set(current.countriesData.features.map(feature => text(feature?.id)).filter(Boolean));
+        for (const id of Object.keys(current.countryOverrides)) if (!valid.has(id)) delete current.countryOverrides[id];
+      }
+    }
+
+    if (replaceUnits) current.territorialUnits = nextUnits;
+
+    if (replaceCountries) {
+      onCountriesReplaced(
+        current.countriesData,
+        current.countriesData.features.map(feature => text(feature?.id)).filter(Boolean),
+        reindexOptions,
+      );
+    }
+    if (replaceUnits) onUnitsReplaced(current.territorialUnits);
+
+    return {
+      countriesData: current.countriesData,
+      countryOverrides: current.countryOverrides,
+      units: current.territorialUnits,
+    };
+  }
+
   function replaceCountryOverrides(overrides) {
     const next = overrides && typeof overrides === 'object' ? { ...overrides } : {};
     state().countryOverrides = next;
@@ -223,6 +269,7 @@ export function createTerritorialEntityStore({
     isLocked,
     rawEntity,
     removeCountries,
+    replaceCollections,
     replaceCountries,
     replaceCountryOverrides,
     removeUnits,
