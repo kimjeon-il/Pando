@@ -508,7 +508,10 @@ export function createCutGeometry() {
   function selectedCountryUnionGeometry(sourceIds) {
     const ids = new Set((sourceIds || []).map(String));
     if (!ids.size) throw new Error('영토를 가져올 국가를 하나 이상 선택하세요.');
-    const union = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(dependencies.projectState.state.countriesData?.features || [], ids);
+    const union = (0, dependencies.territoryGeometry.countryUnionFromFeatures)(
+      dependencies.territorialModel.entityStore.countriesData().features,
+      ids,
+    );
     const geometry = normalizeClippedLandGeometry(union);
     if (!geometry) throw new Error('선택 국가의 영토 합집합을 만들 수 없습니다.');
     return geometry;
