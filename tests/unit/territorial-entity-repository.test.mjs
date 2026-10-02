@@ -27,6 +27,8 @@ test('country read model exposes common territorial properties without moving co
     notes: '국가 메모',
     locked: true,
     color: '#123456',
+    capital: '바르샤바',
+    flagDataUrl: null,
     parentId: 'SHOULD_NOT_BECOME_ADMIN_PARENT',
     sovereignId: 'SHOULD_NOT_BECOME_POLITICAL_RELATION',
   });
@@ -39,6 +41,7 @@ test('country read model exposes common territorial properties without moving co
   assert.equal(entity.properties.notes, '국가 메모');
   assert.equal(entity.properties.locked, true);
   assert.deepEqual(entity.properties.style, { color: '#123456' });
+  assert.deepEqual(entity.properties.metadata, { capital: '바르샤바', flagDataUrl: null });
   assert.equal(entity.geometry, country.geometry);
 });
 
