@@ -199,7 +199,6 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
   "territorialConversion": [
     "applicationConstantsB",
     "applicationServicesA",
-    "countries",
     "countryValidation",
     "cutOperations",
     "domains",
