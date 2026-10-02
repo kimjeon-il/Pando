@@ -221,7 +221,8 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "surfaces",
     "territorialEditingB",
     "territorialModel",
-    "territorialServicesA"
+    "territorialServicesA",
+    "territorialServicesB"
   ],
   "projectSnapshots": [
     "applicationConstantsA",
@@ -253,7 +254,8 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "surfaces",
     "taskUi",
     "territorialModel",
-    "territorialServicesA"
+    "territorialServicesA",
+    "territorialServicesB"
   ]
 });
 
