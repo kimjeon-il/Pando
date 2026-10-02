@@ -14,6 +14,13 @@ export function createCountryTerritorialEntity(feature, override = {}) {
   if (!id) return null;
   const interval = normalizeTemporalInterval(properties.validFrom, properties.validTo);
   const color = text(override.color);
+  const metadata = {};
+  const capital = text(override.capital);
+  if (capital) metadata.capital = capital;
+  if (Object.hasOwn(override, 'flagDataUrl')) {
+    const flagDataUrl = override.flagDataUrl === null ? null : text(override.flagDataUrl);
+    if (flagDataUrl === null || flagDataUrl) metadata.flagDataUrl = flagDataUrl;
+  }
   return {
     type: 'Feature',
     id,
@@ -29,7 +36,7 @@ export function createCountryTerritorialEntity(feature, override = {}) {
       validFrom: interval.validFrom,
       validTo: interval.validTo,
       notes: text(override.notes),
-      metadata: {},
+      metadata,
       sourceFolderId: '',
       sourceLibraryId: '',
       sourceGeometryVersion: '',
