@@ -42,8 +42,8 @@ function fixture() {
 
 test('territorial service owns metadata transaction and lock enforcement', () => {
   const { service, entityRepository, transactions } = fixture();
-  assert.equal(service.get('country-a')?.id, 'country-a');
-  assert.deepEqual(service.list({ type: TERRITORIAL_UNIT_TYPES.REGION }).map(item => item.id), ['unit-a']);
+  assert.equal(entityRepository.get('country-a')?.id, 'country-a');
+  assert.deepEqual(entityRepository.list({ type: TERRITORIAL_UNIT_TYPES.REGION }).map(item => item.id), ['unit-a']);
   assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'name', 'Changed').ok, true);
   assert.equal(entityRepository.get('unit-a').properties.name, 'Changed');
   assert.equal(service.setLocked(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', true).changed, true);
