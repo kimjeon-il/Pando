@@ -708,7 +708,7 @@ export function createRenderingDomain({
     const ranges = new Map(visibleLayers.map(layer => [layer.id, distributionValueRange(layer, entriesByLayer.get(layer.id))]));
     const rows = displayedLayers.flatMap(layer => (entriesByLayer.get(layer.id) || []).map(entry => {
       const geometry = entry.mode === (d.DISTRIBUTION_MODES || {}).TERRITORIAL
-        ? d.territorialRepository?.get?.(entry.territorialUnitId)?.geometry : entry.geometry;
+        ? d.territorialEntityRepository?.get?.(entry.territorialUnitId)?.geometry : entry.geometry;
       if (!layer || !geometry) return null;
       return Object.freeze({ id: entry.id, layer, entry, range: ranges.get(layer.id),
         geometry, bounds: d.geometryBounds?.(geometry), type: 'Feature' });
