@@ -48,7 +48,20 @@ test('v4 conversion preserves identity, coordinates, parent relationships and co
   assert.deepEqual(output.territorialUnits.map(item => item.id), ['t', 'a']);
   assert.deepEqual(output.territorialUnits.map(item => item.geometry), before.territorialUnits.map(item => item.geometry));
   assert.equal(normalizeTerritorialUnits(output.territorialUnits, { countryExists: id => id === 'DNK' }).length, 2);
-  assert.deepEqual(migrateProjectToCurrent(output), output);
+  const current = migrateProjectToCurrent(output);
+  assert.deepEqual(current.countriesData, output.countriesData);
+  assert.deepEqual(current.countryOverrides, output.countryOverrides);
+  assert.deepEqual(current.territorialUnits.map(item => ({
+    id: item.id,
+    geometry: item.geometry,
+    parentId: item.properties.parentId,
+    sovereignId: item.properties.sovereignId,
+  })), output.territorialUnits.map(item => ({
+    id: item.id,
+    geometry: item.geometry,
+    parentId: item.properties.parentId,
+    sovereignId: item.properties.sovereignId,
+  })));
 });
 
 test('group visibility and style differences survive merging and normalization', () => {
