@@ -137,6 +137,52 @@ export function createTerritorialEntityStore({
     return true;
   }
 
+  function appendEntities(items, { reindexOptions = {} } = {}) {
+    const entries = Array.isArray(items) ? items.filter(item => item?.feature) : [];
+    if (!entries.length) return { countries: [], units: [] };
+    const countries = [];
+    const unitValues = [];
+    const overrides = {};
+    for (const item of entries) {
+      const type = text(item.type || item.feature?.properties?.unitType);
+      if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
+        countries.push(item.feature);
+        const key = text(item.feature?.id);
+        if (key && item.countryOverride && typeof item.countryOverride === 'object') {
+          overrides[key] = item.countryOverride;
+        }
+      } else if ([TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(type)) {
+        if (item.feature?.properties?.unitType && item.feature.properties.unitType !== type) {
+          throw new Error('추가할 영역의 종류와 저장 종류가 일치하지 않습니다.');
+        }
+        unitValues.push(item.feature);
+      } else {
+        throw new Error(`지원하지 않는 영역 종류입니다: ${type || '(empty)'}`);
+      }
+    }
+    if (countries.length) appendCountries(countries, overrides, { reindexOptions });
+    if (unitValues.length) appendUnits(unitValues);
+    return { countries, units: unitValues };
+  }
+
+  function removeEntities(refs) {
+    const values = Array.isArray(refs) ? refs : [];
+    const countryIds = [];
+    const unitIds = [];
+    for (const ref of values) {
+      const type = text(ref?.type);
+      const id = text(ref?.id);
+      if (!id) continue;
+      if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) countryIds.push(id);
+      else if ([TERRITORIAL_UNIT_TYPES.SUBUNIT, TERRITORIAL_UNIT_TYPES.REGION].includes(type)) unitIds.push(id);
+      else throw new Error(`지원하지 않는 영역 종류입니다: ${type || '(empty)'}`);
+    }
+    return {
+      countries: countryIds.length ? removeCountries(countryIds) : [],
+      units: unitIds.length ? removeUnits(unitIds) : [],
+    };
+  }
+
   function replaceCollections({
     countriesData: nextCountriesData = null,
     units: nextUnits = null,
@@ -203,7 +249,7 @@ export function createTerritorialEntityStore({
     return state().countriesData;
   }
 
-  function appendCountries(features, overrides = {}) {
+  function appendCountries(features, overrides = {}, { reindexOptions = {} } = {}) {
     const additions = Array.isArray(features) ? features.filter(Boolean) : [];
     if (!additions.length) return [];
     const current = state();
@@ -215,7 +261,11 @@ export function createTerritorialEntityStore({
         current.countryOverrides[key] = { ...override };
       }
     }
-    onCountriesReplaced(current.countriesData, additions.map(feature => text(feature?.id)).filter(Boolean), {});
+    onCountriesReplaced(
+      current.countriesData,
+      additions.map(feature => text(feature?.id)).filter(Boolean),
+      reindexOptions,
+    );
     return additions;
   }
 
@@ -260,6 +310,7 @@ export function createTerritorialEntityStore({
 
   return Object.freeze({
     appendCountries,
+    appendEntities,
     appendUnits,
     countriesData,
     countryFeature,
@@ -269,6 +320,7 @@ export function createTerritorialEntityStore({
     isLocked,
     rawEntity,
     removeCountries,
+    removeEntities,
     replaceCollections,
     replaceCountries,
     replaceCountryOverrides,
