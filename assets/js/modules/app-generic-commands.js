@@ -176,7 +176,7 @@ export function createGenericCommands() {
           notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
         });
         dependencies.domains.projectDomain.recordHistory({ type: 'generic-convert-territorial', affectedIds: [String(feature.id), String(unit.id)] });
-        dependencies.territorialModel.entityStore.replaceUnits(
+        dependencies.territorialModel.entityStore.replaceCollections({ units: 
           (0, dependencies.territorialModel.normalizeTerritorialUnits)(
             [...dependencies.territorialModel.entityStore.units(), unit],
             {
@@ -184,7 +184,7 @@ export function createGenericCommands() {
                 === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
             },
           ),
-        );
+         });
         removeGenericFeatureAfterConversion(feature);
         (0, dependencies.layers.markLayerTreeDirty)();
         dependencies.domains.projectDomain.queueAutosave();
