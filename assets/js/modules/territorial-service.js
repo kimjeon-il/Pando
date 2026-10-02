@@ -11,10 +11,10 @@ const text = value => String(value ?? '').trim();
 
 export function createTerritorialApplicationService({
   entityRepository,
+  entityStore,
   commandPipeline,
-  countryCommands,
-  unitCommands,
 }) {
+  if (!entityStore) throw new TypeError('영역 애플리케이션 서비스에는 엔티티 저장소가 필요합니다.');
   const mutateDocument = createDocumentMutationRunner({ commandPipeline });
   const country = id => {
     const feature = entityRepository.get(id);
@@ -36,7 +36,7 @@ export function createTerritorialApplicationService({
   }
 
   function isLocked(type, id) {
-    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) return !!country(id) && countryCommands.isLocked(id);
+    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) return !!country(id) && entityStore.isLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, id);
     return unit(type, id)?.properties?.locked === true;
   }
 
@@ -54,11 +54,11 @@ export function createTerritorialApplicationService({
           ? feature.properties?.metadata?.[field]
           : feature.properties?.[field];
       const hasExplicitValue = field === 'flagDataUrl'
-        ? countryCommands.hasField?.(key, field) === true
+        ? entityStore.hasField(TERRITORIAL_UNIT_TYPES.COUNTRY, key, field)
         : currentValue !== undefined;
       if (currentValue === value && (value !== undefined || !hasExplicitValue)) return { ok: true, changed: false, unit: feature };
       mutateDocument({ type: 'country-metadata', affectedIds: [key] }, () => {
-        countryCommands.setField(key, field, value);
+        entityStore.setField(TERRITORIAL_UNIT_TYPES.COUNTRY, key, field, value);
       }, { renderDirty: { domain: 'country', change: 'metadata' } });
       return { ok: true, changed: true, unit: entityRepository.get(key) };
     }
@@ -83,7 +83,7 @@ export function createTerritorialApplicationService({
     const currentValue = field === 'color' ? text(feature.properties?.style?.color) : feature.properties?.[field];
     if (currentValue === nextValue) return { ok: true, changed: false, unit: feature };
     mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => {
-      unitCommands.setField(key, field, nextValue);
+      entityStore.setField(type, key, field, nextValue);
     }, { renderDirty: { domain: 'territorial', change: 'metadata' } });
     return { ok: true, changed: true, unit: entityRepository.get(key) };
   }
@@ -123,7 +123,7 @@ export function createTerritorialApplicationService({
     }
 
     mutateDocument({ type: 'territorial-parent', affectedIds: [key] }, () => {
-      unitCommands.setField(key, 'parentId', nextParentId);
+      entityStore.setField(type, key, 'parentId', nextParentId);
     }, { renderDirty: { domain: 'territorial', change: 'structure' } });
     return { ok: true, changed: true, unit: entityRepository.get(key) };
   }
@@ -146,7 +146,7 @@ export function createTerritorialApplicationService({
     }
 
     mutateDocument({ type: 'territorial-country-membership', affectedIds: [key] }, () => {
-      unitCommands.setField(key, 'sovereignId', nextCountryId);
+      entityStore.setField(type, key, 'sovereignId', nextCountryId);
     }, { renderDirty: { domain: 'territorial', change: 'structure' } });
     return { ok: true, changed: true, unit: entityRepository.get(key) };
   }
@@ -158,7 +158,7 @@ export function createTerritorialApplicationService({
       return { ok: true, changed: false };
     }
     mutateDocument({ type, affectedIds: affectedIds.map(text).filter(Boolean) }, () => {
-      unitCommands.replaceAll(units);
+      entityStore.replaceUnits(units);
     }, { renderDirty: { domain: 'territorial', change: 'structure' } });
     return { ok: true, changed: true };
   }
@@ -187,8 +187,8 @@ export function createTerritorialApplicationService({
       },
       () => {
         for (const item of changed) {
-          if (item.type === TERRITORIAL_UNIT_TYPES.COUNTRY) countryCommands.setField(item.id, 'color', color);
-          else unitCommands.setField(item.id, 'color', color);
+          if (item.type === TERRITORIAL_UNIT_TYPES.COUNTRY) entityStore.setField(TERRITORIAL_UNIT_TYPES.COUNTRY, item.id, 'color', color);
+          else entityStore.setField(item.type, item.id, 'color', color);
         }
       },
       { renderDirty: { domain: 'territorial', change: 'metadata' } },
@@ -213,7 +213,7 @@ export function createTerritorialApplicationService({
     const changed = requested.filter((item, index) => {
       const feature = units[index];
       return item.type === TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? countryCommands.isLocked(item.id) !== next
+        ? entityStore.isLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, item.id) !== next
         : feature.properties?.locked !== next;
     });
     if (!changed.length) return { ok: true, changed: false, units };
@@ -226,8 +226,8 @@ export function createTerritorialApplicationService({
       },
       () => {
         for (const item of changed) {
-          if (item.type === TERRITORIAL_UNIT_TYPES.COUNTRY) countryCommands.setLocked(item.id, next);
-          else unitCommands.setField(item.id, 'locked', next);
+          if (item.type === TERRITORIAL_UNIT_TYPES.COUNTRY) entityStore.setLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, item.id, next);
+          else entityStore.setLocked(item.type, item.id, next);
         }
       },
       { renderDirty: { domain: 'territorial', change: 'metadata' } },
@@ -240,10 +240,10 @@ export function createTerritorialApplicationService({
     const next = !!locked;
     if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
       if (!country(key)) return { ok: false, code: 'not-found' };
-      if (countryCommands.isLocked(key) === next) return { ok: true, changed: false, unit: entityRepository.get(key) };
+      if (entityStore.isLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, key) === next) return { ok: true, changed: false, unit: entityRepository.get(key) };
       mutateDocument(
         { ...history, type: 'country-lock', affectedIds: [key] },
-        () => countryCommands.setLocked(key, next),
+        () => entityStore.setLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, key, next),
         { renderDirty: { domain: 'country', change: 'metadata' } },
       );
       return { ok: true, changed: true, unit: entityRepository.get(key) };
@@ -253,7 +253,7 @@ export function createTerritorialApplicationService({
     if (feature.properties?.locked === next) return { ok: true, changed: false, unit: feature };
     mutateDocument(
       { ...history, type: 'territorial-lock', affectedIds: [key] },
-      () => unitCommands.setField(key, 'locked', next),
+      () => entityStore.setLocked(type, key, next),
       { renderDirty: { domain: 'territorial', change: 'metadata' } },
     );
     return { ok: true, changed: true, unit: entityRepository.get(key) };
