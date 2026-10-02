@@ -135,3 +135,16 @@ test('structural writes replace collection identity so repository reads update b
   assert.equal(countryReplacements(), 2);
   assert.equal(unitReplacements(), 2);
 });
+
+
+test('country replacement prunes overrides for removed countries', () => {
+  const { state, store } = fixture();
+  state.countryOverrides.A = { name: 'Old' };
+  store.replaceCountries({
+    type: 'FeatureCollection',
+    features: [{ type: 'Feature', id: 'B', properties: { name: 'B' }, geometry: null }],
+  });
+  assert.equal(state.countryOverrides.A, undefined);
+  assert.equal(store.countryFeature('A'), null);
+  assert.equal(store.countryFeature('B').id, 'B');
+});
