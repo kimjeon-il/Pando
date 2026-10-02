@@ -100,7 +100,6 @@ export const MAP_INTERACTION_OWNER_PORTS = Object.freeze({
     "workspaceUiB"
   ],
   "countryModes": [
-    "countries",
     "domains",
     "feedback",
     "geometryOperations",
