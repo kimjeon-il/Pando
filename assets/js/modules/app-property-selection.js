@@ -80,12 +80,14 @@ export function createPropertySelection() {
 
   function territorialUnitParentOptions(feature) {
     const countryId = String(feature?.properties?.sovereignId || '');
-    const options = (0, dependencies.territorialServicesA.subunitParentChoices)(countryId, dependencies.projectState.state.countriesData.features, dependencies.projectState.state.territorialUnits, {
-      exclude: [feature.id], name: item => item.properties?.unitType ? (0, dependencies.objectPresentation.territorialUnitName)(item) : (0, dependencies.presentation.countryName)(item),
+    const options = (0, dependencies.territorialServicesA.subunitParentChoices)(countryId, dependencies.territorialModel.entityRepository, {
+      exclude: [feature.id], name: item => item.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? (0, dependencies.presentation.countryName)(item)
+        : (0, dependencies.objectPresentation.territorialUnitName)(item),
     });
     const signature = JSON.stringify([parentGeometryToken(feature.geometry), feature.properties.parentId, countryId,
       options.map(option => {
-        const parent = (0, dependencies.objectPresentation.territorialUnitById)(option.value) || (0, dependencies.countries.countryFeatureById)(option.value);
+        const parent = dependencies.territorialModel.entityRepository.get(option.value);
         return [option.value, parentGeometryToken(parent?.geometry), parent?.properties?.parentId, parent?.properties?.locked];
       })]);
     let entry = parentPreparations.get(String(feature.id));
