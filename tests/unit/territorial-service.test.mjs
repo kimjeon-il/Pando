@@ -76,6 +76,35 @@ test('territorial service owns metadata transaction and lock enforcement', () =>
   ]);
 });
 
+test('batch lock command updates countries and units in one document mutation', () => {
+  const { service, entityRepository, transactions } = fixture();
+  const result = service.setLockedBatch([
+    { type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: 'country-a' },
+    { type: TERRITORIAL_UNIT_TYPES.REGION, id: 'unit-a' },
+  ], true, {
+    history: { type: 'batch-lock', description: '2개 객체 잠금' },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.changed, true);
+  assert.equal(service.isLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a'), true);
+  assert.equal(entityRepository.get('unit-a').properties.locked, true);
+  assert.equal(transactions.length, 1);
+  assert.deepEqual(transactions[0], {
+    type: 'batch-lock',
+    description: '2개 객체 잠금',
+    affectedIds: ['country-a', 'unit-a'],
+    renderDirty: { domain: 'territorial', change: 'metadata' },
+  });
+
+  const count = transactions.length;
+  assert.equal(service.setLockedBatch([
+    { type: TERRITORIAL_UNIT_TYPES.COUNTRY, id: 'country-a' },
+    { type: TERRITORIAL_UNIT_TYPES.REGION, id: 'unit-a' },
+  ], true).changed, false);
+  assert.equal(transactions.length, count);
+});
+
 test('simple unit metadata writes keep the territorial collection identity', () => {
   const { service, entityRepository, transactions, units } = fixture();
   const before = units();
