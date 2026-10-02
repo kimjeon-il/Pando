@@ -30,7 +30,7 @@ export function normalizeCountryFeature(feature, { id = countryId(feature), name
 }
 
 export function pruneCountryOverrides(overrides = {}, validIds = null) {
-  const allowed = new Set(['name', 'color', 'capital', 'notes', 'flagDataUrl', 'locked']);
+  const allowed = new Set(['name', 'color', 'capital', 'notes', 'flagDataUrl', 'locked', 'parentId', 'sovereignId']);
   const output = {};
   for (const [rawId, rawOverride] of Object.entries(overrides || {})) {
     const id = text(rawId);
