@@ -46,7 +46,7 @@ test('confirm modal controller owns focus, choice, and confirm lifecycle', t => 
   controller.bind();
   controller.open({ title: '삭제', choices: [{ value: 'merge' }], impacts: ['1개 삭제'], onConfirm: value => { confirmed = value; } });
   assert.equal(controller.isOpen(), true);
-  assert.equal(elements.choice.focused, true);
+  assert.equal(elements.ok.focused, true);
   elements.ok.dispatch('click');
   assert.equal(confirmed, 'merge');
   assert.equal(controller.isOpen(), false);
@@ -57,7 +57,7 @@ test('layer tree controller translates DOM events into commands', () => {
   const search = fakeElement();
   const calls = [];
   const controller = createLayerTreeController({
-    window: { setTimeout: callback => { callback(); return 1; }, Event: class { constructor(type) { this.type = type; } } },
+    window: { clearTimeout() {}, setTimeout: callback => { callback(); return 1; }, Event: class { constructor(type) { this.type = type; } } },
     elements: { visibilityInputs: { countries: visibility }, search },
     groups: { tree: [], search: [], names: {} },
     model: { snapshot: () => ({ revision: 0, search: '', folders: {} }), items: () => [] },
