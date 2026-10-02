@@ -68,7 +68,7 @@ test('structural territorial callers use the entity store for collection writes'
   assert.match(conversion, /entityStore\.replaceCollections/);
   assert.match(generic, /entityStore\.replaceCollections/);
   assert.match(land, /entityStore\.replaceCollections/);
-  assert.match(deletion, /entityStore\.(?:removeEntities|replaceCollections)/);
+  assert.match(deletion, /entityStore:\s*dependencies\.territorialModel\.entityStore/);
   assert.match(cut, /entityStore\.replaceCollections/);
   assert.match(startup, /entityStore\.replaceCollections/);
   assert.match(restore, /entityStore\.replaceCollections/);
