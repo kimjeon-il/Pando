@@ -143,9 +143,11 @@ export function createTerritorialConversion() {
   }
 
   function territorialTypeParentOptions(source, sovereignId) {
-    const choices = (0, dependencies.territorialServicesA.subunitParentChoices)(sovereignId, dependencies.projectState.state.countriesData.features, dependencies.projectState.state.territorialUnits, {
-      exclude: [source.id], name: item => item.properties?.unitType ? (0, dependencies.objectPresentation.territorialUnitName)(item) : (0, dependencies.presentation.countryName)(item),
-    }).filter(option => option.value === String(sovereignId) || (0, dependencies.objectMetadata.territorialUnitInsideContainer)(source, (0, dependencies.objectPresentation.territorialUnitById)(option.value)));
+    const choices = (0, dependencies.territorialServicesA.subunitParentChoices)(sovereignId, dependencies.territorialModel.entityRepository, {
+      exclude: [source.id], name: item => item.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? (0, dependencies.presentation.countryName)(item)
+        : (0, dependencies.objectPresentation.territorialUnitName)(item),
+    }).filter(option => option.value === String(sovereignId) || (0, dependencies.objectMetadata.territorialUnitInsideContainer)(source, dependencies.territorialModel.entityRepository.get(option.value)));
     const oldParent = String(source.properties?.parentId || '');
     if (oldParent && String(source.properties?.sovereignId || '') === String(sovereignId) && !choices.some(option => option.value === oldParent)) {
       const parent = dependencies.territorialModel.entityRepository.get(oldParent);
