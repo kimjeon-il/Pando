@@ -44,8 +44,8 @@ export function createObjectDeletion() {
             dependencies.projectState.state,
             { countryIds: [key] },
             dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL,
+            { entityStore: dependencies.territorialModel.entityStore },
           );
-          (0, dependencies.geometryMutation.reindexCountries)(dependencies.projectState.state.countriesData, true);
           (0, dependencies.spatialQuery.markCountryGeometriesChanged)([key]);
           dependencies.projectState.state.boundaryPreparation?.cancel();
           dependencies.projectState.state.boundaryPreparation = null;
@@ -150,6 +150,7 @@ export function createObjectDeletion() {
             dependencies.projectState.state,
             { unitIds: [feature.id] },
             dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL,
+            { entityStore: dependencies.territorialModel.entityStore },
           );
           (0, dependencies.layers.markLayerTreeDirty)();
           if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) && String(dependencies.projectState.state.selected.id) === String(feature.id)) {
