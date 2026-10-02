@@ -281,11 +281,13 @@ export function createTerritorialFeature({
   return feature;
 }
 
-export function createCountryTerritorialAdapter(feature, override = {}) {
+export function createCountryTerritorialEntity(feature, override = {}) {
   if (!feature?.geometry) return null;
   const properties = feature.properties || {};
   const id = text(feature.id);
   if (!id) return null;
+  const interval = normalizeTemporalInterval(properties.validFrom, properties.validTo);
+  const color = text(override.color);
   return {
     type: 'Feature',
     id,
@@ -296,11 +298,13 @@ export function createCountryTerritorialAdapter(feature, override = {}) {
       parentId: '',
       sovereignId: id,
       coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
-      style: { color: text(override.color) },
-      locked: false,
-      validFrom: normalizeTemporalInterval(properties.validFrom, properties.validTo).validFrom,
-      validTo: normalizeTemporalInterval(properties.validFrom, properties.validTo).validTo,
-      metadata: { adapter: 'countriesData' },
+      style: color ? { color } : {},
+      locked: override.locked === true,
+      validFrom: interval.validFrom,
+      validTo: interval.validTo,
+      notes: text(override.notes),
+      metadata: {},
+      sourceFolderId: '',
       sourceLibraryId: '',
       sourceGeometryVersion: '',
     },
@@ -308,29 +312,115 @@ export function createCountryTerritorialAdapter(feature, override = {}) {
   };
 }
 
-export function createTerritorialRepository({
+export function createTerritorialEntityRepository({
   getCountries,
   getUnits,
   getCountryOverride = () => ({}),
 }) {
+  if (typeof getCountries !== 'function' || typeof getUnits !== 'function') {
+    throw new TypeError('영역 엔티티 저장소에는 국가와 하위 영역 공급자가 필요합니다.');
+  }
+
   const countries = () => (getCountries()?.features || [])
-    .map(feature => createCountryTerritorialAdapter(feature, getCountryOverride(text(feature?.id))))
+    .map(feature => createCountryTerritorialEntity(feature, getCountryOverride(text(feature?.id))))
     .filter(Boolean);
   const units = () => Array.isArray(getUnits()) ? getUnits() : [];
+
+  function snapshot() {
+    const values = [...countries(), ...units()];
+    const byId = new Map();
+    for (const entity of values) {
+      const id = text(entity?.id);
+      if (!id) throw new Error('영역 엔티티 ID가 비어 있습니다.');
+      if (byId.has(id)) throw new Error(`영역 엔티티 ID가 중복되었습니다: ${id}`);
+      byId.set(id, entity);
+    }
+    return { values, byId };
+  }
+
+  function get(id) {
+    return snapshot().byId.get(text(id)) || null;
+  }
+
+  function list({ type = '', parentId = null, sovereignId = null } = {}) {
+    let values = snapshot().values;
+    if (type) values = values.filter(entity => entity.properties?.unitType === type);
+    if (parentId !== null) {
+      const key = text(parentId);
+      values = values.filter(entity => text(entity.properties?.parentId) === key);
+    }
+    if (sovereignId !== null) {
+      const key = text(sovereignId);
+      values = values.filter(entity => text(entity.properties?.sovereignId) === key);
+    }
+    return values;
+  }
+
+  function children(id, { type = '' } = {}) {
+    return list({ type, parentId: text(id) });
+  }
+
+  function parent(id) {
+    const entity = get(id);
+    const parentId = text(entity?.properties?.parentId);
+    return parentId ? get(parentId) : null;
+  }
+
+  function ancestors(id) {
+    const result = [];
+    const seen = new Set([text(id)]);
+    let cursor = parent(id);
+    while (cursor) {
+      const key = text(cursor.id);
+      if (seen.has(key)) throw new Error(`영역 엔티티 상위 관계가 순환합니다: ${key}`);
+      seen.add(key);
+      result.push(cursor);
+      cursor = parent(key);
+    }
+    return result;
+  }
+
+  function descendants(id, { type = '' } = {}) {
+    const result = [];
+    const seen = new Set([text(id)]);
+    const pending = [...children(id)];
+    while (pending.length) {
+      const entity = pending.shift();
+      const key = text(entity?.id);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      if (!type || entity.properties?.unitType === type) result.push(entity);
+      pending.push(...children(key));
+    }
+    return result;
+  }
+
+  function root(id) {
+    const entity = get(id);
+    if (!entity) return null;
+    const lineage = ancestors(id);
+    return lineage.at(-1) || entity;
+  }
+
+  function sovereign(id) {
+    const entity = get(id);
+    if (!entity) return null;
+    if (entity.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) return entity;
+    const sovereignId = text(entity.properties?.sovereignId);
+    const sovereignEntity = sovereignId ? get(sovereignId) : null;
+    return sovereignEntity?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? sovereignEntity : null;
+  }
+
   return Object.freeze({
-    get(id) {
-      const key = text(id);
-      return units().find(feature => text(feature.id) === key)
-        || countries().find(feature => text(feature.id) === key)
-        || null;
-    },
-    list({ type } = {}) {
-      const values = [...countries(), ...units()];
-      return type ? values.filter(feature => feature.properties?.unitType === type) : values;
-    },
-    children(id) {
-      return territorialChildren(units(), id);
-    },
+    get,
+    has: id => !!get(id),
+    list,
+    children,
+    parent,
+    ancestors,
+    descendants,
+    root,
+    sovereign,
   });
 }
 
