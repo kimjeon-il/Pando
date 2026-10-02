@@ -15,8 +15,7 @@ test('territorial application service depends on one physical entity store', asy
   assert.doesNotMatch(service, /\bcountryCommands\b|\bunitCommands\b/);
   assert.match(history, /entityStore:\s*dependencies\.territorialModel\.entityStore/);
   assert.match(domain, /createTerritorialEntityStore/);
-  assert.match(domain, /getCountries:\s*territorialEntityStore\.countriesData/);
-  assert.match(domain, /getUnits:\s*territorialEntityStore\.units/);
+  assert.match(domain, /createTerritorialEntityRepository\)\(\{[\s\S]*entityStore:\s*territorialEntityStore/);
 });
 
 // DomainAssembly owns the physical store adapter. Runtime editing, startup,
