@@ -1389,8 +1389,12 @@ export function createRenderingDomain({
     if (!gpuMapRenderer?.setCountryEmphasis) return false;
     const selectionState = selectionDomain?.snapshot?.() || { selection: { items: [], primaryKey: null }, hover: null };
     const state = selection.getState?.() || {};
-    const entries = mapInteractionEntries(selectionState, state, { countryType: selection.countryType,
-      visible: ref => selection.objectRefVisible?.(ref) !== false });
+    const entries = mapInteractionEntries(selectionState, state, {
+      countryType: selection.countryType,
+      visible: ref => selection.objectRefVisible?.(ref) !== false,
+      territorialEntityById: selection.territorialEntityById,
+      territorialUnits: selection.territorialUnits,
+    });
     const countryEntries = entries.filter(entry => entry.ref.domain === 'territorial' && entry.ref.type === selection.countryType);
     const primaries = countryEntries.filter(entry => entry.priority >= 4).map(entry => entry.ref.id);
     gpuMapRenderer.setCountryEmphasis({ primaryId: primaries[0] || '', primaryIds: primaries,
