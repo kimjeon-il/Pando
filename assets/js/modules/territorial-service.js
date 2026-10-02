@@ -153,6 +153,45 @@ export function createTerritorialApplicationService({
     return { ok: true, changed: true };
   }
 
+  function setLockedBatch(items, locked, { history = {} } = {}) {
+    const next = !!locked;
+    const requested = (items || []).map(item => ({ type: text(item?.type), id: text(item?.id) }))
+      .filter(item => item.type && item.id);
+    if (!requested.length) return { ok: true, changed: false, units: [] };
+
+    const units = [];
+    for (const item of requested) {
+      const feature = item.type === TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? country(item.id)
+        : unit(item.type, item.id);
+      if (!feature) return { ok: false, code: 'not-found', id: item.id, type: item.type };
+      units.push(feature);
+    }
+    const changed = requested.filter((item, index) => {
+      const feature = units[index];
+      return item.type === TERRITORIAL_UNIT_TYPES.COUNTRY
+        ? countryCommands.isLocked(item.id) !== next
+        : feature.properties?.locked !== next;
+    });
+    if (!changed.length) return { ok: true, changed: false, units };
+
+    mutateDocument(
+      {
+        ...history,
+        type: history.type || 'territorial-lock-batch',
+        affectedIds: changed.map(item => item.id),
+      },
+      () => {
+        for (const item of changed) {
+          if (item.type === TERRITORIAL_UNIT_TYPES.COUNTRY) countryCommands.setLocked(item.id, next);
+          else unitCommands.setField(item.id, 'locked', next);
+        }
+      },
+      { renderDirty: { domain: 'territorial', change: 'metadata' } },
+    );
+    return { ok: true, changed: true, units: requested.map(item => entityRepository.get(item.id)).filter(Boolean) };
+  }
+
   function setLocked(type, id, locked, { history = {} } = {}) {
     const key = text(id);
     const next = !!locked;
@@ -184,6 +223,7 @@ export function createTerritorialApplicationService({
     changeAdministrativeCountry,
     replaceUnits,
     setLocked,
+    setLockedBatch,
     runGeometryTransaction: options => runTerritorialTransaction(options),
     validateRelations: (units, options) => validateTerritorialRelations(units, options),
   });
