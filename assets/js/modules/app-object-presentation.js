@@ -7,7 +7,7 @@ export function createObjectPresentation() {
   let territorialScope;
   let distributionVisibilityRevision;
   let distributionRenderRowCache;
-  let territorialRepository;
+  let territorialEntityRepository;
   let territorialApplicationService;
   let distributionService;
   let genericFeatureService;
@@ -49,7 +49,7 @@ export function createObjectPresentation() {
   }
 
   function territorialUnitById(id) {
-    return territorialApplicationService.get(id);
+    return territorialEntityRepository.get(id);
   }
 
   function territorialStyleColor(feature) {
@@ -76,7 +76,7 @@ export function createObjectPresentation() {
   }
 
   function territorialUnitCountryName(feature) {
-    const country = (0, dependencies.countries.countryFeatureById)(feature?.properties?.sovereignId);
+    const country = territorialEntityRepository.sovereign(feature?.id);
     return country ? countryName(country) : '소속 국가 미지정';
   }
 
@@ -235,8 +235,8 @@ export function createObjectPresentation() {
     get syncMapObjectCategoryLabels() { return syncMapObjectCategoryLabels; },
     get territorialApplicationService() { return territorialApplicationService; },
     set territorialApplicationService(value) { territorialApplicationService = value; },
-    get territorialRepository() { return territorialRepository; },
-    set territorialRepository(value) { territorialRepository = value; },
+    get territorialEntityRepository() { return territorialEntityRepository; },
+    set territorialEntityRepository(value) { territorialEntityRepository = value; },
     get territorialScope() { return territorialScope; },
     get territorialStyleColor() { return territorialStyleColor; },
     get territorialUnitById() { return territorialUnitById; },
