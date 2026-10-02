@@ -163,8 +163,7 @@ export function createSelectionUiController({
     pendingSnapshot = null;
     if (syncFrame) cancelFrame?.(syncFrame);
     syncFrame = 0;
-    uiActions.clearPresenter?.({ projectReset: true });
-    uiActions.clearSelectionToolbar?.();
+    return syncNow(selectionDomain?.snapshot?.(), { force: true });
   };
 
   const dispose = () => {
