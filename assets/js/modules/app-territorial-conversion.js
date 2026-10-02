@@ -32,13 +32,13 @@ export function createTerritorialConversion() {
     const queue = [String(source.id)];
     while (queue.length) {
       const parentId = queue.shift();
-      for (const child of (0, dependencies.territorialServicesA.territorialChildren)(dependencies.projectState.state.territorialUnits, parentId)) {
+      for (const child of dependencies.territorialModel.entityRepository.children(parentId)) {
         if (descendantIds.has(String(child.id))) continue;
         descendantIds.add(String(child.id));
         queue.push(String(child.id));
       }
     }
-    if (dependencies.projectState.state.territorialUnits.some(unit => descendantIds.has(String(unit.id)) && unit.properties?.locked)) {
+    if (dependencies.territorialModel.entityRepository.list().some(entity => descendantIds.has(String(entity.id)) && entity.properties?.locked)) {
       (0, dependencies.feedback.setActionStatus)('잠긴 자식 하위단위를 먼저 잠금 해제하세요.', 'error', 3600);
       return false;
     }
@@ -69,8 +69,9 @@ export function createTerritorialConversion() {
     const sourceIsCountry = sourceType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY;
     const targetIsCountry = targetType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY;
     const childCount = sourceIsCountry
-      ? dependencies.projectState.state.territorialUnits.filter(candidate => String(candidate.properties?.sovereignId || '') === String(source.id || '')).length
-      : (0, dependencies.territorialServicesA.territorialChildren)(dependencies.projectState.state.territorialUnits, source.id).length;
+      ? dependencies.territorialModel.entityRepository.list({ sovereignId: String(source.id || '') })
+        .filter(candidate => String(candidate.id) !== String(source.id || '')).length
+      : dependencies.territorialModel.entityRepository.children(source.id).length;
     const targetCountry = (0, dependencies.countries.countryFeatureById)(sovereignId);
     const targetParent = (0, dependencies.objectPresentation.territorialUnitById)(parentId);
     const impacts = [];
@@ -132,9 +133,7 @@ export function createTerritorialConversion() {
 
   function territorialTypeSourceFeature() {
     if (!territorialTypeSource) return null;
-    return territorialTypeSource.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-      ? (0, dependencies.countries.countryFeatureById)(territorialTypeSource.id)
-      : (0, dependencies.objectPresentation.territorialUnitById)(territorialTypeSource.id);
+    return dependencies.territorialModel.entityRepository.get(territorialTypeSource.id);
   }
 
   function territorialTypeSourceName(feature = territorialTypeSourceFeature()) {
@@ -149,7 +148,7 @@ export function createTerritorialConversion() {
     }).filter(option => option.value === String(sovereignId) || (0, dependencies.objectMetadata.territorialUnitInsideContainer)(source, (0, dependencies.objectPresentation.territorialUnitById)(option.value)));
     const oldParent = String(source.properties?.parentId || '');
     if (oldParent && String(source.properties?.sovereignId || '') === String(sovereignId) && !choices.some(option => option.value === oldParent)) {
-      const parent = (0, dependencies.objectPresentation.territorialUnitById)(oldParent) || (0, dependencies.countries.countryFeatureById)(oldParent);
+      const parent = dependencies.territorialModel.entityRepository.get(oldParent);
       choices.push({ value: oldParent, label: `${parent?.properties?.name || oldParent} · 기존 소속` });
     }
     return choices;
