@@ -278,7 +278,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     const affectedCountries = new Set();
     for (const feature of imported) {
       const countryId = String(feature.properties?.sovereignId || '');
-      const country = entityStore.countryFeature(countryId);
+      const country = entityStore.rawEntity(TERRITORIAL_UNIT_TYPES.COUNTRY, countryId);
       const parent = importedTerritorialParent(
         feature.properties.parentId,
         countryId,
@@ -347,7 +347,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       // canonical project mutation. Every later impact calculation uses the
       // resulting geometry, not the raw import geometry.
       for (const feature of imported) {
-        const country = entityStore.countryFeature(feature.properties?.sovereignId);
+        const country = entityStore.rawEntity(TERRITORIAL_UNIT_TYPES.COUNTRY, feature.properties?.sovereignId);
         const resolution = requireImportCoastResolution(await resolveTerritorialCoast(feature, country, countryGeometryOverrides));
         if (resolution.direction === 'admin-to-country' || resolution.direction === 'independent') preservedIds.add(String(feature.id));
       }
@@ -553,7 +553,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     for (let index = 0; index < features.length; index += 1) {
       const feature = importedTerritorialUnitFeature(features[index], index, kind, mapping, sourceFolderId, nextUnits);
       if (!feature) continue;
-      const country = entityStore.countryFeature(feature.properties.sovereignId);
+      const country = entityStore.rawEntity(TERRITORIAL_UNIT_TYPES.COUNTRY, feature.properties.sovereignId);
       const coastResolution = requireImportCoastResolution(await resolveTerritorialCoast(feature, country, countryGeometryOverrides));
       if (coastResolution.direction === 'admin-to-country' || coastResolution.direction === 'independent') preservedIds.add(String(feature.id));
       const parent = feature.properties.parentId
@@ -653,7 +653,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
         metadata: { sourceId },
         geometry: normalizeCountryGeometry(raw.geometry) || raw.geometry,
       });
-      const country = sovereignId ? entityStore.countryFeature(sovereignId) : null;
+      const country = sovereignId ? entityStore.rawEntity(TERRITORIAL_UNIT_TYPES.COUNTRY, sovereignId) : null;
       if (sovereignId && !country?.geometry) throw createGisImportError('소속 국가를 찾을 수 없습니다.', {
         category: RELIABILITY_ERROR_CATEGORIES.RELATION,
         objectIds: [id, sovereignId],
