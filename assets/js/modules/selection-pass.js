@@ -14,12 +14,12 @@ function emptyChannel(requested = []) {
 }
 
 function channelStyle(name, style) {
-  if (name === 'hover' || name === 'candidate') return Object.freeze({
-    ...interactionRoleStyle(style, name),cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',antiAlias: globalThis.document?.documentElement?.dataset.smoothLines !== 'false',
-  });
-  const selection = name === 'primary' ? style.selection.primary : style.selection.secondary;
   return Object.freeze({
-    color: style.selection.color,alpha: selection.innerAlpha,width: selection.innerWidth,cap: 'round',join: 'round',dash: [0, 0],blendMode: 'normal',antiAlias: globalThis.document?.documentElement?.dataset.smoothLines !== 'false',scaleWithView: true,
+    ...interactionRoleStyle(style, name),
+    cap: 'round',
+    join: 'round',
+    dash: [0, 0],
+    blendMode: 'normal',
   });
 }
 

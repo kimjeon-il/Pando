@@ -90,6 +90,7 @@ export function createEnvironment() {
       selectionColor: userPreferences.selection.color || resolvedAccentColor,
       outlineVisible: userPreferences.selection.outlineVisible,
       fillStrength: userPreferences.selection.fillStrength,
+      antiAlias: userPreferences.appearance?.smoothLines !== false,
       tokens: {
         accent: computed.getPropertyValue('--accent').trim(),
         textStrong: computed.getPropertyValue('--text-strong').trim(),

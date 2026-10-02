@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { interactionStrokeScale, resolveMapInteractionStyle, scaleInteractionStroke } from '../../assets/js/modules/map-interaction-style.js';
+import { interactionRoleStyle, interactionStrokeScale, resolveMapInteractionStyle, scaleInteractionStroke } from '../../assets/js/modules/map-interaction-style.js';
 
 const darkTokens = { accent: '#cda95d', textStrong: '#f2f4f6' };
 const lightTokens = { accent: '#315e9d', textStrong: '#11161c' };
@@ -55,4 +55,15 @@ test('interaction outlines recede together at map minimum zoom without changing 
   assert.ok(scaled.width < 1.25);
   assert.ok(scaled.casing.width < 2);
   assert.equal(scaled.innerCutout, scaled.width);
+});
+
+test('interaction anti-aliasing is explicit style state instead of a DOM lookup', () => {
+  const smooth = resolveMapInteractionStyle({ antiAlias: true });
+  const crisp = resolveMapInteractionStyle({ antiAlias: false });
+  assert.equal(smooth.antiAlias, true);
+  assert.equal(crisp.antiAlias, false);
+  for (const role of ['candidate', 'hover', 'secondary', 'primary']) {
+    assert.equal(interactionRoleStyle(smooth, role).antiAlias, true);
+    assert.equal(interactionRoleStyle(crisp, role).antiAlias, false);
+  }
 });
