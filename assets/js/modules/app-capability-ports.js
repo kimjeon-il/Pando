@@ -120,7 +120,6 @@ export function createSpatialDataPorts(providers) {
     presentation: Object.freeze({
       get countryName() { return providers.objectPresentation.countryName; },
       get genericFeatureDisplayFeature() { return providers.objectPresentation.genericFeatureDisplayFeature; },
-      get territorialEntityRepository() { return providers.objectPresentation.territorialEntityRepository; },
     }),
     projectState: Object.freeze({
       get mapWorkScheduler() { return providers.projectSession.mapWorkScheduler; },
@@ -174,6 +173,7 @@ export function createSpatialDataPorts(providers) {
       get updateModeButtons() { return providers.taskPresentation.updateModeButtons; },
     }),
     territorialModel: Object.freeze({
+      get entityRepository() { return providers.domainAssembly.territorialEntityRepository; },
       get assertProjectReferenceIntegrity() { return providers.runtime.assertProjectReferenceIntegrity; },
       get buildSharedBoundaryTopology() { return providers.runtime.buildSharedBoundaryTopology; },
       get composeRiverBoundaryTerritoryComponents() { return providers.runtime.composeRiverBoundaryTerritoryComponents; },
