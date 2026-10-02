@@ -1,4 +1,4 @@
-import { territorialDeletionAllowed, removeTerritorialUnits } from './territorial-interaction-policy.js';
+import { removeTerritorialUnits } from './territorial-interaction-policy.js';
 /** ObjectDeletion: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -125,7 +125,7 @@ export function createObjectDeletion() {
       danger: true,
       onConfirm: () => {
         const current = dependencies.objectModelB.territorialApplicationService.canDelete(feature.properties?.unitType, feature.id);
-        if (!current.ok || !territorialDeletionAllowed([current.unit], dependencies.territorialModel.entityRepository.list())) return false;
+        if (!current.ok) return false;
         const snapshot = (0, dependencies.snapshots.snapshotEditable)();
         try {
           removeTerritorialUnits(dependencies.projectState.state, [feature.id], dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL);
