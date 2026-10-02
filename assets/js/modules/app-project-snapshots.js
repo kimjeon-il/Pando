@@ -74,7 +74,9 @@ export function createProjectSnapshots() {
 
   function restoreCountriesFromSnapshot(snapshot) {
     if (snapshot.countriesData) {
-      dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(geometrySnapshots.restore(snapshot.countriesData, dependencies.projectState.state.countriesData), true);
+      dependencies.territorialModel.entityStore.replaceCountries(
+        geometrySnapshots.restore(snapshot.countriesData, dependencies.territorialModel.entityStore.countriesData()),
+      );
       dependencies.projectState.state.historyDirtyCountryIds = new Set();
       return;
     }
@@ -116,9 +118,10 @@ export function createProjectSnapshots() {
       });
     }
     for (const [id, feature] of changed) if (!seen.has(id)) base.features.push(geometrySnapshots.restore(feature, currentById.get(id)));
-    dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(base, true);
-    const unchangedIds = (dependencies.projectState.state.countriesData.features || []).map(feature => String(feature.id || '')).filter(id => !changed.has(id));
-    if (!dependencies.projectState.state.sessionBaseCountriesJson) (0, dependencies.countryRecords.applyPristineLabelAnchors)(dependencies.projectState.state.countriesData, unchangedIds);
+    dependencies.territorialModel.entityStore.replaceCountries(base);
+    const currentCountries = dependencies.territorialModel.entityStore.countriesData();
+    const unchangedIds = (currentCountries.features || []).map(feature => String(feature.id || '')).filter(id => !changed.has(id));
+    if (!dependencies.projectState.state.sessionBaseCountriesJson) (0, dependencies.countryRecords.applyPristineLabelAnchors)(currentCountries, unchangedIds);
     dependencies.projectState.state.historyDirtyCountryIds = new Set(snapshot.historyDirtyCountryIds || [...changed.keys(), ...removed]);
   }
 
