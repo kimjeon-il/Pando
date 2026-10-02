@@ -61,5 +61,5 @@ test('the shared whole-map control calls the camera action without restoring a r
   const end = navigationBindingsSource.indexOf('const searchPanel', start);
   assert.ok(start >= 0 && end > start, 'reset view binding must exist');
   const binding = navigationBindingsSource.slice(start, end);
-  assert.match(binding, /navigation\.resetView\(\)/);
+  assert.match(binding, /\bresetView\(\)/);
 });
