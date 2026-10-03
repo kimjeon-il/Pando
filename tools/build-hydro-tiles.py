@@ -171,6 +171,8 @@ def normalize_hydronym(name: str, category: str, overrides: dict[str, str]) -> s
         value = HYDRONYM_ENGLISH_SUFFIX_RE.sub("", value).strip()
     if value in overrides:
         value = overrides[value]
+    if re.search(r"[가-힣]", value) and not value.startswith("미명명"):
+        value = re.sub(r"\s+", "", value)
     if category == "river" and re.search(r"[가-힣]$", value) and not value.endswith(("강", "천", "수계")):
         value += "강"
     if category == "lake" and re.search(r"[가-힣]$", value) and not value.endswith(("호", "호수", "해", "만", "저수지")):

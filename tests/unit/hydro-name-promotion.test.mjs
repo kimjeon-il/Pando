@@ -44,3 +44,22 @@ test('promoted manifest reuses unchanged v0.13.0 assets by relative URL', () => 
   assert.deepEqual(promoted.metadata.core, { url: 'metadata-core.json.gz', bytes: 123, sha256: 'core' });
   assert.match(promoted.cache.name, /^pandolab-water-v0\.13\.1-/);
 });
+
+test('promotion compacts Korean compound names, including lakes and non-overridden systems', () => {
+  const source = { version: 5, features: [
+    { fid: 1, systemId: '1', name: '세인트 폴강', mainstemNameKo: '세인트 폴강', width: 12 },
+    { fid: 2, name: '조지아 만', category: 'lake' },
+    { fid: 3, name: 'Lake Example', category: 'lake' },
+    { fid: 4, systemId: '4', name: '미명명 수계 4', mainstemNameKo: '미명명 수계 4' },
+    { fid: 5, systemId: '5', name: '미명명 수계 5', mainstemNameKo: '미명명 수계 5' },
+    { fid: 6, name: '브라마푸트라강 / 얄룽창포강' },
+  ] };
+  const promoted = promoteCoreMetadata(source, { '5': { nameKo: '산타 마리아강' } });
+  assert.deepEqual(promoted.features.map(feature => feature.name), [
+    '세인트폴강', '조지아만', 'Lake Example', '미명명 수계 4', '산타마리아강', '브라마푸트라강/얄룽창포강',
+  ]);
+  assert.equal(promoted.features[0].mainstemNameKo, '세인트폴강');
+  assert.equal(promoted.features[4].mainstemNameKo, '산타마리아강');
+  assert.equal(promoted.features[0].width, 12);
+  assert.equal(source.features[0].name, '세인트 폴강');
+});
