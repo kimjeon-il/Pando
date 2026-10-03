@@ -426,6 +426,7 @@ export function installReferenceImageLineRefiner() {
       });
       state.phase = 'preview';
       state.roughScreenPoints = [];
+      setReferenceImageSurfaceEditing(false);
       setMessage(`선 보강 결과 ${result.simplifiedPointCount}개 점 · 적용하거나 다시 그릴 수 있습니다.`, 'success');
       requestRender();
       scheduleSync();
@@ -444,6 +445,7 @@ export function installReferenceImageLineRefiner() {
   function redraw() {
     if (!state) return false;
     state.phase = 'armed';
+    setReferenceImageSurfaceEditing(true, '선 보강 중 · 지도에서 참조 이미지 경계를 따라 드래그하세요.');
     state.pointerId = null;
     state.roughScreenPoints = [];
     state.roughImagePoints = [];
