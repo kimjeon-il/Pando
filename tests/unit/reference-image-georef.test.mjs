@@ -62,6 +62,69 @@ test('projective quad warp maps all four image corners exactly and rejects inval
   assert.equal(buildReferenceImageProjectiveWarpFromQuad([[0, 0]]).ok, false);
 });
 
+test('similarity fit honors a pinned anchor exactly while soft GCPs absorb residual', () => {
+  const controlPoints = [
+    { ...point('anchor', [0.25, 0.5], [10, 20]), pinned: true },
+    point('a', [0, 0], [0, 0]),
+    point('b', [1, 0], [20, 2]),
+    point('outlier', [0, 1], [80, 60]),
+  ];
+  const warp = buildReferenceImageWarp(controlPoints, { mode: REFERENCE_IMAGE_WARP_MODES.SIMILARITY });
+  assert.equal(warp.ok, true);
+  const anchor = warp.project([0.25, 0.5]);
+  assert.ok(Math.abs(anchor[0] - 10) < 1e-9);
+  assert.ok(Math.abs(anchor[1] - 20) < 1e-9);
+  assert.equal(warp.diagnostics.hardPointCount, 1);
+  assert.equal(warp.diagnostics.softPointCount, 3);
+  assert.ok(warp.diagnostics.hardMaxMeters < 0.01);
+  assert.ok(warp.diagnostics.rmsMeters > 0);
+});
+
+test('affine and projective fits preserve a pinned anchor under noisy soft GCPs', () => {
+  const cases = [
+    {
+      mode: REFERENCE_IMAGE_WARP_MODES.AFFINE,
+      points: [
+        { ...point('anchor', [0.4, 0.6], [30, 15]), pinned: true },
+        point('a', [0, 0], [20, 5]),
+        point('b', [1, 0], [42, 8]),
+        point('c', [0, 1], [17, 28]),
+        point('noise', [1, 1], [55, 35]),
+      ],
+    },
+    {
+      mode: REFERENCE_IMAGE_WARP_MODES.PROJECTIVE,
+      points: [
+        { ...point('anchor', [0.35, 0.55], [40, 20]), pinned: true },
+        point('a', [0, 0], [30, 10]),
+        point('b', [1, 0], [55, 12]),
+        point('c', [1, 1], [51, 35]),
+        point('d', [0, 1], [27, 32]),
+        point('noise', [0.7, 0.3], [49, 18]),
+      ],
+    },
+  ];
+  for (const item of cases) {
+    const warp = buildReferenceImageWarp(item.points, { mode: item.mode });
+    assert.equal(warp.ok, true);
+    const pinned = item.points[0];
+    const actual = warp.project(pinned.image);
+    assert.ok(Math.abs(actual[0] - pinned.coordinate[0]) < 1e-7);
+    assert.ok(Math.abs(actual[1] - pinned.coordinate[1]) < 1e-7);
+    assert.ok(warp.diagnostics.hardMaxMeters < 0.01);
+  }
+});
+
+test('pinned metadata survives normalization and diagnostics', () => {
+  const warp = buildReferenceImageWarp([
+    { ...point('anchor', [0, 0], [10, 20]), pinned: true },
+    point('b', [1, 0], [20, 20]),
+  ], { mode: REFERENCE_IMAGE_WARP_MODES.SIMILARITY });
+  assert.equal(warp.ok, true);
+  assert.equal(warp.controlPoints[0].pinned, true);
+  assert.equal(warp.diagnostics.residuals.find(item => item.id === 'anchor').pinned, true);
+});
+
 test('TPS warp interpolates its control points and auto selects TPS with six points', () => {
   const controlPoints = [
     point('a', [0, 0], [100, 30]),
