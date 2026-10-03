@@ -597,7 +597,7 @@ function usableFreeTransformQuad(record, host) {
 }
 
 export function referenceImageFreeTransformHit(record, point, host) {
-  if (!record || record.anchor || record.controlPoints?.length) return null;
+  if (!record) return null;
   const candidate = finitePair(point);
   const corners = projectReferenceImageMapQuad(record, host);
   if (!candidate || !corners) return null;
@@ -611,7 +611,7 @@ export function referenceImageFreeTransformHit(record, point, host) {
 }
 
 export function createReferenceImageFreeTransformDrag(record, hit, pointerId = null) {
-  if (!record || record.anchor || record.controlPoints?.length || hit?.type !== 'corner-pin') return null;
+  if (!record || hit?.type !== 'corner-pin') return null;
   if (!Number.isInteger(hit.index) || hit.index < 0 || hit.index > 3) return null;
   return {
     pointerId,
@@ -623,7 +623,7 @@ export function createReferenceImageFreeTransformDrag(record, hit, pointerId = n
 }
 
 export function applyReferenceImageFreeTransformDrag(record, drag, point, host) {
-  if (!record || record.anchor || record.controlPoints?.length || !drag || !host) return false;
+  if (!record || !drag || !host) return false;
   const coordinate = normalizeCoordinate(host.unproject?.(point));
   if (!coordinate) return false;
   const previous = record.mapQuad;
