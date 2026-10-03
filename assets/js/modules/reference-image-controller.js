@@ -233,8 +233,8 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   function renderEditor() {
     renderStorageStatus();
     const historyLocked = records.some(record => record.locked);
-    panel.querySelector('[data-ref-action="undo"]').disabled = !history.canUndo() || historyLocked;
-    panel.querySelector('[data-ref-action="redo"]').disabled = !history.canRedo() || historyLocked;
+    for (const button of panel.querySelectorAll('[data-ref-action="undo"]')) button.disabled = !history.canUndo() || historyLocked;
+    for (const button of panel.querySelectorAll('[data-ref-action="redo"]')) button.disabled = !history.canRedo() || historyLocked;
     const record = selected();
     editorElement.hidden = !record;
     if (!record) {
@@ -413,8 +413,8 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (field === 'rotation') event.target.value = numberText(referenceImagePlacementRotation(record, mapHost()), 1);
     if (continuous && event.type === 'change' && continuousBefore) { history.push(continuousBefore); continuousBefore = null; }
     const historyLocked = records.some(item => item.locked);
-    panel.querySelector('[data-ref-action="undo"]').disabled = !history.canUndo() || historyLocked;
-    panel.querySelector('[data-ref-action="redo"]').disabled = !history.canRedo() || historyLocked;
+    for (const button of panel.querySelectorAll('[data-ref-action="undo"]')) button.disabled = !history.canUndo() || historyLocked;
+    for (const button of panel.querySelectorAll('[data-ref-action="redo"]')) button.disabled = !history.canRedo() || historyLocked;
     if (field === 'warp' || field === 'locked') renderEditor();
     renderer.requestRender();
   }
