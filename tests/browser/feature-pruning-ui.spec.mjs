@@ -43,8 +43,7 @@ for (const viewport of viewports) {
     }
     await search.fill('폴란드');
     await page.locator('#layerSearchResults .layer-search-result').first().click();
-    await expect(page.locator('#selectionToolbar')).toBeVisible();
-    await page.locator('#selectionToolbarEditBtn').click();
+    await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
     await expect(page.locator('.editor-view-tabs')).toHaveText(/작업/);
     await expect(page.locator('#editorTabBtn')).toBeHidden();
     await expect(page.locator('#entityAreaValue')).toContainText('km²');

@@ -30,7 +30,7 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));
-  await page.locator('#selectionToolbarEditBtn').click({ timeout: 10_000 });
+  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click({ timeout: 10_000 });
   await page.locator('#focusSelectedObjectBtn').click({ timeout: 10_000 });
   const map = await page.locator('#map').boundingBox();
   const centerPoint = await page.evaluate(coordinate => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate), center);
