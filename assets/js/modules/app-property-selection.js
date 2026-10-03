@@ -290,11 +290,11 @@ export function createPropertySelection() {
   function applyTerritorialSelectionIntent(type, id, refreshOnly = false) {
     const unitType = String(type || dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType || '');
     if (unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      return dependencies.domains.selectionUiController.applyIntent(dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'country', id: String(id) }), { refreshOnly, openEditor: false });
+      return dependencies.domains.selectionUiController.applyIntent(dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'country', id: String(id) }), { refreshOnly, openEditor: !refreshOnly });
     }
     const unit = dependencies.territorialModel.entityRepository.get(id);
     if (!unit || unit.properties?.unitType !== unitType) return false;
-    return dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: unitType, id }), { refreshOnly, openEditor: false });
+    return dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: unitType, id }), { refreshOnly, openEditor: !refreshOnly });
   }
 
   function setTerritorialEntityName(type, id, value) {

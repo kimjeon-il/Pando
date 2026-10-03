@@ -19,9 +19,6 @@ test('common entities feed editing, undo, autosave and restoration', async ({ pa
   });
   for (const [type, entity] of [['country', before.country], ['subunit', before.unit]]) {
     await page.evaluate(({ type, id }) => window.PANDOLAB_TERRITORIAL.select(type, id), { type, id: entity.id });
-    if (!(await page.locator(`#${type}Properties`).isVisible())) {
-      await page.locator('#selectionToolbarEditBtn').click({ timeout: 15000 });
-    }
     await expect(page.locator(`#${type}Properties`)).toBeVisible();
     const input = page.locator(`#${type}NameInput`);
     await input.fill(`공통 경로 ${type}`);
