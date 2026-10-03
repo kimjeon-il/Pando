@@ -644,7 +644,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (!freeTransformDrag || event.pointerId !== freeTransformDrag.pointerId) return false;
     const record = records.find(candidate => candidate.id === freeTransformDrag.recordId);
     if (!record || record.locked || record.warp?.ok || record.anchor || record.controlPoints.length) {
-      freeTransformDrag = null;
+      cancelFreeTransformDrag();
       return false;
     }
     const changed = applyReferenceImageFreeTransformDrag(record, freeTransformDrag, point, mapHost());
