@@ -141,8 +141,35 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     isPanelHidden: () => panel.hidden,
   });
 
+  function warpPointsFor(record) {
+    const points = record.controlPoints.map(point => ({
+      id: point.id,
+      image: [...point.image],
+      coordinate: [...point.coordinate],
+      pinned: false,
+    }));
+    if (record.anchor) {
+      points.unshift({
+        id: 'anchor',
+        image: [...record.anchor.image],
+        coordinate: [...record.anchor.coordinate],
+        pinned: true,
+      });
+    }
+    return points;
+  }
+
+  function currentWarpQuad(record) {
+    if (!record?.warp?.ok) return null;
+    const corners = [[0, 0], [1, 0], [1, 1], [0, 1]]
+      .map(image => record.warp.project(image));
+    return corners.every(coordinate => coordinate?.every(Number.isFinite))
+      ? corners.map(coordinate => [...coordinate])
+      : null;
+  }
+
   function rebuildWarp(record) {
-    record.warp = buildReferenceImageWarp(record.controlPoints, { mode: record.warpMode });
+    record.warp = buildReferenceImageWarp(warpPointsFor(record), { mode: record.warpMode });
     record.mesh = record.warp.ok ? buildReferenceImageMesh(record.warp, MESH_QUALITY) : null;
     record.projectedMesh = null;
     if (record.warp.ok && placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
@@ -439,7 +466,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function armAnchor(record) {
-    if (!record || record.locked || record.warp?.ok || record.controlPoints.length) return false;
+    if (!record || record.locked) return false;
     cancelTools();
     cancelGcp(false);
     stopControlPointEditing({ renderUi: false });
@@ -460,7 +487,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function armGcp(record, pointId = '', side = 'image') {
-    if (!record || record.locked || record.anchor) return;
+    if (!record || record.locked) return;
     cancelTools();
     cancelAnchor(false);
     stopPlacementEditing({ renderUi: false });
@@ -480,7 +507,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function startControlPointEditing(record) {
-    if (!record || record.locked || record.anchor || !record.controlPoints.length) return false;
+    if (!record || record.locked || !record.controlPoints.length) return false;
     cancelTools();
     cancelAnchor(false);
     cancelGcp(false);
@@ -685,7 +712,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   function commitAnchor(point) {
     if (!anchorState) return;
     const record = records.find(candidate => candidate.id === anchorState.recordId);
-    if (!record || record.locked || record.warp?.ok || record.controlPoints.length || !validToken(anchorState.token)) {
+    if (!record || record.locked || !validToken(anchorState.token)) {
       cancelAnchor();
       return;
     }
@@ -715,13 +742,28 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       image: [...anchorState.image],
       coordinate: [coordinate[0], coordinate[1]],
     };
-    if (!alignReferenceImageAnchor(record)) {
+    rebuildWarp(record);
+
+    let accepted = true;
+    if (record.warp.ok) {
+      accepted = Number(record.warp.diagnostics?.hardMaxMeters) <= 0.01;
+    } else if (
+      record.warp.reason === 'singular-control-points'
+      && record.warp.pointCount >= record.warp.minimumPoints
+    ) {
+      accepted = false;
+    } else {
+      accepted = alignReferenceImageAnchor(record);
+    }
+
+    if (!accepted) {
       record.anchor = previous?.anchor ? {
         image: [...previous.anchor.image],
         coordinate: [...previous.anchor.coordinate],
       } : null;
       if (previous?.mapQuad) record.mapQuad = previous.mapQuad.map(value => [...value]);
-      setHint('이 위치에는 고정점을 설정할 수 없습니다.', 'error');
+      rebuildWarp(record);
+      setHint('이 위치에는 고정점 제약을 적용할 수 없습니다.', 'error');
       renderer.requestRender();
       return;
     }
@@ -730,7 +772,12 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     void persist(record);
     cancelAnchor(false);
     refreshUi();
-    setHint('고정점을 설정했습니다. 배치 편집에서 크기와 회전 시 이 지점이 유지됩니다.', 'success');
+    setHint(
+      record.warp.ok
+        ? '고정점을 제약식으로 적용했습니다. 일반 기준점은 오차를 최소화하면서 이 지점은 정확히 유지됩니다.'
+        : '고정점을 설정했습니다. 배치 편집에서 크기와 회전 시 이 지점이 유지됩니다.',
+      'success',
+    );
   }
 
   function commitGcp(point) {
@@ -910,8 +957,11 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       return;
     }
     if (action === 'clear-anchor' && record.anchor && !record.locked) {
+      const fallbackQuad = currentWarpQuad(record);
       history.push(records);
       record.anchor = null;
+      rebuildWarp(record);
+      if (!record.warp.ok && fallbackQuad) record.mapQuad = fallbackQuad;
       void persist(record);
       refreshUi();
       return;
