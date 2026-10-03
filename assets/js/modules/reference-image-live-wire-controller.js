@@ -1,4 +1,5 @@
 import { referenceImageKeyBlocked } from './reference-image-input.js';
+import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
 import { referenceImageMappingSignature } from './reference-image-model.js';
 import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
@@ -276,6 +277,7 @@ export function installReferenceImageLiveWire() {
   }
 
   function cancelLiveWire({ message = '', tone = '' } = {}) {
+    setReferenceImageSurfaceEditing(false);
     state = null;
     pendingPointer = null;
     mapElement.classList.remove('is-reference-live-wire-mode');
@@ -423,6 +425,7 @@ export function installReferenceImageLiveWire() {
       setMessage('참조 이미지 편집이나 선 보강을 먼저 종료한 뒤 자동 추적을 시작하세요.', 'error');
       return false;
     }
+    setReferenceImageSurfaceEditing(false);
     state = {
       recordId,
       phase: 'loading',
