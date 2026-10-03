@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const app = readApplicationOwners('map-projection', 'gpu-scene', 'map-host', 'country-labels');
+const app = readApplicationOwners('map-projection', 'gpu-scene', 'map-host', 'territorial-labels');
 const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
 
 const functionSource = applicationFunctionSource;

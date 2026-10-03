@@ -6,6 +6,7 @@ import { migrateProjectToCurrent, migrateProjectV4ToV5 } from '../../assets/js/m
 import { createTerritorialFeature, normalizeTerritorialUnits, TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialScopeResolver, validateSubunitParentChanges } from '../../assets/js/modules/territorial-scope.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { resolveTerritorialColor } from '../../assets/js/modules/color-adapter.js';
 import { layerStyle, normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 import { normalizeHistoricalLibraryEntity } from '../../assets/js/modules/historical-library.js';
 import { MAP_OBJECT_TYPES } from '../../assets/js/modules/map-object-categories.js';
@@ -154,7 +155,6 @@ test('country extent includes detached descendants once and caches geometry work
   });
   const resolver = createTerritorialScopeResolver({
     entityRepository: repository,
-    countryColor: () => '#123456',
     clipper: () => ({ difference: engine.difference, union: (...args) => { unions++; return engine.union(...args); } }),
   });
   const first = resolver.scope('DNK');
@@ -163,8 +163,8 @@ test('country extent includes detached descendants once and caches geometry work
   assert.ok(first.extra.geometry.coordinates.length);
   assert.equal(resolver.scope('DNK'), first);
   assert.equal(unions, 1);
-  assert.equal(resolver.color(units[0]), '#123456');
-  assert.equal(resolver.color(units[1]), '#ee8800');
+  assert.equal(resolveTerritorialColor(units[0], { entityRepository: repository, countryColor: () => '#123456' }), '#123456');
+  assert.equal(resolveTerritorialColor(units[1], { entityRepository: repository, countryColor: () => '#123456' }), '#ee8800');
   revision++;
   resolver.scope('DNK'); assert.equal(unions, 2);
   assert.deepEqual({ country, units }, before);
@@ -179,12 +179,7 @@ test('parent style inheritance stops at explicit style without changing country 
     getUnits: () => units,
     getRevision: () => 1,
   });
-  const resolver = createTerritorialScopeResolver({
-    entityRepository: repository,
-    countryColor: () => '#112233',
-    clipper: () => engine,
-  });
-  assert.equal(resolver.color(units[1]), '#ff9900');
+  assert.equal(resolveTerritorialColor(units[1], { entityRepository: repository, countryColor: () => '#112233' }), '#ff9900');
 });
 
 test('legacy library and exchange aliases normalize only at input boundaries', () => {
