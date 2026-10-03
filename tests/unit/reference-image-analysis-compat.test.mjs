@@ -59,11 +59,18 @@ test('active reference image input bypasses map overlay hit blocking but not UI 
 });
 
 
-test('reference image editing collapses the surface body on desktop and mobile', async () => {
+test('reference image editing stays expanded on desktop and compacts only on mobile', async () => {
   const surface = await readFile(moduleUrl('reference-image-surface.js'), 'utf8');
   const layout = await readFile(new URL('../../assets/css/layout/reference-images.css', import.meta.url), 'utf8');
-  assert.match(surface, /const compactEditing = editing;/);
-  assert.match(layout, /\.surface-reference\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/);
+  assert.match(surface, /const mobile = workspaceSurfaces\.isMobile\(\);/);
+  assert.match(surface, /const compactEditing = editing && mobile;/);
+  assert.match(surface, /reference-image-editing-active/);
+  assert.equal(
+    /\.surface-reference\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/.test(layout),
+    false,
+  );
+  assert.match(layout, /\.surface-reference\.reference-image-editing-active/);
+  assert.match(layout, /right:\s*calc\(var\(--map-safe-right/);
 });
 
 
