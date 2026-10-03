@@ -14,7 +14,7 @@ test('common entities feed editing, undo, autosave and restoration', async ({ pa
   }, { timeout: 45000 }).toBe('enhanced');
   const before = await page.evaluate(() => {
     const api = window.PANDOLAB_TERRITORIAL;
-    const unit = api.list({ type: 'subunit' }).find(entity => entity.properties.metadata?.builtinSubunit?.sourceCountryId === 'ALD');
+    const unit = api.list({ kind: 'general' }).filter(f => f.properties.parentId).find(entity => entity.properties.metadata?.builtinSubunit?.sourceCountryId === 'ALD');
     return { country: api.get('DEU'), unit };
   });
   for (const [type, entity] of [['country', before.country], ['subunit', before.unit]]) {
@@ -33,14 +33,14 @@ test('common entities feed editing, undo, autosave and restoration', async ({ pa
     expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).geometry, entity.id)).toEqual(entity.geometry);
   }
   const id = before.unit.id;
-  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setColor('subunit', id, '#123456').changed, id)).toBe(true);
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setColor(id, '#123456').changed, id)).toBe(true);
   await expect.poll(() => page.locator('path.territorial-unit-shape').evaluateAll((nodes, id) =>
     nodes.find(node => node.__data__?.id === id)?.__data__?.properties.style.color, id)).toBe('#123456');
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.style, id)).toEqual(before.unit.properties.style);
   await page.evaluate(id => {
-    window.PANDOLAB_TERRITORIAL.setColor('country', 'DEU', '#476fae');
-    window.PANDOLAB_TERRITORIAL.setColor('subunit', id, '#123456');
+    window.PANDOLAB_TERRITORIAL.setColor('DEU', '#476fae');
+    window.PANDOLAB_TERRITORIAL.setColor(id, '#123456');
   }, id);
   const saved = () => page.evaluate(async () => {
     const db = await new Promise((resolve, reject) => {

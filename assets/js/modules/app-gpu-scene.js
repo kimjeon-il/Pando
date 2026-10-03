@@ -32,7 +32,7 @@ export function createGpuScene() {
     if (!ref) return null;
     if (ref.domain === 'territorial') {
       const state = dependencies.projectState.state;
-      if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      if ((dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)) {
         const current = dependencies.territorialModel.entityRepository.get(ref.id);
         if (state.countryVisualPhase !== 'preview') return current;
         return state.auditPreviewCountries?.features?.find(feature => String(feature.id) === String(ref.id)) || current;

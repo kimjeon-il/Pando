@@ -28,7 +28,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     await expect(page.locator('#gisStepIndicator')).toContainText('3/3');
     await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
     await page.locator('#gisImportConfirmBtn').click();
-    await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' })
+    await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId)
       .some(unit => unit.properties.name === '상속 화면 비교')), { timeout: 60_000 }).toBe(true);
     const clip = await page.locator('path.territorial-unit-shape').evaluateAll(nodes => {
       const path = nodes.find(node => node.__data__?.properties?.name === '상속 화면 비교');
@@ -53,12 +53,12 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     }
     const added = await captureStable('subunit-added');
     await page.locator('#undoBtn').click();
-    await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' })
+    await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId)
       .some(unit => unit.properties.name === '상속 화면 비교'))).toBe(false);
     const without = await captureStable('without-subunit');
     expect(added.equals(without), 'Interior color and terrain must not change when the inherited child is added').toBe(true);
     await page.locator('#redoBtn').click();
-    await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' })
+    await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId)
       .some(unit => unit.properties.name === '상속 화면 비교'))).toBe(true);
     const restored = await captureStable('subunit-restored');
     expect(restored.equals(without)).toBe(true);

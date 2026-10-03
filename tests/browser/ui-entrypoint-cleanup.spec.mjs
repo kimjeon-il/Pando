@@ -26,9 +26,9 @@ test('one responsive view control and theme-only preferences preserve editing an
   expect(interaction.outlineVisible).toBe(true);
   expect(interaction.fillStrength).toBe(0.35);
   expect(interaction.color).not.toBe('#ff0000');
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
-  await expect(page.locator('#countryProperties')).toBeVisible();
-  await expect(page.locator('#editBorderBtn')).toHaveCount(1);
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+  await expect(page.locator('#entityProperties')).toBeVisible();
+  await expect(page.locator('#editEntityBorderBtn')).toHaveCount(1);
   await page.locator('#mobileFileBtn').click();
   await page.locator('#preferencesBtn').click();
   const rulesBefore = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().interactionStyle);

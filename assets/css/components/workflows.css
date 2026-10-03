@@ -942,14 +942,8 @@
   line-height: var(--ui-line-normal);
 }
 
-.workflow-dialog-card > :is(.territorial-type-fields, .territorial-create-fields, .confirm-impact, .confirm-modal-choice-row, .ui-dialog-actions, .confirm-modal-actions) {
+.workflow-dialog-card > :is(.territorial-create-fields, .confirm-impact, .confirm-modal-choice-row, .ui-dialog-actions, .confirm-modal-actions) {
   grid-column: 1 / -1;
-}
-
-.workflow-dialog-card .territorial-type-fields {
-  display: grid;
-  gap: var(--ui-field-gap);
-  margin-top: var(--ui-space-2);
 }
 
 .workflow-dialog-card .territorial-create-fields {
@@ -958,7 +952,7 @@
   margin-top: var(--ui-space-2);
 }
 
-.workflow-dialog-card :is(.confirm-impact, .territorial-type-impact) {
+.workflow-dialog-card .confirm-impact {
   margin: var(--ui-space-1) 0 0;
   padding: var(--ui-space-3) 0 0;
   border: 0;
@@ -968,7 +962,7 @@
   color: var(--text-soft);
 }
 
-.workflow-dialog-card :is(.confirm-impact, .territorial-type-impact) > strong {
+.workflow-dialog-card .confirm-impact > strong {
   display: block;
   margin-bottom: var(--ui-space-2);
   color: var(--muted);
@@ -977,7 +971,7 @@
   letter-spacing: .06em;
 }
 
-.workflow-dialog-card :is(.confirm-impact, .territorial-type-impact) ul {
+.workflow-dialog-card .confirm-impact ul {
   margin: 0;
   padding-inline-start: 1.1rem;
   color: var(--text-soft);

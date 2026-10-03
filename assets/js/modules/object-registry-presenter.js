@@ -15,18 +15,18 @@ const ACTION_UI_BINDINGS = Object.freeze({
   delete: Object.freeze([
     Object.freeze({ elementId: 'objectDeleteBtn', icon: true }),
   ]),
-  'change-type': Object.freeze([
-    Object.freeze({ elementId: 'changeCountryTypeBtn', labelSelector: 'strong' }),
+  'copy-region': Object.freeze([
+    Object.freeze({ elementId: 'copyEntityRegionBtn', labelSelector: 'strong' }),
   ]),
   'border-edit': Object.freeze([
-    Object.freeze({ elementId: 'editBorderBtn', labelSelector: 'strong' }),
+    Object.freeze({ elementId: 'editEntityBorderBtn', labelSelector: 'strong' }),
     Object.freeze({ elementId: 'multiBorderEditBtn', labelSelector: 'strong' }),
   ]),
   'coast-edit': Object.freeze([
-    Object.freeze({ elementId: 'editCoastBtn', labelSelector: 'strong' }),
+    Object.freeze({ elementId: 'editEntityCoastBtn', labelSelector: 'strong' }),
   ]),
   'coast-reconcile': Object.freeze([
-    Object.freeze({ elementId: 'reconcileSubunitCoastBtn', labelSelector: 'strong', icon: true }),
+    Object.freeze({ elementId: 'reconcileEntityCoastBtn', labelSelector: 'strong', icon: true }),
   ]),
 });
 

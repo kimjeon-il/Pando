@@ -67,7 +67,7 @@ export function createPropertySelection() {
   function territorialUnitCountryOptions() {
     return [
       { value: '', label: '소속 국가 미지정' },
-      ...dependencies.territorialModel.entityRepository.list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY }).map(feature => {
+      ...dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).map(feature => {
         const properties = feature.properties || {};
         return {
           value: String(feature.id || ''),
@@ -79,7 +79,7 @@ export function createPropertySelection() {
   }
 
   function territorialUnitParentOptions(feature) {
-    const countryId = String((0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '');
+    const countryId = String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '');
     const options = (0, dependencies.territorialServicesA.subunitParentChoices)(countryId, dependencies.territorialModel.entityRepository, {
       exclude: [feature.id], name: item => (0, dependencies.objectPresentation.territorialEntityName)(item),
     });
@@ -117,12 +117,12 @@ export function createPropertySelection() {
       }
     }
     return [
-      { value: '', label: '상위 단위 없음' },
+      { value: '', label: '상위 객체 없음' },
       ...dependencies.territorialModel.entityRepository.list()
-        .filter(candidate => !excluded.has(String(candidate.id)))
+        .filter(candidate => candidate.properties.entityKind === 'general' && !excluded.has(String(candidate.id)))
         .map(candidate => ({
           value: String(candidate.id),
-          label: `${candidate.properties?.name || (0, dependencies.objectPresentation.territorialEntityName)(candidate)} · ${(0, dependencies.territorialServicesB.territorialTypeLabel)(candidate.properties?.unitType)}`,
+          label: `${candidate.properties?.name || (0, dependencies.objectPresentation.territorialEntityName)(candidate)}`,
         }))
         .sort((left, right) => dependencies.objectModelA.layerNameCollator.compare(left.label, right.label)),
     ];
@@ -287,34 +287,27 @@ export function createPropertySelection() {
     return true;
   }
 
-  function applyTerritorialSelectionIntent(type, id, refreshOnly = false) {
-    const unitType = String(type || dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType || '');
-    if (unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      return dependencies.domains.selectionUiController.applyIntent(dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'country', id: String(id) }), { refreshOnly, openEditor: false });
-    }
-    const unit = dependencies.territorialModel.entityRepository.get(id);
-    if (!unit || unit.properties?.unitType !== unitType) return false;
-    return dependencies.domains.selectionUiController.applyIntent((0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: unitType, id }), { refreshOnly, openEditor: false });
+  function applyTerritorialSelectionIntent(id, refreshOnly = false) {
+    if (!dependencies.territorialModel.entityRepository.get(id)) return false;
+    return dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(id) }, { refreshOnly, openEditor: false });
   }
 
-  function setTerritorialEntityName(type, id, value) {
-    return dependencies.objectMetadata.commitTerritorialMetadata({ domain: 'territorial', type, id: String(id) }, 'name', value);
+  function setTerritorialEntityName(id, value) {
+    return dependencies.objectMetadata.commitTerritorialMetadata({ domain: 'territorial', type: 'entity', id: String(id) }, 'name', value);
   }
 
-  function setTerritorialEntityColor(type, id, value) {
-    return dependencies.objectMetadata.commitTerritorialMetadata({ domain: 'territorial', type, id: String(id) }, 'color', value);
+  function setTerritorialEntityColor(id, value) {
+    return dependencies.objectMetadata.commitTerritorialMetadata({ domain: 'territorial', type: 'entity', id: String(id) }, 'color', value);
   }
 
-  function setTerritorialEntityLocked(type, id, locked) {
+  function setTerritorialEntityLocked(id, locked) {
     const key = String(id || '');
-    const result = dependencies.objectModelB.territorialApplicationService.setLocked(type, key, locked, {
-      history: type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? { description: `${(0, dependencies.objectPresentation.territorialEntityName)(dependencies.territorialModel.entityRepository.get(key))} ${locked ? '잠금' : '잠금 해제'}` }
-        : {},
+    const result = dependencies.objectModelB.territorialApplicationService.setLocked(key, locked, {
+      history: { description: `${(0, dependencies.objectPresentation.territorialEntityName)(dependencies.territorialModel.entityRepository.get(key))} ${locked ? '잠금' : '잠금 해제'}` },
     });
     if (!result.ok) return false;
     if (!result.changed) return true;
-    dependencies.domains.layerTreeController?.syncLocks([{ domain: 'territorial', type, id: key }]);
+    dependencies.domains.layerTreeController?.syncLocks([{ domain: 'territorial', type: 'entity', id: key }]);
     if (dependencies.projectState.state.selected?.domain === 'territorial' && String(dependencies.projectState.state.selected.id) === key) dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
     dependencies.objectOperationsB.syncBatchActionAvailability();
     return true;
@@ -419,7 +412,7 @@ export function createPropertySelection() {
       setName: setTerritorialEntityName,
       setColor: setTerritorialEntityColor,
       setLocked: setTerritorialEntityLocked,
-      isLocked: (type, id) => dependencies.objectModelB.territorialApplicationService.isLocked(type, id),
+      isLocked: id => dependencies.objectModelB.territorialApplicationService.isLocked(id),
     });
 
     window.PANDOLAB_DISTRIBUTIONS = Object.freeze({

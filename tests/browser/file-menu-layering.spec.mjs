@@ -7,7 +7,7 @@ test('global file menus stay above the object editor and keep their existing foc
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'BIH'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('BIH'));
   await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#editorObjectHeader')).toBeVisible();
   const menu = page.locator('#fileMenu');

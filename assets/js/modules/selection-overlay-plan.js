@@ -46,11 +46,11 @@ export function selectionGeometryKinds(feature) {
     boundary: geometries.some(geometry => ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(geometry?.type)) };
 }
 
-export function planSelectionEntry({ ref, entry, channel = interactionChannel(entry), countryType, feature, boundary,
+export function planSelectionEntry({ ref, entry, channel = interactionChannel(entry), rootGeneral = false, feature, boundary,
   pendingCountry = false, outlineVisible = true, selectionStyle = {} }) {
   const plan = { channel, fill: null, fillRequest: null, generic: null, countryId: null, fallback: null };
   if (!feature?.geometry && feature?.type !== 'FeatureCollection') return plan;
-  const country = ref.domain === 'territorial' && ref.type === countryType;
+  const country = ref.domain === 'territorial' && rootGeneral;
   const key = country ? `country:${ref.id}` : ref.key;
   const primary = channel === 'primary', candidate = channel === 'candidate';
   const kind = selectionGeometryKinds(feature);
@@ -70,8 +70,8 @@ export function planSelectionEntry({ ref, entry, channel = interactionChannel(en
   return plan;
 }
 
-export function planHoverEntry({ ref, countryType, feature, boundary, pendingCountry = false, hoverStyle = {} }) {
-  const country = ref.domain === 'territorial' && ref.type === countryType;
+export function planHoverEntry({ ref, rootGeneral = false, feature, boundary, pendingCountry = false, hoverStyle = {} }) {
+  const country = ref.domain === 'territorial' && rootGeneral;
   const key = country ? `country:${String(ref.id || '')}` : ref.key;
   const polygon = selectionGeometryKinds(feature).polygon;
   const fill = (!country || pendingCountry) && polygon ? { color: hoverStyle.color, fillAlpha: hoverStyle.fillAlpha } : null;

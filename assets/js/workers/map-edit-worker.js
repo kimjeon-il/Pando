@@ -177,15 +177,15 @@ self.onmessage = async event => {
     } else if (componentOperation) {
       result = await prepareComponentOperation(message.operation, message.payload, self.polygonClipping, requestCheckpoint(message, epoch));
     } else if (message.operation === 'territorial-library-batch') {
-      result = await calculateLibraryBatch(message.payload, sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), sourceFeatures('territorial').filter(feature => feature.properties.unitType !== 'country'), self.polygonClipping, requestCheckpoint(message, epoch, true));
+      result = await calculateLibraryBatch(message.payload, sourceFeatures('territorial').filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)), sourceFeatures('territorial').filter(feature => !(feature.properties.entityKind === 'general' && !feature.properties.parentId)), self.polygonClipping, requestCheckpoint(message, epoch, true));
     } else if (message.operation === 'territorial-preview') {
       const before = (message.payload.beforeIds || []).map(id => sourceFeature(id, ['territorial', 'generic'])).filter(Boolean);
       result = calculateTerritorialPreview(message.payload, before, self.polygonClipping);
       result.preparationId = 'preview:' + ++previewSequence;
       if (!result.validation.blocking) retainReceipt(result.preparationId, message, epoch);
     } else if (message.operation === 'territorial-region-redraw') {
-      const { targetId, containerId, siblingIds, draft } = message.payload;
-      result = calculateRegionRedraw(sourceFeature(targetId, ['territorial']), sourceFeature(containerId), siblingIds.map(id => sourceFeature(id, ['territorial'])), draft, self.polygonClipping);
+      const { targetId, draft } = message.payload;
+      result = calculateRegionRedraw(sourceFeature(targetId, ['territorial']), draft);
     } else if (message.operation === 'territorial-drawn') {
       result = calculateDrawnGeometry(message.payload, self.polygonClipping);
     } else if (message.operation === 'territorial-snap') {
@@ -200,7 +200,7 @@ self.onmessage = async event => {
     } else if (message.operation === 'territorial-display') {
       displayService ||= createEditDisplayPreparation();
       const service = displayService;
-      result = await service.prepare(message.payload, sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), sourceFeatures('territorial').filter(feature => feature.properties.unitType !== 'country'),
+      result = await service.prepare(message.payload, sourceFeatures('territorial').filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)), sourceFeatures('territorial').filter(feature => !(feature.properties.entityKind === 'general' && !feature.properties.parentId)),
         requestCheckpoint(message, epoch, true, () => service === displayService), key => editSources.get(key)?.feature);
     } else if (message.operation === 'territorial-parents') {
       result = calculateParents(sourceFeature(message.payload.targetId, ['territorial']), (message.payload.candidateIds || []).map(id => ({ id, parent: sourceFeature(id) })), self.polygonClipping);
@@ -209,14 +209,14 @@ self.onmessage = async event => {
       if (!receipt || receipt.sourceRevision !== sourceRevision) throw new Error('미리보기 원본이 변경되었습니다. 다시 계산하세요.');
       result = { valid: true, preparationId: message.payload.preparationId, sourceRevision };
     } else if (message.operation === 'territorial-coast-availability') {
-      const payload = message.payload.unitId ? { countries: sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), unit: sourceFeature(message.payload.unitId, ['territorial']) } : message.payload;
+      const payload = message.payload.unitId ? { countries: sourceFeatures('territorial').filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)), unit: sourceFeature(message.payload.unitId, ['territorial']) } : message.payload;
       if (!payload.unit) throw new Error('하위단위를 찾을 수 없습니다.');
       const coastCountries = payload.countries;
       if (!coastTopologyCache || coastTopologyCache.geometries.length !== coastCountries.length || coastCountries.some((feature, index) => coastTopologyCache.geometries[index] !== feature.geometry)) {
         coastTopologyCache = { geometries: coastCountries.map(feature => feature.geometry), topology: buildBoundaryTopology(coastCountries) };
         coastResultCache = new WeakMap();
       }
-      const country = coastCountries.find(feature => featureId(feature) === self.PandoLabTerritorialEdit.administrativeCountryId(payload.unit, id => sourceFeature(id, ['territorial'])));
+      const country = coastCountries.find(feature => featureId(feature) === self.PandoLabTerritorialEdit.territorialRootId(payload.unit, id => sourceFeature(id, ['territorial'])));
       const cached = coastResultCache.get(payload.unit.geometry);
       if (cached?.countryId === featureId(country)) result = cached.result;
       else {
@@ -226,13 +226,13 @@ self.onmessage = async event => {
     } else if (message.operation === 'territorial-source') {
       const { parent, children } = message.payload.parentId ? {
         parent: sourceFeature(message.payload.parentId),
-        children: sourceFeatures('territorial').filter(feature => String(feature.properties?.parentId) === String(message.payload.parentId) && feature.properties?.unitType === 'subunit'),
+        children: sourceFeatures('territorial').filter(feature => String(feature.properties?.parentId) === String(message.payload.parentId) && (feature.properties?.entityKind === 'general' && !!feature.properties?.parentId)),
       } : message.payload;
       result = calculateUncoveredSource(parent, children, self.polygonClipping);
     } else if (message.operation === 'territorial-edit') {
-      result = calculateTerritorialEdit(message.payload, sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), sourceFeatures('territorial').filter(feature => feature.properties.unitType !== 'country'), self.polygonClipping);
+      result = calculateTerritorialEdit(message.payload, sourceFeatures('territorial'), self.polygonClipping);
     } else {
-      ({ result, afterFeatures } = createCountryCommandCalculator(self.polygonClipping).calculate(message, new Map(sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country').map(feature => [featureId(feature), feature]))));
+      ({ result, afterFeatures } = createCountryCommandCalculator(self.polygonClipping).calculate(message, new Map(sourceFeatures('territorial').filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)).map(feature => [featureId(feature), feature]))));
     }
     assertRequestCurrent(message, epoch);
     if (message.operation === 'territorial-edit') {
@@ -241,7 +241,7 @@ self.onmessage = async event => {
       if (!result.preview.validation.blocking && !result.impacts.some(impact => impact.kind === 'coast-owner')) retainReceipt(result.preparationId, message, epoch);
     }
     if (!readOnly) {
-      result.preview = calculateCountryPreview(message, result, sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), afterFeatures, self.polygonClipping);
+      result.preview = calculateCountryPreview(message, result, sourceFeatures('territorial').filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)), afterFeatures, self.polygonClipping);
     }
     assertRequestCurrent(message, epoch);
     if (!readOnly) pendingResults.set(Number(message.requestId), {

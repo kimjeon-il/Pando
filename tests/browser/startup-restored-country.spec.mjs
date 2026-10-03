@@ -45,7 +45,7 @@ test('a saved built-in classification and color use the shipped preview before c
   test.setTimeout(120_000);
   await page.goto('/?renderer=canvas', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setColor('country', 'DEU', '#476FAE'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setColor('DEU', '#476FAE'));
   await expect.poll(async () => (await readAutosave(page))?.entityDelta?.changed.find(entity => entity.id === 'DEU')?.properties.style.color, { timeout: 15_000 }).toBe('#476fae');
   const savedPage = await page.context().newPage();
   let releaseCanonical;
@@ -72,7 +72,7 @@ test('an autosaved country change waits for its restored geometry before the fir
   });
   await page.goto('/?renderer=canvas', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setColor('country', 'DEU', '#476FAE'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setColor('DEU', '#476FAE'));
   await expect.poll(async () => (await readAutosave(page))?.entityDelta?.changed.find(entity => entity.id === 'DEU')?.properties.style.color, { timeout: 15_000 }).toBe('#476fae');
   await page.evaluate(async () => {
     const database = await new Promise((resolve, reject) => {
@@ -125,7 +125,7 @@ test('an autosaved country change waits for its restored geometry before the fir
     releaseCanonical();
   }
   await expect(restoredPage.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
-  expect(await restoredPage.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
+  expect(await restoredPage.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
     .some(country => country.id === 'POL'))).toBe(false);
   await expect.poll(() => readPreviewCache(restoredPage), { timeout: 90_000 }).not.toBeNull();
   expect((await readPreviewCache(restoredPage)).bytes).toBeLessThanOrEqual(16 * 1024 * 1024);
@@ -140,7 +140,7 @@ test('an autosaved country change waits for its restored geometry before the fir
   try {
     await cachedPage.goto('/?renderer=webgl2', { waitUntil: 'domcontentloaded' });
     await expect(cachedPage.locator('#app')).toHaveAttribute('data-readiness', 'preview', { timeout: 60_000 });
-    expect(await cachedPage.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
+    expect(await cachedPage.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
       .some(country => country.id === 'POL'))).toBe(false);
     expect(await cachedPage.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.renderer)).toBe('webgl2');
   } finally { releaseSecondCanonical(); }

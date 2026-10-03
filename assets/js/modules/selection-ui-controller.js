@@ -123,7 +123,7 @@ export function createSelectionUiController({
     const current = selection();
     const clickedPrimary = selected && primary(current)?.key === ref.key;
     const territorialToolbarTarget = ref.domain === 'territorial'
-      && ['country', 'subunit', 'region'].includes(ref.type);
+      && ref.type === 'entity';
     const shouldOpenEditor = clickedPrimary && (openEditor == null ? !territorialToolbarTarget : openEditor);
     presentSelectionState(current, { refreshOnly: clickedPrimary ? refreshOnly : true, openEditor: shouldOpenEditor });
     if (clickedPrimary && !refreshOnly && !territorialToolbarTarget) uiActions.focusObject?.(ref);

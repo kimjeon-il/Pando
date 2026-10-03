@@ -62,11 +62,11 @@ export function createLibraryAssembly() {
     const entity = historicalLibraryService.get(libraryId);
     const currentCountryId = String(entity?.metadata?.currentCountryId || '');
     const currentCountry = currentCountryId ? dependencies.territorialModel.entityRepository.get(currentCountryId) : null;
-    if (currentCountry?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return currentCountryId;
+    if ((currentCountry?.properties?.entityKind === 'general' && !currentCountry?.properties?.parentId)) return currentCountryId;
     const sameId = dependencies.territorialModel.entityRepository.get(libraryId);
-    if (sameId?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return String(libraryId);
+    if ((sameId?.properties?.entityKind === 'general' && !sameId?.properties?.parentId)) return String(libraryId);
     const unit = dependencies.territorialModel.entityRepository.list().find(feature =>
-      feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+      !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId)
       && String(feature.properties?.sourceLibraryId || '') === String(libraryId));
     return unit ? String(unit.id) : '';
   }
@@ -75,7 +75,7 @@ export function createLibraryAssembly() {
     const revision = dependencies.projectState.state.stateRevision;
     const landRevision = dependencies.countries.countryLandRevision;
     const currentEntities = dependencies.projectState.state.territorialEntities;
-    const currentCountries = { type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) };
+    const currentCountries = { type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) };
     const assertCurrent = () => {
       if (options.isCurrent?.() === false || dependencies.projectState.state.stateRevision !== revision || dependencies.countries.countryLandRevision !== landRevision || dependencies.projectState.state.territorialEntities !== currentEntities) {
         throw new Error('프로젝트 또는 선택이 변경되었습니다. 항목과 소속을 다시 확인하세요.');
@@ -92,11 +92,9 @@ export function createLibraryAssembly() {
       batchPreparation = entry;
       entry.promise = (async () => {
         const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth, versionOverrides);
-        const countries = dependencies.territorialModel.entityRepository.list({
-          type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
-        });
+        const countries = dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' });
         const existingUnits = dependencies.territorialModel.entityRepository.list()
-          .filter(feature => feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY);
+          .filter(feature => !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
         const prepared = (0, dependencies.libraryServices.prepareLibraryOwnership)({
           descriptors, resolve: libraryInstanceId, countries,
           units: existingUnits, choices: options.ownership || {},
@@ -105,7 +103,7 @@ export function createLibraryAssembly() {
           contains: null,
         });
         if (!prepared.length) return { prepared };
-        const countryFeatures = prepared.filter(item => item.type === 'country').map(item => {
+        const countryFeatures = prepared.filter(item => item.entityKind === 'general' && !item.parentId).map(item => {
           const feature = (0, dependencies.objectPicking.createCountryFeature)(item.name, [], item.geometry);
           feature.id = item.id;
           feature.properties.style = item.metadata?.defaultColor ? { color: item.metadata.defaultColor } : {};
@@ -115,10 +113,10 @@ export function createLibraryAssembly() {
           if (item.validTo) feature.properties.validTo = item.validTo;
           return feature;
         });
-        const units = prepared.filter(item => item.type !== 'country').map(item => (0, dependencies.territorialServicesA.createTerritorialFeature)({
-          id: item.id, unitType: item.type, name: item.name, geometry: item.geometry,
-          parentId: item.parentId, associatedCountryId: item.type === 'region' ? item.sovereignId : '',
-          coverageMode: item.type === 'region' ? dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT : dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.PARTITION,
+        const units = prepared.filter(item => item.entityKind === 'regional' || !!item.parentId).map(item => (0, dependencies.territorialServicesA.createTerritorialFeature)({
+          id: item.id, entityKind: item.entityKind, name: item.name, geometry: item.geometry,
+          parentId: item.entityKind === 'regional' ? '' : item.parentId,
+          coverageMode: item.entityKind === 'regional' ? dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT : dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.PARTITION,
           validFrom: item.validFrom, validTo: item.validTo,
           color: item.metadata?.defaultColor || '',
           metadata: item.metadata, sourceLibraryId: item.libraryId, sourceGeometryVersion: item.geometryVersionId,
@@ -167,7 +165,7 @@ export function createLibraryAssembly() {
         ...(item.metadata?.librarySourceInfo || {}), kind: 'library', sourceId: item.libraryId,
         objectId: item.id, sourceType: descriptors.find(original => original.libraryId === item.libraryId)?.type,
         geometryVersionId: item.geometryVersionId, referenceDate,
-        originalParentLibraryId: item.parentLibraryId, originalSovereignLibraryId: item.sovereignLibraryId,
+        originalParentLibraryId: item.parentLibraryId,
       })) },
       commitStatus: '라이브러리 항목과 소속 관계를 한 번의 작업으로 추가했습니다.',
     }, {
@@ -195,17 +193,13 @@ export function createLibraryAssembly() {
         if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
         return response.json();
       },
-      getCountriesData: () => ({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) }),
+      getCountriesData: () => ({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) }),
       getMaterializationCountriesData: () => (0, dependencies.builtinCountries.materializePristineCountriesSync)(),
       displayName: dependencies.objectPresentation.territorialEntityName,
       combineGeometries: combineHistoricalLibraryGeometries,
       subtractGeometries: subtractHistoricalLibraryGeometry,
     });
-    LIBRARY_TYPE_LABELS = Object.freeze({
-      [dependencies.applicationConstantsA.LIBRARY_ENTITY_TYPES.COUNTRY]: dependencies.objectCatalog.MAP_OBJECT_TYPES.country.label,
-      [dependencies.applicationConstantsA.LIBRARY_ENTITY_TYPES.SUBUNIT]: dependencies.objectCatalog.MAP_OBJECT_TYPES.subunit.label,
-      [dependencies.applicationConstantsA.LIBRARY_ENTITY_TYPES.REGION]: dependencies.objectCatalog.MAP_OBJECT_TYPES.region.label,
-    });
+    LIBRARY_TYPE_LABELS = Object.freeze({ general: '객체', regional: '독립 권역' });
     historicalLibraryController = createHistoricalLibraryController({
       document,
       elements: {
@@ -243,11 +237,9 @@ export function createLibraryAssembly() {
       focusSurfaceTrigger: dependencies.workspaceUiB.focusSurfaceTrigger,
       instantiate: instantiateHistoricalLibraryEntities,
       ownershipContext: (ids, year, depth, versions) => {
-        const countries = dependencies.territorialModel.entityRepository.list({
-          type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
-        });
+        const countries = dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' });
         const units = dependencies.territorialModel.entityRepository.list()
-          .filter(feature => feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY);
+          .filter(feature => !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
         return {
           missing: (0, dependencies.libraryServices.missingLibraryOwnership)(
             historicalLibraryService.instantiateDescriptors(ids, year, depth, versions),
@@ -260,7 +252,7 @@ export function createLibraryAssembly() {
             id,
             dependencies.territorialModel.entityRepository,
             {
-              name: feature => feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+              name: feature => (feature.properties?.entityKind === 'general' && !feature.properties?.parentId)
                 ? (0, dependencies.objectPresentation.territorialEntityName)(feature)
                 : (0, dependencies.objectPresentation.territorialEntityName)(feature),
             },

@@ -18,15 +18,14 @@ export function createObjectCommands() {
   function territorialEntityForRef(ref) {
     if (ref?.domain !== 'territorial') return null;
     const entity = dependencies.territorialModel.entityRepository.get(ref.id);
-    return entity?.properties?.unitType === ref.type ? entity : null;
+    return entity && ref.type === 'entity' ? entity : null;
   }
 
   function layerItemObjectRef(group, id) {
     const key = String(id);
-    if (group === 'countries' || group === 'countryLabels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, id: key });
+    if (group === 'countries' || group === 'countryLabels') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: 'entity', id: key });
     if (group === 'subunits' || group === 'regions') {
-      const fallback = group === 'subunits' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT : group === 'regions' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION : dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT;
-      return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: dependencies.territorialModel.entityRepository.get(key)?.properties?.unitType || fallback, id: key });
+      return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: 'entity', id: key });
     }
     if (group === 'distributions') return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'distribution', type: 'distribution', id: key });
     if (group === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(key)) return (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: (0, dependencies.hydroPresentation.hydroEditById)(key)?.properties?.category || 'river', id: key });
@@ -51,11 +50,11 @@ export function createObjectCommands() {
     if (!ref) return { name: '알 수 없는 객체', type: '' };
     if (ref.domain === 'territorial') {
       const feature = territorialEntityForRef(ref);
-      if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      if ((dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)) {
         return { name: feature ? (0, dependencies.objectPresentation.territorialEntityName)(feature) : ref.id, type: '국가', detail: '' };
       }
       const type = (0, dependencies.territorialServicesB.territorialTypeLabel)(ref.type);
-      const context = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? '' : (0, dependencies.objectPresentation.administrativeCountryName)(feature);
+      const context = (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'regional') ? '' : (0, dependencies.objectPresentation.administrativeCountryName)(feature);
       return { name: feature ? (0, dependencies.objectPresentation.territorialEntityName)(feature) : ref.id, type, detail: context };
     }
     if (ref.domain === 'distribution') {
@@ -98,9 +97,9 @@ export function createObjectCommands() {
       }
     }
     if (!feature?.geometry && feature?.type !== 'FeatureCollection') return false;
-    const countryScope = ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+    const countryScope = ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)
       ? dependencies.objectModelB.territorialScope.scope(ref.id) : null;
-    const runtimeAnchor = ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+    const runtimeAnchor = ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)
       ? dependencies.labelPresentation.countryLabelAnchors.get(String(ref.id))
       : null;
     const preferredAnchor = (0, dependencies.countries.validLabelAnchor)(runtimeAnchor)
@@ -115,7 +114,7 @@ export function createObjectCommands() {
   function layerGroupForObjectRef(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return '';
-    if (ref.domain === 'territorial') return ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT ? 'subunits' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : 'subunits';
+    if (ref.domain === 'territorial') return (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'countries' : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !!dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'subunits' : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'regional') ? 'regions' : 'subunits';
     if (ref.domain === 'distribution') return 'distributions';
     if (ref.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(ref.id)) return 'hydro';
     if (ref.domain === 'generic') return 'genericFeatures';
@@ -132,7 +131,7 @@ export function createObjectCommands() {
     if (ref.domain === 'territorial') {
       values.add('color');
       values.add('lock');
-      if (dependencies.objectModelB.territorialApplicationService.canDelete(ref.type, ref.id).ok) values.add('delete');
+      if (dependencies.objectModelB.territorialApplicationService.canDelete(ref.id).ok) values.add('delete');
     } else if (ref.domain === 'distribution') {
       values.add('color'); values.add('lock'); values.add('delete');
     } else if (ref.domain === 'hydro') {
@@ -188,8 +187,8 @@ export function createObjectCommands() {
     const capabilities = commonBatchCapabilities(refs);
     if ((0, dependencies.platform.$)('multiPropertiesColorInput')) (0, dependencies.platform.$)('multiPropertiesColorInput').disabled = !capabilities.has('color');
     if ((0, dependencies.platform.$)('multiPropertiesColorTrigger')) (0, dependencies.platform.$)('multiPropertiesColorTrigger').disabled = !capabilities.has('color');
-    const countryOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY);
-    const subunitOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && ref.type === 'subunit');
+    const countryOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId));
+    const subunitOnly = refs.length >= 2 && refs.every(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !!dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId));
     const subunitPolicy = subunitOnly ? subunitSelectionPolicy(refs.map(ref => dependencies.territorialModel.entityRepository.get(ref.id)), {
       adjacent: (a, b) => globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).adjacent(a.geometry, b.geometry),
     }) : null;
@@ -256,7 +255,7 @@ export function createObjectCommands() {
       if (visible) delete dependencies.projectState.state.itemVisibility[group][ref.id];
       else dependencies.projectState.state.itemVisibility[group][ref.id] = false;
     }
-    if (refs.some(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
+    if (refs.some(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId))) {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-visibility');
     }
     if (refs.some(ref => ref.domain === 'hydro')) dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
@@ -296,7 +295,7 @@ export function createObjectCommands() {
     }
     dependencies.domains.projectDomain.recordHistory({ type: 'batch-lock', description: `${refs.length}개 객체 ${locked ? '잠금' : '잠금 해제'}`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
-      if (ref.domain === 'territorial') dependencies.territorialModel.entityStore.setLocked(ref.type, ref.id, locked);
+      if (ref.domain === 'territorial') dependencies.territorialModel.entityStore.setLocked(ref.id, locked);
       else if (ref.domain === 'distribution') (0, dependencies.propertyEditingA.distributionLayerById)(ref.id).locked = locked;
       else if (ref.domain === 'generic') {
         const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === ref.id);
@@ -373,7 +372,7 @@ export function createObjectCommands() {
     if (flagButton) {
       const singleTerritorial = refs.length === 1
         && primary?.domain === 'territorial'
-        && [dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT, dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION].includes(primary.type);
+        && primary.type === 'entity';
       flagButton.classList.toggle('hidden', !singleTerritorial);
       flagButton.disabled = !singleTerritorial || objectRefLocked(primary);
       if (!singleTerritorial || flagButton.disabled) (0, dependencies.platform.$)('flagMenu')?.hidePopover();
@@ -394,7 +393,7 @@ export function createObjectCommands() {
     }
     const deleteSection = (0, dependencies.platform.$)('editorDeleteSection');
     if (deleteSection) deleteSection.classList.toggle('hidden', refs.length === 0);
-    const noteInputIds = { country: 'notesInput', subunit: 'subunitNotesInput', region: 'regionNotesInput' };
+    const noteInputIds = { country: 'entityNotesInput', subunit: 'subunitNotesInput', region: 'regionNotesInput' };
     const noteInput = primary?.domain === 'territorial' ? (0, dependencies.platform.$)(noteInputIds[primary.type]) : null;
     if (noteInput) {
       const readOnly = objectRefLocked(primary);
@@ -482,7 +481,7 @@ export function createObjectCommands() {
         },
       );
       if (!result.ok || !result.changed) return;
-      if (refs.some(ref => ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
+      if (refs.some(ref => (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId))) {
         dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
       }
       (0, dependencies.layers.markLayerTreeDirty)();
@@ -493,7 +492,7 @@ export function createObjectCommands() {
     dependencies.domains.projectDomain.recordHistory({ type: 'batch-color', description: `${refs.length}개 객체 색상 변경`, affectedIds: refs.map(ref => ref.id) });
     for (const ref of refs) {
       if (ref.domain === 'territorial') {
-        dependencies.territorialModel.entityStore.setField(ref.type, ref.id, 'color', normalizedColor);
+        dependencies.territorialModel.entityStore.setField(ref.id, 'color', normalizedColor);
       } else if (ref.domain === 'distribution') {
         const layer = (0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
         if (layer) (0, dependencies.colorModel.writeDomainColor)(dependencies.colorModel.COLOR_DOMAINS.DISTRIBUTION, { layer }, normalizedColor, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
@@ -505,7 +504,7 @@ export function createObjectCommands() {
         if (feature) feature.properties.color = normalizedColor;
       }
     }
-    if (refs.some(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) {
+    if (refs.some(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId))) {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'batch-country-color');
     }
     (0, dependencies.layers.markLayerTreeDirty)();
@@ -541,8 +540,8 @@ export function createObjectCommands() {
           const removedHydroEditIds = new Set(refs.filter(ref => ref.domain === 'hydro').map(ref => ref.id));
           const removedGenericFeatureIds = new Set(refs.filter(ref => ref.domain === 'generic').map(ref => ref.id));
           const removedLabelIds = new Set(refs.filter(ref => ref.domain === 'label').map(ref => ref.id));
-          const removedCountryIds = refs.filter(ref => ref.domain === 'territorial' && ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id);
-          const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && ref.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY).map(ref => ref.id));
+          const removedCountryIds = refs.filter(ref => ref.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)).map(ref => ref.id);
+          const removedUnitIds = new Set(refs.filter(ref => ref.domain === 'territorial' && !(dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)).map(ref => ref.id));
           dependencies.projectState.state.distributionLayers = dependencies.projectState.state.distributionLayers.filter(layer => !removedDistributionIds.has(String(layer.id)));
           dependencies.projectState.state.distributionEntries = dependencies.projectState.state.distributionEntries.filter(entry => !removedDistributionIds.has(String(entry.layerId))
             && (entry.mode !== dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL || !removedUnitIds.has(String(entry.territorialUnitId))));

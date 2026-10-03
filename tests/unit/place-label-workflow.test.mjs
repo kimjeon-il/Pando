@@ -126,7 +126,7 @@ test('country date metadata survives delta save and restores on undo even with u
   entityStore.replaceEntities(normalizeCountryCollection(builtinCountries.canonicalCountryStore.materializeCollectionSync()).features);
   builtinCountries.materializePristineCountriesSync = () => normalizeCountryCollection(builtinCountries.canonicalCountryStore.materializeCollectionSync());
   const pristine = owner.snapshotEditable();
-  entityStore.setField('country', 'KOR', 'validFrom', '1900');
+  entityStore.setField('KOR', 'validFrom', '1900');
   assert.deepEqual([...state.historyDirtyEntityIds], ['KOR']);
   assert.equal(owner.buildEntityDelta().changed[0].properties.validFrom, '1900');
   const saved = JSON.parse(JSON.stringify(owner.snapshotEditable()));

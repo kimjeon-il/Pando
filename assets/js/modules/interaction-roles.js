@@ -3,7 +3,6 @@ import { normalizeObjectRef } from './object-selection-controller.js';
 
 /** A read-only projection of the existing selection and tool session. */
 export function mapInteractionEntries(snapshot, state, {
-  countryType = 'country',
   visible = () => true,
   territorialEntityById = () => null,
   territorialUnits = () => [],
@@ -17,16 +16,16 @@ export function mapInteractionEntries(snapshot, state, {
     const key = ref.key;
     if (visible(ref)) rows.push({ key, ref, role });
   };
-  const country = (id, role) => add('territorial', countryType, id, role);
+  const country = (id, role) => add('territorial', 'entity', id, role);
   const unit = (id, role) => {
     const feature = territorialEntityById(id);
-    if (feature?.properties?.unitType && feature.properties.unitType !== countryType) {
-      add('territorial', feature.properties.unitType, id, role);
+    if (feature && (feature.properties.parentId || feature.properties.entityKind === 'regional')) {
+      add('territorial', 'entity', id, role);
     }
   };
   const session = state.territorySelectionSession?.tool === state.tool ? state.territorySelectionSession : null;
   if (session) {
-    if (session.kind === 'subunit') {
+    if (session.kind === 'entity' && !!session.parentId) {
       if (session.parentId && session.parentId !== session.sovereignId) unit(session.parentId, 'reference');
       else country(session.sovereignId, 'reference');
     }
@@ -40,7 +39,7 @@ export function mapInteractionEntries(snapshot, state, {
   if (state.tool === 'territorial-border') {
     const selectedKeys = new Set(rows.map(row => row.key));
     for (const id of state.boundaryEditEntityIds || []) {
-      const ref = normalizeObjectRef({ domain: 'territorial', type: countryType, id });
+      const ref = normalizeObjectRef({ domain: 'territorial', type: 'entity', id });
       if (!selectedKeys.has(ref.key)) rows.push({ key: ref.key, ref, role: 'secondary' });
     }
   }
@@ -62,12 +61,12 @@ export function mapInteractionEntries(snapshot, state, {
   const parents = new Map((territorialUnits() || []).map(feature => [String(feature.id), feature.properties]));
   for (const row of rows) {
     const seen = new Set();
-    let id = row.ref.domain === 'territorial' && row.ref.type !== countryType ? row.ref.id : '';
+    let id = row.ref.domain === 'territorial' ? row.ref.id : '';
     row.depth = 0; row.ancestorKeys = [];
     while (id && parents.has(id) && !seen.has(id)) {
       seen.add(id); row.depth++;
       const parent = parents.get(id); id = String(parent.parentId || '');
-      if (id) row.ancestorKeys.push(normalizeObjectRef({ domain: 'territorial', type: parents.get(id)?.unitType || countryType, id }).key);
+      if (id) row.ancestorKeys.push(normalizeObjectRef({ domain: 'territorial', type: 'entity', id }).key);
     }
   }
   for (const row of rows) Object.freeze(row.ancestorKeys);

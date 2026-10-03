@@ -20,7 +20,7 @@ const polygonClipping = loadClassic(path.join('assets', 'js', 'vendor', 'polygon
 const countryGeometry = loadClassic(path.join('assets', 'js', 'modules', 'polygon-geometry.js'), 'PandoLabPolygonGeometry');
 const countries = JSON.parse(fs.readFileSync(path.join(root, 'assets', 'data', 'countries-ne-5.1.1.geojson'), 'utf8'));
 const library = JSON.parse(fs.readFileSync(path.join(root, 'assets', 'data', 'historical-library-pilot.json'), 'utf8'));
-const historicalCountries = library.entities.filter(item => item.type === 'country');
+const historicalCountries = library.entities.filter(item => item.entityKind === 'general' && !item.parentLibraryId);
 for (const historicalCountry of historicalCountries) {
   if (historicalCountry.instantiation?.mode !== 'territory-replacement') {
     throw new Error(`${historicalCountry.libraryId} must use the unified territory-replacement mode`);
@@ -105,7 +105,7 @@ const supplementalHistoricalChecks = [
 for (const check of supplementalHistoricalChecks) {
   const definition = library.entities.find(item => item.libraryId === check.id);
   if (!definition) throw new Error(`Supplemental historical country is missing: ${check.id}`);
-  if (definition.type !== 'country' || definition.instantiation?.mode !== 'territory-replacement') {
+  if (definition.entityKind !== 'general' || !!definition.parentLibraryId || definition.instantiation?.mode !== 'territory-replacement') {
     throw new Error(`${check.id} must use the unified territory-replacement country mode`);
   }
   const materialized = materializedById.get(check.id);
@@ -160,7 +160,7 @@ const sovietChildren = library.entities.filter(item => item.parentLibraryId === 
 if (sovietChildren.length !== 15) throw new Error(`Soviet Union must have 15 constituent republics, found ${sovietChildren.length}`);
 const sovietChildGeometries = [];
 for (const child of sovietChildren) {
-  if (child.type !== 'subunit' || child.sovereignLibraryId !== 'historical-country:soviet-union' || Object.hasOwn(child, 'adminLevel')) {
+  if (child.entityKind !== 'general' || child.parentLibraryId !== 'historical-country:soviet-union' || Object.hasOwn(child, 'adminLevel')) {
     throw new Error(`${child.libraryId} has an invalid Soviet constituent hierarchy`);
   }
   const flag = String(child.metadata?.defaultFlagDataUrl || '');

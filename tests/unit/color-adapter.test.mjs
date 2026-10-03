@@ -5,10 +5,11 @@ import {
   COLOR_DOMAINS,
   readDomainColor,
   writeDomainColor,
+  resolveTerritorialColor,
 } from '../../assets/js/modules/color-adapter.js';
 
 test('common color adapter reads each editable domain and reports defaults', () => {
-  const country = { properties: { unitType: 'country', name: '테스트국', style: { color: '#112233' } } };
+  const country = { properties: { entityKind: 'general', parentId: '', name: '테스트국', style: { color: '#112233' } } };
   const territorial = { properties: { style: { color: '#223344' } } };
   const genericFeature = { properties: { color: '#334455' } };
   const layer = { color: '#445566' };
@@ -22,6 +23,19 @@ test('common color adapter reads each editable domain and reports defaults', () 
   assert.deepEqual(readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature: { properties: { name: '테스트국', style: { color: 'invalid' } } } }, { fallback: '#abcdef' }), {
     explicit: '', value: '#abcdef', isDefault: true,
   });
+});
+
+test('general colors inherit through parents while an independent region uses its own default', () => {
+  const root = { id: 'A', properties: { entityKind: 'general', parentId: '', style: {} } };
+  const child = { id: 'B', properties: { entityKind: 'general', parentId: 'A', style: {} } };
+  const region = { id: 'R', properties: { entityKind: 'regional', parentId: '', style: {} } };
+  const options = { entityRepository: { parent: id => id === 'B' ? root : null }, countryColor: () => '#112233', fallback: '#aabbcc' };
+  assert.equal(resolveTerritorialColor(child, options), '#112233');
+  assert.equal(resolveTerritorialColor(region, options), '#aabbcc');
+  region.properties.style.color = '#abcdef';
+  assert.equal(resolveTerritorialColor(region, options), '#abcdef');
+  child.properties.parentId = 'missing';
+  assert.throws(() => resolveTerritorialColor(child, { ...options, entityRepository: { parent: () => null } }), /상위 객체/);
 });
 
 test('common color adapter writes and clears canonical color fields', () => {

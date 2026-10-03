@@ -1,6 +1,6 @@
 import { buildRenderableBoundarySegments } from './geographic-boundary.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
-import { administrativeCountryId } from './territorial-units.js';
+import { territorialRootId } from './territorial-units.js';
 
 const cloneCoordinate = coordinate => [Number(coordinate[0]), Number(coordinate[1])];
 
@@ -362,8 +362,8 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
   const entities = new Map([...countries, ...units].map(feature => [String(feature.id), feature]));
   const unitMeta = new Map(unitFeatures.map(feature => [feature.id, {
     id: featureId(feature).replace(/^unit:/, ''),
-    type: feature.properties?.unitType || '',
-    countryId: administrativeCountryId(entities.get(featureId(feature).replace(/^unit:/, '')), id => entities.get(id)),
+    type: feature.properties?.entityKind || '',
+    countryId: territorialRootId(entities.get(featureId(feature).replace(/^unit:/, '')), id => entities.get(id)),
   }]));
   const topology = buildBoundaryTopology([...countryFeatures, ...unitFeatures], { precision, epsilon });
   const countryEdges = [...topology.segments.values()].filter(segment => [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')));

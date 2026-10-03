@@ -27,7 +27,7 @@ test('date-line country selection stays lightweight during selection and navigat
   let primaryRebuildCount = 0;
   for (const id of ['RUS']) {
     const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot());
-    await page.evaluate(countryId => window.PANDOLAB_TERRITORIAL.select('country', countryId), id);
+    await page.evaluate(countryId => window.PANDOLAB_TERRITORIAL.select(countryId), id);
     await expect(page.locator('.selection-overlay-layer .map-selection-shape')).toHaveCount(0);
     await page.waitForFunction(() => {
       const count = window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.channels.primary.rebuildCount;

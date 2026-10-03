@@ -1,7 +1,7 @@
 {
   "version": "0.34.0",
   "source": "countries-ne-5.1.1.geojson",
-  "sourceSha256": "aef53eab11ad2168f641cf08e87f3238476368be0936411e70e66f80f5f0db40",
+  "sourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
   "defaultClassification": {
     "countries": {
       "IDN": "9g6r:voqbzb",
@@ -137,7 +137,7 @@
       "CUB": "1bkl:h580x",
       "HND": "kua:jazas8",
       "ECU": "qef:1av5rvy",
-      "COL": "1kcn:1yvw5kx",
+      "COL": "1kcn:3zrssf",
       "PRY": "kwr:qkk06",
       "PRT": "lgd:ceuh5r",
       "MDA": "c54:7cx5w3",
@@ -215,7 +215,7 @@
     "changed": {
       "CHN": "6u58:16s3qbj",
       "BRA": "5hrd:ljjqbf",
-      "COL": "1kcn:1yvw5kx"
+      "COL": "1kcn:3zrssf"
     },
     "removedIds": [
       "ESB",
@@ -266,8 +266,8 @@
       "CLP",
       "MAC",
       "ATC",
-      "BJN",
       "SER",
+      "BJN",
       "SCR"
     ],
     "units": {
@@ -463,26 +463,26 @@
   },
   "previewDerivation": "canonical-topology-simplified",
   "previewSourceScale": "derived",
-  "previewSourceSha256": "aef53eab11ad2168f641cf08e87f3238476368be0936411e70e66f80f5f0db40",
-  "canonicalSourceSha256": "aef53eab11ad2168f641cf08e87f3238476368be0936411e70e66f80f5f0db40",
+  "previewSourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
+  "canonicalSourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
   "simplificationQuantile": 0.16,
   "countries": 258,
   "coordinateCount": 105884,
   "globalAreaError": 0.000199,
   "meshAlgorithmRevision": 3,
   "meshVertices": 125463,
-  "countriesCompressedBytes": 917603,
+  "countriesCompressedBytes": 917549,
   "meshCompressedBytes": 1733548,
-  "combinedCompressedBytes": 2651151,
-  "countriesSha256": "f6bbaed999ca38b80225423b63514180f34168827173c25f0811ad5db9004798",
+  "combinedCompressedBytes": 2651097,
+  "countriesSha256": "00af23222e73443d0ce978545d48cf82afefec9126540616c39ba56bd31edc7e",
   "meshSha256": "a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48",
   "assets": {
     "previewCountries": {
       "url": "countries-preview-v0.34.0.geojson.gz",
       "encoding": "gzip",
-      "compressedBytes": 917603,
-      "decodedBytes": 2438999,
-      "sha256": "f6bbaed999ca38b80225423b63514180f34168827173c25f0811ad5db9004798"
+      "compressedBytes": 917549,
+      "decodedBytes": 2438942,
+      "sha256": "00af23222e73443d0ce978545d48cf82afefec9126540616c39ba56bd31edc7e"
     },
     "previewMesh": {
       "url": "world-mesh-preview-v0.34.0.bin.gz",
@@ -510,21 +510,21 @@
       "encoding": "identity",
       "compressedBytes": 13826,
       "decodedBytes": 13826,
-      "sha256": "26234e4bf332ea858c54328608be4886e30d18bbb4220580615c7aba77caff91"
+      "sha256": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512"
     },
     "canonicalCountries": {
       "url": "countries-ne-5.1.1.geojson.gz",
       "encoding": "gzip",
-      "compressedBytes": 4379765,
-      "decodedBytes": 12415840,
-      "sha256": "1e0b4a65f4d6b5858bbf0650c83baca796dddef7588f41eda7bc9ae5f639dfad"
+      "compressedBytes": 4379693,
+      "decodedBytes": 12415783,
+      "sha256": "0595527ed6fdc4c40fb8b7709c56d7267f214b797c7d116ea0b467f4635388dd"
     },
     "canonicalCountryPacket": {
       "url": "countries-canonical-v0.34.0.pcg.gz",
       "encoding": "gzip",
-      "compressedBytes": 5122043,
-      "decodedBytes": 8826264,
-      "sha256": "916e5e505e94ede8a245103cad0c88d5cdca232232f28a0618ad91067be3294d",
+      "compressedBytes": 5122041,
+      "decodedBytes": 8826208,
+      "sha256": "753e21400c5a9123169379ba023ccce00d604ae15faf4963cf40ab6cc1652845",
       "header": [
         826753872,
         1,
@@ -532,20 +532,20 @@
         4274,
         4291,
         548454,
-        13289,
+        13232,
         258,
         259,
         4275,
         4292,
         516,
         80,
-        13369,
-        13628,
-        14664,
-        31764,
-        48932,
-        51000,
-        8826264
+        13312,
+        13572,
+        14608,
+        31708,
+        48876,
+        50944,
+        8826208
       ]
     },
     "canonicalMesh": {

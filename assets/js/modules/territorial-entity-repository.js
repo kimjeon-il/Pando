@@ -1,4 +1,3 @@
-import { administrativeCountryId } from './territorial-units.js';
 
 const text = value => String(value ?? '').trim();
 
@@ -44,54 +43,54 @@ export function createTerritorialEntityRepository({
   }
 
   function list({
-    type = '',
+    kind = '',
     parentId = null,
-    administrativeCountryId = null,
+    rootId = null,
   } = {}) {
     const state = snapshot();
-    const cacheKey = JSON.stringify([type, parentId, administrativeCountryId]);
+    const cacheKey = JSON.stringify([kind, parentId, rootId]);
     if (state.lists.has(cacheKey)) return state.lists.get(cacheKey);
     let values = state.values;
-    if (type) {
-      const types = new Set(Array.isArray(type) ? type : [type]);
-      values = values.filter(entity => types.has(entity.properties?.unitType));
+    if (kind) {
+      const types = new Set(Array.isArray(kind) ? kind : [kind]);
+      values = values.filter(entity => types.has(entity.properties?.entityKind));
     }
     if (parentId !== null) {
       const key = text(parentId);
       values = values.filter(entity => text(entity.properties?.parentId) === key);
     }
-    const countryId = administrativeCountryId;
+    const countryId = rootId;
     if (countryId !== null) {
       const key = text(countryId);
-      values = values.filter(entity => text(administrativeCountryFrom(state, entity.id)?.id) === key);
+      values = values.filter(entity => text(root(entity.id)?.id) === key);
     }
     state.lists.set(cacheKey, values);
     return values;
   }
 
-  function children(id, { type = '' } = {}) {
+  function children(id, { kind = '' } = {}) {
     const state = snapshot();
     const values = [...(state.childrenByParent.get(text(id)) || [])];
-    return type ? values.filter(entity => entity.properties?.unitType === type) : values;
+    return kind ? values.filter(entity => entity.properties?.entityKind === kind) : values;
   }
 
   function parent(id) {
     return parentFrom(snapshot(), id);
   }
 
-  function siblings(id, { type = '' } = {}) {
+  function siblings(id, { kind = '' } = {}) {
     const state = snapshot();
     const entity = entityFrom(state, id);
     if (!entity) return [];
     const parentId = text(entity.properties?.parentId);
-    const unitType = entity.properties?.unitType;
+    const entityKind = entity.properties?.entityKind;
     const values = parentId
       ? [...(state.childrenByParent.get(parentId) || [])]
       : state.values.filter(candidate => !text(candidate.properties?.parentId));
     return values.filter(candidate => {
       if (text(candidate.id) === text(entity.id)) return false;
-      if (type && candidate.properties?.unitType !== type) return false;
-      if (!type && candidate.properties?.unitType !== unitType) return false;
+      if (kind && candidate.properties?.entityKind !== kind) return false;
+      if (!kind && candidate.properties?.entityKind !== entityKind) return false;
       return true;
     });
   }
@@ -111,7 +110,7 @@ export function createTerritorialEntityRepository({
     return result;
   }
 
-  function descendants(id, { type = '' } = {}) {
+  function descendants(id, { kind = '' } = {}) {
     const state = snapshot();
     const result = [];
     const seen = new Set([text(id)]);
@@ -122,7 +121,7 @@ export function createTerritorialEntityRepository({
       if (!key) continue;
       if (seen.has(key)) throw new Error(`영역 엔티티 상위 관계가 순환합니다: ${key}`);
       seen.add(key);
-      if (!type || entity.properties?.unitType === type) result.push(entity);
+      if (!kind || entity.properties?.entityKind === kind) result.push(entity);
       pending.push(...(state.childrenByParent.get(key) || []));
     }
     return result;
@@ -144,20 +143,6 @@ export function createTerritorialEntityRepository({
     }
   }
 
-  function administrativeCountryFrom(state, id) {
-    const entity = entityFrom(state, id);
-    if (!entity) return null;
-    const countryId = administrativeCountryId(entity, key => entityFrom(state, key));
-    if (!countryId) return null;
-    const countryEntity = entityFrom(state, countryId);
-    if (!countryEntity || countryEntity.properties.unitType !== 'country') throw new Error('연결 국가가 존재하지 않습니다: ' + countryId);
-    return countryEntity;
-  }
-
-  function administrativeCountry(id) {
-    return administrativeCountryFrom(snapshot(), id);
-  }
-
   return Object.freeze({
     get,
     has: id => !!get(id),
@@ -168,6 +153,5 @@ export function createTerritorialEntityRepository({
     ancestors,
     descendants,
     root,
-    administrativeCountry,
   });
 }

@@ -205,9 +205,7 @@ export function createDomainAssembly() {
     objectPropertyController = (0, dependencies.uiFactoriesB.createObjectPropertyController)({
       document,
       getElement: dependencies.platform.$,
-      state: dependencies.projectState.state,
-      territorialUnitTypes: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES,
-      replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
+      state: dependencies.projectState.state,      replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
       distributionModes: dependencies.territorialModel.DISTRIBUTION_MODES,
       colorDomains: dependencies.colorModel.COLOR_DOMAINS,
       defaultGenericFeatureColor: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
@@ -263,11 +261,9 @@ export function createDomainAssembly() {
       const ref = dependencies.selectionServices.normalizeObjectRef(value);
       if (ref?.domain !== 'territorial') return null;
       const feature = territorialEntityRepository.get(ref.id);
-      if (!feature || feature.properties?.unitType !== ref.type) return null;
+      if (!feature || ref.type !== 'entity') return null;
       const displayName = dependencies.objectPresentation.territorialEntityName(feature);
-      const country = ref.type === 'subunit' ? territorialEntityRepository.administrativeCountry(ref.id) : null;
-      const statusName = ref.type === 'country' ? displayName
-        : [ref.type === 'subunit' ? '하위단위' : '지방', country && dependencies.objectPresentation.territorialEntityName(country), displayName].filter(Boolean).join(' · ');
+      const statusName = displayName;
       return { ref, id: String(feature.id), feature, properties: feature.properties, displayName, name: displayName,
         statusName,
         flagUrl: dependencies.territorialServicesA.effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
@@ -277,17 +273,17 @@ export function createDomainAssembly() {
       window,
       document,
       elements: {
-        name: (0, dependencies.platform.$)('countryNameInput'),
-        color: (0, dependencies.platform.$)('countryColorInput'),
-        notes: (0, dependencies.platform.$)('notesInput'),
-        area: (0, dependencies.platform.$)('countryAreaValue'),
+        name: (0, dependencies.platform.$)('entityNameInput'),
+        color: (0, dependencies.platform.$)('entityColorInput'),
+        notes: (0, dependencies.platform.$)('entityNotesInput'),
+        area: (0, dependencies.platform.$)('entityAreaValue'),
         selectionStatus: (0, dependencies.platform.$)('selectionStatus'),
       },
       getTerritorialView,
       getPrimaryRef: () => selectionDomain.primary(),
       showPropertyForm: (...args) => objectPropertyController.show(...args),
       resolveColor: view => dependencies.colorModel.readDomainColor(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature: view.feature }, { inherited: dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }), fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR }),
-      defaultColor: view => view.ref.type === 'country' ? dependencies.colorModel.defaultCountryColor() : dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }),
+      defaultColor: view => (dependencies.territorialModel.entityRepository.get(view.ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(view.ref?.id)?.properties.parentId) ? dependencies.colorModel.defaultCountryColor() : dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }),
       syncColorPicker: dependencies.colorPicker.syncColorPicker,
       calculateAreaKm2: dependencies.applicationServicesB.sphericalGeometryAreaKm2,
       formatArea: dependencies.applicationServicesA.formatArea,
@@ -295,24 +291,18 @@ export function createDomainAssembly() {
       syncStatus: dependencies.readinessUi.syncStatusBar,
       commitField: dependencies.objectMetadata.commitTerritorialMetadata,
       commitRelation: dependencies.objectMetadata.commitTerritorialRelation,
-      getElement: dependencies.platform.$,
-      territorialUnitTypes: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES,
-      territorialEntityRepository,
-      territorialUnitCountryOptions: dependencies.propertyEditingB.territorialUnitCountryOptions,
-      territorialUnitParentOptions: dependencies.propertyEditingB.territorialUnitParentOptions,
-      territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
+      getElement: dependencies.platform.$,      territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
       refreshTerritorialCoastAvailability: dependencies.territorialEditingB.refreshTerritorialCoastAvailability,
       replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
-      shouldShowTerritorialParentChoice: dependencies.territorialServicesA.shouldShowTerritorialParentChoice,
       syncLayerSelection: () => layerTreeController?.syncSelection(),
       metrics: dependencies.rendering.selectionPerformanceMetrics,
     });
 
     const territorialLabelId = ref => {
       if (!ref?.id || ref.domain !== 'territorial') return '';
-      if (ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      if ((dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)) {
         const entity = territorialEntityRepository.get(ref.id);
-        return String(entity?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? entity.id : ref.id);
+        return String((entity?.properties?.entityKind === 'general' && !entity?.properties?.parentId) ? entity.id : ref.id);
       }
       for (const [labelId, labelRef] of dependencies.countries.builtinTerritorialScene().labelRefs || []) {
         if (labelRef?.domain === 'territorial' && labelRef.type === ref.type && String(labelRef.id) === String(ref.id)) return String(labelId);
@@ -590,7 +580,7 @@ export function createDomainAssembly() {
           const coastId = String(dependencies.projectState.state.coastEditCountryId || event.targetRef?.id || '');
           const affectedIds = borderMode ? new Set([...node.ownerIds].map(String)) : new Set([coastId]);
           const boundaryFeature = id => territorialEntityRepository.get(id);
-          if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([...affectedIds].map(id => ({ domain: 'territorial', type: territorialEntityRepository.get(id)?.properties?.unitType, id: String(id) })), borderMode ? '국경을 조정' : '해안선을 조정')) return false;
+          if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([...affectedIds].map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), borderMode ? '국경을 조정' : '해안선을 조정')) return false;
           if ([...affectedIds].some(id => boundaryFeature(id)?.properties?.locked)) {
             (0, dependencies.feedback.setActionStatus)('잠긴 객체와 공유하는 경계는 이동할 수 없습니다.', 'error', 3400);
             return false;
@@ -605,9 +595,9 @@ export function createDomainAssembly() {
               parent = boundaryFeature(parent.properties.parentId);
             }
           }
-          if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([...hierarchyIds].map(id => ({ domain: 'territorial', type: territorialEntityRepository.get(id)?.properties?.unitType, id: String(id) })), '경계를 조정')) return false;
+          if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([...hierarchyIds].map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '경계를 조정')) return false;
           const lockedHierarchy = territorialEntityRepository.list().some(entity => entity.properties?.locked && (
-            hierarchyIds.has(String(entity.id)) || (hierarchyIds.has(String((0, dependencies.territorialModel.administrativeCountryId)(entity, id => dependencies.territorialModel.entityRepository.get(id)))) && boundaryTouchesGeometry(entity.geometry, node.coordinate))
+            hierarchyIds.has(String(entity.id)) || (hierarchyIds.has(String((0, dependencies.territorialModel.territorialRootId)(entity, id => dependencies.territorialModel.entityRepository.get(id)))) && boundaryTouchesGeometry(entity.geometry, node.coordinate))
           ));
           if (lockedHierarchy) {
             (0, dependencies.feedback.setActionStatus)('변경 구간의 상위 단위 또는 자식이 잠겨 있습니다.', 'error', 3400);
@@ -661,7 +651,7 @@ export function createDomainAssembly() {
             (0, dependencies.taskUi.updateModeButtons)();
           }
           const unitTarget = territorialEntityRepository.get(dependencies.projectState.state.boundaryEditSeedEntityId);
-          if (session.borderMode && unitTarget?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+          if (session.borderMode && !(unitTarget?.properties?.entityKind === 'general' && !unitTarget?.properties?.parentId)) {
             return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'boundary', targetId: unitTarget.id,
               parentId: unitTarget.properties.parentId, featurePatches: [...session.features.values()],
             }, { selectedId: unitTarget.id, shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'territorial-border'
@@ -864,9 +854,7 @@ export function createDomainAssembly() {
         syncBuiltinPalette: dependencies.builtinCountries.syncBuiltinPalette,
         getState: () => dependencies.projectState.state,
         territorialUnitLayer: dependencies.mapHostViewC.territorialUnitLayer,
-        territorialOperationLayer: dependencies.mapHostViewC.territorialOperationLayer,
-        TERRITORIAL_UNIT_TYPES: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES,
-        visibleMapObjectCandidates: dependencies.spatialQuery.visibleMapObjectCandidates,
+        territorialOperationLayer: dependencies.mapHostViewC.territorialOperationLayer,        visibleMapObjectCandidates: dependencies.spatialQuery.visibleMapObjectCandidates,
         geometryMayIntersectViewport: dependencies.spatialRecords.geometryMayIntersectViewport,
         isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
         selectionHas: ref => selectionDomain.has(ref),
@@ -993,7 +981,6 @@ export function createDomainAssembly() {
       }),
       selectionResources: createResourceSnapshot('selection', {
         getState: () => dependencies.projectState.state,
-        countryType: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
         selectionLayer: dependencies.mapHostViewB.selectionLayer,
         hoverLayer: dependencies.mapHostViewA.hoverLayer,
         d3: dependencies.platform.d3,
@@ -1007,7 +994,7 @@ export function createDomainAssembly() {
         objectRefVisible: dependencies.objectOperationsA.objectRefVisible,
         territorialEntityById: id => territorialEntityRepository.get(id),
         territorialUnits: () => territorialEntityRepository.list()
-          .filter(feature => feature.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY),
+          .filter(feature => !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId)),
         selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
         buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
         buildSelectionBoundarySegments: dependencies.selectionServices.buildSelectionBoundarySegments,
@@ -1144,11 +1131,11 @@ export function createDomainAssembly() {
         const after = new Map(entities.map(feature => [String(feature.id), feature]));
         const countryShapeChanged = [...changedIds].some(id => {
           const a = prior.get(id), b = after.get(id);
-          return (a?.properties.unitType === 'country' || b?.properties.unitType === 'country')
-            && (a?.geometry !== b?.geometry || a?.properties.unitType !== b?.properties.unitType);
+          return ((a?.properties.entityKind === 'general' && !a?.properties.parentId) || (b?.properties.entityKind === 'general' && !b?.properties.parentId))
+            && (a?.geometry !== b?.geometry || a?.properties.entityKind !== b?.properties.entityKind);
         });
         if (countryShapeChanged) (0, dependencies.geometryMutation.reindexCountries)(
-          { type: 'FeatureCollection', features: entities.filter(feature => feature.properties.unitType === 'country') });
+          { type: 'FeatureCollection', features: entities.filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)) });
         dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
       },
     }));

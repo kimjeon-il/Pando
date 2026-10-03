@@ -56,7 +56,7 @@ export function createBuiltinSession() {
 
   function applyFreshBuiltinClassification() {
     const result = (0, dependencies.applicationServicesA.classifyBuiltinCountries)(
-      { type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) },
+      { type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) },
     );
     dependencies.territorialModel.entityStore.replaceEntities([...result.countries.features, ...result.subunits]);
     (0, dependencies.countryRecords.applyPristineLabelAnchors)({ features: result.subunits.map(unit => ({ id: (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit) })) });
@@ -68,22 +68,22 @@ export function createBuiltinSession() {
       builtinGeometryCache = new WeakMap();
       builtinRenderCache = null;
     }
-    if (builtinRenderCache?.countries === dependencies.territorialModel.entityRepository.list({ type: 'country' }) && builtinRenderCache.units === dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] })
+    if (builtinRenderCache?.countries === dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) && builtinRenderCache.units === dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId)
       && builtinRenderCache.presentation === dependencies.projectState.state.layerPresentation) return builtinRenderCache;
-    const features = [...(dependencies.territorialModel.entityRepository.list({ type: 'country' }))];
+    const features = [...(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }))];
     const byId = new Map(features.map(feature => [String(feature.id), feature]));
     const countryIds = new Set(byId.keys());
     const labelById = new Map(byId);
     const labelRefs = new Map();
     const units = new Map();
-    for (const unit of dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }) || []) {
+    for (const unit of dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId) || []) {
       const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
       const id = territorialSceneDisplayId(unit, countryIds);
       const feature = { type: 'Feature', id, properties: unit.properties, geometry: unit.geometry };
       labelById.set(id, feature);
-      labelRefs.set(id, { domain: 'territorial', type: unit.properties.unitType, id: unit.id });
+      labelRefs.set(id, { domain: 'territorial', type: 'entity', id: unit.id });
       if (!sourceId || byId.has(sourceId)) continue;
-      const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'subunits', `territorial:subunit:${unit.id}`);
+      const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'subunits', `territorial:entity:${unit.id}`);
       if (style.opacity !== 1 || style.blendMode !== 'normal' || !style.boundaryVisible) continue;
       let unchanged = builtinGeometryCache.get(unit.geometry);
       if (unchanged === undefined) {
@@ -96,7 +96,7 @@ export function createBuiltinSession() {
     }
     const order = new Map((canonicalCountryStore?.ids() || pristineCountriesFallback?.features.map(feature => feature.id) || []).map((id, index) => [id, index]));
     features.sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity));
-    builtinRenderCache = { countries: dependencies.territorialModel.entityRepository.list({ type: 'country' }), units: dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }), presentation: dependencies.projectState.state.layerPresentation,
+    builtinRenderCache = { countries: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }), units: dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId), presentation: dependencies.projectState.state.layerPresentation,
       collection: { type: 'FeatureCollection', features }, byId, labelById, labelRefs, nativeUnits: units };
     return builtinRenderCache;
   }

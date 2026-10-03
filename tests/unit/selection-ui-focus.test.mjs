@@ -6,7 +6,7 @@ import { normalizeObjectRef } from '../../assets/js/modules/object-selection-con
 import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
 import { createPropertyEditorBindings } from '../../assets/js/modules/property-editor-bindings.js';
 
-const country = id => normalizeObjectRef({ domain: 'territorial', type: 'country', id });
+const country = id => normalizeObjectRef({ domain: 'territorial', type: 'entity', id });
 
 function setup() {
   const domain = createSelectionDomain();
@@ -81,7 +81,7 @@ test('removing a non-territorial primary presents the remaining object without f
   assert.equal(state.opened.length, openCount);
 });
 
-for (const type of ['country', 'subunit', 'region']) test(`${type} selection, reselection, toggle and range do not move the map`, () => {
+for (const type of ['entity']) test(`${type} selection, reselection, toggle and range do not move the map`, () => {
   for (const scope of ['map', 'layer', 'chooser']) {
     const { domain, ui, focused, presented, opened, presentationEvents } = setup();
     const a = normalizeObjectRef({ domain: 'territorial', type, id: 'A' });
@@ -114,7 +114,7 @@ test('non-territorial selection retains automatic focus', () => {
   assert.equal(focused.length, 4);
 });
 
-for (const type of ['country', 'subunit', 'region']) test(`explicit show-on-map button focuses the selected ${type}`, () => {
+for (const type of ['entity']) test(`explicit show-on-map button focuses the selected ${type}`, () => {
   const button = new EventTarget();
   const ref = normalizeObjectRef({ domain: 'territorial', type, id: 'A' });
   const focused = [];

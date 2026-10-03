@@ -13,8 +13,8 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
-  await expect(page.locator('#countryProperties')).toBeVisible();
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+  await expect(page.locator('#entityProperties')).toBeVisible();
   await expect.poll(async () => {
     const panel = await page.locator('#editorSurface').boundingBox();
     return Math.round(panel.x);
@@ -30,7 +30,7 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#mapDisplaySurface')).toBeHidden();
   await page.locator('#focusSelectedObjectBtn').click();
   await openActionsTab(page);
-  await page.locator('#annexTerritoryBtn').click();
+  await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
   await expect(page.locator('#editorScrollBody')).not.toBeVisible();
@@ -53,9 +53,9 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입 1단계');
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await openActionsTab(page);
-  await page.locator('#mergeCountryBtn').click();
+  await page.locator('#mergeEntityBtn').click();
   await expect(page.locator('#editorTaskSlot #modeTaskName')).toHaveText('국가 합병');
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');

@@ -7,22 +7,22 @@ test('territorial selection appears as a label-anchored card and enters the edit
   const slotPointerEvents = await page.locator('.selection-toolbar-slot').evaluate(node => getComputedStyle(node).pointerEvents);
   expect(slotPointerEvents).toBe('none');
 
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect(page.locator('#selectionToolbar')).toBeVisible();
   await expect.poll(() => page.locator('#selectionToolbar').evaluate(node => getComputedStyle(node).pointerEvents)).toBe('auto');
   await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
   await expect(page.locator('#selectionCardName')).toHaveText('독일');
   await expect(page.locator('#selectionCardFlagPreview')).toBeVisible();
   await expect(page.locator('g.territorial-label-item.selection-card-source-hidden')).toHaveCount(1);
-  await expect(page.locator('#editorSurface #countryNameInput, #editorSurface #flagMenuBtn')).toHaveCount(2);
-  await expect(page.locator('#editorSurface #notesInput')).toHaveCount(1);
+  await expect(page.locator('#editorSurface #entityNameInput, #editorSurface #flagMenuBtn')).toHaveCount(2);
+  await expect(page.locator('#editorSurface #entityNotesInput')).toHaveCount(1);
   await expect(page.locator('#selectionToolbar #objectVisibilityBtn, #selectionToolbar #objectLockBtn')).toHaveCount(2);
   await expect(page.locator('#editorSurface .surface-header-actions #objectVisibilityBtn, #editorSurface .surface-header-actions #objectLockBtn, #editorSurface .surface-header-actions #objectDeleteBtn')).toHaveCount(0);
 
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'BGR'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('BGR'));
   await expect(page.locator('#selectionCardName')).toHaveText('불가리아');
   const bulgariaPosition = await page.locator('#selectionToolbar').boundingBox();
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'RUS'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
   await expect(page.locator('#selectionCardName')).toHaveText('러시아');
   const russiaPosition = await page.locator('#selectionToolbar').boundingBox();
   expect(Math.hypot(
@@ -30,7 +30,7 @@ test('territorial selection appears as a label-anchored card and enters the edit
     russiaPosition.y - bulgariaPosition.y,
   )).toBeGreaterThan(20);
 
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect(page.locator('#selectionCardName')).toHaveText('독일');
 
   await page.locator('#selectionToolbarEditBtn').click();
@@ -43,16 +43,16 @@ test('territorial selection appears as a label-anchored card and enters the edit
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
   await expect(page.locator('#relationTabBtn')).toBeVisible();
   await expect(page.locator('#editorSurface')).not.toHaveAttribute('data-editor-inline-relation', 'true');
-  await expect(page.locator('#countryProperties > .editor-info-section')).toHaveAttribute('aria-label', '정보');
-  await expect(page.locator('#countryProperties > .editor-action-section:not(.editor-relation-section)')).toHaveAttribute('aria-label', '편집');
-  await expect(page.locator('#countryProperties > .editor-relation-section')).toHaveAttribute('aria-label', '관계');
-  await expect(page.locator('#countryProperties > .editor-section > .editor-section-title')).toHaveCount(0);
+  await expect(page.locator('#entityProperties > .editor-info-section')).toHaveAttribute('aria-label', '정보');
+  await expect(page.locator('#entityProperties > .editor-action-section:not(.editor-relation-section)')).toHaveAttribute('aria-label', '편집');
+  await expect(page.locator('#entityProperties > .editor-relation-section')).toHaveAttribute('aria-label', '관계');
+  await expect(page.locator('#entityProperties > .editor-section > .editor-section-title')).toHaveCount(0);
   await page.locator('#relationTabBtn').click();
   await expect(page.locator('#changeCountryTypeBtn')).toBeVisible();
-  await expect(page.locator('#annexTerritoryBtn')).toBeHidden();
-  await expect(page.locator('#countryNameInput')).toBeHidden();
+  await expect(page.locator('#annexEntityBtn')).toBeHidden();
+  await expect(page.locator('#entityNameInput')).toBeHidden();
   await page.locator('#editorTabBtn').click();
-  await expect(page.locator('#countryNameInput')).toBeVisible();
+  await expect(page.locator('#entityNameInput')).toBeVisible();
   await expect(page.locator('#changeCountryTypeBtn')).toBeHidden();
   for (const width of [1366, 1024, 390]) {
     await page.setViewportSize({ width, height: 900 });
@@ -91,7 +91,7 @@ test('object deletion shares the coast action spacing and is destructive only on
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
   const deletion = page.locator('#objectDeleteBtn');
@@ -118,14 +118,14 @@ test('object deletion shares the coast action spacing and is destructive only on
       host: row.parentElement.parentElement.classList.contains('editor-action-list'),
       previous: row.parentElement.previousElementSibling?.id,
       section: row.parentElement.tagName,
-    }))).toEqual({ host: true, previous: 'editCoastBtn', section: 'DIV' });
-    const border = await page.locator('#editBorderBtn').boundingBox();
-    const coast = await page.locator('#editCoastBtn').boundingBox();
+    }))).toEqual({ host: true, previous: 'editEntityCoastBtn', section: 'DIV' });
+    const border = await page.locator('#editEntityBorderBtn').boundingBox();
+    const coast = await page.locator('#editEntityCoastBtn').boundingBox();
     const remove = await deletion.boundingBox();
     expect(remove.y - coast.y - coast.height).toBeCloseTo(coast.y - border.y - border.height, 1);
     expect(remove.x).toBeCloseTo(coast.x, 1);
     expect(remove.width).toBeCloseTo(coast.width, 1);
-    expect(await readAppearance('#objectDeleteBtn')).toEqual(await readAppearance('#editCoastBtn'));
+    expect(await readAppearance('#objectDeleteBtn')).toEqual(await readAppearance('#editEntityCoastBtn'));
   }
 
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -156,7 +156,7 @@ test('object deletion shares the coast action spacing and is destructive only on
   await expect(page.locator('#confirmModal')).toBeHidden();
   await expect(page.locator('#propertyTitle')).toHaveText('독일');
 
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'BGR'));
-  await expect(page.locator('#countryProperties #objectDeleteBtn')).toHaveCount(1);
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('BGR'));
+  await expect(page.locator('#entityProperties #objectDeleteBtn')).toHaveCount(1);
   await expect(deletion).toBeEnabled();
 });

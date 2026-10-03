@@ -2,7 +2,7 @@ import { normalizeObjectRef } from './object-selection-controller.js';
 
 const text = value => String(value ?? '').trim();
 
-export function taskTargetRefs(state, { countryType = 'country', territorialEntityById = () => null } = {}) {
+export function taskTargetRefs(state, { territorialEntityById = () => null } = {}) {
   const refs = new Map();
   const add = ref => {
     const normalized = normalizeObjectRef(ref);
@@ -11,13 +11,12 @@ export function taskTargetRefs(state, { countryType = 'country', territorialEnti
   const addCountry = id => {
     const key = text(id);
     const entity = key ? territorialEntityById(key) : null;
-    if (entity?.properties?.unitType === countryType) add({ domain: 'territorial', type: countryType, id: key });
+    if (entity?.properties?.entityKind === 'general' && !entity.properties.parentId) add({ domain: 'territorial', type: 'entity', id: key });
   };
   const addTerritorial = id => {
     const key = text(id);
     if (!key) return;
-    const entity = territorialEntityById(key);
-    if (entity?.properties?.unitType) add({ domain: 'territorial', type: entity.properties.unitType, id: key });
+    if (territorialEntityById(key)?.properties?.entityKind) add({ domain: 'territorial', type: 'entity', id: key });
   };
   const addGeneric = id => {
     const key = text(id);
@@ -55,7 +54,6 @@ export function taskTargetRefs(state, { countryType = 'country', territorialEnti
 
 /** Derive UI roles and steps from existing workflows; never own an editing state. */
 export function taskWorkflowPresentation(state, selectionModel = null, draft = {}, {
-  countryType = 'country',
   territorialEntityById = () => null,
 } = {}) {
   const preview = !!state.geometryPreview?.session;
@@ -63,8 +61,7 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
   const ref = id => {
     const key = text(id);
     if (!key) return null;
-    const entity = territorialEntityById(key);
-    return normalizeObjectRef({ domain: 'territorial', type: entity?.properties?.unitType || countryType, id: key });
+    return normalizeObjectRef({ domain: 'territorial', type: 'entity', id: key });
   };
   const card = (role, ids, placeholder = '선택') => ({ role, refs: ids.map(ref).filter(Boolean), placeholder });
   const current = selectionModel?.current;
@@ -75,13 +72,13 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
     step = selectionModel.step;
     total = 3;
     if (current.kind === 'annex' && current.stage === 'setup') {
-      cards.push(card('넘겨받는 국가', [current.targetCountryId]), card('넘겨주는 국가', current.sourceCountryIds, '국가 선택'));
+      cards.push(card('넘겨받는 객체', [current.targetCountryId]), card('넘겨주는 객체', current.sourceCountryIds, '객체 선택'));
       relation = '←';
     }
   } else if (state.tool === 'merge-country' || state.tool === 'merge-territorial-unit') {
     const country = state.tool === 'merge-country';
     const source = country ? state.mergeSourceCountryId : state.territorialUnitMergeSourceId;
-    const type = country ? '국가' : ref(source)?.type === 'region' ? '지방' : '하위단위';
+    const type = '객체';
     const ids = country ? state.mergeTargetCountryIds : state.territorialUnitMergeTargetIds;
     name = `${type} 합병`;
     stage = preview ? '합병 확인' : `합칠 ${type}`;
@@ -93,11 +90,11 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
   } else if (state.tool === 'territorial-border') {
     const ids = [...new Set((state.boundaryEditEntityIds || []).map(text))];
     const source = state.boundaryEditSeedEntityId || ids[0];
-    const subunit = ref(source)?.type === 'subunit';
-    const type = subunit ? '하위단위' : '국가';
+    const subunit = (territorialEntityById(source)?.properties.entityKind === 'general' && !!territorialEntityById(source)?.properties.parentId);
+    const type = '객체';
     const selecting = state.boundaryEditPhase === 'selecting';
-    name = subunit ? '경계 조정' : '국경 조정';
-    stage = preview ? '변경 확인' : selecting ? `상대 ${type}` : subunit ? '경계 편집' : '국경 편집';
+    name = '경계 조정';
+    stage = preview ? '변경 확인' : selecting ? `상대 ${type}` : '경계 편집';
     step = preview ? subunit ? 2 : 3 : selecting ? 1 : subunit ? 1 : 2;
     total = subunit ? 2 : 3;
     if (!preview) {
@@ -109,7 +106,7 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
     stage = preview ? '변경 확인' : '해안선 편집';
     step = preview ? 2 : 1;
     total = 2;
-    if (!preview) cards.push(card('대상 국가', [state.coastEditCountryId]));
+    if (!preview) cards.push(card('대상 객체', [state.coastEditCountryId]));
   } else if (state.tool === 'river' || state.tool === 'lake') {
     const river = state.tool === 'river';
     const review = state.multiDraft?.kind === 'hydro'

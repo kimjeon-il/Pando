@@ -10,23 +10,23 @@
   }, 0), 0);
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-function administrativeCountryId(feature, getEntity) {
+function territorialRootId(feature, getEntity) {
   if (!feature) return '';
-  const type = feature.properties.unitType;
-  if (type === 'country') return id(feature.id);
-  if (type === 'region') return id(feature.properties.associatedCountryId);
+  if (feature.properties.entityKind === 'regional') {
+    if (feature.properties.parentId) throw new Error('독립 권역에는 부모를 지정할 수 없습니다.');
+    return id(feature.id);
+  }
   const seen = new Set([id(feature.id)]);
   let current = feature;
-  while (current.properties.unitType === 'subunit') {
+  while (current.properties.parentId) {
     const parentId = id(current.properties.parentId);
+    if (seen.has(parentId)) throw new Error(feature.id + '의 부모 관계가 순환합니다.');
     const parent = getEntity(parentId);
-    if (!parent || seen.has(parentId)) throw new Error(`${feature.id}의 부모가 없거나 순환합니다: ${parentId}`);
+    if (!parent || parent.properties.entityKind !== 'general') throw new Error(feature.id + '의 부모는 존재하는 일반객체여야 합니다.');
     seen.add(parentId); current = parent;
   }
-  if (current.properties.unitType !== 'country') throw new Error('하위단위의 부모는 국가 또는 하위단위여야 합니다.');
   return id(current.id);
 }
-
 
   function createKernel(clipper, { normalize = geometry => geometry, segmentCandidates = null } = {}) {
     const boundsCache = new WeakMap();
@@ -73,26 +73,29 @@ function administrativeCountryId(feature, getEntity) {
       return false;
     }
 
-    function validate(countries, units, previous = [], affectedIds = null) {
-      const all = new Map([...countries, ...units].map(feature => [id(feature.id), feature]));
+    function validate(entities, previous = [], affectedIds = null) {
+      const all = new Map(entities.map(feature => [id(feature.id), feature]));
+      const units = entities.filter(feature => feature.properties.entityKind === 'general' && !!feature.properties.parentId);
+      for (const feature of entities) territorialRootId(feature, key => all.get(key));
       const old = new Map(previous.map(feature => [id(feature.id), feature]));
       const affected = affectedIds && new Set(affectedIds.map(id));
       for (const unit of units) {
-        if (unit.properties?.unitType !== 'subunit') continue;
+        if (!(unit.properties?.entityKind === 'general' && !!unit.properties?.parentId)) continue;
         const key = id(unit.id), parent = all.get(id(unit.properties.parentId));
         if (!parent || id(parent.id) === key) throw new Error(`${key}: 상위 단위를 찾을 수 없습니다.`);
-        administrativeCountryId(unit, key => all.get(key));
+        territorialRootId(unit, key => all.get(key));
         const seen = new Set([key]);
         let cursor = parent;
-        while (cursor?.properties?.unitType === 'subunit') {
+        while ((cursor?.properties?.entityKind === 'general' && !!cursor?.properties?.parentId)) {
           if (seen.has(id(cursor.id))) throw new Error(`${key}: 상위 단위 관계가 순환합니다.`);
           seen.add(id(cursor.id)); cursor = all.get(id(cursor.properties.parentId));
         }
+        if (unit.properties.coverageMode !== 'partition') continue;
         if (affected && !affected.has(key) && !affected.has(id(parent.id))) continue;
         if (!unit.geometry || area(unit.geometry) <= 0 || !contains(parent.geometry, unit.geometry)) throw new Error(`${key}: 형상이 상위 단위 밖으로 벗어났습니다.`);
         for (const sibling of units) {
-          if (id(sibling.id) === key || sibling.properties?.unitType !== 'subunit'
-            || id(sibling.properties.parentId) !== id(unit.properties.parentId)) continue;
+          if (id(sibling.id) === key || !(sibling.properties?.entityKind === 'general' && !!sibling.properties?.parentId)
+            || sibling.properties.coverageMode !== 'partition' || id(sibling.properties.parentId) !== id(unit.properties.parentId)) continue;
           if (significant(intersection(unit.geometry, sibling.geometry), unit.geometry)) throw new Error(`${key}: 형제 ${sibling.id}와 영역이 겹칩니다.`);
         }
       }
@@ -101,7 +104,7 @@ function administrativeCountryId(feature, getEntity) {
         const after = all.get(key);
         // An unchanged child can inherit a country change from a moved ancestor.
         if (!same(before, after)
-          || administrativeCountryId(before, entityId => old.get(entityId)) !== administrativeCountryId(after, entityId => all.get(entityId))) {
+          || territorialRootId(before, entityId => old.get(entityId)) !== territorialRootId(after, entityId => all.get(entityId))) {
           throw new Error(`${key}: 잠긴 객체는 변경할 수 없습니다.`);
         }
       }
@@ -110,11 +113,14 @@ function administrativeCountryId(feature, getEntity) {
 
     function createDraft(request) {
       // Inputs are read-only; only put()/explicit patches own mutable copies.
-      const countries = [...(request.countries || [])], units = [...(request.units || [])];
+      const entities = request.entities;
+      if (!Array.isArray(entities)) throw new Error('공통 객체 입력이 필요합니다.');
+      const countries = entities.filter(feature => feature.properties.entityKind === 'general' && !feature.properties.parentId);
+      const units = entities.filter(feature => feature.properties.entityKind === 'regional' || !!feature.properties.parentId);
       const before = [...countries, ...units], byId = new Map(before.map(feature => [id(feature.id), feature]));
       const patches = new Map(), removed = new Set(), impacts = [], ownershipChanges = [];
       const read = key => patches.get(id(key)) || byId.get(id(key));
-      const children = key => units.filter(unit => unit.properties?.unitType === 'subunit' && id(unit.properties.parentId) === id(key));
+      const children = key => units.filter(unit => (unit.properties?.entityKind === 'general' && !!unit.properties?.parentId) && id(unit.properties.parentId) === id(key));
       function put(feature, geometry, parentId) {
         if (!feature) throw new Error('변경할 객체를 찾을 수 없습니다.');
         const next = clone(read(feature.id));
@@ -151,9 +157,9 @@ function administrativeCountryId(feature, getEntity) {
       const parentId = id(request.parentId), parent = byId.get(parentId);
       if (!parent) throw new Error('허용 상위 범위를 찾을 수 없습니다.');
       if (parent.properties?.locked) throw new Error('상위 단위의 잠금을 해제하세요.');
-      const countryId = parent.properties?.unitType === 'subunit' ? administrativeCountryId(parent, key => byId.get(key)) : id(parent.id);
-      const siblings = units.filter(unit => unit.properties?.unitType === 'subunit'
-        && id(unit.properties.parentId) === parentId && administrativeCountryId(unit, key => byId.get(key)) === countryId);
+      const countryId = (parent.properties?.entityKind === 'general' && !!parent.properties?.parentId) ? territorialRootId(parent, key => byId.get(key)) : id(parent.id);
+      const siblings = units.filter(unit => (unit.properties?.entityKind === 'general' && !!unit.properties?.parentId)
+        && id(unit.properties.parentId) === parentId && territorialRootId(unit, key => byId.get(key)) === countryId);
       const allowed = new Set(siblings.map(unit => id(unit.id)));
       const assertSibling = unit => { if (!unit || !allowed.has(id(unit.id))) throw new Error('같은 소속 국가·상위 단위 안에서만 편집할 수 있습니다.'); };
       return { parentId, parent, countryId, siblings, assertSibling };
@@ -204,10 +210,10 @@ function administrativeCountryId(feature, getEntity) {
     function planTransfer(request) {
       const draft = createDraft(request);
       const { countries, units, byId, target, patches, ownershipChanges, children, put, impacts } = draft;
-      const oldCountry = byId.get(administrativeCountryId(target, key => byId.get(key)));
+      const oldCountry = byId.get(territorialRootId(target, key => byId.get(key)));
       const promoting = request.operation === 'promote';
       const newCountry = promoting ? clone(request.newCountry) : countries.find(country => id(country.id) === id(request.countryId));
-      if (target.properties.unitType !== 'subunit' || !oldCountry || !newCountry || id(oldCountry.id) === id(newCountry.id)) throw new Error('이전할 소속 국가를 선택하세요.');
+      if (!(target.properties.entityKind === 'general' && !!target.properties.parentId) || !oldCountry || !newCountry || id(oldCountry.id) === id(newCountry.id)) throw new Error('이전할 소속 국가를 선택하세요.');
       if (promoting && (id(newCountry.id) !== id(target.id) || countries.some(country => id(country.id) === id(newCountry.id)))) throw new Error('새 국가 ID가 올바르지 않습니다.');
       const kept = difference(oldCountry.geometry, target.geometry);
       if (!significant(kept, oldCountry.geometry)) throw new Error('기존 국가의 영역 전체를 이전할 수 없습니다.');
@@ -229,7 +235,7 @@ function administrativeCountryId(feature, getEntity) {
       if (promoting) { moved.add(id(target.id)); children(target.id).forEach(move); }
       else move(target);
       for (const unit of units) {
-        if (unit.properties.unitType !== 'subunit' || administrativeCountryId(unit, key => byId.get(key)) !== id(oldCountry.id) || moved.has(id(unit.id))) continue;
+        if (!(unit.properties.entityKind === 'general' && !!unit.properties.parentId) || territorialRootId(unit, key => byId.get(key)) !== id(oldCountry.id) || moved.has(id(unit.id))) continue;
         if (!significant(intersection(unit.geometry, target.geometry), unit.geometry)) continue;
         const remaining = difference(unit.geometry, target.geometry);
         put(unit, remaining);
@@ -241,7 +247,7 @@ function administrativeCountryId(feature, getEntity) {
     function planCoast(request) {
       const draft = createDraft(request);
       const { countries, units, byId, target, removed, read, children, put, impacts } = draft;
-      const countryId = target.properties?.unitType === 'subunit' ? administrativeCountryId(target, key => byId.get(key)) : id(target.id);
+      const countryId = (target.properties?.entityKind === 'general' && !!target.properties?.parentId) ? territorialRootId(target, key => byId.get(key)) : id(target.id);
       const country = byId.get(countryId);
       if (!country || !request.draft) throw new Error('변경할 국가 해안선을 찾을 수 없습니다.');
       // draft always describes the country result, irrespective of entrypoint.
@@ -249,7 +255,7 @@ function administrativeCountryId(feature, getEntity) {
       const added = difference(request.draft, baseline), lost = difference(baseline, request.draft);
       for (const other of countries) if (id(other.id) !== countryId && significant(intersection(added, other.geometry), added)) throw new Error('다른 국가의 기존 영토를 침범할 수 없습니다.');
       put(country, clone(request.draft));
-      for (const unit of units.filter(unit => unit.properties?.unitType === 'subunit' && administrativeCountryId(unit, key => byId.get(key)) === countryId)) {
+      for (const unit of units.filter(unit => (unit.properties?.entityKind === 'general' && !!unit.properties?.parentId) && territorialRootId(unit, key => byId.get(key)) === countryId)) {
         const kept = difference(unit.geometry, lost);
         const cut = intersection(unit.geometry, lost);
         if (significant(cut, unit.geometry)) {
@@ -279,12 +285,12 @@ function administrativeCountryId(feature, getEntity) {
     function planMerge(request) {
       const draft = createDraft(request);
       const { byId, target, removed, ownershipChanges, children, put } = draft;
-      if (target.properties?.unitType === 'region') {
+      if ((target.properties?.entityKind === 'regional')) {
         const targets = [...new Set((request.sourceIds || []).map(id))]
           .filter(key => key !== id(target.id)).map(key => byId.get(key));
         if (!targets.length) throw new Error('합병 대상을 선택하세요.');
         for (const feature of [target, ...targets]) {
-          if (feature?.properties?.unitType !== 'region') throw new Error('지방끼리만 합병할 수 있습니다.');
+          if (!(feature?.properties?.entityKind === 'regional')) throw new Error('지방끼리만 합병할 수 있습니다.');
           if (feature.properties.locked) throw new Error('잠긴 지방은 변경할 수 없습니다.');
         }
         put(target, union(target.geometry, ...targets.map(feature => feature.geometry)));
@@ -360,7 +366,7 @@ function administrativeCountryId(feature, getEntity) {
       let receiver = target;
       if (request.operation === 'create') {
         receiver = clone(request.newFeature);
-        if (!receiver || !id(receiver.id) || receiver.properties?.unitType !== 'subunit' || byId.has(id(receiver.id))) throw new Error('새 하위단위 ID가 올바르지 않습니다.');
+        if (!receiver || !id(receiver.id) || !(receiver.properties?.entityKind === 'general' && !!receiver.properties?.parentId) || byId.has(id(receiver.id))) throw new Error('새 하위단위 ID가 올바르지 않습니다.');
         receiver.properties.parentId = parentId;
         receiver.geometry = clone(request.draft); patches.set(id(receiver.id), receiver);
       } else put(target, union(target.geometry, request.draft));
@@ -379,7 +385,7 @@ function administrativeCountryId(feature, getEntity) {
       const countryIds = new Set(countries.map(feature => id(feature.id)));
       const nextCountries = all.filter(feature => countryIds.has(id(feature.id)));
       const nextUnits = all.filter(feature => !countryIds.has(id(feature.id)));
-      if (!impacts.some(impact => impact.kind === 'coast-owner')) validate(nextCountries, nextUnits, before, [...patches.keys(), ...removed]);
+      if (!impacts.some(impact => impact.kind === 'coast-owner')) validate([...nextCountries, ...nextUnits], before, [...patches.keys(), ...removed]);
       return { features, removedIds, countryIds: [...countryIds], affectedIds: [...new Set([...patches.keys(), ...removed])], ownershipChanges, impacts };
     }
     function plan(request) {
@@ -393,5 +399,5 @@ function administrativeCountryId(feature, getEntity) {
     }
     return Object.freeze({ plan, validate, adjacent, area, contains });
   }
-  root.PandoLabTerritorialEdit = Object.freeze({ createKernel, administrativeCountryId });
+  root.PandoLabTerritorialEdit = Object.freeze({ createKernel, territorialRootId });
 })(globalThis);

@@ -19,7 +19,7 @@ const square = (left = 0, right = 1) => ({
 
 test('historical entities use stable IDs and select the geometry version for a reference year', () => {
   const entity = normalizeHistoricalLibraryEntity({
-    libraryId: 'historical-country:test', type: 'country', canonicalName: 'Test',
+    libraryId: 'historical-country:test', entityKind: 'general', canonicalName: 'Test',
     geometryVersions: [
       { id: 'v1900', validFrom: '1900', validTo: '1949', geometry: square(), certainty: 'medium' },
       { id: 'v1950', validFrom: '1950', validTo: '1999', geometry: square(2, 3), certainty: 'high' },
@@ -30,15 +30,15 @@ test('historical entities use stable IDs and select the geometry version for a r
 });
 
 test('library search covers multilingual names aliases dates types and current/past status', () => {
-  const library = createHistoricalLibrary({ schemaVersion: 2, entities: [
-    { libraryId: 'past', type: 'country', canonicalName: 'Czechoslovakia', displayNames: { ko: '체코슬로바키아' }, alternateNames: ['Československo'], startDate: '1918', endDate: '1992', metadata: { geographicRegion: 'Europe' }, geometryVersions: [{ id: 'past-v', geometry: square() }] },
-    { libraryId: 'current', type: 'region', canonicalName: 'Current region', endDate: null, metadata: { geographicRegion: 'Asia' }, geometryVersions: [{ id: 'current-v', geometry: square() }] },
+  const library = createHistoricalLibrary({ schemaVersion: 3, entities: [
+    { libraryId: 'past', entityKind: 'general', canonicalName: 'Czechoslovakia', displayNames: { ko: '체코슬로바키아' }, alternateNames: ['Československo'], startDate: '1918', endDate: '1992', metadata: { geographicRegion: 'Europe' }, geometryVersions: [{ id: 'past-v', geometry: square() }] },
+    { libraryId: 'current', entityKind: 'regional', canonicalName: 'Current region', endDate: null, metadata: { geographicRegion: 'Asia' }, geometryVersions: [{ id: 'current-v', geometry: square() }] },
   ] });
   assert.equal(library.search({ query: 'česko' }).map(item => item.libraryId).join(), 'past');
   assert.equal(library.search({ query: '체코' }).map(item => item.libraryId).join(), 'past');
-  assert.equal(library.search({ status: 'past', referenceDate: '1950', type: 'country' }).length, 1);
+  assert.equal(library.search({ status: 'past', referenceDate: '1950', entityKind: 'general' }).length, 1);
   assert.equal(library.search({ status: 'current' }).length, 1);
-  assert.equal(library.search({ referenceDate: '2000', type: 'country' }).length, 0);
+  assert.equal(library.search({ referenceDate: '2000', entityKind: 'general' }).length, 0);
   assert.equal(library.search({ geographicRegion: 'Europe' }).map(item => item.libraryId).join(), 'past');
 });
 
@@ -57,13 +57,13 @@ test('pilot geometry is materialized from member countries and instances retain 
     { type: 'Feature', id: 'B', properties: { name: 'B' }, geometry: square(1, 2) },
   ] };
   const [entity] = materializePilotEntities([{
-    libraryId: 'historical-country:ab', type: 'country', canonicalName: 'AB', startDate: '1900', endDate: '1950',
+    libraryId: 'historical-country:ab', entityKind: 'general', canonicalName: 'AB', startDate: '1900', endDate: '1950',
     geometryVersions: [{ id: 'ab-v1', memberCountryIds: ['A', 'B'], certainty: 'low' }],
   }], countries, geometries => ({ type: 'MultiPolygon', coordinates: geometries.map(geometry => geometry.coordinates) }));
   const instance = instantiateLibraryEntity(entity, '1920');
   assert.equal(instance.libraryId, 'historical-country:ab');
   assert.equal(instance.geometryVersionId, 'ab-v1');
-  assert.equal(instance.type, 'country');
+  assert.equal(instance.entityKind, 'general');
   assert.notEqual(instance.geometry, entity.geometryVersions[0].geometry);
   assert.deepEqual(instance.instantiation, { mode: 'independent', countryUpdates: {} });
 });
@@ -71,7 +71,7 @@ test('pilot geometry is materialized from member countries and instances retain 
 test('pilot geometry accepts immutable inline polygons and territory-replacement metadata', () => {
   const inline = square(10, 11);
   const [entity] = materializePilotEntities([{
-    libraryId: 'historical-country:inline', type: 'country', canonicalName: 'Inline',
+    libraryId: 'historical-country:inline', entityKind: 'general', canonicalName: 'Inline',
     alternateNames: ['Alias'],
     instantiation: { mode: 'territory-replacement', countryUpdates: { DEU: { name: 'Federal Republic' } } },
     geometryVersions: [{ id: 'inline-v1', geometry: inline, certainty: 'medium' }],
@@ -90,8 +90,8 @@ test('pilot geometry accepts immutable inline polygons and territory-replacement
 test('pilot geometry can add and subtract explicit adjustment masks from canonical members', () => {
   const calls = [];
   const [entity] = materializePilotEntities([{
-    libraryId: 'historical-subunit:adjusted', type: 'subunit', canonicalName: 'Adjusted',
-    parentLibraryId: 'historical-country:parent', sovereignLibraryId: 'historical-country:parent', adminLevel: 1,
+    libraryId: 'historical-subunit:adjusted', entityKind: 'general', canonicalName: 'Adjusted',
+    parentLibraryId: 'historical-country:parent', adminLevel: 1,
     geometryVersions: [{
       id: 'adjusted-v1', memberCountryIds: ['BASE'], includeGeometry: square(2, 3), excludeGeometry: square(0, 1),
     }],
@@ -111,7 +111,7 @@ test('pilot geometry can add and subtract explicit adjustment masks from canonic
 
 test('legacy territory-priority metadata normalizes to the unified replacement mode', () => {
   const entity = normalizeHistoricalLibraryEntity({
-    libraryId: 'historical-country:legacy', type: 'country', canonicalName: 'Legacy',
+    libraryId: 'historical-country:legacy', entityKind: 'general', canonicalName: 'Legacy',
     instantiation: { mode: 'country-territory-priority' },
     geometryVersions: [{ id: 'legacy-v1', geometry: square() }],
   });
@@ -123,7 +123,7 @@ const historicalData = JSON.parse(readFileSync(new URL('../../assets/data/histor
 test('historical library preserves embedded polygon geometry without a modern-country materialization source', () => {
   const embedded = { type: 'MultiPolygon', coordinates: [square().coordinates] };
   const [entity] = materializePilotEntities([{
-    libraryId: 'historical-country:embedded', type: 'country', canonicalName: 'Embedded',
+    libraryId: 'historical-country:embedded', entityKind: 'general', canonicalName: 'Embedded',
     geometryVersions: [{ id: 'embedded-r1', geometry: embedded, certainty: 'high' }],
   }], { type: 'FeatureCollection', features: [] }, () => null);
   assert.equal(entity.geometryVersions[0].geometry.type, 'MultiPolygon');
@@ -183,7 +183,7 @@ test('Artsakh uses the right-originating white stepped flag motif', () => {
 
 test('world snapshots remain templates with independent reference lists', () => {
   const refs = ['one'];
-  const library = createHistoricalLibrary({ schemaVersion: 2, snapshots: [{ id: 'snapshot', name: 'Snapshot', referenceDate: '1914', entityRefs: refs }] });
+  const library = createHistoricalLibrary({ schemaVersion: 3, snapshots: [{ id: 'snapshot', name: 'Snapshot', referenceDate: '1914', entityRefs: refs }] });
   refs.push('two');
   assert.deepEqual(library.getSnapshot('snapshot').entityRefs, ['one']);
 });

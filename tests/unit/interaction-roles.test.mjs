@@ -27,7 +27,7 @@ test('all object domains share role priority and style, including zero fill and 
 });
 
 test('tool role overrides selection without altering canonical selection or geometry', () => {
-  const ref = normalizeObjectRef({ domain: 'territorial', type: 'country', id: 'RUS' });
+  const ref = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'RUS' });
   const snapshot = { selection: { primaryKey: ref.key, items: [ref] }, hover: ref };
   const before = JSON.stringify(snapshot);
   const entries = mapInteractionEntries(snapshot, { tool: 'country-coast', coastEditCountryId: 'RUS' });
@@ -38,8 +38,8 @@ test('tool role overrides selection without altering canonical selection or geom
 });
 
 test('country border keeps the selected countries primary and secondary while the boundary is edited', () => {
-  const rou = normalizeObjectRef({ domain: 'territorial', type: 'country', id: 'ROU' });
-  const mda = normalizeObjectRef({ domain: 'territorial', type: 'country', id: 'MDA' });
+  const rou = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'ROU' });
+  const mda = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'MDA' });
   const snapshot = { selection: { primaryKey: mda.key, items: [rou, mda] }, hover: null };
   const entries = mapInteractionEntries(snapshot, {
     tool: 'territorial-border', boundaryEditPhase: 'editing', boundaryEditEntityIds: ['ROU', 'MDA'],
@@ -71,8 +71,8 @@ test('worker ownership removes shared boundaries between unrelated objects witho
 
 test('late leave from another hover source cannot clear the current row, while reset clears all', () => {
   const domain = createSelectionDomain();
-  const a = normalizeObjectRef({ domain: 'territorial', type: 'country', id: 'DEU' });
-  const b = normalizeObjectRef({ domain: 'territorial', type: 'country', id: 'AUT' });
+  const a = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'DEU' });
+  const b = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'AUT' });
   domain.setHover(a, { source: 'map' });
   domain.setHover(b, { source: 'list' });
   domain.setHover(null, { source: 'map' });
@@ -123,8 +123,8 @@ test('ID-based boundary requests use synchronized geometry and reject missing ow
 });
 
 test('tool receivers, donors and nested parents keep their semantic roles independent of selection order', () => {
-  const units = [{ id: 'parent', properties: { unitType: 'subunit', sovereignId: 'RUS' } }, { id: 'child', properties: { unitType: 'subunit', parentId: 'parent', sovereignId: 'RUS' } }];
-  const refs = units.map(unit => normalizeObjectRef({ domain: 'territorial', type: 'subunit', id: unit.id }));
+  const units = [{ id: 'parent', properties: { entityKind: 'general', parentId: 'RUS' } }, { id: 'child', properties: { entityKind: 'general', parentId: 'parent' } }];
+  const refs = units.map(unit => normalizeObjectRef({ domain: 'territorial', type: 'entity', id: unit.id }));
   const snapshot = { selection: { items: refs, primaryKey: refs[1].key } };
   const byId = new Map(units.map(unit => [unit.id, unit]));
   const rows = mapInteractionEntries(snapshot, {

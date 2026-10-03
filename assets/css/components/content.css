@@ -158,7 +158,7 @@
   box-shadow: none;
 }
 
-:is(.gis-import-status, .territorial-type-impact, .ui-callout, .ui-alert, .editor-help):empty {
+:is(.gis-import-status, .ui-callout, .ui-alert, .editor-help):empty {
   display: none;
   min-height: 0;
 }

@@ -46,14 +46,14 @@ export function createTaskPresentation() {
 
   function syncCountryActionButtons() {
     const selectedId = dependencies.projectState.state.selected?.domain === 'territorial'
-      && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+      && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)
       ? dependencies.projectState.state.selected.id : null;
     const selection = dependencies.projectState.state.territorySelectionSession;
     const buttons = [
-      ['annexTerritoryBtn', selection?.actionButtonId === 'annexTerritoryBtn' && selection.targetCountryId === selectedId],
-      ['editBorderBtn', dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditEntityIds.includes(String(selectedId))],
-      ['editCoastBtn', dependencies.projectState.state.tool === 'country-coast' && dependencies.projectState.state.coastEditCountryId === selectedId],
-      ['mergeCountryBtn', dependencies.projectState.state.tool === 'merge-country' && dependencies.projectState.state.mergeSourceCountryId === selectedId],
+      ['annexEntityBtn', selection?.actionButtonId === 'annexEntityBtn' && selection.targetCountryId === selectedId],
+      ['editEntityBorderBtn', dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditEntityIds.includes(String(selectedId))],
+      ['editEntityCoastBtn', dependencies.projectState.state.tool === 'country-coast' && dependencies.projectState.state.coastEditCountryId === selectedId],
+      ['mergeEntityBtn', dependencies.projectState.state.tool === 'merge-country' && dependencies.projectState.state.mergeSourceCountryId === selectedId],
     ];
     for (const [id, active] of buttons) (0, dependencies.platform.$)(id)?.classList.toggle('active', !!active);
   }
@@ -101,7 +101,7 @@ export function createTaskPresentation() {
 
   function displayObject(ref) {
     const display = dependencies.objectOperationsA.objectDisplayInfo(ref);
-    const country = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY
+    const country = (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)
       ? countryDisplay(ref.id) : null;
     return { name: display.name, flagUrl: country?.flagUrl || '' };
   }
@@ -243,39 +243,21 @@ export function createTaskPresentation() {
     const selection = model?.current;
     const setup = (0, dependencies.platform.$)('territorialCreateSetup');
     setup?.classList.toggle('hidden', !model?.showSetup);
-    for (const id of ['territorialCreateSovereignRow', 'territorialCreateParentRow', 'territorialCreateSourceRow']) {
-      (0, dependencies.platform.$)(id)?.classList.toggle('hidden', !model?.showSetup || !model?.showSubunitFields);
-    }
     if (model?.showSetup) {
-      const nameLabel = (0, dependencies.platform.$)('territorialCreateNameLabel');
-      if (nameLabel) nameLabel.textContent = '이름';
-      const name = (0, dependencies.platform.$)('territorialCreateNameInput');
-      if (name && name.value !== selection.name) name.value = selection.name;
-      if (name) name.closest('.field-group')?.classList.toggle('hidden', !!selection.editOperation);
-      if (model?.showSubunitFields) {
-        const setupModel = (0, dependencies.territorialEditingB.territorialCreateSetupModel)();
-        if (setupModel) {
-          (0, dependencies.propertyEditingB.replaceSelectOptions)((0, dependencies.platform.$)('territorialCreateSovereignInput'), setupModel.countryOptions, selection.sovereignId, { autoSelectSingle: true });
-          (0, dependencies.propertyEditingB.replaceSelectOptions)((0, dependencies.platform.$)('territorialCreateParentInput'), setupModel.parentOptions, selection.parentId, { autoSelectSingle: true });
-          (0, dependencies.platform.$)('territorialCreateSovereignInput').disabled = !!selection.editOperation;
-          (0, dependencies.platform.$)('territorialCreateParentInput').disabled = !!selection.editOperation;
-          const sourceChoice = (0, dependencies.propertyEditingB.replaceSelectOptions)((0, dependencies.platform.$)('territorialCreateSourceInput'), setupModel.sourceOptions, selection.sourceKey, { autoSelectSingle: true });
-          (0, dependencies.platform.$)('territorialCreateSovereignRow')?.classList.toggle('hidden', !setupModel.countryOptions.length);
-          const flag = dependencies.platform.$('territorialCreateSovereignFlag');
-          if (flag) {
-            const country = countryDisplay(selection.sovereignId);
-            flag.hidden = !country?.flagUrl;
-            if (country?.flagUrl) flag.src = country.flagUrl;
-            else flag.removeAttribute('src');
-          }
-          (0, dependencies.platform.$)('territorialCreateParentRow')?.classList.toggle('hidden', !(0, dependencies.territorialServicesA.shouldShowTerritorialParentChoice)({
-            sovereignId: selection.sovereignId,
-            parentId: selection.parentId,
-            options: setupModel.parentOptions,
-          }));
-          (0, dependencies.platform.$)('territorialCreateSourceRow')?.classList.toggle('hidden', sourceChoice.single);
-        }
-      }
+      const name = dependencies.platform.$('territorialCreateNameInput');
+      if (name.value !== selection.name) name.value = selection.name;
+      name.closest('.field-group').classList.toggle('hidden', !!selection.editOperation);
+      const setupModel = dependencies.territorialEditingB.territorialCreateSetupModel();
+      const regional = dependencies.platform.$('territorialCreateRegionalInput');
+      regional.checked = selection.entityKind === 'regional';
+      regional.disabled = !!selection.editOperation;
+      const parent = dependencies.platform.$('territorialCreateParentInput');
+      dependencies.propertyEditingB.replaceSelectOptions(parent, setupModel.parentOptions, selection.parentId);
+      parent.disabled = regional.checked || !!selection.editOperation;
+      const source = dependencies.platform.$('territorialCreateSourceInput');
+      const choice = dependencies.propertyEditingB.replaceSelectOptions(source, setupModel.sourceOptions, selection.sourceKey, { autoSelectSingle: true });
+      source.disabled = !!setupModel.session.setupSourceCache?.pending;
+      dependencies.platform.$('territorialCreateSourceRow').classList.toggle('hidden', !selection.parentId || choice.single);
     }
     const reference = (0, dependencies.platform.$)('territorialCreateReference');
     reference?.classList.toggle('hidden', !model?.showReference);
@@ -384,7 +366,7 @@ export function createTaskPresentation() {
     const id = String(unitId || '');
     if (!id) return null;
     const unit = dependencies.territorialModel.entityRepository.get(id);
-    if (!unit || unit.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) return null;
+    if (!unit || (unit.properties?.entityKind === 'general' && !unit.properties?.parentId)) return null;
     const name = String(unit.properties?.name || '').trim();
     return name || null;
   }
@@ -509,7 +491,6 @@ export function createTaskPresentation() {
   function currentTaskTargets() {
     const state = dependencies.projectState.state;
     return taskTargetRefs(state, {
-      countryType: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
       territorialEntityById: id => dependencies.territorialModel.entityRepository.get(id),
     });
   }
@@ -590,7 +571,6 @@ export function createTaskPresentation() {
     });
     const task = activeModeTaskDescriptor();
     const view = taskWorkflowPresentation(state, selectionModel, draft, {
-      countryType: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
       territorialEntityById: id => dependencies.territorialModel.entityRepository.get(id),
     });
     const taskName = (0, dependencies.platform.$)('modeTaskName');

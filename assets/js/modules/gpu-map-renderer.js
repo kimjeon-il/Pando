@@ -397,13 +397,13 @@ export function createGpuMapRenderer(deps) {
         geometryRevision: geometryRevisionTracker.committedRevision(), projectGeneration });
     }
     function prepareCountrySharedBoundary({ features = null, removedIds = [], replace = false, baselineCache = null } = {}) {
-      let source = features || renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => feature.properties.unitType === 'country');
+      let source = features || renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId));
       if (!shouldShowSharedCountryBorders(state.physicalSettings)) {
         resetCountrySharedBoundary({ terminate: true });
         return;
       }
       if (!countryBoundaryWorker) {
-        if (!replace) source = renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => feature.properties.unitType === 'country');
+        if (!replace) source = renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId));
         countryBoundaryWorker = workerChannels.create(runtimeAssetUrl('workers/country-shared-boundary-worker.js'),
           { name: 'pandolab-country-shared-boundary' });
         countryBoundaryWorker.onmessage = ({ data }) => {
@@ -491,7 +491,7 @@ export function createGpuMapRenderer(deps) {
     const previewFrameWaiters = new Set();
     function markPreviewFramePresented() {
       if (previewFramePresented || !previewAllowed || canonicalMeshReady
-        || !state.territorialEntities?.some(feature => feature.properties.unitType === 'country')) return;
+        || !state.territorialEntities?.some(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId))) return;
       previewFramePresented = true;
       for (const resolve of previewFrameWaiters) resolve(true);
       previewFrameWaiters.clear();
@@ -1510,7 +1510,7 @@ export function createGpuMapRenderer(deps) {
       if (Number(requestedGeneration) !== projectGeneration || !builtinMeshBaseline?.mesh) return false;
       if (!isWebGlRenderer()) {
         onStaged?.();
-        const rebuilt = await rebuildFromCountries((renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => feature.properties.unitType === 'country')), {
+        const rebuilt = await rebuildFromCountries((renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId))), {
           reason: 'new-project-canvas-fallback', projectGeneration: requestedGeneration,
         });
         return rebuilt !== false;
@@ -1974,7 +1974,7 @@ export function createGpuMapRenderer(deps) {
 
     function compactCountryOverrides() {
       if (!countryOverrideIds.size) return;
-      rebuildFromCountries((renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => feature.properties.unitType === 'country')), {
+      rebuildFromCountries((renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId))), {
         geometryRevision: geometryRevisionTracker.committedRevision(),
         reason: 'compaction',
       });
@@ -3464,7 +3464,7 @@ export function createGpuMapRenderer(deps) {
       const canvasPath = d3.geo.path().projection(activeProjection()).context(ctx2d);
       const theme = mapTheme();
       const visibleFeatures = state.layerVisibility.countries
-        ? ((renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => feature.properties.unitType === 'country'))).filter(feature => isLayerItemVisible('countries', String(feature.id))) : [];
+        ? ((renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))).filter(feature => isLayerItemVisible('countries', String(feature.id))) : [];
       const resolveFill = createCountryFillResolver();
       ctx2d.globalAlpha = theme.baseLandAlpha;
       ctx2d.fillStyle = theme.defaultLand;
@@ -3494,7 +3494,7 @@ export function createGpuMapRenderer(deps) {
       }
       globalThis.PandoLabCanvasSceneComposition.drawFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr);
       const emphasisEntries = [];
-      if (state.layerVisibility.countries) for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => feature.properties.unitType === 'country'))) {
+      if (state.layerVisibility.countries) for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
         const id = String(feature.id || '');
         const emphasis = countryEmphasisStyle(id);
         if (isLayerItemVisible('countries', id) && emphasis) emphasisEntries.push({ key: `country:${id}`, geometry: feature,
@@ -3523,7 +3523,7 @@ export function createGpuMapRenderer(deps) {
             canvasPath({ type: 'MultiLineString', coordinates: segments.map(({ start, end }) => [start, end]) });
             ctx2d.stroke();
           }
-        } else for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => feature.properties.unitType === 'country'))) {
+        } else for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
           const id = String(feature?.id || '');
           if (!isLayerItemVisible('countries', id)) continue;
           ctx2d.beginPath();
@@ -3569,7 +3569,7 @@ export function createGpuMapRenderer(deps) {
     function canvasWorkerStyleMessage() {
       const fills = {};
       const resolveFill = createCountryFillResolver();
-      for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => feature.properties.unitType === 'country'))) {
+      for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
         fills[String(feature?.id || '')] = resolveFill(feature);
       }
       return {
@@ -3863,7 +3863,7 @@ export function createGpuMapRenderer(deps) {
           if (!canvasWorkerBitmapContext) canvasWorker2dContext = canvas.getContext('2d', { alpha: true });
           if (!canvasWorkerBitmapContext && !canvasWorker2dContext) throw new Error('Canvas 표시 컨텍스트를 만들 수 없습니다.');
           const initMessage = canvasWorkerInitMessage();
-          initMessage.features = (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => feature.properties.unitType === 'country'));
+          initMessage.features = (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)));
           canvasWorker.onmessage = receiveCanvasWorkerMessage;
           canvasWorker.onerror = event => failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
           postCanvasWorkerMessage(initMessage);

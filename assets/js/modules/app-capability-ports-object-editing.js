@@ -74,6 +74,7 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "labelPresentation"
   ],
   "territorialDrafts": [
+    "countryEditingB",
     "applicationServicesB",
     "countryEditingA",
     "countryValidation",

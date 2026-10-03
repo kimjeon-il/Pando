@@ -22,7 +22,7 @@ test('single WebGL context draws a country selection from the shared stroke reso
   await page.goto('/?perf=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.canonicalMeshReady), { timeout: 60_000 }).toBe(true);
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'RUS'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || []), { timeout: 30_000 }).toContain('country:RUS');
   await expect(page.locator('[data-selection-fallback-key="country:RUS"]')).toHaveCount(0);
   const snapshot = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot());

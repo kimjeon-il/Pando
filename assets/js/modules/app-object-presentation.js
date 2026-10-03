@@ -53,16 +53,16 @@ export function createObjectPresentation() {
   function territorialEntityName(feature) {
     const entity = dependencies.territorialModel.entityRepository.get(feature?.id) || feature;
     const properties = entity?.properties || {};
-    // Fresh built-in classification normalizes defaults; edited names are literal.
+    // Default names come from canonical assets; edited names are literal.
     if (properties.name) return properties.name;
-    if (properties.unitType === 'country') return '국가';
-    if (properties.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
-    return '이름 없는 하위단위';
+    if ((properties.entityKind === 'general' && !properties.parentId)) return '이름 없는 객체';
+    if ((properties.entityKind === 'regional')) return '이름 없는 객체';
+    return '이름 없는 객체';
   }
 
   function territorialEntityColor(feature) {
     const entity = dependencies.territorialModel.entityRepository.get(feature?.id) || feature;
-    const fallback = entity?.properties?.unitType === 'country'
+    const fallback = (entity?.properties?.entityKind === 'general' && !entity?.properties?.parentId)
       ? (0, dependencies.colorModel.defaultCountryColor)() : dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR;
     return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature: entity }, {
       inherited: resolveTerritorialColor(entity, { entityRepository: dependencies.territorialModel.entityRepository,
@@ -72,7 +72,7 @@ export function createObjectPresentation() {
   }
 
   function administrativeCountryName(feature) {
-    const country = dependencies.territorialModel.entityRepository.administrativeCountry(feature?.id);
+    const country = dependencies.territorialModel.entityRepository.root(feature?.id);
     return country ? territorialEntityName(country) : '소속 국가 미지정';
   }
 

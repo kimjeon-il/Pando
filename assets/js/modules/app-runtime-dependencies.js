@@ -9,7 +9,6 @@ const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalT
 const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, subunitParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
 const { layoutTerritorialFlags } = await import(`./territorial-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
-const { defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityRepository } = await import(`./territorial-entity-repository.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityStore } = await import(`./territorial-entity-store.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -332,12 +331,10 @@ const { DATA_READINESS, READINESS_EVENTS, canMutateProject, transitionDataReadin
 const { runMapEditTransaction } = mapEditTransactionModule;
 const {
   TERRITORIAL_COVERAGE_MODES,
-  TERRITORIAL_UNIT_TYPES,
-  changeUnitType,
   createTerritorialFeature,
   normalizeTerritorialRelations,
   normalizeTerritorialEntities,
-  administrativeCountryId,
+  territorialRootId,
   runTerritorialTransaction,
   validateTerritorialRelations,
 } = territorialUnitsModule;
@@ -353,9 +350,9 @@ const {
   validateDistributionModel,
 } = distributionModelModule;
 const TERRITORIAL_TYPE_LABELS = Object.freeze({
-  [TERRITORIAL_UNIT_TYPES.COUNTRY]: MAP_OBJECT_TYPES.country.label,
-  [TERRITORIAL_UNIT_TYPES.SUBUNIT]: MAP_OBJECT_TYPES.subunit.label,
-  [TERRITORIAL_UNIT_TYPES.REGION]: MAP_OBJECT_TYPES.region.label,
+  ['country']: MAP_OBJECT_TYPES.country.label,
+  ['subunit']: MAP_OBJECT_TYPES.subunit.label,
+  ['region']: MAP_OBJECT_TYPES.region.label,
 });
 const territorialTypeLabel = unitType => TERRITORIAL_TYPE_LABELS[unitType] || '영역';
 const { createSurfaceController } = surfaceControllerModule;
@@ -405,7 +402,6 @@ export {
   subunitParentChoices,
   BUILTIN_TERRITORY_MERGES,
   layoutTerritorialFlags,
-  defaultGeographicName,
   createTerritorialScopeResolver,
   validateSubunitParentChanges,
   classifyBuiltinCountries,
@@ -610,14 +606,12 @@ export {
   transitionDataReadiness,
   runMapEditTransaction,
   TERRITORIAL_COVERAGE_MODES,
-  TERRITORIAL_UNIT_TYPES,
-  changeUnitType,
   createTerritorialFeature,
   createTerritorialEntityRepository,
   createTerritorialEntityStore,
   normalizeTerritorialRelations,
   normalizeTerritorialEntities,
-  administrativeCountryId,
+  territorialRootId,
   runTerritorialTransaction,
   validateTerritorialRelations,
   DISTRIBUTION_SCHEMA_VERSION,

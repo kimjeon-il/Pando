@@ -45,11 +45,11 @@ test('map modes own unpainted land; explicit gray is still object paint', () => 
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   for (const terrainAlpha of [1, 0.68, 0.22]) {
-    entityStore.setField('country', 'A', 'color', '');
+    entityStore.setField('A', 'color', '');
     let resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha });
     assert.equal(resolve(country).color, '');
     assert.equal(resolve(country).fillAlpha, 0);
-    entityStore.setField('country', 'A', 'color', '#cccccc');
+    entityStore.setField('A', 'color', '#cccccc');
     resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha });
     assert.equal(resolve(country).color, '#cccccc');
     assert.equal(resolve(country).fillAlpha, terrainAlpha);
@@ -66,7 +66,7 @@ test('children inherit only assigned colors and retain their opacity and blend',
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   let resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha: 0.22 });
   assert.equal(resolve(child).fillAlpha, 0);
-  entityStore.setField('country', 'A', 'color', '#aa0000');
+  entityStore.setField('A', 'color', '#aa0000');
   resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha: 0.22 });
   assert.equal(resolve(child).color, '#aa0000');
   assert.equal(resolve(child).fillAlpha, 0.11);

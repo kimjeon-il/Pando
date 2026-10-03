@@ -210,7 +210,7 @@ if (!objectContext.includes('id="flagMenuBtn"')) fail('ObjectContext must own th
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
-for (const formId of ['countryProperties', 'subunitProperties', 'regionProperties']) {
+for (const formId of ['entityProperties']) {
   const form = elementById(formId, 'form');
   if (!form.includes('class="editor-section editor-info-section editor-section-primary" aria-label="정보"')) {
     fail(`#${formId} must expose an information section named 정보`);
@@ -223,9 +223,7 @@ for (const formId of ['countryProperties', 'subunitProperties', 'regionPropertie
   }
 }
 if (/(?:영역 편집|관계 및 종류|관계 및 구조)/.test([
-  elementById('countryProperties', 'form'),
-  elementById('subunitProperties', 'form'),
-  elementById('regionProperties', 'form'),
+  elementById('entityProperties', 'form'),
 ].join(''))) {
   fail('territorial editor sections must not repeat tab names as headings');
 }

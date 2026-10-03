@@ -6,13 +6,9 @@ import {
 } from './temporal.js';
 import { currentCountryFlagUrl } from './country-flags.js';
 
-export const HISTORICAL_LIBRARY_SCHEMA_VERSION = 2;
+export const HISTORICAL_LIBRARY_SCHEMA_VERSION = 3;
 
-export const LIBRARY_ENTITY_TYPES = Object.freeze({
-  COUNTRY: 'country',
-  SUBUNIT: 'subunit',
-  REGION: 'region',
-});
+export const LIBRARY_ENTITY_TYPES = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional' });
 
 const TYPES = new Set(Object.values(LIBRARY_ENTITY_TYPES));
 const POLYGON_TYPES = new Set(['Polygon', 'MultiPolygon']);
@@ -66,10 +62,10 @@ function normalizeGeometryVersion(raw) {
 }
 
 export function normalizeHistoricalLibraryEntity(raw) {
-  const inputType = text(raw?.type).toLowerCase();
-  const type = ['territory', 'admin'].includes(inputType) ? 'subunit' : inputType;
+  const entityKind = text(raw?.entityKind);
+  if (Object.hasOwn(raw || {}, 'type') || Object.hasOwn(raw || {}, 'sovereignLibraryId')) throw new Error('현재 라이브러리 객체 계약이 아닙니다.');
   const libraryId = text(raw?.libraryId);
-  if (!libraryId || !TYPES.has(type)) return null;
+  if (!libraryId || !TYPES.has(entityKind)) return null;
   const interval = normalizeTemporalInterval(raw.startDate, raw.endDate);
   const geometryVersions = [];
   const versionIds = new Set();
@@ -83,14 +79,13 @@ export function normalizeHistoricalLibraryEntity(raw) {
   return {
     libraryId,
     schemaVersion: HISTORICAL_LIBRARY_SCHEMA_VERSION,
-    type,
+    entityKind,
     canonicalName: text(raw.canonicalName) || libraryId,
     displayNames: raw.displayNames && typeof raw.displayNames === 'object' ? clone(raw.displayNames) : {},
     alternateNames: [...new Set((raw.alternateNames || []).map(text).filter(Boolean))],
     startDate: interval.validFrom,
     endDate: interval.validTo,
     parentLibraryId: text(raw.parentLibraryId),
-    sovereignLibraryId: text(raw.sovereignLibraryId),
     geometryVersions,
     instantiation: normalizeInstantiation(raw.instantiation),
     metadata: raw.metadata && typeof raw.metadata === 'object' ? clone(raw.metadata) : {},
@@ -120,7 +115,7 @@ export function createCurrentCountryLibraryEntities(countriesData, { displayName
     const defaultFlagDataUrl = currentCountryFlagUrl(id);
     return normalizeHistoricalLibraryEntity({
       libraryId: `current-country:${id}`,
-      type: LIBRARY_ENTITY_TYPES.COUNTRY,
+      entityKind: LIBRARY_ENTITY_TYPES.GENERAL,
       canonicalName,
       displayNames: { ko: canonicalName },
       alternateNames: [],
@@ -210,11 +205,11 @@ export function createHistoricalLibrary({ schemaVersion, entities = [], snapshot
     list: () => [...entityMap.values()],
     snapshots: () => [...snapshotMap.values()],
     getSnapshot: id => snapshotMap.get(text(id)) || null,
-    search({ query = '', type = '', status = 'all', referenceDate = '', geographicRegion = '' } = {}) {
+    search({ query = '', entityKind = '', status = 'all', referenceDate = '', geographicRegion = '' } = {}) {
       const needle = text(query).toLocaleLowerCase('ko');
       const referencePoint = parseTemporal(referenceDate);
       return [...entityMap.values()].filter(entity => {
-        if (type && entity.type !== type) return false;
+        if (entityKind && entity.entityKind !== entityKind) return false;
         if (status === 'current' && entity.endDate) return false;
         if (status === 'past' && !entity.endDate) return false;
         if (geographicRegion && text(entity.metadata?.geographicRegion) !== text(geographicRegion)) return false;
@@ -236,10 +231,9 @@ export function instantiateLibraryEntity(entity, referenceDate = null, geometryV
   return {
     libraryId: entity.libraryId,
     geometryVersionId: version.id,
-    type: entity.type,
+    entityKind: entity.entityKind,
     name: entity.displayNames?.ko || entity.canonicalName,
     parentLibraryId: entity.parentLibraryId,
-    sovereignLibraryId: entity.sovereignLibraryId,
     geometry: clone(version.geometry),
     validFrom: entity.startDate || version.validFrom,
     validTo: entity.endDate || version.validTo,

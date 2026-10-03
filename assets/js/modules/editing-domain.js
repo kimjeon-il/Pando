@@ -819,12 +819,7 @@ export function createEditingDomain({
     return committer.importGeoJson({ name: plan.source.fileName || '벡터 파일' }, {
       parsed: result.collection,
       target,
-      mapping: {
-        nameField: result.mapping?.nameField || '',
-        countryField: result.mapping?.countryField || '',
-        parentField: result.mapping?.parentField || '',
-        valueField: result.mapping?.valueField || '',
-      },
+      mapping: { ...result.mapping },
     });
   };
 

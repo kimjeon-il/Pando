@@ -2,13 +2,12 @@
   'use strict';
 
   const TERRITORIAL_TABLES = Object.freeze({
-    subunit: 'subunits',
-    region: 'regions',
+    general: 'entities',
+    regional: 'regions',
   });
   const DISTRIBUTION_TABLE = 'distributions';
   const TERRITORIAL_TYPES_BY_TABLE = Object.freeze({
     ...Object.fromEntries(Object.entries(TERRITORIAL_TABLES).map(([type, table]) => [table, type])),
-    territories: 'subunit', administrative: 'subunit',
   });
   const clone = value => value == null ? value : structuredClone(value);
   const text = value => String(value ?? '').trim();
@@ -52,17 +51,16 @@
     const rows = Object.fromEntries(Object.values(TERRITORIAL_TABLES).map(table => [table, []]));
     for (const item of state?.territorialEntities || []) {
       const properties = territorialProperties(item?.properties);
-      const unitType = text(properties.unitType);
-      const table = TERRITORIAL_TABLES[unitType];
+      const entityKind = text(properties.entityKind);
+      const table = TERRITORIAL_TABLES[entityKind];
       const geometry = polygonGeometry(item?.geometry);
       if (!table || !geometry) continue;
       rows[table].push({
         geometry,
         id: text(item.id),
         name: text(properties.name),
-        type: unitType,
+        entity_kind: entityKind,
         parent_id: text(properties.parentId),
-        associated_country_id: text(properties.associatedCountryId),
         valid_from: text(properties.validFrom),
         valid_to: text(properties.validTo),
         color: text(properties.style?.color),
@@ -116,23 +114,22 @@
 
   function importTerritorialFeature(feature, tableName, index = 0) {
     const properties = feature?.properties || {};
-    const unitType = TERRITORIAL_TYPES_BY_TABLE[tableName];
+    const entityKind = TERRITORIAL_TYPES_BY_TABLE[tableName];
     const geometry = polygonGeometry(feature?.geometry);
-    if (!unitType || !geometry) return null;
+    if (!entityKind || !geometry) return null;
     const currentProperties = territorialProperties(parseJson(properties.properties_json));
     const id = text(properties.id || feature.id);
-    if (!id) throw new Error(`영역 원본 ID가 비어 있습니다: ${unitType} ${index + 1}`);
+    if (!id) throw new Error(`영역 원본 ID가 비어 있습니다: ${entityKind} ${index + 1}`);
     return {
       type: 'Feature',
       id,
       properties: {
         ...currentProperties,
-        schemaVersion: 3,
-        unitType,
+        schemaVersion: 4,
+        entityKind,
         name: text(properties.name ?? currentProperties.name) || id,
         parentId: text(properties.parent_id ?? currentProperties.parentId),
-        associatedCountryId: text(properties.associated_country_id ?? currentProperties.associatedCountryId),
-        coverageMode: unitType === 'region' ? 'explicit' : text(currentProperties.coverageMode) || 'partition',
+        coverageMode: entityKind === 'regional' || !text(properties.parent_id ?? currentProperties.parentId) ? 'explicit' : text(currentProperties.coverageMode) || 'partition',
         validFrom: text(properties.valid_from ?? currentProperties.validFrom) || null,
         validTo: text(properties.valid_to ?? currentProperties.validTo) || null,
         style: {

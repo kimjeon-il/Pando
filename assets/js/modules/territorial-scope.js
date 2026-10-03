@@ -19,7 +19,7 @@ export function createTerritorialScopeResolver({ entityRepository, clipper }) {
     scopes = new Map();
   }
   function members(countryId) {
-    return entityRepository.descendants(countryId, { type: 'subunit' });
+    return entityRepository.descendants(countryId, { kind: 'general' });
   }
 
   function scope(countryId) {
@@ -27,7 +27,7 @@ export function createTerritorialScopeResolver({ entityRepository, clipper }) {
     const id = String(countryId);
     if (scopes.has(id)) return scopes.get(id);
     const candidate = entityRepository.get(id);
-    const country = candidate?.properties?.unitType === 'country' ? candidate : null;
+    const country = (candidate?.properties?.entityKind === 'general' && !candidate?.properties?.parentId) ? candidate : null;
     const descendants = members(id);
     const base = polygons(country?.geometry);
     let extent = country, extra = null;
@@ -51,14 +51,14 @@ export function validateSubunitParentChanges(previous, next, countryExists) {
   const units=new Map((next||[]).map(unit=>[String(unit.id),unit]));
   const issues=[];
   for(const unit of next||[]) {
-    if(unit.properties?.unitType !== 'subunit') continue;
+    if(!(unit.properties?.entityKind === 'general' && !!unit.properties?.parentId)) continue;
     const before=old.get(String(unit.id));
     const parentId=String(unit.properties.parentId||'');
     let cursor=parentId;
     const seen=new Set([String(unit.id)]);
     while(cursor && units.has(cursor)) {
       const parent=units.get(cursor);
-      if(seen.has(cursor)||parent.properties.unitType!=='subunit') { issues.push(unit.id+': 잘못된 부모 또는 순환 관계입니다.'); cursor=''; break; }
+      if(seen.has(cursor)||!(parent.properties.entityKind === 'general' && !!parent.properties.parentId)) { issues.push(unit.id+': 잘못된 부모 또는 순환 관계입니다.'); cursor=''; break; }
       seen.add(cursor); cursor=String(parent.properties.parentId||'');
     }
     if(!cursor||!countryExists(cursor)) issues.push(unit.id+': 부모 체인이 국가까지 연결되어야 합니다.');

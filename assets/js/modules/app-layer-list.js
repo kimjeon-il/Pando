@@ -108,7 +108,7 @@ export function createLayerList() {
   function layerTreeItems(group) {
     if (group === 'countries' || group === 'countryLabels') {
       return dependencies.territorialModel.entityRepository
-        .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY })
+        .list({ kind: 'general', parentId: '' })
         .map(feature => {
         const id = String(feature.id || '');
         return {
@@ -118,15 +118,15 @@ export function createLayerList() {
           flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
           searchText: id,
           meta: group === 'countryLabels' && dependencies.labelPresentation.pendingCountryLabelAnchors.has(id) ? '계산 중' : '',
-          selected: (dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY) && dependencies.projectState.state.selected.id === id,
+          selected: (dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) && dependencies.projectState.state.selected.id === id,
         };
       });
     }
     if (group === 'subunits' || group === 'regions') {
       const kind = group === 'subunits'
-        ? dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT
-        : dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION;
-      return dependencies.territorialModel.entityRepository.list({ type: kind }).map(feature => {
+        ? 'subunit'
+        : 'region';
+      return dependencies.territorialModel.entityRepository.list({ kind: kind === 'region' ? 'regional' : 'general' }).filter(feature => kind === 'region' || !!feature.properties.parentId).map(feature => {
         const countryLabel = (0, dependencies.objectPresentation.administrativeCountryName)(feature);
 
         return {
@@ -136,15 +136,15 @@ export function createLayerList() {
           flagUrl: effectiveTerritorialFlagUrl(feature, { assetRevision: dependencies.layerPresentation.ASSET_REVISION }),
           meta: '',
           searchText: countryLabel,
-          folderName: kind === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT
+          folderName: kind === 'subunit'
             ? `하위단위 · ${countryLabel}`
-            : kind === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION
-            ? `지방${(0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) ? ` · ${countryLabel}` : ''}`
+            : kind === 'region'
+            ? `지방${(0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) ? ` · ${countryLabel}` : ''}`
             : `하위단위 · ${countryLabel}`,
-          countryId: String((0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || ''),
+          countryId: String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || ''),
           parentId: String(feature.properties?.parentId || ''),
 
-          selected: (dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY) && dependencies.projectState.state.selected.id === String(feature.id),
+          selected: (dependencies.projectState.state.selected?.domain === 'territorial' && !(dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) && dependencies.projectState.state.selected.id === String(feature.id),
         };
       });
     }
@@ -205,14 +205,14 @@ export function createLayerList() {
   function pruneLayerItemVisibility() {
     const valid = {
       countries: new Set(dependencies.territorialModel.entityRepository
-        .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY })
+        .list({ kind: 'general', parentId: '' })
         .map(feature => String(feature.id || ''))),
       countryLabels: new Set((0, dependencies.countries.builtinTerritorialScene)().labelById.keys()),
       subunits: new Set(dependencies.territorialModel.entityRepository
-        .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT })
+        .list({ kind: 'general' }).filter(entity => !!entity.properties.parentId)
         .map(feature => String(feature.id))),
       regions: new Set(dependencies.territorialModel.entityRepository
-        .list({ type: dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION })
+        .list({ kind: 'regional' })
         .map(feature => String(feature.id))),
       distributions: new Set(dependencies.projectState.state.distributionLayers.map(layer => layer.id)),
       hydro: new Set([...Object.keys(dependencies.hydroPresentation.HYDRO_LAYER_META), ...dependencies.projectState.state.hydroEdits.map(feature => String(feature.id))]),

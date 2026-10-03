@@ -1,6 +1,32 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { createGisImportPlan } from '../../assets/js/modules/gis-import-plan.js';
+
+test('GIS import forwards the complete coast reconciliation mapping', async () => {
+  const calls = [];
+  const mapping = { nameField: 'name', targetCountryId: 'A', parentId: 'P',
+    useFeatureCountryField: true, countryField: 'owner', valueField: 'value' };
+  const collection = { type: 'FeatureCollection', features: [] };
+  const editing = createEditingDomain({
+    projectDomain: { getGeneration: () => 4 },
+    getImportCommitter: async () => ({ importGeoJson: (...args) => {
+      calls.push(args);
+      return true;
+    } }),
+  });
+  const plan = createGisImportPlan({ kind: 'generic', projectGeneration: 4,
+    source: { fileName: 'coast.geojson' },
+    payload: { result: { targetType: 'region', collection, mapping } },
+  });
+  assert.equal(await editing.commitImport(plan), true);
+  assert.deepEqual(calls, [[{ name: 'coast.geojson' }, {
+    parsed: collection, target: 'region', mapping,
+  }]]);
+  await assert.rejects(editing.commitImport({ ...plan, projectGeneration: 3 }),
+    error => error.code === 'PL-GIS-STALE-PLAN-001');
+  assert.equal(calls.length, 1);
+});
 
 test('insert mode supports repeated single-tap insertion, selected deletion and draft undo', () => {
   let enabled = true;

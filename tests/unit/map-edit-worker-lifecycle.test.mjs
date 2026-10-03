@@ -4,9 +4,9 @@ import { Worker } from 'node:worker_threads';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
 const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });
-const feature = (id, geometry, properties = {}) => createTerritorialFeature({ id, geometry, unitType: 'country', ...properties });
+const feature = (id, geometry, properties = {}) => createTerritorialFeature({ id, geometry, entityKind: 'general', ...properties });
 const countries = [feature('a', square(0, 0, 4, 4)), feature('b', square(4, 0, 8, 4))];
-const child = feature('child', square(0, 0, 2, 2), { unitType: 'subunit', parentId: 'a' });
+const child = feature('child', square(0, 0, 2, 2), { entityKind: 'general', parentId: 'a' });
 const rebase = () => ({ type: 'rebase', dataRevision: 1, editSources: {
   sourceRevision: 1, patches: [...countries, child].map(item => ({
     key: 'territorial:' + item.id, kind: 'territorial', metadata: { ...item, geometry: undefined }, geometry: item.geometry,
@@ -167,7 +167,7 @@ test('omitted sourceRevision remains valid for source-sensitive operations and p
   assert.equal(snap.ok, true);
   assert.ok(snap.result.candidates.length);
   await worker.send(execute(2, 'territorial-edit', { operation: 'create', targetId: 'a', parentId: 'a',
-    draft: square(2, 2, 3, 3), newFeature: feature('new-child', square(2, 2, 3, 3), { unitType: 'subunit', parentId: 'a' }),
+    draft: square(2, 2, 3, 3), newFeature: feature('new-child', square(2, 2, 3, 3), { entityKind: 'general', parentId: 'a' }),
   }, {}));
   const preview = await worker.result(2);
   assert.equal(preview.ok, true);

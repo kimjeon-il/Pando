@@ -163,7 +163,7 @@ export function createHistoricalLibraryController({
   function searchResults() {
     return service.search({
       query: elements.search.value,
-      type: elements.type.value,
+      entityKind: elements.type.value,
       status: elements.status.value,
       referenceDate: elements.year.value,
       geographicRegion: elements.geographicRegion.value,
@@ -312,7 +312,7 @@ export function createHistoricalLibraryController({
       const strong = document.createElement('strong');
       strong.textContent = entity.displayNames?.ko || entity.canonicalName;
       const small = document.createElement('small');
-      small.textContent = `${typeLabels[entity.type]} · ${period(entity)}`;
+      small.textContent = `${typeLabels[entity.entityKind]} · ${period(entity)}`;
       const flagUrl = String(entity.metadata?.defaultFlagDataUrl || '').trim();
       if (flagUrl) {
         const flag = document.createElement('span');

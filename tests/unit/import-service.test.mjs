@@ -1,4 +1,4 @@
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature, normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import assert from 'node:assert/strict';
@@ -44,27 +44,29 @@ test('raw GIS replacement creates a current full project; package replacement pr
   } });
   const committer = createGisImportTransactionCommitter({ state, entityStore,
     territorialEntityRepository: createTerritorialEntityRepository({ entityStore }),
-    projectDomain, applyImportedPackageAssets, setActionStatus() {},
+    projectDomain, normalizeTerritorialEntities, applyImportedPackageAssets, setActionStatus() {},
   });
   await committer.applyImportedReplacement({ countriesData: { features: [country('A')] },
     sourceInfo: { title: 'Raw GIS' } });
-  assert.equal(loaded.schemaVersion, 7);
+  assert.equal(loaded.schemaVersion, 8);
   assert.equal(loaded.baseDataset, 'external-territorial-entities');
   assert.equal(loaded.distributionEntries.length, 0);
   assert.deepEqual(loaded.sourceInfo, { title: 'Raw GIS' });
-  assert.equal(state.territorialEntities[0].properties.unitType, 'country');
+  assert.equal(state.territorialEntities[0].properties.entityKind, 'general');
 
   const packageState = serializer.buildProject({ fullAutosave: true, projectFields,
-    territorialEntities: [createTerritorialFeature({ id: 'A', unitType: 'country',
+    territorialEntities: [createTerritorialFeature({ id: 'A', entityKind: 'general',
       name: '', color: '#123456', geometry: state.territorialEntities[0].geometry }),
-    createTerritorialFeature({ id: 'S', unitType: 'subunit', parentId: 'A',
+    createTerritorialFeature({ id: 'S', entityKind: 'general', parentId: 'A',
+      geometry: state.territorialEntities[0].geometry }),
+    createTerritorialFeature({ id: 'R', entityKind: 'regional',
       geometry: state.territorialEntities[0].geometry })],
   });
-  await committer.applyImportedReplacement({ countriesData: { features: [country('A')] },
-    atlasMetadata: { projectState: packageState } });
+  await committer.applyImportedReplacement({ atlasMetadata: { projectState: packageState } });
   assert.equal(state.territorialEntities[0].properties.name, '');
   assert.equal(state.territorialEntities[0].properties.style.color, '#123456');
   assert.equal(state.territorialEntities[1].properties.parentId, 'A');
+  assert.deepEqual(state.territorialEntities, packageState.territorialEntities);
   assert.equal(loaded.baseDataset, 'external-territorial-entities');
 });
 

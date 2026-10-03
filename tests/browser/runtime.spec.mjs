@@ -35,7 +35,7 @@ async function editorTypographySnapshot(page) {
       return [computed.fontSize, computed.fontWeight];
     };
     const formIds = [
-      'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties',
+      'entityProperties',
       'distributionProperties', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
     ];
     return {
@@ -47,17 +47,16 @@ async function editorTypographySnapshot(page) {
       )),
       objectTitle: font('#propertyTitle'),
       objectType: font('#propertyTypeLabel'),
-      sectionTitle: font('#territoryGeometryActionsTitle'),
-      propertyLabel: font('label[for="countryNameInput"]'),
-      editableValue: font('#countryNameInput'),
+      sectionTitle: font('#genericFeatureProperties .editor-section-title'),
+      propertyLabel: font('label[for="entityNameInput"]'),
+      editableValue: font('#entityNameInput'),
       readonlyLabel: font('.editor-property-list span'),
-      readonlyValue: font('#countryAreaValue'),
+      readonlyValue: font('#entityAreaValue'),
       distributionUnit: font('#distributionUnitInput'),
-      helper: font('#territoryNameConflict'),
-      colorValue: font('#countryColorValue'),
-      propertyHeading: font('.editor-property-heading'),
+      helper: font('#entityRegionalStatus'),
+      colorValue: font('#entityColorValue'),
       periodHeading: font('.editor-period-group > legend'),
-      periodSubfield: font('label[for="regionValidFromInput"]'),
+      periodSubfield: font('label[for="entityValidFromInput"]'),
     };
   });
 }
@@ -136,7 +135,6 @@ for (const layout of layouts) {
       expect(typography.distributionUnit).toEqual(['15px', '400']);
       expect(typography.helper).toEqual(['13px', '400']);
       expect(typography.colorValue).toEqual(['15px', '400']);
-      expect(typography.propertyHeading).toEqual(['14px', '500']);
       expect(typography.periodHeading).toEqual(['14px', '500']);
       expect(typography.periodSubfield).toEqual(['13px', '500']);
       expect(errors).toEqual([]);
@@ -148,12 +146,12 @@ test('annex territory exposes river boundaries as a retained component-selection
   test.setTimeout(360_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1' });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#annexTerritoryBtn').click();
+  await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
-  await expect(page.locator('#modeTaskStage')).toHaveText('가져올 국가');
+  await expect(page.locator('#modeTaskStage')).toHaveText('가져올 객체');
   await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
   await expect(page.locator('#modeTaskObjects')).toBeVisible();
   await expect(page.locator('#modeMethodSwitch')).toBeHidden();
@@ -233,12 +231,12 @@ test('annex role cards show actual flags and retain every donor country name', a
   test.setTimeout(180_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1' });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#annexTerritoryBtn').click();
-  await expect(page.locator('#modeTaskObjects [aria-label="넘겨받는 국가"] strong')).toHaveText('독일');
-  await expect(page.locator('#modeTaskObjects [aria-label="넘겨받는 국가"] img')).toBeVisible();
+  await page.locator('#annexEntityBtn').click();
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨받는 객체"] strong')).toHaveText('독일');
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨받는 객체"] img')).toBeVisible();
   const mapBox = await page.locator('#map').boundingBox();
   for (const id of ['POL', 'CZE']) {
     const point = await page.evaluate(countryId => {
@@ -249,11 +247,11 @@ test('annex role cards show actual flags and retain every donor country name', a
       clientX: mapBox.x + point[0], clientY: mapBox.y + point[1], button: 0,
     });
   }
-  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"]')).toContainText('체코');
-  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"] img').nth(0)).toBeVisible();
-  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"] img').nth(1)).toBeVisible();
-  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"]')).toContainText('폴란드');
-  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 국가"] img')).toHaveCount(2);
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 객체"]')).toContainText('체코');
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 객체"] img').nth(0)).toBeVisible();
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 객체"] img').nth(1)).toBeVisible();
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 객체"]')).toContainText('폴란드');
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨주는 객체"] img')).toHaveCount(2);
   expect(errors).toEqual([]);
 });
 
@@ -261,10 +259,10 @@ test('annex archives a component and starts the next method without losing the c
   test.setTimeout(180_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1' });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#annexTerritoryBtn').click();
+  await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
   const donorPoint = await page.evaluate(() => {
     const anchor = window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL');
@@ -303,13 +301,13 @@ test('new-country setup shows the origin-country card and keeps multiple source 
   test.setTimeout(180_000);
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1' });
-  await page.locator('#addCountryBtn').evaluate(button => button.click());
-  await expect(page.locator('#modeTaskName')).toHaveText('국가 추가');
-  await expect(page.locator('#modeTaskStage')).toHaveText('국가 정보');
+  await page.locator('#addEntityBtn').evaluate(button => button.click());
+  await expect(page.locator('#modeTaskName')).toHaveText('객체 추가');
+  await expect(page.locator('#modeTaskStage')).toHaveText('객체 정보');
   await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
   await expect(page.locator('#territorialCreateNameLabel')).toHaveText('이름');
   await expect(page.locator('#territorialCreateReference')).toBeVisible();
-  await expect(page.locator('#territorialCreateReferenceLabel')).toHaveText('원소속 국가');
+  await expect(page.locator('#territorialCreateReferenceLabel')).toHaveText('기준 객체');
   const mapBox = await page.locator('#map').boundingBox();
   for (const id of ['DEU', 'POL']) {
     const point = await page.evaluate(countryId => {
@@ -321,7 +319,7 @@ test('new-country setup shows the origin-country card and keeps multiple source 
     });
   }
   await expect(page.locator('#territorialCreateReferenceList [role="listitem"]')).toHaveCount(2);
-  await expect(page.locator('#territorialCreateReference')).toHaveAttribute('aria-label', /원소속 국가 2개/);
+  await expect(page.locator('#territorialCreateReference')).toHaveAttribute('aria-label', /기준 객체 2개/);
   await expect(page.locator('#territorialCreateReferenceList img')).toHaveCount(2);
   await expect(page.locator('#territorialCreateReferenceList')).toContainText('독일');
   await expect(page.locator('#territorialCreateReferenceList')).toContainText('폴란드');

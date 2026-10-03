@@ -1,5 +1,7 @@
 export const EXCHANGE_TARGETS = Object.freeze({
   PROJECT: 'project',
+  GENERAL: 'general',
+  REGIONAL: 'regional',
   COUNTRY: 'country',
   SUBUNIT: 'subunit',
   REGION: 'region',
@@ -8,9 +10,10 @@ export const EXCHANGE_TARGETS = Object.freeze({
 });
 
 const text = value => String(value ?? '').trim();
-const TARGET_ALIASES = Object.freeze({ admin: EXCHANGE_TARGETS.SUBUNIT, administrative: EXCHANGE_TARGETS.SUBUNIT, territory: EXCHANGE_TARGETS.SUBUNIT });
 
 export const EXCHANGE_TARGET_DESCRIPTORS = Object.freeze({
+  general: Object.freeze({ target: 'general', domain: 'territorial', replaceOnly: false, fallback: false }),
+  regional: Object.freeze({ target: 'regional', domain: 'territorial', replaceOnly: false, fallback: false }),
   [EXCHANGE_TARGETS.PROJECT]: Object.freeze({ target: EXCHANGE_TARGETS.PROJECT, domain: 'project', replaceOnly: true, fallback: false }),
   [EXCHANGE_TARGETS.COUNTRY]: Object.freeze({ target: EXCHANGE_TARGETS.COUNTRY, domain: 'territorial', replaceOnly: false, fallback: false }),
   [EXCHANGE_TARGETS.SUBUNIT]: Object.freeze({ target: EXCHANGE_TARGETS.SUBUNIT, domain: 'territorial', replaceOnly: false, fallback: false }),
@@ -21,7 +24,7 @@ export const EXCHANGE_TARGET_DESCRIPTORS = Object.freeze({
 
 export function normalizeExchangeTarget(value, fallback = EXCHANGE_TARGETS.GENERIC) {
   const raw = text(value);
-  const target = TARGET_ALIASES[raw] || raw;
+  const target = raw;
   return EXCHANGE_TARGET_DESCRIPTORS[target] ? target : fallback;
 }
 

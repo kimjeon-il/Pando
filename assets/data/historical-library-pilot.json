@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "entities": [
     {
       "libraryId": "historical-country:czechoslovakia",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "Czechoslovakia",
       "displayNames": {
         "ko": "체코슬로바키아",
@@ -49,7 +49,7 @@
     },
     {
       "libraryId": "historical-country:soviet-union",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "Soviet Union",
       "displayNames": {
         "ko": "소련",
@@ -161263,7 +161263,7 @@
     },
     {
       "libraryId": "historical-country:ukraine",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "Ukraine",
       "displayNames": {
         "ko": "우크라이나",
@@ -163022,7 +163022,7 @@
     },
     {
       "libraryId": "historical-country:yugoslavia",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "Yugoslavia",
       "displayNames": {
         "ko": "유고슬라비아",
@@ -163119,7 +163119,7 @@
     },
     {
       "libraryId": "historical-country:sudan",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "Sudan",
       "displayNames": {
         "ko": "수단",
@@ -163174,7 +163174,7 @@
     },
     {
       "libraryId": "historical-country:indonesia",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "Indonesia",
       "displayNames": {
         "ko": "인도네시아",
@@ -163228,7 +163228,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:russian-sfsr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Russian Soviet Federative Socialist Republic",
       "displayNames": {
         "ko": "러시아 소비에트 연방 사회주의 공화국",
@@ -163243,7 +163243,6 @@
       "startDate": "1922-12-30",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:russian-sfsr:1991-r1",
@@ -164990,7 +164989,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:ukrainian-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Ukrainian Soviet Socialist Republic",
       "displayNames": {
         "ko": "우크라이나 소비에트 사회주의 공화국",
@@ -165003,7 +165002,6 @@
       "startDate": "1922-12-30",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:ukrainian-ssr:1991-r1",
@@ -166750,7 +166748,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:byelorussian-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Byelorussian Soviet Socialist Republic",
       "displayNames": {
         "ko": "벨로루시 소비에트 사회주의 공화국",
@@ -166764,7 +166762,6 @@
       "startDate": "1922-12-30",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:byelorussian-ssr:1991-r1",
@@ -166806,7 +166803,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:uzbek-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Uzbek Soviet Socialist Republic",
       "displayNames": {
         "ko": "우즈베크 소비에트 사회주의 공화국",
@@ -166819,7 +166816,6 @@
       "startDate": "1925-05-13",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:uzbek-ssr:1991-r1",
@@ -166861,7 +166857,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:turkmen-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Turkmen Soviet Socialist Republic",
       "displayNames": {
         "ko": "투르크멘 소비에트 사회주의 공화국",
@@ -166874,7 +166870,6 @@
       "startDate": "1925-05-13",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:turkmen-ssr:1991-r1",
@@ -166916,7 +166911,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:tajik-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Tajik Soviet Socialist Republic",
       "displayNames": {
         "ko": "타지크 소비에트 사회주의 공화국",
@@ -166929,7 +166924,6 @@
       "startDate": "1929-12-05",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:tajik-ssr:1991-r1",
@@ -166971,7 +166965,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:kazakh-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Kazakh Soviet Socialist Republic",
       "displayNames": {
         "ko": "카자흐 소비에트 사회주의 공화국",
@@ -166984,7 +166978,6 @@
       "startDate": "1936-12-05",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:kazakh-ssr:1991-r1",
@@ -167027,7 +167020,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:kirghiz-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Kirghiz Soviet Socialist Republic",
       "displayNames": {
         "ko": "키르기스 소비에트 사회주의 공화국",
@@ -167041,7 +167034,6 @@
       "startDate": "1936-12-05",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:kirghiz-ssr:1991-r1",
@@ -167083,7 +167075,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:georgian-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Georgian Soviet Socialist Republic",
       "displayNames": {
         "ko": "조지아 소비에트 사회주의 공화국",
@@ -167097,7 +167089,6 @@
       "startDate": "1936-12-05",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:georgian-ssr:1991-r1",
@@ -167139,7 +167130,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:armenian-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Armenian Soviet Socialist Republic",
       "displayNames": {
         "ko": "아르메니아 소비에트 사회주의 공화국",
@@ -167152,7 +167143,6 @@
       "startDate": "1936-12-05",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:armenian-ssr:1991-r1",
@@ -167194,7 +167184,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:azerbaijan-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Azerbaijan Soviet Socialist Republic",
       "displayNames": {
         "ko": "아제르바이잔 소비에트 사회주의 공화국",
@@ -167207,7 +167197,6 @@
       "startDate": "1936-12-05",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:azerbaijan-ssr:1991-r1",
@@ -167249,7 +167238,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:moldavian-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Moldavian Soviet Socialist Republic",
       "displayNames": {
         "ko": "몰도바 소비에트 사회주의 공화국",
@@ -167263,7 +167252,6 @@
       "startDate": "1940-08-02",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:moldavian-ssr:1991-r1",
@@ -167305,7 +167293,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:lithuanian-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Lithuanian Soviet Socialist Republic",
       "displayNames": {
         "ko": "리투아니아 소비에트 사회주의 공화국",
@@ -167318,7 +167306,6 @@
       "startDate": "1940-08-03",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:lithuanian-ssr:1991-r1",
@@ -167360,7 +167347,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:latvian-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Latvian Soviet Socialist Republic",
       "displayNames": {
         "ko": "라트비아 소비에트 사회주의 공화국",
@@ -167373,7 +167360,6 @@
       "startDate": "1940-08-05",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:latvian-ssr:1991-r1",
@@ -167415,7 +167401,7 @@
     },
     {
       "libraryId": "historical-subunit:soviet-union:estonian-ssr",
-      "type": "subunit",
+      "entityKind": "general",
       "canonicalName": "Estonian Soviet Socialist Republic",
       "displayNames": {
         "ko": "에스토니아 소비에트 사회주의 공화국",
@@ -167428,7 +167414,6 @@
       "startDate": "1940-08-06",
       "endDate": "1991-12-25",
       "parentLibraryId": "historical-country:soviet-union",
-      "sovereignLibraryId": "historical-country:soviet-union",
       "geometryVersions": [
         {
           "id": "historical-subunit:soviet-union:estonian-ssr:1991-r1",
@@ -167470,7 +167455,7 @@
     },
     {
       "libraryId": "historical-country:east-prussia",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "East Prussia",
       "displayNames": {
         "ko": "동프로이센주",
@@ -167489,7 +167474,6 @@
       "startDate": "1878-04-01",
       "endDate": "1920-01-10",
       "parentLibraryId": "",
-      "sovereignLibraryId": "",
       "geometryVersions": [
         {
           "id": "ostpreussen-1878-1920-r3",
@@ -194613,7 +194597,7 @@
     },
     {
       "libraryId": "historical-country:deutsche-demokratische-republik",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "German Democratic Republic",
       "displayNames": {
         "ko": "독일 민주공화국",
@@ -211145,7 +211129,7 @@
     },
     {
       "libraryId": "historical-country:nagorno-karabakh",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "Nagorno-Karabakh",
       "displayNames": {
         "ko": "나고르노카라바흐",
@@ -213296,7 +213280,7 @@
     },
     {
       "libraryId": "historical-country:west-prussia",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "West Prussia",
       "displayNames": {
         "ko": "서프로이센주",
@@ -213314,7 +213298,6 @@
       "startDate": "1878-04-01",
       "endDate": "1919-12-31",
       "parentLibraryId": "",
-      "sovereignLibraryId": "",
       "geometryVersions": [
         {
           "id": "historical-country:west-prussia:1900-01-01-r1",
@@ -215835,7 +215818,7 @@
     },
     {
       "libraryId": "historical-country:north-schleswig",
-      "type": "country",
+      "entityKind": "general",
       "canonicalName": "North Schleswig",
       "displayNames": {
         "ko": "북슐레스비히",
@@ -215852,7 +215835,6 @@
       "startDate": "1900-01-01",
       "endDate": "1900-01-01",
       "parentLibraryId": "",
-      "sovereignLibraryId": "",
       "geometryVersions": [
         {
           "id": "north-schleswig-1900-r3",
@@ -217158,10 +217140,10 @@
         "pilot": true,
         "approximateGeometry": true,
         "production": false,
-      "referenceDate": "1900-01-01",
-      "preferredInstanceId": "HIST_DEU_NORTH_SCHLESWIG_1900",
-      "defaultColor": "#8c68d8",
-      "defaultFlagDataUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgMyAyIj48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMCAwaDN2MkgweiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIC42NjZoM3YuNjY4SDB6Ii8+PHBhdGggZmlsbD0iI2QwMCIgZD0iTTAgMS4zMzJoM1YySDB6Ii8+PC9zdmc+"
+        "referenceDate": "1900-01-01",
+        "preferredInstanceId": "HIST_DEU_NORTH_SCHLESWIG_1900",
+        "defaultColor": "#8c68d8",
+        "defaultFlagDataUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgMyAyIj48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMCAwaDN2MkgweiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIC42NjZoM3YuNjY4SDB6Ii8+PHBhdGggZmlsbD0iI2QwMCIgZD0iTTAgMS4zMzJoM1YySDB6Ii8+PC9zdmc+"
       },
       "sourceInfo": {
         "title": "PandoLab North Schleswig 1900 reconstruction",

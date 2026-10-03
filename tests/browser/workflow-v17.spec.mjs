@@ -60,10 +60,10 @@ test('annex setup hides selection-stage visuals and restores the exact draft on 
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#annexTerritoryBtn').click();
+  await page.locator('#annexEntityBtn').click();
   await pickCountry(page, 'POL');
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
@@ -109,10 +109,10 @@ test('task windows omit target focus while the object editor retains its focus a
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'GRC'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('GRC'));
   await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#editorObjectHeader #focusSelectedObjectBtn')).toBeVisible();
-  for (const [command, name] of [['#annexTerritoryBtn', '영토 편입'], ['#editBorderBtn', '국경 조정']]) {
+  for (const [command, name] of [['#annexEntityBtn', '영토 편입'], ['#editEntityBorderBtn', '국경 조정']]) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.locator('#actionsTabBtn').click();
     await page.locator(command).click();
@@ -137,7 +137,7 @@ test('editor identity returns to header flag and focus controls without changing
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect(page.locator('#selectionCardName')).toHaveText('독일');
   await expect(page.locator('#selectionCardFlagPreview img')).toBeVisible();
   await page.locator('#selectionToolbarEditBtn').click();
@@ -185,12 +185,13 @@ test('editor identity returns to header flag and focus controls without changing
   await expect(page.locator('#selectionCardName')).toHaveText('독일');
 
   await page.locator('#createMenuBtn').click();
-  await page.locator('#addSubunitBtn').click();
+  await page.locator('#addEntityBtn').click();
+  await page.locator('#territorialCreateParentInput').selectOption('DEU');
   const task = await page.locator('#modeEditingHud').evaluateHandle(node => node);
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
-    await expect(page.locator('#modeTaskName')).toHaveText('하위단위 추가');
-    await expect(page.locator('#modeTaskStage')).toHaveText('하위단위 정보');
+    await expect(page.locator('#modeTaskName')).toHaveText('객체 추가');
+    await expect(page.locator('#modeTaskStage')).toHaveText('객체 정보');
     await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
     await expect(page.locator('.mode-task-window-header #modeTaskTargetsFocusBtn')).toHaveCount(0);
     await expect(page.locator('.mode-task-window-header .ui-icon:visible')).toHaveCount(0);
@@ -201,13 +202,15 @@ test('editor identity returns to header flag and focus controls without changing
   expect(errors).toEqual([]);
 });
 
-for (const type of ['subunit', 'region']) test(`${type} creation retains candidate validation, review back, real geometry and undo`, async ({ page }) => {
+for (const kind of ['general', 'regional']) test(`${kind} creation retains candidate validation, review back, real geometry and undo`, async ({ page }) => {
   test.setTimeout(240_000);
   const errors = await boot(page);
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await page.locator('#createMenuBtn').click();
-    await page.locator(type === 'subunit' ? '#addSubunitBtn' : '#addRegionBtn').click();
-    const name = `v17 ${type}`;
+    await page.locator('#addEntityBtn').click();
+    if (kind === 'general') await page.locator('#territorialCreateParentInput').selectOption('DEU');
+    else await page.locator('#territorialCreateRegionalInput').check();
+    const name = `v17 ${kind}`;
     await page.locator('#territorialCreateNameInput').fill(name);
     await page.locator('#modePrimaryBtn').click();
     await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
@@ -235,7 +238,9 @@ for (const type of ['subunit', 'region']) test(`${type} creation retains candida
     await expect(page.locator('#territorySelectionStackList li')).toHaveCount(1);
     await page.locator('#modePrimaryBtn').click();
     await page.locator('#modePrimaryBtn').click();
-    const created = await page.evaluate(({ type, name }) => window.PANDOLAB_TERRITORIAL.list({ type }).find(unit => unit.properties.name === name), { type, name });
+    const created = await page.evaluate(({ kind, name }) => window.PANDOLAB_TERRITORIAL.list({ kind }).find(unit => unit.properties.name === name), { kind, name });
+    expect(created.properties.entityKind).toBe(kind);
+    expect(created.properties.parentId).toBe(kind === 'general' ? 'DEU' : '');
     expect(created?.geometry?.type).toMatch(/Polygon/);
     expect(created.geometry.coordinates.length).toBeGreaterThan(0);
     await page.locator('#undoBtn').click();
@@ -262,18 +267,18 @@ test('subunit merge removes the exact middle target and preserves preview, apply
     await expect(page.locator('#gisStepIndicator')).toContainText(step);
   }
   await page.locator('#gisImportConfirmBtn').click();
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' }).filter(unit => unit.properties.name.startsWith('병합 ')).length), { timeout: 60_000 }).toBe(4);
-  const units = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' }).filter(unit => unit.properties.name.startsWith('병합 ')).sort((a, b) => a.properties.name.localeCompare(b.properties.name)));
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).filter(unit => unit.properties.name.startsWith('병합 ')).length), { timeout: 60_000 }).toBe(4);
+  const units = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).filter(unit => unit.properties.name.startsWith('병합 ')).sort((a, b) => a.properties.name.localeCompare(b.properties.name)));
   if (await page.locator('#mobileFileBtn').getAttribute('aria-expanded') === 'true') await page.locator('#mobileFileBtn').click();
-  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select('subunit', id), units[0].id);
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), units[0].id);
   // GIS units can have no visible map label/card. Use the existing editor entry.
   await page.setViewportSize({ width: 390, height: 900 });
   await page.locator('#mobileEditBtn').click();
-  await expect(page.locator('#subunitProperties')).toBeVisible();
+  await expect(page.locator('#entityProperties')).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#mergeSubunitBtn').click();
+  await page.locator('#mergeEntityBtn').click();
   for (const target of units.slice(1)) {
     await page.locator('path.territorial-unit-shape').evaluateAll((nodes, id) => {
       const node = nodes.find(node => node.__data__.id === id);
@@ -305,33 +310,34 @@ test('territory setup uses actual role cards and the shared spacing', async ({ p
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#selectionToolbarEditBtn').click();
-  for (const [button, title, stage] of [
-    ['addCountryBtn', '국가 추가', '국가 정보'],
-    ['addSubunitBtn', '하위단위 추가', '하위단위 정보'],
-    ['addRegionBtn', '지방 추가', '지방 정보'],
-  ]) {
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  for (const placement of ['root', 'nested', 'regional']) {
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await page.locator('#createMenuBtn').click();
-    await page.locator('#' + button).click();
-    await expect(page.locator('#modeTaskName')).toHaveText(title);
-    await expect(page.locator('#modeTaskStage')).toHaveText(stage);
+    await page.locator('#addEntityBtn').click();
+    if (placement === 'nested') await page.locator('#territorialCreateParentInput').selectOption('DEU');
+    else if (placement === 'regional') await page.locator('#territorialCreateRegionalInput').check();
+    await expect(page.locator('#modeTaskName')).toHaveText('객체 추가');
+    await expect(page.locator('#modeTaskStage')).toHaveText('객체 정보');
     await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
     await expect(page.locator('#territorialCreateNameLabel')).toHaveText('이름');
     await expect(page.locator('#modeTaskStatus')).toBeHidden();
-    if (button === 'addCountryBtn') {
+    if (placement === 'root') {
       await pickCountry(page, 'POL');
       await pickCountry(page, 'CZE');
       await expect(page.locator('#territorialCreateReferenceList')).toContainText('폴란드');
       await expect(page.locator('#territorialCreateReferenceList')).toContainText('체코');
     }
-    if (button === 'addSubunitBtn') {
-      await expect(page.locator('#territorialCreateSovereignRow')).toBeVisible();
-      await expect(page.locator('#territorialCreateSovereignFlag')).toBeVisible();
+    if (placement === 'nested') {
+      await expect(page.locator('#territorialCreateParentInput')).toHaveValue('DEU');
+      await expect(page.locator('#territorialCreateParentInput')).toBeEnabled();
     }
-    if (button === 'addRegionBtn') await expect(page.locator('#territorialCreateSovereignRow')).toBeHidden();
-    await captureLayouts(page, button);
+    if (placement === 'regional') {
+      await expect(page.locator('#territorialCreateParentInput')).toHaveValue('');
+      await expect(page.locator('#territorialCreateParentInput')).toBeDisabled();
+    }
+    await captureLayouts(page, placement);
     await page.locator('#modeCancelBtn').click();
   }
   expect(errors).toEqual([]);
@@ -341,11 +347,11 @@ test('merge removal, boundary and coast use actual role cards and the shared spa
   test.setTimeout(300_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#mergeCountryBtn').click();
-  await expect(page.locator('#modeTaskObjects [aria-label="남길 국가"]')).toContainText('독일');
+  await page.locator('#mergeEntityBtn').click();
+  await expect(page.locator('#modeTaskObjects [aria-label="남길 객체"]')).toContainText('독일');
   for (const id of ['POL', 'CZE', 'AUT']) await pickCountry(page, id);
   await expect(page.locator('#modeTaskResultsList li')).toHaveCount(3);
   await page.getByRole('button', { name: '체코 합병 대상에서 제외' }).click();
@@ -362,8 +368,8 @@ test('merge removal, boundary and coast use actual role cards and the shared spa
   await captureLayouts(page, 'merge-review');
   await page.locator('#modeCancelBtn').click();
   await page.locator('#modeCancelBtn').click();
-  for (const [button, role] of [['editBorderBtn', '기준 국가'], ['editCoastBtn', '대상 국가']]) {
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  for (const [button, role] of [['editEntityBorderBtn', '기준 객체'], ['editEntityCoastBtn', '대상 객체']]) {
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
     await page.locator('#actionsTabBtn').click();
     await page.locator('#' + button).click();
@@ -487,10 +493,10 @@ test('annex selection starts with the method segment without redundant normal-st
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#annexTerritoryBtn').click();
+  await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#modeTaskStatus')).toBeHidden();
   const map = await page.locator('#map').boundingBox();
   const point = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(window.__PANDOLAB_VIEW_DEBUG__.countryLabelAnchor('POL')));

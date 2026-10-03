@@ -355,7 +355,7 @@ def east_germany_entity(recipe: dict[str, Any], geometry) -> dict[str, Any]:
     mapped["coordinates"] = round_coordinates(mapped["coordinates"], 12)
     return {
         "libraryId": "historical-country:deutsche-demokratische-republik",
-        "type": "country",
+        "entityKind": "general",
         "canonicalName": "German Democratic Republic",
         "displayNames": {
             "ko": "독일 민주공화국",

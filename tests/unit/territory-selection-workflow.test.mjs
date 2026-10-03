@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorySelectionWorkflow } from '../../assets/js/modules/app-territory-selection-workflow.js';
 import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
@@ -28,7 +29,7 @@ function harness(t) {
     else delete globalThis.window;
   });
 
-  const countries = new Map(['A', 'B', 'C'].map((id, index) => [id, { id, geometry: geometry(index * 3) }]));
+  const countries = new Map(['A', 'B', 'C'].map((id, index) => [id, createTerritorialFeature({ id, entityKind: 'general', geometry: geometry(index * 3) })]));
   const state = { territorySelectionSession: null, geometryPreview: { session: null } };
   const calls = { prepare: [], preview: [], apply: 0, refresh: [], errors: [], worker: [], stopped: 0, transientCleanup: [] };
   const union = values => {
@@ -143,21 +144,21 @@ function harness(t) {
 
 const starts = Object.freeze([
   ['annex', { targetCountryId: 'A', sourceCountryIds: ['B'] }],
-  ['new-country', { name: '새 국가', sourceCountryIds: ['B'] }],
-  ['subunit', { name: '새 하위단위', sovereignId: 'A', parentId: 'A', sourceKey: 'unassigned' }],
-  ['region', { name: '새 지방' }],
+  ['entity', { entityKind: 'general', name: '새 객체', sourceCountryIds: ['B'] }],
+  ['entity', { entityKind: 'general', name: '새 하위 객체', sovereignId: 'A', parentId: 'A', sourceKey: 'unassigned' }],
+  ['entity', { entityKind: 'regional', name: '새 권역' }],
 ]);
 
-test('all four territory workflows expose concise setup, selection and review headings', async t => {
+test('annexation and the three common object configurations expose concise setup, selection and review headings', async t => {
   const h = harness(t);
   for (const [kind, options, labels] of [
     ['annex', starts[0][1], ['가져올 국가', '영토 선택', '편입 확인']],
-    ['new-country', starts[1][1], ['국가 정보', '영토 선택', '생성 확인']],
-    ['subunit', starts[2][1], ['하위단위 정보', '영역 선택', '생성 확인']],
-    ['region', starts[3][1], ['지방 정보', '영역 선택', '생성 확인']],
+    ['entity', starts[1][1], ['객체 정보', '영토 선택', '생성 확인']],
+    ['entity', starts[2][1], ['객체 정보', '영역 선택', '생성 확인']],
+    ['entity', starts[3][1], ['객체 정보', '영역 선택', '생성 확인']],
   ]) {
     h.workflow.start(kind, options);
-    assert.equal(h.workflow.presentation().taskName, { annex: '영토 편입', 'new-country': '국가 추가', subunit: '하위단위 추가', region: '지방 추가' }[kind]);
+    assert.equal(h.workflow.presentation().taskName, kind === 'annex' ? '영토 편입' : '객체 추가');
     assert.equal(h.workflow.presentation().stageLabel, labels[0]);
     await h.workflow.advance();
     assert.equal(h.workflow.presentation().stageLabel, labels[1]);
@@ -192,7 +193,7 @@ test('all territory draw candidates must be archived through validation before a
   }
 });
 
-test('subunit and region selected components archive on method change with their exact snapshots', async t => {
+test('nested general and independent regional components archive on method change with their exact snapshots', async t => {
   const h = harness(t);
   for (const [kind, options] of starts.slice(2)) {
     const current = h.workflow.start(kind, { ...options, sourceCountryIds: ['B'] });
@@ -214,14 +215,14 @@ test('subunit and region selected components archive on method change with their
   }
 });
 
-test('new-country setup retains every selected source country and its reference count', t => {
+test('general object setup retains every selected source country and its reference count', t => {
   const h = harness(t);
-  const current = h.workflow.start('new-country', { name: '새 국가' });
+  const current = h.workflow.start('entity', { entityKind: 'general', name: '새 객체' });
   assert.equal(h.workflow.toggleSourceCountry('B'), true);
   assert.equal(h.workflow.toggleSourceCountry('C'), true);
   assert.deepEqual(current.sourceCountryIds, ['B', 'C']);
   assert.equal(h.workflow.presentation().referenceCount, 2);
-  assert.equal(h.workflow.presentation().referenceLabel, '원소속 국가');
+  assert.equal(h.workflow.presentation().referenceLabel, '기준 객체');
 });
 
 test('all four operations use setup, selection, review and preserve a selection through back navigation', async t => {
@@ -344,7 +345,7 @@ test('line, component and polygon parts remain together across method changes an
 
 test('component units archive and undo one item at a time', async t => {
   const h = harness(t);
-  const current = h.workflow.start('new-country', starts[1][1]);
+  const current = h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   h.workflow.toggleComponent('first');
@@ -382,7 +383,7 @@ test('removing a middle part keeps the other parts and recalculates its real agg
 
 test('switching from selected components archives them before opening another method', async t => {
   const h = harness(t);
-  const current = h.workflow.start('new-country', starts[1][1]);
+  const current = h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   h.workflow.toggleComponent('first');
@@ -397,7 +398,7 @@ test('switching from selected components archives them before opening another me
 
 test('a method switch requested during component preview waits for validation before archiving', async t => {
   const h = harness(t);
-  const current = h.workflow.start('new-country', starts[1][1]);
+  const current = h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   h.workflow.toggleComponent('first');
@@ -411,7 +412,7 @@ test('a method switch requested during component preview waits for validation be
 
 test('removing one component part keeps its shared snapshot until the last referencing part is removed', async t => {
   const h = harness(t);
-  const current = h.workflow.start('new-country', starts[1][1]);
+  const current = h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   h.workflow.toggleComponent('first');
@@ -453,9 +454,9 @@ test('method changes preserve archived items and ask before discarding the curre
   assert.equal(current.parts.length, 1);
 });
 
-test('region can add a reference country only when a later line or component method needs it', async t => {
+test('independent region can add a reference country only when a later line or component method needs it', async t => {
   const h = harness(t);
-  const current = h.workflow.start('region', starts[3][1]);
+  const current = h.workflow.start('entity', starts[3][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('polygon');
   h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
@@ -472,7 +473,7 @@ test('region can add a reference country only when a later line or component met
 
 test('the common scheduler only keeps the latest aggregate preview and applies once', async t => {
   const h = harness(t);
-  h.workflow.start('new-country', starts[1][1]);
+  h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('polygon');
   h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
@@ -496,7 +497,7 @@ test('the common scheduler only keeps the latest aggregate preview and applies o
 
 test('late selection result cannot restore cleared geometry and cancel stops the worker', async t => {
   const h = harness(t);
-  const current = h.workflow.start('subunit', starts[2][1]);
+  const current = h.workflow.start('entity', starts[2][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   const normalExecute = h.worker.execute;
@@ -518,7 +519,7 @@ test('late selection result cannot restore cleared geometry and cancel stops the
 
 test('selection coalesces clicks without rebuilding source and supports worker error retry', async t => {
   const h = harness(t);
-  const current = h.workflow.start('new-country', starts[1][1]);
+  const current = h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   const normalExecute = h.worker.execute;

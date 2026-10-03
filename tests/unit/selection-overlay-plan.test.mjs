@@ -7,8 +7,8 @@ import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
 import { createGpuPolygonOverlayPass } from '../../assets/js/modules/gpu-polygon-overlay-pass.js';
 
 const feature = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [] } };
-const base = { ref: { domain: 'territorial', type: 'country', id: 'DEU', key: 'territorial:country:DEU' },
-  channel: 'primary', countryType: 'country', feature, boundary: { feature, revision: 'r1' },
+const base = { ref: { domain: 'territorial', type: 'entity', id: 'DEU', key: 'territorial:entity:DEU' },
+  channel: 'primary', rootGeneral: true, feature, boundary: { feature, revision: 'r1' },
   outlineVisible: true, selectionStyle: { color: 'blue', primary: { fillAlpha: 0.2 }, secondary: { fillAlpha: 0.1 } } };
 test('hover keeps pending country fill and generic polygon fill ownership distinct', () => {
   const pending = planHoverEntry({ ...base, pendingCountry: true, hoverStyle: { color: 'blue', fillAlpha: 0.1 } });
@@ -94,14 +94,14 @@ test('real polygon pass retires fills only for objects whose every resource was 
 
 test('display planning orders country, subunit and region ownership without changing inputs', () => {
   assert.equal(typeof plans.selectionDisplayPlan, 'function');
-  const country = { domain: 'territorial', type: 'country', id: 'DEU', key: 'territorial:country:DEU' };
-  const subunit = { domain: 'territorial', type: 'subunit', id: 'a', key: 'territorial:subunit:a' };
-  const region = { domain: 'territorial', type: 'region', id: 'b', key: 'territorial:region:b' };
+  const country = { domain: 'territorial', type: 'entity', id: 'DEU', key: 'territorial:entity:DEU' };
+  const subunit = { domain: 'territorial', type: 'entity', id: 'a', key: 'territorial:entity:a' };
+  const region = { domain: 'territorial', type: 'entity', id: 'b', key: 'territorial:entity:b' };
   const snapshot = { selection: { items: [region, subunit, country], primaryKey: '' }, hover: null };
-  const state = { territorialEntities: [{ id: 'a', properties: { unitType: 'subunit', parentId: 'DEU' } },
-    { id: 'b', properties: { unitType: 'region', parentId: 'a', associatedCountryId: 'DEU' } }] };
+  const state = { territorialEntities: [{ id: 'a', properties: { entityKind: 'general', parentId: 'DEU' } },
+    { id: 'b', properties: { entityKind: 'regional', parentId: 'a', associatedCountryId: 'DEU' } }] };
   const entries = plans.selectionEntries(snapshot, state, {
-    countryType: 'country',
+    rootGeneral: true,
     territorialUnits: () => state.territorialEntities,
   });
   const before = structuredClone({ snapshot, state, entries });
