@@ -558,13 +558,39 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     }
   }
 
+  interaction = createReferenceImageInteraction({
+    mapElement,
+    records,
+    selected,
+    renderer,
+    getMapHost: mapHost,
+    getSurface: () => surface,
+    cancelTools,
+    currentToken,
+    validToken,
+    createId,
+    rebuildWarp,
+    getCurrentWarpQuad: currentWarpQuad,
+    history,
+    persist,
+    renderEditor,
+    refreshUi,
+    setHint,
+  });
+
   const onPanelClickEvent = event => { void onPanelClick(event).catch(error => {
     console.warn('[reference-image-action]', error);
     storageError = error.message;
     renderStorageStatus();
   }); };
   surface = installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose: cancelInteraction, onOpen: () => renderer.requestRender() });
-  const unregisterInput = registerReferenceImageInput({ begin: beginGesture, active: () => !!(anchorState || gcpState || placementEditingId || freeTransformEditingId || controlPointEditingId), key: onKeyDown, cancel: cancelInteraction, reset: resetSession });
+  const unregisterInput = registerReferenceImageInput({
+    begin: interaction.beginGesture,
+    active: interaction.isActive,
+    key: onKeyDown,
+    cancel: cancelInteraction,
+    reset: resetSession,
+  });
   const stopPanelKeys = event => {
     const text = event.target?.closest('input,textarea,select,[contenteditable="true"]');
     if (!text && onKeyDown(event)) event.preventDefault();
@@ -614,23 +640,26 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   void restoreStoredImages();
 
   const api = Object.freeze({
-    list: () => records.map((record, order) => ({
-      id: record.id,
-      name: record.name,
-      order,
-      visible: record.visible,
-      locked: record.locked,
-      opacity: record.opacity,
-      blendMode: record.blendMode,
-      rotation: referenceImagePlacementRotation(record, mapHost()),
-      placementEditing: placementEditingId === record.id,
-      freeTransformEditing: freeTransformEditingId === record.id,
-      cornerPinEnabled: !!record.cornerPinEnabled,
-      anchored: !!record.anchor,
-      warpMode: record.warp?.mode || record.warpMode,
-      controlPointCount: record.controlPoints.length,
-      diagnostics: record.warp?.ok ? record.warp.diagnostics : null,
-    })),
+    list: () => {
+      const state = interactionState();
+      return records.map((record, order) => ({
+        id: record.id,
+        name: record.name,
+        order,
+        visible: record.visible,
+        locked: record.locked,
+        opacity: record.opacity,
+        blendMode: record.blendMode,
+        rotation: referenceImagePlacementRotation(record, mapHost()),
+        placementEditing: state.placementEditingId === record.id,
+        freeTransformEditing: state.freeTransformEditingId === record.id,
+        cornerPinEnabled: !!record.cornerPinEnabled,
+        anchored: !!record.anchor,
+        warpMode: record.warp?.mode || record.warpMode,
+        controlPointCount: record.controlPoints.length,
+        diagnostics: record.warp?.ok ? record.warp.diagnostics : null,
+      }));
+    },
     open: () => {
       surface.open();
       renderer.requestRender();
