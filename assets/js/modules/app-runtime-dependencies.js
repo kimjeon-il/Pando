@@ -9,7 +9,6 @@ const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalT
 const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, subunitParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
 const { layoutTerritorialFlags } = await import(`./territorial-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
-const { defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityRepository } = await import(`./territorial-entity-repository.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityStore } = await import(`./territorial-entity-store.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -405,7 +404,6 @@ export {
   subunitParentChoices,
   BUILTIN_TERRITORY_MERGES,
   layoutTerritorialFlags,
-  defaultGeographicName,
   createTerritorialScopeResolver,
   validateSubunitParentChanges,
   classifyBuiltinCountries,

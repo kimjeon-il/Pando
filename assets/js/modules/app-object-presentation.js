@@ -53,7 +53,7 @@ export function createObjectPresentation() {
   function territorialEntityName(feature) {
     const entity = dependencies.territorialModel.entityRepository.get(feature?.id) || feature;
     const properties = entity?.properties || {};
-    // Fresh built-in classification normalizes defaults; edited names are literal.
+    // Default names come from canonical assets; edited names are literal.
     if (properties.name) return properties.name;
     if (properties.unitType === 'country') return '국가';
     if (properties.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';

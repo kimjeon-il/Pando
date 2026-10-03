@@ -1,5 +1,4 @@
 import { createTerritorialFeature } from './territorial-units.js';
-import { defaultGeographicName } from './country-display.js';
 const text = value => String(value ?? '').trim();
 export const countryId = feature => text(feature?.id);
 export const countryName = feature => text(feature?.properties?.name) || countryId(feature) || '국가';
@@ -7,7 +6,7 @@ export const countryName = feature => text(feature?.properties?.name) || country
 export function normalizeCountryFeature(feature, { id = countryId(feature), name = '', clone = structuredClone } = {}) {
   const source = feature?.properties || {};
   const entity = createTerritorialFeature({ id: text(id), unitType: 'country',
-    name: name || (source.unitType === 'country' ? source.name ?? '' : defaultGeographicName(id, source.name) || id),
+    name: name || (source.unitType === 'country' ? source.name ?? '' : source.name || id),
     geometry: feature.geometry, validFrom: source.validFrom ?? null, validTo: source.validTo ?? null,
     notes: source.notes || '', color: source.style?.color || '', locked: source.locked === true,
     metadata: source.unitType === 'country' ? source.metadata : { ...source.metadata, sourceProperties: clone(source) },
