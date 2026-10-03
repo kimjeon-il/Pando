@@ -89,5 +89,7 @@ test('live-wire blocks pointerdown but commits anchors on click', async () => {
   assert.match(source, /function onClick\(event\)/);
   assert.match(source, /addEventListener\('click', onClick, true\)/);
   assert.match(source, /removeEventListener\('click', onClick, true\)/);
-  assert.doesNotMatch(source, /else commitCurrentPreview\(screen\);\s*\n\s*}\s*\n\s*\n\s*function onPointerMove/);
+  const pointerDown = source.match(/function onPointerDown\(event\) \{([\s\S]*?)\n  \}\n\n  function onClick/);
+  assert.ok(pointerDown);
+  assert.doesNotMatch(pointerDown[1], /commitCurrentPreview|placeFirstAnchor/);
 });
