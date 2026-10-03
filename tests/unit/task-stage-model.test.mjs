@@ -6,10 +6,10 @@ import {
   taskWorkflowPresentation,
 } from '../../assets/js/modules/app-task-stage-model.js';
 
-const country = id => ({ id, properties: { unitType: 'country', name: id } });
+const country = id => ({ id, properties: { entityKind: 'general', name: id } });
 const unit = (id, type = 'subunit', parentId = 'A') => ({
   id,
-  properties: { unitType: type, parentId, sovereignId: 'A', name: id },
+  properties: { entityKind: type === 'region' ? 'regional' : 'general', parentId: type === 'region' ? '' : parentId, name: id },
 });
 
 function resolver(entities) {
@@ -26,13 +26,12 @@ test('task target refs resolve countries and units through the territorial entit
     genericFeatures: [],
   };
   const refs = taskTargetRefs(state, {
-    countryType: 'country',
     territorialEntityById: get,
   });
 
   assert.deepEqual(refs.map(ref => [ref.type, ref.id]), [
-    ['subunit', 'parent'],
-    ['subunit', 'child'],
+    ['entity', 'parent'],
+    ['entity', 'child'],
   ]);
 });
 
@@ -44,12 +43,11 @@ test('task workflow presentation derives territorial type without raw unit stora
     territorialUnitMergeTargetIds: ['region-b'],
     geometryPreview: { session: null },
   }, null, {}, {
-    countryType: 'country',
     territorialEntityById: get,
   });
 
-  assert.equal(view.name, '지방 합병');
-  assert.equal(view.cards[0].role, '남길 지방');
-  assert.equal(view.resultLabel, '합칠 지방');
-  assert.deepEqual(view.resultRefs.map(ref => [ref.type, ref.id]), [['region', 'region-b']]);
+  assert.equal(view.name, '객체 합병');
+  assert.equal(view.cards[0].role, '남길 객체');
+  assert.equal(view.resultLabel, '합칠 객체');
+  assert.deepEqual(view.resultRefs.map(ref => [ref.type, ref.id]), [['entity', 'region-b']]);
 });

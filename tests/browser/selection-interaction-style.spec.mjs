@@ -116,7 +116,7 @@ test('WebGL1 keeps successful country outlines on the GPU coverage path', async 
   });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer), { timeout: 30_000 }).toBe('webgl1');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.canonicalMeshReady), { timeout: 60_000 }).toBe(true);
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 20_000 }).toContain('country:DEU');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.selfTestPassed)).toBe(true);
   await expect.poll(() => selectionColorPixelCount(page)).toBeGreaterThan(0);
@@ -128,7 +128,7 @@ test('WebGL1 keeps successful country outlines on the GPU coverage path', async 
 test('WebGL2 country selection produces real outline pixels before suppressing SVG fallback', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { preserveSelectionBuffer: true, selection: { color: '#cda95d' } });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.gpuHealth), { timeout: 30_000 }).toBe('healthy');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 20_000 }).toContain('country:DEU');
   await expect.poll(() => selectionColorPixelCount(page)).toBeGreaterThan(0);
@@ -144,7 +144,7 @@ test('WebGL2 country selection produces real outline pixels before suppressing S
 test('renderer fallback draws a single selection outline in SVG', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { query: '?debug=1&renderer=canvas', disableWebGl: true });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toContain('country:DEU');
   const outline = page.locator('.selection-overlay-layer .map-selection-outline.is-primary');
   await expect(outline).toHaveCount(1);
@@ -186,7 +186,7 @@ test('shared WebGL context loss keeps a sparse SVG fallback until the single GPU
   });
   const errors = await openApp(page);
   await expect.poll(() => page.evaluate(() => !!window.__hydroContextLossWorker)).toBe(true);
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30_000 }).toContain('country:DEU');
 
   const extensionAvailable = await page.evaluate(() => {

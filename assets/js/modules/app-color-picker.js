@@ -20,10 +20,9 @@ export function createColorPicker() {
   function syncColorPicker(kind, { value, defaultColor, isDefault }) {
     const picker = document.querySelector(`[data-color-picker="${kind}"]`);
     if (!picker) return;
-    const fallback = kind === 'country' ? (0, dependencies.colorModel.defaultCountryColor)()
-      : (kind === 'subunit') && (dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)
-        ? (0, dependencies.colorModel.territorialEntityColor)(dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected.id))
-        : dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR;
+    const fallback = kind === 'entity' && dependencies.projectState.state.selected?.domain === 'territorial'
+      ? dependencies.colorModel.territorialEntityColor(dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected.id))
+      : dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR;
     const resolvedDefault = normalizeEditorColor(defaultColor, fallback);
     const resolvedValue = normalizeEditorColor(value, resolvedDefault);
     const input = picker.querySelector('.ui-native-color-input');
@@ -34,7 +33,7 @@ export function createColorPicker() {
     if (input) input.value = resolvedValue;
     triggerPreview?.style.setProperty('--swatch-color', resolvedValue);
     defaultPreview?.style.setProperty('--swatch-color', resolvedDefault);
-    if (valueLabel) valueLabel.textContent = isDefault ? (kind === 'subunit' ? '국가색 상속' : kind === 'country' ? '지도 기본 표현' : '기본 색상') : resolvedValue.toUpperCase();
+    if (valueLabel) valueLabel.textContent = isDefault ? (kind === 'entity' ? '기본 표현' : '기본 색상') : resolvedValue.toUpperCase();
     defaultButton?.setAttribute('aria-pressed', String(!!isDefault));
     picker.querySelectorAll('[data-color-value]').forEach(button => {
       button.setAttribute('aria-pressed', String(!isDefault && button.dataset.colorValue === resolvedValue));
@@ -129,9 +128,9 @@ export function createColorPicker() {
     if (picker.hasAttribute('data-color-custom-only')) control.element.scrollIntoView({ block: 'nearest' });
   }
 
-  function resetTerritorialColor(kind) {
+  function resetTerritorialColor() {
     const ref = dependencies.projectState.state.selected;
-    if (ref?.domain !== 'territorial' || ref.type !== kind) return false;
+    if (ref?.domain !== 'territorial' || ref.type !== 'entity') return false;
     return dependencies.objectMetadata.commitTerritorialMetadata(ref, 'color', '').ok;
   }
 
@@ -162,20 +161,14 @@ export function createColorPicker() {
       return true;
     }
     if (isDefault) {
-      if (kind === 'country') return resetTerritorialColor('country');
-      if (kind === 'subunit' || kind === 'region') return resetTerritorialColor(kind);
+      if (kind === 'entity') return resetTerritorialColor();
       return resetGenericFeatureColor();
     }
-    const color = normalizeEditorColor(value, kind === 'country' ? (0, dependencies.colorModel.defaultCountryColor)() : dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR);
-    if (kind === 'country') {
-      if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return false;
-      dependencies.objectMetadata.commitTerritorialMetadata(dependencies.projectState.state.selected, 'color', color);
-      return true;
-    }
-    if (kind === 'subunit' || kind === 'region') {
-      if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return false;
-      dependencies.objectMetadata.commitTerritorialMetadata(dependencies.projectState.state.selected, 'color', color);
-      return true;
+    const color = normalizeEditorColor(value, dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR);
+    if (kind === 'entity') {
+      const ref = dependencies.projectState.state.selected;
+      if (ref?.domain !== 'territorial') return false;
+      return dependencies.objectMetadata.commitTerritorialMetadata(ref, 'color', color).ok;
     }
     if (kind === 'distribution') {
       if (dependencies.projectState.state.selected?.domain !== 'distribution') return false;

@@ -214,23 +214,6 @@ function writeAtlasTables(db, payload) {
     { name: 'id' }, { name: 'name' }, { name: 'role' }, { name: 'owner_id' }, { name: 'parent_id' },
     { name: 'topology_group' }, { name: 'land_binding' }, { name: 'color' }, { name: 'notes' }, { name: 'locked', type: 'INTEGER' }, { name: 'properties_json' },
   ];
-  if (gisMode && includes('countries')) {
-    const countryRows = (state.territorialEntities || []).filter(entity => entity.properties.unitType === 'country').map(feature => {
-      const properties = feature.properties || {};
-      const id = String(feature?.id || '');
-      return {
-        geometry: feature.geometry,
-        pandolab_id: id,
-        pandolab_name: properties.name || id,
-        valid_from: properties.validFrom || null,
-        valid_to: properties.validTo || null,
-      };
-    });
-    const countryColumns = [
-      { name: 'pandolab_id' }, { name: 'pandolab_name' }, { name: 'valid_from' }, { name: 'valid_to' },
-    ];
-    createFeatureTable(db, { tableName: 'countries', geometryType: 'MULTIPOLYGON', rows: countryRows, columns: countryColumns, description: 'PandoLab GIS countries' });
-  }
   if (includes('labels')) createFeatureTable(db, { tableName: 'places', geometryType: 'POINT', rows: places, columns: [{ name: 'pandolab_id', source: 'id' }, { name: 'name' }, { name: 'kind' }, { name: 'country_id' }, { name: 'notes' }], description: 'PandoLab places' });
   if (includes('genericFeatures')) {
     createFeatureTable(db, { tableName: 'generic_features_point', geometryType: 'POINT', rows: points, columns: genericFeatureColumns, description: 'PandoLab point generic features' });
@@ -238,15 +221,14 @@ function writeAtlasTables(db, payload) {
     createFeatureTable(db, { tableName: 'generic_features_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: genericFeatureColumns, description: 'PandoLab polygon generic features' });
   }
   const territorialColumns = [
-    { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'associated_country_id' },
+    { name: 'id' }, { name: 'name' }, { name: 'entity_kind' }, { name: 'parent_id' },
     { name: 'valid_from' }, { name: 'valid_to' },
     { name: 'color' }, { name: 'style_key' }, { name: 'source_library_id' }, { name: 'source_geometry_version' },
     { name: 'metadata_json' }, { name: 'properties_json' },
   ];
-  for (const [unitType, tableName] of Object.entries(self.PandoLabGisAdapters.TERRITORIAL_TABLES)) {
-    const logicalLayer = unitType === 'subunit' ? 'subunits' : 'regions';
-    if (!includes(logicalLayer)) continue;
-    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: territorialRows[tableName] || [], columns: territorialColumns, description: `PandoLab ${unitType} territorial units` });
+  for (const [entityKind, tableName] of Object.entries(self.PandoLabGisAdapters.TERRITORIAL_TABLES)) {
+    if (entityKind === 'regional' ? !includes('regions') : !includes('countries') && !includes('subunits')) continue;
+    createFeatureTable(db, { tableName, geometryType: 'MULTIPOLYGON', rows: (territorialRows[tableName] || []).filter(row => entityKind === 'regional' || includes(row.parent_id ? 'subunits' : 'countries')), columns: territorialColumns, description: `PandoLab ${entityKind} entities` });
   }
   const distributionColumns = [
     { name: 'entry_id' }, { name: 'layer_id' }, { name: 'name' }, { name: 'unit' },

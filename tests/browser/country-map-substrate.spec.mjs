@@ -73,15 +73,15 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
       .toBe(renderer === 'canvas' ? 'canvas-worker' : renderer);
     if (renderer === 'canvas') await page.locator('#flatBtn').evaluate(button => button.click());
     await page.addStyleTag({ content: '#map text, #map .map-label, #map .country-label { visibility: hidden !important; }' });
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'TUR'));
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));
     const changeMode = async mode => {
       await page.locator(`#terrain${mode}Radio`).evaluate(input => input.click());
       await page.mouse.move(20, 20);
     };
     await changeMode('None');
     await expect.poll(() => pixel(page), { timeout: renderer === 'canvas' ? 30_000 : 8_000 }).toEqual([204, 204, 204]);
-    await page.locator('#countryColorTrigger').evaluate(input => input.click());
-    await page.locator('#countryColorPopover [data-color-value="#ef4444"]').evaluate(input => input.click());
+    await page.locator('#entityColorTrigger').evaluate(input => input.click());
+    await page.locator('#entityColorPopover [data-color-value="#ef4444"]').evaluate(input => input.click());
     let sample;
     await expect.poll(async () => { sample = await paintedInterior(page); return !!sample; }).toBe(true);
     const mapPixel = () => pixel(page, sample);
@@ -99,12 +99,12 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
       await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
     }
-    await page.locator('#countryColorTrigger').evaluate(input => input.click());
-    await page.locator('#countryColorPopover [data-color-default]').evaluate(input => input.click());
+    await page.locator('#entityColorTrigger').evaluate(input => input.click());
+    await page.locator('#entityColorPopover [data-color-default]').evaluate(input => input.click());
     await expect(page.locator('#countryColorValue')).toHaveText('지도 기본 표현');
     await expect.poll(mapPixel).toEqual([204, 204, 204]);
     if (renderer === 'webgl2') {
-      await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'FRA'));
+      await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('FRA'));
       const mask = await page.addStyleTag({ content: '#selectionToolbar { visibility: hidden !important; }' });
       try { await page.mouse.click(sample[0], sample[1]); } finally { await mask.evaluate(node => node.remove()); }
       await expect(page.locator('#statusSelection')).toContainText('튀르키예');

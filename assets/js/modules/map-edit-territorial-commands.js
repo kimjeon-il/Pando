@@ -1,20 +1,18 @@
-import { normalizePolygonGeometry, multiCoordinates, area } from './map-edit-geometry.js';
+import { normalizePolygonGeometry, multiCoordinates } from './map-edit-geometry.js';
 import './territorial-edit-plan.js';
 import { territorialSegmentCandidates } from './geometry-segment-index.js';
 import { validateGeometry } from './geometry-validation.js';
 
-export function calculateTerritorialEdit(payload, countries, units, clipper) {
-  return globalThis.PandoLabTerritorialEdit.createKernel(clipper, { normalize: normalizePolygonGeometry, segmentCandidates: territorialSegmentCandidates }).plan({ ...payload, countries, units });
+export function calculateTerritorialEdit(payload, entities, clipper) {
+  return globalThis.PandoLabTerritorialEdit.createKernel(clipper, { normalize: normalizePolygonGeometry, segmentCandidates: territorialSegmentCandidates }).plan({ ...payload, entities });
 }
 
-export function calculateRegionRedraw(source, container, siblings, draft, clipper) {
-  if (!source || !container || source.properties?.locked || source.properties?.unitType !== 'region') throw new Error('지방 편집 대상이 변경되었습니다.');
-  const geometry = normalizePolygonGeometry({ type: 'MultiPolygon', coordinates: clipper.intersection(draft.coordinates, container.geometry.coordinates) });
-  if (!geometry) throw new Error('그린 영역이 상위 영역 안에 없습니다.');
-  for (const sibling of siblings) {
-    if (!sibling) throw new Error('다른 지방이 변경되었습니다.');
-    if (area(clipper.intersection(geometry.coordinates, sibling.geometry.coordinates)) > 1e-9) throw new Error('다른 지방과 영역이 겹칩니다.');
-  }
+export function calculateRegionRedraw(source, draft) {
+  if (!source || source.properties?.locked || source.properties?.entityKind !== 'regional') throw new Error('지방 편집 대상이 변경되었습니다.');
+  const geometry = normalizePolygonGeometry(draft);
+  if (!geometry) throw new Error('유효한 닫힌 영역이 필요합니다.');
+  const issues = validateGeometry({ ...source, geometry });
+  if (issues.length) throw new Error(issues[0].message);
   return { feature: { ...source, geometry } };
 }
 

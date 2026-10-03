@@ -1,8 +1,7 @@
-import { TERRITORIAL_UNIT_TYPES, normalizeTerritorialEntities, normalizeTerritorialFeature } from './territorial-units.js';
+import { normalizeTerritorialEntities, normalizeTerritorialFeature } from './territorial-units.js';
 import { normalizeColorValue } from './color-adapter.js';
 
 const text = value => String(value ?? '').trim();
-const types = new Set(Object.values(TERRITORIAL_UNIT_TYPES));
 
 /** Sole writer of the unified Feature collection, including country metadata. */
 export function createTerritorialEntityStore({ getState, onEntitiesReplaced = () => {} } = {}) {
@@ -55,16 +54,15 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
     cached = { source: current.territorialEntities, revision: current.stateRevision, entities };
     return entities;
   }
-  const entity = (type, id) => state().territorialEntities.find(feature => text(feature.id) === text(id)
-    && feature.properties.unitType === type);
-  function hasField(type, id, field) {
-    const properties = entity(type, id)?.properties;
+  const entity = id => state().territorialEntities.find(feature => text(feature.id) === text(id));
+  function hasField(id, field) {
+    const properties = entity(id)?.properties;
     if (!properties) return false;
     return Object.hasOwn(field === 'color' ? properties.style : ['capital', 'flagDataUrl'].includes(field)
       ? properties.metadata : properties, field === 'color' ? 'color' : field);
   }
-  function setField(type, id, field, value) {
-    const feature = entity(type, id);
+  function setField(id, field, value) {
+    const feature = entity(id);
     if (!feature) return false;
     const properties = { ...feature.properties };
     if (field === 'color') {
@@ -82,17 +80,11 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
     applyChanges({ features: [{ ...feature, properties }] });
     return true;
   }
-  function replaceEntities(entities, { types: requestedTypes = [...types] } = {}) {
+  function replaceEntities(entities) {
     if (!Array.isArray(entities)) throw new TypeError('영역 엔티티 배열이 필요합니다.');
-    const selectedTypes = new Set(requestedTypes);
-    if ([...selectedTypes].some(type => !types.has(type))) throw new Error('교체할 영역 종류가 올바르지 않습니다.');
-    if (entities.some(feature => !selectedTypes.has(feature?.properties?.unitType))) throw new Error('교체 범위 밖의 영역입니다.');
     const previous = state().territorialEntities;
-    const incoming = new Set(entities.map(entity => text(entity.id)));
-    const unchanged = previous.filter(feature => !selectedTypes.has(feature.properties.unitType)
-      && !(staging?.removed.has(feature.id) && incoming.has(feature.id)));
-    if (staging) for (const id of incoming) staging.removed.delete(id);
-    const next = normalize([...unchanged, ...entities], new Set(unchanged));
+    const next = normalize(entities, new Set(previous));
+    if (staging) staging.removed.clear();
     publish(next, previous);
     return snapshot();
   }
@@ -115,13 +107,16 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
     const previous = state().territorialEntities;
     const removed = new Set(removedIds.map(text));
     const changes = new Map();
+    const previousById = new Map(previous.map(feature => [text(feature.id), feature]));
     for (const feature of features) {
       const id = text(feature?.id);
       if (!id || changes.has(id) || removed.has(id)) throw new Error(`영역 변경 ID가 올바르지 않습니다: ${id}`);
+      const before = previousById.get(id);
+      if (before && before.properties.entityKind !== feature.properties?.entityKind) throw new Error('객체 종류는 생성 후 변경할 수 없습니다. 독립 권역 복사를 사용하세요.');
       changes.set(id, feature);
     }
     if (staging) {
-      for (const entity of previous) if (removed.has(entity.id) && entity.properties.unitType === 'country') {
+      for (const entity of previous) if (removed.has(entity.id) && entity.properties.entityKind === 'general' && !entity.properties.parentId) {
         staging.removed.add(entity.id);
         removed.delete(entity.id);
       }
@@ -138,7 +133,7 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
     publish(next, previous);
     return snapshot();
   }
-  function appendEntities(entities, options = {}) {
+  function appendEntities(entities) {
     if (!Array.isArray(entities)) throw new TypeError('추가할 영역 배열이 필요합니다.');
     const ids = new Set(state().territorialEntities.map(feature => text(feature.id)));
     for (const feature of entities) {
@@ -148,15 +143,15 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
     }
     if (!entities.length) return [];
     const added = new Set(entities.map(feature => text(feature.id)));
-    return applyChanges({ features: entities }, options).filter(feature => added.has(text(feature.id)));
+    return applyChanges({ features: entities }).filter(feature => added.has(text(feature.id)));
   }
-  function removeEntities(refs, options = {}) {
-    const deleted = snapshot().filter(feature => refs.some(ref => text(ref.id) === text(feature.id)
-      && ref.type === feature.properties.unitType));
-    if (deleted.length) applyChanges({ removedIds: deleted.map(feature => feature.id) }, options);
+  function removeEntities(ids) {
+    const wanted = new Set(ids.map(text));
+    const deleted = snapshot().filter(feature => wanted.has(text(feature.id)));
+    if (deleted.length) applyChanges({ removedIds: deleted.map(feature => feature.id) });
     return deleted;
   }
   return Object.freeze({ snapshot, setField, hasField, replaceEntities, applyChanges, appendEntities, removeEntities, transaction,
-    setLocked: (type, id, locked) => setField(type, id, 'locked', !!locked),
-    isLocked: (type, id) => entity(type, id)?.properties.locked === true });
+    setLocked: (id, locked) => setField(id, 'locked', !!locked),
+    isLocked: id => entity(id)?.properties.locked === true });
 }

@@ -58,7 +58,7 @@ export function createGenericCommands() {
       (0, dependencies.feedback.setActionStatus)('국가로 전환할 육지 영역이 없습니다. 객체가 현재 국가 영토와 겹치는지 확인하세요.', 'error', 4000);
       return;
     }
-    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(sourceIds.map(id => ({ domain: 'territorial', type: 'country', id: String(id) })), '국가로 전환')) return;
+    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(sourceIds.map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '국가로 전환')) return;
     const name = String(feature.properties?.name || '').trim() || '이름 없음';
     const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     const country = (0, dependencies.objectPicking.createCountryFeature)(name, [], (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7));
@@ -72,7 +72,7 @@ export function createGenericCommands() {
         dependencies.territorialModel.entityStore.transaction(() => {
         (0, dependencies.cutOperations.applyWorkerCountryPatches)(result, { presentation: 'preserve-existing-scene' });
         if (feature.properties?.color) {
-          dependencies.territorialModel.entityStore.setField('country', country.id, 'color', feature.properties.color);
+          dependencies.territorialModel.entityStore.setField(country.id, 'color', feature.properties.color);
         }
         (0, dependencies.landRelations.transferLandDependents)(transferredGeometry, sourceIds, country.id, [feature.id]);
         });
@@ -80,7 +80,7 @@ export function createGenericCommands() {
         dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
         (0, dependencies.countryValidation.refreshCountryCentroids)(new Set(result.affectedIds));
         (0, dependencies.layers.markLayerTreeDirty)();
-        dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'country', id: String(country.id) }, { refreshOnly: false, openEditor: false });
+        dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(country.id) }, { refreshOnly: false, openEditor: false });
         dependencies.domains.renderingDomain?.invalidateCountryPatch?.('generic-promoted-country');
       },
       onSuccess: () => (0, dependencies.feedback.setActionStatus)(`${name} 영역을 독립 국가로 전환했습니다.`, 'success', 3600),
@@ -113,7 +113,7 @@ export function createGenericCommands() {
     return [];
   }
 
-  async function convertSelectedGenericFeature({ target, sovereignId = '', distributionLayerId = '', distributionValue } = {}) {
+  async function convertSelectedGenericFeature({ target, parentId = '', distributionLayerId = '', distributionValue } = {}) {
     if (dependencies.projectState.state.selected?.domain !== 'generic') return false;
     const feature = dependencies.projectState.state.genericFeatures.find(item => String(item.id) === String(dependencies.projectState.state.selected.id));
     const kind = (0, dependencies.objectPresentation.genericFeatureGeometryKind)(feature);
@@ -122,10 +122,10 @@ export function createGenericCommands() {
       return false;
     }
     if (!canConvertGenericFeature(feature)) return false;
-    if (target === 'country') return promoteSelectedGenericFeatureToCountry();
     const name = String(feature.properties?.name || '').trim() || '이름 없음';
     const color = feature.properties?.color || feature.properties?.editorColor || '';
     try {
+      if (target === 'general' && !parentId) return await promoteSelectedGenericFeatureToCountry();
       if (target === 'river' || target === 'lake') {
         const expectedKind = target === 'river' ? 'line' : 'polygon';
         if (kind !== expectedKind) throw new Error(`${target === 'river' ? '강' : '호수'}으로 전환할 수 없는 형상입니다.`);
@@ -166,33 +166,31 @@ export function createGenericCommands() {
         (0, dependencies.feedback.setActionStatus)(`${name}을(를) 지명으로 전환했습니다.`, 'success');
         return true;
       }
-      if (target === 'subunit' || target === 'region') {
-        if (kind !== 'polygon') throw new Error('영역 형상만 하위단위 또는 지방으로 전환할 수 있습니다.');
-        const country = dependencies.territorialModel.entityRepository.get(sovereignId);
-        if (country?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-          throw new Error('소속 국가를 선택하세요.');
-        }
-        const unitType = target === 'subunit' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT : dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION;
+      if (target === 'general' || target === 'regional') {
+        if (kind !== 'polygon') throw new Error('영역 형상만 객체로 전환할 수 있습니다.');
+        const parent = parentId ? dependencies.territorialModel.entityRepository.get(parentId) : null;
+        if (target === 'general' && (parent?.properties.entityKind !== 'general' || parent.properties.locked)) throw new Error('잠기지 않은 상위 객체를 선택하세요.');
+        const entityKind = target;
         const unit = (0, dependencies.territorialServicesA.createTerritorialFeature)({
-          id: (0, dependencies.surfaces.uid)(unitType), unitType, name, geometry: (0, dependencies.platform.deepClone)(feature.geometry),
-          associatedCountryId: target === 'region' ? String(country.id) : '', parentId: target === 'subunit' ? String(country.id) : '',
+          id: (0, dependencies.surfaces.uid)(entityKind), entityKind, name, geometry: (0, dependencies.platform.deepClone)(feature.geometry),
+          parentId: target === 'general' ? String(parent.id) : '',
           coverageMode: dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT, color,
           validFrom: feature.properties?.validFrom ?? null, validTo: feature.properties?.validTo ?? null,
           notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
         });
         dependencies.domains.projectDomain.recordHistory({ type: 'generic-convert-territorial', affectedIds: [String(feature.id), String(unit.id)] });
-        dependencies.territorialModel.entityStore.replaceEntities((0, dependencies.territorialModel.normalizeTerritorialEntities)(
-            [...dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }), unit],
+        dependencies.territorialModel.entityStore.applyChanges({ features: (0, dependencies.territorialModel.normalizeTerritorialEntities)(
+            [...dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId), unit],
             {
               getEntity: id => dependencies.territorialModel.entityRepository.get(id),
             },
-          ), { types: ['subunit', 'region'] });
+          ) });
         removeGenericFeatureAfterConversion(feature);
         (0, dependencies.layers.markLayerTreeDirty)();
         dependencies.domains.projectDomain.queueAutosave();
-        dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: dependencies.territorialModel.entityRepository.get(unit.id)?.properties?.unitType, id: String(unit.id) }, { refreshOnly: true, openEditor: false });
+        dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(unit.id) }, { refreshOnly: true, openEditor: false });
         dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('generic-converted-territorial');
-        (0, dependencies.feedback.setActionStatus)(`${name}을(를) ${target === 'subunit' ? '하위단위' : '지방'}으로 전환했습니다.`, 'success');
+        (0, dependencies.feedback.setActionStatus)(`${name}을(를) 객체로 전환했습니다.`, 'success');
         return true;
       }
       if (target === 'distribution') {
@@ -282,8 +280,8 @@ export function createGenericCommands() {
     dependencies.domains.editingDomain?.clearDraft?.(true);
     dependencies.domains.editingDomain?.setTool('select', { announce: false });
     if (splitSourceId && dependencies.projectState.state.genericFeatures.some(item => String(item.id) === String(splitSourceId))) (0, dependencies.propertyEditingA.applyGenericSelectionIntent)(String(splitSourceId), true);
-    else if (territorialSplitSourceId && dependencies.territorialModel.entityRepository.get(territorialSplitSourceId)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: dependencies.territorialModel.entityRepository.get(territorialSplitSourceId)?.properties?.unitType, id: String(territorialSplitSourceId) }, { refreshOnly: true, openEditor: false });
-    else if (territorialRedrawSourceId && dependencies.territorialModel.entityRepository.get(territorialRedrawSourceId)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: dependencies.territorialModel.entityRepository.get(territorialRedrawSourceId)?.properties?.unitType, id: String(territorialRedrawSourceId) }, { refreshOnly: true, openEditor: false });
+    else if (territorialSplitSourceId && dependencies.territorialModel.entityRepository.get(territorialSplitSourceId)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(territorialSplitSourceId) }, { refreshOnly: true, openEditor: false });
+    else if (territorialRedrawSourceId && dependencies.territorialModel.entityRepository.get(territorialRedrawSourceId)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(territorialRedrawSourceId) }, { refreshOnly: true, openEditor: false });
     dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('draft-cancel');
     if (distributionDraft?.layerId && (0, dependencies.propertyEditingA.distributionLayerById)(distributionDraft.layerId)) (0, dependencies.propertyEditingA.applyDistributionSelectionIntent)(distributionDraft.layerId, true);
     if (showMessage) (0, dependencies.feedback.setActionStatus)(distributionDraft ? '자유 분포 그리기를 취소했습니다.' : splitSourceId || territorialSplitSourceId || territorialRedrawSourceId || directTerritorialUnit ? '영역 작업을 취소했습니다.' : `${terrain?.label || '기타 객체'} 추가를 취소했습니다.`, 'success');

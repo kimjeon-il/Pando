@@ -19,7 +19,7 @@ export function createObjectPicking() {
     const geometry = geometryOverride
       ? (0, dependencies.platform.deepClone)(geometryOverride)
       : { type: 'Polygon', coordinates: [(0, dependencies.applicationServicesB.orientRing)(rawRing, true)] };
-    return createTerritorialFeature({ id, unitType: 'country', name, geometry });
+    return createTerritorialFeature({ id, entityKind: 'general', name, geometry });
   }
 
   function projectedPointDistance(left, right) {
@@ -81,8 +81,8 @@ export function createObjectPicking() {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref || !(0, dependencies.objectLookup.objectRefExists)(ref)) return false;
     if (ref.domain === 'territorial') {
-      const group = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries'
-        : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : 'subunits';
+      const group = (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'countries'
+        : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'regional') ? 'regions' : 'subunits';
       return dependencies.projectState.state.layerVisibility[group] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id);
     }
     if (ref.domain === 'distribution') {
@@ -109,7 +109,7 @@ export function createObjectPicking() {
     let group = '';
     if (ref.domain === 'generic') group = 'genericFeatures';
     else if (ref.domain === 'distribution') group = 'distributions';
-    else if (ref.domain === 'territorial') group = ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT ? 'subunits' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : ref.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? 'countries' : 'subunits';
+    else if (ref.domain === 'territorial') group = (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !!dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'subunits' : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'regional') ? 'regions' : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'countries' : 'subunits';
     else if (ref.domain === 'label') group = 'labels';
     else if (ref.domain === 'hydro') group = 'hydro';
     const index = order.indexOf(group);
@@ -151,10 +151,10 @@ export function createObjectPicking() {
       if (entry.domain === 'territorial') {
         const feature = dependencies.territorialModel.entityRepository.get(entry.id);
         if (!feature) continue;
-        const group = feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT ? 'subunits' : feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION ? 'regions' : 'subunits';
+        const group = (feature.properties?.entityKind === 'general' && !!feature.properties?.parentId) ? 'subunits' : (feature.properties?.entityKind === 'regional') ? 'regions' : 'subunits';
         if (dependencies.projectState.state.layerVisibility[group] === false || !(0, dependencies.layerPresentation.isLayerItemVisible)(group, feature.id)) continue;
         dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;
-        if (geometryHitsScreenPoint(feature.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 12 : 7)) add({ domain: 'territorial', type: feature.properties?.unitType || dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT, id: feature.id });
+        if (geometryHitsScreenPoint(feature.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 12 : 7)) add({ domain: 'territorial', type: 'entity', id: feature.id });
         continue;
       }
       if (entry.domain === 'hydro') {
@@ -163,7 +163,7 @@ export function createObjectPicking() {
         if (feature && (0, dependencies.physicalServices.isHydroFeatureVisible)(feature) && geometryHitsScreenPoint(feature.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 14 : 8)) add({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id });
       }
     }
-    const canReuseHover = dependencies.pointerInteractionA.lastHoverHit?.ref?.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY && dependencies.pointerInteractionA.lastHoverHit.feature
+    const canReuseHover = (dependencies.territorialModel.entityRepository.get(dependencies.pointerInteractionA.lastHoverHit?.ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.pointerInteractionA.lastHoverHit?.ref?.id)?.properties.parentId) && dependencies.pointerInteractionA.lastHoverHit.feature
       && dependencies.pointerInteractionA.lastHoverPickViewRevision === dependencies.mapLayout.viewRevision && dependencies.pointerInteractionA.lastHoverPickPoint
       && Math.hypot(screenPoint[0] - dependencies.pointerInteractionA.lastHoverPickPoint[0], screenPoint[1] - dependencies.pointerInteractionA.lastHoverPickPoint[1]) < 3;
     dependencies.rendering.selectionPerformanceMetrics.pickCacheHit = !!canReuseHover;
@@ -175,7 +175,7 @@ export function createObjectPicking() {
         country = (0, dependencies.pointerInteractionA.countryAtScreenPoint)(screenPoint, coord, { verify: false });
         dependencies.rendering.selectionPerformanceMetrics.gpuPickMs = performance.now() - pickStartedAt;
       }
-      if (country) add({ domain: 'territorial', type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY, id: country.id });
+      if (country) add({ domain: 'territorial', type: 'entity', id: country.id });
     }
     if (dependencies.projectState.state.layerVisibility.rivers || dependencies.projectState.state.layerVisibility.lakes) {
       const hydro = await (0, dependencies.pointerInteractionA.hydroAtScreenPoint)(screenPoint, coord);

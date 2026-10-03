@@ -305,7 +305,6 @@
   --fatal-noscript-color-media-prefers-color-scheme-light: #8b2929;
   --surface-header-background: #b1bbc4;
   --field-group-box-shadow: 0 0 0 2px rgba(49,94,157,.12);
-  --territorial-type-card-width: min(500px, calc(100vw - var(--ui-space-8)));
   --file-menu-btn-min-width: 78px;
   --top-actions-width: 280px;
   --status-group-height: 14px;
@@ -3178,7 +3177,7 @@ body.map-sheet-dragging {
   box-shadow: none;
 }
 
-:is(.gis-import-status, .territorial-type-impact, .ui-callout, .ui-alert, .editor-help):empty {
+:is(.gis-import-status, .ui-callout, .ui-alert, .editor-help):empty {
   display: none;
   min-height: 0;
 }
@@ -4325,14 +4324,8 @@ body.map-sheet-dragging {
   line-height: var(--ui-line-normal);
 }
 
-.workflow-dialog-card > :is(.territorial-type-fields, .territorial-create-fields, .confirm-impact, .confirm-modal-choice-row, .ui-dialog-actions, .confirm-modal-actions) {
+.workflow-dialog-card > :is(.territorial-create-fields, .confirm-impact, .confirm-modal-choice-row, .ui-dialog-actions, .confirm-modal-actions) {
   grid-column: 1 / -1;
-}
-
-.workflow-dialog-card .territorial-type-fields {
-  display: grid;
-  gap: var(--ui-field-gap);
-  margin-top: var(--ui-space-2);
 }
 
 .workflow-dialog-card .territorial-create-fields {
@@ -4341,7 +4334,7 @@ body.map-sheet-dragging {
   margin-top: var(--ui-space-2);
 }
 
-.workflow-dialog-card :is(.confirm-impact, .territorial-type-impact) {
+.workflow-dialog-card .confirm-impact {
   margin: var(--ui-space-1) 0 0;
   padding: var(--ui-space-3) 0 0;
   border: 0;
@@ -4351,7 +4344,7 @@ body.map-sheet-dragging {
   color: var(--text-soft);
 }
 
-.workflow-dialog-card :is(.confirm-impact, .territorial-type-impact) > strong {
+.workflow-dialog-card .confirm-impact > strong {
   display: block;
   margin-bottom: var(--ui-space-2);
   color: var(--muted);
@@ -4360,7 +4353,7 @@ body.map-sheet-dragging {
   letter-spacing: .06em;
 }
 
-.workflow-dialog-card :is(.confirm-impact, .territorial-type-impact) ul {
+.workflow-dialog-card .confirm-impact ul {
   margin: 0;
   padding-inline-start: 1.1rem;
   color: var(--text-soft);
@@ -4830,46 +4823,6 @@ body[data-layout="mobile"] .gis-country-identity-row {
   .field-group label {
     color: var(--field-group-color-media-prefers-color-scheme-light);
   }
-}
-
-.territorial-type-card {
-  width: var(--territorial-type-card-width);
-}
-
-.territorial-type-fields {
-  display: grid;
-  gap: var(--ui-space-3);
-  margin: var(--ui-space-4) 0 0;
-}
-
-.territorial-type-impact {
-  min-height: 3.2em;
-  margin: 0;
-  padding: var(--ui-space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--ui-radius-control);
-  background: var(--surface-subtle);
-  color: var(--muted);
-  font-size: var(--ui-font-sm);
-  line-height: var(--ui-line-normal);
-  white-space: normal;
-}
-
-.territorial-type-impact strong {
-  display: block;
-  color: var(--text-strong);
-}
-
-.territorial-type-impact ul {
-  display: grid;
-  gap: var(--ui-space-1);
-  margin: var(--ui-space-2) 0 0;
-  padding-left: var(--ui-space-5);
-}
-
-.territorial-type-impact.danger-preview {
-  border-color: var(--danger-border);
-  background: color-mix(in srgb, var(--danger-surface) 52%, transparent);
 }
 
 .gis-check {

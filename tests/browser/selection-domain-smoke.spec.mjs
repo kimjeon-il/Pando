@@ -16,11 +16,11 @@ test('selection domain drives country editing, multi-selection, and independent 
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => typeof window.PANDOLAB_TERRITORIAL?.select === 'function')).toBe(true);
 
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect(page.locator('#propertyTypeLabel')).toHaveText('국가');
-  await expect(page.locator('#countryProperties')).toBeVisible();
+  await expect(page.locator('#entityProperties')).toBeVisible();
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
-  await expect(page.locator('#editBorderBtn')).toHaveCount(1);
+  await expect(page.locator('#editEntityBorderBtn')).toHaveCount(1);
 
   const search = page.locator('#layerSearchInput');
   await search.fill('프랑스');

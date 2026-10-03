@@ -5,14 +5,9 @@ export function createTerritorialPropertyController({
   elements = {},
   getTerritorialView,
   getElement,
-  territorialUnitTypes,
-  territorialEntityRepository,
-  territorialUnitCountryOptions,
-  territorialUnitParentOptions,
   territorialParentOptions,
   refreshTerritorialCoastAvailability,
   replaceSelectOptions,
-  shouldShowTerritorialParentChoice,
   syncLayerSelection = () => {},
   commitRelation = () => false,
   getPrimaryRef = () => null,
@@ -28,55 +23,31 @@ export function createTerritorialPropertyController({
   metrics = {},
 } = {}) {
   const $ = getElement;
-  function presentUnitFields(view) {
-    const feature = view.feature;
-    if (!feature) return false;
-    const properties = feature.properties || {};
-    const countryId=String(territorialEntityRepository.administrativeCountry(feature.id)?.id || '');
-    const subunits = properties.unitType === territorialUnitTypes.SUBUNIT;
-    const region = properties.unitType === territorialUnitTypes.REGION;
-    const prefix = region ? 'region' : 'subunit';
-    const normalizedName = String(properties.name || '').trim().toLocaleLowerCase('ko');
-    const conflict = !!normalizedName && territorialEntityRepository.list({ type: properties.unitType }).some(candidate => candidate.id !== feature.id
-      && String(territorialEntityRepository.administrativeCountry(candidate.id)?.id || '') === countryId
-      && String(candidate.properties?.name || '').trim().toLocaleLowerCase('ko') === normalizedName);
-    $(`${prefix}NameConflict`).classList.toggle('hidden', !conflict);
-    $(`${prefix}NameInput`).value = properties.name || '';
-    const countrySelect = $(`${prefix}CountryInput`);
-    const countryChoice = replaceSelectOptions(countrySelect, territorialUnitCountryOptions().filter(option => !subunits || option.value), countryId, {
-      autoSelectSingle: true,
-      preserveInvalid: true,
-    });
-    countrySelect.closest('.field-group')?.classList.toggle('hidden', countryChoice.single);
-    const color = resolveColor(view), inheritedColor = defaultColor(view);
-    $(`${prefix}ColorInput`).value = color.value;
-    syncColorPicker(prefix, { value: color.value, defaultColor: inheritedColor, isDefault: color.isDefault });
-    $(`${prefix}NotesInput`).value = properties.notes || '';
-    const actionIds = region
-      ? ['reassignRegionShapeBtn', 'mergeRegionBtn', 'transferRegionBtn']
-      : ['addSubunitChildBtn', 'annexSubunitBtn', 'mergeSubunitBtn', 'reassignSubunitShapeBtn', 'editSubunitCoastBtn', 'reconcileSubunitCoastBtn', 'promoteSubunitBtn', 'removeSubunitDivisionBtn'];
-    for (const actionId of actionIds) $(actionId).disabled = properties.locked === true;
-    if (subunits) {
-      refreshTerritorialCoastAvailability(feature);
-      const parentOptions = territorialUnitParentOptions(feature);
-      $('subunitParentInput').disabled = properties.locked === true || parentOptions.pending === true;
-      $('subunitParentInput').setAttribute('aria-busy', String(parentOptions.pending === true));
-      replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId, { autoSelectSingle: true, preserveInvalid: false });
-      $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', !shouldShowTerritorialParentChoice({
-        sovereignId: countryId,
-        parentId: properties.parentId,
-        options: parentOptions,
-      }));
-    } else if (region) {
-      replaceSelectOptions($('regionParentInput'), territorialParentOptions(feature), properties.parentId);
-      // Region relations are explicit references, not administrative partition parents.
-      $('regionParentInput').disabled = true;
-      $('regionParentInput').closest('.field-group')?.classList.toggle('hidden', !properties.parentId
-        || String(properties.parentId) === String(countryId));
-      $('regionValidFromInput').value = properties.validFrom || '';
-      $('regionValidToInput').value = properties.validTo || '';
+  function presentFields(view) {
+    const properties = view.feature.properties;
+    const general = properties.entityKind === 'general', nested = general && !!properties.parentId;
+    elements.name.value = view.displayName;
+    elements.notes.value = properties.notes;
+    $('entityValidFromInput').value = properties.validFrom || '';
+    $('entityValidToInput').value = properties.validTo || '';
+    const color = resolveColor(view);
+    elements.color.value = color.value;
+    syncColorPicker('entity', { value: color.value, defaultColor: defaultColor(view), isDefault: color.isDefault });
+    $('entityParentRow').classList.toggle('hidden', !general);
+    $('entityRegionalStatus').classList.toggle('hidden', general);
+    replaceSelectOptions($('entityParentInput'), general ? territorialParentOptions(view.feature) : [], properties.parentId);
+    for (const control of [elements.name, elements.notes, $('entityParentInput'), $('entityValidFromInput'), $('entityValidToInput')]) control.disabled = properties.locked;
+    const actions = {
+      addEntityChildBtn: general, annexEntityBtn: general, mergeEntityBtn: true,
+      editEntityBorderBtn: general, redrawEntityBtn: !general, editEntityCoastBtn: general,
+      reconcileEntityCoastBtn: nested, copyEntityRegionBtn: general,
+    };
+    for (const [id, visible] of Object.entries(actions)) {
+      $(id).classList.toggle('hidden', !visible);
+      $(id).disabled = id !== 'copyEntityRegionBtn' && properties.locked;
     }
-    return true;
+    // Copy reads the source; a locked source can still be copied.
+    if (nested && !properties.locked) refreshTerritorialCoastAvailability(view.feature);
   }
   const areaCache = new WeakMap();
   const pendingAreas = new WeakSet();
@@ -100,7 +71,7 @@ export function createTerritorialPropertyController({
         return;
       }
       const formatted = formatArea(value);
-      if (primary.type === 'country' && elements.area) elements.area.textContent = formatted;
+      if (elements.area) elements.area.textContent = formatted;
       if (elements.selectionStatus) elements.selectionStatus.textContent = territorialSelectionStatus(current, formatted);
       syncStatus();
     };
@@ -113,20 +84,13 @@ export function createTerritorialPropertyController({
     const view = getTerritorialView(ref);
     if (!view?.feature) return false;
     const startedAt = globalThis.performance?.now?.() || Date.now();
-    showPropertyForm(view.ref.type, view.displayName, { resetScroll: !refreshOnly });
+    showPropertyForm('entity', view.displayName, { resetScroll: !refreshOnly });
     const fieldsStartedAt = globalThis.performance?.now?.() || Date.now();
-    if (view.ref.type !== 'country') presentUnitFields(view);
-    else {
-      if (elements.name) elements.name.value = view.displayName;
-      const color = resolveColor(view);
-      if (elements.color) elements.color.value = color.value;
-      syncColorPicker('country', { value: color.value, defaultColor: defaultColor(view), isDefault: color.isDefault });
-      if (elements.notes) elements.notes.value = view.properties.notes || '';
-    }
+    presentFields(view);
     const geometry = view.feature.geometry;
     const cached = geometry && areaCache.has(geometry);
     const area = cached ? areaCache.get(geometry) : null;
-    if (view.ref.type === 'country' && elements.area) {
+    if (elements.area) {
       elements.area.textContent = cached ? formatArea(area) : '면적 계산 중…';
       elements.area.dataset.tooltip = '구면 근사 면적이며 고정밀 GIS 측정값과 차이가 날 수 있습니다.';
     }
@@ -135,7 +99,7 @@ export function createTerritorialPropertyController({
       : territorialSelectionStatus(view);
     if (!cached) scheduleArea(view);
     syncStatus();
-    if (view.ref.type === 'country') syncActions(view);
+    syncActions(view);
     syncLayerSelection();
     metrics.propertyPanelMs = fieldsStartedAt - startedAt;
     metrics.propertyFieldsMs = (globalThis.performance?.now?.() || Date.now()) - fieldsStartedAt;
@@ -143,7 +107,7 @@ export function createTerritorialPropertyController({
     return true;
   };
 
-  const refresh = countryRef => present(countryRef, { refreshOnly: true });
+  const refresh = entityRef => present(entityRef, { refreshOnly: true });
 
   const clear = () => {};
 
@@ -156,11 +120,9 @@ export function createTerritorialPropertyController({
       else commitField(ref, field, value);
     });
     bindField(elements.name, 'name'); bindField(elements.notes, 'notes');
-    for (const type of ['subunit', 'region']) {
-      for (const [suffix, field] of [['Name','name'],['Notes','notes'],['ValidFrom','validFrom'],['ValidTo','validTo']]) bindField($(type + suffix + 'Input'), field);
-      bindField($(type + 'CountryInput'), 'associatedCountryId', true);
-      bindField($(type + 'ParentInput'), 'parentId', true);
-    }
+    bindField($('entityValidFromInput'), 'validFrom');
+    bindField($('entityValidToInput'), 'validTo');
+    bindField($('entityParentInput'), 'parentId', true);
     return api;
   };
 

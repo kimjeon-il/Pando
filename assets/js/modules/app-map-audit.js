@@ -62,10 +62,10 @@ export function createMapAudit() {
       requestId: geometryValidationRequestId,
       revision: dependencies.projectState.state.stateRevision,
       payload: {
-        countries: dependencies.territorialModel.entityRepository.list({ type: 'country' }),
+        countries: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }),
         coarseCountries: dependencies.projectState.state.countryVisualPhase === 'preview' ? dependencies.projectState.state.auditPreviewCountries?.features || [] : [],
         preciseAffectedIds: [...dependencies.projectState.state.historyDirtyEntityIds],
-        units: dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }) || [],
+        units: dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId) || [],
         distributionEntries: dependencies.projectState.state.distributionEntries || [],
       },
     });

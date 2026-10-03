@@ -74,16 +74,16 @@ test('structural territorial callers use the entity store for collection writes'
   ]);
 
   assert.match(drafts, /entityStore\.applyChanges/);
-  assert.match(conversion, /entityStore\.replaceEntities/);
-  assert.match(generic, /entityStore\.replaceEntities/);
-  assert.match(land, /entityStore\.replaceEntities/);
+  assert.match(conversion, /entityStore\.applyChanges/);
+  assert.match(generic, /entityStore\.applyChanges/);
+  assert.match(land, /entityStore\.applyChanges/);
   assert.match(commands, /entityStore:\s*dependencies\.territorialModel\.entityStore/);
   assert.match(cut, /entityStore\.applyChanges/);
   assert.match(startup, /entityStore\.replaceEntities/);
   assert.match(restore, /entityStore\.replaceEntities/);
   assert.match(snapshots, /entityStore\.replaceEntities/);
   assert.match(builtin, /entityStore\.replaceEntities/);
-  assert.match(gis, /entityStore\.(?:appendEntities|replaceEntities)/);
+  assert.match(gis, /entityStore\.(?:appendEntities|applyChanges)/);
 });
 
 test('territorial store exposes only generic structural write commands', async () => {

@@ -47,7 +47,7 @@ async function bottomFloatingGeometry(page) {
       lowerBoundary: mobile ? rect('.mobile-bottom-bar')?.top : rect('.map-wrap')?.bottom,
       mobileBottom: mobile ? {
         objectChooser: computedBottom('#objectChooser'),
-        colorPopover: computedBottom('#countryColorPopover'),
+        colorPopover: computedBottom('#entityColorPopover'),
       } : null,
     };
   });
@@ -105,12 +105,12 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     const beforeSelect = await cameraSnapshot(page);
     await germany.click();
     await expect(page.locator('#objectSearchSurface')).toBeHidden();
-    await expect(page.locator('#countryNameInput')).toHaveValue('독일');
+    await expect(page.locator('#entityNameInput')).toHaveValue('독일');
     expect(await cameraSnapshot(page)).toEqual(beforeSelect);
     await page.locator(mobile ? '#mobileEditBtn' : '#selectionToolbarEditBtn').click();
-    await expect(page.locator('#editBorderBtn')).toBeVisible();
+    await expect(page.locator('#editEntityBorderBtn')).toBeVisible();
     const beforeTask = await cameraSnapshot(page);
-    await page.locator('#editBorderBtn').click();
+    await page.locator('#editEntityBorderBtn').click();
     await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'task');
     if (mobile) {
       await expect(page.locator('#editorSurface .surface-header-actions')).toBeHidden();
@@ -140,8 +140,8 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     await page.screenshot({ path: testInfo.outputPath(`task-${viewport.width}-${mobile ? 'mobile' : 'desktop'}.png`) });
     await page.locator('#modeCancelBtn').click();
     await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
-    await expect(page.locator('#countryNameInput')).toHaveValue('독일');
-    await expect(page.locator('#editBorderBtn')).toBeVisible();
+    await expect(page.locator('#entityNameInput')).toHaveValue('독일');
+    await expect(page.locator('#editEntityBorderBtn')).toBeVisible();
     await page.locator(mobile ? '#mobileEditBtn' : '#selectionToolbarEditBtn').click();
     await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
   }

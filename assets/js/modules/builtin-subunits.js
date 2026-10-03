@@ -1,5 +1,4 @@
 import { createTerritorialFeature } from './territorial-units.js';
-import { defaultGeographicName } from './country-display.js';
 import { mergeBuiltinTerritories } from './builtin-territory-policy.js';
 
 // User-approved default-map classification, not a live legal-status database.
@@ -41,16 +40,16 @@ const byId = new Map(BUILTIN_SUBUNITS.map(row => [row.id, row]));
 
 export function builtinSubunitSourceId(feature) {
   const row = byId.get(String(feature?.id || ''));
-  return feature?.properties?.unitType === 'subunit'
+  return (feature?.properties?.entityKind === 'general' && !!feature?.properties?.parentId)
     && feature.properties.metadata?.builtinSubunit?.sourceCountryId === row?.sourceCountryId ? row?.sourceCountryId || '' : '';
 }
 
 /** Derived scene/label ID. Logical entity IDs remain unchanged. */
 export function territorialSceneDisplayId(feature, countryIds) {
-  const type = feature.properties?.unitType;
-  if (!type || type === 'country') return String(feature.id);
+  const type = feature.properties?.entityKind;
+  if (type === 'general' && !feature.properties.parentId) return String(feature.id);
   const sourceId = builtinSubunitSourceId(feature);
-  return sourceId && !countryIds.has(sourceId) ? sourceId : `territorial:${type}:${feature.id}`;
+  return sourceId && !countryIds.has(sourceId) ? sourceId : `territorial:entity:${feature.id}`;
 }
 
 /** Only call for fresh built-in projects. Never a project-file migration. */
@@ -65,7 +64,7 @@ export function classifyBuiltinCountries(collection) {
     const row = bySource.get(String(feature.id));
     if (!row) { countries.push(feature); continue; }
     subunits.push(createTerritorialFeature({
-      id: row.id, unitType: 'subunit', name: defaultGeographicName(row.sourceCountryId, feature.properties.name), geometry: feature.geometry,
+      id: row.id, entityKind: 'general', name: feature.properties.name, geometry: feature.geometry,
       parentId: row.parentId, coverageMode: 'explicit',
       notes: row.note || '',
       metadata: {

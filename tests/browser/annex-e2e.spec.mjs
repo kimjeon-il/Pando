@@ -29,7 +29,7 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   await page.goto(`/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'TUR'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));
   await page.locator('#selectionToolbarEditBtn').click({ timeout: 10_000 });
   await page.locator('#focusSelectedObjectBtn').click({ timeout: 10_000 });
   const map = await page.locator('#map').boundingBox();
@@ -37,14 +37,14 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   expect(centerPoint).toBeTruthy();
   await page.mouse.move(map.x + centerPoint[0], map.y + centerPoint[1]);
   await page.mouse.wheel(0, -400);
-  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select('country', id), targetId);
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), targetId);
   if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click({ timeout: 10_000 });
   await expect(page.locator('#editorSurface')).toBeVisible();
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#annexTerritoryBtn').click();
+  await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#modeTaskStage')).toHaveText('가져올 국가');
-  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨받는 국가');
-  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨주는 국가');
+  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨받는 객체');
+  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨주는 객체');
   const donorPoint = await page.evaluate(coordinate => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate), center);
   await page.locator('#map .map-svg').dispatchEvent('click', {
     clientX: map.x + donorPoint[0], clientY: map.y + donorPoint[1], button: 0,

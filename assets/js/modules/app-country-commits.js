@@ -30,13 +30,13 @@ export function createCountryCommits() {
     (0, dependencies.countryValidation.refreshCountryCentroids)(new Set([...(centroidIds || [])].map(String)));
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
-    if (requireCountryId && dependencies.territorialModel.entityRepository.get(requireCountryId)?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
+    if (requireCountryId && !(dependencies.territorialModel.entityRepository.get(requireCountryId)?.properties?.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(requireCountryId)?.properties?.parentId)) {
       throw new Error('국가 geometry 적용 결과에서 대상 국가가 사라졌습니다.');
     }
     if (clearMultiDraft) dependencies.projectState.state.multiDraft = null;
     if (clearDraftReason) dependencies.domains.editingDomain?.clearDraft?.({ reason: clearDraftReason, render: false });
     dependencies.domains.editingDomain?.setTool('select', { announce: false });
-    if (selectedId) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'country', id: String(selectedId) }, { refreshOnly: false, openEditor: false });
+    if (selectedId) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(selectedId) }, { refreshOnly: false, openEditor: false });
   }
 
   function cancelScheduledMultiDraftPreview() {
@@ -235,7 +235,7 @@ export function createCountryCommits() {
   }
 
   function prepareNewCountryDraftCandidates(session = dependencies.projectState.state.territorySelectionSession) {
-    if (session?.kind !== 'new-country' || session.activePhase !== 'drawing' || session.activeMethod !== 'line') {
+    if (session?.kind !== 'entity' || session.entityKind !== 'general' || !!session.parentId || session.activePhase !== 'drawing' || session.activeMethod !== 'line') {
       (0, dependencies.feedback.setActionStatus)('새 국가를 만들 수 없습니다. 영토를 가져올 국가 선택을 먼저 완료하세요.', 'error', 3600);
       return;
     }
@@ -277,7 +277,7 @@ export function createCountryCommits() {
   }
 
   function prepareNewCountryPolygon(session = dependencies.projectState.state.territorySelectionSession) {
-    if (session?.kind !== 'new-country' || session.activePhase !== 'drawing' || session.activeMethod !== 'polygon') return false;
+    if (session?.kind !== 'entity' || session.entityKind !== 'general' || !!session.parentId || session.activePhase !== 'drawing' || session.activeMethod !== 'polygon') return false;
     try {
       const drawn = { type: 'Polygon', coordinates: [(0, dependencies.geometryModel.ensureClosedRing)((0, dependencies.countryEditingA.editingDraftCoordinates)())] };
       const geometry = (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(window.polygonClipping.intersection(
@@ -438,7 +438,7 @@ export function createCountryCommits() {
       ...session.sourceCountryIds.map(String),
       ...selectedComponents.map(item => String(item.countryId)).filter(Boolean),
     ])];
-    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([targetId, ...donorIds].map(id => ({ domain: 'territorial', type: 'country', id: String(id) })), '영토를 편입')) return;
+    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([targetId, ...donorIds].map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '영토를 편입')) return;
     const candidate = { geometry: session.combinedGeometry };
     const targetBefore = dependencies.territorialModel.entityRepository.get(targetId);
     const donorsBefore = donorIds.map(dependencies.territorialModel.entityRepository.get).filter(Boolean);
@@ -480,13 +480,13 @@ export function createCountryCommits() {
   }
 
   function newCountryPreviewContext(session) {
-    if (session?.kind !== 'new-country' || session.stage !== 'selection') return null;
+    if (session?.kind !== 'entity' || session.entityKind !== 'general' || !!session.parentId || session.stage !== 'selection') return null;
     const transferredGeometry = session.combinedGeometry;
     if (!transferredGeometry) {
       (0, dependencies.feedback.setActionStatus)('신생국 영토 후보를 찾을 수 없습니다.', 'error', 3800);
       return null;
     }
-    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(session.sourceCountryIds.map(id => ({ domain: 'territorial', type: 'country', id: String(id) })), '새 국가를 분리')) return null;
+    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(session.sourceCountryIds.map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '새 국가를 분리')) return null;
     const sourceIds = session.sourceCountryIds.map(String);
     const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     const feature = (0, dependencies.objectPicking.createCountryFeature)(
@@ -532,7 +532,7 @@ export function createCountryCommits() {
       (0, dependencies.feedback.setActionStatus)('합병할 국가를 하나 이상 선택하세요.', 'error', 3200);
       return;
     }
-    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([sourceId, ...targetIds].map(id => ({ domain: 'territorial', type: 'country', id: String(id) })), '국가를 합병')) return;
+    if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([sourceId, ...targetIds].map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '국가를 합병')) return;
     const source = dependencies.territorialModel.entityRepository.get(sourceId);
     const targets = targetIds.map(dependencies.territorialModel.entityRepository.get).filter(Boolean);
     if (!source || targets.length !== targetIds.length) {
@@ -548,7 +548,6 @@ export function createCountryCommits() {
       applyResult: result => applyCountryGeometryPlan(result, {
         afterPatch: () => {
           dependencies.territorialModel.entityStore.setField(
-            dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
             sourceId,
             'name',
             sourceName,

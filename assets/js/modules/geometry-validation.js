@@ -1,4 +1,4 @@
-import { administrativeCountryId } from './territorial-units.js';
+import { territorialRootId } from './territorial-units.js';
 import { coordinateBounds } from './coordinate-bounds.js';
 
 const clone = value => value == null ? value : structuredClone(value);
@@ -343,7 +343,7 @@ function validateAdministrativeContainment(units = [], countries = [], { clipper
     }));
     if (id) seenIds.add(id);
     let countryId = '';
-    try { countryId = administrativeCountryId(unit, key => unitMap.get(key) || countryMap.get(key)); }
+    try { countryId = territorialRootId(unit, key => unitMap.get(key) || countryMap.get(key)); }
     catch (error) { issues.push(issue('invalid-parent', error.message, { entityRefs: [id] })); }
     const parentId = String(properties.parentId || '');
     if (countryId && !countryMap.has(countryId)) issues.push(issue('invalid-sovereign', `${properties.name || id}의 countryId가 존재하지 않습니다.`, {

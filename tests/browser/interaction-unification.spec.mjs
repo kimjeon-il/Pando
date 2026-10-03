@@ -29,7 +29,7 @@ test('unified emphasis boots and selects a country with the configured style', a
     appearance: { theme: 'light' }, selection: { color: '#1267ad', outlineVisible: true, fillStrength: 0 } })));
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__?.hover.fillAlpha)).toBe(0);
   try {
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30000 }).toContain('country:DEU');
@@ -48,7 +48,7 @@ test('adjacent countries share prepared boundaries and list hover never adds a s
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#objectSearchBtn').click();
   for (const [name, id] of [['프랑스', 'FRA'], ['오스트리아', 'AUT']]) {
     await page.locator('#layerSearchInput').fill(name);
@@ -88,7 +88,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
   if (renderer === 'canvas') await page.locator('#terrainNoneRadio').check();
   const add = async (type, parentId, name, coords) => {
     await page.evaluate(({ type, parentId }) => window.PANDOLAB_TERRITORIAL.select(type, parentId), { type, parentId });
-    await page.locator(type === 'country' ? '#addCountrySubunitBtn' : '#addSubunitChildBtn').evaluate(button => button.click());
+    await page.locator(type === 'country' ? '#addEntityChildBtn' : '#addEntityChildBtn').evaluate(button => button.click());
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#territorialCreateNameInput').fill(name);
     await page.locator('#modePrimaryBtn').click();
@@ -106,8 +106,8 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
     await expect(page.locator('#modePrimaryBtn')).toContainText('생성');
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modePrimaryBtn').click();
-    await expect.poll(() => page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' }).some(item => item.properties.name === name), name)).toBe(true);
-    return page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' }).find(item => item.properties.name === name).id, name);
+    await expect.poll(() => page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).some(item => item.properties.name === name), name)).toBe(true);
+    return page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).find(item => item.properties.name === name).id, name);
   };
 
   const id = await add('country', 'RUS', '강조 중첩 시험', [[45, 56], [57, 56], [51, 63]]);
@@ -128,7 +128,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
       return pixel;
     });
   };
-  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select('subunit', id), id);
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
   if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [], id)).toContain(`territorial:subunit:${encodeURIComponent(id)}`);
   if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.interactionFillCoverage?.renderedKeys?.some(key => key.includes(id)), id), { timeout: 30000 }).toBe(true);
   await expect(page.locator('.map-selection-fill')).toHaveCount(0);
@@ -182,7 +182,7 @@ test('custom color, zero fill and disabled selected outlines preserve unselected
     appearance: { theme: 'dark' }, selection: { color: '#8f249b', outlineVisible: false, fillStrength: 0 } })));
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('프랑스');
   await page.locator('[data-object-search-select="countries"][data-item-id="FRA"]').hover();
@@ -202,7 +202,7 @@ test('GPU context recovery never gives scene fills back to SVG', async ({ page }
   test.setTimeout(120000);
   await page.goto('/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [])).toContain('country:DEU');
   const supported = await page.evaluate(() => {
     const gl = document.querySelector('.gpu-map-canvas').getContext('webgl2');
@@ -226,12 +226,12 @@ for (const renderer of ['webgl2', 'canvas']) test(`direct coastline gesture uses
   await page.goto(`/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   const mapBox = await page.locator('#map').boundingBox();
   const center = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen([10, 54]));
   await page.mouse.move(mapBox.x + center[0], mapBox.y + center[1]);
   await page.mouse.wheel(0, -1500);
-  await page.locator('#editCoastBtn').evaluate(button => button.click());
+  await page.locator('#editEntityCoastBtn').evaluate(button => button.click());
   const handles = page.locator('.country-vertex:not(.fixed-boundary-vertex)');
   await expect.poll(() => handles.count(), { timeout: 45000 }).toBeGreaterThan(0);
   const point = await handles.evaluateAll(nodes => nodes.map(node => ({ node, rect: node.getBoundingClientRect() })).find(({ node, rect }) => rect.width && rect.x > 50 && rect.x < 1100 && rect.y > 100 && rect.y < 750 && document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === node)?.rect.toJSON());

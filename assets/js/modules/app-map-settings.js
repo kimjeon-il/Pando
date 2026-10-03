@@ -97,7 +97,7 @@ export function createMapSettings() {
     const objectStyles = { ...dependencies.projectState.state.layerPresentation.objectStyles };
     if (group === 'subunits') {
       for (const key of Object.keys(objectStyles)) {
-        if (key.startsWith('territorial:subunit:')) objectStyles[key] = { ...objectStyles[key], ...patch };
+        if (key.startsWith('territorial:entity:') && dependencies.territorialModel.entityRepository.get(key.slice('territorial:entity:'.length))?.properties.parentId) objectStyles[key] = { ...objectStyles[key], ...patch };
       }
     }
     dependencies.projectState.state.layerPresentation = (0, dependencies.modelValidation.normalizeLayerPresentation)({
@@ -553,7 +553,7 @@ export function createMapSettings() {
     const hasDistribution = (dependencies.projectState.state.distributionLayers || []).length > 0;
     const available = {
       subunitsVisible: dependencies.territorialModel.entityRepository
-        .list({ type: dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT }).length > 0,
+        .list({ kind: 'general' }).filter(entity => !!entity.properties.parentId).length > 0,
       genericFeaturesVisible: dependencies.projectState.state.genericFeatures.length > 0,
     };
     for (const [id, visible] of Object.entries(available)) {
@@ -837,9 +837,9 @@ export function createMapSettings() {
 
   function initializeLAYER_STYLE_TARGETS() {
     (LAYER_STYLE_TARGETS = Object.freeze({
-      countries: { presentationGroup: 'countries', label: '국가', color: true, opacity: true, boundary: true, boundaryLabel: '국경' },
-      subunits: { presentationGroup: 'subunits', label: '하위단위', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
-      regions: { presentationGroup: 'regions', label: '지방', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
+      countries: { presentationGroup: 'countries', label: '최상위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '국경' },
+      subunits: { presentationGroup: 'subunits', label: '하위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
+      regions: { presentationGroup: 'regions', label: '독립 권역', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
       distributions: { presentationGroup: 'distributions', label: '분포', opacity: true, blendMode: true },
       rivers: { presentationGroup: 'rivers', label: '강', opacity: true },
       lakes: { presentationGroup: 'lakes', label: '호수', opacity: true },

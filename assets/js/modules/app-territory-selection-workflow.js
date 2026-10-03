@@ -1,5 +1,5 @@
 import { freezeEditingGeometry } from './editing-render-packet.js';
-/** Shared territory-selection workflow for annexation, countries, subunits, and regions. */
+/** Shared territory selection for general objects, independent regions and annexation. */
 export function createTerritorySelectionWorkflow() {
   let dependencies;
   let adapters;
@@ -20,10 +20,11 @@ export function createTerritorySelectionWorkflow() {
     const definition = adapters?.get(kind);
     if (!definition) return null;
     const sourceCountryIds = [...new Set((options.sourceCountryIds || options.referenceCountryIds || []).map(text).filter(Boolean))];
-    return {
+    const current = {
       ...options,
       id: options.id || (0, dependencies.surfaces.uid)('territory-selection'),
       kind,
+      entityKind: options.entityKind || 'general',
       tool: options.tool || definition.tool,
       taskLabel: definition.label,
       setupStageLabel: definition.setupStageLabel,
@@ -81,6 +82,17 @@ export function createTerritorySelectionWorkflow() {
       applying: false,
       sourceCountryIds,
     };
+    configureCreationPolicy(current);
+    return current;
+  }
+
+  function configureCreationPolicy(current) {
+    if (current.kind !== 'entity') return;
+    const regional = current.entityKind === 'regional';
+    current.setupCountryPicking = !regional && !current.parentId;
+    current.methodsRequiringSources = regional ? ['line', 'components'] : [];
+    current.unboundedMethods = regional ? ['polygon'] : [];
+    current.sourceHighlightRole = regional ? 'reference' : 'selected-provider';
   }
 
   function initializeTerritorySelectionWorkflow() {
@@ -94,7 +106,6 @@ export function createTerritorySelectionWorkflow() {
         generatedIdPrefix: '',
         supportsName: false,
         showSetup: false,
-        showSubunitFields: false,
         setupCountryPicking: true,
         methodsRequiringSources: [],
         unboundedMethods: [],
@@ -108,7 +119,7 @@ export function createTerritorySelectionWorkflow() {
         showRiverFailureSources: true,
         targetHighlightRole: 'annex-target',
         sourceHighlightRole: 'selected-provider',
-        actionButtonId: 'annexTerritoryBtn',
+        actionButtonId: 'annexEntityBtn',
         defaultSourceKey: '',
         showReference: () => false,
         finalLabel: count => `편입 (${count})`,
@@ -120,107 +131,30 @@ export function createTerritorySelectionWorkflow() {
         finishDraft: dependencies.countryCommitFlow.finishAnnexSelectionDraft,
         preview: dependencies.countryCommitFlow.prepareAnnexSelectionPreview,
       })],
-      ['new-country', Object.freeze({
-        tool: 'new-country',
-        label: '국가 추가',
-        setupStageLabel: '국가 정보',
-        defaultName: '새 국가',
-        referenceLabel: '원소속 국가',
-        generatedIdPrefix: 'USR',
-        supportsName: true,
-        showSetup: true,
-        showSubunitFields: false,
-        setupCountryPicking: true,
-        methodsRequiringSources: [],
-        unboundedMethods: [],
-        draftInstructions: Object.freeze({
-          line: '가져올 영토를 가로질러 선을 그리세요.',
-          polygon: '추가할 영역을 지도에 그리세요.',
-          components: '새 국가로 만들 영토 조각을 선택하세요.',
-        }),
-        componentLabel: '새 국가로 만들 영토 조각',
-        riverComponentLabel: '하천으로 나뉜 영토 조각',
-        showRiverFailureSources: false,
-        targetHighlightRole: '',
-        sourceHighlightRole: 'selected-provider',
-        actionButtonId: '',
-        defaultSourceKey: '',
-        showReference: current => current.stage === 'setup',
-        finalLabel: () => '생성',
-        sourceInstruction: '영토를 가져올 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
-        canUseSource: () => true,
-        validateSetup: dependencies.countryEditingC.validateNewCountrySelectionSetup,
-        prepareSelection: dependencies.countryEditingB.prepareNewCountrySelection,
-        finishDraft: dependencies.countryCommitFlow.finishNewCountrySelectionDraft,
-        preview: dependencies.countryCommitFlow.prepareNewCountrySelectionPreview,
-      })],
-      ['subunit', Object.freeze({
-        tool: 'draw-territorial-unit',
-        label: '하위단위 추가',
-        setupStageLabel: '하위단위 정보',
-        defaultName: '새 하위단위',
-        referenceLabel: '',
-        generatedIdPrefix: 'subunit',
-        supportsName: true,
-        showSetup: true,
-        showSubunitFields: true,
-        setupCountryPicking: false,
-        methodsRequiringSources: [],
-        unboundedMethods: [],
-        draftInstructions: Object.freeze({
-          line: '기준 영역을 가로질러 경계를 그리세요.',
-          polygon: '추가할 영역을 지도에 그리세요.',
-          components: '새 하위단위로 만들 영토 조각을 선택하세요.',
-        }),
-        componentLabel: '새 하위단위로 만들 영토 조각',
-        riverComponentLabel: '하천으로 나뉜 영토 조각',
-        showRiverFailureSources: false,
-        targetHighlightRole: '',
-        sourceHighlightRole: '',
-        actionButtonId: '',
-        defaultSourceKey: 'unassigned',
-        showReference: () => false,
-        finalLabel: () => '생성',
-        sourceInstruction: '기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
-        canUseSource: () => false,
-        validateSetup: dependencies.territorialEditingB.territorialCreateSetupValid,
-        prepareSelection: dependencies.territorialEditingA.prepareTerritorialCreateSelection,
-        finishDraft: dependencies.territorialEditingA.finishTerritorialUnitDirectDraft,
-        preview: dependencies.territorialEditingA.prepareTerritorialSelectionPreview,
-      })],
-      ['region', Object.freeze({
-        tool: 'draw-territorial-unit',
-        label: '지방 추가',
-        setupStageLabel: '지방 정보',
-        defaultName: '새 지방',
-        referenceLabel: '영역 기준 국가',
-        generatedIdPrefix: 'region',
-        supportsName: true,
-        showSetup: true,
-        showSubunitFields: false,
-        setupCountryPicking: false,
-        methodsRequiringSources: ['line', 'components'],
-        unboundedMethods: ['polygon'],
-        draftInstructions: Object.freeze({
-          line: '기준 영역을 가로질러 경계를 그리세요.',
-          polygon: '추가할 영역을 지도에 그리세요.',
-          components: '새 지방으로 만들 영토 조각을 선택하세요.',
-        }),
-        componentLabel: '새 지방으로 만들 영토 조각',
-        riverComponentLabel: '하천으로 나뉜 영토 조각',
-        showRiverFailureSources: false,
-        targetHighlightRole: '',
-        sourceHighlightRole: 'reference',
-        actionButtonId: '',
-        defaultSourceKey: '',
-        showReference: current => current.stage === 'selection' && current.activePhase === 'source',
-        finalLabel: () => '생성',
-        sourceInstruction: '영역 기준 국가를 선택할 수 없습니다. 국가 영토 안쪽을 선택하세요.',
-        canUseSource: () => true,
-        validateSetup: dependencies.territorialEditingB.territorialCreateSetupValid,
-        prepareSelection: dependencies.territorialEditingA.prepareTerritorialCreateSelection,
-        finishDraft: dependencies.territorialEditingA.finishTerritorialUnitDirectDraft,
-        preview: dependencies.territorialEditingA.prepareTerritorialSelectionPreview,
+      ['entity', Object.freeze({
+        tool: 'draw-territorial-unit', label: '객체 추가', setupStageLabel: '객체 정보',
+        defaultName: '새 객체', referenceLabel: '기준 객체', generatedIdPrefix: 'entity',
+        supportsName: true, showSetup: true, setupCountryPicking: false,
+        methodsRequiringSources: [], unboundedMethods: [],
+        draftInstructions: Object.freeze({ line: '기준 영역을 가로질러 선을 그리세요.', polygon: '추가할 영역을 지도에 그리세요.', components: '새 객체로 만들 조각을 선택하세요.' }),
+        componentLabel: '새 객체로 만들 조각', riverComponentLabel: '하천으로 나뉜 조각',
+        showRiverFailureSources: false, targetHighlightRole: '', sourceHighlightRole: 'reference',
+        actionButtonId: '', defaultSourceKey: '',
+        showReference: current => !current.parentId && (current.setupCountryPicking || current.activePhase === 'source'),
+        finalLabel: () => '생성', sourceInstruction: '기준으로 사용할 객체 안쪽을 선택하세요.',
+        canUseSource: current => !current.parentId,
+        validateSetup: current => current.entityKind === 'general' && !current.parentId
+          ? dependencies.countryEditingC.validateNewCountrySelectionSetup(current)
+          : dependencies.territorialEditingB.territorialCreateSetupValid(current),
+        prepareSelection: current => current.entityKind === 'general' && !current.parentId
+          ? dependencies.countryEditingB.prepareNewCountrySelection(current)
+          : dependencies.territorialEditingA.prepareTerritorialCreateSelection(current),
+        finishDraft: current => current.entityKind === 'general' && !current.parentId
+          ? dependencies.countryCommitFlow.finishNewCountrySelectionDraft(current)
+          : dependencies.territorialEditingA.finishTerritorialUnitDirectDraft(),
+        preview: (current, key) => current.entityKind === 'general' && !current.parentId
+          ? dependencies.countryCommitFlow.prepareNewCountrySelectionPreview(current, key)
+          : dependencies.territorialEditingA.prepareTerritorialSelectionPreview(current, key),
       })],
     ]));
     cancelSelectionComputation(session());
@@ -329,6 +263,7 @@ export function createTerritorySelectionWorkflow() {
 
   function resetSelection(current = session(), { keepRequestedMethod = true, refreshUi = true } = {}) {
     if (!current) return false;
+    configureCreationPolicy(current);
     const requestedMethod = current.requestedMethod;
     clearCurrentSelection(current, { refreshUi: false });
     current.requestedMethod = keepRequestedMethod ? requestedMethod : null;
@@ -682,7 +617,7 @@ export function createTerritorySelectionWorkflow() {
       if (adapter?.sourceRejectedMessage) (0, dependencies.feedback.setActionStatus)(adapter.sourceRejectedMessage, 'error', 3000);
       return false;
     }
-    const firstRegionReference = current.kind === 'region' && current.stage === 'selection'
+    const firstRegionReference = current.kind === 'entity' && current.entityKind === 'regional' && current.stage === 'selection'
       && current.activePhase === 'source' && current.sourceCountryIds.length === 0;
     if ((current.parts.length || activeCurrentWork(current)) && current.stage !== 'setup' && !firstRegionReference) {
       current.methodChangeConfirmation = { type: 'settings', countryId: id };
@@ -1068,7 +1003,7 @@ export function createTerritorySelectionWorkflow() {
     const adapter = adapterFor(current);
     if (!adapter) return null;
     const step = current.stage === 'setup' ? 1 : current.stage === 'selection' ? 2 : 3;
-    const scoped = current.kind === 'annex' || current.kind === 'new-country';
+    const scoped = current.kind === 'annex' || current.kind === 'entity' && current.entityKind === 'general' && !current.parentId;
     const stageLabel = current.stage === 'setup' ? current.setupStageLabel
       : current.stage === 'selection' ? scoped ? '영토 선택' : '영역 선택'
         : current.kind === 'annex' ? '편입 확인' : '생성 확인';
@@ -1093,7 +1028,7 @@ export function createTerritorySelectionWorkflow() {
       showSetup: current.stage === 'setup' && adapter.showSetup,
       showName: current.stage === 'setup' && adapter.supportsName,
       referenceLabel: adapter.referenceLabel,
-      showSubunitFields: current.stage === 'setup' && adapter.showSubunitFields,
+      showEntityFields: current.stage === 'setup' && current.kind === 'entity',
       showReference: adapter.showReference(current)
         || current.stage === 'selection' && current.activePhase === 'source',
       showMethods: current.stage === 'selection',

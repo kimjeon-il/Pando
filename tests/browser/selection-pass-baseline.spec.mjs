@@ -50,7 +50,7 @@ test('single-context SelectionPass reuses scene and stroke buffers during select
       const before = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
       const longTasksBefore = Number(window.__PANDOLAB_TEST_LONG_TASK_COUNT__ || 0);
       const startedAt = performance.now();
-      window.PANDOLAB_TERRITORIAL.select('country', countryIds[index % countryIds.length]);
+      window.PANDOLAB_TERRITORIAL.select(countryIds[index % countryIds.length]);
       const handlerMs = performance.now() - startedAt;
       await nextFrame();
       const elapsed = performance.now() - startedAt;
@@ -78,7 +78,7 @@ test('single-context SelectionPass reuses scene and stroke buffers during select
   }, ids);
   expect(samples).toHaveLength(20);
 
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'RUS'));
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
   await nextPresentedFrame(page);
   const beforePan = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection);
   await page.mouse.move(720, 450);

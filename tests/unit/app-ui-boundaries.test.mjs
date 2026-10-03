@@ -134,7 +134,7 @@ test('new project defers to pending autosave recovery without resetting', async 
   assert.deepEqual(statuses, []);
 });
 
-test('compatibility object bindings expose only one geometry-aware conversion command and detach on dispose', () => {
+test('generic object bindings pass the current parent contract and detach on dispose', () => {
   const elements = new Map();
   const getElement = id => {
     if (!elements.has(id)) elements.set(id, new FakeElement());
@@ -143,24 +143,56 @@ test('compatibility object bindings expose only one geometry-aware conversion co
   const conversions = [];
   const bindings = createPropertyEditorBindings({
     getElement, bindColorPickers() {}, document: {},
-    getPrimary: () => ({ domain: 'generic', id: 'legacy-river' }),
+    getPrimary: () => ({ domain: 'generic', id: 'generic-1' }),
     convertSelectedGenericFeature: options => conversions.push(options),
   });
   bindings.bind(); bindings.bind();
-  getElement('genericFeatureConvertType').value = 'river';
-  getElement('genericFeatureConvertCountryInput').value = 'country-1';
+  getElement('genericFeatureConvertType').value = 'general';
+  getElement('genericFeatureConvertParentInput').value = 'parent-1';
   getElement('genericFeatureConvertDistributionInput').value = 'layer-1';
   getElement('genericFeatureConvertDistributionValueInput').value = '';
   getElement('convertGenericFeatureBtn').dispatchEvent(new Event('click'));
   assert.deepEqual(conversions, [{
-    target: 'river',
-    sovereignId: 'country-1',
+    target: 'general',
+    parentId: 'parent-1',
     distributionLayerId: 'layer-1',
     distributionValue: '',
   }]);
   bindings.dispose();
   getElement('convertGenericFeatureBtn').dispatchEvent(new Event('click'));
   assert.equal(conversions.length, 1);
+});
+
+test('common entity actions await completion inside the existing operation error boundary', async () => {
+  const buttons = new Map(['editEntityBorderBtn', 'reconcileEntityCoastBtn'].map(id => [id, new FakeElement()]));
+  const completed = [], errors = [];
+  let settle, operation;
+  const result = new Promise(resolve => { settle = resolve; });
+  const bindings = createPropertyEditorBindings({
+    getElement: id => buttons.get(id), bindColorPickers() {}, document: {},
+    getPrimary: () => ({ domain: 'territorial', type: 'entity', id: 'child' }),
+    entityRepository: { get: () => ({ id: 'child', properties: { entityKind: 'general', parentId: 'parent', locked: false } }) },
+    requestDraftDiscard: action => action(),
+    runModePrimaryAction: action => {
+      operation = (async () => { try { return await action(); } catch (error) { errors.push(error); return false; } })();
+      return operation;
+    },
+    runEntityEditAction: (action, id) => {
+      assert.equal(action, 'boundary'); assert.equal(id, 'child'); return result;
+    },
+    completeToolStart: started => { completed.push(started); return started; },
+    reconcileAdminCountryCoast: async () => { throw new Error('coast runtime unavailable'); },
+  });
+  bindings.bind();
+  buttons.get('editEntityBorderBtn').dispatchEvent(new Event('click'));
+  assert.deepEqual(completed, []);
+  settle(true);
+  assert.equal(await operation, true);
+  assert.deepEqual(completed, [true]);
+  buttons.get('reconcileEntityCoastBtn').dispatchEvent(new Event('click'));
+  assert.equal(await operation, false);
+  assert.equal(errors[0].message, 'coast runtime unavailable');
+  bindings.dispose();
 });
 
 test('flat/globe input reads current zoom and movement transitions stay single-shot', () => {

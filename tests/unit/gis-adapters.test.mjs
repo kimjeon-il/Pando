@@ -15,24 +15,24 @@ test('territorial GIS rows keep hierarchy association dates and multipart geomet
     territorialEntities: [{
       type: 'Feature', id: 'admin-a', geometry,
       properties: {
-        unitType: 'subunit', name: '아티키', parentId: 'country-gr', associatedCountryId: '',
+        entityKind: 'general', name: '아티키', parentId: 'country-gr', 
         validFrom: '1900', validTo: '2000', style: { color: '#123456' }, sourceLibraryId: 'lib-admin-a',
       },
     }],
   };
   const rows = adapters.territorialRows(state);
-  assert.equal(rows.subunits.length, 1);
-  assert.deepEqual(rows.subunits[0].geometry, geometry);
-  assert.deepEqual(rows.subunits[0], {
-    ...rows.subunits[0],
-    id: 'admin-a', type: 'subunit', parent_id: 'country-gr', associated_country_id: '',
+  assert.equal(rows.entities.length, 1);
+  assert.deepEqual(rows.entities[0].geometry, geometry);
+  assert.deepEqual(rows.entities[0], {
+    ...rows.entities[0],
+    id: 'admin-a', entity_kind: 'general', parent_id: 'country-gr', 
     valid_from: '1900', valid_to: '2000', source_library_id: 'lib-admin-a',
   });
 });
 
 test('territorial distributions materialize referenced geometry only in the GIS view', () => {
   const state = {
-    territorialEntities: [{ type: 'Feature', id: 'GR', properties: { unitType:'country',name: 'GR' }, geometry: polygon() }],
+    territorialEntities: [{ type: 'Feature', id: 'GR', properties: { entityKind:'general',name: 'GR' }, geometry: polygon() }],
     distributionLayers: [{ id: 'greek', name: '그리스어', unit: '명', valueScale: { mode: 'manual', min: -10, max: 100 }, color: '#2474c6', locked: false }],
     itemVisibility: { distributions: { greek: false } },
     distributionEntries: [
@@ -79,9 +79,9 @@ test('the canonical subunit table imports through the adapter', () => {
   const source = {
     type: 'Feature', geometry: polygon(), properties: { id: 'admin-1', name: '아티키', parent_id: 'GR' },
   };
-  const imported = adapters.importTerritorialFeature(source, 'subunits');
-  assert.equal(imported.properties.schemaVersion, 3);
-  assert.equal(imported.properties.unitType, 'subunit');
+  const imported = adapters.importTerritorialFeature(source, 'entities');
+  assert.equal(imported.properties.schemaVersion, 4);
+  assert.equal(imported.properties.entityKind, 'general');
   assert.equal(imported.properties.parentId, 'GR');
-  assert.equal(adapters.TERRITORIAL_TABLES.subunit, 'subunits');
+  assert.equal(adapters.TERRITORIAL_TABLES.general, 'entities');
 });

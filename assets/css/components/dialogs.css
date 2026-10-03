@@ -103,46 +103,6 @@ body[data-layout="mobile"] .gis-country-identity-row {
   }
 }
 
-.territorial-type-card {
-  width: var(--territorial-type-card-width);
-}
-
-.territorial-type-fields {
-  display: grid;
-  gap: var(--ui-space-3);
-  margin: var(--ui-space-4) 0 0;
-}
-
-.territorial-type-impact {
-  min-height: 3.2em;
-  margin: 0;
-  padding: var(--ui-space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--ui-radius-control);
-  background: var(--surface-subtle);
-  color: var(--muted);
-  font-size: var(--ui-font-sm);
-  line-height: var(--ui-line-normal);
-  white-space: normal;
-}
-
-.territorial-type-impact strong {
-  display: block;
-  color: var(--text-strong);
-}
-
-.territorial-type-impact ul {
-  display: grid;
-  gap: var(--ui-space-1);
-  margin: var(--ui-space-2) 0 0;
-  padding-left: var(--ui-space-5);
-}
-
-.territorial-type-impact.danger-preview {
-  border-color: var(--danger-border);
-  background: color-mix(in srgb, var(--danger-surface) 52%, transparent);
-}
-
 .gis-check {
   font-size: var(--ui-font-body);
 }

@@ -165,7 +165,7 @@ export function createProjectSnapshots() {
   }
 
   function restoreEditable(snapshot, { mode = 'history' } = {}) {
-    const previousGeometries = new Map(dependencies.territorialModel.entityRepository.list({ type: 'country' })
+    const previousGeometries = new Map(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })
       .map(feature => [String(feature.id), feature.geometry]));
     const currentLabels = (0, dependencies.platform.deepClone)(dependencies.projectState.state.labels || []);
     applySharedProjectFields(snapshot, 'history');
@@ -175,7 +175,7 @@ export function createProjectSnapshots() {
     restoreEntitiesFromSnapshot(snapshot);
     normalizeProjectObjects({ history: true });
     const restoredDirtyIds = new Set(dependencies.projectState.state.historyDirtyEntityIds);
-    const restoredGeometries = new Map(dependencies.territorialModel.entityRepository.list({ type: 'country' })
+    const restoredGeometries = new Map(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })
       .map(feature => [String(feature.id), feature.geometry]));
     // Persistent delta IDs describe differences from the built-in dataset, not
     // changes made by this Undo. History reuses unchanged geometry references.

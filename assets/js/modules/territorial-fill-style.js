@@ -10,11 +10,11 @@ export function createTerritorialFillResolver({ state, entityRepository, terrain
     const id = String(unit.id);
     if (cache.has(id)) return cache.get(id);
     const properties = (entityRepository.get(unit.id) || unit).properties || {};
-    if (!properties.unitType || properties.unitType === 'country') {
+    if (!properties.entityKind || (properties.entityKind === 'general' && !properties.parentId)) {
       const color = countryStyle.colorVisible ? resolveLayerDisplayColor(presentation, 'countries', {
-        objectKey: `territorial:country:${id}`, explicitColor: properties.style?.color, fallbackColor: '',
+        objectKey: `territorial:entity:${id}`, explicitColor: properties.style?.color, fallbackColor: '',
       }) : '';
-      const style = layerStyle(presentation, 'countries', `territorial:country:${id}`);
+      const style = layerStyle(presentation, 'countries', `territorial:entity:${id}`);
       // Pending country patches can supply the no-terrain map substrate while
       // the replacement base mesh is being prepared. It is never saved as paint.
       const result = Object.freeze({ color: color || mapSubstrate?.color || '', opacity: style.opacity, blendMode: style.blendMode,
@@ -22,29 +22,29 @@ export function createTerritorialFillResolver({ state, entityRepository, terrain
       cache.set(id, result);
       return result;
     }
-    const country = entityRepository.administrativeCountry(id);
+    const country = entityRepository.root(id);
     let inherited = { color: countryStyle.colorVisible && country ? country.properties.style?.color || '' : '',
       opacity: countryStyle.opacity, blendMode: countryStyle.blendMode, depth: 0 };
     const parent = entityRepository.parent(id);
-    if (parent?.properties?.unitType === 'subunit' && !visiting.has(id)) {
+    if ((parent?.properties?.entityKind === 'general' && !!parent?.properties?.parentId) && !visiting.has(id)) {
       visiting.add(id);
       if (!visiting.has(String(parent.id))) inherited = resolve(parent, visiting);
       visiting.delete(id);
     }
-    const group = properties.unitType === 'region' ? 'regions' : 'subunits';
+    const group = (properties.entityKind === 'regional') ? 'regions' : 'subunits';
     const groupStyle = presentation?.styles?.[group] || {};
-    const explicit = presentation?.objectStyles?.[`territorial:${properties.unitType}:${id}`] || {};
+    const explicit = presentation?.objectStyles?.[`territorial:entity:${id}`] || {};
     // Neutral group values preserve the parent's material opacity and blend.
     const opacity = explicit.opacity ?? (groupStyle.opacity !== undefined && groupStyle.opacity !== 1
       ? groupStyle.opacity : inherited.opacity);
     const blendMode = explicit.blendMode ?? (groupStyle.blendMode === 'multiply' ? 'multiply' : inherited.blendMode);
     const color = resolveLayerDisplayColor(presentation, group, {
-      objectKey: `territorial:${properties.unitType}:${id}`,
+      objectKey: `territorial:entity:${id}`,
       explicitColor: properties.style?.color,
       inheritedColor: resolveTerritorialColor({ ...unit, properties: { ...properties, style: {} } }, {
         entityRepository, countryColor: feature => feature.properties?.style?.color || '', fallback: '',
-        colorVisible: feature => (!feature.properties?.unitType || feature.properties.unitType === 'country'
-          ? countryStyle.colorVisible : true) && layerStyle(presentation, feature.properties?.unitType === 'country' ? 'countries' : feature.properties?.unitType === 'region' ? 'regions' : 'subunits', `territorial:${feature.properties?.unitType}:${feature.id}`).colorVisible,
+        colorVisible: feature => (!feature.properties?.entityKind || (feature.properties.entityKind === 'general' && !feature.properties.parentId)
+          ? countryStyle.colorVisible : true) && layerStyle(presentation, (feature.properties?.entityKind === 'general' && !feature.properties?.parentId) ? 'countries' : (feature.properties?.entityKind === 'regional') ? 'regions' : 'subunits', `territorial:entity:${feature.id}`).colorVisible,
       }),
       fallbackColor: '',
     });

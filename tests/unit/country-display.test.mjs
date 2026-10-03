@@ -2,22 +2,23 @@ import { normalizeCountryFeature } from '../../assets/js/modules/country-feature
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { territorialSelectionStatus, defaultGeographicName } from '../../assets/js/modules/country-display.js';
+import { territorialSelectionStatus } from '../../assets/js/modules/country-display.js';
 
-test('island names join the geographic suffix without stripping custom or compound names', () => {
+test('geographic names are displayed exactly as stored in the entity', () => {
   for (const [id, name] of [['ALD', '올란드'], ['FRO', '페로'], ['PCN', '핏케언'], ['MHL', '마셜'], ['CYM', '케이맨'], ['COK', '쿡'], ['SLB', '솔로몬'], ['FLK', '포클랜드'], ['MNP', '북마리아나'], ['CSI', '산호해']]) {
-    assert.equal(defaultGeographicName(id, `${name} 제도`), `${name}제도`);
-    assert.equal(defaultGeographicName(id, `${name}제도`), `${name}제도`);
+    assert.equal(readCountryName({ id, properties: { name: `${name}제도` } }), `${name}제도`);
+    assert.equal(readCountryName({ id, properties: { name: `${name} 제도` } }), `${name} 제도`);
   }
-  assert.equal(defaultGeographicName('custom', '내가 만든 제도'), '내가 만든 제도');
-  assert.equal(defaultGeographicName('ALD', '사용자 올란드'), '사용자 올란드');
-  assert.equal(defaultGeographicName('COD', '콩고 민주 공화국'), '콩고 민주 공화국');
+  assert.equal(readCountryName({ id: 'custom', properties: { name: '내가 만든 제도' } }), '내가 만든 제도');
+  assert.equal(readCountryName({ id: 'ALD', properties: { name: '사용자 올란드' } }), '사용자 올란드');
+  assert.equal(readCountryName({ id: 'COD', properties: { name: '콩고 민주 공화국' } }), '콩고 민주 공화국');
 });
 
-test('default country names are updated without replacing custom names', () => {
-  const turkey = { id: 'TUR', properties: { name: '터키' } };
+test('canonical country names and custom names need no display-only replacement', () => {
+  const turkey = { id: 'TUR', properties: { name: '튀르키예' } };
   assert.equal(readCountryName(turkey), '튀르키예');
-  assert.equal(readCountryName({ id: 'ESP', properties: { name: '스페인' } }), '에스파냐');
+  assert.equal(readCountryName({ id: 'ESP', properties: { name: '에스파냐' } }), '에스파냐');
+  assert.equal(readCountryName({ id: 'TUR', properties: { name: '터키' } }), '터키');
   assert.equal(readCountryName(turkey, { name: '내 나라' }), '내 나라');
   assert.equal(readCountryName({ id: 'TUR', properties: { name: '사용자 국명' } }), '사용자 국명');
 });
@@ -50,6 +51,6 @@ function readCountryName(feature, override = {}) {
   const normalized = normalizeCountryFeature({ ...feature, geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } });
   const state = { territorialEntities: [normalized] };
   const store = createTerritorialEntityStore({ getState: () => state });
-  if (Object.hasOwn(override, 'name')) store.setField('country', feature.id, 'name', override.name);
+  if (Object.hasOwn(override, 'name')) store.setField(feature.id, 'name', override.name);
   return store.snapshot()[0].properties.name;
 }

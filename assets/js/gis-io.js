@@ -930,7 +930,7 @@
       }
     }
     if (territorialLayerNames.length) {
-      state.territorialEntities = (baseState.territorialEntities || []).filter(entity => entity.properties.unitType === 'country');
+      state.territorialEntities = [];
       const unitIds = new Set();
       for (const layerName of territorialLayerNames) {
         const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
@@ -1028,7 +1028,7 @@
 
   function importMappingFromUi() {
     const targetType = compatibilityTarget || document.getElementById('gisTargetType').value;
-    if (importSourceKind !== 'project' && !compatibilityTarget && !['country', 'subunit', 'region', 'distribution'].includes(targetType)) {
+    if (importSourceKind !== 'project' && !compatibilityTarget && !['general', 'regional', 'country', 'subunit', 'region', 'distribution'].includes(targetType)) {
       throw new Error('가져올 종류를 선택하세요. 종류를 알 수 없는 자료를 기타 객체로 자동 변환하지 않습니다.');
     }
     return {
@@ -1387,7 +1387,7 @@
 
   function countryAssets(entities) {
     const assets = [];
-    for (const { id: countryId, properties } of (entities || []).filter(entity => entity.properties.unitType === 'country')) {
+    for (const { id: countryId, properties } of (entities || []).filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId)) {
       const match = String(properties.metadata?.flagDataUrl || '').match(/^data:([^;]+);base64,(.+)$/s);
       if (match) assets.push({ countryId, mimeType: match[1], base64: match[2] });
     }
@@ -1415,14 +1415,9 @@
       if (!selected.has(category) || !collection.features.length) return;
       layers.push({ category, file, targetType, collection, ...extra });
     };
-    add('countries', 'countries.geojson', 'country', {
-      type: 'FeatureCollection',
-      features: (projectState.territorialEntities || []).filter(entity => entity.properties.unitType === 'country').map(feature => ({
-        type: 'Feature', properties: exportCountryProperties(feature), geometry: feature.geometry,
-      })),
-    });
-    add('subunits', 'subunits.geojson', 'subunit', rowsAsFeatureCollection(territorial.subunits));
-    add('regions', 'regions.geojson', 'region', rowsAsFeatureCollection(territorial.regions));
+    const generalRows = (territorial.entities || []).filter(row => selected.has(row.parent_id ? 'subunits' : 'countries'));
+    if (generalRows.length) layers.push({ category: 'entities', file: 'entities.geojson', targetType: 'general', collection: rowsAsFeatureCollection(generalRows) });
+    add('regions', 'regions.geojson', 'regional', rowsAsFeatureCollection(territorial.regions));
     add('genericFeatures', 'generic_features.geojson', 'generic', { type: 'FeatureCollection', features: structuredClone(projectState.genericFeatures || []) });
     add('distributions', 'distributions.geojson', 'distribution',
       rowsAsFeatureCollection(distributions[gisAdapters.DISTRIBUTION_TABLE]));
@@ -1475,7 +1470,7 @@
       type: 'FeatureCollection',
       features: [],
     };
-    countries.features = (projectState.territorialEntities || []).filter(entity => entity.properties.unitType === 'country').map(feature => ({ type: 'Feature', properties: exportCountryProperties(feature), geometry: feature.geometry }));
+    countries.features = (projectState.territorialEntities || []).filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId).map(feature => ({ type: 'Feature', properties: exportCountryProperties(feature), geometry: feature.geometry }));
     const gisLayers = exportMode === 'gis' ? buildGisExportLayers(projectState, selectedLayers) : [];
     const seedCollection = exportMode === 'project' ? countries : gisLayers.find(layer => layer.collection.features.length)?.collection;
     if (!seedCollection?.features?.length) throw new Error(exportMode === 'project' ? '저장할 국가 레이어가 없습니다.' : '선택한 범주에 내보낼 데이터가 없습니다.');

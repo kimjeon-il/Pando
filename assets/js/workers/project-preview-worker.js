@@ -242,8 +242,8 @@ async function validateCache(project, baseline, cache) {
 }
 
 async function buildCache(project, baseline, entities) {
-  const features = entities.filter(entity => entity.properties.unitType === 'country');
-  const territorialUnits = entities.filter(entity => entity.properties.unitType !== 'country');
+  const features = entities.filter(entity => (entity.properties.entityKind === 'general' && !entity.properties.parentId));
+  const territorialUnits = entities.filter(entity => !(entity.properties.entityKind === 'general' && !entity.properties.parentId));
   const [shared, geometryValidation, stroke, spatial, policy] = await modules;
   const key = await geometryKey(project, baseline);
   const current = features.map(feature => ({ type: 'Feature', id: String(feature.id),

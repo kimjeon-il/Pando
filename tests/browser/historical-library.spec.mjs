@@ -47,9 +47,9 @@ test('historical library search previews and instantiates a sourced historical c
   ));
   await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 90_000 });
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
     .filter(unit => unit.id === 'historical-country:soviet-union').length)).toBe(1);
-  const instanceId = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
+  const instanceId = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
     .find(unit => unit.id === 'historical-country:soviet-union')?.id);
   expect(instanceId).toBe('historical-country:soviet-union');
   const sourceAfterEdit = await page.evaluate(async () => JSON.stringify(
@@ -58,7 +58,7 @@ test('historical library search previews and instantiates a sourced historical c
   expect(sourceAfterEdit).toBe(originalGeometry);
 
   await page.locator('#undoBtn').click();
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
     .filter(unit => unit.id === 'historical-country:soviet-union').length)).toBe(0);
   expect(errors).toEqual([]);
 });
@@ -76,7 +76,7 @@ test('North Schleswig 1900 is searchable and splits Denmark without changing the
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
 
   const before = await page.evaluate(() => ({
-    count: window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length,
+    count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
     denmark: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DNK').geometry),
   }));
   await page.locator('#createMenuBtn').click();
@@ -99,7 +99,7 @@ test('North Schleswig 1900 is searchable and splits Denmark without changing the
     const north = window.PANDOLAB_TERRITORIAL.get('historical-country:north-schleswig');
     const denmark = window.PANDOLAB_TERRITORIAL.get('DNK');
     return {
-      count: window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length,
+      count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
       id: north?.id,
       name: north?.properties?.name,
       components: north?.geometry?.coordinates?.length,
@@ -121,7 +121,7 @@ test('North Schleswig 1900 is searchable and splits Denmark without changing the
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('historical-country:north-schleswig'))).toBeNull();
   const afterUndo = await page.evaluate(() => ({
-    count: window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length,
+    count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
     denmark: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DNK').geometry),
   }));
   expect(afterUndo).toEqual(before);
@@ -176,7 +176,7 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
 
   const before = await page.evaluate(() => {
-    const countries = window.PANDOLAB_TERRITORIAL.list({ type: 'country' });
+    const countries = window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' });
     const germany = countries.find(country => country.id === 'DEU');
     return { count: countries.length, name: germany.properties.name, geometry: JSON.stringify(germany.geometry) };
   });
@@ -195,17 +195,17 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 60_000 });
 
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length)).toBe(before.count + 1);
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length)).toBe(before.count + 1);
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties?.name)).toBe('독일 연방공화국');
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
     .filter(country => country.id === 'historical-country:deutsche-demokratische-republik').length)).toBe(1);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.pendingCountryCount || 0), { timeout: 60_000 }).toBe(0);
 
   await page.locator('#undoBtn').click();
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
     .filter(country => country.id === 'historical-country:deutsche-demokratische-republik').length)).toBe(0);
   const afterUndo = await page.evaluate(() => {
-    const countries = window.PANDOLAB_TERRITORIAL.list({ type: 'country' });
+    const countries = window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' });
     const germany = countries.find(country => country.id === 'DEU');
     return { count: countries.length, name: germany.properties.name, geometry: JSON.stringify(germany.geometry) };
   });
@@ -228,7 +228,7 @@ test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit 
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 60_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties?.name)).toBe('독일 연방공화국');
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'country' })
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
     .filter(country => country.id === 'historical-country:deutsche-demokratische-republik').length)).toBe(1);
   await runDebugAudit(page);
   expect(errors).toEqual([]);

@@ -142,7 +142,7 @@ test('selected built-in river refreshes its properties after the full geometry a
     expect(await page.locator('#propertyTitle').innerText()).toBe('나일강');
     expect(await page.locator('#hydroProperties').isVisible()).toBe(true);
     const requestsAfterHydration = await page.evaluate(() => window.__HYDRO_PROPERTY_PROBE__.requests);
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'SDN'));
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('SDN'));
     await expect(page.locator('#propertyTitle')).toHaveText('수단');
     await selectNile(page);
     expect(await page.evaluate(() => window.__HYDRO_PROPERTY_PROBE__.requests)).toBe(requestsAfterHydration);
@@ -159,7 +159,7 @@ test('late river geometry does not replace a newer country selection', async ({ 
     await openHydroMap(page, report);
     await selectNile(page);
     await expect.poll(() => page.evaluate(() => window.__HYDRO_PROPERTY_PROBE__.requests)).toBeGreaterThan(0);
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'SDN'));
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('SDN'));
     await expect(page.locator('#propertyTitle')).toHaveText('수단');
     await page.evaluate(() => window.__HYDRO_PROPERTY_PROBE__.release());
     await expect.poll(() => page.evaluate(() => window.__HYDRO_PROPERTY_PROBE__.replies), { timeout: 30_000 }).toBeGreaterThan(0);

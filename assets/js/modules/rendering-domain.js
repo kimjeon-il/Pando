@@ -114,6 +114,11 @@ export function createRenderingDomain({
   const editing = editingRenderResources || {};
   const interaction = interactionResources || {};
   const selection = selectionResources || {};
+  const rootGeneralSelection = ref => {
+    if (ref?.domain !== 'territorial') return false;
+    const feature = selection.territorialEntityById(ref.id);
+    return feature?.properties.entityKind === 'general' && !feature.properties.parentId;
+  };
   const editingPresentation = new Map();
   const editingChannelChanged = (name, layer, ...parts) => {
     const previous = editingPresentation.get(name);
@@ -524,15 +529,14 @@ export function createRenderingDomain({
     const resolveFill = createTerritorialFillResolver({ state, entityRepository: t.entityRepository,
       terrainAlpha: theme.countryColorAlpha });
     t.syncBuiltinPalette?.();
-    const types = t.TERRITORIAL_UNIT_TYPES || {};
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
     const displayedUnits = state.countryVisualPhase === 'preview' && state.auditPreviewTerritorialUnits
-      ? state.auditPreviewTerritorialUnits : territorial.entityRepository.list({ type: ['subunit', 'region'] });
+      ? state.auditPreviewTerritorialUnits : territorial.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
     const data = displayedUnits.filter(feature => {
-      const group = feature.properties?.unitType === types.SUBUNIT ? 'subunits'
-        : feature.properties?.unitType === types.REGION ? 'regions' : 'subunits';
+      const group = feature.properties?.entityKind === 'general' ? 'subunits'
+        : feature.properties?.entityKind === 'regional' ? 'regions' : 'subunits';
       const selected = t.selectionHas?.(t.normalizeObjectRef?.({
-        domain: 'territorial', type: feature.properties?.unitType || types.SUBUNIT, id: feature.id,
+        domain: 'territorial', type: 'entity', id: feature.id,
       }));
       const editing = state.territorialUnitMergeSourceId === String(feature.id)
         || (state.territorialUnitMergeTargetIds || []).includes(String(feature.id))
@@ -545,9 +549,9 @@ export function createRenderingDomain({
     const selection = t.territorialUnitLayer?.selectAll('path.territorial-unit-shape').data(data, feature => String(feature.id));
     selection?.enter().append('path').attr('class', 'territorial-unit-shape')
       .on('mouseenter.hover', feature => t.setMapHover?.('territorialUnit', feature.id, feature, {
-        domain: 'territorial', type: feature.properties?.unitType || types.SUBUNIT, id: feature.id,
+        domain: 'territorial', type: 'entity', id: feature.id,
       }))
-      .on('mouseleave.hover', feature => t.setMapHover?.('', '', null, { domain: 'territorial', type: feature.properties.unitType, id: feature.id }))
+      .on('mouseleave.hover', feature => t.setMapHover?.('', '', null, { domain: 'territorial', type: 'entity', id: feature.id }))
       .on('click', function(feature) {
         const stateNow = t.getState?.() || {};
         if (t.mapClickBlocked?.()) return;
@@ -560,18 +564,17 @@ export function createRenderingDomain({
         t.d3?.event?.stopPropagation?.();
         t.handleObjectSelectionAt?.(t.d3?.mouse?.(t.svg), {
           sourceEvent: t.d3?.event,
-          hitRef: { domain: 'territorial', type: feature.properties?.unitType || types.SUBUNIT, id: feature.id },
+          hitRef: { domain: 'territorial', type: 'entity', id: feature.id },
         });
       });
     selection?.attr('d', feature => t.path?.(feature))
       .attr('data-gpu-scene-key', feature => {
-        const type = feature.properties?.unitType || types.SUBUNIT;
-        const key = t.normalizeObjectRef?.({ domain: 'territorial', type, id: feature.id })?.key
-          || `territorial:${type}:${feature.id}`;
+        const key = t.normalizeObjectRef?.({ domain: 'territorial', type: 'entity', id: feature.id })?.key
+          || `territorial:entity:${feature.id}`;
         return `${key}:fill`;
       })
-      .classed('is-territory', feature => feature.properties?.unitType === types.SUBUNIT)
-      .classed('is-region', feature => feature.properties?.unitType === types.REGION)
+      .classed('is-territory', feature => feature.properties?.entityKind === 'general')
+      .classed('is-region', feature => feature.properties?.entityKind === 'regional')
       .classed('territorial-unit-merge-source', feature => state.territorialUnitMergeSourceId === String(feature.id))
       .classed('territorial-unit-merge-target', feature => (state.territorialUnitMergeTargetIds || []).includes(String(feature.id)))
       .style('color', null)
@@ -587,9 +590,8 @@ export function createRenderingDomain({
     for (const feature of data) {
       const group = t.presentationGroupForTerritorialFeature?.(feature) || 'subunits';
       const unitStyle = resolveFill(feature);
-      const type = feature.properties?.unitType || types.SUBUNIT;
-      const objectKey = t.normalizeObjectRef?.({ domain: 'territorial', type, id: feature.id })?.key
-        || `territorial:${type}:${feature.id}`;
+      const objectKey = t.normalizeObjectRef?.({ domain: 'territorial', type: 'entity', id: feature.id })?.key
+        || `territorial:entity:${feature.id}`;
       const geometryRevision = t.selectionGeometryRevision?.(objectKey, 'gpu-scene', feature);
       polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
         role: 'territorial-fill', ownerId: unitStyle.ownerId, parentId: unitStyle.parentId, territoryDepth: unitStyle.depth,
@@ -798,9 +800,9 @@ export function createRenderingDomain({
     const t = territorialBoundary;
     const state = t.getState?.() || {};
     const countries = state.countryVisualPhase === 'preview' && state.auditPreviewCountries
-      ? state.auditPreviewCountries.features || [] : territorial.entityRepository.list({ type: 'country' });
+      ? state.auditPreviewCountries.features || [] : territorial.entityRepository.list({ kind: 'general', parentId: '' });
     const units = state.countryVisualPhase === 'preview' && state.auditPreviewTerritorialUnits
-      ? state.auditPreviewTerritorialUnits : territorial.entityRepository.list({ type: ['subunit', 'region'] });
+      ? state.auditPreviewTerritorialUnits : territorial.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
     const revision = t.getTerritorialGeometryRevision?.() ?? 0;
     if (!units.some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) {
       const hadBoundaries = territorialBoundaryCache.segments.length || territorialBoundaryBatchCache.groups.length;
@@ -814,7 +816,7 @@ export function createRenderingDomain({
       t.getCountryLandRevision?.() ?? 0,
       revision,
       countries.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry)]),
-      units.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry), String(feature?.properties?.unitType || ''), String(feature?.properties?.associatedCountryId || ''), String(feature?.properties?.parentId || '')]),
+      units.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry), String(feature?.properties?.entityKind || ''), String(feature?.properties?.parentId || '')]),
     ]);
     if (territorialBoundaryCache.countries !== countries || territorialBoundaryCache.units !== units
       || territorialBoundaryCache.revision !== revision || territorialBoundaryCache.inputSignature !== inputSignature) {
@@ -841,7 +843,7 @@ export function createRenderingDomain({
     ]);
     const visibleSignature = [...visibleIds].sort().map(id => {
       const feature = visibleFeatures.find(item => String(item.id) === id);
-      return `${id}:${t.territorialEntityColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:${feature.properties.unitType}:${id}`))}`;
+      return `${id}:${t.territorialEntityColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:entity:${id}`))}`;
     }).join('|');
     const styleSignature = [...styleByType].map(([type, definition]) => {
       const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup) || {};
@@ -855,11 +857,11 @@ export function createRenderingDomain({
         const owner = (segment.unitOwners || []).find(item => visibleIds.has(String(item.id)));
         if (!owner) continue;
         const feature = visibleFeatures.find(item => String(item.id) === String(owner.id));
-        const styleType = segment.styleType || feature?.properties?.unitType || 'subunit';
+        const styleType = segment.styleType || feature?.properties?.entityKind || 'subunit';
         const definition = styleByType.get(styleType) || styleByType.get('subunit');
         const group = groups.get(styleType) || groups.get('subunit');
         if (!group) continue;
-        const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup, `territorial:${feature.properties.unitType}:${feature.id}`) || {};
+        const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup, `territorial:entity:${feature.id}`) || {};
         if (!style.boundaryVisible || !(style.opacity > 0)) continue;
         group.segments.push({ a: segment.a, b: segment.b, color: boundaryColor, opacity: style.opacity });
       }
@@ -994,7 +996,7 @@ export function createRenderingDomain({
       handles: boundaryHandles,
       targetRef: {
         domain: 'territorial',
-        type: 'country',
+        type: 'entity',
         id: String(boundaryHandles[0]?.ownerIds?.[0] || ''),
       },
     } : packet?.objectVertices;
@@ -1340,7 +1342,7 @@ export function createRenderingDomain({
   };
   const selectionGeometryRevision = (key, role = 'outline', feature = null) => {
     const state = selection.getState?.() || {};
-    const source = feature?.geometry || (key.startsWith('country:') ? state.territorialEntities?.filter(feature => feature.properties.unitType === 'country')?.find(item => String(item.id) === key.slice(8))?.geometry : null);
+    const source = feature?.geometry || (key.startsWith('country:') ? state.territorialEntities?.filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId))?.find(item => String(item.id) === key.slice(8))?.geometry : null);
     if (source) {
       if (!fallbackGeometryIds.has(source)) fallbackGeometryIds.set(source, ++fallbackGeometryId);
       return `${key}:${role}:geometry-${fallbackGeometryIds.get(source)}:${readGeometryRevision(source)}`;
@@ -1394,12 +1396,12 @@ export function createRenderingDomain({
     const selectionState = selectionDomain?.snapshot?.() || { selection: { items: [], primaryKey: null }, hover: null };
     const state = selection.getState?.() || {};
     const entries = mapInteractionEntries(selectionState, state, {
-      countryType: selection.countryType,
+      
       visible: ref => selection.objectRefVisible?.(ref) !== false,
       territorialEntityById: selection.territorialEntityById,
       territorialUnits: selection.territorialUnits,
     });
-    const countryEntries = entries.filter(entry => entry.ref.domain === 'territorial' && entry.ref.type === selection.countryType);
+    const countryEntries = entries.filter(entry => rootGeneralSelection(entry.ref));
     const primaries = countryEntries.filter(entry => entry.priority >= 4).map(entry => entry.ref.id);
     gpuMapRenderer.setCountryEmphasis({ primaryId: primaries[0] || '', primaryIds: primaries,
       priorities: Object.fromEntries(countryEntries.map(entry => [entry.ref.id, entry.priority])),
@@ -1551,7 +1553,7 @@ export function createRenderingDomain({
       }
       interaction.syncGpuInteractionLayer?.(domain, layer);
     }
-    const emphasisEntries = selectionEntries(selectionState, state, { countryType: selection.countryType,
+    const emphasisEntries = selectionEntries(selectionState, state, { 
       visible: ref => selection.objectRefVisible?.(ref) !== false }, toolEntries);
     const genericPrimary = [];
     const genericSecondary = [];
@@ -1590,7 +1592,7 @@ export function createRenderingDomain({
       const owners = (displayPlan.boundaryOwnersByKey.get(ref.key) || []).map(entry => ({
         key: entry.key, ref: entry.ref, feature: entry.ref.scopeFeature || selection.mapFeatureForObjectRef?.(entry.ref),
       })).filter(item => item.feature?.geometry);
-      if (!owners.length) return ref.domain === 'territorial' && ref.type === selection.countryType
+      if (!owners.length) return rootGeneralSelection(ref)
         ? boundary : cachedSelectionBoundaryFeature(ref.key, feature, role);
       const signature = owners.map(item => `${item.key}:${selectionGeometryRevision(item.key, 'ownership', item.feature)}`).sort().join(',');
       const revision = `${boundary.revision}:owners:${signature}`;
@@ -1612,14 +1614,14 @@ export function createRenderingDomain({
       return { feature: { type: 'Feature', properties: {}, geometry: null }, revision: `${revision}:pending`, owned: true };
     };
     if (hoverActive) {
-      const isCountry = hovered.domain === 'territorial' && hovered.type === selection.countryType;
+      const isCountry = rootGeneralSelection(hovered);
       const feature = isCountry ? selection.countryDisplayFeature?.(hoveredFeature) : hoveredFeature;
       const key = isCountry ? `country:${String(hovered.id || '')}` : hovered.key;
       const pendingCountry = isCountry && state.pendingCountryRenderIds?.has(String(hovered.id || ''));
       const boundary = selectionGeometryKinds(feature).boundary
         ? hierarchyBoundary(hovered, feature, 'hover')
         : { feature, revision: selectionGeometryRevision(key, 'hover', feature) };
-      const plan = planHoverEntry({ ref: hovered, countryType: selection.countryType, feature, boundary, pendingCountry, hoverStyle: style.hover });
+      const plan = planHoverEntry({ ref: hovered, rootGeneral: isCountry, feature, boundary, pendingCountry, hoverStyle: style.hover });
       if (plan.fill && !sceneOwnsFills) {
         stagedHoverLayer.append('path').datum(feature)
           .attr('class', 'map-hover-shape map-hover-fill')
@@ -1639,13 +1641,13 @@ export function createRenderingDomain({
       const ref = entry.ref;
       const primary = channel === 'primary';
       const canonicalFeature = ref.scopeFeature || selection.mapFeatureForObjectRef?.(ref);
-      const isCountry = ref.domain === 'territorial' && ref.type === selection.countryType;
+      const isCountry = rootGeneralSelection(ref);
       const feature = isCountry ? selection.countryDisplayFeature?.(canonicalFeature) : canonicalFeature;
       if (!feature?.geometry && feature?.type !== 'FeatureCollection') continue;
       const boundary = (isCountry || selectionGeometryKinds(feature).boundary) && outlineVisible
         ? hierarchyBoundary(ref, feature, 'selection-outline')
         : { feature, revision: selectionGeometryRevision(ref.key, 'selection-outline', feature) };
-      const plan = planSelectionEntry({ ref, entry, channel, countryType: selection.countryType, feature, boundary,
+      const plan = planSelectionEntry({ ref, entry, channel, rootGeneral: isCountry, feature, boundary,
         pendingCountry: state.pendingCountryRenderIds?.has(String(ref.id)), outlineVisible, selectionStyle });
       if (plan.fill && !sceneOwnsFills) stagedSelectionLayer.append('path').datum(feature)
         .attr('class', `map-selection-shape map-selection-fill${primary ? ' is-primary' : ' is-secondary'}`)
@@ -1715,7 +1717,7 @@ export function createRenderingDomain({
     lastInteractionFillOwner = fillOwner;
     if (fillOwner === 'svg' && !sceneOwnsFills) {
       for (const entry of emphasisEntries) {
-        if (entry.ref.domain !== 'territorial' || entry.ref.type !== selection.countryType) continue;
+        if (!rootGeneralSelection(entry.ref)) continue;
         const itemStyle = interactionRoleStyle(style, entry.role);
         if (!(itemStyle.fillAlpha > 0) || (entry.role === 'hover' && !hoverActive)) continue;
         const feature = selection.countryDisplayFeature?.(selection.mapFeatureForObjectRef?.(entry.ref));

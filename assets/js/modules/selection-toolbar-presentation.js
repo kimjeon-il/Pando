@@ -1,4 +1,4 @@
-const TERRITORIAL_KINDS = new Set(['country', 'subunit', 'region']);
+const TERRITORIAL_KINDS = new Set(['entity']);
 
 export function createSelectionToolbarPresentation({
   window, document, getElement,
@@ -37,7 +37,7 @@ export function createSelectionToolbarPresentation({
     if (!preview) return;
     preview.replaceChildren();
     if (!view?.flagUrl) {
-      if (createSemanticIcon) preview.appendChild(createSemanticIcon(document, view?.ref?.type || 'country'));
+      if (createSemanticIcon) preview.appendChild(createSemanticIcon(document, view?.ref?.type || 'entity'));
       return;
     }
     const image = document.createElement('img');
@@ -162,7 +162,7 @@ export function createSelectionToolbarPresentation({
     toolbar.dataset.objectKey = ref.key;
     toolbar.dataset.objectType = ref.type;
     toolbar.setAttribute('aria-label', `${view.name || '선택 객체'} 선택 카드`);
-    for (const fields of toolbar.querySelectorAll('[data-selection-kind]')) fields.classList.toggle('hidden', fields.dataset.selectionKind !== ref.type);
+    for (const fields of toolbar.querySelectorAll('[data-selection-kind]')) fields.classList.toggle('hidden', fields.dataset.selectionKind !== activeKind());
     renderIdentity(view);
     const synced = syncInteraction();
     if (synced && selectionChanged && !isEditorOpen() && !toolbar.classList.contains('hidden')) {

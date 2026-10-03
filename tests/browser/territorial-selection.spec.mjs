@@ -95,7 +95,7 @@ test('a territory above a visible country is selected directly and does not bloc
   const afterDrag = await territorialShapeCenter(page, name);
   await selectTerritorialObjectOnMap(page, afterDrag, name);
   await expect(page.locator('#selectionStatus')).toContainText(`하위단위 · 독일 · ${name}`);
-  await expect(page.locator('#subunitProperties')).toBeVisible();
+  await expect(page.locator('#entityProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -113,7 +113,7 @@ test('an administrative area above a visible country is chosen explicitly', asyn
   expect(point).not.toBeNull();
   await selectTerritorialObjectOnMap(page, point, name);
   await expect(page.locator('#selectionStatus')).toContainText(`하위단위 · 독일 · ${name}`);
-  await expect(page.locator('#subunitProperties')).toBeVisible();
+  await expect(page.locator('#entityProperties')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -128,9 +128,9 @@ test('a region import stays explicit, opens the region editor, and survives undo
   });
 
   const snapshot = await page.evaluate(expectedName => {
-    const feature = window.PANDOLAB_TERRITORIAL.list({ type: 'region' })
+    const feature = window.PANDOLAB_TERRITORIAL.list({ kind: 'regional' })
       .find(candidate => candidate.properties?.name === expectedName);
-    if (feature) window.PANDOLAB_TERRITORIAL.select('region', feature.id);
+    if (feature) window.PANDOLAB_TERRITORIAL.select(feature.id);
     return feature ? {
       id: String(feature.id),
       unitType: feature.properties.unitType,
@@ -138,14 +138,14 @@ test('a region import stays explicit, opens the region editor, and survives undo
     } : null;
   }, name);
   expect(snapshot).toMatchObject({ unitType: 'region', coverageMode: 'explicit' });
-  await expect(page.locator('#regionProperties')).toBeVisible();
+  await expect(page.locator('#entityProperties')).toBeVisible();
   await expect(page.locator('#selectionStatus')).toContainText(`지방 · ${name}`);
 
   await page.locator('#undoBtn').click();
-  await expect.poll(() => page.evaluate(expectedName => window.PANDOLAB_TERRITORIAL.list({ type: 'region' })
+  await expect.poll(() => page.evaluate(expectedName => window.PANDOLAB_TERRITORIAL.list({ kind: 'regional' })
     .some(feature => feature.properties?.name === expectedName), name)).toBe(false);
   await page.locator('#redoBtn').click();
-  await expect.poll(() => page.evaluate(expectedName => window.PANDOLAB_TERRITORIAL.list({ type: 'region' })
+  await expect.poll(() => page.evaluate(expectedName => window.PANDOLAB_TERRITORIAL.list({ kind: 'regional' })
     .some(feature => feature.properties?.name === expectedName), name)).toBe(true);
   expect(errors).toEqual([]);
 });
@@ -176,7 +176,7 @@ test('a mobile touch tap selects the territorial overlay above its country', asy
     await expect(page.locator('#selectionStatus')).toContainText(name);
     await expect(page.locator('#objectChooser')).toBeHidden();
     await expect(page.locator('#selectionStatus')).toContainText(`하위단위 · 독일 · ${name}`);
-    await expect(page.locator('#subunitProperties')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#entityProperties')).not.toHaveClass(/hidden/);
     expect(errors).toEqual([]);
   } finally {
     await context.close();
