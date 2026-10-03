@@ -400,25 +400,92 @@ function resizeEdge(drag, point) {
   return null;
 }
 
+function resizeAroundAnchor(drag, point, shiftKey) {
+  const handle = drag.hit.handle;
+  const startHandle = {
+    nw: drag.startCorners[0],
+    n: midpoint(drag.startCorners[0], drag.startCorners[1]),
+    ne: drag.startCorners[1],
+    e: midpoint(drag.startCorners[1], drag.startCorners[2]),
+    se: drag.startCorners[2],
+    s: midpoint(drag.startCorners[3], drag.startCorners[2]),
+    sw: drag.startCorners[3],
+    w: midpoint(drag.startCorners[0], drag.startCorners[3]),
+  }[handle];
+  if (!startHandle) return null;
+
+  const startComponents = solveBasis(subtract(startHandle, drag.pivot), drag.u, drag.v);
+  const nextComponents = solveBasis(subtract(point, drag.pivot), drag.u, drag.v);
+  if (!startComponents || !nextComponents) return null;
+
+  const horizontal = ['nw', 'ne', 'e', 'se', 'sw', 'w'].includes(handle);
+  const vertical = ['nw', 'n', 'ne', 'se', 's', 'sw'].includes(handle);
+  const minScaleX = REFERENCE_IMAGE_TRANSFORM.minimumWidth / Math.max(1e-9, drag.width);
+  const minScaleY = REFERENCE_IMAGE_TRANSFORM.minimumHeight / Math.max(1e-9, drag.height);
+  let scaleX = 1;
+  let scaleY = 1;
+
+  if (horizontal) {
+    if (Math.abs(startComponents[0]) < 1e-8) return null;
+    scaleX = Math.max(minScaleX, nextComponents[0] / startComponents[0]);
+  }
+  if (vertical) {
+    if (Math.abs(startComponents[1]) < 1e-8) return null;
+    scaleY = Math.max(minScaleY, nextComponents[1] / startComponents[1]);
+  }
+
+  if (shiftKey && horizontal && vertical) {
+    const startDelta = subtract(startHandle, drag.pivot);
+    const nextDelta = subtract(point, drag.pivot);
+    const denominator = startDelta[0] * startDelta[0] + startDelta[1] * startDelta[1];
+    if (denominator < 1e-8) return null;
+    const uniform = Math.max(
+      Math.max(minScaleX, minScaleY),
+      (nextDelta[0] * startDelta[0] + nextDelta[1] * startDelta[1]) / denominator,
+    );
+    scaleX = uniform;
+    scaleY = uniform;
+  }
+
+  return drag.startCorners.map(corner => {
+    const components = solveBasis(subtract(corner, drag.pivot), drag.u, drag.v);
+    if (!components) return null;
+    return add(
+      drag.pivot,
+      add(multiply(drag.u, components[0] * scaleX), multiply(drag.v, components[1] * scaleY)),
+    );
+  });
+}
+
 export function applyReferenceImagePlacementDrag(record, drag, point, host, { shiftKey = false } = {}) {
   const candidate = finitePair(point);
   if (!record || !drag || !candidate || !host) return false;
   if (drag.hit.type === 'move') {
+    if (drag.anchored) return false;
     const delta = subtract(candidate, drag.startPoint);
     return applyScreenCorners(record, drag.startCorners.map(corner => add(corner, delta)), host);
   }
   if (drag.hit.type === 'rotate') {
-    const angle = degrees(Math.atan2(candidate[1] - drag.center[1], candidate[0] - drag.center[0]));
+    const angle = degrees(Math.atan2(candidate[1] - drag.pivot[1], candidate[0] - drag.pivot[0]));
     let target = normalizeReferenceImageRotation(drag.startRotation + (angle - drag.startAngle));
     if (shiftKey) target = normalizeReferenceImageRotation(Math.round(target / 15) * 15);
     const delta = normalizeReferenceImageRotation(target - drag.startRotation);
-    return applyScreenCorners(record, drag.startCorners.map(corner => rotatePoint(corner, drag.center, delta)), host);
+    const changed = applyScreenCorners(
+      record,
+      drag.startCorners.map(corner => rotatePoint(corner, drag.pivot, delta)),
+      host,
+    );
+    return changed && (!drag.anchored || alignReferenceImageAnchor(record, host));
   }
   if (drag.hit.type !== 'resize') return false;
-  const corners = ['nw', 'ne', 'se', 'sw'].includes(drag.hit.handle)
-    ? resizeCorner(drag, candidate, shiftKey)
-    : resizeEdge(drag, candidate);
-  return corners ? applyScreenCorners(record, corners, host) : false;
+  const corners = drag.anchored
+    ? resizeAroundAnchor(drag, candidate, shiftKey)
+    : ['nw', 'ne', 'se', 'sw'].includes(drag.hit.handle)
+      ? resizeCorner(drag, candidate, shiftKey)
+      : resizeEdge(drag, candidate);
+  if (!corners || corners.some(candidateCorner => !candidateCorner)) return false;
+  const changed = applyScreenCorners(record, corners, host);
+  return changed && (!drag.anchored || alignReferenceImageAnchor(record, host));
 }
 
 export function setReferenceImagePlacementRotation(record, host, value) {
@@ -426,7 +493,9 @@ export function setReferenceImagePlacementRotation(record, host, value) {
   if (!geometry) return false;
   const target = normalizeReferenceImageRotation(value);
   const delta = normalizeReferenceImageRotation(target - geometry.rotation);
-  return applyScreenCorners(record, geometry.corners.map(corner => rotatePoint(corner, geometry.center, delta)), host);
+  const pivot = referenceImageAnchorScreenPoint(record, host) || geometry.center;
+  const changed = applyScreenCorners(record, geometry.corners.map(corner => rotatePoint(corner, pivot, delta)), host);
+  return changed && (!record.anchor || alignReferenceImageAnchor(record, host));
 }
 
 function unwrapLongitude(value, reference) {
