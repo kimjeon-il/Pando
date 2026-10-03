@@ -278,8 +278,9 @@ test('reference images support placement, ordering, georeferencing and persisten
     return JSON.stringify(storedAfterMove) !== JSON.stringify(storedBeforeMove);
   }).toBe(true);
   expect(await page.evaluate(() => window.__PANDOLAB_VIEW_STATE__)).toEqual(cameraBefore);
-  await expect(page.locator('.reference-image-editing-summary')).toBeVisible();
-  await page.locator('.reference-image-editing-summary [data-ref-action="finish"]').click();
+  await expect(page.locator('.reference-image-editing-summary')).toBeHidden();
+  await expect(page.locator('[data-ref-action="placement"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-ref-action="placement"]').click();
   await expect(page.locator('.reference-image-toolbar [data-ref-action="undo"]')).toBeVisible();
   await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect.poll(async () => (await readReferenceStore(page))[0]?.mapQuad).toEqual(storedBeforeMove);
