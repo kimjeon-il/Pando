@@ -80,6 +80,18 @@ test('similarity fit honors a pinned anchor exactly while soft GCPs absorb resid
   assert.ok(warp.diagnostics.rmsMeters > 0);
 });
 
+test('one pinned anchor plus one soft GCP is sufficient for similarity calibration', () => {
+  const warp = buildReferenceImageWarp([
+    { ...point('anchor', [0, 0], [10, 20]), pinned: true },
+    point('gcp', [1, 0], [20, 20]),
+  ], { mode: REFERENCE_IMAGE_WARP_MODES.SIMILARITY });
+  assert.equal(warp.ok, true);
+  const anchor = warp.project([0, 0]);
+  assert.ok(Math.abs(anchor[0] - 10) < 1e-9);
+  assert.ok(Math.abs(anchor[1] - 20) < 1e-9);
+  assert.ok(warp.diagnostics.hardMaxMeters < 0.01);
+});
+
 test('affine and projective fits preserve a pinned anchor under noisy soft GCPs', () => {
   const cases = [
     {
