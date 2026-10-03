@@ -83,54 +83,6 @@ export function normalizeReferenceImageRecord(record = {}) {
   };
 }
 
-function inferredReferenceImageModelVersion(record) {
-  const explicit = Number(record?.modelVersion);
-  if (Number.isInteger(explicit) && explicit >= 1) return explicit;
-  if (record?.screenRect) return 1;
-  if (record?.cornerPinEnabled !== undefined) return 5;
-  if (record?.anchor && Array.isArray(record?.controlPoints) && record.controlPoints.length) return 4;
-  if (record?.anchor) return 3;
-  if (record?.mapQuad) return 2;
-  return 1;
-}
-
-export function migrateReferenceImageStoredRecord(record = {}, {
-  legacyMapQuad = null,
-} = {}) {
-  const sourceVersion = inferredReferenceImageModelVersion(record);
-  if (sourceVersion > REFERENCE_IMAGE_MODEL_VERSION) {
-    return Object.freeze({
-      record: null,
-      sourceVersion,
-      targetVersion: REFERENCE_IMAGE_MODEL_VERSION,
-      migrated: false,
-      unsupportedFutureVersion: true,
-      needsPlacementMigration: false,
-    });
-  }
-  const normalizedLegacyQuad = normalizeReferenceImageMapQuad(legacyMapQuad);
-  const normalizedExistingQuad = normalizeReferenceImageMapQuad(record?.mapQuad);
-  const migratedMapQuad = normalizedExistingQuad || normalizedLegacyQuad;
-  const normalized = normalizeReferenceImageRecord({
-    ...record,
-    mapQuad: migratedMapQuad,
-  });
-
-  const needsPlacementMigration = !normalized.mapQuad && !!record?.screenRect;
-  const migrated = sourceVersion !== REFERENCE_IMAGE_MODEL_VERSION
-    || !!record?.screenRect
-    || 'rotation' in (record || {})
-    || !('cornerPinEnabled' in (record || {}))
-    || Number(record?.modelVersion) !== REFERENCE_IMAGE_MODEL_VERSION;
-
-  return Object.freeze({
-    record: normalized,
-    sourceVersion,
-    targetVersion: REFERENCE_IMAGE_MODEL_VERSION,
-    migrated,
-    needsPlacementMigration,
-  });
-}
 
 export function serializeReferenceImageRecord(record, order = 0) {
   const normalized = normalizeReferenceImageRecord({ ...record, order });
