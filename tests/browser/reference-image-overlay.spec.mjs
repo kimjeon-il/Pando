@@ -237,9 +237,6 @@ test('reference images support placement, ordering, georeferencing and persisten
   test.setTimeout(180_000);
   const errors = await openApp(page);
   await clearReferenceStore(page);
-  const baseMapQuadBeforeReload = structuredClone(
-    (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').mapQuad,
-  );
   await page.reload();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -389,6 +386,9 @@ test('reference images support placement, ordering, georeferencing and persisten
     { name: '<Base "reference">', points: 2 },
   ]);
 
+  const baseMapQuadBeforeReload = structuredClone(
+    (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').mapQuad,
+  );
   await page.reload();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
