@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   applyReferenceImagePlacementDrag,
+  buildReferenceImagePlacementMesh,
   createReferenceImagePlacementDrag,
   defaultReferenceImageMapQuad,
   normalizeReferenceImageRotation,
@@ -76,6 +77,18 @@ test('mapQuad remains anchored to map coordinates across pan and zoom changes', 
   assert.deepEqual(record.mapQuad, saved);
   assert.notDeepEqual(after.corners, before.corners);
   assert.deepEqual(after.corners[0], [180, -30]);
+});
+
+test('placement mesh follows mapQuad with enough subdivisions for projected maps', () => {
+  const host = createHost();
+  const record = {
+    mapQuad: referenceImageScreenRectToMapQuad({ x: 100, y: 100, width: 200, height: 100 }, 0, host),
+  };
+  const mesh = buildReferenceImagePlacementMesh(record, { columns: 2, rows: 2 });
+  assert.equal(mesh.vertices.length, 9);
+  assert.equal(mesh.triangles.length, 8);
+  assert.deepEqual(mesh.vertices[4].uv, [0.5, 0.5]);
+  assert.deepEqual(mesh.vertices[4].coordinate, [10, 5]);
 });
 
 test('placement exposes four corner and four edge resize handles plus rotation', () => {
