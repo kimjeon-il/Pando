@@ -67,6 +67,13 @@ test('reference image editing collapses the surface body on desktop and mobile',
 });
 
 
+test('live-wire commits map anchors on captured pointerdown without click-event dependency', async () => {
+  const source = await readFile(moduleUrl('reference-image-live-wire-controller.js'), 'utf8');
+  assert.match(source, /function onPointerDown\(event\)[\s\S]*placeFirstAnchor\(screen\)[\s\S]*commitCurrentPreview\(screen\)/);
+  assert.equal(source.includes("addEventListener('click', onClick"), false);
+  assert.equal(source.includes('function onClick(event)'), false);
+});
+
 test('analysis tools explicitly restore the full reference panel controls', async () => {
   for (const name of [
     'reference-image-live-wire-controller.js',
