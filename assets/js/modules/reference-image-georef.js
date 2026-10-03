@@ -467,6 +467,58 @@ export function buildReferenceImageWarp(values = [], { mode = REFERENCE_IMAGE_WA
   });
 }
 
+export function buildReferenceImageCalibrationWarp({
+  controlPoints = [],
+  anchor = null,
+  cornerPinEnabled = false,
+  mapQuad = null,
+  mode = REFERENCE_IMAGE_WARP_MODES.AUTO,
+} = {}) {
+  const calibrationPoints = Array.isArray(controlPoints)
+    ? controlPoints.map(point => ({
+      id: point.id,
+      image: Array.isArray(point.image) ? [...point.image] : point.image,
+      coordinate: Array.isArray(point.coordinate) ? [...point.coordinate] : point.coordinate,
+      pinned: false,
+    }))
+    : [];
+
+  if (anchor) {
+    calibrationPoints.unshift({
+      id: 'anchor',
+      image: Array.isArray(anchor.image) ? [...anchor.image] : anchor.image,
+      coordinate: Array.isArray(anchor.coordinate) ? [...anchor.coordinate] : anchor.coordinate,
+      pinned: true,
+    });
+  }
+
+  if (!cornerPinEnabled || !calibrationPoints.length) {
+    return buildReferenceImageWarp(calibrationPoints, { mode });
+  }
+
+  if (!Array.isArray(mapQuad) || mapQuad.length !== 4) {
+    return Object.freeze({
+      ok: false,
+      mode: REFERENCE_IMAGE_WARP_MODES.TPS,
+      minimumPoints: MODE_MIN_POINTS[REFERENCE_IMAGE_WARP_MODES.TPS],
+      pointCount: calibrationPoints.length,
+      reason: 'invalid-corner-pin-quad',
+    });
+  }
+
+  const imageCorners = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  const cornerPoints = mapQuad.map((coordinate, index) => ({
+    id: `corner-pin-${index}`,
+    image: imageCorners[index],
+    coordinate: Array.isArray(coordinate) ? [...coordinate] : coordinate,
+    pinned: true,
+  }));
+  return buildReferenceImageWarp(
+    [...cornerPoints, ...calibrationPoints],
+    { mode: REFERENCE_IMAGE_WARP_MODES.TPS },
+  );
+}
+
 export function buildReferenceImageProjectiveWarpFromQuad(mapQuad) {
   if (!Array.isArray(mapQuad) || mapQuad.length !== 4) {
     return Object.freeze({
