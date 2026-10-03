@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  alignReferenceImageAnchor,
   applyReferenceImagePlacementDrag,
   buildReferenceImagePlacementMesh,
   createReferenceImagePlacementDrag,
   defaultReferenceImageMapQuad,
   normalizeReferenceImageRotation,
+  referenceImageAnchorScreenPoint,
   referenceImagePlacementGeometry,
+  referenceImagePlacementPointAtUv,
   referenceImagePlacementHit,
   referenceImagePlacementUvAtPoint,
   referenceImageScreenRectToMapQuad,
@@ -157,6 +160,46 @@ test('rotation uses mapQuad as the only geometry state and supports 15 degree sn
   const snapped = referenceImagePlacementGeometry(record, host).rotation;
   assert.ok(Math.abs(snapped / 15 - Math.round(snapped / 15)) < 1e-9);
   assert.equal('rotation' in record, false);
+});
+
+test('manual anchor snaps the selected image point to the chosen map coordinate', () => {
+  const host = createHost();
+  const record = {
+    id: 'anchor',
+    mapQuad: referenceImageScreenRectToMapQuad({ x: 100, y: 100, width: 200, height: 100 }, 0, host),
+    flipX: false,
+    flipY: false,
+    anchor: { image: [0.25, 0.5], coordinate: [8, 7] },
+  };
+  assert.equal(alignReferenceImageAnchor(record, host), true);
+  const source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
+  const target = referenceImageAnchorScreenPoint(record, host);
+  assert.ok(Math.hypot(source[0] - target[0], source[1] - target[1]) < 1e-6);
+});
+
+test('anchored placement blocks body move and keeps the anchor fixed through resize and rotation', () => {
+  const host = createHost();
+  const record = {
+    id: 'anchor-transform',
+    mapQuad: referenceImageScreenRectToMapQuad({ x: 100, y: 100, width: 200, height: 100 }, 0, host),
+    flipX: false,
+    flipY: false,
+    anchor: { image: [0.25, 0.5], coordinate: [8, 7] },
+  };
+  assert.equal(alignReferenceImageAnchor(record, host), true);
+  const target = referenceImageAnchorScreenPoint(record, host);
+
+  const geometry = referenceImagePlacementGeometry(record, host);
+  assert.equal(referenceImagePlacementHit(record, geometry.center, host), null);
+
+  const resize = createReferenceImagePlacementDrag(record, { type: 'resize', handle: 'se' }, geometry.handles.se, host, 20);
+  assert.equal(applyReferenceImagePlacementDrag(record, resize, [geometry.handles.se[0] + 80, geometry.handles.se[1] + 40], host), true);
+  let source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
+  assert.ok(Math.hypot(source[0] - target[0], source[1] - target[1]) < 0.3);
+
+  assert.equal(setReferenceImagePlacementRotation(record, host, 45), true);
+  source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
+  assert.ok(Math.hypot(source[0] - target[0], source[1] - target[1]) < 0.3);
 });
 
 test('placement UV hit testing follows the geographic quad and reflection flags', () => {
