@@ -1,4 +1,4 @@
-export const REFERENCE_IMAGE_MODEL_VERSION = 4;
+export const REFERENCE_IMAGE_MODEL_VERSION = 5;
 
 const DEFAULT_OPACITY = 0.55;
 const DEFAULT_BLEND_MODE = 'source-over';
@@ -75,6 +75,7 @@ export function normalizeReferenceImageRecord(record = {}) {
     flipY: record?.flipY === true,
     controlPoints,
     anchor,
+    cornerPinEnabled: record?.cornerPinEnabled === true,
     mapQuad: normalizeReferenceImageMapQuad(record?.mapQuad),
     order: Number.isFinite(order) ? order : 0,
     blob: typeof Blob !== 'undefined' && record?.blob instanceof Blob ? record.blob : null,
@@ -103,6 +104,7 @@ export function serializeReferenceImageRecord(record, order = 0) {
       image: [...normalized.anchor.image],
       coordinate: [...normalized.anchor.coordinate],
     } : null,
+    cornerPinEnabled: normalized.cornerPinEnabled,
     mapQuad: normalized.mapQuad ? normalized.mapQuad.map(point => [...point]) : null,
     order: Number.isFinite(Number(order)) ? Number(order) : normalized.order,
     blob: normalized.blob,
