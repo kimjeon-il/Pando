@@ -506,17 +506,12 @@ export function createReferenceImageInteraction({
     };
     rebuildWarp(record);
 
-    let accepted = true;
-    if (record.warp.ok) {
-      accepted = Number(record.warp.diagnostics?.hardMaxMeters) <= 0.01;
-    } else if (
-      record.warp.reason === 'singular-control-points'
-      && record.warp.pointCount >= record.warp.minimumPoints
-    ) {
-      accepted = false;
-    } else {
-      accepted = alignReferenceImageAnchor(record);
-    }
+    const accepted = record.warp.ok
+      ? Number(record.warp.diagnostics?.hardMaxMeters) <= 0.01
+      : record.warp.reason === 'singular-control-points'
+        && record.warp.pointCount >= record.warp.minimumPoints
+        ? false
+        : alignReferenceImageAnchor(record);
 
     if (!accepted) {
       record.anchor = previous?.anchor ? {
