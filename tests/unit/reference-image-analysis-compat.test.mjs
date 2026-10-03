@@ -66,7 +66,7 @@ test('reference image editing stays expanded on desktop and compacts only on mob
   assert.match(surface, /const compactEditing = editing && mobile;/);
   assert.match(surface, /reference-image-editing-active/);
   assert.equal(
-    /\.surface-reference\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/.test(layout),
+    /^\s*\.surface-reference\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/m.test(layout),
     false,
   );
   assert.match(layout, /\.surface-reference\.reference-image-editing-active/);
