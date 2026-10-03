@@ -133,6 +133,7 @@ export function installReferenceImageLiveWire() {
   let lastHostFingerprint = '';
   let lastMessage = '';
   let lastTone = '';
+  const handledPointerIds = new Set();
 
   function resizeCanvas() {
     const rect = mapElement.getBoundingClientRect();
@@ -677,12 +678,25 @@ export function installReferenceImageLiveWire() {
     return true;
   }
 
-  function onPointerDown(event) {
-    if (!state || event.button !== 0 || !['armed', 'tracking'].includes(state.phase) || !referenceImageEventTargetsMap(event, mapElement)) return;
-    if (!interceptMapEvent(event)) return;
+  function activateAtPointer(event) {
+    if (!state || event.button !== 0 || !['armed', 'tracking'].includes(state.phase) || !referenceImageEventTargetsMap(event, mapElement)) return false;
+    if (!interceptMapEvent(event)) return false;
     const screen = canvasPoint(event, mapElement);
-    if (state.phase === 'armed') placeFirstAnchor(screen);
-    else commitCurrentPreview(screen);
+    return state.phase === 'armed'
+      ? placeFirstAnchor(screen)
+      : commitCurrentPreview(screen);
+  }
+
+  function onPointerDown(event) {
+    if (activateAtPointer(event)) handledPointerIds.add(event.pointerId);
+  }
+
+  function onPointerUp(event) {
+    if (handledPointerIds.delete(event.pointerId)) {
+      interceptMapEvent(event);
+      return;
+    }
+    activateAtPointer(event);
   }
 
   function onPointerMove(event) {
@@ -764,6 +778,7 @@ export function installReferenceImageLiveWire() {
 
   panel.addEventListener('click', onPanelClick, true);
   globalThis.addEventListener('pointerdown', onPointerDown, true);
+  globalThis.addEventListener('pointerup', onPointerUp, true);
   globalThis.addEventListener('pointermove', onPointerMove, true);
   globalThis.addEventListener('dblclick', onDoubleClick, true);
   globalThis.addEventListener('keydown', onKeyDown, true);
@@ -782,11 +797,13 @@ export function installReferenceImageLiveWire() {
       disposed = true;
       state = null;
       pendingPointer = null;
+      handledPointerIds.clear();
       globalThis.clearTimeout(monitorTimer);
       observer.disconnect();
       resizeObserver.disconnect();
       panel.removeEventListener('click', onPanelClick, true);
       globalThis.removeEventListener('pointerdown', onPointerDown, true);
+      globalThis.removeEventListener('pointerup', onPointerUp, true);
       globalThis.removeEventListener('pointermove', onPointerMove, true);
       globalThis.removeEventListener('dblclick', onDoubleClick, true);
       globalThis.removeEventListener('keydown', onKeyDown, true);
