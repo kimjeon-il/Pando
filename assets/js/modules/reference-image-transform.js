@@ -180,7 +180,21 @@ export function referenceImageScreenRectToMapQuad(screenRect, rotation, host) {
 }
 
 export function defaultReferenceImageMapQuad(image, mapElement, host) {
-  return referenceImageScreenRectToMapQuad(defaultReferenceImageScreenRect(image, mapElement), 0, host);
+  let rect = defaultReferenceImageScreenRect(image, mapElement);
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const quad = referenceImageScreenRectToMapQuad(rect, 0, host);
+    if (quad) return quad;
+    const center = [rect.x + rect.width / 2, rect.y + rect.height / 2];
+    const width = Math.max(REFERENCE_IMAGE_TRANSFORM.minimumWidth, rect.width * 0.82);
+    const height = Math.max(REFERENCE_IMAGE_TRANSFORM.minimumHeight, rect.height * 0.82);
+    rect = {
+      x: center[0] - width / 2,
+      y: center[1] - height / 2,
+      width,
+      height,
+    };
+  }
+  return null;
 }
 
 export function projectReferenceImageMapQuad(record, host) {
