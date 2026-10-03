@@ -483,16 +483,26 @@ export function installReferenceImageLineRefiner() {
     return true;
   }
 
+  function referenceMapPointerEvent(event) {
+    const rect = mapElement.getBoundingClientRect();
+    const x = Number(event?.clientX);
+    const y = Number(event?.clientY);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return false;
+    if (event.target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.reference-image-panel,.map-command-toolbar')) return false;
+    return true;
+  }
+
   function intercept(event) {
     if (!state || !['armed', 'drawing'].includes(state.phase)) return false;
-    if (!mapElement.contains(event.target)) return false;
+    if (!referenceMapPointerEvent(event)) return false;
     event.preventDefault();
     event.stopImmediatePropagation();
     return true;
   }
 
   function onPointerDown(event) {
-    if (!state || state.phase !== 'armed' || event.button !== 0 || !mapElement.contains(event.target)) return;
+    if (!state || state.phase !== 'armed' || event.button !== 0 || !referenceMapPointerEvent(event)) return;
     if (!intercept(event)) return;
     const screen = canvasPoint(event, mapElement);
     const uv = hitTestUv(state.source, screen);
