@@ -31,7 +31,8 @@ export const MAP_INTERACTION_OWNER_PORTS = Object.freeze({
     "platform",
     "projectState",
     "renderScene",
-    "surfaces"
+    "surfaces",
+    "territorialModel"
   ],
   "mapHost": [
     "applicationConstantsA",

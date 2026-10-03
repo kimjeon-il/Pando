@@ -34,10 +34,11 @@ test('legacy raster and strict DEM manifests select known representations', () =
 
 test('a tint-only data release uses the same strict DEM representation contract', () => {
   assert.equal(validateTerrainManifest({ ...dem, version: '0.13.1' }).version, '0.13.1');
+  assert.equal(validateTerrainManifest({ ...dem, version: '0.13.2' }).version, '0.13.2');
   assert.throws(() => validateTerrainManifest({ ...dem, version: 'local' }), /DEM/);
   assert.throws(() => validateTerrainManifest({ ...dem, version: '0.13.1',
     channels: { ...dem.channels, g: 'colour' } }), /DEM/);
-  assert.equal(terrainSources.TERRAIN_DEM_VERSION, '0.13.1');
+  assert.equal(terrainSources.TERRAIN_DEM_VERSION, '0.13.2');
 });
 
 test('relative and absolute data URLs resolve from the manifest without coupling DEM to app revision', () => {

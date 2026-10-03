@@ -12,6 +12,7 @@ import { geometrySegmentIndex, segmentQueryBounds, territorialSegmentCandidates 
 import '../../assets/js/modules/territorial-edit-plan.js';
 import { createEditDisplayPreparation } from '../../assets/js/modules/edit-display-preparation.js';
 import { createGeometrySnapshotPool, touchGeometry } from '../../assets/js/modules/geometry-versions.js';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
 const square = { type: 'Polygon', coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]] };
 
@@ -26,11 +27,12 @@ test('indexed adjacency keeps the original collinearity precision and raw date-l
 
 test('display preparation reuses unchanged groups and discards removed boundaries', async () => {
   const service = createEditDisplayPreparation();
-  const country = { id: 'RUS', geometry: square, properties: {} };
-  const unit = { id: 'child', geometry: { type: 'Polygon', coordinates: [[[0, 0], [5, 0], [5, 10], [0, 10], [0, 0]]] }, properties: { unitType: 'subunit', sovereignId: 'RUS', parentId: 'RUS' } };
+  const country = createTerritorialFeature({ id: 'RUS', unitType: 'country', geometry: square });
+  const unit = createTerritorialFeature({ id: 'child', unitType: 'subunit', parentId: 'RUS',
+    geometry: { type: 'Polygon', coordinates: [[[0, 0], [5, 0], [5, 10], [0, 10], [0, 0]]] } });
   const first = await service.prepare({ kind: 'boundaries' }, [country], [unit]);
   assert.ok(first.segments.length);
-  unit.properties.color = '#000000';
+  unit.properties.style.color = '#000000';
   const second = await service.prepare({ kind: 'boundaries' }, [country], [unit]);
   assert.equal(second.segments[0], first.segments[0]);
   assert.deepEqual((await service.prepare({ kind: 'boundaries' }, [country], [])).segments, []);

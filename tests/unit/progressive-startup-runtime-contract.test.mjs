@@ -6,7 +6,8 @@ import { applicationFunctionSource } from '../../scripts/lib/application-source.
 import { createProgressiveStartup } from '../../assets/js/modules/app-progressive-startup.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
-import { TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
+import { TERRITORIAL_UNIT_TYPES, createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 
 const source = readFileSync(new URL('../../assets/js/modules/app-progressive-startup.js', import.meta.url), 'utf8');
 
@@ -76,6 +77,7 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
   const geometry = deferred();
   const previewFrame = deferred();
   const interactive = deferred();
+  const editable = deferred();
   const calls = [];
   const errors = [];
   const state = {
@@ -83,6 +85,9 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
     projection: 'globe',
     territorialEntities: [],
     dataReadiness: 'loading',
+    historyDirtyEntityIds: new Set(),
+    pendingCountryRenderIds: new Set(),
+    autosaveMode: 'delta',
   };
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   t.mock.method(globalThis, 'setTimeout', () => {
@@ -97,9 +102,14 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
   globalThis.window = {
     d3: {}, PANDOLAB_COUNTRIES: { type: 'FeatureCollection', features: [{ id: 'A', geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } }] },
     PANDOLAB_CANONICAL_GEOMETRY_PROMISE: geometry.promise,
+    PANDOLAB_CANONICAL_MESH_PROMISE: new Promise(() => {}),
     addEventListener: noop,
     dispatchEvent(event) {
       if (event.type === 'pandolab:interactive') interactive.resolve();
+      if (event.type === 'pandolab:editable') {
+        calls.push(['editable', state.territorialEntities.map(feature => feature.id)]);
+        editable.resolve();
+      }
     },
   };
   t.after(() => {
@@ -112,16 +122,24 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
     lifecycleUi: { projectUi: { restoreAutosave: async () => ({ project }), syncHistory: noop } },
     domains: {
       projectDomain: { restorePreview: async () => null },
-      layerTreeController: { beginHydration: noop }, editingDomain: { setTool: noop },
+      layerTreeController: { beginHydration: noop, completeHydration: async () => {} }, editingDomain: { setTool: noop },
     },
     snapshots: { normalizeProjectObjects: noop }, persistence: { applyAutosavedView: noop },
+    platform: { deepClone: structuredClone },
+    platformConfigurationA: { BASE_DATASET: 'fixture' },
+    geometryPreview: { boundarySelectionAnalysisCache: new Map() },
+    labelCacheCommands: { resetCountryDisplayCache: noop },
+    spatialQuery: { mapEditClient: { stop: () => calls.push(['worker-stop']) } },
+    mapView: { syncMapHostFromState: noop },
+    projectSession: { saveState: { markNewProject: noop } },
     territorialModel: {
       entityStore,
+      entityRepository: createTerritorialEntityRepository({ entityStore }),
       TERRITORIAL_UNIT_TYPES,
     },
     countryServices: { normalizeCountryCollection },
     applicationServicesA: { classifyBuiltinCountries: countries => ({ countries, subunits: [] }) },
-    builtinCountries: { applyFreshBuiltinClassification: noop },
+    builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop },
     countryRecords: { applyPristineLabelAnchors: noop },
     layerTree: { pruneLayerItemVisibility: noop }, countries: { scheduleCountryLabelAnchors: noop },
     layers: { markLayerTreeDirty: noop }, projectSnapshots: { configureDatasetSession: noop },
@@ -133,7 +151,7 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
       initialize: async options => { calls.push(['initialize', options]); return true; },
       getRuntimeState: () => ({ renderer: 'webgl2' }), waitForPreviewFrame: () => previewFrame.promise,
     } },
-    applicationConstantsA: { READINESS_EVENTS: { PREVIEW_READY: 'preview-ready', RESTORE_STARTED: 'restore-started' } },
+    applicationConstantsA: { READINESS_EVENTS: { PREVIEW_READY: 'preview-ready', RESTORE_STARTED: 'restore-started', GEOMETRY_READY: 'geometry-ready' } },
     readiness: { canMutateProject: () => false },
     readinessUi: { applyDataReadinessEvent: event => calls.push(['readiness', event]) },
     startupCommands: { markRuntimeReady: noop },
@@ -144,8 +162,32 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
     } },
   });
   startup.init().catch(error => errors.push(error));
-  return { previewFrame, interactive, calls, errors, state };
+  return { previewFrame, interactive, editable, geometry, calls, errors, state };
 }
+
+test('canonical geometry reaches the common Store before editing resumes while the detailed mesh is pending', async t => {
+  const fixture = startupFixture(t);
+  fixture.previewFrame.resolve(true);
+  await fixture.interactive.promise;
+  assert.deepEqual(fixture.state.territorialEntities.map(feature => feature.id), ['A']);
+  const geometry = { type: 'Polygon', coordinates: [[[2, 0], [2, 1], [3, 1], [3, 0], [2, 0]]] };
+  const countries = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'B', unitType: 'country', name: 'Detailed B', geometry })] };
+  const before = structuredClone(countries);
+  fixture.geometry.resolve({ countries, canonicalCountryStore: {} });
+  await fixture.editable.promise;
+  const [country] = fixture.state.territorialEntities;
+  assert.deepEqual(fixture.state.territorialEntities.map(feature => feature.id), ['B']);
+  assert.equal(country.properties.unitType, 'country');
+  assert.equal(country.properties.parentId, '');
+  assert.equal(country.properties.name, 'Detailed B');
+  assert.deepEqual(country.geometry, geometry);
+  assert.equal(Object.hasOwn(country.properties, 'sovereignId'), false);
+  assert.deepEqual(countries, before);
+  assert.deepEqual(fixture.calls.find(([kind]) => kind === 'editable')[1], ['B']);
+  assert.ok(fixture.calls.findIndex(([kind]) => kind === 'worker-stop')
+    < fixture.calls.findIndex(([kind]) => kind === 'editable'));
+  assert.deepEqual(fixture.errors, []);
+});
 
 test('painted preview starts terrain without waiting for canonical data or terrain completion', async t => {
   const fixture = startupFixture(t);

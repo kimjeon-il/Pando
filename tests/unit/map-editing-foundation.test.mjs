@@ -8,6 +8,7 @@ import { resolveSnap, snapThreshold } from '../../assets/js/modules/geometry-sna
 import { runMapAudit, validateGeometry } from '../../assets/js/modules/geometry-validation.js';
 import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from '../../assets/js/modules/label-layout.js';
 import { createAtomicMapStateController } from '../../assets/js/modules/map-state-transition.js';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
 const feature = (id, coordinates) => ({
   type: 'Feature',
@@ -106,17 +107,23 @@ test('geometry validation returns a located self-intersection issue and relation
   const issues = validateGeometry(invalid);
   assert.ok(issues.some(issue => issue.kind === 'self-intersection' && issue.coordinate));
   const report = runMapAudit({
-    countries: [feature('A', [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]])],
+    countries: [createTerritorialFeature({ id: 'A', unitType: 'country',
+      geometry: feature('A', [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]).geometry })],
     units: [
-      { type: 'Feature', id: 'orphan', properties: { name: '고아', sovereignId: 'MISSING', parentId: 'NO_PARENT' }, geometry: feature('X', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry },
-      { type: 'Feature', id: 'orphan', properties: { name: '중복', sovereignId: 'A' }, geometry: feature('Y', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry },
+      createTerritorialFeature({ id: 'orphan', unitType: 'subunit', name: '고아', parentId: 'NO_PARENT',
+        geometry: feature('X', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry }),
+      createTerritorialFeature({ id: 'orphan', unitType: 'region', name: '중복', associatedCountryId: 'A',
+        geometry: feature('Y', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry }),
+      createTerritorialFeature({ id: 'unlinked', unitType: 'region', associatedCountryId: 'MISSING',
+        geometry: feature('R', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry }),
     ],
     distributionEntries: [
       { id: 'entry', mode: 'territorial', territorialUnitId: 'missing-unit' },
       { id: 'entry', mode: 'geometry', geometry: feature('Z', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry },
     ],
   });
-  assert.ok(report.issues.some(issue => issue.kind === 'invalid-sovereign'));
+  assert.ok(report.issues.some(issue => issue.kind === 'invalid-parent' && issue.entityRefs.includes('orphan')));
+  assert.ok(report.issues.some(issue => issue.kind === 'invalid-sovereign' && issue.entityRefs.includes('MISSING')));
   assert.ok(report.issues.some(issue => issue.kind === 'orphan-administrative'));
   assert.ok(report.issues.some(issue => issue.kind === 'missing-territorial-reference'));
   assert.equal(report.issues.filter(issue => issue.kind === 'duplicate-id').length, 2);
