@@ -129,7 +129,7 @@ test('live-wire accepts a current corner-pin mapping and traces/undoes/applies a
   await start.click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('armed');
   await expect(page.locator('#map')).toHaveClass(/is-reference-live-wire-mode/);
-  await page.locator('[data-ref-live-wire-action="cancel"]').click();
+  await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('idle');
 
   await start.click();
