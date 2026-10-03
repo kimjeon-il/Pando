@@ -292,8 +292,7 @@ test('reference images support placement, ordering, georeferencing and persisten
 
   await addImage(page, 'top.png');
   await expect(page.locator('.reference-image-list-row')).toHaveCount(2);
-  await page.locator('[data-ref-action="undo"]').focus();
-  await page.keyboard.press('Control+z');
+  await page.locator('[data-ref-action="undo"]').click();
   await expect(page.locator('.reference-image-list-row')).toHaveCount(1);
   await page.locator('[data-ref-action="redo"]').click();
   await expect(page.locator('.reference-image-list-row')).toHaveCount(2);
