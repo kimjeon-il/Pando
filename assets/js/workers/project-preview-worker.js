@@ -241,7 +241,9 @@ async function validateCache(project, baseline, cache) {
   return await cacheIntegrity(unpacked) === unpacked.integrity ? unpacked : null;
 }
 
-async function buildCache(project, baseline, features, territorialUnits) {
+async function buildCache(project, baseline, entities) {
+  const features = entities.filter(entity => entity.properties.unitType === 'country');
+  const territorialUnits = entities.filter(entity => entity.properties.unitType !== 'country');
   const [shared, geometryValidation, stroke, spatial, policy] = await modules;
   const key = await geometryKey(project, baseline);
   const current = features.map(feature => ({ type: 'Feature', id: String(feature.id),
@@ -250,7 +252,7 @@ async function buildCache(project, baseline, features, territorialUnits) {
     properties: { name: unit.properties?.name || '' }, geometry: unit.geometry }));
   const unitParents = new Map(territorialUnits.map(unit => [`unit:${unit.id}`,
     unit.properties?.parentId && territorialUnits.some(parent => String(parent.id) === String(unit.properties.parentId))
-      ? `unit:${unit.properties.parentId}` : String(unit.properties?.sovereignId || unit.properties?.parentId || '')]));
+      ? `unit:${unit.properties.parentId}` : String(unit.properties?.parentId || '')]));
   const originalById = new Map([...current, ...units].map(feature => [String(feature.id), feature.geometry]));
   const requiredContainment = [...unitParents].filter(([id, parentId]) => {
     const child = originalById.get(id), parent = originalById.get(parentId);
@@ -296,11 +298,11 @@ async function buildCache(project, baseline, features, territorialUnits) {
 }
 
 self.onmessage = async event => {
-  const { id, type, project, baseline, cache, features, territorialUnits } = event.data || {};
+  const { id, type, project, baseline, cache, entities } = event.data || {};
   try {
     const result = type === 'key' ? await geometryKey(project, baseline)
       : type === 'validate' ? await validateCache(project, baseline, cache)
-        : type === 'build' ? await buildCache(project, baseline, features || [], territorialUnits || [])
+        : type === 'build' ? await buildCache(project, baseline, entities || [])
           : null;
     self.postMessage({ id, ok: true, result });
   } catch (error) {

@@ -215,14 +215,13 @@ function writeAtlasTables(db, payload) {
     { name: 'topology_group' }, { name: 'land_binding' }, { name: 'color' }, { name: 'notes' }, { name: 'locked', type: 'INTEGER' }, { name: 'properties_json' },
   ];
   if (gisMode && includes('countries')) {
-    const overrides = state.countryOverrides || {};
-    const countryRows = (state.countriesData?.features || []).map(feature => {
+    const countryRows = (state.territorialEntities || []).filter(entity => entity.properties.unitType === 'country').map(feature => {
       const properties = feature.properties || {};
       const id = String(feature?.id || '');
       return {
         geometry: feature.geometry,
         pandolab_id: id,
-        pandolab_name: overrides[id]?.name || properties.name || id,
+        pandolab_name: properties.name || id,
         valid_from: properties.validFrom || null,
         valid_to: properties.validTo || null,
       };
@@ -239,7 +238,7 @@ function writeAtlasTables(db, payload) {
     createFeatureTable(db, { tableName: 'generic_features_polygon', geometryType: 'MULTIPOLYGON', rows: polygons, columns: genericFeatureColumns, description: 'PandoLab polygon generic features' });
   }
   const territorialColumns = [
-    { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'sovereign_id' },
+    { name: 'id' }, { name: 'name' }, { name: 'type' }, { name: 'parent_id' }, { name: 'associated_country_id' },
     { name: 'valid_from' }, { name: 'valid_to' },
     { name: 'color' }, { name: 'style_key' }, { name: 'source_library_id' }, { name: 'source_geometry_version' },
     { name: 'metadata_json' }, { name: 'properties_json' },
@@ -266,7 +265,6 @@ function writeAtlasTables(db, payload) {
   if (gisMode) return;
   createAttributeTable(db, 'pandolab_project_settings', 'setting_key TEXT PRIMARY KEY NOT NULL, json_value TEXT NOT NULL', 'PandoLab project settings');
   const settings = { ...state };
-  delete settings.countriesData;
   delete settings.countryAssets;
   delete settings.hydroCollections;
   db.run('INSERT INTO pandolab_project_settings (setting_key, json_value) VALUES (?, ?)', ['project_state', JSON.stringify(settings)]);

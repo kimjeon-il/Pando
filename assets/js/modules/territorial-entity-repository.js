@@ -1,112 +1,32 @@
-import { normalizeTemporalInterval } from './temporal.js';
-import {
-  TERRITORIAL_COVERAGE_MODES,
-  TERRITORIAL_SCHEMA_VERSION,
-  TERRITORIAL_UNIT_TYPES,
-} from './territorial-units.js';
+import { administrativeCountryId } from './territorial-units.js';
 
 const text = value => String(value ?? '').trim();
 
-/** Country projection: detached common properties, shared canonical geometry.
- * Publish changes through the Store, never by mutating this read projection.
- */
-export function createCountryTerritorialEntity(feature, override = {}) {
-  if (!feature?.geometry) return null;
-  const properties = feature.properties || {};
-  const id = text(feature.id);
-  if (!id) return null;
-  const interval = normalizeTemporalInterval(properties.validFrom, properties.validTo);
-  const color = text(override.color);
-  const metadata = {};
-  const capital = text(override.capital);
-  if (capital) metadata.capital = capital;
-  if (Object.hasOwn(override, 'flagDataUrl')) {
-    const flagDataUrl = override.flagDataUrl === null ? null : text(override.flagDataUrl);
-    if (flagDataUrl === null || flagDataUrl) metadata.flagDataUrl = flagDataUrl;
-  }
-  return {
-    type: 'Feature',
-    id,
-    properties: {
-      schemaVersion: TERRITORIAL_SCHEMA_VERSION,
-      unitType: TERRITORIAL_UNIT_TYPES.COUNTRY,
-      name: text(override.name || properties.name || id),
-      parentId: '',
-      sovereignId: id,
-      coverageMode: TERRITORIAL_COVERAGE_MODES.EXPLICIT,
-      style: color ? { color } : {},
-      locked: override.locked === true,
-      validFrom: interval.validFrom,
-      validTo: interval.validTo,
-      notes: text(override.notes),
-      metadata,
-      sourceFolderId: '',
-      sourceLibraryId: '',
-      sourceGeometryVersion: '',
-    },
-    geometry: feature.geometry,
-  };
-}
-
-/** Reads countries and units through one hierarchy; owns only derived indexes.
- * Production injects the Store. Explicit providers support detached validation.
- */
+/** Owns hierarchy indexes over common Store read projections. */
 export function createTerritorialEntityRepository({
-  entityStore = null,
-  getCountries = entityStore?.countriesData,
-  getUnits = entityStore?.units,
-  getCountryOverride = entityStore?.countryOverride || (() => ({})),
-  getRevision = () => null,
-}) {
-  if (entityStore && (typeof entityStore.countriesData !== 'function'
-    || typeof entityStore.units !== 'function'
-    || typeof entityStore.countryOverride !== 'function')) {
-    throw new TypeError('영역 엔티티 Store가 공통 읽기 계약을 제공하지 않습니다.');
-  }
-  if (typeof getCountries !== 'function' || typeof getUnits !== 'function') {
-    throw new TypeError('영역 엔티티 Repository에는 국가와 하위 영역 공급자가 필요합니다.');
-  }
-
+  entityStore,
+  getEntities = entityStore?.snapshot,
+} = {}) {
+  if (typeof getEntities !== 'function') throw new TypeError('영역 엔티티 Repository에는 공통 엔티티 공급자가 필요합니다.');
   let cached = null;
-
   function snapshot() {
-    const countryFeatures = getCountries()?.features || [];
-    const unitValues = Array.isArray(getUnits()) ? getUnits() : [];
-    const revision = getRevision();
-    if (revision != null && cached
-      && cached.revision === revision
-      && cached.countryFeatures === countryFeatures
-      && cached.unitValues === unitValues) {
-      return cached.state;
-    }
-
-    const values = [
-      ...countryFeatures
-        .map(feature => createCountryTerritorialEntity(feature, getCountryOverride(text(feature?.id))))
-        .filter(Boolean),
-      ...unitValues,
-    ];
-    const byId = new Map();
-    const childrenByParent = new Map();
+    const values = getEntities();
+    if (!Array.isArray(values)) throw new TypeError('영역 엔티티 공급자는 배열을 반환해야 합니다.');
+    if (cached?.values === values) return cached;
+    const byId = new Map(), childrenByParent = new Map();
     for (const entity of values) {
       const id = text(entity?.id);
       if (!id) throw new Error('영역 엔티티 ID가 비어 있습니다.');
       if (byId.has(id)) throw new Error(`영역 엔티티 ID가 중복되었습니다: ${id}`);
       byId.set(id, entity);
-      const parentId = text(entity?.properties?.parentId);
-      if (!parentId) continue;
-      const children = childrenByParent.get(parentId) || [];
-      children.push(entity);
-      childrenByParent.set(parentId, children);
+      const parentId = text(entity.properties?.parentId);
+      if (parentId) {
+        const children = childrenByParent.get(parentId) || [];
+        children.push(entity); childrenByParent.set(parentId, children);
+      }
     }
-    const state = { values, byId, childrenByParent };
-    cached = revision == null ? null : {
-      revision,
-      countryFeatures,
-      unitValues,
-      state,
-    };
-    return state;
+    cached = { values, byId, childrenByParent, lists: new Map() };
+    return cached;
   }
 
   const entityFrom = (state, id) => state.byId.get(text(id)) || null;
@@ -128,8 +48,14 @@ export function createTerritorialEntityRepository({
     parentId = null,
     administrativeCountryId = null,
   } = {}) {
-    let values = snapshot().values;
-    if (type) values = values.filter(entity => entity.properties?.unitType === type);
+    const state = snapshot();
+    const cacheKey = JSON.stringify([type, parentId, administrativeCountryId]);
+    if (state.lists.has(cacheKey)) return state.lists.get(cacheKey);
+    let values = state.values;
+    if (type) {
+      const types = new Set(Array.isArray(type) ? type : [type]);
+      values = values.filter(entity => types.has(entity.properties?.unitType));
+    }
     if (parentId !== null) {
       const key = text(parentId);
       values = values.filter(entity => text(entity.properties?.parentId) === key);
@@ -137,8 +63,9 @@ export function createTerritorialEntityRepository({
     const countryId = administrativeCountryId;
     if (countryId !== null) {
       const key = text(countryId);
-      values = values.filter(entity => text(entity.properties?.sovereignId) === key);
+      values = values.filter(entity => text(administrativeCountryFrom(state, entity.id)?.id) === key);
     }
+    state.lists.set(cacheKey, values);
     return values;
   }
 
@@ -158,7 +85,6 @@ export function createTerritorialEntityRepository({
     if (!entity) return [];
     const parentId = text(entity.properties?.parentId);
     const unitType = entity.properties?.unitType;
-    const sovereignId = text(entity.properties?.sovereignId);
     const values = parentId
       ? [...(state.childrenByParent.get(parentId) || [])]
       : state.values.filter(candidate => !text(candidate.properties?.parentId));
@@ -166,8 +92,6 @@ export function createTerritorialEntityRepository({
       if (text(candidate.id) === text(entity.id)) return false;
       if (type && candidate.properties?.unitType !== type) return false;
       if (!type && candidate.properties?.unitType !== unitType) return false;
-      if (unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT
-        && text(candidate.properties?.sovereignId) !== sovereignId) return false;
       return true;
     });
   }
@@ -220,19 +144,18 @@ export function createTerritorialEntityRepository({
     }
   }
 
-  function administrativeCountry(id) {
-    const state = snapshot();
+  function administrativeCountryFrom(state, id) {
     const entity = entityFrom(state, id);
     if (!entity) return null;
-    if (entity.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) return entity;
-    const countryId = text(entity.properties?.sovereignId);
+    const countryId = administrativeCountryId(entity, key => entityFrom(state, key));
     if (!countryId) return null;
     const countryEntity = entityFrom(state, countryId);
-    if (!countryEntity) throw new Error(`${text(entity.id)}의 소속 국가 ${countryId}이 존재하지 않습니다.`);
-    if (countryEntity.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      throw new Error(`${text(entity.id)}의 sovereignId는 국가를 가리켜야 합니다: ${countryId}`);
-    }
+    if (!countryEntity || countryEntity.properties.unitType !== 'country') throw new Error('연결 국가가 존재하지 않습니다: ' + countryId);
     return countryEntity;
+  }
+
+  function administrativeCountry(id) {
+    return administrativeCountryFrom(snapshot(), id);
   }
 
   return Object.freeze({

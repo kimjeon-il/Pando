@@ -69,11 +69,13 @@ export function createGenericCommands() {
       payload: { sourceIds, transferredGeometry, newFeature: country },
       snapshot,
       applyResult: result => {
+        dependencies.territorialModel.entityStore.transaction(() => {
         (0, dependencies.cutOperations.applyWorkerCountryPatches)(result, { presentation: 'preserve-existing-scene' });
         if (feature.properties?.color) {
           dependencies.territorialModel.entityStore.setField('country', country.id, 'color', feature.properties.color);
         }
         (0, dependencies.landRelations.transferLandDependents)(transferredGeometry, sourceIds, country.id, [feature.id]);
+        });
         dependencies.projectState.state.genericFeatures = dependencies.projectState.state.genericFeatures.filter(item => String(item.id) !== String(feature.id));
         dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
         (0, dependencies.countryValidation.refreshCountryCentroids)(new Set(result.affectedIds));
@@ -173,21 +175,18 @@ export function createGenericCommands() {
         const unitType = target === 'subunit' ? dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT : dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION;
         const unit = (0, dependencies.territorialServicesA.createTerritorialFeature)({
           id: (0, dependencies.surfaces.uid)(unitType), unitType, name, geometry: (0, dependencies.platform.deepClone)(feature.geometry),
-          sovereignId: String(country.id), parentId: target === 'subunit' ? String(country.id) : '',
+          associatedCountryId: target === 'region' ? String(country.id) : '', parentId: target === 'subunit' ? String(country.id) : '',
           coverageMode: dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT, color,
           validFrom: feature.properties?.validFrom ?? null, validTo: feature.properties?.validTo ?? null,
           notes: String(feature.properties?.notes || ''), metadata: legacyGenericMetadata(feature),
         });
         dependencies.domains.projectDomain.recordHistory({ type: 'generic-convert-territorial', affectedIds: [String(feature.id), String(unit.id)] });
-        dependencies.territorialModel.entityStore.replaceCollections({ units:
-          (0, dependencies.territorialModel.normalizeTerritorialUnits)(
-            [...dependencies.territorialModel.entityStore.units(), unit],
+        dependencies.territorialModel.entityStore.replaceEntities((0, dependencies.territorialModel.normalizeTerritorialEntities)(
+            [...dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }), unit],
             {
-              countryExists: id => dependencies.territorialModel.entityRepository.get(id)?.properties?.unitType
-                === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY,
+              getEntity: id => dependencies.territorialModel.entityRepository.get(id),
             },
-          ),
-         });
+          ), { types: ['subunit', 'region'] });
         removeGenericFeatureAfterConversion(feature);
         (0, dependencies.layers.markLayerTreeDirty)();
         dependencies.domains.projectDomain.queueAutosave();

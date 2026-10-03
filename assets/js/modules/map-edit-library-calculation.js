@@ -1,3 +1,4 @@
+import { administrativeCountryId } from './territorial-units.js';
 import { normalizePolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, featureId } from './map-edit-geometry.js';
 import { createCountryImportMergePlanner } from './import-service.js';
 import { validateCollection } from './gis-geometry-validation.js';
@@ -30,9 +31,10 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
     await checkpoint();
   };
   for (const feature of payload.countries) await merge(feature);
+  const all = new Map([...originals, ...existingUnits, ...payload.countries, ...payload.units].map(feature => [featureId(feature), feature]));
   const units = payload.units, unitIds = new Set(units.map(featureId)), groups = new Map();
   for (const unit of units.filter(unit => unit.properties.unitType === 'subunit' && !unitIds.has(String(unit.properties.parentId)))) {
-    const id = String(unit.properties.sovereignId);
+    const id = administrativeCountryId(unit, id => all.get(id));
     if (!groups.has(id)) groups.set(id, []);
     groups.get(id).push(unit.geometry);
   }
@@ -47,7 +49,7 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
   const byId = new Map([...draft.features, ...existingUnits, ...units].map(feature => [featureId(feature), feature]));
   for (const unit of units.filter(unit => unit.properties.unitType === 'subunit')) {
     const parent = byId.get(String(unit.properties.parentId));
-    if (!parent || !draft.features.some(country => featureId(country) === String(unit.properties.sovereignId))
+    if (!parent || !draft.features.some(country => featureId(country) === administrativeCountryId(unit, id => byId.get(id)))
       || clipper.difference(multiCoordinates(unit.geometry), multiCoordinates(parent.geometry)).length) throw new Error(`${unit.properties.name}: 상위 단위에 포함되지 않습니다.`);
   }
   if (validateCollection(draft, [...affected], clipper).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');

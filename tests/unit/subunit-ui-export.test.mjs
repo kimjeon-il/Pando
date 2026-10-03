@@ -24,8 +24,8 @@ test('subunit-only GeoJSON export writes one layer and omits administrative fiel
     vm.runInContext(read(`assets/js/${file}`), context);
   }
   const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
-  const project = { territorialUnits: [{ type: 'Feature', id: 's', geometry,
-    properties: { unitType: 'subunit', name: '자치령', parentId: 'C', sovereignId: 'C', adminLevel: null } }] };
+  const project = { territorialEntities: [{ type: 'Feature', id: 's', geometry,
+    properties: { schemaVersion: 3, unitType: 'subunit', name: '자치령', parentId: 'C', associatedCountryId: '', coverageMode: 'explicit' } }] };
   const result = await context.PandoLabGIS.exportGeoJsonBundle(project, ['subunits']);
   assert.equal(result.manifest.layers.length, 1);
   assert.equal(result.manifest.layers[0].category, 'subunits');

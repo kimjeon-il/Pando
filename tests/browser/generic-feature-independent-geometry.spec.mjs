@@ -23,7 +23,7 @@ test('restored generic geometry ignores source ownership metadata', async ({ pag
       await import('/assets/js/modules/version-contract.js');
     const { assertCurrentProjectSchema } = await import('/assets/js/modules/project-state.js');
     const saved = { format: 'pandolab-autosave-delta', schemaVersion: PROJECT_SCHEMA_VERSION,
-      version: '0.34.0', savedAt: '2026-10-01T00:00:00Z', countryDelta: { changed: [], removedIds: [] },
+      version: '0.34.0', savedAt: '2026-10-01T00:00:00Z', entityDelta: { changed: [], removedIds: [] },
       landObjectModel: { schemaVersion: 2, purpose: 'lossless-fallback', directCreation: false,
         coastlineAuthority: 'countries', sourceProvenanceSchemaVersion: 1 },
       territorialModel: { schemaVersion: 2 }, distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION },

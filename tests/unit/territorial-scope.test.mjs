@@ -1,3 +1,4 @@
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -17,7 +18,6 @@ test('territorial scope reads the administrative hierarchy from the common entit
     id: 'a1',
     unitType: 'subunit',
     parentId: 'A',
-    sovereignId: 'A',
     color: '#123456',
     geometry: square(1, 1, 8, 8),
   });
@@ -25,7 +25,6 @@ test('territorial scope reads the administrative hierarchy from the common entit
     id: 'a2',
     unitType: 'subunit',
     parentId: 'a1',
-    sovereignId: 'A',
     geometry: square(2, 2, 4, 4),
   });
   const region = createTerritorialFeature({
@@ -34,11 +33,10 @@ test('territorial scope reads the administrative hierarchy from the common entit
     coverageMode: 'explicit',
     geometry: square(20, 20, 30, 30),
   });
-  const repository = createTerritorialEntityRepository({
-    getCountries: () => ({ features: [country] }),
-    getUnits: () => [parent, child, region],
-    getRevision: () => 1,
-  });
+  const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => {
+    const countriesData = (() => ({ features: [country] }))();
+    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,unitType:'country',name:feature.properties.name,geometry:feature.geometry})),...[parent, child, region]],stateRevision:1};
+  } }) });
   const resolver = createTerritorialScopeResolver({
     entityRepository: repository,
     countryColor: entity => entity.id === 'A' ? '#abcdef' : '',
@@ -62,13 +60,11 @@ test('territorial scope inherits country color without treating regions as admin
     id: 'a1',
     unitType: 'subunit',
     parentId: 'A',
-    sovereignId: 'A',
     geometry: square(1, 1, 8, 8),
   });
-  const repository = createTerritorialEntityRepository({
-    getCountries: () => ({ features: [country] }),
-    getUnits: () => [child],
-    getRevision: () => 1,
-  });
+  const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => {
+    const countriesData = (() => ({ features: [country] }))();
+    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,unitType:'country',name:feature.properties.name,geometry:feature.geometry})),...[child]],stateRevision:1};
+  } }) });
   assert.equal(resolveTerritorialColor(child, { entityRepository: repository, countryColor: () => '#abcdef' }), '#abcdef');
 });

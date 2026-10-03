@@ -1,8 +1,8 @@
+import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createCountryCommits } from '../../assets/js/modules/app-country-commits.js';
-import { createCountryTerritorialEntity } from '../../assets/js/modules/territorial-entity-repository.js';
 import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
 import { buildGeometryPreview } from '../../assets/js/modules/geometry-preview.js';
@@ -16,10 +16,10 @@ const box = (x0, y0, x1, y1) => ({
 });
 
 function harness(kind) {
-  const features = [
+  const features = normalizeCountryCollection({ features: [
     { type: 'Feature', id: 'T', properties: { name: 'Target' }, geometry: box(-3, 0, -2, 10) },
     { type: 'Feature', id: 'D', properties: { name: 'Donor' }, geometry: box(0, 0, 10, 10) },
-  ];
+  ] }).features;
   const session = {
     id: 'selection-1', kind, stage: 'selection', activePhase: 'candidate',
     targetCountryId: 'T', sourceCountryIds: ['D'], generatedId: 'USR-new', name: '새 국가',
@@ -28,7 +28,7 @@ function harness(kind) {
   };
   const state = {
     territorySelectionSession: session,
-    countriesData: { type: 'FeatureCollection', features },
+    territorialEntities: features,
     geometryPreview: { session: null },
   };
   const requests = [];
@@ -38,7 +38,7 @@ function harness(kind) {
     entityRepository: {
       get(id) {
         const feature = features.find(candidate => String(candidate.id) === String(id));
-        return feature ? createCountryTerritorialEntity(feature) : null;
+        return feature || null;
       },
     },
     TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },

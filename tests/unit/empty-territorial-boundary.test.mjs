@@ -15,28 +15,28 @@ const polygon = (id, coordinates, properties = {}) => ({
   geometry: { type: 'Polygon', coordinates: [coordinates] },
 });
 
-const country = (id = 'A') => polygon(id, [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]);
+const country = (id = 'A') => polygon(id, [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], { unitType: 'country' });
 const leftUnit = (id, properties) => polygon(id, [[0, 0], [2, 0], [2, 4], [0, 4], [0, 0]], properties);
 const rightUnit = (id, properties) => polygon(id, [[2, 0], [4, 0], [4, 4], [2, 4], [2, 0]], properties);
 const internalSegments = (countries, units) => buildTerritorialInternalBoundarySegments(countries, units)
   .filter(segment => segment.a[0] === 2 && segment.b[0] === 2);
 
-test('same-sovereign subunits preserve both owners and use the short dashed boundary style', () => {
+test('subunits with the same administrative country preserve both owners and use the short dashed boundary style', () => {
   const segments = internalSegments([country()], [
-    leftUnit('left', { unitType: 'subunit', sovereignId: 'A' }),
-    rightUnit('right', { unitType: 'subunit', sovereignId: 'A' }),
+    leftUnit('left', { unitType: 'subunit', parentId: 'A' }),
+    rightUnit('right', { unitType: 'subunit', parentId: 'A' }),
   ]);
   assert.equal(segments.length, 1);
   assert.equal(segments[0].styleType, 'subunit-internal');
   assert.deepEqual(segments[0].unitOwners, [
-    { id: 'left', unitType: 'subunit', sovereignId: 'A' },
-    { id: 'right', unitType: 'subunit', sovereignId: 'A' },
+    { id: 'left', unitType: 'subunit', countryId: 'A' },
+    { id: 'right', unitType: 'subunit', countryId: 'A' },
   ]);
 });
 
 test('a one-sided subunit perimeter inside its sovereign uses the same short dashed style', () => {
   const segments = internalSegments([country()], [
-    leftUnit('left', { unitType: 'subunit', sovereignId: 'A' }),
+    leftUnit('left', { unitType: 'subunit', parentId: 'A' }),
   ]);
   assert.equal(segments.length, 1);
   assert.equal(segments[0].styleType, 'subunit-internal');
@@ -45,29 +45,27 @@ test('a one-sided subunit perimeter inside its sovereign uses the same short das
 test('valid cross-sovereign unit edges are left to the country boundary renderer', () => {
   const countries = [country('A'), country('B')];
   const segments = internalSegments(countries, [
-    leftUnit('left', { unitType: 'subunit', sovereignId: 'A' }),
-    rightUnit('right', { unitType: 'subunit', sovereignId: 'B' }),
+    leftUnit('left', { unitType: 'subunit', parentId: 'A' }),
+    rightUnit('right', { unitType: 'subunit', parentId: 'B' }),
   ]);
   assert.deepEqual(segments, []);
 });
 
-test('region styling wins inside one sovereign and invalid legacy ownership keeps the solid fallback', () => {
+test('region styling uses its explicit country association and missing parents fail visibly', () => {
   const regionSegments = internalSegments([country()], [
-    leftUnit('left', { unitType: 'subunit', sovereignId: 'A' }),
-    rightUnit('right', { unitType: 'region', sovereignId: 'A' }),
+    leftUnit('left', { unitType: 'subunit', parentId: 'A' }),
+    rightUnit('right', { unitType: 'region', associatedCountryId: 'A' }),
   ]);
   assert.equal(regionSegments.length, 1);
   assert.equal(regionSegments[0].styleType, 'region');
 
-  const legacySegments = internalSegments([country()], [
-    leftUnit('legacy', { unitType: 'subunit', sovereignId: 'missing' }),
-  ]);
-  assert.equal(legacySegments.length, 1);
-  assert.equal(legacySegments[0].styleType, 'subunit');
+  assert.throws(() => internalSegments([country()], [
+    leftUnit('invalid', { unitType: 'subunit', parentId: 'missing' }),
+  ]), /부모/);
 });
 
 test('country exteriors are not duplicated by territorial boundary segments', () => {
   assert.deepEqual(buildTerritorialInternalBoundarySegments([country()], [
-    polygon('whole', [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], { unitType: 'subunit', sovereignId: 'A' }),
+    polygon('whole', [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], { unitType: 'subunit', parentId: 'A' }),
   ]), []);
 });

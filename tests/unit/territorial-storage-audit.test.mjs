@@ -4,18 +4,18 @@ import { auditTerritorialStorage, unclassifiedTerritorialAccesses } from '../../
 
 const writes = source => auditTerritorialStorage(source).filter(entry => entry.access === 'write');
 test('a classified reader cannot write and a neighbouring unclassified function cannot borrow its exception', () => {
-  const entries = auditTerritorialStorage('function read(state) { state.territorialUnits.push({}); } function other(state) { return state.countriesData; }', 'app.js');
+  const entries = auditTerritorialStorage('function read(state) { state.territorialEntities.push({}); } function other(state) { return state.territorialEntities; }', 'app.js');
   const failures = unclassifiedTerritorialAccesses(entries, { owners: [{ file: 'app.js', functions: ['read'], access: ['read'] }] });
   assert.equal(failures.length, 2);
   assert.deepEqual(failures.map(entry => [entry.function, entry.access]).sort(), [['other', 'read'], ['read', 'write']]);
 });
 test('storage audit follows destructuring, local array/entity aliases and optional chains', () => {
   const found = writes(`function bad(state) {
-    const { territorialUnits: units } = state;
+    const { territorialEntities: units } = state;
     units.push({});
     const feature = units.find(item => item.id === 'A');
     feature.geometry = {};
-    const countries = state?.countriesData?.features;
+    const countries = state?.territorialEntities;
     countries.splice(0, 1);
     for (const country of countries) country.properties.name = 'changed';
     Object.assign(feature.properties, { name: 'changed' });
@@ -25,15 +25,15 @@ test('storage audit follows destructuring, local array/entity aliases and option
 });
 test('storage audit distinguishes detached containers, shared elements, deep copies and local rebinding', () => {
   const found = writes(`function edit(state) {
-    const countries = state.countriesData.features.slice();
+    const countries = state.territorialEntities.slice();
     countries.push({});
     countries[0].geometry = {};
-    const copied = structuredClone(state.countriesData);
-    copied.features.push({});
-    let item = state.territorialUnits[0];
+    const copied = structuredClone(state.territorialEntities);
+    copied.push({});
+    let item = state.territorialEntities[0];
     item = { properties: {} };
     item.properties.name = 'detached';
-    state.territorialUnits.map(item => ({ ...item })).push({});
+    state.territorialEntities.map(item => ({ ...item })).push({});
   }`);
   // A copied array still aliases its original elements.
   assert.equal(found.length, 1);
@@ -43,8 +43,8 @@ test('store/repository getters and scope shadowing cannot hide illegal mutations
   const found = writes(`function bad(entityStore, entityRepository, state) {
     const item = entityRepository.get('A');
     item.geometry = {};
-    (0, entityStore.units)().push(item);
-    const units = state.territorialUnits;
+    (0, entityStore.snapshot)().push(item);
+    const units = state.territorialEntities;
     function unrelated() { const units = []; units.push({}); }
     unrelated();
     units.reverse();
@@ -55,11 +55,11 @@ test('store/repository getters and scope shadowing cannot hide illegal mutations
 
 test('nested destructuring and local returned/getter aliases remain tracked', () => {
   assert.equal(writes(`function bad(state, entityStore) {
-    const { countriesData: { features } } = state;
+    const { territorialEntities: features } = state;
     features.pop();
-    const getUnits = entityStore.units;
+    const getUnits = entityStore.snapshot;
     getUnits().push({});
-    function selected() { return state.territorialUnits[0]; }
+    function selected() { return state.territorialEntities[0]; }
     selected().geometry = {};
   }`).length, 3);
 });

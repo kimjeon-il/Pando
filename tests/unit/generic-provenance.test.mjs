@@ -1,3 +1,4 @@
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertCurrentProjectSchema, PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/project-state.js';
@@ -12,9 +13,9 @@ import { normalizeGenericFeatureSemantics } from '../../assets/js/modules/generi
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 
 test('GIS committer requires the canonical store instead of creating a second state adapter', () => {
-  const state = {};
+  const state = { territorialEntities: [] };
   assert.throws(() => createGisImportTransactionCommitter({ state }), /엔티티 저장소/);
-  assert.deepEqual(state, {});
+  assert.deepEqual(state, { territorialEntities: [] });
 });
 
 test('generic GeoJSON reimport preserves provenance and arbitrary attributes while replacing only the internal ID', async () => {
@@ -23,10 +24,11 @@ test('generic GeoJSON reimport preserves provenance and arbitrary attributes whi
   const original = { type: 'Feature', id: uuid(10), geometry: { type: 'Point', coordinates: [1, 2] },
     properties: { schemaVersion: 2, name: 'River', notes: 'memo', color: '#123456', locked: false,
       source, custom: { rank: 2 } } };
-  const state = {};
+  const state = { territorialEntities: [] };
   let output;
+  const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
   const importer = createGisImportTransactionCommitter({ state, uid: () => uuid(11), deepClone: structuredClone,
-    entityStore: createTerritorialEntityStore({ getState: () => state }),
+    entityStore: fixtureEntityStore1, territorialEntityRepository: createTerritorialEntityRepository({ entityStore: fixtureEntityStore1 }),
     GENERIC_FEATURE_SCHEMA_VERSION: 2, DEFAULT_GENERIC_FEATURE_COLOR: '#999999', normalizeGenericFeatureSemantics,
     validateStructuredGeometry: () => [], genericFeatureService: { addMany: values => { output = values; } },
     activeLayerFolderKeys: () => ['genericFeatures'], markLayerTreeDirty() {}, setActionStatus() {} });
@@ -57,11 +59,11 @@ const project = feature => ({
     sourceProvenanceSchemaVersion: 1,
     canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
   },
-  territorialModel: { schemaVersion: 2 },
+  territorialModel: { schemaVersion: 3 },
   distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION },
   distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
   layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder: [], styles: {} },
-  countriesData: { type: 'FeatureCollection', features: [] },
+  territorialEntities: [],
   genericFeatures: feature ? [feature] : [],
 });
 
@@ -70,21 +72,12 @@ test('project schema accepts canonical Generic Feature v2 provenance', () => {
   assert.equal(assertCurrentProjectSchema(current), current);
 });
 
-test('project schema migrates Generic Feature v1 from project schema 3', () => {
+test('project schema rejects retired development formats without modifying input', () => {
   const legacy = project();
   legacy.schemaVersion = 3;
-  legacy.landObjectModel = { schemaVersion: 1, coastlineAuthority: 'countries', roles: ['generic'] };
-  legacy.genericFeatures = [{
-    type: 'Feature', id: uuid(1), geometry: { type: 'Point', coordinates: [1, 2] },
-    properties: { schemaVersion: 1, name: 'legacy', role: 'territory', ownerId: '', color: '#123456' },
-  }];
-  const result = assertCurrentProjectSchema(legacy);
-  assert.equal(result, legacy);
-  assert.equal(legacy.schemaVersion, PROJECT_SCHEMA_VERSION);
-  assert.equal(legacy.landObjectModel.schemaVersion, 2);
-  assert.equal(legacy.genericFeatures[0].properties.schemaVersion, 2);
-  assert.equal(legacy.genericFeatures[0].properties.source.kind, 'legacy');
-  assert.equal(legacy.genericFeatures[0].properties.source.details.legacyGenericSemantics.role, 'territory');
+  const before = structuredClone(legacy);
+  assert.throws(() => assertCurrentProjectSchema(legacy), /schemaVersion 3.*지원하지/);
+  assert.deepEqual(legacy, before);
 });
 
 test('invalid Generic Feature v2 provenance is rejected by schema and runtime invariants', () => {
@@ -102,14 +95,13 @@ test('serializer publishes Generic Feature as lossless fallback with provenance 
     baseDataset: 'base',
     genericFeatureSchemaVersion: 2,
     distributionSchemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION,
-    distributionTypes: ['language'],
     distributionModes: ['territorial', 'geometry'],
     terrainDataset: 'terrain',
     hydroDataset: 'hydro',
     readSnapshot: () => ({
-      countriesData: { type: 'FeatureCollection', features: [] },
+      territorialEntities: [],
       projectFields: { genericFeatures: [] },
-      countryDelta: { changed: [], removedIds: [] },
+      entityDelta: { changed: [], removedIds: [] },
       fullAutosave: false,
       terrainManifest: null,
       hydroManifest: null,

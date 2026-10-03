@@ -82,8 +82,7 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     boundaryEditPhase: 'selecting',
     boundaryEditEntityIds: [],
     boundaryPreparation: { status: 'ready', result: null },
-    countryOverrides: {},
-    territorialUnits: [],
+    territorialEntities: [],
     genericFeatures: [],
     modeProcessing: false,
     multiDraft: null,
@@ -99,7 +98,7 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
   const entityRepository = portOverrides.entityRepository || {
     get(id) {
       const key = String(id || '');
-      const unit = (state.territorialUnits || []).find(item => String(item?.id || '') === key);
+      const unit = (state.territorialEntities || []).find(item => String(item?.id || '') === key);
       if (unit) return unit;
       const country = countrySourceFeature(key);
       return country ? {
@@ -109,7 +108,7 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     },
   };
   const presentation = createTaskPresentation();
-  state.countriesData = { type: 'FeatureCollection', features: [countrySourceFeature('COUNTRY')].filter(Boolean) };
+  state.territorialEntities = [...state.territorialEntities, ...[countrySourceFeature('COUNTRY')].filter(Boolean).map(feature => ({ ...feature, properties: { ...feature.properties, unitType: 'country' } }))];
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   presentation.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
     state,
@@ -199,7 +198,7 @@ test('territory list uses the authoritative union, pending state and stable part
 test('task sync derives role cards without duplicate type labels or focusing the map', t => {
   const f = fixture(t, {
     boundaryEditEntityIds: ['SUB', 'COUNTRY', 'SUB'],
-    territorialUnits: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
+    territorialEntities: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
   });
   f.presentation.updateModeButtons();
   const cards = f.elements.modeTaskObjects.children.filter(item => item.className === 'workflow-object-card');
@@ -323,7 +322,7 @@ test('editable redraw with fewer than three vertices uses the precise redraw rea
     boundaryEditPhase: '',
     boundaryPreparation: null,
     territorialUnitRedrawSourceId: 'SUB',
-    territorialUnits: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
+    territorialEntities: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
   }, {
     describeTool: () => ({ name: '영역 다시 지정', stage: '영역 그리기' }),
     editingDraftSnapshot: () => ({

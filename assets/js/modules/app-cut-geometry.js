@@ -379,22 +379,8 @@ export function createCutGeometry() {
       return [String(next.id || ''), next];
     }));
     const removed = new Set((result.removedIds || []).map(String));
-    const nextFeatures = dependencies.territorialModel.entityStore.countriesData().features.flatMap(feature => {
-      const id = String(feature.id || '');
-      if (removed.has(id)) return [];
-      if (updates.has(id)) {
-        const next = updates.get(id);
-        updates.delete(id);
-        return [next];
-      }
-      return [feature];
-    });
-    for (const feature of updates.values()) nextFeatures.push(feature);
-    dependencies.territorialModel.entityStore.replaceCollections({
-      countriesData: {
-        type: 'FeatureCollection',
-        features: nextFeatures,
-      },
+    dependencies.territorialModel.entityStore.applyChanges({
+      features: [...updates.values()], removedIds: [...removed],
     });
     dependencies.geometryMutation.setApplyingWorkerResult(true);
     try {

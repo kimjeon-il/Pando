@@ -1,6 +1,8 @@
+import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { countryDisplayName, territorialSelectionStatus, defaultGeographicName } from '../../assets/js/modules/country-display.js';
+import { territorialSelectionStatus, defaultGeographicName } from '../../assets/js/modules/country-display.js';
 
 test('island names join the geographic suffix without stripping custom or compound names', () => {
   for (const [id, name] of [['ALD', '올란드'], ['FRO', '페로'], ['PCN', '핏케언'], ['MHL', '마셜'], ['CYM', '케이맨'], ['COK', '쿡'], ['SLB', '솔로몬'], ['FLK', '포클랜드'], ['MNP', '북마리아나'], ['CSI', '산호해']]) {
@@ -14,10 +16,10 @@ test('island names join the geographic suffix without stripping custom or compou
 
 test('default country names are updated without replacing custom names', () => {
   const turkey = { id: 'TUR', properties: { name: '터키' } };
-  assert.equal(countryDisplayName(turkey), '튀르키예');
-  assert.equal(countryDisplayName({ id: 'ESP', properties: { name: '스페인' } }), '에스파냐');
-  assert.equal(countryDisplayName(turkey, { name: '내 나라' }), '내 나라');
-  assert.equal(countryDisplayName({ id: 'TUR', properties: { name: '사용자 국명' } }), '사용자 국명');
+  assert.equal(readCountryName(turkey), '튀르키예');
+  assert.equal(readCountryName({ id: 'ESP', properties: { name: '스페인' } }), '에스파냐');
+  assert.equal(readCountryName(turkey, { name: '내 나라' }), '내 나라');
+  assert.equal(readCountryName({ id: 'TUR', properties: { name: '사용자 국명' } }), '사용자 국명');
 });
 test('selection status shows the name and optional area without a type prefix or internal ID', () => {
   const view = { id: 'TUR', displayName: '튀르키예' };
@@ -43,3 +45,11 @@ test('renaming changes only the presented name before and after area calculation
   assert.equal(renamed.id, original.id);
   assert.equal(original.displayName, '튀르키예');
 });
+
+function readCountryName(feature, override = {}) {
+  const normalized = normalizeCountryFeature({ ...feature, geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } });
+  const state = { territorialEntities: [normalized] };
+  const store = createTerritorialEntityStore({ getState: () => state });
+  if (Object.hasOwn(override, 'name')) store.setField('country', feature.id, 'name', override.name);
+  return store.snapshot()[0].properties.name;
+}

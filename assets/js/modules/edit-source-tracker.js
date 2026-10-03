@@ -11,7 +11,7 @@ export function createEditSourceTracker() {
       const key = `${kind}:${feature.id}`;
       const { geometry, ...metadata } = feature;
       const signature = JSON.stringify(metadata);
-      const semantic = JSON.stringify([kind, feature.properties?.unitType, feature.properties?.parentId, feature.properties?.sovereignId, feature.properties?.locked === true, feature.properties?.ownerId, feature.properties?.landBinding]);
+      const semantic = JSON.stringify([kind, feature.properties?.unitType, feature.properties?.parentId, feature.properties?.associatedCountryId, feature.properties?.locked === true, feature.properties?.ownerId, feature.properties?.landBinding]);
       const previous = sources.get(key);
       const shapeChanged = !previous || previous.geometry !== geometry || previous.geometryRevision !== geometryRevision;
       if (shapeChanged || previous?.semantic !== semantic) calculationChanged = true;

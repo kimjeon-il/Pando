@@ -527,7 +527,7 @@ export function createRenderingDomain({
     const types = t.TERRITORIAL_UNIT_TYPES || {};
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
     const displayedUnits = state.countryVisualPhase === 'preview' && state.auditPreviewTerritorialUnits
-      ? state.auditPreviewTerritorialUnits : state.territorialUnits || [];
+      ? state.auditPreviewTerritorialUnits : territorial.entityRepository.list({ type: ['subunit', 'region'] });
     const data = displayedUnits.filter(feature => {
       const group = feature.properties?.unitType === types.SUBUNIT ? 'subunits'
         : feature.properties?.unitType === types.REGION ? 'regions' : 'subunits';
@@ -683,7 +683,7 @@ export function createRenderingDomain({
     g.replaceGpuSceneDomain?.('generic-features', { polygons, strokes });
     return true;
   };
-  let distributionRenderRowCache = { layers: null, entries: null, countries: null, countryGeometryRevision: -1, territorialUnits: null, renderMode: '', selectedLayerId: '', visibilityRevision: -1, rows: Object.freeze([]), rebuildCount: 0, buildMs: 0 };
+  let distributionRenderRowCache = { layers: null, entries: null, entities: null, countryGeometryRevision: -1, renderMode: '', selectedLayerId: '', visibilityRevision: -1, rows: Object.freeze([]), rebuildCount: 0, buildMs: 0 };
   const buildDistributionRenderRows = () => {
     const d = distribution;
     const state = d.getState?.() || {};
@@ -695,9 +695,8 @@ export function createRenderingDomain({
     const countryRevision = d.getCountryGeometryRevision?.() ?? 0;
     const cacheCurrent = distributionRenderRowCache.layers === state.distributionLayers
       && distributionRenderRowCache.entries === state.distributionEntries
-      && distributionRenderRowCache.countries === state.countriesData?.features
+      && distributionRenderRowCache.entities === state.territorialEntities
       && distributionRenderRowCache.countryGeometryRevision === countryRevision
-      && distributionRenderRowCache.territorialUnits === state.territorialUnits
       && distributionRenderRowCache.renderMode === renderMode
       && distributionRenderRowCache.selectedLayerId === selectedLayerId
       && distributionRenderRowCache.visibilityRevision === visibilityRevision;
@@ -718,8 +717,8 @@ export function createRenderingDomain({
       return Object.freeze({ id: entry.id, layer, entry, range: ranges.get(layer.id),
         geometry, bounds: d.geometryBounds?.(geometry), type: 'Feature' });
     })).filter(Boolean);
-    distributionRenderRowCache = { layers: state.distributionLayers, entries: state.distributionEntries, countries: state.countriesData?.features,
-      countryGeometryRevision: countryRevision, territorialUnits: state.territorialUnits, renderMode, selectedLayerId, visibilityRevision,
+    distributionRenderRowCache = { layers: state.distributionLayers, entries: state.distributionEntries, entities: state.territorialEntities,
+      countryGeometryRevision: countryRevision, renderMode, selectedLayerId, visibilityRevision,
       rows: Object.freeze(rows), rebuildCount: distributionRenderRowCache.rebuildCount + 1, buildMs: (globalThis.performance?.now?.() || Date.now()) - started };
     return distributionRenderRowCache.rows;
   };
@@ -799,9 +798,9 @@ export function createRenderingDomain({
     const t = territorialBoundary;
     const state = t.getState?.() || {};
     const countries = state.countryVisualPhase === 'preview' && state.auditPreviewCountries
-      ? state.auditPreviewCountries.features || [] : state.countriesData?.features || [];
+      ? state.auditPreviewCountries.features || [] : territorial.entityRepository.list({ type: 'country' });
     const units = state.countryVisualPhase === 'preview' && state.auditPreviewTerritorialUnits
-      ? state.auditPreviewTerritorialUnits : state.territorialUnits || [];
+      ? state.auditPreviewTerritorialUnits : territorial.entityRepository.list({ type: ['subunit', 'region'] });
     const revision = t.getTerritorialGeometryRevision?.() ?? 0;
     if (!units.some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) {
       const hadBoundaries = territorialBoundaryCache.segments.length || territorialBoundaryBatchCache.groups.length;
@@ -815,7 +814,7 @@ export function createRenderingDomain({
       t.getCountryLandRevision?.() ?? 0,
       revision,
       countries.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry)]),
-      units.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry), String(feature?.properties?.unitType || ''), String(feature?.properties?.sovereignId || ''), String(feature?.properties?.parentId || '')]),
+      units.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry), String(feature?.properties?.unitType || ''), String(feature?.properties?.associatedCountryId || ''), String(feature?.properties?.parentId || '')]),
     ]);
     if (territorialBoundaryCache.countries !== countries || territorialBoundaryCache.units !== units
       || territorialBoundaryCache.revision !== revision || territorialBoundaryCache.inputSignature !== inputSignature) {
@@ -1341,7 +1340,7 @@ export function createRenderingDomain({
   };
   const selectionGeometryRevision = (key, role = 'outline', feature = null) => {
     const state = selection.getState?.() || {};
-    const source = feature?.geometry || (key.startsWith('country:') ? state.countriesData?.features?.find(item => String(item.id) === key.slice(8))?.geometry : null);
+    const source = feature?.geometry || (key.startsWith('country:') ? state.territorialEntities?.filter(feature => feature.properties.unitType === 'country')?.find(item => String(item.id) === key.slice(8))?.geometry : null);
     if (source) {
       if (!fallbackGeometryIds.has(source)) fallbackGeometryIds.set(source, ++fallbackGeometryId);
       return `${key}:${role}:geometry-${fallbackGeometryIds.get(source)}:${readGeometryRevision(source)}`;
@@ -1598,7 +1597,7 @@ export function createRenderingDomain({
       const cached = selectionBoundaryGeometryCache.get(revision);
       if (cached) return { feature: cached, revision, owned: true };
       if (prepareEditDisplay && !pendingHighlights.has(revision)) {
-        const sourceKey = object => `${object.domain === 'territorial' && object.type === selection.countryType ? 'country' : object.domain}:${object.id}`;
+        const sourceKey = object => `${object.domain}:${object.id}`;
         const pending = prepareEditDisplay({ kind: 'highlight', ...((ref.scopeFeature || ref.domain === 'hydro') ? { feature } : { featureKey: sourceKey(ref) }),
           occluders: owners.map(item => (item.ref.scopeFeature || item.ref.domain === 'hydro') ? { feature: item.feature } : { key: sourceKey(item.ref) }) }, { jobKey: `edit-display:highlight:${ref.key}` });
         pendingHighlights.set(revision, pending);

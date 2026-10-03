@@ -1,17 +1,17 @@
 import { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
 export { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
 
-export const PROJECT_PREVIEW_ALGORITHM_REVISION = 'project-topology-1';
+export const PROJECT_PREVIEW_ALGORITHM_REVISION = 'project-topology-2';
 export const PROJECT_PREVIEW_MAX_BYTES = 16 * 1024 * 1024;
 
 export function projectPreviewGeometryRows(project) {
-  const countries = project?.countriesData?.features || project?.countryDelta?.changed || [];
-  const removed = project?.countryDelta?.removedIds || [];
+  const countries = (project?.territorialEntities || project?.entityDelta?.changed || []).filter(feature => feature.properties?.unitType === 'country');
+  const removed = project?.entityDelta?.removedIds || [];
   return {
     countries: countries.map(feature => [String(feature.id), feature.geometry]).sort((a, b) => a[0].localeCompare(b[0])),
     removed: removed.map(String).sort(),
-    units: (project?.territorialUnits || []).map(unit => [String(unit.id), unit.properties?.unitType || '',
-      String(unit.properties?.parentId || ''), String(unit.properties?.sovereignId || ''), unit.geometry])
+    units: ((project?.territorialEntities || project?.entityDelta?.changed || []).filter(feature => feature.properties?.unitType !== 'country')).map(unit => [String(unit.id), unit.properties?.unitType || '',
+      String(unit.properties?.parentId || ''), String(unit.properties?.associatedCountryId || ''), unit.geometry])
       .sort((a, b) => a[0].localeCompare(b[0])),
   };
 }
@@ -30,7 +30,7 @@ export function geometryFingerprint(geometry) {
 
 /** Reuse display geometry while always showing the current saved properties. */
 export function previewCountriesWithProjectProperties(countries, project) {
-  const saved = project?.countriesData?.features || project?.countryDelta?.changed || [];
+  const saved = (project?.territorialEntities || project?.entityDelta?.changed || []).filter(entity => entity.properties?.unitType === 'country');
   if (!saved.length) return countries;
   const properties = new Map(saved.map(feature => [String(feature.id), feature.properties || {}]));
   return { ...countries, features: countries.features.map(feature => properties.has(String(feature.id))
@@ -45,7 +45,6 @@ function unitsMatchDefault(units, expected) {
     const row = expected[id];
     if (!row || seen.has(id) || unit?.properties?.unitType !== 'subunit'
       || String(unit?.properties?.parentId || '') !== row.parentId
-      || String(unit?.properties?.sovereignId || '') !== row.parentId
       || unit?.properties?.metadata?.builtinSubunit?.revision !== BUILTIN_SUBUNIT_REVISION
       || geometryFingerprint(unit.geometry) !== row.geometry) return false;
     seen.add(id);
@@ -58,11 +57,11 @@ export function matchesDefaultPreview(project, baseline) {
   if (!project) return true;
   if (!baseline?.sourceSha256 || !baseline?.defaultClassification) return false;
   const expected = baseline.defaultClassification;
-  if (!unitsMatchDefault(project.territorialUnits || [], expected.units || {})) return false;
+  if (!unitsMatchDefault((project.territorialEntities || project.entityDelta?.changed || []).filter(feature => feature.properties?.unitType !== 'country'), expected.units || {})) return false;
   const expectedCountries = expected.countries || {};
   if (project.format === 'pandolab-autosave-delta') {
-    const changed = project.countryDelta?.changed || [];
-    const removed = project.countryDelta?.removedIds || [];
+    const changed = (project.entityDelta?.changed || []).filter(feature => feature.properties?.unitType === 'country');
+    const removed = project.entityDelta?.removedIds || [];
     if (changed.length < Object.keys(expected.changed || {}).length
       || removed.length !== (expected.removedIds || []).length) return false;
     const removedSet = new Set(removed.map(String));
@@ -75,7 +74,7 @@ export function matchesDefaultPreview(project, baseline) {
     }
     return Object.keys(expected.changed || {}).every(id => seen.has(id));
   }
-  const features = project.countriesData?.features;
+  const features = project.territorialEntities?.filter(feature => feature.properties?.unitType === 'country');
   if (!features || features.length !== Object.keys(expectedCountries).length) return false;
   const seen = new Set();
   for (const feature of features) {

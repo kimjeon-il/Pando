@@ -1,29 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature, TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
 
 function fixture() {
   const state = {
-    countriesData: {
-      type: 'FeatureCollection',
-      features: [{
-        type: 'Feature',
-        id: 'country-a',
-        properties: { name: 'A' },
-        geometry: { type: 'Polygon', coordinates: [] },
-      }],
-    },
-    countryOverrides: {},
-    territorialUnits: [{
-      type: 'Feature',
-      id: 'unit-a',
-      properties: { unitType: 'region', name: 'Region', locked: false },
-      geometry: { type: 'Polygon', coordinates: [] },
-    }],
+    territorialEntities:[createTerritorialFeature({id:'country-a',unitType:'country',name:'A',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}),createTerritorialFeature({id:'unit-a',unitType:'region',name:'Region',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}})],
     countryIndex: new Map([['country-a', 0]]),
   };
   const transactions = [];
@@ -37,12 +22,7 @@ function fixture() {
   const entityStore = createTerritorialEntityStore({
     getState: () => state,
   });
-  const entityRepository = createTerritorialEntityRepository({
-    getCountries: entityStore.countriesData,
-    getUnits: entityStore.units,
-    getCountryOverride: entityStore.countryOverride,
-    getRevision: () => transactions.length,
-  });
+  const entityRepository = createTerritorialEntityRepository({ entityStore: entityStore });
   const service = createTerritorialApplicationService({
     entityRepository,
     entityStore,
@@ -53,7 +33,7 @@ function fixture() {
     entityRepository,
     entityStore,
     transactions,
-    units: () => state.territorialUnits,
+    units: () => state.territorialEntities,
     state,
   };
 }
@@ -68,16 +48,15 @@ test('country dates use raw properties, mark the save delta and honor locks and 
   const { service, state, transactions } = fixture();
   assert.equal(service.updateMetadata('country', 'country-a', 'validFrom', '').changed, false);
   assert.equal(service.updateMetadata('country', 'country-a', 'validFrom', '1900').changed, true);
-  assert.equal(state.countriesData.features[0].properties.validFrom, '1900');
-  assert.deepEqual([...state.historyDirtyCountryIds], ['country-a']);
-  assert.equal(state.countryOverrides['country-a'], undefined);
+  assert.equal(state.territorialEntities[0].properties.validFrom, '1900');
+  assert.deepEqual([...state.historyDirtyEntityIds], ['country-a']);
   const count = transactions.length;
   assert.equal(service.updateMetadata('country', 'country-a', 'validFrom', '1900').changed, false);
   assert.equal(service.updateMetadata('country', 'country-a', 'validTo', '1800').code, 'invalid-temporal');
   assert.equal(transactions.length, count);
   service.setLocked('country', 'country-a', true);
   assert.equal(service.updateMetadata('country', 'country-a', 'validFrom', '1910').code, 'locked');
-  assert.equal(state.countriesData.features[0].properties.validFrom, '1900');
+  assert.equal(state.territorialEntities[0].properties.validFrom, '1900');
 });
 
 test('common flag fields distinguish custom, hidden and default for countries and units', () => {
@@ -98,13 +77,12 @@ test('common flag fields distinguish custom, hidden and default for countries an
 });
 
 test('country name reset and territorial color reset remove explicit fields and repeated resets do nothing', () => {
-  const { service, state, entityRepository, transactions } = fixture();
-  assert.equal(service.updateMetadata('country', 'country-a', 'name', '').changed, false);
+  const { service, entityRepository, transactions } = fixture();
+  assert.equal(service.updateMetadata('country', 'country-a', 'name', 'A').changed, false);
   service.updateMetadata('country', 'country-a', 'name', ' Custom ');
   assert.equal(entityRepository.get('country-a').properties.name, 'Custom');
   service.updateMetadata('country', 'country-a', 'name', '');
-  assert.equal(entityRepository.get('country-a').properties.name, 'A');
-  assert.equal(state.countryOverrides['country-a'], undefined);
+  assert.equal(entityRepository.get('country-a').properties.name, '');
   for (const [type, id] of [['country', 'country-a'], ['region', 'unit-a']]) {
     service.updateMetadata(type, id, 'color', '#123456');
     service.updateMetadata(type, id, 'color', '');
@@ -123,10 +101,10 @@ test('territorial deletion preflight shares lock and child rules across entity t
   assert.equal(service.canDelete(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a').code, 'locked');
   service.setLocked(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', false);
 
-  entityStore.replaceCollections({ units: [
-    { id: 'parent', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a', locked: false } },
-    { id: 'child', properties: { unitType: 'subunit', parentId: 'parent', sovereignId: 'country-a', locked: false } },
-  ] });
+  entityStore.replaceEntities([
+    createTerritorialFeature({id:'parent',unitType:'subunit',parentId:'country-a',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}),
+    createTerritorialFeature({id:'child',unitType:'subunit',parentId:'parent',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}),
+  ],{types:['subunit','region']});
   const parent = service.canDelete(TERRITORIAL_UNIT_TYPES.SUBUNIT, 'parent');
   assert.equal(parent.code, 'has-children');
   assert.deepEqual(parent.children.map(item => item.id), ['child']);
@@ -212,7 +190,7 @@ test('batch lock command updates countries and units in one document mutation', 
   assert.equal(transactions.length, count);
 });
 
-test('simple unit metadata writes keep the territorial collection identity', () => {
+test('simple unit metadata writes publish the common collection without mutating the old one', () => {
   const { service, entityRepository, transactions, units } = fixture();
   const before = units();
 
@@ -220,7 +198,7 @@ test('simple unit metadata writes keep the territorial collection identity', () 
   assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'notes', 'Memo').changed, true);
   assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'color', '#123456').changed, true);
 
-  assert.equal(units(), before);
+  assert.notEqual(units(), before);
   assert.equal(entityRepository.get('unit-a').properties.name, 'Renamed');
   assert.equal(entityRepository.get('unit-a').properties.notes, 'Memo');
   assert.equal(entityRepository.get('unit-a').properties.style.color, '#123456');
@@ -243,21 +221,21 @@ test('temporal unit metadata is normalized and rejected before mutation when inv
   assert.equal(invalid.ok, false);
   assert.equal(invalid.code, 'invalid-temporal');
   assert.equal(transactions.length, count);
-  assert.equal(entityRepository.get('unit-a').properties.validTo, undefined);
+  assert.equal(entityRepository.get('unit-a').properties.validTo, null);
 
   assert.equal(service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', 'validFrom', '').changed, true);
   assert.equal(entityRepository.get('unit-a').properties.validFrom, null);
-  assert.equal(units(), before);
+  assert.notEqual(units(), before);
 });
 
 
 
 test('administrative parent changes use the explicit relation command and validate cycles', () => {
   const { service, entityStore, entityRepository, transactions } = fixture();
-  entityStore.replaceCollections({ units: [
-    { id: 'p', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a', locked: false } },
-    { id: 's', properties: { unitType: 'subunit', parentId: 'p', sovereignId: 'country-a', locked: false } },
-  ] });
+  entityStore.replaceEntities([
+    createTerritorialFeature({id:'p',unitType:'subunit',parentId:'country-a',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}),
+    createTerritorialFeature({id:'s',unitType:'subunit',parentId:'p',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}),
+  ],{types:['subunit','region']});
   const count = transactions.length;
 
   const cycle = service.changeAdministrativeParent('subunit', 'p', 's');
@@ -286,8 +264,8 @@ test('administrative parent changes use the explicit relation command and valida
 test('unit metadata service also rejects administrative relation fields, including no-op values', () => {
   const { service, entityRepository, transactions } = fixture();
   entityRepository.get('unit-a').properties.parentId = '';
-  entityRepository.get('unit-a').properties.sovereignId = '';
-  for (const [field, value] of [['parentId', ''], ['sovereignId', ''], ['unitType', TERRITORIAL_UNIT_TYPES.REGION]]) {
+  entityRepository.get('unit-a').properties.associatedCountryId = '';
+  for (const [field, value] of [['parentId', ''], ['associatedCountryId', ''], ['unitType', TERRITORIAL_UNIT_TYPES.REGION]]) {
     const result = service.updateMetadata(TERRITORIAL_UNIT_TYPES.REGION, 'unit-a', field, value);
     assert.equal(result.ok, false);
     assert.equal(result.code, 'unsupported-relation-field');
@@ -297,7 +275,7 @@ test('unit metadata service also rejects administrative relation fields, includi
 
 test('country metadata service does not accept administrative or political relation fields', () => {
   const { service, entityRepository, transactions } = fixture();
-  for (const field of ['parentId', 'sovereignId', 'unitType']) {
+  for (const field of ['parentId', 'associatedCountryId', 'unitType']) {
     const result = service.updateMetadata(TERRITORIAL_UNIT_TYPES.COUNTRY, 'country-a', field, 'other');
     assert.equal(result.ok, false);
     assert.equal(result.code, 'unsupported-relation-field');
@@ -315,22 +293,22 @@ test('administrative country changes are explicit and subunits require geometry 
 
   const changed = service.changeAdministrativeCountry('region', 'unit-a', 'country-a');
   assert.equal(changed.changed, true);
-  assert.equal(entityRepository.get('unit-a').properties.sovereignId, 'country-a');
+  assert.equal(entityRepository.get('unit-a').properties.associatedCountryId, 'country-a');
   assert.deepEqual(transactions.at(-1), {
     type: 'territorial-country-membership',
     affectedIds: ['unit-a'],
     renderDirty: { domain: 'territorial', change: 'structure' },
   });
 
-  entityStore.replaceCollections({ units: [
-    { id: 's', properties: { unitType: 'subunit', parentId: 'country-a', sovereignId: 'country-a', locked: false } },
-  ] });
+  entityStore.replaceEntities([
+    createTerritorialFeature({id:'s',unitType:'subunit',parentId:'country-a',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}),
+  ],{types:['subunit','region']});
   const count = transactions.length;
   const transfer = service.changeAdministrativeCountry('subunit', 's', '');
   assert.equal(transfer.ok, false);
   assert.equal(transfer.code, 'requires-geometry-transfer');
   assert.equal(transactions.length, count);
-  assert.equal(entityRepository.get('s').properties.sovereignId, 'country-a');
+  assert.equal(entityRepository.administrativeCountry('s').id, 'country-a');
 });
 
 

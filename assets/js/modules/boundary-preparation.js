@@ -3,7 +3,7 @@ import { boundarySourceSegments, buildBoundaryTopologyFromSegments, planSharedBo
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
 
 const locked = feature => !!(feature.boundaryLocked ?? feature.properties?.locked);
-const metadata = feature => JSON.stringify([feature.properties?.unitType, feature.properties?.parentId, feature.properties?.sovereignId, locked(feature)]);
+const metadata = feature => JSON.stringify([feature.properties?.unitType, feature.properties?.parentId, feature.properties?.associatedCountryId, locked(feature)]);
 const padded = bounds => {
   // pointOnSegment also allows an epsilon of the segment parameter at its ends.
   const margin = 1e-7 * (1 + Math.hypot(bounds[2] - bounds[0], bounds[3] - bounds[1]));
@@ -51,7 +51,7 @@ export function createBoundaryPreparation() {
     if (targets.some(feature => locked(feature))) throw new Error('잠긴 객체의 경계를 편집할 수 없습니다.');
     const unit = targets.find(feature => feature.properties?.unitType === 'subunit');
     if (unit && targets.some(feature => feature.properties?.unitType !== 'subunit'
-      || feature.properties.parentId !== unit.properties.parentId || feature.properties.sovereignId !== unit.properties.sovereignId)) throw new Error('같은 상위 단위 안의 하위단위만 편집할 수 있습니다.');
+      || feature.properties.parentId !== unit.properties.parentId)) throw new Error('같은 상위 단위 안의 하위단위만 편집할 수 있습니다.');
     const parentId = unit ? String(unit.properties.parentId) : null;
     if (unit && !sources.has(parentId)) throw new Error('상위 단위를 찾을 수 없습니다.');
     for (const target of targets) {
@@ -67,9 +67,9 @@ export function createBoundaryPreparation() {
       }
     }
     const allowed = feature => !!feature && (unit ? feature.properties?.unitType === 'subunit'
-      && feature.properties.parentId === unit.properties.parentId && feature.properties.sovereignId === unit.properties.sovereignId
+      && feature.properties.parentId === unit.properties.parentId
       : feature.properties?.unitType !== 'subunit' && feature.properties?.unitType !== 'region');
-    const key = JSON.stringify([mode, ids, parentId, unit?.properties?.sovereignId, autoSeedId]);
+    const key = JSON.stringify([mode, ids, parentId, autoSeedId]);
     let entry = cache.get(key);
     if (!entry) {
       const selected = new Set(ids);

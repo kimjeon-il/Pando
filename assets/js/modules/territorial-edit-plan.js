@@ -10,6 +10,24 @@
   }, 0), 0);
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
+function administrativeCountryId(feature, getEntity) {
+  if (!feature) return '';
+  const type = feature.properties.unitType;
+  if (type === 'country') return id(feature.id);
+  if (type === 'region') return id(feature.properties.associatedCountryId);
+  const seen = new Set([id(feature.id)]);
+  let current = feature;
+  while (current.properties.unitType === 'subunit') {
+    const parentId = id(current.properties.parentId);
+    const parent = getEntity(parentId);
+    if (!parent || seen.has(parentId)) throw new Error(`${feature.id}의 부모가 없거나 순환합니다: ${parentId}`);
+    seen.add(parentId); current = parent;
+  }
+  if (current.properties.unitType !== 'country') throw new Error('하위단위의 부모는 국가 또는 하위단위여야 합니다.');
+  return id(current.id);
+}
+
+
   function createKernel(clipper, { normalize = geometry => geometry, segmentCandidates = null } = {}) {
     const boundsCache = new WeakMap();
     const bounds = geometry => {
@@ -63,11 +81,7 @@
         if (unit.properties?.unitType !== 'subunit') continue;
         const key = id(unit.id), parent = all.get(id(unit.properties.parentId));
         if (!parent || id(parent.id) === key) throw new Error(`${key}: 상위 단위를 찾을 수 없습니다.`);
-        const country = id(unit.properties.sovereignId);
-        if (!countries.some(item => id(item.id) === country)
-          || (id(parent.id) !== country && (parent.properties?.unitType !== 'subunit' || id(parent.properties.sovereignId) !== country))) {
-          throw new Error(`${key}: 다른 소속 국가의 상위 단위를 지정할 수 없습니다.`);
-        }
+        administrativeCountryId(unit, key => all.get(key));
         const seen = new Set([key]);
         let cursor = parent;
         while (cursor?.properties?.unitType === 'subunit') {
@@ -129,9 +143,9 @@
       const parentId = id(request.parentId), parent = byId.get(parentId);
       if (!parent) throw new Error('허용 상위 범위를 찾을 수 없습니다.');
       if (parent.properties?.locked) throw new Error('상위 단위의 잠금을 해제하세요.');
-      const countryId = parent.properties?.unitType === 'subunit' ? id(parent.properties.sovereignId) : id(parent.id);
+      const countryId = parent.properties?.unitType === 'subunit' ? administrativeCountryId(parent, key => byId.get(key)) : id(parent.id);
       const siblings = units.filter(unit => unit.properties?.unitType === 'subunit'
-        && id(unit.properties.parentId) === parentId && id(unit.properties.sovereignId) === countryId);
+        && id(unit.properties.parentId) === parentId && administrativeCountryId(unit, key => byId.get(key)) === countryId);
       const allowed = new Set(siblings.map(unit => id(unit.id)));
       const assertSibling = unit => { if (!unit || !allowed.has(id(unit.id))) throw new Error('같은 소속 국가·상위 단위 안에서만 편집할 수 있습니다.'); };
       return { parentId, parent, countryId, siblings, assertSibling };
@@ -158,7 +172,7 @@
       }
       function moveHierarchy(unit, countryId, parentId = unit.properties.parentId) {
         const next = clone(unit);
-        next.properties.sovereignId = countryId; next.properties.parentId = parentId;
+        next.properties.parentId = parentId;
         patches.set(id(unit.id), next);
         ownershipChanges.push({ id: id(unit.id), from: id(unit.properties.parentId), to: id(parentId), sovereignId: countryId });
         children(unit.id).forEach(child => moveHierarchy(child, countryId));
@@ -182,7 +196,7 @@
     function planTransfer(request) {
       const draft = createDraft(request);
       const { countries, units, byId, target, patches, ownershipChanges, children, put, impacts } = draft;
-      const oldCountry = byId.get(id(target.properties.sovereignId));
+      const oldCountry = byId.get(administrativeCountryId(target, key => byId.get(key)));
       const promoting = request.operation === 'promote';
       const newCountry = promoting ? clone(request.newCountry) : countries.find(country => id(country.id) === id(request.countryId));
       if (target.properties.unitType !== 'subunit' || !oldCountry || !newCountry || id(oldCountry.id) === id(newCountry.id)) throw new Error('이전할 소속 국가를 선택하세요.');
@@ -198,7 +212,7 @@
       const moved = new Set();
       function move(unit) {
         moved.add(id(unit.id));
-        const next = clone(unit); next.properties.sovereignId = id(newCountry.id);
+        const next = clone(unit);
         if (id(unit.id) === id(target.id)) next.properties.parentId = id(newCountry.id);
         patches.set(id(unit.id), next);
         ownershipChanges.push({ id: id(unit.id), from: id(unit.properties.parentId), to: id(next.properties.parentId), sovereignId: id(newCountry.id) });
@@ -207,7 +221,7 @@
       if (promoting) { moved.add(id(target.id)); children(target.id).forEach(move); }
       else move(target);
       for (const unit of units) {
-        if (unit.properties.unitType !== 'subunit' || id(unit.properties.sovereignId) !== id(oldCountry.id) || moved.has(id(unit.id))) continue;
+        if (unit.properties.unitType !== 'subunit' || administrativeCountryId(unit, key => byId.get(key)) !== id(oldCountry.id) || moved.has(id(unit.id))) continue;
         if (!significant(intersection(unit.geometry, target.geometry), unit.geometry)) continue;
         const remaining = difference(unit.geometry, target.geometry);
         put(unit, remaining);
@@ -219,7 +233,7 @@
     function planCoast(request) {
       const draft = createDraft(request);
       const { countries, units, byId, target, removed, read, children, put, impacts } = draft;
-      const countryId = target.properties?.unitType === 'subunit' ? id(target.properties.sovereignId) : id(target.id);
+      const countryId = target.properties?.unitType === 'subunit' ? administrativeCountryId(target, key => byId.get(key)) : id(target.id);
       const country = byId.get(countryId);
       if (!country || !request.draft) throw new Error('변경할 국가 해안선을 찾을 수 없습니다.');
       // draft always describes the country result, irrespective of entrypoint.
@@ -227,7 +241,7 @@
       const added = difference(request.draft, baseline), lost = difference(baseline, request.draft);
       for (const other of countries) if (id(other.id) !== countryId && significant(intersection(added, other.geometry), added)) throw new Error('다른 국가의 기존 영토를 침범할 수 없습니다.');
       put(country, clone(request.draft));
-      for (const unit of units.filter(unit => unit.properties?.unitType === 'subunit' && id(unit.properties.sovereignId) === countryId)) {
+      for (const unit of units.filter(unit => unit.properties?.unitType === 'subunit' && administrativeCountryId(unit, key => byId.get(key)) === countryId)) {
         const kept = difference(unit.geometry, lost);
         const cut = intersection(unit.geometry, lost);
         if (significant(cut, unit.geometry)) {
@@ -325,7 +339,7 @@
     function planCreateAnnex(request) {
       const draft = createDraft(request);
       const { byId, target, patches, put, reconcileChildren } = draft;
-      const { parentId, parent, countryId, siblings, assertSibling } = siblingScope(request, draft);
+      const { parentId, parent, siblings, assertSibling } = siblingScope(request, draft);
       if (request.operation === 'annex') assertSibling(target);
       const donor = request.sourceId ? byId.get(id(request.sourceId)) : null;
       if (request.sourceId && !donor) throw new Error('기준 영역을 찾을 수 없습니다.');
@@ -339,7 +353,7 @@
       if (request.operation === 'create') {
         receiver = clone(request.newFeature);
         if (!receiver || !id(receiver.id) || receiver.properties?.unitType !== 'subunit' || byId.has(id(receiver.id))) throw new Error('새 하위단위 ID가 올바르지 않습니다.');
-        receiver.properties.parentId = parentId; receiver.properties.sovereignId = countryId;
+        receiver.properties.parentId = parentId;
         receiver.geometry = clone(request.draft); patches.set(id(receiver.id), receiver);
       } else put(target, union(target.geometry, request.draft));
       if (donor) { put(donor, kept); reconcileChildren(donor, receiver); }
@@ -371,5 +385,5 @@
     }
     return Object.freeze({ plan, validate, adjacent, area, contains });
   }
-  root.PandoLabTerritorialEdit = Object.freeze({ createKernel });
+  root.PandoLabTerritorialEdit = Object.freeze({ createKernel, administrativeCountryId });
 })(globalThis);

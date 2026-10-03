@@ -113,9 +113,9 @@ export function createLifecycleAssembly() {
           });
           dependencies.gisRuntimeCommands.installWorkflow((0, dependencies.uiFactoriesA.createGisWorkflowController)({
             loadRuntime: async () => { await Promise.all([(0, dependencies.gisServicesA.ensureGisRuntime)(), (0, dependencies.gisServicesA.ensureGisIoRuntime)(), (0, dependencies.applicationServicesA.ensureModalRuntime)()]); return { importServiceModule: dependencies.applicationServicesA.importServiceModule, createGisImportWizardController: dependencies.uiFactoriesA.createGisImportWizardController, buildTerritorialImportTransactionPlan: dependencies.gisServicesA.buildTerritorialImportTransactionPlan, resolveCountryIdentities: dependencies.countryServices.resolveCountryIdentities, identityResolutionSummary: dependencies.applicationServicesA.identityResolutionSummary, materializeResolvedCountries: dependencies.applicationServicesB.materializeResolvedCountries }; },
-            onRuntimeReady: ({ appendSourceInfo, applyPackageAssets, readImportedOverrides }) => dependencies.startupCommands.installImportedPackageHandlers({ appendSourceInfo, applyPackageAssets, readImportedOverrides }),
-            getCountries: () => dependencies.projectState.state.countriesData,
-            getTerritorialUnits: () => dependencies.projectState.state.territorialUnits,
+            onRuntimeReady: ({ appendSourceInfo, applyPackageAssets }) => dependencies.startupCommands.installImportedPackageHandlers({ appendSourceInfo, applyPackageAssets }),
+            getCountries: () => ({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) }),
+            getTerritorialUnits: () => dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }),
             getSaveSnapshot: () => dependencies.projectSession.saveState.snapshot(),
             getProjectGeneration: () => dependencies.domains.projectDomain.getGeneration(),
             getGisIo: async () => { await (0, dependencies.gisServicesA.ensureGisIoRuntime)(); return window.PandoLabGIS; },

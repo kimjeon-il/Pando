@@ -64,8 +64,11 @@ class EditorSystemV0190Tests(unittest.TestCase):
     def test_object_actions_use_context_and_common_action_sections(self):
         self.assertNotIn('class="editor-object-actions"', INDEX)
         object_header = INDEX[INDEX.index('id="editorObjectHeader"'):INDEX.index('id="flagMenu"')]
-        self.assertNotIn('id="focusSelectedObjectBtn"', object_header)
-        self.assertIn('id="focusSelectedObjectBtn"', INDEX[INDEX.index('id="editorScrollBody"'):INDEX.index('id="objectActionsMenu"')])
+        self.assertIn('id="focusSelectedObjectBtn"', object_header)
+        self.assertIn('id="flagMenuBtn"', object_header)
+        editor_body = INDEX[INDEX.index('id="editorScrollBody"'):INDEX.index('id="objectActionsMenu"')]
+        self.assertNotIn('id="focusSelectedObjectBtn"', editor_body)
+        self.assertNotIn('id="flagMenuBtn"', editor_body)
         self.assertIn('id="objectLockBtn"', INDEX[INDEX.index('id="editorCommonActions"'):INDEX.index('id="editorDeleteActions"')])
         self.assertIn('id="objectDeleteBtn"', INDEX[INDEX.index('id="editorDeleteActions"'):INDEX.index('id="objectActionsMenu"')])
         for removed in ("deleteDistributionBtn", "deleteGenericFeatureInlineBtn", "deleteLabelBtn", "deleteHydroEditBtn"):

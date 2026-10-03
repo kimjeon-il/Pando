@@ -133,11 +133,9 @@ export function createDomainAssembly() {
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'project', ...entry }),
       commandPipeline: dependencies.objectModelB.projectCommandPipeline,
       invariants: { assertProjectReferenceIntegrity: dependencies.territorialModel.assertProjectReferenceIntegrity },
-      restoreCountriesFromDelta: (project, suppliedBase = null) => (0, dependencies.modelValidation.restoreCountriesFromDelta)(project, {
-        base: suppliedBase || (0, dependencies.builtinCountries.materializePristineCountriesSync)(),
+      restoreEntitiesFromDelta: (project, suppliedBase = null) => (0, dependencies.modelValidation.restoreEntitiesFromDelta)(project, {
+        base: suppliedBase || (0, dependencies.builtinCountries.materializePristineCountriesSync)().features,
         clone: dependencies.platform.deepClone,
-        reindex: base => (0, dependencies.geometryMutation.reindexCountries)(base, true),
-        applyPristineLabelAnchors: dependencies.countryRecords.applyPristineLabelAnchors,
       }),
       onProjectChanged: event => {
         window.dispatchEvent(new CustomEvent('pandolab:project-changed', { detail: event }));
@@ -609,7 +607,7 @@ export function createDomainAssembly() {
           }
           if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)([...hierarchyIds].map(id => ({ domain: 'territorial', type: territorialEntityRepository.get(id)?.properties?.unitType, id: String(id) })), '경계를 조정')) return false;
           const lockedHierarchy = territorialEntityRepository.list().some(entity => entity.properties?.locked && (
-            hierarchyIds.has(String(entity.id)) || (hierarchyIds.has(String(entity.properties?.sovereignId)) && boundaryTouchesGeometry(entity.geometry, node.coordinate))
+            hierarchyIds.has(String(entity.id)) || (hierarchyIds.has(String((0, dependencies.territorialModel.administrativeCountryId)(entity, id => dependencies.territorialModel.entityRepository.get(id)))) && boundaryTouchesGeometry(entity.geometry, node.coordinate))
           ));
           if (lockedHierarchy) {
             (0, dependencies.feedback.setActionStatus)('변경 구간의 상위 단위 또는 자식이 잠겨 있습니다.', 'error', 3400);
@@ -1141,33 +1139,22 @@ export function createDomainAssembly() {
   function initializeDomainState() {
     (territorialEntityStore = (0, dependencies.territorialServicesA.createTerritorialEntityStore)({
       getState: () => dependencies.projectState.state,
-      writeCountryColor: (feature, override, value) => (0, dependencies.colorModel.writeDomainColor)(
-        dependencies.colorModel.COLOR_DOMAINS.COUNTRY,
-        { feature, override },
-        value,
-        { clear: !value, fallback: (0, dependencies.colorModel.defaultCountryColor)() },
-      ),
-      writeUnitColor: (feature, value) => (0, dependencies.colorModel.writeDomainColor)(
-        dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL,
-        { feature },
-        value,
-        { clear: !value, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR },
-      ),
-      onCountriesReplaced: (collection, _affectedIds, reindexOptions = {}) => {
-        dependencies.projectState.state.countriesData = (0, dependencies.geometryMutation.reindexCountries)(
-          collection,
-          true,
-          reindexOptions,
-        );
-      },
-      onUnitsReplaced: () => {
+      onEntitiesReplaced: (entities, { changedIds, previous }) => {
+        const prior = new Map(previous.map(feature => [String(feature.id), feature]));
+        const after = new Map(entities.map(feature => [String(feature.id), feature]));
+        const countryShapeChanged = [...changedIds].some(id => {
+          const a = prior.get(id), b = after.get(id);
+          return (a?.properties.unitType === 'country' || b?.properties.unitType === 'country')
+            && (a?.geometry !== b?.geometry || a?.properties.unitType !== b?.properties.unitType);
+        });
+        if (countryShapeChanged) (0, dependencies.geometryMutation.reindexCountries)(
+          { type: 'FeatureCollection', features: entities.filter(feature => feature.properties.unitType === 'country') });
         dependencies.spatialQuery.mapObjectGeometryRevisions.territorial += 1;
       },
     }));
 
     (territorialEntityRepository = (0, dependencies.territorialServicesA.createTerritorialEntityRepository)({
       entityStore: territorialEntityStore,
-      getRevision: () => dependencies.projectState.state.stateRevision,
     }));
 
     (projectDomain = null);

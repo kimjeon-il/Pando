@@ -13,9 +13,7 @@ function fixture({ execute } = {}) {
   const state = {
     stateRevision: 1,
     geometryPreview: { revision: 0, session: null },
-    countriesData: { features: [] },
-    countryOverrides: {},
-    territorialUnits: [],
+    territorialEntities: [],
     territorialRelations: [],
     distributionLayers: [],
     distributionEntries: [],
@@ -84,7 +82,7 @@ function fixture({ execute } = {}) {
     },
     territorialModel: {
       assertProjectReferenceIntegrity() { return { ok: true, issues: [] }; },
-      entityRepository: { get() { return null; } },
+      entityRepository: { get() { return null; }, list() { return []; } },
     },
     territoryGeometry: {
       pointInGenericFeature() { return true; },

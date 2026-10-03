@@ -1,5 +1,4 @@
-import { pruneCountryOverrides } from './country-feature.js';
-import { migrateProjectInPlace } from './project-migrations.js';
+import { normalizeTerritorialEntities, normalizeTerritorialFeature, TERRITORIAL_SCHEMA_VERSION } from './territorial-units.js';
 import { normalizeDistributionLayers, normalizeDistributionEntries } from './distribution-model.js';
 import { validateSourceProvenance } from './source-provenance.js';
 import {
@@ -66,17 +65,9 @@ function assertAllowedKeys(value, allowed, label) {
   }
 }
 
-function stableJson(value) {
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`;
-  }
-  return JSON.stringify(value);
-}
-
 function prepareProjectForValidation(project) {
   if (!project || typeof project !== 'object') throw schemaError('프로젝트 형식이 올바르지 않습니다.');
-  if (Number(project.schemaVersion) !== PROJECT_SCHEMA_VERSION) migrateProjectInPlace(project);
+  requireSchemaVersion(project.schemaVersion, '프로젝트');
   return project;
 }
 
@@ -89,9 +80,9 @@ export function assertCurrentProjectSchema(input) {
   requireSchemaVersion(project.distributionModel?.schemaVersion, '분포 모델', DISTRIBUTION_MODEL_SCHEMA_VERSION);
   requireSchemaVersion(project.layerPresentation?.schemaVersion, '레이어 표현', LAYER_PRESENTATION_SCHEMA_VERSION);
   assertAllowedKeys(project, new Set([
-    'format', 'schemaVersion', 'version', 'savedAt', 'countriesData', 'countryDelta',
-    'countryOverrides', 'sourceInfo', 'labels', 'genericFeatures', 'hydroEdits',
-    'territorialUnits', 'territorialRelations', 'distributionLayers', 'distributionEntries',
+    'format', 'schemaVersion', 'version', 'savedAt', 'territorialEntities', 'entityDelta',
+    'sourceInfo', 'labels', 'genericFeatures', 'hydroEdits',
+    'territorialRelations', 'distributionLayers', 'distributionEntries',
     'labelSettings', 'distributionSettings', 'layerPresentation', 'physicalSettings',
     'layerVisibility', 'itemVisibility', 'baseDataset', 'landObjectModel', 'territorialModel',
     'distributionModel', 'physicalSourceInfo',
@@ -126,23 +117,26 @@ export function assertCurrentProjectSchema(input) {
     throw schemaError('객체 표현 순서가 올바르지 않습니다.');
   }
 
-  const countries = project.countriesData?.features || [];
-  const countryIds = new Set();
-  for (const feature of countries) {
+  const entities = project.format === 'pandolab-autosave-delta' ? project.entityDelta?.changed : project.territorialEntities;
+  if (!Array.isArray(entities)) throw schemaError('territorialEntities 또는 entityDelta.changed 배열이 필요합니다.');
+  const entityIds = new Set();
+  for (const feature of entities) {
     const id = text(feature?.id);
-    if (!id) throw schemaError('국가 ID가 비어 있습니다.', 'PL-SCHEMA-ID-MISSING');
-    if (countryIds.has(id)) throw schemaError(`국가 ID가 중복되었습니다: ${id}`, 'PL-SCHEMA-ID-DUPLICATE');
-    assertAllowedKeys(feature?.properties, new Set(['name', 'validFrom', 'validTo']), `국가 ${id}`);
-    if (!text(feature?.properties?.name)) throw schemaError(`국가 ${id}의 이름이 비어 있습니다.`, 'PL-SCHEMA-NAME-MISSING');
-    countryIds.add(id);
+    if (typeof feature?.id !== 'string' || !id || entityIds.has(id)) throw schemaError('영역 ID가 비어 있거나 중복되었습니다: ' + id, 'PL-SCHEMA-ID-DUPLICATE');
+    entityIds.add(id);
+    requireSchemaVersion(feature.properties?.schemaVersion, '영역 ' + id, TERRITORIAL_SCHEMA_VERSION);
+    assertAllowedKeys(feature.properties, new Set(['schemaVersion','unitType','name','parentId','associatedCountryId',
+      'coverageMode','style','locked','validFrom','validTo','notes','metadata','sourceFolderId','sourceLibraryId','sourceGeometryVersion']), '영역 ' + id);
+    if (!normalizeTerritorialFeature(feature, { cloneGeometry: geometry => geometry })) throw schemaError('영역 형상이 올바르지 않습니다: ' + id);
   }
-  const overrideCountryIds = project.format === 'pandolab-autosave-delta' ? null : countryIds;
-  const prunedOverrides = pruneCountryOverrides(project.countryOverrides, overrideCountryIds);
-  if (stableJson(prunedOverrides) !== stableJson(project.countryOverrides || {})) {
-    throw schemaError('국가 설정에 빈 값, 알 수 없는 필드 또는 존재하지 않는 국가 ID가 있습니다.', 'PL-SCHEMA-COUNTRY-OVERRIDES');
+  if (project.format !== 'pandolab-autosave-delta') normalizeTerritorialEntities(entities, { cloneGeometry: geometry => geometry });
+  else {
+    assertAllowedKeys(project.entityDelta, new Set(['changed','removedIds']), '영역 변경분');
+    const removed = project.entityDelta.removedIds;
+    if (!Array.isArray(removed) || new Set(removed).size !== removed.length
+      || removed.some(id => typeof id !== 'string' || !text(id) || entityIds.has(id))) throw schemaError('영역 삭제 ID가 올바르지 않습니다.');
   }
 
-  assertUniqueProjectIds(project.territorialUnits, '영역');
   assertUniqueProjectIds(project.territorialRelations, '기간별 관계');
   assertUniqueProjectIds(project.distributionLayers, '분포 레이어');
   assertUniqueProjectIds(project.distributionEntries, '분포 엔트리');
@@ -150,15 +144,7 @@ export function assertCurrentProjectSchema(input) {
   assertUniqueProjectIds(project.hydroEdits, '편집 수계');
   assertUniqueProjectIds(project.labels, '지명');
 
-  for (const feature of project.territorialUnits || []) {
-    requireSchemaVersion(feature?.properties?.schemaVersion, `영역 ${text(feature?.id)}`, 2);
-    assertAllowedKeys(feature?.properties, new Set([
-      'schemaVersion', 'unitType', 'name', 'parentId', 'sovereignId', 'coverageMode',
-      'style', 'locked', 'validFrom', 'validTo', 'notes',
-      'metadata', 'sourceFolderId', 'sourceLibraryId', 'sourceGeometryVersion',
-    ]), `영역 ${text(feature?.id)}`);
-  }
-  for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`, 1);
+  for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`, 2);
   for (const layer of project.distributionLayers || []) {
     requireSchemaVersion(layer?.schemaVersion, `분포 레이어 ${text(layer?.id)}`, DISTRIBUTION_MODEL_SCHEMA_VERSION);
     assertAllowedKeys(layer, new Set(['id', 'schemaVersion', 'name', 'unit', 'valueScale', 'color', 'locked', 'parentId', 'groups', 'validFrom', 'validTo', 'metadata']), `분포 레이어 ${text(layer?.id)}`);
@@ -197,12 +183,10 @@ export function assertCurrentProjectSchema(input) {
 }
 
 export const PROJECT_STATE_FIELDS = Object.freeze([
-  Object.freeze({ name: 'countryOverrides', scope: 'document', fallback: () => ({}) }),
   Object.freeze({ name: 'sourceInfo', scope: 'document', fallback: () => null }),
   Object.freeze({ name: 'labels', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'genericFeatures', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'hydroEdits', scope: 'document', fallback: () => [] }),
-  Object.freeze({ name: 'territorialUnits', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'territorialRelations', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'distributionLayers', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'distributionEntries', scope: 'document', fallback: () => [] }),

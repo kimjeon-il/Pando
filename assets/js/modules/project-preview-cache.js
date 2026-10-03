@@ -78,13 +78,13 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
       if (existing?.geometryKey === key && existing?.baseSourceSha256 === baseline.sourceSha256
         && await run('validate', { project, baseline, cache: existing })) return true;
       const geometry = getGeometry();
-      if (!geometry?.features?.length) return false;
+      if (!geometry?.entities?.length) return false;
       // A save can finish while a later edit is already in progress. Only
       // preview the persisted shape, never a newer unsaved state.
       const currentProject = geometry.project;
       if (currentProject && await run('key', { project: currentProject, baseline }) !== key) return false;
       const cache = await run('build', { project, baseline,
-        features: geometry.features, territorialUnits: geometry.territorialUnits || [] });
+        entities: geometry.entities });
       if (expectedEpoch !== epoch) return false;
       const latest = await storage.readProject();
       if (!latest || await run('key', { project: latest, baseline }) !== key || expectedEpoch !== epoch) return false;

@@ -856,10 +856,10 @@ export function createMapSettings() {
       terrainDataset: dependencies.platformConfigurationB.TERRAIN_DATASET,
       hydroDataset: dependencies.platformConfigurationA.HYDRO_DATASET,
       readSnapshot: () => ({
-        countriesData: dependencies.projectState.state.countriesData,
+        territorialEntities: dependencies.territorialModel.entityStore.snapshot(),
         projectFields: (0, dependencies.projectServices.pickProjectFields)(dependencies.projectState.state, { clone: value => value }),
-        countryDelta: (0, dependencies.projectSnapshots.buildCountryDelta)(),
-        fullAutosave: !!dependencies.projectState.state.sessionBaseCountriesJson,
+        entityDelta: (0, dependencies.projectSnapshots.buildEntityDelta)(),
+        fullAutosave: dependencies.projectState.state.autosaveMode === 'full',
         terrainManifest: dependencies.projectState.state.terrainManifest,
         terrainSourceInfo: dependencies.rendering.gpuMapRenderer?.activeTerrainSourceInfo?.(),
         hydroManifest: dependencies.projectState.state.hydroManifest,

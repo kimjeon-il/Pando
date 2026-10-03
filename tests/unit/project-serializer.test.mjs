@@ -1,113 +1,38 @@
-import assert from 'node:assert/strict';
 import test from 'node:test';
-
-import { createProjectSerializer, restoreCountriesFromDelta } from '../../assets/js/modules/project-serializer.js';
+import assert from 'node:assert/strict';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createProjectSerializer, restoreEntitiesFromDelta } from '../../assets/js/modules/project-serializer.js';
 import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
-
-const serializer = snapshot => createProjectSerializer({
-  appVersion: '0.30.0',
-  baseDataset: 'base',
-  distributionTypes: ['language'],
-  distributionModes: ['territorial', 'geometry'],
-  terrainDataset: 'terrain',
-  hydroDataset: 'hydro',
-  readSnapshot: () => snapshot,
-  now: () => new Date('2026-08-29T00:00:00Z'),
+const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
+const entity=(id,unitType='country',options={})=>createTerritorialFeature({id,unitType,geometry,name:id,...options});
+const serializer=snapshot=>createProjectSerializer({appVersion:'0.34.0',baseDataset:'base',distributionModes:['territorial','geometry'],terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>snapshot,now:()=>new Date('2026-10-03T00:00:00Z')});
+test('full and delta autosaves share immutable geometry while detaching metadata',()=>{
+ const a=entity('A');const service=serializer({territorialEntities:[a],entityDelta:{changed:[a],removedIds:[]},projectFields:{}});
+ const first=service.buildAutosave(),second=service.buildAutosave();assert.equal(first.entityDelta.changed[0].geometry,second.entityDelta.changed[0].geometry);assert.notEqual(first.entityDelta.changed[0].geometry,a.geometry);assert.ok(Object.isFrozen(first.entityDelta.changed[0].geometry.coordinates));
+ first.entityDelta.changed[0].properties.name='detached';assert.equal(a.properties.name,'A');
+ const full=serializer({territorialEntities:[a],fullAutosave:true,projectFields:{}});assert.equal(full.buildAutosave().territorialEntities[0].geometry,full.buildAutosave().territorialEntities[0].geometry);
+});
+test('project header and physical source metadata use the current common contract',()=>{
+ const entities=[entity('A'),entity('S','subunit',{parentId:'A'}),entity('R','region',{associatedCountryId:'A'})];
+ const project=serializer({territorialEntities:entities,projectFields:{labels:[],layerVisibility:{countries:false}},terrainManifest:{dataset:'terrain-current',version:'1'},hydroManifest:{dataset:'hydro-current',selection:{rivers:true}}}).buildProject();
+ assert.equal(project.schemaVersion,PROJECT_SCHEMA_VERSION);assert.equal(project.savedAt,'2026-10-03T00:00:00.000Z');assert.equal(project.territorialModel.storage,'territorialEntities');assert.equal(project.territorialModel.schemaVersion,3);assert.deepEqual(project.territorialEntities,entities);assert.equal(project.physicalSourceInfo.terrain.dataset,'terrain-current');assert.deepEqual(project.physicalSourceInfo.hydro.selection,{rivers:true});
+ for(const key of ['countriesData','countryOverrides','territorialUnits','countryDelta','projection','view'])assert.equal(key in project,false);
+});
+test('entity delta replaces, removes and adds all types in stable order without mutating inputs',()=>{
+ const base=[entity('A'),entity('B'),entity('S','subunit',{parentId:'A'})];const changed=[entity('A','country',{name:'renamed',metadata:{capital:'capital'}}),entity('S','subunit',{parentId:'A',color:'#123456'}),entity('R','region',{associatedCountryId:'A'})];
+ const project={entityDelta:{changed,removedIds:['B']}};const original=structuredClone({base,project});const restored=restoreEntitiesFromDelta(project,{base});
+ assert.deepEqual(restored.map(x=>x.id),['A','S','R']);assert.deepEqual(restored,changed);assert.deepEqual({base,project},original);restored[0].properties.metadata.capital='changed';assert.equal(changed[0].properties.metadata.capital,'capital');
+ assert.throws(()=>restoreEntitiesFromDelta({entityDelta:{changed:[changed[0]],removedIds:['A']}},{base}),/중복/);
+ assert.throws(()=>restoreEntitiesFromDelta({entityDelta:{changed:[],removedIds:['A']}},{base}),/부모/);
 });
 
-test('autosaves share frozen geometry versions while keeping live project arrays detached', () => {
-  const country = { type: 'Feature', id: 'RUS', properties: { name: 'Russia' }, geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] } };
-  const service = serializer({ countriesData: { features: [country] }, countryDelta: { changed: [country] }, projectFields: { genericFeatures: [country] } });
-  const first = service.buildAutosave(), second = service.buildAutosave();
-  assert.equal(first.countryDelta.changed[0].geometry, second.countryDelta.changed[0].geometry);
-  assert.notEqual(first.countryDelta.changed[0].geometry, country.geometry);
-  assert.equal(first.genericFeatures[0].geometry, first.countryDelta.changed[0].geometry);
-  assert.ok(Object.isFrozen(first.genericFeatures[0].geometry.coordinates));
-  const full = serializer({ fullAutosave: true, countriesData: { features: [country] }, projectFields: { genericFeatures: [country] } });
-  const saved = full.buildAutosave();
-  assert.equal(saved.countriesData.features[0].geometry, full.buildAutosave().countriesData.features[0].geometry);
-  assert.equal(saved.genericFeatures[0].geometry, saved.countriesData.features[0].geometry);
-});
-
-test('project serializer keeps document and presentation input while adding current contracts', () => {
-  const service = serializer({
-    countriesData: { type: 'FeatureCollection', features: [] },
-    projectFields: { labels: [], layerVisibility: { countries: false } },
-    countryDelta: { changed: [], removedIds: [] },
-    fullAutosave: false,
-    terrainManifest: { dataset: 'terrain-current', version: '1' },
-    hydroManifest: { dataset: 'hydro-current', version: '2', selection: { rivers: true } },
-  });
-  const project = service.buildProject();
-  assert.equal(project.format, 'pandolab-project-state');
-  assert.equal(project.schemaVersion, PROJECT_SCHEMA_VERSION);
-  assert.equal(project.landObjectModel.schemaVersion, 2);
-  assert.equal(project.landObjectModel.purpose, 'lossless-fallback');
-  assert.equal(project.landObjectModel.directCreation, false);
-  assert.equal(project.savedAt, '2026-08-29T00:00:00.000Z');
-  assert.deepEqual(project.layerVisibility, { countries: false });
-  assert.equal(project.physicalSourceInfo.terrain.dataset, 'terrain-current');
-  assert.deepEqual(project.physicalSourceInfo.hydro.selection, { rivers: true });
-  assert.equal('projection' in project, false);
-  assert.equal('view' in project, false);
-});
-
-test('autosave serializer preserves full and delta formats', () => {
-  const common = {
-    countriesData: { type: 'FeatureCollection', features: [] },
-    projectFields: { labels: [] },
-    countryDelta: { changed: [{ type: 'Feature', id: 'changed', properties: { name: '국가', ignored: true }, geometry: null }], removedIds: ['removed'] },
-    terrainManifest: null,
-    hydroManifest: null,
-  };
-  const delta = serializer({ ...common, fullAutosave: false }).buildAutosave();
-  assert.equal(delta.format, 'pandolab-autosave-delta');
-  assert.equal(delta.schemaVersion, PROJECT_SCHEMA_VERSION);
-  assert.deepEqual(delta.countryDelta, {
-    changed: [{ type: 'Feature', id: 'changed', properties: { name: '국가' }, geometry: null }],
-    removedIds: ['removed'],
-  });
-  assert.equal('countriesData' in delta, false);
-  const full = serializer({ ...common, fullAutosave: true }).buildAutosave();
-  assert.equal(full.format, 'pandolab-autosave-full');
-  assert.deepEqual(full.countriesData, common.countriesData);
-});
-
-test('project serialization preserves the three canonical territorial unit types', () => {
-  const territorialUnits = ['country', 'subunit', 'region'].map(unitType => ({
-    type: 'Feature',
-    id: `${unitType}-1`,
-    properties: { unitType },
-    geometry: null,
-  }));
-  const project = serializer({
-    countriesData: { type: 'FeatureCollection', features: [] },
-    projectFields: { territorialUnits },
-    countryDelta: { changed: [], removedIds: [] },
-    fullAutosave: false,
-    terrainManifest: null,
-    hydroManifest: null,
-  }).buildProject();
-
-  assert.deepEqual(project.territorialModel.types, ['country', 'subunit', 'region']);
-  assert.deepEqual(project.territorialUnits.map(feature => feature.properties.unitType), [
-    'country', 'subunit', 'region',
-  ]);
-});
-
-test('country delta restoration replaces removes and appends without mutating the delta', () => {
-  const feature = (id, name) => ({ type: 'Feature', id, properties: { name }, geometry: null });
-  const project = { countryDelta: { changed: [feature('A', 2), feature('C', 3)], removedIds: ['B'] } };
-  const clone = value => JSON.parse(JSON.stringify(value));
-  const original = clone(project);
-  const anchors = [];
-  const result = restoreCountriesFromDelta(project, {
-    base: { type: 'FeatureCollection', features: [feature('A', 1), feature('B', 1)] },
-    clone,
-    reindex: value => value,
-    applyPristineLabelAnchors: (_collection, ids) => anchors.push(...ids),
-  });
-  assert.deepEqual(result.features.map(item => [item.id, item.properties.name]), [['A', '2'], ['C', '3']]);
-  assert.deepEqual(anchors, []);
-  assert.deepEqual(project, original);
+test('external full projects remain independent from the builtin delta baseline when reopened', () => {
+  const source = { territorialEntities: [entity('external')], fullAutosave: true, projectFields: {} };
+  const project = serializer(source).buildProject();
+  assert.equal(project.baseDataset, 'external-territorial-entities');
+  const reopened = serializer({ territorialEntities: project.territorialEntities,
+    projectFields: {}, fullAutosave: project.baseDataset !== 'base' }).buildAutosave();
+  assert.equal(reopened.format, 'pandolab-autosave-full');
+  assert.deepEqual(reopened.territorialEntities, project.territorialEntities);
+  assert.equal('entityDelta' in reopened, false);
 });

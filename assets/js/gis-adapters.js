@@ -33,11 +33,7 @@
 
   function countryGeometryIndex(state) {
     const index = new Map();
-    for (const feature of state?.countriesData?.features || []) {
-      const id = text(feature?.id);
-      if (id && polygonGeometry(feature?.geometry)) index.set(id, feature.geometry);
-    }
-    for (const feature of state?.territorialUnits || []) {
+    for (const feature of state?.territorialEntities || []) {
       const id = text(feature?.id);
       if (id && polygonGeometry(feature?.geometry)) index.set(id, feature.geometry);
     }
@@ -54,7 +50,7 @@
 
   function territorialRows(state) {
     const rows = Object.fromEntries(Object.values(TERRITORIAL_TABLES).map(table => [table, []]));
-    for (const item of state?.territorialUnits || []) {
+    for (const item of state?.territorialEntities || []) {
       const properties = territorialProperties(item?.properties);
       const unitType = text(properties.unitType);
       const table = TERRITORIAL_TABLES[unitType];
@@ -66,7 +62,7 @@
         name: text(properties.name),
         type: unitType,
         parent_id: text(properties.parentId),
-        sovereign_id: text(properties.sovereignId),
+        associated_country_id: text(properties.associatedCountryId),
         valid_from: text(properties.validFrom),
         valid_to: text(properties.validTo),
         color: text(properties.style?.color),
@@ -131,11 +127,11 @@
       id,
       properties: {
         ...currentProperties,
-        schemaVersion: 2,
+        schemaVersion: 3,
         unitType,
         name: text(properties.name ?? currentProperties.name) || id,
         parentId: text(properties.parent_id ?? currentProperties.parentId),
-        sovereignId: text(properties.sovereign_id ?? currentProperties.sovereignId),
+        associatedCountryId: text(properties.associated_country_id ?? currentProperties.associatedCountryId),
         coverageMode: unitType === 'region' ? 'explicit' : text(currentProperties.coverageMode) || 'partition',
         validFrom: text(properties.valid_from ?? currentProperties.validFrom) || null,
         validTo: text(properties.valid_to ?? currentProperties.validTo) || null,
