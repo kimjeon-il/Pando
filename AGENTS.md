@@ -189,6 +189,30 @@ Examples:
   applicable.
 - Add a focused regression test for a reproduced bug when practical.
 
+### Keep tests aligned with the current implementation
+
+- Updating affected tests is a required part of every behavior, model, schema,
+  API, dependency-wiring, Worker-payload, or asset-version change. Update test
+  fixtures, mocks, assertions, snapshots, and test names in the same change;
+  do not defer this work to a later cleanup.
+- Find tests for direct and indirect consumers before changing a contract.
+  Use current canonical model factories and real services where practical.
+  Test doubles must provide the actual required dependencies and current
+  payloads, not retired fields, APIs, or duplicate model logic.
+- When replacing a contract, update its tests and remove obsolete assertions.
+  Preserve valid checks for invalid input, locks, atomicity, geometry results,
+  and Undo/Redo. Prefer observable behavior over source-text or formatting
+  assertions when the behavior can reasonably be exercised.
+- Investigate failures before changing expectations. Confirm whether the
+  implementation regressed or the intended contract changed. Do not blindly
+  update snapshots, weaken assertions, skip tests, or restore legacy product
+  behavior merely to make a test pass.
+- During merges, rebases, and integration, review affected test diffs as well
+  as product diffs. Preserve previously accepted test fixes and ensure test
+  expectations match the final integrated behavior and asset versions.
+- Run the smallest relevant checks for the updated tests. Keeping tests current
+  does not require running the full suite or unrelated expensive checks.
+
 - A task is not complete merely because the selected checks pass.
   Verify the affected user workflow when the change alters user-visible
   behavior.
@@ -203,6 +227,7 @@ A task is complete only when:
 - no unnecessary legacy support was added
 - async failures are contained at the correct boundary
 - relevant tests/checks pass
+- affected tests use the current contracts and retain valid regression coverage
 - the affected user workflow was actually verified
 - only checks relevant to the actual change were run; unrelated expensive
   checks were not run without a concrete reason

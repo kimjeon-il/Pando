@@ -96,7 +96,15 @@ function administrativeCountryId(feature, getEntity) {
           if (significant(intersection(unit.geometry, sibling.geometry), unit.geometry)) throw new Error(`${key}: 형제 ${sibling.id}와 영역이 겹칩니다.`);
         }
       }
-      for (const [key, before] of old) if (before.properties?.locked && !same(before, all.get(key))) throw new Error(`${key}: 잠긴 객체는 변경할 수 없습니다.`);
+      for (const [key, before] of old) {
+        if (!before.properties?.locked) continue;
+        const after = all.get(key);
+        // An unchanged child can inherit a country change from a moved ancestor.
+        if (!same(before, after)
+          || administrativeCountryId(before, entityId => old.get(entityId)) !== administrativeCountryId(after, entityId => all.get(entityId))) {
+          throw new Error(`${key}: 잠긴 객체는 변경할 수 없습니다.`);
+        }
+      }
       return true;
     }
 

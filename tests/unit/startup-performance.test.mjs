@@ -191,8 +191,7 @@ test('staged loader separates editable geometry from the high-quality mesh and s
     workerSource.indexOf('function countedStream'),
   );
   assert.doesNotMatch(cacheWriteSource, /fetch\(/);
-  assert.match(appSource, /normalizeCountryCollection\)\(geometry\.countries\)\.features/);
-  assert.match(appSource, /entityStore\.replaceEntities\(restoredDelta/);
+  // Canonical entity publication is exercised by progressive-startup-runtime-contract.test.mjs.
   assert.doesNotMatch(appSource, /pristineCountriesSourceBuffer|parsePristineCountries/);
   const promotionSource = appSource.slice(
     appSource.indexOf('async function completeGeometryInitialization'),
