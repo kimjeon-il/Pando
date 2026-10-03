@@ -1,3 +1,5 @@
+import { registerReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
+
 /** Late-loaded image UI uses the same lifecycle as the built-in workspace sheets. */
 export function installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose, onOpen }) {
   const document = panel.ownerDocument;
@@ -58,24 +60,28 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
   const unregister = workspaceSurfaces.registerReferenceImageSurface({ panel, sync });
   const toggle = () => workspaceSurfaces.toggleSurface('reference', launcher);
   launcher.addEventListener('click', toggle);
+  function setEditing(active, text = '') {
+    const next = active === true;
+    if (next && !editing) savedSnap = Number(panel.dataset.sheetSnap ?? 1);
+    const wasEditing = editing;
+    editing = next;
+    if (hint.textContent !== text) hint.textContent = text;
+    if (wasEditing && !editing && workspaceSurfaces.isMobile()) workspaceSurfaces.setMobileSheetHeight(panel, savedSnap);
+    sync();
+  }
+  const unregisterSurfaceEditing = registerReferenceImageSurfaceEditing(setEditing);
+
   return {
     open: () => workspaceSurfaces.openSurface('reference', { trigger: launcher }),
     close: (options = {}) => workspaceSurfaces.closeSurface('reference', options),
     toggle,
-    setEditing(active, text = '') {
-      const next = active === true;
-      if (next && !editing) savedSnap = Number(panel.dataset.sheetSnap ?? 1);
-      const wasEditing = editing;
-      editing = next;
-      if (hint.textContent !== text) hint.textContent = text;
-      if (wasEditing && !editing && workspaceSurfaces.isMobile()) workspaceSurfaces.setMobileSheetHeight(panel, savedSnap);
-      sync();
-    },
+    setEditing,
     setGestureActive: active => workspaceSurfaces.setReferenceImageGestureActive(active),
     resetScroll: () => { body.scrollTop = 0; },
     destroy() {
       workspaceSurfaces.closeSurface('reference');
       workspaceSurfaces.setReferenceImageGestureActive(false);
+      unregisterSurfaceEditing();
       unregister();
       launcher.removeEventListener('click', toggle);
     },
