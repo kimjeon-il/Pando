@@ -201,7 +201,7 @@ export function installReferenceImageLineRefiner() {
     let row = editor.querySelector('[data-ref-line-actions]');
     if (!row) {
       row = document.createElement('div');
-      row.className = 'reference-image-gcp-actions reference-image-line-refine-actions';
+      row.className = 'reference-image-calibration-actions reference-image-line-refine-actions';
       row.dataset.refLineActions = '';
       row.innerHTML = `
         <button type="button" class="ui-button ui-button--primary" data-ref-line-action="start">선 보강</button>
@@ -209,8 +209,8 @@ export function installReferenceImageLineRefiner() {
         <button type="button" class="ui-button" data-ref-line-action="redraw" hidden>다시 그리기</button>
         <button type="button" class="ui-button" data-ref-line-action="cancel" hidden>취소</button>
       `;
-      const gcpActions = editor.querySelector('.reference-image-gcp-actions');
-      if (gcpActions) gcpActions.insertAdjacentElement('afterend', row);
+      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
+      if (calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
       else editor.appendChild(row);
     }
     return row;
@@ -289,9 +289,12 @@ export function installReferenceImageLineRefiner() {
     if (!stored?.blob) throw new Error('저장된 참조 이미지를 찾을 수 없습니다.');
     for (let attempt = 0; meta?.mappingSignature
       && referenceImageMappingSignature(stored) !== meta.mappingSignature
-      && attempt < 6; attempt += 1) {
-      await new Promise(resolve => globalThis.setTimeout(resolve, 40));
+      && attempt < 8; attempt += 1) {
+      await new Promise(resolve => globalThis.setTimeout(resolve, 50));
       stored = (await listStoredReferenceImages()).find(record => String(record?.id) === String(recordId)) || stored;
+    }
+    if (meta?.mappingSignature && referenceImageMappingSignature(stored) !== meta.mappingSignature) {
+      throw new Error('참조 이미지 변경 사항을 저장한 뒤 다시 시도하세요.');
     }
     if (meta?.locked || stored.locked) throw new Error('잠금을 해제한 뒤 선 보강을 사용할 수 있습니다.');
     const warp = buildReferenceImageSourceMapping(stored);
