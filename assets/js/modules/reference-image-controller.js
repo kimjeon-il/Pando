@@ -4,13 +4,18 @@ import {
   REFERENCE_IMAGE_WARP_MODES,
 } from './reference-image-georef.js';
 import {
+  normalizeReferenceImageRecord,
+  serializeReferenceImageRecord,
+} from './reference-image-model.js';
+import {
   applyReferenceImagePlacementDrag,
   createReferenceImagePlacementDrag,
-  defaultReferenceImageScreenRect,
-  normalizeReferenceImageRotation,
-  normalizeReferenceImageScreenRect,
+  defaultReferenceImageMapQuad,
   referenceImagePlacementHit,
-} from './reference-image-placement.js';
+  referenceImagePlacementRotation,
+  referenceImageScreenRectToMapQuad,
+  setReferenceImagePlacementRotation,
+} from './reference-image-transform.js';
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
 import { registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
@@ -27,8 +32,6 @@ import {
 } from './reference-image-ui.js';
 
 const ACCEPTED_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp']);
-const DEFAULT_OPACITY = 0.55;
-const DEFAULT_BLEND_MODE = 'source-over';
 const PERSIST_DEBOUNCE_MS = 220;
 const MESH_QUALITY = Object.freeze({ columns: 24, rows: 16 });
 const BLEND_OPTIONS = Object.freeze([
@@ -70,48 +73,6 @@ function createImageFromBlob(blob) {
     };
     image.src = url;
   });
-}
-
-function normalizePersistedRecord(record) {
-  return {
-    id: String(record?.id || createId()),
-    name: String(record?.name || '참조 이미지'),
-    opacity: clamp(Number(record?.opacity ?? DEFAULT_OPACITY), 0, 1),
-    blendMode: BLEND_OPTIONS.some(([value]) => value === record?.blendMode) ? record.blendMode : DEFAULT_BLEND_MODE,
-    warpMode: WARP_OPTIONS.some(([value]) => value === record?.warpMode) ? record.warpMode : REFERENCE_IMAGE_WARP_MODES.AUTO,
-    visible: record?.visible !== false,
-    locked: record?.locked === true,
-    flipX: record?.flipX === true,
-    flipY: record?.flipY === true,
-    rotation: normalizeReferenceImageRotation(record?.rotation),
-    controlPoints: Array.isArray(record?.controlPoints) ? record.controlPoints : [],
-    blob: record?.blob instanceof Blob ? record.blob : null,
-    screenRect: normalizeReferenceImageScreenRect(record?.screenRect),
-    order: Number.isFinite(Number(record?.order)) ? Number(record.order) : 0,
-  };
-}
-
-function serializableRecord(record, order) {
-  return {
-    id: record.id,
-    name: record.name,
-    opacity: record.opacity,
-    blendMode: record.blendMode,
-    warpMode: record.warpMode,
-    visible: record.visible,
-    locked: record.locked,
-    flipX: record.flipX,
-    flipY: record.flipY,
-    rotation: normalizeReferenceImageRotation(record.rotation),
-    controlPoints: record.controlPoints.map(point => ({
-      id: point.id,
-      image: [...point.image],
-      coordinate: [...point.coordinate],
-    })),
-    screenRect: record.screenRect ? { ...record.screenRect } : null,
-    order,
-    blob: record.blob,
-  };
 }
 
 export function installReferenceImageController({ workspaceSurfaces, confirm, getGeneration = () => 0, isBlocked = () => false, cancelTools = () => {} } = {}) {
@@ -190,7 +151,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (index < 0 || !record.blob) return Promise.resolve(false);
     clearScheduledPersist(record.id);
     const version = markRecordDirty(record.id);
-    return putStoredReferenceImage(serializableRecord(record, index))
+    return putStoredReferenceImage(serializeReferenceImageRecord(record, index))
       .then(() => {
         if (version === recordVersions.get(record.id) && !pendingPersistTimers.has(record.id)) dirtyRecords.delete(record.id);
         return true;
@@ -223,7 +184,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     const version = ++collectionVersion;
     const versions = new Map(recordVersions);
     for (const recordId of [...pendingPersistTimers.keys()]) clearScheduledPersist(recordId);
-    return replaceStoredReferenceImages([...records.map((record, order) => serializableRecord(record, order)), ...retainedRecords])
+    return replaceStoredReferenceImages([...records.map((record, order) => serializeReferenceImageRecord(record, order)), ...retainedRecords])
       .then(() => {
         if (version === collectionVersion) dirtyCollection = false;
         for (const id of dirtyRecords) {
@@ -280,6 +241,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       gcpState,
       controlPointEditing: controlPointEditingId === record.id,
       selectedControlPointId,
+      placementRotation: referenceImagePlacementRotation(record, mapHost()),
     });
     syncEditingSurface();
   }
@@ -347,15 +309,27 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     const decoded = await createImageFromBlob(blob);
     if (!validToken(token)) { URL.revokeObjectURL(decoded.url); return null; }
     objectUrls.add(decoded.url);
-    const source = normalizePersistedRecord(persisted || {});
-    const record = {
-      ...source,
+    const host = mapHost();
+    if (!host) throw new Error('지도 좌표계를 준비할 수 없습니다.');
+    const source = normalizeReferenceImageRecord({
+      ...(persisted || {}),
       id: persisted?.id || createId(),
       name: String(persisted?.name || name || '참조 이미지'),
       blob,
+    });
+    const migratedMapQuad = !source.mapQuad && persisted?.screenRect
+      ? referenceImageScreenRectToMapQuad(persisted.screenRect, persisted.rotation, host)
+      : null;
+    const mapQuad = source.mapQuad || migratedMapQuad || defaultReferenceImageMapQuad(decoded.image, mapElement, host);
+    if (!mapQuad) throw new Error('참조 이미지를 현재 지도 위치에 배치할 수 없습니다.');
+    const record = {
+      ...source,
+      id: source.id || createId(),
+      name: source.name || '참조 이미지',
+      blob,
       image: decoded.image,
       objectUrl: decoded.url,
-      screenRect: source.screenRect || defaultReferenceImageScreenRect(decoded.image, mapElement),
+      mapQuad,
       warp: null,
       mesh: null,
       projectedMesh: null,
@@ -522,9 +496,10 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function beginPlacementDrag(event, record, point) {
-    const hit = referenceImagePlacementHit(record, point);
+    const host = mapHost();
+    const hit = referenceImagePlacementHit(record, point, host);
     if (!hit) return false;
-    placementDrag = createReferenceImagePlacementDrag(record, hit, point, event.pointerId);
+    placementDrag = createReferenceImagePlacementDrag(record, hit, point, host, event.pointerId);
     if (!placementDrag) return false;
     dragBefore = copyReferenceImageRecords(records);
     surface?.setGestureActive(true);
@@ -543,6 +518,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       record,
       placementDrag,
       point,
+      mapHost(),
       { shiftKey: event.shiftKey },
     );
     if (changed) renderer.requestRender();
@@ -556,7 +532,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     placementDrag = null;
     if (record && dragBefore) {
       const before = dragBefore.find(item => item.id === record.id);
-      if (JSON.stringify(before.screenRect) !== JSON.stringify(record.screenRect) || before.rotation !== record.rotation) history.push(dragBefore);
+      if (JSON.stringify(before?.mapQuad) !== JSON.stringify(record.mapQuad)) history.push(dragBefore);
     }
     dragBefore = null;
     surface?.setGestureActive(false);
@@ -572,8 +548,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (!placementDrag) return;
     const record = records.find(item => item.id === placementDrag.recordId);
     if (record) {
-      record.screenRect = { ...placementDrag.startRect };
-      record.rotation = placementDrag.startRotation;
+      record.mapQuad = placementDrag.startMapQuad.map(coordinate => [...coordinate]);
     }
     try { mapElement.releasePointerCapture?.(placementDrag.pointerId); } catch (_) {}
     placementDrag = null; dragBefore = null;
@@ -660,7 +635,9 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
 
     if (field === 'name') record.name = event.target.value || '참조 이미지';
     if (field === 'opacity') record.opacity = clamp(Number(event.target.value), 0, 1);
-    if (field === 'rotation' && !record.warp?.ok && !record.locked) record.rotation = normalizeReferenceImageRotation(event.target.value);
+    if (field === 'rotation' && !record.warp?.ok && !record.locked) {
+      setReferenceImagePlacementRotation(record, mapHost(), event.target.value);
+    }
     if (field === 'blend') record.blendMode = event.target.value;
     if (field === 'warp') {
       record.warpMode = event.target.value;
@@ -683,7 +660,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       const output = event.target.parentElement?.querySelector('output');
       if (output) output.textContent = `${Math.round(record.opacity * 100)}%`;
     }
-    if (field === 'rotation') event.target.value = numberText(record.rotation, 1);
+    if (field === 'rotation') event.target.value = numberText(referenceImagePlacementRotation(record, mapHost()), 1);
     if (continuous && event.type === 'change' && continuousBefore) { history.push(continuousBefore); continuousBefore = null; }
     const historyLocked = records.some(item => item.locked);
     panel.querySelector('[data-ref-action="undo"]').disabled = !history.canUndo() || historyLocked;
@@ -736,11 +713,13 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       else startPlacementEditing(record);
     }
     if (action === 'reset-placement' && !record.locked && !record.warp?.ok) {
-      history.push(records);
-      record.screenRect = defaultReferenceImageScreenRect(record.image, mapElement);
-      record.rotation = 0;
-      void persist(record);
-      refreshUi();
+      const mapQuad = defaultReferenceImageMapQuad(record.image, mapElement, mapHost());
+      if (mapQuad) {
+        history.push(records);
+        record.mapQuad = mapQuad;
+        void persist(record);
+        refreshUi();
+      }
     }
     if (action === 'bring-forward') moveRecord(record, 1);
     if (action === 'send-backward') moveRecord(record, -1);
@@ -827,6 +806,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     storageState = 'loading'; storageError = ''; renderStorageStatus();
     try {
       const values = await listStoredReferenceImages();
+      let migratedStoredPlacement = false;
       const ordered = [...values].sort((a, b) => Number(a?.order || 0) - Number(b?.order || 0));
       retainedRecords.splice(0);
       const seenIds = new Set();
@@ -839,6 +819,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
         try {
           const record = await addBlob(value.blob, value.name, value, { select: false, save: false });
           if (!record) throw new Error('참조 이미지 읽기가 중단되었습니다.');
+          if (!value?.mapQuad && value?.screenRect && record.mapQuad) migratedStoredPlacement = true;
         } catch (error) {
           retainedRecords.push(value);
           console.warn('[reference-image-restore]', error);
@@ -847,6 +828,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       if (!validToken(restoreToken)) throw new Error('프로젝트가 변경되었습니다. 저장 목록을 다시 읽으세요.');
       storageState = 'ready';
       selectedId = records.at(-1)?.id || '';
+      if (migratedStoredPlacement) await persistAll();
     } catch (error) {
       storageState = 'error';
       storageError = '저장된 참조 이미지를 읽지 못했습니다. 원본을 보존했습니다. 다시 읽기를 눌러 재시도하세요.';
@@ -865,7 +847,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       locked: record.locked,
       opacity: record.opacity,
       blendMode: record.blendMode,
-      rotation: record.rotation,
+      rotation: referenceImagePlacementRotation(record, mapHost()),
       placementEditing: placementEditingId === record.id,
       warpMode: record.warp?.mode || record.warpMode,
       controlPointCount: record.controlPoints.length,
