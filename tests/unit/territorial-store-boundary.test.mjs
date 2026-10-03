@@ -59,12 +59,12 @@ test('territorial callers do not write raw country or unit collection storage', 
 });
 
 test('structural territorial callers use the entity store for collection writes', async () => {
-  const [drafts, conversion, generic, land, deletion, cut, startup, restore, snapshots, builtin, gis] = await Promise.all([
+  const [drafts, conversion, generic, land, commands, cut, startup, restore, snapshots, builtin, gis] = await Promise.all([
     read('app-territorial-drafts.js'),
     read('app-territorial-conversion.js'),
     read('app-generic-commands.js'),
     read('app-land-relations.js'),
-    read('app-object-deletion.js'),
+    read('app-object-commands.js'),
     read('app-cut-geometry.js'),
     read('app-progressive-startup.js'),
     read('app-project-restore.js'),
@@ -77,7 +77,7 @@ test('structural territorial callers use the entity store for collection writes'
   assert.match(conversion, /entityStore\.replaceCollections/);
   assert.match(generic, /entityStore\.replaceCollections/);
   assert.match(land, /entityStore\.replaceCollections/);
-  assert.match(deletion, /entityStore:\s*dependencies\.territorialModel\.entityStore/);
+  assert.match(commands, /entityStore:\s*dependencies\.territorialModel\.entityStore/);
   assert.match(cut, /entityStore\.replaceCollections/);
   assert.match(startup, /entityStore\.replaceCollections/);
   assert.match(restore, /entityStore\.replaceCollections/);
