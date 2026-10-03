@@ -1,5 +1,4 @@
 import { referenceImageKeyBlocked } from './reference-image-input.js';
-import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
 import { referenceImageMappingSignature } from './reference-image-model.js';
 import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
@@ -278,7 +277,6 @@ export function installReferenceImageLiveWire() {
 
   function cancelLiveWire({ message = '', tone = '' } = {}) {
     state = null;
-    setReferenceImageSurfaceEditing(false);
     pendingPointer = null;
     mapElement.classList.remove('is-reference-live-wire-mode');
     if (message) {
@@ -438,7 +436,6 @@ export function installReferenceImageLiveWire() {
       treeTarget: null,
     };
     mapElement.classList.add('is-reference-live-wire-mode');
-    setReferenceImageSurfaceEditing(true, '자동 추적 중 · 지도에서 경계 시작점과 다음 지점을 선택하세요.');
     setMessage('참조 이미지의 경계를 분석하고 있습니다.', 'working');
     scheduleSync();
     await new Promise(resolve => requestAnimationFrame(resolve));
@@ -613,7 +610,6 @@ export function installReferenceImageLiveWire() {
     state.tree = null;
     state.treeTarget = null;
     state.phase = 'preview';
-    setReferenceImageSurfaceEditing(false);
     setMessage(`자동 추적 결과 ${coordinates.length}개 점 · 적용하거나 다시 그릴 수 있습니다.`, 'success');
     requestRender();
     scheduleSync();
@@ -623,7 +619,6 @@ export function installReferenceImageLiveWire() {
   function redraw() {
     if (!state) return false;
     state.phase = 'armed';
-    setReferenceImageSurfaceEditing(true, '자동 추적 중 · 지도에서 경계 시작점과 다음 지점을 선택하세요.');
     state.anchors = [];
     state.segments = [];
     state.previewPoints = [];
