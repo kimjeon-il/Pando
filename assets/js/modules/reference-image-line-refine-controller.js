@@ -199,7 +199,7 @@ export function installReferenceImageLineRefiner() {
   }
 
   function ensureActionRow() {
-    let row = editor.querySelector('[data-ref-line-actions]');
+    let row = panel.querySelector('[data-ref-line-actions]');
     if (!row) {
       row = document.createElement('div');
       row.className = 'reference-image-calibration-actions reference-image-line-refine-actions';
@@ -252,6 +252,16 @@ export function installReferenceImageLineRefiner() {
     const redraw = row.querySelector('[data-ref-line-action="redraw"]');
     const cancel = row.querySelector('[data-ref-line-action="cancel"]');
     const active = !!state && state.recordId === recordId;
+    const summary = panel.querySelector('.reference-image-editing-summary');
+    const genericSummaryActions = summary?.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]') || [];
+    if (active && summary) {
+      genericSummaryActions.forEach(button => { button.hidden = true; });
+      if (row.parentElement !== summary) summary.appendChild(row);
+    } else {
+      genericSummaryActions.forEach(button => { button.hidden = false; });
+      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
+      if (calibrationActions && row.previousElementSibling !== calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
+    }
     start.hidden = active;
     start.disabled = !meta || meta.locked || !mappingReady
       || mapElement.classList.contains('is-reference-anchor-mode')
@@ -364,6 +374,7 @@ export function installReferenceImageLineRefiner() {
       return false;
     }
     setReferenceImageSurfaceEditing(false);
+    setReferenceImageSurfaceEditing(true, '선 보강 중 · 지도에서 참조 이미지 경계를 따라 드래그하세요.');
     state = { recordId, phase: 'loading', source: null, pointerId: null, roughScreenPoints: [], roughImagePoints: [], previewCoordinates: [] };
     mapElement.classList.add('is-reference-line-refine-mode');
     setMessage('참조 이미지의 경계 정보를 준비하고 있습니다.', 'working');
