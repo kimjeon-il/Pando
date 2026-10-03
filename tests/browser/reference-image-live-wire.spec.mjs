@@ -145,8 +145,8 @@ test('live-wire accepts a current corner-pin mapping and traces/undoes/applies a
     };
   });
 
-  const first = await screenPointForReferenceUv(page, [0.5, 0.18]);
-  const second = await screenPointForReferenceUv(page, [0.5, 0.82]);
+  const first = await screenPointForReferenceUv(page, [0.5, 0.12]);
+  const second = await screenPointForReferenceUv(page, [0.5, 0.46]);
   await page.mouse.click(first.x, first.y);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('tracking');
   await page.mouse.move(second.x, second.y, { steps: 6 });
