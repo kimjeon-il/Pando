@@ -63,8 +63,8 @@ test('screen placement is converted once into geographic mapQuad coordinates', (
 
 test('small source images are enlarged to a usable initial screen footprint', () => {
   const host = {
-    project([lon, lat]) { return [400 + lon, 300 - lat]; },
-    unproject([x, y]) { return [x - 400, 300 - y]; },
+    project([lon, lat]) { return [400 + lon * 10, 300 - lat * 10]; },
+    unproject([x, y]) { return [(x - 400) / 10, (300 - y) / 10]; },
   };
   const quad = defaultReferenceImageMapQuad(
     { naturalWidth: 64, naturalHeight: 64 },
