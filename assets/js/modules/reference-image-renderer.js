@@ -1,5 +1,6 @@
 import {
   REFERENCE_IMAGE_TRANSFORM,
+  projectReferenceImageMapQuad,
   referenceImagePlacementGeometry,
   referenceImagePlacementUvAtPoint,
 } from './reference-image-transform.js';
@@ -29,12 +30,6 @@ function projectVisible(host, coordinate) {
   if (host.getProjectionKind?.() !== 'globe') return projected;
   const roundTrip = host.unproject?.(projected);
   return angularDistanceDegrees(coordinate, roundTrip) <= 0.25 ? projected : null;
-}
-
-function projectedPlacement(record, host) {
-  if (!record?.mapQuad || record.mapQuad.length !== 4) return null;
-  const points = record.mapQuad.map(coordinate => projectVisible(host, coordinate));
-  return points.every(Boolean) ? points : null;
 }
 
 function affineForTriangles(source, destination) {
@@ -149,7 +144,7 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function drawPlaced(record, host, dpr) {
-    const corners = projectedPlacement(record, host);
+    const corners = projectReferenceImageMapQuad(record, host);
     if (!corners) return;
     const triangles = [
       { indices: [0, 1, 2], uv: [[0, 0], [1, 0], [1, 1]] },
