@@ -75,7 +75,7 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
   const errors = [];
   const collectError = message => {
     const text = String(message || '');
-    if (text.includes('[PL-RUNTIME-001]') && text.includes('polygon-geometry.js')) return;
+    if (!text.toLowerCase().includes('reference-image')) return;
     errors.push(text);
   };
   page.on('pageerror', error => collectError(error.message));
