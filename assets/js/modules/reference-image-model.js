@@ -1,4 +1,4 @@
-export const REFERENCE_IMAGE_MODEL_VERSION = 3;
+export const REFERENCE_IMAGE_MODEL_VERSION = 4;
 
 const DEFAULT_OPACITY = 0.55;
 const DEFAULT_BLEND_MODE = 'source-over';
@@ -61,7 +61,7 @@ export function normalizeReferenceImageRecord(record = {}) {
   const opacity = Number(record?.opacity ?? DEFAULT_OPACITY);
   const order = Number(record?.order);
   const controlPoints = normalizeControlPoints(record?.controlPoints);
-  const anchor = controlPoints.length ? null : normalizeReferenceImageAnchor(record?.anchor);
+  const anchor = normalizeReferenceImageAnchor(record?.anchor);
   return {
     modelVersion: REFERENCE_IMAGE_MODEL_VERSION,
     id: String(record?.id || ''),
