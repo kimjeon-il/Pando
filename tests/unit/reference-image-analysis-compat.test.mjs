@@ -86,13 +86,17 @@ test('controller leaves Escape inside editable fields to the field itself', asyn
 });
 
 
-test('live-wire owns anchor placement and segment commit on captured pointerdown', async () => {
+test('live-wire owns map activation on pointerdown with pointerup retry and no click dependency', async () => {
   const source = await readFile(moduleUrl('reference-image-live-wire-controller.js'), 'utf8');
-  assert.match(source, /function onPointerDown\(event\)/);
+  assert.match(source, /function activateAtPointer\(event\)/);
   assert.match(source, /placeFirstAnchor\(screen\)/);
   assert.match(source, /commitCurrentPreview\(screen\)/);
+  assert.match(source, /function onPointerDown\(event\)/);
+  assert.match(source, /function onPointerUp\(event\)/);
   assert.match(source, /addEventListener\('pointerdown', onPointerDown, true\)/);
+  assert.match(source, /addEventListener\('pointerup', onPointerUp, true\)/);
   assert.match(source, /removeEventListener\('pointerdown', onPointerDown, true\)/);
+  assert.match(source, /removeEventListener\('pointerup', onPointerUp, true\)/);
   assert.doesNotMatch(source, /function onClick\(event\)/);
   assert.doesNotMatch(source, /addEventListener\('click', onClick, true\)/);
 });
