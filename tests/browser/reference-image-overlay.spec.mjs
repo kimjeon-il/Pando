@@ -352,7 +352,6 @@ test('reference images support placement, ordering, georeferencing and persisten
   await page.locator('.reference-image-editing-summary [data-ref-action="finish"]').click();
   await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().find(value => value.name === '<Base "reference">')?.controlPointCount)).toBe(2);
-  await page.locator('[data-ref-action="gcp-edit"]').click();
   await expect(page.locator('[data-ref-action="flip-x"]')).toBeDisabled();
   await page.locator('[data-ref-field="locked"]').check();
   await expect(page.locator('[data-ref-action="delete"]')).toBeDisabled();
