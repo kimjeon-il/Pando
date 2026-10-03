@@ -77,3 +77,17 @@ test('analysis tools explicitly restore the full reference panel controls', asyn
     assert.match(source, /reference-image-surface-port\.js/);
   }
 });
+
+
+test('controller leaves Escape inside editable fields to the field itself', async () => {
+  const source = await readFile(moduleUrl('reference-image-controller.js'), 'utf8');
+  assert.match(source, /referenceImageKeyBlocked\(event\)/);
+});
+
+test('live-wire blocks pointerdown but commits anchors on click', async () => {
+  const source = await readFile(moduleUrl('reference-image-live-wire-controller.js'), 'utf8');
+  assert.match(source, /function onClick\(event\)/);
+  assert.match(source, /addEventListener\('click', onClick, true\)/);
+  assert.match(source, /removeEventListener\('click', onClick, true\)/);
+  assert.doesNotMatch(source, /else commitCurrentPreview\(screen\);\s*\n\s*}\s*\n\s*\n\s*function onPointerMove/);
+});
