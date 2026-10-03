@@ -286,7 +286,6 @@ test('reference images support placement, ordering, georeferencing and persisten
   await page.locator('[data-ref-action="redo"]').click();
   await expect.poll(async () => (await readReferenceStore(page))[0]?.mapQuad).toEqual(storedAfterMove);
 
-  await page.keyboard.press('Escape');
   await expect(page.locator('#map')).not.toHaveClass(/is-reference-placement-mode/);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list()[0]?.placementEditing)).toBe(false);
 
