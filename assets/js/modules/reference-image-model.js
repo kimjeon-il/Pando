@@ -84,6 +84,26 @@ export function normalizeReferenceImageRecord(record = {}) {
 }
 
 
+export function referenceImageMappingSignature(record = {}) {
+  const normalized = normalizeReferenceImageRecord(record);
+  return JSON.stringify({
+    warpMode: normalized.warpMode,
+    flipX: normalized.flipX,
+    flipY: normalized.flipY,
+    controlPoints: normalized.controlPoints.map(point => ({
+      id: point.id,
+      image: [...point.image],
+      coordinate: [...point.coordinate],
+    })),
+    anchor: normalized.anchor ? {
+      image: [...normalized.anchor.image],
+      coordinate: [...normalized.anchor.coordinate],
+    } : null,
+    cornerPinEnabled: normalized.cornerPinEnabled,
+    mapQuad: normalized.mapQuad ? normalized.mapQuad.map(point => [...point]) : null,
+  });
+}
+
 export function serializeReferenceImageRecord(record, order = 0) {
   const normalized = normalizeReferenceImageRecord({ ...record, order });
   return {
