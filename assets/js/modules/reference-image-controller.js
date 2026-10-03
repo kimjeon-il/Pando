@@ -249,48 +249,27 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       editorElement.replaceChildren();
       return;
     }
+    const state = interactionState();
     editorElement.innerHTML = referenceImageEditorMarkup({
       record,
       warp: record.warp,
-      placementEditing: placementEditingId === record.id,
-      freeTransformEditing: freeTransformEditingId === record.id,
+      placementEditing: state.placementEditingId === record.id,
+      freeTransformEditing: state.freeTransformEditingId === record.id,
       index: records.indexOf(record),
       count: records.length,
       blendOptions: BLEND_OPTIONS,
       warpOptions: WARP_OPTIONS,
-      anchorState: anchorState?.recordId === record.id ? anchorState : null,
-      gcpState,
-      controlPointEditing: controlPointEditingId === record.id,
-      selectedControlPointId,
+      anchorState: state.anchorState?.recordId === record.id ? state.anchorState : null,
+      gcpState: state.gcpState,
+      controlPointEditing: state.controlPointEditingId === record.id,
+      selectedControlPointId: state.selectedControlPointId,
       placementRotation: referenceImagePlacementRotation(record, mapHost()),
     });
-    syncEditingSurface();
-  }
-
-  function syncEditingSurface() {
-    const active = !!(anchorState || gcpState || placementEditingId || freeTransformEditingId || controlPointEditingId);
-    const hint = anchorState
-      ? (anchorState.step === 'image' ? '이미지에서 고정할 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.')
-      : gcpState
-        ? (gcpState.step === 'image' ? '이미지에서 맞출 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.')
-        : controlPointEditingId
-          ? '지도 위 기준점을 드래그해 이동하거나 선택 후 Delete로 삭제하세요.'
-          : freeTransformEditingId
-            ? '네 모서리를 각각 드래그해 자유 변형하세요.'
-            : selected()?.anchor
-              ? '고정점 유지 중 · 크기와 회전만 조정할 수 있습니다.'
-              : '이미지를 드래그해 배치하세요.';
-    surface?.setEditing(active, hint);
+    interaction?.syncSurface();
   }
 
   function cancelInteraction() {
-    cancelTools();
-    cancelAnchor(false);
-    cancelGcp(false);
-    stopControlPointEditing({ renderUi: false });
-    stopPlacementEditing({ renderUi: false });
-    stopFreeTransformEditing({ renderUi: false });
-    renderEditor();
+    interaction?.cancelAll();
   }
 
   function restoreHistory(direction) {
@@ -381,11 +360,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     records.splice(index, 1);
     clearScheduledPersist(record.id);
     selectedId = records.at(-1)?.id || '';
-    if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
-    if (freeTransformEditingId === record.id) stopFreeTransformEditing({ renderUi: false });
-    if (anchorState?.recordId === record.id) cancelAnchor(false);
-    if (gcpState?.recordId === record.id) cancelGcp(false);
-    if (controlPointEditingId === record.id) stopControlPointEditing({ renderUi: false });
+    interaction?.handleRecordRemoved(record);
     await persistAll();
     refreshUi();
   }
@@ -426,13 +401,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (field === 'visible') record.visible = event.target.checked;
     if (field === 'locked') {
       record.locked = event.target.checked;
-      if (record.locked) {
-        cancelAnchor(false);
-        cancelGcp(false);
-        if (controlPointEditingId === record.id) stopControlPointEditing({ renderUi: false });
-        if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
-        if (freeTransformEditingId === record.id) stopFreeTransformEditing({ renderUi: false });
-      }
+      interaction?.handleRecordLocked(record);
     }
 
     if (event.type === 'input' && continuous) schedulePersist(record);
@@ -491,17 +460,17 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       if (action === 'delete') { await removeRecord(record); return; }
     }
     if (action === 'placement') {
-      if (placementEditingId === record.id) stopPlacementEditing();
-      else startPlacementEditing(record);
+      if (interactionState().placementEditingId === record.id) interaction.stopPlacementEditing();
+      else interaction.startPlacementEditing(record);
     }
     if (action === 'free-transform') {
-      if (freeTransformEditingId === record.id) stopFreeTransformEditing();
-      else startFreeTransformEditing(record);
+      if (interactionState().freeTransformEditingId === record.id) interaction.stopFreeTransformEditing();
+      else interaction.startFreeTransformEditing(record);
       return;
     }
     if (action === 'anchor') {
-      if (anchorState?.recordId === record.id) cancelAnchor();
-      else armAnchor(record);
+      if (interactionState().anchorState?.recordId === record.id) interaction.cancelAnchor();
+      else interaction.armAnchor(record);
       return;
     }
     if (action === 'clear-anchor' && record.anchor && !record.locked) {
@@ -528,21 +497,23 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     }
     if (action === 'bring-forward') moveRecord(record, 1);
     if (action === 'send-backward') moveRecord(record, -1);
-    if (action === 'gcp') armGcp(record);
+    if (action === 'gcp') interaction.armGcp(record);
     if (action === 'gcp-edit') {
-      if (controlPointEditingId === record.id) stopControlPointEditing();
-      else startControlPointEditing(record);
+      if (interactionState().controlPointEditingId === record.id) interaction.stopControlPointEditing();
+      else interaction.startControlPointEditing(record);
       return;
     }
-    if (action === 'edit-image' || action === 'edit-coordinate') armGcp(record, button.dataset.pointId, action === 'edit-image' ? 'image' : 'map');
+    if (action === 'edit-image' || action === 'edit-coordinate') {
+      interaction.armGcp(record, button.dataset.pointId, action === 'edit-image' ? 'image' : 'map');
+    }
     const before = copyReferenceImageRecords(records);
     const fallbackQuad = currentWarpQuad(record);
     const editAction = action === 'undo-gcp' ? 'delete-gcp' : action;
     const id = action === 'undo-gcp' ? record.controlPoints.at(-1)?.id : button?.dataset.pointId;
     if (applyReferenceImageEdit(record, editAction, { id })) {
       history.push(before);
-      cancelGcp(false);
-      selectedControlPointId = '';
+      interaction.cancelGcp(false);
+      interaction.clearSelectedControlPoint();
       rebuildWarp(record);
       if (!record.warp.ok && fallbackQuad) {
         record.mapQuad = fallbackQuad;
@@ -557,33 +528,17 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (panel.hidden || isBlocked()) return false;
     if (event.key === 'Enter' && event.target?.closest('button,[role="button"]')) return false;
     if (event.key === 'Escape') {
-      if (anchorState || gcpState || placementEditingId || freeTransformEditingId) cancelInteraction();
+      if (interaction?.isActive()) cancelInteraction();
       else surface.close({ restoreFocus: true });
       return true;
     }
-    if ((event.key === 'Delete' || event.key === 'Backspace') && controlPointEditingId && selectedControlPointId) {
-      const record = selected();
-      if (record && !record.locked) {
-        const before = copyReferenceImageRecords(records);
-        const fallbackQuad = currentWarpQuad(record);
-        if (applyReferenceImageEdit(record, 'delete-gcp', { id: selectedControlPointId })) {
-          history.push(before);
-          selectedControlPointId = '';
-          rebuildWarp(record);
-          if (!record.warp.ok && fallbackQuad) {
-            record.mapQuad = fallbackQuad;
-            if (record.anchor) alignReferenceImageAnchor(record);
-          }
-          void persist(record);
-          refreshUi();
-        }
-      }
+    if ((event.key === 'Delete' || event.key === 'Backspace') && interaction?.deleteSelectedControlPoint()) {
       return true;
     }
     if ((event.ctrlKey || event.metaKey) && ['z', 'y'].includes(event.key.toLowerCase())) {
       restoreHistory(event.key.toLowerCase() === 'y' || event.shiftKey ? 'redo' : 'undo'); return true;
     }
-    return ['Delete', 'Backspace', 'Enter'].includes(event.key) && !!(gcpState || placementEditingId || freeTransformEditingId || controlPointEditingId);
+    return ['Delete', 'Backspace', 'Enter'].includes(event.key) && !!interaction?.isActive();
   }
 
   async function onFileChange() {
