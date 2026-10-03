@@ -557,7 +557,9 @@ export function installReferenceImageLiveWire() {
 
   function commitCurrentPreview(screen = null) {
     if (!state || state.phase !== 'tracking') return false;
-    if (screen) computePreviewForScreen(screen);
+    if (screen && (!state.previewPoints?.length || state.previewPoints.length < 2)) {
+      computePreviewForScreen(screen);
+    }
     if (!state.previewPoints?.length || state.previewPoints.length < 2) {
       setMessage('먼저 마우스를 경계의 다음 지점으로 이동하세요.', 'error');
       return false;
