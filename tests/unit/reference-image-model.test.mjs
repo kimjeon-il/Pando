@@ -112,6 +112,19 @@ test('current v5 stored record is idempotent and does not require migration', ()
   assert.deepEqual(serializeReferenceImageRecord(migrated.record, 0), current);
 });
 
+test('future record versions are preserved for a newer client instead of downgraded', () => {
+  const future = migrateReferenceImageStoredRecord({
+    modelVersion: REFERENCE_IMAGE_MODEL_VERSION + 1,
+    id: 'future',
+    mapQuad: quad,
+    futureOnlyField: { preserve: true },
+  });
+  assert.equal(future.sourceVersion, REFERENCE_IMAGE_MODEL_VERSION + 1);
+  assert.equal(future.unsupportedFutureVersion, true);
+  assert.equal(future.migrated, false);
+  assert.equal(future.record, null);
+});
+
 test('corner pin flag is disabled when a legacy record lacks a valid mapQuad', () => {
   const migrated = migrateReferenceImageStoredRecord({
     modelVersion: 5,
