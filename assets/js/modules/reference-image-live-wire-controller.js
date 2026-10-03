@@ -613,6 +613,7 @@ export function installReferenceImageLiveWire() {
     state.tree = null;
     state.treeTarget = null;
     state.phase = 'preview';
+    setReferenceImageSurfaceEditing(false);
     setMessage(`자동 추적 결과 ${coordinates.length}개 점 · 적용하거나 다시 그릴 수 있습니다.`, 'success');
     requestRender();
     scheduleSync();
@@ -622,6 +623,7 @@ export function installReferenceImageLiveWire() {
   function redraw() {
     if (!state) return false;
     state.phase = 'armed';
+    setReferenceImageSurfaceEditing(true, '자동 추적 중 · 지도에서 경계 시작점과 다음 지점을 선택하세요.');
     state.anchors = [];
     state.segments = [];
     state.previewPoints = [];
