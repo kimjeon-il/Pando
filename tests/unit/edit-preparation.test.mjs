@@ -27,8 +27,8 @@ test('indexed adjacency keeps the original collinearity precision and raw date-l
 
 test('display preparation reuses unchanged groups and discards removed boundaries', async () => {
   const service = createEditDisplayPreparation();
-  const country = createTerritorialFeature({ id: 'RUS', unitType: 'country', geometry: square });
-  const unit = createTerritorialFeature({ id: 'child', unitType: 'subunit', parentId: 'RUS',
+  const country = createTerritorialFeature({ id: 'RUS', entityKind: 'general', geometry: square });
+  const unit = createTerritorialFeature({ id: 'child', entityKind: 'general', parentId: 'RUS',
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [5, 0], [5, 10], [0, 10], [0, 0]]] } });
   const first = await service.prepare({ kind: 'boundaries' }, [country], [unit]);
   assert.ok(first.segments.length);

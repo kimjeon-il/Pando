@@ -30,17 +30,7 @@ export function createGpuScene() {
   function mapFeatureForObjectRef(value) {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref) return null;
-    if (ref.domain === 'territorial') {
-      const state = dependencies.projectState.state;
-      if ((dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)) {
-        const current = dependencies.territorialModel.entityRepository.get(ref.id);
-        if (state.countryVisualPhase !== 'preview') return current;
-        return state.auditPreviewCountries?.features?.find(feature => String(feature.id) === String(ref.id)) || current;
-      }
-      const current = dependencies.territorialModel.entityRepository.get(ref.id);
-      if (state.countryVisualPhase !== 'preview') return current;
-      return state.auditPreviewTerritorialUnits?.find(unit => String(unit.id) === String(ref.id)) || current;
-    }
+    if (ref.domain === 'territorial') return dependencies.objectModelB.territorialScope.displayFeature(ref.id);
     if (ref.domain === 'generic') {
       const genericFeature = dependencies.projectState.state.genericFeatures.find(feature => String(feature.id) === ref.id) || null;
       return genericFeature ? (0, dependencies.presentation.genericFeatureDisplayFeature)(genericFeature) : null;
@@ -48,7 +38,7 @@ export function createGpuScene() {
     if (ref.domain === 'hydro') return (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
     if (ref.domain === 'distribution') {
       const features = (0, dependencies.distributionServices.distributionEntriesForLayer)(dependencies.projectState.state.distributionEntries, ref.id).map(entry => {
-        const geometry = entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL ? dependencies.territorialModel.entityRepository.get(entry.territorialUnitId)?.geometry : entry.geometry;
+        const geometry = entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL ? dependencies.objectModelB.territorialScope.displayFeature(entry.territorialUnitId)?.geometry : entry.geometry;
         return geometry ? featureFromGeometry(geometry) : null;
       }).filter(Boolean);
       return features.length ? { type: 'FeatureCollection', features } : null;

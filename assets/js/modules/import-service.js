@@ -1,5 +1,4 @@
 import { EXCHANGE_TARGETS, normalizeExchangeTarget } from './exchange-adapter-registry.js';
-import { TERRITORIAL_IMPORT_TARGETS } from './import-plan.js';
 import { createGisImportPlan } from './gis-import-plan.js';
 import {
   WORKER_RPC_ERROR_CATEGORIES,
@@ -247,14 +246,10 @@ export function createImportService({
   openImportWizard,
   getWizardOptions,
   validateStructuredGeometry,
-  featureCountryId,
-  validateCountryCollection,
-  getCurrentCountries,
-  materializeCountryImport = null,
-  planCountryMerge,
+
   exchangeRegistry = null,
   getProjectGeneration = () => 0,
-  onStage = () => {},
+
 }) {
   const buildPlan = (kind, result, context, extra = {}) => createGisImportPlan({
     kind,
@@ -262,8 +257,8 @@ export function createImportService({
     source: { fileName: context.fileName, sourceKind: result.sourceKind || result.importPlan?.sourceKind || '' },
     payload: { result, ...extra },
     affectedIds: extra.plan?.affectedIds || [],
-    render: kind === 'country-merge' || kind === 'project-replace'
-      ? { kind: 'country-patch', domain: 'country' }
+    render: kind === 'project-replace'
+      ? { kind: 'territorial-patch', domain: 'territorial' }
       : kind === 'territorial'
         ? { kind: 'territorial-patch', domain: 'territorial' }
         : kind === 'distribution'
@@ -279,48 +274,21 @@ export function createImportService({
       sourceKind,
       ...getWizardOptions(),
     });
-    const resolvedTarget = normalizeExchangeTarget(result.importPlan?.targetType || result.targetType);
+    const resolvedTarget = normalizeExchangeTarget(result.importPlan?.targetType || result.targetType, '');
+    if (!resolvedTarget) throw new Error('가져올 객체 종류가 올바르지 않습니다.');
     const context = { fileName: files[0]?.name || '벡터 파일' };
 
     if (result.sourceKind === 'project' || result.importPlan?.sourceKind === 'project') {
       return { status: 'planned', plan: buildPlan('project-replace', result, context) };
     }
-    if (['general', 'regional'].includes(resolvedTarget) || Object.values(TERRITORIAL_IMPORT_TARGETS).includes(resolvedTarget)) {
+    if (['general', 'regional'].includes(resolvedTarget)) {
       return { status: 'planned', plan: buildPlan('territorial', result, context) };
     }
-    if (![EXCHANGE_TARGETS.COUNTRY, EXCHANGE_TARGETS.PROJECT].includes(resolvedTarget)) {
-      const kind = resolvedTarget === EXCHANGE_TARGETS.DISTRIBUTION ? 'distribution' : 'generic';
-      return { status: 'planned', plan: buildPlan(kind, result, context) };
-    }
-
-    if (resolvedTarget === EXCHANGE_TARGETS.COUNTRY && typeof materializeCountryImport === 'function') {
-      result.countriesData = materializeCountryImport(result.countriesData, {
-        manualMappings: result.identityMappings || {},
-        allowImplicitNew: result.openMode === 'replace',
-      });
-    }
-
-    onStage('국가 경계 확인 중…');
-    const structuredIssues = (result.countriesData?.features || []).flatMap(validateStructuredGeometry);
+    const importedFeatures = result.collection?.features || [];
+    const structuredIssues = importedFeatures.flatMap(validateStructuredGeometry);
     if (structuredIssues.length) throw new Error(`가져온 geometry가 올바르지 않습니다. ${structuredIssues[0].message}`);
-    const importedFeatures = result.countriesData?.features || [];
-    const importedOverlapAreaKm2 = (await validateCountryCollection(
-      result.countriesData,
-      importedFeatures.map(featureCountryId),
-    )).overlapAreaKm2;
-    if (importedOverlapAreaKm2 > 0.001) {
-      throw new Error(`가져온 레이어 안에서 서로 다른 국가가 ${Math.round(importedOverlapAreaKm2).toLocaleString()} km² 겹칩니다.`);
-    }
-    if (result.openMode === 'replace') {
-      return { status: 'planned', plan: buildPlan('project-replace', result, context) };
-    }
-    const plan = await planCountryMerge(getCurrentCountries(), result.countriesData, result.mergeStrategy);
-    if (!plan.canCommit) {
-      throw new Error(plan.counts.residualOverlapAreaKm2 > 0.001
-        ? '자동 차감 후에도 국가 간 중첩이 남아 가져올 수 없습니다.'
-        : 'ID 기준 교체 후 다른 국가와 영토가 겹쳐 가져올 수 없습니다.');
-    }
-    return { status: 'planned', plan: buildPlan('country-merge', result, context, { plan }) };
+    const kind = resolvedTarget === EXCHANGE_TARGETS.DISTRIBUTION ? 'distribution' : 'generic';
+    return { status: 'planned', plan: buildPlan(kind, result, context) };
   }
 
   return Object.freeze({ openFiles, exchangeRegistry });

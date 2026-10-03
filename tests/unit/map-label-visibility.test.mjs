@@ -10,7 +10,7 @@ import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs
 
 function fixture(visibility = {}) {
   const features = ['AAA', 'BBB', 'SUBUNIT', 'NOFLAG'].map(id => ({
-    type: 'Feature', id, properties: { name: id, ...(id === 'SUBUNIT' ? { unitType: 'subunit' } : {}) },
+    type: 'Feature', id, properties: { name: id, entityKind: 'general', parentId: id === 'SUBUNIT' ? 'AAA' : '', metadata: ['AAA','BBB'].includes(id) ? { flagDataUrl: `/${id}.svg` } : {} },
     geometry: { type: 'Polygon', coordinates: [[[-10, -10], [10, -10], [10, 10], [-10, 10], [-10, -10]]] },
   }));
   const anchors = new Map(features.map((feature, index) => [feature.id, [100 + index * 200, 100]]));
@@ -25,12 +25,11 @@ function fixture(visibility = {}) {
   const providers = new Proxy({
     projectSession: { state },
     runtime: { automaticLabelSettings, labelKey, layoutLabels, layoutTerritorialFlags, LABEL_PRIORITIES,
-      TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country' },
-    },
+      },
     countryIndex: { countryLabelAnchors: anchors, pendingCountryLabelAnchors: new Set() },
     builtinSession: { builtinTerritorialScene: () => ({
       labelById: new Map(features.map(feature => [feature.id, feature])),
-      labelRefs: new Map([['SUBUNIT', { domain: 'territorial', type: 'subunit', id: 'SUBUNIT' }]]),
+      labelRefs: new Map(features.map(f => [f.id, { domain: 'territorial', type: 'entity', id: f.id }])),
     }) },
     layerList: { isLayerItemVisible: (_group, id) => !hiddenIds.has(id) },
     spatialIndex: {
@@ -43,12 +42,13 @@ function fixture(visibility = {}) {
       activeProjection: () => ({ scale: () => 1000 }),
     },
     domainAssembly: {
-      territorialEntityRepository: { get: id => ({ ...features.find(feature => feature.id === id), properties: { unitType: 'country', name: id, metadata: ['AAA','BBB'].includes(id) ? { flagDataUrl: `/${id}.svg` } : {} } }) },
+      territorialEntityRepository: { get: id => features.find(f => f.id === id) },
+      territorialScope: { displayFeature: id => features.find(f => f.id === id) },
       selectionDomain: { has: () => false, snapshot: () => ({ selection: { items: [], primaryKey: null } }) },
     },
     environment: { runtimeAssetUrl: path => new URL(path, 'http://localhost/assets/js/') },
     renderQuality: { currentRenderQuality: { labelDensity: 1, tier: 'high' } },
-    objectPresentation: { territorialEntityName: feature => feature.properties.name },
+    objectPresentation: { territorialScope: { displayFeature: id => features.find(f => f.id === id) }, territorialEntityName: feature => feature.properties.name },
     workspaceSurfaces: { isMobile: () => false },
   }, { get: (target, key) => target[key] ||= {} });
   const ports = createApplicationPorts(providers);
@@ -141,8 +141,8 @@ for (const [id, group, nameKey, flagKey] of [
 ]) {
   test(`territorial symbols are independent for ${group}`, () => {
     const { controller, state, features } = fixture();
-    features.find(feature => feature.id === 'BBB').properties.unitType = 'region';
-    for (const feature of features.filter(feature => feature.properties.unitType)) {
+    features.find(feature => feature.id === 'BBB').properties.entityKind = 'regional';
+    for (const feature of features.filter(feature => feature.properties.entityKind)) {
       feature.properties.metadata = { flagDataUrl: `/${feature.id}.svg` };
     }
     state.layerVisibility[nameKey] = false;

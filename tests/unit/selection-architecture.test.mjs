@@ -41,16 +41,17 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
     styleRevision: 'style-2',
     countryBoundaryRevision: 'country-8',
     territorialBoundaryRevision: 'territorial-3',
-    country: { hoverId: 'DEU', primaryId: 'RUS', secondaryIds: ['FRA', 'POL'] },
-    generic: { primary: [{ key: 'region:one', geometry, geometryRevision: 'region-5' }] },
+    channels: { primary: [{ key: 'territorial:entity:RUS', boundaryOwnerId: 'RUS' },
+      { key: 'territorial:entity:region', geometry, geometryRevision: 'region-5' }],
+      secondary: ['FRA', 'POL'].map(id => ({ key: `territorial:entity:${id}`, boundaryOwnerId: id })) },
   });
   assert.equal(packet.revision, 12);
   assert.equal(packet.hoverRevision, 7);
   assert.equal(packet.geometryRevision, 'geometry-4');
   assert.equal(packet.styleRevision, 'style-2');
-  assert.equal(packet.country.primaryId, 'RUS');
-  assert.deepEqual(packet.country.secondaryIds, ['FRA', 'POL']);
-  assert.equal(packet.generic.primary[0].geometryRevision, 'region-5');
+  assert.equal(packet.channels.primary[0].boundaryOwnerId, 'RUS');
+  assert.deepEqual(packet.channels.secondary.map(item => item.boundaryOwnerId), ['FRA', 'POL']);
+  assert.equal(packet.channels.primary[1].geometryRevision, 'region-5');
 });
 
 test('selection layer architecture uses one legacy Pando host and z4 controls', async () => {

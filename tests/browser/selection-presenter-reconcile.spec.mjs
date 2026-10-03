@@ -25,7 +25,7 @@ test('Ctrl deselection restores the remaining country presenter and toolbar', as
     await expect(page.locator('#entityProperties')).toBeVisible();
     await expect(page.locator('#propertyTitle')).toContainText('독일');
     // The card stays hidden while the editor is open, but must track its single object.
-    await expect(page.locator('#selectionToolbar')).toHaveAttribute('data-object-key', 'territorial:country:DEU');
+    await expect(page.locator('#selectionToolbar')).toHaveAttribute('data-object-key', 'territorial:entity:DEU');
     const viewAfter = await page.evaluate(() => {
       const view = window.__PANDOLAB_VIEW_STATE__;
       return { scale: view.scale, rotation: view.rotation, translate: view.translate, center: view.projectionCenter };

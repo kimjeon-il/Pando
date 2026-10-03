@@ -202,7 +202,7 @@ export function createObjectPropertyController(runtime = {}) {
       .map(candidate => ({ value: candidate.id, label: candidate.name })).sort((a, b) => layerNameCompare(a.label, b.label))];
     const unitOptions = territorialEntityRepository.list().map(unit => ({
       value: unit.id,
-      label: `${unit.properties?.name || unit.id} · ${runtime.territorialTypeLabel(unit.properties?.entityKind)}`,
+      label: `${unit.properties?.name || unit.id}`,
     })).sort((a, b) => layerNameCompare(a.label, b.label));
     const distributionParent = $('distributionParentInput');
     const parentChoice = replaceSelectOptions(distributionParent, parentOptions, layer.parentId, { autoSelectSingle: true, preserveInvalid: true });

@@ -112,7 +112,7 @@ export function createSelectionPass({ onRenderError = null } = {}) {
   function preparedItem(item, channel) {
     const key = String(item?.key || '');
     if (!key) return null;
-    if (key.startsWith('country:') && !item.geometry) return Object.freeze({ key,packet: countryPacket(key.slice(8), channel) });
+    if (item.boundaryOwnerId) return Object.freeze({ key,packet: countryPacket(item.boundaryOwnerId, channel) });
     return Object.freeze({ key,packet: cachedGenericPacket(item) });
   }
 
@@ -131,14 +131,8 @@ export function createSelectionPass({ onRenderError = null } = {}) {
   function updateData(packet = {}) {
     packetRevision = Number(packet.revision || 0);
     if (packet.style) updateStyle(packet.style);
-    const generic = packet.generic || {};
-    const country = packet.country || {};
-    const next = {
-      candidate: [...(generic.candidate || [])],hover: [...(generic.hover || [])],primary: [...(generic.primary || [])],secondary: [...(generic.secondary || [])],
-    };
-    if (country.hoverId) next.hover.push({ key: `country:${country.hoverId}`,geometryRevision: packet.countryBoundaryRevision });
-    if (country.primaryId) next.primary.push({ key: `country:${country.primaryId}`,geometryRevision: packet.countryBoundaryRevision });
-    for (const id of country.secondaryIds || []) next.secondary.push({ key: `country:${id}`,geometryRevision: packet.countryBoundaryRevision });
+    const next = Object.fromEntries(CHANNELS.map(name => [name, (packet.channels?.[name] || []).map(item =>
+      item.boundaryOwnerId ? { ...item, geometryRevision: countryBoundaryRevision } : item)]));
     const changedChannels = CHANNELS.filter(name => prepareChannel(name, next[name]));
     return Object.freeze({
       succeeded: available && !contextLost,
@@ -176,7 +170,7 @@ export function createSelectionPass({ onRenderError = null } = {}) {
     for (const item of requested) {
       if (!item.packet) { missingKeys.push(item.key);continue; }
       if (item.packet.empty) { renderedKeys.push(item.key);continue; }
-      const isCountry = item.key.startsWith('country:') && Array.isArray(item.packet.ownerIds);
+      const isCountry = Array.isArray(item.packet.ownerIds);
       const groupKey = isCountry ? `country:${item.packet.key}` : `generic:${item.packet.key}`;
       let group = groups.get(groupKey);
       if (!group) {

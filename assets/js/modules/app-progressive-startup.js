@@ -74,7 +74,6 @@ export function createProgressiveStartup() {
     dependencies.projectState.state.auditPreviewTerritorialUnits = previewAllowed
       ? dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId) : null;
     dependencies.projectState.state.countryVisualPhase = previewAllowed ? 'preview' : 'canonical';
-    dependencies.labelCacheCommands.resetCountryDisplayCache();
 
     const restored = autosaveRestore.project;
     if (restored) (0, dependencies.snapshots.applySharedProjectFields)(restored);
@@ -173,7 +172,6 @@ export function createProgressiveStartup() {
         builtinIdentity: mesh.identity,
         onStaged: () => {
           dependencies.projectState.state.countryVisualPhase = 'canonical';
-          dependencies.labelCacheCommands.resetCountryDisplayCache();
           dependencies.domains.renderingDomain?.invalidateProject?.('canonical-staging-ready');
         },
         // Binary country slots retain canonical source order, even when a
@@ -189,7 +187,6 @@ export function createProgressiveStartup() {
     // mixing preview and canonical geometries on a single frame.
     if (meshApplied) {
       dependencies.projectState.state.countryVisualPhase = 'canonical';
-      dependencies.labelCacheCommands.resetCountryDisplayCache();
       dependencies.projectState.state.auditPreviewCountries = null;
       dependencies.projectState.state.auditPreviewTerritorialUnits = null;
       window.PANDOLAB_COUNTRIES = null;
@@ -441,7 +438,6 @@ export function createProgressiveStartup() {
     });
     if (gpuReady) {
       dependencies.projectState.state.countryVisualPhase = 'canonical';
-      dependencies.labelCacheCommands.resetCountryDisplayCache();
     }
     if (restored && gpuReady) {
       if (externalGeometry || (dependencies.projectState.state.autosaveMode === 'full')) (0, dependencies.renderQuality.scheduleGpuMeshRebuild)(0);

@@ -28,7 +28,6 @@ export function taskTargetRefs(state, { territorialEntityById = () => null } = {
     addTerritorial(session.editTargetId);
     addCountry(session.targetCountryId);
     for (const id of session.sourceCountryIds || []) addCountry(id);
-    addCountry(session.sovereignId);
     addTerritorial(session.parentId);
     if (session.sourceKey !== 'unassigned') addTerritorial(session.sourceKey);
   }

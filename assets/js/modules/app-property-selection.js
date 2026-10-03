@@ -6,14 +6,6 @@ import { resolveSelectChoice } from './select-option-policy.js';
 
 export function createPropertySelection() {
   let dependencies;
-  const parentPreparations = new Map();
-  const parentGeometryTokens = new WeakMap();
-  let parentGeometrySequence = 0;
-  const parentGeometryToken = geometry => {
-    if (!geometry) return 0;
-    if (!parentGeometryTokens.has(geometry)) parentGeometryTokens.set(geometry, ++parentGeometrySequence);
-    return parentGeometryTokens.get(geometry);
-  };
 
   function connect(ports) {
     if (dependencies) throw new Error('property-selection already connected');
@@ -64,9 +56,9 @@ export function createPropertySelection() {
     return Object.freeze({ ...state, value: select.value });
   }
 
-  function territorialUnitCountryOptions() {
+  function territorialRootOptions() {
     return [
-      { value: '', label: '소속 국가 미지정' },
+      { value: '', label: '최상위 객체 미지정' },
       ...dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).map(feature => {
         const properties = feature.properties || {};
         return {
@@ -76,33 +68,6 @@ export function createPropertySelection() {
         };
       }).sort((a, b) => dependencies.objectModelA.layerNameCollator.compare(a.label, b.label)),
     ];
-  }
-
-  function territorialUnitParentOptions(feature) {
-    const countryId = String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '');
-    const options = (0, dependencies.territorialServicesA.subunitParentChoices)(countryId, dependencies.territorialModel.entityRepository, {
-      exclude: [feature.id], name: item => (0, dependencies.objectPresentation.territorialEntityName)(item),
-    });
-    const signature = JSON.stringify([parentGeometryToken(feature.geometry), feature.properties.parentId, countryId,
-      options.map(option => {
-        const parent = dependencies.territorialModel.entityRepository.get(option.value);
-        return [option.value, parentGeometryToken(parent?.geometry), parent?.properties?.parentId, parent?.properties?.locked];
-      })]);
-    let entry = parentPreparations.get(String(feature.id));
-    if (entry?.signature !== signature) {
-      entry = { signature, ids: null };
-      parentPreparations.set(String(feature.id), entry);
-      while (parentPreparations.size > 16) parentPreparations.delete(parentPreparations.keys().next().value);
-      dependencies.spatialQuery.mapEditClient.execute('territorial-parents', { payload: { targetId: String(feature.id), candidateIds: options.map(option => option.value) } },
-        { jobKey: 'territorial-parents' }).then(response => {
-        if (parentPreparations.get(String(feature.id)) !== entry) return;
-        entry.ids = new Set(response.result.ids);
-        if (String(dependencies.projectState.state.selected?.id) === String(feature.id)) dependencies.domainControllers.objectPropertyController.present(dependencies.projectState.state.selected, { refreshOnly: true });
-      }).catch(() => { if (parentPreparations.get(String(feature.id)) === entry) parentPreparations.delete(String(feature.id)); });
-    }
-    const prepared = options.filter(option => entry.ids ? entry.ids.has(option.value) : String(option.value) === String(feature.properties.parentId));
-    prepared.pending = !entry.ids;
-    return prepared;
   }
 
   function territorialParentOptions(feature) {
@@ -446,7 +411,6 @@ export function createPropertySelection() {
     get setEditorShellView() { return setEditorShellView; },
     get startGeometryDistributionDraft() { return startGeometryDistributionDraft; },
     get territorialParentOptions() { return territorialParentOptions; },
-    get territorialUnitCountryOptions() { return territorialUnitCountryOptions; },
-    get territorialUnitParentOptions() { return territorialUnitParentOptions; },
+    get territorialRootOptions() { return territorialRootOptions; },
   });
 }

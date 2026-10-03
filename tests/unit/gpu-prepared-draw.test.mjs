@@ -43,7 +43,7 @@ test('selection prepares each shared country packet once and forwards prepared-o
   } });
   pass.setCountryBoundaryResources({ revision: '1', visibleIds: ['A', 'B'], pendingIds: [],
     strokeResources: { selectionBase: { ownerIds: ['A', 'B'], packet: { key: 'shared' } } } });
-  pass.updateData({ country: { primaryId: 'A', secondaryIds: ['B'] }, countryBoundaryRevision: '1' });
+  pass.updateData({ channels: { primary: [{ key: 'territorial:entity:A', boundaryOwnerId: 'A' }], secondary: [{ key: 'territorial:entity:B', boundaryOwnerId: 'B' }] }, countryBoundaryRevision: '1' });
   assert.equal(typeof pass.prepare, 'function');
   pass.prepare();
   assert.deepEqual(prepared, ['shared']);
@@ -62,7 +62,7 @@ test('base pass draws map substrate before terrain and preserves territory, coun
     ensureResource: () => assert.fail('draw initiated polygon preparation'),
     drawPackets: (packets, _frame, options) => {
       assert.equal(options.preparedOnly, true);
-      const keys = packets.map(packet => packet.key); calls.push(...keys);
+      const keys = packets.map(packet => packet.key); calls.push(...packets.map(packet => packet.style?.color === '#cccccc' ? `${packet.key}-substrate` : packet.key));
       return { renderedKeys: keys, missingKeys: [] };
     },
   };
@@ -73,7 +73,7 @@ test('base pass draws map substrate before terrain and preserves territory, coun
     } };
   const range = { ranges: [{ first: 0, count: 3 }] };
   const result = drawGpuBaseScene({ gl, frame: {}, width: 10, height: 10,
-    terrainVisible: true, terrainStyle: 'neutral', countriesVisible: true,
+    terrainVisible: true, terrainStyle: 'neutral', countriesVisible: true, mapSubstrate: { color: '#cccccc', fillAlpha: 1 },
     countries: { mesh: { triangleIndices: { length: 3 } }, landMaskProgram: 'mask', fillProgram: 'country' },
     prepared: { baseTriangleDraw: range, baseBoundaryDraw: range, overrideTriangleDraw: range, overrideBoundaryDraw: range,
       deferredOverlayKeys: new Set(), failedOverlayKeys: new Set(), territoryItems: [
@@ -83,7 +83,7 @@ test('base pass draws map substrate before terrain and preserves territory, coun
   }, { polygonOverlayPass, strokeRenderer, drawProgram: (...args) => calls.push(args[10] ? 'substrate' : args[0]),
     renderTerrain: () => calls.push('terrain'), drawHydro: category => calls.push(category),
     drawCountryBoundaryStrokes: () => { calls.push('boundary'); return { succeeded: true }; } });
-  assert.deepEqual(calls, ['substrate', 'mask', 'terrain', 'child', 'parent', 'country', 'generic', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary', 'stroke']);
+  assert.deepEqual(calls, ['child-substrate', 'parent-substrate', 'substrate', 'mask', 'child', 'parent', 'terrain', 'child', 'parent', 'country', 'generic', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary', 'stroke']);
   assert.deepEqual(result.overlayMissingKeys, []);
 });
 
@@ -161,7 +161,7 @@ test('selection preparation attributes resource build and upload metrics without
     drawBatches: batches => ({ succeeded: true, renderedKeys: batches.map(batch => batch.key) }),
   } });
   pass.setCountryBoundaryResources({ revision: '1', visibleIds: ['A'], pendingIds: [], strokeResources: { selectionBase: { ownerIds: ['A'], packet: { key: 'shared' } } } });
-  pass.updateData({ country: { primaryId: 'A' }, countryBoundaryRevision: '1' });
+  pass.updateData({ channels: { primary: [{ key: 'territorial:entity:A', boundaryOwnerId: 'A' }] }, countryBoundaryRevision: '1' });
   pass.prepare();
   pass.prepare();
   pass.draw({}, {}, { frameContext: {}, preparedOnly: true });

@@ -758,28 +758,21 @@
 
           <div class="gis-form-grid">
           <label id="gisLayerRow" class="ui-field field-group gis-wide" data-gis-step="0" data-gis-active="true"><span>가져올 레이어</span><select id="gisLayerSelect"></select><small id="gisLayerDetails">레이어 정보를 불러오는 중입니다.</small></label>
-<label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="" disabled hidden selected data-placeholder="true">종류를 선택하세요</option><option value="general">객체 자료</option><option value="regional">독립 권역 자료</option><option value="country">최상위 객체로 가져오기</option><option value="subunit">하위 객체로 가져오기</option><option value="region">독립 권역으로 가져오기</option><option value="distribution">분포</option></select></label>
-          <p id="gisCompatibilityNotice" class="editor-help hidden" data-gis-step="1">기존 파일의 기타 객체를 호환 모드로 복원합니다.</p>
+<label id="gisTargetTypeRow" class="ui-field field-group" data-gis-step="1"><span>가져올 종류</span><select id="gisTargetType"><option value="" disabled hidden selected data-placeholder="true">종류를 선택하세요</option><option value="general">객체 자료</option><option value="regional">독립 권역 자료</option><option value="generic">기타 지형지물</option><option value="distribution">분포</option></select></label>
           <label id="gisDistributionValueRow" class="ui-field field-group hidden" data-gis-step="1"><span>숫자 속성</span><select id="gisDistributionValueField"></select></label>
-          <label id="gisTargetCountryRow" class="ui-field field-group gis-wide hidden gis-target-country-row" data-gis-step="3"><span>소속 국가 <b aria-hidden="true">*</b></span><select id="gisTargetCountry" required><option value="" disabled hidden selected data-placeholder="true">소속 국가를 선택하세요</option></select><small id="gisTargetCountryHelp">선택한 국가로 영토가 이전됩니다.</small></label>
-          <label id="gisIndependentRegionRow" class="ui-check gis-wide hidden" data-gis-step="3"><input id="gisIndependentRegion" type="checkbox" /><span>국가에 속하지 않는 독립 지방으로 가져오기</span></label>
-          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>상위 단위</span><select id="gisParentUnit"><option value="" disabled hidden selected data-placeholder="true">소속 국가 선택</option></select></label>
+          <label id="gisCoastReferenceRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>해안선 정합 기준</span><select id="gisCoastReference"><option value="">해안선 정합 안 함</option></select><small>형상 정합에만 사용하며 소속 관계를 저장하지 않습니다.</small></label>
+          <label id="gisParentUnitRow" class="ui-field field-group gis-wide hidden" data-gis-step="3"><span>상위 객체</span><select id="gisParentUnit"><option value="">상위 객체 없음</option></select></label>
           <div class="gis-mapping-summary gis-wide" data-gis-step="2"><strong>자동 인식</strong><p id="gisMappingSummary">속성을 확인하는 중입니다.</p></div>
           <details id="gisAdvancedMapping" class="ui-disclosure editor-disclosure gis-wide" data-gis-step="2"><summary><span>속성 연결 수정</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body gis-form-grid">
             <label id="gisIdFieldRow" class="ui-field field-group"><span>ID 속성</span><select id="gisIdField"></select></label>
             <label id="gisNameFieldRow" class="ui-field field-group"><span>이름 속성</span><select id="gisNameField"></select></label>
-            <label id="gisUseCountryFieldRow" class="ui-check gis-wide hidden"><input id="gisUseCountryField" type="checkbox" /><span>객체별 소속 국가 속성 사용</span></label>
-            <label id="gisCountryFieldRow" class="ui-field field-group"><span>소속 국가 속성</span><select id="gisCountryField"></select><small>값이 비어 있을 때만 공통 소속 국가를 사용합니다. 알 수 없는 값은 오류로 표시됩니다.</small></label>
-            <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 단위 속성</span><select id="gisParentField"></select></label>
+            <label id="gisParentFieldRow" class="ui-field field-group"><span>상위 객체 ID 속성</span><select id="gisParentField"></select></label>
             <label id="gisColorFieldRow" class="ui-field field-group"><span>색상 속성</span><select id="gisColorField"></select></label>
             <label class="ui-field field-group"><span>수동 좌표계</span><input id="gisCrsInput" type="text" inputmode="numeric" placeholder="EPSG:4326" /></label>
           </div></details>
           <div class="ui-field field-group" data-gis-step="2"><span>좌표계</span><output id="gisCrsSummary" class="gis-crs-summary">감지 중</output></div>
           <div id="gisImportImpact" class="ui-callout gis-wide" data-gis-step="4"><strong>적용 결과</strong><div id="gisImportImpactSummary" class="gis-import-impact-summary"><p>적용할 내용을 계산하기 전입니다.</p></div></div>
-          <div id="gisCountryIdentityPanel" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>국가 ID 연결</strong><p class="gis-country-identity-help">연결할 국가를 확인하세요.</p><div id="gisCountryIdentityRows" class="gis-country-identity-rows"></div></div>
-          <div id="gisOpenModeRow" class="ui-field field-group gis-wide" data-gis-step="3"><span>적용 방식</span><div id="gisOpenModeControl" class="ui-segmented" role="radiogroup" aria-label="적용 방식"><button class="ui-button ui-segment-option active" type="button" data-gis-open-mode="replace" role="radio" aria-checked="true">새 프로젝트</button><button class="ui-button ui-segment-option" type="button" data-gis-open-mode="merge" role="radio" aria-checked="false">현재 지도에 추가</button></div><select id="gisOpenMode" hidden><option value="replace">새 프로젝트</option><option value="merge">현재 지도에 추가</option></select></div>
-          <div id="gisFixedOpenModeNote" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>현재 지도에 추가</strong><p>이 종류는 기존 국가·영역을 기준으로 하므로 현재 프로젝트에 추가됩니다.</p></div>
-          <label id="gisMergeStrategyRow" class="ui-field field-group hidden" data-gis-step="3"><span>병합 방식</span><select id="gisMergeStrategy"><option value="id-replace">ID 기준 교체</option><option value="imported-wins">가져온 영토 우선</option></select></label>
+          <div id="gisFixedOpenModeNote" class="ui-callout gis-wide hidden" data-gis-step="3"><strong>현재 지도에 추가</strong><p>가져온 객체와 형상은 검증한 뒤 현재 프로젝트에 추가됩니다.</p></div>
           <div id="gisFinalSummary" class="ui-callout gis-wide" data-gis-step="4"><strong>최종 확인</strong><p>가져오기 설정을 확인하는 중입니다.</p></div>
           </div>
           <p id="gisSecurityNote" class="ui-alert hidden" data-gis-step="3">QGS/QGZ의 매크로·스크립트·플러그인은 실행하지 않습니다. 원격·DB·래스터 레이어는 제외됩니다.</p>

@@ -126,6 +126,7 @@ export function buildSelectionBoundaryBufferData(nextItems = []) {
 export function buildSelectionChannelSignature(name, nextItems = []) {
   const itemSignature = item => [
     String(item?.key || ''),
+    String(item?.boundaryOwnerId || ''),
     String(item?.geometryRevision ?? item?.revision ?? 0),
     String(item?.ribbonRevision ?? ''),
     item?.missing ? 'missing' : 'ready',

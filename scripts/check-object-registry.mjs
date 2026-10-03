@@ -93,7 +93,7 @@ if (!uiRuntimeSource.includes('installObjectRegistryPresenter();')) {
 
 const appSource = readApplicationOwners('runtime-dependencies', 'object-presentation');
 for (const marker of [
-  'MAP_OBJECT_TYPES.country.label',
+  'Object.values(MAP_OBJECT_TYPES)',
   'Object.values(MAP_OBJECT_TYPES)',
   'category.createItems.forEach(type =>',
 ]) {

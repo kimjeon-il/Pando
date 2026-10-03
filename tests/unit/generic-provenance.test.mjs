@@ -5,7 +5,7 @@ import { assertCurrentProjectSchema, PROJECT_SCHEMA_VERSION } from '../../assets
 import { validateProjectReferenceIntegrity } from '../../assets/js/modules/project-invariants.js';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
-import { DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
+import { DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { normalizeGenericFeatureSemantics } from '../../assets/js/modules/generic-feature-service.js';
@@ -53,13 +53,13 @@ const project = feature => ({
   schemaVersion: PROJECT_SCHEMA_VERSION,
   landObjectModel: {
     schemaVersion: 2,
-    coastlineAuthority: 'countries',
+    coastlineAuthority: 'territorialEntities',
     purpose: 'lossless-fallback',
     directCreation: false,
     sourceProvenanceSchemaVersion: 1,
     canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
   },
-  territorialModel: { schemaVersion: 3 },
+  territorialModel: { schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION },
   distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION },
   distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
   layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder: [], styles: {} },

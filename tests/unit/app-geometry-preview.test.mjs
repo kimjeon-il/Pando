@@ -98,7 +98,7 @@ test('worker geometry preview resolves affected entities through the supplied re
   const before = {
     type: 'Feature',
     id: 'unit-a',
-    properties: { unitType: 'subunit' },
+    properties: { entityKind: 'general' },
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 0]]] },
   };
   const after = structuredClone(before);

@@ -146,7 +146,7 @@ test('one load command automatically classifies vector data and PandoLab project
   await (await chooserPromise).setFiles(vectorFixture);
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportTitle')).toHaveText('벡터 데이터 불러오기');
-  await expect(page.locator('#gisStepIndicator')).toHaveText('1/3 · 가져올 데이터');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/3 · 데이터 선택');
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
   await expect(page.locator('#gisTargetTypeRow')).toBeVisible();
   await page.locator('#gisImportCancelBtn').click();
@@ -160,9 +160,9 @@ test('one load command automatically classifies vector data and PandoLab project
   await (await chooserPromise).setFiles({ name: 'saved-project.gpkg', mimeType: 'application/geopackage+sqlite3', buffer: projectBuffer });
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportTitle')).toHaveText('프로젝트 불러오기');
-  await expect(page.locator('#gisStepIndicator')).toHaveText('1/2 · 파일 확인');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/1 · 프로젝트 복원 확인');
   await expect(page.locator('#gisTargetTypeRow')).toBeHidden();
-  await expect(page.locator('#gisOpenMode')).toHaveValue('replace');
+  await expect(page.locator('#gisFinalSummary')).toContainText('현재 작업공간을 교체');
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
   await page.locator('#gisImportCancelBtn').click();
   expect(errors).toEqual([]);

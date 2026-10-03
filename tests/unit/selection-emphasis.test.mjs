@@ -238,7 +238,12 @@ test('selection data travels through one packet contract and main-renderer inter
   const rendering = await readFile(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
   assert.match(packet, /countryBoundaryRevision/);
   assert.match(packet, /territorialBoundaryRevision/);
-  assert.match(packet, /generic: Object\.freeze/);
+  const { createSelectionPacket } = await import('../../assets/js/modules/selection-packet.js');
+  const selectionPacket = createSelectionPacket({ channels: { primary: [{ key: 'territorial:entity:A' }] } });
+  assert.equal(selectionPacket.channels.primary[0].key, 'territorial:entity:A');
+  assert.equal(Object.isFrozen(selectionPacket.channels.primary), true);
+  assert.equal(Object.hasOwn(selectionPacket, 'country'), false);
+  assert.equal(Object.hasOwn(selectionPacket, 'generic'), false);
   assert.doesNotMatch(app, /currentSelectionPacket = createSelectionPacket\(/);
   assert.doesNotMatch(app, /selectionPass\.updateData\(currentSelectionPacket\)/);
   assert.match(rendering, /gpuMapRenderer\?\.renderInteraction\?\./);

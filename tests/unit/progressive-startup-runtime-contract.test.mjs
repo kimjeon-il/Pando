@@ -6,7 +6,7 @@ import { applicationFunctionSource } from '../../scripts/lib/application-source.
 import { createProgressiveStartup } from '../../assets/js/modules/app-progressive-startup.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
-import { TERRITORIAL_UNIT_TYPES, createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 
 const source = readFileSync(new URL('../../assets/js/modules/app-progressive-startup.js', import.meta.url), 'utf8');
@@ -128,14 +128,13 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
     platform: { deepClone: structuredClone },
     platformConfigurationA: { BASE_DATASET: 'fixture' },
     geometryPreview: { boundarySelectionAnalysisCache: new Map() },
-    labelCacheCommands: { resetCountryDisplayCache: noop },
+    labelCacheCommands: {},
     spatialQuery: { mapEditClient: { stop: () => calls.push(['worker-stop']) } },
     mapView: { syncMapHostFromState: noop },
     projectSession: { saveState: { markNewProject: noop } },
     territorialModel: {
       entityStore,
       entityRepository: createTerritorialEntityRepository({ entityStore }),
-      TERRITORIAL_UNIT_TYPES,
     },
     countryServices: { normalizeCountryCollection },
     applicationServicesA: { classifyBuiltinCountries: countries => ({ countries, subunits: [] }) },
@@ -171,13 +170,13 @@ test('canonical geometry reaches the common Store before editing resumes while t
   await fixture.interactive.promise;
   assert.deepEqual(fixture.state.territorialEntities.map(feature => feature.id), ['A']);
   const geometry = { type: 'Polygon', coordinates: [[[2, 0], [2, 1], [3, 1], [3, 0], [2, 0]]] };
-  const countries = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'B', unitType: 'country', name: 'Detailed B', geometry })] };
+  const countries = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'B', entityKind: 'general', name: 'Detailed B', geometry })] };
   const before = structuredClone(countries);
   fixture.geometry.resolve({ countries, canonicalCountryStore: {} });
   await fixture.editable.promise;
   const [country] = fixture.state.territorialEntities;
   assert.deepEqual(fixture.state.territorialEntities.map(feature => feature.id), ['B']);
-  assert.equal(country.properties.unitType, 'country');
+  assert.equal(country.properties.entityKind, 'general');
   assert.equal(country.properties.parentId, '');
   assert.equal(country.properties.name, 'Detailed B');
   assert.deepEqual(country.geometry, geometry);

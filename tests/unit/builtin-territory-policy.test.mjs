@@ -31,11 +31,11 @@ test('four island merges are disjoint, input-preserving, idempotent and preserve
 
 test('special flags are local SVGs; explicit removal and buffer-zone exception remain', () => {
   for (const id of ['CYN', 'SOL']) {
-    const url = effectiveTerritorialFlagUrl({ id: id, properties: { unitType: 'country', metadata: {} } });
+    const url = effectiveTerritorialFlagUrl({ id: id, properties: { entityKind: 'general', metadata: {} } });
     const svg = readFileSync(new URL(url), 'utf8');
     assert.match(svg, /<svg\b/);
     assert.doesNotMatch(svg, /<script\b|<foreignObject\b|(?:href|src)=["']https?:/i);
-    assert.equal(effectiveTerritorialFlagUrl({ id: id, properties: { unitType: 'country', metadata: { flagDataUrl: null } } }), null);
+    assert.equal(effectiveTerritorialFlagUrl({ id: id, properties: { entityKind: 'general', metadata: { flagDataUrl: null } } }), null);
   }
-  assert.equal(effectiveTerritorialFlagUrl({ id: 'CNM', properties: { unitType: 'country', metadata: {} } }), null);
+  assert.equal(effectiveTerritorialFlagUrl({ id: 'CNM', properties: { entityKind: 'general', metadata: {} } }), null);
 });

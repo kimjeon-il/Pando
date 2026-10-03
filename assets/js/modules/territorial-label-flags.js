@@ -12,7 +12,7 @@ export function layoutTerritorialFlags(placed, options) {
   if (!options.enabled || options.zoom < 1.8) return flags;
   const boxes = placed.map(item => ({ ...item.box }));
   placed.forEach((item, index) => {
-    if (item.sourceType !== 'country') return;
+    if (item.sourceType !== 'territorial') return;
     const flag = territorialLabelFlag(item.source, options);
     if (!flag) return;
     const box = item.nameVisible === false ? boxes[index]

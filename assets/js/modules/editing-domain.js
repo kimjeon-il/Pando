@@ -808,13 +808,14 @@ export function createEditingDomain({
     activeTool = 'select';
   };
   const commitImport = async plan => {
-    assertCurrentGisImportPlan(plan, projectDomain?.getGeneration?.() || 0);
-    const result = plan.payload?.result || {};
-    const committer = await getImportCommitter?.();
+    const assertCurrent = () => assertCurrentGisImportPlan(plan, projectDomain.getGeneration());
+    assertCurrent();
+    const result = { ...plan.payload.result, assertCurrent };
+    const committer = await getImportCommitter();
+    assertCurrent();
     if (!committer) throw new Error('GIS import committer is not ready.');
     if (plan.kind === 'project-replace') return committer.applyImportedReplacement(result);
-    if (plan.kind === 'country-merge') return committer.commitGisMerge(result, plan.payload?.plan);
-    if (plan.kind === 'territorial') return committer.commitTerritorialImportWithTransfer(result, plan.source.fileName || '벡터 파일');
+    if (plan.kind === 'territorial') return committer.commitTerritorialImport(result, plan.source.fileName || '벡터 파일');
     const target = plan.kind === 'distribution' ? 'distribution' : result.targetType || 'generic';
     return committer.importGeoJson({ name: plan.source.fileName || '벡터 파일' }, {
       parsed: result.collection,

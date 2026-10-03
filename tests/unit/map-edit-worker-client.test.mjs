@@ -104,7 +104,7 @@ test('map edit worker client reuses one rebased worker for consecutive operation
 test('boundary requests reuse synchronized sources and send only geometry, hierarchy, or lock deltas', async t => {
   const worker = createFakeWorker();
   const country = { id: 'A', geometry: { type: 'Polygon', coordinates: [] }, properties: {} };
-  let unit = { id: 'child', geometry: { type: 'Polygon', coordinates: [] }, properties: { unitType: 'subunit', parentId: 'A', sovereignId: 'A' } };
+  let unit = { id: 'child', geometry: { type: 'Polygon', coordinates: [] }, properties: { entityKind: 'general', parentId: 'A' } };
   let color = 'red';
   const client = createMapEditWorkerClient({ createWorker: () => worker, getEntities: () => [country,unit], getFeatureById: () => country,
     getBoundaryFeatures: () => [{ ...country, properties: { color } }, unit], schedule: callback => Promise.resolve().then(callback) });

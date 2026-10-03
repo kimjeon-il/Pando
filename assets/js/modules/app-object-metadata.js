@@ -67,15 +67,6 @@ export function createObjectMetadata() {
     (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.hydroPresentation.hydroCategoryLabel)(feature.properties.category)} 정보를 변경했습니다.`, 'success');
   }
 
-  function territorialUnitContainer(feature, { sovereignId = (0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)), parentId = feature?.properties?.parentId } = {}) {
-    if (parentId && ((feature?.properties?.entityKind === 'general' && !!feature?.properties?.parentId)
-      || feature?.properties?.coverageMode === dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT)) {
-      return dependencies.territorialModel.entityRepository.get(parentId);
-    }
-    const country = dependencies.territorialModel.entityRepository.get(sovereignId);
-    return (country?.properties?.entityKind === 'general' && !country?.properties?.parentId) ? country : null;
-  }
-
   function territorialUnitInsideContainer(feature, container) {
     const clipper = window.polygonClipping;
     if (!feature?.geometry || !container?.geometry || !clipper?.difference) return false;
@@ -110,7 +101,6 @@ export function createObjectMetadata() {
     get commitGenericFeatureMeta() { return commitGenericFeatureMeta; },
     get commitHydroEdit() { return commitHydroEdit; },
     get commitTerritorialRelation() { return commitTerritorialRelation; },
-    get territorialUnitContainer() { return territorialUnitContainer; },
     get territorialUnitInsideContainer() { return territorialUnitInsideContainer; },
   });
 }

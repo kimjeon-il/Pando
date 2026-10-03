@@ -94,7 +94,7 @@ export function createTerritorialDrafts() {
           (0, dependencies.projectRestore.openConfirmModal)({
             title: '하위단위 영향 확인',
             message: '아래 소속 변경과 절단을 함께 반영합니다. 반영하지 않으면 경계를 다시 편집할 수 있습니다.',
-            impacts: result.ownershipChanges.map(change => (units.find(unit => text(unit.id) === change.id)?.properties.name || change.id) + ': ' + (change.replacementId ? '합병 후 참조 이전' : '상위 단위 ' + change.to + (change.sovereignId ? ' · 소속 국가 ' + change.sovereignId : ''))).concat(partial.map(impact => `${impact.name}: ${impact.kind === 'remove-child' ? '객체와 참조 삭제' : '일부 영역 절단 · ' + (0, dependencies.applicationServicesB.sphericalGeometryAreaKm2)(impact.geometry).toFixed(3) + ' km²'}`)),
+            impacts: result.ownershipChanges.map(change => (units.find(unit => text(unit.id) === change.id)?.properties.name || change.id) + ': ' + (change.replacementId ? '합병 후 참조 이전' : '상위 단위 ' + change.to)).concat(partial.map(impact => `${impact.name}: ${impact.kind === 'remove-child' ? '객체와 참조 삭제' : '일부 영역 절단 · ' + (0, dependencies.applicationServicesB.sphericalGeometryAreaKm2)(impact.geometry).toFixed(3) + ' km²'}`)),
             confirmText: '반영', cancelText: '반영 안 함',
             onConfirm: () => resolve(true), onCancel: () => {
               if (dependencies.projectState.state.territorySelectionSession?.stage === 'review') (0, dependencies.territorySelectionB.territorySelectionBack)();
@@ -120,7 +120,7 @@ export function createTerritorialDrafts() {
             delete dependencies.projectState.state.itemVisibility.regions?.[key];
             const removedFeature = [...countries, ...units].find(feature => text(feature.id) === key);
             const displayId = territorialSceneDisplayId(removedFeature, new Set(countries.map(feature => text(feature.id))));
-            delete dependencies.projectState.state.labelSettings?.[`country:${displayId}`];
+            delete dependencies.projectState.state.labelSettings?.[`territorial:${key}`];
             delete dependencies.projectState.state.itemVisibility.countryLabels?.[displayId];
             delete dependencies.projectState.state.layerPresentation?.objectStyles?.[`territorial:entity:${key}`];
           }
@@ -162,7 +162,7 @@ export function createTerritorialDrafts() {
           if (changedCountries.length) dependencies.domains.renderingDomain?.invalidateCountryPatch?.('territorial-edit-applied');
           dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territorial-edit-applied');
         },
-        successMessage: '하위단위와 관련 소속 변경을 함께 적용했습니다.',
+        successMessage: '객체와 관련 관계 변경을 함께 적용했습니다.',
         errorMessage: '영역 변경을 적용하지 못해 전체 변경을 되돌렸습니다.',
       });
     } catch (error) {
@@ -181,11 +181,11 @@ export function createTerritorialDrafts() {
   }
 
   function directSubunitChildren(session) {
-    return dependencies.territorialModel.entityRepository.children(session.parentId, { kind: 'general' }).filter(feature => text((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id))) === text(session.sovereignId));
+    return dependencies.territorialModel.entityRepository.children(session.parentId, { kind: 'general' });
   }
 
   function unassignedSourceForSession(session) {
-    const cacheKey = `${text(session.sovereignId)}:${text(session.parentId)}:${Number(dependencies.projectState.state.stateRevision || 0)}`;
+    const cacheKey = `${text(session.parentId)}:${Number(dependencies.projectState.state.stateRevision || 0)}`;
     if (session.setupSourceCache?.key === cacheKey) return session.setupSourceCache.value;
     const parent = parentFeatureForSession(session);
     if (!parent?.geometry) return null;
@@ -232,7 +232,6 @@ export function createTerritorialDrafts() {
     if (session.sourceKey === 'unassigned') return unassignedSourceForSession(session);
     const feature = dependencies.territorialModel.entityRepository.get(session.sourceKey);
     if (!feature?.geometry || !(feature.properties?.entityKind === 'general' && !!feature.properties?.parentId)
-      || text((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id))) !== text(session.sovereignId)
       || text(feature.properties?.parentId) !== text(session.parentId)) return null;
     return { feature, existingId: text(feature.id), virtual: false };
   }
@@ -260,7 +259,7 @@ export function createTerritorialDrafts() {
     if (parentId && (parent?.properties.entityKind !== 'general' || parent.properties.locked)) return false;
     const session = dependencies.territorySelectionA.startTerritorySelection('entity', {
       tool: 'draw-territorial-unit', entityKind: 'general', name: '새 객체',
-      parentId: text(parentId), sovereignId: parent ? text(dependencies.territorialModel.entityRepository.root(parent.id).id) : '',
+      parentId: text(parentId),
       sourceKey: parent ? 'unassigned' : '', sourceCountryIds: [],
     });
     if (!session) return false;
@@ -277,7 +276,7 @@ export function createTerritorialDrafts() {
     const next = regional ? 'regional' : 'general';
     if (session.entityKind === next) return false;
     session.entityKind = next;
-    session.parentId = ''; session.sovereignId = ''; session.sourceKey = ''; session.sourceCountryIds = [];
+    session.parentId = ''; session.sourceKey = ''; session.sourceCountryIds = [];
     session.setupSourceCache = null; session.settingsRevision += 1;
     dependencies.territorySelectionA.resetTerritorySelection(session, { keepRequestedMethod: false });
     dependencies.taskUi.updateModeButtons();
@@ -297,9 +296,9 @@ export function createTerritorialDrafts() {
     if (!target || target.properties.locked || !enterTerritorialCreateWorkflow({ parentId: target.properties.parentId })) return false;
     const session = dependencies.projectState.state.territorySelectionSession;
     session.editOperation = 'annex'; session.editTargetId = text(id);
-    session.name = target.properties.name || '하위단위';
+    session.name = target.properties.name || '객체';
     session.taskLabel = '영역 편입';
-    session.parentId = text(target.properties.parentId); session.sovereignId = text((0, dependencies.territorialModel.territorialRootId)(target, id => dependencies.territorialModel.entityRepository.get(id)));
+    session.parentId = text(target.properties.parentId);
     session.setupSourceCache = null;
     territorialCreateSetupModel();
     (0, dependencies.taskUi.updateModeButtons)();
@@ -313,7 +312,6 @@ export function createTerritorialDrafts() {
     const parent = value ? dependencies.territorialModel.entityRepository.get(value) : null;
     if (value && parent?.properties.entityKind !== 'general') return;
     session.parentId = text(value);
-    session.sovereignId = parent ? text(dependencies.territorialModel.entityRepository.root(parent.id).id) : '';
     session.sourceCountryIds = [];
     session.sourceKey = 'unassigned';
     session.setupSourceCache = null;
@@ -354,10 +352,9 @@ export function createTerritorialDrafts() {
     if (session.activeMethod !== 'polygon' && !sourceInfo?.feature?.geometry) return false;
     const context = {
       entityKind: session.entityKind === 'regional' ? 'regional' : 'general',
-      sovereignId: session.entityKind === 'general' && !!session.parentId ? session.sovereignId : '',
       parentId: session.entityKind === 'general' && !!session.parentId ? session.parentId : '',
     };
-    const fingerprint = JSON.stringify([session.kind, session.sovereignId, session.parentId, session.sourceKey, [...session.sourceCountryIds].sort()]);
+    const fingerprint = JSON.stringify([session.kind, session.parentId, session.sourceKey, [...session.sourceCountryIds].sort()]);
     if (session.sourceFingerprint === fingerprint && (session.baseSourceGeometry || session.activeMethod === 'polygon')) return true;
     session.sourceInfo = { context, source: null, existingId: '', virtual: false, sourceWasExisting: false };
     if (sourceInfo) {
@@ -380,7 +377,6 @@ export function createTerritorialDrafts() {
     const source = dependencies.territorialModel.entityRepository.get(id);
     if (!source || !enterTerritorialCreateWorkflow({ parentId: source.properties.parentId })) return false;
     const session = dependencies.projectState.state.territorySelectionSession;
-    session.sovereignId = text((0, dependencies.territorialModel.territorialRootId)(source, id => dependencies.territorialModel.entityRepository.get(id)));
     session.parentId = text(source.properties.parentId);
     session.sourceKey = text(source.id);
     session.setupSourceCache = null;

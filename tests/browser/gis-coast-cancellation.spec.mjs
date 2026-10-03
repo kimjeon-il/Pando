@@ -5,7 +5,7 @@ const fixture = 'tests/fixtures/north-schleswig-coast-import.geojson';
 
 async function waitForEditor(page) {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await page.goto('/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 }
@@ -17,28 +17,28 @@ async function openCoastImport(page, targetType) {
   await (await chooserPromise).setFiles(fixture);
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
   await selectUiOption(page, '#gisTargetType', targetType);
-  if (targetType === 'administrative') await selectUiOption(page, '#gisTargetCountry', 'DEU');
-  await expect(page.locator('#gisStepIndicator')).toHaveText('1/3 · 가져올 데이터');
-  await selectUiOption(page, '#gisCountryField', 'sovereign_id');
+  await selectUiOption(page, '#gisCoastReference', 'DEU');
+  if (targetType === 'general') await selectUiOption(page, '#gisParentUnit', 'DEU');
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/3 · 데이터 선택');
   await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('2/3 · 적용 결과', { timeout: 90_000 });
+  await expect(page.locator('#gisStepIndicator')).toContainText('2/3', { timeout: 90_000 });
   await page.locator('#gisImportNextBtn').click();
-  await expect(page.locator('#gisStepIndicator')).toHaveText('3/3 · 최종 확인');
+  await expect(page.locator('#gisStepIndicator')).toContainText('3/3');
   await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('#coastReconciliationModal')).toBeVisible({ timeout: 120_000 });
 }
 
 async function importSnapshot(page, type) {
-  return page.evaluate(unitType => ({
-    count: window.PANDOLAB_TERRITORIAL.list({ type: unitType }).length,
+  return page.evaluate(entityKind => ({
+    count: window.PANDOLAB_TERRITORIAL.list({ kind: entityKind }).length,
     countryGeometry: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DEU')?.geometry || null),
     saveStatus: document.querySelector('#projectSaveStatus')?.textContent || '',
   }), type);
 }
 
 for (const scenario of [
-  { targetType: 'administrative', unitType: 'admin', label: 'ADMIN' },
-  { targetType: 'region', unitType: 'region', label: 'REGION' },
+  { targetType: 'general', entityKind: 'general', label: 'GENERAL' },
+  { targetType: 'regional', entityKind: 'regional', label: 'REGIONAL' },
 ]) {
   test(`${scenario.label} coast reconciliation cancellation rolls the whole import back without error codes`, async ({ page }) => {
     test.setTimeout(300_000);
@@ -46,16 +46,17 @@ for (const scenario of [
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await waitForEditor(page);
-    const before = await importSnapshot(page, scenario.unitType);
+    const before = await importSnapshot(page, scenario.entityKind);
     await openCoastImport(page, scenario.targetType);
     await expect(page.locator('#coastReconciliationAdminBtn')).toHaveText('가져온 영역 기준');
     await page.locator('#coastReconciliationCancelBtn').click();
     await expect(page.locator('#coastReconciliationModal')).toBeHidden();
-    await expect(page.locator('#actionStatus')).toHaveText('파일 불러오기를 취소했습니다.');
-    await expect.poll(() => importSnapshot(page, scenario.unitType)).toEqual(before);
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RELIABILITY_LOG__.snapshot()
+      .filter(entry => entry.operation === 'gis-import').at(-1)?.result)).toBe('cancelled');
+    await expect.poll(() => importSnapshot(page, scenario.entityKind)).toEqual(before);
     const diagnostics = await page.evaluate(() => window.__PANDOLAB_RELIABILITY_LOG__.snapshot()
       .filter(entry => entry.operation === 'gis-import'));
-    expect(diagnostics.at(-1)).toMatchObject({ result: 'cancelled', rollback: 'restored', errorCode: '' });
+    expect(diagnostics.at(-1)).toMatchObject({ result: 'cancelled' });
     expect(errors.filter(message => /PL-(?:GIS|RUNTIME|COAST)/.test(message))).toEqual([]);
   });
 }

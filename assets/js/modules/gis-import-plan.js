@@ -1,6 +1,6 @@
 const GIS_IMPORT_PLAN_VERSION = 1;
 
-const PLAN_KINDS = new Set(['project-replace', 'country-merge', 'territorial', 'generic', 'distribution']);
+const PLAN_KINDS = new Set(['project-replace', 'territorial', 'generic', 'distribution']);
 
 const clone = value => {
   if (value === undefined || value === null) return value;

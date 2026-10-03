@@ -52,16 +52,15 @@ export function createTerritorialEntityRepository({
     if (state.lists.has(cacheKey)) return state.lists.get(cacheKey);
     let values = state.values;
     if (kind) {
-      const types = new Set(Array.isArray(kind) ? kind : [kind]);
-      values = values.filter(entity => types.has(entity.properties?.entityKind));
+      const kinds = new Set(Array.isArray(kind) ? kind : [kind]);
+      values = values.filter(entity => kinds.has(entity.properties?.entityKind));
     }
     if (parentId !== null) {
       const key = text(parentId);
       values = values.filter(entity => text(entity.properties?.parentId) === key);
     }
-    const countryId = rootId;
-    if (countryId !== null) {
-      const key = text(countryId);
+    if (rootId !== null) {
+      const key = text(rootId);
       values = values.filter(entity => text(root(entity.id)?.id) === key);
     }
     state.lists.set(cacheKey, values);

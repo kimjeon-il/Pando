@@ -15,7 +15,7 @@ const state = {
   sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],
   territorialRelations: [{ id: 'relation-1' }],
   distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'overlap', activeLayerId: '' },
-  labelSettings: { 'country:KOR': { pinned: true } }, layerPresentation: { styles: {} },
+  labelSettings: { 'territorial:KOR': { pinned: true } }, layerPresentation: { styles: {} },
   physicalSettings: { terrainVisible: true }, projection: 'flat',
   layerVisibility: { countries: true }, itemVisibility: { A: false }, layerFolders: { countries: true },
   view: { flatZoom: 2 },
@@ -69,7 +69,7 @@ const currentProject = () => ({
   schemaVersion: PROJECT_SCHEMA_VERSION,
   landObjectModel: {
     schemaVersion: 2,
-    coastlineAuthority: 'countries',
+    coastlineAuthority: 'territorialEntities',
     purpose: 'lossless-fallback',
     directCreation: false,
     sourceProvenanceSchemaVersion: 1,
@@ -96,6 +96,15 @@ const currentProject = () => ({
 test('current project schema accepts only explicit current versions and UUID object IDs', () => {
   assert.equal(assertCurrentProjectSchema(currentProject()).schemaVersion, PROJECT_SCHEMA_VERSION);
   assert.match(createProjectObjectId(), /^[0-9a-f-]{36}$/i);
+});
+
+test('territorial model header rejects retired types and unknown entity kinds', () => {
+  const retired = currentProject();
+  retired.territorialModel.types = ['country', 'subunit', 'region'];
+  assert.throws(() => assertCurrentProjectSchema(retired), /types/);
+  const invalid = currentProject();
+  invalid.territorialModel.kinds = ['general', 'country'];
+  assert.throws(() => assertCurrentProjectSchema(invalid), /kinds/);
 });
 
 

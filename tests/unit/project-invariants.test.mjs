@@ -8,8 +8,8 @@ import {
 } from '../../assets/js/modules/project-invariants.js';
 
 const polygon = () => ({ type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] });
-const country = id => createTerritorialFeature({id,unitType:'country',name:id,geometry:polygon()});
-const unit=(id,parentId='',countryId='A')=>createTerritorialFeature({id,unitType:'region',parentId,associatedCountryId:countryId,geometry:polygon()});
+const country = id => createTerritorialFeature({id,entityKind:'general',name:id,geometry:polygon()});
+const unit=(id,parentId='')=>createTerritorialFeature({id,entityKind:'general',parentId,geometry:polygon()});
 
 test('valid project references pass', () => {
   const result = validateProjectReferenceIntegrity({
@@ -22,7 +22,7 @@ test('valid project references pass', () => {
 
 test('dangling references are reported instead of silently ignored', () => {
   const result = validateProjectReferenceIntegrity({
-    territorialEntities: [...[country('A')],...[unit('R', 'MISSING', 'A')]],
+    territorialEntities: [...[country('A')],...[unit('R', 'MISSING')]],
     distributionLayers: [{ id: 'L', parentId: '' }],
     distributionEntries: [{ id: 'E', layerId: 'L', mode: 'territorial', territorialUnitId: 'NOPE', value: 100 }],
   });
@@ -31,7 +31,7 @@ test('dangling references are reported instead of silently ignored', () => {
   assert.ok(result.issues.some(row => row.code === 'PL-INV-MISSING-DIST-TERRITORIAL'));
   assert.throws(() => assertProjectReferenceIntegrity({
     territorialEntities: [...[country('A')],...[unit('R', 'MISSING', 'A')]],
-  }), /상위 단위/);
+  }), /부모/);
 });
 
 test('territorial and distribution parent cycles are rejected', () => {

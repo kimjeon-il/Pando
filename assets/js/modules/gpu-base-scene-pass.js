@@ -2,7 +2,7 @@ import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 
 // Submits a prepared frame. All resource construction and range scans happen before entry.
 export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
-  terrainVisible, terrainStyle, terrainRepresentation, countriesVisible, countries, prepared },
+  terrainVisible, terrainStyle, terrainRepresentation, countriesVisible, mapSubstrate, countries, prepared },
   { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
@@ -15,10 +15,21 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
       gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
       // Map-mode substrate is independent of optional country paint.
       resetGpuNormalBlend(gl);
+      gl.enable(gl.STENCIL_TEST);
+      gl.stencilMask(0xff);
+      gl.stencilFunc(gl.EQUAL, 0, 0xff);
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+      for (const { packet } of territoryItems) {
+        if (!deferredOverlayKeys.has(String(packet.key)) && !failedOverlayKeys.has(String(packet.key))) {
+          polygonOverlayPass.drawPackets([{ ...packet, blendMode: 'normal', style: mapSubstrate }], activeFrameContext, { preparedOnly: true });
+        }
+      }
       if (countriesVisible) {
         drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges, true);
         if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges, true);
       }
+      gl.disable(gl.STENCIL_TEST);
+      gl.clear(gl.STENCIL_BUFFER_BIT);
       gl.disable(gl.BLEND);
       if (terrainVisible && (terrainStyle !== 'physical' || terrainRepresentation === 'dem-relief-v1')) {
         gl.enable(gl.STENCIL_TEST);
@@ -28,6 +39,14 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
         gl.colorMask(false, false, false, false);
         drawProgram(landMaskProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
         if (overrideMesh?.triangleIndices?.length) drawProgram(landMaskProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
+        // General descendants may have explicit land outside the root polygon.
+        // Consume the same prepared display geometry without clipping/editing it.
+        // Independent regional overlays are absent from territoryItems.
+        for (const { packet } of territoryItems) {
+          if (!deferredOverlayKeys.has(String(packet.key)) && !failedOverlayKeys.has(String(packet.key))) {
+            polygonOverlayPass.drawPackets([packet], activeFrameContext, { claimTransparent: true, preparedOnly: true });
+          }
+        }
         gl.colorMask(true, true, true, true);
         gl.stencilMask(0x00);
         if (terrainStyle === 'physical' && terrainRepresentation === 'dem-relief-v1') {

@@ -116,7 +116,7 @@ export function createSpatialIndex() {
   function rebuildMapObjectSpatialIndex(force = false) {
     if (force) mapObjectSpatialIndexSources.clear();
     let changed = false;
-    const territorialEntities = dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
+    const territorialEntities = dependencies.objectModelB.territorialScope.displayEntities();
     changed = replaceSpatialDomain('label', [dependencies.projectState.state.labels, dependencies.projectState.state.labels?.length || 0, mapObjectGeometryRevisions.label], () => (dependencies.projectState.state.labels || []).flatMap(label => {
       const bounds = pointBounds(label.coordinates);
       return bounds ? [{
@@ -128,7 +128,7 @@ export function createSpatialIndex() {
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
     changed = replaceSpatialDomain('territorial', [territorialEntities, mapObjectGeometryRevisions.territorial], () => territorialEntities.flatMap(feature => feature?.geometry ? [{
-        key: `territorial:${feature.id}`, domain: 'territorial', type: 'entity', id: feature.id,
+        key: `territorial:entity:${encodeURIComponent(feature.id)}`, domain: 'territorial', type: 'entity', id: feature.id,
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
     const distributionRows = dependencies.domains.renderingDomain?.getDistributionRenderRows?.() || [];

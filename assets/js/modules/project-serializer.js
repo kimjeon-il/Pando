@@ -1,4 +1,4 @@
-import { normalizeTerritorialEntities } from './territorial-units.js';
+import { normalizeTerritorialEntities, TERRITORIAL_ENTITY_KINDS } from './territorial-units.js';
 import { createGeometrySnapshotPool } from './geometry-versions.js';
 import { TERRAIN_RASTER_VERSION } from './terrain-manifest.js';
 import { PROJECT_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION, GENERIC_FEATURE_SCHEMA_VERSION,
@@ -10,7 +10,7 @@ function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion
       purpose: 'lossless-fallback', directCreation: false, sourceProvenanceSchemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION,
       canonicalProperties: ['name','notes','color','locked','source'] },
     territorialModel: { schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION, coastlineAuthority: 'territorialEntities',
-      storage: 'territorialEntities', types: ['country','subunit','region'], coverageModes: ['partition','explicit'] },
+      storage: 'territorialEntities', kinds: Object.values(TERRITORIAL_ENTITY_KINDS), coverageModes: ['partition','explicit'] },
     distributionModel: { schemaVersion: distributionSchemaVersion, sourceModes: [...distributionModes], valueKind: 'finite-number' },
   };
 }

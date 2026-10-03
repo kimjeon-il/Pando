@@ -46,7 +46,6 @@ export function createTerritorySelectionWorkflow() {
       name: String(options.name ?? definition.defaultName),
       generatedId: options.generatedId || (definition.generatedIdPrefix ? (0, dependencies.surfaces.uid)(definition.generatedIdPrefix) : ''),
       targetCountryId: text(options.targetCountryId),
-      sovereignId: text(options.sovereignId),
       parentId: text(options.parentId),
       sourceKey: text(options.sourceKey || definition.defaultSourceKey),
       componentIndex: null,
@@ -340,7 +339,7 @@ export function createTerritorySelectionWorkflow() {
 
   function componentPreparationKey(current) {
     return [current.id, current.projectGeneration, current.sourceRevision,
-      current.sovereignId, current.parentId, current.sourceKey, ...current.sourceCountryIds,
+      current.parentId, current.sourceKey, ...current.sourceCountryIds,
       ...current.parts.map(part => part.id)].join(':');
   }
 

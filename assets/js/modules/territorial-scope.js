@@ -1,68 +1,75 @@
+import { normalizePolygonGeometry } from './map-edit-geometry.js';
+import { builtinSubunitSourceId } from './builtin-subunits.js';
+
 const polygons = geometry => geometry?.type === 'Polygon' ? [geometry.coordinates]
   : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
-const featureFor = coordinates => coordinates?.length ? { type: 'Feature', properties: {}, geometry: { type: 'MultiPolygon', coordinates } } : null;
+const featureFor = (coordinates, entity) => coordinates?.length
+  ? { ...entity, geometry: normalizePolygonGeometry({ type: 'MultiPolygon', coordinates }) } : null;
 
 /** Read model only. Its geometry never replaces canonical entity geometry.
  * parentId here is strictly the administrative/spatial hierarchy. Political
  * dependency relations must not participate in scope geometry.
  */
-export function createTerritorialScopeResolver({ entityRepository, clipper }) {
+export function createTerritorialScopeResolver({ entityRepository, clipper, getState = () => ({}) }) {
   if (!entityRepository?.list || !entityRepository?.get) {
     throw new TypeError('영역 범위 계산에는 TerritorialEntityRepository가 필요합니다.');
   }
   let sourceEntities = null;
   let scopes = new Map();
+  let displaySources = [], displayValues = [], displayById = new Map();
   function refresh() {
     const entities = entityRepository.list();
     if (sourceEntities === entities) return;
     sourceEntities = entities;
     scopes = new Map();
   }
-  function members(countryId) {
-    return entityRepository.descendants(countryId, { kind: 'general' });
+  function members(entityId) {
+    return entityRepository.descendants(entityId, { kind: 'general' });
   }
 
-  function scope(countryId) {
+  function scope(entityId) {
     refresh();
-    const id = String(countryId);
+    const id = String(entityId);
     if (scopes.has(id)) return scopes.get(id);
-    const candidate = entityRepository.get(id);
-    const country = (candidate?.properties?.entityKind === 'general' && !candidate?.properties?.parentId) ? candidate : null;
-    const descendants = members(id);
-    const base = polygons(country?.geometry);
-    let extent = country, extra = null;
+    const entity = entityRepository.get(id);
+    const descendants = entity?.properties.entityKind === 'general' ? members(id) : [];
+    const base = polygons(entity?.geometry);
+    let extent = entity, extra = null;
     if (descendants.length && base.length) {
       const engine = clipper();
-      if (!engine?.union || !engine?.difference) return { country, members: descendants, extent, extra };
+      if (!engine?.union || !engine?.difference) throw new Error('객체 표시 범위 계산에 polygonClipping이 필요합니다.');
       const combined = engine.union(base, ...descendants.map(unit => polygons(unit.geometry)).filter(value => value.length));
-      extent = featureFor(combined) || country;
-      extra = featureFor(engine.difference(combined, base));
+      extent = featureFor(combined, entity) || entity;
+      extra = featureFor(engine.difference(combined, base), entity);
     }
-    const result = { country, members: descendants, extent, extra };
+    const result = Object.freeze({ entity, members: descendants, extent, extra });
     scopes.set(id, result);
     return result;
   }
 
-  return Object.freeze({ members, scope,  });
-}
-
-export function validateSubunitParentChanges(previous, next, countryExists) {
-  const old=new Map((previous||[]).map(unit=>[String(unit.id),unit]));
-  const units=new Map((next||[]).map(unit=>[String(unit.id),unit]));
-  const issues=[];
-  for(const unit of next||[]) {
-    if(!(unit.properties?.entityKind === 'general' && !!unit.properties?.parentId)) continue;
-    const before=old.get(String(unit.id));
-    const parentId=String(unit.properties.parentId||'');
-    let cursor=parentId;
-    const seen=new Set([String(unit.id)]);
-    while(cursor && units.has(cursor)) {
-      const parent=units.get(cursor);
-      if(seen.has(cursor)||!(parent.properties.entityKind === 'general' && !!parent.properties.parentId)) { issues.push(unit.id+': 잘못된 부모 또는 순환 관계입니다.'); cursor=''; break; }
-      seen.add(cursor); cursor=String(parent.properties.parentId||'');
-    }
-    if(!cursor||!countryExists(cursor)) issues.push(unit.id+': 부모 체인이 국가까지 연결되어야 합니다.');
-    if(before?.properties.locked && before.properties.parentId!==parentId) issues.push(unit.id+': 잠긴 객체의 부모를 변경할 수 없습니다.');
+  // One read projection for paint, labels, emphasis and picking. Preview
+  // coordinates never enter the editable Store or hierarchy indexes.
+  function displayEntities() {
+    const state = getState();
+    const entities = entityRepository.list();
+    const preview = state.countryVisualPhase === 'preview';
+    const sources = [entities, preview, state.auditPreviewCountries, state.auditPreviewTerritorialUnits];
+    if (sources.every((source, index) => source === displaySources[index])) return displayValues;
+    displaySources = sources;
+    const previews = new Map(preview ? [
+      ...(state.auditPreviewCountries?.features || []), ...(state.auditPreviewTerritorialUnits || []),
+    ].map(feature => [String(feature.id), feature.geometry]) : []);
+    displayValues = preview ? entities.map(entity => {
+      // The source ID belongs to the built-in asset, not the editable object.
+      const geometry = previews.get(String(entity.id)) || previews.get(builtinSubunitSourceId(entity));
+      return geometry && geometry !== entity.geometry ? { ...entity, geometry } : entity;
+    }) : entities;
+    displayById = new Map(displayValues.map(entity => [String(entity.id), entity]));
+    return displayValues;
   }
-  return {ok:!issues.length,issues};
+  function displayFeature(value) {
+    displayEntities();
+    return displayById.get(String(typeof value === 'object' ? value?.id : value)) || null;
+  }
+  return Object.freeze({ members, scope, displayEntities, displayFeature });
 }

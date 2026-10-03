@@ -54,14 +54,6 @@
   gap: var(--ui-space-3);
 }
 
-body[data-layout="mobile"] .gis-country-identity-row {
-  grid-template-columns: 1fr;
-}
-
-.gis-target-country-row b {
-  color: var(--danger-text);
-}
-
 .gis-crs-summary {
   min-height: var(--ui-control-height);
   display: flex;

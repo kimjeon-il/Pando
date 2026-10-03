@@ -7,7 +7,7 @@ import { createTerritorialEntityStore } from '../../assets/js/modules/territoria
 
 function harness(fail = false) {
   const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
-  const state = {territorialEntities:[createTerritorialFeature({id:'A',unitType:'country',geometry})],historyDirtyEntityIds:new Set(),sourceInfo:null};
+  const state = {territorialEntities:[createTerritorialFeature({id:'A',entityKind: 'general',geometry})],historyDirtyEntityIds:new Set(),sourceInfo:null};
   const before = structuredClone(state);
   const history = [], events = [];
   const noop = () => {};
@@ -21,16 +21,16 @@ function harness(fail = false) {
     transferLandDependents: () => { events.push('transfer'); },
     assertProjectReferenceIntegrity: snapshot => {
       events.push('validate');
-      assert.equal(snapshot.territorialEntities.filter(entity=>entity.properties.unitType!=='country').length, 1);
+      assert.equal(snapshot.territorialEntities.filter(entity=>!(entity.properties.entityKind === 'general' && !entity.properties.parentId)).length, 1);
       if (fail) throw new Error('invalid relation');
     },
     appendImportedSourceInfo: (_before, next) => next, scheduleCountryLabelAnchors: noop, markCountryGeometriesChanged: noop,
     commitHistorySnapshot: snapshot => { events.push('history'); history.push(snapshot); },
     selectionUiController: { clear: noop }, renderingDomain: { invalidateCountryPatch: noop }, queueAutosave: noop, setActionStatus: noop,
   });
-  const result = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',unitType:'country',geometry})] }, preparedTerritorialUnits: [createTerritorialFeature({id:'CHILD',unitType:'subunit',parentId:'NEW',geometry})],
+  const result = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',entityKind: 'general',geometry})] }, preparedTerritorialUnits: [createTerritorialFeature({id:'CHILD',entityKind: 'general',parentId:'NEW',geometry})],
     landTransfers: [{ targetId: 'NEW', geometry: {}, donorIds: ['A'] }], sourceInfo: { sourceId: 'library' } };
-  const plan = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',unitType:'country',geometry})] }, affectedIds: ['A', 'NEW'], counts: { added: 2 } };
+  const plan = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',entityKind: 'general',geometry})] }, affectedIds: ['A', 'NEW'], counts: { added: 2 } };
   return { state, before, history, events, run: () => commit.commitGisMerge(result, plan), result };
 }
 

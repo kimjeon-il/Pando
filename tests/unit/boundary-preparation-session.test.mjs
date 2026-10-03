@@ -1,16 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { administrativeCountryId } from '../../assets/js/modules/territorial-units.js';
+import { territorialRootId } from '../../assets/js/modules/territorial-units.js';
 import { createGeometryPreview } from '../../assets/js/modules/app-geometry-preview.js';
 
 function fixture() {
   const requests = [], counters = { stop: 0, refresh: 0 };
   let generation = 1;
   const state = { tool: 'territorial-border', boundaryEditPhase: 'selecting', boundaryEditEntityIds: ['A', 'B'],
-    coastEditScopeGenericFeatureId: null, territorialEntities: [{ id: 'A', properties: { unitType: 'country' }, geometry: {} }, { id: 'B', properties: { unitType: 'country' }, geometry: {} }], genericFeatures: [] };
+    coastEditScopeGenericFeatureId: null, territorialEntities: [{ id: 'A', properties: { entityKind: 'general' }, geometry: {} }, { id: 'B', properties: { entityKind: 'general' }, geometry: {} }], genericFeatures: [] };
   const app = createGeometryPreview();
-  app.connect({ projectState: { state }, territorialModel: { administrativeCountryId, entityRepository: {
-    list: ({ type } = {}) => state.territorialEntities.filter(entity => !type || [].concat(type).includes(entity.properties.unitType)),
+  app.connect({ projectState: { state }, territorialModel: { territorialRootId, entityRepository: {
+    list: ({ kind } = {}) => state.territorialEntities.filter(entity => !kind || [].concat(kind).includes(entity.properties.entityKind)),
     get: id => state.territorialEntities.find(entity => entity.id === id),
   } }, domains: {
     projectDomain: { getGeneration: () => generation },

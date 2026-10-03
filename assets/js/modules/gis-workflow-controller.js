@@ -1,4 +1,3 @@
-import { territorialRootId } from './territorial-units.js';
 export function createGisWorkflowController({
   loadRuntime,
   onRuntimeReady,
@@ -58,72 +57,10 @@ export function createGisWorkflowController({
     await ensureGisServices();
     return planGisMerge(...args);
   }
-  function gisImportCountryOptions() {
-    return (getCountries()?.features || []).map(feature => ({
-      id: String(feature.id || ''),
-      name: countryName(feature),
-    })).filter(country => country.id).sort((left, right) => layerNameCollator.compare(left.name, right.name));
-  }
-
   function gisImportParentOptions() {
-    return (getTerritorialUnits() || []).filter(feature => feature.properties?.entityKind === 'general' && !!feature.properties.parentId).map(feature => ({
-      id: String(feature.id),
-      name: territorialEntityName(feature),
-      countryId: territorialRootId(feature, id => [...getCountries().features, ...getTerritorialUnits()].find(entity => String(entity.id) === id)),
-      parentId: String(feature.properties?.parentId || ''),
-      type: feature.properties?.entityKind,
-
-    })).filter(unit => unit.id && unit.countryId).sort((left, right) => layerNameCollator.compare(left.name, right.name));
-  }
-
-  function planTerritorialImportImpact(collection, mapping) {
-    return runtime.buildTerritorialImportTransactionPlan({
-      features: collection?.features || [],
-      countries: getCountries()?.features || [],
-      targetCountryId: mapping.targetCountryId,
-      useFeatureCountryField: mapping.useFeatureCountryField,
-      countryField: mapping.countryField,
-      clipper: clipper,
-      areaKm2: sphericalGeometryAreaKm2,
-    });
-  }
-
-  function planCountryImportIdentity(collection, _mapping, manualMappings = {}) {
-    const resolutions = runtime.resolveCountryIdentities(
-      collection?.features || [],
-      getCountries()?.features || [],
-      { manualMappings },
-    );
-    return {
-      summary: runtime.identityResolutionSummary(resolutions),
-      rows: resolutions.map(row => ({
-        status: row.status,
-        editorId: row.editorId,
-        name: row.name,
-        sourceKey: row.sourceKey,
-        sourceId: row.sourceIdentity.sourceId,
-        sourceIdField: row.sourceIdentity.sourceIdField,
-        sourceNamespace: row.sourceIdentity.sourceNamespace,
-        candidates: (row.candidates || []).map(candidate => ({
-          editorId: candidate.editorId,
-          reason: candidate.reason,
-          confidence: candidate.confidence,
-        })),
-        resolutionReason: row.resolutionReason,
-      })),
-    };
-  }
-
-  function materializeCountryImport(collection, { manualMappings = {}, allowImplicitNew = false } = {}) {
-    const resolutions = runtime.resolveCountryIdentities(
-      collection?.features || [],
-      allowImplicitNew ? [] : (getCountries()?.features || []),
-      { manualMappings, allowImplicitNew },
-    );
-    return {
-      type: 'FeatureCollection',
-      features: runtime.materializeResolvedCountries(resolutions, { createId: createProjectObjectId }),
-    };
+    return [...getCountries().features, ...getTerritorialUnits()].filter(feature => feature.properties.entityKind === 'general')
+      .map(feature => ({ id: String(feature.id), name: territorialEntityName(feature) }))
+      .sort((left, right) => layerNameCollator.compare(left.name, right.name));
   }
 
   async function initializeServices() {
@@ -152,18 +89,16 @@ export function createGisWorkflowController({
       geometryCoordinates: geometryMultiCoordinates,
       planarArea: multiPolygonPlanarArea,
       areaKm2: sphericalGeometryAreaKm2,
-      validateCountryCollection: (collection, affectedIds = null) => gisGeometryValidator.validate(collection, affectedIds),
+      validateCountryCollection: (collection, affectedIds) => gisGeometryValidator.validate(collection, affectedIds),
     });
     gisImportWizardController = runtime.createGisImportWizardController({
       ensureRuntime: async () => {
         return getGisIo();
       },
       getOptions: () => ({
-        countryOptions: gisImportCountryOptions(),
+        coastReferenceOptions: getCountries().features.map(feature => ({ id: feature.id, name: countryName(feature) })),
         parentOptions: gisImportParentOptions(),
         hasUnsavedChanges: getSaveSnapshot().hasUnsavedChanges,
-        planImpact: planTerritorialImportImpact,
-        planCountryIdentity: planCountryImportIdentity,
       }),
       onStatus: message => setActionStatus(message, 'working', 0),
     });
@@ -171,13 +106,7 @@ export function createGisWorkflowController({
       openImportWizard: (files, options) => gisImportWizardController.open(files, options),
       getWizardOptions: () => ({}),
       validateStructuredGeometry,
-      featureCountryId,
-      validateCountryCollection: (collection, affectedIds = null) => gisGeometryValidator.validate(collection, affectedIds),
-      getCurrentCountries: () => getCountries(),
-      materializeCountryImport,
-      planCountryMerge: planGisMerge,
       getProjectGeneration: () => getProjectGeneration(),
-      onStage: message => setActionStatus(message, 'working', 0),
     });
     return importService;
   }

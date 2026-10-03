@@ -134,7 +134,7 @@ export function auditTerritorialStorage(source, file = '<source>') {
           return { field: name, via: 'store', node, detachedArray: false };
         }
         if (/\b(?:entityRepository|territorialEntityRepository|repository)\b/.test(receiver)
-          && ['get', 'list', 'children', 'parent', 'siblings', 'ancestors', 'descendants', 'root', 'administrativeCountry'].includes(name)) {
+          && ['get', 'list', 'children', 'parent', 'siblings', 'ancestors', 'descendants', 'root'].includes(name)) {
           return { field: 'entity', via: 'repository', node, detachedArray: false };
         }
         if (arrayReads.has(name)) {
