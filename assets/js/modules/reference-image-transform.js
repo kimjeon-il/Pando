@@ -203,6 +203,41 @@ export function projectReferenceImageMapQuad(record, host) {
   return corners.every(Boolean) ? corners : null;
 }
 
+export function referenceImageAnchorScreenPoint(record, host) {
+  const coordinate = record?.anchor?.coordinate;
+  return coordinate ? projectVisible(host, coordinate) : null;
+}
+
+export function referenceImagePlacementPointAtUv(record, imageUv, host) {
+  const pair = finitePair(imageUv);
+  if (!record?.mapQuad || !pair || pair.some(component => component < 0 || component > 1)) return null;
+  const corners = record.mapQuad.map(normalizeCoordinate);
+  if (corners.some(point => !point)) return null;
+  const u = record.flipX ? 1 - pair[0] : pair[0];
+  const v = record.flipY ? 1 - pair[1] : pair[1];
+  const coordinate = interpolatePlacementCoordinate(corners, u, v);
+  return coordinate ? projectVisible(host, coordinate) : null;
+}
+
+export function alignReferenceImageAnchor(record, host, { maxIterations = 6, tolerance = 0.25 } = {}) {
+  if (!record?.anchor || !host) return false;
+  const target = referenceImageAnchorScreenPoint(record, host);
+  if (!target) return false;
+  let changed = false;
+  const iterations = Math.max(1, Math.min(12, Math.round(Number(maxIterations) || 6)));
+  const limit = Math.max(0.01, Number(tolerance) || 0.25);
+  for (let attempt = 0; attempt < iterations; attempt += 1) {
+    const current = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
+    const geometry = referenceImagePlacementGeometry(record, host);
+    if (!current || !geometry) return changed;
+    const delta = subtract(target, current);
+    if (Math.hypot(delta[0], delta[1]) <= limit) return true;
+    if (!applyScreenCorners(record, geometry.corners.map(corner => add(corner, delta)), host)) return changed;
+    changed = true;
+  }
+  return changed;
+}
+
 export function referenceImagePlacementGeometry(record, host) {
   const corners = projectReferenceImageMapQuad(record, host);
   if (!corners) return null;
@@ -278,6 +313,8 @@ export function createReferenceImagePlacementDrag(record, hit, point, host, poin
   const startPoint = finitePair(point);
   const geometry = referenceImagePlacementGeometry(record, host);
   if (!geometry || !hit || !startPoint) return null;
+  const anchorPoint = referenceImageAnchorScreenPoint(record, host);
+  const pivot = anchorPoint || geometry.center;
   return {
     pointerId,
     recordId: record.id,
@@ -286,8 +323,10 @@ export function createReferenceImagePlacementDrag(record, hit, point, host, poin
     startCorners: geometry.corners.map(corner => [...corner]),
     startMapQuad: record.mapQuad.map(coordinate => [...coordinate]),
     center: [...geometry.center],
+    pivot: [...pivot],
+    anchored: !!anchorPoint,
     startRotation: geometry.rotation,
-    startAngle: degrees(Math.atan2(startPoint[1] - geometry.center[1], startPoint[0] - geometry.center[0])),
+    startAngle: degrees(Math.atan2(startPoint[1] - pivot[1], startPoint[0] - pivot[0])),
     width: geometry.width,
     height: geometry.height,
     aspect: geometry.width / Math.max(1e-9, geometry.height),
