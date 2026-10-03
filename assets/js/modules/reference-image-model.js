@@ -1,4 +1,4 @@
-export const REFERENCE_IMAGE_MODEL_VERSION = 2;
+export const REFERENCE_IMAGE_MODEL_VERSION = 3;
 
 const DEFAULT_OPACITY = 0.55;
 const DEFAULT_BLEND_MODE = 'source-over';
@@ -28,6 +28,17 @@ export function normalizeReferenceImageMapQuad(value) {
   if (!Array.isArray(value) || value.length !== 4) return null;
   const quad = value.map(normalizeReferenceImageMapCoordinate);
   return quad.every(Boolean) ? quad.map(point => [...point]) : null;
+}
+
+export function normalizeReferenceImageAnchor(value) {
+  if (!value || typeof value !== 'object') return null;
+  const image = finitePair(value.image);
+  const coordinate = normalizeReferenceImageMapCoordinate(value.coordinate);
+  if (!image || !coordinate || image.some(component => component < 0 || component > 1)) return null;
+  return {
+    image: [...image],
+    coordinate: [...coordinate],
+  };
 }
 
 function normalizeControlPoints(values) {
@@ -61,6 +72,7 @@ export function normalizeReferenceImageRecord(record = {}) {
     flipX: record?.flipX === true,
     flipY: record?.flipY === true,
     controlPoints: normalizeControlPoints(record?.controlPoints),
+    anchor: normalizeReferenceImageAnchor(record?.anchor),
     mapQuad: normalizeReferenceImageMapQuad(record?.mapQuad),
     order: Number.isFinite(order) ? order : 0,
     blob: typeof Blob !== 'undefined' && record?.blob instanceof Blob ? record.blob : null,
@@ -85,6 +97,10 @@ export function serializeReferenceImageRecord(record, order = 0) {
       image: [...point.image],
       coordinate: [...point.coordinate],
     })),
+    anchor: normalized.anchor ? {
+      image: [...normalized.anchor.image],
+      coordinate: [...normalized.anchor.coordinate],
+    } : null,
     mapQuad: normalized.mapQuad ? normalized.mapQuad.map(point => [...point]) : null,
     order: Number.isFinite(Number(order)) ? Number(order) : normalized.order,
     blob: normalized.blob,
@@ -101,6 +117,7 @@ export function cloneReferenceImageRecord(record) {
         coordinate: [...point.coordinate],
       }))
       : [],
+    anchor: normalizeReferenceImageAnchor(record?.anchor),
     mapQuad: normalizeReferenceImageMapQuad(record?.mapQuad),
     projectedMesh: null,
   };
