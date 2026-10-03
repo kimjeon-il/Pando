@@ -21,7 +21,7 @@ test('East Prussia r3 library entry adds the reviewed overlap-free country', asy
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
 
   const before = await page.evaluate(() => ({
-    count: window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length,
+    count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
     geometries: Object.fromEntries(['POL', 'RUS', 'LTU'].map(id => [id, JSON.stringify(
       window.PANDOLAB_TERRITORIAL.get(id)?.geometry,
     )])),
@@ -52,7 +52,7 @@ test('East Prussia r3 library entry adds the reviewed overlap-free country', asy
     'historical-country:east-prussia',
   )?.id || '')).toBe('historical-country:east-prussia');
   const resultState = await page.evaluate(() => {
-    const countries = window.PANDOLAB_TERRITORIAL.list({ type: 'country' });
+    const countries = window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' });
     const east = window.PANDOLAB_TERRITORIAL.get('historical-country:east-prussia');
     const overlapIds = ['POL', 'RUS', 'LTU'].filter(id => {
       const country = window.PANDOLAB_TERRITORIAL.get(id);
@@ -93,7 +93,7 @@ test('East Prussia r3 library entry adds the reviewed overlap-free country', asy
     'historical-country:east-prussia',
   ))).toBeNull();
   const afterUndo = await page.evaluate(() => ({
-    count: window.PANDOLAB_TERRITORIAL.list({ type: 'country' }).length,
+    count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
     geometries: Object.fromEntries(['POL', 'RUS', 'LTU'].map(id => [id, JSON.stringify(
       window.PANDOLAB_TERRITORIAL.get(id)?.geometry,
     )])),

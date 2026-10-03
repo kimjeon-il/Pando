@@ -266,6 +266,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "startup",
     "startupCommands",
     "surfaces",
+    "taskPresentation",
     "territorialConversion",
     "territorialEditingA",
     "territorialModel",
@@ -289,7 +290,7 @@ const PORT_SPECS = Object.freeze({
   persistence: Object.freeze([["applyAutosavedView","historyAssembly","applyAutosavedView"],["persistenceService","historyAssembly","persistenceService"]]),
   pointerInteractionB: Object.freeze([["suppressNextMapClick","pointerTargets","suppressNextMapClick"]]),
   startup: Object.freeze([["init","progressiveStartup","init"]]),
-  territorialConversion: Object.freeze([["closeTerritorialTypeModal","territorialConversion","closeTerritorialTypeModal"],["commitLabelEdit","territorialConversion","commitLabelEdit"],["confirmTerritorialTypeConversion","territorialConversion","confirmTerritorialTypeConversion"],["openTerritorialTypeModal","territorialConversion","openTerritorialTypeModal"],["requestTerritorialUnitPromotion","territorialConversion","requestTerritorialUnitPromotion"],["syncTerritorialTypeModal","territorialConversion","syncTerritorialTypeModal"]]),
+  territorialConversion: Object.freeze([["commitLabelEdit","territorialConversion","commitLabelEdit"],["copySelectedEntityToRegion","territorialConversion","copySelectedEntityToRegion"]]),
   toolBindings: Object.freeze([["bindToolUI","toolBindings","bindToolUI"]]),
 });
 

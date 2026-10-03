@@ -1,9 +1,7 @@
 export function createPropertyEditorBindings({
   getElement: $,
   document,
-  getPrimary,
-  TERRITORIAL_UNIT_TYPES,
-  bindColorPickers,
+  getPrimary,  bindColorPickers,
   commitHydroEdit,
   commitDistributionMeta,
   commitLabelEdit,
@@ -13,21 +11,12 @@ export function createPropertyEditorBindings({
   requestDraftDiscard,
   completeToolStart,
   startGeometryDistributionDraft,
-  requestObjectDeletion,
-  enterTerritorialUnitCoastMode,
   enterTerritorialCreateWorkflow,
-  enterTerritorialUnitAnnexMode,
-  enterTerritorialUnitMergeMode,
-  enterTerritorialUnitRedrawMode,
+  runEntityEditAction,
+  runModePrimaryAction,
+  copySelectedEntityToRegion,
   entityRepository,
   reconcileAdminCountryCoast,
-  requestTerritorialUnitPromotion,
-  openTerritorialTypeModal,
-  syncTerritorialTypeModal,
-  closeTerritorialTypeModal,
-  confirmTerritorialTypeConversion,
-  setEditorShellView,
-  setActionStatus,
   focusObjectRef,
   convertSelectedGenericFeature,
   copySelectedHydroForEditing,
@@ -108,58 +97,40 @@ export function createPropertyEditorBindings({
     });
     listen($('addTerritorialDistributionBtn'), 'click', addTerritorialDistributionEntry);
     listen($('addGeometryDistributionBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(startGeometryDistributionDraft())));
-    listen($('removeSubunitDivisionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestObjectDeletion([getPrimary()]));
-    for (const id of ['addCountrySubunitBtn', 'addSubunitChildBtn']) {
-      listen($(id), 'click', () => requestDraftDiscard(() => completeToolStart(enterTerritorialCreateWorkflow(TERRITORIAL_UNIT_TYPES.SUBUNIT))));
+    listen($('addEntityChildBtn'), 'click', () => {
+      const feature = entityRepository.get(getPrimary()?.id);
+      if (feature?.properties.entityKind !== 'general' || feature.properties.locked) return;
+      requestDraftDiscard(() => completeToolStart(enterTerritorialCreateWorkflow({ parentId: feature.id })));
+    });
+    for (const [id, action] of [['annexEntityBtn', 'annex'], ['mergeEntityBtn', 'merge'], ['editEntityBorderBtn', 'boundary'], ['editEntityCoastBtn', 'coast'], ['redrawEntityBtn', 'redraw']]) {
+      listen($(id), 'click', () => requestDraftDiscard(() => runModePrimaryAction(async () =>
+        completeToolStart(await runEntityEditAction(action, getPrimary()?.id)))));
     }
-    listen($('editSubunitCoastBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterTerritorialUnitCoastMode(getPrimary()?.id))));
-    listen($('annexSubunitBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(enterTerritorialUnitAnnexMode(getPrimary()?.id))));
-    listen($('mergeSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitMergeMode(getPrimary().id))));
-    listen($('mergeRegionBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitMergeMode(getPrimary().id))));
-    listen($('reassignSubunitShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitRedrawMode(getPrimary().id))));
-    listen($('reconcileSubunitCoastBtn'), 'click', () => {
-      if (!(getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
-      const feature = entityRepository.get(getPrimary().id);
-      if (feature?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT || feature.properties?.locked === true) return;
-      reconcileAdminCountryCoast(getPrimary().id);
+    listen($('reconcileEntityCoastBtn'), 'click', () => {
+      const feature = entityRepository.get(getPrimary()?.id);
+      if (feature?.properties.entityKind !== 'general' || !feature.properties.parentId || feature.properties.locked) return;
+      runModePrimaryAction(() => reconcileAdminCountryCoast(feature.id));
     });
-    listen($('reassignRegionShapeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestDraftDiscard(() => completeToolStart(enterTerritorialUnitRedrawMode(getPrimary().id))));
-    listen($('promoteSubunitBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type !== TERRITORIAL_UNIT_TYPES.COUNTRY) && requestTerritorialUnitPromotion(getPrimary().id));
-    listen($('changeCountryTypeBtn'), 'click', () => (getPrimary()?.domain === 'territorial' && getPrimary().type === TERRITORIAL_UNIT_TYPES.COUNTRY)
-      && openTerritorialTypeModal(TERRITORIAL_UNIT_TYPES.COUNTRY, getPrimary().id));
-    listen($('territorialTypeInput'), 'change', syncTerritorialTypeModal);
-    listen($('territorialTypeSovereignInput'), 'change', () => {
-      $('territorialTypeParentInput').value = '';
-      syncTerritorialTypeModal();
-    });
-    listen($('territorialTypeParentInput'), 'change', syncTerritorialTypeModal);
-    listen($('territorialTypeCancelBtn'), 'click', closeTerritorialTypeModal);
-    listen($('territorialTypeModal').querySelector('.confirm-modal-dim'), 'click', closeTerritorialTypeModal);
-    listen($('territorialTypeConfirmBtn'), 'click', confirmTerritorialTypeConversion);
-    listen($('transferRegionBtn'), 'click', () => {
-      setEditorShellView('info');
-      $('regionCountryInput').focus();
-      setActionStatus('소속 국가와 상위 단위를 확인한 뒤 변경하세요.', 'success', 3400);
-    });
+    listen($('copyEntityRegionBtn'), 'click', copySelectedEntityToRegion);
 
     const syncGenericFeatureConversionFields = () => {
       const target = $('genericFeatureConvertType').value;
-      const countryField = $('genericFeatureConvertCountryField');
+      const countryField = $('genericFeatureConvertParentField');
       const distributionField = $('genericFeatureConvertDistributionField');
       const distributionValueField = $('genericFeatureConvertDistributionValueField');
-      countryField?.classList.toggle('hidden', !['subunit', 'region'].includes(target) || countryField.dataset.singleChoice === 'true');
+      countryField?.classList.toggle('hidden', target !== 'general');
       distributionField?.classList.toggle('hidden', target !== 'distribution' || distributionField.dataset.singleChoice === 'true');
       distributionValueField?.classList.toggle('hidden', target !== 'distribution');
-      const countryRequired = ['subunit', 'region'].includes(target);
+      const countryRequired = target === 'general';
       const distributionRequired = target === 'distribution';
       $('convertGenericFeatureBtn').disabled = (countryRequired
-        && (!$('genericFeatureConvertCountryInput').value || countryField?.dataset.invalidChoice === 'true'))
+        && countryField.dataset.invalidChoice === 'true')
         || (distributionRequired && (!$('genericFeatureConvertDistributionInput').value
           || $('genericFeatureConvertDistributionValueInput').value === ''
           || !Number.isFinite(Number($('genericFeatureConvertDistributionValueInput').value))));
     };
     listen($('genericFeatureConvertType'), 'change', syncGenericFeatureConversionFields);
-    listen($('genericFeatureConvertCountryInput'), 'change', syncGenericFeatureConversionFields);
+    listen($('genericFeatureConvertParentInput'), 'change', syncGenericFeatureConversionFields);
     listen($('genericFeatureConvertDistributionInput'), 'change', syncGenericFeatureConversionFields);
     listen($('genericFeatureConvertDistributionValueInput'), 'input', syncGenericFeatureConversionFields);
     listen($('convertGenericFeatureBtn'), 'click', () => {
@@ -167,7 +138,7 @@ export function createPropertyEditorBindings({
       if (primary?.domain !== 'generic') return;
       void convertSelectedGenericFeature?.({
         target: $('genericFeatureConvertType')?.value,
-        sovereignId: $('genericFeatureConvertCountryInput')?.value,
+        parentId: $('genericFeatureConvertType').value === 'general' ? $('genericFeatureConvertParentInput').value : '',
         distributionLayerId: $('genericFeatureConvertDistributionInput')?.value,
         distributionValue: $('genericFeatureConvertDistributionValueInput')?.value,
       });

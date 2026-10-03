@@ -10,7 +10,7 @@ test('Russia nested edits retain parent candidates, locks and history after auto
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   const add = async (type, parentId, name, coords) => {
     await page.evaluate(({ type, parentId }) => window.PANDOLAB_TERRITORIAL.select(type, parentId), { type, parentId });
-    await page.locator(type === 'country' ? '#addCountrySubunitBtn' : '#addSubunitChildBtn').evaluate(button => button.click());
+    await page.locator(type === 'country' ? '#addEntityChildBtn' : '#addEntityChildBtn').evaluate(button => button.click());
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#territorialCreateNameInput').fill(name);
     await page.locator('#modePrimaryBtn').click();
@@ -28,8 +28,8 @@ test('Russia nested edits retain parent candidates, locks and history after auto
     await expect(page.locator('#modePrimaryBtn')).toContainText('생성');
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modePrimaryBtn').click();
-    await expect.poll(() => page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' }).some(item => item.properties.name === name), name)).toBe(true);
-    return page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' }).find(item => item.properties.name === name).id, name);
+    await expect.poll(() => page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).some(item => item.properties.name === name), name)).toBe(true);
+    return page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).find(item => item.properties.name === name).id, name);
   };
   const parent = await add('country', 'RUS', '러시아 부모 저장 시험', [[45, 56], [57, 56], [51, 63]]);
   const child = await add('subunit', parent, '러시아 자식 저장 시험', [[49, 58], [53, 58], [51, 60]]);
@@ -37,11 +37,11 @@ test('Russia nested edits retain parent candidates, locks and history after auto
   await expect.poll(() => page.evaluate(id => !!window.PANDOLAB_TERRITORIAL.get(id), child)).toBe(false);
   await page.locator('#redoBtn').click();
   await expect.poll(() => page.evaluate(id => !!window.PANDOLAB_TERRITORIAL.get(id), child)).toBe(true);
-  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select('subunit', id), child);
-  await expect(page.locator('#subunitParentInput')).toHaveAttribute('aria-busy', 'false', { timeout: 30000 });
-  expect(await page.locator('#subunitParentInput').inputValue()).toBe(parent);
-  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setLocked('subunit', id, true), child);
-  await expect(page.locator('#subunitParentInput')).toBeDisabled();
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), child);
+  await expect(page.locator('#entityParentInput')).toHaveAttribute('aria-busy', 'false', { timeout: 30000 });
+  expect(await page.locator('#entityParentInput').inputValue()).toBe(parent);
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setLocked(id, true), child);
+  await expect(page.locator('#entityParentInput')).toBeDisabled();
   await expect.poll(() => page.evaluate(async id => {
     const db = await new Promise((resolve, reject) => { const request = indexedDB.open('pandolab-editor', 2); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
     try {
@@ -94,8 +94,8 @@ test('Russia detailed line preparation remains cancellable and keeps the origina
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   const original = await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry));
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'RUS'));
-  await page.locator('#addCountrySubunitBtn').evaluate(button => button.click());
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
+  await page.locator('#addEntityChildBtn').evaluate(button => button.click());
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
   await page.locator('#territorialCreateNameInput').fill('러시아 경계선 시험');
   await page.locator('#modePrimaryBtn').click();
@@ -142,8 +142,8 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
       return { polygons: polygons.length, pairs: polygons.flat().reduce((sum, ring) => sum + ring.length, 0), version: document.querySelector('#app').dataset.appVersion };
     });
     expect(baseline).toMatchObject({ polygons: 214, pairs: 36756 });
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'RUS'));
-    await page.locator('#addCountrySubunitBtn').evaluate(button => button.click());
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
+    await page.locator('#addEntityChildBtn').evaluate(button => button.click());
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#territorialCreateNameInput').fill('러시아 응답성 시험');
     await page.locator('#modePrimaryBtn').click();
@@ -162,15 +162,15 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     await expect(page.locator('#modePrimaryBtn')).toContainText('생성');
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modePrimaryBtn').click();
-    const children = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ type: 'subunit' }).filter(item => item.properties.name === '러시아 응답성 시험').length);
+    const children = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).filter(item => item.properties.name === '러시아 응답성 시험').length);
     await expect.poll(children, { timeout: 30000 }).toBe(1);
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().territorialBoundaryRevision), { timeout: 30000 }).not.toBe('');
     await expect(page.locator('path.territorial-internal-boundary')).toHaveCount(0);
     expect(await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry) === window.__russiaOriginal)).toBe(true);
     await page.locator('#undoBtn').click();
     await expect.poll(children).toBe(0);
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'RUS'));
-    await page.locator('#editCoastBtn').evaluate(button => button.click());
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
+    await page.locator('#editEntityCoastBtn').evaluate(button => button.click());
     await page.locator('#modeCancelBtn').click();
     await expect(page.locator('g.boundary-vertex')).toHaveCount(0);
     const metrics = await page.evaluate(() => window.__russiaEdit);

@@ -9,7 +9,7 @@ import { matchesDefaultPreview, previewCountriesWithProjectProperties, previewSo
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world-preview-v0.33.0.json'), 'utf8'));
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world-preview-v0.34.0.json'), 'utf8'));
 const baseline = { sourceSha256: manifest.sourceSha256, defaultClassification: manifest.defaultClassification };
 const classified = classifyBuiltinCountries(normalizeCountryCollection(canonical));
 const changed = classified.countries.features.filter(feature => manifest.defaultClassification.changed[String(feature.id)]);
@@ -23,7 +23,7 @@ test('built-in classification and display-only changes keep the shipped preview'
   const project = defaultProject();
   assert.equal(matchesDefaultPreview(project, baseline), true);
   project.entityDelta.changed[0].properties.color = '#123456';
-  project.entityDelta.changed.find(entity=>entity.properties.unitType==='subunit').properties.name = 'Renamed';
+  project.entityDelta.changed.find(entity=>entity.properties.entityKind==='general' && !!entity.properties.parentId).properties.name = 'Renamed';
   assert.equal(matchesDefaultPreview(project, baseline), true);
   project.entityDelta.changed.push(structuredClone(classified.countries.features.find(feature => feature.id === 'DEU')));
   project.entityDelta.changed.at(-1).properties.color = '#345678';
@@ -36,7 +36,7 @@ test('edited borders, ownership, country creation and deletion cannot use shippe
   border.entityDelta.changed[0].geometry.coordinates[0][0][0][0] += 0.1;
   assert.equal(matchesDefaultPreview(border, baseline), false);
   const parent = defaultProject();
-  parent.entityDelta.changed.find(entity=>entity.properties.unitType==='subunit').properties.parentId = 'RUS';
+  parent.entityDelta.changed.find(entity=>entity.properties.entityKind==='general' && !!entity.properties.parentId).properties.parentId = 'RUS';
   assert.equal(matchesDefaultPreview(parent, baseline), false);
   const removal = defaultProject();
   removal.entityDelta.removedIds.push('RUS');
@@ -70,12 +70,12 @@ test('geometry cache identity ignores presentation but changes with shapes and o
   const rows = JSON.stringify(projectPreviewGeometryRows(original));
   const presentation = structuredClone(original);
   presentation.entityDelta.changed[0].properties.name = 'Color only';
-  presentation.entityDelta.changed.find(entity=>entity.properties.unitType==='subunit').properties.color = '#123456';
+  presentation.entityDelta.changed.find(entity=>entity.properties.entityKind==='general' && !!entity.properties.parentId).properties.color = '#123456';
   presentation.view = { zoom: 99 };
   assert.equal(JSON.stringify(projectPreviewGeometryRows(presentation)), rows);
-  presentation.entityDelta.changed.find(entity=>entity.properties.unitType==='subunit').properties.parentId = 'RUS';
+  presentation.entityDelta.changed.find(entity=>entity.properties.entityKind==='general' && !!entity.properties.parentId).properties.parentId = 'RUS';
   assert.notEqual(JSON.stringify(projectPreviewGeometryRows(presentation)), rows);
-  presentation.entityDelta.changed.find(entity=>entity.properties.unitType==='subunit').properties.parentId = original.entityDelta.changed.find(entity=>entity.properties.unitType==='subunit').properties.parentId;
+  presentation.entityDelta.changed.find(entity=>entity.properties.entityKind==='general' && !!entity.properties.parentId).properties.parentId = original.entityDelta.changed.find(entity=>entity.properties.entityKind==='general' && !!entity.properties.parentId).properties.parentId;
   presentation.entityDelta.changed[0].geometry.coordinates[0][0][0][0] += 0.1;
   assert.notEqual(JSON.stringify(projectPreviewGeometryRows(presentation)), rows);
 });

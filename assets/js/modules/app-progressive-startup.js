@@ -59,7 +59,7 @@ export function createProgressiveStartup() {
     const navigationChanged = navigationProjection !== previewStart.projection
       || JSON.stringify(navigationView) !== previewStart.viewJson;
     const previewSearch = dependencies.projectState.state.layerSearch;
-    const previewSelection = (dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) ? String(dependencies.projectState.state.selected.id || '') : '';
+    const previewSelection = (dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) ? String(dependencies.projectState.state.selected.id || '') : '';
     (0, dependencies.builtinCountries.installCanonicalCountryStore)(geometry.canonicalCountryStore);
     // Preview-to-canonical promotion stays inside the same project generation.
     // A project hard reset here discarded the painted preview scene and forced
@@ -72,7 +72,7 @@ export function createProgressiveStartup() {
     // a neutral loading state and must not briefly re-expose preview geometry.
     const previewAllowed = dependencies.rendering.gpuMapRenderer.getRuntimeState?.().previewAllowed !== false;
     dependencies.projectState.state.auditPreviewTerritorialUnits = previewAllowed
-      ? dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }) : null;
+      ? dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId) : null;
     dependencies.projectState.state.countryVisualPhase = previewAllowed ? 'preview' : 'canonical';
     dependencies.labelCacheCommands.resetCountryDisplayCache();
 
@@ -88,7 +88,7 @@ export function createProgressiveStartup() {
     dependencies.spatialQuery.mapEditClient.stop();
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'countries-indexed';
     if (!restored) (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
-    if (!restored) (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) }));
+    if (!restored) (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) }));
     if (navigationChanged) {
       dependencies.projectState.state.view = navigationView;
       dependencies.projectState.state.projection = navigationProjection;
@@ -121,7 +121,7 @@ export function createProgressiveStartup() {
     // its interaction packet remain active until the canonical mesh commits.
     // The mesh commit performs the first full canonical render atomically.
     dependencies.domains.renderingDomain?.invalidateView?.('canonical-geometry-applied');
-    if (previewSelection && dependencies.territorialModel.entityRepository.get(previewSelection)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'country', id: String(previewSelection) }, { refreshOnly: true, openEditor: false });
+    if (previewSelection && dependencies.territorialModel.entityRepository.get(previewSelection)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(previewSelection) }, { refreshOnly: true, openEditor: false });
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'layer-hydration';
     await dependencies.domains.layerTreeController?.completeHydration();
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'complete';
@@ -284,7 +284,7 @@ export function createProgressiveStartup() {
     if (savedProject) (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
     if (previewSource.kind === 'project') {
       const savedEntities = savedProject.territorialEntities || savedProject.entityDelta.changed;
-      const savedUnits = new Map(savedEntities.filter(feature => feature.properties.unitType !== 'country').map(feature => [String(feature.id), feature]));
+      const savedUnits = new Map(savedEntities.filter(feature => !(feature.properties.entityKind === 'general' && !feature.properties.parentId)).map(feature => [String(feature.id), feature]));
       const countries = previewCountriesWithProjectProperties((0, dependencies.countryServices.normalizeCountryCollection)(cachedPreview.countries), savedProject);
       const units = cachedPreview.territorialUnits.map(unit => {
         const source = savedUnits.get(String(unit.id));
@@ -365,7 +365,7 @@ export function createProgressiveStartup() {
       return;
     }
     const previewEntities = hasStoredCountryGeometry ? [] : dependencies.territorialModel.entityStore.snapshot();
-    const previewCountries = { type: 'FeatureCollection', features: previewEntities.filter(feature => feature.properties.unitType === 'country') };
+    const previewCountries = { type: 'FeatureCollection', features: previewEntities.filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)) };
     dependencies.projectState.state.auditPreviewCountries = previewCountries;
     let context;
     try {

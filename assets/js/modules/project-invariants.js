@@ -63,8 +63,8 @@ export function validateProjectReferenceIntegrity({
   labelSettings = {},
 } = {}) {
   const issues = [];
-  const countries=territorialEntities.filter(feature=>feature.properties?.unitType==='country');
-  const territorialUnits=territorialEntities.filter(feature=>feature.properties?.unitType!=='country');
+  const countries=territorialEntities.filter(feature=>(feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
+  const territorialUnits=territorialEntities.filter(feature=>!(feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
   try { normalizeTerritorialEntities(territorialEntities,{cloneGeometry:geometry=>geometry}); }
   catch(error) { issues.push(issue('PL-INV-TERRITORIAL',error.message,[], 'territorialEntities')); }
 
@@ -95,7 +95,6 @@ export function validateProjectReferenceIntegrity({
   for (const feature of territorialUnits || []) {
     const id = text(feature?.id);
     const parentId = text(feature?.properties?.parentId);
-    const associatedCountryId = text(feature?.properties?.associatedCountryId);
     const geometryError = geometryIssue(feature, id, '영역');
     if (geometryError) issues.push(geometryError);
 
@@ -105,9 +104,6 @@ export function validateProjectReferenceIntegrity({
       issues.push(issue('PL-INV-MISSING-PARENT', `${id}의 상위 단위 ${parentId}이 존재하지 않습니다.`, [id, parentId], 'parentId'));
     }
 
-    if (associatedCountryId && !countryIds.has(associatedCountryId)) {
-      issues.push(issue('PL-INV-MISSING-SOVEREIGN', `${id}의 소속 국가 ${associatedCountryId}이 존재하지 않습니다.`, [id, associatedCountryId], 'associatedCountryId'));
-    }
 
     if (parentCycle(id, unitById, row => row?.properties?.parentId)) {
       issues.push(issue('PL-INV-PARENT-CYCLE', `${id}의 상위 단위 관계가 순환합니다.`, [id], 'parentId'));
@@ -120,15 +116,11 @@ export function validateProjectReferenceIntegrity({
     const id = text(relation?.id);
     const unitId = text(relation?.unitId);
     const parentId = text(relation?.parentId);
-    const associatedCountryId = text(relation?.associatedCountryId);
     if (!territorialIds.has(unitId)) {
       issues.push(issue('PL-INV-MISSING-RELATION-UNIT', `${id || unitId}의 대상 영역 ${unitId}이 존재하지 않습니다.`, [id, unitId], 'unitId'));
     }
     if (parentId && !territorialIds.has(parentId)) {
       issues.push(issue('PL-INV-MISSING-RELATION-PARENT', `${id || unitId}의 상위 단위 ${parentId}이 존재하지 않습니다.`, [id, unitId, parentId], 'parentId'));
-    }
-    if (associatedCountryId && !countryIds.has(associatedCountryId)) {
-      issues.push(issue('PL-INV-MISSING-RELATION-SOVEREIGN', `${id || unitId}의 소속 국가 ${associatedCountryId}이 존재하지 않습니다.`, [id, unitId, associatedCountryId], 'associatedCountryId'));
     }
     try { normalizeTemporalInterval(relation?.validFrom, relation?.validTo); }
     catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id || unitId}의 유효기간이 올바르지 않습니다. ${error.message}`, [id, unitId], 'validFrom')); }

@@ -16,26 +16,26 @@ test('territorial scope reads the administrative hierarchy from the common entit
   const country = { type: 'Feature', id: 'A', properties: { name: 'A' }, geometry: square() };
   const parent = createTerritorialFeature({
     id: 'a1',
-    unitType: 'subunit',
+    entityKind: 'general',
     parentId: 'A',
     color: '#123456',
     geometry: square(1, 1, 8, 8),
   });
   const child = createTerritorialFeature({
     id: 'a2',
-    unitType: 'subunit',
+    entityKind: 'general',
     parentId: 'a1',
     geometry: square(2, 2, 4, 4),
   });
   const region = createTerritorialFeature({
     id: 'r1',
-    unitType: 'region',
+    entityKind: 'regional',
     coverageMode: 'explicit',
     geometry: square(20, 20, 30, 30),
   });
   const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => {
     const countriesData = (() => ({ features: [country] }))();
-    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,unitType:'country',name:feature.properties.name,geometry:feature.geometry})),...[parent, child, region]],stateRevision:1};
+    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,entityKind:'general',name:feature.properties.name,geometry:feature.geometry})),...[parent, child, region]],stateRevision:1};
   } }) });
   const resolver = createTerritorialScopeResolver({
     entityRepository: repository,
@@ -58,13 +58,13 @@ test('territorial scope inherits country color without treating regions as admin
   const country = { type: 'Feature', id: 'A', properties: { name: 'A' }, geometry: square() };
   const child = createTerritorialFeature({
     id: 'a1',
-    unitType: 'subunit',
+    entityKind: 'general',
     parentId: 'A',
     geometry: square(1, 1, 8, 8),
   });
   const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => {
     const countriesData = (() => ({ features: [country] }))();
-    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,unitType:'country',name:feature.properties.name,geometry:feature.geometry})),...[child]],stateRevision:1};
+    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,entityKind:'general',name:feature.properties.name,geometry:feature.geometry})),...[child]],stateRevision:1};
   } }) });
   assert.equal(resolveTerritorialColor(child, { entityRepository: repository, countryColor: () => '#abcdef' }), '#abcdef');
 });

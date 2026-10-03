@@ -79,8 +79,8 @@ export function createGeometryPreview() {
       return geometryIdentities.get(geometry);
     };
     return JSON.stringify([dependencies.domains.projectDomain?.getGeneration?.(),
-      [...(dependencies.territorialModel.entityRepository.list({ type: 'country' })), ...dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] })].map(feature => [
-        String(feature.id), identity(feature.geometry), feature.properties?.parentId, (0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)),
+      [...(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })), ...dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId)].map(feature => [
+        String(feature.id), identity(feature.geometry), feature.properties?.parentId, (0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)),
         !!feature.properties?.locked,
       ])]);
   }

@@ -4,24 +4,24 @@ import { createObjectCommands } from '../../assets/js/modules/app-object-command
 import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { createTerritorialFeature, TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] };
 function fixture({ fail = false, child = false } = {}) {
-  const state = { territorialEntities: [...['A','B'].map(id=>createTerritorialFeature({id,unitType:'country',name:id,geometry})),createTerritorialFeature({id:'S',unitType:'subunit',name:'S',parentId:child?'A':'B',geometry})],
+  const state = { territorialEntities: [...['A','B'].map(id=>createTerritorialFeature({id,entityKind: 'general',name:id,geometry})),createTerritorialFeature({id:'S',entityKind: 'general',name:'S',parentId:child?'A':'B',geometry})],
     territorialRelations: [], distributionLayers: [], distributionEntries: [], hydroEdits: [], genericFeatures: [], labels: [], labelSettings: {},
     physicalSettings: { hiddenHydroIds: {} }, stateRevision: 0, historyDirtyEntityIds: new Set(), itemVisibility: {}, layerPresentation: {}, boundaryPreparation: null };
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const territorialApplicationService = createTerritorialApplicationService({ entityStore, entityRepository,
     commandPipeline: { runMutation: (_, mutate) => ({ ok: true, value: mutate() }) } });
-  const refs = [{ domain: 'territorial', type: 'country', id: 'A' }, { domain: 'territorial', type: 'subunit', id: 'S' }];
+  const refs = [{ domain: 'territorial', type: 'entity', id: 'A' }, { domain: 'territorial', type: 'entity', id: 'S' }];
   let confirm; let histories = 0; let saves = 0; const patches = [], diagnostics = [];
   const owner = createObjectCommands();
   owner.connect({ projectState: { state }, selectionServices: { normalizeObjectRef },
-    territorialModel: { entityStore, entityRepository, TERRITORIAL_UNIT_TYPES, DISTRIBUTION_MODES: { TERRITORIAL: 'territorial' } },
+    territorialModel: { entityStore, entityRepository,  DISTRIBUTION_MODES: { TERRITORIAL: 'territorial' } },
     objectModelB: { territorialApplicationService },
     presentation: { countryName: feature => feature.properties.name }, territorialServicesB: { territorialTypeLabel: () => '하위단위' },
     objectPresentation: { territorialEntityName: feature => feature.properties.name, administrativeCountryName: () => 'B' },
@@ -41,17 +41,17 @@ test('mixed country/subunit batch deletion uses the real Store, preserves cancel
   const f = fixture();
   f.owner.requestObjectDeletion();
   assert.equal(f.confirm().danger, true);
-  assert.equal((f.entityStore.snapshot().find(entity => String(entity.id) === String('A') && entity.properties.unitType === 'country') || null).id, 'A', 'opening/cancelling confirmation must not mutate');
+  assert.equal((f.entityStore.snapshot().find(entity => String(entity.id) === String('A') && entity.properties.entityKind === 'general' && !entity.properties.parentId) || null).id, 'A', 'opening/cancelling confirmation must not mutate');
   f.confirm().onConfirm();
-  assert.equal((f.entityStore.snapshot().find(entity => String(entity.id) === String('A') && entity.properties.unitType === 'country') || null), null);
+  assert.equal((f.entityStore.snapshot().find(entity => String(entity.id) === String('A') && entity.properties.entityKind === 'general' && !entity.properties.parentId) || null), null);
   assert.equal(f.entityRepository.get('S'), null);
-  assert.equal((f.entityStore.snapshot().find(entity => String(entity.id) === String('B') && entity.properties.unitType === 'country') || null).id, 'B');
+  assert.equal((f.entityStore.snapshot().find(entity => String(entity.id) === String('B') && entity.properties.entityKind === 'general' && !entity.properties.parentId) || null).id, 'B');
   assert.deepEqual(f.patches, [['A']]);
   assert.equal(f.histories(), 1); assert.equal(f.saves(), 1);
 });
 test('batch deletion rechecks locks/children and rolls back a failed application', () => {
-  const locked = fixture(); locked.owner.requestObjectDeletion(); locked.entityStore.setLocked('country', 'A', true); locked.state.stateRevision++;
-  assert.equal(locked.confirm().onConfirm(), false); assert.ok((locked.entityStore.snapshot().find(entity => String(entity.id) === String('A') && entity.properties.unitType === 'country') || null)); assert.equal(locked.histories(), 0);
+  const locked = fixture(); locked.owner.requestObjectDeletion(); locked.entityStore.setLocked('A', true); locked.state.stateRevision++;
+  assert.equal(locked.confirm().onConfirm(), false); assert.ok((locked.entityStore.snapshot().find(entity => String(entity.id) === String('A') && entity.properties.entityKind === 'general' && !entity.properties.parentId) || null)); assert.equal(locked.histories(), 0);
   const parent = fixture({ child: true }); parent.owner.requestObjectDeletion(); assert.equal(parent.confirm(), undefined);
   const failed = fixture({ fail: true }); const before = structuredClone(failed.state);
   failed.owner.requestObjectDeletion(); assert.equal(failed.confirm().onConfirm(), false);
@@ -73,13 +73,13 @@ test('deletion confirmation cannot apply after the project generation changes', 
 
 test('one object lock guard handles countries and units with explicit refs and rejects wrong identities', () => {
   const f = fixture();
-  const refs = ['A', 'S'].map(id => ({ domain: 'territorial', type: id === 'A' ? 'country' : 'subunit', id }));
+  const refs = ['A', 'S'].map(id => ({ domain: 'territorial', type: 'entity', id }));
   assert.equal(f.owner.requireObjectsUnlocked(refs), true);
-  f.entityStore.setLocked('subunit', 'S', true);
+  f.entityStore.setLocked('S', true);
   f.state.stateRevision++;
   assert.equal(f.owner.requireObjectsUnlocked(refs), false);
-  f.entityStore.setLocked('subunit', 'S', false);
-  f.entityStore.setLocked('country', 'A', true);
+  f.entityStore.setLocked('S', false);
+  f.entityStore.setLocked('A', true);
   f.state.stateRevision++;
   assert.equal(f.owner.requireObjectsUnlocked(refs), false);
   assert.equal(f.owner.requireObjectsUnlocked([{ domain: 'territorial', type: 'country', id: 'S' }]), false);

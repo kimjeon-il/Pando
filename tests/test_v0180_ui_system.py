@@ -83,13 +83,13 @@ class V0180UiSystemTests(unittest.TestCase):
 
     def test_every_create_menu_entry_has_a_unique_semantic_icon(self):
         button_ids = (
-            "addCountryBtn", "addTerritoryBtn", "addAdministrativeBtn", "addRegionBtn", "addFromLibraryBtn",
+            "addEntityBtn", "addFromLibraryBtn",
             "addDistributionBtn", "addLabelBtn",
             "addRiverBtn", "addLakeBtn",
         )
         expected_icons = (
-            "icon-country", "icon-territory", "icon-administrative", "icon-region", "icon-library",
-            "icon-language", "icon-place",
+            "icon-territory", "icon-library",
+            "icon-area-draw", "icon-place",
             "icon-river", "icon-lake",
         )
         actual_icons = []
@@ -106,8 +106,11 @@ class V0180UiSystemTests(unittest.TestCase):
         self.assertEqual(len(actual_icons), len(set(actual_icons)))
 
     def test_create_routes_and_shared_category_labels(self):
-        self.assertIn('id="createBuildTabBtn"', INDEX)
-        self.assertIn('id="createLibraryTabBtn"', INDEX)
+        self.assertIn('id="createBuildPanel"', INDEX)
+        self.assertIn('id="addEntityBtn"', INDEX)
+        self.assertIn('id="addFromLibraryBtn"', INDEX)
+        for retired in ("addCountryBtn", "addSubunitBtn", "addRegionBtn"):
+            self.assertNotIn(f'id="{retired}"', INDEX)
         self.assertEqual(
             re.findall(r'class="create-menu-group-title">([^<]+)', INDEX),
             [],

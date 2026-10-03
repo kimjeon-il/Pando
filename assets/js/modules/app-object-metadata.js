@@ -14,14 +14,14 @@ export function createObjectMetadata() {
 
   function commitTerritorialMetadata(ref, field, value) {
     if (ref?.domain !== 'territorial') return { ok: false, code: 'invalid-ref' };
-    const result = dependencies.objectModelB.territorialApplicationService.updateMetadata(ref.type, ref.id, field, value);
+    const result = dependencies.objectModelB.territorialApplicationService.updateMetadata(ref.id, field, value);
     if (!result.ok) {
       dependencies.feedback.setActionStatus(result.issues?.[0] || '영역 정보를 변경할 수 없습니다.', 'error', 4200);
       return result;
     }
     if (!result.changed) return result;
     if (field === 'color') {
-      if (ref.type === 'country') dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'territorial-color-edited');
+      if ((dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)) dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'territorial-color-edited');
       dependencies.domains.renderingDomain.invalidateBaseScene('territorial-color-edited');
       dependencies.domains.renderingDomain.invalidateTerritorialPatch('territorial-color-edited');
     }
@@ -67,13 +67,13 @@ export function createObjectMetadata() {
     (0, dependencies.feedback.setActionStatus)(`${(0, dependencies.hydroPresentation.hydroCategoryLabel)(feature.properties.category)} 정보를 변경했습니다.`, 'success');
   }
 
-  function territorialUnitContainer(feature, { sovereignId = (0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)), parentId = feature?.properties?.parentId } = {}) {
-    if (parentId && (feature?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT
+  function territorialUnitContainer(feature, { sovereignId = (0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)), parentId = feature?.properties?.parentId } = {}) {
+    if (parentId && ((feature?.properties?.entityKind === 'general' && !!feature?.properties?.parentId)
       || feature?.properties?.coverageMode === dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT)) {
       return dependencies.territorialModel.entityRepository.get(parentId);
     }
     const country = dependencies.territorialModel.entityRepository.get(sovereignId);
-    return country?.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY ? country : null;
+    return (country?.properties?.entityKind === 'general' && !country?.properties?.parentId) ? country : null;
   }
 
   function territorialUnitInsideContainer(feature, container) {
@@ -84,85 +84,24 @@ export function createObjectMetadata() {
   }
 
   function commitTerritorialRelation(field, value) {
-    if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
-    const feature = dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected.id);
-    if (!feature) return;
-    if (feature.properties?.locked) {
-      (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 영역 정보를 변경할 수 있습니다.', 'error', 3200);
-      dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
-      return;
+    const ref = dependencies.projectState.state.selected;
+    const feature = ref?.domain === 'territorial' ? dependencies.territorialModel.entityRepository.get(ref.id) : null;
+    if (!feature || field !== 'parentId' || feature.properties.entityKind !== 'general') return false;
+    const result = dependencies.objectModelB.territorialApplicationService.changeAdministrativeParent(feature.id, value, {
+      validateCandidate: ({ candidateUnits, previousUnits }) => {
+        globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).validate(candidateUnits, previousUnits, [feature.id]);
+        return true;
+      },
+    });
+    dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
+    if (!result.ok) {
+      dependencies.feedback.setActionStatus(result.issues?.[0] || '상위 객체를 변경할 수 없습니다.', 'error', 4200);
+      return result;
     }
-    const explicitCoverage = feature.properties?.unitType === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION;
-    if (field === 'associatedCountryId' && explicitCoverage && String(value) !== String((0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '')) {
-      const result = dependencies.objectModelB.territorialApplicationService.changeAdministrativeCountry(
-        feature.properties.unitType,
-        feature.id,
-        value,
-      );
-      if (!result.ok) {
-        dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
-        (0, dependencies.feedback.setActionStatus)(result.issues?.[0] || '지방의 소속 국가를 변경할 수 없습니다.', 'error', 4200);
-        return;
-      }
-      (0, dependencies.layers.markLayerTreeDirty)();
-      dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
-      (0, dependencies.feedback.setActionStatus)('지방의 소속 국가를 변경했습니다. 형상은 변경하지 않았습니다.', 'success');
-      return;
-    }
-    if (field === 'associatedCountryId' && String(value) !== String((0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '')) {
-      const nextCountry = dependencies.territorialModel.entityRepository.get(value);
-      const prefix = 'subunit';
-      (0, dependencies.platform.$)(`${prefix}CountryInput`).value = String((0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '');
-      if (nextCountry?.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY) {
-        (0, dependencies.feedback.setActionStatus)('소속 국가를 선택하세요.', 'error', 3200);
-        return;
-      }
-      requestTerritorialUnitTransfer(feature.id, String(value));
-      return;
-    }
-    if (field === 'parentId' && !explicitCoverage) {
-      const parent = value ? dependencies.territorialModel.entityRepository.get(value) : dependencies.territorialModel.entityRepository.administrativeCountry(feature.id);
-      if (!parent || !territorialUnitInsideContainer(feature, parent)) {
-        (0, dependencies.platform.$)('subunitParentInput').value = String(feature.properties.parentId || '');
-        (0, dependencies.feedback.setActionStatus)('하위단위 전체가 새 부모 안에 들어갈 때만 상위 단위를 변경할 수 있습니다.', 'error', 4200);
-        return;
-      }
-      const result = dependencies.objectModelB.territorialApplicationService.changeAdministrativeParent(
-        feature.properties.unitType,
-        feature.id,
-        value,
-        {
-          validateCandidate: ({ candidateUnits }) => {
-            globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).validate(
-              dependencies.territorialModel.entityRepository.list({ type: 'country' }),
-              candidateUnits,
-              dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }),
-              [String(feature.id)],
-            );
-            return true;
-          },
-        },
-      );
-      if (!result.ok) {
-        (0, dependencies.platform.$)('subunitParentInput').value = String(feature.properties.parentId || '');
-        dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
-        (0, dependencies.feedback.setActionStatus)(result.issues?.[0] || '상위 단위를 변경할 수 없습니다.', 'error', 4200);
-        return;
-      }
-      (0, dependencies.layers.markLayerTreeDirty)();
-      dependencies.domains.selectionUiController.presentPrimary({ refreshOnly: true });
-      (0, dependencies.feedback.setActionStatus)('하위단위의 상위 단위를 변경했습니다.', 'success');
-      return;
-    }
-    return { ok: false, code: 'unsupported-relation-field' };
+    if (result.changed) dependencies.layers.markLayerTreeDirty();
+    return result;
   }
 
-  function requestTerritorialUnitTransfer(unitId, targetCountryId) {
-    const revision = dependencies.projectState.state.stateRevision;
-    return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'transfer', targetId: unitId, countryId: targetCountryId }, {
-      selectedId: unitId, shouldKeepResult: () => dependencies.projectState.state.stateRevision === revision,
-    });
-  }
 
   return Object.freeze({
     connect,

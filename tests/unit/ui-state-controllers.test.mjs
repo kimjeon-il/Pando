@@ -5,7 +5,7 @@ import { createObjectSelectionController, normalizeObjectRef } from '../../asset
 import { moveOverlayGroup, normalizeLayerPresentation, OVERLAY_GROUPS } from '../../assets/js/modules/layer-presentation.js';
 import { AUTOSAVE_STATES, createSaveStateController, FILE_SAVE_STATES } from '../../assets/js/modules/save-state-controller.js';
 
-const country = id => ({ domain: 'territorial', type: 'country', id });
+const country = id => ({ domain: 'territorial', type: 'entity', id });
 
 test('object selection preserves a primary item and supports toggle and ranges', () => {
   const controller = createObjectSelectionController();

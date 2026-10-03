@@ -7,12 +7,12 @@ import { createTerritorialEntityRepository } from '../../assets/js/modules/terri
 
 const kernel = globalThis.PandoLabTerritorialEdit.createKernel(globalThis.polygonClipping);
 const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });
-const country = (id = 'KR', geometry = square(0, 0, 10, 10)) => createTerritorialFeature({ id, unitType: 'country', name: id, geometry });
-const unit = (id, parentId, geometry) => createTerritorialFeature({ id, unitType: 'subunit', name: id, parentId, geometry });
+const country = (id = 'KR', geometry = square(0, 0, 10, 10)) => createTerritorialFeature({ id, entityKind: 'general', name: id, geometry });
+const unit = (id, parentId, geometry) => createTerritorialFeature({ id, entityKind: 'general', name: id, parentId, geometry });
 const created = geometry => unit('new', 'KR', geometry);
 const patch = (result, id) => result.features.find(feature => feature.id === id);
 const repositoryAfter = (request, result = { features: [], removedIds: [] }) => {
-  const entities = new Map([...request.countries, ...request.units].map(feature => [String(feature.id), feature]));
+  const entities = new Map(request.entities.map(feature => [String(feature.id), feature]));
   for (const id of result.removedIds) entities.delete(String(id));
   for (const feature of result.features) entities.set(String(feature.id), feature);
   const values = [...entities.values()];
@@ -20,9 +20,9 @@ const repositoryAfter = (request, result = { features: [], removedIds: [] }) => 
 };
 
 test('region merge uses the common plan without administrative containment or adjacency and preserves its inputs', () => {
-  const regions = [createTerritorialFeature({ id: 'r1', unitType: 'region', name: 'R1', geometry: square(1, 1, 2, 2) }),
-    createTerritorialFeature({ id: 'r2', unitType: 'region', name: 'R2', geometry: square(20, 20, 21, 21) })];
-  const request = { operation: 'merge', targetId: 'r1', sourceIds: ['r2'], countries: [country()], units: regions };
+  const regions = [createTerritorialFeature({ id: 'r1', entityKind: 'regional', name: 'R1', geometry: square(1, 1, 2, 2) }),
+    createTerritorialFeature({ id: 'r2', entityKind: 'regional', name: 'R2', geometry: square(20, 20, 21, 21) })];
+  const request = { operation: 'merge', targetId: 'r1', sourceIds: ['r2'], entities: [...([country()]), ...(regions)] };
   const before = structuredClone(request);
   const result = kernel.plan(request);
   assert.deepEqual(request, before);
@@ -33,7 +33,7 @@ test('region merge uses the common plan without administrative containment or ad
   regions[1].properties.locked = true;
   assert.throws(() => kernel.plan(request), /잠긴/);
   regions[1].properties.locked = false;
-  regions[1].properties.unitType = 'subunit';
+  regions[1].properties.entityKind = 'general';
   assert.throws(() => kernel.plan(request), /지방끼리/);
 });
 
@@ -41,30 +41,30 @@ test('transfer preserves its input snapshot and rejects locked descendants at fi
   const countries = [country('KR', square(0, 0, 5, 5)), country('JP', square(5, 0, 10, 5))];
   const source = unit('source', 'KR', square(4, 0, 5, 5));
   const descendant = unit('descendant', 'source', square(4, 1, 5, 2));
-  const request = { operation: 'transfer', countries, units: [source, descendant], targetId: 'source', countryId: 'JP' };
+  const request = { operation: 'transfer', entities: [...(countries), ...([source, descendant])],  targetId: 'source', countryId: 'JP' };
   const before = structuredClone(request);
   const result = kernel.plan(request);
   assert.deepEqual(request, before);
   assert.equal(kernel.area(patch(result, 'KR').geometry), 20);
   assert.equal(kernel.area(patch(result, 'JP').geometry), 30);
   assert.equal(patch(result, 'descendant').properties.parentId, 'source');
-  assert.equal(repositoryAfter(request, result).administrativeCountry('descendant').id, 'JP');
+  assert.equal(repositoryAfter(request, result).root('descendant').id, 'JP');
   assert.deepEqual(result.removedIds, []);
   descendant.properties.locked = true;
   assert.throws(() => kernel.plan(request), /잠긴/);
-  assert.equal(repositoryAfter(request).administrativeCountry('source').id, 'KR');
+  assert.equal(repositoryAfter(request).root('source').id, 'KR');
 });
 
 test('country boundary previews transfer whole children, disclose cuts and preserve locked descendants', () => {
   const countries = [country('KR', square(0, 0, 5, 10)), country('JP', square(5, 0, 10, 10))];
   const moved = unit('moved', 'KR', square(4, 1, 5, 2));
   const cut = unit('cut', 'KR', square(3, 4, 5, 6));
-  const request = { operation: 'country-boundary', targetId: 'KR', countries, units: [moved, cut],
+  const request = { operation: 'country-boundary', targetId: 'KR', entities: [...(countries), ...([moved, cut])], 
     featurePatches: [country('KR', square(0, 0, 4, 10)), country('JP', square(4, 0, 10, 10))] };
   const before = structuredClone(request);
   const result = kernel.plan(request);
   assert.deepEqual(request, before);
-  assert.equal(repositoryAfter(request, result).administrativeCountry('moved').id, 'JP');
+  assert.equal(repositoryAfter(request, result).root('moved').id, 'JP');
   assert.equal(patch(result, 'moved').properties.parentId, 'JP');
   assert.equal(kernel.area(patch(result, 'cut').geometry), 2);
   assert.ok(result.impacts.some(impact => impact.id === 'cut' && impact.kind === 'clip-child'));
@@ -76,12 +76,12 @@ test('promotion changes the country and ancestor shapes with descendants and loc
   const parent = unit('parent', 'KR', square(0, 0, 5, 5));
   const source = unit('source', 'parent', square(0, 0, 3, 3));
   const child = unit('child', 'source', square(1, 1, 2, 2));
-  const request = { operation: 'promote', targetId: 'source', newCountry: country('source', source.geometry), countries: [country()], units: [parent, source, child] };
+  const request = { operation: 'promote', targetId: 'source', newCountry: country('source', source.geometry), entities: [...([country()]), ...([parent, source, child])] };
   const result = kernel.plan(request);
   assert.deepEqual(result.countryIds, ['KR', 'source']);
   assert.equal(kernel.area(patch(result, 'KR').geometry), 91);
   assert.equal(kernel.area(patch(result, 'parent').geometry), 16);
-  assert.equal(repositoryAfter(request, result).administrativeCountry('child').id, 'source');
+  assert.equal(repositoryAfter(request, result).root('child').id, 'source');
   assert.equal(patch(result, 'child').properties.parentId, 'source');
   parent.properties.locked = true;
   assert.throws(() => kernel.plan(request), /잠긴/);
@@ -91,14 +91,14 @@ test('separate coastal additions accumulate on the same hierarchy', () => {
   const mainland = square(0, 0, 10, 10);
   const additionA = square(1, 10, 2, 11), additionB = square(7, 10, 8, 12);
   const draft = { type: 'MultiPolygon', coordinates: globalThis.polygonClipping.union(mainland.coordinates, additionA.coordinates, additionB.coordinates) };
-  const result = kernel.plan({ operation: 'coast', targetId: 'KR', draft, countries: [country()], units: [unit('province', 'KR', mainland)] });
+  const result = kernel.plan({ operation: 'coast', targetId: 'KR', draft, entities: [...([country()]), ...([unit('province', 'KR', mainland)])] });
   assert.equal(kernel.area(patch(result, 'province').geometry), 103);
 });
 
 test('creating in uncovered land leaves the parent and uncovered land implicit', () => {
   const countries = [country()], draft = square(1, 1, 3, 3);
   const before = structuredClone(countries);
-  const result = kernel.plan({ operation: 'create', targetId: 'KR', parentId: 'KR', countries, units: [], draft, newFeature: created(draft) });
+  const result = kernel.plan({ operation: 'create', targetId: 'KR', parentId: 'KR', entities: [...(countries), ...([])],  draft, newFeature: created(draft) });
   assert.deepEqual(countries, before);
   assert.deepEqual(result.features.map(feature => feature.id), ['new']);
   assert.deepEqual(patch(result, 'new').properties.style, {});
@@ -110,34 +110,34 @@ test('donor splitting preserves islands and creates a sibling with parent style 
   const donor = unit('donor', 'KR', { type: 'MultiPolygon', coordinates: [square(0, 0, 5, 5).coordinates, square(7, 7, 8, 8).coordinates] });
   donor.properties.style = { color: '#ff0000', opacity: 0.8 };
   const draft = square(0, 0, 2, 5);
-  const result = kernel.plan({ operation: 'create', targetId: 'KR', parentId: 'KR', sourceId: 'donor', countries: [country()], units: [donor], draft, newFeature: created(draft) });
+  const result = kernel.plan({ operation: 'create', targetId: 'KR', parentId: 'KR', sourceId: 'donor', entities: [...([country()]), ...([donor])],  draft, newFeature: created(draft) });
   assert.equal(kernel.area(patch(result, 'donor').geometry), 16);
   assert.equal(patch(result, 'new').properties.parentId, 'KR');
   assert.deepEqual(patch(result, 'new').properties.style, {});
-  assert.throws(() => kernel.plan({ operation: 'create', targetId: 'KR', parentId: 'KR', sourceId: 'donor', countries: [country()], units: [donor], draft: donor.geometry, newFeature: created(donor.geometry) }), /전체/);
+  assert.throws(() => kernel.plan({ operation: 'create', targetId: 'KR', parentId: 'KR', sourceId: 'donor', entities: [...([country()]), ...([donor])],  draft: donor.geometry, newFeature: created(donor.geometry) }), /전체/);
 });
 
 test('final scope rejects foreign parents, overlapping siblings and missing source IDs', () => {
   const countries = [country(), country('JP', square(20, 0, 30, 10))];
   const a = unit('a', 'KR', square(0, 0, 5, 5)), b = unit('b', 'JP', square(20, 0, 25, 5));
-  const request = { operation: 'annex', targetId: 'a', parentId: 'KR', sourceId: 'b', countries, units: [a, b], draft: b.geometry };
+  const request = { operation: 'annex', targetId: 'a', parentId: 'KR', sourceId: 'b', entities: [...(countries), ...([a, b])],  draft: b.geometry };
   assert.throws(() => kernel.plan(request), /같은 소속 국가/);
   assert.throws(() => kernel.plan({ ...request, sourceId: 'missing' }), /기준 영역/);
-  assert.throws(() => kernel.validate(countries, [a, unit('overlap', 'KR', square(1, 1, 4, 4))]), /겹칩니다/);
+  assert.throws(() => kernel.validate([...countries, a, unit('overlap', 'KR', square(1, 1, 4, 4))]), /겹칩니다/);
 });
 
 test('merge uses connectivity of the whole chosen set and reparents descendants', () => {
   const units = [unit('a', 'KR', square(0, 0, 3, 5)), unit('b', 'KR', square(3, 0, 6, 5)), unit('c', 'KR', square(6, 0, 9, 5)), unit('child', 'c', square(7, 1, 8, 2))];
-  const result = kernel.plan({ operation: 'merge', targetId: 'a', parentId: 'KR', sourceIds: ['c', 'b'], countries: [country()], units });
+  const result = kernel.plan({ operation: 'merge', targetId: 'a', parentId: 'KR', sourceIds: ['c', 'b'], entities: [...([country()]), ...(units)] });
   assert.equal(kernel.area(patch(result, 'a').geometry), 45);
   assert.equal(patch(result, 'child').properties.parentId, 'a');
-  assert.throws(() => kernel.plan({ operation: 'merge', targetId: 'a', parentId: 'KR', sourceIds: ['c'], countries: [country()], units }), /연결/);
+  assert.throws(() => kernel.plan({ operation: 'merge', targetId: 'a', parentId: 'KR', sourceIds: ['c'], entities: [...([country()]), ...(units)] }), /연결/);
 });
 
 test('descendant cuts are explicit impacts, with no generated fragments and no source writes', () => {
   const units = [unit('donor', 'KR', square(0, 0, 8, 8)), unit('child', 'donor', square(2, 2, 6, 6)), unit('grandchild', 'child', square(3, 3, 5, 5))];
   const before = structuredClone(units), draft = square(0, 0, 4, 8);
-  const request = { operation: 'create', targetId: 'KR', parentId: 'KR', sourceId: 'donor', countries: [country()], units, draft, newFeature: created(draft) };
+  const request = { operation: 'create', targetId: 'KR', parentId: 'KR', sourceId: 'donor', entities: [...([country()]), ...(units)],  draft, newFeature: created(draft) };
   const result = kernel.plan(request);
   assert.deepEqual(units, before);
   assert.deepEqual(result.impacts.map(impact => impact.id), ['child', 'grandchild']);
@@ -150,7 +150,7 @@ test('descendant cuts are explicit impacts, with no generated fragments and no s
 test('a completely transferred child changes parent while keeping its own descendants', () => {
   const units = [unit('donor', 'KR', square(0, 0, 8, 8)), unit('child', 'donor', square(1, 1, 2, 2)), unit('grandchild', 'child', square(1, 1, 1.5, 1.5))];
   const draft = square(0, 0, 4, 8);
-  const result = kernel.plan({ operation: 'create', targetId: 'KR', parentId: 'KR', sourceId: 'donor', countries: [country()], units, draft, newFeature: created(draft) });
+  const result = kernel.plan({ operation: 'create', targetId: 'KR', parentId: 'KR', sourceId: 'donor', entities: [...([country()]), ...(units)],  draft, newFeature: created(draft) });
   assert.equal(patch(result, 'child').properties.parentId, 'new');
   assert.equal(patch(result, 'grandchild'), undefined);
   assert.equal(result.impacts.length, 0);
@@ -160,7 +160,7 @@ test('coast expansion and erosion are identical at country, province and county 
   const units = [unit('province', 'KR', square(0, 0, 5, 10)), unit('county', 'province', square(0, 0, 5, 5))];
   const additions = globalThis.polygonClipping.union(country().geometry.coordinates, square(-1, 1, 0, 4).coordinates);
   for (const draft of [{ type: 'MultiPolygon', coordinates: additions }, square(1, 0, 10, 10)]) {
-    const requests = ['KR', 'province', 'county'].map(targetId => kernel.plan({ operation: 'coast', targetId, countries: [country()], units, draft }));
+    const requests = ['KR', 'province', 'county'].map(targetId => kernel.plan({ operation: 'coast', targetId, entities: [...([country()]), ...(units)],  draft }));
     assert.deepEqual(requests[0], requests[1]); assert.deepEqual(requests[1], requests[2]);
     assert.ok(patch(requests[0], 'KR')); assert.ok(patch(requests[0], 'province')); assert.ok(patch(requests[0], 'county'));
   }
@@ -169,11 +169,11 @@ test('coast expansion and erosion are identical at country, province and county 
 test('ambiguous reclamation requires ownership, independent of unit array order', () => {
   const units = [unit('a', 'KR', square(0, 0, 5, 10)), unit('b', 'KR', square(5, 0, 10, 10))];
   const draft = { type: 'MultiPolygon', coordinates: globalThis.polygonClipping.union(country().geometry.coordinates, square(2, -1, 8, 0).coordinates) };
-  const request = { operation: 'coast', targetId: 'KR', countries: [country()], units, draft };
+  const request = { operation: 'coast', targetId: 'KR', entities: [...([country()]), ...(units)],  draft };
   const unresolved = kernel.plan(request).impacts.find(impact => impact.kind === 'coast-owner');
   assert.ok(unresolved);
   const allocations = { [unresolved.key]: 'b' };
-  const a = kernel.plan({ ...request, allocations }), b = kernel.plan({ ...request, units: [...units].reverse(), allocations });
+  const a = kernel.plan({ ...request, allocations }), b = kernel.plan({ ...request, entities: [country(), ...units.toReversed()], allocations });
   assert.deepEqual(patch(a, 'b').geometry, patch(b, 'b').geometry);
   assert.equal(patch(a, 'a'), undefined);
 });
@@ -181,7 +181,7 @@ test('ambiguous reclamation requires ownership, independent of unit array order'
 test('border movement preserves the shared outer boundary and rejects invasion', () => {
   const units = [unit('a', 'KR', square(0, 0, 5, 10)), unit('b', 'KR', square(5, 0, 10, 10))];
   const featurePatches = [unit('a', 'KR', square(0, 0, 6, 10)), unit('b', 'KR', square(6, 0, 10, 10))];
-  const request = { operation: 'boundary', targetId: 'a', parentId: 'KR', countries: [country()], units, featurePatches };
+  const request = { operation: 'boundary', targetId: 'a', parentId: 'KR', entities: [...([country()]), ...(units)],  featurePatches };
   assert.equal(kernel.area(patch(kernel.plan(request), 'a').geometry), 60);
   featurePatches[0].geometry = square(-1, 0, 6, 10);
   assert.throws(() => kernel.plan(request), /바깥 경계/);

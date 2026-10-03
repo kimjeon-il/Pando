@@ -24,7 +24,7 @@ test('annex setup role cards keep every donating country in the current order', 
   const view = stage.taskWorkflowPresentation(state({ territorySelectionSession: current }), { current, step: 1, stageLabel: '가져올 국가' });
   assert.equal(view.relation, '←');
   assert.deepEqual(view.cards.map(card => [card.role, card.refs.map(ref => ref.id)]), [
-    ['넘겨받는 국가', ['GRC']], ['넘겨주는 국가', ['TUR', 'BGR']],
+    ['넘겨받는 객체', ['GRC']], ['넘겨주는 객체', ['TUR', 'BGR']],
   ]);
 });
 

@@ -11,18 +11,9 @@ export function createToolBindings() {
   }
 
   function bindToolUI() {
-    (0, dependencies.platform.$)('addCountryBtn')?.addEventListener('click', () => {
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingB.enterNewCountryMode)(), { destination: 'editor' }));
-    });
-    (0, dependencies.platform.$)('addSubunitBtn')?.addEventListener('click', () => {
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.workspaceUiA.completeToolStart)(
-        (0, dependencies.territorialEditingA.enterTerritorialCreateWorkflow)(dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT), { destination: 'editor' },
-      ));
-    });
-    (0, dependencies.platform.$)('addRegionBtn')?.addEventListener('click', () => {
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.workspaceUiA.completeToolStart)(
-        (0, dependencies.territorialEditingA.enterTerritorialCreateWorkflow)(dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.REGION), { destination: 'editor' },
-      ));
+    dependencies.platform.$('addEntityBtn').addEventListener('click', () => {
+      dependencies.genericEditingB.requestDraftDiscard(() => dependencies.workspaceUiA.completeToolStart(
+        dependencies.territorialEditingA.enterTerritorialCreateWorkflow(), { destination: 'editor' }));
     });
     (0, dependencies.platform.$)('addDistributionBtn')?.addEventListener('click', () => {
       (0, dependencies.genericEditingB.requestDraftDiscard)(() => {
@@ -35,7 +26,7 @@ export function createToolBindings() {
       });
     });
     (0, dependencies.platform.$)('territorialCreateNameInput')?.addEventListener('input', event => (0, dependencies.territorySelectionB.territorySelectionUpdateName)(event.currentTarget.value));
-    (0, dependencies.platform.$)('territorialCreateSovereignInput')?.addEventListener('change', event => (0, dependencies.territorialEditingB.updateTerritorialCreateSovereign)(event.currentTarget.value));
+    dependencies.platform.$('territorialCreateRegionalInput').addEventListener('change', event => dependencies.territorialEditingB.updateTerritorialCreateKind(event.currentTarget.checked));
     (0, dependencies.platform.$)('territorialCreateParentInput')?.addEventListener('change', event => (0, dependencies.territorialEditingB.updateTerritorialCreateParent)(event.currentTarget.value));
     (0, dependencies.platform.$)('territorialCreateSourceInput')?.addEventListener('change', event => (0, dependencies.territorialEditingB.updateTerritorialCreateSource)(event.currentTarget.value));
     (0, dependencies.platform.$)('addLabelBtn')?.addEventListener('click', () => {
@@ -118,31 +109,6 @@ export function createToolBindings() {
         else if ((0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool)) (0, dependencies.genericEditingA.cancelDraft)(true);
         else (0, dependencies.countryEditingA.cancelActiveMode)();
       });
-    });
-    (0, dependencies.platform.$)('annexTerritoryBtn')?.addEventListener('click', () => {
-      if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => {
-        if (dependencies.projectState.state.territorySelectionSession?.kind === 'annex'
-          && dependencies.projectState.state.territorySelectionSession.targetCountryId === dependencies.projectState.state.selected.id) (0, dependencies.countryEditingA.cancelActiveMode)();
-        else (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingA.enterAnnexTerritoryMode)(dependencies.projectState.state.selected.id));
-      });
-    });
-    (0, dependencies.platform.$)('editBorderBtn')?.addEventListener('click', () => {
-      if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => {
-        if (dependencies.projectState.state.tool === 'territorial-border' && dependencies.projectState.state.boundaryEditPhase === 'editing') (0, dependencies.countryEditingB.finishTerritorialBorderEdit)();
-        else (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingA.enterCountryBorderSelection)(dependencies.projectState.state.selected.id));
-      });
-    });
-    (0, dependencies.platform.$)('editCoastBtn')?.addEventListener('click', () => {
-      if (!(dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) return;
-      (0, dependencies.genericEditingB.requestDraftDiscard)(() => {
-        if (dependencies.projectState.state.tool === 'country-coast' && dependencies.projectState.state.coastEditCountryId === dependencies.projectState.state.selected.id) (0, dependencies.countryEditingB.finishCountryCoastEdit)();
-        else (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingA.enterCountryCoastEdit)(dependencies.projectState.state.selected.id));
-      });
-    });
-    (0, dependencies.platform.$)('mergeCountryBtn')?.addEventListener('click', () => {
-      if ((dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type === dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.COUNTRY)) (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingA.enterMergeCountryMode)(dependencies.projectState.state.selected.id)));
     });
     (0, dependencies.platform.$)('resetViewBtn').addEventListener('click', dependencies.navigation.resetView);
   }

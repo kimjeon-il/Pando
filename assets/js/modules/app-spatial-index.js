@@ -116,7 +116,7 @@ export function createSpatialIndex() {
   function rebuildMapObjectSpatialIndex(force = false) {
     if (force) mapObjectSpatialIndexSources.clear();
     let changed = false;
-    const territorialEntities = dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] });
+    const territorialEntities = dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
     changed = replaceSpatialDomain('label', [dependencies.projectState.state.labels, dependencies.projectState.state.labels?.length || 0, mapObjectGeometryRevisions.label], () => (dependencies.projectState.state.labels || []).flatMap(label => {
       const bounds = pointBounds(label.coordinates);
       return bounds ? [{
@@ -128,7 +128,7 @@ export function createSpatialIndex() {
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
     changed = replaceSpatialDomain('territorial', [territorialEntities, mapObjectGeometryRevisions.territorial], () => territorialEntities.flatMap(feature => feature?.geometry ? [{
-        key: `territorial:${feature.id}`, domain: 'territorial', type: feature.properties?.unitType || dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT, id: feature.id,
+        key: `territorial:${feature.id}`, domain: 'territorial', type: 'entity', id: feature.id,
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
     const distributionRows = dependencies.domains.renderingDomain?.getDistributionRenderRows?.() || [];
@@ -184,7 +184,7 @@ export function createSpatialIndex() {
     return mapObjectDistributionRowCache.get(String(id)) || null;
   }
 
-  function rebuildSpatialIndex(features = dependencies.territorialModel.entityRepository.list({ type: 'country' })) {
+  function rebuildSpatialIndex(features = dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })) {
     dependencies.projectState.state.spatialIndex = (features || []).map(feature => ({
       id: String(feature?.id || ''),
       feature,
@@ -201,7 +201,7 @@ export function createSpatialIndex() {
 
   function invalidateGeometryCaches(ids = []) {
     const wanted = new Set([...ids].map(String));
-    for (const feature of dependencies.territorialModel.entityRepository.list({ type: 'country' })) {
+    for (const feature of dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })) {
       if (!wanted.size || wanted.has(String(feature?.id || ''))) {
         touchGeometry(feature.geometry);
         geometryBoundsCache.delete(feature.geometry);
@@ -226,7 +226,7 @@ export function createSpatialIndex() {
       dependencies.projectState.state.historyDirtyEntityIds.add(id);
       dependencies.projectState.state.pendingCountryRenderIds.add(id);
     }
-    const currentFeatures = new Map((dependencies.territorialModel.entityRepository.list({ type: 'country' })).map(feature => [
+    const currentFeatures = new Map((dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })).map(feature => [
       String(feature?.id || ''),
       feature,
     ]));
@@ -285,9 +285,9 @@ export function createSpatialIndex() {
       getEntities: () => dependencies.territorialModel.entityRepository.list(),
       getFeatureById: dependencies.territorialModel.entityRepository.get,
       getBoundaryFeatures: () => [
-        ...dependencies.territorialModel.entityRepository.list({ type: 'country' }).map(feature => ({ ...feature,
+        ...dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).map(feature => ({ ...feature,
           boundaryLocked: feature.properties.locked === true })),
-        ...dependencies.territorialModel.entityRepository.list({ type: 'subunit' }),
+        ...dependencies.territorialModel.entityRepository.list({ kind: 'general' }).filter(entity => !!entity.properties.parentId),
       ],
       getEditSources: () => [
         ...dependencies.territorialModel.entityRepository.list().map(feature => ({

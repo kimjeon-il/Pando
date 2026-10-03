@@ -3,7 +3,7 @@ import { boundarySourceSegments, buildBoundaryTopologyFromSegments, planSharedBo
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
 
 const locked = feature => !!(feature.boundaryLocked ?? feature.properties?.locked);
-const metadata = feature => JSON.stringify([feature.properties?.unitType, feature.properties?.parentId, feature.properties?.associatedCountryId, locked(feature)]);
+const metadata = feature => JSON.stringify([feature.properties?.entityKind, feature.properties?.parentId, undefined, locked(feature)]);
 const padded = bounds => {
   // pointOnSegment also allows an epsilon of the segment parameter at its ends.
   const margin = 1e-7 * (1 + Math.hypot(bounds[2] - bounds[0], bounds[3] - bounds[1]));
@@ -49,8 +49,8 @@ export function createBoundaryPreparation() {
     const targets = ids.map(id => sources.get(id)?.feature);
     if (!targets.length || targets.some(feature => !feature)) throw new Error('경계 편집 대상을 찾을 수 없습니다.');
     if (targets.some(feature => locked(feature))) throw new Error('잠긴 객체의 경계를 편집할 수 없습니다.');
-    const unit = targets.find(feature => feature.properties?.unitType === 'subunit');
-    if (unit && targets.some(feature => feature.properties?.unitType !== 'subunit'
+    const unit = targets.find(feature => (feature.properties?.entityKind === 'general' && !!feature.properties?.parentId));
+    if (unit && targets.some(feature => !(feature.properties?.entityKind === 'general' && !!feature.properties?.parentId)
       || feature.properties.parentId !== unit.properties.parentId)) throw new Error('같은 상위 단위 안의 하위단위만 편집할 수 있습니다.');
     const parentId = unit ? String(unit.properties.parentId) : null;
     if (unit && !sources.has(parentId)) throw new Error('상위 단위를 찾을 수 없습니다.');
@@ -66,9 +66,9 @@ export function createBoundaryPreparation() {
         if (locked(ancestor)) throw new Error('상위 단위가 잠겨 있습니다.');
       }
     }
-    const allowed = feature => !!feature && (unit ? feature.properties?.unitType === 'subunit'
+    const allowed = feature => !!feature && (unit ? (feature.properties?.entityKind === 'general' && !!feature.properties?.parentId)
       && feature.properties.parentId === unit.properties.parentId
-      : feature.properties?.unitType !== 'subunit' && feature.properties?.unitType !== 'region');
+      : !(feature.properties?.entityKind === 'general' && !!feature.properties?.parentId) && !(feature.properties?.entityKind === 'regional'));
     const key = JSON.stringify([mode, ids, parentId, autoSeedId]);
     let entry = cache.get(key);
     if (!entry) {

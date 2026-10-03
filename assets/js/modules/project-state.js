@@ -109,11 +109,11 @@ export function assertCurrentProjectSchema(input) {
     assertAllowedKeys(style, new Set(['opacity', 'colorVisible', 'boundaryVisible', 'boundaryWidth', 'labelsVisible', 'blendMode']), `${group} 레이어 스타일`);
   }
   for (const [key, style] of Object.entries(project.layerPresentation?.objectStyles || {})) {
-    if (!/^territorial:(subunit|region):.+/.test(key)) throw schemaError(`객체 표현 key가 올바르지 않습니다: ${key}`);
+    if (!/^territorial:entity:.+/.test(key)) throw schemaError(`객체 표현 key가 올바르지 않습니다: ${key}`);
     assertAllowedKeys(style, new Set(['opacity', 'colorVisible', 'boundaryVisible', 'boundaryWidth', 'labelsVisible', 'blendMode']), `${key} 객체 스타일`);
   }
   if (project.layerPresentation?.objectOrder != null && (!Array.isArray(project.layerPresentation.objectOrder)
-    || project.layerPresentation.objectOrder.some(key => typeof key !== 'string' || !/^territorial:(subunit|region):.+/.test(key)))) {
+    || project.layerPresentation.objectOrder.some(key => typeof key !== 'string' || !/^territorial:entity:.+/.test(key)))) {
     throw schemaError('객체 표현 순서가 올바르지 않습니다.');
   }
 
@@ -125,7 +125,7 @@ export function assertCurrentProjectSchema(input) {
     if (typeof feature?.id !== 'string' || !id || entityIds.has(id)) throw schemaError('영역 ID가 비어 있거나 중복되었습니다: ' + id, 'PL-SCHEMA-ID-DUPLICATE');
     entityIds.add(id);
     requireSchemaVersion(feature.properties?.schemaVersion, '영역 ' + id, TERRITORIAL_SCHEMA_VERSION);
-    assertAllowedKeys(feature.properties, new Set(['schemaVersion','unitType','name','parentId','associatedCountryId',
+    assertAllowedKeys(feature.properties, new Set(['schemaVersion','entityKind','name','parentId',
       'coverageMode','style','locked','validFrom','validTo','notes','metadata','sourceFolderId','sourceLibraryId','sourceGeometryVersion']), '영역 ' + id);
     if (!normalizeTerritorialFeature(feature, { cloneGeometry: geometry => geometry })) throw schemaError('영역 형상이 올바르지 않습니다: ' + id);
   }
@@ -144,7 +144,7 @@ export function assertCurrentProjectSchema(input) {
   assertUniqueProjectIds(project.hydroEdits, '편집 수계');
   assertUniqueProjectIds(project.labels, '지명');
 
-  for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`, 2);
+  for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`, 3);
   for (const layer of project.distributionLayers || []) {
     requireSchemaVersion(layer?.schemaVersion, `분포 레이어 ${text(layer?.id)}`, DISTRIBUTION_MODEL_SCHEMA_VERSION);
     assertAllowedKeys(layer, new Set(['id', 'schemaVersion', 'name', 'unit', 'valueScale', 'color', 'locked', 'parentId', 'groups', 'validFrom', 'validTo', 'metadata']), `분포 레이어 ${text(layer?.id)}`);

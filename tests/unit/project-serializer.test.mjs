@@ -4,7 +4,7 @@ import { createTerritorialFeature } from '../../assets/js/modules/territorial-un
 import { createProjectSerializer, restoreEntitiesFromDelta } from '../../assets/js/modules/project-serializer.js';
 import { PROJECT_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
-const entity=(id,unitType='country',options={})=>createTerritorialFeature({id,unitType,geometry,name:id,...options});
+const entity=(id,entityKind='general',options={})=>createTerritorialFeature({id,entityKind,geometry,name:id,...options});
 const serializer=snapshot=>createProjectSerializer({appVersion:'0.34.0',baseDataset:'base',distributionModes:['territorial','geometry'],terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>snapshot,now:()=>new Date('2026-10-03T00:00:00Z')});
 test('full and delta autosaves share immutable geometry while detaching metadata',()=>{
  const a=entity('A');const service=serializer({territorialEntities:[a],entityDelta:{changed:[a],removedIds:[]},projectFields:{}});
@@ -13,13 +13,13 @@ test('full and delta autosaves share immutable geometry while detaching metadata
  const full=serializer({territorialEntities:[a],fullAutosave:true,projectFields:{}});assert.equal(full.buildAutosave().territorialEntities[0].geometry,full.buildAutosave().territorialEntities[0].geometry);
 });
 test('project header and physical source metadata use the current common contract',()=>{
- const entities=[entity('A'),entity('S','subunit',{parentId:'A'}),entity('R','region',{associatedCountryId:'A'})];
+ const entities=[entity('A'),entity('S','general',{parentId:'A'}),entity('R','regional',{})];
  const project=serializer({territorialEntities:entities,projectFields:{labels:[],layerVisibility:{countries:false}},terrainManifest:{dataset:'terrain-current',version:'1'},hydroManifest:{dataset:'hydro-current',selection:{rivers:true}}}).buildProject();
- assert.equal(project.schemaVersion,PROJECT_SCHEMA_VERSION);assert.equal(project.savedAt,'2026-10-03T00:00:00.000Z');assert.equal(project.territorialModel.storage,'territorialEntities');assert.equal(project.territorialModel.schemaVersion,3);assert.deepEqual(project.territorialEntities,entities);assert.equal(project.physicalSourceInfo.terrain.dataset,'terrain-current');assert.deepEqual(project.physicalSourceInfo.hydro.selection,{rivers:true});
+ assert.equal(project.schemaVersion,PROJECT_SCHEMA_VERSION);assert.equal(project.savedAt,'2026-10-03T00:00:00.000Z');assert.equal(project.territorialModel.storage,'territorialEntities');assert.equal(project.territorialModel.schemaVersion,4);assert.deepEqual(project.territorialEntities,entities);assert.equal(project.physicalSourceInfo.terrain.dataset,'terrain-current');assert.deepEqual(project.physicalSourceInfo.hydro.selection,{rivers:true});
  for(const key of ['countriesData','countryOverrides','territorialUnits','countryDelta','projection','view'])assert.equal(key in project,false);
 });
 test('entity delta replaces, removes and adds all types in stable order without mutating inputs',()=>{
- const base=[entity('A'),entity('B'),entity('S','subunit',{parentId:'A'})];const changed=[entity('A','country',{name:'renamed',metadata:{capital:'capital'}}),entity('S','subunit',{parentId:'A',color:'#123456'}),entity('R','region',{associatedCountryId:'A'})];
+ const base=[entity('A'),entity('B'),entity('S','general',{parentId:'A'})];const changed=[entity('A','general',{name:'renamed',metadata:{capital:'capital'}}),entity('S','general',{parentId:'A',color:'#123456'}),entity('R','regional',{})];
  const project={entityDelta:{changed,removedIds:['B']}};const original=structuredClone({base,project});const restored=restoreEntitiesFromDelta(project,{base});
  assert.deepEqual(restored.map(x=>x.id),['A','S','R']);assert.deepEqual(restored,changed);assert.deepEqual({base,project},original);restored[0].properties.metadata.capital='changed';assert.equal(changed[0].properties.metadata.capital,'capital');
  assert.throws(()=>restoreEntitiesFromDelta({entityDelta:{changed:[changed[0]],removedIds:['A']}},{base}),/중복/);

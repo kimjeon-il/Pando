@@ -56,8 +56,10 @@ export function resolveTerritorialColor(feature, { entityRepository, countryColo
     seen.add(id);
     if (!colorVisible(current)) return fallback;
     if (current.properties?.style?.color) return current.properties.style.color;
-    if (!current.properties?.unitType || current.properties.unitType === 'country') return countryColor(current);
-    current = entityRepository.parent(id) || entityRepository.administrativeCountry(id);
+    if (current.properties.entityKind === 'regional') return fallback;
+    if (!current.properties.parentId) return countryColor(current);
+    current = entityRepository.parent(id);
+    if (!current) throw new Error(`색상을 상속할 상위 객체가 없습니다: ${id}`);
   }
   return fallback;
 }

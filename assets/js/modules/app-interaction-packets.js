@@ -31,9 +31,9 @@ export function createInteractionPackets() {
   }
 
   function presentationGroupForTerritorialFeature(feature) {
-    return feature?.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT
+    return (feature?.properties?.entityKind === 'general' && !!feature?.properties?.parentId)
       ? 'subunits'
-      : feature?.properties?.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION
+      : (feature?.properties?.entityKind === 'regional')
         ? 'regions'
         : 'subunits';
   }
@@ -44,7 +44,7 @@ export function createInteractionPackets() {
     const objectOrder = new Map((dependencies.projectState.state.layerPresentation?.objectOrder || []).map((key, index) => [key, index]));
     const groupForDatum = datum => datum?.layer
       ? 'distributions'
-      : datum?.properties?.unitType
+      : datum?.properties?.entityKind
         ? presentationGroupForTerritorialFeature(datum)
         : 'genericFeatures';
     dependencies.mapLayers.overlayStackLayer.selectAll('[data-presentation-group]').sort((left, right) => {
@@ -53,7 +53,7 @@ export function createInteractionPackets() {
       const leftIndex = order.indexOf(leftGroup);
       const rightIndex = order.indexOf(rightGroup);
       if (leftGroup === rightGroup && leftGroup === 'subunits') {
-        const key = feature => `territorial:${feature?.properties?.unitType}:${feature?.id}`;
+        const key = feature => `territorial:entity:${feature?.id}`;
         return (objectOrder.get(key(right)) ?? objectOrder.size) - (objectOrder.get(key(left)) ?? objectOrder.size);
       }
       return (rightIndex < 0 ? order.length : rightIndex) - (leftIndex < 0 ? order.length : leftIndex);

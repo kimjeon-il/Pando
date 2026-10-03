@@ -59,7 +59,7 @@ test('object focus uses the actual viewport center with the editor panel open', 
   await page.evaluate(() => document.getElementById('flatBtn')?.click());
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().projection)).toBe('flat');
   const countryId = 'DEU';
-  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select('country', id), countryId);
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), countryId);
   await expect(page.locator('#editorSurface')).toBeVisible();
   await page.locator('#focusSelectedObjectBtn').click();
 
@@ -89,7 +89,7 @@ test('mobile focus keeps the object visible and whole-map view remains zoom-only
   const page = await context.newPage();
   try {
     const errors = await openDebugMap(page, { width: 390, height: 844 });
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await page.evaluate(() => document.getElementById('focusSelectedObjectBtn')?.click());
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom), { timeout: 20_000 }).toBeGreaterThan(1);
     const focused = await page.evaluate(() => {

@@ -121,10 +121,10 @@ export function createProjectRestore() {
 
   function analyzeAdminCountryCoastConflicts(adminId) {
     const admin = dependencies.territorialModel.entityRepository.get(adminId);
-    const countryId = String((0, dependencies.territorialModel.administrativeCountryId)(admin, id => dependencies.territorialModel.entityRepository.get(id)) || '');
+    const countryId = String((0, dependencies.territorialModel.territorialRootId)(admin, id => dependencies.territorialModel.entityRepository.get(id)) || '');
     const country = dependencies.territorialModel.entityRepository.get(countryId);
-    if (!admin || admin.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT || !country) return { admin, country, status: 'unavailable', conflicts: [] };
-    const topology = (0, dependencies.territorialModel.buildSharedBoundaryTopology)(dependencies.territorialModel.entityRepository.list({ type: 'country' }));
+    if (!admin || !(admin.properties?.entityKind === 'general' && !!admin.properties?.parentId) || !country) return { admin, country, status: 'unavailable', conflicts: [] };
+    const topology = (0, dependencies.territorialModel.buildSharedBoundaryTopology)(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }));
     const result = (0, dependencies.gisServicesA.analyzeAdminCountryCoast)({ adminFeature: admin, countryFeature: country, countryTopology: topology });
     return { admin, country, status: result.status, unavailableReason: result.unavailableReason, conflicts: result.conflicts || [] };
   }
@@ -237,14 +237,14 @@ export function createProjectRestore() {
     dependencies.projectState.state.countryIndex.clear();
     dependencies.territorialModel.entityStore.replaceEntities(preparedCountries.features);
     const restoredExactly = dependencies.builtinCountries.canonicalCountryStore
-      ? dependencies.territorialModel.entityRepository.list({ type: 'country' }).length === dependencies.builtinCountries.canonicalCountryStore.ids().length
-        && dependencies.territorialModel.entityRepository.list({ type: 'country' }).every(feature => dependencies.builtinCountries.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))
+      ? dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).length === dependencies.builtinCountries.canonicalCountryStore.ids().length
+        && dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).every(feature => dependencies.builtinCountries.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))
       : true;
     if (!restoredExactly) {
       throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
     }
     (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
-    (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) }));
+    (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) }));
     dependencies.projectState.state.auditPreviewCountries = null;
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.layers.markLayerTreeDirty)();

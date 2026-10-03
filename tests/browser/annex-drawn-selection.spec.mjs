@@ -14,15 +14,15 @@ test('country territory controls expose role cards, a compact draw toolbar and a
     task.querySelector('#territorySelectionStack').classList.remove('hidden');
     const objects = task.querySelector('#modeTaskObjects');
     objects.classList.remove('hidden');
-    for (const role of ['넘겨받는 국가', '넘겨주는 국가']) {
+    for (const role of ['넘겨받는 객체', '넘겨주는 객체']) {
       const card = document.createElement('section');
       card.className = 'workflow-object-card';
       card.textContent = role;
       objects.append(card);
     }
   });
-  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨받는 국가');
-  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨주는 국가');
+  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨받는 객체');
+  await expect(page.locator('#modeTaskObjects')).toContainText('넘겨주는 객체');
   await expect(page.locator('#modeComponentsMethodInput + span')).toHaveText('영역 선택');
   await expect(page.locator('#modeRiverBoundaryOption')).toContainText('하천을 경계로 사용');
   await expect(page.locator('#territorySelectionStack')).toBeVisible();

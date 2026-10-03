@@ -100,7 +100,7 @@ export function createMapEditWorkerClient({
     if (patch.patches.length || patch.removedKeys.length) ensureRpc().notify('edit-sync', patch);
     return patch.sourceRevision;
   }
-  const boundarySignature = feature => JSON.stringify([geometryRevision(feature.geometry), feature.properties?.unitType, feature.properties?.parentId, feature.properties?.associatedCountryId, !!(feature.boundaryLocked ?? feature.properties?.locked)]);
+  const boundarySignature = feature => JSON.stringify([geometryRevision(feature.geometry), feature.properties?.entityKind, feature.properties?.parentId, undefined, !!(feature.boundaryLocked ?? feature.properties?.locked)]);
   const currentTargetRevision = () => typeof getTargetRevision === 'function'
     ? Number(getTargetRevision())
     : dataRevision;

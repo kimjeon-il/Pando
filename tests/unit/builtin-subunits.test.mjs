@@ -5,7 +5,6 @@ import { readFileSync } from 'node:fs';
 import { BUILTIN_SUBUNITS, classifyBuiltinCountries, builtinSubunitSourceId } from '../../assets/js/modules/builtin-subunits.js';
 import { normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
 import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from '../../assets/js/modules/builtin-territory-policy.js';
-import { defaultGeographicName } from '../../assets/js/modules/country-display.js';
 import { createProjectSerializer, restoreEntitiesFromDelta } from '../../assets/js/modules/project-serializer.js';
 
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
@@ -27,13 +26,13 @@ test('47 agreed source objects become stable Subunits; 207 countries and excepti
 
 test('all source geometries stay identical; normalization and classification do not mutate input', () => {
   const originals = new Map(source.features.map(f => [f.id, f]));
-  const normalized = normalizeTerritorialEntities([...result.countries.features, ...result.subunits]).filter(feature => feature.properties.unitType !== 'country');
+  const normalized = normalizeTerritorialEntities([...result.countries.features, ...result.subunits]).filter(feature => feature.properties.parentId);
   assert.equal(normalized.length, 47);
   for (const feature of [...result.countries.features, ...normalized]) {
     const original = originals.get(builtinSubunitSourceId(feature) || feature.id);
     const expected = mergeBuiltinTerritories(source).features.find(f => f.id === original.id);
     assert.deepEqual(feature.geometry, expected?.geometry || original.geometry);
-    assert.equal(feature.properties.name, defaultGeographicName(original.id, original.properties.name));
+    assert.equal(feature.properties.name, original.properties.name);
   }
   assert.equal(JSON.stringify(source), before);
   assert.deepEqual(classifyBuiltinCountries(normalizeCountryCollection(source)), result);
@@ -57,10 +56,10 @@ test('new full and delta saves retain Subunits and source-country removals', () 
     distributionTypes: ['language', 'ethnicity', 'religion'], distributionModes: ['territorial', 'geometry'],
     readSnapshot: () => ({ territorialEntities: [...result.countries.features, ...result.subunits], projectFields: {}, entityDelta: delta, fullAutosave: false }) });
   const full = JSON.parse(JSON.stringify(serializer.buildProject()));
-  assert.deepEqual(full.territorialEntities.filter(feature => feature.properties.unitType !== 'country'), result.subunits);
-  assert.equal(full.territorialEntities.filter(feature => feature.properties.unitType === 'country').length, 207);
+  assert.deepEqual(full.territorialEntities.filter(feature => feature.properties.parentId), result.subunits);
+  assert.equal(full.territorialEntities.filter(feature => !feature.properties.parentId).length, 207);
   const saved = JSON.parse(JSON.stringify(serializer.buildAutosave()));
-  assert.deepEqual(saved.entityDelta.changed.filter(feature => feature.properties.unitType !== 'country'), result.subunits);
+  assert.deepEqual(saved.entityDelta.changed.filter(feature => feature.properties.parentId), result.subunits);
   assert.deepEqual(restoreEntitiesFromDelta(saved, { base: normalizeCountryCollection(source).features,
     reindex: value => value, applyPristineLabelAnchors: () => {} }), [...result.countries.features, ...result.subunits]);
 });

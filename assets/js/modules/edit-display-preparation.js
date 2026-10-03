@@ -1,4 +1,4 @@
-import { administrativeCountryId } from './territorial-units.js';
+import { territorialRootId } from './territorial-units.js';
 import { buildTerritorialInternalBoundarySegments } from './boundary-topology.js';
 import { excludeAncestorHighlightBoundary } from './territorial-highlight-boundary.js';
 
@@ -11,8 +11,8 @@ export function createEditDisplayPreparation() {
     if (!tokens.has(geometry)) tokens.set(geometry, ++sequence);
     return tokens.get(geometry);
   };
-  const signature = features => features.map(feature => [feature.id, token(feature.geometry), feature.properties?.unitType,
-    feature.properties?.parentId, feature.properties?.associatedCountryId].join(':')).sort().join('|');
+  const signature = features => features.map(feature => [feature.id, token(feature.geometry), feature.properties?.entityKind,
+    feature.properties?.parentId, undefined].join(':')).sort().join('|');
   return {
     async prepare(request, countries, units, checkpoint = async () => {}, sourceByKey = () => null) {
       if (request.kind === 'highlight') {
@@ -27,10 +27,10 @@ export function createEditDisplayPreparation() {
       const countryById = new Map(countries.map(feature => [String(feature.id), feature]));
       const grouped = new Map();
       const entities = new Map([...countries, ...units].map(feature => [String(feature.id), feature]));
-      const hasIndependentRegions = units.some(unit => unit.properties?.unitType !== 'subunit');
+      const hasIndependentRegions = units.some(unit => !(unit.properties?.entityKind === 'general' && !!unit.properties?.parentId));
       for (const unit of units) {
         // Independent regions can cross countries; preserve that existing rule.
-        const key = hasIndependentRegions ? '*' : administrativeCountryId(unit, id => entities.get(id));
+        const key = hasIndependentRegions ? '*' : territorialRootId(unit, id => entities.get(id));
         if (!grouped.has(key)) grouped.set(key, []);
         grouped.get(key).push(unit);
       }

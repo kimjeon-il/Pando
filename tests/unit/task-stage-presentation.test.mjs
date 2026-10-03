@@ -103,12 +103,12 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
       const country = countrySourceFeature(key);
       return country ? {
         ...country,
-        properties: { ...(country.properties || {}), unitType: 'country' },
+        properties: { ...(country.properties || {}), entityKind: 'general' },
       } : null;
     },
   };
   const presentation = createTaskPresentation();
-  state.territorialEntities = [...state.territorialEntities, ...[countrySourceFeature('COUNTRY')].filter(Boolean).map(feature => ({ ...feature, properties: { ...feature.properties, unitType: 'country' } }))];
+  state.territorialEntities = [...state.territorialEntities, ...[countrySourceFeature('COUNTRY')].filter(Boolean).map(feature => ({ ...feature, properties: { ...feature.properties, entityKind: 'general' } }))];
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   presentation.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
     state,
@@ -120,7 +120,6 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
     draftMinimumPoints: () => 3,
     isGenericFeatureDraftTool: () => false,
     isSpecialTool: () => true,
-    TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
     boundaryEditSelectionAnalysis: () => ({ valid: false, message: '접경 대상을 선택하세요.' }),
     countrySourceFeature,
     entityRepository,
@@ -198,11 +197,11 @@ test('territory list uses the authoritative union, pending state and stable part
 test('task sync derives role cards without duplicate type labels or focusing the map', t => {
   const f = fixture(t, {
     boundaryEditEntityIds: ['SUB', 'COUNTRY', 'SUB'],
-    territorialEntities: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
+    territorialEntities: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', entityKind: 'general', parentId: 'COUNTRY' }, geometry: { type: 'Polygon', coordinates: [] } }],
   });
   f.presentation.updateModeButtons();
   const cards = f.elements.modeTaskObjects.children.filter(item => item.className === 'workflow-object-card');
-  assert.deepEqual(cards.map(item => item.children[0].textContent), ['기준 하위단위', '상대 하위단위']);
+  assert.deepEqual(cards.map(item => item.children[0].textContent), ['기준 객체', '상대 객체']);
   assert.deepEqual(cards.map(item => item.children[1].children[0].textContent), ['Subunit', 'Country']);
   assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
   assert.equal('focusTaskTargets' in f.presentation, false);
@@ -224,9 +223,10 @@ test('task target labels refresh from the repository while object refs stay stab
 });
 
 test('new territory workflows never expose source or parent countries as a focus target', t => {
-  for (const kind of ['new-country', 'subunit', 'region']) {
-    const current = { kind, taskLabel: '추가', tool: kind, stage: 'setup',
-      sourceCountryIds: ['COUNTRY'], sovereignId: 'COUNTRY', parentId: 'COUNTRY',
+  for (const [entityKind, parentId] of [['general', ''], ['general', 'COUNTRY'], ['regional', '']]) {
+    const kind = 'entity';
+    const current = { kind, entityKind, taskLabel: '객체 추가', tool: 'draw-territorial-unit', stage: 'setup',
+      sourceCountryIds: ['COUNTRY'], parentId,
       candidates: [], parts: [] };
     const model = { current, step: 1, stageLabel: '기본 정보', setup: true };
     const f = fixture(t, { tool: current.tool, territorySelectionSession: current }, {
@@ -322,7 +322,7 @@ test('editable redraw with fewer than three vertices uses the precise redraw rea
     boundaryEditPhase: '',
     boundaryPreparation: null,
     territorialUnitRedrawSourceId: 'SUB',
-    territorialEntities: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
+    territorialEntities: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', entityKind: 'general' }, geometry: { type: 'Polygon', coordinates: [] } }],
   }, {
     describeTool: () => ({ name: '영역 다시 지정', stage: '영역 그리기' }),
     editingDraftSnapshot: () => ({
@@ -346,7 +346,7 @@ test('tool bindings do not query the removed task focus button', () => {
   bindings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.toolBindings, {
     $: id => {
       assert.notEqual(id, 'modeTaskTargetsFocusBtn');
-      return id === 'resetViewBtn' ? resetButton : null;
+      return ['resetViewBtn', 'addEntityBtn', 'territorialCreateRegionalInput'].includes(id) ? resetButton : null;
     },
     resetView() {},
   }));
@@ -355,7 +355,7 @@ test('tool bindings do not query the removed task focus button', () => {
 });
 
 test('hydro auxiliary commands run while idle and preserve their own busy guard', () => {
-  const buttons = Object.fromEntries(['multiDrawnAddBtn', 'multiDrawnUndoBtn', 'resetViewBtn'].map(id => [id, new FakeElement()]));
+  const buttons = Object.fromEntries(['multiDrawnAddBtn', 'multiDrawnUndoBtn', 'resetViewBtn', 'addEntityBtn', 'territorialCreateRegionalInput'].map(id => [id, new FakeElement()]));
   const state = { modeProcessing: false };
   const calls = [];
   const bindings = createToolBindings();

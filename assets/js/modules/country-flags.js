@@ -65,7 +65,7 @@ function normalizedFlagUrl(value) {
 
 export function effectiveTerritorialFlagUrl(feature, { assetRevision = '' } = {}) {
   const metadata = feature?.properties?.metadata || {};
-  if (feature?.properties?.unitType === 'country') {
+  if ((feature?.properties?.entityKind === 'general' && !feature?.properties?.parentId)) {
     if (hasOwn(metadata, 'flagDataUrl')) return normalizedFlagUrl(metadata.flagDataUrl);
     return currentCountryFlagUrl(feature.id, { assetRevision });
   }

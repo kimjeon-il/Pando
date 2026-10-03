@@ -46,8 +46,8 @@ test('territorial selection presents the toolbar through the common controller w
   }));
 
   propertySelection.initializePropertySelection();
-  assert.equal(globalThis.window.PANDOLAB_TERRITORIAL.select('country', 'DEU'), true);
-  assert.equal(globalThis.window.PANDOLAB_TERRITORIAL.select('subunit', 'subunit-1'), true);
+  assert.equal(globalThis.window.PANDOLAB_TERRITORIAL.select('DEU'), true);
+  assert.equal(globalThis.window.PANDOLAB_TERRITORIAL.select('subunit-1'), true);
   assert.deepEqual(intents.map(intent => intent.options.openEditor), [false, false]);
   assert.deepEqual(intents.map(intent => intent.ref.type), ['country', 'subunit']);
 });

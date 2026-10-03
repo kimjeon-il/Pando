@@ -47,14 +47,14 @@ for (const viewport of viewports) {
     await page.locator('#selectionToolbarEditBtn').click();
     await expect(page.locator('.editor-view-tabs')).toHaveText(/작업/);
     await expect(page.locator('#editorTabBtn')).toBeHidden();
-    await expect(page.locator('#countryAreaValue')).toContainText('km²');
+    await expect(page.locator('#entityAreaValue')).toContainText('km²');
     await expect(page.locator('#focusSelectedObjectBtn')).toHaveAttribute('aria-label', '선택 객체로 이동');
     await page.locator('#actionsTabBtn').click();
     await expect(page.locator('#objectActionsBtn')).toHaveCount(0);
     await expect(page.locator('#objectLockBtn')).toHaveAttribute('aria-pressed', /true|false/);
     await expect(page.locator('#objectDeleteBtn')).toBeVisible();
     await expect(page.locator('#propertyTitle')).toHaveCSS('white-space', 'normal');
-    await expect(page.locator('#countryProperties .editor-action-row')).toHaveCount(5);
+    await expect(page.locator('#entityProperties .editor-action-row')).toHaveCount(8);
     const inconsistentActionRows = await page.locator('#editorSurface .editor-action-row').evaluateAll(rows => rows
       .filter(row => !row.classList.contains('has-command-row-icon')
         || row.querySelectorAll(':scope > .command-row-icon').length !== 1
@@ -62,7 +62,7 @@ for (const viewport of viewports) {
         || row.querySelectorAll(':scope > .command-row-chevron').length !== 1)
       .map(row => row.id));
     expect(inconsistentActionRows).toEqual([]);
-    await expect(page.locator('#countryProperties .editor-action-grid')).toHaveCount(0);
+    await expect(page.locator('#entityProperties .editor-action-grid')).toHaveCount(0);
     const overflow = await page.evaluate(() => ({
       viewport: window.innerWidth,
       document: document.documentElement.scrollWidth,

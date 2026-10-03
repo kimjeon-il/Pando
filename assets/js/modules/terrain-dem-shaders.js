@@ -13,10 +13,28 @@ const common = (sample) => `
     float h10 = elevation(demSample(cell + vec2(1.0, 0.0)));
     float h01 = elevation(demSample(cell + vec2(0.0, 1.0)));
     float h11 = elevation(demSample(cell + vec2(1.0, 1.0)));
+    // Central differences of decoded, bilinear heights at point +/- 0.5
+    // texel. The four original corners plus one outer column and row share
+    // all eight samples; the existing one-pixel gutter covers the footprint.
+    vec2 side = step(vec2(0.5), fraction);
+    vec2 outerOffset = mix(vec2(-1.0), vec2(2.0), side);
+    float hx0 = elevation(demSample(cell + vec2(outerOffset.x, 0.0)));
+    float hx1 = elevation(demSample(cell + vec2(outerOffset.x, 1.0)));
+    float hy0 = elevation(demSample(cell + vec2(0.0, outerOffset.y)));
+    float hy1 = elevation(demSample(cell + vec2(1.0, outerOffset.y)));
+    vec2 centeredFraction = fract(fraction + vec2(0.5));
+    vec2 xPrevious = mix(vec2(hx0, hx1), vec2(h00, h01), side.x);
+    vec2 xMiddle = mix(vec2(h00, h01), vec2(h10, h11), side.x);
+    vec2 xNext = mix(vec2(h10, h11), vec2(hx0, hx1), side.x);
+    vec2 eastDifferences = mix(xMiddle - xPrevious, xNext - xMiddle, centeredFraction.x);
+    vec2 yPrevious = mix(vec2(hy0, hy1), vec2(h00, h10), side.y);
+    vec2 yMiddle = mix(vec2(h00, h10), vec2(h01, h11), side.y);
+    vec2 yNext = mix(vec2(h01, h11), vec2(hy0, hy1), side.y);
+    vec2 southDifferences = mix(yMiddle - yPrevious, yNext - yMiddle, centeredFraction.y);
     float eastMeters = 40030228.884 * max(0.0001, cos(radians(vLonLat.y))) / uLevelSize.x;
     float northMeters = 20015114.442 / uLevelSize.y;
-    float riseEast = mix(h10 - h00, h11 - h01, fraction.y) / eastMeters;
-    float riseNorth = -mix(h01 - h00, h11 - h10, fraction.x) / northMeters;
+    float riseEast = mix(eastDifferences.x, eastDifferences.y, fraction.y) / eastMeters;
+    float riseNorth = -mix(southDifferences.x, southDifferences.y, fraction.x) / northMeters;
     vec3 normal = normalize(vec3(-riseEast, -riseNorth, 1.0));
     vec3 light = vec3(-0.5, 0.5, 0.70710678);
     return 0.42 + 0.58 * max(0.0, dot(normal, light));

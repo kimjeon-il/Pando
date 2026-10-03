@@ -6,6 +6,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
  * stable meaning-to-symbol mapping without duplicating SVG markup.
  */
 const ICON_REGISTRY = Object.freeze({
+  entity: 'icon-territory',
   add: 'icon-plus',
   close: 'icon-close',
   check: 'icon-check',

@@ -389,7 +389,6 @@ function installCommitToPaintProbe(documentRef, globalObject, metrics) {
   if (!documentRef?.addEventListener || typeof globalObject.requestAnimationFrame !== 'function') return () => {};
   const clickSelectors = [
     '#modePrimaryBtn',
-    '#territorialTypeConfirmBtn',
     '#confirmModalConfirmBtn',
     '#coastReconciliationCountryBtn',
     '#coastReconciliationAdminBtn',

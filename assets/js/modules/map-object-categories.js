@@ -29,48 +29,43 @@ const MAP_OBJECT_DOMAINS = Object.freeze({
  * layer/presentation mapping, editor target and creation entry point.
  */
 export const MAP_OBJECT_TYPES = Object.freeze({
+  entity: freezeType({ key: 'entity', domain: 'territorial', type: 'entity', category: 'territorial', label: '객체', icon: 'icon-territory', layerGroup: 'countries', presentationGroup: 'countries', editor: 'entity', creatable: true, createButton: 'addEntityBtn', createAction: 'entity-create' }),
   country: freezeType({
     key: 'country',
     domain: MAP_OBJECT_DOMAINS.TERRITORIAL,
-    type: 'country',
+    type: 'entity',
     category: 'territorial',
-    label: '국가',
+    label: '최상위 객체',
     icon: 'icon-country',
     layerGroup: 'countries',
     presentationGroup: 'countries',
-    editor: 'country',
-    creatable: true,
-    createButton: 'addCountryBtn',
-    createAction: 'new-country',
+    editor: 'entity',
+    creatable: false,
   }),
   subunit: freezeType({
     key: 'subunit',
     domain: MAP_OBJECT_DOMAINS.TERRITORIAL,
-    type: 'subunit',
+    type: 'entity',
     category: 'territorial',
-    label: '하위단위',
+    label: '하위 객체',
     icon: 'icon-territory',
     layerGroup: 'subunits',
     presentationGroup: 'subunits',
-    editor: 'subunit',
-    creatable: true,
-    createButton: 'addSubunitBtn',
-    createAction: 'territorial-modal',
+    editor: 'entity',
+    creatable: false,
     createMethods: ['split', 'draw', 'geojson'],
   }),
   region: freezeType({
     key: 'region',
     domain: MAP_OBJECT_DOMAINS.TERRITORIAL,
-    type: 'region',
+    type: 'entity',
     category: 'territorial',
-    label: '지방',
+    label: '독립 권역',
     icon: 'icon-region',
     layerGroup: 'regions',
     presentationGroup: 'regions',
-    editor: 'region',
-    creatable: true,
-    createButton: 'addRegionBtn',
-    createAction: 'territorial-modal',
+    editor: 'entity',
+    creatable: false,
     createMethods: ['draw', 'geojson'],
   }),
   distribution: freezeType({
@@ -154,7 +149,7 @@ export const MAP_OBJECT_CATEGORIES = Object.freeze({
     key: 'territorial',
     label: '영토·구역',
     layerGroups: ['countries', 'subunits', 'regions'],
-    createItems: ['country', 'subunit', 'region'],
+    createItems: ['entity'],
   }),
   distribution: freezeCategory({
     key: 'distribution',
@@ -177,7 +172,7 @@ export function objectTypeKeyForRef(value) {
   if (typeof value === 'string') return MAP_OBJECT_TYPES[value] ? value : '';
   const domain = String(value?.domain || '').trim();
   const type = String(value?.type || value?.kind || '').trim();
-  if (domain === MAP_OBJECT_DOMAINS.TERRITORIAL) return MAP_OBJECT_TYPES[type] ? type : '';
+  if (domain === MAP_OBJECT_DOMAINS.TERRITORIAL) return type === 'entity' ? 'entity' : '';
   if (domain === MAP_OBJECT_DOMAINS.DISTRIBUTION) return 'distribution';
   if (domain === MAP_OBJECT_DOMAINS.GENERIC) return 'generic';
   if (domain === MAP_OBJECT_DOMAINS.LABEL) return 'label';

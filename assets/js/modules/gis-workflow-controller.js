@@ -1,4 +1,4 @@
-import { administrativeCountryId } from './territorial-units.js';
+import { territorialRootId } from './territorial-units.js';
 export function createGisWorkflowController({
   loadRuntime,
   onRuntimeReady,
@@ -10,9 +10,7 @@ export function createGisWorkflowController({
   createGeometryWorker,
   clipper,
   countryName,
-  layerNameCollator,
-  TERRITORIAL_UNIT_TYPES,
-  territorialEntityName,
+  layerNameCollator,  territorialEntityName,
   sphericalGeometryAreaKm2,
   createProjectObjectId,
   deepClone,
@@ -68,12 +66,12 @@ export function createGisWorkflowController({
   }
 
   function gisImportParentOptions() {
-    return (getTerritorialUnits() || []).filter(feature => [TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(feature.properties?.unitType)).map(feature => ({
+    return (getTerritorialUnits() || []).filter(feature => feature.properties?.entityKind === 'general' && !!feature.properties.parentId).map(feature => ({
       id: String(feature.id),
       name: territorialEntityName(feature),
-      countryId: administrativeCountryId(feature, id => [...getCountries().features, ...getTerritorialUnits()].find(entity => String(entity.id) === id)),
+      countryId: territorialRootId(feature, id => [...getCountries().features, ...getTerritorialUnits()].find(entity => String(entity.id) === id)),
       parentId: String(feature.properties?.parentId || ''),
-      type: feature.properties?.unitType,
+      type: feature.properties?.entityKind,
 
     })).filter(unit => unit.id && unit.countryId).sort((left, right) => layerNameCollator.compare(left.name, right.name));
   }

@@ -42,6 +42,17 @@ const sourceManifest = readJson(path.join(sourceDirectory, 'manifest.json'));
 const manifest = promoteManifest(sourceManifest, coreFile);
 manifest.sources = {
   ...manifest.sources,
+  naturalEarthNameReference: (manifest.sources?.naturalEarthNameReference || []).map(source => ({
+    ...source,
+    sha256: sha256(fs.readFileSync(path.join(
+      source.file === 'countries-ne-5.1.1.geojson' ? path.join(root, 'assets', 'data') : hydroRoot,
+      source.file,
+    ))),
+  })),
+  naturalEarthLakes: {
+    ...manifest.sources.naturalEarthLakes,
+    sha256: sha256(fs.readFileSync(path.join(hydroRoot, 'lakes_base.geojson'))),
+  },
   hydronymOverrides: {
     file: 'hydronym-ko-overrides.json',
     sha256: sha256(fs.readFileSync(overridePath)),

@@ -29,8 +29,8 @@ test('desktop keeps automatic snapping and area feedback while removed map tools
 
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').first().click();
-  await expect(page.locator('#countryAreaValue')).toBeVisible();
-  await expect(page.locator('#countryAreaValue')).toContainText('km²');
+  await expect(page.locator('#entityAreaValue')).toBeVisible();
+  await expect(page.locator('#entityAreaValue')).toContainText('km²');
   await expect(page.locator('#coordStatus')).toBeHidden();
   expect(errors).toEqual([]);
 });

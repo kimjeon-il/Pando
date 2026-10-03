@@ -115,7 +115,7 @@ export function createServiceAssembly() {
           entityRepository: dependencies.territorialModel.entityRepository,
           terrainAlpha: dependencies.preferences.mapTheme().countryColorAlpha });
         const nativeUnits = dependencies.countries.builtinTerritorialScene().nativeUnits;
-        return feature => resolve(feature.properties?.unitType === 'subunit'
+        return feature => resolve((feature.properties?.entityKind === 'general' && !!feature.properties?.parentId)
           ? nativeUnits.get(String(feature.id)) || feature : feature);
       },
       baseSceneFeatureById: dependencies.builtinCountries.baseSceneFeatureById,

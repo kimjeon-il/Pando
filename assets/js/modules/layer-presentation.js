@@ -7,8 +7,8 @@ export const TERRITORIAL_SYMBOL_KEYS = Object.freeze({
 });
 
 export function territorialSymbolGroup(feature) {
-  return feature?.properties?.unitType === 'subunit' ? 'subunits'
-    : feature?.properties?.unitType === 'region' ? 'regions' : 'countries';
+  return (feature?.properties?.entityKind === 'general' && !!feature?.properties?.parentId) ? 'subunits'
+    : (feature?.properties?.entityKind === 'regional') ? 'regions' : 'countries';
 }
 
 export function territorialSymbolVisibility(state, group) {

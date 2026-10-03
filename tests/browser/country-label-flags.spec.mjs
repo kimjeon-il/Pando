@@ -13,10 +13,10 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   const first = flags.first();
   await expect(first).toHaveAttribute('preserveAspectRatio', 'xMidYMid meet');
   const id = await first.evaluate(el => el.parentNode.__data__.id);
-  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select('country', id), id);
-  await expect(page.locator('#countryProperties')).toBeVisible();
+  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
+  await expect(page.locator('#entityProperties')).toBeVisible();
   await page.locator('#flagRemoveBtn').click();
   await expect.poll(() => flags.evaluateAll((images, id) => images.some(el => el.parentNode.__data__.id === id), id)).toBe(false);
-  await expect(page.locator('.territorial-label-item').filter({ hasText: await page.locator('#countryNameInput').inputValue() }).first()).toBeAttached();
+  await expect(page.locator('.territorial-label-item').filter({ hasText: await page.locator('#entityNameInput').inputValue() }).first()).toBeAttached();
   expect(errors).toEqual([]);
 });

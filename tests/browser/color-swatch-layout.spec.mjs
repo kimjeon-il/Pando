@@ -8,12 +8,12 @@ test('palette swatches stay square and inside their grid on desktop and mobile',
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'POL'));
+    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('POL'));
     if (width < 800 && await page.locator('#mobileEditBtn').getAttribute('aria-expanded') !== 'true') {
       await page.locator('#mobileEditBtn').click();
     }
-    await page.locator('#countryColorTrigger').click();
-    const palette = page.locator('#countryColorPopover');
+    await page.locator('#entityColorTrigger').click();
+    const palette = page.locator('#entityColorPopover');
     await expect(palette).toBeVisible();
     await expect.poll(() => palette.evaluate(element => {
       const rect = element.getBoundingClientRect();
@@ -41,7 +41,7 @@ test('palette swatches stay square and inside their grid on desktop and mobile',
     await expect(palette).toHaveCSS('position', width < 800 ? 'fixed' : 'absolute');
     await palette.screenshot({ path: testInfo.outputPath(`palette-${width}.png`) });
     await palette.locator('[data-color-value="#ef4444"]').click();
-    await expect(page.locator('#countryColorInput')).toHaveValue('#ef4444');
+    await expect(page.locator('#entityColorInput')).toHaveValue('#ef4444');
   }
   expect(errors).toEqual([]);
 });

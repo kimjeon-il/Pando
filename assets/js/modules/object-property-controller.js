@@ -1,7 +1,7 @@
 import { isBuiltinPlaceId } from './place-contract.js';
 
 const PROPERTY_TYPE_LABELS = Object.freeze({
-  country: '국가', subunit: '하위단위', region: '지방',
+  entity: '객체',
   distribution: '분포', generic: '기타 객체', label: '지명', hydro: '강·호수', multi: '다중선택',
 });
 
@@ -10,7 +10,6 @@ export function createObjectPropertyController(runtime = {}) {
     document,
     getElement,
     state,
-    territorialUnitTypes,
     replaceSelectOptions,
     distributionModes,
     colorDomains,
@@ -55,8 +54,7 @@ export function createObjectPropertyController(runtime = {}) {
 
   function activeForm(type) {
     return type ? $({
-      country: 'countryProperties', subunit: 'subunitProperties',
-      region: 'regionProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
+      entity: 'entityProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
       label: 'labelProperties', hydro: 'hydroProperties', multi: 'multiProperties',
     }[type]) : null;
   }
@@ -72,11 +70,7 @@ export function createObjectPropertyController(runtime = {}) {
     const hasRelation = relationAvailable || commonAvailable;
     const relationControlCount = relationSections.reduce((count, section) => count + [...section.querySelectorAll('button, input, select, textarea')]
       .filter(control => !control.disabled && !control.hidden && !control.classList.contains('hidden') && !control.closest('.hidden, [hidden]')).length, 0);
-    const forceRelationTab = [
-      territorialUnitTypes.COUNTRY,
-      territorialUnitTypes.SUBUNIT,
-      territorialUnitTypes.REGION,
-    ].includes(type);
+    const forceRelationTab = type === 'entity';
     const inlineRelation = !forceRelationTab && relationAvailable && !commonAvailable && relationControlCount <= 1;
     const relationTabVisible = hasRelation && !inlineRelation;
     const editorSurface = $('editorSurface');
@@ -104,11 +98,10 @@ export function createObjectPropertyController(runtime = {}) {
     $('editSheetTitle')?.classList.remove('hidden');
     $('editorSurface')?.setAttribute('aria-labelledby', type ? 'editSheetTitle editorObjectHeading' : 'editSheetTitle');
     for (const [kind, id] of Object.entries({
-      country: 'countryProperties', subunit: 'subunitProperties',
-      region: 'regionProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
+      entity: 'entityProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
       label: 'labelProperties', hydro: 'hydroProperties', multi: 'multiProperties',
     })) $(id)?.classList.toggle('hidden', type !== kind);
-    $('flagMenuBtn')?.classList.toggle('hidden', !['country', 'subunit', 'region'].includes(type));
+    $('flagMenuBtn')?.classList.toggle('hidden', !type === 'entity');
     $('propertyTitle').textContent = type ? String(title || '') : '';
     const visibleTypeLabel = typeLabel || (type ? PROPERTY_TYPE_LABELS[type] || type : '');
     if ($('propertyTypeLabel')) {
@@ -124,10 +117,10 @@ export function createObjectPropertyController(runtime = {}) {
     }
     document.querySelector('.editor-object-heading')?.setAttribute('aria-label', type ? `${String(title || '')}, ${visibleTypeLabel}` : '');
     const deleteControl = $('editorDeleteSection');
-    const actionList = ['country', 'subunit', 'region'].includes(type)
+    const actionList = type === 'entity'
       ? activeForm(type).querySelector('.editor-action-section:not(.editor-relation-section) > .editor-action-list')
       : null;
-    const coastAction = actionList?.querySelector('#editCoastBtn, #editSubunitCoastBtn');
+    const coastAction = actionList?.querySelector('#editEntityCoastBtn, #editEntityCoastBtn');
     const deleteHost = actionList || $('editorScrollBody');
     if (coastAction && deleteControl.previousElementSibling !== coastAction) coastAction.after(deleteControl);
     else if (!coastAction && deleteControl.parentElement !== deleteHost) deleteHost.append(deleteControl);
@@ -209,7 +202,7 @@ export function createObjectPropertyController(runtime = {}) {
       .map(candidate => ({ value: candidate.id, label: candidate.name })).sort((a, b) => layerNameCompare(a.label, b.label))];
     const unitOptions = territorialEntityRepository.list().map(unit => ({
       value: unit.id,
-      label: `${unit.properties?.name || unit.id} · ${runtime.territorialTypeLabel(unit.properties?.unitType)}`,
+      label: `${unit.properties?.name || unit.id} · ${runtime.territorialTypeLabel(unit.properties?.entityKind)}`,
     })).sort((a, b) => layerNameCompare(a.label, b.label));
     const distributionParent = $('distributionParentInput');
     const parentChoice = replaceSelectOptions(distributionParent, parentOptions, layer.parentId, { autoSelectSingle: true, preserveInvalid: true });
@@ -240,8 +233,7 @@ export function createObjectPropertyController(runtime = {}) {
         ? [{ value: 'river', label: '강' }]
         : geometryKind === 'polygon'
           ? [
-            { value: 'country', label: '국가' }, { value: 'subunit', label: '하위단위' },
-            { value: 'region', label: '지방' }, { value: 'lake', label: '호수' }, { value: 'distribution', label: '분포' },
+            { value: 'general', label: '객체' }, { value: 'regional', label: '객체 · 독립 권역' }, { value: 'lake', label: '호수' }, { value: 'distribution', label: '분포' },
           ]
           : [];
     const convertSection = $('genericFeatureConversionSection');
@@ -250,17 +242,17 @@ export function createObjectPropertyController(runtime = {}) {
     const typeChoice = replaceSelectOptions(typeInput, options, typeInput.value || options[0]?.value, { autoSelectSingle: true });
     typeInput.closest('.field-group')?.classList.toggle('hidden', typeChoice.single);
     const target = $('genericFeatureConvertType').value;
-    const countryField = $('genericFeatureConvertCountryField');
-    const countryOptions = [{ value: '', label: '국가 선택', placeholder: true }, ...territorialEntityRepository.list({ type: territorialUnitTypes.COUNTRY }).map(country => ({
+    const countryField = $('genericFeatureConvertParentField');
+    const countryOptions = [{ value: '', label: '상위 객체 없음' }, ...territorialEntityRepository.list({ kind: 'general' }).map(country => ({
       value: String(country.id), label: String(country.properties?.name || country.id),
     })).sort((left, right) => layerNameCompare(left.label, right.label))];
-    const countryChoice = replaceSelectOptions($('genericFeatureConvertCountryInput'), countryOptions, $('genericFeatureConvertCountryInput').value, {
-      autoSelectSingle: true,
+    const countryChoice = replaceSelectOptions($('genericFeatureConvertParentInput'), countryOptions, $('genericFeatureConvertParentInput').value, {
+      autoSelectSingle: false,
       preserveInvalid: true,
     });
     countryField.dataset.singleChoice = String(countryChoice.single);
     countryField.dataset.invalidChoice = String(countryChoice.invalid);
-    countryField.classList.toggle('hidden', !['subunit', 'region'].includes(target) || countryChoice.single);
+    countryField.classList.toggle('hidden', target !== 'general');
     const distributionField = $('genericFeatureConvertDistributionField');
     const distributionChoice = replaceSelectOptions($('genericFeatureConvertDistributionInput'), [
       { value: '', label: '분포 레이어 선택', placeholder: true },
@@ -274,10 +266,10 @@ export function createObjectPropertyController(runtime = {}) {
       distributionValueInput.dataset.featureId = String(feature.id);
     }
     $('genericFeatureConvertDistributionValueField').classList.toggle('hidden', target !== 'distribution');
-    const targetRequiresCountry = ['subunit', 'region'].includes(target);
+    const targetRequiresCountry = target === 'general';
     const targetRequiresDistribution = target === 'distribution';
     $('convertGenericFeatureBtn').disabled = !options.length
-      || (targetRequiresCountry && (!$('genericFeatureConvertCountryInput').value || countryChoice.invalid))
+      || (targetRequiresCountry && countryChoice.invalid)
       || (targetRequiresDistribution && (!$('genericFeatureConvertDistributionInput').value
         || distributionValueInput.value === '' || !Number.isFinite(Number(distributionValueInput.value))));
     $('genericFeatureRoleValue').textContent = genericFeatureRoleLabels[role] || role;

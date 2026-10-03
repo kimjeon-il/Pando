@@ -57,7 +57,7 @@ for (const [categoryKey, category] of Object.entries(MAP_OBJECT_CATEGORIES)) {
   }
 }
 
-for (const actionId of ['focus', 'lock', 'delete', 'change-type', 'border-edit', 'coast-reconcile']) {
+for (const actionId of ['focus', 'lock', 'delete', 'copy-region', 'border-edit', 'coast-reconcile']) {
   const action = OBJECT_ACTIONS[actionId];
   if (!action) {
     fail(`missing canonical object action '${actionId}'`);
@@ -73,8 +73,8 @@ const requiredBindings = Object.freeze({
   lock: ['objectLockBtn'],
   delete: ['objectDeleteBtn'],
   focus: ['focusSelectedObjectBtn', 'objectFocusMenuBtn'],
-  'coast-reconcile': ['reconcileSubunitCoastBtn'],
-  'change-type': ['changeCountryTypeBtn'],
+  'coast-reconcile': ['reconcileEntityCoastBtn'],
+  'copy-region': ['copyEntityRegionBtn'],
 });
 for (const [actionId, elementIds] of Object.entries(requiredBindings)) {
   const bound = new Set((ACTION_UI_BINDINGS[actionId] || []).map(binding => binding.elementId));
