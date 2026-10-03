@@ -106,9 +106,13 @@ test('live-wire accepts a current corner-pin mapping and traces/undoes/applies a
   await page.locator('[data-ref-action="free-transform"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-free-transform-mode/);
   const corner = geometry.corners[1];
+  const target = {
+    x: corner.x + (geometry.center.x - corner.x) * 0.14,
+    y: corner.y + (geometry.center.y - corner.y) * 0.14,
+  };
   await page.mouse.move(corner.x, corner.y);
   await page.mouse.down();
-  await page.mouse.move(corner.x + 24, corner.y - 12, { steps: 4 });
+  await page.mouse.move(target.x, target.y, { steps: 4 });
   await page.mouse.up();
   await expect.poll(() => page.evaluate(() => {
     const item = window.__PANDOLAB_REFERENCE_IMAGES__?.list()?.[0];
