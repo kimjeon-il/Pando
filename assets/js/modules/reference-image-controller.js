@@ -12,7 +12,6 @@ import {
   alignReferenceImageAnchor,
   defaultReferenceImageMapQuad,
   referenceImagePlacementRotation,
-  referenceImageScreenRectToMapQuad,
   setReferenceImagePlacementRotation,
 } from './reference-image-transform.js';
 import { createReferenceImageInteraction } from './reference-image-interaction.js';
