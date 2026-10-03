@@ -98,6 +98,16 @@ export function migrateReferenceImageStoredRecord(record = {}, {
   legacyMapQuad = null,
 } = {}) {
   const sourceVersion = inferredReferenceImageModelVersion(record);
+  if (sourceVersion > REFERENCE_IMAGE_MODEL_VERSION) {
+    return Object.freeze({
+      record: null,
+      sourceVersion,
+      targetVersion: REFERENCE_IMAGE_MODEL_VERSION,
+      migrated: false,
+      unsupportedFutureVersion: true,
+      needsPlacementMigration: false,
+    });
+  }
   const normalizedLegacyQuad = normalizeReferenceImageMapQuad(legacyMapQuad);
   const normalizedExistingQuad = normalizeReferenceImageMapQuad(record?.mapQuad);
   const migratedMapQuad = normalizedExistingQuad || normalizedLegacyQuad;
