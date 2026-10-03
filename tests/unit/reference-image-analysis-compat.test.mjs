@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const moduleUrl = name => new URL(`../../assets/js/modules/${name}`, import.meta.url);
+
+for (const name of [
+  'reference-image-live-wire-controller.js',
+  'reference-image-line-refine-controller.js',
+]) {
+  test(`${name} uses the canonical current mapping boundary`, async () => {
+    const source = await readFile(moduleUrl(name), 'utf8');
+    assert.match(source, /buildReferenceImageSourceMapping/);
+    assert.match(source, /referenceImageMappingSignature/);
+    assert.match(source, /mappingReady/);
+    assert.equal(source.includes('buildReferenceImageWarp('), false);
+    assert.equal(source.includes('reference-image-gcp-actions'), false);
+    assert.match(source, /reference-image-calibration-actions/);
+    for (const modeClass of [
+      'is-reference-anchor-mode',
+      'is-reference-gcp-mode',
+      'is-reference-gcp-edit-mode',
+      'is-reference-placement-mode',
+      'is-reference-free-transform-mode',
+    ]) {
+      assert.match(source, new RegExp(modeClass));
+    }
+  });
+}
+
+test('reference image controller exposes mapping readiness and signature to analysis tools', async () => {
+  const source = await readFile(moduleUrl('reference-image-controller.js'), 'utf8');
+  assert.match(source, /mappingReady:/);
+  assert.match(source, /mappingSignature:/);
+  assert.match(source, /referenceImageMappingSignature/);
+});
+
+test('current reference image modules contain no legacy placement migration path', async () => {
+  const names = [
+    'reference-image-controller.js',
+    'reference-image-model.js',
+    'reference-image-store.js',
+  ];
+  for (const name of names) {
+    const source = await readFile(moduleUrl(name), 'utf8');
+    assert.equal(source.includes('screenRect'), false);
+    assert.equal(source.includes('migrateReferenceImageStoredRecord'), false);
+    assert.equal(source.includes('readStoredReferenceImageCollection'), false);
+  }
+});
