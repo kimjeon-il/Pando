@@ -367,69 +367,77 @@ export function createReferenceImagePlacementDrag(record, hit, point, host, poin
   };
 }
 
-function resizedCornerLayout(handle, fixed, dirU, dirV, width, height) {
-  const alongU = multiply(dirU, width);
-  const alongV = multiply(dirV, height);
-  if (handle === 'se') return [fixed, add(fixed, alongU), add(add(fixed, alongU), alongV), add(fixed, alongV)];
-  if (handle === 'nw') return [add(add(fixed, alongU), alongV), add(fixed, alongV), fixed, add(fixed, alongU)];
-  if (handle === 'ne') return [add(fixed, alongV), add(add(fixed, alongU), alongV), add(fixed, alongU), fixed];
-  if (handle === 'sw') return [add(fixed, alongU), fixed, add(fixed, alongV), add(add(fixed, alongU), alongV)];
-  return null;
+function scaleCornersInBasis(corners, pivot, basisU, basisV, scaleU, scaleV) {
+  return corners.map(corner => {
+    const components = solveBasis(subtract(corner, pivot), basisU, basisV);
+    if (!components) return null;
+    return add(
+      pivot,
+      add(multiply(basisU, components[0] * scaleU), multiply(basisV, components[1] * scaleV)),
+    );
+  });
 }
 
 function resizeCorner(drag, point, shiftKey) {
-  const definitions = {
-    se: { fixed: drag.startCorners[0], dirU: drag.u, dirV: drag.v },
-    nw: { fixed: drag.startCorners[2], dirU: multiply(drag.u, -1), dirV: multiply(drag.v, -1) },
-    ne: { fixed: drag.startCorners[3], dirU: drag.u, dirV: multiply(drag.v, -1) },
-    sw: { fixed: drag.startCorners[1], dirU: multiply(drag.u, -1), dirV: drag.v },
-  };
-  const definition = definitions[drag.hit.handle];
-  if (!definition) return null;
-  const components = solveBasis(subtract(point, definition.fixed), definition.dirU, definition.dirV);
-  if (!components) return null;
-  let width = Math.max(REFERENCE_IMAGE_TRANSFORM.minimumWidth, components[0]);
-  let height = Math.max(REFERENCE_IMAGE_TRANSFORM.minimumHeight, components[1]);
+  const cornerIndex = { nw: 0, ne: 1, se: 2, sw: 3 }[drag.hit.handle];
+  const oppositeIndex = { nw: 2, ne: 3, se: 0, sw: 1 }[drag.hit.handle];
+  if (!Number.isInteger(cornerIndex) || !Number.isInteger(oppositeIndex)) return null;
+  const pivot = drag.startCorners[oppositeIndex];
+  const startHandle = drag.startCorners[cornerIndex];
+  const start = solveBasis(subtract(startHandle, pivot), drag.u, drag.v);
+  const next = solveBasis(subtract(point, pivot), drag.u, drag.v);
+  if (!start || !next || Math.abs(start[0]) < 1e-8 || Math.abs(start[1]) < 1e-8) return null;
+
+  const minScaleX = REFERENCE_IMAGE_TRANSFORM.minimumWidth / Math.max(1e-9, drag.width);
+  const minScaleY = REFERENCE_IMAGE_TRANSFORM.minimumHeight / Math.max(1e-9, drag.height);
+  let scaleX = Math.max(minScaleX, next[0] / start[0]);
+  let scaleY = Math.max(minScaleY, next[1] / start[1]);
+
   if (shiftKey) {
-    const widthFromHeight = height * drag.aspect;
-    const heightFromWidth = width / drag.aspect;
-    if (widthFromHeight > width) width = widthFromHeight;
-    else height = heightFromWidth;
+    const startDelta = subtract(startHandle, pivot);
+    const nextDelta = subtract(point, pivot);
+    const denominator = startDelta[0] * startDelta[0] + startDelta[1] * startDelta[1];
+    if (denominator < 1e-8) return null;
+    const uniform = Math.max(
+      Math.max(minScaleX, minScaleY),
+      (nextDelta[0] * startDelta[0] + nextDelta[1] * startDelta[1]) / denominator,
+    );
+    scaleX = uniform;
+    scaleY = uniform;
   }
-  return resizedCornerLayout(drag.hit.handle, definition.fixed, definition.dirU, definition.dirV, width, height);
+  return scaleCornersInBasis(drag.startCorners, pivot, drag.u, drag.v, scaleX, scaleY);
 }
 
 function resizeEdge(drag, point) {
   const [nw, ne, se, sw] = drag.startCorners;
-  if (drag.hit.handle === 'e') {
-    const fixed = midpoint(nw, sw);
-    const components = solveBasis(subtract(point, fixed), drag.u, drag.v);
-    if (!components) return null;
-    const widthVector = multiply(drag.u, Math.max(REFERENCE_IMAGE_TRANSFORM.minimumWidth, components[0]));
-    return [nw, add(nw, widthVector), add(sw, widthVector), sw];
+  const definitions = {
+    e: { pivot: midpoint(nw, sw), handle: midpoint(ne, se), fixedAxis: normalizeVector(subtract(sw, nw)), axis: 'u' },
+    w: { pivot: midpoint(ne, se), handle: midpoint(nw, sw), fixedAxis: normalizeVector(subtract(se, ne)), axis: 'u' },
+    s: { pivot: midpoint(nw, ne), handle: midpoint(sw, se), fixedAxis: normalizeVector(subtract(ne, nw)), axis: 'v' },
+    n: { pivot: midpoint(sw, se), handle: midpoint(nw, ne), fixedAxis: normalizeVector(subtract(se, sw)), axis: 'v' },
+  };
+  const definition = definitions[drag.hit.handle];
+  if (!definition?.fixedAxis) return null;
+  const scaleAxis = normalizeVector(subtract(definition.handle, definition.pivot));
+  if (!scaleAxis) return null;
+
+  const startDistance = length(subtract(definition.handle, definition.pivot));
+  const nextComponent = solveBasis(
+    subtract(point, definition.pivot),
+    scaleAxis,
+    definition.fixedAxis,
+  );
+  if (!nextComponent || startDistance < 1e-8) return null;
+
+  const minimum = definition.axis === 'u'
+    ? REFERENCE_IMAGE_TRANSFORM.minimumWidth / Math.max(1e-9, drag.width)
+    : REFERENCE_IMAGE_TRANSFORM.minimumHeight / Math.max(1e-9, drag.height);
+  const scale = Math.max(minimum, nextComponent[0] / startDistance);
+
+  if (definition.axis === 'u') {
+    return scaleCornersInBasis(drag.startCorners, definition.pivot, scaleAxis, definition.fixedAxis, scale, 1);
   }
-  if (drag.hit.handle === 'w') {
-    const fixed = midpoint(ne, se);
-    const components = solveBasis(subtract(point, fixed), multiply(drag.u, -1), drag.v);
-    if (!components) return null;
-    const widthVector = multiply(drag.u, Math.max(REFERENCE_IMAGE_TRANSFORM.minimumWidth, components[0]));
-    return [subtract(ne, widthVector), ne, se, subtract(se, widthVector)];
-  }
-  if (drag.hit.handle === 's') {
-    const fixed = midpoint(nw, ne);
-    const components = solveBasis(subtract(point, fixed), drag.u, drag.v);
-    if (!components) return null;
-    const heightVector = multiply(drag.v, Math.max(REFERENCE_IMAGE_TRANSFORM.minimumHeight, components[1]));
-    return [nw, ne, add(ne, heightVector), add(nw, heightVector)];
-  }
-  if (drag.hit.handle === 'n') {
-    const fixed = midpoint(sw, se);
-    const components = solveBasis(subtract(point, fixed), drag.u, multiply(drag.v, -1));
-    if (!components) return null;
-    const heightVector = multiply(drag.v, Math.max(REFERENCE_IMAGE_TRANSFORM.minimumHeight, components[1]));
-    return [subtract(sw, heightVector), subtract(se, heightVector), se, sw];
-  }
-  return null;
+  return scaleCornersInBasis(drag.startCorners, definition.pivot, definition.fixedAxis, scaleAxis, 1, scale);
 }
 
 function resizeAroundAnchor(drag, point, shiftKey) {
