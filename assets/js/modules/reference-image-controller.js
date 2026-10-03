@@ -9,17 +9,12 @@ import {
 } from './reference-image-model.js';
 import {
   alignReferenceImageAnchor,
-  applyReferenceImageFreeTransformDrag,
-  applyReferenceImagePlacementDrag,
-  createReferenceImageFreeTransformDrag,
-  createReferenceImagePlacementDrag,
   defaultReferenceImageMapQuad,
-  referenceImageFreeTransformHit,
-  referenceImagePlacementHit,
   referenceImagePlacementRotation,
   referenceImageScreenRectToMapQuad,
   setReferenceImagePlacementRotation,
 } from './reference-image-transform.js';
+import { createReferenceImageInteraction } from './reference-image-interaction.js';
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
 import { registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
@@ -109,35 +104,33 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   };
   const pendingPersistTimers = new Map();
   let selectedId = '';
-  let anchorState = null;
-  let gcpState = null;
-  let controlPointEditingId = '';
-  let selectedControlPointId = '';
-  let controlPointDrag = null;
-  let placementEditingId = '';
-  let placementDrag = null;
-  let freeTransformEditingId = '';
-  let freeTransformDrag = null;
-  let freeTransformBefore = null;
   let disposed = false;
   let session = 0;
-  let dragBefore = null;
   let continuousBefore = null;
   const history = createReferenceImageHistory();
   const objectUrls = new Set();
   const currentToken = () => `${session}:${getGeneration()}`;
   const validToken = token => !disposed && token === currentToken() && !isBlocked();
   let surface;
+  let interaction;
 
   const selected = () => records.find(record => record.id === selectedId) || null;
+  const interactionState = () => interaction?.getState() || {
+    anchorState: null,
+    gcpState: null,
+    controlPointEditingId: '',
+    selectedControlPointId: '',
+    placementEditingId: '',
+    freeTransformEditingId: '',
+  };
   const renderer = createReferenceImageCanvasRenderer({
     mapElement,
     getRecords: () => records,
     getSelectedId: () => selectedId,
-    getPlacementEditingId: () => placementEditingId,
-    getFreeTransformEditingId: () => freeTransformEditingId,
-    getControlPointEditingId: () => controlPointEditingId,
-    getSelectedControlPointId: () => selectedControlPointId,
+    getPlacementEditingId: () => interactionState().placementEditingId,
+    getFreeTransformEditingId: () => interactionState().freeTransformEditingId,
+    getControlPointEditingId: () => interactionState().controlPointEditingId,
+    getSelectedControlPointId: () => interactionState().selectedControlPointId,
     isPanelHidden: () => panel.hidden,
   });
 
@@ -160,7 +153,9 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     });
     record.mesh = record.warp.ok ? buildReferenceImageMesh(record.warp, MESH_QUALITY) : null;
     record.projectedMesh = null;
-    if (record.warp.ok && placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
+    if (record.warp.ok && interactionState().placementEditingId === record.id) {
+      interaction?.stopPlacementEditing({ renderUi: false });
+    }
   }
 
   function clearScheduledPersist(recordId) {
@@ -405,497 +400,6 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     void persistAll();
     refreshUi();
     return true;
-  }
-
-  function startPlacementEditing(record) {
-    if (!record || record.locked || record.warp?.ok) return;
-    cancelTools();
-    cancelAnchor(false);
-    cancelGcp(false);
-    stopControlPointEditing({ renderUi: false });
-    stopFreeTransformEditing({ renderUi: false });
-    placementEditingId = record.id;
-    mapElement.classList.add('is-reference-placement-mode');
-    renderEditor();
-    renderer.requestRender();
-  }
-
-  function stopPlacementEditing({ renderUi = true } = {}) {
-    cancelPlacementDrag();
-    placementEditingId = '';
-    mapElement.classList.remove('is-reference-placement-mode');
-    if (renderUi) renderEditor();
-    renderer.requestRender();
-    syncEditingSurface();
-  }
-
-  function startFreeTransformEditing(record) {
-    if (!record || record.locked) return false;
-    cancelTools();
-    cancelAnchor(false);
-    cancelGcp(false);
-    stopControlPointEditing({ renderUi: false });
-    stopPlacementEditing({ renderUi: false });
-    freeTransformEditingId = record.id;
-    mapElement.classList.add('is-reference-free-transform-mode');
-    renderEditor();
-    renderer.requestRender();
-    return true;
-  }
-
-  function stopFreeTransformEditing({ renderUi = true } = {}) {
-    cancelFreeTransformDrag();
-    freeTransformEditingId = '';
-    mapElement.classList.remove('is-reference-free-transform-mode');
-    if (renderUi) renderEditor();
-    renderer.requestRender();
-    syncEditingSurface();
-  }
-
-  function armAnchor(record) {
-    if (!record || record.locked) return false;
-    cancelTools();
-    cancelGcp(false);
-    stopControlPointEditing({ renderUi: false });
-    stopPlacementEditing({ renderUi: false });
-    stopFreeTransformEditing({ renderUi: false });
-    anchorState = { recordId: record.id, step: 'image', image: null, token: currentToken() };
-    mapElement.classList.add('is-reference-anchor-mode');
-    renderEditor();
-    setHint('1/2 · 이미지에서 고정할 지점을 선택하세요.', 'working');
-    return true;
-  }
-
-  function cancelAnchor(renderUi = true) {
-    anchorState = null;
-    mapElement.classList.remove('is-reference-anchor-mode');
-    if (renderUi && selected()) renderEditor();
-    syncEditingSurface();
-  }
-
-  function armGcp(record, pointId = '', side = 'image') {
-    if (!record || record.locked) return;
-    cancelTools();
-    cancelAnchor(false);
-    stopPlacementEditing({ renderUi: false });
-    stopFreeTransformEditing({ renderUi: false });
-    stopControlPointEditing({ renderUi: false });
-    gcpState = { recordId: record.id, step: side, image: null, pointId, token: currentToken() };
-    mapElement.classList.add('is-reference-gcp-mode');
-    renderEditor();
-    setHint(side === 'image' ? '이미지에서 맞출 지점을 선택하세요.' : '실제 지도 위치를 선택하세요.', 'working');
-  }
-
-  function cancelGcp(renderUi = true) {
-    gcpState = null;
-    mapElement.classList.remove('is-reference-gcp-mode');
-    if (renderUi && selected()) renderEditor();
-    syncEditingSurface();
-  }
-
-  function startControlPointEditing(record) {
-    if (!record || record.locked || !record.controlPoints.length) return false;
-    cancelTools();
-    cancelAnchor(false);
-    cancelGcp(false);
-    stopPlacementEditing({ renderUi: false });
-    stopFreeTransformEditing({ renderUi: false });
-    controlPointEditingId = record.id;
-    selectedControlPointId = '';
-    mapElement.classList.add('is-reference-gcp-edit-mode');
-    renderEditor();
-    renderer.requestRender();
-    return true;
-  }
-
-  function stopControlPointEditing({ renderUi = true } = {}) {
-    cancelControlPointDrag();
-    controlPointEditingId = '';
-    selectedControlPointId = '';
-    mapElement.classList.remove('is-reference-gcp-edit-mode');
-    if (renderUi && selected()) renderEditor();
-    renderer.requestRender();
-    syncEditingSurface();
-  }
-
-  function beginControlPointDrag(event, record, point) {
-    const hit = renderer.hitTestControlPoint(record, point);
-    if (!hit) return false;
-    controlPointDrag = {
-      recordId: record.id,
-      pointId: hit.id,
-      pointerId: event.pointerId,
-      before: copyReferenceImageRecords(records),
-    };
-    selectedControlPointId = hit.id;
-    surface?.setGestureActive(true);
-    try { mapElement.setPointerCapture?.(event.pointerId); } catch (_) {}
-    renderEditor();
-    renderer.requestRender();
-    return true;
-  }
-
-  function updateControlPointDrag(point, event) {
-    if (!controlPointDrag || event.pointerId !== controlPointDrag.pointerId) return false;
-    const record = records.find(candidate => candidate.id === controlPointDrag.recordId);
-    const coordinate = mapHost()?.unproject(point);
-    if (!record || record.locked || !coordinate?.every(Number.isFinite)) return false;
-    const changed = applyReferenceImageEdit(record, 'replace-coordinate', {
-      id: controlPointDrag.pointId,
-      value: coordinate,
-    });
-    if (!changed) return false;
-    rebuildWarp(record);
-    renderer.requestRender();
-    return true;
-  }
-
-  function finishControlPointDrag(event) {
-    if (!controlPointDrag || event.pointerId !== controlPointDrag.pointerId) return false;
-    const drag = controlPointDrag;
-    const record = records.find(candidate => candidate.id === drag.recordId);
-    try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
-    controlPointDrag = null;
-    surface?.setGestureActive(false);
-    if (record) {
-      const before = drag.before.find(candidate => candidate.id === record.id);
-      if (JSON.stringify(before?.controlPoints) !== JSON.stringify(record.controlPoints)) history.push(drag.before);
-      void persist(record);
-      renderEditor();
-      renderer.requestRender();
-    }
-    return true;
-  }
-
-  function cancelControlPointDrag() {
-    if (!controlPointDrag) return;
-    const drag = controlPointDrag;
-    const record = records.find(candidate => candidate.id === drag.recordId);
-    const before = drag.before.find(candidate => candidate.id === drag.recordId);
-    if (record && before) {
-      record.controlPoints = before.controlPoints.map(point => ({ ...point, image: [...point.image], coordinate: [...point.coordinate] }));
-      rebuildWarp(record);
-    }
-    try { mapElement.releasePointerCapture?.(drag.pointerId); } catch (_) {}
-    controlPointDrag = null;
-    surface?.setGestureActive(false);
-    renderer.requestRender();
-  }
-
-  function beginPlacementDrag(event, record, point) {
-    const host = mapHost();
-    const hit = referenceImagePlacementHit(record, point, host);
-    if (!hit) return false;
-    placementDrag = createReferenceImagePlacementDrag(record, hit, point, host, event.pointerId);
-    if (!placementDrag) return false;
-    dragBefore = copyReferenceImageRecords(records);
-    surface?.setGestureActive(true);
-    try { mapElement.setPointerCapture?.(event.pointerId); } catch (_) {}
-    return true;
-  }
-
-  function updatePlacementDrag(point, event) {
-    if (!placementDrag || event.pointerId !== placementDrag.pointerId) return false;
-    const record = records.find(candidate => candidate.id === placementDrag.recordId);
-    if (!record || record.locked || record.warp?.ok) {
-      placementDrag = null;
-      return false;
-    }
-    const changed = applyReferenceImagePlacementDrag(
-      record,
-      placementDrag,
-      point,
-      mapHost(),
-      { shiftKey: event.shiftKey },
-    );
-    if (changed) renderer.requestRender();
-    return changed;
-  }
-
-  function finishPlacementDrag(event) {
-    if (!placementDrag || event.pointerId !== placementDrag.pointerId) return false;
-    const record = records.find(candidate => candidate.id === placementDrag.recordId);
-    try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
-    placementDrag = null;
-    if (record && dragBefore) {
-      const before = dragBefore.find(item => item.id === record.id);
-      if (JSON.stringify(before?.mapQuad) !== JSON.stringify(record.mapQuad)) history.push(dragBefore);
-    }
-    dragBefore = null;
-    surface?.setGestureActive(false);
-    if (record) {
-      void persist(record);
-      renderEditor();
-      renderer.requestRender();
-    }
-    return true;
-  }
-
-  function cancelPlacementDrag() {
-    if (!placementDrag) return;
-    const record = records.find(item => item.id === placementDrag.recordId);
-    if (record) {
-      record.mapQuad = placementDrag.startMapQuad.map(coordinate => [...coordinate]);
-    }
-    try { mapElement.releasePointerCapture?.(placementDrag.pointerId); } catch (_) {}
-    placementDrag = null; dragBefore = null;
-    surface?.setGestureActive(false);
-    renderer.requestRender();
-  }
-
-  function beginFreeTransformDrag(event, record, point) {
-    const host = mapHost();
-    const sourceQuad = record.cornerPinEnabled
-      ? record.mapQuad
-      : currentWarpQuad(record) || record.mapQuad;
-    if (!sourceQuad) return false;
-    const hitRecord = sourceQuad === record.mapQuad
-      ? record
-      : { ...record, mapQuad: sourceQuad };
-    const hit = referenceImageFreeTransformHit(hitRecord, point, host);
-    if (!hit) return false;
-
-    freeTransformBefore = copyReferenceImageRecords(records);
-    const dragRecord = sourceQuad === record.mapQuad
-      ? record
-      : { ...record, mapQuad: sourceQuad };
-    const drag = createReferenceImageFreeTransformDrag(dragRecord, hit, event.pointerId);
-    if (!drag) {
-      freeTransformBefore = null;
-      return false;
-    }
-    freeTransformDrag = {
-      ...drag,
-      activatesCornerPins: !record.cornerPinEnabled,
-    };
-    surface?.setGestureActive(true);
-    try { mapElement.setPointerCapture?.(event.pointerId); } catch (_) {}
-    return true;
-  }
-
-  function updateFreeTransformDrag(point, event) {
-    if (!freeTransformDrag || event.pointerId !== freeTransformDrag.pointerId) return false;
-    const record = records.find(candidate => candidate.id === freeTransformDrag.recordId);
-    if (!record || record.locked) {
-      cancelFreeTransformDrag();
-      return false;
-    }
-
-    const before = freeTransformBefore?.find(candidate => candidate.id === record.id);
-    const previouslyEnabled = record.cornerPinEnabled;
-    const previousQuad = record.mapQuad.map(coordinate => [...coordinate]);
-    if (freeTransformDrag.activatesCornerPins && !record.cornerPinEnabled) {
-      record.mapQuad = freeTransformDrag.startMapQuad.map(coordinate => [...coordinate]);
-      record.cornerPinEnabled = true;
-    }
-
-    const changed = applyReferenceImageFreeTransformDrag(record, freeTransformDrag, point, mapHost());
-    if (!changed) {
-      if (!previouslyEnabled && before) {
-        record.mapQuad = before.mapQuad.map(coordinate => [...coordinate]);
-        record.cornerPinEnabled = before.cornerPinEnabled;
-        rebuildWarp(record);
-      }
-      return false;
-    }
-
-    record.cornerPinEnabled = true;
-    rebuildWarp(record);
-    if ((record.anchor || record.controlPoints.length) && !record.warp.ok) {
-      record.mapQuad = previousQuad;
-      record.cornerPinEnabled = previouslyEnabled;
-      rebuildWarp(record);
-      return false;
-    }
-    renderer.requestRender();
-    return true;
-  }
-
-  function finishFreeTransformDrag(event) {
-    if (!freeTransformDrag || event.pointerId !== freeTransformDrag.pointerId) return false;
-    const drag = freeTransformDrag;
-    const record = records.find(candidate => candidate.id === drag.recordId);
-    try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
-    freeTransformDrag = null;
-    surface?.setGestureActive(false);
-    if (record && freeTransformBefore) {
-      const before = freeTransformBefore.find(item => item.id === record.id);
-      const changed = JSON.stringify(before?.mapQuad) !== JSON.stringify(record.mapQuad)
-        || before?.cornerPinEnabled !== record.cornerPinEnabled;
-      if (changed) {
-        history.push(freeTransformBefore);
-        void persist(record);
-      }
-    }
-    freeTransformBefore = null;
-    renderEditor();
-    renderer.requestRender();
-    return true;
-  }
-
-  function cancelFreeTransformDrag() {
-    if (!freeTransformDrag) return;
-    const drag = freeTransformDrag;
-    const record = records.find(item => item.id === drag.recordId);
-    const before = freeTransformBefore?.find(item => item.id === drag.recordId);
-    if (record && before) {
-      record.mapQuad = before.mapQuad.map(coordinate => [...coordinate]);
-      record.cornerPinEnabled = before.cornerPinEnabled;
-      rebuildWarp(record);
-    } else if (record) {
-      record.mapQuad = drag.startMapQuad.map(coordinate => [...coordinate]);
-      rebuildWarp(record);
-    }
-    try { mapElement.releasePointerCapture?.(drag.pointerId); } catch (_) {}
-    freeTransformDrag = null;
-    freeTransformBefore = null;
-    surface?.setGestureActive(false);
-    renderer.requestRender();
-  }
-
-  function commitAnchor(point) {
-    if (!anchorState) return;
-    const record = records.find(candidate => candidate.id === anchorState.recordId);
-    if (!record || record.locked || !validToken(anchorState.token)) {
-      cancelAnchor();
-      return;
-    }
-    if (anchorState.step === 'image') {
-      const uv = renderer.hitTestUv(record, point);
-      if (!uv) {
-        setHint('이미지가 보이는 영역 안을 선택하세요.', 'error');
-        return;
-      }
-      anchorState.image = [...uv];
-      anchorState.step = 'map';
-      syncEditingSurface();
-      setHint('2/2 · 같은 지점의 실제 지도 위치를 선택하세요.', 'working');
-      renderEditor();
-      return;
-    }
-
-    const coordinate = mapHost()?.unproject(point);
-    if (!coordinate || !coordinate.every(Number.isFinite)) {
-      setHint('이 위치에서는 지도 좌표를 계산할 수 없습니다.', 'error');
-      return;
-    }
-
-    const before = copyReferenceImageRecords(records);
-    const previous = before.find(candidate => candidate.id === record.id);
-    record.anchor = {
-      image: [...anchorState.image],
-      coordinate: [coordinate[0], coordinate[1]],
-    };
-    rebuildWarp(record);
-
-    let accepted = true;
-    if (record.warp.ok) {
-      accepted = Number(record.warp.diagnostics?.hardMaxMeters) <= 0.01;
-    } else if (
-      record.warp.reason === 'singular-control-points'
-      && record.warp.pointCount >= record.warp.minimumPoints
-    ) {
-      accepted = false;
-    } else {
-      accepted = alignReferenceImageAnchor(record);
-    }
-
-    if (!accepted) {
-      record.anchor = previous?.anchor ? {
-        image: [...previous.anchor.image],
-        coordinate: [...previous.anchor.coordinate],
-      } : null;
-      if (previous?.mapQuad) record.mapQuad = previous.mapQuad.map(value => [...value]);
-      rebuildWarp(record);
-      setHint('이 위치에는 고정점 제약을 적용할 수 없습니다.', 'error');
-      renderer.requestRender();
-      return;
-    }
-
-    history.push(before);
-    void persist(record);
-    cancelAnchor(false);
-    refreshUi();
-    setHint(
-      record.warp.ok
-        ? '고정점을 제약식으로 적용했습니다. 일반 기준점은 오차를 최소화하면서 이 지점은 정확히 유지됩니다.'
-        : '고정점을 설정했습니다. 배치 편집에서 크기와 회전 시 이 지점이 유지됩니다.',
-      'success',
-    );
-  }
-
-  function commitGcp(point) {
-    if (gcpState) {
-      const record = records.find(candidate => candidate.id === gcpState.recordId);
-      if (!record || record.locked || !validToken(gcpState.token)) {
-        cancelGcp();
-        return;
-      }
-      const before = copyReferenceImageRecords(records);
-      if (gcpState.step === 'image') {
-        const uv = renderer.hitTestUv(record, point);
-        if (!uv) {
-          setHint('이미지가 보이는 영역 안을 선택하세요.', 'error');
-          return;
-        }
-        if (gcpState.pointId) {
-          applyReferenceImageEdit(record, 'replace-image', { id: gcpState.pointId, value: uv });
-        } else {
-          gcpState.image = uv;
-          gcpState.step = 'map';
-          syncEditingSurface();
-          setHint('2/2 · 같은 지점의 실제 지도 위치를 선택하세요.', 'working');
-          return;
-        }
-      } else {
-        const coordinate = mapHost()?.unproject(point);
-        if (!coordinate || !coordinate.every(Number.isFinite)) {
-          setHint('이 위치에서는 지도 좌표를 계산할 수 없습니다.', 'error');
-          return;
-        }
-        if (gcpState.pointId) applyReferenceImageEdit(record, 'replace-coordinate', { id: gcpState.pointId, value: coordinate });
-        else record.controlPoints.push({
-          id: createId('gcp'),
-          image: [...gcpState.image],
-          coordinate: [coordinate[0], coordinate[1]],
-        });
-      }
-      history.push(before);
-      rebuildWarp(record);
-      void persist(record);
-      if (gcpState.pointId) cancelGcp(false);
-      else gcpState = { recordId: record.id, step: 'image', image: null, pointId: '', token: currentToken() };
-      refreshUi();
-      setHint('기준점을 추가했습니다. 계속 추가하거나 Esc로 종료하세요.', 'success');
-      return;
-    }
-  }
-
-  function beginGesture(point, event, { spacePan = false } = {}) {
-    if (isBlocked() || !(anchorState || gcpState || placementEditingId || freeTransformEditingId || controlPointEditingId)) return null;
-    if (event.button === 1 || spacePan) return { kind: 'navigate' };
-    if (event.button !== 0) return null;
-    if (anchorState) {
-      const state = anchorState;
-      surface?.setGestureActive(true);
-      return { kind: 'tap', end: next => { surface?.setGestureActive(false); if (anchorState === state) commitAnchor(next); }, cancel: () => surface?.setGestureActive(false) };
-    }
-    if (gcpState) {
-      const state = gcpState;
-      surface?.setGestureActive(true);
-      return { kind: 'tap', end: next => { surface?.setGestureActive(false); if (gcpState === state) commitGcp(next); }, cancel: () => surface?.setGestureActive(false) };
-    }
-    const record = selected();
-    if (record && controlPointEditingId === record.id && beginControlPointDrag(event, record, point)) {
-      return { kind: 'exclusive', move: updateControlPointDrag, end: (_point, up) => finishControlPointDrag(up), cancel: cancelControlPointDrag };
-    }
-    if (record && freeTransformEditingId === record.id && beginFreeTransformDrag(event, record, point)) {
-      return { kind: 'exclusive', move: updateFreeTransformDrag, end: (_point, up) => finishFreeTransformDrag(up), cancel: cancelFreeTransformDrag };
-    }
-    if (record && !record.locked && !record.warp?.ok && placementEditingId === record.id && beginPlacementDrag(event, record, point)) {
-      return { kind: 'exclusive', move: updatePlacementDrag, end: (_point, up) => finishPlacementDrag(up), cancel: cancelPlacementDrag };
-    }
-    return { kind: 'navigate' };
   }
 
   function onEditorInput(event) {
