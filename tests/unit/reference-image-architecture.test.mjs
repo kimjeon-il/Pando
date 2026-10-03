@@ -50,3 +50,20 @@ test('georef module owns warp-to-quad conversion used by interaction orchestrati
   assert.match(controller, /referenceImageWarpQuad\(record\.warp\)/);
   assert.equal(controller.includes('function currentWarpQuad'), false);
 });
+
+
+test('storage migration responsibilities stay split between store and model', async () => {
+  const controller = await readFile(moduleUrl('reference-image-controller.js'), 'utf8');
+  const store = await readFile(moduleUrl('reference-image-store.js'), 'utf8');
+  const model = await readFile(moduleUrl('reference-image-model.js'), 'utf8');
+
+  assert.match(store, /REFERENCE_IMAGE_COLLECTION_VERSION = 2/);
+  assert.match(store, /needsUpgrade/);
+  assert.match(model, /REFERENCE_IMAGE_MODEL_VERSION = 5/);
+  assert.match(model, /export function migrateReferenceImageStoredRecord/);
+
+  assert.match(controller, /readStoredReferenceImageCollection/);
+  assert.match(controller, /migrateReferenceImageStoredRecord/);
+  assert.equal(controller.includes('COLLECTION_VERSION'), false);
+  assert.equal(store.includes('screenRect'), false);
+});
