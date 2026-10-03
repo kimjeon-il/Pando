@@ -41,6 +41,26 @@ test('free transform button is available and reports active state for an uncalib
   assert.match(markup, /Projective Corner Pin/);
 });
 
+test('anchor and GCP controls stay enabled together while free transform remains disabled', () => {
+  const combined = referenceImageEditorMarkup({
+    ...options,
+    record: record({
+      anchor: { image: [0.5, 0.5], coordinate: [10, 20] },
+      controlPoints: [{ id: 'p', image: [0.25, 0.25], coordinate: [8, 18] }],
+    }),
+    warp: {
+      ok: true,
+      minimumPoints: 2,
+      diagnostics: { rmsMeters: 1200, maxMeters: 1800, hardMaxMeters: 0.002, warnings: [] },
+    },
+  });
+  assert.doesNotMatch(combined, /data-ref-action="anchor"[^>]* disabled/);
+  assert.doesNotMatch(combined, /data-ref-action="gcp"[^>]* disabled/);
+  assert.match(combined, /data-ref-action="free-transform"[^>]* disabled/);
+  assert.match(combined, /고정 오차/);
+  assert.match(combined, /0\.002 m/);
+});
+
 test('free transform is disabled while an anchor or GCP owns calibration', () => {
   const anchored = referenceImageEditorMarkup({
     ...options,
