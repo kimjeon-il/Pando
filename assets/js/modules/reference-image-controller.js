@@ -5,6 +5,7 @@ import {
   REFERENCE_IMAGE_WARP_MODES,
 } from './reference-image-georef.js';
 import {
+  migrateReferenceImageStoredRecord,
   normalizeReferenceImageRecord,
   serializeReferenceImageRecord,
 } from './reference-image-model.js';
@@ -21,8 +22,8 @@ import { registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
 import { installReferenceImageSurface } from './reference-image-surface.js';
 import {
-  listStoredReferenceImages,
   putStoredReferenceImage,
+  readStoredReferenceImageCollection,
   replaceStoredReferenceImages,
 } from './reference-image-store.js';
 import {
@@ -311,16 +312,31 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     objectUrls.add(decoded.url);
     const host = mapHost();
     if (!host) throw new Error('지도 좌표계를 준비할 수 없습니다.');
-    const source = normalizeReferenceImageRecord({
-      ...(persisted || {}),
-      id: persisted?.id || createId(),
-      name: String(persisted?.name || name || '참조 이미지'),
-      blob,
-    });
-    const migratedMapQuad = !source.mapQuad && persisted?.screenRect
-      ? referenceImageScreenRectToMapQuad(persisted.screenRect, persisted.rotation, host)
-      : null;
-    const mapQuad = source.mapQuad || migratedMapQuad || defaultReferenceImageMapQuad(decoded.image, mapElement, host);
+    let migration = null;
+    let source;
+    if (persisted) {
+      const legacyMapQuad = !persisted?.mapQuad && persisted?.screenRect
+        ? referenceImageScreenRectToMapQuad(persisted.screenRect, persisted.rotation, host)
+        : null;
+      migration = migrateReferenceImageStoredRecord({
+        ...persisted,
+        id: persisted?.id || createId(),
+        name: String(persisted?.name || name || '참조 이미지'),
+        blob,
+      }, { legacyMapQuad });
+      source = migration.record;
+      if (migration.needsPlacementMigration || !source.mapQuad) {
+        throw new Error('구버전 참조 이미지의 배치 정보를 현재 지도 좌표로 변환할 수 없습니다.');
+      }
+    } else {
+      source = normalizeReferenceImageRecord({
+        id: createId(),
+        name: String(name || '참조 이미지'),
+        blob,
+      });
+    }
+
+    const mapQuad = source.mapQuad || defaultReferenceImageMapQuad(decoded.image, mapElement, host);
     if (!mapQuad) throw new Error('참조 이미지를 현재 지도 위치에 배치할 수 없습니다.');
     const record = {
       ...source,
@@ -333,6 +349,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       warp: null,
       mesh: null,
       projectedMesh: null,
+      storageNeedsUpgrade: migration?.migrated === true,
     };
     rebuildWarp(record);
     if (select) cancelInteraction();
@@ -602,8 +619,9 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     const restoreToken = currentToken();
     storageState = 'loading'; storageError = ''; renderStorageStatus();
     try {
-      const values = await listStoredReferenceImages();
-      let migratedStoredPlacement = false;
+      const collection = await readStoredReferenceImageCollection();
+      const values = collection.records;
+      let needsStorageUpgrade = collection.needsUpgrade;
       const ordered = [...values].sort((a, b) => Number(a?.order || 0) - Number(b?.order || 0));
       retainedRecords.splice(0);
       const seenIds = new Set();
@@ -616,7 +634,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
         try {
           const record = await addBlob(value.blob, value.name, value, { select: false, save: false });
           if (!record) throw new Error('참조 이미지 읽기가 중단되었습니다.');
-          if (!value?.mapQuad && value?.screenRect && record.mapQuad) migratedStoredPlacement = true;
+          if (record.storageNeedsUpgrade) needsStorageUpgrade = true;
         } catch (error) {
           retainedRecords.push(value);
           console.warn('[reference-image-restore]', error);
@@ -625,7 +643,12 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       if (!validToken(restoreToken)) throw new Error('프로젝트가 변경되었습니다. 저장 목록을 다시 읽으세요.');
       storageState = 'ready';
       selectedId = records.at(-1)?.id || '';
-      if (migratedStoredPlacement) await persistAll();
+      if (needsStorageUpgrade) {
+        const upgraded = await persistAll();
+        if (upgraded) {
+          for (const record of records) record.storageNeedsUpgrade = false;
+        }
+      }
     } catch (error) {
       storageState = 'error';
       storageError = '저장된 참조 이미지를 읽지 못했습니다. 원본을 보존했습니다. 다시 읽기를 눌러 재시도하세요.';
