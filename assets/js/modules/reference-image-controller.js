@@ -9,9 +9,12 @@ import {
 } from './reference-image-model.js';
 import {
   alignReferenceImageAnchor,
+  applyReferenceImageFreeTransformDrag,
   applyReferenceImagePlacementDrag,
+  createReferenceImageFreeTransformDrag,
   createReferenceImagePlacementDrag,
   defaultReferenceImageMapQuad,
+  referenceImageFreeTransformHit,
   referenceImagePlacementHit,
   referenceImagePlacementRotation,
   referenceImageScreenRectToMapQuad,
@@ -113,6 +116,9 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   let controlPointDrag = null;
   let placementEditingId = '';
   let placementDrag = null;
+  let freeTransformEditingId = '';
+  let freeTransformDrag = null;
+  let freeTransformBefore = null;
   let disposed = false;
   let session = 0;
   let dragBefore = null;
@@ -129,6 +135,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     getRecords: () => records,
     getSelectedId: () => selectedId,
     getPlacementEditingId: () => placementEditingId,
+    getFreeTransformEditingId: () => freeTransformEditingId,
     getControlPointEditingId: () => controlPointEditingId,
     getSelectedControlPointId: () => selectedControlPointId,
     isPanelHidden: () => panel.hidden,
@@ -139,6 +146,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     record.mesh = record.warp.ok ? buildReferenceImageMesh(record.warp, MESH_QUALITY) : null;
     record.projectedMesh = null;
     if (record.warp.ok && placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
+    if (record.warp.ok && freeTransformEditingId === record.id) stopFreeTransformEditing({ renderUi: false });
   }
 
   function clearScheduledPersist(recordId) {
@@ -236,6 +244,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       record,
       warp: record.warp,
       placementEditing: placementEditingId === record.id,
+      freeTransformEditing: freeTransformEditingId === record.id,
       index: records.indexOf(record),
       count: records.length,
       blendOptions: BLEND_OPTIONS,
@@ -250,16 +259,18 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function syncEditingSurface() {
-    const active = !!(anchorState || gcpState || placementEditingId || controlPointEditingId);
+    const active = !!(anchorState || gcpState || placementEditingId || freeTransformEditingId || controlPointEditingId);
     const hint = anchorState
       ? (anchorState.step === 'image' ? '이미지에서 고정할 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.')
       : gcpState
         ? (gcpState.step === 'image' ? '이미지에서 맞출 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.')
         : controlPointEditingId
           ? '지도 위 기준점을 드래그해 이동하거나 선택 후 Delete로 삭제하세요.'
-          : selected()?.anchor
-            ? '고정점 유지 중 · 크기와 회전만 조정할 수 있습니다.'
-            : '이미지를 드래그해 배치하세요.';
+          : freeTransformEditingId
+            ? '네 모서리를 각각 드래그해 자유 변형하세요.'
+            : selected()?.anchor
+              ? '고정점 유지 중 · 크기와 회전만 조정할 수 있습니다.'
+              : '이미지를 드래그해 배치하세요.';
     surface?.setEditing(active, hint);
   }
 
@@ -269,6 +280,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     cancelGcp(false);
     stopControlPointEditing({ renderUi: false });
     stopPlacementEditing({ renderUi: false });
+    stopFreeTransformEditing({ renderUi: false });
     renderEditor();
   }
 
@@ -361,6 +373,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     clearScheduledPersist(record.id);
     selectedId = records.at(-1)?.id || '';
     if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
+    if (freeTransformEditingId === record.id) stopFreeTransformEditing({ renderUi: false });
     if (anchorState?.recordId === record.id) cancelAnchor(false);
     if (gcpState?.recordId === record.id) cancelGcp(false);
     if (controlPointEditingId === record.id) stopControlPointEditing({ renderUi: false });
@@ -383,7 +396,10 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   function startPlacementEditing(record) {
     if (!record || record.locked || record.warp?.ok) return;
     cancelTools();
+    cancelAnchor(false);
     cancelGcp(false);
+    stopControlPointEditing({ renderUi: false });
+    stopFreeTransformEditing({ renderUi: false });
     placementEditingId = record.id;
     mapElement.classList.add('is-reference-placement-mode');
     renderEditor();
@@ -399,12 +415,36 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     syncEditingSurface();
   }
 
+  function startFreeTransformEditing(record) {
+    if (!record || record.locked || record.warp?.ok || record.anchor || record.controlPoints.length) return false;
+    cancelTools();
+    cancelAnchor(false);
+    cancelGcp(false);
+    stopControlPointEditing({ renderUi: false });
+    stopPlacementEditing({ renderUi: false });
+    freeTransformEditingId = record.id;
+    mapElement.classList.add('is-reference-free-transform-mode');
+    renderEditor();
+    renderer.requestRender();
+    return true;
+  }
+
+  function stopFreeTransformEditing({ renderUi = true } = {}) {
+    cancelFreeTransformDrag();
+    freeTransformEditingId = '';
+    mapElement.classList.remove('is-reference-free-transform-mode');
+    if (renderUi) renderEditor();
+    renderer.requestRender();
+    syncEditingSurface();
+  }
+
   function armAnchor(record) {
     if (!record || record.locked || record.warp?.ok || record.controlPoints.length) return false;
     cancelTools();
     cancelGcp(false);
     stopControlPointEditing({ renderUi: false });
     stopPlacementEditing({ renderUi: false });
+    stopFreeTransformEditing({ renderUi: false });
     anchorState = { recordId: record.id, step: 'image', image: null, token: currentToken() };
     mapElement.classList.add('is-reference-anchor-mode');
     renderEditor();
@@ -424,6 +464,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     cancelTools();
     cancelAnchor(false);
     stopPlacementEditing({ renderUi: false });
+    stopFreeTransformEditing({ renderUi: false });
     stopControlPointEditing({ renderUi: false });
     gcpState = { recordId: record.id, step: side, image: null, pointId, token: currentToken() };
     mapElement.classList.add('is-reference-gcp-mode');
@@ -444,6 +485,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     cancelAnchor(false);
     cancelGcp(false);
     stopPlacementEditing({ renderUi: false });
+    stopFreeTransformEditing({ renderUi: false });
     controlPointEditingId = record.id;
     selectedControlPointId = '';
     mapElement.classList.add('is-reference-gcp-edit-mode');
@@ -587,6 +629,59 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     renderer.requestRender();
   }
 
+  function beginFreeTransformDrag(event, record, point) {
+    const hit = referenceImageFreeTransformHit(record, point, mapHost());
+    if (!hit) return false;
+    freeTransformDrag = createReferenceImageFreeTransformDrag(record, hit, event.pointerId);
+    if (!freeTransformDrag) return false;
+    freeTransformBefore = copyReferenceImageRecords(records);
+    surface?.setGestureActive(true);
+    try { mapElement.setPointerCapture?.(event.pointerId); } catch (_) {}
+    return true;
+  }
+
+  function updateFreeTransformDrag(point, event) {
+    if (!freeTransformDrag || event.pointerId !== freeTransformDrag.pointerId) return false;
+    const record = records.find(candidate => candidate.id === freeTransformDrag.recordId);
+    if (!record || record.locked || record.warp?.ok || record.anchor || record.controlPoints.length) {
+      freeTransformDrag = null;
+      return false;
+    }
+    const changed = applyReferenceImageFreeTransformDrag(record, freeTransformDrag, point, mapHost());
+    if (changed) renderer.requestRender();
+    return changed;
+  }
+
+  function finishFreeTransformDrag(event) {
+    if (!freeTransformDrag || event.pointerId !== freeTransformDrag.pointerId) return false;
+    const drag = freeTransformDrag;
+    const record = records.find(candidate => candidate.id === drag.recordId);
+    try { mapElement.releasePointerCapture?.(event.pointerId); } catch (_) {}
+    freeTransformDrag = null;
+    surface?.setGestureActive(false);
+    if (record && freeTransformBefore) {
+      const before = freeTransformBefore.find(item => item.id === record.id);
+      if (JSON.stringify(before?.mapQuad) !== JSON.stringify(record.mapQuad)) history.push(freeTransformBefore);
+      void persist(record);
+    }
+    freeTransformBefore = null;
+    renderEditor();
+    renderer.requestRender();
+    return true;
+  }
+
+  function cancelFreeTransformDrag() {
+    if (!freeTransformDrag) return;
+    const drag = freeTransformDrag;
+    const record = records.find(item => item.id === drag.recordId);
+    if (record) record.mapQuad = drag.startMapQuad.map(coordinate => [...coordinate]);
+    try { mapElement.releasePointerCapture?.(drag.pointerId); } catch (_) {}
+    freeTransformDrag = null;
+    freeTransformBefore = null;
+    surface?.setGestureActive(false);
+    renderer.requestRender();
+  }
+
   function commitAnchor(point) {
     if (!anchorState) return;
     const record = records.find(candidate => candidate.id === anchorState.recordId);
@@ -686,7 +781,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function beginGesture(point, event, { spacePan = false } = {}) {
-    if (isBlocked() || !(anchorState || gcpState || placementEditingId || controlPointEditingId)) return null;
+    if (isBlocked() || !(anchorState || gcpState || placementEditingId || freeTransformEditingId || controlPointEditingId)) return null;
     if (event.button === 1 || spacePan) return { kind: 'navigate' };
     if (event.button !== 0) return null;
     if (anchorState) {
@@ -703,7 +798,10 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (record && controlPointEditingId === record.id && beginControlPointDrag(event, record, point)) {
       return { kind: 'exclusive', move: updateControlPointDrag, end: (_point, up) => finishControlPointDrag(up), cancel: cancelControlPointDrag };
     }
-    if (record && !record.locked && !record.warp?.ok && beginPlacementDrag(event, record, point)) {
+    if (record && freeTransformEditingId === record.id && beginFreeTransformDrag(event, record, point)) {
+      return { kind: 'exclusive', move: updateFreeTransformDrag, end: (_point, up) => finishFreeTransformDrag(up), cancel: cancelFreeTransformDrag };
+    }
+    if (record && !record.locked && !record.warp?.ok && placementEditingId === record.id && beginPlacementDrag(event, record, point)) {
       return { kind: 'exclusive', move: updatePlacementDrag, end: (_point, up) => finishPlacementDrag(up), cancel: cancelPlacementDrag };
     }
     return { kind: 'navigate' };
@@ -738,6 +836,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
         cancelGcp(false);
         if (controlPointEditingId === record.id) stopControlPointEditing({ renderUi: false });
         if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
+        if (freeTransformEditingId === record.id) stopFreeTransformEditing({ renderUi: false });
       }
     }
 
@@ -800,6 +899,11 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       if (placementEditingId === record.id) stopPlacementEditing();
       else startPlacementEditing(record);
     }
+    if (action === 'free-transform') {
+      if (freeTransformEditingId === record.id) stopFreeTransformEditing();
+      else startFreeTransformEditing(record);
+      return;
+    }
     if (action === 'anchor') {
       if (anchorState?.recordId === record.id) cancelAnchor();
       else armAnchor(record);
@@ -843,7 +947,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (panel.hidden || isBlocked()) return false;
     if (event.key === 'Enter' && event.target?.closest('button,[role="button"]')) return false;
     if (event.key === 'Escape') {
-      if (anchorState || gcpState || placementEditingId) cancelInteraction();
+      if (anchorState || gcpState || placementEditingId || freeTransformEditingId) cancelInteraction();
       else surface.close({ restoreFocus: true });
       return true;
     }
@@ -864,7 +968,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if ((event.ctrlKey || event.metaKey) && ['z', 'y'].includes(event.key.toLowerCase())) {
       restoreHistory(event.key.toLowerCase() === 'y' || event.shiftKey ? 'redo' : 'undo'); return true;
     }
-    return ['Delete', 'Backspace', 'Enter'].includes(event.key) && !!(gcpState || placementEditingId || controlPointEditingId);
+    return ['Delete', 'Backspace', 'Enter'].includes(event.key) && !!(gcpState || placementEditingId || freeTransformEditingId || controlPointEditingId);
   }
 
   async function onFileChange() {
@@ -890,7 +994,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     renderStorageStatus();
   }); };
   surface = installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose: cancelInteraction, onOpen: () => renderer.requestRender() });
-  const unregisterInput = registerReferenceImageInput({ begin: beginGesture, active: () => !!(anchorState || gcpState || placementEditingId || controlPointEditingId), key: onKeyDown, cancel: cancelInteraction, reset: resetSession });
+  const unregisterInput = registerReferenceImageInput({ begin: beginGesture, active: () => !!(anchorState || gcpState || placementEditingId || freeTransformEditingId || controlPointEditingId), key: onKeyDown, cancel: cancelInteraction, reset: resetSession });
   const stopPanelKeys = event => {
     const text = event.target?.closest('input,textarea,select,[contenteditable="true"]');
     if (!text && onKeyDown(event)) event.preventDefault();
@@ -950,6 +1054,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       blendMode: record.blendMode,
       rotation: referenceImagePlacementRotation(record, mapHost()),
       placementEditing: placementEditingId === record.id,
+      freeTransformEditing: freeTransformEditingId === record.id,
       anchored: !!record.anchor,
       warpMode: record.warp?.mode || record.warpMode,
       controlPointCount: record.controlPoints.length,
