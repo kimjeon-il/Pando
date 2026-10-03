@@ -63,6 +63,27 @@ test('anchor, GCP and free transform controls stay available together', () => {
   assert.match(combined, /0\.002 m/);
 });
 
+test('rubber-sheet calibration shows TPS as the effective locked warp mode', () => {
+  const markup = referenceImageEditorMarkup({
+    ...options,
+    record: record({
+      cornerPinEnabled: true,
+      warpMode: 'auto',
+      anchor: { image: [0.5, 0.5], coordinate: [10, 20] },
+      controlPoints: [{ id: 'p', image: [0.25, 0.25], coordinate: [8, 18] }],
+    }),
+    warp: {
+      ok: true,
+      mode: 'tps',
+      minimumPoints: 3,
+      diagnostics: { rmsMeters: 1000, maxMeters: 1500, hardMaxMeters: 0.001, warnings: [] },
+    },
+    warpOptions: [['auto', '자동'], ['tps', 'TPS 비선형']],
+  });
+  assert.match(markup, /data-ref-field="warp" disabled/);
+  assert.match(markup, /<option value="tps" selected>TPS 비선형<\/option>/);
+});
+
 test('free transform is disabled only by record lock', () => {
   const anchored = referenceImageEditorMarkup({
     ...options,
