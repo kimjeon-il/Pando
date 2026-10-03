@@ -9,6 +9,7 @@ import {
   defaultReferenceImageMapQuad,
   normalizeReferenceImageRotation,
   referenceImageAnchorScreenPoint,
+  referenceImagePlacementCoordinateAtUv,
   referenceImagePlacementGeometry,
   referenceImagePlacementPointAtUv,
   referenceImagePlacementHit,
@@ -172,8 +173,16 @@ test('manual anchor snaps the selected image point to the chosen map coordinate'
     anchor: { image: [0.25, 0.5], coordinate: [8, 7] },
   };
   assert.equal(alignReferenceImageAnchor(record, host), true);
-  const source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
-  const target = referenceImageAnchorScreenPoint(record, host);
+  assert.deepEqual(referenceImagePlacementCoordinateAtUv(record, record.anchor.image), [8, 7]);
+  let source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
+  let target = referenceImageAnchorScreenPoint(record, host);
+  assert.ok(Math.hypot(source[0] - target[0], source[1] - target[1]) < 1e-6);
+
+  host.view.x += 75;
+  host.view.y -= 40;
+  host.view.scale *= 1.75;
+  source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
+  target = referenceImageAnchorScreenPoint(record, host);
   assert.ok(Math.hypot(source[0] - target[0], source[1] - target[1]) < 1e-6);
 });
 
