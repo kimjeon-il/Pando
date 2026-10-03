@@ -264,7 +264,7 @@ test('reference images support placement, ordering, georeferencing and persisten
     return records[0]?.mapQuad || null;
   }).not.toBeNull();
   const storedBeforeMove = structuredClone((await readReferenceStore(page))[0].mapQuad);
-  const geometryBeforeMove = await referenceScreenGeometry(page, 'base.png');
+  const geometryBeforeMove = await referenceScreenGeometry(page, '<Base "reference">');
   const centerX = geometryBeforeMove.center.x;
   const centerY = geometryBeforeMove.center.y;
   const cameraBefore = await page.evaluate(() => window.__PANDOLAB_VIEW_STATE__);
@@ -394,7 +394,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   const restored = await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list());
   expect(restored.map(item => item.name)).toEqual(['Top reference', '<Base "reference">']);
   expect(restored.find(item => item.name === '<Base "reference">').controlPointCount).toBe(2);
-  expect(restored.find(item => item.name === '<Base "reference">').rotation).toBe(45);
+  expect(restored.find(item => item.name === '<Base "reference">').rotation).toBeCloseTo(45, 8);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
