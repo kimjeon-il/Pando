@@ -489,7 +489,11 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     }
     if (action === 'bring-forward') moveRecord(record, 1);
     if (action === 'send-backward') moveRecord(record, -1);
-    if (action === 'gcp') interaction.armGcp(record);
+    if (action === 'gcp') {
+      if (interactionState().gcpState?.recordId === record.id) interaction.cancelGcp();
+      else interaction.armGcp(record);
+      return;
+    }
     if (action === 'gcp-edit') {
       if (interactionState().controlPointEditingId === record.id) interaction.stopControlPointEditing();
       else interaction.startControlPointEditing(record);
