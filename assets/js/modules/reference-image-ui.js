@@ -75,11 +75,14 @@ export function referenceImageEditorMarkup({
     : warnings.includes('high-residual')
       ? '기준점 오차가 큽니다. 점 배치를 다시 확인하세요.'
       : '';
-  const options = values => values.map(([value, label]) => `<option value="${value}"${record.warpMode === value ? ' selected' : ''}>${label}</option>`).join('');
+  const rubberSheetActive = !!record.cornerPinEnabled && !!(record.anchor || record.controlPoints.length);
+  const selectedWarpMode = rubberSheetActive ? 'tps' : record.warpMode;
+  const options = values => values.map(([value, label]) => `<option value="${value}"${selectedWarpMode === value ? ' selected' : ''}>${label}</option>`).join('');
   const placementDisabled = record.locked || warp?.ok;
   const freeTransformDisabled = record.locked;
   const anchorDisabled = record.locked;
   const gcpDisabled = record.locked;
+  const warpDisabled = record.locked || rubberSheetActive;
   return `
     <div class="reference-image-editor-title">
       <input type="text" data-ref-field="name" value="${escapeAttribute(record.name)}" aria-label="참조 이미지 이름" />
@@ -88,7 +91,7 @@ export function referenceImageEditorMarkup({
     <label class="reference-image-field"><span>불투명도</span><input data-ref-field="opacity" type="range" min="0" max="1" step="0.01" value="${record.opacity}" /><output>${Math.round(record.opacity * 100)}%</output></label>
     <label class="reference-image-field"><span>회전</span><input class="ui-input reference-image-number-input" data-ref-field="rotation" type="number" min="-180" max="180" step="0.1" value="${numberText(placementRotation, 1)}"${placementDisabled ? ' disabled' : ''} /><output>°</output></label>
     <label class="reference-image-field"><span>혼합</span><select class="ui-select" data-ref-field="blend">${blendOptions.map(([value, label]) => `<option value="${value}"${record.blendMode === value ? ' selected' : ''}>${label}</option>`).join('')}</select></label>
-    <label class="reference-image-field"><span>보정</span><select class="ui-select" data-ref-field="warp"${record.locked ? ' disabled' : ''}>${options(warpOptions)}</select></label>
+    <label class="reference-image-field"><span>보정</span><select class="ui-select" data-ref-field="warp"${warpDisabled ? ' disabled' : ''}>${options(warpOptions)}</select></label>
     <div class="reference-image-toggle-row">
       <label><input data-ref-field="visible" type="checkbox"${record.visible ? ' checked' : ''} /> 표시</label>
       <label><input data-ref-field="locked" type="checkbox"${record.locked ? ' checked' : ''} /> 잠금</label>
