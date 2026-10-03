@@ -137,6 +137,29 @@ test('pinned metadata survives normalization and diagnostics', () => {
   assert.equal(warp.diagnostics.residuals.find(item => item.id === 'anchor').pinned, true);
 });
 
+test('TPS rubber sheet keeps four corner pins and an internal anchor exact while fitting soft GCPs', () => {
+  const points = [
+    { ...point('corner-0', [0, 0], [0, 0]), pinned: true },
+    { ...point('corner-1', [1, 0], [12, 1]), pinned: true },
+    { ...point('corner-2', [1, 1], [10, 10]), pinned: true },
+    { ...point('corner-3', [0, 1], [-1, 9]), pinned: true },
+    { ...point('anchor', [0.45, 0.55], [4.2, 5.3]), pinned: true },
+    point('soft-a', [0.2, 0.3], [2.1, 2.4]),
+    point('soft-noise', [0.75, 0.25], [10.5, 0.5]),
+  ];
+  const warp = buildReferenceImageWarp(points, { mode: REFERENCE_IMAGE_WARP_MODES.TPS });
+  assert.equal(warp.ok, true);
+  for (const hard of points.filter(item => item.pinned)) {
+    const actual = warp.project(hard.image);
+    assert.ok(Math.abs(actual[0] - hard.coordinate[0]) < 1e-7);
+    assert.ok(Math.abs(actual[1] - hard.coordinate[1]) < 1e-7);
+  }
+  assert.equal(warp.diagnostics.hardPointCount, 5);
+  assert.equal(warp.diagnostics.softPointCount, 2);
+  assert.ok(warp.diagnostics.hardMaxMeters < 0.01);
+  assert.ok(warp.diagnostics.rmsMeters >= 0);
+});
+
 test('TPS warp interpolates its control points and auto selects TPS with six points', () => {
   const controlPoints = [
     point('a', [0, 0], [100, 30]),
