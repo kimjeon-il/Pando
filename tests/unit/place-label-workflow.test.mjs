@@ -7,7 +7,7 @@ import { createGenericCommands } from '../../assets/js/modules/app-generic-comma
 import { createProjectSnapshots } from '../../assets/js/modules/app-project-snapshots.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { TERRITORIAL_UNIT_TYPES, validateTerritorialRelations } from '../../assets/js/modules/territorial-units.js';
+import { validateTerritorialRelations } from '../../assets/js/modules/territorial-units.js';
 import { applyProjectFields, pickProjectFields } from '../../assets/js/modules/project-state.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createCanonicalCountryStore } from '../../assets/js/modules/canonical-country-packet.js';
@@ -71,7 +71,6 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
       entityStore,
       entityRepository,
       normalizeTerritorialEntities: value => value || [],
-      TERRITORIAL_UNIT_TYPES,
     },
     territorialServicesA: { normalizeTerritorialRelations: value => value || [] },
     territorialServicesB: { validateTerritorialRelations },
@@ -135,7 +134,7 @@ test('country date metadata survives delta save and restores on undo even with u
   assert.equal(entityStore.snapshot().find(entity => entity.id === 'KOR').properties.validFrom, null);
   assert.equal(state.territorialEntities.find(entity => entity.id === 'KOR').properties.validFrom, null);
   owner.restoreEntitiesFromSnapshot(saved);
-  assert.equal((entityStore.snapshot().find(entity => String(entity.id) === String('KOR') && entity.properties.unitType === 'country') || null).properties.validFrom, '1900');
+  assert.equal((entityStore.snapshot().find(entity => String(entity.id) === String('KOR') && entity.properties.entityKind === 'general' && !entity.properties.parentId) || null).properties.validFrom, '1900');
   assert.equal(builtinCountries.canonicalCountryStore.properties('KOR').validFrom, undefined);
 
   owner.configureDatasetSession({ territorialEntities: structuredClone(state.territorialEntities), baseDataset: 'fixture' });
@@ -147,7 +146,7 @@ test('label history restores only changed user-label settings and leaves unrelat
   const label = { id: 'label-copy', name: '서울', kind: 'capital', coordinates: [127, 37], notes: '' };
   const { owner, state, searchRenders, searchCancels } = historySnapshotFixture({
     labels: [label],
-    labelSettings: { 'label:label-copy': { pinned: true, manualPosition: [127, 37] }, 'country:KOR': { pinned: true } },
+    labelSettings: { 'label:label-copy': { pinned: true, manualPosition: [127, 37] }, 'territorial:KOR': { pinned: true } },
   });
   const snapshot = owner.snapshotEditable();
   assert.deepEqual(snapshot.historyLabelSettings, { 'label:label-copy': { pinned: true, manualPosition: [127, 37] } });
@@ -155,12 +154,12 @@ test('label history restores only changed user-label settings and leaves unrelat
 
   state.labels = [];
   delete state.labelSettings['label:label-copy'];
-  state.labelSettings['country:KOR'] = { pinned: false };
+  state.labelSettings['territorial:KOR'] = { pinned: false };
   owner.restoreEditable(snapshot);
 
   assert.equal(state.labels.length, 1);
   assert.deepEqual(state.labelSettings['label:label-copy'], { pinned: true, manualPosition: [127, 37] });
-  assert.deepEqual(state.labelSettings['country:KOR'], { pinned: false });
+  assert.deepEqual(state.labelSettings['territorial:KOR'], { pinned: false });
   assert.equal(searchCancels(), 1);
   assert.equal(searchRenders(), 1);
 

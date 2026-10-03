@@ -19,10 +19,12 @@ import {
 import { ACTION_UI_BINDINGS } from '../../assets/js/modules/object-registry-presenter.js';
 
 test('object registry exposes canonical domain/category/editor metadata', () => {
-  assert.equal(MAP_OBJECT_TYPES.country.domain, 'territorial');
-  assert.equal(MAP_OBJECT_TYPES.country.category, 'territorial');
-  assert.equal(MAP_OBJECT_TYPES.country.editor, 'entity');
-  assert.equal(MAP_OBJECT_TYPES.subunit.editor, 'entity');
+  assert.equal(MAP_OBJECT_TYPES.entity.domain, 'territorial');
+  assert.equal(MAP_OBJECT_TYPES.entity.category, 'territorial');
+  assert.equal(MAP_OBJECT_TYPES.entity.editor, 'entity');
+  assert.equal(MAP_OBJECT_TYPES.subunit, undefined);
+  assert.equal(MAP_OBJECT_TYPES.country, undefined);
+  assert.equal(MAP_OBJECT_TYPES.region, undefined);
   assert.equal(MAP_OBJECT_TYPES.river.domain, 'hydro');
   assert.equal(MAP_OBJECT_TYPES.river.editor, 'hydro');
   assert.equal(MAP_OBJECT_TYPES.generic.domain, 'generic');

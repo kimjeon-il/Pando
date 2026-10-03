@@ -29,7 +29,7 @@ test('multiple subunits require one parent, unlocked objects and a connected sel
 });
 test('single and batch deletion never expands into descendants and rechecks changed locks', () => {
   const a = unit('a'), b = unit('b');
-  const state = { territorialEntities: [country('KR'), a, b], territorialRelations: [], distributionEntries: [{ mode: 'territorial', territorialUnitId: 'a' }], itemVisibility: { subunits: { a: false } }, labelSettings: { 'country:territorial:entity:a': {} } };
+  const state = { territorialEntities: [country('KR'), a, b], territorialRelations: [], distributionEntries: [{ mode: 'territorial', territorialUnitId: 'a' }], itemVisibility: { subunits: { a: false } }, labelSettings: { 'territorial:a': {} } };
   const store = createTerritorialEntityStore({ getState: () => state });
   store.appendEntities([unit('child', 'a')]);
   assert.equal(territorialDeletionAllowed([a, b], state.territorialEntities), false);
@@ -60,7 +60,7 @@ test('country deletion uses the same territorial cleanup surface and removes dan
     labels: [{ id: 'l', countryId: 'A' }],
     genericFeatures: [{ id: 'g', properties: { source: { provenance: { ownerId: 'A', topologyGroup: 'land:A' } } } }],
     itemVisibility: { countries: { A: false }, countryLabels: { A: false }, subunits: {}, regions: {} },
-    labelSettings: { 'country:A': {} },
+    labelSettings: { 'territorial:A': {} },
   };
 
   const store = createTerritorialEntityStore({ getState: () => state });
@@ -116,13 +116,13 @@ test('deletion clears the actual native and synthetic scene IDs without touching
         ...unit(native.id, 'FIN').properties,
         metadata: { builtinSubunit: { sourceCountryId: 'ALD' } },
       } }, region('r')],
-      labelSettings: { [`country:${displayId}`]: {}, 'country:territorial:entity:r': {}, 'country:FIN': { pinned: true } },
+      labelSettings: { [`territorial:${native.id}`]: {}, 'territorial:r': {}, 'territorial:FIN': { pinned: true } },
       itemVisibility: { countryLabels: { [displayId]: false, 'territorial:entity:r': false, FIN: false } },
       layerPresentation: { objectStyles: { [`territorial:entity:${native.id}`]: {}, 'territorial:entity:r': {}, 'territorial:entity:FIN': {} } },
     };
     const store = createTerritorialEntityStore({ getState: () => state });
     removeTerritorialEntities(state, { unitIds: [native.id, 'r'] }, 'territorial', { entityStore: store });
-    assert.deepEqual(state.labelSettings, { 'country:FIN': { pinned: true } });
+    assert.deepEqual(state.labelSettings, { 'territorial:FIN': { pinned: true } });
     assert.deepEqual(state.itemVisibility.countryLabels, { FIN: false });
     assert.deepEqual(state.layerPresentation.objectStyles, { 'territorial:entity:FIN': {} });
   }

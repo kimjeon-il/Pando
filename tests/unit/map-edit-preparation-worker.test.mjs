@@ -51,9 +51,8 @@ function harness(t, rows, { failFirstClipMethod = '' } = {}) {
 }
 const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });
 const feature = (id, geometry, properties = {}) => createTerritorialFeature({ id, geometry,
-  unitType: properties.unitType || 'country', ...properties,
-  associatedCountryId: properties.unitType === 'region' ? properties.sovereignId || '' : '',
-  parentId: properties.parentId || (properties.unitType === 'subunit' ? properties.sovereignId || '' : '') });
+  entityKind: properties.entityKind || 'general', ...properties,
+  parentId: properties.parentId || '' } );
 
 function assertNewCountryPartition(result, original, selected) {
   const remaining = result.features.find(item => item.id === 'A');
@@ -170,8 +169,8 @@ test('actual map-edit Worker retries country clipping sweep failures through the
 test('actual worker validates normalized edits and invalidates receipts after lock changes', { timeout: 15000 }, async t => {
   const parent = feature('RUS', square(0, 0, 10, 10));
   const rows = [{ kind: 'country', feature: parent }], client = harness(t, rows);
-  const response = await client.execute('territorial-edit', { payload: { operation: 'create', targetId: 'RUS', parentId: 'RUS', sovereignId: 'RUS',
-    draft: square(1, 1, 2, 2), newFeature: feature('child', square(1, 1, 2, 2), { unitType: 'subunit', parentId: 'RUS', sovereignId: 'RUS' }) } });
+  const response = await client.execute('territorial-edit', { payload: { operation: 'create', targetId: 'RUS', parentId: 'RUS',
+    draft: square(1, 1, 2, 2), newFeature: feature('child', square(1, 1, 2, 2), { entityKind: 'general', parentId: 'RUS' }) } });
   assert.equal(response.result.features.length, 1);
   assert.equal(response.result.preview.validation.blocking, false);
   const validation = await client.execute('territorial-validation', { payload: { preparationId: response.result.preparationId } });
@@ -181,14 +180,14 @@ test('actual worker validates normalized edits and invalidates receipts after lo
   assert.deepEqual(parent.geometry, square(0, 0, 10, 10));
 });
 
-test('actual worker prepares parents, indexed snaps and grouped boundaries', { timeout: 15000 }, async t => {
+test('actual worker prepares uncovered source, indexed snaps and grouped boundaries', { timeout: 15000 }, async t => {
   const rows = [
     { kind: 'country', feature: feature('RUS', square(0, 0, 10, 10)) },
-    { kind: 'territorial', feature: feature('child', square(0, 0, 5, 10), { unitType: 'subunit', sovereignId: 'RUS', parentId: 'RUS' }) },
+    { kind: 'territorial', feature: feature('child', square(0, 0, 5, 10), { entityKind: 'general', parentId: 'RUS' }) },
   ];
   const client = harness(t, rows);
-  const parents = await client.execute('territorial-parents', { payload: { targetId: 'child', candidateIds: ['RUS', 'missing'] } });
-  assert.deepEqual(parents.result.ids, ['RUS']);
+  const source = await client.execute('territorial-source', { payload: { parentId: 'RUS' } });
+  assert.equal(area(source.result.geometry), 50);
   const snap = await client.execute('territorial-snap', { payload: { coordinate: [0, 0], margin: 0.1, activeOwnerIds: ['RUS'] } });
   assert.ok(snap.result.candidates.some(candidate => candidate.kind === 'vertex'));
   const boundaries = await client.execute('territorial-display', { payload: { kind: 'boundaries' } });
@@ -209,8 +208,8 @@ test('library batch preserves order and refuses locked donors without changing s
 
 test('library batch validates nested subunits from parent chains without a stored country ID', { timeout: 15000 }, async t => {
   const original = feature('A', square(0, 0, 10, 10));
-  const parent = feature('S', square(0, 0, 5, 5), { unitType: 'subunit', parentId: 'A' });
-  const child = feature('T', square(0, 0, 2, 2), { unitType: 'subunit', parentId: 'S' });
+  const parent = feature('S', square(0, 0, 5, 5), { entityKind: 'general', parentId: 'A' });
+  const child = feature('T', square(0, 0, 2, 2), { entityKind: 'general', parentId: 'S' });
   const client = harness(t, [{ feature: original }]);
   const result = (await client.execute('territorial-library-batch', { payload: { countries: [], units: [parent, child] } })).result;
   assert.deepEqual(result.removedIds, []);
@@ -243,8 +242,8 @@ test('snap intersections use connected geometry ports and retain both owners', a
 });
 
 test('drawn clipping and region previews stay in the worker and reject changed locks', async t => {
-  const a = feature('a', square(0, 0, 4, 4), { unitType: 'region', parentId: 'RUS', sovereignId: 'RUS' });
-  const b = feature('b', square(4, 0, 8, 4), { unitType: 'region', parentId: 'RUS', sovereignId: 'RUS' });
+  const a = feature('a', square(0, 0, 4, 4), { entityKind: 'regional', parentId: '' });
+  const b = feature('b', square(4, 0, 8, 4), { entityKind: 'regional', parentId: '' });
   const client = harness(t, [{ kind: 'country', feature: feature('RUS', square(0, 0, 10, 10)) },
     { kind: 'territorial', feature: a }, { kind: 'territorial', feature: b }]);
   const drawn = await client.execute('territorial-drawn', { payload: { draft: square(-2, -2, 2, 2), source: square(0, 0, 10, 10) } });
@@ -254,7 +253,8 @@ test('drawn clipping and region previews stay in the worker and reject changed l
   const preview = { result: merged.result.preview };
   preview.result.preparationId = merged.result.preparationId;
   assert.equal(preview.result.validation.blocking, false);
-  await assert.rejects(client.execute('territorial-region-redraw', { payload: { targetId: 'a', containerId: 'RUS', siblingIds: ['b'], draft: square(0, 0, 5, 4) } }), /겹칩니다/);
+  const redrawn = await client.execute('territorial-region-redraw', { payload: { targetId: 'a', draft: square(0, 0, 5, 4) } });
+  assert.ok(area(redrawn.result.feature.geometry) > area(a.geometry), 'independent region may overlap another region');
   b.properties.locked = true;
   await assert.rejects(client.execute('territorial-validation', { payload: { preparationId: preview.result.preparationId } }), /변경|다시/);
   assert.deepEqual(a.geometry, square(0, 0, 4, 4));
@@ -274,9 +274,9 @@ test('Russia detailed source remains intact after a small child preview and sour
   await client.execute('territorial-source', { payload: { parentId: 'RUS' } });
   const firstMs = performance.now() - start;
   const geometry = { type: 'Polygon', coordinates: polygons.at(-1) };
-  const child = feature('child', geometry, { unitType: 'subunit', parentId: 'RUS', sovereignId: 'RUS' });
+  const child = feature('child', geometry, { entityKind: 'general', parentId: 'RUS' });
   const previewStart = performance.now();
-  const preview = await client.execute('territorial-edit', { payload: { operation: 'create', targetId: 'RUS', parentId: 'RUS', sovereignId: 'RUS', draft: geometry, newFeature: child } });
+  const preview = await client.execute('territorial-edit', { payload: { operation: 'create', targetId: 'RUS', parentId: 'RUS', draft: geometry, newFeature: child } });
   assert.equal(preview.result.preview.validation.blocking, false);
   assert.equal(preview.result.features.length, 1);
   assert.equal(JSON.stringify(original.geometry), before);

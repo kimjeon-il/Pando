@@ -107,14 +107,14 @@ test('geometry validation returns a located self-intersection issue and relation
   const issues = validateGeometry(invalid);
   assert.ok(issues.some(issue => issue.kind === 'self-intersection' && issue.coordinate));
   const report = runMapAudit({
-    countries: [createTerritorialFeature({ id: 'A', unitType: 'country',
+    countries: [createTerritorialFeature({ id: 'A', entityKind: 'general',
       geometry: feature('A', [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]).geometry })],
     units: [
-      createTerritorialFeature({ id: 'orphan', unitType: 'subunit', name: '고아', parentId: 'NO_PARENT',
+      createTerritorialFeature({ id: 'orphan', entityKind: 'general', name: '고아', parentId: 'NO_PARENT',
         geometry: feature('X', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry }),
-      createTerritorialFeature({ id: 'orphan', unitType: 'region', name: '중복', associatedCountryId: 'A',
+      createTerritorialFeature({ id: 'orphan', entityKind: 'regional', name: '중복',
         geometry: feature('Y', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry }),
-      createTerritorialFeature({ id: 'unlinked', unitType: 'region', associatedCountryId: 'MISSING',
+      createTerritorialFeature({ id: 'unlinked', entityKind: 'general', parentId: 'MISSING',
         geometry: feature('R', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry }),
     ],
     distributionEntries: [
@@ -123,7 +123,7 @@ test('geometry validation returns a located self-intersection issue and relation
     ],
   });
   assert.ok(report.issues.some(issue => issue.kind === 'invalid-parent' && issue.entityRefs.includes('orphan')));
-  assert.ok(report.issues.some(issue => issue.kind === 'invalid-sovereign' && issue.entityRefs.includes('MISSING')));
+  assert.ok(report.issues.some(issue => issue.kind === 'orphan-administrative' && issue.entityRefs.includes('MISSING')));
   assert.ok(report.issues.some(issue => issue.kind === 'orphan-administrative'));
   assert.ok(report.issues.some(issue => issue.kind === 'missing-territorial-reference'));
   assert.equal(report.issues.filter(issue => issue.kind === 'duplicate-id').length, 2);

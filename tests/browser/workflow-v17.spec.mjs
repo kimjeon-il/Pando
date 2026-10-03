@@ -260,8 +260,8 @@ test('subunit merge removes the exact middle target and preserves preview, apply
         geometry: { type: 'Polygon', coordinates: [[[left, bottom], [left, top], [right, top], [right, bottom], [left, bottom]]] } })),
   })) });
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
-  await selectUiOption(page, '#gisTargetType', 'subunit');
-  await selectUiOption(page, '#gisTargetCountry', 'DEU');
+  await selectUiOption(page, '#gisTargetType', 'general');
+  await selectUiOption(page, '#gisParentUnit', 'DEU');
   for (const step of ['2/3', '3/3']) {
     await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisStepIndicator')).toContainText(step);

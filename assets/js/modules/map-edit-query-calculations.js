@@ -2,12 +2,6 @@ import { normalizePolygonGeometry, multiCoordinates, featureId } from './map-edi
 import './territorial-edit-plan.js';
 import { analyzeAdminCountryCoast } from './coast-reconciliation.js';
 
-export function calculateParents(feature, candidates, clipper) {
-  if (!feature) throw new Error('하위단위를 찾을 수 없습니다.');
-  return { ids: candidates.filter(({ parent }) => parent?.geometry
-    && clipper.difference(multiCoordinates(feature.geometry), multiCoordinates(parent.geometry)).length === 0).map(({ id }) => id) };
-}
-
 export function calculateUncoveredSource(parent, children, clipper) {
   if (!parent) throw new Error('상위 단위를 찾을 수 없습니다.');
   const occupied = children.length ? clipper.union(...children.map(feature => multiCoordinates(feature.geometry))) : [];

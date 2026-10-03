@@ -350,7 +350,7 @@ function pointSegmentDistance(point, a, b) {
 export function buildTerritorialInternalBoundarySegments(countries = [], units = [], { precision = 7, epsilon = 1e-7 } = {}) {
   // No unit can own an internal boundary: do not even inspect country geometry.
   if (!(units || []).some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) return [];
-  const countryIds = new Set((countries || [])
+  const rootIds = new Set((countries || [])
     .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
     .map((feature, index) => featureId(feature, index)));
   const countryFeatures = (countries || [])
@@ -362,8 +362,8 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
   const entities = new Map([...countries, ...units].map(feature => [String(feature.id), feature]));
   const unitMeta = new Map(unitFeatures.map(feature => [feature.id, {
     id: featureId(feature).replace(/^unit:/, ''),
-    type: feature.properties?.entityKind || '',
-    countryId: territorialRootId(entities.get(featureId(feature).replace(/^unit:/, '')), id => entities.get(id)),
+    entityKind: feature.properties?.entityKind || '',
+    rootId: territorialRootId(entities.get(featureId(feature).replace(/^unit:/, '')), id => entities.get(id)),
   }]));
   const topology = buildBoundaryTopology([...countryFeatures, ...unitFeatures], { precision, epsilon });
   const countryEdges = [...topology.segments.values()].filter(segment => [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')));
@@ -406,22 +406,22 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
     if (!unitOwners.length || [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')) || nearCountryExterior(segment)) continue;
     const metadata = unitOwners.map(ownerId => unitMeta.get(ownerId)).filter(Boolean);
     if (!metadata.length) continue;
-    const validSovereignIds = new Set(metadata
-      .map(item => item.countryId)
-      .filter(sovereignId => sovereignId && countryIds.has(sovereignId)));
-    if (validSovereignIds.size > 1) continue;
-    const allSovereignsValid = metadata.every(item => item.countryId && countryIds.has(item.countryId));
-    const sameCountrySubunits = metadata.every(item => item.type === 'subunit')
-      && allSovereignsValid
-      && validSovereignIds.size === 1;
-    const styleType = metadata.some(item => item.type === 'region')
+    const validRootIds = new Set(metadata
+      .map(item => item.rootId)
+      .filter(rootId => rootId && rootIds.has(rootId)));
+    if (validRootIds.size > 1) continue;
+    const allRootsValid = metadata.every(item => item.rootId && rootIds.has(item.rootId));
+    const sameRootChildren = metadata.every(item => item.entityKind === 'general')
+      && allRootsValid
+      && validRootIds.size === 1;
+    const styleType = metadata.some(item => item.entityKind === 'regional')
       ? 'region'
-      : sameCountrySubunits ? 'subunit-internal' : 'subunit';
+      : sameRootChildren ? 'subunit-internal' : 'subunit';
     output.push({
       key: segment.key,
       a: segment.a,
       b: segment.b,
-      unitOwners: metadata.map(item => ({ id: item.id, unitType: item.type, countryId: item.countryId })),
+      unitOwners: metadata.map(item => ({ id: item.id, entityKind: item.entityKind, rootId: item.rootId })),
       styleType,
     });
   }

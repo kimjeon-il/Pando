@@ -8,9 +8,9 @@ test('Russia nested edits retain parent candidates, locks and history after auto
   test.setTimeout(150_000);
   await page.goto('/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  const add = async (type, parentId, name, coords) => {
-    await page.evaluate(({ type, parentId }) => window.PANDOLAB_TERRITORIAL.select(type, parentId), { type, parentId });
-    await page.locator(type === 'country' ? '#addEntityChildBtn' : '#addEntityChildBtn').evaluate(button => button.click());
+  const add = async (parentId, name, coords) => {
+    await page.evaluate(parentId => window.PANDOLAB_TERRITORIAL.select(parentId), parentId);
+    await page.locator('#addEntityChildBtn').evaluate(button => button.click());
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#territorialCreateNameInput').fill(name);
     await page.locator('#modePrimaryBtn').click();
@@ -31,8 +31,8 @@ test('Russia nested edits retain parent candidates, locks and history after auto
     await expect.poll(() => page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).some(item => item.properties.name === name), name)).toBe(true);
     return page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).find(item => item.properties.name === name).id, name);
   };
-  const parent = await add('country', 'RUS', '러시아 부모 저장 시험', [[45, 56], [57, 56], [51, 63]]);
-  const child = await add('subunit', parent, '러시아 자식 저장 시험', [[49, 58], [53, 58], [51, 60]]);
+  const parent = await add('RUS', '러시아 부모 저장 시험', [[45, 56], [57, 56], [51, 63]]);
+  const child = await add(parent, '러시아 자식 저장 시험', [[49, 58], [53, 58], [51, 60]]);
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(id => !!window.PANDOLAB_TERRITORIAL.get(id), child)).toBe(false);
   await page.locator('#redoBtn').click();
@@ -46,12 +46,12 @@ test('Russia nested edits retain parent candidates, locks and history after auto
     const db = await new Promise((resolve, reject) => { const request = indexedDB.open('pandolab-editor', 2); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
     try {
       const value = await new Promise((resolve, reject) => { const request = db.transaction('projects', 'readonly').objectStore('projects').get('active-project'); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
-      return value?.territorialUnits?.some(unit => unit.id === id && unit.properties.locked === true) === true;
+      return (value?.entityDelta?.changed || value?.territorialEntities || []).some(unit => unit.id === id && unit.properties.locked === true) === true;
     } finally { db.close(); }
   }, child), { timeout: 30000 }).toBe(true);
   await page.reload();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id)?.properties, child)).toMatchObject({ parentId: parent, sovereignId: 'RUS', locked: true });
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id)?.properties, child)).toMatchObject({ entityKind: 'general', parentId: parent, locked: true });
 });
 
 test('Russia library replacement reuses the confirmed batch and undoes atomically', async ({ page }) => {

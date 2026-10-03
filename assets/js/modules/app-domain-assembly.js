@@ -246,7 +246,6 @@ export function createDomainAssembly() {
       syncStatusBar: dependencies.readinessUi.syncStatusBar,
       createEmptyState: dependencies.platformConfigurationB.createEmptyState,
       createSemanticIcon: dependencies.applicationFactories.createSemanticIcon,
-      territorialTypeLabel: dependencies.territorialServicesB.territorialTypeLabel,
       onHydroLoaded: full => {
         const key = String(full.properties?.pandolab_id || full.id);
         dependencies.projectState.state.hydroFeatureCache.set(key, full);
@@ -868,6 +867,7 @@ export function createDomainAssembly() {
         svg: () => dependencies.mapLayers.svg?.node?.() || dependencies.mapLayers.svg,
       }),
       territorialResources: createResourceSnapshot('territorial', {
+        displayEntities: () => dependencies.objectModelB.territorialScope.displayEntities(),
         entityRepository: territorialEntityRepository,
         isNativeBuiltinSubunit: dependencies.builtinCountries.isNativeBuiltinSubunit,
         syncBuiltinPalette: dependencies.builtinCountries.syncBuiltinPalette,
@@ -889,7 +889,6 @@ export function createDomainAssembly() {
         path: dependencies.mapView.path,
         territorialStyleColor: dependencies.objectModelB.territorialStyleColor,
         territorialEntityColor: dependencies.colorModel.territorialEntityColor,
-        presentationGroupForTerritorialFeature: dependencies.interactionPresentation.presentationGroupForTerritorialFeature,
         layerStyle: dependencies.applicationServicesB.layerStyle,
         selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
         gpuSceneOrder: dependencies.gpuRenderingA.gpuSceneOrder,
@@ -970,7 +969,6 @@ export function createDomainAssembly() {
         buildTerritorialInternalBoundarySegments: dependencies.territorialServicesA.buildTerritorialInternalBoundarySegments,
         territorialEntityColor: dependencies.colorModel.territorialEntityColor,
         layerStyle: dependencies.applicationServicesB.layerStyle,
-        presentationGroupForTerritorialFeature: dependencies.interactionPresentation.presentationGroupForTerritorialFeature,
         mapTheme: dependencies.preferences.mapTheme,
         territorialBoundaryLayer: dependencies.mapHostViewC.territorialBoundaryLayer,
         path: dependencies.mapView.path,
@@ -1008,13 +1006,11 @@ export function createDomainAssembly() {
         document,
         selectionPass: dependencies.gpuRenderingA.selectionPass,
         resolvedInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
-        countryDisplayFeature: dependencies.countryLabelModel.countryDisplayFeature,
+        territorialDisplayFeature: value => dependencies.objectModelB.territorialScope.displayFeature(value),
         countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,
         mapFeatureForObjectRef: dependencies.gpuRenderingA.mapFeatureForObjectRef,
         objectRefVisible: dependencies.objectOperationsA.objectRefVisible,
         territorialEntityById: id => territorialEntityRepository.get(id),
-        territorialUnits: () => territorialEntityRepository.list()
-          .filter(feature => !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId)),
         selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
         buildRenderableStrokeFeature: dependencies.labelPresentation.buildRenderableStrokeFeature,
         buildSelectionBoundarySegments: dependencies.selectionServices.buildSelectionBoundarySegments,

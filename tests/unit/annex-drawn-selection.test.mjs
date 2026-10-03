@@ -21,7 +21,7 @@ function harness(kind) {
     { type: 'Feature', id: 'D', properties: { name: 'Donor' }, geometry: box(0, 0, 10, 10) },
   ] }).features;
   const session = {
-    id: 'selection-1', kind, stage: 'selection', activePhase: 'candidate',
+    id: 'selection-1', kind: kind === 'new-country' ? 'entity' : kind, entityKind: 'general', parentId: '', stage: 'selection', activePhase: 'candidate',
     targetCountryId: 'T', sourceCountryIds: ['D'], generatedId: 'USR-new', name: '새 국가',
     projectGeneration: 1, settingsRevision: 2, sourceRevision: 3, selectionRevision: 4,
     combinedGeometry: box(1, 1, 3, 3),
@@ -41,7 +41,6 @@ function harness(kind) {
         return feature || null;
       },
     },
-    TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
     territorialEntityName: feature => feature?.properties?.name || '',
     territoryComponentItems: () => [],
     requireObjectsUnlocked: () => true,

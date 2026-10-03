@@ -1,4 +1,4 @@
-import { normalizeTerritorialEntities, normalizeTerritorialFeature, TERRITORIAL_SCHEMA_VERSION } from './territorial-units.js';
+import { normalizeTerritorialEntities, normalizeTerritorialFeature, TERRITORIAL_SCHEMA_VERSION, TERRITORIAL_ENTITY_KINDS } from './territorial-units.js';
 import { normalizeDistributionLayers, normalizeDistributionEntries } from './distribution-model.js';
 import { validateSourceProvenance } from './source-provenance.js';
 import {
@@ -79,6 +79,11 @@ export function assertCurrentProjectSchema(input) {
   requireSchemaVersion(project.territorialModel?.schemaVersion, '영토 모델', TERRITORIAL_MODEL_SCHEMA_VERSION);
   requireSchemaVersion(project.distributionModel?.schemaVersion, '분포 모델', DISTRIBUTION_MODEL_SCHEMA_VERSION);
   requireSchemaVersion(project.layerPresentation?.schemaVersion, '레이어 표현', LAYER_PRESENTATION_SCHEMA_VERSION);
+  assertAllowedKeys(project.territorialModel, new Set(['schemaVersion', 'coastlineAuthority', 'storage', 'kinds', 'coverageModes']), '영토 모델');
+  const kinds = project.territorialModel.kinds;
+  const expectedKinds = Object.values(TERRITORIAL_ENTITY_KINDS);
+  if (kinds != null && (!Array.isArray(kinds) || kinds.length !== expectedKinds.length
+    || expectedKinds.some(kind => !kinds.includes(kind)))) throw schemaError('영토 모델 kinds가 현재 객체 종류와 일치하지 않습니다.');
   assertAllowedKeys(project, new Set([
     'format', 'schemaVersion', 'version', 'savedAt', 'territorialEntities', 'entityDelta',
     'sourceInfo', 'labels', 'genericFeatures', 'hydroEdits',

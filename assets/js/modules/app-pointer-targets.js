@@ -67,12 +67,9 @@ export function createPointerTargets() {
       if (!pending || dependencies.projectState.state.mapMoving || (0, dependencies.draftPresentation.editingDraftSnapshot)().dragging || dependencies.projectState.state.tool !== 'select') return;
       lastHoverPickPoint = pending.screenPoint;
       lastHoverPickViewRevision = dependencies.mapLayout.viewRevision;
-      const hoveredCountry = dependencies.projectState.state.layerVisibility.countries
-        ? countryAtScreenPoint(pending.screenPoint, pending.coord, { verify: false })
-        : null;
-      const nextId = hoveredCountry ? String(hoveredCountry?.id || '') : '';
-      const nextRef = hoveredCountry ? dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'entity', id: String(nextId) }) : null;
-      lastHoverHit = hoveredCountry ? { ref: nextRef, feature: hoveredCountry } : null;
+      const hit = dependencies.objectPicking.territorialObjectsAt(pending.screenPoint, pending.coord)[0] || null;
+      const nextRef = hit?.ref || null;
+      lastHoverHit = hit;
       dependencies.domains.selectionDomain.setHover(nextRef, { source: 'map' });
     }, 50);
   }

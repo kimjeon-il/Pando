@@ -55,8 +55,6 @@ export function createObjectPresentation() {
     const properties = entity?.properties || {};
     // Default names come from canonical assets; edited names are literal.
     if (properties.name) return properties.name;
-    if ((properties.entityKind === 'general' && !properties.parentId)) return '이름 없는 객체';
-    if ((properties.entityKind === 'regional')) return '이름 없는 객체';
     return '이름 없는 객체';
   }
 
@@ -71,9 +69,9 @@ export function createObjectPresentation() {
     }).value;
   }
 
-  function administrativeCountryName(feature) {
+  function territorialRootName(feature) {
     const country = dependencies.territorialModel.entityRepository.root(feature?.id);
-    return country ? territorialEntityName(country) : '소속 국가 미지정';
+    return country?.properties.entityKind === 'general' ? territorialEntityName(country) : '';
   }
 
   function distributionColor(layer) {
@@ -125,6 +123,7 @@ export function createObjectPresentation() {
     (territorialScope = (0, dependencies.objectPresentation.createTerritorialScopeResolver)({
       entityRepository: dependencies.territorialModel.entityRepository,
       clipper: () => window.polygonClipping,
+      getState: () => dependencies.projectState.state,
     }));
 
     (distributionVisibilityRevision = 0);
@@ -206,7 +205,7 @@ export function createObjectPresentation() {
     get territorialStyleColor() { return territorialStyleColor; },
 
     get territorialEntityColor() { return territorialEntityColor; },
-    get administrativeCountryName() { return administrativeCountryName; },
+    get territorialRootName() { return territorialRootName; },
     get territorialEntityName() { return territorialEntityName; },
   });
 }

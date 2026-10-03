@@ -3,7 +3,7 @@ const text = value => String(value || '');
 
 // Relation choices share stored IDs; labels never participate in identity resolution.
 // Read-only callers may pass TerritorialEntityRepository instead of raw country/unit arrays.
-export function subunitParentChoices(countryId, countriesOrRepository, unitsOrOptions = [], maybeOptions = {}) {
+export function territorialParentChoices(countryId, countriesOrRepository, unitsOrOptions = [], maybeOptions = {}) {
   const repository = countriesOrRepository
     && typeof countriesOrRepository.get === 'function'
     && typeof countriesOrRepository.list === 'function'
@@ -46,14 +46,14 @@ export function subunitParentChoices(countryId, countriesOrRepository, unitsOrOp
   return result;
 }
 
-export function shouldShowTerritorialParentChoice({ sovereignId = '', parentId = '', options = [] } = {}) {
-  const sovereign = text(sovereignId);
+export function shouldShowTerritorialParentChoice({ rootId = '', parentId = '', options = [] } = {}) {
+  const root = text(rootId);
   const parent = text(parentId);
-  if (!sovereign || !parent || parent !== sovereign) return true;
+  if (!root || !parent || parent !== root) return true;
   const candidates = [...new Set((options || [])
     .map(option => text(option?.value ?? option?.id))
     .filter(Boolean))];
-  return candidates.length !== 1 || candidates[0] !== sovereign;
+  return candidates.length !== 1 || candidates[0] !== root;
 }
 
 export function missingLibraryOwnership(descriptors, resolve, countries, units) {
@@ -72,29 +72,29 @@ export function missingLibraryOwnership(descriptors, resolve, countries, units) 
 export function prepareLibraryOwnership({ descriptors, resolve, countries, units, choices = {}, allocateId, contains }) {
   const pending = descriptors.filter(item => !resolve(item.libraryId));
   const ids = new Map(pending.map(item => [item.libraryId,
-    item.entityKind === 'general' && (!item.parentLibraryId || choices[item.libraryId]?.mode === 'country') ? item.libraryId : allocateId(item.entityKind)]));
+    item.entityKind === 'general' && (!item.parentLibraryId || choices[item.libraryId]?.mode === 'root') ? item.libraryId : allocateId(item.entityKind)]));
   const existing = new Map([...countries, ...units].map(item => [text(item.id), item]));
   const byLibrary = new Map(pending.map(item => [item.libraryId, item]));
   const prepared = new Map();
   const visiting = new Set();
   function prepare(item) {
     if (prepared.has(item.libraryId)) return prepared.get(item.libraryId);
-    if (visiting.has(item.libraryId)) throw new Error('라이브러리 상위 단위 관계가 순환합니다.');
+    if (visiting.has(item.libraryId)) throw new Error('라이브러리 상위 객체 관계가 순환합니다.');
     visiting.add(item.libraryId);
     const choice = choices[item.libraryId];
-    if (choice && !['subunit', 'country'].includes(choice.mode)) throw new Error('추가 방식을 선택하세요.');
-    const root = item.entityKind === 'general' && (choice?.mode === 'country' || !item.parentLibraryId);
+    if (choice && !['child', 'root'].includes(choice.mode)) throw new Error('추가 방식을 선택하세요.');
+    const root = item.entityKind === 'general' && (choice?.mode === 'root' || !item.parentLibraryId);
     const next = { ...item, id: ids.get(item.libraryId), parentId: '' };
     if (existing.has(next.id)) throw new Error('추가할 객체 ID가 현재 프로젝트와 중복됩니다.');
     if (root) {
       next.name = String(choice?.name ?? item.name).trim();
-      if (!next.name) throw new Error('국가 이름을 입력하세요.');
+      if (!next.name) throw new Error('객체 이름을 입력하세요.');
     } else if (item.entityKind === 'general') {
       let parent;
       if (choice) {
         if (!countries.some(country => text(country.id) === text(choice.countryId))) throw new Error('소속 국가를 선택하세요.');
         const parentId = text(choice.parentId || choice.countryId);
-        if (!subunitParentChoices(choice.countryId, countries, units).some(option => option.value === parentId)) {
+        if (!territorialParentChoices(choice.countryId, countries, units).some(option => option.value === parentId)) {
           throw new Error('선택한 국가에 속하는 상위 단위를 선택하세요.');
         }
         parent = existing.get(parentId);

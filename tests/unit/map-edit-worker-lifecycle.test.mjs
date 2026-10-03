@@ -98,7 +98,7 @@ test('edit-sync while preview code loads rejects the stale request and retains n
 test('edit-sync while query code loads rejects the stale read result', { timeout: 15000 }, async t => {
   const worker = rawWorker(t, 'map-edit-query-calculations.js');
   await worker.send(rebase());
-  await worker.send(execute(1, 'territorial-parents', { targetId: 'child', candidateIds: ['a'] }));
+  await worker.send(execute(1, 'territorial-source', { parentId: 'a' }));
   await worker.next(value => value.gate === 'import');
   await worker.send({ type: 'edit-sync', sourceRevision: 2, patches: [], removedKeys: [] });
   await worker.send({ control: 'release-import' });
@@ -144,7 +144,7 @@ for (const invalidation of ['cancel', 'edit-sync', 'rebase']) {
   test(`${invalidation} at a real snap checkpoint cancels resumed work`, { timeout: 15000 }, async t => {
     const worker = rawWorker(t);
     await worker.send(rebase());
-    await worker.send(execute(1, 'territorial-parents', { targetId: 'child', candidateIds: ['a'] }));
+    await worker.send(execute(1, 'territorial-source', { parentId: 'a' }));
     assert.equal((await worker.result(1)).ok, true);
     await worker.send({ control: 'hold-timer' });
     await worker.send(execute(2, 'territorial-snap', { coordinate: [0, 0], margin: 0.1 }));

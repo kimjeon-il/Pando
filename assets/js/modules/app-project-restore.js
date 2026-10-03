@@ -35,7 +35,6 @@ export function createProjectRestore() {
         : dependencies.rendering.gpuMapRenderer.resetProjectRenderState?.();
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
     dependencies.projectState.state.countryVisualPhase = 'preview';
-    dependencies.labelCacheCommands.resetCountryDisplayCache();
     (0, dependencies.snapshots.applySharedProjectFields)(project);
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     dependencies.projectState.state.layerSearch = '';
@@ -191,7 +190,6 @@ export function createProjectRestore() {
     dependencies.spatialQuery.mapEditClient?.stop?.();
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
     dependencies.projectState.state.countryVisualPhase = 'preview';
-    dependencies.labelCacheCommands.resetCountryDisplayCache();
 
     (0, dependencies.countryRecords.resetCountryLabelAnchorRuntime)();
 
@@ -287,7 +285,6 @@ export function createProjectRestore() {
       projectGeneration: nextProjectGeneration,
       onStaged: () => {
         dependencies.projectState.state.countryVisualPhase = 'canonical';
-        dependencies.labelCacheCommands.resetCountryDisplayCache();
         clearReplacedProjectLayers();
         (0, dependencies.mapView.syncMapHostFromState)();
         dependencies.domains.renderingDomain?.invalidateProject?.('built-in-project-transition-ready');

@@ -1,3 +1,4 @@
+import { territorialSymbolGroup } from './layer-presentation.js';
 import { isBuiltinPlaceId } from './place-contract.js';
 import { applySvgInteractionMasks } from './interaction-svg-mask.js';
 import { rendererOwnsSceneGeometry } from './render-channel-ownership.js';
@@ -530,11 +531,9 @@ export function createRenderingDomain({
       terrainAlpha: theme.countryColorAlpha });
     t.syncBuiltinPalette?.();
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));
-    const displayedUnits = state.countryVisualPhase === 'preview' && state.auditPreviewTerritorialUnits
-      ? state.auditPreviewTerritorialUnits : territorial.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
+    const displayedUnits = t.displayEntities().filter(entity => territorialSymbolGroup(entity) !== 'countries');
     const data = displayedUnits.filter(feature => {
-      const group = feature.properties?.entityKind === 'general' ? 'subunits'
-        : feature.properties?.entityKind === 'regional' ? 'regions' : 'subunits';
+      const group = territorialSymbolGroup(feature);
       const selected = t.selectionHas?.(t.normalizeObjectRef?.({
         domain: 'territorial', type: 'entity', id: feature.id,
       }));
@@ -582,19 +581,19 @@ export function createRenderingDomain({
       .style('fill-opacity', 0)
       .style('stroke', 'none').style('stroke-opacity', 0).style('stroke-width', 0).style('stroke-dasharray', 'none')
       .style('mix-blend-mode', 'normal')
-      .attr('data-presentation-group', t.presentationGroupForTerritorialFeature);
+      .attr('data-presentation-group', territorialSymbolGroup);
     selection?.exit().remove();
     t.territorialOperationLayer?.selectAll('path.territorial-unit-operation-outline').remove();
     const polygons = [];
     const strokes = [];
     for (const feature of data) {
-      const group = t.presentationGroupForTerritorialFeature?.(feature) || 'subunits';
+      const group = territorialSymbolGroup(feature) || 'subunits';
       const unitStyle = resolveFill(feature);
       const objectKey = t.normalizeObjectRef?.({ domain: 'territorial', type: 'entity', id: feature.id })?.key
         || `territorial:entity:${feature.id}`;
       const geometryRevision = t.selectionGeometryRevision?.(objectKey, 'gpu-scene', feature);
       polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
-        role: 'territorial-fill', ownerId: unitStyle.ownerId, parentId: unitStyle.parentId, territoryDepth: unitStyle.depth,
+        role: feature.properties.entityKind === 'regional' ? 'regional-overlay' : 'territorial-fill', ownerId: unitStyle.ownerId, parentId: unitStyle.parentId, territoryDepth: unitStyle.depth,
         order: t.gpuSceneOrder?.(group, 10, objectKey), blendMode: unitStyle.blendMode,
         style: { color: unitStyle.color, fillAlpha: unitStyle.fillAlpha, blendMode: unitStyle.blendMode } });
 
@@ -602,7 +601,7 @@ export function createRenderingDomain({
     t.replaceGpuSceneDomain?.('territorial-units', { polygons, strokes });
     const boundaryFeatures = displayedUnits.filter(feature => {
       if (t.isNativeBuiltinSubunit?.(feature)) return false;
-      const group = t.presentationGroupForTerritorialFeature?.(feature) || 'subunits';
+      const group = territorialSymbolGroup(feature) || 'subunits';
       return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id);
     });
     renderTerritorialInternalBoundaries(boundaryFeatures);
@@ -799,10 +798,9 @@ export function createRenderingDomain({
     active();
     const t = territorialBoundary;
     const state = t.getState?.() || {};
-    const countries = state.countryVisualPhase === 'preview' && state.auditPreviewCountries
-      ? state.auditPreviewCountries.features || [] : territorial.entityRepository.list({ kind: 'general', parentId: '' });
-    const units = state.countryVisualPhase === 'preview' && state.auditPreviewTerritorialUnits
-      ? state.auditPreviewTerritorialUnits : territorial.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
+    const displayed = territorial.displayEntities();
+    const countries = displayed.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId);
+    const units = displayed.filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
     const revision = t.getTerritorialGeometryRevision?.() ?? 0;
     if (!units.some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) {
       const hadBoundaries = territorialBoundaryCache.segments.length || territorialBoundaryBatchCache.groups.length;
@@ -818,11 +816,11 @@ export function createRenderingDomain({
       countries.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry)]),
       units.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry), String(feature?.properties?.entityKind || ''), String(feature?.properties?.parentId || '')]),
     ]);
-    if (territorialBoundaryCache.countries !== countries || territorialBoundaryCache.units !== units
-      || territorialBoundaryCache.revision !== revision || territorialBoundaryCache.inputSignature !== inputSignature) {
+    if (territorialBoundaryCache.revision !== revision || territorialBoundaryCache.inputSignature !== inputSignature) {
       if (prepareEditDisplay && pendingTerritorialBoundary !== inputSignature) {
         pendingTerritorialBoundary = inputSignature;
-        prepareEditDisplay({ kind: 'boundaries' }, { jobKey: 'edit-display:boundaries' }).then(response => {
+        t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: [] });
+        prepareEditDisplay({ kind: 'boundaries', ...(state.countryVisualPhase === 'preview' ? { entities: displayed } : {}) }, { jobKey: 'edit-display:boundaries' }).then(response => {
           if (disposed || pendingTerritorialBoundary !== inputSignature) return;
           territorialBoundaryCache = { countries, units, revision, inputSignature,
             segments: response.result.segments, rebuildCount: territorialBoundaryCache.rebuildCount + 1 };
@@ -843,7 +841,7 @@ export function createRenderingDomain({
     ]);
     const visibleSignature = [...visibleIds].sort().map(id => {
       const feature = visibleFeatures.find(item => String(item.id) === id);
-      return `${id}:${t.territorialEntityColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, t.presentationGroupForTerritorialFeature?.(feature), `territorial:entity:${id}`))}`;
+      return `${id}:${t.territorialEntityColor?.(feature)}:${JSON.stringify(t.layerStyle?.(state.layerPresentation, territorialSymbolGroup(feature), `territorial:entity:${id}`))}`;
     }).join('|');
     const styleSignature = [...styleByType].map(([type, definition]) => {
       const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup) || {};
@@ -1399,7 +1397,6 @@ export function createRenderingDomain({
       
       visible: ref => selection.objectRefVisible?.(ref) !== false,
       territorialEntityById: selection.territorialEntityById,
-      territorialUnits: selection.territorialUnits,
     });
     const countryEntries = entries.filter(entry => rootGeneralSelection(entry.ref));
     const primaries = countryEntries.filter(entry => entry.priority >= 4).map(entry => entry.ref.id);
@@ -1553,17 +1550,12 @@ export function createRenderingDomain({
       }
       interaction.syncGpuInteractionLayer?.(domain, layer);
     }
-    const emphasisEntries = selectionEntries(selectionState, state, { 
+    const emphasisEntries = selectionEntries(selectionState, state, {
+      territorialEntityById: selection.territorialEntityById,
       visible: ref => selection.objectRefVisible?.(ref) !== false }, toolEntries);
-    const genericPrimary = [];
-    const genericSecondary = [];
-    const genericHover = [];
-    const genericCandidate = [];
+    const selectionChannels = { candidate: [], hover: [], primary: [], secondary: [] };
     const interactionFillRequests = [];
     const fallbackRequests = { hover: [], primary: [], secondary: [], candidate: [] };
-    let countryPrimaryId = '';
-    const countrySecondaryIds = [];
-    let countryHoverId = '';
     const selectionPass = selection.selectionPass;
     const style = selection.resolvedInteractionStyle?.() || selection.getInteractionStyle?.() || {};
     const selectionStyle = style.selection || {};
@@ -1587,10 +1579,12 @@ export function createRenderingDomain({
     const selectionFramePath = framePath(frameContext, selection.path);
     const selectionPassAvailable = !!selectionPass?.isAvailable?.();
     const sceneOwnsFills = rendererOwnsSceneGeometry(gpuMapRenderer?.getRuntimeState?.()?.renderer);
+    const displayFeatureForRef = ref => ref.scopeFeature || (ref.domain === 'territorial'
+      ? selection.territorialDisplayFeature(ref.id) : selection.mapFeatureForObjectRef?.(ref));
     const hierarchyBoundary = (ref, feature, role) => {
       const boundary = { feature, revision: selectionGeometryRevision(ref.key, 'boundary', feature) };
       const owners = (displayPlan.boundaryOwnersByKey.get(ref.key) || []).map(entry => ({
-        key: entry.key, ref: entry.ref, feature: entry.ref.scopeFeature || selection.mapFeatureForObjectRef?.(entry.ref),
+        key: entry.key, ref: entry.ref, feature: displayFeatureForRef(entry.ref),
       })).filter(item => item.feature?.geometry);
       if (!owners.length) return rootGeneralSelection(ref)
         ? boundary : cachedSelectionBoundaryFeature(ref.key, feature, role);
@@ -1599,9 +1593,14 @@ export function createRenderingDomain({
       const cached = selectionBoundaryGeometryCache.get(revision);
       if (cached) return { feature: cached, revision, owned: true };
       if (prepareEditDisplay && !pendingHighlights.has(revision)) {
-        const sourceKey = object => `${object.domain}:${object.id}`;
-        const pending = prepareEditDisplay({ kind: 'highlight', ...((ref.scopeFeature || ref.domain === 'hydro') ? { feature } : { featureKey: sourceKey(ref) }),
-          occluders: owners.map(item => (item.ref.scopeFeature || item.ref.domain === 'hydro') ? { feature: item.feature } : { key: sourceKey(item.ref) }) }, { jobKey: `edit-display:highlight:${ref.key}` });
+        const source = (itemRef, itemFeature) => {
+          const canonical = itemRef.domain === 'territorial' ? selection.territorialEntityById(itemRef.id) : selection.mapFeatureForObjectRef?.(itemRef);
+          return itemRef.domain !== 'hydro' && !itemRef.scopeFeature && canonical?.geometry === itemFeature.geometry
+            ? { key: `${itemRef.domain}:${itemRef.id}` } : { feature: itemFeature };
+        };
+        const input = source(ref, feature);
+        const pending = prepareEditDisplay({ kind: 'highlight', ...(input.key ? { featureKey: input.key } : input),
+          occluders: owners.map(item => source(item.ref, item.feature)) }, { jobKey: `edit-display:highlight:${ref.key}` });
         pendingHighlights.set(revision, pending);
         pending.then(response => {
           if (disposed || pendingHighlights.get(revision) !== pending) return;
@@ -1615,13 +1614,13 @@ export function createRenderingDomain({
     };
     if (hoverActive) {
       const isCountry = rootGeneralSelection(hovered);
-      const feature = isCountry ? selection.countryDisplayFeature?.(hoveredFeature) : hoveredFeature;
-      const key = isCountry ? `country:${String(hovered.id || '')}` : hovered.key;
+      const feature = displayFeatureForRef(hovered);
+      const key = hovered.key;
       const pendingCountry = isCountry && state.pendingCountryRenderIds?.has(String(hovered.id || ''));
       const boundary = selectionGeometryKinds(feature).boundary
         ? hierarchyBoundary(hovered, feature, 'hover')
         : { feature, revision: selectionGeometryRevision(key, 'hover', feature) };
-      const plan = planHoverEntry({ ref: hovered, rootGeneral: isCountry, feature, boundary, pendingCountry, hoverStyle: style.hover });
+      const plan = planHoverEntry({ ref: hovered, baseBoundaryOwnerId: isCountry ? String(hovered.id) : '', feature, boundary, pendingCountry, hoverStyle: style.hover });
       if (plan.fill && !sceneOwnsFills) {
         stagedHoverLayer.append('path').datum(feature)
           .attr('class', 'map-hover-shape map-hover-fill')
@@ -1630,38 +1629,32 @@ export function createRenderingDomain({
           .attr('fill-opacity', plan.fill.fillAlpha)
           .attr('d', selectionFramePath);
       }
-      fallbackRequests.hover.push(plan.fallback.kind === 'country'
+      fallbackRequests.hover.push(plan.fallback.kind === 'base'
         ? { key, resolveFeature: () => selection.countryOutlineFeature?.(feature), cacheKey: selectionGeometryRevision(key, 'hover-country') }
         : plan.fallback);
-      if (plan.generic) genericHover.push(plan.generic);
-      if (plan.countryId !== null) countryHoverId = plan.countryId;
+      if (plan.stroke) selectionChannels.hover.push(plan.stroke);
       if (plan.fillRequest) interactionFillRequests.push(plan.fillRequest);
     }
     for (const { entry, channel, outlineVisible } of displayPlan.items) {
       const ref = entry.ref;
       const primary = channel === 'primary';
-      const canonicalFeature = ref.scopeFeature || selection.mapFeatureForObjectRef?.(ref);
       const isCountry = rootGeneralSelection(ref);
-      const feature = isCountry ? selection.countryDisplayFeature?.(canonicalFeature) : canonicalFeature;
+      const feature = displayFeatureForRef(ref);
       if (!feature?.geometry && feature?.type !== 'FeatureCollection') continue;
       const boundary = (isCountry || selectionGeometryKinds(feature).boundary) && outlineVisible
         ? hierarchyBoundary(ref, feature, 'selection-outline')
         : { feature, revision: selectionGeometryRevision(ref.key, 'selection-outline', feature) };
-      const plan = planSelectionEntry({ ref, entry, channel, rootGeneral: isCountry, feature, boundary,
+      const plan = planSelectionEntry({ ref, entry, channel, baseBoundaryOwnerId: isCountry ? String(ref.id) : '', feature, boundary,
         pendingCountry: state.pendingCountryRenderIds?.has(String(ref.id)), outlineVisible, selectionStyle });
       if (plan.fill && !sceneOwnsFills) stagedSelectionLayer.append('path').datum(feature)
         .attr('class', `map-selection-shape map-selection-fill${primary ? ' is-primary' : ' is-secondary'}`)
         .attr('data-object-key', ref.key).attr('fill', plan.fill.color).attr('fill-opacity', plan.fill.fillAlpha)
         .attr('stroke', 'none').attr('d', selectionFramePath);
       if (plan.fillRequest) interactionFillRequests.push(plan.fillRequest);
-      if (plan.generic) ({ candidate: genericCandidate, hover: genericHover, primary: genericPrimary, secondary: genericSecondary })[channel].push(plan.generic);
-      if (plan.fallback) fallbackRequests[channel].push(plan.fallback.kind === 'country'
+      if (plan.stroke) selectionChannels[channel].push(plan.stroke);
+      if (plan.fallback) fallbackRequests[channel].push(plan.fallback.kind === 'base'
         ? { key: plan.fallback.key, resolveFeature: () => selection.countryOutlineFeature?.(feature), cacheKey: selectionGeometryRevision(plan.fallback.key, 'country-outline') }
         : plan.fallback);
-      if (plan.countryId !== null) {
-        if (primary) countryPrimaryId = plan.countryId;
-        else countrySecondaryIds.push(plan.countryId);
-      }
     }
     let gpuSelectionStats = null;
     let gpuRenderResult = null;
@@ -1679,8 +1672,7 @@ export function createRenderingDomain({
           styleRevision: JSON.stringify(style),
           countryBoundaryRevision: countryBoundarySnapshot?.revision || '',
           territorialBoundaryRevision: selection.getTerritorialBoundaryRevision?.() || '',
-          country: { hoverId: countryHoverId, primaryId: countryPrimaryId, secondaryIds: countrySecondaryIds },
-          generic: { hover: genericHover, primary: genericPrimary, secondary: genericSecondary, candidate: genericCandidate },
+          channels: selectionChannels,
           style,
         });
         selection.setCurrentSelectionPacket?.(packet);
@@ -1720,7 +1712,7 @@ export function createRenderingDomain({
         if (!rootGeneralSelection(entry.ref)) continue;
         const itemStyle = interactionRoleStyle(style, entry.role);
         if (!(itemStyle.fillAlpha > 0) || (entry.role === 'hover' && !hoverActive)) continue;
-        const feature = selection.countryDisplayFeature?.(selection.mapFeatureForObjectRef?.(entry.ref));
+        const feature = displayFeatureForRef(entry.ref);
         if (!feature?.geometry) continue;
         const root = entry.role === 'hover' ? stagedHoverLayer : stagedSelectionLayer;
         root.selectAll(`[data-object-key="${entry.key}"].map-selection-fill, [data-object-key="${entry.key}"].map-hover-fill`).remove();

@@ -137,8 +137,7 @@ export function createTaskPresentation() {
     if (selection) {
       if (selection.kind === 'annex') rows.push(['넘겨받는 국가', names([selection.targetCountryId])]);
       else rows.push(['이름', selection.name]);
-      if (selection.sovereignId) rows.push(['소속 국가', names([selection.sovereignId])]);
-      if (selection.parentId && selection.parentId !== selection.sovereignId) rows.push(['상위 단위', names([selection.parentId])]);
+      if (selection.parentId) rows.push(['상위 객체', names([selection.parentId])]);
       if (selection.sourceCountryIds.length) rows.push([selection.kind === 'annex' ? '넘겨주는 국가' : '원소속 국가', names(selection.sourceCountryIds)]);
       rows.push([['annex', 'new-country'].includes(selection.kind) ? '선택 영토' : '선택 영역', `${dependencies.territorySelectionB.territorySelectionPresentation().count}개`]);
     } else {

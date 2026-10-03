@@ -160,7 +160,7 @@ self.onmessage = async event => {
       createBoundaryPreparation, prepareBoundaryOperation, prepareComponentOperation, calculateLibraryBatch,
       calculateTerritorialPreview, calculateRegionRedraw, calculateDrawnGeometry,
       calculateSnapCandidates, prepareCutInWorker, createEditDisplayPreparation,
-      calculateParents, buildBoundaryTopology, calculateCoastAvailability, calculateUncoveredSource,
+      buildBoundaryTopology, calculateCoastAvailability, calculateUncoveredSource,
       calculateTerritorialEdit, createCountryCommandCalculator, calculateEditPreview, calculateCountryPreview,
     } = await calculationsReady;
     assertRequestCurrent(message, epoch);
@@ -202,8 +202,6 @@ self.onmessage = async event => {
       const service = displayService;
       result = await service.prepare(message.payload, sourceFeatures('territorial').filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)), sourceFeatures('territorial').filter(feature => !(feature.properties.entityKind === 'general' && !feature.properties.parentId)),
         requestCheckpoint(message, epoch, true, () => service === displayService), key => editSources.get(key)?.feature);
-    } else if (message.operation === 'territorial-parents') {
-      result = calculateParents(sourceFeature(message.payload.targetId, ['territorial']), (message.payload.candidateIds || []).map(id => ({ id, parent: sourceFeature(id) })), self.polygonClipping);
     } else if (message.operation === 'territorial-validation') {
       const receipt = validatedPreviews.get(message.payload.preparationId);
       if (!receipt || receipt.sourceRevision !== sourceRevision) throw new Error('미리보기 원본이 변경되었습니다. 다시 계산하세요.');

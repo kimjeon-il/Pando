@@ -12,7 +12,7 @@ export const SPATIAL_DATA_OWNER_PORTS = Object.freeze({
   cameraNavigation: Object.freeze(["countries","domains","feedback","mapNavigation","mapView","objectLookup","physicalData","platform","projectState","rendering","surfaces"]),
   readinessNotifications: Object.freeze(["platform","projectState","readiness","surfaces"]),
   countryIndex: Object.freeze(["countries","domains","geometryModel","layers","mapView","platform","projectState","spatialQuery"]),
-  spatialIndex: Object.freeze(["countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
+  spatialIndex: Object.freeze(["objectModelB","countries","countryCommands","cutGeometry","domains","geometryPreview","labels","mapView","platform","presentation","projectState","rendering","spatialFactories","surfaces","territorialModel","territoryGeometry"]),
   geometryPreview: Object.freeze(["domains","feedback","geometryEditingCore","platform","presentation","projectState","readiness","snapshots","spatialFactories","spatialQuery","taskUi","territorialModel","territoryGeometry","validation"]),
   territoryComponents: Object.freeze(["countries","cutGeometry","geometryModel","geometryPreview","platform","presentation","projectState","territorialModel","objectPresentation"]),
   countryValidation: Object.freeze(["countries","domains","geometryModel","geometryPreview","projectState","snapshots","spatialQuery"]),
@@ -188,7 +188,6 @@ export function createSpatialDataPorts(providers) {
       get pointInRing() { return providers.landRelations.pointInRing; },
       get pointOnSegment() { return providers.landRelations.pointOnSegment; },
       get ringHitTester() { return providers.landRelations.ringHitTester; },
-      get territorialUnitContainer() { return providers.objectMetadata.territorialUnitContainer; },
     }),
     validation: Object.freeze({
       get restoreEditTransactionSnapshot() { return providers.projectSnapshots.restoreEditTransactionSnapshot; },
@@ -203,7 +202,7 @@ export const MAP_RESOURCE_OWNER_PORTS = Object.freeze({
   objectPresentation: Object.freeze(["colorModel","countries","cutGeometry","domains","objectCatalog","objectPresentation","platform","projectState","spatialQuery","territorialModel"]),
   hydroSettings: Object.freeze(["colorModel","hydroPresentation","layerPresentation","mapLayout","objectPresentation","physicalConfig","platform","preferences","projectState","surfaces"]),
   layerList: Object.freeze(["colorModel","countries","distributionPresentation","domains","hydroPresentation","labelPresentation","layerPresentation","objectCatalog","objectPresentation","platform","projectState","rendering","territorialModel"]),
-  territorialLabels: Object.freeze(["colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces","territorialModel"]),
+  territorialLabels: Object.freeze(["objectModelB","colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectCatalog","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces","territorialModel"]),
   physicalResources: Object.freeze(["cutGeometry","domains","feedback","hydroPresentation","labelPresentation","layerPresentation","mapView","operationFeedback","physicalConfig","physicalServices","platform","projectState","rendering"]),
   interactionPackets: Object.freeze(["distributionPresentation","domains","draftPresentation","mapLayers","objectCatalog","platform","preferences","projectState","renderScene","surfaces"]),
 });
@@ -303,7 +302,7 @@ function createMapResourcePorts(providers) {
       get genericFeatureGeometryKind() { return providers.runtime.genericFeatureGeometryKind; },
       get genericFeatureName() { return providers.objectPresentation.genericFeatureName; },
       get genericFeatureRoleLabel() { return providers.objectPresentation.genericFeatureRoleLabel; },
-      get administrativeCountryName() { return providers.objectPresentation.administrativeCountryName; },
+      get territorialRootName() { return providers.objectPresentation.territorialRootName; },
       get territorialEntityName() { return providers.objectPresentation.territorialEntityName; },
     }),
     operationFeedback: Object.freeze({

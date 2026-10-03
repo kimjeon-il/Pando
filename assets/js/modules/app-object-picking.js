@@ -1,3 +1,4 @@
+import { layerObjectRank, territorialSymbolGroup } from './layer-presentation.js';
 import { createTerritorialFeature } from './territorial-units.js';
 /** ObjectPicking: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -81,8 +82,7 @@ export function createObjectPicking() {
     const ref = (0, dependencies.selectionServices.normalizeObjectRef)(value);
     if (!ref || !(0, dependencies.objectLookup.objectRefExists)(ref)) return false;
     if (ref.domain === 'territorial') {
-      const group = (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'countries'
-        : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'regional') ? 'regions' : 'subunits';
+      const group = territorialSymbolGroup(dependencies.territorialModel.entityRepository.get(ref.id));
       return dependencies.projectState.state.layerVisibility[group] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)(group, ref.id);
     }
     if (ref.domain === 'distribution') {
@@ -109,12 +109,34 @@ export function createObjectPicking() {
     let group = '';
     if (ref.domain === 'generic') group = 'genericFeatures';
     else if (ref.domain === 'distribution') group = 'distributions';
-    else if (ref.domain === 'territorial') group = (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !!dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'subunits' : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'regional') ? 'regions' : (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId) ? 'countries' : 'subunits';
+    else if (ref.domain === 'territorial') group = territorialSymbolGroup(dependencies.territorialModel.entityRepository.get(ref.id));
     else if (ref.domain === 'label') group = 'labels';
     else if (ref.domain === 'hydro') group = 'hydro';
     const index = order.indexOf(group);
-    if (index >= 0) return 1000 - index;
+    // General hierarchy fills claim land before independent overlays are drawn.
+    if (group === 'subunits') return 600;
+    if (index >= 0) return 1000 + index;
     return { labels: 1300, hydro: 850, countries: 500 }[group] || 700;
+  }
+
+  function compareVisualOrder(left, right) {
+    return selectableVisualRank(right) - selectableVisualRank(left)
+      || (left.domain === 'territorial' && right.domain === 'territorial'
+        ? dependencies.territorialModel.entityRepository.ancestors(right.id).length
+          - dependencies.territorialModel.entityRepository.ancestors(left.id).length : 0)
+      || layerObjectRank(dependencies.projectState.state.layerPresentation, right.key)
+        - layerObjectRank(dependencies.projectState.state.layerPresentation, left.key);
+  }
+
+  // The exact geometry is the same phase projection used by render packets.
+  function territorialObjectsAt(screenPoint, coord, records = dependencies.spatialRecords.indexedMapObjectCandidates(screenPoint)) {
+    return records.filter(record => record.domain === 'territorial').flatMap(record => {
+      const feature = dependencies.objectModelB.territorialScope.displayFeature(record.id);
+      const ref = dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'entity', id: record.id });
+      if (!feature || !objectRefSelectable(ref)) return [];
+      dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;
+      return geometryHitsScreenPoint(feature.geometry, coord, screenPoint, dependencies.surfaces.isMobile() ? 12 : 7) ? [{ ref, feature }] : [];
+    }).sort((a, b) => compareVisualOrder(a.ref, b.ref));
   }
 
   async function selectableObjectsAt(screenPoint, coord, { seedRefs = [] } = {}) {
@@ -126,6 +148,7 @@ export function createObjectPicking() {
     seedRefs.forEach(add);
     dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount = 0;
     const indexed = (0, dependencies.spatialRecords.indexedMapObjectCandidates)(screenPoint);
+    territorialObjectsAt(screenPoint, coord, indexed).forEach(item => add(item.ref));
     for (const entry of indexed) {
       if (entry.domain === 'label') {
         if (!dependencies.projectState.state.layerVisibility.labels || !(0, dependencies.layerPresentation.isLayerItemVisible)('labels', entry.id)) continue;
@@ -148,40 +171,17 @@ export function createObjectPicking() {
         if (row && geometryHitsScreenPoint(row.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 12 : 7)) add({ domain: 'distribution', type: 'distribution', id: row.layer.id });
         continue;
       }
-      if (entry.domain === 'territorial') {
-        const feature = dependencies.territorialModel.entityRepository.get(entry.id);
-        if (!feature) continue;
-        const group = (feature.properties?.entityKind === 'general' && !!feature.properties?.parentId) ? 'subunits' : (feature.properties?.entityKind === 'regional') ? 'regions' : 'subunits';
-        if (dependencies.projectState.state.layerVisibility[group] === false || !(0, dependencies.layerPresentation.isLayerItemVisible)(group, feature.id)) continue;
-        dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;
-        if (geometryHitsScreenPoint(feature.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 12 : 7)) add({ domain: 'territorial', type: 'entity', id: feature.id });
-        continue;
-      }
       if (entry.domain === 'hydro') {
         const feature = (0, dependencies.hydroPresentation.hydroEditById)(entry.id);
         dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;
         if (feature && (0, dependencies.physicalServices.isHydroFeatureVisible)(feature) && geometryHitsScreenPoint(feature.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 14 : 8)) add({ domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id });
       }
     }
-    const canReuseHover = (dependencies.territorialModel.entityRepository.get(dependencies.pointerInteractionA.lastHoverHit?.ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.pointerInteractionA.lastHoverHit?.ref?.id)?.properties.parentId) && dependencies.pointerInteractionA.lastHoverHit.feature
-      && dependencies.pointerInteractionA.lastHoverPickViewRevision === dependencies.mapLayout.viewRevision && dependencies.pointerInteractionA.lastHoverPickPoint
-      && Math.hypot(screenPoint[0] - dependencies.pointerInteractionA.lastHoverPickPoint[0], screenPoint[1] - dependencies.pointerInteractionA.lastHoverPickPoint[1]) < 3;
-    dependencies.rendering.selectionPerformanceMetrics.pickCacheHit = !!canReuseHover;
-    if (dependencies.projectState.state.layerVisibility.countries) {
-      let country;
-      if (canReuseHover) country = dependencies.pointerInteractionA.lastHoverHit.feature;
-      else {
-        const pickStartedAt = performance.now();
-        country = (0, dependencies.pointerInteractionA.countryAtScreenPoint)(screenPoint, coord, { verify: false });
-        dependencies.rendering.selectionPerformanceMetrics.gpuPickMs = performance.now() - pickStartedAt;
-      }
-      if (country) add({ domain: 'territorial', type: 'entity', id: country.id });
-    }
     if (dependencies.projectState.state.layerVisibility.rivers || dependencies.projectState.state.layerVisibility.lakes) {
       const hydro = await (0, dependencies.pointerInteractionA.hydroAtScreenPoint)(screenPoint, coord);
       if (hydro) add({ domain: 'hydro', type: hydro.properties?.category || 'river', id: hydro.properties?.pandolab_id || hydro.id });
     }
-    return candidates.sort((left, right) => selectableVisualRank(right) - selectableVisualRank(left) || (0, dependencies.objectOperationsA.objectDisplayInfo)(left).name.localeCompare((0, dependencies.objectOperationsA.objectDisplayInfo)(right).name, 'ko'));
+    return candidates.sort((left, right) => compareVisualOrder(left, right) || (0, dependencies.objectOperationsA.objectDisplayInfo)(left).name.localeCompare((0, dependencies.objectOperationsA.objectDisplayInfo)(right).name, 'ko'));
   }
 
   function closeObjectChooser({ restoreFocus = false, cancelPending = true } = {}) {
@@ -345,7 +345,7 @@ export function createObjectPicking() {
       const feature = {
         type: 'Feature', id: (0, dependencies.surfaces.uid)('point'),
         geometry: { type: 'Point', coordinates: coord },
-        properties: { name: '', color: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR, role: 'generic', landBinding: 'none', schemaVersion: dependencies.applicationConstantsA.GENERIC_FEATURE_SCHEMA_VERSION },
+        properties: { name: '', color: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR, schemaVersion: dependencies.applicationConstantsA.GENERIC_FEATURE_SCHEMA_VERSION },
       };
       dependencies.objectModelA.genericFeatureService.add(feature);
       dependencies.domains.editingDomain?.setTool('select');
@@ -362,6 +362,7 @@ export function createObjectPicking() {
     get closeObjectChooser() { return closeObjectChooser; },
     get chooseObjectCandidate() { return chooseObjectCandidate; },
     get createCountryFeature() { return createCountryFeature; },
+    get territorialObjectsAt() { return territorialObjectsAt; },
     get geometryHitsScreenPoint() { return geometryHitsScreenPoint; },
     get handleMapClick() { return handleMapClick; },
     get handleObjectSelectionAt() { return handleObjectSelectionAt; },

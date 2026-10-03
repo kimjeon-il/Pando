@@ -2,9 +2,6 @@ export const EXCHANGE_TARGETS = Object.freeze({
   PROJECT: 'project',
   GENERAL: 'general',
   REGIONAL: 'regional',
-  COUNTRY: 'country',
-  SUBUNIT: 'subunit',
-  REGION: 'region',
   DISTRIBUTION: 'distribution',
   GENERIC: 'generic',
 });
@@ -15,9 +12,6 @@ export const EXCHANGE_TARGET_DESCRIPTORS = Object.freeze({
   general: Object.freeze({ target: 'general', domain: 'territorial', replaceOnly: false, fallback: false }),
   regional: Object.freeze({ target: 'regional', domain: 'territorial', replaceOnly: false, fallback: false }),
   [EXCHANGE_TARGETS.PROJECT]: Object.freeze({ target: EXCHANGE_TARGETS.PROJECT, domain: 'project', replaceOnly: true, fallback: false }),
-  [EXCHANGE_TARGETS.COUNTRY]: Object.freeze({ target: EXCHANGE_TARGETS.COUNTRY, domain: 'territorial', replaceOnly: false, fallback: false }),
-  [EXCHANGE_TARGETS.SUBUNIT]: Object.freeze({ target: EXCHANGE_TARGETS.SUBUNIT, domain: 'territorial', replaceOnly: false, fallback: false }),
-  [EXCHANGE_TARGETS.REGION]: Object.freeze({ target: EXCHANGE_TARGETS.REGION, domain: 'territorial', replaceOnly: false, fallback: false }),
   [EXCHANGE_TARGETS.DISTRIBUTION]: Object.freeze({ target: EXCHANGE_TARGETS.DISTRIBUTION, domain: 'distribution', replaceOnly: false, fallback: false }),
   [EXCHANGE_TARGETS.GENERIC]: Object.freeze({ target: EXCHANGE_TARGETS.GENERIC, domain: 'generic', replaceOnly: false, fallback: true }),
 });

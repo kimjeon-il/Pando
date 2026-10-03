@@ -68,15 +68,15 @@ export function createBuiltinSession() {
       builtinGeometryCache = new WeakMap();
       builtinRenderCache = null;
     }
-    if (builtinRenderCache?.countries === dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) && builtinRenderCache.units === dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId)
-      && builtinRenderCache.presentation === dependencies.projectState.state.layerPresentation) return builtinRenderCache;
-    const features = [...(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }))];
+    const entities = dependencies.objectModelB.territorialScope.displayEntities();
+    if (builtinRenderCache?.entities === entities && builtinRenderCache.presentation === dependencies.projectState.state.layerPresentation) return builtinRenderCache;
+    const features = entities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId);
     const byId = new Map(features.map(feature => [String(feature.id), feature]));
     const countryIds = new Set(byId.keys());
     const labelById = new Map(byId);
-    const labelRefs = new Map();
+    const labelRefs = new Map(features.map(feature => [String(feature.id), { domain: 'territorial', type: 'entity', id: String(feature.id) }]));
     const units = new Map();
-    for (const unit of dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId) || []) {
+    for (const unit of entities.filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId)) {
       const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
       const id = territorialSceneDisplayId(unit, countryIds);
       const feature = { type: 'Feature', id, properties: unit.properties, geometry: unit.geometry };
@@ -87,7 +87,7 @@ export function createBuiltinSession() {
       if (style.opacity !== 1 || style.blendMode !== 'normal' || !style.boundaryVisible) continue;
       let unchanged = builtinGeometryCache.get(unit.geometry);
       if (unchanged === undefined) {
-        unchanged = canonicalCountryStore ? canonicalCountryStore.geometryEquals(id, unit.geometry)
+        unchanged = canonicalCountryStore ? canonicalCountryStore.geometryEquals(sourceId, unit.geometry)
           : JSON.stringify(unit.geometry) === JSON.stringify(pristineCountriesFallback?.features.find(feature => feature.id === id)?.geometry);
         builtinGeometryCache.set(unit.geometry, unchanged);
       }
@@ -96,7 +96,7 @@ export function createBuiltinSession() {
     }
     const order = new Map((canonicalCountryStore?.ids() || pristineCountriesFallback?.features.map(feature => feature.id) || []).map((id, index) => [id, index]));
     features.sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity));
-    builtinRenderCache = { countries: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }), units: dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId), presentation: dependencies.projectState.state.layerPresentation,
+    builtinRenderCache = { entities, presentation: dependencies.projectState.state.layerPresentation,
       collection: { type: 'FeatureCollection', features }, byId, labelById, labelRefs, nativeUnits: units };
     return builtinRenderCache;
   }
@@ -112,7 +112,7 @@ export function createBuiltinSession() {
 
   function isNativeBuiltinSubunit(unit) {
     const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
-    return !!sourceId && builtinTerritorialScene().nativeUnits.get(sourceId) === unit;
+    return !!sourceId && builtinTerritorialScene().nativeUnits.get(sourceId)?.id === unit.id;
   }
 
   function isRenderCountryVisible(id) {

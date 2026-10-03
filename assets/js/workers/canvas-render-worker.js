@@ -340,6 +340,9 @@ function canvasFallbackWorkerMain() {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.beginPath();
         self.d3.geo.path().projection(projection).context(context)({ type: 'FeatureCollection', features });
+        for (const packet of message.scenePolygons || []) {
+          if (packet.role === 'territorial-fill') self.d3.geo.path().projection(projection).context(context)(self.PandoLabCanvasSceneComposition.geometryFor(packet));
+        }
         context.clip();
       }
       if (message.projection === 'globe') {
@@ -573,11 +576,8 @@ function canvasFallbackWorkerMain() {
         const geoPath = self.d3.geo.path().projection(projection).context(context);
         context.globalAlpha = theme.baseLandAlpha;
         context.fillStyle = theme.defaultLand;
-        for (let index = 0; message.visible && index < features.length; index += 1) {
-          const feature = features[index];
-          if (hiddenCountryIds.has(countryId(feature, index))) continue;
-          context.beginPath(); geoPath(feature); context.fill();
-        }
+        const visibleLand = message.visible ? features.filter((feature, index) => !hiddenCountryIds.has(countryId(feature, index))) : [];
+        self.PandoLabCanvasSceneComposition.drawGeneralLand(context, geoPath, message.scenePolygons || [], visibleLand);
         context.globalAlpha = 1;
         terrainComplete = renderTerrain(message, projection, width, height, dpr);
         if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);

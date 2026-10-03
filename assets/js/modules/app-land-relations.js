@@ -35,12 +35,6 @@ export function createLandRelations() {
     return (0, dependencies.geometryPreview.geometryPolygonSets)(feature?.geometry).some(polygon => pointInPolygonSet(point, polygon));
   }
 
-  function partitionGroupMatches(feature, { entityKind, sovereignId, parentId = '' }) {
-    return feature.properties?.entityKind === entityKind
-      && String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '') === String(sovereignId || '')
-      && String(feature.properties?.parentId || '') === String(parentId || sovereignId || '');
-  }
-
   function reconcileTerritorialUnitCompleteness(countryIds, { preserveIds = [] } = {}) {
     const clipper = window.polygonClipping;
     if (!clipper?.intersection || !clipper?.difference || !clipper?.union) return;
@@ -51,7 +45,7 @@ export function createLandRelations() {
       const countryId = String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '');
       if (!wanted.has(countryId)) return [feature];
       if (preserved.has(String(feature.id)) || feature.properties?.coverageMode === dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT) return [feature];
-      const container = (0, dependencies.territoryGeometry.territorialUnitContainer)(feature);
+      const container = dependencies.territorialModel.entityRepository.parent(feature.id);
       if (!container?.geometry) return [];
       const clipped = (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(clipper.intersection(feature.geometry.coordinates, container.geometry.coordinates));
       if (!clipped) return [];
@@ -126,7 +120,6 @@ export function createLandRelations() {
   return Object.freeze({
     connect,
     initializeRingHitTester,
-    get partitionGroupMatches() { return partitionGroupMatches; },
     get pointInCountryFeature() { return pointInCountryFeature; },
     get pointInGenericFeature() { return pointInGenericFeature; },
     get pointInRing() { return pointInRing; },

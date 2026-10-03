@@ -9,7 +9,7 @@ function harness(refs, { builtin = false } = {}) {
     attrs: {}, dataset: {}, classList: { toggle() {} },
     setAttribute(key, value) { this.attrs[key] = value; },
   }]));
-  const feature = { id: refs[0]?.id, properties: { pandolab_id: refs[0]?.id, category: refs[0]?.type, unitType: refs[0]?.type, locked: true } };
+  const feature = { id: refs[0]?.id, properties: { pandolab_id: refs[0]?.id, category: refs[0]?.type, entityKind: 'general', parentId: '', locked: true } };
   const state = {
     layerVisibility: { countries: false, rivers: false, lakes: false, subunits: false, regions: false, distributions: false, labels: false, genericFeatures: false },
     itemVisibility: {}, physicalSettings: { hiddenHydroIds: {}, hydroLayers: { rivers_hydro: false, lakes_natural_earth: false } },
@@ -19,7 +19,6 @@ function harness(refs, { builtin = false } = {}) {
   const commands = createObjectCommands();
   const ports = {
     state, $: id => nodes.get(id), normalizeObjectRef: ref => ref,
-    TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
     distributionVisibilityRevision: 0,
     bumpVisibilityRevision: () => { ports.distributionVisibilityRevision += 1; },
     selectionDomain: { snapshot: () => ({ selection: { items: refs } }), primary: () => refs[0] },
@@ -58,7 +57,7 @@ test('river and lake display info uses only the object kind without built-in sou
 
 test('per-object visibility keeps every layer master and selection intact', () => {
   for (const [domain, type, group] of [
-    ['territorial', 'country', 'countries'], ['territorial', 'subunit', 'subunits'], ['territorial', 'region', 'regions'],
+    ['territorial', 'entity', 'countries'],
     ['hydro', 'river', 'hydro'], ['hydro', 'lake', 'hydro'], ['distribution', 'distribution', 'distributions'],
     ['label', 'label', 'labels'], ['generic', 'feature', 'genericFeatures'],
   ]) {

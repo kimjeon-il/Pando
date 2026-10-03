@@ -24,6 +24,10 @@ export function createEditDisplayPreparation() {
         await checkpoint();
         return { feature: excludeAncestorHighlightBoundary(feature, owners) };
       }
+      if (request.entities) {
+        countries = request.entities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId);
+        units = request.entities.filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
+      }
       const countryById = new Map(countries.map(feature => [String(feature.id), feature]));
       const grouped = new Map();
       const entities = new Map([...countries, ...units].map(feature => [String(feature.id), feature]));

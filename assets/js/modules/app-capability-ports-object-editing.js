@@ -177,7 +177,7 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
 });
 
 const PORT_SPECS = Object.freeze({
-  applicationConstantsB: Object.freeze([["SELECTION_STYLE","runtime","SELECTION_STYLE"],["TERRITORIAL_TYPE_LABELS","runtime","TERRITORIAL_TYPE_LABELS"]]),
+  applicationConstantsB: Object.freeze([["SELECTION_STYLE","runtime","SELECTION_STYLE"]]),
   colorServices: Object.freeze([["normalizeColorValue","runtime","normalizeColorValue"]]),
   countryServices: Object.freeze([["normalizeCountryCollection","runtime","normalizeCountryCollection"],["resolveCountryIdentities","runtime","resolveCountryIdentities"]]),
   countryValidation: Object.freeze([["refreshCountryCentroids","countryValidation","refreshCountryCentroids"],["snapGeometryToGrid","countryValidation","snapGeometryToGrid"]]),

@@ -7,8 +7,7 @@ export function createSelectionPacket({
   styleRevision = 0,
   countryBoundaryRevision = '',
   territorialBoundaryRevision = '',
-  country = {},
-  generic = {},
+  channels = {},
   style = null,
 } = {}) {
   return Object.freeze({
@@ -18,17 +17,8 @@ export function createSelectionPacket({
     styleRevision: String(styleRevision ?? ''),
     countryBoundaryRevision: String(countryBoundaryRevision || ''),
     territorialBoundaryRevision: String(territorialBoundaryRevision || ''),
-    country: Object.freeze({
-      hoverId: String(country.hoverId || ''),
-      primaryId: String(country.primaryId || ''),
-      secondaryIds: Object.freeze([...(country.secondaryIds || [])].map(String).filter(Boolean)),
-    }),
-    generic: Object.freeze({
-      candidate: Object.freeze(cloneItems(generic.candidate)),
-      hover: Object.freeze(cloneItems(generic.hover)),
-      primary: Object.freeze(cloneItems(generic.primary)),
-      secondary: Object.freeze(cloneItems(generic.secondary)),
-    }),
+    channels: Object.freeze(Object.fromEntries(['candidate', 'hover', 'primary', 'secondary'].map(channel =>
+      [channel, Object.freeze(cloneItems(channels[channel]))]))),
     style,
   });
 }

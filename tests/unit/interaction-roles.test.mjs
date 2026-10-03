@@ -3,11 +3,18 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveMapInteractionStyle, resolveInteractionEntries, interactionRoleStyle } from '../../assets/js/modules/map-interaction-style.js';
-import { mapInteractionEntries } from '../../assets/js/modules/interaction-roles.js';
+import { mapInteractionEntries as interactionEntries } from '../../assets/js/modules/interaction-roles.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createEditDisplayPreparation } from '../../assets/js/modules/edit-display-preparation.js';
 import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
 import { createSelectionPass } from '../../assets/js/modules/selection-pass.js';
+
+const mapInteractionEntries = (snapshot, state, options = {}) => {
+  const entities = options.entities || state.territorialEntities || [];
+  const repository = createTerritorialEntityRepository({ getEntities: () => entities });
+  return interactionEntries(snapshot, state, { ...options, territorialEntityById: repository.get });
+};
 
 test('all object domains share role priority and style, including zero fill and disabled outlines', () => {
   for (const theme of ['light', 'dark']) for (const fillStrength of [0, 0.35, 1]) {
@@ -86,9 +93,9 @@ test('late leave from another hover source cannot clear the current row, while r
 test('a pending owned boundary does not poison its ready geometry cache', () => {
   const pass = createSelectionPass();
   const item = { key: 'generic:feature:a', geometryRevision: 'owned:pending', geometry: { type: 'Feature', geometry: null } };
-  pass.updateData({ generic: { secondary: [item] } });
+  pass.updateData({ channels: { secondary: [item] } });
   assert.equal(pass.stats().segmentCount, 0);
-  pass.updateData({ generic: { secondary: [{ ...item, geometryRevision: 'owned', geometry: {
+  pass.updateData({ channels: { secondary: [{ ...item, geometryRevision: 'owned', geometry: {
     type: 'Feature', geometry: { type: 'MultiLineString', coordinates: [[[0, 0], [1, 1]]] },
   } }] } });
   assert.ok(pass.stats().segmentCount > 0);
@@ -126,12 +133,10 @@ test('tool receivers, donors and nested parents keep their semantic roles indepe
   const units = [{ id: 'parent', properties: { entityKind: 'general', parentId: 'RUS' } }, { id: 'child', properties: { entityKind: 'general', parentId: 'parent' } }];
   const refs = units.map(unit => normalizeObjectRef({ domain: 'territorial', type: 'entity', id: unit.id }));
   const snapshot = { selection: { items: refs, primaryKey: refs[1].key } };
-  const byId = new Map(units.map(unit => [unit.id, unit]));
   const rows = mapInteractionEntries(snapshot, {
     tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'parent', territorialUnitMergeTargetIds: ['child'],
   }, {
-    territorialEntityById: id => byId.get(String(id)) || null,
-    territorialUnits: () => units,
+    entities: [...units, { id: 'RUS', properties: { entityKind: 'general', parentId: '' } }],
   });
   assert.equal(rows[0].ref.id, 'parent'); assert.equal(rows[0].role, 'edit-target');
   assert.equal(rows[1].role, 'primary'); assert.ok(rows[1].roles.includes('selected-provider'));
@@ -159,4 +164,34 @@ test('Canvas metadata updates share immutable coordinate reconstruction', () => 
   const after = globalThis.PandoLabCanvasSceneComposition.geometryFor({ ...packet, style: { color: '#123456' } });
   assert.equal(after, before);
   assert.notEqual(globalThis.PandoLabCanvasSceneComposition.geometryFor({ ...packet, ringCoordinates: packet.ringCoordinates.slice() }), before);
+});
+
+
+test('boundary preparation consumes the same preview entity coordinates and switches atomically to canonical coordinates', async () => {
+  const geometry = (x, width = 4) => ({ type: 'Polygon', coordinates: [[[x,0],[x,4],[x+width,4],[x+width,0],[x,0]]] });
+  const root = { type: 'Feature', id: 'A', properties: { entityKind: 'general', parentId: '' }, geometry: geometry(0) };
+  const child = { type: 'Feature', id: 'B', properties: { entityKind: 'general', parentId: 'A' }, geometry: geometry(0, 2) };
+  const displayed = [root, child].map(entity => ({ ...entity, geometry: geometry(20, entity.id === 'B' ? 2 : 4) }));
+  const before = structuredClone([root, child]);
+  const preparation = createEditDisplayPreparation();
+  const preview = await preparation.prepare({ kind: 'boundaries', entities: displayed }, [root], [child]);
+  assert.ok(preview.segments.length > 0);
+  assert.ok(preview.segments.every(segment => segment.a[0] >= 20 && segment.b[0] >= 20));
+  const canonical = await preparation.prepare({ kind: 'boundaries' }, [root], [child]);
+  assert.ok(canonical.segments.length > 0);
+  assert.ok(canonical.segments.every(segment => segment.a[0] <= 4 && segment.b[0] <= 4));
+  assert.deepEqual([root, child], before);
+});
+
+
+test('general land substrate is filled once for overlapping hierarchy shapes and excludes independent regional overlays', () => {
+  const drawn = [], calls = [];
+  const coordinates = new Float64Array([0,0,0,1,1,1,1,0,0,0]);
+  const packet = role => ({role, ringCoordinates: coordinates, polygonOffsets: [0,1], ringOffsets: [0,5]});
+  const root = { type: 'Feature', id: 'A', geometry: { type: 'Polygon', coordinates: [] } };
+  globalThis.PandoLabCanvasSceneComposition.drawGeneralLand({beginPath: () => calls.push('begin'), fill: () => calls.push('fill')},
+    feature => drawn.push(feature), [packet('territorial-fill'), packet('regional-overlay')], [root]);
+  assert.deepEqual(calls, ['begin', 'fill']);
+  assert.equal(drawn.length, 2);
+  assert.strictEqual(drawn[0], root);
 });

@@ -32,7 +32,7 @@ test('unified emphasis boots and selects a country with the configured style', a
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__?.hover.fillAlpha)).toBe(0);
   try {
-    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30000 }).toContain('country:DEU');
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30000 }).toContain('territorial:entity:DEU');
   } catch (error) {
     console.log(JSON.stringify(await page.evaluate(() => {
       const s = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
@@ -58,7 +58,7 @@ test('adjacent countries share prepared boundaries and list hover never adds a s
   await expect.poll(() => page.evaluate(() => {
     const coverage = window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage;
     return [...(coverage?.primary?.renderedKeys || []), ...(coverage?.secondary?.renderedKeys || [])].sort();
-  }), { timeout: 30000 }).toEqual(['country:AUT', 'country:DEU', 'country:FRA']).catch(async error => {
+  }), { timeout: 30000 }).toEqual(['territorial:entity:AUT', 'territorial:entity:DEU', 'territorial:entity:FRA']).catch(async error => {
     console.log(await page.evaluate(() => ({ selection: window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection, gpu: window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage }))); throw error;
   });
   await page.locator('[data-object-search-select="countries"][data-item-id="AUT"]').hover();
@@ -186,7 +186,7 @@ test('custom color, zero fill and disabled selected outlines preserve unselected
   await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('프랑스');
   await page.locator('[data-object-search-select="countries"][data-item-id="FRA"]').hover();
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.hover?.renderedKeys || []), { timeout: 30000 }).toContain('country:FRA');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.hover?.renderedKeys || []), { timeout: 30000 }).toContain('territorial:entity:FRA');
   const style = await page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__);
   expect(style.selection.color).toBe('#8f249b'); expect(style.hover.color).toBe('#8f249b');
   expect(style.selection.primary.innerWidth).toBe(0); expect(style.hover.width).toBe(1.5);
@@ -203,7 +203,7 @@ test('GPU context recovery never gives scene fills back to SVG', async ({ page }
   await page.goto('/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [])).toContain('country:DEU');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [])).toContain('territorial:entity:DEU');
   const supported = await page.evaluate(() => {
     const gl = document.querySelector('.gpu-map-canvas').getContext('webgl2');
     window.__lossExtension = gl.getExtension('WEBGL_lose_context');
@@ -213,7 +213,7 @@ test('GPU context recovery never gives scene fills back to SVG', async ({ page }
   await expect(page.locator('.map-selection-outline.is-primary')).toHaveCount(1);
   await expect(page.locator('.map-selection-fill')).toHaveCount(0);
   await page.evaluate(() => window.__lossExtension.restoreContext());
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || []), { timeout: 30000 }).toContain('country:DEU');
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || []), { timeout: 30000 }).toContain('territorial:entity:DEU');
   await expect(page.locator('.map-selection-outline, .map-selection-fill')).toHaveCount(0);
 });
 

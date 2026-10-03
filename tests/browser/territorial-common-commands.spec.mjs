@@ -14,10 +14,9 @@ async function importRegions(page, rows) {
   await (await choosing).setFiles({ name: 'regions.geojson', mimeType: 'application/geo+json', buffer: Buffer.from(JSON.stringify({ type:'FeatureCollection', features:rows.map(({name,x})=>({ type:'Feature', properties:{name}, geometry:{type:'Polygon',coordinates:[[[x,50],[x,51],[x+1,51],[x+1,50],[x,50]]]}}))})) });
   await expect(page.locator('#gisImportModal')).toBeVisible({timeout:30000});
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({timeout:30000});
-  await page.locator('#gisTargetType').selectOption('region');
+  await page.locator('#gisTargetType').selectOption('regional');
   await page.locator('#gisImportNextBtn').click();
   await expect(page.locator('#gisStepIndicator')).toContainText('2/3');
-  await page.locator('#gisIndependentRegion').check();
   await page.locator('#gisImportNextBtn').click();
   await expect(page.locator('#gisStepIndicator')).toContainText('3/3');
   await page.locator('#gisImportConfirmBtn').click();

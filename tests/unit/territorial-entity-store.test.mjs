@@ -87,7 +87,7 @@ test('one physical collection stores metadata and geometry for both kinds', () =
   for (const retired of ['countryOverrides','countriesData','territorialUnits']) assert.equal(retired in state,false);
 });
 
-test('parent-chain country follows subtree reparenting without persisted sovereignId', () => {
+test('hierarchy root follows subtree reparenting without persisted sovereignId', () => {
   const { store,repo } = fixture();
   assert.equal(repo.root('T').id,'A');
   store.setField('S','parentId','B');
