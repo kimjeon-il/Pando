@@ -63,7 +63,7 @@ export function resolveTerritorialColor(feature, { entityRepository, countryColo
     seen.add(id);
     if (!colorVisible(current)) return fallback;
     if (current.properties?.style?.color) return current.properties.style.color;
-    if (current.properties?.unitType === 'country') return countryColor(current);
+    if (!current.properties?.unitType || current.properties.unitType === 'country') return countryColor(current);
     current = entityRepository.parent(id) || entityRepository.administrativeCountry(id);
   }
   return fallback;

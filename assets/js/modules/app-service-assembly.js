@@ -1,3 +1,5 @@
+import { createTerritorialFillResolver } from './territorial-fill-style.js';
+
 /** ServiceAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -108,17 +110,13 @@ export function createServiceAssembly() {
       TERRAIN_RASTER_MANIFEST_URL: dependencies.physicalConfig.TERRAIN_RASTER_MANIFEST_URL,
       onTerrainSourceChanged: manifest => { dependencies.projectState.state.terrainManifest = manifest; },
       activeProjection: dependencies.mapView.activeProjection,
-      countryColor: feature => {
-        const unit = feature.properties?.unitType === 'subunit'
-          ? (0, dependencies.countries.builtinTerritorialScene)().nativeUnits.get(String(feature.id)) || feature
-          : null;
-        const group = unit ? 'subunits' : 'countries';
-        const objectKey = unit ? `territorial:subunit:${unit.id}` : '';
-        return (0, dependencies.applicationServicesB.resolveLayerDisplayColor)(dependencies.projectState.state.layerPresentation, group, {
-          objectKey,
-          explicitColor: unit ? (0, dependencies.colorModel.territorialEntityColor)(unit) : (0, dependencies.colorModel.territorialEntityColor)(feature),
-          fallbackColor: (0, dependencies.preferences.mapTheme)().defaultLand,
-        });
+      createCountryFillResolver: () => {
+        const resolve = createTerritorialFillResolver({ state: dependencies.projectState.state,
+          entityRepository: dependencies.territorialModel.entityRepository,
+          terrainAlpha: dependencies.preferences.mapTheme().countryColorAlpha });
+        const nativeUnits = dependencies.countries.builtinTerritorialScene().nativeUnits;
+        return feature => resolve(feature.properties?.unitType === 'subunit'
+          ? nativeUnits.get(String(feature.id)) || feature : feature);
       },
       baseSceneFeatureById: dependencies.builtinCountries.baseSceneFeatureById,
       countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,

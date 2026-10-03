@@ -397,16 +397,21 @@ export function createRenderingDomain({
     const renderViewState = viewStateOrRevision && typeof viewStateOrRevision === 'object' ? viewStateOrRevision : null;
     countries.renderPendingCountryOverlays?.();
     const pending = state.layerVisibility?.countries && state.pendingCountryRenderIds?.size
-      ? [...state.pendingCountryRenderIds].map(countries.getRawCountryFeature).filter(Boolean)
+      ? [...state.pendingCountryRenderIds].map(countries.getEntity).filter(Boolean)
       : [];
     const pendingPolygons = [];
     const pendingStrokes = [];
+    const theme = pending.length ? countries.mapTheme() : null;
+    const resolveFill = pending.length ? createTerritorialFillResolver({ state, entityRepository: territorial.entityRepository,
+      terrainAlpha: theme.countryColorAlpha,
+      mapSubstrate: state.physicalSettings.terrainVisible ? null
+        : { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha } }) : null;
     for (const feature of pending) {
       const id = String(feature.id || '');
       const geometryRevision = countries.selectionGeometryRevision?.(`country:${id}`, 'pending-country', feature);
       pendingPolygons.push({ key: `pending-country-fill:${id}`, geometryRevision, geometry: feature.geometry, order: -300,
         role: 'territorial-fill', ownerId: id, territoryDepth: 0,
-        style: { color: countries.countryColor?.(feature), fillAlpha: countries.mapTheme?.().fillAlpha, blendMode: 'normal' } });
+        style: resolveFill(feature) });
       pendingStrokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: { color: countries.mapTheme?.().border, alpha: countries.mapTheme?.().borderAlpha, width: 1, cap: 'round' } });
     }
     countries.replaceGpuSceneDomain?.('country-overlays', {
@@ -516,8 +521,8 @@ export function createRenderingDomain({
     const t = territorial;
     const state = t.getState?.() || {};
     const theme = countries.mapTheme?.() || {};
-    const resolveFill = createTerritorialFillResolver({ state, entityRepository: t.entityRepository, countryColor: feature => countries.countryColor(feature),
-      defaultColor: theme.defaultLand, terrainAlpha: theme.countryColorAlpha ?? theme.terrainColorAlpha ?? 1 });
+    const resolveFill = createTerritorialFillResolver({ state, entityRepository: t.entityRepository,
+      terrainAlpha: theme.countryColorAlpha });
     t.syncBuiltinPalette?.();
     const types = t.TERRITORIAL_UNIT_TYPES || {};
     const visibleIds = new Set((t.visibleMapObjectCandidates?.(['territorial']) || []).map(record => String(record.id)));

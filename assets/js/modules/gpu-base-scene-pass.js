@@ -13,6 +13,12 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
       gl.clearColor(0, 0, 0, 0);
       gl.clearStencil(0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+      // Map-mode substrate is independent of optional country paint.
+      resetGpuNormalBlend(gl);
+      if (countriesVisible) {
+        drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges, true);
+        if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges, true);
+      }
       gl.disable(gl.BLEND);
       if (terrainVisible && (terrainStyle !== 'physical' || terrainRepresentation === 'dem-relief-v1')) {
         gl.enable(gl.STENCIL_TEST);
