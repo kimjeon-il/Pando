@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildReferenceImageCalibrationWarp,
   buildReferenceImageMesh,
   buildReferenceImageProjectiveWarpFromQuad,
   buildReferenceImageWarp,
@@ -135,6 +136,47 @@ test('pinned metadata survives normalization and diagnostics', () => {
   assert.equal(warp.ok, true);
   assert.equal(warp.controlPoints[0].pinned, true);
   assert.equal(warp.diagnostics.residuals.find(item => item.id === 'anchor').pinned, true);
+});
+
+test('composite calibration switches corner pins plus calibration to TPS rubber sheet', () => {
+  const mapQuad = [[0, 0], [12, 1], [10, 10], [-1, 9]];
+  const warp = buildReferenceImageCalibrationWarp({
+    mapQuad,
+    cornerPinEnabled: true,
+    anchor: { image: [0.45, 0.55], coordinate: [4.2, 5.3] },
+    controlPoints: [
+      point('soft-a', [0.2, 0.3], [2.1, 2.4]),
+      point('soft-b', [0.75, 0.25], [10.5, 0.5]),
+    ],
+    mode: REFERENCE_IMAGE_WARP_MODES.PROJECTIVE,
+  });
+  assert.equal(warp.ok, true);
+  assert.equal(warp.mode, REFERENCE_IMAGE_WARP_MODES.TPS);
+  assert.equal(warp.diagnostics.hardPointCount, 5);
+  assert.equal(warp.diagnostics.softPointCount, 2);
+  assert.ok(warp.diagnostics.hardMaxMeters < 0.01);
+});
+
+test('composite calibration leaves corner-pin-only records to placement rendering', () => {
+  const warp = buildReferenceImageCalibrationWarp({
+    mapQuad: [[0, 0], [12, 1], [10, 10], [-1, 9]],
+    cornerPinEnabled: true,
+    controlPoints: [],
+    anchor: null,
+  });
+  assert.equal(warp.ok, false);
+  assert.equal(warp.reason, 'insufficient-control-points');
+});
+
+test('composite calibration rejects missing corner quad when calibration depends on it', () => {
+  const warp = buildReferenceImageCalibrationWarp({
+    mapQuad: null,
+    cornerPinEnabled: true,
+    anchor: { image: [0.5, 0.5], coordinate: [5, 5] },
+  });
+  assert.equal(warp.ok, false);
+  assert.equal(warp.reason, 'invalid-corner-pin-quad');
+  assert.equal(warp.mode, REFERENCE_IMAGE_WARP_MODES.TPS);
 });
 
 test('TPS rubber sheet keeps four corner pins and an internal anchor exact while fitting soft GCPs', () => {
