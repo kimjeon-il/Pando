@@ -1,13 +1,11 @@
 import {
-  REFERENCE_IMAGE_PLACEMENT,
-  normalizeReferenceImageRotation,
+  REFERENCE_IMAGE_TRANSFORM,
   referenceImagePlacementGeometry,
-  referenceImagePointToPlacementLocal,
-} from './reference-image-placement.js';
+  referenceImagePlacementUvAtPoint,
+} from './reference-image-transform.js';
 
 const HOST_ACTIVE_POLL_MS = 34;
 const HOST_IDLE_POLL_MS = 240;
-const radians = value => Number(value) * Math.PI / 180;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 function mapHost() {
@@ -33,6 +31,12 @@ function projectVisible(host, coordinate) {
   return angularDistanceDegrees(coordinate, roundTrip) <= 0.25 ? projected : null;
 }
 
+function projectedPlacement(record, host) {
+  if (!record?.mapQuad || record.mapQuad.length !== 4) return null;
+  const points = record.mapQuad.map(coordinate => projectVisible(host, coordinate));
+  return points.every(Boolean) ? points : null;
+}
+
 function affineForTriangles(source, destination) {
   const [s0, s1, s2] = source;
   const denominator = s0[0] * (s1[1] - s2[1]) + s1[0] * (s2[1] - s0[1]) + s2[0] * (s0[1] - s1[1]);
@@ -55,6 +59,13 @@ function barycentric(point, triangle) {
   const b = ((p2[1] - p0[1]) * (point[0] - p2[0]) + (p0[0] - p2[0]) * (point[1] - p2[1])) / denominator;
   const c = 1 - a - b;
   return a >= -0.002 && b >= -0.002 && c >= -0.002 ? [a, b, c] : null;
+}
+
+function placementUv(record, pair) {
+  return [
+    record.flipX ? 1 - pair[0] : pair[0],
+    record.flipY ? 1 - pair[1] : pair[1],
+  ];
 }
 
 export function createReferenceImageCanvasRenderer({
@@ -103,11 +114,10 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function drawTriangle(record, destination, uv, dpr) {
-    const source = uv.map(pair => {
-      // Warp control points and mesh UVs are already in original-image space.
-      // Reflection belongs only to the uncalibrated placement transform.
-      return [pair[0] * record.image.naturalWidth, pair[1] * record.image.naturalHeight];
-    });
+    const source = uv.map(pair => [
+      pair[0] * record.image.naturalWidth,
+      pair[1] * record.image.naturalHeight,
+    ]);
     const transform = affineForTriangles(source, destination);
     if (!transform) return;
     context.save();
@@ -138,23 +148,30 @@ export function createReferenceImageCanvasRenderer({
     context.restore();
   }
 
-  function drawUnreferenced(record, dpr) {
-    const rect = record.screenRect;
-    if (!rect) return;
+  function drawPlaced(record, host, dpr) {
+    const corners = projectedPlacement(record, host);
+    if (!corners) return;
+    const triangles = [
+      { indices: [0, 1, 2], uv: [[0, 0], [1, 0], [1, 1]] },
+      { indices: [0, 2, 3], uv: [[0, 0], [1, 1], [0, 1]] },
+    ];
     context.save();
-    context.setTransform(dpr, 0, 0, dpr, 0, 0);
     context.globalAlpha = record.opacity;
     context.globalCompositeOperation = record.blendMode;
-    context.translate(rect.x + rect.width / 2, rect.y + rect.height / 2);
-    context.rotate(radians(normalizeReferenceImageRotation(record.rotation)));
-    context.scale(record.flipX ? -1 : 1, record.flipY ? -1 : 1);
-    context.drawImage(record.image, -rect.width / 2, -rect.height / 2, rect.width, rect.height);
+    for (const triangle of triangles) {
+      drawTriangle(
+        record,
+        triangle.indices.map(index => corners[index]),
+        triangle.uv.map(pair => placementUv(record, pair)),
+        dpr,
+      );
+    }
     context.restore();
   }
 
-  function drawPlacementHandles(record, dpr) {
+  function drawPlacementHandles(record, host, dpr) {
     if (record.id !== getPlacementEditingId?.() || record.warp?.ok || isPanelHidden?.()) return;
-    const geometry = referenceImagePlacementGeometry(record);
+    const geometry = referenceImagePlacementGeometry(record, host);
     if (!geometry) return;
     const [nw, ne, se, sw] = geometry.corners;
     context.save();
@@ -169,17 +186,27 @@ export function createReferenceImageCanvasRenderer({
     context.lineTo(sw[0], sw[1]);
     context.closePath();
     context.stroke();
-    const topMid = [(nw[0] + ne[0]) / 2, (nw[1] + ne[1]) / 2];
     context.beginPath();
-    context.moveTo(topMid[0], topMid[1]);
+    context.moveTo(geometry.handles.n[0], geometry.handles.n[1]);
     context.lineTo(geometry.rotateHandle[0], geometry.rotateHandle[1]);
     context.stroke();
-    for (const point of [...geometry.corners, geometry.rotateHandle]) {
+    for (const handle of ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']) {
+      const point = geometry.handles[handle];
       context.beginPath();
-      context.arc(point[0], point[1], REFERENCE_IMAGE_PLACEMENT.handleRadius, 0, Math.PI * 2);
+      context.arc(point[0], point[1], REFERENCE_IMAGE_TRANSFORM.handleRadius, 0, Math.PI * 2);
       context.fill();
       context.stroke();
     }
+    context.beginPath();
+    context.arc(
+      geometry.rotateHandle[0],
+      geometry.rotateHandle[1],
+      REFERENCE_IMAGE_TRANSFORM.handleRadius,
+      0,
+      Math.PI * 2,
+    );
+    context.fill();
+    context.stroke();
     context.restore();
   }
 
@@ -223,12 +250,12 @@ export function createReferenceImageCanvasRenderer({
     const host = mapHost();
     const records = getRecords?.() || [];
     for (const record of records) {
-      if (!record.visible || !record.image) continue;
-      if (record.warp?.ok && host) drawWarped(record, host, dpr);
-      else drawUnreferenced(record, dpr);
+      if (!record.visible || !record.image || !host) continue;
+      if (record.warp?.ok) drawWarped(record, host, dpr);
+      else drawPlaced(record, host, dpr);
     }
     const selected = records.find(record => record.id === getSelectedId?.()) || null;
-    if (selected) drawPlacementHandles(selected, dpr);
+    if (host && selected) drawPlacementHandles(selected, host, dpr);
     if (host && selected) drawControlPoints(selected, host, dpr);
   }
 
@@ -242,16 +269,11 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function hitTestUv(record, point) {
-    if (record?.warp?.ok && record.mesh && mapHost()) projectedMesh(record, mapHost());
+    const host = mapHost();
+    if (!host) return null;
+    if (record?.warp?.ok && record.mesh) projectedMesh(record, host);
     if (!record?.warp?.ok || !record.mesh || !record.projectedMesh) {
-      const rect = record?.screenRect;
-      const local = referenceImagePointToPlacementLocal(record, point);
-      if (!rect || !local || local[0] < 0 || local[0] > rect.width || local[1] < 0 || local[1] > rect.height) return null;
-      let u = clamp(local[0] / rect.width, 0, 1);
-      let v = clamp(local[1] / rect.height, 0, 1);
-      if (record.flipX) u = 1 - u;
-      if (record.flipY) v = 1 - v;
-      return [u, v];
+      return referenceImagePlacementUvAtPoint(record, point, host);
     }
     for (const triangle of record.mesh.triangles) {
       const destination = triangle.map(index => record.projectedMesh[index]);
@@ -268,12 +290,13 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function hitTestControlPoint(record, point, radius = 12) {
-    if (!record || record.id !== getSelectedId?.() || !mapHost()) return null;
+    const host = mapHost();
+    if (!record || record.id !== getSelectedId?.() || !host) return null;
     const limit = Math.max(1, Number(radius) || 12) ** 2;
     let closest = null;
     for (let index = 0; index < record.controlPoints.length; index += 1) {
       const controlPoint = record.controlPoints[index];
-      const screen = projectVisible(mapHost(), controlPoint.coordinate);
+      const screen = projectVisible(host, controlPoint.coordinate);
       if (!screen) continue;
       const dx = point[0] - screen[0];
       const dy = point[1] - screen[1];
@@ -298,15 +321,15 @@ export function createReferenceImageCanvasRenderer({
     if (disposed) return;
     const host = mapHost();
     const records = getRecords?.() || [];
-    const hasWarpedVisible = !!host && records.some(record => record.visible && record.warp?.ok);
-    if (hasWarpedVisible) {
+    const hasMapAnchoredVisible = !!host && records.some(record => record.visible && (record.mapQuad || record.warp?.ok));
+    if (hasMapAnchoredVisible) {
       const fingerprint = `${host.getProjectionKind?.() || ''}|${JSON.stringify(host.getViewState?.() || null)}`;
       if (fingerprint !== lastHostFingerprint) {
         lastHostFingerprint = fingerprint;
         requestRender();
       }
     }
-    monitorTimer = globalThis.setTimeout(monitorHost, hasWarpedVisible ? HOST_ACTIVE_POLL_MS : HOST_IDLE_POLL_MS);
+    monitorTimer = globalThis.setTimeout(monitorHost, hasMapAnchoredVisible ? HOST_ACTIVE_POLL_MS : HOST_IDLE_POLL_MS);
   }
   monitorHost();
 
