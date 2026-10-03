@@ -11,7 +11,15 @@ test('duplicate raw records survive whole saves and independent completed edits 
     const store = await import('/assets/js/modules/reference-image-store.js');
     const blob = new Blob([Uint8Array.from(atob(png), char => char.charCodeAt(0))], { type: 'image/png' });
     await store.replaceStoredReferenceImages([
-      { id: 'shared', name: 'Decoded', order: 0, blob },
+      {
+        id: 'shared',
+        name: 'Decoded',
+        order: 0,
+        blob,
+        modelVersion: 5,
+        mapQuad: [[-5, 5], [5, 5], [5, -5], [-5, -5]],
+        cornerPinEnabled: false,
+      },
       { id: 'shared', name: 'Duplicate original', order: 1, blob: new Blob(['duplicate-original']), custom: { keep: true } },
     ]);
   }, PNG_1X1.toString('base64'));
@@ -79,7 +87,7 @@ test('undecodable image originals survive full saves, deletion, undo and a pendi
       request.onsuccess = () => {
         const db = request.result;
         const tx = db.transaction('state-v2', 'readwrite');
-        tx.objectStore('state-v2').put({ version: 1, records: [{ id: 'broken', name: 'Original', order: 0,
+        tx.objectStore('state-v2').put({ version: 2, records: [{ id: 'broken', name: 'Original', order: 0,
           blob: new Blob(['broken-original'], { type: 'image/png' }), custom: { keep: true } }] }, 'reference-images');
         tx.oncomplete = () => { db.close(); resolve(); };
       };
@@ -92,7 +100,7 @@ test('undecodable image originals survive full saves, deletion, undo and a pendi
   await page.locator('[data-ref-action="delete"]').click();
   await page.locator('#confirmModalOkBtn').click();
   await expect.poll(async () => (await readReferenceStore(page)).length).toBe(1);
-  await page.locator('[data-ref-action="undo"]').click();
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect.poll(async () => (await readReferenceStore(page)).length).toBe(2);
   await page.locator('[data-ref-field="name"]').fill('Pending shutdown');
   await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.destroy());
@@ -138,7 +146,7 @@ async function clearReferenceStore(page) {
       request.onsuccess = () => {
         const db = request.result;
         const tx = db.transaction('state-v2', 'readwrite');
-        tx.objectStore('state-v2').put({ version: 1, records: [] }, 'reference-images');
+        tx.objectStore('state-v2').put({ version: 2, records: [] }, 'reference-images');
         tx.oncomplete = () => { db.close(); resolve(); };
         tx.onerror = () => { db.close(); reject(tx.error); };
       };
@@ -160,8 +168,9 @@ async function readReferenceStore(page) {
           id: value.id,
           name: value.name,
           order: value.order,
-          rotation: value.rotation || 0,
-          screenRect: value.screenRect,
+          modelVersion: value.modelVersion,
+          mapQuad: value.mapQuad,
+          cornerPinEnabled: value.cornerPinEnabled === true,
           controlPointCount: value.controlPoints?.length || 0,
           controlPoints: value.controlPoints || [],
         })).sort((a, b) => a.order - b.order));
@@ -170,6 +179,33 @@ async function readReferenceStore(page) {
       tx.oncomplete = () => db.close();
     };
   }));
+}
+
+async function referenceScreenPointForUv(page, name, uv) {
+  return page.evaluate(async ({ recordName, imageUv }) => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const record = (await store.listStoredReferenceImages()).find(item => item.name === recordName);
+    const { referenceImagePlacementPointAtUv } = await import('/assets/js/modules/reference-image-transform.js');
+    const point = referenceImagePlacementPointAtUv(record, imageUv, window.__PANDOLAB_MAP_HOST__);
+    const rect = document.getElementById('map').getBoundingClientRect();
+    return { x: rect.left + point[0], y: rect.top + point[1] };
+  }, { recordName: name, imageUv: uv });
+}
+
+async function referenceScreenGeometry(page, name) {
+  return page.evaluate(async recordName => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const record = (await store.listStoredReferenceImages()).find(item => item.name === recordName);
+    if (!record) return null;
+    const { referenceImagePlacementGeometry } = await import('/assets/js/modules/reference-image-transform.js');
+    const geometry = referenceImagePlacementGeometry(record, window.__PANDOLAB_MAP_HOST__);
+    if (!geometry) return null;
+    const rect = document.getElementById('map').getBoundingClientRect();
+    return {
+      center: { x: rect.left + geometry.center[0], y: rect.top + geometry.center[1] },
+      corners: geometry.corners.map(point => ({ x: rect.left + point[0], y: rect.top + point[1] })),
+    };
+  }, name);
 }
 
 async function addImage(page, name) {
@@ -217,7 +253,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   await nameInput.fill('<Base "reference">');
   await expect(page.locator('.reference-image-list-row strong')).toHaveText('<Base "reference">');
   await page.locator('[data-ref-field="rotation"]').fill('45');
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list()[0]?.rotation)).toBe(45);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list()[0]?.rotation)).toBeCloseTo(45, 8);
 
   await page.locator('[data-ref-action="placement"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-placement-mode/);
@@ -225,35 +261,40 @@ test('reference images support placement, ordering, georeferencing and persisten
 
   await expect.poll(async () => {
     const records = await readReferenceStore(page);
-    return records[0]?.screenRect || null;
+    return records[0]?.mapQuad || null;
   }).not.toBeNull();
-  const storedBeforeMove = (await readReferenceStore(page))[0].screenRect;
-  const mapBox = await page.locator('#map').boundingBox();
-  const centerX = mapBox.x + storedBeforeMove.x + storedBeforeMove.width / 2;
-  const centerY = mapBox.y + storedBeforeMove.y + storedBeforeMove.height / 2;
+  const storedBeforeMove = structuredClone((await readReferenceStore(page))[0].mapQuad);
+  const geometryBeforeMove = await referenceScreenGeometry(page, '<Base "reference">');
+  const centerX = geometryBeforeMove.center.x;
+  const centerY = geometryBeforeMove.center.y;
   const cameraBefore = await page.evaluate(() => window.__PANDOLAB_VIEW_STATE__);
   await page.mouse.move(centerX, centerY);
   await page.mouse.down();
   await page.mouse.move(centerX + 34, centerY + 22, { steps: 4 });
   await page.mouse.up();
-  await expect.poll(async () => (await readReferenceStore(page))[0]?.screenRect?.x).toBeCloseTo(storedBeforeMove.x + 34, 0);
+  let storedAfterMove;
+  await expect.poll(async () => {
+    storedAfterMove = (await readReferenceStore(page))[0]?.mapQuad || null;
+    return JSON.stringify(storedAfterMove) !== JSON.stringify(storedBeforeMove);
+  }).toBe(true);
   expect(await page.evaluate(() => window.__PANDOLAB_VIEW_STATE__)).toEqual(cameraBefore);
-  await page.locator('[data-ref-action="undo"]').click();
-  await expect.poll(async () => (await readReferenceStore(page))[0]?.screenRect?.x).toBeCloseTo(storedBeforeMove.x, 0);
-  await page.locator('[data-ref-action="redo"]').click();
-  await expect.poll(async () => (await readReferenceStore(page))[0]?.screenRect?.x).toBeCloseTo(storedBeforeMove.x + 34, 0);
+  await expect(page.locator('.reference-image-editing-summary')).toBeHidden();
+  await expect(page.locator('[data-ref-action="placement"]')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('[data-ref-action="placement"]').click();
+  await expect(page.locator('.reference-image-toolbar [data-ref-action="undo"]')).toBeVisible();
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
+  await expect.poll(async () => (await readReferenceStore(page))[0]?.mapQuad).toEqual(storedBeforeMove);
+  await page.locator('.reference-image-toolbar [data-ref-action="redo"]').click();
+  await expect.poll(async () => (await readReferenceStore(page))[0]?.mapQuad).toEqual(storedAfterMove);
 
-  await page.keyboard.press('Escape');
   await expect(page.locator('#map')).not.toHaveClass(/is-reference-placement-mode/);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list()[0]?.placementEditing)).toBe(false);
 
   await addImage(page, 'top.png');
   await expect(page.locator('.reference-image-list-row')).toHaveCount(2);
-  await page.locator('[data-ref-action="undo"]').focus();
-  await page.keyboard.press('Control+z');
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect(page.locator('.reference-image-list-row')).toHaveCount(1);
-  await page.locator('[data-ref-action="redo"]').click();
+  await page.locator('.reference-image-toolbar [data-ref-action="redo"]').click();
   await expect(page.locator('.reference-image-list-row')).toHaveCount(2);
   // Restoring records keeps the current image selected when it still exists.
   await page.locator('.reference-image-list-row').filter({ hasText: 'top.png' }).click();
@@ -263,22 +304,23 @@ test('reference images support placement, ordering, georeferencing and persisten
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().map(item => item.name))).toEqual(['Top reference', '<Base "reference">']);
 
   await page.locator('.reference-image-list-row').filter({ hasText: '<Base "reference">' }).click();
-  const baseStored = (await readReferenceStore(page)).find(item => item.name === '<Base "reference">');
-  const currentMapBox = await page.locator('#map').boundingBox();
-  const baseCenterX = currentMapBox.x + baseStored.screenRect.x + baseStored.screenRect.width / 2;
-  const baseCenterY = currentMapBox.y + baseStored.screenRect.y + baseStored.screenRect.height / 2;
+  const baseGeometry = await referenceScreenGeometry(page, '<Base "reference">');
+  const firstImagePoint = await referenceScreenPointForUv(page, '<Base "reference">', [0.35, 0.35]);
+  const secondImagePoint = await referenceScreenPointForUv(page, '<Base "reference">', [0.7, 0.65]);
+  const baseCenterX = baseGeometry.center.x;
+  const baseCenterY = baseGeometry.center.y;
   await page.locator('[data-ref-action="gcp"]').click();
   const selectedBeforeGcp = await page.locator('#selectionToolbar').getAttribute('aria-hidden');
   await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
-  await page.mouse.click(baseCenterX, baseCenterY);
+  await page.mouse.click(firstImagePoint.x, firstImagePoint.y);
   await page.mouse.move(baseCenterX - 120, baseCenterY - 120);
   await page.mouse.down();
   await page.mouse.move(baseCenterX - 90, baseCenterY - 100, { steps: 4 });
   await page.mouse.up();
   expect(await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === '<Base "reference">').controlPointCount)).toBe(0);
-  await page.mouse.click(baseCenterX + 90, baseCenterY + 40);
-  await page.mouse.click(baseCenterX + 12, baseCenterY + 8);
-  await page.mouse.click(baseCenterX + 135, baseCenterY + 65);
+  await page.mouse.click(firstImagePoint.x + 35, firstImagePoint.y + 15);
+  await page.mouse.click(secondImagePoint.x, secondImagePoint.y);
+  await page.mouse.click(secondImagePoint.x + 42, secondImagePoint.y + 22);
   await expect.poll(() => page.evaluate(() => {
     const item = window.__PANDOLAB_REFERENCE_IMAGES__.list().find(value => value.name === '<Base "reference">');
     return { count: item?.controlPointCount, mode: item?.warpMode };
@@ -299,14 +341,18 @@ test('reference images support placement, ordering, georeferencing and persisten
   await page.mouse.move(pointScreen.x + 24, pointScreen.y + 18, { steps: 3 });
   await page.mouse.up();
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).not.toEqual(pointBeforeDirectEdit.coordinate);
-  await page.locator('[data-ref-action="undo"]').click();
+  await page.locator('.reference-image-editing-summary [data-ref-action="finish"]').click();
+  await expect(page.locator('.reference-image-toolbar [data-ref-action="undo"]')).toBeVisible();
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).toEqual(pointBeforeDirectEdit.coordinate);
+
+  await page.locator('[data-ref-action="gcp-edit"]').click();
   await page.mouse.click(pointScreen.x, pointScreen.y);
   await page.keyboard.press('Delete');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().find(value => value.name === '<Base "reference">')?.controlPointCount)).toBe(1);
-  await page.locator('[data-ref-action="undo"]').click();
+  await page.locator('.reference-image-editing-summary [data-ref-action="finish"]').click();
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().find(value => value.name === '<Base "reference">')?.controlPointCount)).toBe(2);
-  await page.locator('[data-ref-action="gcp-edit"]').click();
   await expect(page.locator('[data-ref-action="flip-x"]')).toBeDisabled();
   await page.locator('[data-ref-field="locked"]').check();
   await expect(page.locator('[data-ref-action="delete"]')).toBeDisabled();
@@ -321,7 +367,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   // Stay inside the globe; blank space beyond the sphere has no map coordinate.
   await page.mouse.click(baseCenterX + 40, baseCenterY + 35);
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).not.toEqual(pointsBefore[0].coordinate);
-  await page.locator('[data-ref-action="undo"]').click();
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints).toEqual(pointsBefore);
   await page.locator('[data-ref-action="clear-gcp"]').click();
   await page.locator('#confirmModalCancelBtn').click();
@@ -329,7 +375,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   await page.locator('[data-ref-action="delete"]').click();
   await page.locator('#confirmModalOkBtn').click();
   await expect(page.locator('.reference-image-list-row')).toHaveCount(1);
-  await page.locator('[data-ref-action="undo"]').click();
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
   await expect(page.locator('.reference-image-list-row')).toHaveCount(2);
 
   // Reload only after the debounced image metadata transaction is durable.
@@ -341,6 +387,9 @@ test('reference images support placement, ordering, georeferencing and persisten
     { name: '<Base "reference">', points: 2 },
   ]);
 
+  const baseMapQuadBeforeReload = structuredClone(
+    (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').mapQuad,
+  );
   await page.reload();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -353,7 +402,8 @@ test('reference images support placement, ordering, georeferencing and persisten
   const restored = await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list());
   expect(restored.map(item => item.name)).toEqual(['Top reference', '<Base "reference">']);
   expect(restored.find(item => item.name === '<Base "reference">').controlPointCount).toBe(2);
-  expect(restored.find(item => item.name === '<Base "reference">').rotation).toBe(45);
+  const restoredStored = await readReferenceStore(page);
+  expect(restoredStored.find(item => item.name === '<Base "reference">').mapQuad).toEqual(baseMapQuadBeforeReload);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
@@ -385,12 +435,15 @@ test('reference images support placement, ordering, georeferencing and persisten
   expect(panelBounds.x).toBeGreaterThanOrEqual(0);
   expect(panelBounds.x + panelBounds.width).toBeLessThanOrEqual(390);
   expect(panelBounds.y + panelBounds.height).toBeLessThanOrEqual(navigationBounds.y);
+  await page.locator('#mobileMenuBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
   await page.locator('#mobileDisplayBtn').click();
-  await expect(page.locator('#mobileDisplayBtn')).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(imagePanel).toBeHidden();
+  await page.locator('#mobileMenuBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
   await page.locator('#mobileDisplayBtn').click();
-  await expect(page.locator('#mobileDisplayBtn')).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#mapDisplaySurface')).toBeHidden();
   await page.setViewportSize({ width: 1024, height: 900 });
   await expect(imagePanel).toBeHidden();
   await page.locator('.reference-image-launcher').click();

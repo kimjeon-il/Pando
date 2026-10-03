@@ -1,13 +1,15 @@
 import {
-  REFERENCE_IMAGE_PLACEMENT,
-  normalizeReferenceImageRotation,
+  REFERENCE_IMAGE_TRANSFORM,
+  buildReferenceImagePlacementMesh,
+  referenceImageAnchorScreenPoint,
   referenceImagePlacementGeometry,
-  referenceImagePointToPlacementLocal,
-} from './reference-image-placement.js';
+  referenceImagePlacementPointAtUv,
+  referenceImagePlacementUvAtPoint,
+} from './reference-image-transform.js';
 
 const HOST_ACTIVE_POLL_MS = 34;
 const HOST_IDLE_POLL_MS = 240;
-const radians = value => Number(value) * Math.PI / 180;
+const PLACEMENT_MESH_QUALITY = Object.freeze({ columns: 12, rows: 8 });
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 function mapHost() {
@@ -57,11 +59,19 @@ function barycentric(point, triangle) {
   return a >= -0.002 && b >= -0.002 && c >= -0.002 ? [a, b, c] : null;
 }
 
+function placementUv(record, pair) {
+  return [
+    record.flipX ? 1 - pair[0] : pair[0],
+    record.flipY ? 1 - pair[1] : pair[1],
+  ];
+}
+
 export function createReferenceImageCanvasRenderer({
   mapElement,
   getRecords,
   getSelectedId,
   getPlacementEditingId,
+  getFreeTransformEditingId,
   getControlPointEditingId,
   getSelectedControlPointId,
   isPanelHidden,
@@ -103,11 +113,10 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function drawTriangle(record, destination, uv, dpr) {
-    const source = uv.map(pair => {
-      // Warp control points and mesh UVs are already in original-image space.
-      // Reflection belongs only to the uncalibrated placement transform.
-      return [pair[0] * record.image.naturalWidth, pair[1] * record.image.naturalHeight];
-    });
+    const source = uv.map(pair => [
+      pair[0] * record.image.naturalWidth,
+      pair[1] * record.image.naturalHeight,
+    ]);
     const transform = affineForTriangles(source, destination);
     if (!transform) return;
     context.save();
@@ -138,23 +147,25 @@ export function createReferenceImageCanvasRenderer({
     context.restore();
   }
 
-  function drawUnreferenced(record, dpr) {
-    const rect = record.screenRect;
-    if (!rect) return;
+  function drawPlaced(record, host, dpr) {
+    const mesh = buildReferenceImagePlacementMesh(record, PLACEMENT_MESH_QUALITY);
+    if (!mesh) return;
+    const projected = mesh.vertices.map(vertex => projectVisible(host, vertex.coordinate));
     context.save();
-    context.setTransform(dpr, 0, 0, dpr, 0, 0);
     context.globalAlpha = record.opacity;
     context.globalCompositeOperation = record.blendMode;
-    context.translate(rect.x + rect.width / 2, rect.y + rect.height / 2);
-    context.rotate(radians(normalizeReferenceImageRotation(record.rotation)));
-    context.scale(record.flipX ? -1 : 1, record.flipY ? -1 : 1);
-    context.drawImage(record.image, -rect.width / 2, -rect.height / 2, rect.width, rect.height);
+    for (const triangle of mesh.triangles) {
+      const destination = triangle.map(index => projected[index]);
+      if (destination.some(point => !point || !point.every(Number.isFinite))) continue;
+      const uv = triangle.map(index => placementUv(record, mesh.vertices[index].uv));
+      drawTriangle(record, destination, uv, dpr);
+    }
     context.restore();
   }
 
-  function drawPlacementHandles(record, dpr) {
+  function drawPlacementHandles(record, host, dpr) {
     if (record.id !== getPlacementEditingId?.() || record.warp?.ok || isPanelHidden?.()) return;
-    const geometry = referenceImagePlacementGeometry(record);
+    const geometry = referenceImagePlacementGeometry(record, host);
     if (!geometry) return;
     const [nw, ne, se, sw] = geometry.corners;
     context.save();
@@ -169,17 +180,98 @@ export function createReferenceImageCanvasRenderer({
     context.lineTo(sw[0], sw[1]);
     context.closePath();
     context.stroke();
-    const topMid = [(nw[0] + ne[0]) / 2, (nw[1] + ne[1]) / 2];
     context.beginPath();
-    context.moveTo(topMid[0], topMid[1]);
+    context.moveTo(geometry.handles.n[0], geometry.handles.n[1]);
     context.lineTo(geometry.rotateHandle[0], geometry.rotateHandle[1]);
     context.stroke();
-    for (const point of [...geometry.corners, geometry.rotateHandle]) {
+    for (const handle of ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']) {
+      const point = geometry.handles[handle];
       context.beginPath();
-      context.arc(point[0], point[1], REFERENCE_IMAGE_PLACEMENT.handleRadius, 0, Math.PI * 2);
+      context.arc(point[0], point[1], REFERENCE_IMAGE_TRANSFORM.handleRadius, 0, Math.PI * 2);
       context.fill();
       context.stroke();
     }
+    context.beginPath();
+    context.arc(
+      geometry.rotateHandle[0],
+      geometry.rotateHandle[1],
+      REFERENCE_IMAGE_TRANSFORM.handleRadius,
+      0,
+      Math.PI * 2,
+    );
+    context.fill();
+    context.stroke();
+    context.restore();
+  }
+
+  function drawFreeTransformHandles(record, host, dpr) {
+    if (record.id !== getFreeTransformEditingId?.() || isPanelHidden?.()) return;
+    const coordinates = record.warp?.ok && !record.cornerPinEnabled
+      ? [[0, 0], [1, 0], [1, 1], [0, 1]].map(image => record.warp.project(image))
+      : record.mapQuad;
+    if (!Array.isArray(coordinates) || coordinates.length !== 4) return;
+    const corners = coordinates.map(coordinate => projectVisible(host, coordinate));
+    if (corners.some(point => !point)) return;
+    context.save();
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    context.lineWidth = 1.5;
+    context.strokeStyle = 'rgba(245,158,11,.96)';
+    context.fillStyle = 'rgba(255,255,255,.98)';
+    context.beginPath();
+    context.moveTo(corners[0][0], corners[0][1]);
+    context.lineTo(corners[1][0], corners[1][1]);
+    context.lineTo(corners[2][0], corners[2][1]);
+    context.lineTo(corners[3][0], corners[3][1]);
+    context.closePath();
+    context.stroke();
+    for (let index = 0; index < corners.length; index += 1) {
+      const point = corners[index];
+      context.beginPath();
+      context.rect(
+        point[0] - REFERENCE_IMAGE_TRANSFORM.handleRadius,
+        point[1] - REFERENCE_IMAGE_TRANSFORM.handleRadius,
+        REFERENCE_IMAGE_TRANSFORM.handleRadius * 2,
+        REFERENCE_IMAGE_TRANSFORM.handleRadius * 2,
+      );
+      context.fill();
+      context.stroke();
+    }
+    context.restore();
+  }
+
+  function drawAnchor(record, host, dpr) {
+    if (record.id !== getSelectedId?.() || !record.anchor || isPanelHidden?.()) return;
+    const target = referenceImageAnchorScreenPoint(record, host);
+    if (!target) return;
+    const predictedCoordinate = record.warp?.ok ? record.warp.project(record.anchor.image) : null;
+    const source = predictedCoordinate
+      ? projectVisible(host, predictedCoordinate)
+      : referenceImagePlacementPointAtUv(record, record.anchor.image, host);
+    context.save();
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (source && Math.hypot(source[0] - target[0], source[1] - target[1]) > 0.75) {
+      context.beginPath();
+      context.moveTo(source[0], source[1]);
+      context.lineTo(target[0], target[1]);
+      context.strokeStyle = 'rgba(245,158,11,.7)';
+      context.lineWidth = 1.5;
+      context.stroke();
+    }
+    context.beginPath();
+    context.arc(target[0], target[1], 6, 0, Math.PI * 2);
+    context.fillStyle = 'rgba(245,158,11,.96)';
+    context.fill();
+    context.lineWidth = 2;
+    context.strokeStyle = 'rgba(255,255,255,.96)';
+    context.stroke();
+    context.beginPath();
+    context.moveTo(target[0] - 9, target[1]);
+    context.lineTo(target[0] + 9, target[1]);
+    context.moveTo(target[0], target[1] - 9);
+    context.lineTo(target[0], target[1] + 9);
+    context.strokeStyle = 'rgba(245,158,11,.96)';
+    context.lineWidth = 1.5;
+    context.stroke();
     context.restore();
   }
 
@@ -223,12 +315,14 @@ export function createReferenceImageCanvasRenderer({
     const host = mapHost();
     const records = getRecords?.() || [];
     for (const record of records) {
-      if (!record.visible || !record.image) continue;
-      if (record.warp?.ok && host) drawWarped(record, host, dpr);
-      else drawUnreferenced(record, dpr);
+      if (!record.visible || !record.image || !host) continue;
+      if (record.warp?.ok) drawWarped(record, host, dpr);
+      else drawPlaced(record, host, dpr);
     }
     const selected = records.find(record => record.id === getSelectedId?.()) || null;
-    if (selected) drawPlacementHandles(selected, dpr);
+    if (host && selected) drawPlacementHandles(selected, host, dpr);
+    if (host && selected) drawFreeTransformHandles(selected, host, dpr);
+    if (host && selected) drawAnchor(selected, host, dpr);
     if (host && selected) drawControlPoints(selected, host, dpr);
   }
 
@@ -242,16 +336,11 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function hitTestUv(record, point) {
-    if (record?.warp?.ok && record.mesh && mapHost()) projectedMesh(record, mapHost());
+    const host = mapHost();
+    if (!host) return null;
+    if (record?.warp?.ok && record.mesh) projectedMesh(record, host);
     if (!record?.warp?.ok || !record.mesh || !record.projectedMesh) {
-      const rect = record?.screenRect;
-      const local = referenceImagePointToPlacementLocal(record, point);
-      if (!rect || !local || local[0] < 0 || local[0] > rect.width || local[1] < 0 || local[1] > rect.height) return null;
-      let u = clamp(local[0] / rect.width, 0, 1);
-      let v = clamp(local[1] / rect.height, 0, 1);
-      if (record.flipX) u = 1 - u;
-      if (record.flipY) v = 1 - v;
-      return [u, v];
+      return referenceImagePlacementUvAtPoint(record, point, host);
     }
     for (const triangle of record.mesh.triangles) {
       const destination = triangle.map(index => record.projectedMesh[index]);
@@ -268,12 +357,13 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function hitTestControlPoint(record, point, radius = 12) {
-    if (!record || record.id !== getSelectedId?.() || !mapHost()) return null;
+    const host = mapHost();
+    if (!record || record.id !== getSelectedId?.() || !host) return null;
     const limit = Math.max(1, Number(radius) || 12) ** 2;
     let closest = null;
     for (let index = 0; index < record.controlPoints.length; index += 1) {
       const controlPoint = record.controlPoints[index];
-      const screen = projectVisible(mapHost(), controlPoint.coordinate);
+      const screen = projectVisible(host, controlPoint.coordinate);
       if (!screen) continue;
       const dx = point[0] - screen[0];
       const dy = point[1] - screen[1];
@@ -298,15 +388,15 @@ export function createReferenceImageCanvasRenderer({
     if (disposed) return;
     const host = mapHost();
     const records = getRecords?.() || [];
-    const hasWarpedVisible = !!host && records.some(record => record.visible && record.warp?.ok);
-    if (hasWarpedVisible) {
+    const hasMapAnchoredVisible = !!host && records.some(record => record.visible && (record.mapQuad || record.warp?.ok));
+    if (hasMapAnchoredVisible) {
       const fingerprint = `${host.getProjectionKind?.() || ''}|${JSON.stringify(host.getViewState?.() || null)}`;
       if (fingerprint !== lastHostFingerprint) {
         lastHostFingerprint = fingerprint;
         requestRender();
       }
     }
-    monitorTimer = globalThis.setTimeout(monitorHost, hasWarpedVisible ? HOST_ACTIVE_POLL_MS : HOST_IDLE_POLL_MS);
+    monitorTimer = globalThis.setTimeout(monitorHost, hasMapAnchoredVisible ? HOST_ACTIVE_POLL_MS : HOST_IDLE_POLL_MS);
   }
   monitorHost();
 
