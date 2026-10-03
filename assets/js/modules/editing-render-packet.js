@@ -197,6 +197,7 @@ const territoryPacket = input => {
     })),
     candidates: freezeList(input.candidates, (value, position) => Object.freeze({
       key: String(value?.key || `candidate:${position}`),
+      id: value?.id ? String(value.id) : null,
       index: Number(value?.index || 0),
       geometry: geometry(value?.geometry),
       selected: value?.selected === true,

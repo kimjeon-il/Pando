@@ -132,3 +132,25 @@ test('project reset cancels an active gesture and rejects its stale end event', 
   assert.equal(editing.snapshot().projectGeneration, 2);
   assert.deepEqual(editing.snapshot().draft.coords, []);
 });
+
+
+test('rapid candidate clicks retain calculation identity across presentation revisions', () => {
+  let calculationIds = new Set(['cut-1:a', 'cut-1:b']);
+  const selected = new Set();
+  const editing = createEditingDomain({ geometryEditing: {
+    handleTerritoryInteraction(event) {
+      if (!calculationIds.has(event.candidateId)) return false;
+      if (selected.has(event.candidateId)) selected.delete(event.candidateId); else selected.add(event.candidateId);
+      return true;
+    },
+  } });
+  const packet = editing.createRenderPacket();
+  const click = candidateId => ({ type: 'territory-candidate-select', candidateId,
+    projectGeneration: packet.projectGeneration, packetRevision: packet.revision });
+  assert.equal(editing.handleInteraction(click('cut-1:a')), true);
+  assert.equal(editing.handleInteraction(click('cut-1:b')), true);
+  assert.deepEqual([...selected], ['cut-1:a', 'cut-1:b']);
+  calculationIds = new Set(['cut-2:a']);
+  assert.equal(editing.handleInteraction(click('cut-1:a')), false);
+  assert.equal(editing.handleInteraction({ ...click('cut-2:a'), projectGeneration: packet.projectGeneration + 1 }), false);
+});

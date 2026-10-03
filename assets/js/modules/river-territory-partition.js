@@ -1,3 +1,4 @@
+import { tracePlanarGraphFaces } from './planar-graph-faces.js';
 const EARTH_RADIUS_M = 6371008.8;
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -597,60 +598,6 @@ function pruneRiverGraph(graph, diagnostics) {
   return active;
 }
 
-function traceFaces(graph, activeRiverEdges) {
-  const graphEdges = graph.edges.filter(edge => edge.boundary || activeRiverEdges.has(edge.id));
-  const halfEdges = [];
-  const outgoing = new Map();
-  const addHalfEdge = (edge, from, to, twin) => {
-    const id = halfEdges.length;
-    halfEdges.push({ id, edgeId: edge.id, from, to, twin, visited: false });
-    if (!outgoing.has(from)) outgoing.set(from, []);
-    outgoing.get(from).push(id);
-    return id;
-  };
-  for (const edge of graphEdges) {
-    const left = addHalfEdge(edge, edge.a, edge.b, null);
-    const right = addHalfEdge(edge, edge.b, edge.a, left);
-    halfEdges[left].twin = right;
-  }
-  for (const [nodeId, ids] of outgoing) ids.sort((left, right) => {
-    const leftNode = graph.nodes[halfEdges[left].to].point;
-    const rightNode = graph.nodes[halfEdges[right].to].point;
-    const origin = graph.nodes[nodeId].point;
-    return Math.atan2(leftNode[1] - origin[1], leftNode[0] - origin[0])
-      - Math.atan2(rightNode[1] - origin[1], rightNode[0] - origin[0]);
-  });
-  const nextHalfEdge = halfEdge => {
-    const choices = outgoing.get(halfEdge.to) || [];
-    const twinIndex = choices.indexOf(halfEdge.twin);
-    if (twinIndex < 0 || !choices.length) return null;
-    return halfEdges[choices[(twinIndex - 1 + choices.length) % choices.length]];
-  };
-  const faces = [];
-  for (const start of halfEdges) {
-    if (start.visited) continue;
-    const ring = [];
-    const edgeIds = [];
-    let current = start;
-    let guard = 0;
-    while (current && !current.visited && guard <= halfEdges.length + 1) {
-      current.visited = true;
-      ring.push(graph.nodes[current.from].point);
-      edgeIds.push(current.edgeId);
-      current = nextHalfEdge(current);
-      guard += 1;
-      if (current?.id === start.id) break;
-    }
-    if (current?.id !== start.id || ring.length < 3) continue;
-    ring.push([...ring[0]]);
-    const area = signedRingArea(ring);
-    if (!(area > 0)) continue;
-    const riverEdges = [...new Set(edgeIds)].filter(edgeId => activeRiverEdges.has(edgeId));
-    faces.push({ ring, area, riverEdges });
-  }
-  return faces;
-}
-
 function canonicalRingKey(ring) {
   const values = ensureClosedRing(ring).slice(0, -1).map(point => (
     `${Math.round(point[0] * 1e7)},${Math.round(point[1] * 1e7)}`
@@ -730,7 +677,8 @@ function partitionComponent({ donorId, donorRevision, component, componentIndex,
   const graph = createGraph(boundaryPieces, riverPieces, config);
   const activeRiverEdges = pruneRiverGraph(graph, diagnostics);
   if (!activeRiverEdges.size) return { status: 'empty', candidates: [], reason: '국경의 서로 다른 두 지점을 연결하는 강이 없습니다.' };
-  const faces = traceFaces(graph, activeRiverEdges);
+  const faces = tracePlanarGraphFaces(graph, graph.edges.filter(edge => edge.boundary || activeRiverEdges.has(edge.id)))
+    .map(face => ({ ...face, riverEdges: face.edgeIds.filter(id => activeRiverEdges.has(id)) }));
   diagnostics.tracedFaceCount += faces.length;
   const rows = [];
   const seen = new Set();

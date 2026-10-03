@@ -1980,9 +1980,9 @@ export function createRenderingDomain({
     componentPaths.each(function(d) { const node = d3.select(this); if (node.select('title').empty()) node.append('title'); node.select('title').text(`${d.countryName} · ${formatTerritoryArea?.(d.areaKm2) || d.areaKm2}`); });
     joinEditingNodes(layer, 'path.territory-candidate', operation?.candidates || [], d => d.key)
       .attr('class', d => `territory-candidate ${d.selected ? 'selected-candidate' : 'alternate-candidate'}`)
-      .attr('aria-label', d => d.interactive === false ? '선택 영역' : `${String.fromCharCode(65 + d.index)} · ${d.selected ? '선택됨' : '선택 안 됨'}`)
+      .attr('aria-label', d => d.interactive === false ? '선택 영역' : `조각 ${d.index + 1} · ${d.selected ? '선택됨' : '선택 안 됨'}`)
       .style('pointer-events', d => d.interactive === false ? 'none' : null)
-      .on('click', d => { if (d.interactive === false) return; stop(); publishEditingInteraction({ type: 'territory-candidate-select', candidateIndex: d.index }); });
+      .on('click', d => { if (d.interactive === false) return; stop(); publishEditingInteraction({ type: 'territory-candidate-select', candidateId: d.id }); });
     const shapes = [
       { key: 'raw', geometry: draft.rawStrokeGeometry, className: 'draft-shape draft-raw-stroke' },
       { key: 'shape', geometry: draft.geometry, className: ['draft-shape', packet.tool === 'annex-territory' ? 'annex-draft' : '', draft.cutStatus ? 'cut-' + draft.cutStatus : draft.issues.length ? 'draft-invalid' : ''].filter(Boolean).join(' ') },
