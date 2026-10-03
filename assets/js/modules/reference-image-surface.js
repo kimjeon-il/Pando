@@ -28,12 +28,13 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
   const hint = document.createElement('span');
   hint.setAttribute('role', 'status');
   compact.append(hint);
-  for (const [action, label] of [['finish', '완료'], ['cancel', '취소']]) {
+  for (const [action, label] of [['undo', '실행 취소'], ['redo', '다시 실행'], ['finish', '완료'], ['cancel', '취소']]) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = action === 'finish' ? 'ui-button btn' : 'ui-button btn ghost';
     button.dataset.refAction = action;
     button.textContent = label;
+    if (action === 'undo' || action === 'redo') button.disabled = true;
     compact.append(button);
   }
   panel.append(compact);
