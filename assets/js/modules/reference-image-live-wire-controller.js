@@ -695,6 +695,11 @@ export function installReferenceImageLiveWire() {
     activateAtPointer(event);
   }
 
+  function onClick(event) {
+    if (!state || state.phase !== 'tracking' || !state.previewPoints?.length || state.previewPoints.length < 2) return;
+    activateAtPointer(event);
+  }
+
   function onPointerMove(event) {
     if (!state || state.phase !== 'tracking' || !referenceImageEventTargetsMap(event, mapElement)) return;
     if (!interceptMapEvent(event)) return;
@@ -775,6 +780,7 @@ export function installReferenceImageLiveWire() {
   panel.addEventListener('click', onPanelClick, true);
   globalThis.addEventListener('pointerdown', onPointerDown, true);
   globalThis.addEventListener('pointerup', onPointerUp, true);
+  globalThis.addEventListener('click', onClick, true);
   globalThis.addEventListener('pointermove', onPointerMove, true);
   globalThis.addEventListener('dblclick', onDoubleClick, true);
   globalThis.addEventListener('keydown', onKeyDown, true);
@@ -799,6 +805,7 @@ export function installReferenceImageLiveWire() {
       panel.removeEventListener('click', onPanelClick, true);
       globalThis.removeEventListener('pointerdown', onPointerDown, true);
       globalThis.removeEventListener('pointerup', onPointerUp, true);
+      globalThis.removeEventListener('click', onClick, true);
       globalThis.removeEventListener('pointermove', onPointerMove, true);
       globalThis.removeEventListener('dblclick', onDoubleClick, true);
       globalThis.removeEventListener('keydown', onKeyDown, true);
