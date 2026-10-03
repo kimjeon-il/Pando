@@ -120,7 +120,7 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
   await page.locator('[data-ref-line-action="start"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('armed');
   await expect(page.locator('#map')).toHaveClass(/is-reference-line-refine-mode/);
-  await page.locator('[data-ref-line-action="cancel"]').click();
+  await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('idle');
   await expect(page.locator('#map')).not.toHaveClass(/is-reference-line-refine-mode/);
 
