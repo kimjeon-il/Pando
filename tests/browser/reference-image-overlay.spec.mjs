@@ -237,6 +237,9 @@ test('reference images support placement, ordering, georeferencing and persisten
   test.setTimeout(180_000);
   const errors = await openApp(page);
   await clearReferenceStore(page);
+  const baseMapQuadBeforeReload = structuredClone(
+    (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').mapQuad,
+  );
   await page.reload();
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -398,7 +401,8 @@ test('reference images support placement, ordering, georeferencing and persisten
   const restored = await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list());
   expect(restored.map(item => item.name)).toEqual(['Top reference', '<Base "reference">']);
   expect(restored.find(item => item.name === '<Base "reference">').controlPointCount).toBe(2);
-  expect(restored.find(item => item.name === '<Base "reference">').rotation).toBeCloseTo(45, 8);
+  const restoredStored = await readReferenceStore(page);
+  expect(restoredStored.find(item => item.name === '<Base "reference">').mapQuad).toEqual(baseMapQuadBeforeReload);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
