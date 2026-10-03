@@ -8,6 +8,7 @@ import {
   serializeReferenceImageRecord,
 } from './reference-image-model.js';
 import {
+  alignReferenceImageAnchor,
   applyReferenceImagePlacementDrag,
   createReferenceImagePlacementDrag,
   defaultReferenceImageMapQuad,
@@ -105,6 +106,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   };
   const pendingPersistTimers = new Map();
   let selectedId = '';
+  let anchorState = null;
   let gcpState = null;
   let controlPointEditingId = '';
   let selectedControlPointId = '';
@@ -238,6 +240,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       count: records.length,
       blendOptions: BLEND_OPTIONS,
       warpOptions: WARP_OPTIONS,
+      anchorState: anchorState?.recordId === record.id ? anchorState : null,
       gcpState,
       controlPointEditing: controlPointEditingId === record.id,
       selectedControlPointId,
@@ -247,17 +250,22 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function syncEditingSurface() {
-    const active = !!(gcpState || placementEditingId || controlPointEditingId);
-    const hint = gcpState
-      ? (gcpState.step === 'image' ? '이미지에서 맞출 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.')
-      : controlPointEditingId
-        ? '지도 위 기준점을 드래그해 이동하거나 선택 후 Delete로 삭제하세요.'
-        : '이미지를 드래그해 배치하세요.';
+    const active = !!(anchorState || gcpState || placementEditingId || controlPointEditingId);
+    const hint = anchorState
+      ? (anchorState.step === 'image' ? '이미지에서 고정할 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.')
+      : gcpState
+        ? (gcpState.step === 'image' ? '이미지에서 맞출 지점을 선택하세요.' : '같은 지점의 실제 지도 위치를 선택하세요.')
+        : controlPointEditingId
+          ? '지도 위 기준점을 드래그해 이동하거나 선택 후 Delete로 삭제하세요.'
+          : selected()?.anchor
+            ? '고정점 유지 중 · 크기와 회전만 조정할 수 있습니다.'
+            : '이미지를 드래그해 배치하세요.';
     surface?.setEditing(active, hint);
   }
 
   function cancelInteraction() {
     cancelTools();
+    cancelAnchor(false);
     cancelGcp(false);
     stopControlPointEditing({ renderUi: false });
     stopPlacementEditing({ renderUi: false });
@@ -353,6 +361,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     clearScheduledPersist(record.id);
     selectedId = records.at(-1)?.id || '';
     if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
+    if (anchorState?.recordId === record.id) cancelAnchor(false);
     if (gcpState?.recordId === record.id) cancelGcp(false);
     if (controlPointEditingId === record.id) stopControlPointEditing({ renderUi: false });
     await persistAll();
@@ -390,9 +399,30 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     syncEditingSurface();
   }
 
-  function armGcp(record, pointId = '', side = 'image') {
-    if (!record || record.locked) return;
+  function armAnchor(record) {
+    if (!record || record.locked || record.warp?.ok || record.controlPoints.length) return false;
     cancelTools();
+    cancelGcp(false);
+    stopControlPointEditing({ renderUi: false });
+    stopPlacementEditing({ renderUi: false });
+    anchorState = { recordId: record.id, step: 'image', image: null, token: currentToken() };
+    mapElement.classList.add('is-reference-anchor-mode');
+    renderEditor();
+    setHint('1/2 · 이미지에서 고정할 지점을 선택하세요.', 'working');
+    return true;
+  }
+
+  function cancelAnchor(renderUi = true) {
+    anchorState = null;
+    mapElement.classList.remove('is-reference-anchor-mode');
+    if (renderUi && selected()) renderEditor();
+    syncEditingSurface();
+  }
+
+  function armGcp(record, pointId = '', side = 'image') {
+    if (!record || record.locked || record.anchor) return;
+    cancelTools();
+    cancelAnchor(false);
     stopPlacementEditing({ renderUi: false });
     stopControlPointEditing({ renderUi: false });
     gcpState = { recordId: record.id, step: side, image: null, pointId, token: currentToken() };
@@ -409,8 +439,9 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function startControlPointEditing(record) {
-    if (!record || record.locked || !record.controlPoints.length) return false;
+    if (!record || record.locked || record.anchor || !record.controlPoints.length) return false;
     cancelTools();
+    cancelAnchor(false);
     cancelGcp(false);
     stopPlacementEditing({ renderUi: false });
     controlPointEditingId = record.id;
@@ -556,6 +587,57 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     renderer.requestRender();
   }
 
+  function commitAnchor(point) {
+    if (!anchorState) return;
+    const record = records.find(candidate => candidate.id === anchorState.recordId);
+    if (!record || record.locked || record.warp?.ok || record.controlPoints.length || !validToken(anchorState.token)) {
+      cancelAnchor();
+      return;
+    }
+    if (anchorState.step === 'image') {
+      const uv = renderer.hitTestUv(record, point);
+      if (!uv) {
+        setHint('이미지가 보이는 영역 안을 선택하세요.', 'error');
+        return;
+      }
+      anchorState.image = [...uv];
+      anchorState.step = 'map';
+      syncEditingSurface();
+      setHint('2/2 · 같은 지점의 실제 지도 위치를 선택하세요.', 'working');
+      renderEditor();
+      return;
+    }
+
+    const coordinate = mapHost()?.unproject(point);
+    if (!coordinate || !coordinate.every(Number.isFinite)) {
+      setHint('이 위치에서는 지도 좌표를 계산할 수 없습니다.', 'error');
+      return;
+    }
+
+    const before = copyReferenceImageRecords(records);
+    const previous = before.find(candidate => candidate.id === record.id);
+    record.anchor = {
+      image: [...anchorState.image],
+      coordinate: [coordinate[0], coordinate[1]],
+    };
+    if (!alignReferenceImageAnchor(record, mapHost())) {
+      record.anchor = previous?.anchor ? {
+        image: [...previous.anchor.image],
+        coordinate: [...previous.anchor.coordinate],
+      } : null;
+      if (previous?.mapQuad) record.mapQuad = previous.mapQuad.map(value => [...value]);
+      setHint('이 위치에는 고정점을 설정할 수 없습니다.', 'error');
+      renderer.requestRender();
+      return;
+    }
+
+    history.push(before);
+    void persist(record);
+    cancelAnchor(false);
+    refreshUi();
+    setHint('고정점을 설정했습니다. 배치 편집에서 크기와 회전 시 이 지점이 유지됩니다.', 'success');
+  }
+
   function commitGcp(point) {
     if (gcpState) {
       const record = records.find(candidate => candidate.id === gcpState.recordId);
@@ -604,9 +686,14 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function beginGesture(point, event, { spacePan = false } = {}) {
-    if (isBlocked() || !(gcpState || placementEditingId || controlPointEditingId)) return null;
+    if (isBlocked() || !(anchorState || gcpState || placementEditingId || controlPointEditingId)) return null;
     if (event.button === 1 || spacePan) return { kind: 'navigate' };
     if (event.button !== 0) return null;
+    if (anchorState) {
+      const state = anchorState;
+      surface?.setGestureActive(true);
+      return { kind: 'tap', end: next => { surface?.setGestureActive(false); if (anchorState === state) commitAnchor(next); }, cancel: () => surface?.setGestureActive(false) };
+    }
     if (gcpState) {
       const state = gcpState;
       surface?.setGestureActive(true);
@@ -647,6 +734,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (field === 'locked') {
       record.locked = event.target.checked;
       if (record.locked) {
+        cancelAnchor(false);
         cancelGcp(false);
         if (controlPointEditingId === record.id) stopControlPointEditing({ renderUi: false });
         if (placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
@@ -712,11 +800,24 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       if (placementEditingId === record.id) stopPlacementEditing();
       else startPlacementEditing(record);
     }
+    if (action === 'anchor') {
+      if (anchorState?.recordId === record.id) cancelAnchor();
+      else armAnchor(record);
+      return;
+    }
+    if (action === 'clear-anchor' && record.anchor && !record.locked) {
+      history.push(records);
+      record.anchor = null;
+      void persist(record);
+      refreshUi();
+      return;
+    }
     if (action === 'reset-placement' && !record.locked && !record.warp?.ok) {
       const mapQuad = defaultReferenceImageMapQuad(record.image, mapElement, mapHost());
       if (mapQuad) {
         history.push(records);
         record.mapQuad = mapQuad;
+        record.anchor = null;
         void persist(record);
         refreshUi();
       }
@@ -742,7 +843,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (panel.hidden || isBlocked()) return false;
     if (event.key === 'Enter' && event.target?.closest('button,[role="button"]')) return false;
     if (event.key === 'Escape') {
-      if (gcpState || placementEditingId) cancelInteraction();
+      if (anchorState || gcpState || placementEditingId) cancelInteraction();
       else surface.close({ restoreFocus: true });
       return true;
     }
@@ -789,7 +890,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     renderStorageStatus();
   }); };
   surface = installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose: cancelInteraction, onOpen: () => renderer.requestRender() });
-  const unregisterInput = registerReferenceImageInput({ begin: beginGesture, active: () => !!(gcpState || placementEditingId || controlPointEditingId), key: onKeyDown, cancel: cancelInteraction, reset: resetSession });
+  const unregisterInput = registerReferenceImageInput({ begin: beginGesture, active: () => !!(anchorState || gcpState || placementEditingId || controlPointEditingId), key: onKeyDown, cancel: cancelInteraction, reset: resetSession });
   const stopPanelKeys = event => {
     const text = event.target?.closest('input,textarea,select,[contenteditable="true"]');
     if (!text && onKeyDown(event)) event.preventDefault();
@@ -849,6 +950,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       blendMode: record.blendMode,
       rotation: referenceImagePlacementRotation(record, mapHost()),
       placementEditing: placementEditingId === record.id,
+      anchored: !!record.anchor,
       warpMode: record.warp?.mode || record.warpMode,
       controlPointCount: record.controlPoints.length,
       diagnostics: record.warp?.ok ? record.warp.diagnostics : null,
