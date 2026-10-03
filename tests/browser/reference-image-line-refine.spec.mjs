@@ -46,6 +46,7 @@ async function referenceScreenGeometry(page) {
     const rect = document.getElementById('map').getBoundingClientRect();
     return {
       center: { x: rect.left + geometry.center[0], y: rect.top + geometry.center[1] },
+      corners: geometry.corners.map(point => ({ x: rect.left + point[0], y: rect.top + point[1] })),
     };
   });
 }
@@ -56,7 +57,7 @@ async function waitForReady(page) {
   await expect(page.locator('.reference-image-launcher')).toBeVisible();
 }
 
-test('line refinement requires a ready unlocked warp and supports cancel/apply preview flow', async ({ page }) => {
+test('line refinement accepts a current corner-pin mapping and supports cancel/apply preview flow', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -81,15 +82,17 @@ test('line refinement requires a ready unlocked warp and supports cancel/apply p
   const centerX = geometry.center.x;
   const centerY = geometry.center.y;
 
-  await page.locator('[data-ref-action="gcp"]').click();
-  await page.mouse.click(centerX, centerY);
-  await page.mouse.click(centerX + 90, centerY + 40);
-  await page.mouse.click(centerX + 12, centerY + 8);
-  await page.mouse.click(centerX + 135, centerY + 65);
+  await page.locator('[data-ref-action="free-transform"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-free-transform-mode/);
+  const corner = geometry.corners[1];
+  await page.mouse.move(corner.x, corner.y);
+  await page.mouse.down();
+  await page.mouse.move(corner.x + 24, corner.y - 12, { steps: 4 });
+  await page.mouse.up();
   await expect.poll(() => page.evaluate(() => {
     const item = window.__PANDOLAB_REFERENCE_IMAGES__?.list()?.[0];
-    return { points: item?.controlPointCount || 0, ready: !!item?.diagnostics };
-  })).toEqual({ points: 2, ready: true });
+    return { cornerPin: !!item?.cornerPinEnabled, ready: !!item?.mappingReady };
+  })).toEqual({ cornerPin: true, ready: true });
   await page.keyboard.press('Escape');
   await expect(start).toBeEnabled();
 
