@@ -156,9 +156,10 @@ test('live-wire accepts a current corner-pin mapping and traces/undoes/applies a
 
   await page.keyboard.press('Backspace');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.segmentCount() || 0)).toBe(0);
-  await page.mouse.move(second.x, second.y, { steps: 4 });
+  const retry = await screenPointForReferenceUv(page, [0.5, 0.72]);
+  await page.mouse.move(retry.x, retry.y, { steps: 4 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.previewPointCount() || 0)).toBeGreaterThan(4);
-  await page.mouse.click(second.x, second.y);
+  await page.mouse.click(retry.x, retry.y);
   await page.keyboard.press('Enter');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('preview');
   await expect(page.locator('[data-ref-live-wire-action="apply"]')).toBeVisible();
