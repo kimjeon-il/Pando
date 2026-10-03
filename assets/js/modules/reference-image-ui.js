@@ -47,7 +47,7 @@ export function renderReferenceImageList(listElement, records, selectedId) {
     row.className = 'reference-image-list-row';
     row.dataset.referenceImageId = record.id;
     if (record.id === selectedId) row.classList.add('is-selected');
-    row.innerHTML = `<span class="reference-image-visibility" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#${record.visible ? 'icon-eye' : 'icon-eye-off'}"/></svg></span><strong></strong><small>${record.controlPoints.length}점</small>`;
+    row.innerHTML = `<span class="reference-image-visibility" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#${record.visible ? 'icon-eye' : 'icon-eye-off'}"/></svg></span><strong></strong><small>${record.anchor ? '📌 고정' : `${record.controlPoints.length}점`}</small>`;
     row.querySelector('strong').textContent = record.name;
     listElement.appendChild(row);
   }
@@ -61,6 +61,7 @@ export function referenceImageEditorMarkup({
   count,
   blendOptions,
   warpOptions,
+  anchorState = null,
   gcpState = null,
   controlPointEditing = false,
   selectedControlPointId = '',
@@ -75,6 +76,8 @@ export function referenceImageEditorMarkup({
       : '';
   const options = values => values.map(([value, label]) => `<option value="${value}"${record.warpMode === value ? ' selected' : ''}>${label}</option>`).join('');
   const placementDisabled = record.locked || warp?.ok;
+  const anchorDisabled = placementDisabled || record.controlPoints.length > 0;
+  const gcpDisabled = record.locked || !!record.anchor;
   return `
     <div class="reference-image-editor-title">
       <input type="text" data-ref-field="name" value="${escapeAttribute(record.name)}" aria-label="참조 이미지 이름" />
@@ -87,20 +90,22 @@ export function referenceImageEditorMarkup({
     <div class="reference-image-toggle-row">
       <label><input data-ref-field="visible" type="checkbox"${record.visible ? ' checked' : ''} /> 표시</label>
       <label><input data-ref-field="locked" type="checkbox"${record.locked ? ' checked' : ''} /> 잠금</label>
-      <button type="button" class="ui-button btn ghost" data-ref-action="flip-x"${record.locked || record.controlPoints.length ? ' disabled' : ''}>좌우 반전</button>
-      <button type="button" class="ui-button btn ghost" data-ref-action="flip-y"${record.locked || record.controlPoints.length ? ' disabled' : ''}>상하 반전</button>
+      <button type="button" class="ui-button btn ghost" data-ref-action="flip-x"${record.locked || record.controlPoints.length || record.anchor ? ' disabled' : ''}>좌우 반전</button>
+      <button type="button" class="ui-button btn ghost" data-ref-action="flip-y"${record.locked || record.controlPoints.length || record.anchor ? ' disabled' : ''}>상하 반전</button>
     </div>
     <div class="reference-image-placement-actions">
       <button type="button" class="ui-button btn ghost${placementEditing ? ' active' : ''}" data-ref-action="placement" aria-pressed="${placementEditing}"${placementDisabled ? ' disabled' : ''}>배치 편집</button>
+      <button type="button" class="ui-button btn ghost${anchorState ? ' active' : ''}" data-ref-action="anchor" aria-pressed="${!!anchorState}"${anchorDisabled ? ' disabled' : ''}>${record.anchor ? '📌 고정점 다시 지정' : '📌 고정점 지정'}</button>
+      <button type="button" class="ui-button btn ghost" data-ref-action="clear-anchor"${record.locked || !record.anchor ? ' disabled' : ''}>고정 해제</button>
       <button type="button" class="ui-button btn ghost" data-ref-action="reset-placement"${placementDisabled ? ' disabled' : ''}>배치 초기화</button>
       <button type="button" class="ui-button btn ghost" data-ref-action="bring-forward"${index >= count - 1 ? ' disabled' : ''}>앞으로</button>
       <button type="button" class="ui-button btn ghost" data-ref-action="send-backward"${index <= 0 ? ' disabled' : ''}>뒤로</button>
     </div>
     <div class="reference-image-gcp-actions">
-      <button type="button" class="ui-button btn" data-ref-action="gcp" aria-pressed="${!!gcpState}"${record.locked ? ' disabled' : ''}>기준점 추가</button>
-      <button type="button" class="ui-button btn ghost${controlPointEditing ? ' active' : ''}" data-ref-action="gcp-edit" aria-pressed="${controlPointEditing}"${record.locked || !record.controlPoints.length ? ' disabled' : ''}>지도에서 점 편집</button>
-      <button type="button" class="ui-button btn ghost" data-ref-action="undo-gcp"${record.controlPoints.length && !record.locked ? '' : ' disabled'}>마지막 점 삭제</button>
-      <button type="button" class="ui-button btn ghost" data-ref-action="clear-gcp"${record.controlPoints.length && !record.locked ? '' : ' disabled'}>전체 삭제</button>
+      <button type="button" class="ui-button btn" data-ref-action="gcp" aria-pressed="${!!gcpState}"${gcpDisabled ? ' disabled' : ''}>기준점 추가</button>
+      <button type="button" class="ui-button btn ghost${controlPointEditing ? ' active' : ''}" data-ref-action="gcp-edit" aria-pressed="${controlPointEditing}"${gcpDisabled || !record.controlPoints.length ? ' disabled' : ''}>지도에서 점 편집</button>
+      <button type="button" class="ui-button btn ghost" data-ref-action="undo-gcp"${record.controlPoints.length && !gcpDisabled ? '' : ' disabled'}>마지막 점 삭제</button>
+      <button type="button" class="ui-button btn ghost" data-ref-action="clear-gcp"${record.controlPoints.length && !gcpDisabled ? '' : ' disabled'}>전체 삭제</button>
     </div>
     <ol class="reference-image-points" aria-label="기준점 편집">
       ${record.controlPoints.map((point, i) => `<li${(gcpState?.pointId === point.id || selectedControlPointId === point.id) ? ' aria-current="true"' : ''}>
@@ -115,6 +120,6 @@ export function referenceImageEditorMarkup({
     </div>
     ${warningText ? `<p class="reference-image-warning">${warningText}</p>` : ''}
     ${diagnostics && record.controlPoints.length <= 2 ? '<p class="reference-image-warning">최소 기준점으로 계산한 오차입니다. 0이어도 전체 이미지 정렬의 정확성을 보장하지 않습니다.</p>' : ''}
-    <p class="reference-image-hint" data-ref-hint>${controlPointEditing ? '지도 위 번호를 드래그해 위치를 옮기고, 선택한 점은 Delete로 삭제합니다.' : warp?.ok ? `${warp.mode} 보정 적용 중 · 배치 편집 대신 기준점으로 위치를 조정합니다.` : placementEditing ? '배치 편집 중 · 드래그로 이동, 8방향 핸들로 크기, 위 핸들로 회전합니다.' : `기준점 ${warp?.minimumPoints || 2}개부터 보정할 수 있습니다. 평소에는 클릭이 지도 도구로 통과합니다.`}</p>
+    <p class="reference-image-hint" data-ref-hint>${anchorState ? (anchorState.step === 'image' ? '1/2 · 이미지에서 고정할 지점을 선택하세요.' : '2/2 · 같은 지점의 실제 지도 위치를 선택하세요.') : controlPointEditing ? '지도 위 번호를 드래그해 위치를 옮기고, 선택한 점은 Delete로 삭제합니다.' : warp?.ok ? `${warp.mode} 보정 적용 중 · 배치 편집 대신 기준점으로 위치를 조정합니다.` : placementEditing ? (record.anchor ? '📌 고정점 유지 중 · 이동은 잠기고 8방향 크기·회전만 조정됩니다.' : '배치 편집 중 · 드래그로 이동, 8방향 핸들로 크기, 위 핸들로 회전합니다.') : record.anchor ? '📌 고정점이 설정되어 있습니다. 배치 편집에서 크기·회전 시 이 지점이 유지됩니다.' : `기준점 ${warp?.minimumPoints || 2}개부터 보정할 수 있습니다. 평소에는 클릭이 지도 도구로 통과합니다.`}</p>
   `;
 }
