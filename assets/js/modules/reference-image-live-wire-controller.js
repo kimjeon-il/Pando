@@ -250,7 +250,7 @@ export function installReferenceImageLiveWire() {
     let row = editor.querySelector('[data-ref-live-wire-actions]');
     if (!row) {
       row = document.createElement('div');
-      row.className = 'reference-image-gcp-actions reference-image-live-wire-actions';
+      row.className = 'reference-image-calibration-actions reference-image-live-wire-actions';
       row.dataset.refLiveWireActions = '';
       row.innerHTML = `
         <button type="button" class="ui-button ui-button--primary" data-ref-live-wire-action="start">자동 추적</button>
@@ -261,9 +261,9 @@ export function installReferenceImageLiveWire() {
         <button type="button" class="ui-button" data-ref-live-wire-action="cancel" hidden>취소</button>
       `;
       const lineActions = editor.querySelector('[data-ref-line-actions]');
-      const gcpActions = editor.querySelector('.reference-image-gcp-actions');
+      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
       if (lineActions) lineActions.insertAdjacentElement('afterend', row);
-      else if (gcpActions) gcpActions.insertAdjacentElement('afterend', row);
+      else if (calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
       else editor.appendChild(row);
     }
     return row;
@@ -352,9 +352,12 @@ export function installReferenceImageLiveWire() {
     if (!stored?.blob) throw new Error('저장된 참조 이미지를 찾을 수 없습니다.');
     for (let attempt = 0; meta?.mappingSignature
       && referenceImageMappingSignature(stored) !== meta.mappingSignature
-      && attempt < 6; attempt += 1) {
-      await new Promise(resolve => globalThis.setTimeout(resolve, 40));
+      && attempt < 8; attempt += 1) {
+      await new Promise(resolve => globalThis.setTimeout(resolve, 50));
       stored = (await listStoredReferenceImages()).find(record => String(record?.id) === String(recordId)) || stored;
+    }
+    if (meta?.mappingSignature && referenceImageMappingSignature(stored) !== meta.mappingSignature) {
+      throw new Error('참조 이미지 변경 사항을 저장한 뒤 다시 시도하세요.');
     }
     return stored;
   }
