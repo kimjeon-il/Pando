@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - 'assets/js/modules/reference-image-*.js'
+      - 'assets/js/modules/map-input-presentation.js'
       - 'assets/css/tokens/reference-images.css'
       - 'assets/css/components/reference-images.css'
       - 'assets/css/layout/reference-images.css'
@@ -43,6 +44,7 @@ jobs:
         run: >-
           pnpm exec eslint
           assets/js/modules/reference-image-*.js
+          assets/js/modules/map-input-presentation.js
           tests/unit/reference-image-*.test.mjs
           tests/browser/reference-image-*.spec.mjs
 
