@@ -160,7 +160,7 @@ export function defaultReferenceImageScreenRect(image, mapElement) {
   const maxHeight = Math.max(140, bounds.height * 0.62);
   const naturalWidth = Math.max(1, Number(image?.naturalWidth) || 1);
   const naturalHeight = Math.max(1, Number(image?.naturalHeight) || 1);
-  const scale = Math.min(maxWidth / naturalWidth, maxHeight / naturalHeight, 1);
+  const scale = Math.min(maxWidth / naturalWidth, maxHeight / naturalHeight);
   const width = Math.max(80, naturalWidth * scale);
   const height = Math.max(60, naturalHeight * scale);
   return {
