@@ -62,6 +62,7 @@ export function normalizeReferenceImageRecord(record = {}) {
   const order = Number(record?.order);
   const controlPoints = normalizeControlPoints(record?.controlPoints);
   const anchor = normalizeReferenceImageAnchor(record?.anchor);
+  const mapQuad = normalizeReferenceImageMapQuad(record?.mapQuad);
   return {
     modelVersion: REFERENCE_IMAGE_MODEL_VERSION,
     id: String(record?.id || ''),
@@ -75,11 +76,50 @@ export function normalizeReferenceImageRecord(record = {}) {
     flipY: record?.flipY === true,
     controlPoints,
     anchor,
-    cornerPinEnabled: record?.cornerPinEnabled === true,
-    mapQuad: normalizeReferenceImageMapQuad(record?.mapQuad),
+    cornerPinEnabled: record?.cornerPinEnabled === true && !!mapQuad,
+    mapQuad,
     order: Number.isFinite(order) ? order : 0,
     blob: typeof Blob !== 'undefined' && record?.blob instanceof Blob ? record.blob : null,
   };
+}
+
+function inferredReferenceImageModelVersion(record) {
+  const explicit = Number(record?.modelVersion);
+  if (Number.isInteger(explicit) && explicit >= 1) return explicit;
+  if (record?.screenRect) return 1;
+  if (record?.cornerPinEnabled !== undefined) return 5;
+  if (record?.anchor && Array.isArray(record?.controlPoints) && record.controlPoints.length) return 4;
+  if (record?.anchor) return 3;
+  if (record?.mapQuad) return 2;
+  return 1;
+}
+
+export function migrateReferenceImageStoredRecord(record = {}, {
+  legacyMapQuad = null,
+} = {}) {
+  const sourceVersion = inferredReferenceImageModelVersion(record);
+  const normalizedLegacyQuad = normalizeReferenceImageMapQuad(legacyMapQuad);
+  const normalizedExistingQuad = normalizeReferenceImageMapQuad(record?.mapQuad);
+  const migratedMapQuad = normalizedExistingQuad || normalizedLegacyQuad;
+  const normalized = normalizeReferenceImageRecord({
+    ...record,
+    mapQuad: migratedMapQuad,
+  });
+
+  const needsPlacementMigration = !normalized.mapQuad && !!record?.screenRect;
+  const migrated = sourceVersion !== REFERENCE_IMAGE_MODEL_VERSION
+    || !!record?.screenRect
+    || 'rotation' in (record || {})
+    || !('cornerPinEnabled' in (record || {}))
+    || Number(record?.modelVersion) !== REFERENCE_IMAGE_MODEL_VERSION;
+
+  return Object.freeze({
+    record: normalized,
+    sourceVersion,
+    targetVersion: REFERENCE_IMAGE_MODEL_VERSION,
+    migrated,
+    needsPlacementMigration,
+  });
 }
 
 export function serializeReferenceImageRecord(record, order = 0) {
