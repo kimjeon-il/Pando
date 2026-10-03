@@ -105,7 +105,35 @@ test('annex setup hides selection-stage visuals and restores the exact draft on 
   expect(errors).toEqual([]);
 });
 
-test('editor headers stay text-only while selection identity and explicit body focus remain', async ({ page }, testInfo) => {
+test('task windows omit target focus while the object editor retains its focus action', async ({ page }, testInfo) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const errors = await boot(page);
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'GRC'));
+  await page.locator('#selectionToolbarEditBtn').click();
+  await expect(page.locator('#editorObjectHeader #focusSelectedObjectBtn')).toBeVisible();
+  for (const [command, name] of [['#annexTerritoryBtn', '영토 편입'], ['#editBorderBtn', '국경 조정']]) {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.locator('#actionsTabBtn').click();
+    await page.locator(command).click();
+    for (const width of [1440, 1024, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'task');
+      await expect(page.locator('#modeTaskName')).toHaveText(name);
+      await expect(page.locator('#modeTaskTargetsFocusBtn')).toHaveCount(0);
+      await expect(page.locator('#modeEditingHud button[aria-label*="대상으로 이동"]')).toHaveCount(0);
+      await expect(page.locator('#modeCancelBtn')).toBeVisible();
+      await page.locator('#modeEditingHud').screenshot({ path: testInfo.outputPath(`no-target-focus-${command.slice(1)}-${width}.png`) });
+    }
+    await page.locator('#modeCancelBtn').click();
+    await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
+    await expect(page.locator('#editorObjectHeader #focusSelectedObjectBtn')).toBeVisible();
+    await expect(page.locator('#propertyTitle')).toHaveText('그리스');
+  }
+  expect(errors).toEqual([]);
+});
+
+test('editor identity returns to header flag and focus controls without changing task headers', async ({ page }, testInfo) => {
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
@@ -113,19 +141,44 @@ test('editor headers stay text-only while selection identity and explicit body f
   await expect(page.locator('#selectionCardName')).toHaveText('독일');
   await expect(page.locator('#selectionCardFlagPreview img')).toBeVisible();
   await page.locator('#selectionToolbarEditBtn').click();
-  await expect(page.locator('#editorObjectHeader #focusSelectedObjectBtn')).toHaveCount(0);
-  await expect(page.locator('#editorObjectHeader svg, #editorObjectHeader img')).toHaveCount(0);
-  const flag = page.locator('#editorScrollBody #flagMenuBtn');
-  await expect(flag).toBeVisible();
-  await flag.click();
-  await expect(page.locator('#flagMenu')).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(page.locator('#flagMenu')).toBeHidden();
-  await expect(flag).toBeFocused();
-  const focus = page.locator('#editorScrollBody #focusSelectedObjectBtn');
-  await expect(focus).toBeVisible();
-  await expect(focus).toHaveText('선택 객체로 이동');
-  await expect(focus.locator('svg')).toHaveCount(0);
+  const flag = page.locator('#editorObjectHeader #flagMenuBtn');
+  const focus = page.locator('#editorObjectHeader #focusSelectedObjectBtn');
+  await expect(page.locator('#editorScrollBody #flagMenuBtn, #editorScrollBody #focusSelectedObjectBtn')).toHaveCount(0);
+  await expect(focus.locator('use')).toHaveAttribute('href', '#icon-focus-target');
+  await expect(focus).toHaveText('');
+  for (const width of [1440, 1024, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      await expect(flag).toBeVisible();
+      await expect(focus).toBeVisible();
+      const flagBox = await flag.boundingBox();
+      const headingBox = await page.locator('#editorObjectHeading').boundingBox();
+      const focusBox = await focus.boundingBox();
+      expect(flagBox.width).toBeCloseTo(56, 0);
+      expect(flagBox.height).toBeCloseTo(48, 0);
+      expect(focusBox.width).toBeCloseTo(width === 390 ? 40 : 36, 0);
+      expect(focusBox.height).toBeCloseTo(focusBox.width, 0);
+      expect(flagBox.x + flagBox.width).toBeLessThanOrEqual(headingBox.x);
+      expect(headingBox.x + headingBox.width).toBeLessThanOrEqual(focusBox.x);
+      expect(Math.abs(flagBox.y + flagBox.height / 2 - focusBox.y - focusBox.height / 2)).toBeLessThan(1);
+      await flag.hover();
+      expect(await flag.evaluate(node => getComputedStyle(node).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+      await flag.click();
+      await expect(page.locator('#flagMenu')).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(page.locator('#flagMenu')).toBeHidden();
+      await expect(flag).toBeFocused();
+      await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath(`restored-editor-${width}-${theme}.png`) });
+    }
+    for (const tab of ['#actionsTabBtn', '#relationTabBtn', '#editorTabBtn']) {
+      await page.locator(tab).click();
+      await expect(flag).toBeVisible();
+      await expect(focus).toBeVisible();
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
   const before = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState());
   await focus.click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState())).not.toEqual(before);
@@ -141,7 +194,7 @@ test('editor headers stay text-only while selection identity and explicit body f
     await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
     await expect(page.locator('.mode-task-window-header #modeTaskTargetsFocusBtn')).toHaveCount(0);
     await expect(page.locator('.mode-task-window-header .ui-icon:visible')).toHaveCount(0);
-    await expect(page.locator('#modeTaskTargetsFocusBtn')).toBeHidden();
+    await expect(page.locator('#modeTaskTargetsFocusBtn')).toHaveCount(0);
     expect(await page.locator('#modeEditingHud').evaluate((node, original) => node === original, task)).toBe(true);
     await page.locator('#modeEditingHud').screenshot({ path: testInfo.outputPath(`text-header-${width}.png`) });
   }
