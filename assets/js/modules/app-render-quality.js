@@ -74,7 +74,7 @@ export function createRenderQuality() {
       gpuRebuildTimer = null;
       if (Number.isFinite(requestedGeneration)
           && dependencies.rendering.gpuMapRenderer.getProjectGeneration?.() !== requestedGeneration) return;
-      dependencies.spatialQuery.mapEditClient.rebase(dependencies.projectState.state.countriesData?.features || []);
+      dependencies.spatialQuery.mapEditClient.rebase();
       dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinTerritorialScene)().collection.features, {
         projectGeneration: requestedGeneration,
       });

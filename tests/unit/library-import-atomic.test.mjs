@@ -1,32 +1,36 @@
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 
 function harness(fail = false) {
-  const state = { countriesData: { type: 'FeatureCollection', features: [{ id: 'A' }] }, countryOverrides: {}, territorialUnits: [], sourceInfo: null };
+  const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
+  const state = {territorialEntities:[createTerritorialFeature({id:'A',unitType:'country',geometry})],historyDirtyEntityIds:new Set(),sourceInfo:null};
   const before = structuredClone(state);
   const history = [], events = [];
   const noop = () => {};
+  const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
   const commit = createGisImportTransactionCommitter({
-    state, entityStore: createTerritorialEntityStore({ getState: () => state }),
-    deepClone: structuredClone, importedCountryOverrides: () => ({}), applyImportedPackageAssets: (_meta, values) => values,
+    state, entityStore: fixtureEntityStore1, territorialEntityRepository: createTerritorialEntityRepository({ entityStore: fixtureEntityStore1 }),
+    deepClone: structuredClone, applyImportedPackageAssets: (_meta, values) => values,
     validateGisCountryCollection: async () => ({ overlapAreaKm2: 0 }),
     snapshotEditable: () => structuredClone(state), restoreEditTransactionSnapshot: snapshot => Object.assign(state, structuredClone(snapshot)),
     normalizeProjectObjects: noop, markLayerTreeDirty: noop, pruneLayerItemVisibility: noop,
     transferLandDependents: () => { events.push('transfer'); },
     assertProjectReferenceIntegrity: snapshot => {
       events.push('validate');
-      assert.equal(snapshot.territorialUnits.length, 1);
+      assert.equal(snapshot.territorialEntities.filter(entity=>entity.properties.unitType!=='country').length, 1);
       if (fail) throw new Error('invalid relation');
     },
     appendImportedSourceInfo: (_before, next) => next, scheduleCountryLabelAnchors: noop, markCountryGeometriesChanged: noop,
     commitHistorySnapshot: snapshot => { events.push('history'); history.push(snapshot); },
     selectionUiController: { clear: noop }, renderingDomain: { invalidateCountryPatch: noop }, queueAutosave: noop, setActionStatus: noop,
   });
-  const result = { countriesData: { type: 'FeatureCollection', features: [{ id: 'NEW' }] }, preparedTerritorialUnits: [{ id: 'CHILD', properties: { unitType: 'subunit', parentId: 'NEW', sovereignId: 'NEW' } }],
+  const result = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',unitType:'country',geometry})] }, preparedTerritorialUnits: [createTerritorialFeature({id:'CHILD',unitType:'subunit',parentId:'NEW',geometry})],
     landTransfers: [{ targetId: 'NEW', geometry: {}, donorIds: ['A'] }], sourceInfo: { sourceId: 'library' } };
-  const plan = { countriesData: { type: 'FeatureCollection', features: [{ id: 'NEW' }] }, affectedIds: ['A', 'NEW'], counts: { added: 2 } };
+  const plan = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',unitType:'country',geometry})] }, affectedIds: ['A', 'NEW'], counts: { added: 2 } };
   return { state, before, history, events, run: () => commit.commitGisMerge(result, plan), result };
 }
 
@@ -36,11 +40,11 @@ test('country transfer and library children validate together and commit one rev
   assert.deepEqual(h.events, ['transfer', 'validate', 'history']);
   assert.equal(h.history.length, 1);
   assert.deepEqual(h.history[0], h.before);
-  const after = JSON.parse(JSON.stringify(h.state));
+  const after = structuredClone(h.state);
   Object.assign(h.state, structuredClone(h.history[0]));
   assert.deepEqual(h.state, h.before);
   Object.assign(h.state, after);
-  assert.equal(h.state.territorialUnits[0].properties.sovereignId, 'NEW');
+  assert.equal(h.state.territorialEntities.find(entity=>entity.id==='CHILD').properties.parentId, 'NEW');
 });
 
 test('child validation failure restores countries, children and source; does not record history', async () => {

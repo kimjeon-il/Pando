@@ -18,7 +18,7 @@ function fixture(visibility = {}) {
   const state = {
     projection: 'globe', view: { globeZoom: 2 }, countryVisualPhase: 'canonical',
     layerVisibility: { basemapLabels: true, countryFlags: true, labels: true, subunitLabels: visibility.basemapLabels !== false, ...visibility },
-    countryOverrides: {}, labelSettings: {}, size: { width: 1000, height: 600 },
+    territorialEntities: features, labelSettings: {}, size: { width: 1000, height: 600 },
     labels: [{ id: 'PLACE', kind: 'capital', name: 'Place', coordinates: [100, 300] }],
   };
   const controller = createTerritorialLabels();
@@ -45,9 +45,6 @@ function fixture(visibility = {}) {
     domainAssembly: {
       territorialEntityRepository: { get: id => ({ ...features.find(feature => feature.id === id), properties: { unitType: 'country', name: id, metadata: ['AAA','BBB'].includes(id) ? { flagDataUrl: `/${id}.svg` } : {} } }) },
       selectionDomain: { has: () => false, snapshot: () => ({ selection: { items: [], primaryKey: null } }) },
-      territorialEntityStore: {
-        countryOverride: id => state.countryOverrides[String(id)] || {},
-      },
     },
     environment: { runtimeAssetUrl: path => new URL(path, 'http://localhost/assets/js/') },
     renderQuality: { currentRenderQuality: { labelDensity: 1, tier: 'high' } },

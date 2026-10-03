@@ -15,11 +15,9 @@ export function createProjectRestore() {
 
   function applyAtlasState(project, manual = false, { projectGeneration = null, skipRenderReset = false } = {}) {
     (0, dependencies.projectServices.assertCurrentProjectSchema)(project);
-    if (project.countriesData?.features) {
+    if (project.territorialEntities) {
       (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
-        countries: project.countriesData.features,
-        countryOverrides: project.countryOverrides || {},
-        territorialUnits: project.territorialUnits || [],
+        territorialEntities: project.territorialEntities,
         territorialRelations: project.territorialRelations || [],
         distributionLayers: project.distributionLayers || [],
         distributionEntries: project.distributionEntries || [],
@@ -41,18 +39,16 @@ export function createProjectRestore() {
     (0, dependencies.snapshots.applySharedProjectFields)(project);
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     dependencies.projectState.state.layerSearch = '';
-    dependencies.territorialModel.entityStore.replaceCollections({
-      countriesData: project.countriesData
-        ? (0, dependencies.platform.deepClone)(project.countriesData)
-        : (0, dependencies.builtinCountries.freshPristineCountries)(true),
-    });
+    dependencies.territorialModel.entityStore.replaceEntities(project.format === 'pandolab-autosave-delta'
+      ? dependencies.domains.projectDomain.entitiesFromAutosaveDelta(project)
+      : (0, dependencies.platform.deepClone)(project.territorialEntities));
     dependencies.projectState.state.auditPreviewCountries = null;
     (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(project);
-    const externalGeometry = !!project.countriesData && project.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
+    const externalGeometry = !!project.territorialEntities && project.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
     dependencies.domains.selectionDomain.resetProject(dependencies.domains.projectDomain?.getGeneration?.() || 0);
     dependencies.domains.editingDomain?.resetProject?.(dependencies.domains.projectDomain?.getGeneration?.() || 0);
 
@@ -125,10 +121,10 @@ export function createProjectRestore() {
 
   function analyzeAdminCountryCoastConflicts(adminId) {
     const admin = dependencies.territorialModel.entityRepository.get(adminId);
-    const countryId = String(admin?.properties?.sovereignId || '');
-    const country = dependencies.territorialModel.entityStore.countryFeature(countryId);
+    const countryId = String((0, dependencies.territorialModel.administrativeCountryId)(admin, id => dependencies.territorialModel.entityRepository.get(id)) || '');
+    const country = dependencies.territorialModel.entityRepository.get(countryId);
     if (!admin || admin.properties?.unitType !== dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT || !country) return { admin, country, status: 'unavailable', conflicts: [] };
-    const topology = (0, dependencies.territorialModel.buildSharedBoundaryTopology)(dependencies.projectState.state.countriesData?.features || []);
+    const topology = (0, dependencies.territorialModel.buildSharedBoundaryTopology)(dependencies.territorialModel.entityRepository.list({ type: 'country' }));
     const result = (0, dependencies.gisServicesA.analyzeAdminCountryCoast)({ adminFeature: admin, countryFeature: country, countryTopology: topology });
     return { admin, country, status: result.status, unavailableReason: result.unavailableReason, conflicts: result.conflicts || [] };
   }
@@ -238,24 +234,17 @@ export function createProjectRestore() {
     dependencies.projectState.state.view = { globeRotation: [-15, -25, 0], globeZoom: 1, flatCenter: [0, 20], flatZoom: 1 };
 
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
-    // false = 이전 국가명/색상 override까지 적용하지 않고 최초 데이터 그대로 복원.
     dependencies.projectState.state.countryIndex.clear();
-    dependencies.territorialModel.entityStore.replaceCollections({
-      countriesData: preparedCountries,
-      countryOverrides: {},
-      units: [],
-    }, {
-      reindexOptions: { assumeCanonical: true },
-    });
+    dependencies.territorialModel.entityStore.replaceEntities(preparedCountries.features);
     const restoredExactly = dependencies.builtinCountries.canonicalCountryStore
-      ? dependencies.projectState.state.countriesData.features.length === dependencies.builtinCountries.canonicalCountryStore.ids().length
-        && dependencies.projectState.state.countriesData.features.every(feature => dependencies.builtinCountries.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))
+      ? dependencies.territorialModel.entityRepository.list({ type: 'country' }).length === dependencies.builtinCountries.canonicalCountryStore.ids().length
+        && dependencies.territorialModel.entityRepository.list({ type: 'country' }).every(feature => dependencies.builtinCountries.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))
       : true;
     if (!restoredExactly) {
       throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
     }
     (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
-    (0, dependencies.countryRecords.applyPristineLabelAnchors)(dependencies.projectState.state.countriesData);
+    (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) }));
     dependencies.projectState.state.auditPreviewCountries = null;
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.layers.markLayerTreeDirty)();

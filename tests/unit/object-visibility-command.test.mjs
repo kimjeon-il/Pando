@@ -13,7 +13,7 @@ function harness(refs, { builtin = false } = {}) {
   const state = {
     layerVisibility: { countries: false, rivers: false, lakes: false, subunits: false, regions: false, distributions: false, labels: false, genericFeatures: false },
     itemVisibility: {}, physicalSettings: { hiddenHydroIds: {}, hydroLayers: { rivers_hydro: false, lakes_natural_earth: false } },
-    countryOverrides: {}, territorialUnits: [], genericFeatures: [feature], labels: [feature],
+    territorialEntities: [], genericFeatures: [feature], labels: [feature],
   };
   const effects = { saved: 0, palette: 0, hydro: 0, base: 0, labels: 0, selection: 0 };
   const commands = createObjectCommands();

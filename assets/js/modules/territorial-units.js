@@ -1,9 +1,10 @@
+import './territorial-edit-plan.js';
 import {
   normalizeTemporalInterval,
   temporalIntervalsOverlap,
 } from './temporal.js';
 
-export const TERRITORIAL_SCHEMA_VERSION = 2;
+export const TERRITORIAL_SCHEMA_VERSION = 3;
 
 export const TERRITORIAL_UNIT_TYPES = Object.freeze({
   COUNTRY: 'country',
@@ -38,7 +39,8 @@ function normalizedProperties(feature, type) {
   const source = feature?.properties || {};
   if (Number(source.schemaVersion) !== TERRITORIAL_SCHEMA_VERSION) throw new Error('영역 schemaVersion이 현재 형식과 일치하지 않습니다.');
   const parentId = text(source.parentId);
-  const sovereignId = text(source.sovereignId);
+  const associatedCountryId = text(source.associatedCountryId);
+  if (Object.hasOwn(source, 'sovereignId')) throw new Error('sovereignId는 현재 영역 모델의 필드가 아닙니다.');
   const coverageMode = text(source.coverageMode);
   if (![TERRITORIAL_COVERAGE_MODES.EXPLICIT, TERRITORIAL_COVERAGE_MODES.PARTITION].includes(coverageMode)) {
     throw new Error('영역 coverageMode가 올바르지 않습니다.');
@@ -51,7 +53,7 @@ function normalizedProperties(feature, type) {
     unitType: type,
     name: text(source.name),
     parentId,
-    sovereignId,
+    associatedCountryId,
     coverageMode,
     style: color ? { ...sourceStyle, color } : { ...sourceStyle },
     locked: source.locked === true,
@@ -63,12 +65,11 @@ function normalizedProperties(feature, type) {
     sourceLibraryId: text(source.sourceLibraryId),
     sourceGeometryVersion: text(source.sourceGeometryVersion),
   };
-  delete properties.metadata.legacyTerritorialPartition;
   if (!color) delete properties.style.color;
   return properties;
 }
 
-function normalizeTerritorialFeature(feature) {
+export function normalizeTerritorialFeature(feature, { cloneGeometry = clone } = {}) {
   const type = territorialUnitType(feature);
   if (!type || !isTerritorialFeature(feature)) return null;
   const id = text(feature.id);
@@ -77,7 +78,7 @@ function normalizeTerritorialFeature(feature) {
     type: 'Feature',
     id,
     properties: normalizedProperties(feature, type),
-    geometry: clone(feature.geometry),
+    geometry: cloneGeometry(feature.geometry),
   };
 }
 
@@ -92,36 +93,35 @@ function parentCreatesCycle(id, parentId, byId) {
   return false;
 }
 
-export function normalizeTerritorialUnits(value, {
-  countryExists = () => true,
+export const administrativeCountryId = globalThis.PandoLabTerritorialEdit.administrativeCountryId;
+
+export function normalizeTerritorialEntities(value, {
+  getEntity = () => null,
   validatedUnchanged = null,
+  cloneGeometry = clone,
 } = {}) {
   const normalized = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
-    const feature = validatedUnchanged?.has(raw) ? raw : normalizeTerritorialFeature(raw);
+    const feature = validatedUnchanged?.has(raw) ? raw : normalizeTerritorialFeature(raw, { cloneGeometry });
     if (!feature) throw new Error('영역 형식이 올바르지 않습니다.');
-    if (feature.properties.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY) throw new Error('국가는 countriesData에 저장해야 합니다.');
     if (seen.has(feature.id)) throw new Error(`영역 ID가 중복되었습니다: ${feature.id}`);
     seen.add(feature.id);
     normalized.push(feature);
   }
 
   const byId = new Map(normalized.map(feature => [feature.id, feature]));
-  const unitExists = id => byId.has(text(id)) || countryExists(text(id));
+  const resolve = id => byId.get(text(id)) || getEntity(text(id));
   for (const feature of normalized) {
     const properties = feature.properties;
-    if (properties.unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT) {
-      const parent = byId.get(properties.parentId);
-      if (!properties.sovereignId || !properties.parentId || (properties.parentId !== properties.sovereignId
-        && (parent?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT || parent.properties.sovereignId !== properties.sovereignId))) {
-        throw new Error(feature.id + ': 같은 소속 국가의 상위 단위를 지정해야 합니다.');
-      }
+    if (properties.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY && properties.parentId) throw new Error('국가에는 행정 부모를 지정할 수 없습니다.');
+    if (properties.unitType !== TERRITORIAL_UNIT_TYPES.REGION && properties.associatedCountryId) throw new Error('국가 연결은 지방에만 지정할 수 있습니다.');
+    if (properties.unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT && properties.coverageMode !== TERRITORIAL_COVERAGE_MODES.EXPLICIT) throw new Error('국가·지방은 explicit 형상이어야 합니다.');
+    if (properties.unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT) administrativeCountryId(feature, resolve);
+    if (properties.associatedCountryId && resolve(properties.associatedCountryId)?.properties?.unitType !== TERRITORIAL_UNIT_TYPES.COUNTRY) {
+      throw new Error(`${feature.id}의 연결 국가 ${properties.associatedCountryId}이 존재하지 않습니다.`);
     }
-    if (properties.sovereignId && !countryExists(properties.sovereignId)) {
-      throw new Error(`${feature.id}의 소속 국가 ${properties.sovereignId}이 존재하지 않습니다.`);
-    }
-    if (properties.parentId && (!unitExists(properties.parentId)
+    if (properties.parentId && (!resolve(properties.parentId)
       || properties.parentId === feature.id
       || parentCreatesCycle(feature.id, properties.parentId, byId))) {
       throw new Error(`${feature.id}의 상위 단위 ${properties.parentId}이 존재하지 않거나 순환합니다.`);
@@ -131,12 +131,13 @@ export function normalizeTerritorialUnits(value, {
 }
 
 export function validateTerritorialRelations(units, {
-  countryExists = () => true,
+  getEntity = () => null,
   relations = [],
 } = {}) {
   const issues = [];
   const byId = new Map((units || []).map(feature => [text(feature.id), feature]));
-  const exists = id => byId.has(text(id)) || countryExists(text(id));
+  const resolve = id => byId.get(text(id)) || getEntity(text(id));
+  const exists = id => !!resolve(id);
   for (const feature of units || []) {
     const id = text(feature.id);
     const properties = feature.properties || {};
@@ -144,7 +145,9 @@ export function validateTerritorialRelations(units, {
     if (!POLYGON_TYPES.has(feature.geometry?.type)) issues.push(`${id || '영역'}의 형상이 Polygon이 아닙니다.`);
     if (!UNIT_TYPES.has(properties.unitType)) issues.push(`${id || '영역'}의 유형이 올바르지 않습니다.`);
     if (properties.parentId && !exists(properties.parentId)) issues.push(`${id}의 상위 단위가 존재하지 않습니다.`);
-    if (properties.sovereignId && !countryExists(properties.sovereignId)) issues.push(`${id}의 소속 국가가 존재하지 않습니다.`);
+    try { administrativeCountryId(feature, resolve); }
+    catch (error) { issues.push(error.message); }
+    if (properties.associatedCountryId && resolve(properties.associatedCountryId)?.properties?.unitType !== 'country') issues.push(`${id}의 연결 국가가 존재하지 않습니다.`);
     if (properties.parentId === id || parentCreatesCycle(id, properties.parentId, byId)) issues.push(`${id}의 상위 관계가 순환합니다.`);
     try { normalizeTemporalInterval(properties.validFrom, properties.validTo); }
     catch (error) { issues.push(`${id}의 유효기간이 올바르지 않습니다. ${error.message}`); }
@@ -154,7 +157,8 @@ export function validateTerritorialRelations(units, {
     const unitId = text(relation?.unitId);
     if (!exists(unitId)) issues.push(`${unitId || '관계'}의 대상 영역이 존재하지 않습니다.`);
     if (relation?.parentId && !exists(relation.parentId)) issues.push(`${unitId}의 기간별 상위 단위가 존재하지 않습니다.`);
-    if (relation?.sovereignId && !countryExists(relation.sovereignId)) issues.push(`${unitId}의 기간별 소속 국가가 존재하지 않습니다.`);
+    if (relation?.associatedCountryId && (resolve(unitId)?.properties?.unitType !== 'region'
+      || resolve(relation.associatedCountryId)?.properties?.unitType !== 'country')) issues.push(`${unitId}의 기간별 연결 국가가 올바르지 않습니다.`);
     try { normalizeTemporalInterval(relation?.validFrom, relation?.validTo); }
     catch (error) { issues.push(`${unitId}의 기간별 관계가 올바르지 않습니다. ${error.message}`); }
     const list = byRelationUnit.get(unitId) || [];
@@ -175,7 +179,7 @@ export function normalizeTerritorialRelations(value) {
   const output = [];
   const seen = new Set();
   for (const raw of Array.isArray(value) ? value : []) {
-    if (Number(raw?.schemaVersion) !== 1) throw new Error('기간별 관계 schemaVersion이 현재 형식과 일치하지 않습니다.');
+    if (Number(raw?.schemaVersion) !== 2 || Object.hasOwn(raw, 'sovereignId')) throw new Error('기간별 관계 schemaVersion이 현재 형식과 일치하지 않습니다.');
     const unitId = text(raw?.unitId);
     if (!unitId) throw new Error('기간별 관계의 대상 영역 ID가 비어 있습니다.');
     const id = text(raw.id);
@@ -185,10 +189,10 @@ export function normalizeTerritorialRelations(value) {
     const interval = normalizeTemporalInterval(raw.validFrom, raw.validTo);
     output.push({
       id,
-      schemaVersion: 1,
+      schemaVersion: 2,
       unitId,
       parentId: text(raw.parentId),
-      sovereignId: text(raw.sovereignId),
+      associatedCountryId: text(raw.associatedCountryId),
       validFrom: interval.validFrom,
       validTo: interval.validTo,
     });
@@ -202,7 +206,7 @@ export function createTerritorialFeature({
   name = '',
   geometry,
   parentId = '',
-  sovereignId = '',
+  associatedCountryId = '',
   coverageMode,
   color = '',
   locked = false,
@@ -215,10 +219,10 @@ export function createTerritorialFeature({
   sourceGeometryVersion = '',
 }) {
   if (unitType === TERRITORIAL_UNIT_TYPES.SUBUNIT) {
-    parentId = text(parentId || sovereignId);
+    parentId = text(parentId);
     if (!parentId) throw new Error('하위단위의 상위 단위를 지정해야 합니다.');
   }
-  const resolvedCoverageMode = coverageMode || (unitType === TERRITORIAL_UNIT_TYPES.REGION
+  const resolvedCoverageMode = coverageMode || (unitType !== TERRITORIAL_UNIT_TYPES.SUBUNIT
     ? TERRITORIAL_COVERAGE_MODES.EXPLICIT
     : TERRITORIAL_COVERAGE_MODES.PARTITION);
   const feature = normalizeTerritorialFeature({
@@ -229,7 +233,7 @@ export function createTerritorialFeature({
       unitType,
       name,
       parentId,
-      sovereignId,
+      associatedCountryId,
       coverageMode: resolvedCoverageMode,
       style: color ? { color } : {},
       locked,

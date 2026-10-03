@@ -53,7 +53,7 @@ test('selection prepares each shared country packet once and forwards prepared-o
   assert.deepEqual(prepared, ['shared']);
 });
 
-test('base pass draws map substrate before terrain and preserves territory, country, water and stroke order', () => {
+test('base pass preserves terrain, front-to-back territory, country, water and stroke order without preparing resources', () => {
   const calls = [];
   const gl = glFixture();
   for (const name of ['viewport', 'colorMask', 'clearColor', 'clearStencil', 'clear', 'stencilMask', 'stencilFunc', 'stencilOp']) gl[name] = () => {};
@@ -80,10 +80,10 @@ test('base pass draws map substrate before terrain and preserves territory, coun
         { kind: 'polygon', packet: { key: 'parent', role: 'territorial-fill', territoryDepth: 1, order: 1 } },
         { kind: 'polygon', packet: { key: 'child', role: 'territorial-fill', territoryDepth: 2, order: 2 } },
       ].reverse(), polygonItems: [{ kind: 'polygon', packet: { key: 'generic' } }], strokeItems: [{ kind: 'stroke', packet: { key: 'line' } }] },
-  }, { polygonOverlayPass, strokeRenderer, drawProgram: (...args) => calls.push(args[10] ? 'substrate' : args[0]),
+  }, { polygonOverlayPass, strokeRenderer, drawProgram: program => calls.push(program),
     renderTerrain: () => calls.push('terrain'), drawHydro: category => calls.push(category),
     drawCountryBoundaryStrokes: () => { calls.push('boundary'); return { succeeded: true }; } });
-  assert.deepEqual(calls, ['substrate', 'mask', 'terrain', 'child', 'parent', 'country', 'generic', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary', 'stroke']);
+  assert.deepEqual(calls, ['mask', 'terrain', 'child', 'parent', 'country', 'generic', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary', 'stroke']);
   assert.deepEqual(result.overlayMissingKeys, []);
 });
 

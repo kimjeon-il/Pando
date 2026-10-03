@@ -17,7 +17,7 @@ test('timed out geometry calculation terminates its worker and retries from curr
       workers.push(worker);
       return worker;
     },
-    getFeatures: () => features,
+    getEntities: () => features,
     getFeatureById: id => features.find(feature => feature.id === id),
     schedule: callback => Promise.resolve().then(callback),
   });
@@ -31,7 +31,7 @@ test('timed out geometry calculation terminates its worker and retries from curr
   assert.equal(workers[0].terminated, true);
   features = [{ id: 'BBB', geometry: null }];
   await client.execute('territory-components', { payload: {} });
-  assert.deepEqual(workers[1].messages[0].features, features);
+  assert.deepEqual(workers[1].messages[0].editSources.patches.map(row => ({...row.metadata, geometry: row.geometry})), features);
 });
 
 function createFakeWorker() {
@@ -56,7 +56,7 @@ test('map edit worker client rebases, executes and commits with one revision str
   const feature = { type: 'Feature', id: 'AAA', properties: { name: 'AAA' }, geometry: null };
   const client = createMapEditWorkerClient({
     createWorker: () => { const worker = createFakeWorker(); workers.push(worker); return worker; },
-    getFeatures: () => [feature],
+    getEntities: () => [feature],
     getFeatureById: id => id === 'AAA' ? feature : null,
     clone: value => JSON.parse(JSON.stringify(value)),
     now: () => Date.now(),
@@ -73,7 +73,7 @@ test('map edit worker client relies on postMessage structured cloning for scoped
   const feature = { type: 'Feature', id: 'AAA', properties: { name: 'AAA' }, geometry: null };
   const client = createMapEditWorkerClient({
     createWorker: () => worker,
-    getFeatures: () => [feature],
+    getEntities: () => [feature],
     getFeatureById: id => id === 'AAA' ? feature : null,
     clone: value => JSON.parse(JSON.stringify(value)),
     schedule: callback => Promise.resolve().then(callback),
@@ -91,7 +91,7 @@ test('map edit worker client reuses one rebased worker for consecutive operation
   const feature = { type: 'Feature', id: 'AAA', properties: { name: 'AAA' }, geometry: null };
   const client = createMapEditWorkerClient({
     createWorker: () => worker,
-    getFeatures: () => [feature],
+    getEntities: () => [feature],
     getFeatureById: () => feature,
     schedule: callback => Promise.resolve().then(callback),
   });
@@ -106,11 +106,11 @@ test('boundary requests reuse synchronized sources and send only geometry, hiera
   const country = { id: 'A', geometry: { type: 'Polygon', coordinates: [] }, properties: {} };
   let unit = { id: 'child', geometry: { type: 'Polygon', coordinates: [] }, properties: { unitType: 'subunit', parentId: 'A', sovereignId: 'A' } };
   let color = 'red';
-  const client = createMapEditWorkerClient({ createWorker: () => worker, getFeatures: () => [country], getFeatureById: () => country,
+  const client = createMapEditWorkerClient({ createWorker: () => worker, getEntities: () => [country,unit], getFeatureById: () => country,
     getBoundaryFeatures: () => [{ ...country, properties: { color } }, unit], schedule: callback => Promise.resolve().then(callback) });
   t.after(() => client.stop());
   await client.execute('boundary-prepare', { payload: { targetIds: ['A'], mode: 'coast' } });
-  assert.equal(worker.messages[0].boundaryFeatures.length, 2);
+  assert.equal(worker.messages[0].boundaryIds.length, 2);
   color = 'blue';
   await client.execute('boundary-prepare', { payload: { targetIds: ['A'], mode: 'coast' } });
   assert.equal(worker.messages.filter(message => message.type === 'boundary-sync').length, 0);

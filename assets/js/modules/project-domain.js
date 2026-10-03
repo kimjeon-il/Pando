@@ -29,7 +29,7 @@ export function createProjectDomain({
   invalidateHistory = () => {},
   reportDiagnostic = () => {},
   invariants = null,
-  restoreCountriesFromDelta = null,
+  restoreEntitiesFromDelta = null,
   onProjectChanged = () => {},
   onProjectReset = () => {},
   onReplacementState = () => {},
@@ -46,17 +46,17 @@ export function createProjectDomain({
       ? serializer.buildProject()
       : (typeof getSnapshot === 'function' ? getSnapshot() : context?.getProjectSnapshot?.()),
   );
-  const buildProject = () => cloneValue(
+  const buildProject = sourceSnapshot => cloneValue(
     typeof serializer?.buildProject === 'function'
-      ? serializer.buildProject()
-      : (typeof getSnapshot === 'function' ? getSnapshot() : context?.getProjectSnapshot?.()),
+      ? serializer.buildProject(sourceSnapshot)
+      : (sourceSnapshot || (typeof getSnapshot === 'function' ? getSnapshot() : context?.getProjectSnapshot?.())),
   );
   const buildAutosave = () => cloneValue(
     typeof serializer?.buildAutosave === 'function' ? serializer.buildAutosave() : buildProject(),
   );
-  const countriesFromAutosaveDelta = (project, suppliedBase = null) => {
-    if (typeof restoreCountriesFromDelta !== 'function') return cloneValue(project?.countriesData || project);
-    return restoreCountriesFromDelta(project, suppliedBase);
+  const entitiesFromAutosaveDelta = (project, suppliedBase = null) => {
+    if (typeof restoreEntitiesFromDelta !== 'function') throw new TypeError('공통 영역 변경분 복원기가 필요합니다.');
+    return restoreEntitiesFromDelta(project, suppliedBase);
   };
   const emitChanged = (reason, detail = null) => {
     const event = Object.freeze({ generation, reason: String(reason || 'project-changed'), detail: cloneValue(detail) });
@@ -103,11 +103,7 @@ export function createProjectDomain({
     if (replacing) throw new Error('Project replacement is already running.');
     if (reason === 'new' && persistence?.getRecovery?.()) throw new Error('저장본 선택을 먼저 완료하세요.');
     if (serializedProject && invariants?.assertProjectReferenceIntegrity) {
-      const countries = serializedProject?.countriesData?.features || serializedProject?.countries || [];
-      invariants.assertProjectReferenceIntegrity({
-        ...serializedProject,
-        countries,
-      });
+      invariants.assertProjectReferenceIntegrity(serializedProject);
     }
     replacing = true;
     onReplacementState(true, reason);
@@ -198,7 +194,7 @@ export function createProjectDomain({
     snapshot,
     buildProject,
     buildAutosave,
-    countriesFromAutosaveDelta,
+    entitiesFromAutosaveDelta,
     getGeneration: () => generation,
     isReplacing: () => replacing,
     dispatch,
@@ -221,9 +217,9 @@ export function createProjectDomain({
     resolveAutosaveRecovery: persistence?.resolveRecovery,
     completeAutosaveRecovery: persistence?.completeRecovery,
     loadAutosave: project => {
-      const { countryDelta: _delta, ...fields } = project;
+      const { entityDelta: _delta, ...fields } = project;
       return load({ ...fields, format: 'pandolab-project-state',
-        countriesData: project.format === 'pandolab-autosave-delta' ? countriesFromAutosaveDelta(project) : project.countriesData });
+        territorialEntities: project.format === 'pandolab-autosave-delta' ? entitiesFromAutosaveDelta(project) : project.territorialEntities });
     },
     restorePreview: persistence?.restorePreview,
     ensurePreview: persistence?.ensurePreview,

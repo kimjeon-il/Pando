@@ -74,9 +74,10 @@ export function createLibraryAssembly() {
   async function instantiateHistoricalLibraryEntities(rootIds, referenceDate, childDepth = 'none', versionOverrides = {}, options = {}) {
     const revision = dependencies.projectState.state.stateRevision;
     const landRevision = dependencies.countries.countryLandRevision;
-    const currentCountries = dependencies.projectState.state.countriesData;
+    const currentEntities = dependencies.projectState.state.territorialEntities;
+    const currentCountries = { type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) };
     const assertCurrent = () => {
-      if (options.isCurrent?.() === false || dependencies.projectState.state.stateRevision !== revision || dependencies.countries.countryLandRevision !== landRevision || dependencies.projectState.state.countriesData !== currentCountries) {
+      if (options.isCurrent?.() === false || dependencies.projectState.state.stateRevision !== revision || dependencies.countries.countryLandRevision !== landRevision || dependencies.projectState.state.territorialEntities !== currentEntities) {
         throw new Error('프로젝트 또는 선택이 변경되었습니다. 항목과 소속을 다시 확인하세요.');
       }
     };
@@ -86,8 +87,8 @@ export function createLibraryAssembly() {
       }
     }
     const preparationKey = JSON.stringify([revision, landRevision, rootIds, referenceDate, childDepth, versionOverrides, options.ownership || {}]);
-    if (batchPreparation?.key !== preparationKey || batchPreparation.project !== currentCountries) {
-      const entry = { key: preparationKey, project: currentCountries, promise: null };
+    if (batchPreparation?.key !== preparationKey || batchPreparation.project !== currentEntities) {
+      const entry = { key: preparationKey, project: currentEntities, promise: null };
       batchPreparation = entry;
       entry.promise = (async () => {
         const descriptors = historicalLibraryService.instantiateDescriptors(rootIds, referenceDate, childDepth, versionOverrides);
@@ -107,13 +108,16 @@ export function createLibraryAssembly() {
         const countryFeatures = prepared.filter(item => item.type === 'country').map(item => {
           const feature = (0, dependencies.objectPicking.createCountryFeature)(item.name, [], item.geometry);
           feature.id = item.id;
+          feature.properties.style = item.metadata?.defaultColor ? { color: item.metadata.defaultColor } : {};
+          feature.properties.metadata = { ...feature.properties.metadata, ...item.metadata };
+          if (item.metadata?.defaultFlagDataUrl) feature.properties.metadata.flagDataUrl = item.metadata.defaultFlagDataUrl;
           if (item.validFrom) feature.properties.validFrom = item.validFrom;
           if (item.validTo) feature.properties.validTo = item.validTo;
           return feature;
         });
         const units = prepared.filter(item => item.type !== 'country').map(item => (0, dependencies.territorialServicesA.createTerritorialFeature)({
           id: item.id, unitType: item.type, name: item.name, geometry: item.geometry,
-          parentId: item.parentId, sovereignId: item.sovereignId,
+          parentId: item.parentId, associatedCountryId: item.type === 'region' ? item.sovereignId : '',
           coverageMode: item.type === 'region' ? dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT : dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.PARTITION,
           validFrom: item.validFrom, validTo: item.validTo,
           color: item.metadata?.defaultColor || '',
@@ -143,13 +147,6 @@ export function createLibraryAssembly() {
     const impactKey = JSON.stringify([revision, landRevision, rootIds, referenceDate, childDepth, versionOverrides, options.ownership || {}, impacts]);
     if (impacts.length && options.confirmedImpact !== impactKey) return { confirmationRequired: true, impactKey, impacts };
     assertCurrent();
-    const countryOverrides = {};
-    for (const item of prepared.filter(item => item.type === 'country')) {
-      const override = {};
-      if (item.metadata?.defaultColor) override.color = item.metadata.defaultColor;
-      if (item.metadata?.defaultFlagDataUrl) override.flagDataUrl = item.metadata.defaultFlagDataUrl;
-      countryOverrides[item.id] = override;
-    }
     // Library entries usually merge through the GIS transaction, which also
     // handles replacements and territorial units.  A country-add can update
     // its donor boundaries, but it must not remove a country or add another
@@ -165,7 +162,7 @@ export function createLibraryAssembly() {
       countriesData: { type: 'FeatureCollection', features: countryFeatures },
       preparedTerritorialUnits: units, landTransfers: transfers, assertCurrent,
       countryUpdates: Object.assign({}, ...prepared.map(item => item.instantiation?.countryUpdates || {})),
-      atlasMetadata: { projectState: { countryOverrides } },
+      atlasMetadata: { projectState: { territorialEntities: countryFeatures } },
       sourceInfo: { imports: prepared.map(item => ({
         ...(item.metadata?.librarySourceInfo || {}), kind: 'library', sourceId: item.libraryId,
         objectId: item.id, sourceType: descriptors.find(original => original.libraryId === item.libraryId)?.type,
@@ -198,7 +195,7 @@ export function createLibraryAssembly() {
         if (!response.ok) throw new Error(`라이브러리 HTTP ${response.status}`);
         return response.json();
       },
-      getCountriesData: () => dependencies.projectState.state.countriesData,
+      getCountriesData: () => ({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) }),
       getMaterializationCountriesData: () => (0, dependencies.builtinCountries.materializePristineCountriesSync)(),
       displayName: dependencies.objectPresentation.territorialEntityName,
       combineGeometries: combineHistoricalLibraryGeometries,

@@ -24,9 +24,7 @@ export function createHistoryAssembly() {
 
   function validateCanonicalProjectState() {
     (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
-      countries: dependencies.territorialModel.entityStore.countriesData().features,
-      countryOverrides: dependencies.territorialModel.entityStore.countryOverrides(),
-      territorialUnits: dependencies.territorialModel.entityStore.units(),
+      territorialEntities: dependencies.territorialModel.entityStore.snapshot(),
       territorialRelations: dependencies.projectState.state.territorialRelations,
       distributionLayers: dependencies.projectState.state.distributionLayers,
       distributionEntries: dependencies.projectState.state.distributionEntries,
@@ -66,8 +64,7 @@ export function createHistoryAssembly() {
       buildAutosave: () => dependencies.domains.projectDomain?.buildAutosave?.() || dependencies.mapSettingsUi.projectSerializer.buildAutosave(),
       previewBaseline: () => window.PANDOLAB_PREVIEW_BASELINE,
       previewGeometry: () => ({
-        features: dependencies.territorialModel.entityStore.countriesData().features,
-        territorialUnits: dependencies.territorialModel.entityStore.units(),
+        entities: dependencies.territorialModel.entityStore.snapshot(),
         project: dependencies.domains.projectDomain?.buildAutosave?.() || dependencies.mapSettingsUi.projectSerializer.buildAutosave(),
       }),
       readView: () => ({ projection: dependencies.projectState.state.projection, view: (0, dependencies.platform.deepClone)(dependencies.projectState.state.view) }),

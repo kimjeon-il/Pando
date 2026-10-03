@@ -143,7 +143,7 @@ async function autosaveContainsEastGermany(page) {
         request.onerror = () => reject(request.error);
       });
       const changedCountries = project?.format === 'pandolab-autosave-delta'
-        ? (project.countryDelta?.changed || [])
+        ? (project.entityDelta?.changed || [])
         : (project?.countriesData?.features || []);
       return changedCountries.some(country => (
         country?.id === 'historical-country:deutsche-demokratische-republik'

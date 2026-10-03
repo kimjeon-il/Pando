@@ -74,7 +74,7 @@ function createMapEditWorkerCodec() {
 
 export function createMapEditWorkerClient({
   createWorker,
-  getFeatures,
+  getEntities,
   getFeatureById,
   getBoundaryFeatures = null,
   getEditSources = null,
@@ -89,13 +89,18 @@ export function createMapEditWorkerClient({
   let ready = false;
   let boundarySources = new Map();
   const editSources = createEditSourceTracker();
-  const sourceRows = () => getEditSources?.() || getFeatures().map(feature => ({ kind: 'country', feature }));
+  let temporaryEntities = null;
+  const sourceRows = () => {
+    const rows = getEditSources?.() || getEntities().map(feature => ({ kind: 'territorial', feature }));
+    return temporaryEntities ? [...rows.filter(row => row.kind !== 'territorial'),
+      ...temporaryEntities.map(feature => ({ kind: 'territorial', feature }))] : rows;
+  };
   function syncEditSources() {
     const patch = editSources.update(sourceRows());
     if (patch.patches.length || patch.removedKeys.length) ensureRpc().notify('edit-sync', patch);
     return patch.sourceRevision;
   }
-  const boundarySignature = feature => JSON.stringify([geometryRevision(feature.geometry), feature.properties?.unitType, feature.properties?.parentId, feature.properties?.sovereignId, !!(feature.boundaryLocked ?? feature.properties?.locked)]);
+  const boundarySignature = feature => JSON.stringify([geometryRevision(feature.geometry), feature.properties?.unitType, feature.properties?.parentId, feature.properties?.associatedCountryId, !!(feature.boundaryLocked ?? feature.properties?.locked)]);
   const currentTargetRevision = () => typeof getTargetRevision === 'function'
     ? Number(getTargetRevision())
     : dataRevision;
@@ -169,13 +174,13 @@ export function createMapEditWorkerClient({
   });
 
   function boundarySnapshot() {
-    const features = getBoundaryFeatures?.() || getFeatures();
+    const features = temporaryEntities || getBoundaryFeatures?.() || getEntities();
     boundarySources = new Map(features.map(feature => [String(feature.id), { geometry: feature.geometry, signature: boundarySignature(feature) }]));
     return features;
   }
 
   function syncBoundarySources() {
-    const features = getBoundaryFeatures?.() || getFeatures();
+    const features = temporaryEntities || getBoundaryFeatures?.() || getEntities();
     const ids = new Set(features.map(feature => String(feature.id)));
     const patches = features.filter(feature => {
       const previous = boundarySources.get(String(feature.id));
@@ -188,7 +193,9 @@ export function createMapEditWorkerClient({
     ensureRpc().notify('map-edit.boundary-sync', { features: patches, removedIds }, { projectRevision: currentTargetRevision() });
   }
 
-  function rebase(features = getFeatures()) {
+  function rebase(entities = null) {
+    if (entities !== null && !Array.isArray(entities)) throw new TypeError('Worker 입력은 공통 엔티티 배열이어야 합니다.');
+    temporaryEntities = entities;
     scheduler.cancelAll('rebase');
     dataRevision += 1;
     ready = false;
@@ -196,7 +203,7 @@ export function createMapEditWorkerClient({
       dataRevision,
       geometryRevision: dataRevision,
       targetRevision: currentTargetRevision(),
-      features, boundaryFeatures: boundarySnapshot(),
+      boundaryIds: boundarySnapshot().map(feature => String(feature.id)),
       editSources: (editSources.reset(), editSources.update(sourceRows())),
     }, { projectRevision: currentTargetRevision(), priority: 1000 });
     return dataRevision;
@@ -238,8 +245,8 @@ export function createMapEditWorkerClient({
   } = {}) {
     await prepareWorker();
     if (signal?.aborted) throw Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true });
+    const sourceRevision = syncEditSources();
     if (operation.startsWith('boundary-')) syncBoundarySources();
-    const sourceRevision = operation.startsWith('territorial-') ? syncEditSources() : null;
     const geometryRevision = dataRevision;
     const resolvedTargetRevision = targetRevision == null ? currentTargetRevision() : Number(targetRevision);
     const ticket = scheduler.enqueue({
@@ -293,6 +300,7 @@ export function createMapEditWorkerClient({
     rpc?.stop('stopped');
     rpc = null;
     ready = false;
+    temporaryEntities = null;
   }
 
   return Object.freeze({

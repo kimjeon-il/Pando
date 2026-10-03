@@ -1,3 +1,4 @@
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -11,8 +12,8 @@ import {
 import { normalizeSourceProvenance } from '../../assets/js/modules/source-provenance.js';
 
 const state = {
-  countryOverrides: { KOR: { name: '대한민국' } }, sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],
-  territorialUnits: [{ id: 'territory-1' }], territorialRelations: [{ id: 'relation-1' }],
+  sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],
+  territorialRelations: [{ id: 'relation-1' }],
   distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'overlap', activeLayerId: '' },
   labelSettings: { 'country:KOR': { pinned: true } }, layerPresentation: { styles: {} },
   physicalSettings: { terrainVisible: true }, projection: 'flat',
@@ -32,9 +33,7 @@ test('project serialization contains document and presentation fields only', () 
 
 test('history snapshots preserve editable object state through the shared schema', () => {
   const history = pickProjectFields(state, { scope: 'history' });
-  assert.deepEqual(history.countryOverrides, state.countryOverrides);
   assert.deepEqual(history.hydroEdits, state.hydroEdits);
-  assert.deepEqual(history.territorialUnits, state.territorialUnits);
   assert.deepEqual(history.territorialRelations, state.territorialRelations);
   assert.equal('labelSettings' in history, false);
   assert.equal('layerVisibility' in history, false);
@@ -59,7 +58,6 @@ test('shared project fields receive current defaults without sharing mutable val
   const restored = applyProjectFields({ physicalSettings: { terrainVisible: false }, layerVisibility: { countries: true }, view: {} }, {});
   assert.deepEqual(restored.labels, []);
   assert.deepEqual(restored.hydroEdits, []);
-  assert.deepEqual(restored.territorialUnits, []);
   assert.deepEqual(restored.territorialRelations, []);
   restored.labels.push({ id: 'new' });
   assert.deepEqual(applyProjectFields({}, {}).labels, []);
@@ -77,20 +75,12 @@ const currentProject = () => ({
     sourceProvenanceSchemaVersion: 1,
     canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
   },
-  territorialModel: { schemaVersion: 2 },
+  territorialModel: { schemaVersion: 3 },
   distributionModel: { schemaVersion: 3 },
   layerPresentation: { schemaVersion: 4, overlayOrder: [], styles: {} },
-  countriesData: {
-    type: 'FeatureCollection',
-    features: [{ type: 'Feature', id: 'DEU', properties: { name: '독일' }, geometry: { type: 'MultiPolygon', coordinates: [] } }],
-  },
-  countryOverrides: { DEU: { color: '#53657a' } },
-  territorialUnits: [{
-    type: 'Feature', id: uuid(1),
-    properties: { schemaVersion: 2, unitType: 'subunit' },
-    geometry: { type: 'Polygon', coordinates: [] },
-  }],
-  territorialRelations: [{ id: uuid(2), schemaVersion: 1 }],
+  territorialEntities: [createTerritorialFeature({id:'DEU',unitType:'country',name:'독일',geometry:{type:'Polygon',coordinates:[[[0,0],[0,2],[2,2],[2,0],[0,0]]]}}),
+    createTerritorialFeature({id:uuid(1),unitType:'subunit',parentId:'DEU',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}})],
+  territorialRelations: [{id:uuid(2),schemaVersion:2,unitId:uuid(1),parentId:'DEU',associatedCountryId:'',validFrom:null,validTo:null}],
   distributionLayers: [{ id: uuid(3), schemaVersion: 3, name: '분포', unit: '', valueScale: { mode: 'auto' } }],
   distributionEntries: [{ id: uuid(4), schemaVersion: 3, layerId: uuid(3), mode: 'geometry',
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] }, value: 1 }],
@@ -108,31 +98,7 @@ test('current project schema accepts only explicit current versions and UUID obj
   assert.match(createProjectObjectId(), /^[0-9a-f-]{36}$/i);
 });
 
-test('v4 Subunit migration passes the real load gate and v5 save/reopen preserves presentation', () => {
-  const source = currentProject();
-  source.schemaVersion = 4;
-  source.territorialModel.schemaVersion = 1;
-  source.territorialUnits[0].properties = {
-    ...source.territorialUnits[0].properties, schemaVersion: 1, unitType: 'admin',
-    parentId: 'DEU', sovereignId: 'DEU', adminLevel: 2,
-  };
-  source.layerVisibility = { administrative: false, territories: true };
-  source.itemVisibility = { administrative: {}, territories: {} };
-  source.layerPresentation = { schemaVersion: 2, styles: { administrative: { opacity: 0.4, blendMode: 'multiply' } } };
-  source.distributionLayers[0] = { id: uuid(3), schemaVersion: 2, type: 'language', name: '언어' };
-  source.distributionEntries[0] = { ...source.distributionEntries[0], schemaVersion: 2, share: 1 };
-  delete source.distributionEntries[0].value;
-  const before = structuredClone(source.territorialUnits[0]);
-  const converted = assertCurrentProjectSchema(source);
-  const reopened = assertCurrentProjectSchema(JSON.parse(JSON.stringify(converted)));
-  assert.equal(reopened.schemaVersion, PROJECT_SCHEMA_VERSION);
-  assert.equal(reopened.territorialUnits[0].properties.unitType, 'subunit');
-  assert.equal(reopened.territorialUnits[0].id, before.id);
-  assert.deepEqual(reopened.territorialUnits[0].geometry, before.geometry);
-  assert.equal(reopened.itemVisibility.subunits[before.id], false);
-  assert.equal(reopened.layerPresentation.objectStyles[`territorial:subunit:${before.id}`].opacity, 0.4);
-  assert.deepEqual(reopened, converted);
-});
+
 
 test('distribution boundary visibility is a shared optional presentation setting', () => {
   const current = currentProject();
@@ -157,54 +123,11 @@ test('canonical river and lake presentation groups are accepted while hydro outp
   assert.equal(assertCurrentProjectSchema(canonical).schemaVersion, PROJECT_SCHEMA_VERSION);
 });
 
-test('previous schema is migrated at the project load gate while unsupported old versions fail', () => {
-  const prior = currentProject();
-  prior.schemaVersion = 3;
-  prior.landObjectModel = { schemaVersion: 1, coastlineAuthority: 'countries', roles: ['generic'] };
-  prior.genericFeatures[0].properties = { schemaVersion: 1, name: 'legacy', role: 'generic', color: '#123456' };
-  prior.distributionLayers[0] = { id: uuid(3), schemaVersion: 2, type: 'language', name: '언어' };
-  prior.distributionEntries[0] = { ...prior.distributionEntries[0], schemaVersion: 2, share: 1 };
-  delete prior.distributionEntries[0].value;
-  assert.equal(assertCurrentProjectSchema(prior).schemaVersion, PROJECT_SCHEMA_VERSION);
-  assert.equal(prior.genericFeatures[0].properties.schemaVersion, 2);
 
-  const missing = currentProject();
-  delete missing.schemaVersion;
-  assert.throws(() => assertCurrentProjectSchema(missing), /schemaVersion/);
-  const tooOld = currentProject();
-  tooOld.schemaVersion = 2;
-  assert.throws(() => assertCurrentProjectSchema(tooOld), /지원 범위/);
-});
 
-test('country features and sparse overrides accept only the schema 4 allowlist', () => {
-  const valid = currentProject();
-  valid.countriesData.features[0].properties = { name: '독일', validFrom: '1949-05-23', validTo: '현재' };
-  valid.countryOverrides.DEU = { name: '독일 연방공화국', color: '#53657a', locked: true };
-  assert.equal(assertCurrentProjectSchema(valid), valid);
 
-  const legacyField = currentProject();
-  legacyField.countriesData.features[0].properties.editor_id = 'DEU';
-  assert.throws(() => assertCurrentProjectSchema(legacyField), /지원하지 않는 필드 editor_id/);
 
-  const emptyOverride = currentProject();
-  emptyOverride.countryOverrides.DEU = { name: '', locked: false };
-  assert.throws(() => assertCurrentProjectSchema(emptyOverride), /국가 설정/);
-});
 
-test('delta autosaves validate sparse overrides before canonical countries are reconstructed', () => {
-  const delta = currentProject();
-  delta.format = 'pandolab-autosave-delta';
-  delete delta.countriesData;
-  delta.countryDelta = {
-    changed: [{ type: 'Feature', id: 'historical-country:deutsche-demokratische-republik', properties: { name: '독일 민주공화국' }, geometry: { type: 'MultiPolygon', coordinates: [] } }],
-    removedIds: [],
-  };
-  delta.countryOverrides = { DEU: { name: '독일 연방공화국' } };
-  assert.equal(assertCurrentProjectSchema(delta), delta);
-
-  delta.countryOverrides.DEU.unknown = 'legacy';
-  assert.throws(() => assertCurrentProjectSchema(delta), /국가 설정/);
-});
 
 test('missing duplicate and unsupported object fields are rejected', () => {
   const missing = currentProject();
@@ -214,7 +137,7 @@ test('missing duplicate and unsupported object fields are rejected', () => {
   duplicate.labels.push({ id: uuid(7) });
   assert.throws(() => assertCurrentProjectSchema(duplicate), /중복/);
   const unsupported = currentProject();
-  unsupported.territorialUnits[0].properties.unknownField = 'PL';
+  unsupported.territorialEntities[1].properties.unknownField = 'PL';
   assert.throws(() => assertCurrentProjectSchema(unsupported), /지원하지 않는 필드 unknownField/);
   const badGeneric = currentProject();
   badGeneric.genericFeatures[0].properties.role = 'subunit';

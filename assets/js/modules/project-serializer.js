@@ -1,155 +1,58 @@
-import { normalizeCountryFeature, pruneCountryOverrides } from './country-feature.js';
+import { normalizeTerritorialEntities } from './territorial-units.js';
 import { createGeometrySnapshotPool } from './geometry-versions.js';
 import { TERRAIN_RASTER_VERSION } from './terrain-manifest.js';
-import {
-  PROJECT_SCHEMA_VERSION,
-  SOURCE_PROVENANCE_SCHEMA_VERSION,
-  GENERIC_FEATURE_SCHEMA_VERSION,
-  TERRITORIAL_MODEL_SCHEMA_VERSION,
-  DISTRIBUTION_MODEL_SCHEMA_VERSION,
-} from './version-contract.js';
+import { PROJECT_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION, GENERIC_FEATURE_SCHEMA_VERSION,
+  TERRITORIAL_MODEL_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION } from './version-contract.js';
 
-function cloneCountryFeature(feature, clone = structuredClone) {
-  return normalizeCountryFeature(feature, { clone });
-}
-
-function normalizeCountriesData(collection, clone = structuredClone) {
+function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionModes }) {
   return {
-    type: 'FeatureCollection',
-    features: (collection?.features || []).map(feature => cloneCountryFeature(feature, clone)),
+    landObjectModel: { schemaVersion: genericFeatureSchemaVersion, coastlineAuthority: 'territorialEntities',
+      purpose: 'lossless-fallback', directCreation: false, sourceProvenanceSchemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION,
+      canonicalProperties: ['name','notes','color','locked','source'] },
+    territorialModel: { schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION, coastlineAuthority: 'territorialEntities',
+      storage: 'territorialEntities', types: ['country','subunit','region'], coverageModes: ['partition','explicit'] },
+    distributionModel: { schemaVersion: distributionSchemaVersion, sourceModes: [...distributionModes], valueKind: 'finite-number' },
   };
 }
-
-function normalizeProjectFields(fields, countriesData) {
-  const ids = new Set((countriesData.features || []).map(feature => String(feature.id)));
-  return {
-    ...(fields || {}),
-    countryOverrides: pruneCountryOverrides(fields?.countryOverrides, ids),
-  };
-}
-
-function landObjectContract(genericFeatureSchemaVersion, compact = false) {
-  if (Number(genericFeatureSchemaVersion) >= 2) {
-    return {
-      schemaVersion: genericFeatureSchemaVersion,
-      coastlineAuthority: 'countries',
-      purpose: 'lossless-fallback',
-      directCreation: false,
-      sourceProvenanceSchemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION,
-      ...(compact ? {} : { canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'] }),
-    };
-  }
-  return {
-    schemaVersion: genericFeatureSchemaVersion,
-    coastlineAuthority: 'countries',
-    ...(compact ? {} : { roles: ['hydro', 'thematic', 'generic'] }),
-  };
-}
-
-function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionModes }, compact = false) {
-  return {
-    landObjectModel: landObjectContract(genericFeatureSchemaVersion, compact),
-    territorialModel: {
-      schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION,
-      coastlineAuthority: 'countriesData',
-      countryStorage: 'countriesData-adapter',
-      types: ['country', 'subunit', 'region'],
-      coverageModes: ['partition', 'explicit'],
-    },
-    distributionModel: {
-      schemaVersion: distributionSchemaVersion,
-      sourceModes: [...distributionModes],
-      valueKind: 'finite-number',
-    },
-  };
-}
-
-export function createProjectSerializer({
-  schemaVersion = PROJECT_SCHEMA_VERSION,
-  appVersion,
-  baseDataset,
-  genericFeatureSchemaVersion = GENERIC_FEATURE_SCHEMA_VERSION,
-  distributionSchemaVersion = DISTRIBUTION_MODEL_SCHEMA_VERSION,
-  distributionModes,
-  terrainDataset,
-  hydroDataset,
-  readSnapshot,
-  now = () => new Date(),
-}) {
+export function createProjectSerializer({ schemaVersion = PROJECT_SCHEMA_VERSION, appVersion, baseDataset,
+  genericFeatureSchemaVersion = GENERIC_FEATURE_SCHEMA_VERSION, distributionSchemaVersion = DISTRIBUTION_MODEL_SCHEMA_VERSION,
+  distributionModes, terrainDataset, hydroDataset, readSnapshot, now = () => new Date() }) {
+  const copies = createGeometrySnapshotPool();
   const contracts = { genericFeatureSchemaVersion, distributionSchemaVersion, distributionModes };
-  const autosaveCopies = createGeometrySnapshotPool();
-
+  const header = snapshot => ({ schemaVersion, version: appVersion, savedAt: now().toISOString(),
+    baseDataset: snapshot.fullAutosave ? 'external-territorial-entities' : baseDataset, ...modelContracts(contracts) });
   function buildProject(snapshot = readSnapshot(), clone = structuredClone) {
-    const countriesData = normalizeCountriesData(snapshot.countriesData, clone);
-    return {
-      format: 'pandolab-project-state',
-      schemaVersion,
-      version: appVersion,
-      savedAt: now().toISOString(),
-      countriesData,
-      ...normalizeProjectFields(clone(snapshot.projectFields), countriesData),
-      baseDataset,
-      ...modelContracts(contracts),
+    return { format: 'pandolab-project-state', ...header(snapshot),
+      ...clone(snapshot.projectFields || {}), territorialEntities: normalizeTerritorialEntities(snapshot.territorialEntities, { cloneGeometry: clone }),
       physicalSourceInfo: {
-        terrain: {
-          dataset: snapshot.terrainSourceInfo?.dataset || snapshot.terrainManifest?.dataset || terrainDataset,
-          version: snapshot.terrainSourceInfo?.version || snapshot.terrainManifest?.version || TERRAIN_RASTER_VERSION,
-        },
-        hydro: {
-          dataset: snapshot.hydroManifest?.dataset || hydroDataset,
-          version: snapshot.hydroManifest?.version || appVersion,
+        terrain: { dataset: snapshot.terrainSourceInfo?.dataset || snapshot.terrainManifest?.dataset || terrainDataset,
+          version: snapshot.terrainSourceInfo?.version || snapshot.terrainManifest?.version || TERRAIN_RASTER_VERSION },
+        hydro: { dataset: snapshot.hydroManifest?.dataset || hydroDataset, version: snapshot.hydroManifest?.version || appVersion,
           coordinatePolicy: snapshot.hydroManifest?.coordinatePolicy || 'selected source coordinates retained without simplification',
-          selection: structuredClone(snapshot.hydroManifest?.selection || {}),
-        },
-      },
-    };
+          selection: structuredClone(snapshot.hydroManifest?.selection || {}) },
+      } };
   }
-
   function buildAutosave() {
     const snapshot = readSnapshot();
-    if (snapshot.fullAutosave) return { ...buildProject(snapshot, autosaveCopies.clone), format: 'pandolab-autosave-full' };
-    const changed = normalizeCountriesData({ features: snapshot.countryDelta?.changed || [] }, autosaveCopies.clone).features;
-    const currentIds = new Set((snapshot.countriesData?.features || []).map(feature => String(feature.id)));
-    return {
-      format: 'pandolab-autosave-delta',
-      schemaVersion,
-      version: appVersion,
-      savedAt: now().toISOString(),
-      countryDelta: { changed, removedIds: [...(snapshot.countryDelta?.removedIds || [])].map(String) },
-      ...{
-        ...autosaveCopies.clone(snapshot.projectFields || {}),
-        countryOverrides: pruneCountryOverrides(snapshot.projectFields?.countryOverrides, currentIds),
-      },
-      baseDataset,
-      ...modelContracts(contracts, true),
-    };
+    if (snapshot.fullAutosave) return { ...buildProject(snapshot, copies.clone), format: 'pandolab-autosave-full' };
+    return { format: 'pandolab-autosave-delta', ...header(snapshot), ...copies.clone(snapshot.projectFields || {}),
+      entityDelta: { changed: copies.clone(snapshot.entityDelta?.changed || []), removedIds: [...(snapshot.entityDelta?.removedIds || [])] } };
   }
-
   return Object.freeze({ buildProject, buildAutosave });
 }
-
-export function restoreCountriesFromDelta(project, {
-  base,
-  clone = structuredClone,
-  reindex,
-  applyPristineLabelAnchors,
-}) {
-  const delta = project?.countryDelta || { changed: [], removedIds: [] };
-  const changed = new Map((delta.changed || []).map(feature => [String(feature?.id || ''), feature]));
-  const removed = new Set((delta.removedIds || []).map(String));
-  const seen = new Set();
-  base.features = (base.features || []).filter(feature => {
-    const id = String(feature?.id || '');
-    return !removed.has(id);
-  }).map(feature => {
-    const id = String(feature?.id || '');
-    if (!changed.has(id)) return feature;
-    seen.add(id);
-    return cloneCountryFeature(changed.get(id), clone);
-  });
-  for (const [id, feature] of changed) if (!seen.has(id) && !removed.has(id)) base.features.push(cloneCountryFeature(feature, clone));
-  const result = reindex(base);
-  const unchangedIds = (result.features || []).map(feature => String(feature?.id || '')).filter(id => !changed.has(id));
-  applyPristineLabelAnchors(result, unchangedIds);
-  return result;
+export function restoreEntitiesFromDelta(project, { base, clone = structuredClone }) {
+  const delta = project.entityDelta;
+  if (!Array.isArray(base) || !Array.isArray(delta?.changed) || !Array.isArray(delta?.removedIds)) throw new TypeError('영역 변경분 또는 기본 자료가 올바르지 않습니다.');
+  const changes = new Map();
+  const removed = new Set(delta.removedIds.map(String));
+  for (const feature of delta.changed) {
+    const id = String(feature.id);
+    if (changes.has(id) || removed.has(id)) throw new Error('영역 변경 ID 중복: ' + id);
+    changes.set(id, feature);
+  }
+  const entities = base.filter(feature => !removed.has(String(feature.id))).map(feature => {
+    const replacement = changes.get(String(feature.id)); changes.delete(String(feature.id));
+    return clone(replacement || feature);
+  }).concat([...changes.values()].map(entity => clone(entity)));
+  return normalizeTerritorialEntities(entities, { cloneGeometry: geometry => geometry });
 }

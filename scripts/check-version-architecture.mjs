@@ -4,14 +4,9 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 import {
-  MIN_SUPPORTED_PROJECT_SCHEMA_VERSION,
   PROJECT_SCHEMA_VERSION,
   VERSION_POLICY,
 } from '../assets/js/modules/version-contract.js';
-import {
-  PROJECT_MIGRATIONS,
-  migrationPath,
-} from '../assets/js/modules/project-migrations.js';
 import {
   EXCHANGE_TARGETS,
   EXCHANGE_TARGET_DESCRIPTORS,
@@ -35,21 +30,7 @@ for (const marker of ['readmePath', 'data-app-version', 'README 최신 버전 �
   if (!buildGenerator.includes(marker)) fail(`build metadata generator must derive version displays from package.json: ${marker}`);
 }
 
-if (!Number.isInteger(PROJECT_SCHEMA_VERSION) || !Number.isInteger(MIN_SUPPORTED_PROJECT_SCHEMA_VERSION)) {
-  fail('project schema versions must be integers');
-} else if (MIN_SUPPORTED_PROJECT_SCHEMA_VERSION > PROJECT_SCHEMA_VERSION) {
-  fail('minimum supported project schema may not exceed the current schema');
-}
-
-const expectedMigrationKeys = [];
-for (let version = MIN_SUPPORTED_PROJECT_SCHEMA_VERSION; version < PROJECT_SCHEMA_VERSION; version += 1) expectedMigrationKeys.push(String(version));
-const actualMigrationKeys = Object.keys(PROJECT_MIGRATIONS).sort((a, b) => Number(a) - Number(b));
-if (JSON.stringify(actualMigrationKeys) !== JSON.stringify(expectedMigrationKeys)) {
-  fail(`migration chain must be contiguous: expected ${expectedMigrationKeys.join(', ') || '(none)'}, got ${actualMigrationKeys.join(', ') || '(none)'}`);
-}
-if (migrationPath(MIN_SUPPORTED_PROJECT_SCHEMA_VERSION).length !== PROJECT_SCHEMA_VERSION - MIN_SUPPORTED_PROJECT_SCHEMA_VERSION) {
-  fail('migrationPath() does not cover the full supported project schema range');
-}
+if (!Number.isInteger(PROJECT_SCHEMA_VERSION)) fail('project schema must be an integer');
 
 const modulesDirectory = path.join(root, 'assets/js/modules');
 for (const name of fs.readdirSync(modulesDirectory).filter(file => file.endsWith('.js'))) {
@@ -63,8 +44,7 @@ for (const name of fs.readdirSync(modulesDirectory).filter(file => file.endsWith
 }
 
 const projectState = read('assets/js/modules/project-state.js');
-if (!projectState.includes("import { migrateProjectInPlace } from './project-migrations.js';")) fail('project-state must import the project migration gate');
-if (!projectState.includes('migrateProjectInPlace(project)')) fail('project-state must migrate supported older schemas before validation');
+if (!projectState.includes("requireSchemaVersion(project.schemaVersion, '프로젝트')")) fail('project-state must reject retired project schemas');
 
 const serializer = read('assets/js/modules/project-serializer.js');
 if (!serializer.includes('schemaVersion = PROJECT_SCHEMA_VERSION')) fail('project serializer must default to the central project schema version');
@@ -93,5 +73,5 @@ if (failures.length) {
   for (const message of [...new Set(failures)]) console.error(`- ${message}`);
   process.exitCode = 1;
 } else {
-  console.log(`Version/migration architecture OK: app ${appVersion}, project schema ${MIN_SUPPORTED_PROJECT_SCHEMA_VERSION}→${PROJECT_SCHEMA_VERSION}, ${targetKeys.length} exchange targets.`);
+  console.log(`Version/migration architecture OK: app ${appVersion}, project schema ${PROJECT_SCHEMA_VERSION}, ${targetKeys.length} exchange targets.`);
 }

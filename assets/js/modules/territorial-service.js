@@ -12,18 +12,15 @@ export function createTerritorialApplicationService({
 }) {
   if (!entityStore) throw new TypeError('영역 애플리케이션 서비스에는 엔티티 저장소가 필요합니다.');
   const mutateDocument = createDocumentMutationRunner({ commandPipeline });
-  const country = id => {
+  const entity = (type, id) => {
     const feature = entityRepository.get(id);
-    return feature?.properties?.unitType === TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
+    return feature?.properties?.unitType === type ? feature : null;
   };
-  const unit = (type, id) => {
-    const feature = entityRepository.get(id);
-    return feature?.properties?.unitType === type && type !== TERRITORIAL_UNIT_TYPES.COUNTRY ? feature : null;
-  };
+  const country = id => entity(TERRITORIAL_UNIT_TYPES.COUNTRY, id);
 
   function canDelete(type, id) {
     const key = text(id);
-    const feature = type === TERRITORIAL_UNIT_TYPES.COUNTRY ? country(key) : unit(type, key);
+    const feature = entity(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
     if (isLocked(type, key)) return { ok: false, code: 'locked', unit: feature };
     const children = entityRepository.children(key);
@@ -32,8 +29,7 @@ export function createTerritorialApplicationService({
   }
 
   function isLocked(type, id) {
-    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) return !!country(id) && entityStore.isLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, id);
-    return unit(type, id)?.properties?.locked === true;
+    return entity(type, id)?.properties?.locked === true;
   }
 
   function updateMetadata(type, id, field, value) {
@@ -42,7 +38,7 @@ export function createTerritorialApplicationService({
     if (feature?.properties?.unitType !== type) return { ok: false, code: 'not-found' };
     if (!feature) return { ok: false, code: 'not-found' };
     if (isLocked(type, key)) return { ok: false, code: 'locked', unit: feature };
-    if (field === 'parentId' || field === 'sovereignId' || field === 'unitType') {
+    if (field === 'parentId' || field === 'associatedCountryId' || field === 'unitType') {
       return { ok: false, code: 'unsupported-relation-field', unit: feature };
     }
     if (!['name', 'notes', 'color', 'capital', 'flagDataUrl', 'validFrom', 'validTo'].includes(field)) {
@@ -50,8 +46,6 @@ export function createTerritorialApplicationService({
     }
     let nextValue = value;
     if (['name', 'color', 'capital'].includes(field)) nextValue = text(value);
-    if (field === 'name' && type === TERRITORIAL_UNIT_TYPES.COUNTRY && !nextValue
-      && !entityStore.hasField(type, key, field)) return { ok: true, changed: false, unit: feature };
     if (field === 'notes') nextValue = String(value ?? '');
     if (field === 'flagDataUrl' && value !== null && value !== undefined) {
       if (typeof value !== 'string' || !value.trim()) return { ok: false, code: 'invalid-flag', unit: feature };
@@ -82,7 +76,7 @@ export function createTerritorialApplicationService({
 
   function changeAdministrativeParent(type, id, parentId, { validateCandidate = null } = {}) {
     const key = text(id);
-    const feature = unit(type, key);
+    const feature = entity(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
     if (feature.properties?.locked === true) return { ok: false, code: 'locked', unit: feature };
     if (type !== TERRITORIAL_UNIT_TYPES.SUBUNIT) {
@@ -122,23 +116,23 @@ export function createTerritorialApplicationService({
 
   function changeAdministrativeCountry(type, id, countryId) {
     const key = text(id);
-    const feature = unit(type, key);
+    const feature = entity(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
     if (feature.properties?.locked === true) return { ok: false, code: 'locked', unit: feature };
     const nextCountryId = text(countryId);
-    if (text(feature.properties?.sovereignId) === nextCountryId) return { ok: true, changed: false, unit: feature };
     if (type === TERRITORIAL_UNIT_TYPES.SUBUNIT) {
       return { ok: false, code: 'requires-geometry-transfer', unit: feature };
     }
     if (type !== TERRITORIAL_UNIT_TYPES.REGION) {
       return { ok: false, code: 'unsupported-country-type', unit: feature };
     }
+    if (text(feature.properties.associatedCountryId) === nextCountryId) return { ok: true, changed: false, unit: feature };
     if (nextCountryId && !country(nextCountryId)) {
       return { ok: false, code: 'invalid-country', issues: [`${key}의 소속 국가 ${nextCountryId}이 존재하지 않습니다.`], unit: feature };
     }
 
     mutateDocument({ type: 'territorial-country-membership', affectedIds: [key] }, () => {
-      entityStore.setField(type, key, 'sovereignId', nextCountryId);
+      entityStore.setField(type, key, 'associatedCountryId', nextCountryId);
     }, { renderDirty: { domain: 'territorial', change: 'structure' } });
     return { ok: true, changed: true, unit: entityRepository.get(key) };
   }
@@ -150,9 +144,7 @@ export function createTerritorialApplicationService({
 
     const units = [];
     for (const item of requested) {
-      const feature = item.type === TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? country(item.id)
-        : unit(item.type, item.id);
+      const feature = entity(item.type, item.id);
       if (!feature) return { ok: false, code: 'not-found', id: item.id, type: item.type };
       units.push(feature);
     }
@@ -165,12 +157,11 @@ export function createTerritorialApplicationService({
         type: history.type || 'territorial-color-batch',
         affectedIds: changed.map(item => item.id),
       },
-      () => {
+      () => entityStore.transaction(() => {
         for (const item of changed) {
-          if (item.type === TERRITORIAL_UNIT_TYPES.COUNTRY) entityStore.setField(TERRITORIAL_UNIT_TYPES.COUNTRY, item.id, 'color', color);
-          else entityStore.setField(item.type, item.id, 'color', color);
+          entityStore.setField(item.type, item.id, 'color', color);
         }
-      },
+      }),
       { renderDirty: { domain: 'territorial', change: 'metadata' } },
     );
     return { ok: true, changed: true, units: requested.map(item => entityRepository.get(item.id)).filter(Boolean) };
@@ -184,17 +175,13 @@ export function createTerritorialApplicationService({
 
     const units = [];
     for (const item of requested) {
-      const feature = item.type === TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? country(item.id)
-        : unit(item.type, item.id);
+      const feature = entity(item.type, item.id);
       if (!feature) return { ok: false, code: 'not-found', id: item.id, type: item.type };
       units.push(feature);
     }
     const changed = requested.filter((item, index) => {
       const feature = units[index];
-      return item.type === TERRITORIAL_UNIT_TYPES.COUNTRY
-        ? entityStore.isLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, item.id) !== next
-        : feature.properties?.locked !== next;
+      return (feature.properties?.locked === true) !== next;
     });
     if (!changed.length) return { ok: true, changed: false, units };
 
@@ -204,12 +191,11 @@ export function createTerritorialApplicationService({
         type: history.type || 'territorial-lock-batch',
         affectedIds: changed.map(item => item.id),
       },
-      () => {
+      () => entityStore.transaction(() => {
         for (const item of changed) {
-          if (item.type === TERRITORIAL_UNIT_TYPES.COUNTRY) entityStore.setLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, item.id, next);
-          else entityStore.setLocked(item.type, item.id, next);
+          entityStore.setLocked(item.type, item.id, next);
         }
-      },
+      }),
       { renderDirty: { domain: 'territorial', change: 'metadata' } },
     );
     return { ok: true, changed: true, units: requested.map(item => entityRepository.get(item.id)).filter(Boolean) };
@@ -218,19 +204,9 @@ export function createTerritorialApplicationService({
   function setLocked(type, id, locked, { history = {} } = {}) {
     const key = text(id);
     const next = !!locked;
-    if (type === TERRITORIAL_UNIT_TYPES.COUNTRY) {
-      if (!country(key)) return { ok: false, code: 'not-found' };
-      if (entityStore.isLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, key) === next) return { ok: true, changed: false, unit: entityRepository.get(key) };
-      mutateDocument(
-        { ...history, type: 'country-lock', affectedIds: [key] },
-        () => entityStore.setLocked(TERRITORIAL_UNIT_TYPES.COUNTRY, key, next),
-        { renderDirty: { domain: 'country', change: 'metadata' } },
-      );
-      return { ok: true, changed: true, unit: entityRepository.get(key) };
-    }
-    const feature = unit(type, key);
+    const feature = entity(type, key);
     if (!feature) return { ok: false, code: 'not-found' };
-    if (feature.properties?.locked === next) return { ok: true, changed: false, unit: feature };
+    if ((feature.properties?.locked === true) === next) return { ok: true, changed: false, unit: feature };
     mutateDocument(
       { ...history, type: 'territorial-lock', affectedIds: [key] },
       () => entityStore.setLocked(type, key, next),

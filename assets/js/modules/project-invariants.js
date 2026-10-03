@@ -1,3 +1,4 @@
+import { normalizeTerritorialEntities } from './territorial-units.js';
 import { normalizeTemporalInterval } from './temporal.js';
 import { validateSourceProvenance } from './source-provenance.js';
 
@@ -52,9 +53,7 @@ function geometryIssue(row, id, label) {
 }
 
 export function validateProjectReferenceIntegrity({
-  countries = [],
-  countryOverrides = {},
-  territorialUnits = [],
+  territorialEntities = [],
   territorialRelations = [],
   distributionLayers = [],
   distributionEntries = [],
@@ -64,6 +63,10 @@ export function validateProjectReferenceIntegrity({
   labelSettings = {},
 } = {}) {
   const issues = [];
+  const countries=territorialEntities.filter(feature=>feature.properties?.unitType==='country');
+  const territorialUnits=territorialEntities.filter(feature=>feature.properties?.unitType!=='country');
+  try { normalizeTerritorialEntities(territorialEntities,{cloneGeometry:geometry=>geometry}); }
+  catch(error) { issues.push(issue('PL-INV-TERRITORIAL',error.message,[], 'territorialEntities')); }
 
   issues.push(...duplicateIssues(countries, row => row?.id, 'PL-INV-COUNTRY', '국가'));
   issues.push(...duplicateIssues(territorialUnits, row => row?.id, 'PL-INV-UNIT', '영역'));
@@ -76,10 +79,6 @@ export function validateProjectReferenceIntegrity({
   const unitIds = new Set((territorialUnits || []).map(row => text(row?.id)).filter(Boolean));
   const territorialIds = new Set([...countryIds, ...unitIds]);
   const unitById = new Map((territorialUnits || []).map(row => [text(row?.id), row]).filter(([id]) => id));
-
-  for (const id of Object.keys(countryOverrides || {})) {
-    if (!countryIds.has(text(id))) issues.push(issue('PL-INV-ORPHAN-COUNTRY-OVERRIDE', `존재하지 않는 국가 ${id}의 설정이 남아 있습니다.`, [id], 'countryOverrides'));
-  }
 
   for (const id of unitIds) {
     if (countryIds.has(id)) {
@@ -96,7 +95,7 @@ export function validateProjectReferenceIntegrity({
   for (const feature of territorialUnits || []) {
     const id = text(feature?.id);
     const parentId = text(feature?.properties?.parentId);
-    const sovereignId = text(feature?.properties?.sovereignId);
+    const associatedCountryId = text(feature?.properties?.associatedCountryId);
     const geometryError = geometryIssue(feature, id, '영역');
     if (geometryError) issues.push(geometryError);
 
@@ -106,8 +105,8 @@ export function validateProjectReferenceIntegrity({
       issues.push(issue('PL-INV-MISSING-PARENT', `${id}의 상위 단위 ${parentId}이 존재하지 않습니다.`, [id, parentId], 'parentId'));
     }
 
-    if (sovereignId && !countryIds.has(sovereignId)) {
-      issues.push(issue('PL-INV-MISSING-SOVEREIGN', `${id}의 소속 국가 ${sovereignId}이 존재하지 않습니다.`, [id, sovereignId], 'sovereignId'));
+    if (associatedCountryId && !countryIds.has(associatedCountryId)) {
+      issues.push(issue('PL-INV-MISSING-SOVEREIGN', `${id}의 소속 국가 ${associatedCountryId}이 존재하지 않습니다.`, [id, associatedCountryId], 'associatedCountryId'));
     }
 
     if (parentCycle(id, unitById, row => row?.properties?.parentId)) {
@@ -121,15 +120,15 @@ export function validateProjectReferenceIntegrity({
     const id = text(relation?.id);
     const unitId = text(relation?.unitId);
     const parentId = text(relation?.parentId);
-    const sovereignId = text(relation?.sovereignId);
+    const associatedCountryId = text(relation?.associatedCountryId);
     if (!territorialIds.has(unitId)) {
       issues.push(issue('PL-INV-MISSING-RELATION-UNIT', `${id || unitId}의 대상 영역 ${unitId}이 존재하지 않습니다.`, [id, unitId], 'unitId'));
     }
     if (parentId && !territorialIds.has(parentId)) {
       issues.push(issue('PL-INV-MISSING-RELATION-PARENT', `${id || unitId}의 상위 단위 ${parentId}이 존재하지 않습니다.`, [id, unitId, parentId], 'parentId'));
     }
-    if (sovereignId && !countryIds.has(sovereignId)) {
-      issues.push(issue('PL-INV-MISSING-RELATION-SOVEREIGN', `${id || unitId}의 소속 국가 ${sovereignId}이 존재하지 않습니다.`, [id, unitId, sovereignId], 'sovereignId'));
+    if (associatedCountryId && !countryIds.has(associatedCountryId)) {
+      issues.push(issue('PL-INV-MISSING-RELATION-SOVEREIGN', `${id || unitId}의 소속 국가 ${associatedCountryId}이 존재하지 않습니다.`, [id, unitId, associatedCountryId], 'associatedCountryId'));
     }
     try { normalizeTemporalInterval(relation?.validFrom, relation?.validTo); }
     catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id || unitId}의 유효기간이 올바르지 않습니다. ${error.message}`, [id, unitId], 'validFrom')); }

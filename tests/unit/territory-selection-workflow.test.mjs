@@ -82,7 +82,7 @@ function harness(t) {
     installComponentIndex(current, result, key) { current.componentIndex = { key, items: result.items, byKey: new Map(componentItems().map(item => [item.key, item])) }; },
     uid: prefix => `${prefix}-${++uid}`,
     projectDomain: { getGeneration: () => 7 },
-    entityStore: { countryFeature: id => countries.get(String(id)) },
+    entityRepository: { get: id => countries.get(String(id)) },
     validateAnnexSelectionSetup: current => !!current.targetCountryId && current.sourceCountryIds.length > 0,
     validateNewCountrySelectionSetup: current => validate(current) && current.sourceCountryIds.length > 0,
     territorialCreateSetupValid: validate,

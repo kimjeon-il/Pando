@@ -116,6 +116,7 @@ export function createSpatialIndex() {
   function rebuildMapObjectSpatialIndex(force = false) {
     if (force) mapObjectSpatialIndexSources.clear();
     let changed = false;
+    const territorialEntities = dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] });
     changed = replaceSpatialDomain('label', [dependencies.projectState.state.labels, dependencies.projectState.state.labels?.length || 0, mapObjectGeometryRevisions.label], () => (dependencies.projectState.state.labels || []).flatMap(label => {
       const bounds = pointBounds(label.coordinates);
       return bounds ? [{
@@ -126,7 +127,7 @@ export function createSpatialIndex() {
         key: `generic:${feature.id}`, domain: 'generic', type: 'feature', id: feature.id,
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
-    changed = replaceSpatialDomain('territorial', [dependencies.projectState.state.territorialUnits, dependencies.projectState.state.territorialUnits?.length || 0, mapObjectGeometryRevisions.territorial], () => (dependencies.projectState.state.territorialUnits || []).flatMap(feature => feature?.geometry ? [{
+    changed = replaceSpatialDomain('territorial', [territorialEntities, mapObjectGeometryRevisions.territorial], () => territorialEntities.flatMap(feature => feature?.geometry ? [{
         key: `territorial:${feature.id}`, domain: 'territorial', type: feature.properties?.unitType || dependencies.territorialModel.TERRITORIAL_UNIT_TYPES.SUBUNIT, id: feature.id,
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
@@ -183,7 +184,7 @@ export function createSpatialIndex() {
     return mapObjectDistributionRowCache.get(String(id)) || null;
   }
 
-  function rebuildSpatialIndex(features = dependencies.projectState.state.countriesData?.features || []) {
+  function rebuildSpatialIndex(features = dependencies.territorialModel.entityRepository.list({ type: 'country' })) {
     dependencies.projectState.state.spatialIndex = (features || []).map(feature => ({
       id: String(feature?.id || ''),
       feature,
@@ -200,7 +201,7 @@ export function createSpatialIndex() {
 
   function invalidateGeometryCaches(ids = []) {
     const wanted = new Set([...ids].map(String));
-    for (const feature of dependencies.projectState.state.countriesData?.features || []) {
+    for (const feature of dependencies.territorialModel.entityRepository.list({ type: 'country' })) {
       if (!wanted.size || wanted.has(String(feature?.id || ''))) {
         touchGeometry(feature.geometry);
         geometryBoundsCache.delete(feature.geometry);
@@ -211,7 +212,7 @@ export function createSpatialIndex() {
     if (!wanted.size) rebuildSpatialIndex();
     else for (const item of dependencies.projectState.state.spatialIndex || []) {
       if (!wanted.has(item.id)) continue;
-      const feature = dependencies.territorialModel.entityStore.countryFeature(item.id);
+      const feature = dependencies.territorialModel.entityRepository.get(item.id);
       if (feature) { item.feature = feature; item.bounds = geometryBounds(feature.geometry); }
     }
   }
@@ -222,10 +223,10 @@ export function createSpatialIndex() {
       const id = String(rawId || '');
       if (!id) continue;
       changed.add(id);
-      dependencies.projectState.state.historyDirtyCountryIds.add(id);
+      dependencies.projectState.state.historyDirtyEntityIds.add(id);
       dependencies.projectState.state.pendingCountryRenderIds.add(id);
     }
-    const currentFeatures = new Map((dependencies.projectState.state.countriesData?.features || []).map(feature => [
+    const currentFeatures = new Map((dependencies.territorialModel.entityRepository.list({ type: 'country' })).map(feature => [
       String(feature?.id || ''),
       feature,
     ]));
@@ -281,17 +282,17 @@ export function createSpatialIndex() {
 
     (mapEditClient = (0, dependencies.spatialFactories.createMapEditWorkerClient)({
       createWorker: () => new Worker((0, dependencies.platform.runtimeAssetUrl)('workers/map-edit-worker.js'), { name: 'pandolab-map-edit' }),
-      getFeatures: () => dependencies.projectState.state.countriesData?.features || [],
-      getFeatureById: dependencies.territorialModel.entityStore.countryFeature,
+      getEntities: () => dependencies.territorialModel.entityRepository.list(),
+      getFeatureById: dependencies.territorialModel.entityRepository.get,
       getBoundaryFeatures: () => [
-        ...(dependencies.projectState.state.countriesData?.features || []).map(feature => ({ ...feature,
-          boundaryLocked: dependencies.projectState.state.countryOverrides?.[String(feature.id)]?.locked === true })),
-        ...dependencies.projectState.state.territorialUnits.filter(feature => feature.properties?.unitType === 'subunit'),
+        ...dependencies.territorialModel.entityRepository.list({ type: 'country' }).map(feature => ({ ...feature,
+          boundaryLocked: feature.properties.locked === true })),
+        ...dependencies.territorialModel.entityRepository.list({ type: 'subunit' }),
       ],
       getEditSources: () => [
-        ...(dependencies.projectState.state.countriesData?.features || []).map(feature => ({ kind: 'country', feature: { ...feature,
-          properties: { ...feature.properties, locked: feature.properties?.locked === true || dependencies.projectState.state.countryOverrides?.[String(feature.id)]?.locked === true } } })),
-        ...dependencies.projectState.state.territorialUnits.map(feature => ({ kind: 'territorial', feature })),
+        ...dependencies.territorialModel.entityRepository.list().map(feature => ({
+          kind: 'territorial', feature,
+        })),
         ...dependencies.projectState.state.genericFeatures.map(feature => ({ kind: 'generic', feature })),
         ...dependencies.projectState.state.hydroEdits.map(feature => ({ kind: 'hydro', feature })),
       ],

@@ -1,3 +1,4 @@
+import { normalizeCountryCollection } from './country-feature.js';
 import { territorialSceneDisplayId } from './builtin-subunits.js';
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -32,8 +33,8 @@ export function createBuiltinSession() {
   }
 
   function materializePristineCountriesSync() {
-    return canonicalCountryStore?.materializeCollectionSync?.()
-      || (0, dependencies.platform.deepClone)(pristineCountriesFallback || { type: 'FeatureCollection', features: [] });
+    return normalizeCountryCollection(canonicalCountryStore?.materializeCollectionSync?.()
+      || pristineCountriesFallback || { type: 'FeatureCollection', features: [] });
   }
 
   async function materializePristineCountries() {
@@ -44,23 +45,20 @@ export function createBuiltinSession() {
       waitForQuiet: async () => {},
       yieldFrame: () => new Promise(resolve => requestAnimationFrame(resolve)),
     });
-    return result.collection;
+    return normalizeCountryCollection(result.collection);
   }
 
-  function freshPristineCountries(applyOverrides = true) {
-    const countries = (0, dependencies.geometryMutation.reindexCountries)(materializePristineCountriesSync(), applyOverrides, { assumeCanonical: !!canonicalCountryStore });
+  function freshPristineCountries() {
+    const countries = (0, dependencies.geometryMutation.reindexCountries)(materializePristineCountriesSync());
     (0, dependencies.countryRecords.applyPristineLabelAnchors)(countries);
     return countries;
   }
 
   function applyFreshBuiltinClassification() {
     const result = (0, dependencies.applicationServicesA.classifyBuiltinCountries)(
-      dependencies.territorialModel.entityStore.countriesData(),
+      { type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) },
     );
-    dependencies.territorialModel.entityStore.replaceCollections({
-      countriesData: result.countries,
-      units: result.subunits,
-    });
+    dependencies.territorialModel.entityStore.replaceEntities([...result.countries.features, ...result.subunits]);
     (0, dependencies.countryRecords.applyPristineLabelAnchors)({ features: result.subunits.map(unit => ({ id: (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit) })) });
   }
 
@@ -70,15 +68,15 @@ export function createBuiltinSession() {
       builtinGeometryCache = new WeakMap();
       builtinRenderCache = null;
     }
-    if (builtinRenderCache?.countries === dependencies.projectState.state.countriesData && builtinRenderCache.units === dependencies.projectState.state.territorialUnits
+    if (builtinRenderCache?.countries === dependencies.territorialModel.entityRepository.list({ type: 'country' }) && builtinRenderCache.units === dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] })
       && builtinRenderCache.presentation === dependencies.projectState.state.layerPresentation) return builtinRenderCache;
-    const features = [...(dependencies.projectState.state.countriesData?.features || [])];
+    const features = [...(dependencies.territorialModel.entityRepository.list({ type: 'country' }))];
     const byId = new Map(features.map(feature => [String(feature.id), feature]));
     const countryIds = new Set(byId.keys());
     const labelById = new Map(byId);
     const labelRefs = new Map();
     const units = new Map();
-    for (const unit of dependencies.projectState.state.territorialUnits || []) {
+    for (const unit of dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }) || []) {
       const sourceId = (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit);
       const id = territorialSceneDisplayId(unit, countryIds);
       const feature = { type: 'Feature', id, properties: unit.properties, geometry: unit.geometry };
@@ -98,7 +96,7 @@ export function createBuiltinSession() {
     }
     const order = new Map((canonicalCountryStore?.ids() || pristineCountriesFallback?.features.map(feature => feature.id) || []).map((id, index) => [id, index]));
     features.sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity));
-    builtinRenderCache = { countries: dependencies.projectState.state.countriesData, units: dependencies.projectState.state.territorialUnits, presentation: dependencies.projectState.state.layerPresentation,
+    builtinRenderCache = { countries: dependencies.territorialModel.entityRepository.list({ type: 'country' }), units: dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }), presentation: dependencies.projectState.state.layerPresentation,
       collection: { type: 'FeatureCollection', features }, byId, labelById, labelRefs, nativeUnits: units };
     return builtinRenderCache;
   }
@@ -120,7 +118,7 @@ export function createBuiltinSession() {
   function isRenderCountryVisible(id) {
     const unit = builtinTerritorialScene().nativeUnits.get(String(id));
     return unit ? dependencies.projectState.state.layerVisibility.subunits !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('subunits', unit.id)
-      : !!dependencies.territorialModel.entityStore.countryFeature(id) && (0, dependencies.layerPresentation.isCountryVisibleById)(id);
+      : !!dependencies.territorialModel.entityRepository.get(id) && (0, dependencies.layerPresentation.isCountryVisibleById)(id);
   }
 
   function initializePristineCountriesFallback() {

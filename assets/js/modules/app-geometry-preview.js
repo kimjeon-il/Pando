@@ -20,9 +20,7 @@ export function createGeometryPreview() {
 
   function assertCurrentProjectReferences() {
     return (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
-      countries: dependencies.projectState.state.countriesData?.features || [],
-      countryOverrides: dependencies.projectState.state.countryOverrides || {},
-      territorialUnits: dependencies.projectState.state.territorialUnits || [],
+      territorialEntities: dependencies.territorialModel.entityRepository.list(),
       territorialRelations: dependencies.projectState.state.territorialRelations || [],
       distributionLayers: dependencies.projectState.state.distributionLayers || [],
       distributionEntries: dependencies.projectState.state.distributionEntries || [],
@@ -44,7 +42,7 @@ export function createGeometryPreview() {
       commitHistory: (...args) => dependencies.domains.projectDomain.commitHistorySnapshot(...args),
       restore: (editableSnapshot, { rebaseWorker }) => {
         (0, dependencies.validation.restoreEditTransactionSnapshot)(editableSnapshot);
-        if (rebaseWorker) dependencies.spatialQuery.mapEditClient.rebase(dependencies.projectState.state.countriesData?.features || []);
+        if (rebaseWorker) dependencies.spatialQuery.mapEditClient.rebase();
       },
       queueAutosave: (...args) => dependencies.domains.projectDomain.queueAutosave(...args),
       diagnostic: dependencies.readiness.reliabilityDiagnostic,
@@ -81,9 +79,9 @@ export function createGeometryPreview() {
       return geometryIdentities.get(geometry);
     };
     return JSON.stringify([dependencies.domains.projectDomain?.getGeneration?.(),
-      [...(dependencies.projectState.state.countriesData?.features || []), ...dependencies.projectState.state.territorialUnits].map(feature => [
-        String(feature.id), identity(feature.geometry), feature.properties?.parentId, feature.properties?.sovereignId,
-        !!feature.properties?.locked, !!dependencies.projectState.state.countryOverrides?.[feature.id]?.locked,
+      [...(dependencies.territorialModel.entityRepository.list({ type: 'country' })), ...dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] })].map(feature => [
+        String(feature.id), identity(feature.geometry), feature.properties?.parentId, (0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)),
+        !!feature.properties?.locked,
       ])]);
   }
 

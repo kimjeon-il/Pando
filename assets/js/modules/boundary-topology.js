@@ -1,5 +1,6 @@
 import { buildRenderableBoundarySegments } from './geographic-boundary.js';
 import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-index.js';
+import { administrativeCountryId } from './territorial-units.js';
 
 const cloneCoordinate = coordinate => [Number(coordinate[0]), Number(coordinate[1])];
 
@@ -358,10 +359,11 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
   const unitFeatures = (units || [])
     .filter(feature => feature?.geometry?.type === 'Polygon' || feature?.geometry?.type === 'MultiPolygon')
     .map((feature, index) => topologyFeature(feature, 'unit', index));
+  const entities = new Map([...countries, ...units].map(feature => [String(feature.id), feature]));
   const unitMeta = new Map(unitFeatures.map(feature => [feature.id, {
     id: featureId(feature).replace(/^unit:/, ''),
     type: feature.properties?.unitType || '',
-    sovereignId: String(feature.properties?.sovereignId || ''),
+    countryId: administrativeCountryId(entities.get(featureId(feature).replace(/^unit:/, '')), id => entities.get(id)),
   }]));
   const topology = buildBoundaryTopology([...countryFeatures, ...unitFeatures], { precision, epsilon });
   const countryEdges = [...topology.segments.values()].filter(segment => [...segment.ownerIds].some(ownerId => ownerId.startsWith('country:')));
@@ -405,10 +407,10 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
     const metadata = unitOwners.map(ownerId => unitMeta.get(ownerId)).filter(Boolean);
     if (!metadata.length) continue;
     const validSovereignIds = new Set(metadata
-      .map(item => item.sovereignId)
+      .map(item => item.countryId)
       .filter(sovereignId => sovereignId && countryIds.has(sovereignId)));
     if (validSovereignIds.size > 1) continue;
-    const allSovereignsValid = metadata.every(item => item.sovereignId && countryIds.has(item.sovereignId));
+    const allSovereignsValid = metadata.every(item => item.countryId && countryIds.has(item.countryId));
     const sameCountrySubunits = metadata.every(item => item.type === 'subunit')
       && allSovereignsValid
       && validSovereignIds.size === 1;
@@ -419,7 +421,7 @@ export function buildTerritorialInternalBoundarySegments(countries = [], units =
       key: segment.key,
       a: segment.a,
       b: segment.b,
-      unitOwners: metadata.map(item => ({ id: item.id, unitType: item.type, sovereignId: item.sovereignId })),
+      unitOwners: metadata.map(item => ({ id: item.id, unitType: item.type, countryId: item.countryId })),
       styleType,
     });
   }

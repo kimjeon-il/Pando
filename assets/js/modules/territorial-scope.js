@@ -2,7 +2,7 @@ const polygons = geometry => geometry?.type === 'Polygon' ? [geometry.coordinate
   : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
 const featureFor = coordinates => coordinates?.length ? { type: 'Feature', properties: {}, geometry: { type: 'MultiPolygon', coordinates } } : null;
 
-/** Read model only. Its geometry never replaces countriesData or a subunit.
+/** Read model only. Its geometry never replaces canonical entity geometry.
  * parentId here is strictly the administrative/spatial hierarchy. Political
  * dependency relations must not participate in scope geometry.
  */
@@ -47,42 +47,22 @@ export function createTerritorialScopeResolver({ entityRepository, clipper }) {
 }
 
 export function validateSubunitParentChanges(previous, next, countryExists) {
-  const old = new Map((previous || []).map(unit => [String(unit.id), unit]));
-  const units = new Map((next || []).map(unit => [String(unit.id), unit]));
-  const issues = [];
-  const parentRelationSignature = (parentId, source) => {
-    const id = String(parentId || '');
-    if (countryExists(id)) return `country:${id}`;
-    const parent = source.get(id);
-    if (!parent) return 'missing';
-    return `unit:${String(parent.properties?.unitType || '')}:${String(parent.properties?.sovereignId || '')}`;
-  };
-  for (const unit of next || []) {
-    if (unit.properties?.unitType !== 'subunit') continue;
-    const before = old.get(String(unit.id));
-    const parentId = String(unit.properties.parentId || '');
-    const sovereignId = String(unit.properties.sovereignId || '');
-    let cursor = parentId;
-    const seen = new Set([String(unit.id)]);
-    while (cursor && units.has(cursor)) {
-      if (seen.has(cursor)) { issues.push(`${unit.id}: 하위단위 소속 관계가 순환합니다.`); break; }
-      seen.add(cursor);
-      cursor = String(units.get(cursor).properties?.parentId || '');
+  const old=new Map((previous||[]).map(unit=>[String(unit.id),unit]));
+  const units=new Map((next||[]).map(unit=>[String(unit.id),unit]));
+  const issues=[];
+  for(const unit of next||[]) {
+    if(unit.properties?.unitType !== 'subunit') continue;
+    const before=old.get(String(unit.id));
+    const parentId=String(unit.properties.parentId||'');
+    let cursor=parentId;
+    const seen=new Set([String(unit.id)]);
+    while(cursor && units.has(cursor)) {
+      const parent=units.get(cursor);
+      if(seen.has(cursor)||parent.properties.unitType!=='subunit') { issues.push(unit.id+': 잘못된 부모 또는 순환 관계입니다.'); cursor=''; break; }
+      seen.add(cursor); cursor=String(parent.properties.parentId||'');
     }
-    const beforeParentId = String(before?.properties?.parentId || '');
-    const relationChanged = before?.properties?.unitType !== 'subunit'
-      || beforeParentId !== parentId
-      || String(before.properties?.sovereignId || '') !== sovereignId
-      || parentRelationSignature(beforeParentId, old) !== parentRelationSignature(parentId, units);
-    if (!relationChanged) continue;
-    const parent = units.get(parentId);
-    if (!countryExists(sovereignId) || (parentId !== sovereignId
-      && String(parent?.properties?.sovereignId || '') !== sovereignId)) {
-      issues.push(unit.id + ': 상위 단위와 소속 국가가 일치해야 합니다.');
-    }
-    if (!parentId || (!countryExists(parentId) && units.get(parentId)?.properties?.unitType !== 'subunit')) {
-      issues.push(`${unit.id}: 하위단위의 상위 단위는 국가 또는 하위단위여야 합니다.`);
-    }
+    if(!cursor||!countryExists(cursor)) issues.push(unit.id+': 부모 체인이 국가까지 연결되어야 합니다.');
+    if(before?.properties.locked && before.properties.parentId!==parentId) issues.push(unit.id+': 잠긴 객체의 부모를 변경할 수 없습니다.');
   }
-  return { ok: !issues.length, issues };
+  return {ok:!issues.length,issues};
 }
