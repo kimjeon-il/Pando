@@ -6,6 +6,7 @@ import {
 } from './reference-image-georef.js';
 import {
   normalizeReferenceImageRecord,
+  referenceImageMappingSignature,
   serializeReferenceImageRecord,
 } from './reference-image-model.js';
 import {
@@ -657,6 +658,8 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
         warpMode: record.warp?.mode || record.warpMode,
         controlPointCount: record.controlPoints.length,
         diagnostics: record.warp?.ok ? record.warp.diagnostics : null,
+        mappingReady: !!record.warp?.ok || !!record.cornerPinEnabled,
+        mappingSignature: referenceImageMappingSignature(record),
       }));
     },
     open: () => {
