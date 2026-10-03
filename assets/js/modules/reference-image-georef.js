@@ -467,6 +467,15 @@ export function buildReferenceImageWarp(values = [], { mode = REFERENCE_IMAGE_WA
   });
 }
 
+export function referenceImageWarpQuad(warp) {
+  if (!warp?.ok || typeof warp.project !== 'function') return null;
+  const corners = [[0, 0], [1, 0], [1, 1], [0, 1]]
+    .map(image => warp.project(image));
+  return corners.every(coordinate => coordinate?.every(Number.isFinite))
+    ? corners.map(coordinate => [...coordinate])
+    : null;
+}
+
 export function buildReferenceImageCalibrationWarp({
   controlPoints = [],
   anchor = null,
