@@ -1,4 +1,5 @@
 import { referenceImageKeyBlocked } from './reference-image-input.js';
+import { referenceImageEventTargetsMap } from './reference-image-pointer-target.js';
 import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
 import { referenceImageMappingSignature } from './reference-image-model.js';
