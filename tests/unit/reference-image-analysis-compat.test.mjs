@@ -101,10 +101,3 @@ test('live-wire owns map activation on pointerdown with pointerup retry and no c
   assert.doesNotMatch(source, /addEventListener\('click', onClick, true\)/);
 });
 
-
-test('live-wire registers click fallback for segment commits', async () => {
-  const source = await readFile(moduleUrl('reference-image-live-wire-controller.js'), 'utf8');
-  assert.match(source, /function onClick\(event\)/);
-  assert.match(source, /addEventListener\('click', onClick, true\)/);
-  assert.match(source, /removeEventListener\('click', onClick, true\)/);
-});
