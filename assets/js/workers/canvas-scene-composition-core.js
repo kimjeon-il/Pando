@@ -25,6 +25,15 @@
     context.fillStyle = packet.style.color;
     context.fill();
   }
+  function drawGeneralLand(context, path, packets, features = []) {
+    context.beginPath();
+    for (const feature of features) path(feature);
+    for (const packet of packets) {
+      if (packet.role !== 'territorial-fill') continue;
+      path(geometryFor(packet));
+    }
+    context.fill();
+  }
   function drawFills(context, path, packets, substrate, dpr) {
     const territories = packets.filter(packet => packet.role === 'territorial-fill')
       .sort((a, b) => a.territoryDepth - b.territoryDepth || a.order - b.order);
@@ -101,5 +110,5 @@
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
     context.globalAlpha = 1;
   }
-  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawFills, drawEmphasis, geometryFor });
+  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawFills, drawGeneralLand, drawEmphasis, geometryFor });
 })(globalThis);

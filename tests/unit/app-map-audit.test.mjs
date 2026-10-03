@@ -18,8 +18,8 @@ test('the application connector sends current repository entities to the audit W
     postMessage(message) { requests.push(structuredClone(message)); }
   };
   const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 5], [5, 5], [5, 0], [0, 0]]] };
-  const entity = (id, unitType, options = {}) => createTerritorialFeature({ id, unitType, geometry, ...options });
-  let entities = [entity('A', 'country'), entity('S', 'subunit', { parentId: 'A' }), entity('R', 'region')];
+  const entity = (id, entityKind, options = {}) => createTerritorialFeature({ id, entityKind, geometry, ...options });
+  let entities = [entity('A', 'general'), entity('S', 'general', { parentId: 'A' }), entity('R', 'regional')];
   const entityRepository = createTerritorialEntityRepository({ getEntities: () => entities });
   const state = { stateRevision: 7, countryVisualPhase: 'canonical', historyDirtyEntityIds: new Set(['S']), distributionEntries: [] };
   const mapAudit = createMapAudit();
@@ -45,7 +45,7 @@ test('the application connector sends current repository entities to the audit W
   assert.deepEqual(requests[0].payload.units.map(feature => feature.id), ['S', 'R']);
   assert.deepEqual(requests[0].payload.preciseAffectedIds, ['S']);
 
-  entities = [...entities, entity('B', 'country')];
+  entities = [...entities, entity('B', 'general')];
   state.stateRevision = 8;
   mapAudit.runFullMapAudit();
   assert.equal(requests[1].revision, 8);

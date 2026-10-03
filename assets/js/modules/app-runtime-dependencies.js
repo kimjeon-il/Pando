@@ -6,10 +6,10 @@
  */
 
 const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
-const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, subunitParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
+const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, territorialParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
 const { layoutTerritorialFlags } = await import(`./territorial-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
-const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
+const { createTerritorialScopeResolver } = await import(`./territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityRepository } = await import(`./territorial-entity-repository.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityStore } = await import(`./territorial-entity-store.js?v=${encodeURIComponent(moduleRevision)}`);
 const { classifyBuiltinCountries, builtinSubunitSourceId } = await import(`./builtin-subunits.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -349,12 +349,6 @@ const {
   normalizeDistributionLayers,
   validateDistributionModel,
 } = distributionModelModule;
-const TERRITORIAL_TYPE_LABELS = Object.freeze({
-  ['country']: MAP_OBJECT_TYPES.country.label,
-  ['subunit']: MAP_OBJECT_TYPES.subunit.label,
-  ['region']: MAP_OBJECT_TYPES.region.label,
-});
-const territorialTypeLabel = unitType => TERRITORIAL_TYPE_LABELS[unitType] || '영역';
 const { createSurfaceController } = surfaceControllerModule;
 const { createEditorWorkspacePresentation } = await import(versionedModuleUrl('./modules/editor-workspace-presentation.js'));
 const { describeTool, dispatchTool, isSpecialTool, toolCursorMode, toolDraftDefinition, toolLabel } = toolControllerModule;
@@ -399,11 +393,10 @@ export {
   missingLibraryOwnership,
   prepareLibraryOwnership,
   shouldShowTerritorialParentChoice,
-  subunitParentChoices,
+  territorialParentChoices,
   BUILTIN_TERRITORY_MERGES,
   layoutTerritorialFlags,
   createTerritorialScopeResolver,
-  validateSubunitParentChanges,
   classifyBuiltinCountries,
   builtinSubunitSourceId,
   versionedModuleUrl,
@@ -623,8 +616,6 @@ export {
   normalizeDistributionEntries,
   normalizeDistributionLayers,
   validateDistributionModel,
-  TERRITORIAL_TYPE_LABELS,
-  territorialTypeLabel,
   createSurfaceController,
   createEditorWorkspacePresentation,
   describeTool,

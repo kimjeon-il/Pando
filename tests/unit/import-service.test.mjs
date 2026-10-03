@@ -25,7 +25,7 @@ const country = (id, name = id) => ({
   geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] },
 });
 
-test('raw GIS replacement creates a current full project; package replacement preserves common fields', async () => {
+test('project replacement rejects unmarked vectors and preserves current common fields', async () => {
   const state = { territorialEntities: [], historyDirtyEntityIds: new Set() };
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   const projectFields = applyProjectFields({}, {}, {
@@ -46,28 +46,22 @@ test('raw GIS replacement creates a current full project; package replacement pr
     territorialEntityRepository: createTerritorialEntityRepository({ entityStore }),
     projectDomain, normalizeTerritorialEntities, applyImportedPackageAssets, setActionStatus() {},
   });
-  await committer.applyImportedReplacement({ countriesData: { features: [country('A')] },
-    sourceInfo: { title: 'Raw GIS' } });
-  assert.equal(loaded.schemaVersion, 8);
-  assert.equal(loaded.baseDataset, 'external-territorial-entities');
-  assert.equal(loaded.distributionEntries.length, 0);
-  assert.deepEqual(loaded.sourceInfo, { title: 'Raw GIS' });
-  assert.equal(state.territorialEntities[0].properties.entityKind, 'general');
-
+  await assert.rejects(committer.applyImportedReplacement({ countriesData: { features: [country('A')] } }), /저장 정보/);
+  assert.equal(state.territorialEntities.length, 0);
   const packageState = serializer.buildProject({ fullAutosave: true, projectFields,
     territorialEntities: [createTerritorialFeature({ id: 'A', entityKind: 'general',
-      name: '', color: '#123456', geometry: state.territorialEntities[0].geometry }),
+      name: '', color: '#123456', geometry: country('A').geometry }),
     createTerritorialFeature({ id: 'S', entityKind: 'general', parentId: 'A',
-      geometry: state.territorialEntities[0].geometry }),
+      geometry: country('A').geometry }),
     createTerritorialFeature({ id: 'R', entityKind: 'regional',
-      geometry: state.territorialEntities[0].geometry })],
+      geometry: country('A').geometry })],
   });
   await committer.applyImportedReplacement({ atlasMetadata: { projectState: packageState } });
   assert.equal(state.territorialEntities[0].properties.name, '');
   assert.equal(state.territorialEntities[0].properties.style.color, '#123456');
   assert.equal(state.territorialEntities[1].properties.parentId, 'A');
   assert.deepEqual(state.territorialEntities, packageState.territorialEntities);
-  assert.equal(loaded.baseDataset, 'external-territorial-entities');
+  assert.equal(loaded.baseDataset, packageState.baseDataset);
 });
 
 test('GIS geometry validator scopes IDs and resolves worker responses', async () => {
@@ -227,7 +221,7 @@ test('historical replacement commits full country deletion and transfers depende
   const replacement = country('historical-country:soviet-union');
   const state = {
     territorialEntities: [normalizeCountryCollection({ features: [existing] }).features[0],
-      createTerritorialFeature({ id: 'KAB', unitType: 'subunit', parentId: 'KAZ', geometry: existing.geometry })],
+      createTerritorialFeature({ id: 'KAB', entityKind: 'general', parentId: 'KAZ', geometry: existing.geometry })],
     territorialRelations: [], distributionLayers: [], distributionEntries: [], labels: [], genericFeatures: [],
     itemVisibility: {}, labelSettings: {}, sourceInfo: null,
   };
@@ -248,7 +242,7 @@ test('historical replacement commits full country deletion and transfers depende
     },
     pruneLayerItemVisibility() {},
     assertProjectReferenceIntegrity(input) {
-      assert.deepEqual(input.territorialEntities.filter(entity => entity.properties.unitType === 'country').map(feature => feature.id), ['historical-country:soviet-union']);
+      assert.deepEqual(input.territorialEntities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId).map(feature => feature.id), ['historical-country:soviet-union']);
       assert.equal(input.territorialEntities.find(entity => entity.id === 'KAB').properties.parentId, replacement.id);
     },
     snapshotEditable: () => ({ marker: 'before' }),
@@ -281,31 +275,20 @@ test('historical replacement commits full country deletion and transfers depende
   assert.deepEqual(committedSnapshot, { marker: 'before' });
 });
 
-test('import service validates countries and returns one immutable merge plan', async () => {
+test('import service returns a current immutable entity plan without a retired country merge', async () => {
   const calls = [];
-  const result = {
-    targetType: 'country',
-    importPlan: { targetType: 'country' },
-    openMode: 'merge',
-    mergeStrategy: 'id-replace',
-    countriesData: { type: 'FeatureCollection', features: [country('AAA')] },
-  };
+  const result = { targetType: 'general', importPlan: { targetType: 'general' }, collection: { type: 'FeatureCollection', features: [country('AAA')] } };
   const service = createImportService({
-    openImportWizard: async (_files, options) => { calls.push(['wizard', options.targetType]); return result; },
-    getWizardOptions: () => ({ countryOptions: [] }),
-    validateStructuredGeometry: () => [],
-    featureCountryId: feature => feature.id,
-    validateCountryCollection: async (_collection, ids) => { calls.push(['validate', [...ids]]); return { overlapAreaKm2: 0 }; },
-    getCurrentCountries: () => ({ type: 'FeatureCollection', features: [] }),
-    planCountryMerge: async () => ({ canCommit: true, counts: { residualOverlapAreaKm2: 0 } }),
-    getProjectGeneration: () => 7,
+    openImportWizard: async (_files, options) => { calls.push(options.targetType); return result; },
+    getWizardOptions: () => ({ parentOptions: [] }), validateStructuredGeometry: () => [], getProjectGeneration: () => 7,
   });
-  const opened = await service.openFiles([{ name: 'countries.geojson' }], { targetType: 'country' });
+  const opened = await service.openFiles([{ name: 'entities.geojson' }], { targetType: 'general' });
   assert.equal(opened.status, 'planned');
-  assert.equal(opened.plan.kind, 'country-merge');
+  assert.equal(opened.plan.kind, 'territorial');
   assert.equal(opened.plan.projectGeneration, 7);
-  assert.equal(opened.plan.payload.plan.canCommit, true);
-  assert.deepEqual(calls, [['wizard', 'country'], ['validate', ['AAA']]]);
+  assert.deepEqual(opened.plan.payload.result, result);
+  assert.ok(Object.isFrozen(opened.plan));
+  assert.deepEqual(calls, ['general']);
 });
 
 test('GIS imports ignore feature metadata while project packages preserve separate assets and source history', () => {

@@ -14,12 +14,8 @@
   const importPlanModuleUrl = new URL('modules/import-plan.js', baseUrl).href;
   const gpkgWorkerUrlObject = new URL('workers/gis-gpkg-worker.js', baseUrl);
   const assetRevision = window.PANDOLAB_ASSET_REVISION || globalThis.PANDOLAB_BUILD_META?.assetRevision || new URL(scriptUrl).searchParams.get('v') || '';
-  const ownershipPresentationUrl = new URL('modules/library-ownership.js', baseUrl);
   const selectOptionPolicyUrl = new URL('modules/select-option-policy.js', baseUrl);
-  if (assetRevision) ownershipPresentationUrl.searchParams.set('v', assetRevision);
   if (assetRevision) selectOptionPolicyUrl.searchParams.set('v', assetRevision);
-  let shouldShowTerritorialParentChoice;
-  let markPlaceholderOption;
   let resolveSelectChoice;
   if (assetRevision) gpkgWorkerUrlObject.searchParams.set('v', assetRevision);
   const gpkgWorkerUrl = gpkgWorkerUrlObject.href;
@@ -37,12 +33,6 @@
   const workerPending = new Map();
   let activeSession = null;
   let importPlanModulePromise = null;
-  const TERRITORIAL_IMPORT_TARGETS = Object.freeze({
-    SUBUNIT: 'subunit',
-    REGION: 'region',
-  });
-  const SOVEREIGN_SELECTION_TARGETS = new Set(Object.values(TERRITORIAL_IMPORT_TARGETS));
-  const PARTITION_IMPORT_TARGETS = new Set([TERRITORIAL_IMPORT_TARGETS.SUBUNIT]);
   let wizardReturnFocus = null;
 
   function importPlanModule() {
@@ -467,10 +457,6 @@
     return String(value).slice(0, 48);
   }
 
-  function placeholderOption(label) {
-    return markPlaceholderOption(new Option(label, ''));
-  }
-
   function applyDirectSelectPolicy(select, selectedValue = '', { autoSelectSingle = true } = {}) {
     const state = resolveSelectChoice([...select.options], selectedValue, { autoSelectSingle });
     select.value = state.value;
@@ -552,7 +538,6 @@
       fieldFilter: field => /(?:^|[_-])(color|fill|stroke|style)(?:$|[_-])/i.test(field) || /(?:Color|Fill|Stroke|Style)$/i.test(field),
       selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill', 'stroke']),
     });
-    populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['associated_country_id', 'country_id', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
     populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 소속', selected: autoField(fields, ['parent_id', 'parent']) });
     syncAutoMappedField('gisIdFieldRow', 'gisIdField', hasCanonicalId);
     syncAutoMappedField('gisNameFieldRow', 'gisNameField', hasCanonicalName);
@@ -573,34 +558,29 @@
     const manifestLayer = (manifest?.layers || []).find(layer => [layer.file, layer.name].filter(Boolean).some(value => withoutExtension(value).toLowerCase() === withoutExtension(descriptor?.datasetPath || descriptor?.layerName).toLowerCase()));
     if (manifestLayer?.targetType) return String(manifestLayer.targetType);
     const hint = `${descriptor?.layerName || ''} ${descriptor?.geometryType || ''}`.toLowerCase();
-    if (/country|countries|admin[_ ]?0|국가/.test(hint) && /polygon|surface/.test(hint)) return 'country';
-    if (/admin|subunits|행정/.test(hint) && /polygon|surface/.test(hint)) return 'subunit';
-    if (/territor|하위단위/.test(hint) && /polygon|surface/.test(hint)) return 'subunit';
-    if (/region|province|지방|지역/.test(hint) && /polygon|surface/.test(hint)) return 'region';
+    if (/country|countries|admin[_ ]?0|국가/.test(hint) && /polygon|surface/.test(hint)) return 'general';
+    if (/admin|subunits|행정/.test(hint) && /polygon|surface/.test(hint)) return 'general';
+    if (/territor|하위단위/.test(hint) && /polygon|surface/.test(hint)) return 'general';
+    if (/region|province|지방|지역/.test(hint) && /polygon|surface/.test(hint)) return 'regional';
     return '';
   }
 
   const IMPORT_STEP_LABELS = Object.freeze(['파일 확인', '데이터 선택', '속성 연결 수정', '가져오기 설정', '확인']);
   let importMobileStep = 0;
   let importSourceKind = 'vector';
-  let compatibilityTarget = '';
   let importStepRoute = [1, 3, 4];
   let wizardOptions = {};
 
   function updateImportFinalSummary() {
     const layer = document.getElementById('gisLayerSelect')?.selectedOptions?.[0]?.textContent || '자동 선택 레이어';
-    const target = compatibilityTarget ? '기타 객체(호환 복원)' : document.getElementById('gisTargetType')?.selectedOptions?.[0]?.textContent || '종류 미선택';
-    const country = document.getElementById('gisTargetCountry')?.selectedOptions?.[0]?.textContent || '';
-    const mode = document.getElementById('gisOpenMode')?.value || 'merge';
+    const target = document.getElementById('gisTargetType')?.selectedOptions?.[0]?.textContent || '종류 미선택';
     const summary = document.querySelector('#gisFinalSummary p');
     if (!summary) return;
     if (importSourceKind === 'project') {
       const warning = wizardOptions.hasUnsavedChanges ? ' 파일에 저장하지 않은 현재 변경 사항은 사라집니다.' : '';
       summary.textContent = `PandoLab 프로젝트를 열어 현재 작업공간을 교체합니다.${warning}`;
-    } else if (SOVEREIGN_SELECTION_TARGETS.has(document.getElementById('gisTargetType')?.value)) {
-      summary.textContent = `${layer} → ${country || '선택한 국가'} · ${target}. 영토 이전이 적용됩니다.`;
     } else {
-      summary.textContent = `${layer} → ${target} → ${mode === 'replace' ? '새 프로젝트' : '현재 지도에 추가'}.${mode === 'replace' && wizardOptions.hasUnsavedChanges ? ' 저장하지 않은 변경 사항은 사라집니다.' : ''}`;
+      summary.textContent = `${layer} → ${target} → 현재 지도에 추가.`;
     }
   }
 
@@ -637,104 +617,32 @@
     }
   }
 
-  function populateTargetCountries() {
-    const select = document.getElementById('gisTargetCountry');
-    if (!select) return;
-    const selected = select.value;
-    select.replaceChildren(placeholderOption('소속 국가를 선택하세요'));
-    for (const country of wizardOptions.countryOptions || []) select.add(new Option(country.name || country.id, country.id));
-    return applyDirectSelectPolicy(select, selected);
+  function populateCoastReferences() {
+    const select = document.getElementById('gisCoastReference');
+    select.replaceChildren(new Option('해안선 정합 안 함', ''));
+    for (const item of wizardOptions.coastReferenceOptions || []) select.add(new Option(item.name || item.id, item.id));
   }
 
   function populateParentUnits() {
     const select = document.getElementById('gisParentUnit');
-    if (!select) return;
     const selected = select.value;
-    const ownerId = document.getElementById('gisTargetCountry')?.value || '';
-    const country = (wizardOptions.countryOptions || []).find(item => String(item.id) === String(ownerId));
-    select.replaceChildren(country ? new Option(country.name || country.id, '') : placeholderOption('소속 국가 선택'));
-    const candidates = (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId));
-    const seen = new Set();
-    function append(parentId, depth) {
-      for (const unit of candidates.filter(item => String(item.parentId || ownerId) === parentId)) {
-        if (seen.has(unit.id)) continue;
-        seen.add(unit.id);
-        select.add(new Option(`${'　'.repeat(depth)}${unit.name}${Number(unit.level) > 0 ? ` · ${unit.level}단계` : ''}`, unit.id));
-        append(String(unit.id), depth + 1);
-      }
-    }
-    append(String(ownerId), 1);
-    return applyDirectSelectPolicy(select, selected);
+    select.replaceChildren(new Option('상위 객체 없음', ''));
+    for (const item of wizardOptions.parentOptions || []) select.add(new Option(item.name || item.id, item.id));
+    select.value = [...select.options].some(item => item.value === selected) ? selected : '';
   }
 
   function updateTargetFields() {
-    const targetSelect = document.getElementById('gisTargetType');
-    if (importSourceKind === 'project' && targetSelect) targetSelect.value = 'country';
-    const target = compatibilityTarget || targetSelect?.value || '';
-    document.getElementById('gisImportImpact')?.classList.toggle('hidden', importSourceKind === 'project');
-    const distribution = target === 'distribution';
-    const territorial = SOVEREIGN_SELECTION_TARGETS.has(target);
-    const independentRegion = target === TERRITORIAL_IMPORT_TARGETS.REGION
-      && document.getElementById('gisIndependentRegion')?.checked === true;
-    const useCountryField = document.getElementById('gisUseCountryField')?.checked === true;
-    const descriptor = activeSession?.descriptors?.[Number(document.getElementById('gisLayerSelect')?.value) || 0];
-    const countrySelect = document.getElementById('gisTargetCountry');
-    const countryField = document.getElementById('gisCountryField')?.value || '';
-    const countryProfile = descriptor?.fieldProfiles?.[countryField];
-    if (territorial && !countrySelect?.value && countryProfile?.complete && countryProfile.values?.length === 1) {
-      const wanted = String(countryProfile.values[0] || '').toLocaleLowerCase('ko');
-      const recommendation = (wizardOptions.countryOptions || []).find(country => [country.id, country.name]
-        .some(value => String(value || '').toLocaleLowerCase('ko') === wanted));
-      if (recommendation) countrySelect.value = String(recommendation.id);
-    }
-    document.getElementById('gisDistributionValueRow')?.classList.toggle('hidden', !distribution);
-    document.getElementById('gisTargetCountryRow')?.classList.toggle('hidden', !territorial || independentRegion
-      || countrySelect?.dataset.singleChoice === 'true');
-    document.getElementById('gisIndependentRegionRow')?.classList.toggle('hidden', target !== TERRITORIAL_IMPORT_TARGETS.REGION);
-    document.getElementById('gisUseCountryFieldRow')?.classList.toggle('hidden', !territorial);
-    document.getElementById('gisCountryFieldRow')?.classList.toggle('hidden', !territorial || !useCountryField
-      || document.getElementById('gisCountryField')?.dataset.singleChoice === 'true');
-    document.getElementById('gisParentFieldRow')?.classList.toggle('hidden', target !== 'subunit' || !useCountryField
-      || document.getElementById('gisParentField')?.dataset.singleChoice === 'true');
-    document.getElementById('gisColorFieldRow')?.classList.toggle('hidden', target === 'country'
-      || document.getElementById('gisColorField')?.dataset.singleChoice === 'true');
-    const parentChoice = populateParentUnits();
-    const parentSelect = document.getElementById('gisParentUnit');
-    const sovereignId = countrySelect?.value || '';
-    const effectiveParentId = parentSelect?.value || sovereignId;
-    const parentOptions = [...(parentSelect?.options || [])].map((option, index) => ({
-      value: option.value || (index === 0 ? sovereignId : ''),
-    }));
-    document.getElementById('gisParentUnitRow')?.classList.toggle('hidden', target !== 'subunit' || parentChoice?.single === true
-      || !shouldShowTerritorialParentChoice?.({ sovereignId, parentId: effectiveParentId, options: parentOptions }));
-    const modeSelect = document.getElementById('gisOpenMode');
-    const modeRow = document.getElementById('gisOpenModeRow');
-    if (importSourceKind === 'project') modeSelect.value = 'replace';
-    else if (target !== 'country') modeSelect.value = 'merge';
-    for (const candidate of document.querySelectorAll('[data-gis-open-mode]')) {
-      const active = candidate.dataset.gisOpenMode === modeSelect.value;
-      candidate.classList.toggle('active', active);
-      candidate.setAttribute('aria-checked', String(active));
-    }
-    modeRow?.classList.toggle('hidden', importSourceKind === 'project' || target !== 'country');
-    const fixedModeNote = document.getElementById('gisFixedOpenModeNote');
-    fixedModeNote?.classList.toggle('hidden', importSourceKind !== 'project' && target === 'country');
-    const fixedModeTitle = fixedModeNote?.querySelector('strong');
-    const fixedModeBody = fixedModeNote?.querySelector('p');
-    if (fixedModeTitle) fixedModeTitle.textContent = importSourceKind === 'project' ? '프로젝트 열기' : '현재 지도에 추가';
-    if (fixedModeBody) fixedModeBody.textContent = '';
-    document.getElementById('gisMergeStrategyRow')?.classList.toggle('hidden', importSourceKind === 'project' || target !== 'country' || modeSelect.value !== 'merge');
-    const name = document.getElementById('gisNameField')?.value || '';
-    const id = document.getElementById('gisIdField')?.value || '';
-    const parts = [name ? '이름 연결됨' : '이름 자동 생성', id ? 'ID 연결됨' : 'ID 자동 생성'];
-    if (territorial) parts.push(independentRegion
-      ? '소속 국가: 독립 지방'
-      : useCountryField ? '객체별 소속 국가 사용' : '');
-    document.getElementById('gisMappingSummary').textContent = parts.filter(Boolean).join(' · ');
-    const confirm = document.getElementById('gisImportConfirmBtn');
-    if (confirm) confirm.textContent = importSourceKind === 'project'
-      ? '프로젝트 열기'
-      : territorial ? '영토 이전 후 가져오기' : modeSelect.value === 'replace' ? '새 프로젝트로 열기' : '현재 지도에 추가';
+    const target = document.getElementById('gisTargetType').value;
+    const general = target === 'general';
+    const territorial = general || target === 'regional';
+    document.getElementById('gisDistributionValueRow').classList.toggle('hidden', target !== 'distribution');
+    document.getElementById('gisParentUnitRow').classList.toggle('hidden', !general);
+    document.getElementById('gisParentFieldRow').classList.toggle('hidden', !general);
+    document.getElementById('gisCoastReferenceRow').classList.toggle('hidden', !territorial);
+    document.getElementById('gisTargetTypeRow').classList.toggle('hidden', importSourceKind === 'project');
+    document.getElementById('gisFixedOpenModeNote').classList.remove('hidden');
+    document.getElementById('gisFixedOpenModeNote').querySelector('strong').textContent = importSourceKind === 'project' ? '프로젝트 열기' : '현재 지도에 추가';
+    populateParentUnits();
     updateImportFinalSummary();
   }
 
@@ -800,83 +708,6 @@
   async function sha256File(file) {
     const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
     return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
-  }
-
-  function geometryAsMultiPolygon(geometry) {
-    if (geometry?.type === 'MultiPolygon') return geometry.coordinates;
-    if (geometry?.type === 'Polygon') return [geometry.coordinates];
-    return null;
-  }
-
-  function validateMultiPolygon(coordinates) {
-    if (!Array.isArray(coordinates) || !coordinates.length) return false;
-    for (const polygon of coordinates) {
-      if (!Array.isArray(polygon) || !polygon.length) return false;
-      for (const ring of polygon) {
-        if (!Array.isArray(ring) || ring.length < 4) return false;
-        const first = ring[0], last = ring[ring.length - 1];
-        if (!Array.isArray(first) || !Array.isArray(last) || first[0] !== last[0] || first[1] !== last[1]) return false;
-        for (const point of ring) if (!Array.isArray(point) || !Number.isFinite(+point[0]) || !Number.isFinite(+point[1]) || +point[0] < -180.000001 || +point[0] > 180.000001 || +point[1] < -90.000001 || +point[1] > 90.000001) return false;
-      }
-    }
-    return true;
-  }
-
-  function importSourceNamespace(descriptor, mapping, properties) {
-    if (mapping.idField === 'pandolab_id' || properties.pandolab_id) return 'pandolab';
-    const field = String(mapping.idField || '').toLowerCase();
-    if (field === '__feature_id__') return 'geojson';
-    if (['adm0_a3', 'iso_a3'].includes(field)) return 'natural-earth';
-    if (field === 'gid_0') return 'gadm';
-    const driver = String(descriptor?.driverName || 'vector').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const layer = String(descriptor?.layerName || descriptor?.datasetPath || 'layer').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '');
-    return `gis:${driver || 'vector'}:${layer || 'layer'}`;
-  }
-
-  function normalizeCountryFeatures(featureCollection, descriptor, mapping) {
-    const groups = new Map();
-    const invalid = [];
-    for (let index = 0; index < (featureCollection.features || []).length; index += 1) {
-      const raw = featureCollection.features[index];
-      const coordinates = geometryAsMultiPolygon(raw.geometry);
-      if (!validateMultiPolygon(coordinates)) { invalid.push(raw.id ?? index); continue; }
-      const properties = raw.properties || {};
-      const rawId = ['__fid__', '__feature_id__'].includes(mapping.idField) ? (raw.id ?? index + 1) : properties[mapping.idField];
-      const sourceId = String(rawId ?? '').trim();
-      if (!sourceId) throw new Error(`국가 원본 ID가 비어 있는 객체가 있습니다: ${raw.id ?? index + 1}`);
-      const name = String(mapping.nameField ? (properties[mapping.nameField] ?? '') : '').trim() || `국가 ${sourceId}`;
-      const sourceNamespace = importSourceNamespace(descriptor, mapping, properties);
-      const importIdentity = {
-        sourceNamespace,
-        sourceIdField: ['__fid__', '__feature_id__'].includes(mapping.idField) ? mapping.idField : String(mapping.idField || ''),
-        sourceId,
-        pandolabId: mapping.idField === 'pandolab_id' || properties.pandolab_id ? String(properties.pandolab_id || sourceId) : '',
-      };
-      const feature = {
-        type: 'Feature', id: sourceId,
-        properties: {
-          name,
-          ...(String(properties.valid_from || '').trim() ? { validFrom: String(properties.valid_from).trim() } : {}),
-          ...(String(properties.valid_to || '').trim() ? { validTo: String(properties.valid_to).trim() } : {}),
-        },
-        importIdentity,
-        geometry: { type: 'MultiPolygon', coordinates },
-      };
-      if (!groups.has(sourceId)) groups.set(sourceId, []);
-      groups.get(sourceId).push(feature);
-    }
-    if (invalid.length) throw new Error(`유효하지 않은 Polygon/MultiPolygon 객체가 있습니다: ${invalid.slice(0, 8).join(', ')}${invalid.length > 8 ? '…' : ''}`);
-    const duplicates = [...groups.entries()].filter(([, values]) => values.length > 1);
-    if (duplicates.length && !mapping.groupDuplicates) throw new Error(`중복 국가 ID가 있습니다: ${duplicates.slice(0, 8).map(([id]) => id).join(', ')}`);
-    const features = [];
-    for (const values of groups.values()) {
-      const first = values[0];
-      if (values.length > 1) {
-        first.geometry.coordinates = values.flatMap(value => value.geometry.coordinates);
-      }
-      features.push(first);
-    }
-    return { type: 'FeatureCollection', features };
   }
 
   async function layerAsGeoJson(gdal, dataset, layerName, outputTag) {
@@ -962,7 +793,6 @@
     const { gdal, datasets, prepared } = activeSession;
     const dataset = datasets[descriptor.datasetIndex];
     const options = ['-f', 'GeoJSON', '-t_srs', 'EPSG:4326', '-dim', 'XY', '-fieldTypeToString', 'Integer64,Integer64List', '-lco', 'RFC7946=YES'];
-    if (mapping.targetType === 'country') options.push('-nlt', 'PROMOTE_TO_MULTI');
     if (!descriptor.crs.hasCrs) {
       if (!/^EPSG:\d+$/i.test(mapping.sourceCrs || '')) throw new Error('좌표계가 없는 레이어에는 EPSG 코드를 입력하세요.');
       options.push('-s_srs', mapping.sourceCrs.toUpperCase());
@@ -972,7 +802,6 @@
     const output = await gdal.ogr2ogr(dataset, options, `pandolab_import_${Date.now()}`);
     const bytes = await gdal.getFileBytes(output);
     const parsed = JSON.parse(new TextDecoder().decode(bytes));
-    const countriesData = mapping.targetType === 'country' ? normalizeCountryFeatures(parsed, descriptor, mapping) : null;
     progress('원본 속성과 프로젝트 정보를 확인하는 중입니다.', 78);
     const sourceFile = prepared.dataFiles.find(file => file.name.toLowerCase() === basename(descriptor.datasetPath).toLowerCase())
       || prepared.dataFiles.find(file => withoutExtension(file.name).toLowerCase() === withoutExtension(descriptor.datasetPath).toLowerCase());
@@ -987,7 +816,6 @@
     const { normalizeImportPlan } = await importPlanModule();
     return {
       collection: parsed,
-      countriesData,
       atlasMetadata,
       importPlan: normalizeImportPlan({
         sourceKind: atlasMetadata?.projectState ? 'project' : mapping.sourceKind,
@@ -998,13 +826,10 @@
         featureCount: descriptor.featureCount,
         detectedCrs: descriptor.crs.label,
         targetType: atlasMetadata?.projectState ? 'project' : mapping.targetType,
-        propertyMapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField, value: mapping.valueField },
-        targetCountryId: mapping.targetCountryId,
-        fallbackCountryId: mapping.targetCountryId,
-        useFeatureCountryField: mapping.useFeatureCountryField,
+        propertyMapping: { id: mapping.idField, name: mapping.nameField, parent: mapping.parentField, color: mapping.colorField, value: mapping.valueField },
         parentId: mapping.parentId,
         openMode: mapping.openMode,
-        mergePolicy: mapping.targetType === 'country' ? 'same-id-multipolygon' : 'preserve-features',
+        mergePolicy: 'preserve-features',
       }),
       sourceInfo: {
         importedAt: new Date().toISOString(),
@@ -1013,7 +838,7 @@
         layer: descriptor.layerName,
         sourceCrs: descriptor.crs.label,
         fields: descriptor.fieldDefinitions || [],
-        mapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField, value: mapping.valueField },
+        mapping: { id: mapping.idField, name: mapping.nameField, parent: mapping.parentField, color: mapping.colorField, value: mapping.valueField },
       },
     };
   }
@@ -1027,127 +852,33 @@
   }
 
   function importMappingFromUi() {
-    const targetType = compatibilityTarget || document.getElementById('gisTargetType').value;
-    if (importSourceKind !== 'project' && !compatibilityTarget && !['general', 'regional', 'country', 'subunit', 'region', 'distribution'].includes(targetType)) {
-      throw new Error('가져올 종류를 선택하세요. 종류를 알 수 없는 자료를 기타 객체로 자동 변환하지 않습니다.');
-    }
+    const targetType = document.getElementById('gisTargetType').value;
+    if (importSourceKind !== 'project' && !['general', 'regional', 'distribution', 'generic'].includes(targetType)) throw new Error('가져올 종류를 선택하세요.');
     return {
-      sourceKind: importSourceKind,
-      targetType,
+      sourceKind: importSourceKind, targetType,
       valueField: document.getElementById('gisDistributionValueField').value,
       idField: document.getElementById('gisIdField').value,
       nameField: document.getElementById('gisNameField').value,
-      countryField: document.getElementById('gisCountryField').value,
-      parentField: document.getElementById('gisParentField').value,
-      colorField: targetType === 'country' ? '' : document.getElementById('gisColorField').value,
+      parentField: targetType === 'general' ? document.getElementById('gisParentField').value : '',
+      colorField: document.getElementById('gisColorField').value,
       sourceCrs: document.getElementById('gisCrsInput').value.trim(),
-      groupDuplicates: true,
-      targetCountryId: document.getElementById('gisIndependentRegion')?.checked ? '' : document.getElementById('gisTargetCountry').value,
-      independentRegion: targetType === TERRITORIAL_IMPORT_TARGETS.REGION && document.getElementById('gisIndependentRegion')?.checked === true,
-      useFeatureCountryField: document.getElementById('gisUseCountryField').checked,
-      parentId: document.getElementById('gisParentUnit').value,
-      openMode: importSourceKind === 'project' ? 'replace' : (targetType === 'country' ? document.getElementById('gisOpenMode').value : 'merge'),
+      parentId: targetType === 'general' ? document.getElementById('gisParentUnit').value : '',
+      coastReferenceId: ['general', 'regional'].includes(targetType) ? document.getElementById('gisCoastReference').value : '',
+      openMode: importSourceKind === 'project' ? 'replace' : 'merge',
     };
   }
 
-  function renderImportImpact(impact, mapping, descriptor) {
+  function renderImportImpact(_impact, mapping, descriptor) {
     const container = document.getElementById('gisImportImpactSummary');
-    if (!container) return;
-    container.replaceChildren();
-    if (!PARTITION_IMPORT_TARGETS.has(mapping.targetType) || !impact) {
-      const mode = mapping.openMode === 'replace' ? '새 프로젝트' : '현재 지도';
-      container.append(Object.assign(document.createElement('p'), { textContent: `${descriptor.featureCount.toLocaleString()}개 객체를 ${mode}에 적용합니다.` }));
-      return;
-    }
-    const ownerNames = new Map((wizardOptions.countryOptions || []).map(country => [String(country.id), country.name || country.id]));
-    const formatArea = value => `${Math.round(Number(value) || 0).toLocaleString()} km²`;
-    container.append(Object.assign(document.createElement('p'), {
-      textContent: `${impact.featureCount.toLocaleString()}개 ${mapping.targetType === 'region' ? '지방' : '하위단위'} · 전체 ${formatArea(impact.totalAreaKm2)}`,
+    container.replaceChildren(Object.assign(document.createElement('p'), {
+      textContent: importSourceKind === 'project' ? '저장된 프로젝트의 객체·형상·설정을 복원합니다.'
+        : `${descriptor.featureCount}개 객체를 현재 지도에 추가합니다. 관계와 형상은 적용 전에 함께 검증합니다.`,
     }));
-    const list = document.createElement('ul');
-    for (const group of impact.groups || []) {
-      const ownerName = ownerNames.get(String(group.targetCountryId)) || group.targetCountryId;
-      const donors = (group.donors || []).map(donor => `${ownerNames.get(String(donor.countryId)) || donor.countryId} ${formatArea(donor.areaKm2)}`).join(', ');
-      const details = [
-        `소속 국가: ${ownerName}`,
-        donors ? `영토를 내주는 국가: ${donors}` : '영토를 내주는 국가: 없음',
-        `기존 소속국 면적: ${formatArea(group.existingOwnerAreaKm2)}`,
-        `기존 국가 밖 신규 편입: ${formatArea(group.newAreaKm2)}`,
-      ];
-      if (group.absorbedCountryIds?.length) details.push(`완전히 흡수되는 국가: ${group.absorbedCountryIds.length}개`);
-      for (const detail of details) list.append(Object.assign(document.createElement('li'), { textContent: detail }));
-    }
-    if (impact.unresolvedCountryValueCount) list.append(Object.assign(document.createElement('li'), { textContent: `해석하지 못한 객체별 국가값 ${impact.unresolvedCountryValueCount}개가 있어 가져오기를 진행할 수 없습니다.` }));
-    const affected = (impact.groups || []).filter(group => group.donors?.length || group.absorbedCountryIds?.length);
-    for (const group of affected) {
-      const donors = (group.donors || []).map(donor => ownerNames.get(String(donor.countryId)) || donor.countryId);
-      container.append(Object.assign(document.createElement('p'), {
-        textContent: `${ownerNames.get(String(group.targetCountryId)) || group.targetCountryId}에 영토 이전${donors.length ? ` · 영향 국가: ${donors.join(', ')}` : ''}${group.absorbedCountryIds?.length ? ` · 완전히 흡수되는 국가 ${group.absorbedCountryIds.length}개` : ''}`,
-      }));
-    }
-    if (impact.unresolvedCountryValueCount) container.append(Object.assign(document.createElement('p'), {
-      textContent: `소속 국가를 확인해야 하는 객체 ${impact.unresolvedCountryValueCount}개가 있습니다.`,
-    }));
-    const details = document.createElement('details');
-    details.className = 'ui-disclosure editor-disclosure';
-    details.append(Object.assign(document.createElement('summary'), { textContent: '면적·영토 변경 상세' }), list);
-    container.append(details);
-  }
-
-  function renderCountryIdentityPlan(plan, manualMappings) {
-    const panel = document.getElementById('gisCountryIdentityPanel');
-    const rows = document.getElementById('gisCountryIdentityRows');
-    if (!panel || !rows) return;
-    const visible = Array.isArray(plan?.rows) && plan.rows.length > 0;
-    panel.classList.toggle('hidden', !visible);
-    rows.replaceChildren();
-    if (!visible) return;
-    for (const row of plan.rows) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'gis-country-identity-row';
-      const source = document.createElement('div');
-      source.className = 'gis-country-identity-source';
-      const title = document.createElement('strong');
-      title.textContent = row.name || row.sourceId || '가져온 국가';
-      const detail = document.createElement('small');
-      detail.textContent = row.sourceId || '';
-      source.append(title, detail);
-      const label = document.createElement('label');
-      label.className = 'ui-field field-group';
-      const caption = document.createElement('span');
-      caption.textContent = '프로젝트 국가';
-      const select = document.createElement('select');
-      select.dataset.identitySourceKey = row.sourceKey;
-      select.add(placeholderOption('연결을 선택하세요'));
-      select.add(new Option('새 국가로 추가', 'new'));
-      for (const country of wizardOptions.countryOptions || []) select.add(new Option(country.name || country.id, `existing:${country.id}`));
-      const automatic = row.status === 'existing' && row.editorId ? `existing:${row.editorId}` : '';
-      const selected = manualMappings[row.sourceKey] || automatic;
-      const identityChoice = applyDirectSelectPolicy(select, selected);
-      label.hidden = identityChoice.single;
-      select.onchange = () => {
-        if (select.value) manualMappings[row.sourceKey] = select.value;
-        else delete manualMappings[row.sourceKey];
-      };
-      label.append(caption, select);
-      wrapper.append(source, label);
-      rows.append(wrapper);
-    }
-  }
-
-  function collectCountryIdentityMappings() {
-    return Object.fromEntries([...document.querySelectorAll('[data-identity-source-key]')]
-      .map(select => [select.dataset.identitySourceKey, select.value])
-      .filter(([, value]) => value));
   }
 
   async function openImportWizard(files, options = {}) {
-    const [ownershipPresentation, selectOptionPolicy] = await Promise.all([
-      import(ownershipPresentationUrl.href),
-      import(selectOptionPolicyUrl.href),
-    ]);
-    ({ shouldShowTerritorialParentChoice } = ownershipPresentation);
-    ({ markPlaceholderOption, resolveSelectChoice } = selectOptionPolicy);
+    const selectOptionPolicy = await import(selectOptionPolicyUrl.href);
+    ({ resolveSelectChoice } = selectOptionPolicy);
     document.getElementById('gisAdvancedMapping').open = false;
     wizardOptions = options || {};
     importSourceKind = 'vector';
@@ -1158,7 +889,7 @@
     const title = document.getElementById('gisImportTitle');
     if (title) title.textContent = '파일 확인';
     clearWizardError();
-    populateTargetCountries();
+    populateCoastReferences();
     updateTargetFields();
     setImportMobileStep(0);
     const form = document.getElementById('gisImportForm');
@@ -1168,7 +899,6 @@
     const confirmButton = document.getElementById('gisImportConfirmBtn');
     const cancelButton = document.querySelector('[data-gis-cancel="true"]');
     const layerSelect = document.getElementById('gisLayerSelect');
-    const modeSelect = document.getElementById('gisOpenMode');
     form.classList.add('is-busy');
     confirmButton.disabled = true;
     setWizardProgress('선택한 GIS 파일을 확인하는 중입니다.', 2);
@@ -1209,47 +939,26 @@
       const targetSelect = document.getElementById('gisTargetType');
       let convertedCache = null;
       let impactCache = null;
-      let identityPlanCache = null;
-      const manualIdentityMappings = {};
       const invalidatePrepared = () => {
         convertedCache = null;
         impactCache = null;
-        identityPlanCache = null;
-        for (const key of Object.keys(manualIdentityMappings)) delete manualIdentityMappings[key];
-        renderCountryIdentityPlan(null, manualIdentityMappings);
         clearWizardError();
       };
       const refresh = () => {
         const descriptor = session.descriptors[Number(layerSelect.value) || 0];
         const suggested = suggestedTarget(descriptor, session.prepared.manifest);
-        compatibilityTarget = importSourceKind !== 'project' && suggested === 'generic' ? 'generic' : '';
-        const requested = options.targetType === 'generic' ? '' : options.targetType;
-        targetSelect.value = importSourceKind === 'project' ? 'country' : compatibilityTarget ? '' : requested || suggested;
-        document.getElementById('gisTargetTypeRow')?.classList.toggle('hidden', importSourceKind === 'project' || !!compatibilityTarget);
-        document.getElementById('gisCompatibilityNotice')?.classList.toggle('hidden', !compatibilityTarget);
+        const requested = options.targetType;
+        targetSelect.value = importSourceKind === 'project' ? 'general' : requested || suggested;
+        document.getElementById('gisTargetTypeRow')?.classList.toggle('hidden', importSourceKind === 'project');
         updateWizardFields(descriptor);
         invalidatePrepared();
       };
       layerSelect.onchange = refresh;
       targetSelect.onchange = () => { invalidatePrepared(); updateTargetFields(); };
-      for (const id of ['gisIdField', 'gisNameField', 'gisCountryField', 'gisParentField', 'gisColorField', 'gisDistributionValueField', 'gisParentUnit']) {
+      for (const id of ['gisIdField', 'gisNameField', 'gisParentField', 'gisColorField', 'gisDistributionValueField', 'gisParentUnit']) {
         document.getElementById(id).onchange = () => { invalidatePrepared(); updateTargetFields(); };
       }
-      document.getElementById('gisUseCountryField').onchange = () => { invalidatePrepared(); updateTargetFields(); };
-      document.getElementById('gisTargetCountry').onchange = () => { document.getElementById('gisParentUnit').value = ''; invalidatePrepared(); updateTargetFields(); };
-      document.getElementById('gisIndependentRegion').onchange = () => { invalidatePrepared(); updateTargetFields(); };
-      document.getElementById('gisOpenModeControl').onclick = event => {
-        const button = event.target.closest('[data-gis-open-mode]');
-        if (!button) return;
-        modeSelect.value = button.dataset.gisOpenMode;
-        for (const candidate of document.querySelectorAll('[data-gis-open-mode]')) {
-          const active = candidate === button;
-          candidate.classList.toggle('active', active);
-          candidate.setAttribute('aria-checked', String(active));
-        }
-        invalidatePrepared();
-        updateTargetFields();
-      };
+      document.getElementById('gisCoastReference').onchange = invalidatePrepared;
       refresh();
       form.classList.remove('is-busy');
       document.getElementById('gisImportProgress')?.classList.add('hidden');
@@ -1259,27 +968,9 @@
       const prepareConverted = async () => {
         const descriptor = session.descriptors[Number(layerSelect.value) || 0];
         const mapping = importMappingFromUi();
-        if (SOVEREIGN_SELECTION_TARGETS.has(mapping.targetType) && !mapping.targetCountryId && !mapping.independentRegion) {
-          throw new Error('하위단위 또는 국가 소속 지방을 가져오려면 소속 국가를 선택해야 합니다.');
-        }
-        if (mapping.useFeatureCountryField && !mapping.countryField) { revealAdvancedField('gisCountryField'); throw new Error('객체별 소속 국가에 사용할 속성을 선택하세요.'); }
         const crsInput = document.getElementById('gisCrsInput');
         if (crsInput?.required && !/^EPSG:\d+$/i.test(crsInput.value.trim())) { revealAdvancedField('gisCrsInput'); throw new Error('좌표계를 EPSG 코드로 입력하세요.'); }
         if (!convertedCache) convertedCache = await convertSelectedLayer(descriptor, mapping, setWizardProgress);
-        if (mapping.targetType === 'country' && mapping.openMode === 'merge' && typeof options.planCountryIdentity === 'function') {
-          identityPlanCache = await options.planCountryIdentity(convertedCache.countriesData, mapping, {
-            ...manualIdentityMappings,
-            ...collectCountryIdentityMappings(),
-          });
-          renderCountryIdentityPlan(identityPlanCache, manualIdentityMappings);
-        } else {
-          identityPlanCache = null;
-          renderCountryIdentityPlan(null, manualIdentityMappings);
-        }
-        if (!impactCache && typeof options.planImpact === 'function' && PARTITION_IMPORT_TARGETS.has(mapping.targetType)) {
-          setWizardProgress('영토 이전 영향을 계산하는 중입니다.', 88);
-          impactCache = await options.planImpact(convertedCache.collection, mapping);
-        }
         renderImportImpact(impactCache, mapping, descriptor);
         document.getElementById('gisImportProgress')?.classList.add('hidden');
         return {
@@ -1287,8 +978,6 @@
           mapping,
           converted: convertedCache,
           impact: impactCache,
-          identityPlan: identityPlanCache,
-          identityMappings: { ...manualIdentityMappings, ...collectCountryIdentityMappings() },
         };
       };
       backButton.onclick = () => {
@@ -1299,24 +988,9 @@
       nextButton.onclick = async () => {
         try {
           clearWizardError();
-          if (importMobileStep === 1 && !compatibilityTarget && !['country', 'subunit', 'region', 'distribution'].includes(targetSelect.value)) {
+          if (importMobileStep === 1 && !['general', 'regional', 'distribution', 'generic'].includes(targetSelect.value)) {
             targetSelect.focus();
             throw new Error('가져올 종류를 선택하세요.');
-          }
-          if (importMobileStep === 3 && SOVEREIGN_SELECTION_TARGETS.has(targetSelect.value)
-              && !document.getElementById('gisTargetCountry').value
-              && !(targetSelect.value === TERRITORIAL_IMPORT_TARGETS.REGION && document.getElementById('gisIndependentRegion')?.checked)) {
-            document.getElementById('gisTargetCountry').focus();
-            throw new Error('소속 국가를 선택하세요. 교차 면적만으로 자동 확정하지 않습니다.');
-          }
-          const prepared = importMobileStep === 3 ? await prepareConverted() : null;
-          if (importMobileStep === 3 && targetSelect.value === 'country' && modeSelect.value === 'merge') {
-            const missing = (prepared.identityPlan?.rows || []).filter(row => {
-              const selected = prepared.identityMappings[row.sourceKey]
-                || (row.status === 'existing' && row.editorId ? `existing:${row.editorId}` : '');
-              return !selected;
-            });
-            if (missing.length) throw new Error(`국가 ID 연결을 확인해야 하는 객체가 ${missing.length}개 있습니다.`);
           }
           const index = importStepRoute.indexOf(importMobileStep);
           setImportMobileStep(importStepRoute[Math.min(importStepRoute.length - 1, index + 1)], { focus: true });
@@ -1348,9 +1022,7 @@
               targetType: mapping.targetType,
               mapping,
               impactPlan: prepared.impact,
-              identityMappings: prepared.identityMappings,
               openMode: mapping.openMode,
-              mergeStrategy: document.getElementById('gisMergeStrategy').value,
             };
             closeWizardModal();
             await closeActiveSession();
@@ -1371,18 +1043,6 @@
       cancelButton.onclick = () => { closeWizardModal(); closeActiveSession(); };
       throw error;
     }
-  }
-
-  function exportCountryProperties(feature) {
-    const source = feature.properties || {};
-    const id = String(feature?.id || '');
-    const output = {
-      pandolab_id: id,
-      pandolab_name: source.name || id,
-    };
-    if (source.validFrom) output.valid_from = source.validFrom;
-    if (source.validTo) output.valid_to = source.validTo;
-    return output;
   }
 
   function countryAssets(entities) {
@@ -1447,7 +1107,6 @@
         name: withoutExtension(layer.file), file: layer.file, category: layer.category,
         targetType: layer.targetType,
         crs: 'EPSG:4326', featureCount: layer.collection.features.length,
-        ...(layer.targetType === 'country' ? { fields: ['pandolab_id', 'pandolab_name', 'valid_from', 'valid_to'] } : {}),
       })),
     };
     const files = {};
@@ -1465,22 +1124,18 @@
     const exportMode = options.mode === 'gis' ? 'gis' : 'project';
     const selectedLayers = exportMode === 'gis' ? [...new Set(options.layers || [])] : [];
     const gdal = await getGdal(progress);
-    progress(exportMode === 'gis' ? 'GIS용 GeoPackage 구조를 준비하는 중입니다.' : '국가 레이어를 GeoPackage로 변환하는 중입니다.', 25);
-    const countries = {
-      type: 'FeatureCollection',
-      features: [],
-    };
-    countries.features = (projectState.territorialEntities || []).filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId).map(feature => ({ type: 'Feature', properties: exportCountryProperties(feature), geometry: feature.geometry }));
+    progress(exportMode === 'gis' ? 'GIS용 GeoPackage 구조를 준비하는 중입니다.' : '객체 레이어를 GeoPackage로 변환하는 중입니다.', 25);
+    const territorial = gisAdapters.territorialRows(projectState);
     const gisLayers = exportMode === 'gis' ? buildGisExportLayers(projectState, selectedLayers) : [];
-    const seedCollection = exportMode === 'project' ? countries : gisLayers.find(layer => layer.collection.features.length)?.collection;
-    if (!seedCollection?.features?.length) throw new Error(exportMode === 'project' ? '저장할 국가 레이어가 없습니다.' : '선택한 범주에 내보낼 데이터가 없습니다.');
+    const seedCollection = exportMode === 'project' ? rowsAsFeatureCollection(Object.values(territorial).flat()) : gisLayers.find(layer => layer.collection.features.length)?.collection;
+    if (!seedCollection?.features?.length) throw new Error(exportMode === 'project' ? '저장할 객체 레이어가 없습니다.' : '선택한 범주에 내보낼 데이터가 없습니다.');
     const source = new File([JSON.stringify(seedCollection)], `pandolab_export_${Date.now()}.geojson`, { type: 'application/geo+json' });
     const opened = await gdal.open(source);
     const dataset = opened.datasets?.[0];
-    if (!dataset) throw new Error('GeoPackage 변환용 국가 데이터를 열 수 없습니다.');
+    if (!dataset) throw new Error('GeoPackage 변환용 객체 데이터를 열 수 없습니다.');
     let bytes;
     try {
-      const layerName = exportMode === 'project' ? 'countries' : 'pandolab_export_seed';
+      const layerName = exportMode === 'project' ? 'entities' : 'pandolab_export_seed';
       const output = await gdal.ogr2ogr(dataset, ['-f', 'GPKG', '-nln', layerName, '-nlt', 'PROMOTE_TO_MULTI', '-t_srs', 'EPSG:4326'], `PandoLab_${Date.now()}`);
       bytes = await gdal.getFileBytes(output);
     } finally {

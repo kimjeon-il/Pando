@@ -31,6 +31,6 @@ test('theme updates retain persisted label and selection values', () => {
 test('manual CRS belongs to the existing advanced mapping disclosure', () => {
   const advanced = html.slice(html.indexOf('id="gisAdvancedMapping"'), html.indexOf('</details>', html.indexOf('id="gisAdvancedMapping"')));
   assert.ok(advanced.includes('id="gisCrsInput"'));
-  assert.ok(advanced.includes('id="gisCountryField"'));
+  assert.ok(advanced.includes('id="gisParentField"'));
   assert.ok(!advanced.includes('id="gisCountryIdentityPanel"'));
 });

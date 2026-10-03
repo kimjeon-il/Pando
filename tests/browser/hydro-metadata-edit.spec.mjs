@@ -9,14 +9,14 @@ test('editing a river color advances the actual GPU edit revision and undo resto
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/assets/css/app.css');
   await page.evaluate(async () => {
-    const { PROJECT_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION } =
+    const { PROJECT_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } =
       await import('/assets/js/modules/version-contract.js');
     const { assertCurrentProjectSchema } = await import('/assets/js/modules/project-state.js');
     const saved = { format: 'pandolab-autosave-delta', schemaVersion: PROJECT_SCHEMA_VERSION,
       version: '0.34.0', savedAt: '2026-10-01T00:00:00Z', entityDelta: { changed: [], removedIds: [] },
       landObjectModel: { schemaVersion: 2, purpose: 'lossless-fallback', directCreation: false,
-        coastlineAuthority: 'countries', sourceProvenanceSchemaVersion: 1 },
-      territorialModel: { schemaVersion: 2 }, distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION },
+        coastlineAuthority: 'territorialEntities', sourceProvenanceSchemaVersion: 1 },
+      territorialModel: { schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION }, distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION },
       distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
       layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder: [], styles: {} },
       hydroEdits: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000005',

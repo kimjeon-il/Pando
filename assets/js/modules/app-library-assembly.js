@@ -247,14 +247,12 @@ export function createLibraryAssembly() {
             countries,
             units,
           ),
-          countries: (0, dependencies.propertyEditingB.territorialUnitCountryOptions)().filter(option => option.value),
-          parents: id => (0, dependencies.territorialServicesA.subunitParentChoices)(
+          countries: (0, dependencies.propertyEditingB.territorialRootOptions)().filter(option => option.value),
+          parents: id => (0, dependencies.territorialServicesA.territorialParentChoices)(
             id,
             dependencies.territorialModel.entityRepository,
             {
-              name: feature => (feature.properties?.entityKind === 'general' && !feature.properties?.parentId)
-                ? (0, dependencies.objectPresentation.territorialEntityName)(feature)
-                : (0, dependencies.objectPresentation.territorialEntityName)(feature),
+              name: feature => (0, dependencies.objectPresentation.territorialEntityName)(feature),
             },
           ),
         };

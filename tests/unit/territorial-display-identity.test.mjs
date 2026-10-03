@@ -6,8 +6,8 @@ import { createObjectSelectionController, normalizeObjectRef } from '../../asset
 const namedRef = (type, id, displayName = '같은 이름') => ({ domain: 'territorial', type, id, displayName });
 
 test('same-name countries retain separate identities without adding display codes', () => {
-  const first = namedRef('country', 'TUR');
-  const second = namedRef('country', 'country-custom-123');
+  const first = namedRef('entity', 'TUR');
+  const second = namedRef('entity', 'country-custom-123');
   assert.equal(territorialSelectionStatus(first), '같은 이름');
   assert.equal(territorialSelectionStatus(second), '같은 이름');
   const selection = createObjectSelectionController();
@@ -21,28 +21,23 @@ test('same-name countries retain separate identities without adding display code
   assert.equal(territorialSelectionStatus(second, '10 km²'), '같은 이름 · 10 km²');
 });
 
-test('a country and subunit remain distinct even when their names and raw IDs match', () => {
-  const country = namedRef('country', 'shared:id');
-  const subunit = namedRef('subunit', 'shared:id');
-  const countryRef = normalizeObjectRef(country);
-  const subunitRef = normalizeObjectRef(subunit);
-  assert.notEqual(countryRef.key, subunitRef.key);
-  assert.equal(countryRef.key, 'territorial:country:shared%3Aid');
-  assert.equal(subunitRef.key, 'territorial:subunit:shared%3Aid');
+test('hierarchy positions share the same entity identity; repeated IDs do not create another selection', () => {
+  const root = namedRef('entity', 'shared:id');
+  const child = { ...root, parentId: 'other' };
+  const first = normalizeObjectRef(root), second = normalizeObjectRef(child);
+  assert.equal(first.key, 'territorial:entity:shared%3Aid');
+  assert.deepEqual(second, first);
   const selection = createObjectSelectionController();
-  selection.setMany([country, subunit], { primary: subunit });
-  assert.equal(selection.size(), 2);
-  assert.deepEqual(selection.primary(), subunitRef);
-  selection.toggle(country);
-  assert.equal(selection.has(country), false);
-  assert.equal(selection.has(subunit), true);
-  assert.deepEqual(selection.primary(), subunitRef);
+  selection.setMany([root, child], { primary: child });
+  assert.equal(selection.size(), 1);
+  selection.toggle(root);
+  assert.equal(selection.size(), 0);
 });
 
 test('renaming a selected object does not change its identity or emit a replacement selection', () => {
   const changes = [];
   const selection = createObjectSelectionController({ onChange: (_snapshot, reason) => changes.push(reason) });
-  const original = namedRef('country', 'TUR', '튀르키예');
+  const original = namedRef('entity', 'TUR', '튀르키예');
   const renamed = { ...original, displayName: '새 이름 (국가)' };
   selection.replace(original);
   selection.replace(renamed);
@@ -55,9 +50,9 @@ test('renaming a selected object does not change its identity or emit a replacem
 
 test('a display name alone never acts as a selectable object reference', () => {
   const selection = createObjectSelectionController();
-  const country = namedRef('country', 'TUR');
+  const country = namedRef('entity', 'TUR');
   selection.replace(country);
-  assert.equal(normalizeObjectRef({ domain: 'territorial', type: 'country', displayName: country.displayName }), null);
+  assert.equal(normalizeObjectRef({ domain: 'territorial', type: 'entity', displayName: country.displayName }), null);
   selection.remove(country.displayName);
   selection.replace({ displayName: country.displayName });
   assert.equal(selection.size(), 1);

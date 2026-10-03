@@ -1,70 +1,36 @@
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-
+import '../../assets/js/vendor/polygon-clipping.min.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { resolveTerritorialColor } from '../../assets/js/modules/color-adapter.js';
+import { hasCanonicalPolygonWinding, area } from '../../assets/js/modules/map-edit-geometry.js';
+const square = (x0, x1) => ({ type: 'Polygon', coordinates: [[[x0,0],[x0,2],[x1,2],[x1,0],[x0,0]]] });
 
-const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
-  type: 'Polygon',
-  coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]],
-});
-
-test('territorial scope reads the administrative hierarchy from the common entity repository', () => {
-  const country = { type: 'Feature', id: 'A', properties: { name: 'A' }, geometry: square() };
-  const parent = createTerritorialFeature({
-    id: 'a1',
-    entityKind: 'general',
-    parentId: 'A',
-    color: '#123456',
-    geometry: square(1, 1, 8, 8),
-  });
-  const child = createTerritorialFeature({
-    id: 'a2',
-    entityKind: 'general',
-    parentId: 'a1',
-    geometry: square(2, 2, 4, 4),
-  });
-  const region = createTerritorialFeature({
-    id: 'r1',
-    entityKind: 'regional',
-    coverageMode: 'explicit',
-    geometry: square(20, 20, 30, 30),
-  });
-  const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => {
-    const countriesData = (() => ({ features: [country] }))();
-    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,entityKind:'general',name:feature.properties.name,geometry:feature.geometry})),...[parent, child, region]],stateRevision:1};
-  } }) });
-  const resolver = createTerritorialScopeResolver({
-    entityRepository: repository,
-    countryColor: entity => entity.id === 'A' ? '#abcdef' : '',
-    clipper: () => null,
-  });
-
-  assert.deepEqual(resolver.members('A').map(entity => entity.id), ['a1', 'a2']);
-  assert.equal(resolveTerritorialColor(child, { entityRepository: repository, countryColor: () => '#abcdef' }), '#123456');
-  assert.equal(resolveTerritorialColor(parent, { entityRepository: repository, countryColor: () => '#abcdef' }), '#123456');
-
-  const scope = resolver.scope('A');
-  assert.equal(scope.country.id, 'A');
-  assert.deepEqual(scope.members.map(entity => entity.id), ['a1', 'a2']);
-  assert.equal(scope.extent.id, 'A');
-  assert.equal(scope.extra, null);
-});
-
-test('territorial scope inherits country color without treating regions as administrative parents', () => {
-  const country = { type: 'Feature', id: 'A', properties: { name: 'A' }, geometry: square() };
-  const child = createTerritorialFeature({
-    id: 'a1',
-    entityKind: 'general',
-    parentId: 'A',
-    geometry: square(1, 1, 8, 8),
-  });
-  const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => {
-    const countriesData = (() => ({ features: [country] }))();
-    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,entityKind:'general',name:feature.properties.name,geometry:feature.geometry})),...[child]],stateRevision:1};
-  } }) });
-  assert.equal(resolveTerritorialColor(child, { entityRepository: repository, countryColor: () => '#abcdef' }), '#abcdef');
+test('every general hierarchy level has an immutable canonical display extent; independent regions retain their own shape', () => {
+  const make = (id, parentId, x0, x1, entityKind = 'general') => createTerritorialFeature({ id, entityKind, parentId, geometry: square(x0,x1) });
+  const state = { territorialEntities: [make('A','',0,2),make('B','A',1,3),make('C','B',2,4),make('D','',5,7),make('R','',0,10,'regional')] };
+  const store = createTerritorialEntityStore({ getState: () => state });
+  const repo = createTerritorialEntityRepository({ entityStore: store });
+  const scope = createTerritorialScopeResolver({ entityRepository: repo, getState: () => state, clipper: () => globalThis.polygonClipping });
+  const before = structuredClone(state.territorialEntities);
+  const first = scope.scope('A');
+  assert.strictEqual(scope.scope('A'), first);
+  assert.deepEqual(first.members.map(entity=>entity.id), ['B','C']);
+  assert.equal(first.extent.id, 'A');
+  assert.equal(area(first.extent.geometry), 8);
+  assert.equal(area(scope.scope('B').extent.geometry), 6);
+  assert.equal(area(scope.scope('B').extra.geometry), 2);
+  assert.equal(hasCanonicalPolygonWinding(first.extent.geometry), true);
+  const region = scope.scope('R');
+  assert.strictEqual(region.extent, repo.get('R'));
+  assert.deepEqual(region.members, []);
+  assert.deepEqual(state.territorialEntities, before);
+  store.applyChanges({ features: [{ ...repo.get('B'), properties: { ...repo.get('B').properties, parentId: 'D' } }] });
+  assert.equal(area(scope.scope('A').extent.geometry), 4);
+  assert.notStrictEqual(scope.scope('A'), first);
+  assert.equal(repo.root('C').id, 'D');
+  assert.equal(area(scope.scope('D').extent.geometry), 10);
+  assert.deepEqual(scope.scope('R').extent.geometry, region.extent.geometry);
 });

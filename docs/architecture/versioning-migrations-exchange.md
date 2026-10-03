@@ -17,20 +17,22 @@ A commit does not require a version bump by itself. Release version changes are 
 
 ## Project schema
 
-Current project schema: **7**. Territorial model and Feature schema: **3**.
-Temporal relationship schema: **2**. Layer presentation schema remains **4**.
+Current project schema: **8**. Territorial model and Feature schema: **4**.
+Temporal relationship schema: **3**. Layer presentation schema remains **4**.
 
 The current schema gate validates the format, model contracts, entity fields,
 and references before replacement. Older development schemas and the retired
 split collections are rejected; there is no migration reader or compatibility
 alias. Loading never overwrites the original project file.
 
-Country, Subunit, and Region Features share `territorialEntities`. Each Feature
-owns its geometry and common properties. Country editor metadata is stored in
-the Feature rather than a separate override map. Subunit country membership is
-derived from its `parentId` chain. Region uses an independent optional
-`associatedCountryId`. Missing references, duplicate IDs, invalid parents, and
-cycles fail validation. See [the common contract](territorial-entity-contract.md).
+Features share `territorialEntities` and use `entityKind: general | regional`.
+General roots and children have the same model, identity and ID-only API; their
+hierarchy is derived from `parentId`. Regional entities have no parent or stored
+country association and preserve independent geometry through general annexation.
+Each Feature owns its geometry and metadata. Missing references, duplicate IDs,
+invalid parents, cycles and locked descendant root changes fail validation.
+The serialized model header declares `kinds: ['general', 'regional']`; retired
+`types` metadata is rejected. See [the common contract](territorial-entity-contract.md).
 
 Full projects and full autosaves serialize `territorialEntities`. Base-data
 autosaves serialize `entityDelta: { changed, removedIds }`, including metadata
@@ -49,14 +51,28 @@ Object meaning and exchange format are separate concerns. Canonical exchange tar
 
 ```text
 project
-country
-subunit
-region
+general
+regional
 distribution
 generic
 ```
 
-Each target has one descriptor with a domain and can provide `importPayload` and/or `exportPayload`. Import services dispatch non-country targets through this registry instead of adding new top-level `if/switch` branches. Country import remains a specialized pipeline because identity resolution, overlap analysis, and merge policy are transactional operations rather than simple materialization.
+Each target has one descriptor with a domain and can provide `importPayload`
+and/or `exportPayload`. General and regional GIS rows use the same validated
+transaction and current `entities` / `regions` tables. General roots and children
+share `entities`; `parent_id` describes hierarchy. No retired country import
+identity or merge-policy UI remains. A general import can map a parent; regional
+imports remain independent. An optional coast reference controls shape
+reconciliation without becoming an administrative association. Generation and
+revision checks prevent a pending import from modifying a replaced or edited
+project. History and publication occur after all validation succeeds.
+
+Historical source-library territory replacement keeps its topology planner:
+replacement of existing root territory is a distinct operation from importing
+new GIS objects. Natural Earth names, static country mesh IDs, place-country
+references and flag-asset table names retain their dataset meanings. Presentation
+categories `countries/subunits/regions` are derived root/child/independent filters,
+not entity kinds or split canonical storage.
 
 Generic is explicitly marked as a fallback target. Identifiable data should be routed to a formal territorial, distribution, hydro, or label domain before Generic is considered.
 

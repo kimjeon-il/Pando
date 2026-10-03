@@ -31,8 +31,8 @@ test('nested general objects use the common desktop/mobile creation and editor s
   });
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });
-  await selectUiOption(page, '#gisTargetType', 'subunit');
-  await selectUiOption(page, '#gisTargetCountry', 'DEU');
+  await selectUiOption(page, '#gisTargetType', 'general');
+  await selectUiOption(page, '#gisParentUnit', 'DEU');
   for (const step of ['2/3', '3/3']) {
     await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisStepIndicator')).toContainText(step, { timeout: 30_000 });

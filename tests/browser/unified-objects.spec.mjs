@@ -14,7 +14,7 @@ async function clickCoordinate(page, coordinate) {
   await page.locator('#map .map-svg').dispatchEvent('click', { clientX: box.x + point[0], clientY: box.y + point[1], button: 0 });
 }
 
-async function polygon(page, coordinates) {
+async function polygon(page, coordinates, reviewStage = '생성 확인') {
   await page.locator('#modePolygonMethodInput').check();
   await expect(page.locator('#modeDraftActions')).toBeVisible({ timeout: 30000 });
   const box = await page.locator('#map').boundingBox();
@@ -30,7 +30,7 @@ async function polygon(page, coordinates) {
   await page.locator('#modeDraftDoneBtn').click();
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 30000 });
   await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('#modeTaskStage')).toHaveText('생성 확인');
+  await expect(page.locator('#modeTaskStage')).toHaveText(reviewStage);
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
   if (await page.locator('#confirmModal').isVisible()) await page.locator('#confirmModalOkBtn').click();
@@ -65,13 +65,20 @@ async function generalGeometries(page) {
   });
 }
 
-test('one object flow creates a root, child and independent region; common editing and copy survive undo and restore', async ({ page }) => {
+test('one object flow creates a root, child and independent region; annex across the independent region and common editing survive undo and restore', async ({ page }) => {
   test.setTimeout(240000);
   const errors = [];
-  page.on('pageerror', e => { errors.push(e.message); console.error(e.message); });
-  page.on('console', m => { if (m.type() === 'error') { errors.push(m.text()); console.error(m.text()); } });
-  await page.goto('/?debug=1');
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60000 });
+  page.on('pageerror', e => { errors.push(e.message); });
+  page.on('console', m => { if (m.type() === 'error') { errors.push(m.text()); } });
+  await page.addInitScript(() => {
+    window.__workerErrors = [];
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      constructor(...args) { super(...args); this.addEventListener('error', event => window.__workerErrors.push(event.message)); }
+    };
+  });
+  await page.goto('/?debug=1&renderer=webgl2&demTerrain=raster');
+  await expect.poll(async () => { expect(errors).toEqual([]); return page.locator('#app').getAttribute('data-readiness'); }, { timeout: 60000 }).toBe('enhanced');
   await page.locator('#flatBtn').evaluate(button => button.click());
   await select(page, 'DEU');
   await page.locator('#focusSelectedObjectBtn').click();
@@ -133,6 +140,36 @@ test('one object flow creates a root, child and independent region; common editi
   expect(region.properties.entityKind).toBe('regional');
   expect(region.properties.parentId).toBe('');
   expect(await generalGeometries(page)).toEqual(beforeRegion);
+  const beforeAnnex = await page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id)), [root.id, 'DEU', region.id, child.id]);
+  await select(page, root.id);
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#annexEntityBtn').click();
+  await clickCoordinate(page, [12.3, 51]);
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
+  await page.locator('#modePrimaryBtn').click();
+  await polygon(page, [[12.04, 50.8], [12.4, 50.8], [12.4, 51.2], [12.04, 51.2], [12.04, 50.8]], '편입 확인');
+  const annex = await page.evaluate(before => {
+    const [target, donor, region, child] = before.map(f => window.PANDOLAB_TERRITORIAL.get(f.id));
+    const coords = g => g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
+    const area = polygons => polygons.reduce((sum, polygon) => sum + polygon.reduce((sum, ring, index) => {
+      let area = 0; for (let i = 1; i < ring.length; i++) area += ring[i-1][0]*ring[i][1] - ring[i][0]*ring[i-1][1];
+      return sum + (index ? -1 : 1) * Math.abs(area / 2);
+    }, 0), 0);
+    const pc = window.polygonClipping;
+    const added = pc.difference(coords(target.geometry), coords(before[0].geometry));
+    const lost = pc.difference(coords(before[1].geometry), coords(donor.geometry));
+    return { added: area(added), lost: area(lost), mismatch: area(pc.xor(added, lost)),
+      crossesRegion: area(pc.intersection(added, coords(region.geometry))) > 0 && area(pc.difference(added, coords(region.geometry))) > 0,
+      regionUnchanged: JSON.stringify(region.geometry) === JSON.stringify(before[2].geometry),
+      childUnchanged: JSON.stringify(child.geometry) === JSON.stringify(before[3].geometry) };
+  }, beforeAnnex);
+  expect(annex.added).toBeGreaterThan(0); expect(annex.lost).toBeCloseTo(annex.added, 7);
+  expect(annex.mismatch).toBeLessThan(1e-7); expect(annex.crossesRegion).toBe(true);
+  expect(annex.regionUnchanged).toBe(true); expect(annex.childUnchanged).toBe(true);
+  await page.locator('#undoBtn').click();
+  expect(await page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id).geometry), beforeAnnex.map(f => f.id)))
+    .toEqual(beforeAnnex.map(f => f.geometry));
+  console.log('Cross-region annex geometry and Undo verified');
   await select(page, region.id);
   await page.locator('#relationTabBtn').click();
   await expect(page.locator('#entityRegionalStatus')).toBeVisible();
@@ -175,5 +212,6 @@ test('one object flow creates a root, child and independent region; common editi
   await page.locator('#modeCancelBtn').click();
   await select(page, child.id);
   await expect(page.locator('#entityNameInput')).toBeVisible();
+  expect(await page.evaluate(() => window.__workerErrors)).toEqual([]);
   expect(errors).toEqual([]);
 });

@@ -78,7 +78,7 @@ export function createLifecycleAssembly() {
             requestDraftDiscard: dependencies.genericEditingB.requestDraftDiscard,
             completeToolStart: dependencies.workspaceUiA.completeToolStart,
             startGeometryDistributionDraft: dependencies.propertyEditingB.startGeometryDistributionDraft,
-            runEntityEditAction: dependencies.territorialEditingA.runEntityEditAction,
+            runEntityEditAction: dependencies.territorialEditingB.runEntityEditAction,
             runModePrimaryAction: dependencies.taskPresentation.runModePrimaryAction,
             copySelectedEntityToRegion: dependencies.territorialConversion.copySelectedEntityToRegion,
             enterTerritorialCreateWorkflow: dependencies.territorialEditingA.enterTerritorialCreateWorkflow,

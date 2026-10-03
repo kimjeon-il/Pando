@@ -4,14 +4,7 @@ import {
   normalizeExchangeTarget,
 } from './exchange-adapter-registry.js';
 
-export const TERRITORIAL_IMPORT_TARGETS = Object.freeze({
-  SUBUNIT: EXCHANGE_TARGETS.SUBUNIT,
-  REGION: EXCHANGE_TARGETS.REGION,
-});
-export const SOVEREIGN_SELECTION_TARGETS = Object.freeze(new Set(Object.values(TERRITORIAL_IMPORT_TARGETS)));
-export const PARTITION_IMPORT_TARGETS = Object.freeze(new Set([TERRITORIAL_IMPORT_TARGETS.SUBUNIT]));
 const TARGET_TYPES = new Set(Object.keys(EXCHANGE_TARGET_DESCRIPTORS));
-const OPEN_MODES = new Set(['replace', 'merge']);
 const SOURCE_KINDS = new Set(['project', 'vector']);
 
 function text(value, fallback = '') {
@@ -22,13 +15,10 @@ function text(value, fallback = '') {
 export function normalizeImportPlan(raw = {}) {
   const targetType = TARGET_TYPES.has(raw.targetType)
     ? raw.targetType
-    : normalizeExchangeTarget(raw.targetType, EXCHANGE_TARGETS.GENERIC);
+    : normalizeExchangeTarget(raw.targetType, raw.targetType ? '' : EXCHANGE_TARGETS.GENERIC);
+  if (!targetType) throw new Error('가져올 객체 종류가 올바르지 않습니다.');
   const sourceKind = SOURCE_KINDS.has(raw.sourceKind) ? raw.sourceKind : (targetType === EXCHANGE_TARGETS.PROJECT ? 'project' : 'vector');
-  const openMode = targetType === EXCHANGE_TARGETS.PROJECT
-    ? 'replace'
-    : targetType === EXCHANGE_TARGETS.COUNTRY
-      ? (OPEN_MODES.has(raw.openMode) ? raw.openMode : 'replace')
-      : 'merge';
+  const openMode = targetType === EXCHANGE_TARGETS.PROJECT ? 'replace' : 'merge';
   const layerCandidates = Array.isArray(raw.layerCandidates) ? raw.layerCandidates.map(candidate => ({
     name: text(candidate?.name, 'layer'),
     geometryType: text(candidate?.geometryType, 'Unknown'),
@@ -45,20 +35,16 @@ export function normalizeImportPlan(raw = {}) {
     detectedCrs: text(raw.detectedCrs, 'unknown'),
     targetType,
     propertyMapping: {
-      id: text(mapping.id), name: text(mapping.name), country: text(mapping.country),
+      id: text(mapping.id), name: text(mapping.name),
       parent: text(mapping.parent), level: text(mapping.level), color: text(mapping.color),
       value: text(mapping.value),
     },
-    targetCountryId: SOVEREIGN_SELECTION_TARGETS.has(targetType) ? text(raw.targetCountryId) : '',
-    useFeatureCountryField: SOVEREIGN_SELECTION_TARGETS.has(targetType) && raw.useFeatureCountryField === true,
-    fallbackCountryId: SOVEREIGN_SELECTION_TARGETS.has(targetType) ? text(raw.fallbackCountryId, raw.targetCountryId) : '',
-    parentId: targetType === TERRITORIAL_IMPORT_TARGETS.ADMINISTRATIVE ? text(raw.parentId) : '',
-    landPolicy: PARTITION_IMPORT_TARGETS.has(targetType) ? 'transfer-to-owner' : 'preserve',
+    parentId: targetType === EXCHANGE_TARGETS.GENERAL ? text(raw.parentId) : '',
     openMode,
-    mergePolicy: targetType === EXCHANGE_TARGETS.COUNTRY ? 'same-id-multipolygon' : text(raw.mergePolicy, 'preserve-features'),
+    mergePolicy: 'preserve-features',
   };
 }
 
 export function targetRequiresExistingProject(targetType) {
-  return ![EXCHANGE_TARGETS.PROJECT, EXCHANGE_TARGETS.COUNTRY].includes(normalizeExchangeTarget(targetType));
+  return normalizeExchangeTarget(targetType) !== EXCHANGE_TARGETS.PROJECT;
 }

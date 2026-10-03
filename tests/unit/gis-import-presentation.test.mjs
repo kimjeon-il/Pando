@@ -6,8 +6,8 @@ import vm from 'node:vm';
 test('import fields separate selection, settings and impact confirmation', () => {
   const html = fs.readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
   for (const [id, step] of Object.entries({ gisLayerRow: 0, gisTargetTypeRow: 1, gisDistributionValueRow: 1,
-    gisTargetCountryRow: 3, gisIndependentRegionRow: 3, gisParentUnitRow: 3, gisAdvancedMapping: 2,
-    gisOpenModeRow: 3, gisImportImpact: 4, gisFinalSummary: 4 })) {
+    gisCoastReferenceRow: 3, gisParentUnitRow: 3, gisAdvancedMapping: 2,
+    gisImportImpact: 4, gisFinalSummary: 4 })) {
     assert.match(html, new RegExp(`id="${id}"[^>]*data-gis-step="${step}"`));
   }
   assert.match(html, /id="gisAdvancedMapping"[^>]*><summary><span>속성 연결 수정<\/span>/);

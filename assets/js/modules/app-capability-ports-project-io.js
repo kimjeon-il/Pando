@@ -254,7 +254,6 @@ export function createProjectIoPorts(providers) {
       setExportControllerPromise: value => { providers.runtime.setgisExportControllerPromise(value); },
     }),
     labelCacheCommands: Object.freeze({
-      resetCountryDisplayCache: () => { providers.territorialLabels.countryDisplaySource = null; providers.territorialLabels.countryDisplayIndex = new Map(); },
     }),
     projectServiceCommands: Object.freeze({
       installCommandPipeline: value => { providers.objectPresentation.projectCommandPipeline = value; },

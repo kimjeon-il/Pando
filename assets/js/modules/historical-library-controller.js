@@ -55,13 +55,13 @@ export function createHistoricalLibraryController({
       return label;
     }
     for (const item of context.missing) {
-      const choice = { mode: 'subunit', countryId: item.countryId, parentId: item.countryId, name: item.name };
+      const choice = { mode: 'child', countryId: item.countryId, parentId: item.countryId, name: item.name };
       ownershipChoices[item.libraryId] = choice;
       const mode = document.createElement('select');
       replaceSelectOptions(mode, [
-        { value: 'subunit', label: '기존 국가의 하위단위로 추가' },
-        { value: 'country', label: '독립된 국가로 추가' },
-      ], 'subunit');
+        { value: 'child', label: '상위 객체 아래에 추가' },
+        { value: 'root', label: '최상위 객체로 추가' },
+      ], 'child');
       field(`${item.name} · 추가 방식`, mode);
       const country = document.createElement('select');
       const countryChoice = replaceSelectOptions(country, [
@@ -71,10 +71,10 @@ export function createHistoricalLibraryController({
       choice.countryId = countryChoice.value;
       const countryRow = field('소속 국가', country);
       const parent = document.createElement('select');
-      const parentRow = field('상위 단위', parent);
+      const parentRow = field('상위 객체', parent);
       const name = document.createElement('input');
       name.value = item.name;
-      const nameRow = field('국가 이름', name);
+      const nameRow = field('객체 이름', name);
       function sync() {
         choice.mode = mode.value;
         choice.name = name.value;
@@ -85,14 +85,14 @@ export function createHistoricalLibraryController({
           : [{ value: '', label: '상위 단위 선택', placeholder: true }];
         const parentChoice = replaceSelectOptions(parent, options, choice.parentId, { autoSelectSingle: true }) || { value: parent.value };
         choice.parentId = parentChoice.value;
-        countryRow.hidden = mode.value === 'country' || countryChoice.single;
-        parentRow.hidden = mode.value === 'country' || !shouldShowTerritorialParentChoice({
-          sovereignId: choice.countryId,
+        countryRow.hidden = mode.value === 'root' || countryChoice.single;
+        parentRow.hidden = mode.value === 'root' || !shouldShowTerritorialParentChoice({
+          rootId: choice.countryId,
           parentId: choice.parentId,
           options,
         });
-        nameRow.hidden = mode.value !== 'country';
-        elements.add.disabled = Object.values(ownershipChoices).some(value => value.mode === 'country' ? !value.name.trim() : !value.countryId);
+        nameRow.hidden = mode.value !== 'root';
+        elements.add.disabled = Object.values(ownershipChoices).some(value => value.mode === 'root' ? !value.name.trim() : !value.countryId);
         confirmedImpact = '';
         host.querySelector('[data-library-impact]')?.remove();
       }

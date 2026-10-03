@@ -3,7 +3,7 @@ import { normalizeColorValue } from './color-adapter.js';
 
 const text = value => String(value ?? '').trim();
 
-/** Sole writer of the unified Feature collection, including country metadata. */
+/** Sole writer of the unified Feature collection and entity metadata. */
 export function createTerritorialEntityStore({ getState, onEntitiesReplaced = () => {} } = {}) {
   if (typeof getState !== 'function') throw new TypeError('영역 Store에는 상태 공급자가 필요합니다.');
   let cached = null;
@@ -24,7 +24,7 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
     });
   }
   // Synchronous multi-entity edits have one validation/publication boundary.
-  // Removed country anchors remain available to dependent-edit calculations only
+  // Removed root anchors remain available to dependent-edit calculations only
   // inside the transaction. They never reach the published collection.
   function transaction(apply) {
     if (typeof apply !== 'function') throw new TypeError('영역 transaction 콜백이 필요합니다.');

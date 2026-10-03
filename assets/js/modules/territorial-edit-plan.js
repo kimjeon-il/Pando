@@ -188,7 +188,7 @@ function territorialRootId(feature, getEntity) {
         const next = clone(unit);
         next.properties.parentId = parentId;
         patches.set(id(unit.id), next);
-        ownershipChanges.push({ id: id(unit.id), from: id(unit.properties.parentId), to: id(parentId), sovereignId: countryId });
+        ownershipChanges.push({ id: id(unit.id), from: id(unit.properties.parentId), to: id(parentId) });
         children(unit.id).forEach(child => moveHierarchy(child, countryId));
       }
       function reconcile(parentId, geometry, sourceCountryId) {
@@ -229,7 +229,7 @@ function territorialRootId(feature, getEntity) {
         const next = clone(unit);
         if (id(unit.id) === id(target.id)) next.properties.parentId = id(newCountry.id);
         patches.set(id(unit.id), next);
-        ownershipChanges.push({ id: id(unit.id), from: id(unit.properties.parentId), to: id(next.properties.parentId), sovereignId: id(newCountry.id) });
+        ownershipChanges.push({ id: id(unit.id), from: id(unit.properties.parentId), to: id(next.properties.parentId) });
         children(unit.id).forEach(move);
       }
       if (promoting) { moved.add(id(target.id)); children(target.id).forEach(move); }

@@ -5,24 +5,21 @@ import { createGisImportPlan } from '../../assets/js/modules/gis-import-plan.js'
 
 test('GIS import forwards the complete coast reconciliation mapping', async () => {
   const calls = [];
-  const mapping = { nameField: 'name', targetCountryId: 'A', parentId: 'P',
-    useFeatureCountryField: true, countryField: 'owner', valueField: 'value' };
+  const mapping = { nameField: 'name', parentId: 'P', coastReferenceId: 'A', valueField: 'value' };
   const collection = { type: 'FeatureCollection', features: [] };
   const editing = createEditingDomain({
     projectDomain: { getGeneration: () => 4 },
-    getImportCommitter: async () => ({ importGeoJson: (...args) => {
-      calls.push(args);
+    getImportCommitter: async () => ({ commitTerritorialImport: (result, fileName) => {
+      result.assertCurrent(); calls.push({ mapping: result.mapping, fileName });
       return true;
     } }),
   });
-  const plan = createGisImportPlan({ kind: 'generic', projectGeneration: 4,
+  const plan = createGisImportPlan({ kind: 'territorial', projectGeneration: 4,
     source: { fileName: 'coast.geojson' },
-    payload: { result: { targetType: 'region', collection, mapping } },
+    payload: { result: { targetType: 'regional', collection, mapping } },
   });
   assert.equal(await editing.commitImport(plan), true);
-  assert.deepEqual(calls, [[{ name: 'coast.geojson' }, {
-    parsed: collection, target: 'region', mapping,
-  }]]);
+  assert.deepEqual(calls, [{ mapping, fileName: 'coast.geojson' }]);
   await assert.rejects(editing.commitImport({ ...plan, projectGeneration: 3 }),
     error => error.code === 'PL-GIS-STALE-PLAN-001');
   assert.equal(calls.length, 1);
@@ -179,4 +176,28 @@ test('rapid candidate clicks retain calculation identity across presentation rev
   calculationIds = new Set(['cut-2:a']);
   assert.equal(editing.handleInteraction(click('cut-1:a')), false);
   assert.equal(editing.handleInteraction({ ...click('cut-2:a'), projectGeneration: packet.projectGeneration + 1 }), false);
+});
+
+test('a project switch during committer loading rejects the import before publication', async () => {
+  let generation = 4, release, applied = 0;
+  const ready = new Promise(resolve => { release = resolve; });
+  const editing = createEditingDomain({ projectDomain: { getGeneration: () => generation },
+    getImportCommitter: () => ready });
+  const plan = createGisImportPlan({ kind: 'territorial', projectGeneration: 4, payload: { result: { targetType: 'general' } } });
+  const pending = editing.commitImport(plan); generation++;
+  release({ commitTerritorialImport: () => { applied++; } });
+  await assert.rejects(pending, error => error.code === 'PL-GIS-STALE-PLAN-001');
+  assert.equal(applied, 0);
+});
+test('the territorial committer receives a live project check through an async coast decision', async () => {
+  let generation = 4, release, entered;
+  const waiting = new Promise(resolve => { entered = resolve; });
+  const ready = new Promise(resolve => { release = resolve; });
+  const editing = createEditingDomain({ projectDomain: { getGeneration: () => generation },
+    getImportCommitter: async () => ({ commitTerritorialImport: async result => {
+      entered(); await ready; result.assertCurrent();
+    } }) });
+  const plan = createGisImportPlan({ kind: 'territorial', projectGeneration: 4, payload: { result: { targetType: 'general' } } });
+  const pending = editing.commitImport(plan); await waiting; generation++; release();
+  await assert.rejects(pending, error => error.code === 'PL-GIS-STALE-PLAN-001');
 });

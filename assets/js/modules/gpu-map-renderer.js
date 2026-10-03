@@ -3188,10 +3188,12 @@ export function createGpuMapRenderer(deps) {
 
     function drawBaseSceneContent() {
       if (!gl || !mesh || !activeFrameContext || projectRenderBlocked || !preparedBaseScene) return false;
+      const theme = mapTheme();
       lastBaseSceneResult = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
         terrainRepresentation: terrainManifest?.representation,
         countriesVisible: state.layerVisibility.countries,
+        mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
         prepared: preparedBaseScene,
       }, { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
@@ -3468,9 +3470,7 @@ export function createGpuMapRenderer(deps) {
       const resolveFill = createCountryFillResolver();
       ctx2d.globalAlpha = theme.baseLandAlpha;
       ctx2d.fillStyle = theme.defaultLand;
-      for (const feature of visibleFeatures) {
-        ctx2d.beginPath(); canvasPath(feature); ctx2d.fill();
-      }
+      globalThis.PandoLabCanvasSceneComposition.drawGeneralLand(ctx2d, canvasPath, canvasScenePolygons(), visibleFeatures);
       ctx2d.globalAlpha = 1;
       const substrate = canvasFillSubstrate ||= document.createElement('canvas');
       if (substrate.width !== pixelWidth || substrate.height !== pixelHeight) {

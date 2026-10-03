@@ -19,11 +19,11 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
         geometry: { type: 'Polygon', coordinates: [[[9, 50], [9, 51], [10, 51], [10, 50], [9, 50]]] },
       }] })),
     });
-    await selectUiOption(page, '#gisTargetType', 'subunit');
+    await selectUiOption(page, '#gisTargetType', 'general');
     await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisStepIndicator')).toContainText('2/3');
-    await expect(page.locator('#gisTargetCountryRow')).toBeVisible();
-    await selectUiOption(page, '#gisTargetCountry', 'DEU');
+    await expect(page.locator('#gisParentUnitRow')).toBeVisible();
+    await selectUiOption(page, '#gisParentUnit', 'DEU');
     await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisStepIndicator')).toContainText('3/3');
     await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled({ timeout: 30_000 });

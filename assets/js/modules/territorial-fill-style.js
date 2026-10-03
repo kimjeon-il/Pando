@@ -1,57 +1,40 @@
-import { layerStyle, resolveLayerDisplayColor } from './layer-presentation.js';
+import { layerStyle, resolveLayerDisplayColor, territorialSymbolGroup } from './layer-presentation.js';
 import { resolveTerritorialColor } from './color-adapter.js';
 
-// Resolve only presentation values. Never persist inherited defaults on a child.
+// One material contract for all objects. Independent regions never claim land
+// ownership or inherit the general hierarchy's paint.
 export function createTerritorialFillResolver({ state, entityRepository, terrainAlpha = 1, mapSubstrate = null }) {
   const cache = new Map();
   const presentation = state.layerPresentation;
-  const countryStyle = layerStyle(presentation, 'countries');
-  function resolve(unit, visiting = new Set()) {
-    const id = String(unit.id);
+  const colorVisible = feature => layerStyle(presentation, territorialSymbolGroup(feature)).colorVisible
+    && layerStyle(presentation, territorialSymbolGroup(feature), `territorial:entity:${feature.id}`).colorVisible;
+  function resolve(feature, visiting = new Set()) {
+    const entity = entityRepository.get(feature.id) || feature;
+    const id = String(entity.id), properties = entity.properties;
     if (cache.has(id)) return cache.get(id);
-    const properties = (entityRepository.get(unit.id) || unit).properties || {};
-    if (!properties.entityKind || (properties.entityKind === 'general' && !properties.parentId)) {
-      const color = countryStyle.colorVisible ? resolveLayerDisplayColor(presentation, 'countries', {
-        objectKey: `territorial:entity:${id}`, explicitColor: properties.style?.color, fallbackColor: '',
-      }) : '';
-      const style = layerStyle(presentation, 'countries', `territorial:entity:${id}`);
-      // Pending country patches can supply the no-terrain map substrate while
-      // the replacement base mesh is being prepared. It is never saved as paint.
-      const result = Object.freeze({ color: color || mapSubstrate?.color || '', opacity: style.opacity, blendMode: style.blendMode,
-        fillAlpha: color ? style.opacity * terrainAlpha : mapSubstrate?.fillAlpha || 0, depth: 0, ownerId: id, parentId: '' });
-      cache.set(id, result);
-      return result;
-    }
-    const country = entityRepository.root(id);
-    let inherited = { color: countryStyle.colorVisible && country ? country.properties.style?.color || '' : '',
-      opacity: countryStyle.opacity, blendMode: countryStyle.blendMode, depth: 0 };
-    const parent = entityRepository.parent(id);
-    if ((parent?.properties?.entityKind === 'general' && !!parent?.properties?.parentId) && !visiting.has(id)) {
-      visiting.add(id);
-      if (!visiting.has(String(parent.id))) inherited = resolve(parent, visiting);
-      visiting.delete(id);
-    }
-    const group = (properties.entityKind === 'regional') ? 'regions' : 'subunits';
-    const groupStyle = presentation?.styles?.[group] || {};
+    if (visiting.has(id)) throw new Error(`객체 표시 관계가 순환합니다: ${id}`);
+    visiting.add(id);
+    const group = territorialSymbolGroup(entity);
+    const independent = properties.entityKind === 'regional';
+    const parent = independent ? null : entityRepository.parent(id);
+    const inherited = parent ? resolve(parent, visiting) : null;
+    const style = layerStyle(presentation, group, `territorial:entity:${id}`);
     const explicit = presentation?.objectStyles?.[`territorial:entity:${id}`] || {};
-    // Neutral group values preserve the parent's material opacity and blend.
-    const opacity = explicit.opacity ?? (groupStyle.opacity !== undefined && groupStyle.opacity !== 1
-      ? groupStyle.opacity : inherited.opacity);
-    const blendMode = explicit.blendMode ?? (groupStyle.blendMode === 'multiply' ? 'multiply' : inherited.blendMode);
-    const color = resolveLayerDisplayColor(presentation, group, {
-      objectKey: `territorial:entity:${id}`,
-      explicitColor: properties.style?.color,
-      inheritedColor: resolveTerritorialColor({ ...unit, properties: { ...properties, style: {} } }, {
-        entityRepository, countryColor: feature => feature.properties?.style?.color || '', fallback: '',
-        colorVisible: feature => (!feature.properties?.entityKind || (feature.properties.entityKind === 'general' && !feature.properties.parentId)
-          ? countryStyle.colorVisible : true) && layerStyle(presentation, (feature.properties?.entityKind === 'general' && !feature.properties?.parentId) ? 'countries' : (feature.properties?.entityKind === 'regional') ? 'regions' : 'subunits', `territorial:entity:${feature.id}`).colorVisible,
-      }),
-      fallbackColor: '',
-    });
-    const result = Object.freeze({ color,
-      opacity: Math.max(0, Math.min(1, Number(opacity))), blendMode,
-      fillAlpha: color ? Math.max(0, Math.min(1, Number(opacity))) * terrainAlpha : 0,
-      depth: inherited.depth + 1, ownerId: String(country?.id || ''), parentId: String(properties.parentId || '') });
+    const groupStyle = presentation?.styles?.[group] || {};
+    const opacity = inherited ? explicit.opacity ?? (groupStyle.opacity !== undefined && groupStyle.opacity !== 1
+      ? style.opacity : inherited.opacity) : style.opacity;
+    const blendMode = inherited ? explicit.blendMode ?? (groupStyle.blendMode === 'multiply' ? 'multiply' : inherited.blendMode) : style.blendMode;
+    const color = colorVisible(entity) ? resolveLayerDisplayColor(presentation, group, {
+      objectKey: `territorial:entity:${id}`, explicitColor: properties.style?.color,
+      inheritedColor: resolveTerritorialColor(entity, { entityRepository, colorVisible,
+        countryColor: root => root.properties.style?.color || '', fallback: '' }), fallbackColor: '',
+    }) : '';
+    const substrate = !independent && !parent && !color ? mapSubstrate : null;
+    const result = Object.freeze({ color: color || substrate?.color || '', opacity, blendMode,
+      fillAlpha: color ? opacity * terrainAlpha : substrate?.fillAlpha || 0,
+      depth: inherited ? inherited.depth + 1 : 0,
+      ownerId: independent ? '' : inherited?.ownerId || id, parentId: String(properties.parentId || '') });
+    visiting.delete(id);
     cache.set(id, result);
     return result;
   }

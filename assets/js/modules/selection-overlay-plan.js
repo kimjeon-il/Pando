@@ -46,42 +46,40 @@ export function selectionGeometryKinds(feature) {
     boundary: geometries.some(geometry => ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString'].includes(geometry?.type)) };
 }
 
-export function planSelectionEntry({ ref, entry, channel = interactionChannel(entry), rootGeneral = false, feature, boundary,
+export function planSelectionEntry({ ref, entry, channel = interactionChannel(entry), baseBoundaryOwnerId = '', feature, boundary,
   pendingCountry = false, outlineVisible = true, selectionStyle = {} }) {
-  const plan = { channel, fill: null, fillRequest: null, generic: null, countryId: null, fallback: null };
+  const plan = { channel, fill: null, fillRequest: null, stroke: null, fallback: null };
   if (!feature?.geometry && feature?.type !== 'FeatureCollection') return plan;
-  const country = ref.domain === 'territorial' && rootGeneral;
-  const key = country ? `country:${ref.id}` : ref.key;
+  const base = !!baseBoundaryOwnerId, key = ref.key;
   const primary = channel === 'primary', candidate = channel === 'candidate';
   const kind = selectionGeometryKinds(feature);
   const fillAlpha = candidate ? 0 : primary ? selectionStyle.primary?.fillAlpha : selectionStyle.secondary?.fillAlpha;
-  if ((country ? pendingCountry : ref.domain !== 'interaction' && kind.polygon) && fillAlpha > 0) {
+  if ((base ? pendingCountry : ref.domain !== 'interaction' && kind.polygon) && fillAlpha > 0) {
     plan.fill = { color: selectionStyle.color, fillAlpha };
-    if (!country) plan.fillRequest = { objectKey: ref.key, priority: entry?.priority, depth: entry?.depth, style: plan.fill };
+    if (!base) plan.fillRequest = { objectKey: key, priority: entry?.priority, depth: entry?.depth, style: plan.fill };
   }
   if (!outlineVisible) return plan;
-  if (country && !candidate && !boundary?.owned) {
-    plan.fallback = { kind: 'country', key };
-    if (!pendingCountry) plan.countryId = ref.id;
+  if (base && !candidate && !boundary?.owned) {
+    plan.fallback = { kind: 'base', key };
+    if (!pendingCountry) plan.stroke = { key, boundaryOwnerId: baseBoundaryOwnerId, geometryRevision: boundary?.revision };
   } else {
     plan.fallback = { kind: 'geometry', key, feature: boundary?.feature, cacheKey: boundary?.revision };
-    if (country || kind.boundary) plan.generic = { key, geometry: boundary?.feature, geometryRevision: boundary?.revision };
+    if (kind.boundary) plan.stroke = { key, geometry: boundary?.feature, geometryRevision: boundary?.revision };
   }
   return plan;
 }
 
-export function planHoverEntry({ ref, rootGeneral = false, feature, boundary, pendingCountry = false, hoverStyle = {} }) {
-  const country = ref.domain === 'territorial' && rootGeneral;
-  const key = country ? `country:${String(ref.id || '')}` : ref.key;
+export function planHoverEntry({ ref, baseBoundaryOwnerId = '', feature, boundary, pendingCountry = false, hoverStyle = {} }) {
+  const base = !!baseBoundaryOwnerId, key = ref.key;
   const polygon = selectionGeometryKinds(feature).polygon;
-  const fill = (!country || pendingCountry) && polygon ? { color: hoverStyle.color, fillAlpha: hoverStyle.fillAlpha } : null;
+  const fill = (!base || pendingCountry) && polygon ? { color: hoverStyle.color, fillAlpha: hoverStyle.fillAlpha } : null;
   return {
     fill,
-    fillRequest: !country && ref.key && polygon ? { objectKey: ref.key, singleResourceOnly: true, style: fill } : null,
-    fallback: country && !boundary.owned ? { kind: 'country', key }
+    fillRequest: !base && key && polygon ? { objectKey: key, singleResourceOnly: true, style: fill } : null,
+    fallback: base && !boundary.owned ? { kind: 'base', key }
       : { kind: 'geometry', key, feature: boundary.feature, cacheKey: boundary.revision },
-    generic: !country || boundary.owned ? { key, geometry: boundary.feature, geometryRevision: boundary.revision } : null,
-    countryId: country && !boundary.owned && !pendingCountry ? String(ref.id || '') : null,
+    stroke: base && !boundary.owned ? pendingCountry ? null : { key, boundaryOwnerId: baseBoundaryOwnerId, geometryRevision: boundary.revision }
+      : { key, geometry: boundary.feature, geometryRevision: boundary.revision },
   };
 }
 

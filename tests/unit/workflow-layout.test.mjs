@@ -31,11 +31,11 @@ test('annex setup role cards keep every donating country in the current order', 
 test('merge presents the survivor separately and derives exact removable targets without mutation', () => {
   const input = state({ tool: 'merge-country', mergeSourceCountryId: 'DEU', mergeTargetCountryIds: ['POL', 'CZE'] });
   const view = stage.taskWorkflowPresentation(input);
-  assert.equal(view.cards[0].role, '남길 국가');
+  assert.equal(view.cards[0].role, '남길 객체');
   assert.deepEqual(view.cards[0].refs.map(ref => ref.id), ['DEU']);
-  assert.equal(view.resultLabel, '합칠 국가');
+  assert.equal(view.resultLabel, '합칠 객체');
   assert.deepEqual(view.resultRefs.map(ref => ref.id), ['POL', 'CZE']);
-  assert.deepEqual([view.stage, view.step, view.total], ['합칠 국가', 1, 2]);
+  assert.deepEqual([view.stage, view.step, view.total], ['합칠 객체', 1, 2]);
   input.geometryPreview.session = { validation: { blocking: false } };
   assert.deepEqual([stage.taskWorkflowPresentation(input).stage, stage.taskWorkflowPresentation(input).step], ['합병 확인', 2]);
   assert.deepEqual(input.mergeTargetCountryIds, ['POL', 'CZE']);
@@ -43,14 +43,14 @@ test('merge presents the survivor separately and derives exact removable targets
 
 test('subunit boundary uses logical unit identities and does not invent a target-picking phase', () => {
   const input = state({ tool: 'territorial-border', boundaryEditPhase: 'editing', boundaryEditSeedEntityId: 'SUB-1',
-    boundaryEditEntityIds: ['SUB-1', 'SUB-2', 'SUB-3'], territorialEntities: ['SUB-1', 'SUB-2', 'SUB-3'].map(id => ({ id, properties: { unitType: 'subunit' } })) });
+    boundaryEditEntityIds: ['SUB-1', 'SUB-2', 'SUB-3'], territorialEntities: ['SUB-1', 'SUB-2', 'SUB-3'].map(id => ({ id, properties: { entityKind: 'general', parentId: 'ROOT' } })) });
   const byId = new Map(input.territorialEntities.map(unit => [String(unit.id), unit]));
   const view = stage.taskWorkflowPresentation(input, null, {}, {
     territorialEntityById: id => byId.get(String(id)) || null,
   });
   assert.deepEqual([view.name, view.stage, view.step, view.total], ['경계 조정', '경계 편집', 1, 2]);
   assert.equal(view.relation, '↔');
-  assert.deepEqual(view.cards[1].refs.map(ref => [ref.type, ref.id]), [['subunit', 'SUB-2'], ['subunit', 'SUB-3']]);
+  assert.deepEqual(view.cards[1].refs.map(ref => [ref.type, ref.id]), [['entity', 'SUB-2'], ['entity', 'SUB-3']]);
 });
 
 test('free distribution stays a single immediate-apply step while hydro derives review from existing parts', () => {

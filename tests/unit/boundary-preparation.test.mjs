@@ -61,7 +61,7 @@ test('old and new contacts invalidate cache, while unrelated geometry and displa
 });
 
 test('subunit boundaries keep the parent exterior fixed and reject foreign parents', async () => {
-  const rows = fixtures().slice(0, 2).map(row => ({ ...row, properties: { unitType: 'subunit', parentId: 'P', sovereignId: 'P' } }));
+  const rows = fixtures().slice(0, 2).map(row => ({ ...row, properties: { entityKind: 'general', parentId: 'P' } }));
   const parent = feature('P', [[0, 0], [4, 0], [4, 2], [0, 2], [0, 0]]);
   const service = createBoundaryPreparation(); await service.sync([parent, ...rows]);
   const result = await service.prepare(request);
@@ -128,7 +128,7 @@ test('UI-only render packets share frozen prepared shapes and display indexes', 
 
 
 test('automatic subunit entry restricts targets to the seed-connected unlocked group', async () => {
-  const meta = { unitType: 'subunit', parentId: 'P', sovereignId: 'P' };
+  const meta = { entityKind: 'general', parentId: 'P' };
   const rows = fixtures().slice(0, 2).map(row => ({ ...row, properties: meta }));
   const far = feature('F', [[20, 20], [21, 20], [21, 21], [20, 20]], meta);
   const parent = feature('P', [[-1, -1], [30, -1], [30, 30], [-1, 30], [-1, -1]]);

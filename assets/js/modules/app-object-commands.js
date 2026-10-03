@@ -50,12 +50,9 @@ export function createObjectCommands() {
     if (!ref) return { name: '알 수 없는 객체', type: '' };
     if (ref.domain === 'territorial') {
       const feature = territorialEntityForRef(ref);
-      if ((dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)) {
-        return { name: feature ? (0, dependencies.objectPresentation.territorialEntityName)(feature) : ref.id, type: '국가', detail: '' };
-      }
-      const type = (0, dependencies.territorialServicesB.territorialTypeLabel)(ref.type);
-      const context = (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'regional') ? '' : (0, dependencies.objectPresentation.administrativeCountryName)(feature);
-      return { name: feature ? (0, dependencies.objectPresentation.territorialEntityName)(feature) : ref.id, type, detail: context };
+      const parent = dependencies.territorialModel.entityRepository.parent(ref.id);
+      return { name: feature ? dependencies.objectPresentation.territorialEntityName(feature) : ref.id,
+        type: '객체', detail: parent ? dependencies.objectPresentation.territorialEntityName(parent) : '' };
     }
     if (ref.domain === 'distribution') {
       const layer = (0, dependencies.propertyEditingA.distributionLayerById)(ref.id);
@@ -393,8 +390,7 @@ export function createObjectCommands() {
     }
     const deleteSection = (0, dependencies.platform.$)('editorDeleteSection');
     if (deleteSection) deleteSection.classList.toggle('hidden', refs.length === 0);
-    const noteInputIds = { country: 'entityNotesInput', subunit: 'subunitNotesInput', region: 'regionNotesInput' };
-    const noteInput = primary?.domain === 'territorial' ? (0, dependencies.platform.$)(noteInputIds[primary.type]) : null;
+    const noteInput = primary?.domain === 'territorial' ? dependencies.platform.$('entityNotesInput') : null;
     if (noteInput) {
       const readOnly = objectRefLocked(primary);
       noteInput.readOnly = readOnly;

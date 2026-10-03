@@ -8,51 +8,52 @@ import { createGpuPolygonOverlayPass } from '../../assets/js/modules/gpu-polygon
 
 const feature = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [] } };
 const base = { ref: { domain: 'territorial', type: 'entity', id: 'DEU', key: 'territorial:entity:DEU' },
-  channel: 'primary', rootGeneral: true, feature, boundary: { feature, revision: 'r1' },
+  channel: 'primary', baseBoundaryOwnerId: 'DEU', feature, boundary: { feature, revision: 'r1' },
   outlineVisible: true, selectionStyle: { color: 'blue', primary: { fillAlpha: 0.2 }, secondary: { fillAlpha: 0.1 } } };
 test('hover keeps pending country fill and generic polygon fill ownership distinct', () => {
   const pending = planHoverEntry({ ...base, pendingCountry: true, hoverStyle: { color: 'blue', fillAlpha: 0.1 } });
-  assert.equal(pending.countryId, null);
+  assert.equal(pending.stroke, null);
   assert.equal(pending.fill.fillAlpha, 0.1);
   assert.equal(pending.fillRequest, null);
-  const generic = planHoverEntry({ ...base, ref: { domain: 'hydro', key: 'river:1' }, hoverStyle: { color: 'blue', fillAlpha: 0.1 } });
+  const generic = planHoverEntry({ ...base, ref: { domain: 'hydro', key: 'river:1' }, baseBoundaryOwnerId: '', hoverStyle: { color: 'blue', fillAlpha: 0.1 } });
   assert.equal(generic.fillRequest.singleResourceOnly, true);
-  assert.equal(generic.generic.geometry, feature);
+  assert.equal(generic.stroke.geometry, feature);
 });
 test('pending country uses a temporary fill and fallback without submitting stale country geometry', () => {
   const input = { ...base, pendingCountry: true }; const before = structuredClone(input);
   const plan = planSelectionEntry(input);
-  assert.equal(plan.countryId, null);
+  assert.equal(plan.stroke, null);
   assert.deepEqual(plan.fill, { color: 'blue', fillAlpha: 0.2 });
-  assert.equal(plan.fallback.kind, 'country');
+  assert.equal(plan.fallback.kind, 'base');
   assert.deepEqual(input, before);
 });
 test('owned country boundary and candidate use prepared generic geometry, not canonical country stroke', () => {
   for (const input of [{ ...base, boundary: { ...base.boundary, owned: true } }, { ...base, channel: 'candidate' }]) {
     const plan = planSelectionEntry(input);
-    assert.equal(plan.countryId, null);
-    assert.equal(plan.generic.geometry, feature);
+    assert.equal(plan.stroke.boundaryOwnerId, undefined);
+    assert.equal(plan.stroke.geometry, feature);
     assert.equal(plan.fallback.kind, 'geometry');
   }
   assert.equal(planSelectionEntry({ ...base, channel: 'candidate', pendingCountry: true }).fill, null);
 });
 test('generic polygons request fill; interaction paths and disabled outlines do not invent a stroke', () => {
+  base.baseBoundaryOwnerId = 'DEU';
   const ref = { domain: 'generic', key: 'lake:a', id: 'a' };
-  const plan = planSelectionEntry({ ...base, ref, outlineVisible: false });
+  const plan = planSelectionEntry({ ...base, ref, baseBoundaryOwnerId: '', outlineVisible: false });
   assert.equal(plan.fillRequest.objectKey, 'lake:a');
-  assert.equal(plan.generic, null);
+  assert.equal(plan.stroke, null);
   assert.equal(plan.fallback, null);
-  assert.equal(planSelectionEntry({ ...base, ref: { ...ref, domain: 'interaction' } }).fillRequest, null);
+  assert.equal(planSelectionEntry({ ...base, baseBoundaryOwnerId: '', ref: { ...ref, domain: 'interaction' } }).fillRequest, null);
 });
 test('hard GPU failures never retire SVG coverage even if stale rendered keys remain', () => {
-  const channels = { primary: { renderedKeys: ['country:DEU'] } };
+  const channels = { primary: { renderedKeys: ['territorial:entity:DEU'] } };
   for (const succeeded of [true, false]) for (const failure of [{ contextLost: true }, { error: new Error('draw failed') }, { gpuHealth: 'unhealthy' }, { gpuHealth: 'unavailable' }]) {
     const coverage = selectionCoverage({ succeeded, channels, ...failure },
       { succeeded, renderedKeys: ['fill'], ...failure }, new Map([['DEU', ['fill']]]));
     assert.equal(coverage.renderedKeys.primary.size, 0);
     assert.equal(coverage.gpuFilledObjectKeys.size, 0);
   }
-  assert.equal(selectionCoverage({ succeeded: true, channels }, null, new Map()).renderedKeys.primary.has('country:DEU'), true);
+  assert.equal(selectionCoverage({ succeeded: true, channels }, null, new Map()).renderedKeys.primary.has('territorial:entity:DEU'), true);
 });
 
 test('real selection pass preserves ready stroke coverage alongside a missing country', () => {
@@ -63,12 +64,12 @@ test('real selection pass preserves ready stroke coverage alongside a missing co
   } });
   pass.setCountryBoundaryResources({ revision: 'r1', visibleIds: ['DEU', 'FRA'], pendingIds: ['FRA'],
     strokeResources: { selectionBase: { ownerIds: ['DEU'], packet: { key: 'base', preparedGeometry: {} } } } });
-  pass.updateData({ country: { secondaryIds: ['DEU', 'FRA'] }, countryBoundaryRevision: 'r1' });
+  pass.updateData({ channels: { secondary: ['DEU', 'FRA'].map(id => ({ key: `territorial:entity:${id}`, boundaryOwnerId: id })) }, countryBoundaryRevision: 'r1' });
   const result = pass.draw({}, {}, { frameContext: { frameId: 1 } });
   assert.equal(result.succeeded, false);
-  assert.deepEqual(result.channels.secondary.missingKeys, ['country:FRA']);
+  assert.deepEqual(result.channels.secondary.missingKeys, ['territorial:entity:FRA']);
   const coverage = selectionCoverage(result, null, new Map());
-  assert.deepEqual([...coverage.renderedKeys.secondary], ['country:DEU']);
+  assert.deepEqual([...coverage.renderedKeys.secondary], ['territorial:entity:DEU']);
 });
 
 test('real polygon pass retires fills only for objects whose every resource was drawn', () => {
@@ -99,10 +100,9 @@ test('display planning orders country, subunit and region ownership without chan
   const region = { domain: 'territorial', type: 'entity', id: 'b', key: 'territorial:entity:b' };
   const snapshot = { selection: { items: [region, subunit, country], primaryKey: '' }, hover: null };
   const state = { territorialEntities: [{ id: 'a', properties: { entityKind: 'general', parentId: 'DEU' } },
-    { id: 'b', properties: { entityKind: 'regional', parentId: 'a', associatedCountryId: 'DEU' } }] };
+    { id: 'b', properties: { entityKind: 'regional', parentId: '' } }] };
   const entries = plans.selectionEntries(snapshot, state, {
-    rootGeneral: true,
-    territorialUnits: () => state.territorialEntities,
+    territorialEntityById: id => state.territorialEntities.find(entity => entity.id === id),
   });
   const before = structuredClone({ snapshot, state, entries });
   const style = resolveMapInteractionStyle();
@@ -112,7 +112,7 @@ test('display planning orders country, subunit and region ownership without chan
   assert.deepEqual(plan.boundaryOwnersByKey.get(subunit.key).map(entry => entry.key), [country.key]);
   assert.deepEqual(plan.boundaryOwnersByKey.get(region.key).map(entry => entry.key), [country.key, subunit.key]);
   assert.deepEqual(plan.fillMasks.map(item => [item.key, item.priority, item.depth, item.fillAlpha]),
-    [[country.key, 3, 0, 0.063], [subunit.key, 3, 1, 0.063], [region.key, 3, 2, 0.063]]);
+    [[country.key, 3, 0, 0.063], [subunit.key, 3, 1, 0.063], [region.key, 3, 0, 0.063]]);
   assert.deepEqual({ snapshot, state, entries }, before);
 });
 

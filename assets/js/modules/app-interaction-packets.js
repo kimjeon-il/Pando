@@ -1,3 +1,4 @@
+import { territorialSymbolGroup } from './layer-presentation.js';
 import { interactionNodeRole, interactionRoleStyle, resolveMapInteractionStyle, INTERACTION_ROLE_PRIORITY } from './map-interaction-style.js';
 import { applySvgInteractionOwnership } from './render-channel-ownership.js';
 /** InteractionPackets: extracted application responsibility.
@@ -30,14 +31,6 @@ export function createInteractionPackets() {
     return token;
   }
 
-  function presentationGroupForTerritorialFeature(feature) {
-    return (feature?.properties?.entityKind === 'general' && !!feature?.properties?.parentId)
-      ? 'subunits'
-      : (feature?.properties?.entityKind === 'regional')
-        ? 'regions'
-        : 'subunits';
-  }
-
   function applyOverlayStackOrder() {
     if (!dependencies.mapLayers.overlayStackLayer) return;
     const order = dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS;
@@ -45,7 +38,7 @@ export function createInteractionPackets() {
     const groupForDatum = datum => datum?.layer
       ? 'distributions'
       : datum?.properties?.entityKind
-        ? presentationGroupForTerritorialFeature(datum)
+        ? territorialSymbolGroup(datum)
         : 'genericFeatures';
     dependencies.mapLayers.overlayStackLayer.selectAll('[data-presentation-group]').sort((left, right) => {
       const leftGroup = groupForDatum(left);
@@ -214,7 +207,6 @@ export function createInteractionPackets() {
     set currentGpuInteractionFillItems(value) { currentGpuInteractionFillItems = value; },
     get currentGpuPreviewPackets() { return currentGpuPreviewPackets; },
     get defaultDraftInstruction() { return defaultDraftInstruction; },
-    get presentationGroupForTerritorialFeature() { return presentationGroupForTerritorialFeature; },
     get syncGenericDraftFeedback() { return syncGenericDraftFeedback; },
     get syncGpuInteractionLayer() { return syncGpuInteractionLayer; },
     get territorialBoundaryGeometryToken() { return territorialBoundaryGeometryToken; },

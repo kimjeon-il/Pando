@@ -145,7 +145,7 @@ function harness(t) {
 const starts = Object.freeze([
   ['annex', { targetCountryId: 'A', sourceCountryIds: ['B'] }],
   ['entity', { entityKind: 'general', name: '새 객체', sourceCountryIds: ['B'] }],
-  ['entity', { entityKind: 'general', name: '새 하위 객체', sovereignId: 'A', parentId: 'A', sourceKey: 'unassigned' }],
+  ['entity', { entityKind: 'general', name: '새 하위 객체', parentId: 'A', sourceKey: 'unassigned' }],
   ['entity', { entityKind: 'regional', name: '새 권역' }],
 ]);
 
@@ -158,6 +158,7 @@ test('annexation and the three common object configurations expose concise setup
     ['entity', starts[3][1], ['객체 정보', '영역 선택', '생성 확인']],
   ]) {
     h.workflow.start(kind, options);
+    assert.equal(Object.hasOwn(h.state.territorySelectionSession, 'sovereignId'), false);
     assert.equal(h.workflow.presentation().taskName, kind === 'annex' ? '영토 편입' : '객체 추가');
     assert.equal(h.workflow.presentation().stageLabel, labels[0]);
     await h.workflow.advance();

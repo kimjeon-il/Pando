@@ -4,7 +4,7 @@ import {
   missingLibraryOwnership,
   prepareLibraryOwnership,
   shouldShowTerritorialParentChoice,
-  subunitParentChoices,
+  territorialParentChoices,
 } from '../../assets/js/modules/library-ownership.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
@@ -27,15 +27,15 @@ test('missing ownership never matches names or assigns an arbitrary country; int
   refs['old-parent'] = 'P';
   assert.equal(missingLibraryOwnership([root], id => refs[id] || '', [country('A')], [unit('P')]).length, 0);
   assert.throws(() => prepare([root]), /소속/);
-  assert.throws(() => prepare([root], { root: { mode: 'subunit', countryId: '' } }), /국가를 선택/);
+  assert.throws(() => prepare([root], { root: { mode: 'child', countryId: '' } }), /국가를 선택/);
 });
 
 test('parent choices use actual country name and depth, exclude cycles and other countries', () => {
   const countries = [country('A'), country('B')];
   const units = [unit('Z'), unit('X', 'Z'), unit('C', 'B')];
-  assert.deepEqual(subunitParentChoices('A', countries, units).map(item => item.value), ['A', 'Z', 'X']);
-  assert.equal(subunitParentChoices('A', countries, units)[0].label, 'A');
-  assert.deepEqual(subunitParentChoices('A', countries, units, { exclude: ['Z'] }).map(item => item.value), ['A']);
+  assert.deepEqual(territorialParentChoices('A', countries, units).map(item => item.value), ['A', 'Z', 'X']);
+  assert.equal(territorialParentChoices('A', countries, units)[0].label, 'A');
+  assert.deepEqual(territorialParentChoices('A', countries, units, { exclude: ['Z'] }).map(item => item.value), ['A']);
 });
 
 test('parent choices accept the common territorial entity repository read surface', () => {
@@ -44,55 +44,55 @@ test('parent choices accept the common territorial entity repository read surfac
   const entities = [...countries, ...units];
   const repository = createTerritorialEntityRepository({ getEntities: () => entities });
 
-  assert.deepEqual(subunitParentChoices('A', repository).map(item => item.value), ['A', 'Z', 'X']);
-  assert.deepEqual(subunitParentChoices('A', repository, { exclude: ['Z'] }).map(item => item.value), ['A']);
+  assert.deepEqual(territorialParentChoices('A', repository).map(item => item.value), ['A', 'Z', 'X']);
+  assert.deepEqual(territorialParentChoices('A', repository, { exclude: ['Z'] }).map(item => item.value), ['A']);
 });
 
 test('parent selector is hidden only when the sovereign is its sole valid choice', () => {
   assert.equal(shouldShowTerritorialParentChoice({
-    sovereignId: 'A', parentId: 'A', options: [{ value: 'A', label: 'Country A' }],
+    rootId: 'A', parentId: 'A', options: [{ value: 'A', label: 'Country A' }],
   }), false);
   assert.equal(shouldShowTerritorialParentChoice({
-    sovereignId: 'A', parentId: 'A', options: [{ value: '', label: 'Choose' }, { value: 'A', label: 'Country A' }],
+    rootId: 'A', parentId: 'A', options: [{ value: '', label: 'Choose' }, { value: 'A', label: 'Country A' }],
   }), false);
   assert.equal(shouldShowTerritorialParentChoice({
-    sovereignId: 'A', parentId: 'A', options: [{ value: 'A' }, { value: 'P' }],
+    rootId: 'A', parentId: 'A', options: [{ value: 'A' }, { value: 'P' }],
   }), true);
   assert.equal(shouldShowTerritorialParentChoice({
-    sovereignId: 'A', parentId: 'P', options: [{ value: 'A' }, { value: 'P' }],
+    rootId: 'A', parentId: 'P', options: [{ value: 'A' }, { value: 'P' }],
   }), true);
   assert.equal(shouldShowTerritorialParentChoice({
-    sovereignId: 'A', parentId: 'A', options: [] },
+    rootId: 'A', parentId: 'A', options: [] },
   ), true);
   assert.equal(shouldShowTerritorialParentChoice({
-    sovereignId: 'A', parentId: 'A', options: [{ value: 'B', label: 'Country A' }],
+    rootId: 'A', parentId: 'A', options: [{ value: 'B', label: 'Country A' }],
   }), true);
 });
 
 test('explicit country and nested parent apply once; children inherit the chosen sovereign', () => {
   const before = JSON.stringify([root, child]);
-  const prepared = prepare([child, root], { root: { mode: 'subunit', countryId: 'B', parentId: 'P' } }, [unit('P', 'B')]);
+  const prepared = prepare([child, root], { root: { mode: 'child', countryId: 'B', parentId: 'P' } }, [unit('P', 'B')]);
   const parent = prepared.find(item => item.libraryId === 'root');
   const nested = prepared.find(item => item.libraryId === 'child');
   assert.equal(parent.parentId, 'P');
-  assert.equal(parent.sovereignId, undefined);
+  assert.equal(parent.rootId, undefined);
   assert.equal(nested.parentId, parent.id);
-  assert.equal(nested.sovereignId, undefined);
+  assert.equal(nested.rootId, undefined);
   assert.equal(JSON.stringify([root, child]), before);
-  assert.throws(() => prepare([root], { root: { mode: 'subunit', countryId: 'A', parentId: 'P' } }, [unit('P', 'B')]), /상위 단위/);
+  assert.throws(() => prepare([root], { root: { mode: 'child', countryId: 'A', parentId: 'P' } }, [unit('P', 'B')]), /상위 객체/);
 });
 
 test('promotion clears active parents, preserves source refs/version/period, and reparents children', () => {
-  const result = prepare([root, child], { root: { mode: 'country', name: 'New country' } });
+  const result = prepare([root, child], { root: { mode: 'root', name: 'New country' } });
   assert.equal(result[0].entityKind, 'general');
   assert.equal(result[0].parentId, '');
-  assert.equal(result[0].sovereignId, undefined);
+  assert.equal(result[0].rootId, undefined);
   assert.equal(result[0].name, 'New country');
   assert.equal(result[0].parentLibraryId, 'old-parent');
   assert.equal(result[0].geometryVersionId, 'v1');
   assert.equal(result[0].validFrom, '1900');
   assert.equal(result[1].parentId, 'root');
-  assert.equal(result[1].sovereignId, undefined);
+  assert.equal(result[1].rootId, undefined);
 });
 
 test('existing parent reuse and automatic linkage; missing ancestor only prompts once', () => {
@@ -103,7 +103,7 @@ test('existing parent reuse and automatic linkage; missing ancestor only prompts
 });
 
 test('invalid containing subunit and library cycles are rejected before application', () => {
-  assert.throws(() => prepareLibraryOwnership({ descriptors: [root], choices: { root: { mode: 'subunit', countryId: 'A', parentId: 'P' } },
+  assert.throws(() => prepareLibraryOwnership({ descriptors: [root], choices: { root: { mode: 'child', countryId: 'A', parentId: 'P' } },
     countries: [country('A')], units: [unit('P')], resolve: () => '', allocateId: () => 'new', contains: () => false }), /포함되지/);
   assert.throws(() => prepare([{ ...root, parentLibraryId: 'child' }, child]), /순환/);
 });

@@ -683,11 +683,11 @@ test('themed dropdowns preserve native values and search long dynamic option lis
   await expect(page.locator('#gisImportModal')).toBeVisible();
   await expect(page.locator('.ui-select-popover:not([hidden])')).toHaveCount(0);
   await targetControl.click();
-  await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '권역', exact: true }).click();
-  await expect(targetSelect).toHaveValue('territory');
-  await expect(page.locator('#gisTargetCountryRow')).toBeVisible();
+  await page.locator('.ui-select-popover:not([hidden])').getByRole('option', { name: '독립 권역 자료', exact: true }).click();
+  await expect(targetSelect).toHaveValue('regional');
+  await expect(page.locator('#gisParentUnitRow')).toBeHidden();
   await targetSelect.evaluate(select => {
-    select.value = 'country';
+    select.value = 'general';
     const BrowserEvent = select.ownerDocument.defaultView.Event;
     select.dispatchEvent(new BrowserEvent('input', { bubbles: true }));
     select.dispatchEvent(new BrowserEvent('change', { bubbles: true }));
@@ -765,7 +765,7 @@ test('GIS import keeps every step on one content rail', async ({ page }) => {
     await expect(page.locator('#gisStepIndicator')).toContainText('1/3');
     await railMatches(['#gisTargetTypeRow']);
     await page.locator('#gisTargetType').evaluate(select => {
-      select.value = 'country';
+      select.value = 'general';
       select.dispatchEvent(new select.ownerDocument.defaultView.Event('change', { bubbles: true }));
     });
     await expect(page.locator('#gisStepIndicator')).toContainText('1/3');
@@ -775,17 +775,8 @@ test('GIS import keeps every step on one content rail', async ({ page }) => {
 
     await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisStepIndicator')).toContainText('2/3');
-    await railMatches(['#gisImportImpact', '#gisOpenModeRow']);
+    await railMatches(['#gisParentUnitRow', '#gisCoastReferenceRow']);
 
-    await page.locator('#gisImportNextBtn').click();
-    const identitySelect = page.locator('#gisCountryIdentityRows [data-identity-source-key]').first();
-    await expect(identitySelect).toHaveCount(1, { timeout: 30_000 });
-    await identitySelect.evaluate(element => {
-      element.value = 'new';
-      const BrowserEvent = element.ownerDocument.defaultView.Event;
-      element.dispatchEvent(new BrowserEvent('input', { bubbles: true }));
-      element.dispatchEvent(new BrowserEvent('change', { bubbles: true }));
-    });
     await page.locator('#gisImportNextBtn').click();
     await expect(page.locator('#gisStepIndicator')).toContainText('3/3');
     await railMatches(['#gisFinalSummary']);

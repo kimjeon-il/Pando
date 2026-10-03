@@ -10,16 +10,16 @@ function fixture() {
     getAttribute: name => name === 'data-selection-channel' ? channel : key,
     remove() { nodes.splice(nodes.indexOf(this), 1); },
   });
-  add('country:historical-country:soviet-union', 'primary');
-  add('country:historical-country:soviet-union', 'primary');
-  add('country:FRA', 'secondary');
-  add('country:DEU', 'hover');
+  add('territorial:entity:historical-country%3Asoviet-union', 'primary');
+  add('territorial:entity:historical-country%3Asoviet-union', 'primary');
+  add('territorial:entity:FRA', 'secondary');
+  add('territorial:entity:DEU', 'hover');
   return { nodes, root: { querySelectorAll: () => [...nodes] } };
 }
 
 test('library country upload completion retires both SVG strokes without touching other selections', () => {
   const { nodes, root } = fixture();
-  const result = { succeeded: true, channels: { primary: { renderedKeys: ['country:historical-country:soviet-union'] } } };
+  const result = { succeeded: true, channels: { primary: { renderedKeys: ['territorial:entity:historical-country%3Asoviet-union'] } } };
   assert.equal(commitSelectionFallbackCoverage([root], result), 2);
   assert.equal(nodes.length, 2);
   assert.equal(commitSelectionFallbackCoverage([root], result), 0);
@@ -27,9 +27,9 @@ test('library country upload completion retires both SVG strokes without touchin
 
 test('pending, failed, empty and other-channel coverage retain fallback outlines', () => {
   for (const result of [null, { channels: {} }, { channels: { primary: { renderedKeys: [] } } },
-    { succeeded: false, gpuHealth: 'unhealthy', channels: { primary: { renderedKeys: ['country:historical-country:soviet-union'] } } },
-    { error: new Error('draw failed'), channels: { primary: { renderedKeys: ['country:historical-country:soviet-union'] } } },
-    { contextLost: true }, { channels: { hover: { renderedKeys: ['country:historical-country:soviet-union'] } } }]) {
+    { succeeded: false, gpuHealth: 'unhealthy', channels: { primary: { renderedKeys: ['territorial:entity:historical-country%3Asoviet-union'] } } },
+    { error: new Error('draw failed'), channels: { primary: { renderedKeys: ['territorial:entity:historical-country%3Asoviet-union'] } } },
+    { contextLost: true }, { channels: { hover: { renderedKeys: ['territorial:entity:historical-country%3Asoviet-union'] } } }]) {
     const { root, nodes } = fixture();
     assert.equal(commitSelectionFallbackCoverage([root], result), 0);
     assert.equal(nodes.length, 4);
@@ -45,17 +45,17 @@ test('partial selection frame retires covered outlines and retains missing objec
   const id = 'historical-country:soviet-union';
   pass.setCountryBoundaryResources({ revision: 'mixed', visibleIds: [id, 'FRA'], pendingIds: ['FRA'],
     strokeResources: { selectionBase: { ownerIds: [id], packet: { key: 'base', preparedGeometry: {} } } } });
-  pass.updateData({ country: { primaryId: id, secondaryIds: ['FRA'] }, countryBoundaryRevision: 'mixed' });
+  pass.updateData({ channels: { primary: [{ key: `territorial:entity:${encodeURIComponent(id)}`, boundaryOwnerId: id }], secondary: [{ key: 'territorial:entity:FRA', boundaryOwnerId: 'FRA' }] }, countryBoundaryRevision: 'mixed' });
   const result = pass.draw({}, {}, { frameContext: { frameId: 1 } });
   assert.equal(result.succeeded, false);
   const { root, nodes } = fixture();
   assert.equal(commitSelectionFallbackCoverage([root], result), 2);
-  assert.deepEqual(nodes.map(node => node.getAttribute('data-selection-fallback-key')), ['country:FRA', 'country:DEU']);
+  assert.deepEqual(nodes.map(node => node.getAttribute('data-selection-fallback-key')), ['territorial:entity:FRA', 'territorial:entity:DEU']);
 });
 
 test('prepared library-country GPU resource transitions from upload pending to covered on interaction-only frame', () => {
   const id = 'historical-country:soviet-union';
-  const key = `country:${id}`;
+  const key = `territorial:entity:${encodeURIComponent(id)}`;
   const preparedGeometry = { marker: 'worker-prepared' };
   let ready = false, draws = 0;
   const pass = createSelectionPass();
@@ -71,7 +71,7 @@ test('prepared library-country GPU resource transitions from upload pending to c
   } });
   pass.setCountryBoundaryResources({ revision: 'new-country', visibleIds: [id], overriddenIds: [id],
     strokeResources: { override: { ownerIds: [id], packet: { key: 'country-boundary:override', preparedGeometry } } } });
-  pass.updateData({ country: { primaryId: id }, countryBoundaryRevision: 'new-country' });
+  pass.updateData({ channels: { primary: [{ key: `territorial:entity:${encodeURIComponent(id)}`, boundaryOwnerId: id }] }, countryBoundaryRevision: 'new-country' });
   const { root, nodes } = fixture();
   const initial = pass.draw({}, {}, { frameContext: { frameId: 1 } });
   assert.equal(commitSelectionFallbackCoverage([root], initial), 0);

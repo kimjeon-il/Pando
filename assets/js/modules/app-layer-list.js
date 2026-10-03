@@ -127,7 +127,7 @@ export function createLayerList() {
         ? 'subunit'
         : 'region';
       return dependencies.territorialModel.entityRepository.list({ kind: kind === 'region' ? 'regional' : 'general' }).filter(feature => kind === 'region' || !!feature.properties.parentId).map(feature => {
-        const countryLabel = (0, dependencies.objectPresentation.administrativeCountryName)(feature);
+        const countryLabel = (0, dependencies.objectPresentation.territorialRootName)(feature);
 
         return {
           id: String(feature.id),

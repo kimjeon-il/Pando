@@ -187,7 +187,7 @@ test('app delegates interaction rendering to rendering domain', () => {
 test('selection domain owns selection and hover revisions without serialized change detection', () => {
   let renderRequests = 0;
   const changes = [];
-  const country = id => ({ domain: 'territorial', type: 'country', id });
+  const country = id => ({ domain: 'territorial', type: 'entity', id });
   const selection = createSelectionDomain({
     onSelectionChanged: (snapshot, reason) => changes.push(['selection', snapshot.revision, reason]),
     onHoverChanged: snapshot => changes.push(['hover', snapshot.hoverRevision]),
@@ -389,15 +389,15 @@ test('selection controller storage and packet revisions are owned by the selecti
     refExists: value => value?.id === 'DEU',
     selectionPacketFactory: value => { packets.push(value); return value; },
   });
-  selection.replace({ domain: 'territorial', type: 'country', id: 'DEU' });
-  selection.setHover({ domain: 'territorial', type: 'country', id: 'DEU' });
+  selection.replace({ domain: 'territorial', type: 'entity', id: 'DEU' });
+  selection.setHover({ domain: 'territorial', type: 'entity', id: 'DEU' });
   const packet = selection.createPacket({ geometryRevision: 'geometry-1' });
   assert.equal(packet.revision, selection.snapshot().revision);
   assert.equal(packet.hoverRevision, selection.snapshot().hoverRevision);
   assert.equal(packet.geometryRevision, 'geometry-1');
   assert.equal(packets.length, 1);
   const before = selection.snapshot();
-  selection.replace({ domain: 'territorial', type: 'country', id: 'FRA' });
+  selection.replace({ domain: 'territorial', type: 'entity', id: 'FRA' });
   assert.strictEqual(selection.snapshot(), before, 'invalid refs are no-ops');
 });
 

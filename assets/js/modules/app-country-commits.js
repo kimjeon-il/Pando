@@ -12,7 +12,7 @@ export function createCountryCommits() {
     dependencies = ports;
   }
 
-  function applyCountryGeometryPlan(plan, {
+  function applyTerritorialGeometryPlan(plan, {
     patchOptions = undefined,
     afterPatch = () => {},
     updateDependents = () => {},
@@ -453,7 +453,7 @@ export function createCountryCommits() {
       payload: { targetId, donorIds, transferredGeometry: candidate.geometry, riverSliverContext },
       snapshot,
       transferredGeometry: candidate.geometry,
-      applyResult: plan => applyCountryGeometryPlan(plan, {
+      applyResult: plan => applyTerritorialGeometryPlan(plan, {
         updateDependents: currentPlan => (0, dependencies.landRelations.transferLandDependents)(
           currentPlan.transferredGeometry || candidate.geometry,
           donorIds,
@@ -506,7 +506,7 @@ export function createCountryCommits() {
       operation: 'new-country',
       payload: { sourceIds, transferredGeometry, newFeature: feature },
       snapshot,
-      applyResult: transferPlan => applyCountryGeometryPlan(transferPlan, {
+      applyResult: transferPlan => applyTerritorialGeometryPlan(transferPlan, {
         patchOptions: { presentation: 'preserve-existing-scene' },
         updateDependents: () => (0, dependencies.landRelations.transferLandDependents)(transferredGeometry, sourceIds, feature.id),
         clearMultiDraft: true,
@@ -545,7 +545,7 @@ export function createCountryCommits() {
       operation: 'merge',
       payload: { sourceId, targetIds },
       snapshot,
-      applyResult: result => applyCountryGeometryPlan(result, {
+      applyResult: result => applyTerritorialGeometryPlan(result, {
         afterPatch: () => {
           dependencies.territorialModel.entityStore.setField(
             sourceId,

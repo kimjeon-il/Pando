@@ -17,6 +17,8 @@ test('project header and physical source metadata use the current common contrac
  const project=serializer({territorialEntities:entities,projectFields:{labels:[],layerVisibility:{countries:false}},terrainManifest:{dataset:'terrain-current',version:'1'},hydroManifest:{dataset:'hydro-current',selection:{rivers:true}}}).buildProject();
  assert.equal(project.schemaVersion,PROJECT_SCHEMA_VERSION);assert.equal(project.savedAt,'2026-10-03T00:00:00.000Z');assert.equal(project.territorialModel.storage,'territorialEntities');assert.equal(project.territorialModel.schemaVersion,4);assert.deepEqual(project.territorialEntities,entities);assert.equal(project.physicalSourceInfo.terrain.dataset,'terrain-current');assert.deepEqual(project.physicalSourceInfo.hydro.selection,{rivers:true});
  for(const key of ['countriesData','countryOverrides','territorialUnits','countryDelta','projection','view'])assert.equal(key in project,false);
+ assert.deepEqual(project.territorialModel.kinds,['general','regional']);
+ assert.equal('types' in project.territorialModel,false);
 });
 test('entity delta replaces, removes and adds all types in stable order without mutating inputs',()=>{
  const base=[entity('A'),entity('B'),entity('S','general',{parentId:'A'})];const changed=[entity('A','general',{name:'renamed',metadata:{capital:'capital'}}),entity('S','general',{parentId:'A',color:'#123456'}),entity('R','regional',{})];

@@ -73,7 +73,7 @@ function benchmarkTerritorialBoundaries(count) {
     return {
       type: 'Feature',
       id: `unit-${index}`,
-      properties: { unitType: index % 3 === 0 ? 'admin' : index % 3 === 1 ? 'region' : 'territory' },
+      properties: { entityKind: 'regional', parentId: '' },
       geometry: { type: 'Polygon', coordinates: [[[west, south], [west + 0.2, south], [west + 0.2, south + 0.2], [west, south + 0.2], [west, south]]] },
     };
   });

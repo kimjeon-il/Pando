@@ -1,4 +1,5 @@
 import { createObjectSelectionController, normalizeObjectRef, objectRefKey } from './object-selection-controller.js';
+import { createSelectionPacket } from './selection-packet.js';
 
 const EMPTY_SELECTION = Object.freeze({
   primaryKey: null,
@@ -15,7 +16,7 @@ const freezeSelection = value => Object.freeze({
 export function createSelectionDomain({
   context = null,
   projectDomain = null,
-  selectionPacketFactory = null,
+  selectionPacketFactory = createSelectionPacket,
   normalizeRef = normalizeObjectRef,
   refExists = () => true,
   onSelectionChanged = () => {},
@@ -191,11 +192,11 @@ export function createSelectionDomain({
     invalidate('project-reset-selection');
     return value;
   };
-  const createPacket = channels => selectionPacketFactory?.({
+  const createPacket = channels => selectionPacketFactory({
     ...(channels || {}),
     revision,
     hoverRevision,
-  }) || Object.freeze({ revision, hoverRevision, country: {}, generic: {} });
+  });
   const dispose = () => {
     disposed = true;
     hover = null;

@@ -12,15 +12,15 @@ test('common read projection detaches metadata while sharing canonical geometry'
  const {state,repo}=fixture();const a=repo.get('A');assert.equal(a.geometry,state.territorialEntities[0].geometry);
  a.properties.metadata.capital='changed';a.properties.style.color='#abcdef';assert.equal(state.territorialEntities[0].properties.metadata.capital,'capital');assert.equal(state.territorialEntities[0].properties.style.color,'#123456');
 });
-test('one hierarchy API resolves nested units and independent region association',()=>{
+test('one hierarchy API resolves nested general objects and independent regional roots',()=>{
  const {repo}=fixture();assert.deepEqual(repo.children('A').map(x=>x.id),['S','U']);assert.equal(repo.parent('T').id,'S');
  assert.deepEqual(repo.ancestors('T').map(x=>x.id),['S','A']);assert.deepEqual(repo.descendants('A').map(x=>x.id),['S','U','T']);
- assert.deepEqual(repo.siblings('S').map(x=>x.id),['U']);assert.equal(repo.root('T').id,'A');assert.equal(repo.root('T').id,'A');
+ assert.deepEqual(repo.siblings('S').map(x=>x.id),['U']);assert.equal(repo.root('T').id,'A');
  assert.equal(repo.root('R').id,'R');assert.equal(repo.root('I').id,'I');
  assert.deepEqual(repo.list({rootId:'A'}).map(x=>x.id),['A','S','T','U']);
  assert.equal(repo.get('missing'),null);
 });
-test('Store publication and project revision invalidate cached lists and country membership',()=>{
+test('Store publication and project revision invalidate cached lists and hierarchy roots',()=>{
  const {state,store,repo}=fixture();const first=repo.get('A');assert.equal(repo.get('A'),first);assert.equal(repo.list(),repo.list());
  store.setField('A','name','renamed');assert.notEqual(repo.get('A'),first);assert.equal(repo.get('A').properties.name,'renamed');
  store.setField('S','parentId','B');assert.equal(repo.root('T').id,'B');

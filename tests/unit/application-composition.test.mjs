@@ -97,8 +97,8 @@ test('canonical replacement retains one live store and updates dependent ID read
   const owner = createBuiltinSession();
   owner.connect({});
   const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
-  const collectionA = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'A', unitType: 'country', name: 'A', geometry })] };
-  const collectionB = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'B', unitType: 'country', name: 'B', geometry })] };
+  const collectionA = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'A', entityKind: 'general', name: 'A', geometry })] };
+  const collectionB = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'B', entityKind: 'general', name: 'B', geometry })] };
   const store = collection => ({
     ids: () => collection.features.map(feature => feature.id),
     materializeCollectionSync: () => collection,
@@ -114,4 +114,12 @@ test('canonical replacement retains one live store and updates dependent ID read
   assert.strictEqual(owner.canonicalCountryStore, second);
   assert.deepEqual(owner.materializePristineCountriesSync(), collectionB);
   assert.deepEqual([...owner.builtinCountryIds], ['B']);
+});
+
+test('the phase-aware scene provides a common label ref for each general root', () => {
+  const feature = createTerritorialFeature({ id: 'A', entityKind: 'general', name: 'A', geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } });
+  const owner = createBuiltinSession();
+  owner.connect({ objectModelB: { territorialScope: { displayEntities: () => [feature] } }, projectState: { state: { layerPresentation: {} } } });
+  const scene = owner.builtinTerritorialScene();
+  assert.deepEqual(scene.labelRefs.get('A'), { domain: 'territorial', type: 'entity', id: 'A' });
 });

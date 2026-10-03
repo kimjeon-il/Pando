@@ -53,10 +53,10 @@ export function removeTerritorialEntities(state, {
   }
 
   if (removedAll.size) entityStore.applyChanges({ removedIds: [...removedAll] });
+  for (const id of removedAll) delete state.labelSettings?.[`territorial:${id}`];
   const removedDisplayIds = new Set([...removedCountries,
     ...unitTargets.map(feature => territorialSceneDisplayId(feature, countryIdsBefore))]);
   for (const displayId of removedDisplayIds) {
-    delete state.labelSettings?.[`country:${displayId}`];
     delete state.itemVisibility?.countryLabels?.[displayId];
   }
   for (const feature of unitTargets) delete state.layerPresentation?.objectStyles?.[`territorial:entity:${feature.id}`];

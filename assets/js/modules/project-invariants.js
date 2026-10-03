@@ -64,35 +64,20 @@ export function validateProjectReferenceIntegrity({
 } = {}) {
   const issues = [];
   const countries=territorialEntities.filter(feature=>(feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
-  const territorialUnits=territorialEntities.filter(feature=>!(feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
   try { normalizeTerritorialEntities(territorialEntities,{cloneGeometry:geometry=>geometry}); }
   catch(error) { issues.push(issue('PL-INV-TERRITORIAL',error.message,[], 'territorialEntities')); }
 
-  issues.push(...duplicateIssues(countries, row => row?.id, 'PL-INV-COUNTRY', '국가'));
-  issues.push(...duplicateIssues(territorialUnits, row => row?.id, 'PL-INV-UNIT', '영역'));
+  issues.push(...duplicateIssues(territorialEntities, row => row?.id, 'PL-INV-ENTITY', '객체'));
   issues.push(...duplicateIssues(territorialRelations, row => row?.id, 'PL-INV-RELATION', '기간별 관계'));
   issues.push(...duplicateIssues(distributionLayers, row => row?.id, 'PL-INV-DIST-LAYER', '분포 레이어'));
   issues.push(...duplicateIssues(distributionEntries, row => row?.id, 'PL-INV-DIST-ENTRY', '분포 엔트리'));
   issues.push(...duplicateIssues(genericFeatures, row => row?.id, 'PL-INV-GENERIC', '기타 객체'));
 
   const countryIds = new Set((countries || []).map(row => text(row?.id)).filter(Boolean));
-  const unitIds = new Set((territorialUnits || []).map(row => text(row?.id)).filter(Boolean));
-  const territorialIds = new Set([...countryIds, ...unitIds]);
-  const unitById = new Map((territorialUnits || []).map(row => [text(row?.id), row]).filter(([id]) => id));
+  const territorialIds = new Set(territorialEntities.map(row => text(row?.id)).filter(Boolean));
+  const unitById = new Map(territorialEntities.map(row => [text(row?.id), row]));
 
-  for (const id of unitIds) {
-    if (countryIds.has(id)) {
-      issues.push(issue('PL-INV-TERRITORIAL-ID-COLLISION', `국가와 하위 영역이 같은 ID를 사용합니다: ${id}`, [id], 'id'));
-    }
-  }
-
-  for (const feature of countries || []) {
-    const id = text(feature?.id);
-    const geometryError = geometryIssue(feature, id, '국가');
-    if (geometryError) issues.push(geometryError);
-  }
-
-  for (const feature of territorialUnits || []) {
+  for (const feature of territorialEntities) {
     const id = text(feature?.id);
     const parentId = text(feature?.properties?.parentId);
     const geometryError = geometryIssue(feature, id, '영역');
@@ -185,25 +170,13 @@ export function validateProjectReferenceIntegrity({
 
   for (const genericFeature of genericFeatures || []) {
     const id = text(genericFeature?.id);
-    const schemaVersion = Number(genericFeature?.properties?.schemaVersion || 1);
-    if (schemaVersion >= 2) {
+
       const sourceValidation = validateSourceProvenance(genericFeature?.properties?.source);
       for (const sourceIssue of sourceValidation.issues) {
         issues.push(issue('PL-INV-GENERIC-SOURCE', `${id || '기타 객체'}의 출처 정보가 올바르지 않습니다. ${sourceIssue}`, [id], 'source'));
       }
-      continue;
-    }
 
-    // Compatibility only: v1 Generic Feature may still carry territorial semantics.
-    const ownerId = text(genericFeature?.properties?.ownerId);
-    if (ownerId && !territorialIds.has(ownerId)) {
-      issues.push(issue('PL-INV-MISSING-GENERIC-OWNER', `${id || '기타 객체'}의 소유 영역 ${ownerId}이 존재하지 않습니다.`, [id, ownerId], 'ownerId'));
-    }
-    const topologyGroup = text(genericFeature?.properties?.topologyGroup);
-    const landOwnerId = topologyGroup.startsWith('land:') ? topologyGroup.slice(5) : '';
-    if (landOwnerId && !territorialIds.has(landOwnerId)) {
-      issues.push(issue('PL-INV-MISSING-GENERIC-TOPOLOGY', `${id || '기타 객체'}의 지형 연결 대상 ${landOwnerId}이 존재하지 않습니다.`, [id, landOwnerId], 'topologyGroup'));
-    }
+
   }
 
   for (const group of ['countries', 'countryLabels']) {
@@ -213,9 +186,9 @@ export function validateProjectReferenceIntegrity({
   }
 
   for (const key of Object.keys(labelSettings || {})) {
-    if (!key.startsWith('country:')) continue;
-    const id = key.slice('country:'.length);
-    if (id && !countryIds.has(id)) issues.push(issue('PL-INV-ORPHAN-COUNTRY-LABEL', `존재하지 않는 국가 ${id}의 라벨 설정이 남아 있습니다.`, [id], 'labelSettings'));
+    if (!key.startsWith('territorial:')) continue;
+    const id = key.slice('territorial:'.length);
+    if (id && !territorialIds.has(id)) issues.push(issue('PL-INV-ORPHAN-ENTITY-LABEL', `존재하지 않는 객체 ${id}의 라벨 설정이 남아 있습니다.`, [id], 'labelSettings'));
   }
 
   return Object.freeze({ ok: issues.length === 0, issues });
