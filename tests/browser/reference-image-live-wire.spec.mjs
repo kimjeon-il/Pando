@@ -15,7 +15,7 @@ async function clearReferenceStore(page) {
     request.onsuccess = () => {
       const db = request.result;
       const tx = db.transaction('state-v2', 'readwrite');
-      tx.objectStore('state-v2').put({ version: 1, records: [] }, 'reference-images');
+      tx.objectStore('state-v2').put({ version: 2, records: [] }, 'reference-images');
       tx.oncomplete = () => { db.close(); resolve(); };
       tx.onerror = () => { db.close(); reject(tx.error); };
     };
@@ -35,6 +35,19 @@ async function readStoredRecord(page) {
       tx.oncomplete = () => db.close();
     };
   }));
+}
+
+async function referenceScreenGeometry(page) {
+  return page.evaluate(async () => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const record = (await store.listStoredReferenceImages())[0];
+    const { referenceImagePlacementGeometry } = await import('/assets/js/modules/reference-image-transform.js');
+    const geometry = referenceImagePlacementGeometry(record, window.__PANDOLAB_MAP_HOST__);
+    const rect = document.getElementById('map').getBoundingClientRect();
+    return {
+      center: { x: rect.left + geometry.center[0], y: rect.top + geometry.center[1] },
+    };
+  });
 }
 
 async function waitForReady(page) {
@@ -57,8 +70,8 @@ async function screenPointForReferenceUv(page, targetUv) {
         tx.oncomplete = () => db.close();
       };
     });
-    const { buildReferenceImageWarp } = await import('/assets/js/modules/reference-image-georef.js');
-    const warp = buildReferenceImageWarp(stored.controlPoints || [], { mode: stored.warpMode });
+    const { buildReferenceImageSourceMapping } = await import('/assets/js/modules/reference-image-source-mapping.js');
+    const warp = buildReferenceImageSourceMapping(stored);
     const coordinate = warp.project(uv);
     const local = window.__PANDOLAB_MAP_HOST__.project(coordinate);
     const rect = document.getElementById('map').getBoundingClientRect();
@@ -87,10 +100,9 @@ test('live-wire requires a ready unlocked warp and traces/undoes/applies an edge
   await expect(start).toBeDisabled();
 
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
-  const stored = await readStoredRecord(page);
-  const mapBox = await page.locator('#map').boundingBox();
-  const centerX = mapBox.x + stored.screenRect.x + stored.screenRect.width / 2;
-  const centerY = mapBox.y + stored.screenRect.y + stored.screenRect.height / 2;
+  const geometry = await referenceScreenGeometry(page);
+  const centerX = geometry.center.x;
+  const centerY = geometry.center.y;
 
   await page.locator('[data-ref-action="gcp"]').click();
   await page.mouse.click(centerX, centerY);
