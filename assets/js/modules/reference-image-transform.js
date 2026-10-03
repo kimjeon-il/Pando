@@ -1,3 +1,8 @@
+import {
+  buildReferenceImageMesh,
+  buildReferenceImageProjectiveWarpFromQuad,
+} from './reference-image-georef.js';
+
 export const REFERENCE_IMAGE_TRANSFORM = Object.freeze({
   handleRadius: 8,
   hitRadius: 12,
@@ -208,14 +213,21 @@ export function referenceImageAnchorScreenPoint(record, host) {
   return coordinate ? projectVisible(host, coordinate) : null;
 }
 
+export function buildReferenceImagePlacementWarp(record) {
+  if (!record?.mapQuad || record.mapQuad.length !== 4) {
+    return buildReferenceImageProjectiveWarpFromQuad(null);
+  }
+  return buildReferenceImageProjectiveWarpFromQuad(record.mapQuad);
+}
+
 export function referenceImagePlacementCoordinateAtUv(record, imageUv) {
   const pair = finitePair(imageUv);
-  if (!record?.mapQuad || !pair || pair.some(component => component < 0 || component > 1)) return null;
-  const corners = record.mapQuad.map(normalizeCoordinate);
-  if (corners.some(point => !point)) return null;
+  if (!pair || pair.some(component => component < 0 || component > 1)) return null;
+  const warp = buildReferenceImagePlacementWarp(record);
+  if (!warp.ok) return null;
   const u = record.flipX ? 1 - pair[0] : pair[0];
   const v = record.flipY ? 1 - pair[1] : pair[1];
-  return interpolatePlacementCoordinate(corners, u, v);
+  return warp.project([u, v]);
 }
 
 export function referenceImagePlacementPointAtUv(record, imageUv, host) {
@@ -527,54 +539,80 @@ function unwrapLongitude(value, reference) {
   return result;
 }
 
-function interpolatePlacementCoordinate(corners, u, v) {
-  const reference = corners[0][0];
-  const nw = [reference, corners[0][1]];
-  const ne = [unwrapLongitude(corners[1][0], reference), corners[1][1]];
-  const se = [unwrapLongitude(corners[2][0], reference), corners[2][1]];
-  const sw = [unwrapLongitude(corners[3][0], reference), corners[3][1]];
-  const top = [nw[0] + (ne[0] - nw[0]) * u, nw[1] + (ne[1] - nw[1]) * u];
-  const bottom = [sw[0] + (se[0] - sw[0]) * u, sw[1] + (se[1] - sw[1]) * u];
-  return normalizeCoordinate([
-    top[0] + (bottom[0] - top[0]) * v,
-    top[1] + (bottom[1] - top[1]) * v,
-  ]);
+export function buildReferenceImagePlacementMesh(record, { columns = 12, rows = 8 } = {}) {
+  const warp = buildReferenceImagePlacementWarp(record);
+  return warp.ok ? buildReferenceImageMesh(warp, { columns, rows }) : null;
 }
 
-export function buildReferenceImagePlacementMesh(record, { columns = 12, rows = 8 } = {}) {
-  if (!record?.mapQuad || record.mapQuad.length !== 4) return null;
-  const corners = record.mapQuad.map(normalizeCoordinate);
-  if (corners.some(point => !point)) return null;
-  const columnCount = Math.max(1, Math.min(64, Math.round(Number(columns) || 12)));
-  const rowCount = Math.max(1, Math.min(64, Math.round(Number(rows) || 8)));
-  const vertices = [];
-  for (let row = 0; row <= rowCount; row += 1) {
-    const v = row / rowCount;
-    for (let column = 0; column <= columnCount; column += 1) {
-      const u = column / columnCount;
-      vertices.push(Object.freeze({
-        uv: Object.freeze([u, v]),
-        coordinate: Object.freeze(interpolatePlacementCoordinate(corners, u, v)),
-      }));
+function signedArea(points) {
+  let area = 0;
+  for (let index = 0; index < points.length; index += 1) {
+    const current = points[index];
+    const next = points[(index + 1) % points.length];
+    area += current[0] * next[1] - next[0] * current[1];
+  }
+  return area / 2;
+}
+
+function orientation(a, b, c) {
+  return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+}
+
+function properSegmentsIntersect(a, b, c, d) {
+  const abC = orientation(a, b, c);
+  const abD = orientation(a, b, d);
+  const cdA = orientation(c, d, a);
+  const cdB = orientation(c, d, b);
+  return abC * abD < 0 && cdA * cdB < 0;
+}
+
+function usableFreeTransformQuad(record, host) {
+  const points = projectReferenceImageMapQuad(record, host);
+  if (!points || Math.abs(signedArea(points)) < 64) return false;
+  if (properSegmentsIntersect(points[0], points[1], points[2], points[3])) return false;
+  if (properSegmentsIntersect(points[1], points[2], points[3], points[0])) return false;
+  return buildReferenceImagePlacementWarp(record).ok;
+}
+
+export function referenceImageFreeTransformHit(record, point, host) {
+  if (!record || record.anchor || record.controlPoints?.length) return null;
+  const candidate = finitePair(point);
+  const corners = projectReferenceImageMapQuad(record, host);
+  if (!candidate || !corners) return null;
+  const names = ['nw', 'ne', 'se', 'sw'];
+  for (let index = 0; index < corners.length; index += 1) {
+    if (Math.hypot(candidate[0] - corners[index][0], candidate[1] - corners[index][1]) <= REFERENCE_IMAGE_TRANSFORM.hitRadius + 2) {
+      return Object.freeze({ type: 'corner-pin', corner: names[index], index });
     }
   }
-  const triangles = [];
-  const stride = columnCount + 1;
-  for (let row = 0; row < rowCount; row += 1) {
-    for (let column = 0; column < columnCount; column += 1) {
-      const a = row * stride + column;
-      const b = a + 1;
-      const c = a + stride;
-      const d = c + 1;
-      triangles.push(Object.freeze([a, b, d]), Object.freeze([a, d, c]));
-    }
+  return null;
+}
+
+export function createReferenceImageFreeTransformDrag(record, hit, pointerId = null) {
+  if (!record || record.anchor || record.controlPoints?.length || hit?.type !== 'corner-pin') return null;
+  if (!Number.isInteger(hit.index) || hit.index < 0 || hit.index > 3) return null;
+  return {
+    pointerId,
+    recordId: record.id,
+    index: hit.index,
+    corner: hit.corner,
+    startMapQuad: record.mapQuad.map(coordinate => [...coordinate]),
+  };
+}
+
+export function applyReferenceImageFreeTransformDrag(record, drag, point, host) {
+  if (!record || record.anchor || record.controlPoints?.length || !drag || !host) return false;
+  const coordinate = normalizeCoordinate(host.unproject?.(point));
+  if (!coordinate) return false;
+  const previous = record.mapQuad;
+  const candidate = drag.startMapQuad.map(value => [...value]);
+  candidate[drag.index] = coordinate;
+  record.mapQuad = candidate;
+  if (!usableFreeTransformQuad(record, host)) {
+    record.mapQuad = previous;
+    return false;
   }
-  return Object.freeze({
-    columns: columnCount,
-    rows: rowCount,
-    vertices: Object.freeze(vertices),
-    triangles: Object.freeze(triangles),
-  });
+  return true;
 }
 
 export function referenceImagePlacementUvAtPoint(record, point, host) {
