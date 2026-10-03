@@ -61,6 +61,22 @@ test('screen placement is converted once into geographic mapQuad coordinates', (
   assert.ok(initial.every(point => point.every(Number.isFinite)));
 });
 
+test('small source images are enlarged to a usable initial screen footprint', () => {
+  const host = {
+    project([lon, lat]) { return [400 + lon, 300 - lat]; },
+    unproject([x, y]) { return [x - 400, 300 - y]; },
+  };
+  const quad = defaultReferenceImageMapQuad(
+    { naturalWidth: 64, naturalHeight: 64 },
+    mapElement(800, 600),
+    host,
+  );
+  const record = { mapQuad: quad };
+  const geometry = referenceImagePlacementGeometry(record, host);
+  assert.ok(geometry.width >= 300);
+  assert.ok(geometry.height >= 300);
+});
+
 test('default placement shrinks until all four corners can be unprojected', () => {
   const host = {
     project([lon, lat]) {
