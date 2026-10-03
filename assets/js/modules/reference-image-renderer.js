@@ -237,10 +237,13 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function drawAnchor(record, host, dpr) {
-    if (record.id !== getSelectedId?.() || !record.anchor || record.warp?.ok || isPanelHidden?.()) return;
+    if (record.id !== getSelectedId?.() || !record.anchor || isPanelHidden?.()) return;
     const target = referenceImageAnchorScreenPoint(record, host);
     if (!target) return;
-    const source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
+    const predictedCoordinate = record.warp?.ok ? record.warp.project(record.anchor.image) : null;
+    const source = predictedCoordinate
+      ? projectVisible(host, predictedCoordinate)
+      : referenceImagePlacementPointAtUv(record, record.anchor.image, host);
     context.save();
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (source && Math.hypot(source[0] - target[0], source[1] - target[1]) > 0.75) {
