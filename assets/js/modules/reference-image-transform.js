@@ -566,9 +566,23 @@ function properSegmentsIntersect(a, b, c, d) {
   return abC * abD < 0 && cdA * cdB < 0;
 }
 
+function strictlyConvexQuad(points) {
+  if (!Array.isArray(points) || points.length !== 4) return false;
+  const turns = [];
+  for (let index = 0; index < 4; index += 1) {
+    const a = points[index];
+    const b = points[(index + 1) % 4];
+    const c = points[(index + 2) % 4];
+    const turn = orientation(a, b, c);
+    if (Math.abs(turn) < 1e-6) return false;
+    turns.push(Math.sign(turn));
+  }
+  return turns.every(sign => sign === turns[0]);
+}
+
 function usableFreeTransformQuad(record, host) {
   const points = projectReferenceImageMapQuad(record, host);
-  if (!points || Math.abs(signedArea(points)) < 64) return false;
+  if (!points || Math.abs(signedArea(points)) < 64 || !strictlyConvexQuad(points)) return false;
   if (properSegmentsIntersect(points[0], points[1], points[2], points[3])) return false;
   if (properSegmentsIntersect(points[1], points[2], points[3], points[0])) return false;
   return buildReferenceImagePlacementWarp(record).ok;
