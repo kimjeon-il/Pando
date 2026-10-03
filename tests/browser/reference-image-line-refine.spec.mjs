@@ -37,6 +37,19 @@ async function readStoredRecord(page) {
   }));
 }
 
+async function screenPointForReferenceUv(page, uv) {
+  return page.evaluate(async targetUv => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const stored = (await store.listStoredReferenceImages())[0];
+    const { buildReferenceImageSourceMapping } = await import('/assets/js/modules/reference-image-source-mapping.js');
+    const mapping = buildReferenceImageSourceMapping(stored);
+    const coordinate = mapping.project(targetUv);
+    const screen = window.__PANDOLAB_MAP_HOST__.project(coordinate);
+    const rect = document.getElementById('map').getBoundingClientRect();
+    return { x: rect.left + screen[0], y: rect.top + screen[1] };
+  }, uv);
+}
+
 async function referenceScreenGeometry(page) {
   return page.evaluate(async () => {
     const store = await import('/assets/js/modules/reference-image-store.js');
@@ -126,11 +139,11 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
     };
   });
 
-  const boundaryX = centerX + 90;
-  const boundaryY = centerY + 40;
-  await page.mouse.move(boundaryX + 4, boundaryY - 45);
+  const roughStart = await screenPointForReferenceUv(page, [0.52, 0.12]);
+  const roughEnd = await screenPointForReferenceUv(page, [0.52, 0.48]);
+  await page.mouse.move(roughStart.x, roughStart.y);
   await page.mouse.down();
-  await page.mouse.move(boundaryX + 4, boundaryY + 45, { steps: 18 });
+  await page.mouse.move(roughEnd.x, roughEnd.y, { steps: 18 });
   await page.mouse.up();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase()), { timeout: 10_000 }).toBe('preview');
   await expect(page.locator('[data-ref-line-action="apply"]')).toBeVisible();
