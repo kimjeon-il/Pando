@@ -304,7 +304,7 @@ export function referenceImagePlacementHit(record, point, host) {
     barycentric(candidate, [geometry.corners[0], geometry.corners[1], geometry.corners[2]])
     || barycentric(candidate, [geometry.corners[0], geometry.corners[2], geometry.corners[3]])
   ) {
-    return Object.freeze({ type: 'move' });
+    return record.anchor ? null : Object.freeze({ type: 'move' });
   }
   return null;
 }
