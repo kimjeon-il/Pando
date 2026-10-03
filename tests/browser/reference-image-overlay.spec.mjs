@@ -181,6 +181,17 @@ async function readReferenceStore(page) {
   }));
 }
 
+async function referenceScreenPointForUv(page, name, uv) {
+  return page.evaluate(async ({ recordName, imageUv }) => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const record = (await store.listStoredReferenceImages()).find(item => item.name === recordName);
+    const { referenceImagePlacementPointAtUv } = await import('/assets/js/modules/reference-image-transform.js');
+    const point = referenceImagePlacementPointAtUv(record, imageUv, window.__PANDOLAB_MAP_HOST__);
+    const rect = document.getElementById('map').getBoundingClientRect();
+    return { x: rect.left + point[0], y: rect.top + point[1] };
+  }, { recordName: name, imageUv: uv });
+}
+
 async function referenceScreenGeometry(page, name) {
   return page.evaluate(async recordName => {
     const store = await import('/assets/js/modules/reference-image-store.js');
@@ -242,7 +253,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   await nameInput.fill('<Base "reference">');
   await expect(page.locator('.reference-image-list-row strong')).toHaveText('<Base "reference">');
   await page.locator('[data-ref-field="rotation"]').fill('45');
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list()[0]?.rotation)).toBe(45);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list()[0]?.rotation)).toBeCloseTo(45, 8);
 
   await page.locator('[data-ref-action="placement"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-placement-mode/);
@@ -293,20 +304,22 @@ test('reference images support placement, ordering, georeferencing and persisten
 
   await page.locator('.reference-image-list-row').filter({ hasText: '<Base "reference">' }).click();
   const baseGeometry = await referenceScreenGeometry(page, '<Base "reference">');
+  const firstImagePoint = await referenceScreenPointForUv(page, '<Base "reference">', [0.35, 0.35]);
+  const secondImagePoint = await referenceScreenPointForUv(page, '<Base "reference">', [0.7, 0.65]);
   const baseCenterX = baseGeometry.center.x;
   const baseCenterY = baseGeometry.center.y;
   await page.locator('[data-ref-action="gcp"]').click();
   const selectedBeforeGcp = await page.locator('#selectionToolbar').getAttribute('aria-hidden');
   await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
-  await page.mouse.click(baseCenterX, baseCenterY);
+  await page.mouse.click(firstImagePoint.x, firstImagePoint.y);
   await page.mouse.move(baseCenterX - 120, baseCenterY - 120);
   await page.mouse.down();
   await page.mouse.move(baseCenterX - 90, baseCenterY - 100, { steps: 4 });
   await page.mouse.up();
   expect(await page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().find(item => item.name === '<Base "reference">').controlPointCount)).toBe(0);
-  await page.mouse.click(baseCenterX + 90, baseCenterY + 40);
-  await page.mouse.click(baseCenterX + 12, baseCenterY + 8);
-  await page.mouse.click(baseCenterX + 135, baseCenterY + 65);
+  await page.mouse.click(firstImagePoint.x + 35, firstImagePoint.y + 15);
+  await page.mouse.click(secondImagePoint.x, secondImagePoint.y);
+  await page.mouse.click(secondImagePoint.x + 42, secondImagePoint.y + 22);
   await expect.poll(() => page.evaluate(() => {
     const item = window.__PANDOLAB_REFERENCE_IMAGES__.list().find(value => value.name === '<Base "reference">');
     return { count: item?.controlPointCount, mode: item?.warpMode };
