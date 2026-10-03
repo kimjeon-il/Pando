@@ -1,4 +1,5 @@
 import { referenceImageKeyBlocked } from './reference-image-input.js';
+import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
 import { referenceImageMappingSignature } from './reference-image-model.js';
 import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
@@ -217,6 +218,7 @@ export function installReferenceImageLineRefiner() {
   }
 
   function cancelRefine({ message = '', tone = '' } = {}) {
+    setReferenceImageSurfaceEditing(false);
     state = null;
     mapElement.classList.remove('is-reference-line-refine-mode');
     if (message) {
@@ -361,6 +363,7 @@ export function installReferenceImageLineRefiner() {
       setMessage('참조 이미지 편집이나 자동 추적을 먼저 종료한 뒤 선 보강을 시작하세요.', 'error');
       return false;
     }
+    setReferenceImageSurfaceEditing(false);
     state = { recordId, phase: 'loading', source: null, pointerId: null, roughScreenPoints: [], roughImagePoints: [], previewCoordinates: [] };
     mapElement.classList.add('is-reference-line-refine-mode');
     setMessage('참조 이미지의 경계 정보를 준비하고 있습니다.', 'working');
