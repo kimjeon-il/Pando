@@ -133,7 +133,6 @@ export function installReferenceImageLiveWire() {
   let lastHostFingerprint = '';
   let lastMessage = '';
   let lastTone = '';
-  const handledPointerIds = new Set();
 
   function resizeCanvas() {
     const rect = mapElement.getBoundingClientRect();
@@ -688,14 +687,11 @@ export function installReferenceImageLiveWire() {
   }
 
   function onPointerDown(event) {
-    if (activateAtPointer(event)) handledPointerIds.add(event.pointerId);
+    activateAtPointer(event);
   }
 
   function onPointerUp(event) {
-    if (handledPointerIds.delete(event.pointerId)) {
-      interceptMapEvent(event);
-      return;
-    }
+    if (!state || state.phase !== 'tracking' || !state.previewPoints?.length || state.previewPoints.length < 2) return;
     activateAtPointer(event);
   }
 
@@ -797,7 +793,6 @@ export function installReferenceImageLiveWire() {
       disposed = true;
       state = null;
       pendingPointer = null;
-      handledPointerIds.clear();
       globalThis.clearTimeout(monitorTimer);
       observer.disconnect();
       resizeObserver.disconnect();
