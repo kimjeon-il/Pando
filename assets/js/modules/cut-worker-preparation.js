@@ -48,7 +48,8 @@ export function prepareCutInWorker({ source, coords, view, buildPreview }, geome
   const result = cut.assessCutDraft(coords, source);
   if (result.valid && buildPreview) {
     try { result.split = cut.buildCutSplitCandidates(source, coords, result); }
-    catch (error) { result.split = null; result.splitError = error.message; }
+    catch (error) { result.split = null; result.splitError = error.message; result.valid = false; result.status = 'invalid'; result.message = error.message; result.issues = error.cutIssue ? [error.cutIssue] : []; }
   }
+  delete result.extracted; // Graph preparation is Worker-private; publish only display candidates.
   return result;
 }

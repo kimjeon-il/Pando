@@ -256,6 +256,7 @@ async function completeAndCheck(page, context, expectedGeometry = null) {
       mismatchArea: planarArea(clipper.xor(added, removed)),
       previewMissingArea: transfer ? planarArea(clipper.difference(multi(transfer), multi(preview))) : Infinity,
       selectionMissingArea: expectedGeometry ? planarArea(clipper.difference(multi(expectedGeometry), added)) : null,
+      selectionMismatchArea: expectedGeometry ? planarArea(clipper.xor(multi(expectedGeometry), added)) : null,
       workerErrors: window.__annexE2e.workerErrors,
       rebases: window.__annexE2e.rebases,
     };
@@ -265,7 +266,10 @@ async function completeAndCheck(page, context, expectedGeometry = null) {
   expect(result.removedArea).toBeGreaterThan(0);
   expect(result.mismatchArea).toBeLessThan(1e-5);
   expect(result.previewMissingArea).toBeLessThan(1e-5);
-  if (expectedGeometry) expect(result.selectionMissingArea).toBeLessThan(1e-5);
+  if (expectedGeometry) {
+    expect(result.selectionMissingArea).toBeLessThan(1e-5);
+    expect(result.selectionMismatchArea).toBeLessThan(1e-5);
+  }
   expect(result.workerErrors).toEqual([]);
   expect(context.errors).toEqual([]);
   await expect(page.locator('path.editing-preview-path')).toHaveCount(0);
@@ -465,4 +469,39 @@ test('annex - components', async ({ page }) => {
   await expect(page.locator('#territorySelectionStackList li')).toHaveCount(2, { timeout: 90_000 });
   await expect(page.locator('#multiDrawnActions')).toBeHidden();
   await completeAndCheck(page, context, { type: 'MultiPolygon', coordinates: selected.flatMap(geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates) });
+});
+
+
+test('annex - line multiple crossings selects pieces, previews their union, applies and undoes', async ({ page }) => {
+  test.setTimeout(180_000);
+  const context = await openAnnex(page, [38, 39], { targetId: 'ARM' });
+  await page.locator('#modeDirectLineMethodInput').check();
+  await expect(page.locator('#modeTaskInstruction')).toHaveText('가져올 영토를 가로질러 선을 그리세요.', { timeout: 60_000 });
+  await drawStroke(page, [[37.5, 43], [37.5, 35], [39.5, 35], [39.5, 43], [41.5, 43], [41.5, 35]], { closed: false });
+  await expect(page.locator('.draft-shape.cut-valid')).toHaveCount(1, { timeout: 45_000 });
+  await page.locator('#modeDraftDoneBtn').click();
+  const paths = page.locator('path.territory-candidate');
+  await expect.poll(() => paths.count()).toBeGreaterThanOrEqual(4);
+  await expect(page.locator('path.territory-candidate.selected-candidate')).toHaveCount(1);
+  const before = await paths.evaluateAll(nodes => nodes.map(node => ({ id: node.__data__.id, selected: node.__data__.selected,
+    area: window.d3.geo.area({ type: 'Feature', geometry: node.__data__.geometry }) })));
+  expect(before.find(item => item.selected).area).toBeCloseTo(Math.min(...before.map(item => item.area)), 6);
+  await page.locator('path.territory-candidate.selected-candidate').evaluate(node => node.dispatchEvent(new window.MouseEvent('click', { bubbles: true })));
+  await expect(page.locator('path.territory-candidate.selected-candidate')).toHaveCount(0);
+  await expect(page.locator('#modeDraftDoneBtn')).toBeDisabled();
+  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
+  const ids = before.slice().sort((a, b) => a.area - b.area).slice(0, 2).map(item => item.id);
+  await paths.evaluateAll((nodes, selectedIds) => nodes.filter(node => selectedIds.includes(node.__data__.id))
+    .forEach(node => node.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))), ids);
+  await expect(page.locator('path.territory-candidate.selected-candidate')).toHaveCount(2);
+  await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 60_000 });
+  const selected = await paths.evaluateAll(nodes => {
+    const multi = value => value.type === 'Polygon' ? [value.coordinates] : value.coordinates;
+    const geometry = window.PandoLabPolygonGeometry.normalizePolygonGeometry(window.polygonClipping.union(
+      ...nodes.filter(node => node.__data__.selected).map(node => multi(node.__data__.geometry))));
+    const preview = document.querySelector('path.geometry-preview-add.geometry-preview-fill').__data__.geometry;
+    if (window.polygonClipping.xor(multi(geometry), multi(preview)).length) throw new Error('Preview differs from selected union');
+    return geometry;
+  });
+  await completeAndCheck(page, context, selected);
 });

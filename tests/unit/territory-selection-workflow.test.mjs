@@ -43,7 +43,7 @@ function harness(t) {
         items: [], componentFeatures: payload.features, baseSourceGeometry: payload.baseGeometry,
         workingSourceGeometry: payload.baseGeometry, archivedGeometry: union(payload.parts),
       } };
-      const currentGeometry = payload.components ? union(payload.selected) : payload.currentGeometry;
+      const currentGeometry = payload.components || payload.candidates ? union(payload.selected) : payload.currentGeometry;
       return { result: { currentGeometry, combinedGeometry: union([payload.archivedGeometry, currentGeometry]), remainingGeometry: payload.workingSourceGeometry } };
     },
   };
@@ -501,4 +501,48 @@ test('selection coalesces clicks without rebuilding source and supports worker e
   assert.equal(h.calls.worker.filter(name => name === 'territory-components').length, 1);
   assert.equal(h.calls.worker.filter(name => name === 'territory-selection').length, 1);
   assert.equal(h.workflow.previewReady(), true);
+});
+
+
+test('line candidates use result IDs, toggle multiple pieces, clear selection and archive their union', async t => {
+  const h = harness(t);
+  const current = h.workflow.start('annex', { targetCountryId: 'A', sourceCountryIds: ['B'] });
+  await h.workflow.advance();
+  await h.workflow.selectMethod('line');
+  const pieces = [10, 20, 30].map((offset, index) => ({ id: `cut:${index}`, geometry: geometry(offset), area: [8, 2, 5][index] }));
+  h.workflow.setCurrentCandidates(pieces);
+  const ids = current.candidates.map(item => item.id);
+  assert.deepEqual(current.selectedCandidateIds, [ids[1]]);
+  await settle(t);
+  assert.deepEqual(current.currentGeometry, pieces[1].geometry);
+  h.workflow.selectCandidate(ids[0]);
+  await settle(t);
+  assert.equal(current.currentGeometry.coordinates.length, 2);
+  assert.equal(h.workflow.canAddPart(), true);
+  assert.equal(h.workflow.undoPart(), true);
+  await settle(t);
+  assert.deepEqual(current.selectedCandidateIds, [ids[1]]);
+  assert.deepEqual(current.currentGeometry, pieces[1].geometry);
+  h.workflow.selectCandidate(ids[1]);
+  await settle(t);
+  assert.equal(current.currentGeometry, null);
+  assert.equal(h.workflow.canAddPart(), false);
+  assert.equal(await h.workflow.advance(), false);
+  h.workflow.selectCandidate(ids[0]);
+  h.workflow.selectCandidate(ids[2]);
+  await settle(t);
+  const selected = structuredClone(current.currentGeometry);
+  assert.equal(h.workflow.addPart(), true);
+  await settle(t);
+  assert.deepEqual(current.parts[0].geometry, selected);
+  assert.deepEqual(current.selectedCandidateIds, []);
+  h.workflow.setCurrentCandidates(pieces);
+  await settle(t);
+  const newId = current.selectedCandidateIds[0];
+  h.workflow.selectCandidate(newId);
+  await settle(t);
+  assert.equal(await h.workflow.advance(), false, 'empty current candidates cannot advance using archived parts');
+  assert.equal(h.workflow.selectCandidate(ids[0]), false, 'events from the previous calculation are rejected');
+  await settle(t);
+  assert.deepEqual(h.calls.errors, []);
 });

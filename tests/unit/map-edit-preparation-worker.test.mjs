@@ -264,3 +264,85 @@ test('Russia detailed source remains intact after a small child preview and sour
   t.diagnostic(JSON.stringify({ dataset: 'countries-ne-5.1.1', polygons: 214, coordinatePairs: pairs,
     sourcePreparationMs: Math.round(firstMs), smallChildPreviewMs: Math.round(performance.now() - previewStart), scope: 'Node Worker, not browser input latency' }));
 });
+
+
+const cutPayload = (source, coords) => ({
+  sourceKey: 'cut-fixture', source, coords, buildPreview: true,
+  view: { kind: 'flat', scale: 1000, translate: [400, 300], rotate: [0, 0, 0], center: [0, 0],
+    size: { width: 800, height: 600 }, coarsePointer: false, snapDistance: { mouse: 0, touch: 0 } },
+});
+
+function assertCutPartition(result, source, count) {
+  assert.equal(result.valid, true, result.message || result.splitError);
+  assert.equal(result.split.candidates.length, count);
+  assert.equal(new Set(result.split.candidates.map(item => item.id)).size, count);
+  const pieces = result.split.candidates.map(item => multiCoordinates(item.geometry));
+  const clipper = globalThis.polygonClipping;
+  for (let i = 0; i < pieces.length; i += 1) {
+    assert.ok(hasCanonicalPolygonWinding(result.split.candidates[i].geometry));
+    assert.ok(result.split.candidates[i].area > 0);
+    for (let j = i + 1; j < pieces.length; j += 1) assert.ok(area(clipper.intersection(pieces[i], pieces[j])) < 1e-8);
+  }
+  assert.ok(area(clipper.xor(clipper.union(...pieces), multiCoordinates(source))) < 1e-8);
+}
+
+test('territorial-cut splits repeated crossings into individual canonical pieces and excludes untouched islands', async t => {
+  const mainland = square(0, 0, 10, 10);
+  const island = square(20, 0, 21, 1);
+  const source = { type: 'MultiPolygon', coordinates: [...multiCoordinates(mainland), ...multiCoordinates(island)] };
+  const before = structuredClone(source);
+  const client = harness(t, [{ kind: 'country', feature: feature('A', source) }]);
+  const payload = cutPayload(source, [[-2, 2], [12, 2], [12, 4], [-2, 4], [-2, 6], [12, 6]]);
+  const { result } = await client.execute('territorial-cut', { payload });
+  assertCutPartition(result, mainland, 4);
+  for (const candidate of result.split.candidates) assert.ok(area(globalThis.polygonClipping.intersection(multiCoordinates(candidate.geometry), multiCoordinates(island))) < 1e-8);
+  assert.deepEqual(source, before);
+});
+
+test('territorial-cut preserves a hole whether the line crosses it or passes beside it', async t => {
+  const source = square(0, 0, 10, 10);
+  source.coordinates.push(square(4, 3, 6, 7).coordinates[0]);
+  const client = harness(t, [{ kind: 'country', feature: feature('A', source) }]);
+  for (const [coords, count] of [
+    [[[-2, 5], [12, 5]], 2],
+    [[[-2, 2], [12, 2], [12, 8], [-2, 8]], 3],
+  ]) {
+    const { result } = await client.execute('territorial-cut', { payload: cutPayload(source, coords) });
+    assertCutPartition(result, source, count);
+  }
+});
+
+test('territorial-cut allows a boundary touch amid valid cuts and rejects overlap, self intersection and contact alone', async t => {
+  const source = square(0, 0, 10, 10);
+  const client = harness(t, [{ kind: 'country', feature: feature('A', source) }]);
+  const touch = await client.execute('territorial-cut', { payload: cutPayload(source, [[-2, 5], [5, 10], [12, 5]]) });
+  assertCutPartition(touch.result, source, 3);
+  for (const [coords, issue] of [
+    [[[-2, 5], [5, 5], [5, 10], [8, 10], [12, 5]], 'boundary-overlap'],
+    [[[-2, 2], [8, 8], [2, 8], [8, 2], [12, 2]], 'self-intersection'],
+    [[[-2, 2], [0, 0], [2, -2]], null],
+  ]) {
+    const { result } = await client.execute('territorial-cut', { payload: cutPayload(source, coords) });
+    assert.equal(result.valid, false);
+    if (issue) assert.equal(result.issues[0].kind, issue);
+  }
+});
+
+test('territorial-cut keeps dateline pieces within longitude bounds without lost or overlapping area', async t => {
+  const source = { type: 'MultiPolygon', coordinates: [square(179, 0, 180, 10).coordinates, square(-180, 0, -179, 10).coordinates] };
+  const client = harness(t, [{ kind: 'country', feature: feature('A', source) }]);
+  const { result } = await client.execute('territorial-cut', { payload: cutPayload(source, [[178, 5], [-178, 5]]) });
+  assertCutPartition(result, source, 4);
+  for (const candidate of result.split.candidates) for (const polygon of multiCoordinates(candidate.geometry)) for (const ring of polygon) for (const [longitude] of ring) {
+    assert.ok(longitude >= -180 && longitude <= 180);
+  }
+});
+
+
+test('territorial-cut unwraps a connected dateline polygon and wraps only the final candidates', async t => {
+  const source = square(179, 0, 181, 10);
+  const expected = { type: 'MultiPolygon', coordinates: [square(179, 0, 180, 10).coordinates, square(-180, 0, -179, 10).coordinates] };
+  const client = harness(t, [{ kind: 'country', feature: feature('A', source) }]);
+  const { result } = await client.execute('territorial-cut', { payload: cutPayload(source, [[178, 5], [-178, 5]]) });
+  assertCutPartition(result, expected, 2);
+});

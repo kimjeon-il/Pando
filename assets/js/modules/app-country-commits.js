@@ -220,17 +220,15 @@ export function createCountryCommits() {
     try {
       const sourceGeometry = session.workingSourceGeometry;
       const split = (0, dependencies.cutOperations.buildCutSplitCandidates)(sourceGeometry, (0, dependencies.countryEditingA.editingDraftCoordinates)());
-      session.componentIndex = split.componentIndex;
-      dependencies.domains.editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
-      const selectedIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
-      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)(split.candidates, selectedIndex);
+      dependencies.domains.editingDomain?.replaceDraftCoordinates?.(split.line, { record: false, inputPhase: 'refine' });
+      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)(split.candidates);
       dependencies.domains.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'annex-candidates-ready' });
       (0, dependencies.taskUi.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
       (0, dependencies.taskUi.updateModeButtons)();
       dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('annex-candidates-ready');
       return true;
     } catch (error) {
-      (0, dependencies.feedback.reportOperationError)(error, '새 경계를 사용할 수 없습니다. 영토를 가져올 국가를 한 번만 관통하도록 선을 다시 그리세요.', 'PL-ANNEX-003');
+      (0, dependencies.feedback.reportOperationError)(error, '새 경계를 사용할 수 없습니다. 표시된 문제 지점을 확인하고 선을 수정하세요.', 'PL-ANNEX-003');
     }
   }
 
@@ -242,16 +240,15 @@ export function createCountryCommits() {
     try {
       const sourceGeometry = session.workingSourceGeometry;
       const split = (0, dependencies.cutOperations.buildCutSplitCandidates)(sourceGeometry, (0, dependencies.countryEditingA.editingDraftCoordinates)());
-      dependencies.domains.editingDomain?.replaceDraftCoordinates?.(split.cutLine, { record: false, inputPhase: 'refine' });
-      const selectedIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
-      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)(split.candidates, selectedIndex);
+      dependencies.domains.editingDomain?.replaceDraftCoordinates?.(split.line, { record: false, inputPhase: 'refine' });
+      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)(split.candidates);
       dependencies.domains.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'new-country-candidates-ready' });
       (0, dependencies.taskUi.setModeBanner)('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
       (0, dependencies.taskUi.updateModeButtons)();
       dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('new-country-candidates-ready');
       return true;
     } catch (error) {
-      (0, dependencies.feedback.reportOperationError)(error, '신생국 국경선을 사용할 수 없습니다. 선택 영토를 한 번만 관통하도록 선을 다시 그리세요.', 'PL-COUNTRY-003');
+      (0, dependencies.feedback.reportOperationError)(error, '신생국 국경선을 사용할 수 없습니다. 표시된 문제 지점을 확인하고 선을 수정하세요.', 'PL-COUNTRY-003');
     }
   }
 
@@ -269,7 +266,7 @@ export function createCountryCommits() {
       (0, dependencies.feedback.setActionStatus)('그린 영역 안에 편입할 영토가 없습니다.', 'error', 3200);
       return;
     }
-    (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)([{ geometry: plan.transferGeometry }], 0);
+    (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)([{ geometry: plan.transferGeometry }]);
     dependencies.domains.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'annex-polygon-ready' });
     (0, dependencies.taskUi.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
     (0, dependencies.taskUi.updateModeButtons)();
@@ -286,7 +283,7 @@ export function createCountryCommits() {
         (0, dependencies.territoryGeometry.geometryMultiCoordinates)(drawn),
       ));
       if (!geometry) throw new Error('그린 영역 안에 새 국가로 만들 영토가 없습니다.');
-      return (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)([{ geometry }], 0);
+      return (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)([{ geometry }]);
     } catch (error) {
       (0, dependencies.feedback.reportOperationError)(error, '그린 영역을 새 국가 후보로 만들 수 없습니다.', 'PL-COUNTRY-003', 3800);
       return false;

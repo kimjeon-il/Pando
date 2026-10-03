@@ -689,10 +689,11 @@ export function createDomainAssembly() {
           const selectionVisible = territorySelection?.tool === dependencies.projectState.state.tool && territorySelection.stage === 'selection';
           const sessionKey = String(territorySelection?.id || 'unknown');
           const candidates = selectionVisible ? territorySelection.candidates.map((item, index) => ({
-            key: `${sessionKey}:candidate:${index}`,
+            key: `${sessionKey}:candidate:${item.id}`,
+            id: item.id,
             index,
             geometry: item.geometry,
-            selected: index === territorySelection.selectedCandidateIndex,
+            selected: territorySelection.selectedCandidateIds.includes(item.id),
           })) : [];
           if (selectionVisible && territorySelection.currentGeometry && !candidates.some(item => item.selected)) {
             candidates.unshift({ key: `${sessionKey}:current`, index: -1, geometry: territorySelection.currentGeometry, selected: true, interactive: false });
@@ -728,7 +729,7 @@ export function createDomainAssembly() {
             territorySelection.hoveredComponentKey = null;
           }
           else if (event.type === 'territory-component-toggle') (0, dependencies.territoryComponentUi.toggleTerritoryComponentSelection)(event.componentKey);
-          else if (event.type === 'territory-candidate-select') (0, dependencies.territoryComponentUi.selectTerritoryCandidate)(event.candidateIndex);
+          else if (event.type === 'territory-candidate-select') (0, dependencies.territoryComponentUi.selectTerritoryCandidate)(event.candidateId);
           else return false;
           return true;
         },

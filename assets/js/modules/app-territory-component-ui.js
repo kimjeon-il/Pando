@@ -10,8 +10,8 @@ export function createTerritoryComponentUi() {
     dependencies = ports;
   }
 
-  function selectTerritoryCandidate(candidateIndex) {
-    return (0, dependencies.territorySelectionA.selectTerritorySelectionCandidate)(candidateIndex);
+  function selectTerritoryCandidate(candidateId) {
+    return (0, dependencies.territorySelectionA.selectTerritorySelectionCandidate)(candidateId);
   }
 
   function updateTerritoryComponentSelectionFeedback() {
