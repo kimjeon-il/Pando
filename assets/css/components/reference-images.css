@@ -209,7 +209,7 @@
 .reference-image-mode-switch {
   padding: var(--ui-space-1);
   border-radius: var(--ui-radius-control);
-  background: var(--surface);
+  background: var(--surface-card);
 }
 
 .reference-image-mode-switch .ui-button {
@@ -230,7 +230,7 @@
   gap: var(--ui-space-1);
   padding: var(--ui-space-2);
   border-radius: var(--ui-radius-control);
-  background: var(--surface);
+  background: var(--surface-card);
 }
 
 .reference-image-diagnostics > span {
