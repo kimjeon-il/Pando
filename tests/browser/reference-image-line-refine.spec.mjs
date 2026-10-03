@@ -92,8 +92,6 @@ test('line refinement accepts a current corner-pin mapping and supports cancel/a
 
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
   const geometry = await referenceScreenGeometry(page);
-  const centerX = geometry.center.x;
-  const centerY = geometry.center.y;
 
   await page.locator('[data-ref-action="free-transform"]').click();
   await expect(page.locator('#map')).toHaveClass(/is-reference-free-transform-mode/);
