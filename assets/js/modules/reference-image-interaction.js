@@ -671,6 +671,13 @@ export function createReferenceImageInteraction({
     return { kind: 'navigate' };
   }
 
+  function clearSelectedControlPoint() {
+    if (!selectedControlPointId) return false;
+    selectedControlPointId = '';
+    renderer.requestRender();
+    return true;
+  }
+
   function deleteSelectedControlPoint() {
     if (!controlPointEditingId || !selectedControlPointId) return false;
     const record = selected();
@@ -739,6 +746,7 @@ export function createReferenceImageInteraction({
     startControlPointEditing,
     stopControlPointEditing,
     beginGesture,
+    clearSelectedControlPoint,
     deleteSelectedControlPoint,
     handleRecordLocked,
     handleRecordRemoved,
