@@ -48,3 +48,12 @@ test('current reference image modules contain no legacy placement migration path
     assert.equal(source.includes('readStoredReferenceImageCollection'), false);
   }
 });
+
+
+test('active reference image input bypasses map overlay hit blocking but not UI controls', async () => {
+  const source = await readFile(moduleUrl('map-input-presentation.js'), 'utf8');
+  const controls = source.indexOf("button,input,select,textarea,a,[contenteditable=\"true\"],.editor-drawer,.reference-image-panel");
+  const active = source.indexOf('if (referenceImageInputActive()) return false;');
+  const overlay = source.indexOf("if (target?.closest?.('.map-overlay-layer')) return true;");
+  assert.ok(controls >= 0 && active > controls && overlay > active);
+});
