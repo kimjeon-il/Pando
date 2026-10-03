@@ -65,6 +65,7 @@ export function normalizeReferenceControlPoints(values = []) {
       id,
       image: Object.freeze([image[0], image[1]]),
       coordinate: Object.freeze([wrapLongitude(coordinate[0]), clamp(coordinate[1], -90, 90)]),
+      pinned: value?.pinned === true,
     }));
   }
   return Object.freeze(result);
@@ -128,27 +129,108 @@ function solveLeastSquares(rows, values, regularization = 0) {
   return solveLinearSystem(normal, target);
 }
 
+function solveConstrainedLeastSquares(
+  rows,
+  values,
+  constraintRows = [],
+  constraintValues = [],
+  regularization = 0,
+) {
+  if (rows.length !== values.length || constraintRows.length !== constraintValues.length) return null;
+  const width = rows[0]?.length || constraintRows[0]?.length || 0;
+  if (!width) return null;
+  if (rows.some(row => row.length !== width) || constraintRows.some(row => row.length !== width)) return null;
+  if (!constraintRows.length) return solveLeastSquares(rows, values, regularization);
+
+  const normal = Array.from({ length: width }, () => Array(width).fill(0));
+  const target = Array(width).fill(0);
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex];
+    const value = Number(values[rowIndex]);
+    if (!Number.isFinite(value)) return null;
+    for (let i = 0; i < width; i += 1) {
+      target[i] += row[i] * value;
+      for (let j = 0; j < width; j += 1) normal[i][j] += row[i] * row[j];
+    }
+  }
+  for (let index = 0; index < width; index += 1) normal[index][index] += regularization;
+
+  const constraintCount = constraintRows.length;
+  const size = width + constraintCount;
+  const system = Array.from({ length: size }, () => Array(size).fill(0));
+  const rhs = Array(size).fill(0);
+
+  for (let row = 0; row < width; row += 1) {
+    rhs[row] = target[row];
+    for (let column = 0; column < width; column += 1) system[row][column] = normal[row][column];
+  }
+  for (let constraint = 0; constraint < constraintCount; constraint += 1) {
+    const constraintRow = constraintRows[constraint];
+    const value = Number(constraintValues[constraint]);
+    if (!Number.isFinite(value)) return null;
+    rhs[width + constraint] = value;
+    for (let column = 0; column < width; column += 1) {
+      system[column][width + constraint] = constraintRow[column];
+      system[width + constraint][column] = constraintRow[column];
+    }
+  }
+
+  const solution = solveLinearSystem(system, rhs);
+  return solution ? solution.slice(0, width) : null;
+}
+
 function fitSimilarity(points) {
   const rows = [];
   const values = [];
+  const constraintRows = [];
+  const constraintValues = [];
   for (const point of points) {
     const [u, v] = point.image;
     const [lon, lat] = point.coordinate;
-    rows.push([u, -v, 1, 0]);
-    values.push(lon);
-    rows.push([v, u, 0, 1]);
-    values.push(lat);
+    const targetRows = point.pinned ? constraintRows : rows;
+    const targetValues = point.pinned ? constraintValues : values;
+    targetRows.push([u, -v, 1, 0]);
+    targetValues.push(lon);
+    targetRows.push([v, u, 0, 1]);
+    targetValues.push(lat);
   }
-  const coefficients = solveLeastSquares(rows, values);
+  const coefficients = solveConstrainedLeastSquares(rows, values, constraintRows, constraintValues);
   if (!coefficients) return null;
   const [a, b, tx, ty] = coefficients;
   return ([u, v]) => [a * u - b * v + tx, b * u + a * v + ty];
 }
 
 function fitAffine(points) {
-  const rows = points.map(point => [point.image[0], point.image[1], 1]);
-  const lonCoefficients = solveLeastSquares(rows, points.map(point => point.coordinate[0]));
-  const latCoefficients = solveLeastSquares(rows, points.map(point => point.coordinate[1]));
+  const rows = [];
+  const lonValues = [];
+  const latValues = [];
+  const constraintRows = [];
+  const constraintLonValues = [];
+  const constraintLatValues = [];
+  for (const point of points) {
+    const row = [point.image[0], point.image[1], 1];
+    if (point.pinned) {
+      constraintRows.push(row);
+      constraintLonValues.push(point.coordinate[0]);
+      constraintLatValues.push(point.coordinate[1]);
+    } else {
+      rows.push(row);
+      lonValues.push(point.coordinate[0]);
+      latValues.push(point.coordinate[1]);
+    }
+  }
+  const lonCoefficients = solveConstrainedLeastSquares(
+    rows,
+    lonValues,
+    constraintRows,
+    constraintLonValues,
+  );
+  const latCoefficients = solveConstrainedLeastSquares(
+    rows,
+    latValues,
+    constraintRows,
+    constraintLatValues,
+  );
   if (!lonCoefficients || !latCoefficients) return null;
   return ([u, v]) => [
     lonCoefficients[0] * u + lonCoefficients[1] * v + lonCoefficients[2],
@@ -159,15 +241,19 @@ function fitAffine(points) {
 function fitProjective(points) {
   const rows = [];
   const values = [];
+  const constraintRows = [];
+  const constraintValues = [];
   for (const point of points) {
     const [u, v] = point.image;
     const [lon, lat] = point.coordinate;
-    rows.push([u, v, 1, 0, 0, 0, -lon * u, -lon * v]);
-    values.push(lon);
-    rows.push([0, 0, 0, u, v, 1, -lat * u, -lat * v]);
-    values.push(lat);
+    const targetRows = point.pinned ? constraintRows : rows;
+    const targetValues = point.pinned ? constraintValues : values;
+    targetRows.push([u, v, 1, 0, 0, 0, -lon * u, -lon * v]);
+    targetValues.push(lon);
+    targetRows.push([0, 0, 0, u, v, 1, -lat * u, -lat * v]);
+    targetValues.push(lat);
   }
-  const h = solveLeastSquares(rows, values, 1e-14);
+  const h = solveConstrainedLeastSquares(rows, values, constraintRows, constraintValues, 1e-14);
   if (!h) return null;
   return ([u, v]) => {
     const denominator = h[6] * u + h[7] * v + 1;
@@ -265,22 +351,34 @@ function diagnosticsFor(points, project, mode) {
     const projected = project(point.image);
     return Object.freeze({
       id: point.id,
+      pinned: point.pinned === true,
       meters: haversineMeters(point.coordinate, projected),
     });
   });
-  const finiteResiduals = residuals.map(item => item.meters).filter(Number.isFinite);
-  const rmsMeters = finiteResiduals.length
-    ? Math.sqrt(finiteResiduals.reduce((sum, value) => sum + value * value, 0) / finiteResiduals.length)
+  const softResiduals = residuals.filter(item => !item.pinned && Number.isFinite(item.meters));
+  const hardResiduals = residuals.filter(item => item.pinned && Number.isFinite(item.meters));
+  const rmsSource = softResiduals.length ? softResiduals : hardResiduals;
+  const rmsMeters = rmsSource.length
+    ? Math.sqrt(rmsSource.reduce((sum, item) => sum + item.meters * item.meters, 0) / rmsSource.length)
     : Number.POSITIVE_INFINITY;
-  const maxMeters = finiteResiduals.length ? Math.max(...finiteResiduals) : Number.POSITIVE_INFINITY;
+  const maxMeters = softResiduals.length
+    ? Math.max(...softResiduals.map(item => item.meters))
+    : hardResiduals.length
+      ? Math.max(...hardResiduals.map(item => item.meters))
+      : Number.POSITIVE_INFINITY;
+  const hardMaxMeters = hardResiduals.length ? Math.max(...hardResiduals.map(item => item.meters)) : 0;
   const coverage = imageCoverage(points);
   const warnings = [];
   if (coverage < 0.08) warnings.push('control-points-concentrated');
   if (mode === REFERENCE_IMAGE_WARP_MODES.TPS && points.length < 5) warnings.push('tps-underconstrained');
   if (Number.isFinite(rmsMeters) && rmsMeters > 50000) warnings.push('high-residual');
+  if (hardMaxMeters > 0.01) warnings.push('hard-constraint-residual');
   return Object.freeze({
     rmsMeters,
     maxMeters,
+    hardMaxMeters,
+    hardPointCount: hardResiduals.length,
+    softPointCount: softResiduals.length,
     imageCoverage: coverage,
     residuals: Object.freeze(residuals),
     warnings: Object.freeze(warnings),
