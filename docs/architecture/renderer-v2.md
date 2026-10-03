@@ -15,6 +15,8 @@ Project Model
 
 The runtime pass order is defined by the actual coordinator and GPU renderer behavior. Architecture-only expectations live in `scripts/lib/renderer-v2-architecture.mjs`; no declarative test contract is downloaded by the browser.
 
+The map mode supplies the land substrate: theme land color without terrain, grayscale relief in monochrome mode, and terrain tint/shading in physical mode. Country and territorial materials contain only explicitly assigned or inherited paint. Missing paint and disabled color leave the substrate visible; clearing a color does not persist a gray replacement. The country palette keeps paint alpha and geometry visibility in separate rows so transparent paint does not disable picking, boundaries, or selection. WebGL and both Canvas paths consume the same territorial fill resolver.
+
 ## Geometry and view ownership
 
 Canonical GeoJSON remains lossless. Render LOD is derived only for cached render packets and never writes back to project geometry. Geometry caches are keyed by geometry revision, LOD and projection. Pan, zoom and rotation update frame uniforms; a view-only render must not trigger scene triangulation, stroke topology rebuilds, or mesh compilation.

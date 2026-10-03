@@ -568,18 +568,24 @@ function canvasFallbackWorkerMain() {
       {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         const projection = createProjection(message, width, height);
+        const theme = message.theme;
+        const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
+        const geoPath = self.d3.geo.path().projection(projection).context(context);
+        context.globalAlpha = theme.baseLandAlpha;
+        context.fillStyle = theme.defaultLand;
+        for (let index = 0; message.visible && index < features.length; index += 1) {
+          const feature = features[index];
+          if (hiddenCountryIds.has(countryId(feature, index))) continue;
+          context.beginPath(); geoPath(feature); context.fill();
+        }
+        context.globalAlpha = 1;
         terrainComplete = renderTerrain(message, projection, width, height, dpr);
         if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
         const substrateContext = substrate.getContext('2d');
         substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
         substrateContext.drawImage(canvas, 0, 0);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const geoPath = self.d3.geo.path().projection(projection).context(context);
-        const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
         const hiddenSharedCountryIds = new Set((message.hiddenSharedCountryIds || []).map(String));
-        const theme = message.theme || {};
-        const defaultLand = theme.defaultLand || '#63758a';
-        const fillAlpha = Number.isFinite(theme.fillAlpha) ? theme.fillAlpha : 0.74;
         const border = theme.border || '#323c46';
         const borderAlpha = Number.isFinite(theme.borderAlpha) ? theme.borderAlpha : 0.92;
         context.lineJoin = 'round';
@@ -587,10 +593,12 @@ function canvasFallbackWorkerMain() {
         for (let index = 0; message.visible && index < features.length; index += 1) {
           const feature = features[index];
           if (hiddenCountryIds.has(countryId(feature, index))) continue;
+          const fill = message.fills[countryId(feature, index)];
+          if (!(fill.fillAlpha > 0)) continue;
           context.beginPath();
           geoPath(feature);
-          context.globalAlpha = fillAlpha;
-          context.fillStyle = message.colors?.[countryId(feature, index)] || defaultLand;
+          context.globalAlpha = fill.fillAlpha;
+          context.fillStyle = fill.color;
           context.fill();
         }
         self.PandoLabCanvasSceneComposition.drawFills(context, geoPath, message.scenePolygons || [], substrate, dpr);

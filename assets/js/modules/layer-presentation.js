@@ -112,8 +112,8 @@ export const layerStyle = (presentation, group, objectKey = '') => normalizeLaye
 );
 
 // Keep the base-country palette and territorial replacement fills on one
-// display rule: a disabled color channel uses the map land color, while an
-// enabled channel preserves the most specific available color.
+// display rule. Territorial paint supplies an empty fallback to leave the
+// map-mode substrate visible; other domains may supply their own default.
 export function resolveLayerDisplayColor(presentation, group, {
   objectKey = '', explicitColor, inheritedColor, fallbackColor,
 } = {}) {

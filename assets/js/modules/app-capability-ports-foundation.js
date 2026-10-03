@@ -91,7 +91,6 @@ export const FOUNDATION_OWNER_PORTS = Object.freeze({
     "territorialServicesB"
   ],
   "serviceAssembly": [
-    "applicationServicesB",
     "builtinCountries",
     "colorModel",
     "countries",
@@ -116,7 +115,8 @@ export const FOUNDATION_OWNER_PORTS = Object.freeze({
     "renderQuality",
     "renderScene",
     "selectionServices",
-    "surfaces"
+    "surfaces",
+    "territorialModel"
   ],
   "renderQuality": [
     "countries",

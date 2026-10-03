@@ -816,13 +816,10 @@ export function createDomainAssembly() {
         countryLayer: dependencies.mapLayers.countryLayer,
         path: dependencies.mapView.path,
         countryOutlineFeature: dependencies.countryLabelModel.countryOutlineFeature,
-        getRawCountryFeature: dependencies.territorialModel.entityStore.countryFeature,
+        getEntity: dependencies.territorialModel.entityRepository.get,
         isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
         renderPendingCountryOverlays: dependencies.countryLabelModel.renderPendingCountryOverlays,
         selectionGeometryRevision: dependencies.renderScene.selectionGeometryRevision,
-        countryColor: feature => (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'countries').colorVisible === false
-          ? dependencies.preferences.mapTheme().defaultLand
-          : dependencies.colorModel.territorialEntityColor(feature),
         mapTheme: dependencies.preferences.mapTheme,
         resolvedInteractionStyle: () => dependencies.preferences.resolvedInteractionStyle,
         replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,

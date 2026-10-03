@@ -146,7 +146,7 @@ export function createGpuMapRenderer(deps) {
     TERRAIN_RASTER_MANIFEST_URL,
     onTerrainSourceChanged,
     activeProjection,
-    countryColor,
+    createCountryFillResolver,
     baseSceneFeatureById,
     countryOutlineFeature,
     d3,
@@ -655,12 +655,14 @@ export function createGpuMapRenderer(deps) {
       flat in uint vCountry;
       uniform sampler2D uPalette;
       uniform int uMode;
+      uniform int uBaseLand;
+      uniform vec4 uBaseLandColor;
       out vec4 outColor;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
-        vec4 color = texelFetch(uPalette, ivec2(int(vCountry), 0), 0);
+        vec4 color = texelFetch(uPalette, ivec2(int(vCountry), uBaseLand), 0);
         if (color.a <= 0.0) discard;
-        outColor = color;
+        outColor = uBaseLand == 1 ? uBaseLandColor : color;
       }`;
     const lineFragmentSourceWebGl2 = `#version 300 es
       precision highp float;
@@ -673,7 +675,7 @@ export function createGpuMapRenderer(deps) {
       out vec4 outColor;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
-        if (texelFetch(uPalette, ivec2(int(vCountry), 0), 0).a <= 0.0) discard;
+        if (texelFetch(uPalette, ivec2(int(vCountry), 1), 0).a <= 0.0) discard;
         outColor = uBorderColor;
       }`;
     const pickFragmentSourceWebGl2 = `#version 300 es
@@ -686,7 +688,7 @@ export function createGpuMapRenderer(deps) {
       out vec4 outColor;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
-        if (texelFetch(uPalette, ivec2(int(vCountry), 0), 0).a <= 0.0) discard;
+        if (texelFetch(uPalette, ivec2(int(vCountry), 1), 0).a <= 0.0) discard;
         uint id = vCountry + 1u;
         outColor = vec4(float(id & 255u), float((id >> 8u) & 255u), float((id >> 16u) & 255u), 255.0) / 255.0;
       }`;
@@ -706,7 +708,7 @@ export function createGpuMapRenderer(deps) {
         vec3 encoded=floor(texture(uCountryIds,vUv).rgb*255.0+0.5);
         float countryIndex=encoded.r+encoded.g*256.0+encoded.b*65536.0-1.0;
         if(countryIndex<0.0)discard;
-        vec4 color=texture(uPalette,vec2((countryIndex+0.5)/max(1.0,uPaletteWidth),0.5));
+        vec4 color=texture(uPalette,vec2((countryIndex+0.5)/max(1.0,uPaletteWidth),0.25));
         if(color.a<=0.0)discard;
         outColor=color;
       }`;
@@ -864,12 +866,14 @@ export function createGpuMapRenderer(deps) {
       uniform sampler2D uPalette;
       uniform float uPaletteWidth;
       uniform int uMode;
+      uniform int uBaseLand;
+      uniform vec4 uBaseLandColor;
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
         float index = floor(vCountry + 0.5);
-        vec4 color = texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5));
+        vec4 color = texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, uBaseLand == 1 ? 0.75 : 0.25));
         if (color.a <= 0.0) discard;
-        gl_FragColor = color;
+        gl_FragColor = uBaseLand == 1 ? uBaseLandColor : color;
       }`;
     const lineFragmentSourceWebGl1 = `
       precision highp float;
@@ -883,7 +887,7 @@ export function createGpuMapRenderer(deps) {
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
         float index = floor(vCountry + 0.5);
-        if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5)).a <= 0.0) discard;
+        if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.75)).a <= 0.0) discard;
         gl_FragColor = uBorderColor;
       }`;
     const pickFragmentSourceWebGl1 = `
@@ -897,7 +901,7 @@ export function createGpuMapRenderer(deps) {
       void main() {
         if (uMode == 0 && vDepth < 0.0) discard;
         float index = floor(vCountry + 0.5);
-        if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.5)).a <= 0.0) discard;
+        if (texture2D(uPalette, vec2((index + 0.5) / uPaletteWidth, 0.75)).a <= 0.0) discard;
         float id = floor(vCountry + 1.5);
         float r = mod(id, 256.0);
         float g = mod(floor(id / 256.0), 256.0);
@@ -919,7 +923,7 @@ export function createGpuMapRenderer(deps) {
         vec3 encoded=floor(texture2D(uCountryIds,vUv).rgb*255.0+0.5);
         float countryIndex=encoded.r+encoded.g*256.0+encoded.b*65536.0-1.0;
         if(countryIndex<0.0)discard;
-        vec4 color=texture2D(uPalette,vec2((countryIndex+0.5)/max(1.0,uPaletteWidth),0.5));
+        vec4 color=texture2D(uPalette,vec2((countryIndex+0.5)/max(1.0,uPaletteWidth),0.25));
         if(color.a<=0.0)discard;
         gl_FragColor=color;
       }`;
@@ -1253,6 +1257,7 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(program, viewUniforms);
       }
       for (const program of [fillProgram, lineProgram, pickProgram]) primeProgramLocations(program, ['uPalette', 'uPaletteWidth'], ['aCoord', 'aCountry']);
+      primeProgramLocations(fillProgram, ['uBaseLand', 'uBaseLandColor'], []);
       primeProgramLocations(countryStateFillProgram, ['uCountryIds', 'uPalette', 'uPaletteWidth'], ['aPosition']);
       primeProgramLocations(lineProgram, ['uBorderColor']);
       for (const program of [hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram]) {
@@ -2203,7 +2208,7 @@ export function createGpuMapRenderer(deps) {
       return { kind, ...styles[kind] };
     }
 
-    function configurePaletteTexture(texture) {
+    function configurePaletteTexture(texture, height) {
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -2211,7 +2216,7 @@ export function createGpuMapRenderer(deps) {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       const internalFormat = glVersion === 2 ? gl.RGBA8 : gl.RGBA;
-      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, paletteCapacity, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, paletteCapacity, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     }
 
     function ensurePaletteStorage() {
@@ -2219,12 +2224,15 @@ export function createGpuMapRenderer(deps) {
       if (palettePixels && paletteCapacity === capacity) return;
       paletteCapacity = capacity;
       palettePixels = {
-        base: new Uint8Array(capacity * 4),
-        override: new Uint8Array(capacity * 4),
+        // Row 0 is optional object paint; row 1 is geometry visibility.
+        // No paint must not disable picking, borders, or selection.
+        base: new Uint8Array(capacity * 8),
+        override: new Uint8Array(capacity * 8),
         emphasis: new Uint8Array(capacity * 4),
         overrideEmphasis: new Uint8Array(capacity * 4),
       };
-      for (const texture of [paletteTexture, overridePaletteTexture, emphasisPaletteTexture, overrideEmphasisPaletteTexture]) configurePaletteTexture(texture);
+      for (const texture of [paletteTexture, overridePaletteTexture]) configurePaletteTexture(texture, 2);
+      for (const texture of [emphasisPaletteTexture, overrideEmphasisPaletteTexture]) configurePaletteTexture(texture, 1);
       paletteDirty.base = true;
       paletteDirty.emphasis = true;
     }
@@ -2232,7 +2240,7 @@ export function createGpuMapRenderer(deps) {
     function uploadPalettePixels(texture, pixels) {
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, paletteCapacity, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, paletteCapacity, pixels.length / (paletteCapacity * 4), gl.RGBA, gl.UNSIGNED_BYTE, pixels);
       performanceMetrics.paletteUploadCount += 1;
       performanceMetrics.paletteUploadBytes += pixels.byteLength;
     }
@@ -2266,21 +2274,27 @@ export function createGpuMapRenderer(deps) {
       ensurePaletteStorage();
       const { base, override, emphasis, overrideEmphasis } = palettePixels;
       if (paletteDirty.base) {
+        const resolveFill = createCountryFillResolver();
         pendingOldMeshVisibleCount = 0;
         for (let index = 0; index < meshCountryIds.length; index += 1) {
           const id = meshCountryIds[index];
           const feature = baseSceneFeatureById(id);
-          const color = parseColor(feature ? countryColor(feature) : '#000000');
+          const fill = feature ? resolveFill(feature) : null;
+          const color = parseColor(fill?.color || '#000000');
           const offset = index * 4;
+          const visibilityOffset = (paletteCapacity + index) * 4 + 3;
           base[offset] = override[offset] = color[0];
           base[offset + 1] = override[offset + 1] = color[1];
           base[offset + 2] = override[offset + 2] = color[2];
-          const visible = feature && isCountryVisibleById(id) ? mapTheme().fillAlphaByte : 0;
+          const visible = feature && isCountryVisibleById(id) ? 255 : 0;
+          const fillAlpha = visible ? Math.round(fill.fillAlpha * 255) : 0;
           const overridden = countryOverrideIds.has(id);
           const pending = geometryRevisionTracker.isPending(id);
-          base[offset + 3] = overridden ? 0 : visible;
-          override[offset + 3] = overridden && (!pending || countryPatchPresentationCanDrawOverride(id)) ? visible : 0;
-          if (pending && (base[offset + 3] || override[offset + 3])) pendingOldMeshVisibleCount += 1;
+          base[offset + 3] = overridden ? 0 : fillAlpha;
+          override[offset + 3] = overridden && (!pending || countryPatchPresentationCanDrawOverride(id)) ? fillAlpha : 0;
+          base[visibilityOffset] = overridden ? 0 : visible;
+          override[visibilityOffset] = overridden && (!pending || countryPatchPresentationCanDrawOverride(id)) ? visible : 0;
+          if (pending && (base[visibilityOffset] || override[visibilityOffset])) pendingOldMeshVisibleCount += 1;
         }
         uploadPalettePixels(paletteTexture, base);
         uploadPalettePixels(overridePaletteTexture, override);
@@ -2297,7 +2311,8 @@ export function createGpuMapRenderer(deps) {
         for (const index of indices) {
           const id = meshCountryIds[index];
           const offset = index * 4;
-          const visible = base[offset + 3] || override[offset + 3];
+          const visibilityOffset = (paletteCapacity + index) * 4 + 3;
+          const visible = base[visibilityOffset] || override[visibilityOffset];
           const overridden = countryOverrideIds.has(id);
           const pending = geometryRevisionTracker.isPending(id);
           const entry = countryEmphasisStyle(id);
@@ -2340,14 +2355,20 @@ export function createGpuMapRenderer(deps) {
     function updatePalette(domains = null) {
       const nextDomains = domains || { base: true, emphasis: true };
       markPaletteDirty(nextDomains);
-      if (nextDomains.base) countryPaletteRevision += 1;
+      if (nextDomains.base) {
+        countryPaletteRevision += 1;
+        sceneColorCache.invalidate('country-palette');
+      }
       return flushPaletteUpdates();
     }
 
     function invalidateCountryPalette(domains = null, reason = 'country-palette') {
       const nextDomains = domains || { base: true, emphasis: true };
       markPaletteDirty(nextDomains);
-      if (nextDomains.base) countryPaletteRevision += 1;
+      if (nextDomains.base) {
+        countryPaletteRevision += 1;
+        sceneColorCache.invalidate(reason);
+      }
       if (rendererMode !== 'pending') invalidateGpuFrame(reason);
       return true;
     }
@@ -2465,8 +2486,14 @@ export function createGpuMapRenderer(deps) {
       return [coordLocation, countryLocation];
     }
 
-    function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture, lineColor = null, lineWidth = null, drawRanges = null) {
+    function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture, lineColor = null, lineWidth = null, drawRanges = null, baseLand = false) {
       gl.useProgram(program);
+      if (program === fillProgram) {
+        const theme = mapTheme();
+        const color = parseColor(theme.defaultLand);
+        gl.uniform1i(cachedUniformLocation(program, 'uBaseLand'), baseLand ? 1 : 0);
+        gl.uniform4f(cachedUniformLocation(program, 'uBaseLandColor'), color[0] / 255, color[1] / 255, color[2] / 255, theme.baseLandAlpha);
+      }
       if (program === fillProgram || program === lineProgram || program === pickProgram) {
         gl.uniform1i(cachedUniformLocation(program, 'uPalette'), 0);
         const paletteWidthLocation = cachedUniformLocation(program, 'uPaletteWidth');
@@ -2977,6 +3004,9 @@ export function createGpuMapRenderer(deps) {
 
     function invalidatePhysicalStyle(reason = 'physical-style') {
       physicalStyleStateRevision += 1;
+      // Country paint opacity depends on the active map mode.
+      markPaletteDirty({ base: true });
+      countryPaletteRevision += 1;
       if (shouldShowSharedCountryBorders(state.physicalSettings)
         && !countryBoundaryWorker && !countrySharedBoundary) prepareCountrySharedBoundary({ replace: true });
       invalidatePhysicalScene(reason);
@@ -3432,6 +3462,16 @@ export function createGpuMapRenderer(deps) {
       ctx2d.clearRect(0, 0, pixelWidth, pixelHeight);
       ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
       const canvasPath = d3.geo.path().projection(activeProjection()).context(ctx2d);
+      const theme = mapTheme();
+      const visibleFeatures = state.layerVisibility.countries
+        ? ((renderCountryFeatures?.() || state.countriesData?.features || [])).filter(feature => isLayerItemVisible('countries', String(feature.id))) : [];
+      const resolveFill = createCountryFillResolver();
+      ctx2d.globalAlpha = theme.baseLandAlpha;
+      ctx2d.fillStyle = theme.defaultLand;
+      for (const feature of visibleFeatures) {
+        ctx2d.beginPath(); canvasPath(feature); ctx2d.fill();
+      }
+      ctx2d.globalAlpha = 1;
       const substrate = canvasFillSubstrate ||= document.createElement('canvas');
       if (substrate.width !== pixelWidth || substrate.height !== pixelHeight) {
         substrate.width = pixelWidth;
@@ -3439,23 +3479,22 @@ export function createGpuMapRenderer(deps) {
       }
       substrate.getContext('2d').clearRect(0, 0, pixelWidth, pixelHeight);
       substrate.getContext('2d').drawImage(canvas, 0, 0);
-      const theme = mapTheme();
       ctx2d.lineJoin = 'round';
       ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
       if (state.layerVisibility.countries) {
-        for (const feature of state.countriesData?.features || []) {
-          const id = String(feature?.id || '');
-          if (!isLayerItemVisible('countries', id)) continue;
+        for (const feature of visibleFeatures) {
+          const fill = resolveFill(feature);
+          if (!(fill.fillAlpha > 0)) continue;
           ctx2d.beginPath();
           canvasPath(feature);
-          ctx2d.globalAlpha = theme.fillAlpha;
-          ctx2d.fillStyle = countryColor(feature);
+          ctx2d.globalAlpha = fill.fillAlpha;
+          ctx2d.fillStyle = fill.color;
           ctx2d.fill();
         }
       }
       globalThis.PandoLabCanvasSceneComposition.drawFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr);
       const emphasisEntries = [];
-      if (state.layerVisibility.countries) for (const feature of state.countriesData?.features || []) {
+      if (state.layerVisibility.countries) for (const feature of (renderCountryFeatures?.() || state.countriesData?.features || [])) {
         const id = String(feature.id || '');
         const emphasis = countryEmphasisStyle(id);
         if (isLayerItemVisible('countries', id) && emphasis) emphasisEntries.push({ key: `country:${id}`, geometry: feature,
@@ -3528,9 +3567,10 @@ export function createGpuMapRenderer(deps) {
     }
 
     function canvasWorkerStyleMessage() {
-      const colors = {};
-      for (const feature of state.countriesData?.features || []) {
-        colors[String(feature?.id || '')] = countryColor(feature);
+      const fills = {};
+      const resolveFill = createCountryFillResolver();
+      for (const feature of (renderCountryFeatures?.() || state.countriesData?.features || [])) {
+        fills[String(feature?.id || '')] = resolveFill(feature);
       }
       return {
         type: 'style',
@@ -3538,7 +3578,7 @@ export function createGpuMapRenderer(deps) {
         visible: !!state.layerVisibility.countries,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
         hiddenSharedCountryIds: (countrySharedBoundary?.ownerIds || []).filter(id => !isCountryVisibleById(id)),
-        colors,
+        fills,
         scenePolygons: canvasPacketDelta(canvasScenePolygons(), 'scene'),
         interactionFillItems: renderInteractionState.genericFillItems || [],
         interactionPolygons: canvasPacketDelta(canvasInteractionPolygons(), 'interaction'),
