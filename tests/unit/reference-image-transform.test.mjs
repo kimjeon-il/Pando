@@ -46,6 +46,22 @@ test('screen placement is converted once into geographic mapQuad coordinates', (
   assert.ok(initial.every(point => point.every(Number.isFinite)));
 });
 
+test('default placement shrinks until all four corners can be unprojected', () => {
+  const host = {
+    project([lon, lat]) {
+      return [400 + lon * 10, 300 - lat * 10];
+    },
+    unproject([x, y]) {
+      if (Math.hypot(x - 400, y - 300) > 230) return null;
+      return [(x - 400) / 10, (300 - y) / 10];
+    },
+  };
+  const image = { naturalWidth: 1000, naturalHeight: 1000 };
+  const quad = defaultReferenceImageMapQuad(image, mapElement(800, 600), host);
+  assert.equal(quad.length, 4);
+  assert.ok(quad.every(point => point.every(Number.isFinite)));
+});
+
 test('mapQuad remains anchored to map coordinates across pan and zoom changes', () => {
   const host = createHost();
   const record = {
