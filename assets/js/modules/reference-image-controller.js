@@ -620,7 +620,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       image: [...anchorState.image],
       coordinate: [coordinate[0], coordinate[1]],
     };
-    if (!alignReferenceImageAnchor(record, mapHost())) {
+    if (!alignReferenceImageAnchor(record)) {
       record.anchor = previous?.anchor ? {
         image: [...previous.anchor.image],
         coordinate: [...previous.anchor.coordinate],
