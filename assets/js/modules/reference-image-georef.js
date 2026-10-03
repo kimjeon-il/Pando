@@ -272,40 +272,72 @@ function tpsKernel(distanceSquared) {
 
 function fitThinPlateSpline(points) {
   const count = points.length;
-  const size = count + 3;
-  const system = Array.from({ length: size }, () => Array(size).fill(0));
-  for (let i = 0; i < count; i += 1) {
-    const [ui, vi] = points[i].image;
-    for (let j = 0; j < count; j += 1) {
-      const [uj, vj] = points[j].image;
-      const du = ui - uj;
-      const dv = vi - vj;
-      system[i][j] = tpsKernel(du * du + dv * dv);
-    }
-    system[i][count] = 1;
-    system[i][count + 1] = ui;
-    system[i][count + 2] = vi;
-    system[count][i] = 1;
-    system[count + 1][i] = ui;
-    system[count + 2][i] = vi;
-  }
-  for (let index = 0; index < count; index += 1) system[index][index] += 1e-12;
-  const lonTarget = [...points.map(point => point.coordinate[0]), 0, 0, 0];
-  const latTarget = [...points.map(point => point.coordinate[1]), 0, 0, 0];
-  const lonCoefficients = solveLinearSystem(system, lonTarget);
-  const latCoefficients = solveLinearSystem(system, latTarget);
-  if (!lonCoefficients || !latCoefficients) return null;
-  return ([u, v]) => {
-    const basis = [];
+  const width = count + 3;
+  const basisRow = image => {
+    const [u, v] = image;
+    const row = [];
     for (const point of points) {
       const du = u - point.image[0];
       const dv = v - point.image[1];
-      basis.push(tpsKernel(du * du + dv * dv));
+      row.push(tpsKernel(du * du + dv * dv));
     }
-    basis.push(1, u, v);
+    row.push(1, u, v);
+    return row;
+  };
+
+  const rows = [];
+  const lonValues = [];
+  const latValues = [];
+  const constraintRows = [];
+  const constraintLonValues = [];
+  const constraintLatValues = [];
+
+  for (const point of points) {
+    const row = basisRow(point.image);
+    if (point.pinned) {
+      constraintRows.push(row);
+      constraintLonValues.push(point.coordinate[0]);
+      constraintLatValues.push(point.coordinate[1]);
+    } else {
+      rows.push(row);
+      lonValues.push(point.coordinate[0]);
+      latValues.push(point.coordinate[1]);
+    }
+  }
+
+  const sideConditions = [
+    [...Array(count).fill(1), 0, 0, 0],
+    [...points.map(point => point.image[0]), 0, 0, 0],
+    [...points.map(point => point.image[1]), 0, 0, 0],
+  ];
+  for (const row of sideConditions) {
+    constraintRows.push(row);
+    constraintLonValues.push(0);
+    constraintLatValues.push(0);
+  }
+
+  const regularization = points.some(point => point.pinned) ? 1e-8 : 1e-12;
+  const lonCoefficients = solveConstrainedLeastSquares(
+    rows,
+    lonValues,
+    constraintRows,
+    constraintLonValues,
+    regularization,
+  );
+  const latCoefficients = solveConstrainedLeastSquares(
+    rows,
+    latValues,
+    constraintRows,
+    constraintLatValues,
+    regularization,
+  );
+  if (!lonCoefficients || !latCoefficients || lonCoefficients.length !== width || latCoefficients.length !== width) return null;
+
+  return image => {
+    const basis = basisRow(image);
     let lon = 0;
     let lat = 0;
-    for (let index = 0; index < size; index += 1) {
+    for (let index = 0; index < width; index += 1) {
       lon += lonCoefficients[index] * basis[index];
       lat += latCoefficients[index] * basis[index];
     }
