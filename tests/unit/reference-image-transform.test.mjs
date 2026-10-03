@@ -262,6 +262,48 @@ test('free transform rejects self-crossing or collapsed corner layouts', () => {
   assert.deepEqual(record.mapQuad, original);
 });
 
+test('basic resize preserves an existing projective trapezoid instead of flattening it', () => {
+  const host = createHost();
+  const record = {
+    id: 'perspective-resize',
+    mapQuad: [[0, 10], [20, 9], [16, 0], [2, 0]],
+    flipX: false,
+    flipY: false,
+    anchor: null,
+    controlPoints: [],
+  };
+  const before = referenceImagePlacementGeometry(record, host);
+  const beforeTop = Math.hypot(
+    before.corners[1][0] - before.corners[0][0],
+    before.corners[1][1] - before.corners[0][1],
+  );
+  const beforeBottom = Math.hypot(
+    before.corners[2][0] - before.corners[3][0],
+    before.corners[2][1] - before.corners[3][1],
+  );
+  assert.ok(Math.abs(beforeTop - beforeBottom) > 1);
+
+  const drag = createReferenceImagePlacementDrag(record, { type: 'resize', handle: 'se' }, before.handles.se, host, 40);
+  assert.equal(applyReferenceImagePlacementDrag(
+    record,
+    drag,
+    [before.handles.se[0] + 60, before.handles.se[1] + 30],
+    host,
+  ), true);
+
+  const after = referenceImagePlacementGeometry(record, host);
+  const afterTop = Math.hypot(
+    after.corners[1][0] - after.corners[0][0],
+    after.corners[1][1] - after.corners[0][1],
+  );
+  const afterBottom = Math.hypot(
+    after.corners[2][0] - after.corners[3][0],
+    after.corners[2][1] - after.corners[3][1],
+  );
+  assert.ok(Math.abs(afterTop - afterBottom) > 1);
+  assert.equal(buildReferenceImagePlacementWarp(record).ok, true);
+});
+
 test('free transform is unavailable while a manual anchor or GCP exists', () => {
   const host = createHost();
   const base = referenceImageScreenRectToMapQuad({ x: 100, y: 100, width: 200, height: 100 }, 0, host);
