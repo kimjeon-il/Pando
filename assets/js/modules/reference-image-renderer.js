@@ -2,6 +2,7 @@ import {
   REFERENCE_IMAGE_TRANSFORM,
   buildReferenceImagePlacementMesh,
   referenceImageAnchorScreenPoint,
+  projectReferenceImageMapQuad,
   referenceImagePlacementGeometry,
   referenceImagePlacementPointAtUv,
   referenceImagePlacementUvAtPoint,
@@ -71,6 +72,7 @@ export function createReferenceImageCanvasRenderer({
   getRecords,
   getSelectedId,
   getPlacementEditingId,
+  getFreeTransformEditingId,
   getControlPointEditingId,
   getSelectedControlPointId,
   isPanelHidden,
@@ -203,6 +205,37 @@ export function createReferenceImageCanvasRenderer({
     context.restore();
   }
 
+  function drawFreeTransformHandles(record, host, dpr) {
+    if (record.id !== getFreeTransformEditingId?.() || record.warp?.ok || record.anchor || isPanelHidden?.()) return;
+    const corners = projectReferenceImageMapQuad(record, host);
+    if (!corners) return;
+    context.save();
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    context.lineWidth = 1.5;
+    context.strokeStyle = 'rgba(245,158,11,.96)';
+    context.fillStyle = 'rgba(255,255,255,.98)';
+    context.beginPath();
+    context.moveTo(corners[0][0], corners[0][1]);
+    context.lineTo(corners[1][0], corners[1][1]);
+    context.lineTo(corners[2][0], corners[2][1]);
+    context.lineTo(corners[3][0], corners[3][1]);
+    context.closePath();
+    context.stroke();
+    for (let index = 0; index < corners.length; index += 1) {
+      const point = corners[index];
+      context.beginPath();
+      context.rect(
+        point[0] - REFERENCE_IMAGE_TRANSFORM.handleRadius,
+        point[1] - REFERENCE_IMAGE_TRANSFORM.handleRadius,
+        REFERENCE_IMAGE_TRANSFORM.handleRadius * 2,
+        REFERENCE_IMAGE_TRANSFORM.handleRadius * 2,
+      );
+      context.fill();
+      context.stroke();
+    }
+    context.restore();
+  }
+
   function drawAnchor(record, host, dpr) {
     if (record.id !== getSelectedId?.() || !record.anchor || record.warp?.ok || isPanelHidden?.()) return;
     const target = referenceImageAnchorScreenPoint(record, host);
@@ -282,6 +315,7 @@ export function createReferenceImageCanvasRenderer({
     }
     const selected = records.find(record => record.id === getSelectedId?.()) || null;
     if (host && selected) drawPlacementHandles(selected, host, dpr);
+    if (host && selected) drawFreeTransformHandles(selected, host, dpr);
     if (host && selected) drawAnchor(selected, host, dpr);
     if (host && selected) drawControlPoints(selected, host, dpr);
   }
