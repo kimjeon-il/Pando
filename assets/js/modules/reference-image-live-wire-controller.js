@@ -679,6 +679,11 @@ export function installReferenceImageLiveWire() {
 
   function onPointerDown(event) {
     if (!state || event.button !== 0 || !['armed', 'tracking'].includes(state.phase) || !referenceImageEventTargetsMap(event, mapElement)) return;
+    interceptMapEvent(event);
+  }
+
+  function onClick(event) {
+    if (!state || event.button !== 0 || event.detail > 1 || !['armed', 'tracking'].includes(state.phase) || !referenceImageEventTargetsMap(event, mapElement)) return;
     if (!interceptMapEvent(event)) return;
     const screen = canvasPoint(event, mapElement);
     if (state.phase === 'armed') placeFirstAnchor(screen);
@@ -764,6 +769,7 @@ export function installReferenceImageLiveWire() {
 
   panel.addEventListener('click', onPanelClick, true);
   globalThis.addEventListener('pointerdown', onPointerDown, true);
+  globalThis.addEventListener('click', onClick, true);
   globalThis.addEventListener('pointermove', onPointerMove, true);
   globalThis.addEventListener('dblclick', onDoubleClick, true);
   globalThis.addEventListener('keydown', onKeyDown, true);
@@ -787,6 +793,7 @@ export function installReferenceImageLiveWire() {
       resizeObserver.disconnect();
       panel.removeEventListener('click', onPanelClick, true);
       globalThis.removeEventListener('pointerdown', onPointerDown, true);
+      globalThis.removeEventListener('click', onClick, true);
       globalThis.removeEventListener('pointermove', onPointerMove, true);
       globalThis.removeEventListener('dblclick', onDoubleClick, true);
       globalThis.removeEventListener('keydown', onKeyDown, true);
