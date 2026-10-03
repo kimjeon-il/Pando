@@ -18,6 +18,20 @@ test('reflection cannot discard existing control points even when invoked withou
   assert.equal(value.controlPoints.length, 1);
 });
 
+test('reflection is rejected while a placement anchor is active', () => {
+  const value = {
+    id: 'anchor',
+    locked: false,
+    flipX: false,
+    flipY: false,
+    controlPoints: [],
+    anchor: { image: [0.25, 0.5], coordinate: [12, 34] },
+    mapQuad: [[10, 20], [20, 20], [20, 10], [10, 10]],
+  };
+  assert.equal(applyReferenceImageEdit(value, 'flip-x'), false);
+  assert.equal(value.flipX, false);
+});
+
 test('locked reference rejects all geometry and point mutations', () => {
   const value = record(); value.locked = true;
   const original = structuredClone(value);
