@@ -119,7 +119,7 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     } else await expect(page.locator('#editorSurface > .surface-header')).toBeHidden();
     await expect(page.locator('#modeTaskName')).toContainText('국경 조정');
     await expect(page.locator('#modeTaskObjects')).toContainText('독일');
-    await expect(page.locator('#modeTaskTargetsFocusBtn')).toBeVisible();
+    await expect(page.locator('#modeTaskTargetsFocusBtn')).toHaveCount(0);
     expect(await page.locator('#modeEditingContext').evaluate((node, original) => node === original, taskNode)).toBe(true);
     expect(await cameraSnapshot(page)).toEqual(beforeTask);
     await expect(page.locator('#modeTaskStatus')).toHaveAttribute('data-task-state', 'needs-target', { timeout: 60_000 });
@@ -136,8 +136,7 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
       await page.keyboard.press(direction === 'ArrowUp' ? 'ArrowDown' : 'ArrowUp');
       await expect(handle).toHaveAttribute('aria-valuenow', initialSnap);
     }
-    await page.locator('#modeTaskTargetsFocusBtn').click();
-    if (viewport.width === 1440) await expect.poll(() => cameraSnapshot(page)).not.toEqual(beforeTask);
+    expect(await cameraSnapshot(page)).toEqual(beforeTask);
     await page.screenshot({ path: testInfo.outputPath(`task-${viewport.width}-${mobile ? 'mobile' : 'desktop'}.png`) });
     await page.locator('#modeCancelBtn').click();
     await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');

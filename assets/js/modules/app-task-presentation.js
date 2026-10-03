@@ -516,15 +516,6 @@ export function createTaskPresentation() {
 
   function syncTaskObjectCards(view) {
     const targets = currentTaskTargets();
-    const state = dependencies.projectState.state;
-    const current = state.territorySelectionSession;
-    const creating = current?.tool === state.tool && current.kind !== 'annex' && !current.editTargetId;
-    const focus = dependencies.platform.$('modeTaskTargetsFocusBtn');
-    if (focus) {
-      focus.disabled = creating || targets.length === 0;
-      focus.classList.toggle('hidden', creating || targets.length === 0);
-      focus.setAttribute('aria-label', targets.length > 1 ? `선택한 ${targets.length}개 대상으로 이동` : '대상으로 이동');
-    }
     const root = dependencies.platform.$('modeTaskObjects');
     if (!root) return;
     const targetKeys = new Set(targets.map(ref => ref.key));
@@ -566,22 +557,6 @@ export function createTaskPresentation() {
     });
     root.replaceChildren(fragment);
     root.dataset.signature = signature;
-  }
-
-  function focusTaskTargets() {
-    const targets = currentTaskTargets();
-    if (!targets.length) return false;
-    if (targets.length === 1) return !!(0, dependencies.objectOperationsA.focusObjectRef)(targets[0]);
-    const features = targets.flatMap(ref => {
-      const feature = (0, dependencies.gpuRenderingA.mapFeatureForObjectRef)(ref);
-      if (feature?.type === 'FeatureCollection') return feature.features.filter(item => item?.geometry);
-      return feature?.geometry ? [feature] : [];
-    });
-    if (!features.length) return false;
-    (0, dependencies.navigation.fitMapToFeature)({ type: 'FeatureCollection', features }, {
-      maxZoom: (0, dependencies.surfaces.isMobile)() ? 12 : 10,
-    });
-    return true;
   }
 
   function updateModeButtons() {
@@ -829,7 +804,6 @@ export function createTaskPresentation() {
     connect,
     get runModePrimaryAction() { return runModePrimaryAction; },
     get completeCurrentDraft() { return completeCurrentDraft; },
-    get focusTaskTargets() { return focusTaskTargets; },
     get setModeBanner() { return setModeBanner; },
     get syncCountryActionButtons() { return syncCountryActionButtons; },
     get syncCutDraftFeedback() { return syncCutDraftFeedback; },
