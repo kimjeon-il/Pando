@@ -88,6 +88,25 @@ function barycentric(point, triangle) {
   return w0 >= -0.002 && w1 >= -0.002 && w2 >= -0.002 ? [w0, w1, w2] : null;
 }
 
+function angularDistanceDegrees(a, b) {
+  if (!a || !b) return Number.POSITIVE_INFINITY;
+  const factor = Math.PI / 180;
+  const lonA = a[0] * factor;
+  const latA = a[1] * factor;
+  const lonB = b[0] * factor;
+  const latB = b[1] * factor;
+  const dot = Math.sin(latA) * Math.sin(latB) + Math.cos(latA) * Math.cos(latB) * Math.cos(lonA - lonB);
+  return Math.acos(Math.max(-1, Math.min(1, dot))) / factor;
+}
+
+function projectVisible(host, coordinate) {
+  const projected = finitePair(host?.project?.(coordinate));
+  if (!projected) return null;
+  if (host.getProjectionKind?.() !== 'globe') return projected;
+  const roundTrip = normalizeCoordinate(host.unproject?.(projected));
+  return angularDistanceDegrees(coordinate, roundTrip) <= 0.25 ? projected : null;
+}
+
 function unprojectCorners(host, corners) {
   if (!host?.unproject || !Array.isArray(corners) || corners.length !== 4) return null;
   const quad = [];
@@ -166,7 +185,7 @@ export function defaultReferenceImageMapQuad(image, mapElement, host) {
 
 export function projectReferenceImageMapQuad(record, host) {
   if (!record?.mapQuad || record.mapQuad.length !== 4 || !host?.project) return null;
-  const corners = record.mapQuad.map(coordinate => finitePair(host.project(coordinate)));
+  const corners = record.mapQuad.map(coordinate => projectVisible(host, coordinate));
   return corners.every(Boolean) ? corners : null;
 }
 
