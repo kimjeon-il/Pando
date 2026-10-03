@@ -41,7 +41,7 @@ test('free transform button is available and reports active state for an uncalib
   assert.match(markup, /Projective Corner Pin/);
 });
 
-test('anchor and GCP controls stay enabled together while free transform remains disabled', () => {
+test('anchor, GCP and free transform controls stay available together', () => {
   const combined = referenceImageEditorMarkup({
     ...options,
     record: record({
@@ -53,24 +53,32 @@ test('anchor and GCP controls stay enabled together while free transform remains
       minimumPoints: 2,
       diagnostics: { rmsMeters: 1200, maxMeters: 1800, hardMaxMeters: 0.002, warnings: [] },
     },
+    freeTransformEditing: true,
   });
   assert.doesNotMatch(combined, /data-ref-action="anchor"[^>]* disabled/);
   assert.doesNotMatch(combined, /data-ref-action="gcp"[^>]* disabled/);
-  assert.match(combined, /data-ref-action="free-transform"[^>]* disabled/);
+  assert.doesNotMatch(combined, /data-ref-action="free-transform"[^>]* disabled/);
+  assert.match(combined, /TPS rubber-sheet/);
   assert.match(combined, /고정 오차/);
   assert.match(combined, /0\.002 m/);
 });
 
-test('free transform is disabled while an anchor or GCP owns calibration', () => {
+test('free transform is disabled only by record lock', () => {
   const anchored = referenceImageEditorMarkup({
     ...options,
     record: record({ anchor: { image: [0.5, 0.5], coordinate: [10, 20] } }),
   });
-  assert.match(anchored, /data-ref-action="free-transform"[^>]* disabled/);
+  assert.doesNotMatch(anchored, /data-ref-action="free-transform"[^>]* disabled/);
 
   const withGcp = referenceImageEditorMarkup({
     ...options,
     record: record({ controlPoints: [{ id: 'p', image: [0.5, 0.5], coordinate: [10, 20] }] }),
   });
-  assert.match(withGcp, /data-ref-action="free-transform"[^>]* disabled/);
+  assert.doesNotMatch(withGcp, /data-ref-action="free-transform"[^>]* disabled/);
+
+  const locked = referenceImageEditorMarkup({
+    ...options,
+    record: record({ locked: true }),
+  });
+  assert.match(locked, /data-ref-action="free-transform"[^>]* disabled/);
 });
