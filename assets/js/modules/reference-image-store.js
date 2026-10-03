@@ -1,7 +1,6 @@
 import { createBrowserProjectStorage } from './persistence-service.js';
 
 export const REFERENCE_IMAGE_COLLECTION_VERSION = 2;
-const LEGACY_COLLECTION_VERSIONS = new Set([1, REFERENCE_IMAGE_COLLECTION_VERSION]);
 const COLLECTION_KEY = 'reference-images';
 
 const storage = createBrowserProjectStorage({
@@ -20,29 +19,15 @@ export function createReferenceImageStore(projectStorage) {
 
   async function readCollection() {
     const value = await projectStorage.readProject();
-    if (value === null) {
-      return {
-        version: REFERENCE_IMAGE_COLLECTION_VERSION,
-        sourceVersion: REFERENCE_IMAGE_COLLECTION_VERSION,
-        records: [],
-        needsUpgrade: false,
-      };
-    }
-    const sourceVersion = Number(value?.version);
+    if (value === null) return { version: REFERENCE_IMAGE_COLLECTION_VERSION, records: [] };
     if (
       !value
-      || !Number.isInteger(sourceVersion)
-      || !LEGACY_COLLECTION_VERSIONS.has(sourceVersion)
+      || value.version !== REFERENCE_IMAGE_COLLECTION_VERSION
       || !Array.isArray(value.records)
     ) {
       throw new Error('참조 이미지 저장 목록을 읽을 수 없습니다. 원본을 보존했습니다.');
     }
-    return {
-      version: REFERENCE_IMAGE_COLLECTION_VERSION,
-      sourceVersion,
-      records: value.records,
-      needsUpgrade: sourceVersion !== REFERENCE_IMAGE_COLLECTION_VERSION,
-    };
+    return value;
   }
 
   function mutateCollection(mutator) {
@@ -61,15 +46,6 @@ export function createReferenceImageStore(projectStorage) {
   }
 
   return Object.freeze({
-    read: async () => {
-      const collection = await readCollection();
-      return Object.freeze({
-        version: collection.version,
-        sourceVersion: collection.sourceVersion,
-        needsUpgrade: collection.needsUpgrade,
-        records: [...collection.records],
-      });
-    },
     list: async () => [...(await readCollection()).records],
     put: record => {
       if (!record?.id) return Promise.reject(new TypeError('참조 이미지 id가 필요합니다.'));
@@ -89,7 +65,6 @@ export function createReferenceImageStore(projectStorage) {
 }
 
 const imageStore = createReferenceImageStore(storage);
-export const readStoredReferenceImageCollection = imageStore.read;
 export const listStoredReferenceImages = imageStore.list;
 export const putStoredReferenceImage = imageStore.put;
 export const replaceStoredReferenceImages = imageStore.replace;
