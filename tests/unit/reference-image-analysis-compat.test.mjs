@@ -65,3 +65,15 @@ test('reference image editing collapses the surface body on desktop and mobile',
   assert.match(surface, /const compactEditing = editing;/);
   assert.match(layout, /\.surface-reference\.reference-image-editing > \.surface-body\s*\{\s*display:\s*none;/);
 });
+
+
+test('analysis tools explicitly restore the full reference panel controls', async () => {
+  for (const name of [
+    'reference-image-live-wire-controller.js',
+    'reference-image-line-refine-controller.js',
+  ]) {
+    const source = await readFile(moduleUrl(name), 'utf8');
+    assert.match(source, /setReferenceImageSurfaceEditing\(false\)/);
+    assert.match(source, /reference-image-surface-port\.js/);
+  }
+});
