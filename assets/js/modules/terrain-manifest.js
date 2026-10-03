@@ -1,6 +1,6 @@
 export const TERRAIN_RASTER_VERSION = '0.12.6';
 export const TERRAIN_RASTER_DATASET = 'Natural Earth raster 3.2.0 1:10m';
-export const TERRAIN_DEM_VERSION = '0.13.1';
+export const TERRAIN_DEM_VERSION = '0.13.2';
 export const TERRAIN_DEM_FORMAT = 'dem-relief-v1';
 export const TERRAIN_RASTER_FORMAT = 'raster-rgba-v1';
 

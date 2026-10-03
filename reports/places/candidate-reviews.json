@@ -1,0 +1,764 @@
+{
+  "version": 1,
+  "source": {
+    "name": "cities500",
+    "sha256": "4ba815404241c08ca40a5dcdcfe35dee4ae51bb848bfff2c01d8ad35507ae232"
+  },
+  "evidenceSources": {
+    "yuseong": {
+      "url": "https://www.yuseong.go.kr/kor/sub06_01_03.do",
+      "publisher": "대전광역시 유성구",
+      "finding": "유성의 현재 행정 실체는 대전의 구이다.",
+      "access": "official-search-index; full page fetch timed out",
+      "checkedAt": "2026-10-03"
+    },
+    "dongnae": {
+      "url": "https://www.dongnae.go.kr/index.dongnae?menuCd=DOM_000000101001000000",
+      "publisher": "부산광역시 동래구",
+      "finding": "부산 동래구청 주소와 구청 행정조직을 확인했다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "bupyeong": {
+      "url": "https://www.icbp.go.kr/main/",
+      "publisher": "인천광역시 부평구",
+      "finding": "부평은 인천의 구이며 별도 시가 아니다.",
+      "access": "official-page; corrected obsolete bupyeong.go.kr URL",
+      "checkedAt": "2026-10-03"
+    },
+    "beobwon": {
+      "url": "https://dong.paju.go.kr/dong/dong_01/dong_sub03/dong_sub03_01/dong_sub03_01_01.jsp",
+      "publisher": "파주시",
+      "finding": "법원은 파주시 법원읍으로 안내된다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "namyangju": {
+      "url": "https://www.nyj.go.kr/www/contents.do?key=2866",
+      "publisher": "남양주시",
+      "finding": "공식 읍면동 목록에 와부읍과 화도읍을 명시한다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "bubal": {
+      "url": "https://www.icheon.go.kr/csc/contents.do?mid=0102010200",
+      "publisher": "이천시",
+      "finding": "부발읍의 연혁과 1989년 읍 승격을 안내한다.",
+      "access": "official-search-index; full page fetch returned bad request",
+      "checkedAt": "2026-10-03"
+    },
+    "naeseo": {
+      "url": "https://www.changwon.go.kr/cwportal/_res/gu/data/pdf/p12139_down01_2026.pdf",
+      "publisher": "창원시 마산회원구",
+      "finding": "2026년 업무계획에 내서읍 호계리 등 마산회원구 내 읍 지역을 제시한다.",
+      "access": "official-indexed-document",
+      "checkedAt": "2026-10-03"
+    },
+    "hwawon": {
+      "url": "https://dalseong.daegu.kr/kor/index.do?menu_id=90003298",
+      "publisher": "대구광역시 달성군",
+      "finding": "달성군 행정조직의 읍면 목록에 화원읍을 명시한다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "tokyo": {
+      "url": "https://www.gikai.metro.tokyo.lg.jp/link/ward_municipality.html",
+      "publisher": "東京都議会",
+      "finding": "葛飾・北・大田・中野・中央・港을 도쿄23구 목록에, 별도 시들을 시정촌 목록에 구분한다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "nyc": {
+      "url": "https://portal.311.nyc.gov/article/?kanumber=KA-02877",
+      "publisher": "New York City NYC311",
+      "finding": "Bronx, Brooklyn, Manhattan, Queens, Staten Island은 모두 New York City의 borough이며 county이기도 하다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "kyoto": {
+      "url": "https://www.city.kyoto.lg.jp/kamigyo/index.html",
+      "publisher": "京都市上京区",
+      "finding": "上京区는 교토시 내부 구로 안내된다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "sagamihara": {
+      "url": "https://www.city.sagamihara.kanagawa.jp/midoriku/hashimoto/index.html",
+      "publisher": "相模原市",
+      "finding": "相原1~6丁目를 相模原市 緑区 橋本地区 내부 지역으로 열거한다. GeoNames Aihara 레코드 자체의 경계 일치까지 증명하지는 않는다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "koto": {
+      "url": "https://www.city.koto.lg.jp/kuse/profile/ichi/index.html",
+      "publisher": "東京都江東区",
+      "finding": "도쿄 江東区의 위치 안내이다. GeoNames 11209896의 구마모토 좌표와 도쿄 별칭을 동일 객체로 확정하지 않는다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "jeju": {
+      "url": "https://audit.jeju.go.kr/news/activity/result.htm?act=download&no=1&page=4&seq=36530",
+      "publisher": "제주특별자치도 감사위원회",
+      "finding": "노형동은 제주시 내부 동 목록에 있다. Tallang/Wollang 별칭의 정확한 현대 지점은 아직 미확정이다.",
+      "access": "official-indexed-document",
+      "checkedAt": "2026-10-03"
+    },
+    "college": {
+      "url": "https://www.cstx.gov/",
+      "publisher": "City of College Station",
+      "finding": "College Station은 Texas의 시이며 station이라는 단어가 시설 판정을 뜻하지 않는다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "oliveira": {
+      "url": "https://portalautarquico.dgal.gov.pt/pt-PT/entidades-locais/concelhos/oliveira-do-hospital/",
+      "publisher": "Portugal Direção-Geral das Autarquias Locais",
+      "finding": "Oliveira do Hospital은 지방자치단체 이름이며 Hospital이라는 단어만으로 병원 POI로 제외할 수 없다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "otaGunma": {
+      "url": "https://www.city.ota.gunma.jp/",
+      "publisher": "群馬県太田市",
+      "finding": "군마 太田市는 도쿄 大田区와 다른 시이다. 동명 GeoNames ID를 병합하지 않는다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "pujiang": {
+      "url": "https://www.pj.gov.cn/col/col1229196645/index.html",
+      "publisher": "浙江省浦江县人民政府",
+      "finding": "浦阳街道办事处를 浦江县의 향진가도 목록에 명시한다. 河南 濮阳市와 표기 및 소속이 다르다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "puyangHenan": {
+      "url": "https://pyxinqu.puyang.gov.cn/",
+      "publisher": "河南省濮阳市城乡一体化示范区",
+      "finding": "河南 濮阳市의 공식 행정기관이다. GeoNames 9181182는 河南/4109와 濮阳 별칭을 가지며 1798425의 浙江/3307 및 浦阳과 다르다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "gangneung": {
+      "url": "https://www.gn.go.kr/",
+      "publisher": "강릉시",
+      "finding": "강릉은 강원특별자치도의 시이다. PPLA3로 빠진 정착지의 소수 예외 검토 대상이다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "latur": {
+      "url": "https://latur.gov.in/en/administrative-setup/",
+      "publisher": "Latur District Government",
+      "finding": "라투르시와 district 행정중심을 명시한다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "deoghar": {
+      "url": "https://deoghar.nic.in/history/",
+      "publisher": "District Deoghar Government of Jharkhand",
+      "finding": "Deoghar를 district의 주요 도시로 설명한다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "cranston": {
+      "url": "https://cranstonri.gov/government/default.aspx",
+      "publisher": "City of Cranston",
+      "finding": "Cranston은 Rhode Island의 시이며 Providence 대도시권에 속해도 독립 시이다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "tigard": {
+      "url": "https://sos.oregon.gov/blue-book/government/pages/tigard.aspx",
+      "publisher": "Oregon Secretary of State",
+      "finding": "Tigard를 incorporated city로 등재한다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "inuvik": {
+      "url": "https://www.inuvik.ca/en/town-hall/resources/PRINTABLE-LISTS/Community-Plan---First-Reading-Dec-4_Optimized.pdf",
+      "publisher": "Town of Inuvik",
+      "finding": "Inuvik을 Western Arctic의 정부 행정중심으로 설명한다. 지역의 유일 중심 또는 최종 자동표시 순위를 계산한 것은 아니다.",
+      "access": "official-indexed-document",
+      "checkedAt": "2026-10-03"
+    },
+    "wenzhou": {
+      "url": "https://wztjj.wenzhou.gov.cn/attach/0/d077e71612ed4b42b271c1ac499e41de.pdf",
+      "publisher": "温州市统计局",
+      "finding": "温州 도시·현·구의 통계 체계를 구분한다. GeoNames 인구를 최신 시가지 인구로 검증하거나 바꾸지는 않는다.",
+      "access": "official-indexed-document",
+      "checkedAt": "2026-10-03"
+    }
+  },
+  "decisions": [
+    {
+      "geonameId": 1265014,
+      "expected": {
+        "name": "Latur",
+        "countryCode": "IN",
+        "featureCode": "PPLA3",
+        "latitude": 18.39721,
+        "longitude": 76.56784
+      },
+      "action": "inclusion-review",
+      "evidence": [
+        "latur"
+      ],
+      "reason": "district 중심 도시지만 PPLA3라 제외. 행정중심 정착지 예외 후보이며 이번 정제본에는 추가하지 않는다."
+    },
+    {
+      "geonameId": 1273241,
+      "expected": {
+        "name": "Deoghar",
+        "countryCode": "IN",
+        "featureCode": "PPLA3",
+        "latitude": 24.48983,
+        "longitude": 86.69902
+      },
+      "action": "inclusion-review",
+      "evidence": [
+        "deoghar"
+      ],
+      "reason": "district의 주요 도시임을 확인. PPLA3 소수 예외 검토만 기록하며 자동 추가하지 않는다."
+    },
+    {
+      "geonameId": 1791388,
+      "expected": {
+        "name": "Wenzhou",
+        "countryCode": "CN",
+        "featureCode": "PPLA3",
+        "latitude": 27.99942,
+        "longitude": 120.66682
+      },
+      "action": "inclusion-review",
+      "evidence": [
+        "wenzhou"
+      ],
+      "reason": "温州市 중심의 누락 후보. 큰 인구의 행정구역/시가지 범위는 미검증이므로 최종 순위 없이 소수 예외 검토만 기록."
+    },
+    {
+      "geonameId": 1798425,
+      "expected": {
+        "name": "Puyang",
+        "countryCode": "CN",
+        "featureCode": "PPLA3",
+        "latitude": 29.45679,
+        "longitude": 119.88872
+      },
+      "action": "hold",
+      "evidence": [
+        "pujiang",
+        "puyangHenan"
+      ],
+      "reason": "浙江 浦阳街道/浦江 별칭과 인구3590000이 붙은 레코드. 河南 濮阳(9181182)과 다른 ID·위치·소속이며 기존 대도시 누락 예시를 정정. 이미 필터 밖이므로 추가하지 않는다."
+    },
+    {
+      "geonameId": 1832034,
+      "expected": {
+        "name": "Yuseong",
+        "countryCode": "KR",
+        "featureCode": "PPLA2",
+        "latitude": 36.35389,
+        "longitude": 127.33667
+      },
+      "action": "exclude",
+      "evidence": [
+        "yuseong"
+      ],
+      "reason": "대전 유성구의 내부 구급 중심. 저인구 행정중심 유지 규칙이 미세 지명 제외보다 우선하는 것은 아니다."
+    },
+    {
+      "geonameId": 1833332,
+      "expected": {
+        "name": "Tallang-dong",
+        "countryCode": "KR",
+        "featureCode": "PPL",
+        "latitude": 33.49028,
+        "longitude": 126.47528
+      },
+      "action": "hold",
+      "evidence": [
+        "jeju"
+      ],
+      "reason": "노형동/Wollang 별칭이 섞인 내부 동급 의심. 정확한 현대 지점 확인 전 삭제 확정이나 이름 교체 없이 보류."
+    },
+    {
+      "geonameId": 1834203,
+      "expected": {
+        "name": "Dongnae",
+        "countryCode": "KR",
+        "featureCode": "PPLA2",
+        "latitude": 35.20159,
+        "longitude": 129.08477
+      },
+      "action": "exclude",
+      "evidence": [
+        "dongnae"
+      ],
+      "reason": "부산 동래구 내부 구급 중심으로 시·군급 정착지 범위 밖."
+    },
+    {
+      "geonameId": 1839110,
+      "expected": {
+        "name": "Beobwon",
+        "countryCode": "KR",
+        "featureCode": "PPLA2",
+        "latitude": 37.84902,
+        "longitude": 126.87533
+      },
+      "action": "exclude",
+      "evidence": [
+        "beobwon"
+      ],
+      "reason": "파주시 법원읍. 인구 0 PPLA2이지만 이번 범위에서 읍급은 제외."
+    },
+    {
+      "geonameId": 1841246,
+      "expected": {
+        "name": "Masan",
+        "countryCode": "KR",
+        "featureCode": "PPL",
+        "latitude": 35.12725,
+        "longitude": 126.83149
+      },
+      "action": "hold",
+      "evidence": [
+        "naeseo"
+      ],
+      "reason": "원본은 광주 admin1=18/admin2=24020 및 경도126.83149인데 인구434371과 마산 이름이 붙음. 창원 마산으로 추정해 좌표 수정·이름 병합하지 않고 정체/인구 검증까지 보류."
+    },
+    {
+      "geonameId": 1843137,
+      "expected": {
+        "name": "Gangneung",
+        "countryCode": "KR",
+        "featureCode": "PPLA3",
+        "latitude": 37.75266,
+        "longitude": 128.87239
+      },
+      "action": "inclusion-review",
+      "evidence": [
+        "gangneung"
+      ],
+      "reason": "강릉시 중심의 중요한 누락. 원래 PPLA3 제외는 유지하고 소수 ID 예외 승인을 위한 검토 대상으로만 기록."
+    },
+    {
+      "geonameId": 1853677,
+      "expected": {
+        "name": "Ōta",
+        "countryCode": "JP",
+        "featureCode": "PPLA2",
+        "latitude": 36.3,
+        "longitude": 139.36667
+      },
+      "action": "retain",
+      "evidence": [
+        "otaGunma"
+      ],
+      "reason": "군마현 太田市. 도쿄 大田区(8469289)와 동명이지만 별도 ID로 유지."
+    },
+    {
+      "geonameId": 1865689,
+      "expected": {
+        "name": "Aihara",
+        "countryCode": "JP",
+        "featureCode": "PPL",
+        "latitude": 35.6,
+        "longitude": 139.31667
+      },
+      "action": "hold",
+      "evidence": [
+        "sagamihara"
+      ],
+      "reason": "相原 내부 지역 및 Sagamihara 별칭에 시 규모 인구725493이 붙음. 경계·인구 의미 미확정으로 Sagamihara와 합치지 않고 보류."
+    },
+    {
+      "geonameId": 1896953,
+      "expected": {
+        "name": "Pubal",
+        "countryCode": "KR",
+        "featureCode": "PPL",
+        "latitude": 37.29167,
+        "longitude": 127.50778
+      },
+      "action": "exclude",
+      "evidence": [
+        "bubal"
+      ],
+      "reason": "이천시 부발읍으로 인구 기준을 통과해도 읍급 제외."
+    },
+    {
+      "geonameId": 1897118,
+      "expected": {
+        "name": "Hwado",
+        "countryCode": "KR",
+        "featureCode": "PPL",
+        "latitude": 37.6525,
+        "longitude": 127.3075
+      },
+      "action": "exclude",
+      "evidence": [
+        "namyangju"
+      ],
+      "reason": "남양주시 화도읍. 인구 10만 이상이어도 읍급이므로 자동표시 심사 대상으로 남기지 않는다."
+    },
+    {
+      "geonameId": 1912209,
+      "expected": {
+        "name": "Wabu",
+        "countryCode": "KR",
+        "featureCode": "PPL",
+        "latitude": 37.58972,
+        "longitude": 127.22028
+      },
+      "action": "exclude",
+      "evidence": [
+        "namyangju"
+      ],
+      "reason": "남양주시 와부읍으로 미세 지명 범위."
+    },
+    {
+      "geonameId": 1925936,
+      "expected": {
+        "name": "Naesŏ",
+        "countryCode": "KR",
+        "featureCode": "PPL",
+        "latitude": 35.24972,
+        "longitude": 128.52
+      },
+      "action": "exclude",
+      "evidence": [
+        "naeseo"
+      ],
+      "reason": "창원시 마산회원구 내서읍으로 읍급 제외."
+    },
+    {
+      "geonameId": 1925943,
+      "expected": {
+        "name": "Hwawŏn",
+        "countryCode": "KR",
+        "featureCode": "PPL",
+        "latitude": 35.80167,
+        "longitude": 128.50083
+      },
+      "action": "exclude",
+      "evidence": [
+        "hwawon"
+      ],
+      "reason": "달성군 화원읍. 군의 내부 읍 레코드이며 별도 군 중심으로 승격하지 않는다."
+    },
+    {
+      "geonameId": 2737038,
+      "expected": {
+        "name": "Oliveira do Hospital",
+        "countryCode": "PT",
+        "featureCode": "PPLA2",
+        "latitude": 40.3618,
+        "longitude": -7.86014
+      },
+      "action": "retain",
+      "evidence": [
+        "oliveira"
+      ],
+      "reason": "정상 지방자치 중심. Hospital 키워드 오탐이며 저인구 행정중심 검색 후보 유지."
+    },
+    {
+      "geonameId": 4682464,
+      "expected": {
+        "name": "College Station",
+        "countryCode": "US",
+        "featureCode": "PPL",
+        "latitude": 30.62798,
+        "longitude": -96.33441
+      },
+      "action": "retain",
+      "evidence": [
+        "college"
+      ],
+      "reason": "정상 시 이름. station 키워드만으로 역/시설 POI로 제외하지 않는다. 원본 인구를 최신 인구로 교체하지 않음."
+    },
+    {
+      "geonameId": 5110266,
+      "expected": {
+        "name": "The Bronx",
+        "countryCode": "US",
+        "featureCode": "PPLA2",
+        "latitude": 40.84985,
+        "longitude": -73.86641
+      },
+      "action": "exclude",
+      "evidence": [
+        "nyc"
+      ],
+      "reason": "New York City 내부 borough/county. 다른 county seat 전체를 제외하는 규칙으로 일반화하지 않는다."
+    },
+    {
+      "geonameId": 5110302,
+      "expected": {
+        "name": "Brooklyn",
+        "countryCode": "US",
+        "featureCode": "PPLA2",
+        "latitude": 40.6501,
+        "longitude": -73.94958
+      },
+      "action": "exclude",
+      "evidence": [
+        "nyc"
+      ],
+      "reason": "New York City 내부 borough/county. 다른 county seat 전체를 제외하는 규칙으로 일반화하지 않는다."
+    },
+    {
+      "geonameId": 5125771,
+      "expected": {
+        "name": "Manhattan",
+        "countryCode": "US",
+        "featureCode": "PPLA2",
+        "latitude": 40.78343,
+        "longitude": -73.96625
+      },
+      "action": "exclude",
+      "evidence": [
+        "nyc"
+      ],
+      "reason": "New York City 내부 borough/county. 다른 county seat 전체를 제외하는 규칙으로 일반화하지 않는다."
+    },
+    {
+      "geonameId": 5133273,
+      "expected": {
+        "name": "Queens",
+        "countryCode": "US",
+        "featureCode": "PPLA2",
+        "latitude": 40.68149,
+        "longitude": -73.83652
+      },
+      "action": "exclude",
+      "evidence": [
+        "nyc"
+      ],
+      "reason": "New York City 내부 borough/county. 다른 county seat 전체를 제외하는 규칙으로 일반화하지 않는다."
+    },
+    {
+      "geonameId": 5139568,
+      "expected": {
+        "name": "Staten Island",
+        "countryCode": "US",
+        "featureCode": "PPLA2",
+        "latitude": 40.56233,
+        "longitude": -74.13986
+      },
+      "action": "exclude",
+      "evidence": [
+        "nyc"
+      ],
+      "reason": "New York City 내부 borough/county. 다른 county seat 전체를 제외하는 규칙으로 일반화하지 않는다."
+    },
+    {
+      "geonameId": 5221659,
+      "expected": {
+        "name": "Cranston",
+        "countryCode": "US",
+        "featureCode": "PPLA3",
+        "latitude": 41.77982,
+        "longitude": -71.43728
+      },
+      "action": "inclusion-review",
+      "evidence": [
+        "cranston"
+      ],
+      "reason": "Providence 대도시권 안에 있어도 독립 시이다. 위성/근접성만으로 미세 지명으로 취급하지 않고 PPLA3 예외 검토."
+    },
+    {
+      "geonameId": 5756758,
+      "expected": {
+        "name": "Tigard",
+        "countryCode": "US",
+        "featureCode": "PPLA3",
+        "latitude": 45.43123,
+        "longitude": -122.77149
+      },
+      "action": "inclusion-review",
+      "evidence": [
+        "tigard"
+      ],
+      "reason": "Oregon의 incorporated city. PPLA3 소수 예외 검토 대상이며 인구50k+만으로 모든 PPLA3을 복구하지 않는다."
+    },
+    {
+      "geonameId": 5983607,
+      "expected": {
+        "name": "Inuvik",
+        "countryCode": "CA",
+        "featureCode": "PPL",
+        "latitude": 68.36166,
+        "longitude": -133.72817
+      },
+      "action": "inclusion-review",
+      "evidence": [
+        "inuvik"
+      ],
+      "reason": "인구3243이지만 Western Arctic 행정중심. 저밀도 지역 대표 정착지 예외 검토 대상으로 남기고 자동 추가/순위 결정하지 않는다."
+    },
+    {
+      "geonameId": 8125829,
+      "expected": {
+        "name": "Kamigyō-ku",
+        "countryCode": "JP",
+        "featureCode": "PPLA3",
+        "latitude": 35.02954,
+        "longitude": 135.75666
+      },
+      "action": "exclude",
+      "evidence": [
+        "kyoto"
+      ],
+      "reason": "교토시 내부 구. 원래부터 제외되어 있으며 큰 PPLA3의 일괄 복구 대상이 아님을 확인."
+    },
+    {
+      "geonameId": 8469284,
+      "expected": {
+        "name": "Katsushika",
+        "countryCode": "JP",
+        "featureCode": "PPLA2",
+        "latitude": 35.73333,
+        "longitude": 139.85
+      },
+      "action": "exclude",
+      "evidence": [
+        "tokyo"
+      ],
+      "reason": "도쿄 특별구 중심. 특별구의 자치단체 지위와 별개로 이번 도시 내부 ward 제외 범위를 적용한다."
+    },
+    {
+      "geonameId": 8469285,
+      "expected": {
+        "name": "Kita",
+        "countryCode": "JP",
+        "featureCode": "PPLA2",
+        "latitude": 35.75264,
+        "longitude": 139.73348
+      },
+      "action": "exclude",
+      "evidence": [
+        "tokyo"
+      ],
+      "reason": "도쿄 특별구 중심. 특별구의 자치단체 지위와 별개로 이번 도시 내부 ward 제외 범위를 적용한다."
+    },
+    {
+      "geonameId": 8469289,
+      "expected": {
+        "name": "Ōta",
+        "countryCode": "JP",
+        "featureCode": "PPLA2",
+        "latitude": 35.56126,
+        "longitude": 139.71605
+      },
+      "action": "exclude",
+      "evidence": [
+        "tokyo"
+      ],
+      "reason": "도쿄 특별구 중심. 특별구의 자치단체 지위와 별개로 이번 도시 내부 ward 제외 범위를 적용한다."
+    },
+    {
+      "geonameId": 8715035,
+      "expected": {
+        "name": "Nakano",
+        "countryCode": "JP",
+        "featureCode": "PPLA2",
+        "latitude": 35.70449,
+        "longitude": 139.66946
+      },
+      "action": "exclude",
+      "evidence": [
+        "tokyo"
+      ],
+      "reason": "도쿄 특별구 중심. 특별구의 자치단체 지위와 별개로 이번 도시 내부 ward 제외 범위를 적용한다."
+    },
+    {
+      "geonameId": 9181182,
+      "expected": {
+        "name": "Puyang",
+        "countryCode": "CN",
+        "featureCode": "PPLA2",
+        "latitude": 35.75641,
+        "longitude": 115.04363
+      },
+      "action": "retain",
+      "evidence": [
+        "puyangHenan"
+      ],
+      "reason": "河南 濮阳市의 현재 기준 후보는 이미 포함되어 있다. 浙江 Puyang(1798425)의 인구나 이름을 가져오지 않는다."
+    },
+    {
+      "geonameId": 11209896,
+      "expected": {
+        "name": "Kotō",
+        "countryCode": "JP",
+        "featureCode": "PPL",
+        "latitude": 32.77856,
+        "longitude": 130.74537
+      },
+      "action": "hold",
+      "evidence": [
+        "koto"
+      ],
+      "reason": "원본 admin1=21/admin2=1858418과 좌표는 구마모토 쪽인데 江東区/Koto City/湖東 별칭과 인구543730이 혼재. 도쿄 특별구로 단정했던 이전 감사 설명을 정정하고 보류."
+    },
+    {
+      "geonameId": 11549691,
+      "expected": {
+        "name": "Bupyeong",
+        "countryCode": "KR",
+        "featureCode": "PPLA2",
+        "latitude": 37.50533,
+        "longitude": 126.72202
+      },
+      "action": "exclude",
+      "evidence": [
+        "bupyeong"
+      ],
+      "reason": "인천 부평구 내부 구급 중심으로 별도 시가 아니다."
+    },
+    {
+      "geonameId": 11611609,
+      "expected": {
+        "name": "Sagamihara",
+        "countryCode": "JP",
+        "featureCode": "PPLA2",
+        "latitude": 35.56707,
+        "longitude": 139.24167
+      },
+      "action": "retain",
+      "evidence": [
+        "sagamihara"
+      ],
+      "reason": "相模原市의 시 중심 후보 유지. Aihara와 인구나 별칭이 유사하다고 ID를 합치지 않는다."
+    },
+    {
+      "geonameId": 13353695,
+      "expected": {
+        "name": "Chūō",
+        "countryCode": "JP",
+        "featureCode": "PPLA2",
+        "latitude": 35.67004,
+        "longitude": 139.77544
+      },
+      "action": "exclude",
+      "evidence": [
+        "tokyo"
+      ],
+      "reason": "도쿄 특별구 중심. 특별구의 자치단체 지위와 별개로 이번 도시 내부 ward 제외 범위를 적용한다."
+    },
+    {
+      "geonameId": 13353696,
+      "expected": {
+        "name": "Minato City",
+        "countryCode": "JP",
+        "featureCode": "PPLA2",
+        "latitude": 35.6581,
+        "longitude": 139.7515
+      },
+      "action": "exclude",
+      "evidence": [
+        "tokyo"
+      ],
+      "reason": "도쿄 특별구 중심. 특별구의 자치단체 지위와 별개로 이번 도시 내부 ward 제외 범위를 적용한다."
+    }
+  ]
+}
