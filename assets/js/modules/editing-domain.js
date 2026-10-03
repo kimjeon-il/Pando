@@ -185,31 +185,35 @@ export function createEditingDomain({
   const draftInputActive = () => !!toolConfig();
   const requestEditingRender = reason => context?.requestRender?.({ kind: 'editing-overlays', reason: String(reason || 'editing-change') });
 
-  const buildSnapshot = reason => Object.freeze({
-    revision,
-    projectGeneration,
-    phase,
-    activeTool,
-    reason: String(reason || ''),
-    draft: Object.freeze({
-      coords: Object.freeze(cloneCoordinates(draftCoords).map(Object.freeze)),
-      hover: draftHover ? Object.freeze(cloneCoordinate(draftHover)) : null,
-      inputPhase: draftEdit.inputPhase,
-      vertexInsertMode: draftEdit.vertexInsertMode,
-      selectedVertexIndex: draftEdit.selectedVertexIndex,
-      insertTarget: draftEdit.insertTarget ? Object.freeze({
-        segmentIndex: draftEdit.insertTarget.segmentIndex,
-        coordinate: Object.freeze(cloneCoordinate(draftEdit.insertTarget.coordinate)),
-      }) : null,
-      dragging: draftEdit.dragging,
-      issues: Object.freeze([...(draftEdit.issues || [])]),
-      historyCount: draftEdit.history.length,
-      futureCount: draftEdit.future.length,
-      strokeActive: draftStroke.active === true,
-      cutAssessment: draftCutAssessment,
-      activeSnap,
-    }),
-  });
+  const buildSnapshot = reason => {
+    const draftActive = draftInputActive();
+    return Object.freeze({
+      revision,
+      projectGeneration,
+      phase,
+      activeTool,
+      reason: String(reason || ''),
+      draft: Object.freeze({
+        active: draftActive,
+        coords: Object.freeze(cloneCoordinates(draftCoords).map(Object.freeze)),
+        hover: draftActive && draftHover ? Object.freeze(cloneCoordinate(draftHover)) : null,
+        inputPhase: draftEdit.inputPhase,
+        vertexInsertMode: draftEdit.vertexInsertMode,
+        selectedVertexIndex: draftEdit.selectedVertexIndex,
+        insertTarget: draftActive && draftEdit.insertTarget ? Object.freeze({
+          segmentIndex: draftEdit.insertTarget.segmentIndex,
+          coordinate: Object.freeze(cloneCoordinate(draftEdit.insertTarget.coordinate)),
+        }) : null,
+        dragging: draftActive && draftEdit.dragging,
+        issues: Object.freeze(draftActive ? [...(draftEdit.issues || [])] : []),
+        historyCount: draftEdit.history.length,
+        futureCount: draftEdit.future.length,
+        strokeActive: draftActive && draftStroke.active === true,
+        cutAssessment: draftActive ? draftCutAssessment : null,
+        activeSnap: draftActive ? activeSnap : null,
+      }),
+    });
+  };
 
   const emit = (reason, { render = true } = {}) => {
     revision += 1;
@@ -744,16 +748,16 @@ export function createEditingDomain({
       projectGeneration,
       tool: activeTool,
       phase,
-      draft: {
-        active: !!config,
+      draft: config ? {
+        active: true,
         inputPhase: draftEdit.inputPhase,
         vertexInsertMode: draftEdit.vertexInsertMode,
-        shape: config?.shape || null,
-        geometry: draftGeometry(assessment?.line || [...draftCoords, ...(draftHover ? [draftHover] : [])], config?.shape),
+        shape: config.shape,
+        geometry: draftGeometry(assessment?.line || [...draftCoords, ...(draftHover ? [draftHover] : [])], config.shape),
         rawStrokeGeometry: draftStroke.active ? draftGeometry(rawCoords, 'line') : null,
-        autoCloseSegment: config?.shape === 'polygon' && draftCoords.length >= 3 ? { start: draftCoords.at(-1), end: draftCoords[0] } : null,
+        autoCloseSegment: config.shape === 'polygon' && draftCoords.length >= 3 ? { start: draftCoords.at(-1), end: draftCoords[0] } : null,
         vertices: cloneCoordinates(displayCoords).map((value, index) => ({ key: `draft:${index}`, index, coordinate: value, selected: index === draftEdit.selectedVertexIndex })),
-        segments: draftSegments(displayCoords, config?.shape === 'polygon'),
+        segments: draftSegments(displayCoords, config.shape === 'polygon'),
         selectedVertexIndex: draftEdit.selectedVertexIndex,
         insertTarget: draftEdit.insertTarget,
         dragging: draftEdit.dragging,
@@ -763,7 +767,7 @@ export function createEditingDomain({
         snapPoints: assessment?.snaps ? Object.entries(assessment.snaps).filter(([, item]) => item?.coordinate).map(([endpoint, item]) => ({ endpoint, ...item })) : [],
         cutStatus: assessment?.status || null,
         canCommit: assessment ? assessment.valid === true : draftEdit.issues.length === 0,
-      },
+      } : { active: false },
       objectVertices,
       boundaryEdit: supplemental.boundaryEdit,
       territoryOperation: supplemental.territoryOperation,

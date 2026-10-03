@@ -516,10 +516,13 @@ export function createTaskPresentation() {
 
   function syncTaskObjectCards(view) {
     const targets = currentTaskTargets();
+    const state = dependencies.projectState.state;
+    const current = state.territorySelectionSession;
+    const creating = current?.tool === state.tool && current.kind !== 'annex' && !current.editTargetId;
     const focus = dependencies.platform.$('modeTaskTargetsFocusBtn');
     if (focus) {
-      focus.disabled = targets.length === 0;
-      focus.classList.toggle('hidden', targets.length === 0);
+      focus.disabled = creating || targets.length === 0;
+      focus.classList.toggle('hidden', creating || targets.length === 0);
       focus.setAttribute('aria-label', targets.length > 1 ? `선택한 ${targets.length}개 대상으로 이동` : '대상으로 이동');
     }
     const root = dependencies.platform.$('modeTaskObjects');

@@ -204,7 +204,8 @@ const objectContext = contextIndex >= 0 && contextEnd > contextIndex ? editor.sl
 for (const requiredId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (!objectContext.includes(`id="${requiredId}"`)) fail(`ObjectContext is missing #${requiredId}`);
 }
-if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext must own the optional map-focus action');
+if (objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext must not contain the map-focus action');
+if (!(editor.indexOf('id="focusSelectedObjectBtn"') > bodyIndex)) fail('The map-focus action must live in the editor body');
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');

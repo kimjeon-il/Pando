@@ -1965,7 +1965,8 @@ export function createRenderingDomain({
     active();
     const layer = interaction.draftLayer;
     if (!layer) return false;
-    const draft = packet?.draft || EMPTY_EDITING_RENDER_PACKET.draft;
+    const rawDraft = packet?.draft || EMPTY_EDITING_RENDER_PACKET.draft;
+    const draft = rawDraft.active ? rawDraft : EMPTY_EDITING_RENDER_PACKET.draft;
     const operation = packet?.territoryOperation;
     if (!editingChannelChanged('draft', layer, draft, operation, packet.tool, selection.resolvedInteractionStyle?.())) return reprojectEditingLayer(layer, frameContext);
     const path = framePath(frameContext, interaction.path);

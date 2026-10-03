@@ -146,7 +146,8 @@ export function taskStagePresentation({
   mergeTargetMode, genericMergeMode, unitMergeMode, unitRedrawMode, hydroReview, hydroCount,
   operationFeedback = '',
 }) {
-  const previewValidation = state.geometryPreview?.session?.validation;
+  const selectionSetup = selection?.tool === state.tool && selection.stage === 'setup';
+  const previewValidation = selectionSetup ? null : state.geometryPreview?.session?.validation;
   const draftInvalid = (draft.issues || []).some(issue => issue?.severity !== 'warning');
   const hydroInvalid = (state.multiDraft?.previewIssues || []).some(issue => issue?.severity !== 'warning');
   const cutInvalid = !!cutLineMode && !!draft.cutAssessment && draft.cutAssessment.valid !== true && draft.cutAssessment.status !== 'pending';
