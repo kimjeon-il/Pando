@@ -3,12 +3,16 @@ import test from 'node:test';
 
 import {
   alignReferenceImageAnchor,
+  applyReferenceImageFreeTransformDrag,
   applyReferenceImagePlacementDrag,
   buildReferenceImagePlacementMesh,
+  buildReferenceImagePlacementWarp,
+  createReferenceImageFreeTransformDrag,
   createReferenceImagePlacementDrag,
   defaultReferenceImageMapQuad,
   normalizeReferenceImageRotation,
   referenceImageAnchorScreenPoint,
+  referenceImageFreeTransformHit,
   referenceImagePlacementCoordinateAtUv,
   referenceImagePlacementGeometry,
   referenceImagePlacementPointAtUv,
@@ -209,6 +213,73 @@ test('anchored placement blocks body move and keeps the anchor fixed through res
   assert.equal(setReferenceImagePlacementRotation(record, host, 45), true);
   source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
   assert.ok(Math.hypot(source[0] - target[0], source[1] - target[1]) < 0.3);
+});
+
+test('free transform corner pin moves only the selected corner and keeps a valid projective warp', () => {
+  const host = createHost();
+  const record = {
+    id: 'free',
+    mapQuad: referenceImageScreenRectToMapQuad({ x: 100, y: 100, width: 200, height: 100 }, 0, host),
+    flipX: false,
+    flipY: false,
+    anchor: null,
+    controlPoints: [],
+  };
+  const before = structuredClone(record.mapQuad);
+  const geometry = referenceImagePlacementGeometry(record, host);
+  const hit = referenceImageFreeTransformHit(record, geometry.corners[1], host);
+  assert.equal(hit.corner, 'ne');
+  const drag = createReferenceImageFreeTransformDrag(record, hit, 30);
+  assert.equal(applyReferenceImageFreeTransformDrag(record, drag, [340, 70], host), true);
+  assert.deepEqual(record.mapQuad[0], before[0]);
+  assert.deepEqual(record.mapQuad[2], before[2]);
+  assert.deepEqual(record.mapQuad[3], before[3]);
+  assert.notDeepEqual(record.mapQuad[1], before[1]);
+  assert.equal(buildReferenceImagePlacementWarp(record).ok, true);
+});
+
+test('free transform rejects self-crossing or collapsed corner layouts', () => {
+  const host = createHost();
+  const record = {
+    id: 'invalid-free',
+    mapQuad: referenceImageScreenRectToMapQuad({ x: 100, y: 100, width: 200, height: 100 }, 0, host),
+    flipX: false,
+    flipY: false,
+    anchor: null,
+    controlPoints: [],
+  };
+  const original = structuredClone(record.mapQuad);
+  const geometry = referenceImagePlacementGeometry(record, host);
+  const hit = referenceImageFreeTransformHit(record, geometry.corners[1], host);
+  const drag = createReferenceImageFreeTransformDrag(record, hit, 31);
+  assert.equal(applyReferenceImageFreeTransformDrag(record, drag, [80, 220], host), false);
+  assert.deepEqual(record.mapQuad, original);
+});
+
+test('free transform is unavailable while a manual anchor or GCP exists', () => {
+  const host = createHost();
+  const base = referenceImageScreenRectToMapQuad({ x: 100, y: 100, width: 200, height: 100 }, 0, host);
+  const anchored = { id: 'a', mapQuad: base, anchor: { image: [0.5, 0.5], coordinate: [10, 5] }, controlPoints: [] };
+  const gcp = { id: 'b', mapQuad: base, anchor: null, controlPoints: [{ id: 'p', image: [0.5, 0.5], coordinate: [10, 5] }] };
+  const corner = referenceImagePlacementGeometry(anchored, host).corners[0];
+  assert.equal(referenceImageFreeTransformHit(anchored, corner, host), null);
+  assert.equal(referenceImageFreeTransformHit(gcp, corner, host), null);
+});
+
+test('placement coordinate lookup uses projective interpolation for a corner-pinned quad', () => {
+  const record = {
+    mapQuad: [[0, 0], [12, 0], [8, 10], [0, 10]],
+    flipX: false,
+    flipY: false,
+  };
+  const warp = buildReferenceImagePlacementWarp(record);
+  assert.equal(warp.ok, true);
+  const expected = warp.project([0.5, 0.5]);
+  const actual = referenceImagePlacementCoordinateAtUv(record, [0.5, 0.5]);
+  assert.ok(Math.abs(actual[0] - expected[0]) < 1e-10);
+  assert.ok(Math.abs(actual[1] - expected[1]) < 1e-10);
+  const bilinearCenter = [5, 5];
+  assert.ok(Math.abs(actual[0] - bilinearCenter[0]) > 0.05 || Math.abs(actual[1] - bilinearCenter[1]) > 0.05);
 });
 
 test('placement UV hit testing follows the geographic quad and reflection flags', () => {
