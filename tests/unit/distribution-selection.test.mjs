@@ -3,12 +3,14 @@ import test from 'node:test';
 import { createPropertySelection } from '../../assets/js/modules/app-property-selection.js';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
 import { MAP_RENDER_DIRTY } from '../../assets/js/modules/map-render-coordinator.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 
 function setup(renderMode = 'single') {
   const layers = [{ id: 'A' }, { id: 'B' }];
   const state = {
     distributionSettings: { renderMode, activeLayerId: 'A' },
     distributionLayers: layers,
+    territorialEntities: [],
     distributionEntries: layers.map(layer => ({ id: `${layer.id}-entry`, layerId: layer.id, mode: 'geometry', value: 1,
       geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] } })),
   };
@@ -17,6 +19,10 @@ function setup(renderMode = 'single') {
   let visibilityRevision = 0;
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
+    territorialResources: {
+      getState: () => state,
+      entityRepository: createTerritorialEntityRepository({ getEntities: () => state.territorialEntities }),
+    },
     distributionResources: {
       getState: () => state,
       getDistributionVisibilityRevision: () => visibilityRevision,

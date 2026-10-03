@@ -3,13 +3,21 @@ import assert from 'node:assert/strict';
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import '../../assets/js/modules/territorial-edit-plan.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 
 const kernel = globalThis.PandoLabTerritorialEdit.createKernel(globalThis.polygonClipping);
 const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });
-const country = (id = 'KR', geometry = square(0, 0, 10, 10)) => ({ type: 'Feature', id, properties: { name: id }, geometry });
-const unit = (id, parentId, geometry, sovereignId = 'KR') => createTerritorialFeature({ id, unitType: 'subunit', name: id, parentId, sovereignId, geometry });
+const country = (id = 'KR', geometry = square(0, 0, 10, 10)) => createTerritorialFeature({ id, unitType: 'country', name: id, geometry });
+const unit = (id, parentId, geometry) => createTerritorialFeature({ id, unitType: 'subunit', name: id, parentId, geometry });
 const created = geometry => unit('new', 'KR', geometry);
 const patch = (result, id) => result.features.find(feature => feature.id === id);
+const repositoryAfter = (request, result = { features: [], removedIds: [] }) => {
+  const entities = new Map([...request.countries, ...request.units].map(feature => [String(feature.id), feature]));
+  for (const id of result.removedIds) entities.delete(String(id));
+  for (const feature of result.features) entities.set(String(feature.id), feature);
+  const values = [...entities.values()];
+  return createTerritorialEntityRepository({ getEntities: () => values });
+};
 
 test('region merge uses the common plan without administrative containment or adjacency and preserves its inputs', () => {
   const regions = [createTerritorialFeature({ id: 'r1', unitType: 'region', name: 'R1', geometry: square(1, 1, 2, 2) }),
@@ -40,11 +48,11 @@ test('transfer preserves its input snapshot and rejects locked descendants at fi
   assert.equal(kernel.area(patch(result, 'KR').geometry), 20);
   assert.equal(kernel.area(patch(result, 'JP').geometry), 30);
   assert.equal(patch(result, 'descendant').properties.parentId, 'source');
-  assert.equal(patch(result, 'descendant').properties.sovereignId, 'JP');
+  assert.equal(repositoryAfter(request, result).administrativeCountry('descendant').id, 'JP');
   assert.deepEqual(result.removedIds, []);
   descendant.properties.locked = true;
   assert.throws(() => kernel.plan(request), /잠긴/);
-  assert.equal(source.properties.sovereignId, 'KR');
+  assert.equal(repositoryAfter(request).administrativeCountry('source').id, 'KR');
 });
 
 test('country boundary previews transfer whole children, disclose cuts and preserve locked descendants', () => {
@@ -56,7 +64,7 @@ test('country boundary previews transfer whole children, disclose cuts and prese
   const before = structuredClone(request);
   const result = kernel.plan(request);
   assert.deepEqual(request, before);
-  assert.equal(patch(result, 'moved').properties.sovereignId, 'JP');
+  assert.equal(repositoryAfter(request, result).administrativeCountry('moved').id, 'JP');
   assert.equal(patch(result, 'moved').properties.parentId, 'JP');
   assert.equal(kernel.area(patch(result, 'cut').geometry), 2);
   assert.ok(result.impacts.some(impact => impact.id === 'cut' && impact.kind === 'clip-child'));
@@ -73,7 +81,7 @@ test('promotion changes the country and ancestor shapes with descendants and loc
   assert.deepEqual(result.countryIds, ['KR', 'source']);
   assert.equal(kernel.area(patch(result, 'KR').geometry), 91);
   assert.equal(kernel.area(patch(result, 'parent').geometry), 16);
-  assert.equal(patch(result, 'child').properties.sovereignId, 'source');
+  assert.equal(repositoryAfter(request, result).administrativeCountry('child').id, 'source');
   assert.equal(patch(result, 'child').properties.parentId, 'source');
   parent.properties.locked = true;
   assert.throws(() => kernel.plan(request), /잠긴/);
@@ -111,7 +119,7 @@ test('donor splitting preserves islands and creates a sibling with parent style 
 
 test('final scope rejects foreign parents, overlapping siblings and missing source IDs', () => {
   const countries = [country(), country('JP', square(20, 0, 30, 10))];
-  const a = unit('a', 'KR', square(0, 0, 5, 5)), b = unit('b', 'JP', square(20, 0, 25, 5), 'JP');
+  const a = unit('a', 'KR', square(0, 0, 5, 5)), b = unit('b', 'JP', square(20, 0, 25, 5));
   const request = { operation: 'annex', targetId: 'a', parentId: 'KR', sourceId: 'b', countries, units: [a, b], draft: b.geometry };
   assert.throws(() => kernel.plan(request), /같은 소속 국가/);
   assert.throws(() => kernel.plan({ ...request, sourceId: 'missing' }), /기준 영역/);

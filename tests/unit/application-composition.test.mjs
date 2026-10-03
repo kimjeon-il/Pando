@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createBuiltinSession } from '../../assets/js/modules/app-builtin-session.js';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
 const root = new URL('../../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
@@ -95,8 +96,9 @@ test('object editing consumes the shared territory component UI through applicat
 test('canonical replacement retains one live store and updates dependent ID reads', () => {
   const owner = createBuiltinSession();
   owner.connect({});
-  const collectionA = { features: [{ id: 'A' }] };
-  const collectionB = { features: [{ id: 'B' }] };
+  const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
+  const collectionA = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'A', unitType: 'country', name: 'A', geometry })] };
+  const collectionB = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'B', unitType: 'country', name: 'B', geometry })] };
   const store = collection => ({
     ids: () => collection.features.map(feature => feature.id),
     materializeCollectionSync: () => collection,
@@ -107,9 +109,9 @@ test('canonical replacement retains one live store and updates dependent ID read
   const second = store(collectionB);
   owner.installCanonicalCountryStore(first);
   assert.strictEqual(owner.canonicalCountryStore, first);
-  assert.strictEqual(owner.materializePristineCountriesSync(), collectionA);
+  assert.deepEqual(owner.materializePristineCountriesSync(), collectionA);
   owner.installCanonicalCountryStore(second);
   assert.strictEqual(owner.canonicalCountryStore, second);
-  assert.strictEqual(owner.materializePristineCountriesSync(), collectionB);
+  assert.deepEqual(owner.materializePristineCountriesSync(), collectionB);
   assert.deepEqual([...owner.builtinCountryIds], ['B']);
 });
