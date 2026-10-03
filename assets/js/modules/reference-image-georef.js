@@ -337,6 +337,25 @@ export function buildReferenceImageWarp(values = [], { mode = REFERENCE_IMAGE_WA
   });
 }
 
+export function buildReferenceImageProjectiveWarpFromQuad(mapQuad) {
+  if (!Array.isArray(mapQuad) || mapQuad.length !== 4) {
+    return Object.freeze({
+      ok: false,
+      mode: REFERENCE_IMAGE_WARP_MODES.PROJECTIVE,
+      minimumPoints: 4,
+      pointCount: 0,
+      reason: 'invalid-map-quad',
+    });
+  }
+  const imageCorners = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  const values = mapQuad.map((coordinate, index) => ({
+    id: `corner-${index}`,
+    image: imageCorners[index],
+    coordinate,
+  }));
+  return buildReferenceImageWarp(values, { mode: REFERENCE_IMAGE_WARP_MODES.PROJECTIVE });
+}
+
 export function buildReferenceImageMesh(warp, { columns = 24, rows = 16 } = {}) {
   if (!warp?.ok || typeof warp.project !== 'function') return null;
   const columnCount = Math.max(1, Math.min(128, Math.round(Number(columns) || 24)));
