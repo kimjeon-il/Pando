@@ -47,7 +47,7 @@ export function renderReferenceImageList(listElement, records, selectedId) {
     row.className = 'reference-image-list-row';
     row.dataset.referenceImageId = record.id;
     if (record.id === selectedId) row.classList.add('is-selected');
-    row.innerHTML = `<span class="reference-image-visibility" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#${record.visible ? 'icon-eye' : 'icon-eye-off'}"/></svg></span><strong></strong><small>${record.anchor ? '📌 고정' : `${record.controlPoints.length}점`}</small>`;
+    row.innerHTML = `<span class="reference-image-visibility" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><use href="#${record.visible ? 'icon-eye' : 'icon-eye-off'}"/></svg></span><strong></strong><small>${record.anchor ? `📌 · ${record.controlPoints.length}점` : `${record.controlPoints.length}점`}</small>`;
     row.querySelector('strong').textContent = record.name;
     listElement.appendChild(row);
   }
@@ -78,8 +78,8 @@ export function referenceImageEditorMarkup({
   const options = values => values.map(([value, label]) => `<option value="${value}"${record.warpMode === value ? ' selected' : ''}>${label}</option>`).join('');
   const placementDisabled = record.locked || warp?.ok;
   const freeTransformDisabled = placementDisabled || !!record.anchor || record.controlPoints.length > 0;
-  const anchorDisabled = placementDisabled || record.controlPoints.length > 0;
-  const gcpDisabled = record.locked || !!record.anchor;
+  const anchorDisabled = record.locked;
+  const gcpDisabled = record.locked;
   return `
     <div class="reference-image-editor-title">
       <input type="text" data-ref-field="name" value="${escapeAttribute(record.name)}" aria-label="참조 이미지 이름" />
@@ -118,8 +118,10 @@ export function referenceImageEditorMarkup({
     </ol>
     <div class="reference-image-diagnostics">
       <span>기준점 <strong>${record.controlPoints.length}</strong></span>
+      <span>고정점 <strong>${record.anchor ? 1 : 0}</strong></span>
       <span>RMS <strong>${diagnostics ? `${numberText(diagnostics.rmsMeters / 1000, 1)} km` : '—'}</strong></span>
       <span>최대 <strong>${diagnostics ? `${numberText(diagnostics.maxMeters / 1000, 1)} km` : '—'}</strong></span>
+      <span>고정 오차 <strong>${diagnostics && record.anchor ? `${numberText(diagnostics.hardMaxMeters, 3)} m` : '—'}</strong></span>
     </div>
     ${warningText ? `<p class="reference-image-warning">${warningText}</p>` : ''}
     ${diagnostics && record.controlPoints.length <= 2 ? '<p class="reference-image-warning">최소 기준점으로 계산한 오차입니다. 0이어도 전체 이미지 정렬의 정확성을 보장하지 않습니다.</p>' : ''}
