@@ -67,12 +67,6 @@ test('reference image editing collapses the surface body on desktop and mobile',
 });
 
 
-test('live-wire commits map anchors on captured pointerdown without click-event dependency', async () => {
-  const source = await readFile(moduleUrl('reference-image-live-wire-controller.js'), 'utf8');
-  assert.match(source, /function onPointerDown\(event\)[\s\S]*placeFirstAnchor\(screen\)[\s\S]*commitCurrentPreview\(screen\)/);
-  assert.equal(source.includes("addEventListener('click', onClick"), false);
-  assert.equal(source.includes('function onClick(event)'), false);
-});
 
 test('analysis tools explicitly restore the full reference panel controls', async () => {
   for (const name of [
@@ -91,13 +85,19 @@ test('controller leaves Escape inside editable fields to the field itself', asyn
   assert.match(source, /referenceImageKeyBlocked\(event\)/);
 });
 
-test('live-wire owns anchor placement and segment commit on captured pointerdown', async () => {
+
+test('live-wire blocks map input on pointerdown and commits anchors on click', async () => {
   const source = await readFile(moduleUrl('reference-image-live-wire-controller.js'), 'utf8');
   assert.match(source, /function onPointerDown\(event\)/);
-  assert.match(source, /placeFirstAnchor\(screen\)/);
-  assert.match(source, /commitCurrentPreview\(screen\)/);
+  assert.match(source, /function onClick\(event\)/);
   assert.match(source, /addEventListener\('pointerdown', onPointerDown, true\)/);
+  assert.match(source, /addEventListener\('click', onClick, true\)/);
   assert.match(source, /removeEventListener\('pointerdown', onPointerDown, true\)/);
-  assert.doesNotMatch(source, /function onClick\(event\)/);
-  assert.doesNotMatch(source, /addEventListener\('click', onClick, true\)/);
+  assert.match(source, /removeEventListener\('click', onClick, true\)/);
+  const downStart = source.indexOf('function onPointerDown(event)');
+  const clickStart = source.indexOf('function onClick(event)');
+  assert.ok(downStart >= 0 && clickStart > downStart);
+  assert.doesNotMatch(source.slice(downStart, clickStart), /placeFirstAnchor|commitCurrentPreview/);
+  assert.match(source.slice(clickStart), /placeFirstAnchor\(screen\)/);
+  assert.match(source.slice(clickStart), /commitCurrentPreview\(screen\)/);
 });
