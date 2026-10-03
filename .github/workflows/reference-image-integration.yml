@@ -1,0 +1,60 @@
+name: Reference Image Integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'assets/js/modules/reference-image-*.js'
+      - 'assets/css/tokens/reference-images.css'
+      - 'assets/css/components/reference-images.css'
+      - 'assets/css/layout/reference-images.css'
+      - 'assets/css/features/reference-images.css'
+      - 'tests/unit/reference-image-*.test.mjs'
+      - 'tests/browser/reference-image-*.spec.mjs'
+      - '.github/workflows/reference-image-integration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  reference-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint reference image modules and tests
+        run: >-
+          pnpm exec eslint
+          assets/js/modules/reference-image-*.js
+          tests/unit/reference-image-*.test.mjs
+          tests/browser/reference-image-*.spec.mjs
+
+      - name: Run reference image unit suite
+        run: node --test "tests/unit/reference-image-*.test.mjs"
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run reference image browser regressions
+        run: >-
+          pnpm exec playwright test
+          tests/browser/reference-image-overlay.spec.mjs
+          tests/browser/reference-image-line-refine.spec.mjs
+          tests/browser/reference-image-live-wire.spec.mjs
