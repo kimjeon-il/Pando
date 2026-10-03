@@ -683,7 +683,7 @@ export function installReferenceImageLiveWire() {
   }
 
   function onClick(event) {
-    if (!state || event.button !== 0 || event.detail > 1 || !['armed', 'tracking'].includes(state.phase) || !referenceImageEventTargetsMap(event, mapElement)) return;
+    if (!state || event.button !== 0 || !['armed', 'tracking'].includes(state.phase) || !referenceImageEventTargetsMap(event, mapElement)) return;
     if (!interceptMapEvent(event)) return;
     const screen = canvasPoint(event, mapElement);
     if (state.phase === 'armed') placeFirstAnchor(screen);
