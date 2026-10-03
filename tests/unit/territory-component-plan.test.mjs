@@ -78,7 +78,7 @@ test('component cache and render packets reuse geometry across hover, selection 
   const api = createTerritoryComponents();
   api.connect({
     projectState: { state: { territorySelectionSession: current } },
-    presentation: { countryName: () => '기준' },
+    objectPresentation: { territorialEntityName: () => '기준' },
     platform: { d3: { geo: { area: () => { areas += 1; return 1; } } } },
     territorialModel: { composeRiverBoundaryTerritoryComponents },
   });

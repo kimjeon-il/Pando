@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
-const app = readApplicationOwners('runtime-dependencies', 'domain-assembly', 'country-labels', 'render-quality', 'gpu-scene', 'workspace-surfaces', 'map-host');
+const app = readApplicationOwners('runtime-dependencies', 'domain-assembly', 'territorial-labels', 'render-quality', 'gpu-scene', 'workspace-surfaces', 'map-host');
 const rendering = read('assets/js/modules/rendering-domain.js');
 const gpuScene = read('assets/js/modules/app-gpu-scene.js');
 const coordinator = read('assets/js/modules/map-render-coordinator.js');
