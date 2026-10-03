@@ -665,16 +665,26 @@ export function installReferenceImageLiveWire() {
     return true;
   }
 
+  function referenceMapPointerEvent(event) {
+    const rect = mapElement.getBoundingClientRect();
+    const x = Number(event?.clientX);
+    const y = Number(event?.clientY);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return false;
+    if (event.target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.reference-image-panel,.map-command-toolbar')) return false;
+    return true;
+  }
+
   function interceptMapEvent(event) {
     if (!state || !['armed', 'tracking'].includes(state.phase)) return false;
-    if (!mapElement.contains(event.target)) return false;
+    if (!referenceMapPointerEvent(event)) return false;
     event.preventDefault();
     event.stopImmediatePropagation();
     return true;
   }
 
   function onPointerDown(event) {
-    if (!state || event.button !== 0 || !['armed', 'tracking'].includes(state.phase) || !mapElement.contains(event.target)) return;
+    if (!state || event.button !== 0 || !['armed', 'tracking'].includes(state.phase) || !referenceMapPointerEvent(event)) return;
     if (!interceptMapEvent(event)) return;
     const screen = canvasPoint(event, mapElement);
     if (state.phase === 'armed') placeFirstAnchor(screen);
@@ -682,13 +692,13 @@ export function installReferenceImageLiveWire() {
   }
 
   function onPointerMove(event) {
-    if (!state || state.phase !== 'tracking' || !mapElement.contains(event.target)) return;
+    if (!state || state.phase !== 'tracking' || !referenceMapPointerEvent(event)) return;
     if (!interceptMapEvent(event)) return;
     schedulePreview(canvasPoint(event, mapElement));
   }
 
   function onDoubleClick(event) {
-    if (!state || state.phase !== 'tracking' || !mapElement.contains(event.target)) return;
+    if (!state || state.phase !== 'tracking' || !referenceMapPointerEvent(event)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     const screen = canvasPoint(event, mapElement);
