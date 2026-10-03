@@ -63,7 +63,7 @@ export function normalizeReferenceImageRecord(record = {}) {
     controlPoints: normalizeControlPoints(record?.controlPoints),
     mapQuad: normalizeReferenceImageMapQuad(record?.mapQuad),
     order: Number.isFinite(order) ? order : 0,
-    blob: record?.blob instanceof Blob ? record.blob : null,
+    blob: typeof Blob !== 'undefined' && record?.blob instanceof Blob ? record.blob : null,
   };
 }
 
