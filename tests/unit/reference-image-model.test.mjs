@@ -18,7 +18,7 @@ const quad = [
 ];
 
 test('reference image model normalizes one canonical geographic placement quad', () => {
-  assert.equal(REFERENCE_IMAGE_MODEL_VERSION, 3);
+  assert.equal(REFERENCE_IMAGE_MODEL_VERSION, 4);
   assert.deepEqual(normalizeReferenceImageMapQuad(quad), quad);
   assert.equal(normalizeReferenceImageMapQuad([[0, 0]]), null);
   const record = normalizeReferenceImageRecord({
@@ -48,18 +48,10 @@ test('serialization persists mapQuad and drops retired screen placement fields',
   assert.equal('rotation' in value, false);
 });
 
-test('manual anchor is normalized, serialized and kept exclusive from GCPs', () => {
+test('manual anchor is normalized, serialized and can coexist with GCPs', () => {
   const anchor = normalizeReferenceImageAnchor({ image: [0.25, 0.5], coordinate: [15, 18] });
   assert.deepEqual(anchor, { image: [0.25, 0.5], coordinate: [15, 18] });
   assert.equal(normalizeReferenceImageAnchor({ image: [2, 0], coordinate: [15, 18] }), null);
-
-  const anchored = normalizeReferenceImageRecord({
-    id: 'ref-anchor',
-    mapQuad: quad,
-    anchor,
-  });
-  const serialized = serializeReferenceImageRecord(anchored, 0);
-  assert.deepEqual(serialized.anchor, anchor);
 
   const withGcp = normalizeReferenceImageRecord({
     id: 'ref-gcp',
@@ -67,7 +59,12 @@ test('manual anchor is normalized, serialized and kept exclusive from GCPs', () 
     anchor,
     controlPoints: [{ id: 'p', image: [0.2, 0.3], coordinate: [12, 34] }],
   });
-  assert.equal(withGcp.anchor, null);
+  assert.deepEqual(withGcp.anchor, anchor);
+  assert.equal(withGcp.controlPoints.length, 1);
+
+  const serialized = serializeReferenceImageRecord(withGcp, 0);
+  assert.deepEqual(serialized.anchor, anchor);
+  assert.equal(serialized.controlPoints.length, 1);
 });
 
 test('history clones geographic placement, anchor and GCP arrays instead of sharing them', () => {
