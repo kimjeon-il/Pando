@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   buildReferenceImageMesh,
+  buildReferenceImageProjectiveWarpFromQuad,
   buildReferenceImageWarp,
   REFERENCE_IMAGE_WARP_MODES,
 } from '../../assets/js/modules/reference-image-georef.js';
@@ -46,6 +47,19 @@ test('projective warp passes through four corner control points', () => {
     assert.ok(Math.abs(projected[0] - controlPoint.coordinate[0]) < 1e-7);
     assert.ok(Math.abs(projected[1] - controlPoint.coordinate[1]) < 1e-7);
   }
+});
+
+test('projective quad warp maps all four image corners exactly and rejects invalid quads', () => {
+  const quad = [[0, 0], [12, 1], [10, 10], [-1, 9]];
+  const warp = buildReferenceImageProjectiveWarpFromQuad(quad);
+  assert.equal(warp.ok, true);
+  const imageCorners = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  for (let index = 0; index < imageCorners.length; index += 1) {
+    const projected = warp.project(imageCorners[index]);
+    assert.ok(Math.abs(projected[0] - quad[index][0]) < 1e-7);
+    assert.ok(Math.abs(projected[1] - quad[index][1]) < 1e-7);
+  }
+  assert.equal(buildReferenceImageProjectiveWarpFromQuad([[0, 0]]).ok, false);
 });
 
 test('TPS warp interpolates its control points and auto selects TPS with six points', () => {
