@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGpuTerrainPreparation } from '../../assets/js/modules/gpu-terrain-preparation.js';
 
-function fixture(t, onUnusable = () => {}) {
+function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0 } = {}) {
   const requests = [];
   const jobs = [];
   const deleted = [];
@@ -12,15 +12,85 @@ function fixture(t, onUnusable = () => {}) {
   const owner = createGpuTerrainPreparation({
     tileUrl: spec => `https://example.test/${spec.key}`,
     onUnusable,
-    isMobile: () => false,
+    isMobile: () => mobile,
     invalidate: () => {},
-    geoDistance: () => 0,
+    geoDistance,
   });
   owner.setContext({ gl, ready: true, projectGeneration: 1, contextGeneration: 1,
     scheduler: { enqueueUpload: job => { jobs.push(job); return Promise.resolve(); } } });
   return { owner, requests, jobs, deleted };
 }
 const settle = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
+
+const mobileManifest = {
+  representation: 'dem-relief-v1', gutter: 0,
+  levels: [
+    { id: 0, width: 2048, height: 1024, columns: 2, rows: 1, tileSize: 1024 },
+    { id: 1, width: 4096, height: 2048, columns: 4, rows: 2, tileSize: 1024 },
+    { id: 2, width: 8192, height: 4096, columns: 8, rows: 4, tileSize: 1024 },
+  ],
+};
+const mobileFrame = (rotation = [0, 0]) => ({
+  mode: 0, scale: 1200, viewport: [390, 844],
+  viewState: { projection: 'globe', rotation },
+});
+const mobileView = enhanced => ({
+  visible: true, enhanced, physicalStyle: 'political', projection: 'globe',
+  width: 390, height: 844, dpr: 1, devicePixelRatio: 2,
+  cacheBudgetBytes: 128 * 1024 * 1024,
+});
+
+test('mobile globe starts both coarse coverage requests before target DEM tiles', t => {
+  const { owner, requests } = fixture(t, () => {}, { mobile: true });
+  owner.setManifest(mobileManifest);
+  owner.prepare(mobileFrame(), mobileView(true));
+  assert.equal(owner.stats().terrainLevel, 2);
+  assert.equal(owner.stats().terrainFetchConcurrency, 2);
+  assert.deepEqual(requests.map(request => new URL(request.url).pathname), ['/0/0-0', '/0/1-0']);
+  owner.dispose();
+});
+
+test('ready DEM selects camera target LOD before canonical country mesh is enhanced', t => {
+  const { owner } = fixture(t, () => {}, { mobile: true });
+  owner.setManifest(mobileManifest);
+  owner.prepare(mobileFrame(), mobileView(false));
+  assert.equal(owner.stats().terrainLevel, 2);
+  owner.dispose();
+});
+
+test('rotating the mobile globe drops queued tiles from the old view', async t => {
+  const longitudeDistance = (left, right) => Math.abs((((left[0] - right[0]) + 540) % 360) - 180) * Math.PI / 180;
+  const { owner, requests, jobs } = fixture(t, () => {}, { mobile: true, geoDistance: longitudeDistance });
+  globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
+  t.after(() => { delete globalThis.createImageBitmap; });
+  owner.setManifest(mobileManifest);
+  owner.prepare(mobileFrame([-90, 0]), mobileView(true));
+  owner.prepare(mobileFrame([90, 0]), mobileView(true));
+  for (let index = 0; index < 8; index += 1) {
+    assert.ok(requests[index], `request ${index} must have started`);
+    requests[index].resolve({ ok: true, blob: async () => ({}) });
+    await settle();
+    for (const job of jobs.splice(0)) job.step();
+  }
+  const laterPaths = requests.slice(2).map(request => new URL(request.url).pathname);
+  assert.ok(laterPaths.some(path => /^\/1\/[01]-[01]$/.test(path)), 'new-view parents must start');
+  assert.deepEqual(laterPaths.filter(path => /^\/(?:1\/[23]|2\/[4567])-/.test(path)), [], 'old-view queued tiles must not start');
+  owner.dispose();
+});
+
+test('an already queued tile gains current-view priority instead of keeping its prefetch priority', async t => {
+  const { owner, requests } = fixture(t, () => {}, { mobile: true });
+  globalThis.createImageBitmap = async () => ({ width: 2, height: 2, close() {} });
+  t.after(() => { delete globalThis.createImageBitmap; });
+  for (const key of ['active-a', 'active-b']) owner.request({ key }, 30_000);
+  owner.request({ key: 'promoted' }, 1_000);
+  owner.request({ key: 'other' }, 15_000);
+  owner.request({ key: 'promoted' }, 20_000);
+  requests[0].resolve({ ok: true, blob: async () => ({}) });
+  await settle();
+  assert.equal(new URL(requests[2].url).pathname, '/promoted');
+  owner.dispose();
+});
 
 test('project reset rejects old terrain failures without retry or replacement request corruption', async t => {
   const { owner, requests } = fixture(t);
