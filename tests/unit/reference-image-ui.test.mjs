@@ -30,6 +30,74 @@ const options = {
   warpOptions: [['auto', '자동']],
 };
 
+test('editor is organized into display, edit and calibration sections with three primary modes', () => {
+  const markup = referenceImageEditorMarkup({
+    ...options,
+    record: record(),
+  });
+  assert.match(markup, />표시<\/strong>/);
+  assert.match(markup, />편집<\/strong>/);
+  assert.match(markup, />보정<\/strong>/);
+
+  const placement = markup.indexOf('data-ref-action="placement"');
+  const free = markup.indexOf('data-ref-action="free-transform"');
+  const gcp = markup.indexOf('data-ref-action="gcp"');
+  assert.ok(placement >= 0 && free > placement && gcp > free);
+  assert.match(markup, /data-ref-action="placement"[^>]*>배치<\/button>/);
+  assert.match(markup, /data-ref-action="free-transform"[^>]*>자유 변형<\/button>/);
+  assert.match(markup, /data-ref-action="gcp"[^>]*>기준점<\/button>/);
+  assert.doesNotMatch(markup, />배치 편집<\/button>/);
+  assert.doesNotMatch(markup, />기준점 추가<\/button>/);
+});
+
+test('calibration list shows hard anchor and per-GCP residuals next to each point', () => {
+  const markup = referenceImageEditorMarkup({
+    ...options,
+    record: record({
+      anchor: { image: [0.5, 0.5], coordinate: [10, 20] },
+      controlPoints: [
+        { id: 'a', image: [0.25, 0.25], coordinate: [8, 18] },
+        { id: 'b', image: [0.75, 0.7], coordinate: [12, 22] },
+      ],
+    }),
+    warp: {
+      ok: true,
+      mode: 'projective',
+      minimumPoints: 4,
+      diagnostics: {
+        rmsMeters: 2200,
+        maxMeters: 3100,
+        hardMaxMeters: 0.002,
+        warnings: [],
+        residuals: [
+          { id: 'anchor', pinned: true, meters: 0.002 },
+          { id: 'a', pinned: false, meters: 2500 },
+          { id: 'b', pinned: false, meters: 310 },
+        ],
+      },
+    },
+  });
+  assert.match(markup, /📌 고정점/);
+  assert.match(markup, /오차 0\.002 m/);
+  assert.match(markup, /기준점 1/);
+  assert.match(markup, /오차 2\.5 km/);
+  assert.match(markup, /기준점 2/);
+  assert.match(markup, /오차 310\.0 m/);
+  assert.match(markup, />이미지점<\/button>/);
+  assert.match(markup, />지도점<\/button>/);
+});
+
+test('calibration section shows a focused empty state when no points exist', () => {
+  const markup = referenceImageEditorMarkup({
+    ...options,
+    record: record(),
+  });
+  assert.match(markup, /reference-image-points-empty/);
+  assert.match(markup, /기준점이 없습니다/);
+  assert.match(markup, /일반점<\/small><strong>0<\/strong>/);
+  assert.match(markup, /고정점<\/small><strong>0<\/strong>/);
+});
+
 test('free transform button is available and reports active state for an uncalibrated image', () => {
   const markup = referenceImageEditorMarkup({
     ...options,
