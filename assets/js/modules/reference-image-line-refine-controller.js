@@ -1,5 +1,4 @@
 import { referenceImageKeyBlocked } from './reference-image-input.js';
-import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
 import { buildReferenceImageMesh } from './reference-image-georef.js';
 import { referenceImageMappingSignature } from './reference-image-model.js';
 import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
@@ -219,7 +218,6 @@ export function installReferenceImageLineRefiner() {
 
   function cancelRefine({ message = '', tone = '' } = {}) {
     state = null;
-    setReferenceImageSurfaceEditing(false);
     mapElement.classList.remove('is-reference-line-refine-mode');
     if (message) {
       lastMessage = message;
@@ -365,7 +363,6 @@ export function installReferenceImageLineRefiner() {
     }
     state = { recordId, phase: 'loading', source: null, pointerId: null, roughScreenPoints: [], roughImagePoints: [], previewCoordinates: [] };
     mapElement.classList.add('is-reference-line-refine-mode');
-    setReferenceImageSurfaceEditing(true, '선 보강 중 · 지도에서 참조 이미지 경계를 따라 드래그하세요.');
     setMessage('참조 이미지의 경계 정보를 준비하고 있습니다.', 'working');
     scheduleSync();
     try {
@@ -426,7 +423,6 @@ export function installReferenceImageLineRefiner() {
       });
       state.phase = 'preview';
       state.roughScreenPoints = [];
-      setReferenceImageSurfaceEditing(false);
       setMessage(`선 보강 결과 ${result.simplifiedPointCount}개 점 · 적용하거나 다시 그릴 수 있습니다.`, 'success');
       requestRender();
       scheduleSync();
@@ -445,7 +441,6 @@ export function installReferenceImageLineRefiner() {
   function redraw() {
     if (!state) return false;
     state.phase = 'armed';
-    setReferenceImageSurfaceEditing(true, '선 보강 중 · 지도에서 참조 이미지 경계를 따라 드래그하세요.');
     state.pointerId = null;
     state.roughScreenPoints = [];
     state.roughImagePoints = [];
