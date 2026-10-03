@@ -1,10 +1,7 @@
+import { cloneReferenceImageRecord } from './reference-image-model.js';
+
 export function copyReferenceImageRecords(records) {
-  return records.map(record => ({
-    ...record,
-    screenRect: record.screenRect ? { ...record.screenRect } : null,
-    controlPoints: record.controlPoints.map(point => ({ ...point, image: [...point.image], coordinate: [...point.coordinate] })),
-    projectedMesh: null,
-  }));
+  return records.map(cloneReferenceImageRecord);
 }
 
 export function applyReferenceImageEdit(record, action, { id, value } = {}) {
