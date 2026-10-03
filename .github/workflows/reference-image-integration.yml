@@ -60,3 +60,4 @@ jobs:
           tests/browser/reference-image-overlay.spec.mjs
           tests/browser/reference-image-line-refine.spec.mjs
           tests/browser/reference-image-live-wire.spec.mjs
+          --workers=3
