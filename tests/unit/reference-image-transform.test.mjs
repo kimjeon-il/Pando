@@ -39,6 +39,12 @@ function mapElement(width = 800, height = 600) {
   return { getBoundingClientRect: () => ({ width, height }) };
 }
 
+function assertPairClose(actual, expected, epsilon = 1e-8) {
+  assert.equal(actual.length, 2);
+  assert.ok(Math.abs(actual[0] - expected[0]) <= epsilon);
+  assert.ok(Math.abs(actual[1] - expected[1]) <= epsilon);
+}
+
 test('rotation normalization preserves the signed half-turn contract', () => {
   assert.equal(normalizeReferenceImageRotation(190), -170);
   assert.equal(normalizeReferenceImageRotation(-190), 170);
@@ -96,7 +102,7 @@ test('placement mesh follows mapQuad with enough subdivisions for projected maps
   assert.equal(mesh.vertices.length, 9);
   assert.equal(mesh.triangles.length, 8);
   assert.deepEqual(mesh.vertices[4].uv, [0.5, 0.5]);
-  assert.deepEqual(mesh.vertices[4].coordinate, [10, 5]);
+  assertPairClose(mesh.vertices[4].coordinate, [10, 5]);
 });
 
 test('placement exposes four corner and four edge resize handles plus rotation', () => {
@@ -177,7 +183,7 @@ test('manual anchor snaps the selected image point to the chosen map coordinate'
     anchor: { image: [0.25, 0.5], coordinate: [8, 7] },
   };
   assert.equal(alignReferenceImageAnchor(record, host), true);
-  assert.deepEqual(referenceImagePlacementCoordinateAtUv(record, record.anchor.image), [8, 7]);
+  assertPairClose(referenceImagePlacementCoordinateAtUv(record, record.anchor.image), [8, 7]);
   let source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
   let target = referenceImageAnchorScreenPoint(record, host);
   assert.ok(Math.hypot(source[0] - target[0], source[1] - target[1]) < 1e-6);
@@ -289,9 +295,9 @@ test('placement UV hit testing follows the geographic quad and reflection flags'
     flipX: false,
     flipY: false,
   };
-  assert.deepEqual(referenceImagePlacementUvAtPoint(record, [200, 150], host), [0.5, 0.5]);
-  assert.deepEqual(referenceImagePlacementUvAtPoint(record, [150, 125], host), [0.25, 0.25]);
+  assertPairClose(referenceImagePlacementUvAtPoint(record, [200, 150], host), [0.5, 0.5]);
+  assertPairClose(referenceImagePlacementUvAtPoint(record, [150, 125], host), [0.25, 0.25]);
   record.flipX = true;
-  assert.deepEqual(referenceImagePlacementUvAtPoint(record, [150, 125], host), [0.75, 0.25]);
+  assertPairClose(referenceImagePlacementUvAtPoint(record, [150, 125], host), [0.75, 0.25]);
   assert.equal(referenceImagePlacementUvAtPoint(record, [20, 20], host), null);
 });
