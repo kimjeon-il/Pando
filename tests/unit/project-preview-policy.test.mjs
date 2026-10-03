@@ -8,8 +8,9 @@ import { classifyBuiltinCountries } from '../../assets/js/modules/builtin-subuni
 import { matchesDefaultPreview, previewCountriesWithProjectProperties, previewSourceForProject, projectPreviewGeometryRows, PROJECT_PREVIEW_ALGORITHM_REVISION } from '../../assets/js/modules/project-preview-policy.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const appVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
 const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world-preview-v0.33.0.json'), 'utf8'));
+const manifest = JSON.parse(fs.readFileSync(path.join(root, `assets/data/world-preview-v${appVersion}.json`), 'utf8'));
 const baseline = { sourceSha256: manifest.sourceSha256, defaultClassification: manifest.defaultClassification };
 const classified = classifyBuiltinCountries(normalizeCountryCollection(canonical));
 const changed = classified.countries.features.filter(feature => manifest.defaultClassification.changed[String(feature.id)]);
