@@ -324,8 +324,11 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
         name: String(persisted?.name || name || '참조 이미지'),
         blob,
       }, { legacyMapQuad });
+      if (migration.unsupportedFutureVersion) {
+        throw new Error(`현재 버전보다 새로운 참조 이미지 저장 형식(v${migration.sourceVersion})입니다.`);
+      }
       source = migration.record;
-      if (migration.needsPlacementMigration || !source.mapQuad) {
+      if (migration.needsPlacementMigration || !source?.mapQuad) {
         throw new Error('구버전 참조 이미지의 배치 정보를 현재 지도 좌표로 변환할 수 없습니다.');
       }
     } else {
