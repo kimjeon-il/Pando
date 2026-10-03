@@ -1,6 +1,6 @@
 import {
+  buildReferenceImageCalibrationWarp,
   buildReferenceImageMesh,
-  buildReferenceImageWarp,
   REFERENCE_IMAGE_WARP_MODES,
 } from './reference-image-georef.js';
 import {
@@ -141,35 +141,6 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     isPanelHidden: () => panel.hidden,
   });
 
-  function warpPointsFor(record) {
-    const points = record.controlPoints.map(point => ({
-      id: point.id,
-      image: [...point.image],
-      coordinate: [...point.coordinate],
-      pinned: false,
-    }));
-    if (record.anchor) {
-      points.unshift({
-        id: 'anchor',
-        image: [...record.anchor.image],
-        coordinate: [...record.anchor.coordinate],
-        pinned: true,
-      });
-    }
-    return points;
-  }
-
-  function cornerPinPointsFor(record) {
-    if (!record?.cornerPinEnabled || !Array.isArray(record.mapQuad) || record.mapQuad.length !== 4) return [];
-    const imageCorners = [[0, 0], [1, 0], [1, 1], [0, 1]];
-    return record.mapQuad.map((coordinate, index) => ({
-      id: `corner-pin-${index}`,
-      image: imageCorners[index],
-      coordinate: [...coordinate],
-      pinned: true,
-    }));
-  }
-
   function currentWarpQuad(record) {
     if (!record?.warp?.ok) return null;
     const corners = [[0, 0], [1, 0], [1, 1], [0, 1]]
@@ -180,15 +151,13 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function rebuildWarp(record) {
-    const calibrationPoints = warpPointsFor(record);
-    const hasCalibration = calibrationPoints.length > 0;
-    const points = record.cornerPinEnabled && hasCalibration
-      ? [...cornerPinPointsFor(record), ...calibrationPoints]
-      : calibrationPoints;
-    const mode = record.cornerPinEnabled && hasCalibration
-      ? REFERENCE_IMAGE_WARP_MODES.TPS
-      : record.warpMode;
-    record.warp = buildReferenceImageWarp(points, { mode });
+    record.warp = buildReferenceImageCalibrationWarp({
+      controlPoints: record.controlPoints,
+      anchor: record.anchor,
+      cornerPinEnabled: record.cornerPinEnabled,
+      mapQuad: record.mapQuad,
+      mode: record.warpMode,
+    });
     record.mesh = record.warp.ok ? buildReferenceImageMesh(record.warp, MESH_QUALITY) : null;
     record.projectedMesh = null;
     if (record.warp.ok && placementEditingId === record.id) stopPlacementEditing({ renderUi: false });
