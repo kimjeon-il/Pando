@@ -289,7 +289,7 @@ export function createPropertySelection() {
 
   function applyTerritorialSelectionIntent(id, refreshOnly = false) {
     if (!dependencies.territorialModel.entityRepository.get(id)) return false;
-    return dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(id) }, { refreshOnly, openEditor: false });
+    return dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(id) }, { refreshOnly, openEditor: !refreshOnly });
   }
 
   function setTerritorialEntityName(id, value) {

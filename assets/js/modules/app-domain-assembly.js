@@ -205,7 +205,8 @@ export function createDomainAssembly() {
     objectPropertyController = (0, dependencies.uiFactoriesB.createObjectPropertyController)({
       document,
       getElement: dependencies.platform.$,
-      state: dependencies.projectState.state,      replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
+      state: dependencies.projectState.state,
+      replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
       distributionModes: dependencies.territorialModel.DISTRIBUTION_MODES,
       colorDomains: dependencies.colorModel.COLOR_DOMAINS,
       defaultGenericFeatureColor: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
@@ -257,6 +258,7 @@ export function createDomainAssembly() {
       },
     });
 
+    const resolveTerritorialColor = view => dependencies.colorModel.readDomainColor(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature: view.feature }, { inherited: dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }), fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
     const getTerritorialView = value => {
       const ref = dependencies.selectionServices.normalizeObjectRef(value);
       if (ref?.domain !== 'territorial') return null;
@@ -282,7 +284,7 @@ export function createDomainAssembly() {
       getTerritorialView,
       getPrimaryRef: () => selectionDomain.primary(),
       showPropertyForm: (...args) => objectPropertyController.show(...args),
-      resolveColor: view => dependencies.colorModel.readDomainColor(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature: view.feature }, { inherited: dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }), fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR }),
+      resolveColor: resolveTerritorialColor,
       defaultColor: view => (dependencies.territorialModel.entityRepository.get(view.ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(view.ref?.id)?.properties.parentId) ? dependencies.colorModel.defaultCountryColor() : dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }),
       syncColorPicker: dependencies.colorPicker.syncColorPicker,
       calculateAreaKm2: dependencies.applicationServicesB.sphericalGeometryAreaKm2,
@@ -291,7 +293,8 @@ export function createDomainAssembly() {
       syncStatus: dependencies.readinessUi.syncStatusBar,
       commitField: dependencies.objectMetadata.commitTerritorialMetadata,
       commitRelation: dependencies.objectMetadata.commitTerritorialRelation,
-      getElement: dependencies.platform.$,      territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
+      getElement: dependencies.platform.$,
+      territorialParentOptions: dependencies.propertyEditingB.territorialParentOptions,
       refreshTerritorialCoastAvailability: dependencies.territorialEditingB.refreshTerritorialCoastAvailability,
       replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
       syncLayerSelection: () => layerTreeController?.syncSelection(),
@@ -329,8 +332,24 @@ export function createDomainAssembly() {
       getView: getTerritorialView,
       commitFlag: (ref, value) => dependencies.objectMetadata.commitTerritorialMetadata(ref, 'flagDataUrl', value),
       openFlagLibrary: dependencies.flagLibrary.openFlagLibraryPicker,
-      openEditor: (_ref, trigger) => (0, dependencies.workspaceUiB.openSelectionEditor)({ explicit: true, trigger, focus: true }),
-      closeEditor: () => (0, dependencies.workspaceUiA.closeSurface)('editor', { manual: true }),
+      openEditor: (ref, trigger) => {
+        if (!selectionUiController.applyIntent(ref, { openEditor: false })) return false;
+        return (0, dependencies.workspaceUiB.openSelectionEditor)({ explicit: true, trigger, focus: true });
+      },
+      selectForQuickAction: ref => selectionUiController.applyIntent(ref, { openEditor: false, refreshOnly: true }),
+      mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
+      getLabelRef: labelId => {
+        const labelRef = dependencies.countries.builtinTerritorialScene().labelRefs.get(labelId);
+        const entity = territorialEntityRepository.get(labelId);
+        return dependencies.selectionServices.normalizeObjectRef(labelRef || (entity
+          ? { domain: 'territorial', type: 'entity', id: entity.id } : null));
+      },
+      canInspect: () => dependencies.projectState.state.tool === 'select'
+        && !dependencies.projectState.state.projectReplacing && !dependencies.projectState.state.modeProcessing
+        && !dependencies.projectState.state.labelPlacementMode && !editingDomain?.draftInputActive?.(),
+      getColor: view => resolveTerritorialColor(view).value,
+      isVisible: dependencies.objectOperationsA.objectRefVisible,
+      isLocked: dependencies.objectOperationsA.objectRefLocked,
       isEditorOpen: () => dependencies.workspaceUiB.surfaceState.editorOpen,
       isMutationBlocked: ref => dependencies.projectState.state.projectReplacing
         || dependencies.projectState.state.modeProcessing
@@ -375,7 +394,7 @@ export function createDomainAssembly() {
         focusObject: dependencies.objectOperationsA.focusObjectRef,
         openEditor: () => {
           const startedAt = performance.now();
-          (0, dependencies.workspaceUiB.openSelectionEditor)();
+          (0, dependencies.workspaceUiB.openSelectionEditor)({ explicit: true });
           dependencies.rendering.selectionPerformanceMetrics.editorOpenMs = performance.now() - startedAt;
         },
         clearPresenter: () => {
@@ -854,7 +873,8 @@ export function createDomainAssembly() {
         syncBuiltinPalette: dependencies.builtinCountries.syncBuiltinPalette,
         getState: () => dependencies.projectState.state,
         territorialUnitLayer: dependencies.mapHostViewC.territorialUnitLayer,
-        territorialOperationLayer: dependencies.mapHostViewC.territorialOperationLayer,        visibleMapObjectCandidates: dependencies.spatialQuery.visibleMapObjectCandidates,
+        territorialOperationLayer: dependencies.mapHostViewC.territorialOperationLayer,
+        visibleMapObjectCandidates: dependencies.spatialQuery.visibleMapObjectCandidates,
         geometryMayIntersectViewport: dependencies.spatialRecords.geometryMayIntersectViewport,
         isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,
         selectionHas: ref => selectionDomain.has(ref),

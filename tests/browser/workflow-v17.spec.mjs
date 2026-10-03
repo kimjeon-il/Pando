@@ -61,7 +61,7 @@ test('annex setup hides selection-stage visuals and restores the exact draft on 
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  await page.locator('#selectionToolbarEditBtn').click();
+  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexEntityBtn').click();
   await pickCountry(page, 'POL');
@@ -94,7 +94,7 @@ test('annex setup hides selection-stage visuals and restores the exact draft on 
   ]) await expect(page.locator(selector)).toHaveCount(0);
   await expect(page.locator('#modeTaskDisabledReason')).toBeHidden();
   await expect(page.locator('#modeTaskInstruction')).not.toContainText(issueText);
-  await expect(page.locator('#selectionToolbar')).toContainText('독일');
+  await expect(page.locator('#modeTaskObjects')).toContainText('독일');
 
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
@@ -110,7 +110,7 @@ test('task windows omit target focus while the object editor retains its focus a
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('GRC'));
-  await page.locator('#selectionToolbarEditBtn').click();
+  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#editorObjectHeader #focusSelectedObjectBtn')).toBeVisible();
   for (const [command, name] of [['#annexEntityBtn', '영토 편입'], ['#editEntityBorderBtn', '국경 조정']]) {
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -140,7 +140,7 @@ test('editor identity returns to header flag and focus controls without changing
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect(page.locator('#selectionCardName')).toHaveText('독일');
   await expect(page.locator('#selectionCardFlagPreview img')).toBeVisible();
-  await page.locator('#selectionToolbarEditBtn').click();
+  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   const flag = page.locator('#editorObjectHeader #flagMenuBtn');
   const focus = page.locator('#editorObjectHeader #focusSelectedObjectBtn');
   await expect(page.locator('#editorScrollBody #flagMenuBtn, #editorScrollBody #focusSelectedObjectBtn')).toHaveCount(0);
@@ -182,7 +182,7 @@ test('editor identity returns to header flag and focus controls without changing
   const before = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState());
   await focus.click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState())).not.toEqual(before);
-  await expect(page.locator('#selectionCardName')).toHaveText('독일');
+  await expect(page.locator('#propertyTitle')).toHaveText('독일');
 
   await page.locator('#createMenuBtn').click();
   await page.locator('#addEntityBtn').click();
@@ -311,7 +311,7 @@ test('territory setup uses actual role cards and the shared spacing', async ({ p
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  await page.locator('#selectionToolbarEditBtn').click();
+  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   for (const placement of ['root', 'nested', 'regional']) {
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await page.locator('#createMenuBtn').click();
@@ -494,7 +494,7 @@ test('annex selection starts with the method segment without redundant normal-st
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  await page.locator('#selectionToolbarEditBtn').click();
+  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#modeTaskStatus')).toBeHidden();

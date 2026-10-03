@@ -89,7 +89,7 @@ test('Region merge uses the common Worker plan and supports geometry undo and sa
   await page.locator(`[data-object-search-focus][data-item-id="${a}"]`).click();
   await expect(page.locator(`g.territorial-label-item[data-label-id="territorial:entity:${a}"]`)).toBeVisible();
   await page.locator(`[data-object-search-select][data-item-id="${a}"]`).click();
-  await page.locator('#selectionToolbarEditBtn').click();
+  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.locator('#actionsTabBtn').click(); await page.locator('#mergeEntityBtn').click();
   await page.locator('path.territorial-unit-shape').evaluateAll((nodes,id)=>{
