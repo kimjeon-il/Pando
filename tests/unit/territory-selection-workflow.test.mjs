@@ -30,7 +30,7 @@ function harness(t) {
 
   const countries = new Map(['A', 'B', 'C'].map((id, index) => [id, { id, geometry: geometry(index * 3) }]));
   const state = { territorySelectionSession: null, geometryPreview: { session: null } };
-  const calls = { prepare: [], preview: [], apply: 0, refresh: [], errors: [], worker: [], stopped: 0 };
+  const calls = { prepare: [], preview: [], apply: 0, refresh: [], errors: [], worker: [], stopped: 0, transientCleanup: [] };
   const union = values => {
     const pieces = values.filter(Boolean);
     return pieces.length ? { type: 'MultiPolygon', coordinates: pieces.flatMap(value => value.coordinates) } : null;
@@ -119,6 +119,8 @@ function harness(t) {
       replaceDraftCoordinates: coords => { draft = [...coords]; },
       clearDraft: () => { draft = []; },
       draftInputActive: () => draft.length > 0,
+      cancelActiveGesture: reason => { calls.transientCleanup.push(['gesture', state.territorySelectionSession.stage, reason]); },
+      clearDraftHover: reason => { calls.transientCleanup.push(['hover', state.territorySelectionSession.stage, reason]); },
       refreshTerritorySelection: ({ tool, reason }) => { calls.refresh.push(`packet:${tool}:${reason}`); return true; },
     },
     setModeBanner() {}, setActionStatus() {},
@@ -132,6 +134,8 @@ function harness(t) {
   workflow.initializeTerritorySelectionWorkflow();
   return {
     state, calls, workflow, worker,
+    setDraft: coords => { draft = structuredClone(coords); },
+    draft: () => draft,
     holdApply: () => { holdApply = true; },
     releaseApply: value => releaseApply(value),
   };
@@ -247,6 +251,40 @@ test('all four operations use setup, selection, review and preserve a selection 
     assert.equal(Object.hasOwn(current, 'requestedMethod'), true);
     h.workflow.clear();
   }
+});
+
+test('back to setup clears only transient input and preserves the draft and ready preview', async t => {
+  const h = harness(t);
+  const current = h.workflow.start('annex', starts[0][1]);
+  await h.workflow.advance();
+  await h.workflow.selectMethod('line');
+  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await settle(t);
+  const draft = [[0, 0], [1, 2], [3, 4]];
+  h.setDraft(draft);
+  // Existing candidate state and its prepared preview are retained through navigation.
+  const before = {
+    candidates: current.candidates, currentGeometry: current.currentGeometry,
+    preview: h.state.geometryPreview.session, previewReadyKey: current.previewReadyKey,
+  };
+  assert.ok(before.preview);
+  assert.ok(before.previewReadyKey);
+  h.workflow.back();
+  assert.equal(current.stage, 'setup');
+  assert.deepEqual(h.calls.transientCleanup, [
+    ['gesture', 'setup', 'territory-selection-back-setup'],
+    ['hover', 'setup', 'territory-selection-back-setup'],
+  ]);
+  assert.strictEqual(current.candidates, before.candidates);
+  assert.strictEqual(current.currentGeometry, before.currentGeometry);
+  assert.strictEqual(h.state.geometryPreview.session, before.preview);
+  assert.equal(current.previewReadyKey, before.previewReadyKey);
+  assert.deepEqual(h.draft(), draft);
+  await h.workflow.advance();
+  assert.equal(current.stage, 'selection');
+  assert.strictEqual(current.candidates, before.candidates);
+  assert.strictEqual(h.state.geometryPreview.session, before.preview);
+  assert.deepEqual(h.draft(), draft);
 });
 
 test('a mixed line, line, polygon session keeps archived units and previews their union once', async t => {

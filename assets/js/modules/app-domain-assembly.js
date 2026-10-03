@@ -682,11 +682,13 @@ export function createDomainAssembly() {
           }, { selectedId: ids[0], shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'territorial-border' });
         },
         renderPacket: () => {
-          const territoryItems = (0, dependencies.territoryComponents.territoryComponentItems)();
           const territorySelection = dependencies.projectState.state.territorySelectionSession;
           const geometryPreview = dependencies.projectState.state.geometryPreview?.session;
           const previewDelta = geometryPreview?.delta;
-          const selectionVisible = territorySelection?.tool === dependencies.projectState.state.tool && territorySelection.stage === 'selection';
+          const workflowVisible = territorySelection?.tool === dependencies.projectState.state.tool;
+          const selectionVisible = workflowVisible && territorySelection.stage === 'selection';
+          const previewVisible = !workflowVisible || territorySelection.stage !== 'setup';
+          const territoryItems = selectionVisible ? (0, dependencies.territoryComponents.territoryComponentItems)() : [];
           const sessionKey = String(territorySelection?.id || 'unknown');
           const candidates = selectionVisible ? territorySelection.candidates.map((item, index) => ({
             key: `${sessionKey}:candidate:${item.id}`,
@@ -705,15 +707,15 @@ export function createDomainAssembly() {
           }
           return {
             boundaryEdit: dependencies.projectState.state.boundaryPreparation?.status === 'ready' ? dependencies.projectState.state.boundaryPreparation.packet : null,
-            preview: previewDelta ? { status: geometryPreview.status, delta: {
+            preview: previewVisible && previewDelta ? { status: geometryPreview.status, delta: {
               removedGeometry: freezeEditingGeometry(previewDelta.removedGeometry),
               addedGeometry: freezeEditingGeometry(previewDelta.addedGeometry),
             } } : null,
-            territoryOperation: territoryItems.length || candidates.length ? {
+            territoryOperation: selectionVisible && (territoryItems.length || candidates.length) ? {
               kind: dependencies.projectState.state.tool,
-              sourceKey: `${territorySelection?.id}:${territorySelection?.componentIndex?.key}:${territorySelection?.settingsRevision}`,
-              phase: territorySelection?.activePhase || null,
-              components: territoryItems.map(item => ({ ...item, hovered: item.key === territorySelection?.hoveredComponentKey })),
+              sourceKey: `${territorySelection.id}:${territorySelection.componentIndex?.key}:${territorySelection.settingsRevision}`,
+              phase: territorySelection.activePhase || null,
+              components: territoryItems.map(item => ({ ...item, hovered: item.key === territorySelection.hoveredComponentKey })),
               candidates,
             } : null,
           };

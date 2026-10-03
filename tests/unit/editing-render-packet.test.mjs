@@ -115,6 +115,117 @@ test('editing domain reuses packet identity until an actual state mutation', () 
   assert.equal(invalidations, 1);
 });
 
+test('inactive draft hides render and feedback channels without losing coordinates or undo history', () => {
+  for (const shape of ['line', 'polygon']) {
+    let stage = 'selection';
+    const editing = createEditingDomain({
+      draftServices: {
+        getToolConfig: () => stage === 'selection' ? { shape } : null,
+        screenToCoordinate: value => value,
+        projectCoordinate: value => value,
+        assessDraft: ({ coords }) => ({
+          line: coords,
+          valid: false,
+          status: 'invalid',
+          issues: [{ kind: 'invalid', coordinate: coords[0], message: '경계를 여러 번 가로지릅니다.' }],
+          snaps: { start: { kind: 'boundary', coordinate: coords[0] } },
+          splitPreview: { candidates: [{ geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] } }] },
+        }),
+      },
+    });
+    editing.setTool('annex-territory');
+    for (const point of [[0, 0], [10, 0], [10, 10]]) editing.appendDraftScreenPoint(point);
+    editing.performDraftUndo();
+    editing.handleInteraction({
+      type: 'draft-hover-move', screenPoint: [12, 12],
+      packetRevision: editing.createRenderPacket().revision, projectGeneration: 0,
+    });
+    const before = editing.snapshot().draft;
+    const visible = editing.createRenderPacket().draft;
+    assert.ok(before.hover);
+    assert.ok(before.cutAssessment);
+    assert.ok(visible.geometry);
+    assert.ok(visible.vertices.length);
+    assert.ok(visible.issues.length);
+    assert.ok(visible.snapPoints.length);
+    assert.ok(visible.splitCandidates.length);
+    assert.ok(before.historyCount);
+    assert.equal(before.futureCount, 1);
+
+    stage = 'setup';
+    editing.refreshTerritorySelection({ tool: 'annex-territory', reason: 'back-setup' });
+    const hidden = editing.snapshot().draft;
+    assert.equal(hidden.active, false);
+    assert.deepEqual(editing.createRenderPacket().draft, EMPTY_EDITING_RENDER_PACKET.draft);
+    for (const key of ['coords', 'selectedVertexIndex', 'inputPhase', 'historyCount', 'futureCount']) {
+      assert.deepEqual(hidden[key], before[key], `${shape}: ${key} must be preserved`);
+    }
+    assert.equal(hidden.hover, null);
+    assert.equal(hidden.insertTarget, null);
+    assert.equal(hidden.dragging, false);
+    assert.deepEqual(hidden.issues, []);
+    assert.equal(hidden.cutAssessment, null);
+    assert.equal(hidden.activeSnap, null);
+
+    stage = 'selection';
+    editing.refreshTerritorySelection({ tool: 'annex-territory', reason: 'resume-selection' });
+    assert.equal(editing.snapshot().draft.active, true);
+    assert.deepEqual(editing.createRenderPacket().draft, visible);
+    assert.equal(editing.performDraftRedo(), true);
+    assert.deepEqual(editing.snapshot().draft.coords, [[0, 0], [10, 0], [10, 10]]);
+    editing.dispose();
+  }
+});
+
+test('renderer clears inactive draft channels but still draws territory components and candidates', () => {
+  const joins = new Map();
+  const selection = {};
+  for (const method of ['exit', 'enter', 'remove', 'append', 'attr', 'style', 'on', 'each', 'call']) {
+    selection[method] = () => selection;
+  }
+  const layer = { selectAll: selector => ({
+    ...selection,
+    data: data => { joins.set(selector, data); return selection; },
+  }) };
+  const frames = [];
+  let frameId = 0;
+  const shape = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
+  let packet = createEditingRenderPacket({ draft: {
+    active: true, geometry: shape,
+    vertices: [{ index: 0, coordinate: [0, 0] }],
+    segments: [{ segmentIndex: 0, start: [0, 0], end: [1, 1] }],
+    issues: [{ kind: 'invalid', coordinate: [0, 0] }],
+    snapPoints: [{ endpoint: 'start', coordinate: [0, 0] }],
+    splitCandidates: [{ geometry: shape }],
+  } });
+  const rendering = createRenderingDomain({
+    requestFrame: callback => { frames.push(callback); return frames.length; },
+    prepareView: () => ({ frameId: ++frameId, projection: 'flat' }),
+    getEditingRenderPacket: () => packet,
+    interactionResources: { draftLayer: layer },
+  });
+  const render = () => { rendering.invalidateEditingOverlays('inactive-draft-test'); frames.shift()(); };
+  render();
+  assert.equal(joins.get('g.draft-vertex').length, 1);
+  assert.equal(joins.get('path.draft-packet-shape').length, 1);
+
+  // Deliberately invalid input: inactive draft still carries old visual data.
+  packet = createEditingRenderPacket({ draft: { ...packet.draft, active: false }, territoryOperation: {
+    kind: 'annex-territory', phase: 'components',
+    components: [{ key: 'north', geometry: shape, usesRiverBoundary: true, riverBoundarySegments: [[[0, 0], [1, 1]]] }],
+    candidates: [{ key: 'candidate', geometry: shape }],
+  } });
+  render();
+  for (const selector of ['g.draft-vertex', 'path.draft-packet-shape', 'path.draft-segment-hit',
+    'g.draft-issue-marker', 'circle.draft-snap-point', 'path.draft-split-preview']) {
+    assert.deepEqual(joins.get(selector), [], `${selector} must be cleared`);
+  }
+  assert.equal(joins.get('path.territory-component').length, 1);
+  assert.equal(joins.get('path.territory-candidate').length, 1);
+  assert.equal(joins.get('path.river-partition-emphasis').length, 1);
+  rendering.dispose();
+});
+
 test('one coordinator frame reads one editing packet for every editing pass', () => {
   const frames = [];
   const packet = createEditingRenderPacket({ revision: 4, projectGeneration: 2 });

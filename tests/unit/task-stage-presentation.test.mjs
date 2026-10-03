@@ -225,6 +225,29 @@ test('task target labels refresh from the repository while object refs stay stab
   assert.equal(f.elements.modeTaskObjects.children[0].children[1].children[0].textContent, 'After');
 });
 
+test('new territory workflows never expose source or parent countries as a focus target', t => {
+  for (const kind of ['new-country', 'subunit', 'region']) {
+    const current = { kind, taskLabel: '추가', tool: kind, stage: 'setup',
+      sourceCountryIds: ['COUNTRY'], sovereignId: 'COUNTRY', parentId: 'COUNTRY',
+      candidates: [], parts: [] };
+    const model = { current, step: 1, stageLabel: '기본 정보', setup: true };
+    const f = fixture(t, { tool: current.tool, territorySelectionSession: current }, {
+      territorySelectionPresentation: () => model,
+      sphericalGeometryAreaKm2: () => 0,
+    });
+    for (const stage of ['setup', 'selection', 'review']) {
+      current.stage = stage;
+      model.setup = stage === 'setup';
+      model.selection = stage === 'selection';
+      model.review = stage === 'review';
+      f.presentation.updateModeButtons();
+      assert.equal(f.elements.modeTaskTargetsFocusBtn.classList.contains('hidden'), true, `${kind}: ${stage}`);
+      assert.equal(f.elements.modeTaskTargetsFocusBtn.disabled, true, `${kind}: ${stage}`);
+      assert.deepEqual(f.focusCalls, []);
+    }
+  }
+});
+
 test('task status explains pending and missing-target decisions without changing retry eligibility', async t => {
   const pending = fixture(t, {
     boundaryEditEntityIds: ['COUNTRY'],

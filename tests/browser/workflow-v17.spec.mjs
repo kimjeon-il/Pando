@@ -56,6 +56,98 @@ async function drawCoordinates(page, coordinates) {
   await page.mouse.up();
 }
 
+test('annex setup hides selection-stage visuals and restores the exact draft on return', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const errors = await boot(page);
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await page.locator('#selectionToolbarEditBtn').click();
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#annexTerritoryBtn').click();
+  await pickCountry(page, 'POL');
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
+  await page.locator('#modeDirectLineMethodInput').check();
+  await expect(page.locator('#modeDraftActions')).toBeVisible({ timeout: 60_000 });
+  await page.locator('#flatBtn').evaluate(button => button.click());
+  await page.evaluate(() => {
+    const host = window.__PANDOLAB_MAP_HOST__;
+    host.setViewState({ projection: 'flat', view: { ...host.getViewState(), flatCenter: [19, 52], flatZoom: 10 } });
+    host.requestRepaint('workflow-draft-back-test');
+  });
+  await drawCoordinates(page, [[17, 51], [21, 53], [17, 53], [21, 51]]);
+  const vertices = page.locator('g.draft-vertex');
+  await expect(vertices).not.toHaveCount(0);
+  await expect(page.locator('g.draft-issue-marker')).not.toHaveCount(0);
+  const coordinates = await vertices.evaluateAll(nodes => nodes.map(node => node.__data__.coordinate));
+  const issueText = await page.locator('g.draft-issue-marker title').first().textContent();
+  expect(issueText).toBeTruthy();
+  await expect(page.locator('#modeTaskDisabledReason')).toContainText(issueText);
+
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
+  for (const selector of [
+    'g.draft-vertex', 'path.draft-packet-shape', 'path.draft-segment-hit',
+    'g.draft-issue-marker', 'circle.draft-snap-point', 'g.draft-insert-handle',
+    'path.draft-split-preview', 'path.territory-component', 'path.territory-candidate',
+    'path.river-partition-emphasis', '.geometry-preview-fill',
+  ]) await expect(page.locator(selector)).toHaveCount(0);
+  await expect(page.locator('#modeTaskDisabledReason')).toBeHidden();
+  await expect(page.locator('#modeTaskInstruction')).not.toContainText(issueText);
+  await expect(page.locator('#selectionToolbar')).toContainText('독일');
+
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
+  await expect(vertices).toHaveCount(coordinates.length);
+  expect(await vertices.evaluateAll(nodes => nodes.map(node => node.__data__.coordinate))).toEqual(coordinates);
+  await expect(page.locator('g.draft-issue-marker')).not.toHaveCount(0);
+  await expect(page.locator('#modeTaskDisabledReason')).toContainText(issueText);
+  expect(errors).toEqual([]);
+});
+
+test('editor headers stay text-only while selection identity and explicit body focus remain', async ({ page }, testInfo) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const errors = await boot(page);
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
+  await expect(page.locator('#selectionCardName')).toHaveText('독일');
+  await expect(page.locator('#selectionCardFlagPreview img')).toBeVisible();
+  await page.locator('#selectionToolbarEditBtn').click();
+  await expect(page.locator('#editorObjectHeader #focusSelectedObjectBtn')).toHaveCount(0);
+  await expect(page.locator('#editorObjectHeader svg, #editorObjectHeader img')).toHaveCount(0);
+  const flag = page.locator('#editorScrollBody #flagMenuBtn');
+  await expect(flag).toBeVisible();
+  await flag.click();
+  await expect(page.locator('#flagMenu')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#flagMenu')).toBeHidden();
+  await expect(flag).toBeFocused();
+  const focus = page.locator('#editorScrollBody #focusSelectedObjectBtn');
+  await expect(focus).toBeVisible();
+  await expect(focus).toHaveText('선택 객체로 이동');
+  await expect(focus.locator('svg')).toHaveCount(0);
+  const before = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState());
+  await focus.click();
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState())).not.toEqual(before);
+  await expect(page.locator('#selectionCardName')).toHaveText('독일');
+
+  await page.locator('#createMenuBtn').click();
+  await page.locator('#addSubunitBtn').click();
+  const task = await page.locator('#modeEditingHud').evaluateHandle(node => node);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(page.locator('#modeTaskName')).toHaveText('하위단위 추가');
+    await expect(page.locator('#modeTaskStage')).toHaveText('하위단위 정보');
+    await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
+    await expect(page.locator('.mode-task-window-header #modeTaskTargetsFocusBtn')).toHaveCount(0);
+    await expect(page.locator('.mode-task-window-header .ui-icon:visible')).toHaveCount(0);
+    await expect(page.locator('#modeTaskTargetsFocusBtn')).toBeHidden();
+    expect(await page.locator('#modeEditingHud').evaluate((node, original) => node === original, task)).toBe(true);
+    await page.locator('#modeEditingHud').screenshot({ path: testInfo.outputPath(`text-header-${width}.png`) });
+  }
+  expect(errors).toEqual([]);
+});
+
 for (const type of ['subunit', 'region']) test(`${type} creation retains candidate validation, review back, real geometry and undo`, async ({ page }) => {
   test.setTimeout(240_000);
   const errors = await boot(page);
