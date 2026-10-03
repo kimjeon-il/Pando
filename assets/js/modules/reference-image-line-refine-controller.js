@@ -349,8 +349,13 @@ export function installReferenceImageLineRefiner() {
 
   async function startRefine(recordId) {
     if (state) cancelRefine();
-    if (mapElement.classList.contains('is-reference-gcp-mode') || mapElement.classList.contains('is-reference-placement-mode')) {
-      setMessage('기준점 추가 또는 배치 편집을 먼저 종료한 뒤 선 보강을 시작하세요.', 'error');
+    if (mapElement.classList.contains('is-reference-anchor-mode')
+      || mapElement.classList.contains('is-reference-gcp-mode')
+      || mapElement.classList.contains('is-reference-gcp-edit-mode')
+      || mapElement.classList.contains('is-reference-placement-mode')
+      || mapElement.classList.contains('is-reference-free-transform-mode')
+      || mapElement.classList.contains('is-reference-live-wire-mode')) {
+      setMessage('참조 이미지 편집이나 자동 추적을 먼저 종료한 뒤 선 보강을 시작하세요.', 'error');
       return false;
     }
     state = { recordId, phase: 'loading', source: null, pointerId: null, roughScreenPoints: [], roughImagePoints: [], previewCoordinates: [] };
