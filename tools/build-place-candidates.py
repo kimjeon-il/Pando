@@ -2,6 +2,7 @@
 
 fetch: official cities500 first, allCountries as a fallback / coverage audit.
 build: reproduce candidates and statistics from hash-verified local ZIP snapshots.
+review: apply sourced, ID-specific exclusions / holds to a separate offline pool.
 Only the standard library is required. Large sources / candidates stay in .cache.
 """
 from __future__ import annotations
@@ -40,6 +41,7 @@ NAME_SIGNALS = re.compile(r"\b(neighbou?rhood|borough|suburb|district|ward|arron
 KR_MICRO_SIGNALS = re.compile(r"(?:[-\s](?:gu|eup|myeon|dong|ri)|[구읍면동리])$", re.I)
 GENERATED_START = "<!-- geonames-statistics:start -->"
 GENERATED_END = "<!-- geonames-statistics:end -->"
+REVIEW_ACTIONS = {"exclude", "hold", "retain", "inclusion-review"}
 
 
 def write_json(path, value):
@@ -376,6 +378,141 @@ def table(headers, rows):
                      ["| " + " | ".join(cell(value) for value in row) + " |" for row in rows])
 
 
+def refine_candidates(rows, source_records, reviews):
+    """Review only explicit IDs. Never promote, merge, rename, or edit source rows."""
+    validate_candidates(rows)
+    if reviews.get("version") != 1:
+        raise ValueError("Unsupported candidate review version")
+    sources = reviews.get("evidenceSources", {})
+    if not isinstance(sources, dict):
+        raise ValueError("Review evidenceSources must be an object")
+    for key, source in sources.items():
+        if not all(isinstance(source.get(field), str) and source[field].strip()
+                   for field in ("url", "publisher", "checkedAt", "finding", "access")):
+            raise ValueError(f"Evidence {key}: missing source provenance")
+        if not source["url"].startswith("https://"):
+            raise ValueError(f"Evidence {key}: expected an HTTPS source URL")
+    decisions = reviews.get("decisions")
+    if not isinstance(decisions, list):
+        raise ValueError("Review decisions must be a list")
+    baseline = {row["geonameId"]: row for row in rows}
+    seen, removed, reviewed = set(), set(), []
+    for decision in decisions:
+        identifier = decision.get("geonameId")
+        if type(identifier) is not int or identifier <= 0 or identifier in seen:
+            raise ValueError(f"Invalid or duplicate review ID {identifier}")
+        seen.add(identifier)
+        row = source_records.get(identifier)
+        if row is None:
+            raise ValueError(f"Review {identifier}: missing source record")
+        validate_record(row, f"review {identifier}")
+        expected = decision.get("expected", {})
+        required = {"name", "countryCode", "featureCode", "latitude", "longitude"}
+        if not required <= expected.keys() or any(row.get(key) != value for key, value in expected.items()):
+            raise ValueError(f"Review {identifier}: source identity changed; re-review required")
+        action = decision.get("action")
+        if action not in REVIEW_ACTIONS:
+            raise ValueError(f"Review {identifier}: unknown action {action}")
+        evidence = decision.get("evidence", [])
+        if not evidence or len(set(evidence)) != len(evidence) or any(key not in sources for key in evidence):
+            raise ValueError(f"Review {identifier}: missing or unknown evidence")
+        if not isinstance(decision.get("reason"), str) or not decision["reason"].strip():
+            raise ValueError(f"Review {identifier}: missing reason")
+        in_baseline = identifier in baseline
+        if candidate(row) != baseline.get(identifier):
+            raise ValueError(f"Review {identifier}: baseline/source mismatch")
+        if action == "retain" and not in_baseline:
+            raise ValueError(f"Review {identifier}: retain cannot promote an excluded record")
+        if action == "inclusion-review" and in_baseline:
+            raise ValueError(f"Review {identifier}: inclusion-review requires an excluded record")
+        if action in ("exclude", "hold") and in_baseline:
+            removed.add(identifier)
+        reviewed.append({"record": dict(row), "action": action, "inBaseline": in_baseline,
+                         "reason": decision["reason"], "evidence": list(evidence)})
+    return sorted((dict(row) for row in rows if row["geonameId"] not in removed),
+                  key=lambda row: row["geonameId"]), sorted(reviewed, key=lambda item: item["record"]["geonameId"])
+
+
+def render_reviews(stats):
+    parts = ["## 재생성 가능한 ID별 검토 결과", "",
+             f"검토 원본: `{stats['source']['name']}` / SHA-256 `{stats['source']['sha256']}`.", "",
+             table(["항목", "건수"], [("1차 후보 (변경 없음)", stats["baselineCount"]),
+                                       ("이번 ID별 검토", stats["reviewCount"]),
+                                       ("후보에서 확인 제외", stats["baselineExcludes"]),
+                                       ("후보에서 임시 보류", stats["baselineHolds"]),
+                                       ("별도 정제 후보", stats["refinedCount"]),
+                                       ("정제본 내 미검토", stats["unreviewedCount"])]), "",
+             "정제본은 전 세계 검증 완료 목록이 아니다. 미검토 기록은 원래 후보 그대로 남는다.",
+             "`inclusion-review`는 필터 밖의 재검토 제안이며 정제본에 추가하지 않는다.", "",
+             table(["country", "baseline", "refined", "excluded", "held"],
+                   [(code, *[values[key] for key in ("baseline", "refined", "excluded", "held")])
+                    for code, values in stats["changedCountries"].items()])]
+    for action in sorted(REVIEW_ACTIONS):
+        parts += ["", f"### {action}", "",
+                  table(["ID", "국가", "원명", "코드 / 인구", "좌표 lat / lon", "1차 포함", "판단", "근거"],
+                        [(item["record"]["geonameId"], item["record"]["countryCode"], item["record"]["name"],
+                          f"{item['record']['featureCode']} / {item['record']['population']}",
+                          f"{item['record']['latitude']} / {item['record']['longitude']}",
+                          "yes" if item["inBaseline"] else "no", item["reason"],
+                          ", ".join(f"[{key}]({stats['evidenceSources'][key]['url']})" for key in item["evidence"]))
+                         for item in stats["reviewedRecords"] if item["action"] == action])]
+    parts += ["", "### 자료 확인 방식과 한계", "",
+              table(["근거", "확인일", "확인 방식", "판정에 사용한 사실"],
+                    [(f"[{key}]({source['url']})", source["checkedAt"], source["access"], source["finding"])
+                     for key, source in stats["evidenceSources"].items()]), "",
+              f"정제 파일: `.cache/{stats['refinedArtifact']['path']}`, SHA-256 `{stats['refinedArtifact']['sha256']}`.", ""]
+    return "\n".join(parts)
+
+
+def review(cache, reviews_path, stats_path, report_path):
+    """Re-read the pinned official snapshot, not an unverified candidate cache."""
+    reviews = json.loads(reviews_path.read_text(encoding="utf-8"))
+    source = reviews["source"]
+    metadata = json.loads((cache / f"{source['name']}.source.json").read_text(encoding="utf-8"))
+    if metadata["sha256"] != source["sha256"]:
+        raise ValueError("Review source snapshot changed; re-review required")
+    target_ids = {decision["geonameId"] for decision in reviews["decisions"]}
+    rows, source_records = [], {}
+    for number, line in source_rows(source["name"], cache):
+        row, _ = parse_row(line, f"{source['name']}:{number}")
+        value = candidate(row)
+        if value is not None:
+            rows.append(value)
+        if row["geonameId"] in target_ids:
+            if row["geonameId"] in source_records:
+                raise ValueError(f"Duplicate source review ID {row['geonameId']}")
+            source_records[row["geonameId"]] = row
+    refined, reviewed = refine_candidates(rows, source_records, reviews)
+    baseline_counts = Counter(row["countryCode"] for row in rows)
+    refined_counts = Counter(row["countryCode"] for row in refined)
+    excluded = Counter(item["record"]["countryCode"] for item in reviewed if item["inBaseline"] and item["action"] == "exclude")
+    held = Counter(item["record"]["countryCode"] for item in reviewed if item["inBaseline"] and item["action"] == "hold")
+    # Finish all validation / report contract checks before replacing artifacts.
+    content = report_path.read_text(encoding="utf-8")
+    if content.count(GENERATED_START) != 1 or content.count(GENERATED_END) != 1:
+        raise ValueError("Review report requires exactly one generated statistics marker pair")
+    artifact = cache / "refined-candidates.ndjson"
+    with artifact.open("w", encoding="utf-8", newline="\n") as stream:
+        for row in refined:
+            stream.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
+    stats = {"source": source, "reviewLedgerSha256": file_hash(reviews_path),
+             "baselineCount": len(rows), "reviewCount": len(reviewed), "refinedCount": len(refined),
+             "baselineExcludes": sum(excluded.values()), "baselineHolds": sum(held.values()),
+             "actions": dict(sorted(Counter(item["action"] for item in reviewed).items())),
+             "unreviewedCount": len(refined) - sum(item["inBaseline"] and item["action"] == "retain" for item in reviewed),
+             "changedCountries": {code: {"baseline": baseline_counts[code], "refined": refined_counts[code],
+                                          "excluded": excluded[code], "held": held[code]}
+                                  for code in sorted(set(excluded) | set(held))},
+             "evidenceSources": reviews["evidenceSources"], "reviewedRecords": reviewed,
+             "refinedArtifact": {"path": artifact.name, "rows": len(refined), "sha256": file_hash(artifact), "bytes": artifact.stat().st_size}}
+    write_json(stats_path, stats)
+    before, rest = content.split(GENERATED_START)
+    _, after = rest.split(GENERATED_END)
+    report_path.write_text(before + GENERATED_START + "\n\n" + render_reviews(stats) + "\n" + GENERATED_END + after, encoding="utf-8")
+    print(f"review: {len(rows):,} -> {len(refined):,}; excluded {sum(excluded.values())}, held {sum(held.values())}; {artifact}", flush=True)
+    return stats
+
+
 def render_statistics(stats):
     parts = ["## 재생성 가능한 실측 통계", "", "### 원본과 무결성", ""]
     for name, metadata in stats["sources"].items():
@@ -517,15 +654,20 @@ def build(cache, stats_path, report_path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("fetch", "build"))
+    parser.add_argument("command", choices=("fetch", "build", "review"))
     parser.add_argument("--cache", type=Path, default=CACHE)
-    parser.add_argument("--stats", type=Path, default=ROOT / "reports" / "places" / "geonames-statistics.json")
-    parser.add_argument("--report", type=Path, default=ROOT / "docs" / "place-data-audit.md")
+    parser.add_argument("--stats", type=Path)
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--reviews", type=Path, default=ROOT / "reports" / "places" / "candidate-reviews.json")
     args = parser.parse_args()
     if args.command == "fetch":
         fetch(args.cache)
+    elif args.command == "build":
+        build(args.cache, args.stats or ROOT / "reports" / "places" / "geonames-statistics.json",
+              args.report or ROOT / "docs" / "place-data-audit.md")
     else:
-        build(args.cache, args.stats, args.report)
+        review(args.cache, args.reviews, args.stats or ROOT / "reports" / "places" / "candidate-review-summary.json",
+               args.report or ROOT / "docs" / "place-candidate-review.md")
 
 
 if __name__ == "__main__":
