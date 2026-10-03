@@ -8,7 +8,6 @@ test('Ctrl deselection restores the remaining country presenter and toolbar', as
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('country', 'DEU'));
-  await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#countryProperties')).toBeVisible();
   const map = await page.locator('#map').boundingBox();
   const points = await page.evaluate(() => [[2, 47], [13, 51]].map(coordinate => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate)));
@@ -54,7 +53,6 @@ test('search Shift click selects the displayed range and its final primary', asy
   await expect.poll(() => rows.count()).toBeGreaterThan(3);
   const displayedKeys = await rows.evaluateAll(nodes => nodes.slice(0, 4).map(node => node.dataset.objectKey));
   await rows.nth(0).locator('[data-object-search-select]').click();
-  await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#objectSearchBtn').click();
   await expect(rows.nth(0)).toHaveAttribute('data-object-key', displayedKeys[0]);
   await rows.nth(2).locator('[data-object-search-select]').click({ modifiers: ['Shift'] });
@@ -82,7 +80,6 @@ test('reselecting a country before idle area calculation finishes still displays
     window.PANDOLAB_TERRITORIAL.select('country', 'DEU');
     window.PANDOLAB_TERRITORIAL.select('country', 'DEU');
   });
-  await page.locator('#selectionToolbarEditBtn').click({ timeout: 8_000 });
   await expect(page.locator('#countryAreaValue')).toHaveText('면적 계산 중…');
   expect(await page.evaluate(() => window.__countryAreaCallbacks.length)).toBe(1);
   await page.evaluate(() => window.__countryAreaCallbacks.shift()());

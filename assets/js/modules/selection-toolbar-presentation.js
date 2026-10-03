@@ -7,9 +7,13 @@ export function createSelectionToolbarPresentation({
   isEditorOpen = () => false, isMutationBlocked = () => false, getProjectGeneration = () => 0,
   closeColorPickers = () => {}, createSemanticIcon, getAnchor = () => null,
   getMapRect = () => null, getViewRevision = () => 0,
+  getLayout = () => 'wide', getLabelRef, selectForQuickAction, canInspect = () => true,
+  mapClickBlocked = () => false, getColor, isVisible, isLocked,
 } = {}) {
   const $ = getElement;
   let activeRef = null, activeAnchorNode = null, anchorFrame = 0, lastPositionSignature = null, flagReadRevision = 0, bound = false;
+  // A hover preview is presentation state, never a second object selection.
+  let hoverRef = null, closeTimer = 0;
   const root = () => $('selectionToolbar');
   const activeKind = () => activeRef?.type || '';
   const currentSelection = () => {
@@ -49,8 +53,6 @@ export function createSelectionToolbarPresentation({
     preview.appendChild(image);
   }
   function renderIdentity(view) {
-    if ($('selectionCardName')) $('selectionCardName').textContent = view?.name || '이름 없는 객체';
-    renderFlagPreview($('selectionCardFlagPreview'), view);
     renderFlagPreview($('flagPreview'), view, { descriptive: true });
     if ($('flagDefaultBtn')) $('flagDefaultBtn').disabled = !view?.hasFlagOverride;
     if ($('flagRemoveBtn')) $('flagRemoveBtn').disabled = !view?.flagUrl;
@@ -60,7 +62,7 @@ export function createSelectionToolbarPresentation({
     activeAnchorNode = null;
   }
   function acquireAnchor() {
-    const anchor = activeRef ? getAnchor(activeRef) : null;
+    const anchor = hoverRef ? getAnchor(hoverRef) : null;
     if (!anchor) { releaseAnchorNode(); return null; }
     if (anchor.node !== activeAnchorNode) {
       releaseAnchorNode();
@@ -71,8 +73,8 @@ export function createSelectionToolbarPresentation({
   }
   function positionCard({ force = false } = {}) {
     const card = root();
-    if (!card || card.classList.contains('hidden') || !activeRef) return false;
-    const positionSignature = `${getViewRevision()}:${activeRef.key}`;
+    if (!card || card.classList.contains('hidden') || !hoverRef) return false;
+    const positionSignature = `${getViewRevision()}:${hoverRef.key}`;
     if (!force && positionSignature === lastPositionSignature) return true;
     const mapRect = getMapRect(), anchor = acquireAnchor();
     if (!mapRect || !anchor) { releaseAnchorNode(); return false; }
@@ -106,7 +108,7 @@ export function createSelectionToolbarPresentation({
   function trackAnchor() {
     stopAnchorTracking();
     const tick = () => {
-      if (!activeRef || root()?.classList.contains('hidden')) return;
+      if (!hoverRef || root()?.classList.contains('hidden')) return;
       positionCard();
       anchorFrame = window.requestAnimationFrame(tick);
     };
@@ -114,6 +116,8 @@ export function createSelectionToolbarPresentation({
   }
   function hideCard() {
     const toolbar = root();
+    cancelClose();
+    hoverRef = null;
     stopAnchorTracking(); releaseAnchorNode(); closeTransient();
     if (!toolbar) return false;
     toolbar.classList.add('hidden');
@@ -123,7 +127,7 @@ export function createSelectionToolbarPresentation({
   }
   function showCard() {
     const toolbar = root();
-    if (!toolbar || !activeRef || isEditorOpen()) return false;
+    if (!toolbar || !hoverRef || getLayout() === 'mobile' || isEditorOpen() || !canInspect()) return false;
     toolbar.classList.remove('hidden'); toolbar.inert = false; toolbar.setAttribute('aria-hidden', 'false');
     if (!positionCard({ force: true })) { hideCard(); return false; }
     trackAnchor();
@@ -131,19 +135,74 @@ export function createSelectionToolbarPresentation({
   }
   function syncInteraction() {
     const toolbar = root();
-    if (!toolbar || !activeRef) return false;
-    const view = getView(activeRef);
-    if (!view) return clear();
-    const blocked = !!isMutationBlocked(activeRef, view);
-    toolbar.classList.toggle('is-readonly', blocked);
-    const name = $(`${activeKind()}NameInput`), color = $(`${activeKind()}ColorTrigger`);
-    if (name) name.disabled = blocked;
-    if (color) color.disabled = blocked;
-    if ($('flagMenuBtn')) $('flagMenuBtn').disabled = blocked;
-    if (blocked) closeTransient();
-    if (isEditorOpen()) hideCard();
-    else if (toolbar.classList.contains('hidden')) showCard();
+    if (!toolbar) return false;
+    if (activeRef) {
+      const view = getView(activeRef);
+      if (!view) return clear();
+      const blocked = !!isMutationBlocked(activeRef, view);
+      const name = $(`${activeKind()}NameInput`);
+      if (name) name.disabled = blocked;
+      if ($('flagMenuBtn')) $('flagMenuBtn').disabled = blocked;
+    }
+    if (isEditorOpen() || getLayout() === 'mobile' || !canInspect()) hideCard();
+    else if (hoverRef) {
+      renderCard();
+      if (toolbar.classList.contains('hidden')) showCard();
+      else positionCard({ force: true });
+    }
     return true;
+  }
+  function renderCard() {
+    const view = getView(hoverRef), toolbar = root();
+    if (!view) return hideCard();
+    toolbar.dataset.objectKey = hoverRef.key;
+    toolbar.dataset.objectType = hoverRef.type;
+    toolbar.setAttribute('aria-label', `${view.name || '선택 객체'} 선택 카드`);
+    for (const fields of toolbar.querySelectorAll('[data-selection-kind]')) fields.classList.toggle('hidden', fields.dataset.selectionKind !== hoverRef.type);
+    $('selectionCardName').textContent = view.name || '이름 없는 객체';
+    renderFlagPreview($('selectionCardFlagPreview'), view);
+    const blocked = !!isMutationBlocked(hoverRef, view);
+    toolbar.classList.toggle('is-readonly', blocked);
+    const color = $(`${hoverRef.type}ColorTrigger`);
+    color.disabled = blocked;
+    color.querySelector('.ui-color-preview').style.setProperty('--swatch-color', getColor(view));
+    const visible = isVisible(hoverRef), locked = isLocked(hoverRef);
+    for (const [id, label, pressed, icon] of [
+      ['objectVisibility', visible ? '객체 숨기기' : '객체 표시', visible, visible ? 'eye' : 'eye-off'],
+      ['objectLock', locked ? '잠금 해제' : '잠금', locked, locked ? 'lock-closed' : 'lock-open'],
+    ]) {
+      const button = $(`${id}Btn`);
+      button.disabled = !canInspect();
+      button.setAttribute('aria-label', label);
+      button.setAttribute('aria-pressed', String(pressed));
+      button.dataset.tooltip = label;
+      $(`${id}Icon`).setAttribute('href', `#icon-${icon}`);
+    }
+    return true;
+  }
+  function cancelClose() {
+    if (closeTimer) window.clearTimeout(closeTimer);
+    closeTimer = 0;
+  }
+  function scheduleClose(event) {
+    cancelClose();
+    closeTimer = window.setTimeout(() => {
+      closeTimer = 0;
+      if (root()?.querySelector('[data-color-picker].is-open') || (event?.type === 'focusout' && root()?.contains(document.activeElement))) return;
+      hideCard();
+    }, 180);
+  }
+  function previewLabel(node) {
+    if (getLayout() === 'mobile' || isEditorOpen() || !canInspect()) return;
+    const ref = getLabelRef(node.dataset.labelId);
+    if (!ref || !TERRITORIAL_KINDS.has(ref.type)) return;
+    cancelClose();
+    if (hoverRef?.key !== ref.key) {
+      closeTransient(); releaseAnchorNode(); lastPositionSignature = null;
+    }
+    hoverRef = ref;
+    renderCard();
+    showCard();
   }
   function sync() {
     const toolbar = root();
@@ -152,9 +211,7 @@ export function createSelectionToolbarPresentation({
     if (!ref) return clear();
     const selectionChanged = activeRef?.key !== ref.key;
     if (selectionChanged) {
-      closeTransient();
-      releaseAnchorNode();
-      lastPositionSignature = null;
+      closeFlag();
     }
     activeRef = ref;
     const view = getView(ref);
@@ -165,7 +222,7 @@ export function createSelectionToolbarPresentation({
     for (const fields of toolbar.querySelectorAll('[data-selection-kind]')) fields.classList.toggle('hidden', fields.dataset.selectionKind !== ref.type);
     renderIdentity(view);
     const synced = syncInteraction();
-    if (synced && selectionChanged && !isEditorOpen() && !toolbar.classList.contains('hidden')) {
+    if (synced && selectionChanged && hoverRef && !isEditorOpen() && !toolbar.classList.contains('hidden')) {
       positionCard({ force: true });
     }
     return synced;
@@ -191,10 +248,41 @@ export function createSelectionToolbarPresentation({
     if (bound) return api;
     bound = true;
     $('selectionToolbarEditBtn')?.addEventListener('click', event => {
-      if (!activeRef || isEditorOpen()) return;
+      const ref = hoverRef;
+      if (!ref || isEditorOpen()) return;
       hideCard();
-      openEditor(activeRef, event.currentTarget);
+      openEditor(ref, event.currentTarget);
     });
+    const map = $('map');
+    map?.addEventListener('pointerover', event => {
+      if (event.pointerType === 'touch') return;
+      const label = event.target.closest('g.territorial-label-item[data-label-id]');
+      if (label && !label.contains(event.relatedTarget)) previewLabel(label);
+    });
+    map?.addEventListener('pointerout', event => {
+      const label = event.target.closest('g.territorial-label-item[data-label-id]');
+      if (label && !label.contains(event.relatedTarget) && !root()?.contains(event.relatedTarget)) scheduleClose();
+    });
+    map?.addEventListener('click', event => {
+      const label = event.target.closest('g.territorial-label-item[data-label-id]');
+      if (!label || !canInspect() || event.ctrlKey || event.metaKey || event.shiftKey || mapClickBlocked(event)) return;
+      const ref = getLabelRef(label.dataset.labelId);
+      if (!ref) return;
+      event.stopPropagation();
+      hideCard();
+      openEditor(ref, label);
+    }, true);
+    root()?.addEventListener('pointerenter', cancelClose);
+    root()?.addEventListener('pointerleave', scheduleClose);
+    root()?.addEventListener('focusout', scheduleClose);
+    root()?.addEventListener('click', event => {
+      if (hoverRef && event.target.closest('.selection-card-quickbar')) {
+        cancelClose();
+        if (!selectForQuickAction(hoverRef)) {
+          event.preventDefault(); event.stopPropagation(); hideCard();
+        }
+      }
+    }, true);
     $('flagMenuBtn')?.addEventListener('click', () => {
       const menu = $('flagMenu');
       if (!menu || $('flagMenuBtn')?.disabled) return;
@@ -231,9 +319,23 @@ export function createSelectionToolbarPresentation({
       reader.addEventListener('load', () => { if (revision === flagReadRevision && generation === getProjectGeneration() && currentSelection()?.key === ref.key) commitFlag(ref, reader.result); }, { once: true });
       reader.readAsDataURL(file);
     });
-    document.addEventListener('pointerdown', event => { if (event.target.closest('.ui-color-trigger')) closeFlag(); }, true);
-    document.addEventListener('keydown', event => { if (event.key === 'Escape' && activeRef && closeTransient({ restoreFocus: true })) { event.preventDefault(); event.stopImmediatePropagation(); } }, true);
-    window.addEventListener('resize', () => { positionCard({ force: true }); positionFlagMenu(); });
+    document.addEventListener('pointerdown', event => {
+      if (event.target.closest('.ui-color-trigger')) closeFlag();
+      if (hoverRef && !root()?.contains(event.target) && !activeAnchorNode?.contains(event.target)) hideCard();
+    }, true);
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      if ((activeRef || hoverRef) && closeTransient({ restoreFocus: true })) {
+        event.preventDefault(); event.stopImmediatePropagation();
+      } else if (hoverRef) {
+        hideCard(); event.preventDefault(); event.stopImmediatePropagation();
+      }
+    }, true);
+    window.addEventListener('resize', () => {
+      if (getLayout() === 'mobile') hideCard();
+      else positionCard({ force: true });
+      positionFlagMenu();
+    });
     return api;
   }
   function dispose() { flagReadRevision += 1; clear(); }

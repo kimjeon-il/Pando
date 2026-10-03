@@ -4,7 +4,6 @@ test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
 
 async function select(page, type, id) {
   await page.evaluate(({type,id}) => window.PANDOLAB_TERRITORIAL.select(type,id), {type,id});
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator(`#${type}Properties`)).toBeVisible();
 }
 async function importRegions(page, rows) {
@@ -89,7 +88,6 @@ test('Region merge uses the common Worker plan and supports geometry undo and sa
   await page.locator(`[data-object-search-focus][data-item-id="${a}"]`).click();
   await expect(page.locator(`g.territorial-label-item[data-label-id="territorial:region:${a}"]`)).toBeVisible();
   await page.locator(`[data-object-search-select][data-item-id="${a}"]`).click();
-  await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#regionProperties')).toBeVisible();
   await page.locator('#actionsTabBtn').click(); await page.locator('#mergeRegionBtn').click();
   await page.locator('path.territorial-unit-shape').evaluateAll((nodes,id)=>{
