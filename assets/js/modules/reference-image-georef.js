@@ -1,4 +1,4 @@
-export const REFERENCE_IMAGE_GEOREF_SCHEMA_VERSION = 1;
+export const REFERENCE_IMAGE_GEOREF_SCHEMA_VERSION = 2;
 
 export const REFERENCE_IMAGE_WARP_MODES = Object.freeze({
   AUTO: 'auto',
