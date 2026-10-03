@@ -315,7 +315,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     let migration = null;
     let source;
     if (persisted) {
-      const legacyMapQuad = !persisted?.mapQuad && persisted?.screenRect
+      const legacyMapQuad = persisted?.screenRect
         ? referenceImageScreenRectToMapQuad(persisted.screenRect, persisted.rotation, host)
         : null;
       migration = migrateReferenceImageStoredRecord({
