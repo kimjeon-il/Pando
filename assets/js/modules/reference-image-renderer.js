@@ -1,7 +1,9 @@
 import {
   REFERENCE_IMAGE_TRANSFORM,
   buildReferenceImagePlacementMesh,
+  referenceImageAnchorScreenPoint,
   referenceImagePlacementGeometry,
+  referenceImagePlacementPointAtUv,
   referenceImagePlacementUvAtPoint,
 } from './reference-image-transform.js';
 
@@ -201,6 +203,39 @@ export function createReferenceImageCanvasRenderer({
     context.restore();
   }
 
+  function drawAnchor(record, host, dpr) {
+    if (record.id !== getSelectedId?.() || !record.anchor || record.warp?.ok || isPanelHidden?.()) return;
+    const target = referenceImageAnchorScreenPoint(record, host);
+    if (!target) return;
+    const source = referenceImagePlacementPointAtUv(record, record.anchor.image, host);
+    context.save();
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (source && Math.hypot(source[0] - target[0], source[1] - target[1]) > 0.75) {
+      context.beginPath();
+      context.moveTo(source[0], source[1]);
+      context.lineTo(target[0], target[1]);
+      context.strokeStyle = 'rgba(245,158,11,.7)';
+      context.lineWidth = 1.5;
+      context.stroke();
+    }
+    context.beginPath();
+    context.arc(target[0], target[1], 6, 0, Math.PI * 2);
+    context.fillStyle = 'rgba(245,158,11,.96)';
+    context.fill();
+    context.lineWidth = 2;
+    context.strokeStyle = 'rgba(255,255,255,.96)';
+    context.stroke();
+    context.beginPath();
+    context.moveTo(target[0] - 9, target[1]);
+    context.lineTo(target[0] + 9, target[1]);
+    context.moveTo(target[0], target[1] - 9);
+    context.lineTo(target[0], target[1] + 9);
+    context.strokeStyle = 'rgba(245,158,11,.96)';
+    context.lineWidth = 1.5;
+    context.stroke();
+    context.restore();
+  }
+
   function drawControlPoints(record, host, dpr) {
     if (record.id !== getSelectedId?.() || isPanelHidden?.()) return;
     context.save();
@@ -247,6 +282,7 @@ export function createReferenceImageCanvasRenderer({
     }
     const selected = records.find(record => record.id === getSelectedId?.()) || null;
     if (host && selected) drawPlacementHandles(selected, host, dpr);
+    if (host && selected) drawAnchor(selected, host, dpr);
     if (host && selected) drawControlPoints(selected, host, dpr);
   }
 
