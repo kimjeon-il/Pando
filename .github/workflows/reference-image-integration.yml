@@ -18,9 +18,9 @@ permissions:
   contents: read
 
 jobs:
-  reference-image:
+  checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,13 +51,38 @@ jobs:
       - name: Run reference image unit suite
         run: node --test "tests/unit/reference-image-*.test.mjs"
 
+  browser:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        spec:
+          - overlay
+          - line-refine
+          - live-wire
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run reference image browser regressions
-        run: >-
-          pnpm exec playwright test
-          tests/browser/reference-image-overlay.spec.mjs
-          tests/browser/reference-image-line-refine.spec.mjs
-          tests/browser/reference-image-live-wire.spec.mjs
-          --workers=3
+      - name: Run ${{ matrix.spec }} browser regression
+        run: pnpm exec playwright test "tests/browser/reference-image-${{ matrix.spec }}.spec.mjs" --workers=1
