@@ -450,19 +450,13 @@ export function createTerritorialDrafts() {
     if (!['subunit', 'region'].includes(session?.kind) || !session.workingSourceGeometry || !source?.geometry) return false;
     try {
       const split = (0, dependencies.cutOperations.buildCutSplitCandidates)(session.workingSourceGeometry, (0, dependencies.countryEditingA.editingDraftCoordinates)());
-      const smallerIndex = split.candidates[0].area <= split.candidates[1].area ? 0 : 1;
-      const geometry = split.candidates[smallerIndex]?.geometry;
-      if (!geometry) throw new Error('나눌 영역을 찾을 수 없습니다.');
-      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)(
-        split.candidates.map(candidate => ({ geometry: (0, dependencies.platform.deepClone)(candidate.geometry) })),
-        smallerIndex,
-      );
+      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)(split.candidates);
       (0, dependencies.taskUi.setModeBanner)('나눌 영역을 확인하세요.');
       dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('territorial-create-split-part-finished');
       (0, dependencies.taskUi.updateModeButtons)();
       return true;
     } catch (error) {
-      (0, dependencies.feedback.reportOperationError)(error, '영역을 나누지 못했습니다. 한 영역을 정확히 한 번 관통하도록 경계를 다시 그리세요.', 'PL-REGION-SPLIT-001', 4400);
+      (0, dependencies.feedback.reportOperationError)(error, '영역을 나누지 못했습니다. 표시된 문제 지점을 확인하고 선을 수정하세요.', 'PL-REGION-SPLIT-001', 4400);
       return false;
     }
   }
@@ -601,7 +595,7 @@ export function createTerritorialDrafts() {
         || dependencies.projectState.state.stateRevision !== revision || JSON.stringify((0, dependencies.countryEditingA.editingDraftCoordinates)()) !== draftKey) return false;
       const geometry = response.result.geometry;
       workflow.computationPending = false;
-      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)([{ geometry }], 0);
+      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)([{ geometry }]);
       (0, dependencies.taskUi.setModeBanner)('그린 영역을 확인하세요.');
       dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('territorial-direct-part-finished');
       (0, dependencies.taskUi.updateModeButtons)();

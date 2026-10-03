@@ -50,9 +50,9 @@ export function createTerritoryComponentPlan({ clipper, normalize, checkpoint = 
   }
 
   async function selection({ selected = [], currentGeometry = null, archivedGeometry = null,
-    workingSourceGeometry = null, components = false }) {
+    workingSourceGeometry = null, components = false, candidates = false }) {
     await checkpoint();
-    const current = components ? union(selected) : currentGeometry;
+    const current = components || candidates ? union(selected) : currentGeometry;
     await checkpoint();
     const combinedGeometry = union([archivedGeometry, current]);
     await checkpoint();

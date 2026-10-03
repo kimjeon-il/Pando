@@ -499,7 +499,7 @@ export function createTaskPresentation() {
     const candidateNode = dependencies.platform.$('modeTaskCandidateFeedback');
     if (candidateNode) {
       candidateNode.textContent = candidate ? selection.candidates.map((_, index) =>
-        `${String.fromCharCode(65 + index)} · ${index === selection.selectedCandidateIndex ? '선택됨' : '선택 안 됨'}`).join(' / ') : '';
+        `조각 ${index + 1} · ${selection.selectedCandidateIds.includes(selection.candidates[index].id) ? '선택됨' : '선택 안 됨'}`).join(' / ') : '';
       candidateNode.classList.toggle('hidden', !candidate || feedbackVisible);
     }
     dependencies.platform.$('modeTaskFeedback')?.classList.toggle('workflow-feedback-idle', !feedbackVisible && !candidate && !instructionError && !instructionFeedback);

@@ -667,8 +667,11 @@ export function createEditingDomain({
     if (type.endsWith('-drag-move')) return queueGestureMove(value);
     if (type.endsWith('-drag-end')) return endGesture(value);
     if (Number(value.projectGeneration) !== projectGeneration) return false;
-    // Display-only hover emissions must not discard a click on the same prepared source.
-    if (Number(value.packetRevision) !== revision && !(type.startsWith('territory-component-') && value.territorySourceKey)) return false;
+    // Prepared-source identities outlive presentation revisions. The workflow validates
+    // component source keys and calculation-specific candidate IDs before changing selection.
+    const preparedTerritory = type.startsWith('territory-component-') && value.territorySourceKey
+      || type === 'territory-candidate-select' && value.candidateId;
+    if (Number(value.packetRevision) !== revision && !preparedTerritory) return false;
     if (type === 'draft-segment-hover' || type === 'draft-segment-insert') {
       if (!draftInputActive() || draftStroke.active || services.isSpacePanActive?.()) return false;
       if (type === 'draft-segment-insert' && !draftEdit.vertexInsertMode) return false;
