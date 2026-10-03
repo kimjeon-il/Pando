@@ -340,11 +340,16 @@ test('reference images support placement, ordering, georeferencing and persisten
   await page.mouse.move(pointScreen.x + 24, pointScreen.y + 18, { steps: 3 });
   await page.mouse.up();
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).not.toEqual(pointBeforeDirectEdit.coordinate);
+  await page.locator('.reference-image-editing-summary [data-ref-action="finish"]').click();
+  await expect(page.locator('[data-ref-action="undo"]')).toBeVisible();
   await page.locator('[data-ref-action="undo"]').click();
   await expect.poll(async () => (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0].coordinate).toEqual(pointBeforeDirectEdit.coordinate);
+
+  await page.locator('[data-ref-action="gcp-edit"]').click();
   await page.mouse.click(pointScreen.x, pointScreen.y);
   await page.keyboard.press('Delete');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().find(value => value.name === '<Base "reference">')?.controlPointCount)).toBe(1);
+  await page.locator('.reference-image-editing-summary [data-ref-action="finish"]').click();
   await page.locator('[data-ref-action="undo"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__.list().find(value => value.name === '<Base "reference">')?.controlPointCount)).toBe(2);
   await page.locator('[data-ref-action="gcp-edit"]').click();
