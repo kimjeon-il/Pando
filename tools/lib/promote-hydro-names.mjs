@@ -19,8 +19,16 @@ export function promoteCoreMetadata(core, systems) {
     ...core,
     features: (core.features || []).map(feature => {
       const override = systems[String(feature.systemId || '')];
-      if (!override?.nameKo) return feature;
-      return { ...feature, name: override.nameKo, mainstemNameKo: override.nameKo };
+      const promoted = override?.nameKo
+        ? { ...feature, name: override.nameKo, mainstemNameKo: override.nameKo }
+        : { ...feature };
+      for (const key of ['name', 'mainstemNameKo']) {
+        const name = promoted[key];
+        if (typeof name === 'string' && /[가-힣]/.test(name) && !name.startsWith('미명명')) {
+          promoted[key] = name.replace(/\s+/gu, '');
+        }
+      }
+      return promoted;
     }),
   };
 }

@@ -304,7 +304,6 @@ function createMapResourcePorts(providers) {
     }),
     objectPresentation: Object.freeze({
       get createTerritorialScopeResolver() { return providers.runtime.createTerritorialScopeResolver; },
-      get defaultGeographicName() { return providers.runtime.defaultGeographicName; },
       get genericFeatureGeometryKind() { return providers.runtime.genericFeatureGeometryKind; },
       get genericFeatureName() { return providers.objectPresentation.genericFeatureName; },
       get genericFeatureRoleLabel() { return providers.objectPresentation.genericFeatureRoleLabel; },
