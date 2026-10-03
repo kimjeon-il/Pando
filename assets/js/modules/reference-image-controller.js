@@ -1,6 +1,7 @@
 import {
   buildReferenceImageCalibrationWarp,
   buildReferenceImageMesh,
+  referenceImageWarpQuad,
   REFERENCE_IMAGE_WARP_MODES,
 } from './reference-image-georef.js';
 import {
@@ -133,15 +134,6 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     getSelectedControlPointId: () => interactionState().selectedControlPointId,
     isPanelHidden: () => panel.hidden,
   });
-
-  function currentWarpQuad(record) {
-    if (!record?.warp?.ok) return null;
-    const corners = [[0, 0], [1, 0], [1, 1], [0, 1]]
-      .map(image => record.warp.project(image));
-    return corners.every(coordinate => coordinate?.every(Number.isFinite))
-      ? corners.map(coordinate => [...coordinate])
-      : null;
-  }
 
   function rebuildWarp(record) {
     record.warp = buildReferenceImageCalibrationWarp({
@@ -474,7 +466,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       return;
     }
     if (action === 'clear-anchor' && record.anchor && !record.locked) {
-      const fallbackQuad = currentWarpQuad(record);
+      const fallbackQuad = referenceImageWarpQuad(record.warp);
       history.push(records);
       record.anchor = null;
       rebuildWarp(record);
@@ -507,7 +499,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       interaction.armGcp(record, button.dataset.pointId, action === 'edit-image' ? 'image' : 'map');
     }
     const before = copyReferenceImageRecords(records);
-    const fallbackQuad = currentWarpQuad(record);
+    const fallbackQuad = referenceImageWarpQuad(record.warp);
     const editAction = action === 'undo-gcp' ? 'delete-gcp' : action;
     const id = action === 'undo-gcp' ? record.controlPoints.at(-1)?.id : button?.dataset.pointId;
     if (applyReferenceImageEdit(record, editAction, { id })) {
@@ -570,7 +562,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     validToken,
     createId,
     rebuildWarp,
-    getCurrentWarpQuad: currentWarpQuad,
+    getCurrentWarpQuad: record => referenceImageWarpQuad(record?.warp),
     history,
     persist,
     renderEditor,
