@@ -7,7 +7,7 @@ export function copyReferenceImageRecords(records) {
 export function applyReferenceImageEdit(record, action, { id, value } = {}) {
   if (!record || record.locked) return false;
   if (action === 'flip-x' || action === 'flip-y') {
-    if (record.controlPoints.length) return false;
+    if (record.controlPoints.length || record.anchor) return false;
     const key = action === 'flip-x' ? 'flipX' : 'flipY';
     record[key] = !record[key];
     return true;
