@@ -64,6 +64,7 @@ export function referenceImageEditorMarkup({
   gcpState = null,
   controlPointEditing = false,
   selectedControlPointId = '',
+  placementRotation = 0,
 } = {}) {
   const diagnostics = warp?.ok ? warp.diagnostics : null;
   const warnings = diagnostics?.warnings || [];
@@ -80,7 +81,7 @@ export function referenceImageEditorMarkup({
       <button type="button" class="ui-button icon-btn" data-ref-action="delete" aria-label="참조 이미지 삭제"${record.locked ? ' disabled' : ''}><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg></button>
     </div>
     <label class="reference-image-field"><span>불투명도</span><input data-ref-field="opacity" type="range" min="0" max="1" step="0.01" value="${record.opacity}" /><output>${Math.round(record.opacity * 100)}%</output></label>
-    <label class="reference-image-field"><span>회전</span><input class="ui-input reference-image-number-input" data-ref-field="rotation" type="number" min="-180" max="180" step="0.1" value="${numberText(record.rotation, 1)}"${placementDisabled ? ' disabled' : ''} /><output>°</output></label>
+    <label class="reference-image-field"><span>회전</span><input class="ui-input reference-image-number-input" data-ref-field="rotation" type="number" min="-180" max="180" step="0.1" value="${numberText(placementRotation, 1)}"${placementDisabled ? ' disabled' : ''} /><output>°</output></label>
     <label class="reference-image-field"><span>혼합</span><select class="ui-select" data-ref-field="blend">${blendOptions.map(([value, label]) => `<option value="${value}"${record.blendMode === value ? ' selected' : ''}>${label}</option>`).join('')}</select></label>
     <label class="reference-image-field"><span>보정</span><select class="ui-select" data-ref-field="warp"${record.locked ? ' disabled' : ''}>${options(warpOptions)}</select></label>
     <div class="reference-image-toggle-row">
@@ -114,6 +115,6 @@ export function referenceImageEditorMarkup({
     </div>
     ${warningText ? `<p class="reference-image-warning">${warningText}</p>` : ''}
     ${diagnostics && record.controlPoints.length <= 2 ? '<p class="reference-image-warning">최소 기준점으로 계산한 오차입니다. 0이어도 전체 이미지 정렬의 정확성을 보장하지 않습니다.</p>' : ''}
-    <p class="reference-image-hint" data-ref-hint>${controlPointEditing ? '지도 위 번호를 드래그해 위치를 옮기고, 선택한 점은 Delete로 삭제합니다.' : warp?.ok ? `${warp.mode} 보정 적용 중 · 배치 편집 대신 기준점으로 위치를 조정합니다.` : placementEditing ? '배치 편집 중 · 드래그로 이동, 모서리로 크기, 위 핸들로 회전합니다.' : `기준점 ${warp?.minimumPoints || 2}개부터 보정할 수 있습니다. 평소에는 클릭이 지도 도구로 통과합니다.`}</p>
+    <p class="reference-image-hint" data-ref-hint>${controlPointEditing ? '지도 위 번호를 드래그해 위치를 옮기고, 선택한 점은 Delete로 삭제합니다.' : warp?.ok ? `${warp.mode} 보정 적용 중 · 배치 편집 대신 기준점으로 위치를 조정합니다.` : placementEditing ? '배치 편집 중 · 드래그로 이동, 8방향 핸들로 크기, 위 핸들로 회전합니다.' : `기준점 ${warp?.minimumPoints || 2}개부터 보정할 수 있습니다. 평소에는 클릭이 지도 도구로 통과합니다.`}</p>
   `;
 }
