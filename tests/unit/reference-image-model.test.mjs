@@ -18,7 +18,7 @@ const quad = [
 ];
 
 test('reference image model normalizes one canonical geographic placement quad', () => {
-  assert.equal(REFERENCE_IMAGE_MODEL_VERSION, 4);
+  assert.equal(REFERENCE_IMAGE_MODEL_VERSION, 5);
   assert.deepEqual(normalizeReferenceImageMapQuad(quad), quad);
   assert.equal(normalizeReferenceImageMapQuad([[0, 0]]), null);
   const record = normalizeReferenceImageRecord({
@@ -64,6 +64,21 @@ test('manual anchor is normalized, serialized and can coexist with GCPs', () => 
 
   const serialized = serializeReferenceImageRecord(withGcp, 0);
   assert.deepEqual(serialized.anchor, anchor);
+  assert.equal(serialized.controlPoints.length, 1);
+});
+
+test('corner pin mode is normalized and serialized with the reference image', () => {
+  const record = normalizeReferenceImageRecord({
+    id: 'ref-corner-pin',
+    mapQuad: quad,
+    cornerPinEnabled: true,
+    anchor: { image: [0.5, 0.5], coordinate: [15, 15] },
+    controlPoints: [{ id: 'p', image: [0.2, 0.3], coordinate: [12, 14] }],
+  });
+  assert.equal(record.cornerPinEnabled, true);
+  const serialized = serializeReferenceImageRecord(record, 0);
+  assert.equal(serialized.cornerPinEnabled, true);
+  assert.deepEqual(serialized.anchor, record.anchor);
   assert.equal(serialized.controlPoints.length, 1);
 });
 
