@@ -439,7 +439,9 @@ test('reference images support placement, ordering, georeferencing and persisten
   await page.locator('#mobileDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(imagePanel).toBeHidden();
-  await page.locator('#mapDisplayCloseBtn').click();
+  await page.locator('#mobileMenuBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+  await page.locator('#mobileDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeHidden();
   await page.setViewportSize({ width: 1024, height: 900 });
   await expect(imagePanel).toBeHidden();
