@@ -17,7 +17,7 @@ import {
 } from './reference-image-transform.js';
 import { createReferenceImageInteraction } from './reference-image-interaction.js';
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
-import { registerReferenceImageInput } from './reference-image-input.js';
+import { referenceImageKeyBlocked, registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
 import { installReferenceImageSurface } from './reference-image-surface.js';
 import {
@@ -528,7 +528,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
 
   function onKeyDown(event) {
-    if (panel.hidden || isBlocked()) return false;
+    if (panel.hidden || isBlocked() || referenceImageKeyBlocked(event)) return false;
     if (event.key === 'Enter' && event.target?.closest('button,[role="button"]')) return false;
     if (event.key === 'Escape') {
       if (interaction?.isActive()) cancelInteraction();
