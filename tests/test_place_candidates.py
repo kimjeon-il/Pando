@@ -178,5 +178,122 @@ class CandidatePolicyTests(unittest.TestCase):
             self.assertIsNone(stats["supplement"])
 
 
+def review_ledger(raw_rows, actions):
+    return {"version": 1,
+            "evidenceSources": {"official": {"url": "https://example.gov/places", "publisher": "Official municipality",
+                                             "checkedAt": "2026-10-03", "finding": "Fixture administrative status", "access": "official-page"}},
+            "decisions": [{"geonameId": row["geonameId"],
+                           "expected": {key: row[key] for key in ("name", "countryCode", "featureCode", "latitude", "longitude")},
+                           "action": action, "evidence": ["official"], "reason": "Fixture reason"}
+                          for row, action in zip(raw_rows, actions)]}
+
+
+class CandidateReviewTests(unittest.TestCase):
+    def test_refinement_excludes_holds_without_promoting_or_changing_source(self):
+        raw = [record(identifier=index + 1, code=code, name="Same name")
+               for index, code in enumerate(["PPL", "PPLA2", "PPL", "PPLA3"])]
+        baseline = [value for row in raw if (value := TOOL.candidate(row)) is not None]
+        sources = {row["geonameId"]: row for row in raw}
+        ledger = review_ledger(raw, ["retain", "exclude", "hold", "inclusion-review"])
+        before = copy.deepcopy((baseline, sources, ledger))
+        refined, reviewed = TOOL.refine_candidates(baseline, sources, ledger)
+        self.assertEqual([row["geonameId"] for row in refined], [1])
+        self.assertEqual([item["inBaseline"] for item in reviewed], [True, True, True, False])
+        self.assertEqual((baseline, sources, ledger), before)
+        TOOL.validate_candidates(refined)
+
+    def test_different_ids_and_unreviewed_keyword_rows_are_not_merged_or_removed(self):
+        raw = [record(identifier=index + 1, name="College Station District", longitude=longitude)
+               for index, longitude in enumerate(["127", "127", "127.001"])]
+        baseline = [TOOL.candidate(row) for row in raw]
+        ledger = review_ledger(raw[:1], ["retain"])
+        refined, _ = TOOL.refine_candidates(baseline, {row["geonameId"]: row for row in raw}, ledger)
+        self.assertEqual(refined, baseline)
+
+    def test_same_name_other_location_or_type_requires_re_review(self):
+        row = record(name="Ōta", country="JP", code="PPLA2")
+        for key, value in [("countryCode", "KR"), ("featureCode", "PPL"), ("latitude", 35.56126),
+                           ("longitude", 139.71605), ("name", "Ota")]:
+            ledger = review_ledger([row], ["exclude"])
+            ledger["decisions"][0]["expected"][key] = value
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "identity changed"):
+                TOOL.refine_candidates([TOOL.candidate(row)], {1: row}, ledger)
+
+    def test_unsupported_promotions_and_actions_are_rejected(self):
+        row = record(code="PPLA3")
+        ledger = review_ledger([row], ["retain"])
+        with self.assertRaisesRegex(ValueError, "cannot promote"):
+            TOOL.refine_candidates([], {1: row}, ledger)
+        row = record()
+        ledger = review_ledger([row], ["inclusion-review"])
+        with self.assertRaisesRegex(ValueError, "requires an excluded"):
+            TOOL.refine_candidates([TOOL.candidate(row)], {1: row}, ledger)
+        ledger["decisions"][0]["action"] = "rename"
+        with self.assertRaisesRegex(ValueError, "unknown action"):
+            TOOL.refine_candidates([TOOL.candidate(row)], {1: row}, ledger)
+
+    def test_duplicate_missing_and_unsourced_reviews_fail(self):
+        row = record()
+        baseline, sources = [TOOL.candidate(row)], {1: row}
+        ledger = review_ledger([row, row], ["retain", "retain"])
+        with self.assertRaisesRegex(ValueError, "duplicate review ID"):
+            TOOL.refine_candidates(baseline, sources, ledger)
+        ledger = review_ledger([row], ["retain"])
+        with self.assertRaisesRegex(ValueError, "missing source record"):
+            TOOL.refine_candidates(baseline, {}, ledger)
+        ledger["decisions"][0]["evidence"] = ["not-reviewed"]
+        with self.assertRaisesRegex(ValueError, "unknown evidence"):
+            TOOL.refine_candidates(baseline, sources, ledger)
+        ledger["decisions"][0]["evidence"] = ["official"]
+        del ledger["evidenceSources"]["official"]["finding"]
+        with self.assertRaisesRegex(ValueError, "missing source provenance"):
+            TOOL.refine_candidates(baseline, sources, ledger)
+
+    def test_excluded_hold_never_enters_pool_and_baseline_drift_fails(self):
+        row = record(code="PPLA3")
+        ledger = review_ledger([row], ["hold"])
+        refined, reviewed = TOOL.refine_candidates([], {1: row}, ledger)
+        self.assertEqual(refined, [])
+        self.assertFalse(reviewed[0]["inBaseline"])
+        row = record()
+        ledger = review_ledger([row], ["hold"])
+        with self.assertRaisesRegex(ValueError, "baseline/source mismatch"):
+            TOOL.refine_candidates([], {1: row}, ledger)
+
+    def test_offline_review_is_deterministic_preserves_baseline_and_checks_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory)
+            lines = [source_line(identifier=1, name="City"), source_line(identifier=2, name="Ward", code="PPLA2"),
+                     source_line(identifier=3, name="Missing city", code="PPLA3")]
+            snapshot(cache, "cities500", lines)
+            raw = [TOOL.parse_row(line)[0] for line in lines]
+            ledger = review_ledger(raw, ["retain", "exclude", "inclusion-review"])
+            metadata = json.loads((cache / "cities500.source.json").read_text(encoding="utf-8"))
+            ledger["source"] = {"name": "cities500", "sha256": metadata["sha256"]}
+            TOOL.write_json(cache / "reviews.json", ledger)
+            report = cache / "review.md"
+            report.write_text("Manual notes\n" + TOOL.GENERATED_START + "\n" + TOOL.GENERATED_END, encoding="utf-8")
+            # A review re-reads the source and never rewrites the original candidate artifact.
+            original = cache / "candidates.ndjson"
+            original.write_text("Preserve original candidates\n", encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()):
+                stats = TOOL.review(cache, cache / "reviews.json", cache / "review-summary.json", report)
+            self.assertEqual((stats["baselineCount"], stats["refinedCount"], stats["baselineExcludes"]), (2, 1, 1))
+            self.assertEqual(stats["unreviewedCount"], 0)
+            self.assertEqual(original.read_text(encoding="utf-8"), "Preserve original candidates\n")
+            outputs = [cache / "refined-candidates.ndjson", cache / "review-summary.json", report]
+            first = [path.read_bytes() for path in outputs]
+            with mock.patch.object(TOOL.urllib.request, "urlopen", side_effect=AssertionError("Network forbidden")):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    TOOL.review(cache, cache / "reviews.json", cache / "review-summary.json", report)
+            self.assertEqual(first, [path.read_bytes() for path in outputs])
+            self.assertIn("Manual notes", report.read_text(encoding="utf-8"))
+            ledger["source"]["sha256"] = "new-snapshot"
+            TOOL.write_json(cache / "reviews.json", ledger)
+            with self.assertRaisesRegex(ValueError, "snapshot changed"):
+                TOOL.review(cache, cache / "reviews.json", cache / "review-summary.json", report)
+            self.assertEqual(first, [path.read_bytes() for path in outputs])
+
+
 if __name__ == "__main__":
     unittest.main()

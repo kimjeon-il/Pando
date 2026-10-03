@@ -46,7 +46,7 @@ def main():
     parser.add_argument('--reference-output', type=Path)
     args = parser.parse_args()
     manifest = json.loads((args.output/'manifest.json').read_text(encoding='utf-8'))
-    if manifest['representation'] != 'dem-relief-v1' or manifest['version'] != '0.13.1':
+    if manifest['representation'] != 'dem-relief-v1' or manifest['version'] != '0.13.2':
         raise ValueError('Unexpected DEM version or format')
     if manifest['shade'].get('quantizationStep') != 4:
         raise ValueError('Unexpected DEM shade quantization')
