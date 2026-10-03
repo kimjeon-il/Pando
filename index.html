@@ -299,13 +299,13 @@
               <header class="mode-task-window-header">
                 <div class="mode-task-heading"><strong id="modeTaskName">지도 편집</strong><span class="mode-task-separator" aria-hidden="true">·</span><span id="modeTaskStage" class="mode-task-stage">대상 선택</span><span id="modeTaskStep" class="mode-task-step hidden"></span><span id="modeTaskStatus" class="mode-task-status hidden" data-task-state="editable">편집 가능</span></div>
                 <div class="mode-task-window-controls">
-                  <button id="modeTaskTargetsFocusBtn" class="ui-button icon-btn compact" type="button" aria-label="대상으로 이동" data-tooltip="대상으로 이동"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-target"/></svg></button>
                   <button id="modeTaskMinimizeBtn" class="mode-task-minimize-btn ui-button icon-btn compact" type="button" aria-label="지도 작업창 최소화" aria-controls="modeTaskWindowContent" aria-expanded="true" data-tooltip="최소화"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-minus"/></svg></button>
                 </div>
               </header>
               <div id="modeTaskWindowContent" class="mode-task-window-content">
                 <div class="mode-task-window-body">
                   <div id="modeTaskObjects" class="workflow-object-cards hidden"></div>
+                  <button id="modeTaskTargetsFocusBtn" class="ui-button mode-aux-control hidden" type="button" aria-label="대상으로 이동"><span>대상으로 이동</span></button>
                   <div id="territorialCreateSetup" class="territorial-create-setup hidden">
                     <label class="ui-field field-group"><span id="territorialCreateNameLabel">이름</span><input id="territorialCreateNameInput" type="text" maxlength="120" autocomplete="off" /></label>
                     <label id="territorialCreateSovereignRow" class="ui-field field-group workflow-object-card"><span>소속 국가</span><span class="workflow-select-identity"><img id="territorialCreateSovereignFlag" class="workflow-object-flag" alt="" hidden /><select id="territorialCreateSovereignInput"></select></span></label>
@@ -410,11 +410,7 @@
 
         <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
           <div class="editor-object-context-main">
-            <button id="flagMenuBtn" type="button" class="ui-button editor-header-flag hidden" aria-haspopup="menu" aria-expanded="false" aria-controls="flagMenu" aria-label="국기 관리">
-              <span id="flagPreview" class="editor-flag-thumbnail"></span>
-            </button>
             <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel" class="editor-object-type-label"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
-            <button id="focusSelectedObjectBtn" class="ui-button icon-btn editor-object-command editor-focus-action hidden" type="button" data-tooltip="선택 객체로 이동" aria-label="선택 객체로 이동"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-target"/></svg></button>
           </div>
         </section>
         <div id="flagMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-surface ui-menu-list ui-command-menu editor-flag-menu" popover="auto" role="menu" aria-label="깃발 관리">
@@ -441,6 +437,10 @@
           <section id="emptyProperties" class="empty-state editor-empty" data-od-id="empty-editor-state">
             <strong>선택한 객체가 없습니다.</strong><p>지도에서 객체를 선택하면 여기서 편집할 수 있습니다.</p>
           </section>
+
+          <button id="flagMenuBtn" type="button" class="ui-button btn wide editor-primary-action editor-flag-trigger hidden" aria-haspopup="menu" aria-expanded="false" aria-controls="flagMenu" aria-label="깃발 관리">
+            <span id="flagPreview" class="editor-flag-thumbnail"></span><span>깃발</span>
+          </button>
 
           <section id="multiProperties" class="editor-view multi-properties hidden">
             <section class="editor-section editor-section-primary" aria-label="공통 속성">
@@ -632,6 +632,7 @@
           </section>
 
 
+          <button id="focusSelectedObjectBtn" class="ui-button btn wide editor-primary-action hidden" type="button" aria-label="선택 객체로 이동"><span>선택 객체로 이동</span></button>
           <div id="editorDeleteSection" class="editor-action-list editor-delete-control hidden">
             <button id="objectDeleteBtn" type="button" class="ui-button editor-action-row has-command-row-icon editor-delete-row" aria-label="삭제" disabled>
               <svg class="ui-icon command-row-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg>

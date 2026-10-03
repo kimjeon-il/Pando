@@ -102,3 +102,26 @@ test('blocking preview and boundary failure remain visible even when missing tar
   assert.equal(failure.reason, '경계 계산에 실패했습니다.');
   assert.equal(failure.feedbackVisible, true);
 });
+
+test('setup hides a preserved territory preview error without changing its validation', () => {
+  const selection = { tool: 'annex-territory', stage: 'setup' };
+  const preview = { validation: { blocking: true, issues: [{ severity: 'error', message: '자기 교차 경계입니다.' }] } };
+  const original = structuredClone(preview);
+  const options = { selection, state: state({ territorySelectionSession: selection, geometryPreview: { session: preview } }),
+    primaryDisabled: false, mergeTargetMode: false };
+  const setup = feedback(options);
+  assert.equal(setup.feedbackVisible, false);
+  assert.equal(setup.status, 'editable');
+  assert.equal(setup.reason, '');
+  assert.deepEqual(preview, original);
+
+  selection.stage = 'selection';
+  const restored = feedback(options);
+  assert.equal(restored.feedbackVisible, true);
+  assert.equal(restored.reason, preview.validation.issues[0].message);
+  assert.deepEqual(preview, original);
+
+  selection.stage = 'setup';
+  selection.tool = 'subunit';
+  assert.equal(feedback(options).feedbackVisible, true, 'another tool must retain its preview validation');
+});

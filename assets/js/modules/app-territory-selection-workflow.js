@@ -569,6 +569,8 @@ export function createTerritorySelectionWorkflow() {
       cancelSelectionComputation(current);
       cancelPreview({ discard: false, preserveReady: true });
       current.stage = 'setup';
+      dependencies.domains.editingDomain.cancelActiveGesture('territory-selection-back-setup');
+      dependencies.domains.editingDomain.clearDraftHover('territory-selection-back-setup');
       (0, dependencies.taskUi.setModeBanner)('');
       refresh('territory-selection-back-setup');
       return true;

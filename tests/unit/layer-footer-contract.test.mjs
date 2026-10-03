@@ -12,6 +12,18 @@ test('map command bar owns add while floating selection and editor body own obje
   assert.match(selectionToolbar, /<button id="objectLockBtn"/);
   assert.match(selectionToolbar, /<button id="objectVisibilityBtn"/);
   assert.doesNotMatch(editorHeader, /id="objectLockBtn"|id="objectVisibilityBtn"|id="objectDeleteBtn"/);
+  const objectHeader = html.match(/<section id="editorObjectHeader"[\s\S]*?<\/section>/)[0];
+  const taskHeader = html.match(/<header class="mode-task-window-header">[\s\S]*?<\/header>/)[0];
+  assert.doesNotMatch(objectHeader, /id="focusSelectedObjectBtn"/);
+  assert.doesNotMatch(objectHeader, /id="flagMenuBtn"|<svg|<img/);
+  assert.doesNotMatch(taskHeader, /id="modeTaskTargetsFocusBtn"/);
+  assert.match(html, /id="editorScrollBody"[\s\S]*?id="focusSelectedObjectBtn"/);
+  assert.match(html, /id="editorScrollBody"[\s\S]*?id="flagMenuBtn"/);
+  for (const id of ['focusSelectedObjectBtn', 'modeTaskTargetsFocusBtn']) {
+    const action = html.match(new RegExp(`<button id="${id}"[\\s\\S]*?<\\/button>`))[0];
+    assert.doesNotMatch(action, /<svg|icon-btn/);
+    assert.match(action, /<span>.*이동<\/span>/);
+  }
   assert.match(html, /id="editorDeleteSection"[\s\S]*?id="objectDeleteBtn"/);
   assert.match(html, /<div id="editorDeleteSection" class="editor-action-list editor-delete-control hidden">/);
   assert.doesNotMatch(html, /<section id="editorDeleteSection"|editor-delete-section/);
