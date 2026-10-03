@@ -68,7 +68,7 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
   const document = createFakeDocument();
   const ids = [
     'modeEditingHud', 'modeTaskName', 'modeTaskStage', 'modeTaskStatus', 'modeTaskInstruction',
-    'modeTaskObjects', 'modeTaskTargetsFocusBtn', 'modeTaskDisabledReason',
+    'modeTaskObjects', 'modeTaskDisabledReason',
     'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
     'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
   ];
@@ -206,7 +206,7 @@ test('task sync derives role cards without duplicate type labels or focusing the
   assert.deepEqual(cards.map(item => item.children[0].textContent), ['기준 하위단위', '상대 하위단위']);
   assert.deepEqual(cards.map(item => item.children[1].children[0].textContent), ['Subunit', 'Country']);
   assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
-  assert.equal(f.elements.modeTaskTargetsFocusBtn.attributes.get('aria-label'), '선택한 2개 대상으로 이동');
+  assert.equal('focusTaskTargets' in f.presentation, false);
   assert.deepEqual(f.focusCalls, []);
 });
 
@@ -217,7 +217,6 @@ test('task target labels refresh from the repository while object refs stay stab
   });
   f.presentation.updateModeButtons();
   assert.equal(f.elements.modeTaskObjects.children[0].children[1].children[0].textContent, 'Before');
-  assert.equal(f.elements.modeTaskTargetsFocusBtn.attributes.get('aria-label'), '대상으로 이동');
 
   name = 'After';
   f.presentation.updateModeButtons();
@@ -241,8 +240,7 @@ test('new territory workflows never expose source or parent countries as a focus
       model.selection = stage === 'selection';
       model.review = stage === 'review';
       f.presentation.updateModeButtons();
-      assert.equal(f.elements.modeTaskTargetsFocusBtn.classList.contains('hidden'), true, `${kind}: ${stage}`);
-      assert.equal(f.elements.modeTaskTargetsFocusBtn.disabled, true, `${kind}: ${stage}`);
+      assert.equal('focusTaskTargets' in f.presentation, false, `${kind}: ${stage}`);
       assert.deepEqual(f.focusCalls, []);
     }
   }
@@ -343,54 +341,18 @@ test('editable redraw with fewer than three vertices uses the precise redraw rea
   assert.equal(f.elements.modeTaskDisabledReason.textContent, '영역을 만들 꼭짓점을 세 개 이상 지정하세요.');
 });
 
-test('explicit task focus delegates a single true object ref to the existing object focus command', t => {
-  const f = fixture(t, {
-    boundaryEditEntityIds: ['SUB'],
-    territorialUnits: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
-  });
-
-  assert.equal(typeof f.presentation.focusTaskTargets, 'function');
-  assert.equal(f.presentation.focusTaskTargets(), true);
-  assert.deepEqual(f.focusCalls, [['single', {
-    domain: 'territorial', type: 'subunit', id: 'SUB', key: 'territorial:subunit:SUB',
-  }]]);
-});
-
-test('explicit task focus fits multiple target features with the current layout max zoom', t => {
-  const f = fixture(t, {
-    boundaryEditEntityIds: ['SUB', 'COUNTRY'],
-    territorialUnits: [{ type: 'Feature', id: 'SUB', properties: { name: 'Subunit', unitType: 'subunit' }, geometry: { type: 'Polygon', coordinates: [] } }],
-  });
-
-  assert.equal(typeof f.presentation.focusTaskTargets, 'function');
-  assert.equal(f.presentation.focusTaskTargets(), true);
-  assert.equal(f.focusCalls.length, 1);
-  assert.equal(f.focusCalls[0][0], 'multi');
-  assert.deepEqual(f.focusCalls[0][1], {
-    type: 'FeatureCollection',
-    features: [
-      { type: 'Feature', id: 'SUB', properties: {}, geometry: { type: 'Polygon', coordinates: [] } },
-      { type: 'Feature', id: 'COUNTRY', properties: {}, geometry: { type: 'Polygon', coordinates: [] } },
-    ],
-  });
-  assert.deepEqual(f.focusCalls[0][2], { maxZoom: 10 });
-});
-
-test('the shared task focus button is explicitly bound to task target focus', () => {
-  const focusButton = new FakeElement();
+test('tool bindings do not query the removed task focus button', () => {
   const resetButton = new FakeElement();
-  let calls = 0;
   const bindings = createToolBindings();
   bindings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.toolBindings, {
-    $: id => id === 'modeTaskTargetsFocusBtn' ? focusButton : id === 'resetViewBtn' ? resetButton : null,
-    focusTaskTargets: () => { calls += 1; },
+    $: id => {
+      assert.notEqual(id, 'modeTaskTargetsFocusBtn');
+      return id === 'resetViewBtn' ? resetButton : null;
+    },
     resetView() {},
   }));
 
   bindings.bindToolUI();
-  focusButton.dispatchEvent(new Event('click'));
-
-  assert.equal(calls, 1);
 });
 
 test('hydro auxiliary commands run while idle and preserve their own busy guard', () => {

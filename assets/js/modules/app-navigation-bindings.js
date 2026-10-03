@@ -133,6 +133,7 @@ export function createNavigationBindings() {
     (0, dependencies.platform.$)('mobileGlobalMenu')?.addEventListener('keydown', event => {
       if (event.key !== 'Escape') return;
       event.preventDefault();
+      event.stopPropagation();
       closeMobileMenu({ restoreFocus: true });
     });
     (0, dependencies.platform.$)('notificationCloseBtn')?.addEventListener('click', dependencies.readinessUi.clearNotification);

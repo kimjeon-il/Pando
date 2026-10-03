@@ -6,7 +6,7 @@ import { resolveObjectAction } from './object-action-registry.js';
 
 const ACTION_UI_BINDINGS = Object.freeze({
   focus: Object.freeze([
-    Object.freeze({ elementId: 'focusSelectedObjectBtn', labelSelector: 'span' }),
+    Object.freeze({ elementId: 'focusSelectedObjectBtn', icon: true }),
     Object.freeze({ elementId: 'objectFocusMenuBtn', labelSelector: 'span:last-child', icon: true }),
   ]),
   lock: Object.freeze([

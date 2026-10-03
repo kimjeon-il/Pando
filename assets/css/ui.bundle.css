@@ -6367,6 +6367,12 @@ body.file-menu-open .app-root .topbar {
   font-weight: var(--ui-weight-medium);
 }
 
+.editor-object-header[data-editor-context] .editor-focus-action {
+  flex: 0 0 auto;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 .multi-properties > .editor-section-primary {
   padding: 0;
   border: 0;
@@ -6540,10 +6546,23 @@ body.file-menu-open .app-root .topbar {
   display: none;
 }
 
+.editor-focus-action {
+  width: var(--ui-control-height);
+  min-width: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+}
+
+.editor-focus-action .ui-icon {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+}
+
 .editor-flag-thumbnail {
-  flex: 0 0 2.25rem;
-  width: 2.25rem;
-  height: 1.5rem;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6599,8 +6618,31 @@ body.file-menu-open .app-root .topbar {
   display: none;
 }
 
-.editor-flag-trigger {
-  justify-content: flex-start;
+@media (max-width: 799px) {
+  .editor-focus-action {
+    width: var(--ui-icon-control-mobile-size);
+    min-width: var(--ui-icon-control-mobile-size);
+    min-height: var(--ui-icon-control-mobile-size);
+  }
+
+}
+
+.editor-header-flag {
+  flex: 0 0 3.5rem;
+  width: 3.5rem;
+  height: 3rem;
+  min-width: 3.5rem;
+  min-height: 3rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.editor-header-flag:is(:hover, :active, [aria-expanded="true"]) {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .app-root:not([data-layout="mobile"]) .surface-editor[data-editor-content="properties"] > .surface-header {

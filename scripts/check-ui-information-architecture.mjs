@@ -191,6 +191,7 @@ for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectSt
   if (editorHeader.includes(`id="${forbiddenId}"`)) fail(`editor object control #${forbiddenId} must not live in the Surface Header`);
 }
 if (!html.includes('id="selectionToolbar"')) fail('selection toolbar must own floating object controls');
+if (html.includes('id="modeTaskTargetsFocusBtn"')) fail('task windows must not expose a map-focus action');
 if (!editor.includes('id="editorDeleteSection"')) fail('editor must expose the object delete section');
 if (editorHeader.includes('id="objectLockBtn"')) fail('editor Surface Header must not own #objectLockBtn');
 if (editorHeader.includes('id="objectDeleteBtn"')) fail('editor Surface Header must not own #objectDeleteBtn');
@@ -204,8 +205,8 @@ const objectContext = contextIndex >= 0 && contextEnd > contextIndex ? editor.sl
 for (const requiredId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (!objectContext.includes(`id="${requiredId}"`)) fail(`ObjectContext is missing #${requiredId}`);
 }
-if (objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext must not contain the map-focus action');
-if (!(editor.indexOf('id="focusSelectedObjectBtn"') > bodyIndex)) fail('The map-focus action must live in the editor body');
+if (!objectContext.includes('id="focusSelectedObjectBtn"')) fail('ObjectContext must own the optional map-focus action');
+if (!objectContext.includes('id="flagMenuBtn"')) fail('ObjectContext must own the territorial flag preview action');
 
 if (!editor.includes('class="editor-section editor-info-section')) fail('editor must expose information sections');
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');

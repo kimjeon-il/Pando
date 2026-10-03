@@ -48,7 +48,6 @@ export function createToolBindings() {
       (0, dependencies.genericEditingB.requestDraftDiscard)(() => (0, dependencies.workspaceUiA.completeToolStart)((0, dependencies.countryEditingB.enterTerrainGenericFeatureMode)('lake')));
     });
     (0, dependencies.platform.$)('modePrimaryBtn')?.addEventListener('click', () => { void (0, dependencies.taskPresentation.runModePrimaryAction)(); });
-    (0, dependencies.platform.$)('modeTaskTargetsFocusBtn')?.addEventListener('click', dependencies.taskPresentation.focusTaskTargets);
     for (const [id, command] of [['multiDrawnAddBtn', dependencies.countryCommitFlow.addMultiDraftPart], ['multiDrawnUndoBtn', dependencies.countryCommitFlow.undoMultiDraftPart]]) {
       dependencies.platform.$(id)?.addEventListener('click', event => {
         if (event.currentTarget.disabled || dependencies.projectState.state.modeProcessing) return;
