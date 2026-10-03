@@ -390,19 +390,76 @@ export function setReferenceImagePlacementRotation(record, host, value) {
   return applyScreenCorners(record, geometry.corners.map(corner => rotatePoint(corner, geometry.center, delta)), host);
 }
 
+function unwrapLongitude(value, reference) {
+  let result = value;
+  while (result - reference > 180) result -= 360;
+  while (result - reference < -180) result += 360;
+  return result;
+}
+
+function interpolatePlacementCoordinate(corners, u, v) {
+  const reference = corners[0][0];
+  const nw = [reference, corners[0][1]];
+  const ne = [unwrapLongitude(corners[1][0], reference), corners[1][1]];
+  const se = [unwrapLongitude(corners[2][0], reference), corners[2][1]];
+  const sw = [unwrapLongitude(corners[3][0], reference), corners[3][1]];
+  const top = [nw[0] + (ne[0] - nw[0]) * u, nw[1] + (ne[1] - nw[1]) * u];
+  const bottom = [sw[0] + (se[0] - sw[0]) * u, sw[1] + (se[1] - sw[1]) * u];
+  return normalizeCoordinate([
+    top[0] + (bottom[0] - top[0]) * v,
+    top[1] + (bottom[1] - top[1]) * v,
+  ]);
+}
+
+export function buildReferenceImagePlacementMesh(record, { columns = 12, rows = 8 } = {}) {
+  if (!record?.mapQuad || record.mapQuad.length !== 4) return null;
+  const corners = record.mapQuad.map(normalizeCoordinate);
+  if (corners.some(point => !point)) return null;
+  const columnCount = Math.max(1, Math.min(64, Math.round(Number(columns) || 12)));
+  const rowCount = Math.max(1, Math.min(64, Math.round(Number(rows) || 8)));
+  const vertices = [];
+  for (let row = 0; row <= rowCount; row += 1) {
+    const v = row / rowCount;
+    for (let column = 0; column <= columnCount; column += 1) {
+      const u = column / columnCount;
+      vertices.push(Object.freeze({
+        uv: Object.freeze([u, v]),
+        coordinate: Object.freeze(interpolatePlacementCoordinate(corners, u, v)),
+      }));
+    }
+  }
+  const triangles = [];
+  const stride = columnCount + 1;
+  for (let row = 0; row < rowCount; row += 1) {
+    for (let column = 0; column < columnCount; column += 1) {
+      const a = row * stride + column;
+      const b = a + 1;
+      const c = a + stride;
+      const d = c + 1;
+      triangles.push(Object.freeze([a, b, d]), Object.freeze([a, d, c]));
+    }
+  }
+  return Object.freeze({
+    columns: columnCount,
+    rows: rowCount,
+    vertices: Object.freeze(vertices),
+    triangles: Object.freeze(triangles),
+  });
+}
+
 export function referenceImagePlacementUvAtPoint(record, point, host) {
   const candidate = finitePair(point);
-  const corners = projectReferenceImageMapQuad(record, host);
-  if (!candidate || !corners) return null;
-  const triangles = [
-    { indices: [0, 1, 2], uv: [[0, 0], [1, 0], [1, 1]] },
-    { indices: [0, 2, 3], uv: [[0, 0], [1, 1], [0, 1]] },
-  ];
-  for (const triangle of triangles) {
-    const weights = barycentric(candidate, triangle.indices.map(index => corners[index]));
+  const mesh = buildReferenceImagePlacementMesh(record);
+  if (!candidate || !mesh) return null;
+  const projected = mesh.vertices.map(vertex => projectVisible(host, vertex.coordinate));
+  for (const triangle of mesh.triangles) {
+    const destination = triangle.map(index => projected[index]);
+    if (destination.some(vertex => !vertex)) continue;
+    const weights = barycentric(candidate, destination);
     if (!weights) continue;
-    let u = weights[0] * triangle.uv[0][0] + weights[1] * triangle.uv[1][0] + weights[2] * triangle.uv[2][0];
-    let v = weights[0] * triangle.uv[0][1] + weights[1] * triangle.uv[1][1] + weights[2] * triangle.uv[2][1];
+    const uv = triangle.map(index => mesh.vertices[index].uv);
+    let u = weights[0] * uv[0][0] + weights[1] * uv[1][0] + weights[2] * uv[2][0];
+    let v = weights[0] * uv[0][1] + weights[1] * uv[1][1] + weights[2] * uv[2][1];
     u = Math.max(0, Math.min(1, u));
     v = Math.max(0, Math.min(1, v));
     if (record.flipX) u = 1 - u;
