@@ -374,7 +374,7 @@ export function createGpuMapRenderer(deps) {
       }
       terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: uploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
       preparedTerrain = terrainPreparation.prepare(frame, {
-        visible: state.physicalSettings.terrainVisible, enhanced: state.dataReadiness === 'enhanced',
+        visible: state.physicalSettings.terrainVisible,
         physicalStyle: state.physicalSettings.terrainStyle,
         projection: state.projection, rotation: state.view.globeRotation, flatCenter: state.view.flatCenter,
         width: cssWidth, height: cssHeight, dpr: effectivePixelRatio, devicePixelRatio: window.devicePixelRatio,
