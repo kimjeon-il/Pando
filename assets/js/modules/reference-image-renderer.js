@@ -2,7 +2,6 @@ import {
   REFERENCE_IMAGE_TRANSFORM,
   buildReferenceImagePlacementMesh,
   referenceImageAnchorScreenPoint,
-  projectReferenceImageMapQuad,
   referenceImagePlacementGeometry,
   referenceImagePlacementPointAtUv,
   referenceImagePlacementUvAtPoint,
