@@ -217,6 +217,14 @@
   .reference-image-panel .icon-btn { min-width: var(--ui-v2-control-mobile-height); }
 }
 
+.surface-reference.reference-image-editing {
+  pointer-events: none;
+}
+
+.surface-reference.reference-image-editing .reference-image-editing-summary button {
+  pointer-events: auto;
+}
+
 .surface-reference.reference-image-editing > .surface-body {
   display: none;
 }
