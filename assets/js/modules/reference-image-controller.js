@@ -687,22 +687,18 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     if (!hit) return false;
 
     freeTransformBefore = copyReferenceImageRecords(records);
-    if (!record.cornerPinEnabled) {
-      record.mapQuad = sourceQuad.map(coordinate => [...coordinate]);
-      record.cornerPinEnabled = true;
-      rebuildWarp(record);
-    }
-    freeTransformDrag = createReferenceImageFreeTransformDrag(record, hit, event.pointerId);
-    if (!freeTransformDrag) {
-      const before = freeTransformBefore.find(candidate => candidate.id === record.id);
-      if (before) {
-        record.mapQuad = before.mapQuad.map(coordinate => [...coordinate]);
-        record.cornerPinEnabled = before.cornerPinEnabled;
-        rebuildWarp(record);
-      }
+    const dragRecord = sourceQuad === record.mapQuad
+      ? record
+      : { ...record, mapQuad: sourceQuad };
+    const drag = createReferenceImageFreeTransformDrag(dragRecord, hit, event.pointerId);
+    if (!drag) {
       freeTransformBefore = null;
       return false;
     }
+    freeTransformDrag = {
+      ...drag,
+      activatesCornerPins: !record.cornerPinEnabled,
+    };
     surface?.setGestureActive(true);
     try { mapElement.setPointerCapture?.(event.pointerId); } catch (_) {}
     return true;
@@ -715,13 +711,30 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       cancelFreeTransformDrag();
       return false;
     }
+
+    const before = freeTransformBefore?.find(candidate => candidate.id === record.id);
+    const previouslyEnabled = record.cornerPinEnabled;
     const previousQuad = record.mapQuad.map(coordinate => [...coordinate]);
+    if (freeTransformDrag.activatesCornerPins && !record.cornerPinEnabled) {
+      record.mapQuad = freeTransformDrag.startMapQuad.map(coordinate => [...coordinate]);
+      record.cornerPinEnabled = true;
+    }
+
     const changed = applyReferenceImageFreeTransformDrag(record, freeTransformDrag, point, mapHost());
-    if (!changed) return false;
+    if (!changed) {
+      if (!previouslyEnabled && before) {
+        record.mapQuad = before.mapQuad.map(coordinate => [...coordinate]);
+        record.cornerPinEnabled = before.cornerPinEnabled;
+        rebuildWarp(record);
+      }
+      return false;
+    }
+
     record.cornerPinEnabled = true;
     rebuildWarp(record);
     if ((record.anchor || record.controlPoints.length) && !record.warp.ok) {
       record.mapQuad = previousQuad;
+      record.cornerPinEnabled = previouslyEnabled;
       rebuildWarp(record);
       return false;
     }
@@ -740,8 +753,10 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       const before = freeTransformBefore.find(item => item.id === record.id);
       const changed = JSON.stringify(before?.mapQuad) !== JSON.stringify(record.mapQuad)
         || before?.cornerPinEnabled !== record.cornerPinEnabled;
-      if (changed) history.push(freeTransformBefore);
-      void persist(record);
+      if (changed) {
+        history.push(freeTransformBefore);
+        void persist(record);
+      }
     }
     freeTransformBefore = null;
     renderEditor();
@@ -1032,6 +1047,8 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
         history.push(records);
         record.mapQuad = mapQuad;
         record.anchor = null;
+        record.cornerPinEnabled = false;
+        rebuildWarp(record);
         void persist(record);
         refreshUi();
       }
@@ -1180,6 +1197,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       rotation: referenceImagePlacementRotation(record, mapHost()),
       placementEditing: placementEditingId === record.id,
       freeTransformEditing: freeTransformEditingId === record.id,
+      cornerPinEnabled: !!record.cornerPinEnabled,
       anchored: !!record.anchor,
       warpMode: record.warp?.mode || record.warpMode,
       controlPointCount: record.controlPoints.length,
