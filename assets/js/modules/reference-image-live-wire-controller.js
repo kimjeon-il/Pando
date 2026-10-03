@@ -317,7 +317,8 @@ export function installReferenceImageLiveWire() {
     const active = !!state && state.recordId === recordId;
     const summary = panel.querySelector('.reference-image-editing-summary');
     const genericSummaryActions = summary?.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]') || [];
-    if (active && summary) {
+    const compactSummaryActive = active && summary && !summary.hidden;
+    if (compactSummaryActive) {
       genericSummaryActions.forEach(button => { button.hidden = true; });
       if (row.parentElement !== summary) summary.appendChild(row);
     } else {
