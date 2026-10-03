@@ -437,7 +437,7 @@ def render_reviews(stats):
     parts = ["## 재생성 가능한 ID별 검토 결과", "",
              f"검토 원본: `{stats['source']['name']}` / SHA-256 `{stats['source']['sha256']}`.", "",
              table(["항목", "건수"], [("1차 후보 (변경 없음)", stats["baselineCount"]),
-                                       ("이번 ID별 검토", stats["reviewCount"]),
+                                       ("누적 ID별 검토", stats["reviewCount"]),
                                        ("후보에서 확인 제외", stats["baselineExcludes"]),
                                        ("후보에서 임시 보류", stats["baselineHolds"]),
                                        ("별도 정제 후보", stats["refinedCount"]),

@@ -3,31 +3,37 @@
     "name": "cities500",
     "sha256": "4ba815404241c08ca40a5dcdcfe35dee4ae51bb848bfff2c01d8ad35507ae232"
   },
-  "reviewLedgerSha256": "eb3e059d01410cd14e91773d52cffa1d93054bf43ed42eca07398c3505220bfe",
+  "reviewLedgerSha256": "2f3300992d48fb77d92b8b82ce52d790cfd6865c650d0343954a530b9b08e5ed",
   "baselineCount": 32277,
-  "reviewCount": 38,
-  "refinedCount": 32253,
-  "baselineExcludes": 20,
-  "baselineHolds": 4,
+  "reviewCount": 78,
+  "refinedCount": 32238,
+  "baselineExcludes": 28,
+  "baselineHolds": 11,
   "actions": {
-    "exclude": 21,
-    "hold": 5,
-    "inclusion-review": 7,
-    "retain": 5
+    "exclude": 29,
+    "hold": 12,
+    "inclusion-review": 11,
+    "retain": 26
   },
-  "unreviewedCount": 32248,
+  "unreviewedCount": 32212,
   "changedCountries": {
+    "CN": {
+      "baseline": 670,
+      "refined": 666,
+      "excluded": 3,
+      "held": 1
+    },
     "JP": {
       "baseline": 865,
-      "refined": 857,
-      "excluded": 6,
+      "refined": 854,
+      "excluded": 9,
       "held": 2
     },
     "KR": {
       "baseline": 113,
-      "refined": 102,
-      "excluded": 9,
-      "held": 2
+      "refined": 94,
+      "excluded": 11,
+      "held": 8
     },
     "US": {
       "baseline": 3600,
@@ -218,6 +224,272 @@
       "finding": "温州 도시·현·구의 통계 체계를 구분한다. GeoNames 인구를 최신 시가지 인구로 검증하거나 바꾸지는 않는다.",
       "access": "official-indexed-document",
       "checkedAt": "2026-10-03"
+    },
+    "yeongcheon": {
+      "url": "https://www.yc.go.kr/nongtech/contents.do?mId=0102000000",
+      "publisher": "영천시",
+      "finding": "영천시의 위치·행정구역·경위도 극점을 안내한다. GeoNames Eisen의 Yongch'on 별칭·경북 소속과 대조하되 최신 인구를 이식하지 않는다.",
+      "access": "official-search-index; full page fetch returned 404",
+      "checkedAt": "2026-10-03"
+    },
+    "namwon": {
+      "url": "https://www.namwon.go.kr/index.do?menuUid=ff8080818e3beff0018e40e1d1300288",
+      "publisher": "남원시",
+      "finding": "남원시 기본현황의 위치와 경위도 범위를 확인했다. GeoNames Nangen의 Namwon 별칭·전북 소속과 대조하며 현재 시가지 인구가 검증됐다는 뜻은 아니다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "geojeHistory": {
+      "url": "https://tour.geoje.go.kr/index.geoje?menuCd=DOM_000008905001000000",
+      "publisher": "거제시",
+      "finding": "2008-07-01 신현읍을 폐지하고 장평·고현·상문·수양동으로 분동한 연혁을 안내한다.",
+      "access": "official-search-index; main-host full page fetch timed out",
+      "checkedAt": "2026-10-03"
+    },
+    "geojeDistricts": {
+      "url": "https://www.geoje.go.kr/stat/index.geoje?menuCd=DOM_000008905001007000",
+      "publisher": "거제시",
+      "finding": "현재 행정구역 목록에서 거제면과 일운면, 고현동 등을 별도 단위로 구분한다. Kyosai·Geoje 원본 지점과 각 경계의 포함 판정은 수행하지 않았다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "geojeCity": {
+      "url": "https://www.geoje.go.kr/index.do",
+      "publisher": "거제시",
+      "finding": "거제시청을 계룡로 125 고현동으로 안내한다. GeoNames의 복수 거제 레코드를 동일 중심점으로 확정하거나 좌표를 임의로 옮기지 않는다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "ungsangHistory": {
+      "url": "https://yangsan.go.kr/ungsang/contents.do?mid=0202000000",
+      "publisher": "양산시 웅상출장소",
+      "finding": "옛 웅상읍과 2007년 4월 웅상출장소 설치의 연혁을 구분한다.",
+      "access": "official-search-index; full page fetch timed out",
+      "checkedAt": "2026-10-03"
+    },
+    "ungsangDongs": {
+      "url": "https://www.yangsan.go.kr/ungsang/contents.do?mid=0106000000",
+      "publisher": "양산시 웅상출장소",
+      "finding": "현재 출장소 관할의 서창·소주·평산·덕계 4개 동 행정복지센터를 명시한다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "gwangyangOffices": {
+      "url": "https://gwangyang.go.kr/boardDownload.es?bid=0056&list_no=86165&seq=1",
+      "publisher": "광양시",
+      "finding": "시청로 33 중동의 광양시청과 남등길 6의 광양읍사무소를 구분한다. 두 GeoNames 레코드의 인구 범위와 정확한 읍 경계 포함 여부까지 확정하지는 않는다.",
+      "access": "official-indexed-document; full document fetch failed",
+      "checkedAt": "2026-10-03"
+    },
+    "yeosuOffice": {
+      "url": "https://news.yeosu.go.kr/com/com-2.html",
+      "publisher": "여수시",
+      "finding": "여수시청의 소재지를 시청로 1 학동으로 안내한다. 별도 PPLA2 13439582의 대표점 의미는 확인하지 못했다.",
+      "access": "official-search-index; full page fetch failed",
+      "checkedAt": "2026-10-03"
+    },
+    "sinanOffice": {
+      "url": "https://eng.shinan.go.kr/",
+      "publisher": "신안군",
+      "finding": "군청 주소는 압해읍 천사로 1004이다. 인구 0인 행정중심을 자동 삭제하지 않으며, 다른 섬 쪽 PPL의 군 전체 인구·대표점 여부는 미확정이다.",
+      "access": "official-search-index; full page fetch returned 502",
+      "checkedAt": "2026-10-03"
+    },
+    "sinanLocation": {
+      "url": "https://cn.shinan.go.kr/download/younbo/2016/16_02.pdf",
+      "publisher": "신안군",
+      "finding": "군청 소재지를 압해읍 천사로 1004로 제시하고 군이 여러 섬의 행정구역임을 설명한다. 2016년 연보의 인구를 현재 인구로 취급하지 않는다.",
+      "access": "official-indexed-document",
+      "checkedAt": "2026-10-03"
+    },
+    "uiwangOffice": {
+      "url": "https://www.uiwang.go.kr/UWKORINTRO0302",
+      "publisher": "의왕시",
+      "finding": "의왕시청은 시청로 11 고천동이며 군포와 별도 시이다. 군포와 동일 admin2 및 근접 좌표를 가진 GeoNames Uiwang의 정체를 이 페이지만으로 교정하지 않는다.",
+      "access": "official-search-index; full page fetch timed out",
+      "checkedAt": "2026-10-03"
+    },
+    "changnyeongMap": {
+      "url": "https://www.cng.go.kr/_res/tour/data/02260_d1.pdf",
+      "publisher": "창녕군",
+      "finding": "창녕읍 시가지의 군청길 1 군청과 읍사무소를 구분하는 공식 도로명주소 안내도이다. 읍 별칭만으로 군 중심 정착지를 삭제하지 않는다.",
+      "access": "official-indexed-document",
+      "checkedAt": "2026-10-03"
+    },
+    "taebaek": {
+      "url": "https://www.taebaek.go.kr/www/index.do",
+      "publisher": "태백시",
+      "finding": "태백시는 황지동 태붐로 21에 시청을 둔 현행 시이다. GeoNames PPL 인구 48962가 후보 기준에 미달하는 것과 정착지 존재 여부는 다르다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "samcheok": {
+      "url": "https://state.gwd.go.kr/upload/report/kw_nws_data/kw_mgr_5167_20260205150529.pdf",
+      "publisher": "강원특별자치도",
+      "finding": "2026년 도보는 삼척시청 홈페이지와 중앙로 296 주소를 명시한다. GeoNames Santyoku의 Samcheok 별칭과 대조하며 최신 인구를 추정하지 않는다.",
+      "access": "official-indexed-document; city homepage blocked by WAF",
+      "checkedAt": "2026-10-03"
+    },
+    "yangguOffice": {
+      "url": "https://www.yanggu.go.kr/contract/notice/phoneNumberView.do",
+      "publisher": "양구군",
+      "finding": "양구군청의 부서와 양구읍 관공서로 38 주소를 확인했다. 내부 읍 전체의 일괄 복구가 아니라 군 중심 정착지의 소수 예외 검토 근거이다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "hatogayaMerger": {
+      "url": "https://www.city.kawaguchi.lg.jp/material/files/group/3/52381572.pdf",
+      "publisher": "川口市 / 旧鳩ヶ谷市広報はとがや",
+      "finding": "2011-10-11 川口市와의 합병 및 鳩ヶ谷市本町에서 川口市鳩ヶ谷本町로의 주소 대응을 명시한다.",
+      "access": "official-document",
+      "checkedAt": "2026-10-03"
+    },
+    "saitamaMerger": {
+      "url": "https://www.city.saitama.lg.jp/20th/gaiyou/p081036.html",
+      "publisher": "さいたま市",
+      "finding": "2001년 浦和·大宮·与野 합병으로 さいたま市가 성립하고 2003년 옛 与野시역에 中央区를 둔 사실을 명시한다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "hamamatsuMerger": {
+      "url": "https://www.city.hamamatsu.shizuoka.jp/shiminkyodo/kaigi/chiikikyougikai/ground/index.html",
+      "publisher": "浜松市",
+      "finding": "2005-07-01 浜北市 등 12시정촌 합병으로 새 浜松市가 성립한 사실을 명시한다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "hamamatsuWards": {
+      "url": "https://www.city.hamamatsu.shizuoka.jp/kikaku/kuseido/index.html",
+      "publisher": "浜松市",
+      "finding": "2024년 구 재편으로 옛 浜北区는 浜名区에 속한다. 폐지된 구 이름을 현재 독립 도시로 승격하지 않는다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "miyoshiHiroshima": {
+      "url": "https://www.city.miyoshi.hiroshima.jp/index.html",
+      "publisher": "広島県三次市",
+      "finding": "広島県三次市의 현행 시청과 소재지를 확인했다. 愛知県みよし市와 같은 로마자 Miyoshi지만 별도 시이다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "miyoshiAichi": {
+      "url": "https://www.city.aichi-miyoshi.lg.jp/index.html",
+      "publisher": "愛知県みよし市",
+      "finding": "愛知県みよし市三好町의 현행 시청을 확인했다. 広島県三次市의 이름·인구와 병합하지 않는다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "uiwangMap": {
+      "url": "https://www.uiwang.go.kr/UWKORINTRO0103",
+      "publisher": "의왕시",
+      "finding": "현행 행정구역도에서 고천·오전·부곡·내손1·내손2·청계동과 고천동의 시청을 확인했다. 설명용 지도는 GeoNames 6573901 좌표의 경계 포함이나 대표점 의미를 확정하는 지오메트리 자료는 아니다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "geojeMap": {
+      "url": "https://data.geoje.go.kr/index.geoje?menuCd=DOM_000000202003001000",
+      "publisher": "거제시 데이터포털",
+      "finding": "통계지도에서 거제면·일운면·고현동 등을 별도 행정단위로 확인했다. 이번 확인은 화면의 행정단위 대조이며 두 GeoNames 좌표의 point-in-polygon 또는 인구 범위 검증이 아니다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "suzhouJiangsu": {
+      "url": "https://dfzb.suzhou.gov.cn/dfzb/zrdl/202512/36710e4435f34479acc6bc89f950b4a0.shtml",
+      "publisher": "苏州市地方志工作办公室",
+      "finding": "苏州市를 江苏省 동남부의 장강 삼각주 도시로 설명하고 경위도 범위와 전체 시역·시구·건성구 면적을 구분한다. 安徽 宿州와 동일 로마자 이름이라는 이유로 합치지 않는다.",
+      "access": "official-search-index; full page fetch failed",
+      "checkedAt": "2026-10-03"
+    },
+    "suzhouAnhui": {
+      "url": "https://www.ahsz.gov.cn/zjsz/zrdl/index.html",
+      "publisher": "宿州市人民政府 / 市委史志办、宿州市统计局",
+      "finding": "宿州市는 安徽 최북부의 현행 도시이며 4개 현과 1개 구를 관할한다고 설명한다. 원본의 安徽/3413 및 宿州市 별칭을 江苏 苏州와 구분하는 근거이다.",
+      "access": "official-search-index; full page fetch failed",
+      "checkedAt": "2026-10-03"
+    },
+    "fuzhouFujian": {
+      "url": "https://www.fuzhou.gov.cn/zgfzzt/shbj/xxgk/spgs/202510/P020251024565187323512.pdf",
+      "publisher": "福州市政府门户网站 / 环境影响评价公示",
+      "finding": "환경 현황의 지리 절에서 福州市를 福建省 성도, 민강 하류의 도시로 설명하고 경위도 범위를 제시한다. 이 자료로 GeoNames의 인구4094491까지 검증하거나 江西 抚州와 병합하지 않는다.",
+      "access": "official-indexed-document",
+      "checkedAt": "2026-10-03"
+    },
+    "fuzhouJiangxi": {
+      "url": "https://www.jxfz.gov.cn/col/col2/index.html",
+      "publisher": "抚州市人民政府",
+      "finding": "抚州市가 江西 동부에 위치하며 临川·东乡 두 구와 9개 현 등을 관할한다고 설명한다. 福建의 福州와 다른 도시이며 전체 행정영역 인구를 단일 시가지 인구로 사용하지 않는다.",
+      "access": "official-search-index; full page fetch failed",
+      "checkedAt": "2026-10-03"
+    },
+    "fuzhouGulou": {
+      "url": "https://www.gl.gov.cn/xjwz/rw/",
+      "publisher": "福州市鼓楼区人民政府",
+      "finding": "鼓楼区는 福州의 핵심 시구이며 9개 가도와 1개 진으로 구성됨을 설명한다. Fuzhou 8309983의 福州市/鼓楼区 혼합 별칭을 도시와 내부 구 중 하나로 확정하지 못하므로 보류 근거로 사용한다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "yichunJiangxi": {
+      "url": "https://www.weather.com.cn/cityintro/101240501.shtml",
+      "publisher": "中国气象局公共气象服务中心 / 中国天气网",
+      "finding": "宜春市를 江西 서북부 도시로 소개하고 경위도 범위를 제시한다. 黑龙江 伊春와 다른 한자·소속·위치를 가진 도시임을 대조하는 근거이며 인구1045952의 공간 범위를 검증한 자료는 아니다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "yichunHeilongjiang": {
+      "url": "https://yc.gov.cn/ycsrmzf/c101991/202001/166166.shtml",
+      "publisher": "伊春市人民政府",
+      "finding": "伊春市는 黑龙江 동북부이며 북위46°28′~49°26′, 동경127°37′~130°46′ 범위를 가진다고 설명한다. 江西 宜春와 별개이며 동일 로마자 ID의 병합 근거가 아니다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "taizhouJiangsu": {
+      "url": "https://www.taizhou.gov.cn/cms_files/filemanager/288403819/attach/20237/ce0cdc2d266148068c4506c69ea8d853.pdf",
+      "publisher": "泰州市人民政府",
+      "finding": "2022-2025 무폐기물 도시 실시계획의 도시 개황에서 泰州를 江苏의 지급시로 설명하고 경위도 범위를 제시한다. 원본 PPLA3 때문에 필터 밖인 ID의 개별 검토 근거이며 코드 자동 변경이나 승격 근거로 사용하지 않는다.",
+      "access": "official-document",
+      "checkedAt": "2026-10-03"
+    },
+    "taizhouZhejiang": {
+      "url": "https://sthjj.zjtz.gov.cn/module/download/downfile.jsp?classid=0&filename=bae0e738847c4aeeb4a2eccd97e8996f.pdf",
+      "publisher": "台州市生态环境局 / 环境影响评价公示",
+      "finding": "환경 현황 절에서 台州市를 浙江 중부 연해 도시로 설명하고 시정부가 있는 椒江区와 그 경위도 범위를 제시한다. 江苏 泰州市와 별개인 台州 후보 정체 대조에만 사용한다.",
+      "access": "official-indexed-document",
+      "checkedAt": "2026-10-03"
+    },
+    "yulinGuangxi": {
+      "url": "https://dnr.gxzf.gov.cn/zfxxgk/fdzdgknr/ghjh/ghjh/t16051983.shtml",
+      "publisher": "广西壮族自治区自然资源厅",
+      "finding": "玉林市 광물자원 계획은 广西 동남부 위치와 경위도 범위를 설명한다. 오래된 계획의 지리 설명만 대조하며 당시 인구를 현재 수치로 사용하지 않는다.",
+      "access": "official-search-index; full page fetch timed out",
+      "checkedAt": "2026-10-03"
+    },
+    "yulinCurrent": {
+      "url": "https://www.yulin.gov.cn/dhjl/xwfbh_30372/t19011858.shtml",
+      "publisher": "玉林市人民政府新闻办公室",
+      "finding": "2024년 공식 기자회견에서 玉林을 현행 지급시로 확인한다. PPLA2 인구0을 부재로 오인하지 않으며 인근 PPLA3의 인구를 이식하지 않는다.",
+      "access": "official-search-index",
+      "checkedAt": "2026-10-03"
+    },
+    "binhaiMerger": {
+      "url": "https://www.tj.gov.cn/zwgk/szfwj/tjsrmzf/202005/t20200519_2365317.html",
+      "publisher": "天津市人民政府 / 国务院国函〔2009〕125号",
+      "finding": "2009-10-21 승인으로 塘沽区·汉沽区·大港区를 폐지하고 天津市 滨海新区를 설치했다. 내부 옛 구의 별도 후보 제외에 사용하며 지역 이름이나 시가지 자체가 사라졌다는 뜻은 아니다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "daxingDistrict": {
+      "url": "https://www.bjdx.gov.cn/bjsdxqrmzf/zjdx/dxgk/index.html",
+      "publisher": "北京市大兴区人民政府",
+      "finding": "大兴区는 北京 남부의 내부 구이며 黄村 등의 진과 清源·兴丰 등의 가도를 관할한다. 원본 大兴/Huangcun 별칭·北京 소속에 대응한 내부 지명 제외 근거이다.",
+      "access": "official-page",
+      "checkedAt": "2026-10-03"
+    },
+    "shandongCensus": {
+      "url": "https://tjj.shandong.gov.cn/art/2021/5/21/art_6293_10287511.html",
+      "publisher": "山东省统计局 / 山东省第七次全国人口普查领导小组办公室",
+      "finding": "2020년 16개 지급시 지역 인구 표에 淄博4704138·潍坊9386705가 기재돼 있다. 두 GeoNames PPL의 숫자가 전체 지급시 인구와 일치함을 확인하지만 원 출처의 계보나 도시 시가지 인구까지 검증하지는 않는다.",
+      "access": "official-search-index; full page fetch timed out",
+      "checkedAt": "2026-10-03"
     }
   },
   "reviewedRecords": [
@@ -269,6 +541,53 @@
     },
     {
       "record": {
+        "geonameId": 1785286,
+        "name": "Zibo",
+        "asciiName": "Zibo",
+        "countryCode": "CN",
+        "admin1Code": "25",
+        "admin2Code": "3703",
+        "latitude": 36.79056,
+        "longitude": 118.06333,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 4704138,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2026-08-25"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "淄博 후보 정체는 유지한다. 원본 인구4704138은 2020년 공식 전체 지급시 인구와 정확히 일치하며 단일 시가지 인구로 검증된 값이 아니다. 원본 인구를 임의로 교체하거나 도시 자체를 제외하지 않으며 최종 규모·rank 검토에서 이 공간 범위를 구분해야 한다.",
+      "evidence": [
+        "shandongCensus"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1786746,
+        "name": "Yichun",
+        "asciiName": "Yichun",
+        "countryCode": "CN",
+        "admin1Code": "03",
+        "admin2Code": "3609",
+        "latitude": 27.83333,
+        "longitude": 114.4,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 1045952,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2025-08-20"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "江西 宜春市 후보를 유지한다. 黑龙江 伊春 2033413과 로마자 Yichun만 같고 한자·소속·위치·ID가 다르다. 두 도시를 병합하거나 인구를 합산하지 않으며 이 정체 확인으로 원본 인구의 공간 범위까지 승인하지 않는다.",
+      "evidence": [
+        "yichunJiangxi",
+        "yichunHeilongjiang"
+      ]
+    },
+    {
+      "record": {
         "geonameId": 1791388,
         "name": "Wenzhou",
         "asciiName": "Wenzhou",
@@ -288,6 +607,100 @@
       "reason": "温州市 중심의 누락 후보. 큰 인구의 행정구역/시가지 범위는 미검증이므로 최종 순위 없이 소수 예외 검토만 기록.",
       "evidence": [
         "wenzhou"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1791681,
+        "name": "Weifang",
+        "asciiName": "Weifang",
+        "countryCode": "CN",
+        "admin1Code": "25",
+        "admin2Code": "3707",
+        "latitude": 36.71,
+        "longitude": 119.10194,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 9386705,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2026-08-25"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "潍坊 후보 정체는 유지한다. 원본 인구9386705는 2020년 공식 전체 지급시 인구와 정확히 일치한다. 이를 단일 시가지 938만 도시로 확정하거나 인구를 추정 보정하지 않는다. 후보 유지와 최종 표시 순위 확정은 다르며 인구 범위 검토를 남긴다.",
+      "evidence": [
+        "shandongCensus"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1793424,
+        "name": "Tanggu",
+        "asciiName": "Tanggu",
+        "countryCode": "CN",
+        "admin1Code": "28",
+        "admin2Code": "12324202",
+        "latitude": 39.02111,
+        "longitude": 117.64694,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 535298,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2021-09-20"
+      },
+      "action": "exclude",
+      "inBaseline": true,
+      "reason": "天津 滨海新区 내부의 塘沽 지역이다. 원본 塘沽 별칭과 현행 滨海 소속을 2009년 옛 구 폐지 자료와 대조해 이번 내부 구·지역 제외 범위를 적용한다. 인구535298이 커도 별도 도시로 승인하지 않으며 지역 이름·시가지의 소멸을 뜻하거나 다른 ID와 병합하는 것은 아니다.",
+      "evidence": [
+        "binhaiMerger"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1793505,
+        "name": "Taizhou",
+        "asciiName": "Taizhou",
+        "countryCode": "CN",
+        "admin1Code": "04",
+        "admin2Code": "3212",
+        "latitude": 32.49069,
+        "longitude": 119.90812,
+        "featureClass": "P",
+        "featureCode": "PPLA3",
+        "population": 1607108,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2026-01-14"
+      },
+      "action": "inclusion-review",
+      "inBaseline": false,
+      "reason": "江苏 泰州市는 공식 지급시이며 浙江 台州市 8400694와 다른 도시이다. PPLA3로 분류돼 1차 필터 밖인 중요한 지역 중심의 개별 예외 검토에 기록한다. 중국 PPLA3 전체의 승격이나 featureCode 변경 없이 원본1607108의 인구 범위도 후속 검토로 남긴다.",
+      "evidence": [
+        "taizhouJiangsu",
+        "taizhouZhejiang"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1793743,
+        "name": "Suzhou",
+        "asciiName": "Suzhou",
+        "countryCode": "CN",
+        "admin1Code": "01",
+        "admin2Code": "3413",
+        "latitude": 33.63611,
+        "longitude": 116.97889,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 1647642,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2024-03-26"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "安徽 宿州市 후보이다. 江苏 苏州市 1886760과 로마자 Suzhou가 같지만 한자·성·소속·좌표가 다르므로 각각 유지한다. 공식 시 개황은 정체 대조 근거이며 두 원본 인구의 통계 범위를 같다고 간주하지 않는다.",
+      "evidence": [
+        "suzhouAnhui",
+        "suzhouJiangsu"
       ]
     },
     {
@@ -316,6 +729,100 @@
     },
     {
       "record": {
+        "geonameId": 1807544,
+        "name": "Daxing",
+        "asciiName": "Daxing",
+        "countryCode": "CN",
+        "admin1Code": "22",
+        "admin2Code": "11876380",
+        "latitude": 39.74025,
+        "longitude": 116.32693,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 104904,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2021-09-20"
+      },
+      "action": "exclude",
+      "inBaseline": true,
+      "reason": "北京 大兴/Huangcun 별칭의 내부 구·진 중심 기록이다. 공식 大兴区와 黄村 등 내부 단위를 대조해 독립 현대 도시 후보가 아닌 내부 지명으로 제외한다. 인구10만 이상이라는 이유로 자동표시를 승인하지 않으며 모든 중국 현급 행정중심을 같은 규칙으로 제거하지 않는다.",
+      "evidence": [
+        "daxingDistrict"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1808931,
+        "name": "Hangu",
+        "asciiName": "Hangu",
+        "countryCode": "CN",
+        "admin1Code": "28",
+        "admin2Code": "12324202",
+        "latitude": 39.24889,
+        "longitude": 117.78917,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 208369,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2021-09-20"
+      },
+      "action": "exclude",
+      "inBaseline": true,
+      "reason": "天津의 옛 汉沽区는 2009년 滨海新区로 통합됐고 원본도 天津/滨海 소속의 Hangu이다. 도시 내부 옛 구·지역으로 제외하며 비슷한 로마자 이름의 다른 국가·성 지명에 적용하지 않는다. 인구208369을 天津이나 滨海의 다른 기록에 합산하지 않는다.",
+      "evidence": [
+        "binhaiMerger"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1810820,
+        "name": "Fuzhou",
+        "asciiName": "Fuzhou",
+        "countryCode": "CN",
+        "admin1Code": "03",
+        "admin2Code": "3610",
+        "latitude": 27.95999,
+        "longitude": 116.33333,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 1089888,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2025-10-24"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "江西 抚州市의 후보를 유지한다. 福建 福州市 1810821과 로마자 Fuzhou만 같고 한자·성·소속·위치가 다르다. 공식 시 전체 인구나 다른 Fuzhou의 인구를 이식하지 않으며 원본1089888의 범위 검토는 별도로 남긴다.",
+      "evidence": [
+        "fuzhouJiangxi",
+        "fuzhouFujian"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1810821,
+        "name": "Fuzhou",
+        "asciiName": "Fuzhou",
+        "countryCode": "CN",
+        "admin1Code": "07",
+        "admin2Code": "3501",
+        "latitude": 26.06139,
+        "longitude": 119.30611,
+        "featureClass": "P",
+        "featureCode": "PPLA",
+        "population": 4094491,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2026-09-02"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "福建 성도 福州市의 PPLA 후보를 유지한다. 江西 抚州 1810820과 병합하지 않는다. 인근 PPLA2 8309983을 보류하는 것과 성도 자체를 제외하는 것은 다르며 원본4094491의 인구 범위·최종 표시 순위는 확정하지 않는다.",
+      "evidence": [
+        "fuzhouFujian",
+        "fuzhouJiangxi"
+      ]
+    },
+    {
+      "record": {
         "geonameId": 1832034,
         "name": "Yuseong",
         "asciiName": "Yuseong",
@@ -335,6 +842,52 @@
       "reason": "대전 유성구의 내부 구급 중심. 저인구 행정중심 유지 규칙이 미세 지명 제외보다 우선하는 것은 아니다.",
       "evidence": [
         "yuseong"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1832617,
+        "name": "Eisen",
+        "asciiName": "Eisen",
+        "countryCode": "KR",
+        "admin1Code": "14",
+        "admin2Code": "37070",
+        "latitude": 35.9675,
+        "longitude": 128.93083,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 56006,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-28"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "Yongch'on/Yŏngch’ŏn 별칭·경북 소속·지점은 현대 영천과 대응한다. 옛 표제어만으로 폐지 정착지로 제외하지 않는다. 현대 대표명 영천/Yeongcheon은 다음 이름 정규화 단계의 검토 사항이며 원본 Eisen과 인구56006은 변경하지 않는다.",
+      "evidence": [
+        "yeongcheon"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1832909,
+        "name": "Yanggu",
+        "asciiName": "Yanggu",
+        "countryCode": "KR",
+        "admin1Code": "06",
+        "admin2Code": "32380",
+        "latitude": 38.10583,
+        "longitude": 127.98944,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 24027,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-21"
+      },
+      "action": "inclusion-review",
+      "inBaseline": false,
+      "reason": "군청이 소재한 양구 중심 정착지 후보는 원본 PPL 인구24027로 제외된다. 내부 읍 전체를 복구하는 대신 군 중심의 소수 예외 검토로 남긴다. 동일 로마자의 중국 지명과 병합하지 않는다.",
+      "evidence": [
+        "yangguOffice"
       ]
     },
     {
@@ -385,6 +938,52 @@
     },
     {
       "record": {
+        "geonameId": 1835515,
+        "name": "T’aebaek",
+        "asciiName": "T'aebaek",
+        "countryCode": "KR",
+        "admin1Code": "06",
+        "admin2Code": "32050",
+        "latitude": 37.1759,
+        "longitude": 128.9889,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 48962,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-21"
+      },
+      "action": "inclusion-review",
+      "inBaseline": false,
+      "reason": "태백은 현행 시이지만 원본 PPL 인구48962가 5만 기준에 미달해 빠진다. 시 중심 정착지의 소수 예외 검토로 남기고 인구를 5만으로 올리거나 전체 저인구 PPL을 복구하지 않는다.",
+      "evidence": [
+        "taebaek"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1838069,
+        "name": "Santyoku",
+        "asciiName": "Santyoku",
+        "countryCode": "KR",
+        "admin1Code": "06",
+        "admin2Code": "32070",
+        "latitude": 37.44056,
+        "longitude": 129.17083,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 42145,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-28"
+      },
+      "action": "inclusion-review",
+      "inBaseline": false,
+      "reason": "Samcheok/삼척 별칭의 현대 시 중심 후보지만 원본 PPL 인구42145가 기준 미달이다. 오래된 표제어 교정과 소수 포함 예외를 검토하며 이번 정제본에는 추가하지 않는다.",
+      "evidence": [
+        "samcheok"
+      ]
+    },
+    {
+      "record": {
         "geonameId": 1839110,
         "name": "Beobwon",
         "asciiName": "Beobwon",
@@ -404,6 +1003,29 @@
       "reason": "파주시 법원읍. 인구 0 PPLA2이지만 이번 범위에서 읍급은 제외.",
       "evidence": [
         "beobwon"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1840379,
+        "name": "Nangen",
+        "asciiName": "Nangen",
+        "countryCode": "KR",
+        "admin1Code": "03",
+        "admin2Code": "35050",
+        "latitude": 35.41,
+        "longitude": 127.38583,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 81257,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2024-06-20"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "Namwon/Namwŏn 별칭·전북 소속·지점은 현대 남원과 대응한다. 낡은 표제어 Nangen만으로 삭제하지 않으며 남원/Namwon 대표명 검토와 원본 인구81257의 범위 검증을 별도로 남긴다.",
+      "evidence": [
+        "namwon"
       ]
     },
     {
@@ -431,6 +1053,54 @@
     },
     {
       "record": {
+        "geonameId": 1841775,
+        "name": "Kwangyang",
+        "asciiName": "Kwangyang",
+        "countryCode": "KR",
+        "admin1Code": "16",
+        "admin2Code": "36060",
+        "latitude": 34.97528,
+        "longitude": 127.58917,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 89281,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-21"
+      },
+      "action": "hold",
+      "inBaseline": true,
+      "reason": "광양읍 쪽 옛 중심 후보와 중동의 시 중심 PPLA2 1884178을 구분해야 한다. 공식 시청/읍사무소 주소는 다르지만 이 ID의 정확한 읍 경계 포함과 인구89281의 의미는 미확정이다. 동일 도시 이름이라는 이유로 병합하거나 현재 시 중심으로 좌표를 옮기지 않고 보류한다.",
+      "evidence": [
+        "gwangyangOffices"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1842754,
+        "name": "Kyosai",
+        "asciiName": "Kyosai",
+        "countryCode": "KR",
+        "admin1Code": "20",
+        "admin2Code": "38090",
+        "latitude": 34.85028,
+        "longitude": 128.58861,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 72124,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-22"
+      },
+      "action": "hold",
+      "inBaseline": true,
+      "reason": "Koje/Kŏje 별칭을 가지지만 고현동의 현행 시청 중심과 다른 거제면 쪽 지점이다. 현대 거제시 전체와 면 내부 정착지 중 어느 의미인지 경계·인구 검증 전 확정하지 않는다. Geoje 11101805나 옛 신현에 이름·인구를 이식하지 않고 보류한다.",
+      "evidence": [
+        "geojeDistricts",
+        "geojeCity",
+        "geojeMap"
+      ]
+    },
+    {
+      "record": {
         "geonameId": 1843137,
         "name": "Gangneung",
         "asciiName": "Gangneung",
@@ -450,6 +1120,29 @@
       "reason": "강릉시 중심의 중요한 누락. 원래 PPLA3 제외는 유지하고 소수 ID 예외 승인을 위한 검토 대상으로만 기록.",
       "evidence": [
         "gangneung"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1848254,
+        "name": "Yono",
+        "asciiName": "Yono",
+        "countryCode": "JP",
+        "admin1Code": "34",
+        "admin2Code": "1849187",
+        "latitude": 35.88333,
+        "longitude": 139.63333,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 102364,
+        "timezone": "Asia/Tokyo",
+        "modificationDate": "2026-09-14"
+      },
+      "action": "exclude",
+      "inBaseline": true,
+      "reason": "埼玉의 옛 与野市는 2001년 합병 후 さいたま市 내부이고 2003년 옛 시역에 中央区가 설치됐다. 원본 中央区 별칭·소속과 대조해 내부 지명으로 제외한다. 大阪의 동명 Yono 9277769에 이 판단을 전파하지 않는다.",
+      "evidence": [
+        "saitamaMerger"
       ]
     },
     {
@@ -477,6 +1170,124 @@
     },
     {
       "record": {
+        "geonameId": 1856698,
+        "name": "Miyoshi",
+        "asciiName": "Miyoshi",
+        "countryCode": "JP",
+        "admin1Code": "11",
+        "admin2Code": "1856691",
+        "latitude": 34.8,
+        "longitude": 132.85,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 53616,
+        "timezone": "Asia/Tokyo",
+        "modificationDate": "2022-09-05"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "広島県 三次市의 현행 도시 후보이다. 愛知県 みよし市 11612340과 로마자 이름이 같아도 한자·소속·좌표·ID가 다르므로 각각 유지한다. 원본 인구53616을 현재 홈페이지 인구로 바꾸지 않는다.",
+      "evidence": [
+        "miyoshiHiroshima",
+        "miyoshiAichi"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1859730,
+        "name": "Kawaguchi",
+        "asciiName": "Kawaguchi",
+        "countryCode": "JP",
+        "admin1Code": "34",
+        "admin2Code": "1859726",
+        "latitude": 35.80521,
+        "longitude": 139.71072,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 607373,
+        "timezone": "Asia/Tokyo",
+        "modificationDate": "2022-09-02"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "합병 후 현행 川口市의 도시 중심 PPLA2는 유지한다. 합병 전 鳩ヶ谷本町를 제외하는 것과 현재 시를 제외하는 것은 다르며 원본 인구607373은 변경하지 않는다.",
+      "evidence": [
+        "hatogayaMerger"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1863023,
+        "name": "Hatogaya-honchō",
+        "asciiName": "Hatogaya-honcho",
+        "countryCode": "JP",
+        "admin1Code": "34",
+        "admin2Code": "1859726",
+        "latitude": 35.83314,
+        "longitude": 139.7425,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 53062,
+        "timezone": "Asia/Tokyo",
+        "modificationDate": "2020-06-11"
+      },
+      "action": "exclude",
+      "inBaseline": true,
+      "reason": "옛 鳩ヶ谷市는 2011-10-11 川口市에 합병됐고 원본 鳩ヶ谷本町는 현재 川口市 내부 町 지명이다. 별도 현대 도시로 유지하지 않으며 현재 Kawaguchi 1859730에 인구53062를 합산하지 않는다.",
+      "evidence": [
+        "hatogayaMerger"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1863289,
+        "name": "Hamamatsu",
+        "asciiName": "Hamamatsu",
+        "countryCode": "JP",
+        "admin1Code": "37",
+        "admin2Code": "1863288",
+        "latitude": 34.7,
+        "longitude": 137.73333,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 791707,
+        "timezone": "Asia/Tokyo",
+        "modificationDate": "2022-09-02"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "현행 浜松市의 도시 중심 PPLA2는 유지한다. 내부 浜北 기록 제외와 구 재편을 시 자체의 폐지로 오인하지 않는다. 원본 인구791707에 옛 지역 인구를 합산하지 않는다.",
+      "evidence": [
+        "hamamatsuMerger",
+        "hamamatsuWards"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1863293,
+        "name": "Hamakita",
+        "asciiName": "Hamakita",
+        "countryCode": "JP",
+        "admin1Code": "37",
+        "admin2Code": "1863288",
+        "latitude": 34.8,
+        "longitude": 137.78333,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 86502,
+        "timezone": "Asia/Tokyo",
+        "modificationDate": "2021-09-30"
+      },
+      "action": "exclude",
+      "inBaseline": true,
+      "reason": "원본 浜北市는 2005년 浜松市에 합병됐고 옛 浜北区도 2024년 浜名区로 재편됐다. 현재 도시 내부 지명으로 제외한다. Hamamatsu 1863289에 옛 인구86502를 더하거나 ID를 병합하지 않는다.",
+      "evidence": [
+        "hamamatsuMerger",
+        "hamamatsuWards"
+      ]
+    },
+    {
+      "record": {
         "geonameId": 1865689,
         "name": "Aihara",
         "asciiName": "Aihara",
@@ -496,6 +1307,99 @@
       "reason": "相原 내부 지역 및 Sagamihara 별칭에 시 규모 인구725493이 붙음. 경계·인구 의미 미확정으로 Sagamihara와 합치지 않고 보류.",
       "evidence": [
         "sagamihara"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1882056,
+        "name": "Sinhyeon",
+        "asciiName": "Sinhyeon",
+        "countryCode": "KR",
+        "admin1Code": "20",
+        "admin2Code": "38090",
+        "latitude": 34.8825,
+        "longitude": 128.62667,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 82560,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-22"
+      },
+      "action": "exclude",
+      "inBaseline": true,
+      "reason": "거제시 옛 신현읍은 2008-07-01 폐지되고 장평·고현·상문·수양동으로 분동됐다. 이번 현대 정착지 범위에서 별도 읍/도시 후보로 유지하지 않는다. 다른 거제 ID와 자동 병합하거나 신현 인구82560을 현대 거제시 인구로 사용하지 않는다.",
+      "evidence": [
+        "geojeHistory"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1884138,
+        "name": "Yeosu",
+        "asciiName": "Yeosu",
+        "countryCode": "KR",
+        "admin1Code": "16",
+        "admin2Code": "36020",
+        "latitude": 34.76062,
+        "longitude": 127.66215,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 268823,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2026-04-13"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "학동 시청 쪽의 현행 여수시 중심 후보는 유지한다. 별도 PPLA2 13439582와 동일 이름이라는 이유로 ID를 합치거나 원본 인구268823을 두 기록에 나눠 적용하지 않는다.",
+      "evidence": [
+        "yeosuOffice"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1884178,
+        "name": "Gwangyang",
+        "asciiName": "Gwangyang",
+        "countryCode": "KR",
+        "admin1Code": "16",
+        "admin2Code": "36060",
+        "latitude": 34.9414,
+        "longitude": 127.69569,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 154266,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2026-09-14"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "중동 시청 쪽의 현행 광양시 중심 PPLA2를 유지한다. 다른 Kwangyang 1841775의 옛 중심/읍 의미와 별도로 판단하며, 시와 시가지 인구 범위가 모두 검증된 것은 아니다.",
+      "evidence": [
+        "gwangyangOffices"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1886760,
+        "name": "Suzhou",
+        "asciiName": "Suzhou",
+        "countryCode": "CN",
+        "admin1Code": "04",
+        "admin2Code": "3205",
+        "latitude": 31.30408,
+        "longitude": 120.59538,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 6715559,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2024-03-26"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "江苏 苏州市 후보를 安徽 宿州 1793743과 별도로 유지한다. 공식 자료도 전체 시역·시구·건성구를 구분하므로 원본6715559를 어떤 공간 범위의 인구인지 확정하지 않은 채 최종 rank에 사용하지 않는다. 이름·인구·좌표는 보존한다.",
+      "evidence": [
+        "suzhouJiangsu",
+        "suzhouAnhui"
       ]
     },
     {
@@ -542,6 +1446,30 @@
       "reason": "남양주시 화도읍. 인구 10만 이상이어도 읍급이므로 자동표시 심사 대상으로 남기지 않는다.",
       "evidence": [
         "namyangju"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 1912205,
+        "name": "Ungsang",
+        "asciiName": "Ungsang",
+        "countryCode": "KR",
+        "admin1Code": "20",
+        "admin2Code": "38100",
+        "latitude": 35.40611,
+        "longitude": 129.16861,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 83360,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-28"
+      },
+      "action": "exclude",
+      "inBaseline": true,
+      "reason": "양산시 옛 웅상읍에 대응하며 현재는 웅상출장소의 서창·소주·평산·덕계 4개 동 지역이다. 이번 범위의 별도 시·군 중심으로 승격하지 않고 제외한다. 웅상이라는 지역명 자체가 사라졌다는 판단은 아니다.",
+      "evidence": [
+        "ungsangHistory",
+        "ungsangDongs"
       ]
     },
     {
@@ -611,6 +1539,30 @@
       "reason": "달성군 화원읍. 군의 내부 읍 레코드이며 별도 군 중심으로 승격하지 않는다.",
       "evidence": [
         "hwawon"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 2033413,
+        "name": "Yichun",
+        "asciiName": "Yichun",
+        "countryCode": "CN",
+        "admin1Code": "08",
+        "admin2Code": "2307",
+        "latitude": 47.72143,
+        "longitude": 128.87529,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 155762,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2024-07-13"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "黑龙江 伊春市 후보를 유지한다. 江西 宜春 1786746과 다른 도시이며 동일 로마자로 중복 삭제하지 않는다. 원본 PPL 인구155762를 전체 시역의 최신 인구로 교체하거나 다른 Yichun에서 가져오지 않는다.",
+      "evidence": [
+        "yichunHeilongjiang",
+        "yichunJiangxi"
       ]
     },
     {
@@ -845,6 +1797,100 @@
     },
     {
       "record": {
+        "geonameId": 6395804,
+        "name": "Sinan",
+        "asciiName": "Sinan",
+        "countryCode": "KR",
+        "admin1Code": "16",
+        "admin2Code": "36480",
+        "latitude": 34.8262,
+        "longitude": 126.10863,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 53150,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-21"
+      },
+      "action": "hold",
+      "inBaseline": true,
+      "reason": "압해읍의 현재 군 중심 PPLA2 11725780과 다른 섬 쪽 좌표에 군 전체 별칭 신안군 및 인구53150이 붙어 있다. 군 행정영역 대표점인지 실제 정착지인지 미확정으로 보류한다. 같은 이름의 두 ID를 병합하거나 인구를 새 중심에 이식하지 않는다.",
+      "evidence": [
+        "sinanOffice",
+        "sinanLocation"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 6573901,
+        "name": "Uiwang",
+        "asciiName": "Uiwang",
+        "countryCode": "KR",
+        "admin1Code": "13",
+        "admin2Code": "31160",
+        "latitude": 37.36528,
+        "longitude": 126.94778,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 63040,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2024-11-15"
+      },
+      "action": "hold",
+      "inBaseline": true,
+      "reason": "원본 admin2=31160은 Gunpo 1842030과 같고 지점도 군포 후보와 가깝다. 실제 의왕시는 고천동에 시청을 둔 별도 시이므로 단순 중복으로 합치지 않는다. 이름·소속·대표점 불일치 의심을 보류하고 정확한 의왕 정착지 대응을 재검토한다. 인구63040이나 좌표를 추정 수정하지 않는다.",
+      "evidence": [
+        "uiwangOffice",
+        "uiwangMap"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 6903078,
+        "name": "Changnyeong",
+        "asciiName": "Changnyeong",
+        "countryCode": "KR",
+        "admin1Code": "20",
+        "admin2Code": "38330",
+        "latitude": 35.54145,
+        "longitude": 128.49506,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 74668,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2025-04-01"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "공식 안내도에서 군청이 놓인 창녕 중심 정착지와 읍사무소를 구분한다. 창녕읍 별칭만으로 군 중심까지 키워드 삭제하지 않는다. 원본 인구74668은 현재 시가지 인구로 확정하지 않고 그대로 남긴다.",
+      "evidence": [
+        "changnyeongMap"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 6940394,
+        "name": "Saitama",
+        "asciiName": "Saitama",
+        "countryCode": "JP",
+        "admin1Code": "34",
+        "admin2Code": "1849187",
+        "latitude": 35.90807,
+        "longitude": 139.65657,
+        "featureClass": "P",
+        "featureCode": "PPLA",
+        "population": 1324854,
+        "timezone": "Asia/Tokyo",
+        "modificationDate": "2025-02-18"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "합병 후 현행 さいたま市 후보를 유지한다. 내부 与野와 근접하거나 예전 인구가 겹친다고 ID를 병합하거나 인구1324854를 재계산하지 않는다.",
+      "evidence": [
+        "saitamaMerger"
+      ]
+    },
+    {
+      "record": {
         "geonameId": 8125829,
         "name": "Kamigyō-ku",
         "asciiName": "Kamigyo-ku",
@@ -864,6 +1910,54 @@
       "reason": "교토시 내부 구. 원래부터 제외되어 있으며 큰 PPLA3의 일괄 복구 대상이 아님을 확인.",
       "evidence": [
         "kyoto"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 8309983,
+        "name": "Fuzhou",
+        "asciiName": "Fuzhou",
+        "countryCode": "CN",
+        "admin1Code": "07",
+        "admin2Code": "3501",
+        "latitude": 26.07711,
+        "longitude": 119.29153,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 0,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2021-09-20"
+      },
+      "action": "hold",
+      "inBaseline": true,
+      "reason": "원본에 福州市와 내부 鼓楼区/Gulou Qu 별칭이 혼재한다. 공식 자료는 鼓楼가 福州 핵심 시구임을 확인하지만 이 ID가 도시의 별도 대표점인지 구 중심인지까지 확정하지 못했다. 보류 이유는 인구0이나 근접 자체가 아닌 정체 혼합이며 1810821과 자동 병합·이름 교체하지 않는다.",
+      "evidence": [
+        "fuzhouGulou",
+        "fuzhouFujian"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 8400694,
+        "name": "Taizhou",
+        "asciiName": "Taizhou",
+        "countryCode": "CN",
+        "admin1Code": "02",
+        "admin2Code": "3310",
+        "latitude": 28.66266,
+        "longitude": 121.43312,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 1485502,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2021-12-13"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "浙江 台州市의 도시 후보를 유지한다. 江苏 泰州市 1793505와 로마자만 같으며 두 도시의 한자·성·좌표·ID가 다르다. 江苏 후보를 검토한다고 이 ID의 인구·이름을 변경하거나 두 ID를 합치지 않는다.",
+      "evidence": [
+        "taizhouZhejiang",
+        "taizhouJiangsu"
       ]
     },
     {
@@ -983,6 +2077,31 @@
     },
     {
       "record": {
+        "geonameId": 11101805,
+        "name": "Geoje",
+        "asciiName": "Geoje",
+        "countryCode": "KR",
+        "admin1Code": "20",
+        "admin2Code": "38090",
+        "latitude": 34.81379,
+        "longitude": 128.70556,
+        "featureClass": "P",
+        "featureCode": "PPL",
+        "population": 232921,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2026-09-14"
+      },
+      "action": "hold",
+      "inBaseline": true,
+      "reason": "고현동의 현재 시 중심에서 떨어진 남동부 좌표에 시 규모 인구232921이 붙어 있다. 이 ID가 실제 정착지 중심을 나타내는지 행정영역 대표점인지 미확정이다. 이름 Geoje만으로 정상 대표점으로 확정하거나 Kyosai/Sinhyeon과 합치지 않고 보류한다.",
+      "evidence": [
+        "geojeCity",
+        "geojeDistricts",
+        "geojeMap"
+      ]
+    },
+    {
+      "record": {
         "geonameId": 11209896,
         "name": "Kotō",
         "asciiName": "Koto",
@@ -1052,6 +2171,78 @@
     },
     {
       "record": {
+        "geonameId": 11612340,
+        "name": "Miyoshi",
+        "asciiName": "Miyoshi",
+        "countryCode": "JP",
+        "admin1Code": "01",
+        "admin2Code": "1856697",
+        "latitude": 35.08971,
+        "longitude": 137.08998,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 61952,
+        "timezone": "Asia/Tokyo",
+        "modificationDate": "2024-12-02"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "愛知県 みよし市의 현행 도시 후보이다. 広島県 三次市 1856698과 동명이지만 다른 정착지로 유지한다. 현대 시청 주소의 三好町 문자열만 보고 내부 町 지명으로 제외하지 않으며 원본 인구61952는 보존한다.",
+      "evidence": [
+        "miyoshiAichi",
+        "miyoshiHiroshima"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 11725780,
+        "name": "Sinan",
+        "asciiName": "Sinan",
+        "countryCode": "KR",
+        "admin1Code": "16",
+        "admin2Code": "36480",
+        "latitude": 34.83394,
+        "longitude": 126.35133,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 0,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2023-06-28"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "압해읍의 현행 군 중심 PPLA2를 인구0이라는 이유로 제외하지 않는다. 다른 섬 쪽 PPL 6395804와 별도 ID로 유지하고 그 인구53150을 복사하지 않는다.",
+      "evidence": [
+        "sinanOffice",
+        "sinanLocation"
+      ]
+    },
+    {
+      "record": {
+        "geonameId": 12256566,
+        "name": "Yulin",
+        "asciiName": "Yulin",
+        "countryCode": "CN",
+        "admin1Code": "16",
+        "admin2Code": "4509",
+        "latitude": 22.65541,
+        "longitude": 110.17819,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 0,
+        "timezone": "Asia/Shanghai",
+        "modificationDate": "2021-09-20"
+      },
+      "action": "retain",
+      "inBaseline": true,
+      "reason": "广西 玉林市의 PPLA2 후보는 인구0이어도 유지한다. 인근 PPLA3 1785781의 인구1056743을 자동 이식·병합하거나 동명 榆林镇/鱼鳞乡/育林乡까지 같은 도시로 취급하지 않는다. 이 판단은 다른 Yulin ID의 포함 승인이나 정확한 대표점 확정이 아니다.",
+      "evidence": [
+        "yulinGuangxi",
+        "yulinCurrent"
+      ]
+    },
+    {
+      "record": {
         "geonameId": 13353695,
         "name": "Chūō",
         "asciiName": "Chuo",
@@ -1095,12 +2286,35 @@
       "evidence": [
         "tokyo"
       ]
+    },
+    {
+      "record": {
+        "geonameId": 13439582,
+        "name": "Yeosu",
+        "asciiName": "Yeosu",
+        "countryCode": "KR",
+        "admin1Code": "16",
+        "admin2Code": "36020",
+        "latitude": 34.71932,
+        "longitude": 127.74849,
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "population": 0,
+        "timezone": "Asia/Seoul",
+        "modificationDate": "2025-07-18"
+      },
+      "action": "hold",
+      "inBaseline": true,
+      "reason": "학동 시청 쪽 기존 여수 PPLA2 1884138과 달리 남동쪽에 있는 최근 추가 지점이다. 이 지점의 행정중심/정착지 의미를 확인하지 못했으므로 보류한다. 인구0이나 같은 이름 자체는 제외 근거로 쓰지 않으며 다른 ID에 좌표·인구를 합치지 않는다.",
+      "evidence": [
+        "yeosuOffice"
+      ]
     }
   ],
   "refinedArtifact": {
     "path": "refined-candidates.ndjson",
-    "rows": 32253,
-    "sha256": "3768577baf4127dfc896684685c3781101e0a01d6c8dcc31e8da491827eba326",
-    "bytes": 12540490
+    "rows": 32238,
+    "sha256": "fbf18f8680161d91755d5caeca2e6d7ee99db43c60f7a6a704b16cbf8b1191b5",
+    "bytes": 12534783
   }
 }
