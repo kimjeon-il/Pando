@@ -986,10 +986,20 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     }
     if (action === 'edit-image' || action === 'edit-coordinate') armGcp(record, button.dataset.pointId, action === 'edit-image' ? 'image' : 'map');
     const before = copyReferenceImageRecords(records);
+    const fallbackQuad = currentWarpQuad(record);
     const editAction = action === 'undo-gcp' ? 'delete-gcp' : action;
     const id = action === 'undo-gcp' ? record.controlPoints.at(-1)?.id : button?.dataset.pointId;
     if (applyReferenceImageEdit(record, editAction, { id })) {
-      history.push(before); cancelGcp(false); selectedControlPointId = ''; rebuildWarp(record); void persist(record); refreshUi();
+      history.push(before);
+      cancelGcp(false);
+      selectedControlPointId = '';
+      rebuildWarp(record);
+      if (!record.warp.ok && fallbackQuad) {
+        record.mapQuad = fallbackQuad;
+        if (record.anchor) alignReferenceImageAnchor(record);
+      }
+      void persist(record);
+      refreshUi();
     }
   }
 
@@ -1005,10 +1015,15 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
       const record = selected();
       if (record && !record.locked) {
         const before = copyReferenceImageRecords(records);
+        const fallbackQuad = currentWarpQuad(record);
         if (applyReferenceImageEdit(record, 'delete-gcp', { id: selectedControlPointId })) {
           history.push(before);
           selectedControlPointId = '';
           rebuildWarp(record);
+          if (!record.warp.ok && fallbackQuad) {
+            record.mapQuad = fallbackQuad;
+            if (record.anchor) alignReferenceImageAnchor(record);
+          }
           void persist(record);
           refreshUi();
         }
