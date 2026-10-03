@@ -60,6 +60,8 @@ function normalizeControlPoints(values) {
 export function normalizeReferenceImageRecord(record = {}) {
   const opacity = Number(record?.opacity ?? DEFAULT_OPACITY);
   const order = Number(record?.order);
+  const controlPoints = normalizeControlPoints(record?.controlPoints);
+  const anchor = controlPoints.length ? null : normalizeReferenceImageAnchor(record?.anchor);
   return {
     modelVersion: REFERENCE_IMAGE_MODEL_VERSION,
     id: String(record?.id || ''),
@@ -71,8 +73,8 @@ export function normalizeReferenceImageRecord(record = {}) {
     locked: record?.locked === true,
     flipX: record?.flipX === true,
     flipY: record?.flipY === true,
-    controlPoints: normalizeControlPoints(record?.controlPoints),
-    anchor: normalizeReferenceImageAnchor(record?.anchor),
+    controlPoints,
+    anchor,
     mapQuad: normalizeReferenceImageMapQuad(record?.mapQuad),
     order: Number.isFinite(order) ? order : 0,
     blob: typeof Blob !== 'undefined' && record?.blob instanceof Blob ? record.blob : null,
