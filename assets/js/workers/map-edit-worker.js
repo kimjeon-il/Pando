@@ -25,7 +25,6 @@ const calculationsReady = Promise.all([
 // Report initialization failures through the existing execute error envelope.
 calculationsReady.catch(() => {});
 
-const countries = new Map();
 const editSources = new Map();
 const cutSources = new Map();
 const validatedPreviews = new Map();
@@ -39,6 +38,10 @@ function syncEditSources(patch) {
   }
   if (sourceRevision !== patch.sourceRevision) validatedPreviews.clear();
   sourceRevision = patch.sourceRevision;
+}
+function applyEntityPatch(features, removedIds) {
+  for (const id of removedIds || []) editSources.delete('territorial:' + id);
+  for (const feature of features || []) editSources.set('territorial:' + feature.id, { kind: 'territorial', feature });
 }
 function sourceFeatures(kind) {
   return [...editSources.values()].filter(row => row.kind === kind).map(row => row.feature);
@@ -60,7 +63,7 @@ function applyPatch(map, features, removedIds) {
   for (const feature of features || []) map.set(featureId(feature), feature);
 }
 
-function sourceFeature(id, kinds = ['territorial', 'country']) {
+function sourceFeature(id, kinds = ['territorial']) {
   for (const kind of kinds) {
     const feature = editSources.get(kind + ':' + id)?.feature;
     if (feature) return feature;
@@ -109,9 +112,8 @@ self.onmessage = async event => {
       syncEditSources(message.editSources || { patches: [], sourceRevision: 0 });
       boundaryService = null;
       boundaryFeatures.clear();
-      for (const feature of message.boundaryFeatures || message.features || []) boundaryFeatures.set(featureId(feature), feature);
-      countries.clear();
-      for (const feature of message.features || []) countries.set(featureId(feature), feature);
+      const boundaryIds = new Set(message.boundaryIds || []);
+      for (const feature of sourceFeatures('territorial')) if (boundaryIds.has(featureId(feature))) boundaryFeatures.set(featureId(feature), feature);
       pendingResults.clear();
       currentDataRevision = Number(message.dataRevision || 0);
       self.postMessage({
@@ -124,13 +126,14 @@ self.onmessage = async event => {
     }
     if (message.type === 'boundary-invalidate') { boundaryService = null; return; }
     if (message.type === 'boundary-sync') {
+      applyEntityPatch(message.features || [], message.removedIds || []);
       applyPatch(boundaryFeatures, message.features || [], message.removedIds || []);
       return;
     }
     if (message.type === 'sync-patch') {
       if (Number(message.dataRevision || 0) < currentDataRevision) return;
       if (message.editSources) syncEditSources(message.editSources);
-      applyPatch(countries, message.features || [], message.removedIds || []);
+      applyEntityPatch(message.features || [], message.removedIds || []);
       currentDataRevision = Number(message.dataRevision || currentDataRevision);
       return;
     }
@@ -141,7 +144,7 @@ self.onmessage = async event => {
     if (message.type === 'commit') {
       const pending = pendingResults.get(Number(message.requestId));
       if (pending && Number(pending.dataRevision) === currentDataRevision) {
-        applyPatch(countries, pending.result.features, pending.result.removedIds);
+        applyEntityPatch(pending.result.features, pending.result.removedIds);
         currentDataRevision = Number(message.nextDataRevision || currentDataRevision + 1);
       }
       pendingResults.delete(Number(message.requestId));
@@ -174,7 +177,7 @@ self.onmessage = async event => {
     } else if (componentOperation) {
       result = await prepareComponentOperation(message.operation, message.payload, self.polygonClipping, requestCheckpoint(message, epoch));
     } else if (message.operation === 'territorial-library-batch') {
-      result = await calculateLibraryBatch(message.payload, sourceFeatures('country'), sourceFeatures('territorial'), self.polygonClipping, requestCheckpoint(message, epoch, true));
+      result = await calculateLibraryBatch(message.payload, sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), sourceFeatures('territorial').filter(feature => feature.properties.unitType !== 'country'), self.polygonClipping, requestCheckpoint(message, epoch, true));
     } else if (message.operation === 'territorial-preview') {
       const before = (message.payload.beforeIds || []).map(id => sourceFeature(id, ['territorial', 'generic'])).filter(Boolean);
       result = calculateTerritorialPreview(message.payload, before, self.polygonClipping);
@@ -197,7 +200,7 @@ self.onmessage = async event => {
     } else if (message.operation === 'territorial-display') {
       displayService ||= createEditDisplayPreparation();
       const service = displayService;
-      result = await service.prepare(message.payload, sourceFeatures('country'), sourceFeatures('territorial'),
+      result = await service.prepare(message.payload, sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), sourceFeatures('territorial').filter(feature => feature.properties.unitType !== 'country'),
         requestCheckpoint(message, epoch, true, () => service === displayService), key => editSources.get(key)?.feature);
     } else if (message.operation === 'territorial-parents') {
       result = calculateParents(sourceFeature(message.payload.targetId, ['territorial']), (message.payload.candidateIds || []).map(id => ({ id, parent: sourceFeature(id) })), self.polygonClipping);
@@ -206,14 +209,14 @@ self.onmessage = async event => {
       if (!receipt || receipt.sourceRevision !== sourceRevision) throw new Error('미리보기 원본이 변경되었습니다. 다시 계산하세요.');
       result = { valid: true, preparationId: message.payload.preparationId, sourceRevision };
     } else if (message.operation === 'territorial-coast-availability') {
-      const payload = message.payload.unitId ? { countries: sourceFeatures('country'), unit: sourceFeature(message.payload.unitId, ['territorial']) } : message.payload;
+      const payload = message.payload.unitId ? { countries: sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), unit: sourceFeature(message.payload.unitId, ['territorial']) } : message.payload;
       if (!payload.unit) throw new Error('하위단위를 찾을 수 없습니다.');
       const coastCountries = payload.countries;
       if (!coastTopologyCache || coastTopologyCache.geometries.length !== coastCountries.length || coastCountries.some((feature, index) => coastTopologyCache.geometries[index] !== feature.geometry)) {
         coastTopologyCache = { geometries: coastCountries.map(feature => feature.geometry), topology: buildBoundaryTopology(coastCountries) };
         coastResultCache = new WeakMap();
       }
-      const country = coastCountries.find(feature => featureId(feature) === String(payload.unit.properties.sovereignId));
+      const country = coastCountries.find(feature => featureId(feature) === self.PandoLabTerritorialEdit.administrativeCountryId(payload.unit, id => sourceFeature(id, ['territorial'])));
       const cached = coastResultCache.get(payload.unit.geometry);
       if (cached?.countryId === featureId(country)) result = cached.result;
       else {
@@ -227,18 +230,18 @@ self.onmessage = async event => {
       } : message.payload;
       result = calculateUncoveredSource(parent, children, self.polygonClipping);
     } else if (message.operation === 'territorial-edit') {
-      result = calculateTerritorialEdit(message.payload, sourceFeatures('country'), sourceFeatures('territorial'), self.polygonClipping);
+      result = calculateTerritorialEdit(message.payload, sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), sourceFeatures('territorial').filter(feature => feature.properties.unitType !== 'country'), self.polygonClipping);
     } else {
-      ({ result, afterFeatures } = createCountryCommandCalculator(self.polygonClipping).calculate(message, countries));
+      ({ result, afterFeatures } = createCountryCommandCalculator(self.polygonClipping).calculate(message, new Map(sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country').map(feature => [featureId(feature), feature]))));
     }
     assertRequestCurrent(message, epoch);
     if (message.operation === 'territorial-edit') {
-      result.preview = calculateEditPreview(message.payload.operation, result, [...sourceFeatures('country'), ...sourceFeatures('territorial')], self.polygonClipping);
+      result.preview = calculateEditPreview(message.payload.operation, result, sourceFeatures('territorial'), self.polygonClipping);
       result.preparationId = 'territorial:' + currentDataRevision + ':' + ++previewSequence;
       if (!result.preview.validation.blocking && !result.impacts.some(impact => impact.kind === 'coast-owner')) retainReceipt(result.preparationId, message, epoch);
     }
     if (!readOnly) {
-      result.preview = calculateCountryPreview(message, result, [...countries.values()], afterFeatures, self.polygonClipping);
+      result.preview = calculateCountryPreview(message, result, sourceFeatures('territorial').filter(feature => feature.properties.unitType === 'country'), afterFeatures, self.polygonClipping);
     }
     assertRequestCurrent(message, epoch);
     if (!readOnly) pendingResults.set(Number(message.requestId), {

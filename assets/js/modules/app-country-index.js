@@ -19,31 +19,17 @@ export function createCountryIndex() {
     dependencies = ports;
   }
 
+  // External GIS ingress assigns an ID before its Feature enters the Store.
   function featureCountryId(feature, index) {
     return String(feature?.id || `country_${index}`);
   }
 
-  function featureCountryName(feature) {
-    const p = feature.properties || {};
-    return p.name || '이름 없는 국가';
-  }
-
-  function reindexCountries(fc, applyOverrides = true, { assumeCanonical = false } = {}) {
+  function reindexCountries(fc) {
     const out = fc?.type === 'FeatureCollection' ? fc : { type: 'FeatureCollection', features: [] };
     dependencies.projectState.state.countryIndex.clear();
     out.features.forEach((feature, index) => {
-      if (!assumeCanonical && !(0, dependencies.geometryModel.hasCanonicalPolygonWinding)(feature.geometry)) {
-        const normalizedGeometry = (0, dependencies.geometryModel.normalizePolygonGeometry)(feature.geometry);
-        if (normalizedGeometry) feature.geometry = normalizedGeometry;
-      }
-      feature.properties = feature.properties || {};
-      const id = featureCountryId(feature, index);
-      feature.id = id;
-      feature.properties = {
-        name: featureCountryName(feature),
-        ...(feature.properties.validFrom ? { validFrom: String(feature.properties.validFrom) } : {}),
-        ...(feature.properties.validTo ? { validTo: String(feature.properties.validTo) } : {}),
-      };
+      const id = feature.id;
+      if (typeof id !== 'string' || !id) throw new TypeError('국가 인덱스에는 공통 엔티티 ID가 필요합니다.');
       dependencies.projectState.state.countryIndex.set(id, index);
     });
     (0, dependencies.spatialQuery.rebuildSpatialIndex)(out.features);

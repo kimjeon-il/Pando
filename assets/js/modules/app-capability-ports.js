@@ -141,7 +141,7 @@ export function createSpatialDataPorts(providers) {
     snapshots: Object.freeze({
       get applySharedProjectFields() { return providers.projectSnapshots.applySharedProjectFields; },
       get normalizeProjectObjects() { return providers.projectSnapshots.normalizeProjectObjects; },
-      get restoreCountriesFromSnapshot() { return providers.projectSnapshots.restoreCountriesFromSnapshot; },
+      get restoreEntitiesFromSnapshot() { return providers.projectSnapshots.restoreEntitiesFromSnapshot; },
       get snapshotEditable() { return providers.projectSnapshots.snapshotEditable; },
     }),
     spatialFactories: Object.freeze({
@@ -171,15 +171,15 @@ export function createSpatialDataPorts(providers) {
       get updateModeButtons() { return providers.taskPresentation.updateModeButtons; },
     }),
     territorialModel: Object.freeze({
+      get administrativeCountryId() { return providers.runtime.administrativeCountryId; },
       get entityRepository() { return providers.domainAssembly.territorialEntityRepository; },
       get entityStore() { return providers.domainAssembly.territorialEntityStore; },
       get assertProjectReferenceIntegrity() { return providers.runtime.assertProjectReferenceIntegrity; },
       get buildSharedBoundaryTopology() { return providers.runtime.buildSharedBoundaryTopology; },
       get composeRiverBoundaryTerritoryComponents() { return providers.runtime.composeRiverBoundaryTerritoryComponents; },
-      get createPartitionTerritorialFeature() { return providers.runtime.createPartitionTerritorialFeature; },
       get createRingHitTester() { return providers.runtime.createRingHitTester; },
       get DISTRIBUTION_MODES() { return providers.runtime.DISTRIBUTION_MODES; },
-      get normalizeTerritorialUnits() { return providers.runtime.normalizeTerritorialUnits; },
+      get normalizeTerritorialEntities() { return providers.runtime.normalizeTerritorialEntities; },
       get TERRITORIAL_COVERAGE_MODES() { return providers.runtime.TERRITORIAL_COVERAGE_MODES; },
       get TERRITORIAL_UNIT_TYPES() { return providers.runtime.TERRITORIAL_UNIT_TYPES; },
     }),
@@ -303,7 +303,6 @@ function createMapResourcePorts(providers) {
       get TERRITORIAL_UNIT_TYPES() { return providers.runtime.TERRITORIAL_UNIT_TYPES; },
     }),
     objectPresentation: Object.freeze({
-      get countryDisplayName() { return providers.runtime.countryDisplayName; },
       get createTerritorialScopeResolver() { return providers.runtime.createTerritorialScopeResolver; },
       get defaultGeographicName() { return providers.runtime.defaultGeographicName; },
       get genericFeatureGeometryKind() { return providers.runtime.genericFeatureGeometryKind; },

@@ -3,7 +3,7 @@ import test from 'node:test';
 import * as stage from '../../assets/js/modules/app-task-stage-model.js';
 
 const state = overrides => ({
-  tool: 'annex-territory', territorialUnits: [], geometryPreview: { session: null },
+  tool: 'annex-territory', territorialEntities: [], geometryPreview: { session: null },
   boundaryEditEntityIds: [], mergeTargetCountryIds: [], territorialUnitMergeTargetIds: [],
   ...overrides,
 });
@@ -43,8 +43,8 @@ test('merge presents the survivor separately and derives exact removable targets
 
 test('subunit boundary uses logical unit identities and does not invent a target-picking phase', () => {
   const input = state({ tool: 'territorial-border', boundaryEditPhase: 'editing', boundaryEditSeedEntityId: 'SUB-1',
-    boundaryEditEntityIds: ['SUB-1', 'SUB-2', 'SUB-3'], territorialUnits: ['SUB-1', 'SUB-2', 'SUB-3'].map(id => ({ id, properties: { unitType: 'subunit' } })) });
-  const byId = new Map(input.territorialUnits.map(unit => [String(unit.id), unit]));
+    boundaryEditEntityIds: ['SUB-1', 'SUB-2', 'SUB-3'], territorialEntities: ['SUB-1', 'SUB-2', 'SUB-3'].map(id => ({ id, properties: { unitType: 'subunit' } })) });
+  const byId = new Map(input.territorialEntities.map(unit => [String(unit.id), unit]));
   const view = stage.taskWorkflowPresentation(input, null, {}, {
     territorialEntityById: id => byId.get(String(id)) || null,
   });

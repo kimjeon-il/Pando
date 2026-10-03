@@ -14,14 +14,14 @@ import { MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from '../../assets/js/modules/map-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 test('domain factories expose isolated public contracts', () => {
-  const projectState = { countries: [{ id: 'DEU' }] };
+  const projectState = { entityDelta: { changed: [{ id: 'DEU' }], removedIds: [] } };
   const project = createProjectDomain({ getSnapshot: () => projectState });
   const selection = createSelectionDomain();
   const rendering = createRenderingDomain();
   const gis = createGisDomain();
   const editing = createEditingDomain();
   for (const [domain, methods] of [
-    [project, ['snapshot', 'buildProject', 'buildAutosave', 'countriesFromAutosaveDelta', 'dispatch', 'load', 'dispose']],
+    [project, ['snapshot', 'buildProject', 'buildAutosave', 'entitiesFromAutosaveDelta', 'dispatch', 'load', 'dispose']],
     [selection, ['snapshot', 'replace', 'toggle', 'selectRange', 'setMany', 'remove', 'prune', 'clear', 'resetProject', 'setHover', 'has', 'primary', 'size', 'createPacket', 'dispose']],
     [rendering, ['requestRender', 'invalidateView', 'invalidateViewport', 'invalidateProjection', 'invalidateProject', 'invalidateSelection', 'invalidateSelectionStyle', 'invalidateGpuFrame', 'invalidateGpuInteraction', 'invalidateEditingOverlays', 'invalidateGpuContext', 'invalidateQuality', 'invalidateBaseScene', 'beginInteraction', 'endInteraction', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'renderValidation', 'invalidateEditedGeometryPatch', 'renderCountries', 'renderHydro', 'renderTerritorialUnits', 'renderGenericFeatures', 'getDistributionRenderRows', 'getTerritorialBoundaryStats', 'dispose']],
     [gis, ['planImport', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'dispose']],
@@ -76,8 +76,8 @@ test('domain factories expose isolated public contracts', () => {
     'finishDraftStroke', 'cancelDraftStroke', 'syncDraftAfterMutation', 'reconcileCoast',
   ]) assert.equal(editing[method], undefined);
   const snapshot = project.snapshot();
-  snapshot.countries[0].id = 'FRA';
-  assert.equal(project.snapshot().countries[0].id, 'DEU', 'project snapshot is detached');
+  snapshot.entityDelta.changed[0].id = 'FRA';
+  assert.equal(project.snapshot().entityDelta.changed[0].id, 'DEU', 'project snapshot is detached');
 });
 
 test('rendering domain commits label positions synchronously in the coordinator frame', () => {
@@ -324,13 +324,13 @@ test('view-only selection rendering is a no-op when no SVG fallback exists', () 
 test('project domain owns serializer snapshots and autosave data', () => {
   const project = createProjectDomain({
     serializer: {
-      buildProject: () => ({ countriesData: { features: [{ id: 'DEU' }] } }),
-      buildAutosave: () => ({ format: 'pandolab-autosave-delta', countries: [{ id: 'DEU' }] }),
+      buildProject: () => ({ territorialEntities: [{ id: 'DEU' }] }),
+      buildAutosave: () => ({ format: 'pandolab-autosave-delta', entityDelta: { changed: [{ id: 'DEU' }], removedIds: [] } }),
     },
   });
-  assert.deepEqual(project.buildProject(), { countriesData: { features: [{ id: 'DEU' }] } });
+  assert.deepEqual(project.buildProject(), { territorialEntities: [{ id: 'DEU' }] });
   assert.deepEqual(project.snapshot(), project.buildProject());
-  assert.deepEqual(project.buildAutosave(), { format: 'pandolab-autosave-delta', countries: [{ id: 'DEU' }] });
+  assert.deepEqual(project.buildAutosave(), { format: 'pandolab-autosave-delta', entityDelta: { changed: [{ id: 'DEU' }], removedIds: [] } });
 });
 
 test('project replacement advances generation once before the canonical swap', async () => {
@@ -340,7 +340,7 @@ test('project replacement advances generation once before the canonical swap', a
     replaceSnapshot: async (_value, options) => { replaceOptions = options; return true; },
     onProjectReset: event => resets.push(event),
   });
-  await project.load({ countriesData: { features: [] } });
+  await project.load({ territorialEntities: [] });
   assert.equal(project.getGeneration(), 1);
   assert.deepEqual(replaceOptions, { reason: 'load', generation: 1, skipRenderReset: true });
   assert.equal(resets.length, 1);

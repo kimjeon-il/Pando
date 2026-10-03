@@ -139,9 +139,9 @@ export function createLayerList() {
           folderName: kind === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.SUBUNIT
             ? `하위단위 · ${countryLabel}`
             : kind === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION
-            ? `지방${feature.properties?.sovereignId ? ` · ${countryLabel}` : ''}`
+            ? `지방${(0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) ? ` · ${countryLabel}` : ''}`
             : `하위단위 · ${countryLabel}`,
-          countryId: String(feature.properties?.sovereignId || ''),
+          countryId: String((0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || ''),
           parentId: String(feature.properties?.parentId || ''),
 
           selected: (dependencies.projectState.state.selected?.domain === 'territorial' && dependencies.projectState.state.selected.type !== dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.COUNTRY) && dependencies.projectState.state.selected.id === String(feature.id),

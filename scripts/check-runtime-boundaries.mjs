@@ -301,7 +301,7 @@ const privateModuleDeclarations = new Map([
   ['runtime-performance-metrics.js', ['PERFORMANCE_DIAGNOSTIC_THRESHOLDS']],
   ['selection-stroke-geometry.js', ['RIBBON_SEGMENT_SCALAR_COUNT', 'appendSelectionRibbonSegment', 'ribbonVerticesForSelectionSegments', 'flattenSelectionGeometry']],
   ['temporal.js', ['isLeapYear', 'daysInMonth']],
-  ['territorial-units.js', ['territorialUnitType', 'isTerritorialFeature', 'normalizeTerritorialFeature']],
+  ['territorial-units.js', ['territorialUnitType', 'isTerritorialFeature']],
   ['tool-controller.js', ['TOOL_DEFINITIONS']],
   ['worker-rpc.js', ['createWorkerRpcError', 'createCanonicalWorkerRpcCodec']],
 ]);

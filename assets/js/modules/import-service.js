@@ -221,19 +221,14 @@ export function createCountryImportMergePlanner({
   };
 }
 
-export function applyImportedPackageAssets(metadata, overrides) {
-  const output = structuredClone(overrides || {});
-  for (const asset of metadata?.countryAssets || []) {
-    if (!asset?.countryId || !asset?.base64) continue;
-    const id = text(asset.countryId);
-    output[id] = { ...(output[id] || {}), flagDataUrl: `data:${asset.mimeType || 'application/octet-stream'};base64,${asset.base64}` };
-  }
-  return output;
-}
-
-export function importedCountryOverrides(collection) {
-  void collection;
-  return {};
+export function applyImportedPackageAssets(metadata, entities) {
+  const assets = new Map((metadata?.countryAssets || []).map(asset => [text(asset.countryId), asset]));
+  return entities.map(entity => {
+    const asset = entity.properties.unitType === 'country' && assets.get(text(entity.id));
+    if (!asset?.base64) return entity;
+    return { ...entity, properties: { ...entity.properties, metadata: { ...entity.properties.metadata,
+      flagDataUrl: `data:${asset.mimeType || 'application/octet-stream'};base64,${asset.base64}` } } };
+  });
 }
 
 export function appendImportedSourceInfo(previous, next, now = () => new Date().toISOString()) {

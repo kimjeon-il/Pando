@@ -1,3 +1,4 @@
+import { administrativeCountryId } from './territorial-units.js';
 const text = value => String(value || '');
 
 // Relation choices share stored IDs; labels never participate in identity resolution.
@@ -29,7 +30,7 @@ export function subunitParentChoices(countryId, countriesOrRepository, unitsOrOp
     }
   }
   const candidates = units.filter(unit => unit.properties?.unitType === 'subunit'
-    && text(unit.properties.sovereignId) === text(countryId) && !blocked.has(text(unit.id)));
+    && administrativeCountryId(unit, id => repository ? repository.get(id) : [...countriesOrRepository, ...units].find(entity => text(entity.id) === id)) === text(countryId) && !blocked.has(text(unit.id)));
   const result = [{ value: text(countryId), label: name(country) }];
   const seen = new Set([text(countryId)]);
   function visit(parentId, depth) {
@@ -107,7 +108,7 @@ export function prepareLibraryOwnership({ descriptors, resolve, countries, units
         const parentType = parent.type === 'Feature' ? parent.properties?.unitType || 'country' : parent.type;
         if (!['country', 'subunit'].includes(parentType)) throw new Error('상위 단위는 국가 또는 하위단위여야 합니다.');
         next.parentId = text(parent.id);
-        next.sovereignId = parentType === 'country' ? text(parent.id) : text(parent.sovereignId || parent.properties?.sovereignId);
+        next.sovereignId = parentType === 'country' ? text(parent.id) : parent.type === 'Feature' ? administrativeCountryId(parent, id => existing.get(id)) : text(parent.sovereignId);
       }
       // Country expansion is planned separately. Never expand an intermediate subunit.
       const parentIsSubunit = parent.type === 'subunit' || parent.properties?.unitType === 'subunit';

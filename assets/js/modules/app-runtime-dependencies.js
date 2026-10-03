@@ -9,7 +9,7 @@ const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalT
 const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, subunitParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
 const { layoutTerritorialFlags } = await import(`./territorial-label-flags.js?v=${encodeURIComponent(moduleRevision)}`);
-const { countryDisplayName, defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
+const { defaultGeographicName } = await import(`./country-display.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialScopeResolver, validateSubunitParentChanges } = await import(`./territorial-scope.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityRepository } = await import(`./territorial-entity-repository.js?v=${encodeURIComponent(moduleRevision)}`);
 const { createTerritorialEntityStore } = await import(`./territorial-entity-store.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -60,7 +60,7 @@ const [projectStateModule, mapEditTransactionModule, territorialUnitsModule, dis
   import(versionedModuleUrl('./modules/surface-tabs-controller.js')),
 ]);
 const { createSemanticIcon } = await import(versionedModuleUrl('./modules/icon-utils.js'));
-const { pruneCountryOverrides } = await import(versionedModuleUrl('./modules/country-feature.js'));
+const { normalizeCountryCollection } = await import(versionedModuleUrl('./modules/country-feature.js'));
 const {
   PROJECT_SCHEMA_VERSION,
   applyProjectFields,
@@ -69,7 +69,7 @@ const {
   pickProjectFields,
 } = projectStateModule;
 const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } = colorAdapterModule;
-const { createProjectSerializer, restoreCountriesFromDelta } = projectSerializerModule;
+const { createProjectSerializer, restoreEntitiesFromDelta } = projectSerializerModule;
 const { createBrowserProjectStorage, createPersistenceService } = persistenceServiceModule;
 const { createHydroService, createTerrainService } = physicalLayerServiceModule;
 const { createTerritorialApplicationService } = territorialServiceModule;
@@ -162,7 +162,6 @@ let createCoastReconciliationController;
 let importServiceModule;
 let appendImportedSourceInfo;
 let applyImportedPackageAssets;
-let importedCountryOverrides;
 let createGisImportWizardController;
 let buildTerritorialImportTransactionPlan;
 let resolveImportedCountryId;
@@ -337,7 +336,8 @@ const {
   changeUnitType,
   createTerritorialFeature,
   normalizeTerritorialRelations,
-  normalizeTerritorialUnits,
+  normalizeTerritorialEntities,
+  administrativeCountryId,
   runTerritorialTransaction,
   validateTerritorialRelations,
 } = territorialUnitsModule;
@@ -358,19 +358,6 @@ const TERRITORIAL_TYPE_LABELS = Object.freeze({
   [TERRITORIAL_UNIT_TYPES.REGION]: MAP_OBJECT_TYPES.region.label,
 });
 const territorialTypeLabel = unitType => TERRITORIAL_TYPE_LABELS[unitType] || '영역';
-const createPartitionTerritorialFeature = options => createTerritorialFeature({
-  id: options.id,
-  unitType: options.unitType,
-  parentId: options.parentId || options.sovereignId || '',
-  sovereignId: options.sovereignId || '',
-  coverageMode: TERRITORIAL_COVERAGE_MODES.PARTITION,
-  name: options.name,
-  color: options.color,
-  notes: options.notes,
-  metadata: options.metadata,
-  sourceFolderId: options.sourceFolderId,
-  geometry: options.geometry,
-});
 const { createSurfaceController } = surfaceControllerModule;
 const { createEditorWorkspacePresentation } = await import(versionedModuleUrl('./modules/editor-workspace-presentation.js'));
 const { describeTool, dispatchTool, isSpecialTool, toolCursorMode, toolDraftDefinition, toolLabel } = toolControllerModule;
@@ -418,7 +405,6 @@ export {
   subunitParentChoices,
   BUILTIN_TERRITORY_MERGES,
   layoutTerritorialFlags,
-  countryDisplayName,
   defaultGeographicName,
   createTerritorialScopeResolver,
   validateSubunitParentChanges,
@@ -461,7 +447,7 @@ export {
   mapObjectSpatialIndexModule,
   surfaceTabsControllerModule,
   createSemanticIcon,
-  pruneCountryOverrides,
+  normalizeCountryCollection,
   PROJECT_SCHEMA_VERSION,
   applyProjectFields,
   assertCurrentProjectSchema,
@@ -472,7 +458,7 @@ export {
   readDomainColor,
   writeDomainColor,
   createProjectSerializer,
-  restoreCountriesFromDelta,
+  restoreEntitiesFromDelta,
   createBrowserProjectStorage,
   createPersistenceService,
   createHydroService,
@@ -558,7 +544,6 @@ export {
   importServiceModule,
   appendImportedSourceInfo,
   applyImportedPackageAssets,
-  importedCountryOverrides,
   createGisImportWizardController,
   buildTerritorialImportTransactionPlan,
   resolveImportedCountryId,
@@ -631,7 +616,8 @@ export {
   createTerritorialEntityRepository,
   createTerritorialEntityStore,
   normalizeTerritorialRelations,
-  normalizeTerritorialUnits,
+  normalizeTerritorialEntities,
+  administrativeCountryId,
   runTerritorialTransaction,
   validateTerritorialRelations,
   DISTRIBUTION_SCHEMA_VERSION,
@@ -645,7 +631,6 @@ export {
   validateDistributionModel,
   TERRITORIAL_TYPE_LABELS,
   territorialTypeLabel,
-  createPartitionTerritorialFeature,
   createSurfaceController,
   createEditorWorkspacePresentation,
   describeTool,
@@ -696,4 +681,3 @@ export function setgisExportControllerPromise(value) { gisExportControllerPromis
 export function setgisExportController(value) { gisExportController = value; }
 export function setappendImportedSourceInfo(value) { appendImportedSourceInfo = value; }
 export function setapplyImportedPackageAssets(value) { applyImportedPackageAssets = value; }
-export function setimportedCountryOverrides(value) { importedCountryOverrides = value; }

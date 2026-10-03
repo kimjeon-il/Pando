@@ -66,7 +66,7 @@ export function mapInteractionEntries(snapshot, state, {
     row.depth = 0; row.ancestorKeys = [];
     while (id && parents.has(id) && !seen.has(id)) {
       seen.add(id); row.depth++;
-      const parent = parents.get(id); id = String(parent.parentId || parent.sovereignId || '');
+      const parent = parents.get(id); id = String(parent.parentId || '');
       if (id) row.ancestorKeys.push(normalizeObjectRef({ domain: 'territorial', type: parents.get(id)?.unitType || countryType, id }).key);
     }
   }

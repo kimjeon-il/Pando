@@ -13,12 +13,6 @@ export function defaultGeographicName(id, name) {
   return entry && name === entry[0] ? entry[1] : name;
 }
 
-export function countryDisplayName(feature, override = {}) {
-  if (override.name) return override.name;
-  const name = feature?.properties?.name;
-  return defaultGeographicName(feature?.id, name) || '국가';
-}
-
 export function territorialSelectionStatus(view, area = '') {
   return [view.statusName || view.displayName, area].filter(Boolean).join(' · ');
 }

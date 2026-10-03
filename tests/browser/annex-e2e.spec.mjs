@@ -17,7 +17,7 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
       }
       postMessage(message, ...rest) {
         if (message?.type === 'rebase') window.__annexE2e.rebases.push({
-          turkeyBytes: JSON.stringify(message.features?.find(feature => feature.id === 'TUR')?.geometry || null).length,
+          turkeyBytes: JSON.stringify(message.editSources?.patches.find(row => row.metadata.id === 'TUR')?.geometry || null).length,
         });
         return super.postMessage(message, ...rest);
       }

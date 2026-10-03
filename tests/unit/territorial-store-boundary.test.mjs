@@ -6,7 +6,7 @@ import { createObjectPresentation } from '../../assets/js/modules/app-object-pre
 
 const read = name => readFile(new URL(`../../assets/js/modules/${name}`, import.meta.url), 'utf8');
 
-test('presentation does not expose migration transaction or validation APIs', () => {
+test('presentation does not expose retired transaction or validation APIs', () => {
   const presentation = createObjectPresentation();
   assert.equal(Object.hasOwn(presentation, 'runTerritorialUnitTransaction'), false);
   assert.equal(Object.hasOwn(presentation, 'validateTerritorialUnitRelations'), false);
@@ -50,7 +50,7 @@ test('territorial callers do not write raw country or unit collection storage', 
     'gis-import-transaction.js',
   ];
   const sources = await Promise.all(names.map(read));
-  const rawWrite = /(?:dependencies\.projectState\.)?state\.(?:territorialUnits|countriesData(?:\.features)?)\s*(?:=|\.push\s*\(|\.splice\s*\()/;
+  const rawWrite = /(?:dependencies\.projectState\.)?state\.(?:territorialEntities)\s*(?:=|\.push\s*\(|\.splice\s*\()/;
 
   for (let index = 0; index < names.length; index += 1) {
     const source = sources[index];
@@ -73,23 +73,23 @@ test('structural territorial callers use the entity store for collection writes'
     read('gis-import-transaction.js'),
   ]);
 
-  assert.match(drafts, /entityStore\.replaceCollections/);
-  assert.match(conversion, /entityStore\.replaceCollections/);
-  assert.match(generic, /entityStore\.replaceCollections/);
-  assert.match(land, /entityStore\.replaceCollections/);
+  assert.match(drafts, /entityStore\.applyChanges/);
+  assert.match(conversion, /entityStore\.replaceEntities/);
+  assert.match(generic, /entityStore\.replaceEntities/);
+  assert.match(land, /entityStore\.replaceEntities/);
   assert.match(commands, /entityStore:\s*dependencies\.territorialModel\.entityStore/);
-  assert.match(cut, /entityStore\.replaceCollections/);
-  assert.match(startup, /entityStore\.replaceCollections/);
-  assert.match(restore, /entityStore\.replaceCollections/);
-  assert.match(snapshots, /entityStore\.replaceCollections/);
-  assert.match(builtin, /entityStore\.replaceCollections/);
-  assert.match(gis, /entityStore\.(?:appendEntities|replaceCollections)/);
+  assert.match(cut, /entityStore\.applyChanges/);
+  assert.match(startup, /entityStore\.replaceEntities/);
+  assert.match(restore, /entityStore\.replaceEntities/);
+  assert.match(snapshots, /entityStore\.replaceEntities/);
+  assert.match(builtin, /entityStore\.replaceEntities/);
+  assert.match(gis, /entityStore\.(?:appendEntities|replaceEntities)/);
 });
 
 test('territorial store exposes only generic structural write commands', async () => {
   const store = await read('territorial-entity-store.js');
   assert.match(store, /appendEntities/);
   assert.match(store, /removeEntities/);
-  assert.match(store, /replaceCollections/);
+  assert.match(store, /replaceEntities/);
   assert.doesNotMatch(store, /function\s+(?:appendCountries|appendUnits|removeCountries|removeUnits|replaceCountries|replaceUnits|replaceCountryOverrides)\b/);
 });

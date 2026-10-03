@@ -8,31 +8,30 @@ import {
 } from '../../assets/js/modules/color-adapter.js';
 
 test('common color adapter reads each editable domain and reports defaults', () => {
-  const country = { properties: { name: '테스트국' } };
-  const countryOverride = { color: '#112233' };
+  const country = { properties: { unitType: 'country', name: '테스트국', style: { color: '#112233' } } };
   const territorial = { properties: { style: { color: '#223344' } } };
   const genericFeature = { properties: { color: '#334455' } };
   const layer = { color: '#445566' };
-  assert.equal(readDomainColor(COLOR_DOMAINS.COUNTRY, { feature: country, override: countryOverride }).value, '#112233');
+  assert.equal(readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature: country }).value, '#112233');
   assert.equal(readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature: territorial }).value, '#223344');
   assert.equal(readDomainColor(COLOR_DOMAINS.GENERIC, { feature: genericFeature }).value, '#334455');
   assert.equal(readDomainColor(COLOR_DOMAINS.DISTRIBUTION, { layer }).value, '#445566');
   assert.deepEqual(readDomainColor(COLOR_DOMAINS.GENERIC, { feature: { properties: {} } }, { fallback: '#abcdef' }), {
     explicit: '', value: '#abcdef', isDefault: true,
   });
-  assert.deepEqual(readDomainColor(COLOR_DOMAINS.COUNTRY, { feature: { properties: { name: '테스트국' } }, override: { color: 'invalid' } }, { fallback: '#abcdef' }), {
+  assert.deepEqual(readDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature: { properties: { name: '테스트국', style: { color: 'invalid' } } } }, { fallback: '#abcdef' }), {
     explicit: '', value: '#abcdef', isDefault: true,
   });
 });
 
 test('common color adapter writes and clears canonical color fields', () => {
   const feature = { properties: {} };
-  const override = {};
-  writeDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, '#AABBCC');
-  assert.equal(override.color, '#aabbcc');
-  writeDomainColor(COLOR_DOMAINS.COUNTRY, { feature, override }, '', { clear: true });
-  assert.deepEqual(feature.properties, {});
-  assert.equal('color' in override, false);
+
+  writeDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, '#AABBCC');
+  assert.equal(feature.properties.style.color, '#aabbcc');
+  writeDomainColor(COLOR_DOMAINS.TERRITORIAL, { feature }, '', { clear: true });
+  assert.deepEqual(feature.properties.style, {});
+  assert.equal('color' in feature.properties.style, false);
 
   const territorial = { properties: {} };
   const genericFeature = { properties: {} };

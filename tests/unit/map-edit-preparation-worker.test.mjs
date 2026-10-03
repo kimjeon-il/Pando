@@ -5,6 +5,8 @@ import { readFileSync } from 'node:fs';
 import { createMapEditWorkerClient } from '../../assets/js/modules/map-edit-worker-client.js';
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import { area, multiCoordinates, hasCanonicalPolygonWinding } from '../../assets/js/modules/map-edit-geometry.js';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
 
 function harness(t, rows, { failFirstClipMethod = '' } = {}) {
   const script = new URL('../../assets/js/workers/map-edit-worker.js', import.meta.url).href;
@@ -39,8 +41,8 @@ function harness(t, rows, { failFirstClipMethod = '' } = {}) {
     worker.on('error', error => adapter.onerror?.(error));
     return adapter;
   };
-  const client = createMapEditWorkerClient({ createWorker, getEditSources: () => rows,
-    getFeatures: () => rows.filter(row => row.kind === 'country').map(row => row.feature),
+  const client = createMapEditWorkerClient({ createWorker, getEditSources: () => rows.map(row => ({...row,kind: 'territorial'})),
+    getEntities: () => rows.map(row => row.feature),
     getFeatureById: id => rows.find(row => row.feature.id === id)?.feature,
     readyTimeoutMs: 5000,
   });
@@ -48,7 +50,10 @@ function harness(t, rows, { failFirstClipMethod = '' } = {}) {
   return client;
 }
 const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });
-const feature = (id, geometry, properties = {}) => ({ type: 'Feature', id, geometry, properties });
+const feature = (id, geometry, properties = {}) => createTerritorialFeature({ id, geometry,
+  unitType: properties.unitType || 'country', ...properties,
+  associatedCountryId: properties.unitType === 'region' ? properties.sovereignId || '' : '',
+  parentId: properties.parentId || (properties.unitType === 'subunit' ? properties.sovereignId || '' : '') });
 
 function assertNewCountryPartition(result, original, selected) {
   const remaining = result.features.find(item => item.id === 'A');
@@ -202,6 +207,20 @@ test('library batch preserves order and refuses locked donors without changing s
   await assert.rejects(client.execute('territorial-library-batch', { payload }), /잠긴/);
 });
 
+test('library batch validates nested subunits from parent chains without a stored country ID', { timeout: 15000 }, async t => {
+  const original = feature('A', square(0, 0, 10, 10));
+  const parent = feature('S', square(0, 0, 5, 5), { unitType: 'subunit', parentId: 'A' });
+  const child = feature('T', square(0, 0, 2, 2), { unitType: 'subunit', parentId: 'S' });
+  const client = harness(t, [{ feature: original }]);
+  const result = (await client.execute('territorial-library-batch', { payload: { countries: [], units: [parent, child] } })).result;
+  assert.deepEqual(result.removedIds, []);
+  assert.deepEqual(result.features, []);
+  assert.deepEqual(result.transfers, []);
+  assert.equal(Object.hasOwn(child.properties, 'sovereignId'), false);
+  const invalid = { ...child, properties: { ...child.properties, parentId: 'missing' } };
+  await assert.rejects(client.execute('territorial-library-batch', { payload: { countries: [], units: [invalid] } }), /부모|상위/);
+});
+
 test('snap broad phase retains edges crossing the date line', async t => {
   const client = harness(t, [{ kind: 'country', feature: feature('island', square(179, 5, -179, 6)) }]);
   const snap = await client.execute('territorial-snap', { payload: { coordinate: [180, 5], margin: 0.1 } });
@@ -243,7 +262,7 @@ test('drawn clipping and region previews stay in the worker and reject changed l
 
 test('Russia detailed source remains intact after a small child preview and source reuse', { timeout: 30000 }, async t => {
   const collection = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8'));
-  const original = collection.features.find(item => item.id === 'RUS');
+  const original = normalizeCountryFeature(collection.features.find(item => item.id === 'RUS'));
   assert.ok(original);
   const polygons = original.geometry.type === 'Polygon' ? [original.geometry.coordinates] : original.geometry.coordinates;
   const pairs = polygons.reduce((sum, polygon) => sum + polygon.reduce((count, ring) => count + ring.length, 0), 0);

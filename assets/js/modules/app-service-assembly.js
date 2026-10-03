@@ -157,7 +157,6 @@ export function createServiceAssembly() {
       scheduleGpuMeshRebuild: dependencies.renderQuality.scheduleGpuMeshRebuild,
       setActionStatus: dependencies.feedback.setActionStatus,
       state: new Proxy(dependencies.projectState.state, { get: (target, key) => {
-        if (key === 'countriesData') return (0, dependencies.countries.builtinTerritorialScene)().collection;
         if (key === 'layerVisibility') return { ...target.layerVisibility, countries: target.layerVisibility.countries
           || [...(0, dependencies.countries.builtinTerritorialScene)().nativeUnits.keys()].some(dependencies.builtinCountries.isRenderCountryVisible) };
         return Reflect.get(target, key);

@@ -114,11 +114,11 @@ test('common role contracts reject tool colors and keep boundary preparation out
 test('ID-based boundary requests use synchronized geometry and reject missing owners', async () => {
   const feature = { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]] } };
   const preparation = createEditDisplayPreparation();
-  const sources = new Map([['country:RUS', feature], ['territorial:child', feature]]);
-  const request = { kind: 'highlight', featureKey: 'territorial:child', occluders: [{ key: 'country:RUS' }] };
+  const sources = new Map([['territorial:RUS', feature], ['territorial:child', feature]]);
+  const request = { kind: 'highlight', featureKey: 'territorial:child', occluders: [{ key: 'territorial:RUS' }] };
   const result = await preparation.prepare(request, [], [], async () => {}, key => sources.get(key));
   assert.deepEqual(result.feature.geometry.coordinates, []);
-  sources.delete('country:RUS');
+  sources.delete('territorial:RUS');
   await assert.rejects(preparation.prepare(request, [], [], async () => {}, key => sources.get(key)), /원본/);
 });
 

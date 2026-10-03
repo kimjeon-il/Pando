@@ -1,8 +1,8 @@
 import { Linter } from 'eslint';
 
-const fields = new Set(['countriesData', 'territorialUnits', 'countryOverrides']);
+const fields = new Set(['territorialEntities']);
 const mutators = new Set(['push', 'pop', 'splice', 'shift', 'unshift', 'sort', 'reverse', 'fill', 'copyWithin']);
-const storeReads = new Set(['countriesData', 'units', 'countryOverrides', 'countryOverride', 'countryFeature', 'unitFeature', 'rawEntity']);
+const storeReads = new Set(['snapshot']);
 const arrayReads = new Set(['find', 'findLast', 'filter', 'map', 'slice', 'at', 'forEach', 'some', 'every', 'flatMap']);
 const unwrap = node => node?.type === 'ChainExpression' ? unwrap(node.expression)
   : node?.type === 'SequenceExpression' ? unwrap(node.expressions.at(-1)) : node;

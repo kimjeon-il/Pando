@@ -1,3 +1,4 @@
+import { createTerritorialFeature } from './territorial-units.js';
 /** ObjectPicking: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -18,13 +19,7 @@ export function createObjectPicking() {
     const geometry = geometryOverride
       ? (0, dependencies.platform.deepClone)(geometryOverride)
       : { type: 'Polygon', coordinates: [(0, dependencies.applicationServicesB.orientRing)(rawRing, true)] };
-    const feature = {
-      type: 'Feature',
-      id,
-      properties: { name },
-      geometry,
-    };
-    return feature;
+    return createTerritorialFeature({ id, unitType: 'country', name, geometry });
   }
 
   function projectedPointDistance(left, right) {

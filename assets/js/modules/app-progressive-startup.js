@@ -72,28 +72,23 @@ export function createProgressiveStartup() {
     // a neutral loading state and must not briefly re-expose preview geometry.
     const previewAllowed = dependencies.rendering.gpuMapRenderer.getRuntimeState?.().previewAllowed !== false;
     dependencies.projectState.state.auditPreviewTerritorialUnits = previewAllowed
-      ? dependencies.territorialModel.entityStore.units() : null;
+      ? dependencies.territorialModel.entityRepository.list({ type: ['subunit', 'region'] }) : null;
     dependencies.projectState.state.countryVisualPhase = previewAllowed ? 'preview' : 'canonical';
     dependencies.labelCacheCommands.resetCountryDisplayCache();
 
     const restored = autosaveRestore.project;
     if (restored) (0, dependencies.snapshots.applySharedProjectFields)(restored);
     const restoredDelta = restored?.format === 'pandolab-autosave-delta';
-    dependencies.territorialModel.entityStore.replaceCollections({
-      countriesData: restoredDelta
-        ? dependencies.domains.projectDomain.countriesFromAutosaveDelta(restored, geometry.countries)
-        : restored?.countriesData
-          ? (0, dependencies.platform.deepClone)(restored.countriesData)
-          : geometry.countries,
-    }, {
-      reindexOptions: restored ? {} : { assumeCanonical: true },
-    });
+    const baseCountries = (0, dependencies.countryServices.normalizeCountryCollection)(geometry.countries).features;
+    dependencies.territorialModel.entityStore.replaceEntities(restoredDelta
+      ? dependencies.domains.projectDomain.entitiesFromAutosaveDelta(restored, baseCountries)
+      : restored?.territorialEntities ? (0, dependencies.platform.deepClone)(restored.territorialEntities) : baseCountries);
     // A display request may have initialized the edit Worker from preview countries.
     // Retire it before any canonical edit; its next request lazily rebases from this state.
     dependencies.spatialQuery.mapEditClient.stop();
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'countries-indexed';
     if (!restored) (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
-    if (!restored) (0, dependencies.countryRecords.applyPristineLabelAnchors)(dependencies.territorialModel.entityStore.countriesData());
+    if (!restored) (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ type: 'country' }) }));
     if (navigationChanged) {
       dependencies.projectState.state.view = navigationView;
       dependencies.projectState.state.projection = navigationProjection;
@@ -110,9 +105,9 @@ export function createProgressiveStartup() {
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'project-normalized';
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
-    const externalGeometry = !!restored?.countriesData && restored.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
+    const externalGeometry = !!restored?.territorialEntities && restored.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
     const useBuiltInMesh = !externalGeometry
-      && !dependencies.projectState.state.sessionBaseCountriesJson;
+      && dependencies.projectState.state.autosaveMode !== 'full';
     window.PANDOLAB_COUNTRIES = null;
     (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.GEOMETRY_READY);
     dependencies.projectState.state.geometryProgress = 100;
@@ -126,7 +121,7 @@ export function createProgressiveStartup() {
     // its interaction packet remain active until the canonical mesh commits.
     // The mesh commit performs the first full canonical render atomically.
     dependencies.domains.renderingDomain?.invalidateView?.('canonical-geometry-applied');
-    if (previewSelection && dependencies.territorialModel.entityStore.countryFeature(previewSelection)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'country', id: String(previewSelection) }, { refreshOnly: true, openEditor: false });
+    if (previewSelection && dependencies.territorialModel.entityRepository.get(previewSelection)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'country', id: String(previewSelection) }, { refreshOnly: true, openEditor: false });
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'layer-hydration';
     await dependencies.domains.layerTreeController?.completeHydration();
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'complete';
@@ -147,7 +142,7 @@ export function createProgressiveStartup() {
       await dependencies.lifecycleUi.projectUi.completeAutosaveRecovery();
       dependencies.projectSession.saveState.markNewProject(`content:${Date.now()}`);
       dependencies.projectSession.saveState.setAutosave(dependencies.applicationConstantsA.AUTOSAVE_STATES.SAVED, { fallback: autosaveRestore.source === 'localstorage' ? '브라우저 로컬 저장소' : '' });
-      if (restored.countriesData && restored.baseDataset === dependencies.platformConfigurationA.BASE_DATASET) dependencies.domains.projectDomain.queueAutosave(0);
+      if (restored.territorialEntities && restored.baseDataset === dependencies.platformConfigurationA.BASE_DATASET) dependencies.domains.projectDomain.queueAutosave(0);
       const restoredLabel = externalGeometry ? '외부 GIS 자동저장 데이터를' : '자동저장 프로젝트를';
       (0, dependencies.feedback.setActionStatus)(`${restoredLabel} 복원 완료. 고화질 지도 준비 중…`, 'success', 3600);
     } else {
@@ -167,10 +162,10 @@ export function createProgressiveStartup() {
     const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     let meshApplied;
     const projectGeneration = context?.projectGeneration ?? dependencies.rendering.gpuMapRenderer.getProjectGeneration?.();
-    if (!context.useBuiltInMesh || dependencies.projectState.state.sessionBaseCountriesJson) {
+    if (!context.useBuiltInMesh || (dependencies.projectState.state.autosaveMode === 'full')) {
       meshApplied = (await dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinTerritorialScene)().collection.features, { projectGeneration })) !== false;
     } else {
-      const dirtyIds = new Set([...dependencies.projectState.state.historyDirtyCountryIds, ...dependencies.projectState.state.pendingCountryRenderIds]);
+      const dirtyIds = new Set([...dependencies.projectState.state.historyDirtyEntityIds, ...dependencies.projectState.state.pendingCountryRenderIds]);
       meshApplied = (await dependencies.rendering.gpuMapRenderer.replaceBuiltInMesh({
         meshBuffer: mesh.meshBuffer,
         preparedStroke: mesh.preparedStroke,
@@ -207,7 +202,7 @@ export function createProgressiveStartup() {
     (0, dependencies.physicalData.loadHydroData)();
     (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.MESH_READY);
     dependencies.projectState.state.meshProgress = 100;
-    if (!context.useBuiltInMesh || dependencies.projectState.state.sessionBaseCountriesJson) {
+    if (!context.useBuiltInMesh || (dependencies.projectState.state.autosaveMode === 'full')) {
       dependencies.domains.renderingDomain?.invalidateProject?.('canonical-mesh-ready');
     }
     const renderer = dependencies.rendering.gpuMapRenderer.getRuntimeState();
@@ -288,37 +283,22 @@ export function createProgressiveStartup() {
     if (savedProject && !hasStoredCountryGeometry) (0, dependencies.snapshots.applySharedProjectFields)(savedProject);
     if (savedProject) (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
     if (previewSource.kind === 'project') {
-      dependencies.territorialModel.entityStore.replaceCollections({
-        countriesData: previewCountriesWithProjectProperties(cachedPreview.countries, savedProject),
+      const savedEntities = savedProject.territorialEntities || savedProject.entityDelta.changed;
+      const savedUnits = new Map(savedEntities.filter(feature => feature.properties.unitType !== 'country').map(feature => [String(feature.id), feature]));
+      const countries = previewCountriesWithProjectProperties((0, dependencies.countryServices.normalizeCountryCollection)(cachedPreview.countries), savedProject);
+      const units = cachedPreview.territorialUnits.map(unit => {
+        const source = savedUnits.get(String(unit.id));
+        if (!source) throw new Error('미리보기 객체의 저장 속성이 없습니다: ' + unit.id);
+        return { ...source, geometry: unit.geometry };
       });
-      const unitGeometries = new Map(cachedPreview.territorialUnits.map(unit => [String(unit.id), unit.geometry]));
-      dependencies.territorialModel.entityStore.replaceCollections({
-        units: dependencies.territorialModel.entityStore.units().map(unit => ({
-          ...unit, geometry: unitGeometries.get(String(unit.id)) || unit.geometry,
-        })),
-      });
+      dependencies.territorialModel.entityStore.replaceEntities([...countries.features, ...units]);
     } else if (hasStoredCountryGeometry) {
-      dependencies.territorialModel.entityStore.replaceCollections({
-        countriesData: { type: 'FeatureCollection', features: [] },
-      });
+      dependencies.territorialModel.entityStore.replaceEntities([]);
     } else {
-      dependencies.territorialModel.entityStore.replaceCollections({
-        countriesData: window.PANDOLAB_COUNTRIES,
-      });
-      if (savedProject) {
-        const classified = (0, dependencies.applicationServicesA.classifyBuiltinCountries)(
-          dependencies.territorialModel.entityStore.countriesData(),
-        );
-        dependencies.territorialModel.entityStore.replaceCollections({
-          countriesData: previewCountriesWithProjectProperties(classified.countries, savedProject),
-        });
-        const unitGeometries = new Map(classified.subunits.map(unit => [String(unit.id), unit.geometry]));
-        dependencies.territorialModel.entityStore.replaceCollections({
-          units: dependencies.territorialModel.entityStore.units().map(unit => ({
-            ...unit, geometry: unitGeometries.get(String(unit.id)) || unit.geometry,
-          })),
-        });
-      } else (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
+      const classified = (0, dependencies.applicationServicesA.classifyBuiltinCountries)((0, dependencies.countryServices.normalizeCountryCollection)(window.PANDOLAB_COUNTRIES));
+      const properties = new Map((savedProject?.territorialEntities || savedProject?.entityDelta?.changed || []).map(feature => [String(feature.id), feature.properties]));
+      dependencies.territorialModel.entityStore.replaceEntities([...classified.countries.features, ...classified.subunits]
+        .map(feature => properties.has(String(feature.id)) ? { ...feature, properties: properties.get(String(feature.id)) } : feature));
     }
     if (!hasStoredCountryGeometry) (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
@@ -384,16 +364,15 @@ export function createProgressiveStartup() {
       handleGeometryError({ detail: '저장된 지도 형상을 불러오지 못했습니다.' });
       return;
     }
-    const previewCountries = hasStoredCountryGeometry ? null : dependencies.territorialModel.entityStore.countriesData();
+    const previewEntities = hasStoredCountryGeometry ? [] : dependencies.territorialModel.entityStore.snapshot();
+    const previewCountries = { type: 'FeatureCollection', features: previewEntities.filter(feature => feature.properties.unitType === 'country') };
     dependencies.projectState.state.auditPreviewCountries = previewCountries;
     let context;
     try {
       context = await completeGeometryInitialization(geometry, autosaveRestore, previewStart);
     } catch (error) {
       console.error('[PL-GEOMETRY-APPLY-001]', error);
-      dependencies.territorialModel.entityStore.replaceCollections({
-        countriesData: previewCountries || { type: 'FeatureCollection', features: [] },
-      });
+      dependencies.territorialModel.entityStore.replaceEntities(previewEntities);
       (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.GEOMETRY_ERROR);
       (0, dependencies.spatialRecords.scheduleMapObjectSpatialIndexRebuild)();
       dependencies.domains.renderingDomain?.invalidateProject?.('progressive-initialization');
@@ -442,37 +421,33 @@ export function createProgressiveStartup() {
     dependencies.projectState.state.auditPreviewCountries = window.PANDOLAB_COUNTRIES;
 
     const restoredDelta = restored?.format === 'pandolab-autosave-delta';
-    dependencies.territorialModel.entityStore.replaceCollections({
-      countriesData: restoredDelta
-        ? dependencies.domains.projectDomain.countriesFromAutosaveDelta(restored)
-        : restored?.countriesData
-          ? (0, dependencies.platform.deepClone)(restored.countriesData)
-          : (0, dependencies.builtinCountries.freshPristineCountries)(true),
-    });
-    dependencies.projectState.state.countryVisualPhase = 'canonical';
+    dependencies.territorialModel.entityStore.replaceEntities(restoredDelta
+      ? dependencies.domains.projectDomain.entitiesFromAutosaveDelta(restored)
+      : restored?.territorialEntities ? (0, dependencies.platform.deepClone)(restored.territorialEntities)
+        : (0, dependencies.builtinCountries.freshPristineCountries)().features);
     if (!restored) (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
     (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(restored);
-    const externalGeometry = !!restored?.countriesData && restored.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
+    const externalGeometry = !!restored?.territorialEntities && restored.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
     (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = 'Natural Earth 5.1.1 · GPU 렌더러를 준비하는 중입니다.';
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
 
     const { gpuReady } = await initializeStartupRuntime({
-      afterInitialMapSetup: () => dependencies.spatialQuery.mapEditClient.rebase(dependencies.projectState.state.countriesData?.features || []),
+      afterInitialMapSetup: () => dependencies.spatialQuery.mapEditClient.rebase(),
     });
     if (gpuReady) {
       dependencies.projectState.state.countryVisualPhase = 'canonical';
       dependencies.labelCacheCommands.resetCountryDisplayCache();
     }
     if (restored && gpuReady) {
-      if (externalGeometry || dependencies.projectState.state.sessionBaseCountriesJson) (0, dependencies.renderQuality.scheduleGpuMeshRebuild)(0);
-      else if (dependencies.projectState.state.historyDirtyCountryIds.size) {
-        for (const id of dependencies.projectState.state.historyDirtyCountryIds) dependencies.projectState.state.pendingCountryRenderIds.add(String(id));
-        dependencies.rendering.gpuMapRenderer.applyCountryPatch(dependencies.projectState.state.historyDirtyCountryIds);
+      if (externalGeometry || (dependencies.projectState.state.autosaveMode === 'full')) (0, dependencies.renderQuality.scheduleGpuMeshRebuild)(0);
+      else if (dependencies.projectState.state.historyDirtyEntityIds.size) {
+        for (const id of dependencies.projectState.state.historyDirtyEntityIds) dependencies.projectState.state.pendingCountryRenderIds.add(String(id));
+        dependencies.rendering.gpuMapRenderer.applyCountryPatch(dependencies.projectState.state.historyDirtyEntityIds);
       }
     }
 
@@ -491,7 +466,7 @@ export function createProgressiveStartup() {
       await dependencies.lifecycleUi.projectUi.completeAutosaveRecovery();
       dependencies.projectSession.saveState.markNewProject(`content:${Date.now()}`);
       dependencies.projectSession.saveState.setAutosave(dependencies.applicationConstantsA.AUTOSAVE_STATES.SAVED, { fallback: autosaveRestore.source === 'localstorage' ? '브라우저 로컬 저장소' : '' });
-      if (restored.countriesData && restored.baseDataset === dependencies.platformConfigurationA.BASE_DATASET) dependencies.domains.projectDomain.queueAutosave(0);
+      if (restored.territorialEntities && restored.baseDataset === dependencies.platformConfigurationA.BASE_DATASET) dependencies.domains.projectDomain.queueAutosave(0);
       if (gpuReady) {
         const restoredLabel = externalGeometry ? '외부 GIS 자동저장 데이터를' : '자동저장 프로젝트를';
         (0, dependencies.feedback.setActionStatus)(`${restoredLabel} 복원했습니다.`, 'success', 3200);

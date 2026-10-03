@@ -66,6 +66,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "toolBindings"
   ],
   "progressiveStartup": [
+    "countryServices",
     "applicationConstantsA",
     "applicationServicesA",
     "builtinCountries",
@@ -306,10 +307,9 @@ export function createLifecycleUiPorts(providers) {
       },
     }),
     startupCommands: Object.freeze({
-      installImportedPackageHandlers: ({ appendSourceInfo, applyPackageAssets, readImportedOverrides }) => {
+      installImportedPackageHandlers: ({ appendSourceInfo, applyPackageAssets }) => {
         providers.runtime.setappendImportedSourceInfo(appendSourceInfo);
         providers.runtime.setapplyImportedPackageAssets(applyPackageAssets);
-        providers.runtime.setimportedCountryOverrides(readImportedOverrides);
       },
       markRuntimeReady: () => { providers.environment.runtimeReady = true; },
     })

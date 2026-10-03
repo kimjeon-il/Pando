@@ -552,7 +552,7 @@
       fieldFilter: field => /(?:^|[_-])(color|fill|stroke|style)(?:$|[_-])/i.test(field) || /(?:Color|Fill|Stroke|Style)$/i.test(field),
       selected: descriptor.qgsStyle ? '__qgis_style__' : autoField(fields, ['pandolab_color', 'editorColor', 'color', 'fill', 'stroke']),
     });
-    populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['sovereign_id', 'country_id', 'countryId', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
+    populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['associated_country_id', 'country_id', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
     populateFieldSelect(document.getElementById('gisParentField'), fields, { ...fieldOptions, roleLabel: '상위 소속', selected: autoField(fields, ['parent_id', 'parent']) });
     syncAutoMappedField('gisIdFieldRow', 'gisIdField', hasCanonicalId);
     syncAutoMappedField('gisNameFieldRow', 'gisNameField', hasCanonicalName);
@@ -916,17 +916,13 @@
             type: 'Feature',
             id: String(basic.id || feature.id || `${layerName}_${index + 1}`),
             properties: {
-              schemaVersion: 1,
-              name: basic.name ?? properties.name ?? '',
-              role: basic.role ?? properties.role ?? 'generic',
-              ownerId: basic.owner_id ?? properties.ownerId ?? '',
-              parentId: basic.parent_id ?? properties.parentId ?? '',
-              topologyGroup: basic.topology_group ?? properties.topologyGroup ?? '',
-              landBinding: basic.land_binding ?? properties.landBinding ?? 'none',
-              color: basic.color ?? properties.color ?? '#8c68d8',
-              notes: basic.notes ?? properties.notes ?? '',
-              locked: Number(basic.locked ?? properties.locked ?? 0) === 1,
-              ...(properties.source !== undefined ? { source: properties.source } : {}),
+              schemaVersion: 2,
+              name: String(basic.name ?? properties.name ?? ''),
+              notes: String(basic.notes ?? properties.notes ?? ''),
+              color: String(basic.color ?? properties.color ?? ''),
+              locked: properties.locked === true,
+              source: properties.source,
+
             },
             geometry: feature.geometry,
           });
@@ -934,7 +930,7 @@
       }
     }
     if (territorialLayerNames.length) {
-      state.territorialUnits = [];
+      state.territorialEntities = (baseState.territorialEntities || []).filter(entity => entity.properties.unitType === 'country');
       const unitIds = new Set();
       for (const layerName of territorialLayerNames) {
         const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
@@ -943,7 +939,7 @@
           if (!unit) continue;
           if (unitIds.has(unit.id)) throw new Error(`영역 ID 충돌: ${unit.id}`);
           unitIds.add(unit.id);
-          state.territorialUnits.push(unit);
+          state.territorialEntities.push(unit);
         }
       }
     }
@@ -1377,23 +1373,22 @@
     }
   }
 
-  function exportCountryProperties(feature, overrides) {
+  function exportCountryProperties(feature) {
     const source = feature.properties || {};
     const id = String(feature?.id || '');
-    const override = overrides?.[id] || {};
     const output = {
       pandolab_id: id,
-      pandolab_name: override.name || source.name || id,
+      pandolab_name: source.name || id,
     };
     if (source.validFrom) output.valid_from = source.validFrom;
     if (source.validTo) output.valid_to = source.validTo;
     return output;
   }
 
-  function countryAssets(overrides) {
+  function countryAssets(entities) {
     const assets = [];
-    for (const [countryId, override] of Object.entries(overrides || {})) {
-      const match = String(override?.flagDataUrl || '').match(/^data:([^;]+);base64,(.+)$/s);
+    for (const { id: countryId, properties } of (entities || []).filter(entity => entity.properties.unitType === 'country')) {
+      const match = String(properties.metadata?.flagDataUrl || '').match(/^data:([^;]+);base64,(.+)$/s);
       if (match) assets.push({ countryId, mimeType: match[1], base64: match[2] });
     }
     return assets;
@@ -1422,8 +1417,8 @@
     };
     add('countries', 'countries.geojson', 'country', {
       type: 'FeatureCollection',
-      features: (projectState.countriesData?.features || []).map(feature => ({
-        type: 'Feature', properties: exportCountryProperties(feature, projectState.countryOverrides), geometry: feature.geometry,
+      features: (projectState.territorialEntities || []).filter(entity => entity.properties.unitType === 'country').map(feature => ({
+        type: 'Feature', properties: exportCountryProperties(feature), geometry: feature.geometry,
       })),
     });
     add('subunits', 'subunits.geojson', 'subunit', rowsAsFeatureCollection(territorial.subunits));
@@ -1480,7 +1475,7 @@
       type: 'FeatureCollection',
       features: [],
     };
-    countries.features = (projectState.countriesData?.features || []).map(feature => ({ type: 'Feature', properties: exportCountryProperties(feature, projectState.countryOverrides), geometry: feature.geometry }));
+    countries.features = (projectState.territorialEntities || []).filter(entity => entity.properties.unitType === 'country').map(feature => ({ type: 'Feature', properties: exportCountryProperties(feature), geometry: feature.geometry }));
     const gisLayers = exportMode === 'gis' ? buildGisExportLayers(projectState, selectedLayers) : [];
     const seedCollection = exportMode === 'project' ? countries : gisLayers.find(layer => layer.collection.features.length)?.collection;
     if (!seedCollection?.features?.length) throw new Error(exportMode === 'project' ? '저장할 국가 레이어가 없습니다.' : '선택한 범주에 내보낼 데이터가 없습니다.');
@@ -1497,15 +1492,9 @@
       await gdal.close(dataset);
     }
     progress(exportMode === 'project' ? '지명·지형지물·국기와 프로젝트 설정을 기록하는 중입니다.' : '선택한 GIS 레이어를 기록하는 중입니다.', 72);
-    const countryOverrides = Object.fromEntries(Object.entries(projectState.countryOverrides || {}).map(([id, override]) => {
-      const copy = { ...(override || {}) };
-      if (copy.flagDataUrl !== null) delete copy.flagDataUrl;
-      return [id, copy];
-    }));
     const stateForPackage = {
       ...projectState,
-      countryOverrides,
-      countryAssets: exportMode === 'project' ? countryAssets(projectState.countryOverrides) : [],
+      countryAssets: exportMode === 'project' ? countryAssets(projectState.territorialEntities) : [],
       sourceInfo: {
         ...(projectState.sourceInfo || {}),
         exportedAt: new Date().toISOString(),

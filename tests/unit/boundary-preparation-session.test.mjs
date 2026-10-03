@@ -1,15 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { administrativeCountryId } from '../../assets/js/modules/territorial-units.js';
 import { createGeometryPreview } from '../../assets/js/modules/app-geometry-preview.js';
 
 function fixture() {
   const requests = [], counters = { stop: 0, refresh: 0 };
   let generation = 1;
   const state = { tool: 'territorial-border', boundaryEditPhase: 'selecting', boundaryEditEntityIds: ['A', 'B'],
-    coastEditScopeGenericFeatureId: null, countriesData: { features: [{ id: 'A', geometry: {} }, { id: 'B', geometry: {} }] },
-    territorialUnits: [], countryOverrides: {}, genericFeatures: [] };
+    coastEditScopeGenericFeatureId: null, territorialEntities: [{ id: 'A', properties: { unitType: 'country' }, geometry: {} }, { id: 'B', properties: { unitType: 'country' }, geometry: {} }], genericFeatures: [] };
   const app = createGeometryPreview();
-  app.connect({ projectState: { state }, domains: {
+  app.connect({ projectState: { state }, territorialModel: { administrativeCountryId, entityRepository: {
+    list: ({ type } = {}) => state.territorialEntities.filter(entity => !type || [].concat(type).includes(entity.properties.unitType)),
+    get: id => state.territorialEntities.find(entity => entity.id === id),
+  } }, domains: {
     projectDomain: { getGeneration: () => generation },
     editingDomain: { refreshTerritorySelection({ tool }) { assert.equal(tool, state.tool); counters.refresh++; } },
   }, spatialQuery: {
@@ -30,7 +33,7 @@ test('identical in-flight entry requests share the promise and getters never pre
   assert.equal(f.requests.length, 1);
   f.requests[0].resolve(f.result()); await first;
   assert.equal(f.counters.refresh, 2, 'pending and ready boundary packets both invalidate editing presentation');
-  f.state.countryOverrides.A = { color: 'red' };
+  f.state.territorialEntities[0].properties.style = { color: 'red' };
   assert.strictEqual(f.app.rebuildBoundaryTopology(['A', 'B']), first);
   assert.equal(f.app.boundaryEditSelectionAnalysis().valid, true);
 });
@@ -56,7 +59,7 @@ test('changing targets replaces the pending request and discards the old respons
 });
 
 test('geometry, lock, and project changes reject late results with a retryable state', async () => {
-  for (const change of [f => { f.state.countriesData.features[0].geometry = {}; }, f => { f.state.countryOverrides.A = { locked: true }; }, f => f.nextProject()]) {
+  for (const change of [f => { f.state.territorialEntities[0].geometry = {}; }, f => { f.state.territorialEntities[0].properties.locked = true; }, f => f.nextProject()]) {
     const f = fixture(), pending = f.app.rebuildBoundaryTopology(['A', 'B']);
     change(f); f.requests[0].resolve(f.result());
     assert.equal(await pending, false);

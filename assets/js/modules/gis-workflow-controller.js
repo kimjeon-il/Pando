@@ -1,3 +1,4 @@
+import { administrativeCountryId } from './territorial-units.js';
 export function createGisWorkflowController({
   loadRuntime,
   onRuntimeReady,
@@ -70,7 +71,7 @@ export function createGisWorkflowController({
     return (getTerritorialUnits() || []).filter(feature => [TERRITORIAL_UNIT_TYPES.SUBUNIT].includes(feature.properties?.unitType)).map(feature => ({
       id: String(feature.id),
       name: territorialEntityName(feature),
-      countryId: String(feature.properties?.sovereignId || ''),
+      countryId: administrativeCountryId(feature, id => [...getCountries().features, ...getTerritorialUnits()].find(entity => String(entity.id) === id)),
       parentId: String(feature.properties?.parentId || ''),
       type: feature.properties?.unitType,
 
@@ -137,9 +138,8 @@ export function createGisWorkflowController({
       createCountryImportMergePlanner,
       createGisGeometryValidator,
       createImportService,
-      importedCountryOverrides: readImportedOverrides,
     } = runtime.importServiceModule;
-    onRuntimeReady({ appendSourceInfo, applyPackageAssets, readImportedOverrides });
+    onRuntimeReady({ appendSourceInfo, applyPackageAssets });
     gisGeometryValidator = createGisGeometryValidator({
       createWorker: createGeometryWorker,
     });

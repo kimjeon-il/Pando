@@ -1,35 +1,32 @@
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTerritorialFillResolver } from '../../assets/js/modules/territorial-fill-style.js';
 import { resolveLayerDisplayColor } from '../../assets/js/modules/layer-presentation.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 
-const country = { id: 'A', properties: {}, geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } };
-const subunit = { id: 'S', properties: { unitType: 'subunit', parentId: 'A', sovereignId: 'A', style: { color: '#cc5500' } } };
-const region = { id: 'R', properties: { unitType: 'region', sovereignId: 'A', style: { color: '#0055cc' } } };
-
-function repository(state) {
-  return createTerritorialEntityRepository({ getCountries: () => state.countriesData,
-    getUnits: () => state.territorialUnits || [], getCountryOverride: id => state.countryOverrides?.[id] || {} });
-}
+const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] };
+const country = createTerritorialFeature({ id: 'A', unitType: 'country', geometry });
+const subunit = createTerritorialFeature({ id: 'S', unitType: 'subunit', parentId: 'A', color: '#cc5500', geometry });
+const region = createTerritorialFeature({ id: 'R', unitType: 'region', associatedCountryId: 'A', color: '#0055cc', geometry });
 
 test('disabled territorial paint reveals the map substrate without changing stored colors', () => {
   const state = {
-    countriesData: { features: [country] },
-    countryOverrides: { A: { color: '#aa0000' } },
-    territorialUnits: [subunit, region],
+    territorialEntities: [country, subunit, region],
     layerPresentation: { styles: {
       countries: { colorVisible: false },
       subunits: { colorVisible: true },
       regions: { colorVisible: false },
     }, objectStyles: { 'territorial:country:A': { colorVisible: true } } },
   };
-  const resolve = createTerritorialFillResolver({ state, entityRepository: repository(state) });
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const entityRepository = createTerritorialEntityRepository({ entityStore });
+  const resolve = createTerritorialFillResolver({ state, entityRepository, });
   assert.equal(resolve(country).fillAlpha, 0);
   assert.equal(resolve(subunit).color, '#cc5500');
   assert.equal(resolve(region).color, '');
   assert.equal(resolve(region).fillAlpha, 0);
-  assert.equal(state.countryOverrides.A.color, '#aa0000');
   assert.equal(region.properties.style.color, '#0055cc');
 });
 
@@ -44,14 +41,15 @@ test('country palette and territorial fills can resolve an absent color channel'
 });
 
 test('map modes own unpainted land; explicit gray is still object paint', () => {
-  const state = { countriesData: { features: [country] }, territorialUnits: [] };
-  const entityRepository = repository(state);
+  const state = { territorialEntities: [country] };
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const entityRepository = createTerritorialEntityRepository({ entityStore });
   for (const terrainAlpha of [1, 0.68, 0.22]) {
-    state.countryOverrides = {};
+    entityStore.setField('country', 'A', 'color', '');
     let resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha });
     assert.equal(resolve(country).color, '');
     assert.equal(resolve(country).fillAlpha, 0);
-    state.countryOverrides = { A: { color: '#cccccc' } };
+    entityStore.setField('country', 'A', 'color', '#cccccc');
     resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha });
     assert.equal(resolve(country).color, '#cccccc');
     assert.equal(resolve(country).fillAlpha, terrainAlpha);
@@ -60,14 +58,15 @@ test('map modes own unpainted land; explicit gray is still object paint', () => 
 
 test('children inherit only assigned colors and retain their opacity and blend', () => {
   const parent = { ...subunit, properties: { ...subunit.properties, style: {} } };
-  const child = { id: 'C', properties: { unitType: 'subunit', parentId: 'S', sovereignId: 'A', style: {} } };
-  const state = { countriesData: { features: [country] }, territorialUnits: [parent, child],
+  const child = createTerritorialFeature({ id: 'C', unitType: 'subunit', parentId: 'S', geometry });
+  const state = { territorialEntities: [country, parent, child],
     layerPresentation: { styles: { countries: { opacity: 0.5, blendMode: 'multiply' } },
       objectStyles: { 'territorial:country:A': { colorVisible: true } } } };
-  const entityRepository = repository(state);
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const entityRepository = createTerritorialEntityRepository({ entityStore });
   let resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha: 0.22 });
   assert.equal(resolve(child).fillAlpha, 0);
-  state.countryOverrides = { A: { color: '#aa0000' } };
+  entityStore.setField('country', 'A', 'color', '#aa0000');
   resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha: 0.22 });
   assert.equal(resolve(child).color, '#aa0000');
   assert.equal(resolve(child).fillAlpha, 0.11);
@@ -78,10 +77,12 @@ test('children inherit only assigned colors and retain their opacity and blend',
 });
 
 test('pending no-terrain country patches use the map substrate without assigning a color', () => {
-  const state = { countriesData: { features: [country] }, territorialUnits: [] };
-  const resolve = createTerritorialFillResolver({ state, entityRepository: repository(state),
+  const state = { territorialEntities: [country] };
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const entityRepository = createTerritorialEntityRepository({ entityStore });
+  const resolve = createTerritorialFillResolver({ state, entityRepository,
     mapSubstrate: { color: '#cccccc', fillAlpha: 1 } });
   assert.equal(resolve(country).color, '#cccccc');
   assert.equal(resolve(country).fillAlpha, 1);
-  assert.equal(country.properties.style, undefined);
+  assert.deepEqual(country.properties.style, {});
 });

@@ -1,3 +1,4 @@
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createObjectMetadata } from '../../assets/js/modules/app-object-metadata.js';
@@ -6,10 +7,10 @@ import { createTerritorialEntityRepository } from '../../assets/js/modules/terri
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
 
 function fixture() {
-  const state={stateRevision:0,selected:{domain:'territorial',type:'country',id:'A'},countryOverrides:{},territorialUnits:[],countriesData:{type:'FeatureCollection',features:['A','B'].map(id=>({type:'Feature',id,properties:{name:id},geometry:{type:'Polygon',coordinates:[]}}))}};
+  const state={stateRevision:0,selected:{domain:'territorial',type:'country',id:'A'},territorialEntities:['A','B'].map(id=>createTerritorialFeature({id,unitType:'country',name:id,geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}))};
   const effects={history:0,save:0,refresh:0,tree:0,labels:0,base:0,patch:0,palette:0};
   const store=createTerritorialEntityStore({getState:()=>state});
-  const repository=createTerritorialEntityRepository({entityStore:store,getRevision:()=>state.stateRevision});
+  const repository=createTerritorialEntityRepository({entityStore:store});
   const service=createTerritorialApplicationService({entityStore:store,entityRepository:repository,commandPipeline:{runMutation(_meta,mutate){effects.history++;const value=mutate();state.stateRevision++;effects.save++;return {ok:true,value};}}});
   const owner=createObjectMetadata();
   owner.connect({projectState:{state},objectModelB:{territorialApplicationService:service},feedback:{setActionStatus(){}},layers:{markLayerTreeDirty(){effects.tree++;}},rendering:{gpuMapRenderer:{invalidateCountryPalette(){effects.palette++;}}},domains:{selectionUiController:{presentPrimary(){effects.refresh++;},applyIntent(){assert.fail('metadata must not change selection or focus');}},renderingDomain:{invalidateLabels(){effects.labels++;},invalidateBaseScene(){effects.base++;},invalidateTerritorialPatch(){effects.patch++;}}}});

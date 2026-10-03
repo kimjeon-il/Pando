@@ -7,7 +7,7 @@ import {
   changeUnitType,
   createTerritorialFeature,
   normalizeTerritorialRelations,
-  normalizeTerritorialUnits,
+  normalizeTerritorialEntities,
   runTerritorialTransaction,
   validateTerritorialRelations,
 } from '../../assets/js/modules/territorial-units.js';
@@ -18,30 +18,30 @@ const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
 });
 
 test('territorial normalization rejects legacy aliases and duplicate IDs', () => {
-  assert.throws(() => normalizeTerritorialUnits([{
+  assert.throws(() => normalizeTerritorialEntities([{
     type: 'Feature', id: 'r1', properties: { kind: 'region', countryId: 'PL' }, geometry: square(),
   }]), /영역 형식/);
-  const unit = createTerritorialFeature({ id: 'r1', unitType: 'subunit', sovereignId: 'PL', parentId: 'PL', geometry: square() });
-  assert.throws(() => normalizeTerritorialUnits([unit, unit], { countryExists: id => id === 'PL' }), /중복/);
+  const unit = createTerritorialFeature({ id: 'r1', unitType: 'subunit', parentId: 'PL', geometry: square() });
+  assert.throws(() => normalizeTerritorialEntities([unit, unit], { getEntity: id => id==='PL'?createTerritorialFeature({id,unitType:'country',geometry:square()}):null }), /중복/);
 });
 
 test('hierarchy uses parent relations without administrative levels', () => {
-  const units = normalizeTerritorialUnits([
-    createTerritorialFeature({ id: 't1', unitType: 'subunit', sovereignId: 'PL', parentId: 'PL', geometry: square() }),
-    createTerritorialFeature({ id: 'a1', unitType: 'subunit', sovereignId: 'PL', parentId: 't1', adminLevel: 8, geometry: square(0, 0, 5, 5) }),
-    createTerritorialFeature({ id: 'a2', unitType: 'subunit', sovereignId: 'PL', parentId: 'a1', adminLevel: 8, geometry: square(0, 0, 2, 2) }),
-  ], { countryExists: id => id === 'PL' });
+  const units = normalizeTerritorialEntities([
+    createTerritorialFeature({ id: 't1', unitType: 'subunit', parentId: 'PL', geometry: square() }),
+    createTerritorialFeature({ id: 'a1', unitType: 'subunit', parentId: 't1', adminLevel: 8, geometry: square(0, 0, 5, 5) }),
+    createTerritorialFeature({ id: 'a2', unitType: 'subunit', parentId: 'a1', adminLevel: 8, geometry: square(0, 0, 2, 2) }),
+  ], { getEntity: id => id==='PL'?createTerritorialFeature({id,unitType:'country',geometry:square()}):null });
   assert.equal(units.find(item => item.id === 'a1').properties.adminLevel, undefined);
   assert.equal(units.find(item => item.id === 'a2').properties.adminLevel, undefined);
-  assert.equal(validateTerritorialRelations(units, { countryExists: id => id === 'PL' }).ok, true);
-  assert.throws(() => normalizeTerritorialUnits([
-    createTerritorialFeature({ id: 'a3', unitType: 'subunit', sovereignId: 'PL', parentId: 'missing', geometry: square() }),
-  ], { countryExists: id => id === 'PL' }), /상위 단위|같은 소속 국가/);
+  assert.equal(validateTerritorialRelations(units, { getEntity: id => id==='PL'?createTerritorialFeature({id,unitType:'country',geometry:square()}):null }).ok, true);
+  assert.throws(() => normalizeTerritorialEntities([
+    createTerritorialFeature({ id: 'a3', unitType: 'subunit', parentId: 'missing', geometry: square() }),
+  ], { getEntity: id => id==='PL'?createTerritorialFeature({id,unitType:'country',geometry:square()}):null }), /상위 단위|부모/);
 });
 
 test('subunit and region type changes preserve identity and geometry', () => {
   const territory = createTerritorialFeature({
-    id: 'ireland', unitType: 'subunit', name: '아일랜드', sovereignId: 'GBR', parentId: 'GBR', color: '#169b62', geometry: square(),
+    id: 'ireland', unitType: 'subunit', name: '아일랜드', parentId: 'GBR', color: '#169b62', geometry: square(),
   });
   const administrative = changeUnitType(territory, TERRITORIAL_UNIT_TYPES.REGION);
   assert.equal(administrative.id, territory.id);
@@ -56,44 +56,44 @@ test('subunit and region type changes preserve identity and geometry', () => {
   assert.deepEqual(restored.geometry, territory.geometry);
 });
 
-test('explicit regions keep independent parent and sovereignty relationships', () => {
-  const [region] = normalizeTerritorialUnits([createTerritorialFeature({
-    id: 'historical-region', unitType: 'region', parentId: '', sovereignId: '', coverageMode: 'explicit', geometry: square(),
+test('explicit regions keep independent parent and country association relationships', () => {
+  const [region] = normalizeTerritorialEntities([createTerritorialFeature({
+    id: 'historical-region', unitType: 'region', parentId: '', coverageMode: 'explicit', geometry: square(),
   })]);
   assert.equal(region.properties.unitType, TERRITORIAL_UNIT_TYPES.REGION);
   assert.equal(region.properties.coverageMode, TERRITORIAL_COVERAGE_MODES.EXPLICIT);
   assert.equal(region.properties.parentId, '');
-  assert.equal(region.properties.sovereignId, '');
+  assert.equal(region.properties.associatedCountryId, '');
 });
 
 test('deprecated remainder flags are not stored', () => {
-  const [remainder] = normalizeTerritorialUnits([createTerritorialFeature({
-    id: 'remainder', unitType: 'subunit', parentId: 'PL', sovereignId: 'PL', isRemainder: true, geometry: square(),
-  })], { countryExists: id => id === 'PL' });
+  const [remainder] = normalizeTerritorialEntities([createTerritorialFeature({
+    id: 'remainder', unitType: 'subunit', parentId: 'PL', isRemainder: true, geometry: square(),
+  })], { getEntity: id => id==='PL'?createTerritorialFeature({id,unitType:'country',geometry:square()}):null });
   assert.equal(remainder.properties.isRemainder, undefined);
-  assert.equal(remainder.properties.sovereignId, 'PL');
+  assert.equal(remainder.properties.associatedCountryId, '');
   assert.equal(remainder.properties.parentId, 'PL');
-  const independent = createTerritorialFeature({ id: 'independent', unitType: 'region', sovereignId: '', isRemainder: false, geometry: square() });
-  assert.equal(independent.properties.sovereignId, '');
+  const independent = createTerritorialFeature({ id: 'independent', unitType: 'region', isRemainder: false, geometry: square() });
+  assert.equal(independent.properties.associatedCountryId, '');
   assert.equal(independent.properties.isRemainder, undefined);
 });
 
-test('dangling sovereigns and circular parents fail without automatic clearing', () => {
-  assert.throws(() => normalizeTerritorialUnits([
-    createTerritorialFeature({ id: 'a1', unitType: 'subunit', sovereignId: 'gone', parentId: 'a2', geometry: square() }),
-    createTerritorialFeature({ id: 'a2', unitType: 'subunit', sovereignId: 'gone', parentId: 'a1', geometry: square() }),
-  ], { countryExists: () => false }), /소속 국가 gone|순환/);
+test('dangling references and circular parents fail without automatic clearing', () => {
+  assert.throws(() => normalizeTerritorialEntities([
+    createTerritorialFeature({ id: 'a1', unitType: 'subunit', parentId: 'a2', geometry: square() }),
+    createTerritorialFeature({ id: 'a2', unitType: 'subunit', parentId: 'a1', geometry: square() }),
+  ], { getEntity: () => null }), /소속 국가 gone|순환/);
 });
 
 
 test('dated relations resolve by reference date and overlapping ranges are rejected', () => {
-  const unit = createTerritorialFeature({ id: 't1', unitType: 'subunit', sovereignId: 'A', parentId: 'A', geometry: square() });
+  const unit = createTerritorialFeature({ id: 't1', unitType: 'subunit', parentId: 'A', geometry: square() });
   const relations = normalizeTerritorialRelations([
-    { id: 'r1', schemaVersion: 1, unitId: 't1', parentId: 'B', sovereignId: 'B', validFrom: '1900-01-01', validTo: '1910-12-31' },
+    { id: 'r1', schemaVersion: 2, unitId: 't1', parentId: 'B', validFrom: '1900-01-01', validTo: '1910-12-31' },
   ]);
   const invalid = validateTerritorialRelations([unit], {
-    countryExists: id => ['A', 'B'].includes(id),
-    relations: [...relations, { id: 'r2', unitId: 't1', parentId: 'A', sovereignId: 'A', validFrom: '1905-01-01', validTo: '1920-01-01' }],
+    getEntity: id=>['A','B'].includes(id)?createTerritorialFeature({id,unitType:'country',geometry:square()}):null,
+    relations: [...relations, { id: 'r2', unitId: 't1', parentId: 'A', validFrom: '1905-01-01', validTo: '1920-01-01' }],
   });
   assert.equal(invalid.ok, false);
   assert.match(invalid.issues.join('\n'), /겹칩니다/);

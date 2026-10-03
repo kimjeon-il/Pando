@@ -32,17 +32,18 @@ export function createTerritorialPropertyController({
     const feature = view.feature;
     if (!feature) return false;
     const properties = feature.properties || {};
+    const countryId=String(territorialEntityRepository.administrativeCountry(feature.id)?.id || '');
     const subunits = properties.unitType === territorialUnitTypes.SUBUNIT;
     const region = properties.unitType === territorialUnitTypes.REGION;
     const prefix = region ? 'region' : 'subunit';
     const normalizedName = String(properties.name || '').trim().toLocaleLowerCase('ko');
     const conflict = !!normalizedName && territorialEntityRepository.list({ type: properties.unitType }).some(candidate => candidate.id !== feature.id
-      && String(candidate.properties?.sovereignId || '') === String(properties.sovereignId || '')
+      && String(territorialEntityRepository.administrativeCountry(candidate.id)?.id || '') === countryId
       && String(candidate.properties?.name || '').trim().toLocaleLowerCase('ko') === normalizedName);
     $(`${prefix}NameConflict`).classList.toggle('hidden', !conflict);
     $(`${prefix}NameInput`).value = properties.name || '';
     const countrySelect = $(`${prefix}CountryInput`);
-    const countryChoice = replaceSelectOptions(countrySelect, territorialUnitCountryOptions().filter(option => !subunits || option.value), properties.sovereignId, {
+    const countryChoice = replaceSelectOptions(countrySelect, territorialUnitCountryOptions().filter(option => !subunits || option.value), countryId, {
       autoSelectSingle: true,
       preserveInvalid: true,
     });
@@ -62,7 +63,7 @@ export function createTerritorialPropertyController({
       $('subunitParentInput').setAttribute('aria-busy', String(parentOptions.pending === true));
       replaceSelectOptions($('subunitParentInput'), parentOptions, properties.parentId, { autoSelectSingle: true, preserveInvalid: false });
       $('subunitParentInput').closest('.field-group')?.classList.toggle('hidden', !shouldShowTerritorialParentChoice({
-        sovereignId: properties.sovereignId,
+        sovereignId: countryId,
         parentId: properties.parentId,
         options: parentOptions,
       }));
@@ -71,7 +72,7 @@ export function createTerritorialPropertyController({
       // Region relations are explicit references, not administrative partition parents.
       $('regionParentInput').disabled = true;
       $('regionParentInput').closest('.field-group')?.classList.toggle('hidden', !properties.parentId
-        || String(properties.parentId) === String(properties.sovereignId));
+        || String(properties.parentId) === String(countryId));
       $('regionValidFromInput').value = properties.validFrom || '';
       $('regionValidToInput').value = properties.validTo || '';
     }
@@ -157,7 +158,7 @@ export function createTerritorialPropertyController({
     bindField(elements.name, 'name'); bindField(elements.notes, 'notes');
     for (const type of ['subunit', 'region']) {
       for (const [suffix, field] of [['Name','name'],['Notes','notes'],['ValidFrom','validFrom'],['ValidTo','validTo']]) bindField($(type + suffix + 'Input'), field);
-      bindField($(type + 'CountryInput'), 'sovereignId', true);
+      bindField($(type + 'CountryInput'), 'associatedCountryId', true);
       bindField($(type + 'ParentInput'), 'parentId', true);
     }
     return api;

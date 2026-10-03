@@ -27,7 +27,7 @@ export function createTerritoryComponentUi() {
         .filter(result => result.status === 'invalid')
         .map(result => String(result.donorCountryId)));
       const invalidNames = session.sourceCountryIds
-        .map(dependencies.territorialModel.entityStore.countryFeature)
+        .map(dependencies.territorialModel.entityRepository.get)
         .filter(feature => feature && invalidIds.has(String(feature.id)))
         .map(dependencies.objectPresentation.territorialEntityName);
       const suffix = session.useRiverBoundaries && invalidNames.length

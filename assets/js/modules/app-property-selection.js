@@ -79,7 +79,7 @@ export function createPropertySelection() {
   }
 
   function territorialUnitParentOptions(feature) {
-    const countryId = String(feature?.properties?.sovereignId || '');
+    const countryId = String((0, dependencies.territorialModel.administrativeCountryId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '');
     const options = (0, dependencies.territorialServicesA.subunitParentChoices)(countryId, dependencies.territorialModel.entityRepository, {
       exclude: [feature.id], name: item => (0, dependencies.objectPresentation.territorialEntityName)(item),
     });

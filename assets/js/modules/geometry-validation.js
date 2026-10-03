@@ -1,3 +1,4 @@
+import { administrativeCountryId } from './territorial-units.js';
 import { coordinateBounds } from './coordinate-bounds.js';
 
 const clone = value => value == null ? value : structuredClone(value);
@@ -341,12 +342,14 @@ function validateAdministrativeContainment(units = [], countries = [], { clipper
       entityRefs: [id], bounds: bounds(unit.geometry), sequence: unitIndex,
     }));
     if (id) seenIds.add(id);
-    const sovereignId = String(properties.sovereignId || '');
+    let countryId = '';
+    try { countryId = administrativeCountryId(unit, key => unitMap.get(key) || countryMap.get(key)); }
+    catch (error) { issues.push(issue('invalid-parent', error.message, { entityRefs: [id] })); }
     const parentId = String(properties.parentId || '');
-    if (!countryMap.has(sovereignId)) issues.push(issue('invalid-sovereign', `${properties.name || id}의 sovereignId가 존재하지 않습니다.`, {
-      entityRefs: [id, sovereignId], coordinate: bounds(unit.geometry)?.slice(0, 2),
+    if (countryId && !countryMap.has(countryId)) issues.push(issue('invalid-sovereign', `${properties.name || id}의 countryId가 존재하지 않습니다.`, {
+      entityRefs: [id, countryId], coordinate: bounds(unit.geometry)?.slice(0, 2),
     }));
-    const parent = unitMap.get(parentId) || countryMap.get(parentId) || countryMap.get(sovereignId);
+    const parent = unitMap.get(parentId) || countryMap.get(parentId) || countryMap.get(countryId);
     if (parentId && !unitMap.has(parentId) && !countryMap.has(parentId)) issues.push(issue('orphan-administrative', `${properties.name || id}의 parentId가 존재하지 않습니다.`, {
       entityRefs: [id, parentId], bounds: bounds(unit.geometry),
     }));

@@ -22,9 +22,11 @@ export function createCountryCommits() {
     clearMultiDraft = false,
     selectedId = '',
   } = {}) {
-    (0, dependencies.cutOperations.applyWorkerCountryPatches)(plan, patchOptions);
-    afterPatch(plan);
-    updateDependents(plan);
+    dependencies.territorialModel.entityStore.transaction(() => {
+      (0, dependencies.cutOperations.applyWorkerCountryPatches)(plan, patchOptions);
+      afterPatch(plan);
+      updateDependents(plan);
+    });
     (0, dependencies.countryValidation.refreshCountryCentroids)(new Set([...(centroidIds || [])].map(String)));
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;

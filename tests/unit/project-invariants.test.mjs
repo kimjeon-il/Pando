@@ -1,3 +1,4 @@
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -7,17 +8,12 @@ import {
 } from '../../assets/js/modules/project-invariants.js';
 
 const polygon = () => ({ type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] });
-const country = id => ({ type: 'Feature', id, properties: { name: id }, geometry: polygon() });
-const unit = (id, parentId = '', sovereignId = 'A') => ({
-  type: 'Feature', id,
-  properties: { parentId, sovereignId },
-  geometry: polygon(),
-});
+const country = id => createTerritorialFeature({id,unitType:'country',name:id,geometry:polygon()});
+const unit=(id,parentId='',countryId='A')=>createTerritorialFeature({id,unitType:'region',parentId,associatedCountryId:countryId,geometry:polygon()});
 
 test('valid project references pass', () => {
   const result = validateProjectReferenceIntegrity({
-    countries: [country('A')],
-    territorialUnits: [unit('R', 'A')],
+    territorialEntities: [...[country('A')],...[unit('R', 'A')]],
     distributionLayers: [{ id: 'L', parentId: '' }],
     distributionEntries: [{ id: 'E', layerId: 'L', mode: 'territorial', territorialUnitId: 'R', value: 100 }],
   });
@@ -26,8 +22,7 @@ test('valid project references pass', () => {
 
 test('dangling references are reported instead of silently ignored', () => {
   const result = validateProjectReferenceIntegrity({
-    countries: [country('A')],
-    territorialUnits: [unit('R', 'MISSING', 'A')],
+    territorialEntities: [...[country('A')],...[unit('R', 'MISSING', 'A')]],
     distributionLayers: [{ id: 'L', parentId: '' }],
     distributionEntries: [{ id: 'E', layerId: 'L', mode: 'territorial', territorialUnitId: 'NOPE', value: 100 }],
   });
@@ -35,15 +30,13 @@ test('dangling references are reported instead of silently ignored', () => {
   assert.ok(result.issues.some(row => row.code === 'PL-INV-MISSING-PARENT'));
   assert.ok(result.issues.some(row => row.code === 'PL-INV-MISSING-DIST-TERRITORIAL'));
   assert.throws(() => assertProjectReferenceIntegrity({
-    countries: [country('A')],
-    territorialUnits: [unit('R', 'MISSING', 'A')],
+    territorialEntities: [...[country('A')],...[unit('R', 'MISSING', 'A')]],
   }), /상위 단위/);
 });
 
 test('territorial and distribution parent cycles are rejected', () => {
   const result = validateProjectReferenceIntegrity({
-    countries: [country('A')],
-    territorialUnits: [unit('R1', 'R2'), unit('R2', 'R1')],
+    territorialEntities: [...[country('A')],...[unit('R1', 'R2'), unit('R2', 'R1')]],
     distributionLayers: [
       { id: 'L1', parentId: 'L2' },
       { id: 'L2', parentId: 'L1' },
@@ -56,7 +49,7 @@ test('territorial and distribution parent cycles are rejected', () => {
 
 test('invalid distribution value and free geometry are rejected', () => {
   const result = validateProjectReferenceIntegrity({
-    countries: [country('A')],
+    territorialEntities: [country('A')],
     distributionLayers: [{ id: 'L', parentId: '' }],
     distributionEntries: [
       { id: 'E1', layerId: 'L', mode: 'geometry', geometry: null, value: Number.NaN },

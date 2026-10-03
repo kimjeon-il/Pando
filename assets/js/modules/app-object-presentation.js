@@ -51,38 +51,33 @@ export function createObjectPresentation() {
   }
 
   function territorialEntityName(feature) {
-    if (feature?.properties?.unitType === 'country' || !feature?.properties?.unitType) return countryName(feature);
-    const properties = feature?.properties || {};
+    const entity = dependencies.territorialModel.entityRepository.get(feature?.id) || feature;
+    const properties = entity?.properties || {};
     // Fresh built-in classification normalizes defaults; edited names are literal.
     if (properties.name) return properties.name;
+    if (properties.unitType === 'country') return '국가';
     if (properties.unitType === dependencies.objectCatalog.TERRITORIAL_UNIT_TYPES.REGION) return '이름 없는 지방';
     return '이름 없는 하위단위';
   }
 
   function territorialEntityColor(feature) {
-    if (feature?.properties?.unitType === 'country' || !feature?.properties?.unitType) return countryColor(feature);
-    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }, {
-      inherited: resolveTerritorialColor(feature, { entityRepository: dependencies.territorialModel.entityRepository, countryColor, fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR }),
-      fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
+    const entity = dependencies.territorialModel.entityRepository.get(feature?.id) || feature;
+    const fallback = entity?.properties?.unitType === 'country'
+      ? (0, dependencies.colorModel.defaultCountryColor)() : dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR;
+    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature: entity }, {
+      inherited: resolveTerritorialColor(entity, { entityRepository: dependencies.territorialModel.entityRepository,
+        countryColor: country => country.properties?.style?.color || (0, dependencies.colorModel.defaultCountryColor)(), fallback }),
+      fallback,
     }).value;
   }
 
   function administrativeCountryName(feature) {
     const country = dependencies.territorialModel.entityRepository.administrativeCountry(feature?.id);
-    return country ? countryName(country) : '소속 국가 미지정';
-  }
-
-  function countryColor(feature) {
-    const id = String(feature?.id || '');
-    return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.COUNTRY, { feature, override: dependencies.territorialModel.entityStore.countryOverride(id) }, { fallback: (0, dependencies.colorModel.defaultCountryColor)() }).value;
+    return country ? territorialEntityName(country) : '소속 국가 미지정';
   }
 
   function distributionColor(layer) {
     return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.DISTRIBUTION, { layer }, { fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR }).value;
-  }
-
-  function countryName(feature) {
-    return (0, dependencies.objectPresentation.countryDisplayName)(feature, dependencies.territorialModel.entityStore.countryOverride(feature?.id));
   }
 
   function hydroCategoryKey(value) {

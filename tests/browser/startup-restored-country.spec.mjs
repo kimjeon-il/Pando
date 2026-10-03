@@ -46,7 +46,7 @@ test('a saved built-in classification and color use the shipped preview before c
   await page.goto('/?renderer=canvas', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setColor('country', 'DEU', '#476FAE'));
-  await expect.poll(async () => (await readAutosave(page))?.countryOverrides?.DEU?.color, { timeout: 15_000 }).toBe('#476fae');
+  await expect.poll(async () => (await readAutosave(page))?.entityDelta?.changed.find(entity => entity.id === 'DEU')?.properties.style.color, { timeout: 15_000 }).toBe('#476fae');
   const savedPage = await page.context().newPage();
   let releaseCanonical;
   const gate = new Promise(resolve => { releaseCanonical = resolve; });
@@ -73,7 +73,7 @@ test('an autosaved country change waits for its restored geometry before the fir
   await page.goto('/?renderer=canvas', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setColor('country', 'DEU', '#476FAE'));
-  await expect.poll(async () => (await readAutosave(page))?.countryOverrides?.DEU?.color, { timeout: 15_000 }).toBe('#476fae');
+  await expect.poll(async () => (await readAutosave(page))?.entityDelta?.changed.find(entity => entity.id === 'DEU')?.properties.style.color, { timeout: 15_000 }).toBe('#476fae');
   await page.evaluate(async () => {
     const database = await new Promise((resolve, reject) => {
       const request = indexedDB.open('pandolab-editor', 2);
@@ -87,9 +87,9 @@ test('an autosaved country change waits for its restored geometry before the fir
         const request = store.get('active-project');
         request.onsuccess = () => {
           const project = request.result;
-          project.countryDelta ||= { changed: [], removedIds: [] };
-          project.countryDelta.changed = project.countryDelta.changed.filter(feature => feature.id !== 'POL');
-          project.countryDelta.removedIds = [...new Set([...project.countryDelta.removedIds, 'POL'])];
+          project.entityDelta ||= { changed: [], removedIds: [] };
+          project.entityDelta.changed = project.entityDelta.changed.filter(feature => feature.id !== 'POL');
+          project.entityDelta.removedIds = [...new Set([...project.entityDelta.removedIds, 'POL'])];
           store.put(project, 'active-project');
         };
         transaction.oncomplete = resolve;
@@ -100,7 +100,7 @@ test('an autosaved country change waits for its restored geometry before the fir
     }
     await Promise.all((await caches.keys()).map(name => caches.delete(name)));
   });
-  expect((await readAutosave(page)).countryDelta.removedIds).toContain('POL');
+  expect((await readAutosave(page)).entityDelta.removedIds).toContain('POL');
 
   const restoredPage = await page.context().newPage();
   restoredPage.on('console', message => {

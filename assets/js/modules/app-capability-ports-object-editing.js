@@ -178,7 +178,7 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
 const PORT_SPECS = Object.freeze({
   applicationConstantsB: Object.freeze([["SELECTION_STYLE","runtime","SELECTION_STYLE"],["TERRITORIAL_TYPE_LABELS","runtime","TERRITORIAL_TYPE_LABELS"]]),
   colorServices: Object.freeze([["normalizeColorValue","runtime","normalizeColorValue"]]),
-  countryServices: Object.freeze([["pruneCountryOverrides","runtime","pruneCountryOverrides"],["resolveCountryIdentities","runtime","resolveCountryIdentities"]]),
+  countryServices: Object.freeze([["normalizeCountryCollection","runtime","normalizeCountryCollection"],["resolveCountryIdentities","runtime","resolveCountryIdentities"]]),
   countryValidation: Object.freeze([["refreshCountryCentroids","countryValidation","refreshCountryCentroids"],["snapGeometryToGrid","countryValidation","snapGeometryToGrid"]]),
   cutOperations: Object.freeze([["applyWorkerCountryPatches","cutGeometry","applyWorkerCountryPatches"],["assessCutDraft","cutGeometry","assessCutDraft"],["buildCutSplitCandidates","cutGeometry","buildCutSplitCandidates"]]),
   labelServices: Object.freeze([["normalizeLabelSettings","runtime","normalizeLabelSettings"],["toolLabel","runtime","toolLabel"]]),
