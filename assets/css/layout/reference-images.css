@@ -225,10 +225,6 @@
   pointer-events: auto;
 }
 
-.surface-reference.reference-image-editing > .surface-body {
-  display: none;
-}
-
 [data-layout="mobile"] .surface-reference.reference-image-editing {
   height: auto;
   min-height: var(--ui-v2-control-mobile-height);
@@ -243,5 +239,11 @@
 @media (min-width: 800px) {
   .reference-image-panel-header {
     display: none;
+  }
+
+  .surface-reference.reference-image-editing-active {
+    left: auto;
+    right: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-map-edge));
+    transform: none;
   }
 }
