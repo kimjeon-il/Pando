@@ -44,7 +44,9 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
   function sync() {
     const open = workspaceSurfaces.surfaceController.isOpen('reference');
     if (panel.hidden !== !open) panel.hidden = !open;
-    const compactEditing = editing;
+    const mobile = workspaceSurfaces.isMobile();
+    const compactEditing = editing && mobile;
+    panel.classList.toggle('reference-image-editing-active', editing);
     if (panel.classList.contains('reference-image-editing') !== compactEditing) panel.classList.toggle('reference-image-editing', compactEditing);
     if (body.inert !== compactEditing) body.inert = compactEditing;
     if (compact.hidden !== !compactEditing) compact.hidden = !compactEditing;
