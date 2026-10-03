@@ -58,9 +58,11 @@
 .reference-image-editor-title,
 .reference-image-toolbar,
 .reference-image-toggle-row,
-.reference-image-placement-actions,
-.reference-image-gcp-actions,
-.reference-image-diagnostics {
+.reference-image-section-header,
+.reference-image-section-actions,
+.reference-image-calibration-actions,
+.reference-image-point-head,
+.reference-image-point-actions {
   display: flex;
   align-items: center;
 }
@@ -144,9 +146,33 @@
 }
 
 .reference-image-toggle-row,
-.reference-image-placement-actions,
-.reference-image-gcp-actions {
+.reference-image-section-actions,
+.reference-image-calibration-actions,
+.reference-image-point-actions {
   flex-wrap: wrap;
+}
+
+.reference-image-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.reference-image-mode-switch .ui-button {
+  width: 100%;
+}
+
+.reference-image-section-header,
+.reference-image-point-head {
+  justify-content: space-between;
+}
+
+.reference-image-point-row {
+  display: grid;
+}
+
+.reference-image-point-head,
+.reference-image-point-actions {
+  min-width: 0;
 }
 
 .reference-image-toggle-row label {
@@ -156,18 +182,31 @@
 }
 
 .reference-image-diagnostics {
-  justify-content: space-between;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.reference-image-diagnostics > span {
+  display: grid;
+  gap: var(--ui-space-0-5);
+  min-width: 0;
 }
 
 .reference-image-points { display: grid; }
-.reference-image-points li { display: flex; flex-wrap: wrap; align-items: center; min-width: 0; }
-.reference-image-points li > span { flex: 0 0 100%; }
-.reference-image-points .btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.reference-image-point-actions .btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 
 @media (max-width: 799px) {
   .reference-image-field {
     grid-template-columns: var(--ui-reference-field-label-width-mobile) minmax(0, 1fr) auto;
+  }
+
+  .reference-image-diagnostics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reference-image-calibration-actions .ui-button,
+  .reference-image-point-actions .ui-button {
+    flex: 1 1 auto;
   }
 
   .reference-image-panel .ui-button,
@@ -176,6 +215,14 @@
   }
 
   .reference-image-panel .icon-btn { min-width: var(--ui-v2-control-mobile-height); }
+}
+
+.surface-reference.reference-image-editing {
+  pointer-events: none;
+}
+
+.surface-reference.reference-image-editing .reference-image-editing-summary button {
+  pointer-events: auto;
 }
 
 [data-layout="mobile"] .surface-reference.reference-image-editing {
@@ -192,5 +239,11 @@
 @media (min-width: 800px) {
   .reference-image-panel-header {
     display: none;
+  }
+
+  .surface-reference.reference-image-editing-active {
+    left: auto;
+    right: calc(var(--map-safe-right, var(--ui-space-0)) + var(--ui-map-edge));
+    transform: none;
   }
 }

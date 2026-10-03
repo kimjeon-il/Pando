@@ -16,13 +16,36 @@ test('browser image-store read errors propagate instead of becoming an empty col
   } finally { globalThis.indexedDB = previous; }
 });
 
-test('read failure and malformed collection cannot replace stored images with an empty list', async () => {
-  for (const value of [new Error('read denied'), { version: 1 }, { version: 2, records: [] }, [], 0, false, '']) {
+test('current collection v2 reads and mutates without migration', async () => {
+  let collection = {
+    version: imageStoreModule.REFERENCE_IMAGE_COLLECTION_VERSION,
+    records: [{ id: 'a' }],
+  };
+  const store = imageStoreModule.createReferenceImageStore({
+    readProject: async () => collection,
+    writeProject: async value => { collection = structuredClone(value); },
+  });
+  assert.deepEqual(await store.list(), [{ id: 'a' }]);
+  await store.put({ id: 'b' });
+  assert.equal(collection.version, imageStoreModule.REFERENCE_IMAGE_COLLECTION_VERSION);
+  assert.deepEqual(collection.records.map(item => item.id), ['a', 'b']);
+});
+
+test('legacy, future and malformed collections are rejected without writes', async () => {
+  for (const value of [
+    { version: 1, records: [] },
+    { version: 3, records: [] },
+    { version: 2 },
+    [],
+    0,
+    false,
+    '',
+  ]) {
     let writes = 0;
-    const store = imageStoreModule.createReferenceImageStore({ readProject: async () => {
-      if (value instanceof Error) throw value;
-      return value;
-    }, writeProject: async () => { writes++; } });
+    const store = imageStoreModule.createReferenceImageStore({
+      readProject: async () => value,
+      writeProject: async () => { writes++; },
+    });
     await assert.rejects(store.list());
     await assert.rejects(store.put({ id: 'new' }));
     await assert.rejects(store.replace([]));
@@ -30,11 +53,20 @@ test('read failure and malformed collection cannot replace stored images with an
   }
 });
 
-test('adding an image preserves an undecodable raw record and serializes mutations', async () => {
-  const raw = { id: 'broken', blob: new Blob(['broken'], { type: 'image/png' }), extra: 'preserve' };
-  let collection = { version: 1, records: [raw] };
-  const store = imageStoreModule.createReferenceImageStore({ readProject: async () => collection,
-    writeProject: async value => { collection = structuredClone(value); } });
+test('concurrent mutations preserve raw undecodable records inside current collection', async () => {
+  const raw = {
+    id: 'broken',
+    blob: new Blob(['broken'], { type: 'image/png' }),
+    extra: 'preserve',
+  };
+  let collection = {
+    version: imageStoreModule.REFERENCE_IMAGE_COLLECTION_VERSION,
+    records: [raw],
+  };
+  const store = imageStoreModule.createReferenceImageStore({
+    readProject: async () => collection,
+    writeProject: async value => { collection = structuredClone(value); },
+  });
   await Promise.all([store.put({ id: 'a' }), store.put({ id: 'b' })]);
   assert.deepEqual(collection.records.map(item => item.id), ['broken', 'a', 'b']);
   assert.equal(collection.records[0].extra, 'preserve');

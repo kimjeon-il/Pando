@@ -1,3 +1,5 @@
+import { registerReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
+
 /** Late-loaded image UI uses the same lifecycle as the built-in workspace sheets. */
 export function installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose, onOpen }) {
   const document = panel.ownerDocument;
@@ -26,12 +28,13 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
   const hint = document.createElement('span');
   hint.setAttribute('role', 'status');
   compact.append(hint);
-  for (const [action, label] of [['finish', '완료'], ['cancel', '취소']]) {
+  for (const [action, label] of [['undo', '실행 취소'], ['redo', '다시 실행'], ['finish', '완료'], ['cancel', '취소']]) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = action === 'finish' ? 'ui-button btn' : 'ui-button btn ghost';
     button.dataset.refAction = action;
     button.textContent = label;
+    if (action === 'undo' || action === 'redo') button.disabled = true;
     compact.append(button);
   }
   panel.append(compact);
@@ -43,6 +46,7 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
     if (panel.hidden !== !open) panel.hidden = !open;
     const mobile = workspaceSurfaces.isMobile();
     const compactEditing = editing && mobile;
+    panel.classList.toggle('reference-image-editing-active', editing);
     if (panel.classList.contains('reference-image-editing') !== compactEditing) panel.classList.toggle('reference-image-editing', compactEditing);
     if (body.inert !== compactEditing) body.inert = compactEditing;
     if (compact.hidden !== !compactEditing) compact.hidden = !compactEditing;
@@ -59,24 +63,28 @@ export function installReferenceImageSurface({ panel, launcher, workspaceSurface
   const unregister = workspaceSurfaces.registerReferenceImageSurface({ panel, sync });
   const toggle = () => workspaceSurfaces.toggleSurface('reference', launcher);
   launcher.addEventListener('click', toggle);
+  function setEditing(active, text = '') {
+    const next = active === true;
+    if (next && !editing) savedSnap = Number(panel.dataset.sheetSnap ?? 1);
+    const wasEditing = editing;
+    editing = next;
+    if (hint.textContent !== text) hint.textContent = text;
+    if (wasEditing && !editing && workspaceSurfaces.isMobile()) workspaceSurfaces.setMobileSheetHeight(panel, savedSnap);
+    sync();
+  }
+  const unregisterSurfaceEditing = registerReferenceImageSurfaceEditing(setEditing);
+
   return {
     open: () => workspaceSurfaces.openSurface('reference', { trigger: launcher }),
     close: (options = {}) => workspaceSurfaces.closeSurface('reference', options),
     toggle,
-    setEditing(active, text = '') {
-      const next = active === true;
-      if (next && !editing) savedSnap = Number(panel.dataset.sheetSnap ?? 1);
-      const wasEditing = editing;
-      editing = next;
-      if (hint.textContent !== text) hint.textContent = text;
-      if (wasEditing && !editing && workspaceSurfaces.isMobile()) workspaceSurfaces.setMobileSheetHeight(panel, savedSnap);
-      sync();
-    },
+    setEditing,
     setGestureActive: active => workspaceSurfaces.setReferenceImageGestureActive(active),
     resetScroll: () => { body.scrollTop = 0; },
     destroy() {
       workspaceSurfaces.closeSurface('reference');
       workspaceSurfaces.setReferenceImageGestureActive(false);
+      unregisterSurfaceEditing();
       unregister();
       launcher.removeEventListener('click', toggle);
     },

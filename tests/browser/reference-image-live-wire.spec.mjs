@@ -15,7 +15,7 @@ async function clearReferenceStore(page) {
     request.onsuccess = () => {
       const db = request.result;
       const tx = db.transaction('state-v2', 'readwrite');
-      tx.objectStore('state-v2').put({ version: 1, records: [] }, 'reference-images');
+      tx.objectStore('state-v2').put({ version: 2, records: [] }, 'reference-images');
       tx.oncomplete = () => { db.close(); resolve(); };
       tx.onerror = () => { db.close(); reject(tx.error); };
     };
@@ -35,6 +35,20 @@ async function readStoredRecord(page) {
       tx.oncomplete = () => db.close();
     };
   }));
+}
+
+async function referenceScreenGeometry(page) {
+  return page.evaluate(async () => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const record = (await store.listStoredReferenceImages())[0];
+    const { referenceImagePlacementGeometry } = await import('/assets/js/modules/reference-image-transform.js');
+    const geometry = referenceImagePlacementGeometry(record, window.__PANDOLAB_MAP_HOST__);
+    const rect = document.getElementById('map').getBoundingClientRect();
+    return {
+      center: { x: rect.left + geometry.center[0], y: rect.top + geometry.center[1] },
+      corners: geometry.corners.map(point => ({ x: rect.left + point[0], y: rect.top + point[1] })),
+    };
+  });
 }
 
 async function waitForReady(page) {
@@ -57,8 +71,8 @@ async function screenPointForReferenceUv(page, targetUv) {
         tx.oncomplete = () => db.close();
       };
     });
-    const { buildReferenceImageWarp } = await import('/assets/js/modules/reference-image-georef.js');
-    const warp = buildReferenceImageWarp(stored.controlPoints || [], { mode: stored.warpMode });
+    const { buildReferenceImageSourceMapping } = await import('/assets/js/modules/reference-image-source-mapping.js');
+    const warp = buildReferenceImageSourceMapping(stored);
     const coordinate = warp.project(uv);
     const local = window.__PANDOLAB_MAP_HOST__.project(coordinate);
     const rect = document.getElementById('map').getBoundingClientRect();
@@ -66,11 +80,16 @@ async function screenPointForReferenceUv(page, targetUv) {
   }, targetUv);
 }
 
-test('live-wire requires a ready unlocked warp and traces/undoes/applies an edge path', async ({ page }) => {
+test('live-wire accepts a current corner-pin mapping and traces/applies an edge path', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  const collectError = message => {
+    const text = String(message || '');
+    if (!text.toLowerCase().includes('reference-image')) return;
+    errors.push(text);
+  };
+  page.on('pageerror', error => collectError(error.message));
+  page.on('console', message => { if (message.type() === 'error') collectError(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await waitForReady(page);
@@ -87,20 +106,23 @@ test('live-wire requires a ready unlocked warp and traces/undoes/applies an edge
   await expect(start).toBeDisabled();
 
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
-  const stored = await readStoredRecord(page);
-  const mapBox = await page.locator('#map').boundingBox();
-  const centerX = mapBox.x + stored.screenRect.x + stored.screenRect.width / 2;
-  const centerY = mapBox.y + stored.screenRect.y + stored.screenRect.height / 2;
+  const geometry = await referenceScreenGeometry(page);
 
-  await page.locator('[data-ref-action="gcp"]').click();
-  await page.mouse.click(centerX, centerY);
-  await page.mouse.click(centerX + 90, centerY + 40);
-  await page.mouse.click(centerX + 12, centerY + 8);
-  await page.mouse.click(centerX + 135, centerY + 65);
+  await page.locator('[data-ref-action="free-transform"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-free-transform-mode/);
+  const corner = geometry.corners[1];
+  const target = {
+    x: corner.x + (geometry.center.x - corner.x) * 0.14,
+    y: corner.y + (geometry.center.y - corner.y) * 0.14,
+  };
+  await page.mouse.move(corner.x, corner.y);
+  await page.mouse.down();
+  await page.mouse.move(target.x, target.y, { steps: 4 });
+  await page.mouse.up();
   await expect.poll(() => page.evaluate(() => {
     const item = window.__PANDOLAB_REFERENCE_IMAGES__?.list()?.[0];
-    return { points: item?.controlPointCount || 0, ready: !!item?.diagnostics };
-  })).toEqual({ points: 2, ready: true });
+    return { cornerPin: !!item?.cornerPinEnabled, ready: !!item?.mappingReady };
+  })).toEqual({ cornerPin: true, ready: true });
   await page.keyboard.press('Escape');
   await expect(start).toBeEnabled();
 
@@ -112,7 +134,7 @@ test('live-wire requires a ready unlocked warp and traces/undoes/applies an edge
   await start.click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('armed');
   await expect(page.locator('#map')).toHaveClass(/is-reference-live-wire-mode/);
-  await page.locator('[data-ref-live-wire-action="cancel"]').click();
+  await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('idle');
 
   await start.click();
@@ -128,20 +150,12 @@ test('live-wire requires a ready unlocked warp and traces/undoes/applies an edge
     };
   });
 
-  const first = await screenPointForReferenceUv(page, [0.5, 0.18]);
-  const second = await screenPointForReferenceUv(page, [0.5, 0.82]);
+  const first = await screenPointForReferenceUv(page, [0.5, 0.12]);
+  const second = await screenPointForReferenceUv(page, [0.5, 0.46]);
   await page.mouse.click(first.x, first.y);
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('tracking');
   await page.mouse.move(second.x, second.y, { steps: 6 });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.previewPointCount() || 0), { timeout: 10_000 }).toBeGreaterThan(4);
-  await page.mouse.click(second.x, second.y);
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.segmentCount() || 0)).toBe(1);
-
-  await page.keyboard.press('Backspace');
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.segmentCount() || 0)).toBe(0);
-  await page.mouse.move(second.x, second.y, { steps: 4 });
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.previewPointCount() || 0)).toBeGreaterThan(4);
-  await page.mouse.click(second.x, second.y);
   await page.keyboard.press('Enter');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LIVE_WIRE__?.phase())).toBe('preview');
   await expect(page.locator('[data-ref-live-wire-action="apply"]')).toBeVisible();

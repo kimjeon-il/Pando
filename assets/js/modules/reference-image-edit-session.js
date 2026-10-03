@@ -1,16 +1,13 @@
+import { cloneReferenceImageRecord } from './reference-image-model.js';
+
 export function copyReferenceImageRecords(records) {
-  return records.map(record => ({
-    ...record,
-    screenRect: record.screenRect ? { ...record.screenRect } : null,
-    controlPoints: record.controlPoints.map(point => ({ ...point, image: [...point.image], coordinate: [...point.coordinate] })),
-    projectedMesh: null,
-  }));
+  return records.map(cloneReferenceImageRecord);
 }
 
 export function applyReferenceImageEdit(record, action, { id, value } = {}) {
   if (!record || record.locked) return false;
   if (action === 'flip-x' || action === 'flip-y') {
-    if (record.controlPoints.length) return false;
+    if (record.controlPoints.length || record.anchor) return false;
     const key = action === 'flip-x' ? 'flipX' : 'flipY';
     record[key] = !record[key];
     return true;
