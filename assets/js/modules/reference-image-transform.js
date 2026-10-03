@@ -297,37 +297,33 @@ function resizeCorner(drag, point, shiftKey) {
 
 function resizeEdge(drag, point) {
   const [nw, ne, se, sw] = drag.startCorners;
-  if (drag.hit.handle === 'e' || drag.hit.handle === 'w') {
-    const fixed = drag.hit.handle === 'e' ? midpoint(nw, sw) : midpoint(ne, se);
-    const direction = drag.hit.handle === 'e' ? drag.u : multiply(drag.u, -1);
-    const components = solveBasis(subtract(point, fixed), direction, drag.v);
+  if (drag.hit.handle === 'e') {
+    const fixed = midpoint(nw, sw);
+    const components = solveBasis(subtract(point, fixed), drag.u, drag.v);
     if (!components) return null;
-    const width = Math.max(REFERENCE_IMAGE_TRANSFORM.minimumWidth, components[0]);
-    const center = add(fixed, multiply(direction, width / 2));
-    const halfU = multiply(direction, width / 2);
-    const halfV = multiply(drag.v, drag.height / 2);
-    return [
-      add(subtract(center, halfU), multiply(halfV, -1)),
-      add(add(center, halfU), multiply(halfV, -1)),
-      add(add(center, halfU), halfV),
-      add(subtract(center, halfU), halfV),
-    ];
+    const widthVector = multiply(drag.u, Math.max(REFERENCE_IMAGE_TRANSFORM.minimumWidth, components[0]));
+    return [nw, add(nw, widthVector), add(sw, widthVector), sw];
   }
-  if (drag.hit.handle === 'n' || drag.hit.handle === 's') {
-    const fixed = drag.hit.handle === 's' ? midpoint(nw, ne) : midpoint(sw, se);
-    const direction = drag.hit.handle === 's' ? drag.v : multiply(drag.v, -1);
-    const components = solveBasis(subtract(point, fixed), drag.u, direction);
+  if (drag.hit.handle === 'w') {
+    const fixed = midpoint(ne, se);
+    const components = solveBasis(subtract(point, fixed), multiply(drag.u, -1), drag.v);
     if (!components) return null;
-    const height = Math.max(REFERENCE_IMAGE_TRANSFORM.minimumHeight, components[1]);
-    const center = add(fixed, multiply(direction, height / 2));
-    const halfU = multiply(drag.u, drag.width / 2);
-    const halfV = multiply(direction, height / 2);
-    return [
-      add(subtract(center, halfU), multiply(halfV, -1)),
-      add(add(center, halfU), multiply(halfV, -1)),
-      add(add(center, halfU), halfV),
-      add(subtract(center, halfU), halfV),
-    ];
+    const widthVector = multiply(drag.u, Math.max(REFERENCE_IMAGE_TRANSFORM.minimumWidth, components[0]));
+    return [subtract(ne, widthVector), ne, se, subtract(se, widthVector)];
+  }
+  if (drag.hit.handle === 's') {
+    const fixed = midpoint(nw, ne);
+    const components = solveBasis(subtract(point, fixed), drag.u, drag.v);
+    if (!components) return null;
+    const heightVector = multiply(drag.v, Math.max(REFERENCE_IMAGE_TRANSFORM.minimumHeight, components[1]));
+    return [nw, ne, add(ne, heightVector), add(nw, heightVector)];
+  }
+  if (drag.hit.handle === 'n') {
+    const fixed = midpoint(sw, se);
+    const components = solveBasis(subtract(point, fixed), drag.u, multiply(drag.v, -1));
+    if (!components) return null;
+    const heightVector = multiply(drag.v, Math.max(REFERENCE_IMAGE_TRANSFORM.minimumHeight, components[1]));
+    return [subtract(sw, heightVector), subtract(se, heightVector), se, sw];
   }
   return null;
 }
