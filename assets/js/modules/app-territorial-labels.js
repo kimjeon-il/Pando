@@ -5,6 +5,7 @@ import { PLACE_LIMITS } from './place-contract.js';
 import { territorialLabelFlag } from './territorial-label-flags.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
 import { territorialSymbolGroup, territorialSymbolVisibility } from './layer-presentation.js';
+import { createTerritorialFillResolver } from './territorial-fill-style.js';
 
 /** TerritorialLabels: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -76,12 +77,6 @@ export function createTerritorialLabels() {
     if (!id) return feature;
     refreshCountryDisplayIndex();
     return countryDisplayIndex.get(id) || feature;
-  }
-
-  function countryFillColor(feature) {
-    return dependencies.projectState.state.layerPresentation?.styles?.countries?.colorVisible === false
-      ? (0, dependencies.preferences.mapTheme)().defaultLand
-      : dependencies.colorModel.territorialEntityColor(feature);
   }
 
   function applyUserPreferences(nextPreferences, { persist = true, rerender = true } = {}) {
@@ -160,9 +155,15 @@ export function createTerritorialLabels() {
 
   function renderPendingCountryOverlays() {
     if (!dependencies.mapLayers.countryLayer) return;
+    const theme = dependencies.preferences.mapTheme();
+    const resolveFill = createTerritorialFillResolver({ state: dependencies.projectState.state,
+      entityRepository: dependencies.territorialModel.entityRepository,
+      terrainAlpha: theme.countryColorAlpha,
+      mapSubstrate: dependencies.projectState.state.physicalSettings.terrainVisible ? null
+        : { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha } });
     const pending = dependencies.projectState.state.layerVisibility.countries && dependencies.projectState.state.pendingCountryRenderIds?.size
       ? [...dependencies.projectState.state.pendingCountryRenderIds]
-        .map(dependencies.territorialModel.entityStore.countryFeature)
+        .map(dependencies.territorialModel.entityRepository.get)
         .filter(feature => feature && (0, dependencies.layerPresentation.isCountryVisibleById)(String(feature.id || '')))
       : [];
     const patchFill = dependencies.mapLayers.countryLayer.selectAll('path.country-patch-preview-fill')
@@ -171,8 +172,8 @@ export function createTerritorialLabels() {
     dependencies.mapLayers.countryLayer.selectAll('path.country-patch-preview-fill')
       .attr('d', feature => (0, dependencies.mapView.path)(feature))
       .attr('data-gpu-scene-key', feature => `pending-country-fill:${feature.id}`)
-      .style('fill', countryFillColor)
-      .style('fill-opacity', (0, dependencies.preferences.mapTheme)().fillAlpha)
+      .style('fill', feature => resolveFill(feature).color || 'none')
+      .style('fill-opacity', feature => resolveFill(feature).fillAlpha)
       .style('stroke', 'none');
     patchFill.exit().remove();
     const patchOutline = dependencies.mapLayers.countryLayer.selectAll('path.country-patch-preview-outline')
