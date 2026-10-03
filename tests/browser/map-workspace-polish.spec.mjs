@@ -107,7 +107,7 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     await expect(page.locator('#objectSearchSurface')).toBeHidden();
     await expect(page.locator('#countryNameInput')).toHaveValue('독일');
     expect(await cameraSnapshot(page)).toEqual(beforeSelect);
-    await page.locator(mobile ? '#mobileEditBtn' : '#selectionToolbarEditBtn').click();
+    await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
     await expect(page.locator('#editBorderBtn')).toBeVisible();
     const beforeTask = await cameraSnapshot(page);
     await page.locator('#editBorderBtn').click();
@@ -142,7 +142,7 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
     await expect(page.locator('#countryNameInput')).toHaveValue('독일');
     await expect(page.locator('#editBorderBtn')).toBeVisible();
-    await page.locator(mobile ? '#mobileEditBtn' : '#selectionToolbarEditBtn').click();
+    await page.keyboard.press('Escape');
     await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
   }
   await page.setViewportSize({ width: 1024, height: 500 });

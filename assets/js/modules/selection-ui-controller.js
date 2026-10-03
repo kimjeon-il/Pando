@@ -124,7 +124,7 @@ export function createSelectionUiController({
     const clickedPrimary = selected && primary(current)?.key === ref.key;
     const territorialToolbarTarget = ref.domain === 'territorial'
       && ['country', 'subunit', 'region'].includes(ref.type);
-    const shouldOpenEditor = clickedPrimary && (openEditor == null ? !territorialToolbarTarget : openEditor);
+    const shouldOpenEditor = clickedPrimary && (openEditor == null ? !territorialToolbarTarget || (mode === 'replace' && current.items.length === 1) : openEditor);
     presentSelectionState(current, { refreshOnly: clickedPrimary ? refreshOnly : true, openEditor: shouldOpenEditor });
     if (clickedPrimary && !refreshOnly && !territorialToolbarTarget) uiActions.focusObject?.(ref);
     uiActions.closeChooser?.();

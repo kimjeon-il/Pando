@@ -27,7 +27,7 @@ test('foundation transient capability closes the actual toolbar flag popover and
   assert.equal(Object.hasOwn(selectionToolbarPresentation, 'syncOcclusion'), false);
 });
 
-test('territorial selection presents the toolbar through the common controller without opening the editor', t => {
+test('territorial selection enters the editor through the common controller, while refresh does not reopen it', t => {
   const previousWindow = globalThis.window;
   globalThis.window = {};
   t.after(() => { globalThis.window = previousWindow; });
@@ -48,6 +48,8 @@ test('territorial selection presents the toolbar through the common controller w
   propertySelection.initializePropertySelection();
   assert.equal(globalThis.window.PANDOLAB_TERRITORIAL.select('country', 'DEU'), true);
   assert.equal(globalThis.window.PANDOLAB_TERRITORIAL.select('subunit', 'subunit-1'), true);
-  assert.deepEqual(intents.map(intent => intent.options.openEditor), [false, false]);
+  assert.deepEqual(intents.map(intent => intent.options.openEditor), [true, true]);
   assert.deepEqual(intents.map(intent => intent.ref.type), ['country', 'subunit']);
+  globalThis.window.PANDOLAB_TERRITORIAL.select('country', 'DEU', true);
+  assert.equal(intents.at(-1).options.openEditor, false);
 });
