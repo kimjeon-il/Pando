@@ -304,14 +304,42 @@ test('basic resize preserves an existing projective trapezoid instead of flatten
   assert.equal(buildReferenceImagePlacementWarp(record).ok, true);
 });
 
-test('free transform is unavailable while a manual anchor or GCP exists', () => {
+test('free transform remains available with a manual anchor or GCP', () => {
   const host = createHost();
   const base = referenceImageScreenRectToMapQuad({ x: 100, y: 100, width: 200, height: 100 }, 0, host);
   const anchored = { id: 'a', mapQuad: base, anchor: { image: [0.5, 0.5], coordinate: [10, 5] }, controlPoints: [] };
   const gcp = { id: 'b', mapQuad: base, anchor: null, controlPoints: [{ id: 'p', image: [0.5, 0.5], coordinate: [10, 5] }] };
   const corner = referenceImagePlacementGeometry(anchored, host).corners[0];
-  assert.equal(referenceImageFreeTransformHit(anchored, corner, host), null);
-  assert.equal(referenceImageFreeTransformHit(gcp, corner, host), null);
+  assert.equal(referenceImageFreeTransformHit(anchored, corner, host).corner, 'nw');
+  assert.equal(referenceImageFreeTransformHit(gcp, corner, host).corner, 'nw');
+
+  const anchoredDrag = createReferenceImageFreeTransformDrag(
+    anchored,
+    referenceImageFreeTransformHit(anchored, corner, host),
+    50,
+  );
+  assert.ok(anchoredDrag);
+  assert.equal(applyReferenceImageFreeTransformDrag(anchored, anchoredDrag, [80, 80], host), true);
+});
+
+test('corner pin drag keeps stored anchor and GCP metadata intact', () => {
+  const host = createHost();
+  const record = {
+    id: 'combined-free',
+    mapQuad: referenceImageScreenRectToMapQuad({ x: 100, y: 100, width: 200, height: 100 }, 0, host),
+    flipX: false,
+    flipY: false,
+    anchor: { image: [0.5, 0.5], coordinate: [10, 5] },
+    controlPoints: [{ id: 'gcp', image: [0.25, 0.25], coordinate: [5, 7.5] }],
+  };
+  const anchorBefore = structuredClone(record.anchor);
+  const gcpBefore = structuredClone(record.controlPoints);
+  const geometry = referenceImagePlacementGeometry(record, host);
+  const hit = referenceImageFreeTransformHit(record, geometry.corners[2], host);
+  const drag = createReferenceImageFreeTransformDrag(record, hit, 51);
+  assert.equal(applyReferenceImageFreeTransformDrag(record, drag, [330, 230], host), true);
+  assert.deepEqual(record.anchor, anchorBefore);
+  assert.deepEqual(record.controlPoints, gcpBefore);
 });
 
 test('placement coordinate lookup uses projective interpolation for a corner-pinned quad', () => {
