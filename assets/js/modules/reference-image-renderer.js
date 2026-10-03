@@ -206,9 +206,13 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function drawFreeTransformHandles(record, host, dpr) {
-    if (record.id !== getFreeTransformEditingId?.() || record.warp?.ok || record.anchor || isPanelHidden?.()) return;
-    const corners = projectReferenceImageMapQuad(record, host);
-    if (!corners) return;
+    if (record.id !== getFreeTransformEditingId?.() || isPanelHidden?.()) return;
+    const coordinates = record.warp?.ok && !record.cornerPinEnabled
+      ? [[0, 0], [1, 0], [1, 1], [0, 1]].map(image => record.warp.project(image))
+      : record.mapQuad;
+    if (!Array.isArray(coordinates) || coordinates.length !== 4) return;
+    const corners = coordinates.map(coordinate => projectVisible(host, coordinate));
+    if (corners.some(point => !point)) return;
     context.save();
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
     context.lineWidth = 1.5;
