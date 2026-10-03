@@ -248,7 +248,7 @@ export function installReferenceImageLiveWire() {
   }
 
   function ensureActionRow() {
-    let row = editor.querySelector('[data-ref-live-wire-actions]');
+    let row = panel.querySelector('[data-ref-live-wire-actions]');
     if (!row) {
       row = document.createElement('div');
       row.className = 'reference-image-calibration-actions reference-image-live-wire-actions';
@@ -314,6 +314,18 @@ export function installReferenceImageLiveWire() {
     const redraw = row.querySelector('[data-ref-live-wire-action="redraw"]');
     const cancel = row.querySelector('[data-ref-live-wire-action="cancel"]');
     const active = !!state && state.recordId === recordId;
+    const summary = panel.querySelector('.reference-image-editing-summary');
+    const genericSummaryActions = summary?.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]') || [];
+    if (active && summary) {
+      genericSummaryActions.forEach(button => { button.hidden = true; });
+      if (row.parentElement !== summary) summary.appendChild(row);
+    } else {
+      genericSummaryActions.forEach(button => { button.hidden = false; });
+      const lineActions = editor.querySelector('[data-ref-line-actions]');
+      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
+      if (lineActions && row.previousElementSibling !== lineActions) lineActions.insertAdjacentElement('afterend', row);
+      else if (!lineActions && calibrationActions && row.previousElementSibling !== calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
+    }
     const tracking = active && state.phase === 'tracking';
     const preview = active && state.phase === 'preview';
     const incompatibleMode = mapElement.classList.contains('is-reference-anchor-mode')
@@ -426,6 +438,7 @@ export function installReferenceImageLiveWire() {
       return false;
     }
     setReferenceImageSurfaceEditing(false);
+    setReferenceImageSurfaceEditing(true, '자동 추적 중 · 지도에서 경계 시작점과 다음 지점을 선택하세요.');
     state = {
       recordId,
       phase: 'loading',
