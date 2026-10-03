@@ -1,12 +1,13 @@
 import {
   REFERENCE_IMAGE_TRANSFORM,
-  projectReferenceImageMapQuad,
+  buildReferenceImagePlacementMesh,
   referenceImagePlacementGeometry,
   referenceImagePlacementUvAtPoint,
 } from './reference-image-transform.js';
 
 const HOST_ACTIVE_POLL_MS = 34;
 const HOST_IDLE_POLL_MS = 240;
+const PLACEMENT_MESH_QUALITY = Object.freeze({ columns: 12, rows: 8 });
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 function mapHost() {
@@ -144,22 +145,17 @@ export function createReferenceImageCanvasRenderer({
   }
 
   function drawPlaced(record, host, dpr) {
-    const corners = projectReferenceImageMapQuad(record, host);
-    if (!corners) return;
-    const triangles = [
-      { indices: [0, 1, 2], uv: [[0, 0], [1, 0], [1, 1]] },
-      { indices: [0, 2, 3], uv: [[0, 0], [1, 1], [0, 1]] },
-    ];
+    const mesh = buildReferenceImagePlacementMesh(record, PLACEMENT_MESH_QUALITY);
+    if (!mesh) return;
+    const projected = mesh.vertices.map(vertex => projectVisible(host, vertex.coordinate));
     context.save();
     context.globalAlpha = record.opacity;
     context.globalCompositeOperation = record.blendMode;
-    for (const triangle of triangles) {
-      drawTriangle(
-        record,
-        triangle.indices.map(index => corners[index]),
-        triangle.uv.map(pair => placementUv(record, pair)),
-        dpr,
-      );
+    for (const triangle of mesh.triangles) {
+      const destination = triangle.map(index => projected[index]);
+      if (destination.some(point => !point || !point.every(Number.isFinite))) continue;
+      const uv = triangle.map(index => placementUv(record, mesh.vertices[index].uv));
+      drawTriangle(record, destination, uv, dpr);
     }
     context.restore();
   }
