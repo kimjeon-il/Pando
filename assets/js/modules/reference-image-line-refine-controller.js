@@ -1,8 +1,9 @@
 import { referenceImageKeyBlocked } from './reference-image-input.js';
-import {
-  buildReferenceImageMesh,
-  buildReferenceImageWarp,
-} from './reference-image-georef.js';
+import { referenceImageEventTargetsMap } from './reference-image-pointer-target.js';
+import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
+import { buildReferenceImageMesh } from './reference-image-georef.js';
+import { referenceImageMappingSignature } from './reference-image-model.js';
+import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
 import {
   getReferenceImageGradientField,
   referenceImagePixelsToCoordinates,
@@ -199,10 +200,10 @@ export function installReferenceImageLineRefiner() {
   }
 
   function ensureActionRow() {
-    let row = editor.querySelector('[data-ref-line-actions]');
+    let row = panel.querySelector('[data-ref-line-actions]');
     if (!row) {
       row = document.createElement('div');
-      row.className = 'reference-image-gcp-actions reference-image-line-refine-actions';
+      row.className = 'reference-image-calibration-actions reference-image-line-refine-actions';
       row.dataset.refLineActions = '';
       row.innerHTML = `
         <button type="button" class="ui-button ui-button--primary" data-ref-line-action="start">선 보강</button>
@@ -210,14 +211,15 @@ export function installReferenceImageLineRefiner() {
         <button type="button" class="ui-button" data-ref-line-action="redraw" hidden>다시 그리기</button>
         <button type="button" class="ui-button" data-ref-line-action="cancel" hidden>취소</button>
       `;
-      const gcpActions = editor.querySelector('.reference-image-gcp-actions');
-      if (gcpActions) gcpActions.insertAdjacentElement('afterend', row);
+      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
+      if (calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
       else editor.appendChild(row);
     }
     return row;
   }
 
   function cancelRefine({ message = '', tone = '' } = {}) {
+    setReferenceImageSurfaceEditing(false);
     state = null;
     mapElement.classList.remove('is-reference-line-refine-mode');
     if (message) {
@@ -237,10 +239,10 @@ export function installReferenceImageLineRefiner() {
       cancelRefine();
       return;
     }
-    const warpReady = !!meta?.diagnostics;
-    if (state && (meta?.locked || !warpReady)) {
+    const mappingReady = !!meta?.mappingReady;
+    if (state && (meta?.locked || !mappingReady)) {
       cancelRefine({
-        message: meta?.locked ? '잠금을 해제한 뒤 선 보강을 사용할 수 있습니다.' : '기준점 보정이 완료된 이미지에서만 선 보강을 사용할 수 있습니다.',
+        message: meta?.locked ? '잠금을 해제한 뒤 선 보강을 사용할 수 있습니다.' : 'Corner Pin 또는 기준점 보정이 준비된 이미지에서만 선 보강을 사용할 수 있습니다.',
         tone: 'error',
       });
       return;
@@ -251,8 +253,25 @@ export function installReferenceImageLineRefiner() {
     const redraw = row.querySelector('[data-ref-line-action="redraw"]');
     const cancel = row.querySelector('[data-ref-line-action="cancel"]');
     const active = !!state && state.recordId === recordId;
+    const summary = panel.querySelector('.reference-image-editing-summary');
+    const genericSummaryActions = summary?.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]') || [];
+    const compactSummaryActive = active && summary && !summary.hidden;
+    if (compactSummaryActive) {
+      genericSummaryActions.forEach(button => { button.hidden = true; });
+      if (row.parentElement !== summary) summary.appendChild(row);
+    } else {
+      genericSummaryActions.forEach(button => { button.hidden = false; });
+      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
+      if (calibrationActions && row.previousElementSibling !== calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
+    }
     start.hidden = active;
-    start.disabled = !meta || meta.locked || !warpReady || mapElement.classList.contains('is-reference-gcp-mode') || mapElement.classList.contains('is-reference-placement-mode') || mapElement.classList.contains('is-reference-live-wire-mode');
+    start.disabled = !meta || meta.locked || !mappingReady
+      || mapElement.classList.contains('is-reference-anchor-mode')
+      || mapElement.classList.contains('is-reference-gcp-mode')
+      || mapElement.classList.contains('is-reference-gcp-edit-mode')
+      || mapElement.classList.contains('is-reference-placement-mode')
+      || mapElement.classList.contains('is-reference-free-transform-mode')
+      || mapElement.classList.contains('is-reference-live-wire-mode');
     apply.hidden = !active || state.phase !== 'preview';
     redraw.hidden = !active || state.phase !== 'preview';
     cancel.hidden = !active;
@@ -282,13 +301,18 @@ export function installReferenceImageLineRefiner() {
     let stored = (await listStoredReferenceImages()).find(record => String(record?.id) === String(recordId));
     const meta = publicRecordMeta(recordId);
     if (!stored?.blob) throw new Error('저장된 참조 이미지를 찾을 수 없습니다.');
-    if (meta && Array.isArray(stored.controlPoints) && stored.controlPoints.length !== Number(meta.controlPointCount || 0)) {
-      await new Promise(resolve => globalThis.setTimeout(resolve, 32));
+    for (let attempt = 0; meta?.mappingSignature
+      && referenceImageMappingSignature(stored) !== meta.mappingSignature
+      && attempt < 8; attempt += 1) {
+      await new Promise(resolve => globalThis.setTimeout(resolve, 50));
       stored = (await listStoredReferenceImages()).find(record => String(record?.id) === String(recordId)) || stored;
     }
+    if (meta?.mappingSignature && referenceImageMappingSignature(stored) !== meta.mappingSignature) {
+      throw new Error('참조 이미지 변경 사항을 저장한 뒤 다시 시도하세요.');
+    }
     if (meta?.locked || stored.locked) throw new Error('잠금을 해제한 뒤 선 보강을 사용할 수 있습니다.');
-    const warp = buildReferenceImageWarp(stored.controlPoints || [], { mode: stored.warpMode });
-    if (!warp.ok) throw new Error('기준점 보정을 완료한 뒤 선 보강을 사용할 수 있습니다.');
+    const warp = buildReferenceImageSourceMapping(stored);
+    if (!warp.ok) throw new Error('Corner Pin 또는 기준점 보정을 완료한 뒤 선 보강을 사용할 수 있습니다.');
     const decoded = await cachedImage(stored);
     return {
       id: String(recordId),
@@ -342,10 +366,17 @@ export function installReferenceImageLineRefiner() {
 
   async function startRefine(recordId) {
     if (state) cancelRefine();
-    if (mapElement.classList.contains('is-reference-gcp-mode') || mapElement.classList.contains('is-reference-placement-mode')) {
-      setMessage('기준점 추가 또는 배치 편집을 먼저 종료한 뒤 선 보강을 시작하세요.', 'error');
+    if (mapElement.classList.contains('is-reference-anchor-mode')
+      || mapElement.classList.contains('is-reference-gcp-mode')
+      || mapElement.classList.contains('is-reference-gcp-edit-mode')
+      || mapElement.classList.contains('is-reference-placement-mode')
+      || mapElement.classList.contains('is-reference-free-transform-mode')
+      || mapElement.classList.contains('is-reference-live-wire-mode')) {
+      setMessage('참조 이미지 편집이나 자동 추적을 먼저 종료한 뒤 선 보강을 시작하세요.', 'error');
       return false;
     }
+    setReferenceImageSurfaceEditing(false);
+    setReferenceImageSurfaceEditing(true, '선 보강 중 · 지도에서 참조 이미지 경계를 따라 드래그하세요.');
     state = { recordId, phase: 'loading', source: null, pointerId: null, roughScreenPoints: [], roughImagePoints: [], previewCoordinates: [] };
     mapElement.classList.add('is-reference-line-refine-mode');
     setMessage('참조 이미지의 경계 정보를 준비하고 있습니다.', 'working');
@@ -454,16 +485,17 @@ export function installReferenceImageLineRefiner() {
     return true;
   }
 
+
   function intercept(event) {
     if (!state || !['armed', 'drawing'].includes(state.phase)) return false;
-    if (!mapElement.contains(event.target)) return false;
+    if (!referenceImageEventTargetsMap(event, mapElement)) return false;
     event.preventDefault();
     event.stopImmediatePropagation();
     return true;
   }
 
   function onPointerDown(event) {
-    if (!state || state.phase !== 'armed' || event.button !== 0 || !mapElement.contains(event.target)) return;
+    if (!state || state.phase !== 'armed' || event.button !== 0 || !referenceImageEventTargetsMap(event, mapElement)) return;
     if (!intercept(event)) return;
     const screen = canvasPoint(event, mapElement);
     const uv = hitTestUv(state.source, screen);

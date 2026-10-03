@@ -1,8 +1,9 @@
 import { referenceImageKeyBlocked } from './reference-image-input.js';
-import {
-  buildReferenceImageMesh,
-  buildReferenceImageWarp,
-} from './reference-image-georef.js';
+import { referenceImageEventTargetsMap } from './reference-image-pointer-target.js';
+import { setReferenceImageSurfaceEditing } from './reference-image-surface-port.js';
+import { buildReferenceImageMesh } from './reference-image-georef.js';
+import { referenceImageMappingSignature } from './reference-image-model.js';
+import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
 import { referenceImagePixelsToCoordinates } from './reference-image-line-refiner.js';
 import {
   analysisPointFromUv,
@@ -248,10 +249,10 @@ export function installReferenceImageLiveWire() {
   }
 
   function ensureActionRow() {
-    let row = editor.querySelector('[data-ref-live-wire-actions]');
+    let row = panel.querySelector('[data-ref-live-wire-actions]');
     if (!row) {
       row = document.createElement('div');
-      row.className = 'reference-image-gcp-actions reference-image-live-wire-actions';
+      row.className = 'reference-image-calibration-actions reference-image-live-wire-actions';
       row.dataset.refLiveWireActions = '';
       row.innerHTML = `
         <button type="button" class="ui-button ui-button--primary" data-ref-live-wire-action="start">자동 추적</button>
@@ -262,9 +263,9 @@ export function installReferenceImageLiveWire() {
         <button type="button" class="ui-button" data-ref-live-wire-action="cancel" hidden>취소</button>
       `;
       const lineActions = editor.querySelector('[data-ref-line-actions]');
-      const gcpActions = editor.querySelector('.reference-image-gcp-actions');
+      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
       if (lineActions) lineActions.insertAdjacentElement('afterend', row);
-      else if (gcpActions) gcpActions.insertAdjacentElement('afterend', row);
+      else if (calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
       else editor.appendChild(row);
     }
     return row;
@@ -277,6 +278,7 @@ export function installReferenceImageLiveWire() {
   }
 
   function cancelLiveWire({ message = '', tone = '' } = {}) {
+    setReferenceImageSurfaceEditing(false);
     state = null;
     pendingPointer = null;
     mapElement.classList.remove('is-reference-live-wire-mode');
@@ -297,10 +299,10 @@ export function installReferenceImageLiveWire() {
       cancelLiveWire();
       return;
     }
-    const warpReady = !!meta?.diagnostics;
-    if (state && (meta?.locked || !warpReady)) {
+    const mappingReady = !!meta?.mappingReady;
+    if (state && (meta?.locked || !mappingReady)) {
       cancelLiveWire({
-        message: meta?.locked ? '잠금을 해제한 뒤 자동 추적을 사용할 수 있습니다.' : '기준점 보정이 완료된 이미지에서만 자동 추적을 사용할 수 있습니다.',
+        message: meta?.locked ? '잠금을 해제한 뒤 자동 추적을 사용할 수 있습니다.' : 'Corner Pin 또는 기준점 보정이 준비된 이미지에서만 자동 추적을 사용할 수 있습니다.',
         tone: 'error',
       });
       return;
@@ -313,13 +315,29 @@ export function installReferenceImageLiveWire() {
     const redraw = row.querySelector('[data-ref-live-wire-action="redraw"]');
     const cancel = row.querySelector('[data-ref-live-wire-action="cancel"]');
     const active = !!state && state.recordId === recordId;
+    const summary = panel.querySelector('.reference-image-editing-summary');
+    const genericSummaryActions = summary?.querySelectorAll('[data-ref-action="finish"], [data-ref-action="cancel"]') || [];
+    const compactSummaryActive = active && summary && !summary.hidden;
+    if (compactSummaryActive) {
+      genericSummaryActions.forEach(button => { button.hidden = true; });
+      if (row.parentElement !== summary) summary.appendChild(row);
+    } else {
+      genericSummaryActions.forEach(button => { button.hidden = false; });
+      const lineActions = editor.querySelector('[data-ref-line-actions]');
+      const calibrationActions = editor.querySelector('.reference-image-calibration-actions');
+      if (lineActions && row.previousElementSibling !== lineActions) lineActions.insertAdjacentElement('afterend', row);
+      else if (!lineActions && calibrationActions && row.previousElementSibling !== calibrationActions) calibrationActions.insertAdjacentElement('afterend', row);
+    }
     const tracking = active && state.phase === 'tracking';
     const preview = active && state.phase === 'preview';
-    const incompatibleMode = mapElement.classList.contains('is-reference-gcp-mode')
+    const incompatibleMode = mapElement.classList.contains('is-reference-anchor-mode')
+      || mapElement.classList.contains('is-reference-gcp-mode')
+      || mapElement.classList.contains('is-reference-gcp-edit-mode')
       || mapElement.classList.contains('is-reference-placement-mode')
+      || mapElement.classList.contains('is-reference-free-transform-mode')
       || mapElement.classList.contains('is-reference-line-refine-mode');
     start.hidden = active;
-    start.disabled = !meta || meta.locked || !warpReady || incompatibleMode;
+    start.disabled = !meta || meta.locked || !mappingReady || incompatibleMode;
     finish.hidden = !tracking;
     finish.disabled = !state?.segments?.length && !state?.previewPoints?.length;
     undo.hidden = !tracking;
@@ -348,11 +366,14 @@ export function installReferenceImageLiveWire() {
     let stored = (await listStoredReferenceImages()).find(record => String(record?.id) === String(recordId));
     const meta = publicRecordMeta(recordId);
     if (!stored?.blob) throw new Error('저장된 참조 이미지를 찾을 수 없습니다.');
-    for (let attempt = 0; meta && Array.isArray(stored.controlPoints)
-      && stored.controlPoints.length !== Number(meta.controlPointCount || 0)
-      && attempt < 6; attempt += 1) {
-      await new Promise(resolve => globalThis.setTimeout(resolve, 40));
+    for (let attempt = 0; meta?.mappingSignature
+      && referenceImageMappingSignature(stored) !== meta.mappingSignature
+      && attempt < 8; attempt += 1) {
+      await new Promise(resolve => globalThis.setTimeout(resolve, 50));
       stored = (await listStoredReferenceImages()).find(record => String(record?.id) === String(recordId)) || stored;
+    }
+    if (meta?.mappingSignature && referenceImageMappingSignature(stored) !== meta.mappingSignature) {
+      throw new Error('참조 이미지 변경 사항을 저장한 뒤 다시 시도하세요.');
     }
     return stored;
   }
@@ -361,8 +382,8 @@ export function installReferenceImageLiveWire() {
     const stored = await loadStoredRecord(recordId);
     const meta = publicRecordMeta(recordId);
     if (meta?.locked || stored.locked) throw new Error('잠금을 해제한 뒤 자동 추적을 사용할 수 있습니다.');
-    const warp = buildReferenceImageWarp(stored.controlPoints || [], { mode: stored.warpMode });
-    if (!warp.ok) throw new Error('기준점 보정을 완료한 뒤 자동 추적을 사용할 수 있습니다.');
+    const warp = buildReferenceImageSourceMapping(stored);
+    if (!warp.ok) throw new Error('Corner Pin 또는 기준점 보정을 완료한 뒤 자동 추적을 사용할 수 있습니다.');
     const decoded = await cachedImage(stored);
     const field = getReferenceImageLiveWireField(decoded.image, { maxDimension: LIVE_WIRE_OPTIONS.maxDimension });
     if (Number(field.peakEdgeStrength || 0) < 0.02) throw new Error('이미지에서 추적할 수 있는 선명한 경계를 찾지 못했습니다.');
@@ -409,12 +430,17 @@ export function installReferenceImageLiveWire() {
 
   async function startLiveWire(recordId) {
     if (state) cancelLiveWire();
-    if (mapElement.classList.contains('is-reference-gcp-mode')
+    if (mapElement.classList.contains('is-reference-anchor-mode')
+      || mapElement.classList.contains('is-reference-gcp-mode')
+      || mapElement.classList.contains('is-reference-gcp-edit-mode')
       || mapElement.classList.contains('is-reference-placement-mode')
+      || mapElement.classList.contains('is-reference-free-transform-mode')
       || mapElement.classList.contains('is-reference-line-refine-mode')) {
-      setMessage('기준점 추가·배치 편집·선 보강을 먼저 종료한 뒤 자동 추적을 시작하세요.', 'error');
+      setMessage('참조 이미지 편집이나 선 보강을 먼저 종료한 뒤 자동 추적을 시작하세요.', 'error');
       return false;
     }
+    setReferenceImageSurfaceEditing(false);
+    setReferenceImageSurfaceEditing(true, '자동 추적 중 · 지도에서 경계 시작점과 다음 지점을 선택하세요.');
     state = {
       recordId,
       phase: 'loading',
@@ -532,7 +558,9 @@ export function installReferenceImageLiveWire() {
 
   function commitCurrentPreview(screen = null) {
     if (!state || state.phase !== 'tracking') return false;
-    if (screen) computePreviewForScreen(screen);
+    if (screen && (!state.previewPoints?.length || state.previewPoints.length < 2)) {
+      computePreviewForScreen(screen);
+    }
     if (!state.previewPoints?.length || state.previewPoints.length < 2) {
       setMessage('먼저 마우스를 경계의 다음 지점으로 이동하세요.', 'error');
       return false;
@@ -641,30 +669,41 @@ export function installReferenceImageLiveWire() {
     return true;
   }
 
+
   function interceptMapEvent(event) {
     if (!state || !['armed', 'tracking'].includes(state.phase)) return false;
-    if (!mapElement.contains(event.target)) return false;
+    if (!referenceImageEventTargetsMap(event, mapElement)) return false;
     event.preventDefault();
     event.stopImmediatePropagation();
     return true;
   }
 
-  function onPointerDown(event) {
-    if (!state || event.button !== 0 || !['armed', 'tracking'].includes(state.phase) || !mapElement.contains(event.target)) return;
-    if (!interceptMapEvent(event)) return;
+  function activateAtPointer(event) {
+    if (!state || event.button !== 0 || !['armed', 'tracking'].includes(state.phase) || !referenceImageEventTargetsMap(event, mapElement)) return false;
+    if (!interceptMapEvent(event)) return false;
     const screen = canvasPoint(event, mapElement);
-    if (state.phase === 'armed') placeFirstAnchor(screen);
-    else commitCurrentPreview(screen);
+    return state.phase === 'armed'
+      ? placeFirstAnchor(screen)
+      : commitCurrentPreview(screen);
+  }
+
+  function onPointerDown(event) {
+    activateAtPointer(event);
+  }
+
+  function onPointerUp(event) {
+    if (!state || state.phase !== 'tracking' || !state.previewPoints?.length || state.previewPoints.length < 2) return;
+    activateAtPointer(event);
   }
 
   function onPointerMove(event) {
-    if (!state || state.phase !== 'tracking' || !mapElement.contains(event.target)) return;
+    if (!state || state.phase !== 'tracking' || !referenceImageEventTargetsMap(event, mapElement)) return;
     if (!interceptMapEvent(event)) return;
     schedulePreview(canvasPoint(event, mapElement));
   }
 
   function onDoubleClick(event) {
-    if (!state || state.phase !== 'tracking' || !mapElement.contains(event.target)) return;
+    if (!state || state.phase !== 'tracking' || !referenceImageEventTargetsMap(event, mapElement)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     const screen = canvasPoint(event, mapElement);
@@ -736,6 +775,7 @@ export function installReferenceImageLiveWire() {
 
   panel.addEventListener('click', onPanelClick, true);
   globalThis.addEventListener('pointerdown', onPointerDown, true);
+  globalThis.addEventListener('pointerup', onPointerUp, true);
   globalThis.addEventListener('pointermove', onPointerMove, true);
   globalThis.addEventListener('dblclick', onDoubleClick, true);
   globalThis.addEventListener('keydown', onKeyDown, true);
@@ -759,6 +799,7 @@ export function installReferenceImageLiveWire() {
       resizeObserver.disconnect();
       panel.removeEventListener('click', onPanelClick, true);
       globalThis.removeEventListener('pointerdown', onPointerDown, true);
+      globalThis.removeEventListener('pointerup', onPointerUp, true);
       globalThis.removeEventListener('pointermove', onPointerMove, true);
       globalThis.removeEventListener('dblclick', onDoubleClick, true);
       globalThis.removeEventListener('keydown', onKeyDown, true);

@@ -15,7 +15,7 @@ async function clearReferenceStore(page) {
     request.onsuccess = () => {
       const db = request.result;
       const tx = db.transaction('state-v2', 'readwrite');
-      tx.objectStore('state-v2').put({ version: 1, records: [] }, 'reference-images');
+      tx.objectStore('state-v2').put({ version: 2, records: [] }, 'reference-images');
       tx.oncomplete = () => { db.close(); resolve(); };
       tx.onerror = () => { db.close(); reject(tx.error); };
     };
@@ -37,17 +37,49 @@ async function readStoredRecord(page) {
   }));
 }
 
+async function screenPointForReferenceUv(page, uv) {
+  return page.evaluate(async targetUv => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const stored = (await store.listStoredReferenceImages())[0];
+    const { buildReferenceImageSourceMapping } = await import('/assets/js/modules/reference-image-source-mapping.js');
+    const mapping = buildReferenceImageSourceMapping(stored);
+    const coordinate = mapping.project(targetUv);
+    const screen = window.__PANDOLAB_MAP_HOST__.project(coordinate);
+    const rect = document.getElementById('map').getBoundingClientRect();
+    return { x: rect.left + screen[0], y: rect.top + screen[1] };
+  }, uv);
+}
+
+async function referenceScreenGeometry(page) {
+  return page.evaluate(async () => {
+    const store = await import('/assets/js/modules/reference-image-store.js');
+    const record = (await store.listStoredReferenceImages())[0];
+    const { referenceImagePlacementGeometry } = await import('/assets/js/modules/reference-image-transform.js');
+    const geometry = referenceImagePlacementGeometry(record, window.__PANDOLAB_MAP_HOST__);
+    const rect = document.getElementById('map').getBoundingClientRect();
+    return {
+      center: { x: rect.left + geometry.center[0], y: rect.top + geometry.center[1] },
+      corners: geometry.corners.map(point => ({ x: rect.left + point[0], y: rect.top + point[1] })),
+    };
+  });
+}
+
 async function waitForReady(page) {
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect(page.locator('.reference-image-launcher')).toBeVisible();
 }
 
-test('line refinement requires a ready unlocked warp and supports cancel/apply preview flow', async ({ page }) => {
+test('line refinement accepts a current corner-pin mapping and supports cancel/apply preview flow', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  const collectError = message => {
+    const text = String(message || '');
+    if (!text.toLowerCase().includes('reference-image')) return;
+    errors.push(text);
+  };
+  page.on('pageerror', error => collectError(error.message));
+  page.on('console', message => { if (message.type() === 'error') collectError(message.text()); });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await waitForReady(page);
@@ -64,20 +96,23 @@ test('line refinement requires a ready unlocked warp and supports cancel/apply p
   await expect(start).toBeDisabled();
 
   await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
-  const stored = await readStoredRecord(page);
-  const mapBox = await page.locator('#map').boundingBox();
-  const centerX = mapBox.x + stored.screenRect.x + stored.screenRect.width / 2;
-  const centerY = mapBox.y + stored.screenRect.y + stored.screenRect.height / 2;
+  const geometry = await referenceScreenGeometry(page);
 
-  await page.locator('[data-ref-action="gcp"]').click();
-  await page.mouse.click(centerX, centerY);
-  await page.mouse.click(centerX + 90, centerY + 40);
-  await page.mouse.click(centerX + 12, centerY + 8);
-  await page.mouse.click(centerX + 135, centerY + 65);
+  await page.locator('[data-ref-action="free-transform"]').click();
+  await expect(page.locator('#map')).toHaveClass(/is-reference-free-transform-mode/);
+  const corner = geometry.corners[1];
+  const target = {
+    x: corner.x + (geometry.center.x - corner.x) * 0.14,
+    y: corner.y + (geometry.center.y - corner.y) * 0.14,
+  };
+  await page.mouse.move(corner.x, corner.y);
+  await page.mouse.down();
+  await page.mouse.move(target.x, target.y, { steps: 4 });
+  await page.mouse.up();
   await expect.poll(() => page.evaluate(() => {
     const item = window.__PANDOLAB_REFERENCE_IMAGES__?.list()?.[0];
-    return { points: item?.controlPointCount || 0, ready: !!item?.diagnostics };
-  })).toEqual({ points: 2, ready: true });
+    return { cornerPin: !!item?.cornerPinEnabled, ready: !!item?.mappingReady };
+  })).toEqual({ cornerPin: true, ready: true });
   await page.keyboard.press('Escape');
   await expect(start).toBeEnabled();
 
@@ -90,7 +125,7 @@ test('line refinement requires a ready unlocked warp and supports cancel/apply p
   await page.locator('[data-ref-line-action="start"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('armed');
   await expect(page.locator('#map')).toHaveClass(/is-reference-line-refine-mode/);
-  await page.locator('[data-ref-line-action="cancel"]').click();
+  await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase())).toBe('idle');
   await expect(page.locator('#map')).not.toHaveClass(/is-reference-line-refine-mode/);
 
@@ -107,11 +142,11 @@ test('line refinement requires a ready unlocked warp and supports cancel/apply p
     };
   });
 
-  const boundaryX = centerX + 90;
-  const boundaryY = centerY + 40;
-  await page.mouse.move(boundaryX + 4, boundaryY - 45);
+  const roughStart = await screenPointForReferenceUv(page, [0.52, 0.12]);
+  const roughEnd = await screenPointForReferenceUv(page, [0.52, 0.48]);
+  await page.mouse.move(roughStart.x, roughStart.y);
   await page.mouse.down();
-  await page.mouse.move(boundaryX + 4, boundaryY + 45, { steps: 18 });
+  await page.mouse.move(roughEnd.x, roughEnd.y, { steps: 18 });
   await page.mouse.up();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGE_LINE_REFINER__?.phase()), { timeout: 10_000 }).toBe('preview');
   await expect(page.locator('[data-ref-line-action="apply"]')).toBeVisible();
