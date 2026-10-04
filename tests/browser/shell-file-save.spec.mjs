@@ -28,7 +28,13 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
 }
 
 async function makeProjectDirty(page) {
-  if (!await page.locator('#mapDisplaySurface').isVisible()) await page.locator('#mapDisplayBtn').click();
+  if (!await page.locator('#mapDisplaySurface').isVisible()) {
+    if (await page.locator('#app').getAttribute('data-layout') === 'mobile') {
+      await page.locator('#mobileMenuBtn').click();
+      await page.locator('#mobileDisplayBtn').click();
+    } else await page.locator('#mapDisplayBtn').click();
+  }
+  await page.locator('[data-map-display-row="general"]').click();
   await page.locator('[data-map-display-row="countries"]').click();
   await page.locator('[data-layer-style-opacity="countries"]').fill('80');
   await page.locator('[data-layer-style-opacity="countries"]').dispatchEvent('change');
@@ -86,6 +92,19 @@ test('desktop shell keeps a stable command topbar and accessible file and help d
   const topbarControlIds = ['undoBtn', 'redoBtn', 'mobileFileBtn', 'mapDisplayBtn', 'preferencesBtn', 'helpBtn'];
   for (const width of [1440, 1024, 390, 320]) {
     await page.setViewportSize({ width, height: width <= 390 ? 720 : 900 });
+    if (width <= 799) {
+      await expect(topbar).toBeHidden();
+      await expect(page.locator('#mobileMenuBtn')).toBeVisible();
+      const menuButton = await page.locator('#mobileMenuBtn').boundingBox();
+      expect(menuButton.x).toBeGreaterThanOrEqual(0);
+      expect(menuButton.x + menuButton.width).toBeLessThanOrEqual(width);
+      await page.locator('#mobileMenuBtn').click();
+      await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+      await expect(page.locator('#mobileDisplayBtn')).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(page.locator('#mobileGlobalMenu')).toBeHidden();
+      continue;
+    }
     const controls = await page.locator(topbarControlIds.map(id => `#${id}`).join(',')).evaluateAll(elements => (
       elements.map(element => {
         const rect = element.getBoundingClientRect();
@@ -102,18 +121,9 @@ test('desktop shell keeps a stable command topbar and accessible file and help d
     ));
     expect(controls.map(control => control.id)).toEqual(topbarControlIds);
     const visibleControls = controls.filter(control => control.visible);
-    const expectedIds = width <= 799
-      ? topbarControlIds.filter(id => id !== 'mapDisplayBtn')
-      : topbarControlIds;
-    expect(visibleControls.map(control => control.id)).toEqual(expectedIds);
+    expect(visibleControls.map(control => control.id)).toEqual(topbarControlIds);
     expect(Math.max(...visibleControls.map(control => control.y)) - Math.min(...visibleControls.map(control => control.y))).toBeLessThanOrEqual(1);
     expect(visibleControls.at(-1).right).toBeLessThanOrEqual(width + 0.5);
-    if (width <= 799) {
-      for (const control of visibleControls) {
-        expect(control.width).toBeGreaterThanOrEqual(48);
-        expect(control.height).toBeGreaterThanOrEqual(48);
-      }
-    }
   }
   await page.setViewportSize({ width: 1440, height: 900 });
 
@@ -172,12 +182,15 @@ test('mobile keeps dirty state compact and places notifications below the file m
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 390, height: 844 });
   await makeProjectDirty(page);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#mapDisplaySurface')).toBeHidden();
   await expect(page.locator('#projectSaveStatus')).toBeVisible();
   const textBox = await page.locator('#projectSaveStatusText').boundingBox();
   expect(textBox.width).toBeLessThanOrEqual(1);
-  await expect(page.locator('.topbar')).toHaveCSS('height', '48px');
+  await expect(page.locator('.topbar')).toBeHidden();
 
-  await page.locator('#mobileFileBtn').click();
+  await page.locator('#mobileMenuBtn').click();
+  await page.locator('#mobileMenuFileBtn').click();
   const menuBox = await page.locator('#fileMenu').boundingBox();
   const noticeBox = await page.locator('#actionStatus').boundingBox();
   if (noticeBox) expect(noticeBox.y).toBeGreaterThanOrEqual(menuBox.y + menuBox.height);

@@ -179,6 +179,7 @@ test('compact map commands stay clickable and search closes only after a single 
   await page.locator('#mapDisplayBtn').click();
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
   await expect(page.locator('#mapDisplaySurface')).toHaveClass(/view-menu-desktop/);
+  await page.locator('[data-map-display-row="general"]').click();
   const countryRow = page.locator('[data-map-display-row="countries"]');
   await countryRow.click();
   await expect(page.locator('#layerStylePanel-countries')).toBeVisible();

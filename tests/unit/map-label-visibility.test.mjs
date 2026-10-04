@@ -85,7 +85,7 @@ test('flag-only markers keep zoom and per-object visibility rules', () => {
   assert.deepEqual(controller.visibleLabelLayout().territorialLabels.map(feature => feature.id), ['BBB']);
 });
 
-test('all symbol switches schedule a fresh label layout without redrawing country geometry', t => {
+test('symbol and hierarchy visibility switches refresh labels while retaining independent preferences', t => {
   const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
   Object.defineProperty(globalThis, 'document', {
     configurable: true,
@@ -106,6 +106,7 @@ test('all symbol switches schedule a fresh label layout without redrawing countr
   settings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.mapSettings, {
     state, $: () => null, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
     normalizeLayerPresentation: value => value, markLayerTreeDirty() {},
+    gpuMapRenderer: { invalidateCountryPalette() {} },
     renderingDomain: {
       invalidateLabels: rendering.invalidateLabels,
       invalidateBaseScene: () => { baseInvalidations += 1; },
@@ -131,6 +132,22 @@ test('all symbol switches schedule a fresh label layout without redrawing countr
   assert.equal(layouts.at(-1).userLabels.length, 1);
   assert.equal(baseInvalidations, 0);
   assert.equal(autosaves, 6);
+  settings.setLayerVisibility('countries', false);
+  frames.shift()();
+  assert.deepEqual(layouts.at(-1).territorialLabels.map(feature => feature.id), ['SUBUNIT']);
+  assert.equal(state.layerVisibility.countryFlags, true);
+  settings.setLayerVisibility('subunits', false);
+  frames.shift()();
+  assert.equal(layouts.at(-1).territorialLabels.length, 0);
+  settings.setLayerVisibility('countries', true);
+  frames.shift()();
+  assert.deepEqual(layouts.at(-1).territorialLabels.map(feature => feature.id), ['AAA', 'BBB', 'NOFLAG']);
+  assert.equal(state.layerVisibility.subunits, false);
+  settings.setLayerVisibility('subunits', true);
+  frames.shift()();
+  assert.equal(layouts.at(-1).territorialLabels.length, 4);
+  assert.equal(baseInvalidations, 4);
+  assert.equal(autosaves, 10);
   rendering.dispose();
 });
 
