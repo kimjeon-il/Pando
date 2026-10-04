@@ -1,0 +1,49 @@
+
+Running 2 tests using 1 worker
+
+(node:7860) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\browser\gis-coast-cancellation.spec.mjs:44:3 › GENERAL coast reconciliation cancellation rolls the whole import back without error codes (57.8s)
+(node:5688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Root creation verified
+Child creation verified
+Independent region creation verified
+Cross-region annex geometry and Undo verified
+  ok 2 tests\browser\unified-objects.spec.mjs:68:1 › one object flow creates a root, child and independent region; annex across the independent region and common editing survive undo and restore (1.0m)
+
+
+  1) tests\browser\gis-coast-cancellation.spec.mjs:44:3 › GENERAL coast reconciliation cancellation rolls the whole import back without error codes 
+
+    TimeoutError: page.waitForFunction: Timeout 30000ms exceeded.
+
+       at helpers\ui-select.mjs:3
+
+      1 | export async function selectUiOption(page, selector, value) {
+      2 |   const select = page.locator(selector);
+    > 3 |   await page.waitForFunction(
+        |              ^
+      4 |     ({ selectSelector, expectedValue }) => [...document.querySelectorAll(`${selectSelector} option`)]
+      5 |       .some(option => option.value === expectedValue),
+      6 |     { selectSelector: selector, expectedValue: value },
+        at selectUiOption (C:\Users\taeeu\OneDrive\문서\GitHub\map editor\tests\browser\helpers\ui-select.mjs:3:14)
+        at openCoastImport (C:\Users\taeeu\OneDrive\문서\GitHub\map editor\tests\browser\gis-coast-cancellation.spec.mjs:23:9)
+        at C:\Users\taeeu\OneDrive\문서\GitHub\map editor\tests\browser\gis-coast-cancellation.spec.mjs:51:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\gis-coast-cancellation-GEN-187bf-rt-back-without-error-codes\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\gis-coast-cancellation-GEN-187bf-rt-back-without-error-codes\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\gis-coast-cancellation-GEN-187bf-rt-back-without-error-codes\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\gis-coast-cancellation-GEN-187bf-rt-back-without-error-codes\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests\browser\gis-coast-cancellation.spec.mjs:44:3 › GENERAL coast reconciliation cancellation rolls the whole import back without error codes 
+  1 passed (2.1m)

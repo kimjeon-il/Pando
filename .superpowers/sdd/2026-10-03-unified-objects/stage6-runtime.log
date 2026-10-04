@@ -1,0 +1,38 @@
+✔ no polygon units never inspect canonical country geometry (1.7585ms)
+✔ general children with the same root preserve both owners and use the short dashed boundary style (2.2697ms)
+✔ a one-sided general perimeter inside its root uses the same short dashed style (1.6491ms)
+✔ valid cross-root general edges are left to the country boundary renderer (0.6743ms)
+✔ independent regional styling needs no country association and missing parents fail visibly (1.6761ms)
+✔ country exteriors are not duplicated by territorial boundary segments (0.3991ms)
+✔ object registry exposes canonical domain/category/editor metadata (1.7348ms)
+✔ object refs resolve through one registry key and presentation mapping (0.3854ms)
+✔ action registry resolves dynamic lock metadata and applicability (0.414ms)
+✔ action executor delegates canonical commands without owning mutation logic (0.3121ms)
+✔ shared layer menu and editor endpoints bind to the same action ids (0.2014ms)
+✔ annexation and the three common object configurations expose concise setup, selection and review headings (9.7296ms)
+✔ all territory draw candidates must be archived through validation before advancing (2.7569ms)
+✔ nested general and independent regional components archive on method change with their exact snapshots (3.4755ms)
+✔ general object setup retains every selected source country and its reference count (1.4535ms)
+✔ all four operations use setup, selection, review and preserve a selection through back navigation (2.3445ms)
+✔ back to setup clears only transient input and preserves the draft and ready preview (0.8395ms)
+✔ a mixed line, line, polygon session keeps archived units and previews their union once (1.1234ms)
+✔ line, component and polygon parts remain together across method changes and review (1.3401ms)
+✔ component units archive and undo one item at a time (1.9558ms)
+✔ removing a middle part keeps the other parts and recalculates its real aggregate (1.4459ms)
+✔ switching from selected components archives them before opening another method (0.6272ms)
+✔ a method switch requested during component preview waits for validation before archiving (0.5241ms)
+✔ removing one component part keeps its shared snapshot until the last referencing part is removed (0.5848ms)
+✔ method changes preserve archived items and ask before discarding the current item (0.6707ms)
+✔ independent region can add a reference country only when a later line or component method needs it (0.6124ms)
+✔ the common scheduler only keeps the latest aggregate preview and applies once (0.6982ms)
+✔ late selection result cannot restore cleared geometry and cancel stops the worker (0.5582ms)
+✔ selection coalesces clicks without rebuilding source and supports worker error retry (0.6812ms)
+✔ line candidates use result IDs, toggle multiple pieces, clear selection and archive their union (3.4063ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 216.8362

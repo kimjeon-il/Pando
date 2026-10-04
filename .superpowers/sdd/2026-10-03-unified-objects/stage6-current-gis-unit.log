@@ -1,0 +1,17 @@
+✔ unknown external layers require a type; current generic sources are explicitly selectable (6.3476ms)
+✔ import fields separate selection, settings and impact confirmation (3.3709ms)
+✔ import groups setup fields and returns to visible advanced controls after a validation error (5.6542ms)
+✔ export choices use unique current categories and UI has no merged duplicate labels (1.8581ms)
+✔ child-only GeoJSON export writes one layer and omits administrative fields (17.6255ms)
+✔ project GeoPackage conversion uses current entity rows, including child and independent region (5.1838ms)
+✔ removed entrypoints have no DOM or app bindings (1.678ms)
+✔ theme updates retain persisted label and selection values (1.5056ms)
+✔ manual CRS belongs to the existing advanced mapping disclosure (0.213ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 492.1614

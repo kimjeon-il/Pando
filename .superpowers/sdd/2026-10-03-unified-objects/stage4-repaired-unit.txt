@@ -1,0 +1,26 @@
+✔ toggle removal immediately reconciles the remaining presenter and toolbar (3.8502ms)
+✔ snapshot sync reconciles multi, single and empty presenters without interaction side effects (0.6741ms)
+✔ removing a non-territorial primary presents the remaining object without focusing or reopening it (0.3335ms)
+✔ entity selection, reselection, toggle and range do not move the map (1.1288ms)
+✔ non-territorial selection retains automatic focus (0.2939ms)
+✔ explicit show-on-map button focuses the selected entity (0.697ms)
+✔ selection toolbar follows single selection and clears for multiple selection (0.2815ms)
+✔ operation errors use the common feedback slot and clear on a new normal banner (5.4274ms)
+✔ existing redraw preview keeps its real metrics and survives closing and reopening (0.8024ms)
+✔ territory list uses the authoritative union, pending state and stable part IDs (1.0665ms)
+✔ task sync derives role cards without duplicate type labels or focusing the map (1.5266ms)
+✔ task target labels refresh from the repository while object refs stay stable (0.7677ms)
+✔ new territory workflows never expose source or parent countries as a focus target (1.3795ms)
+✔ task status explains pending and missing-target decisions without changing retry eligibility (1.3096ms)
+✔ a disabled draft completion shows its authoritative validation reason in the shared task area (0.6952ms)
+✔ editable redraw with fewer than three vertices uses the precise redraw reason (0.5661ms)
+✔ tool bindings do not query the removed task focus button (0.6612ms)
+✔ hydro auxiliary commands run while idle and preserve their own busy guard (0.3502ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 172.0725
