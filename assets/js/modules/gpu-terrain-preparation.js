@@ -22,11 +22,11 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
     let terrainRenderedLevel = -1;
     let terrainTargetTileCount = 0;
     let terrainTargetTilesLoaded = 0;
-    let terrainFallbackTileCount = 0;
     let terrainTargetTileKeys = new Set();
     let terrainRetentionKeys = new Set();
     function terrainLevelForView(frameContext = activeFrameContext) {
       if (!terrainManifest?.levels?.length) return null;
+      if (view.meshQuality === 'preview') return terrainManifest.levels[0];
       const physicalScale = Number(frameContext?.scale) || Number(activeFrameContext?.scale) || 1;
       // The render canvas may lower its DPR under load, but that must not
       // choose a blurrier source terrain level for an unchanged map view.
@@ -56,13 +56,6 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
           90 - y1 / level.height * 180,
         ],
       };
-    }
-
-    function terrainTileAt(level, longitude, latitude) {
-      if (!level) return null;
-      const x = Math.min(level.width - Number.EPSILON, Math.max(0, (Number(longitude) + 180) / 360 * level.width));
-      const y = Math.min(level.height - Number.EPSILON, Math.max(0, (90 - Number(latitude)) / 180 * level.height));
-      return terrainTileSpec(level, Math.floor(x / level.tileSize), Math.floor(y / level.tileSize));
     }
 
     function terrainNeighbourSpecs(level, specs) {
@@ -362,19 +355,6 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       return meshEntry;
     }
 
-    function terrainCandidateLevels(frameContext = activeFrameContext) {
-      if (!frameContext) return [];
-      const levels = terrainManifest.levels;
-      const baseLevel = levels[0];
-      const targetLevel = terrainLevelForView(frameContext) || baseLevel;
-      const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
-      const candidateLevels = levels.slice(0, targetIndex + 1).reverse();
-      return candidateLevels.map(level => ({
-        level,
-        specs: visibleTerrainTileSpecs(level, false, frameContext),
-      }));
-    }
-
     function prepare() {
       if (!view.visible || !terrainManifest?.levels?.length || !gl || disposed) {
         terrainRetentionKeys.clear();
@@ -388,43 +368,25 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
         pruneTerrainFetchQueue();
         return false;
       }
-      const specsByLevel = terrainCandidateLevels(frameContext);
-      const targetSpecs = specsByLevel[0]?.specs || [];
-      const targetLevel = specsByLevel[0]?.level || null;
+      const targetLevel = terrainLevelForView(frameContext);
+      const targetSpecs = visibleTerrainTileSpecs(targetLevel, false, frameContext);
       terrainLastLevel = Number(targetLevel?.id ?? -1);
       terrainTargetTileCount = targetSpecs.length;
       terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
-      terrainFallbackTileCount = 0;
       terrainTargetTileKeys = new Set(targetSpecs.map(spec => spec.key));
-      terrainRetentionKeys = new Set(specsByLevel.flatMap(entry => entry.specs.map(spec => spec.key)));
+      terrainRetentionKeys = new Set(terrainTargetTileKeys);
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);
       pruneTerrainFetchQueue();
-      for (let index = specsByLevel.length - 1; index >= 0; index -= 1) {
-        const priority = 30_000 - (specsByLevel.length - 1 - index) * 2_000;
-        for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
-      }
+      for (const spec of targetSpecs) requestTerrainTile(spec, 30_000);
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 1_000);
       terrainRenderedLevel = -1;
       const prepared = [];
       for (const spec of targetSpecs) {
-        let sourceSpec = terrainTiles.has(spec.key) ? spec : null;
-        if (!sourceSpec) {
-          const centerLongitude = (spec.bounds[0] + spec.bounds[2]) / 2;
-          const centerLatitude = (spec.bounds[1] + spec.bounds[3]) / 2;
-          for (let index = 1; index < specsByLevel.length; index += 1) {
-            const candidate = terrainTileAt(specsByLevel[index].level, centerLongitude, centerLatitude);
-            if (candidate && terrainTiles.has(candidate.key)) {
-              sourceSpec = candidate;
-              break;
-            }
-          }
-        }
-        if (!sourceSpec) continue;
-        const tile = terrainTiles.get(sourceSpec.key);
+        const tile = terrainTiles.get(spec.key);
+        if (!tile) continue;
         tile.lastUsed = performance.now();
-        prepared.push({ spec, sourceSpec, texture: tile.texture, grid: terrainGridMesh(spec, frameContext), gutter: Number(terrainManifest.gutter || 0) });
-        terrainRenderedLevel = terrainRenderedLevel < 0 ? Number(sourceSpec.level) : Math.min(terrainRenderedLevel, Number(sourceSpec.level));
-        if (sourceSpec.key !== spec.key) terrainFallbackTileCount += 1;
+        prepared.push({ spec, texture: tile.texture, grid: terrainGridMesh(spec, frameContext), gutter: Number(terrainManifest.gutter || 0) });
+        terrainRenderedLevel = Number(spec.level);
       }
       if (!prepared.length && targetSpecs.length && !unusableReported
           && targetSpecs.every(spec => Number(terrainTileFailures.get(spec.key)?.attempts || 0) >= 4)) {
@@ -488,7 +450,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
     }
     tint = null; terrainTiles.clear(); terrainGridMeshes.clear();
     terrainLastLevel = -1; terrainRenderedLevel = -1;
-    terrainTargetTileCount = 0; terrainTargetTilesLoaded = 0; terrainFallbackTileCount = 0;
+    terrainTargetTileCount = 0; terrainTargetTilesLoaded = 0;
     terrainTargetTileKeys.clear(); terrainRetentionKeys.clear();
   }
   const settled = () => [...terrainTargetTileKeys].every(key => terrainTiles.has(key) || Number(terrainTileFailures.get(key)?.attempts || 0) >= 4);
@@ -506,7 +468,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
     scheduleUpload: scheduleTerrainUpload,
     settled, reset,
     stats: () => ({ terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
-      terrainTargetTilesSettled: settled(), terrainFallbackTileCount, terrainTilesLoaded: terrainTiles.size,
+      terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
       terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, tint?.byteLength || 0),
       terrainPendingDecodedBytes: pendingDecodedBytes, terrainTintReady: !!tint,
       terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: isMobile() ? 2 : 4,
