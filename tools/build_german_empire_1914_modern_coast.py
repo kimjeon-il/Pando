@@ -99,8 +99,8 @@ sea_window=unary_union([
 ])
 SW=transform(to_m,sea_window)
 coast_candidate=T.boundary.intersection(SW)
-COAST_BUFFER_M=30000
-H_MATCH_BUFFER_M=30000
+COAST_BUFFER_M=12000
+H_MATCH_BUFFER_M=12000
 zone=coast_candidate.buffer(COAST_BUFFER_M)
 modern_patch=T.intersection(zone).intersection(H.buffer(H_MATCH_BUFFER_M))
 modernized=clean(H.difference(zone).union(modern_patch))
