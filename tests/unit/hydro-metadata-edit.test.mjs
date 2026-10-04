@@ -81,7 +81,8 @@ test('the actual GPU hydro revision gate accepts an edited color and skips an un
   });
   const { owner, state } = setup();
   state.hydroEdits.push({ ...structuredClone(state.hydroEdits[0]), id: 'river-2' });
-  const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path, isMobile: () => false, scheduleGpuFrame() {} });
+  const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path, isMobile: () => false, scheduleGpuFrame() {},
+    renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null });
   t.after(() => renderer.dispose());
   assert.equal(renderer.setHydroEdits(state.hydroEdits, state.stateRevision), true);
   assert.equal(renderer.getStats().hydroEditBatchCount, 1);
