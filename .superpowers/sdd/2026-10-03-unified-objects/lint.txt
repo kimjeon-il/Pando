@@ -1,0 +1,30 @@
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\app-object-commands.js
+  28:13  error  'fallback' is assigned a value but never used  no-unused-vars
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\app-object-metadata.js
+  109:110  error  'previousUnits' is not defined                              no-undef
+  128:12   error  'requestTerritorialUnitTransfer' is defined but never used  no-unused-vars
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\app-property-selection.js
+  306:16  error  'type' is not defined  no-undef
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\app-task-stage-model.js
+  66:11   error  'entity' is assigned a value but never used  no-unused-vars
+  84:36   error  'dependencies' is not defined                no-undef
+  96:22   error  'dependencies' is not defined                no-undef
+  96:132  error  'dependencies' is not defined                no-undef
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\rendering-domain.js
+  567:15   error  'type' is assigned a value but never used                                  no-unused-vars
+  589:13   error  'type' is assigned a value but never used                                  no-unused-vars
+  816:148  error  Unexpected constant truthiness on the left-hand side of a `||` expression  no-constant-binary-expression
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\territorial-interaction-policy.js
+  55:9  error  'before' is assigned a value but never used  no-unused-vars
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\territorial-property-controller.js
+  45:11  error  'countryChoice' is assigned a value but never used  no-unused-vars
+
+✖ 13 problems (13 errors, 0 warnings)
+

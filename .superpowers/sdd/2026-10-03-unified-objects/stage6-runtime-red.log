@@ -1,0 +1,93 @@
+✖ object registry exposes canonical domain/category/editor metadata (2.1115ms)
+✔ object refs resolve through one registry key and presentation mapping (0.3687ms)
+✔ action registry resolves dynamic lock metadata and applicability (0.3974ms)
+✔ action executor delegates canonical commands without owning mutation logic (1.1511ms)
+✔ shared layer menu and editor endpoints bind to the same action ids (0.2276ms)
+✖ annexation and the three common object configurations expose concise setup, selection and review headings (4.9332ms)
+✔ all territory draw candidates must be archived through validation before advancing (6.9468ms)
+✔ nested general and independent regional components archive on method change with their exact snapshots (2.5483ms)
+✔ general object setup retains every selected source country and its reference count (1.514ms)
+✔ all four operations use setup, selection, review and preserve a selection through back navigation (3.4952ms)
+✔ back to setup clears only transient input and preserves the draft and ready preview (1.2227ms)
+✔ a mixed line, line, polygon session keeps archived units and previews their union once (1.1932ms)
+✔ line, component and polygon parts remain together across method changes and review (1.1644ms)
+✔ component units archive and undo one item at a time (0.8626ms)
+✔ removing a middle part keeps the other parts and recalculates its real aggregate (2.929ms)
+✔ switching from selected components archives them before opening another method (0.8289ms)
+✔ a method switch requested during component preview waits for validation before archiving (0.5979ms)
+✔ removing one component part keeps its shared snapshot until the last referencing part is removed (0.5962ms)
+✔ method changes preserve archived items and ask before discarding the current item (0.6824ms)
+✔ independent region can add a reference country only when a later line or component method needs it (0.6221ms)
+✔ the common scheduler only keeps the latest aggregate preview and applies once (0.7063ms)
+✔ late selection result cannot restore cleared geometry and cancel stops the worker (0.5838ms)
+✔ selection coalesces clicks without rebuilding source and supports worker error retry (0.674ms)
+✔ line candidates use result IDs, toggle multiple pieces, clear selection and archive their union (1.4052ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 22
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 194.488
+
+✖ failing tests:
+
+test at tests\unit\object-registry.test.mjs:21:1
+✖ object registry exposes canonical domain/category/editor metadata (2.1115ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + {
+  +   allowedActions: [],
+  +   category: 'territorial',
+  +   creatable: false,
+  +   createMethods: [
+  +     'split',
+  +     'draw',
+  +     'geojson'
+  +   ],
+  +   domain: 'territorial',
+  +   editor: 'entity',
+  +   icon: 'icon-territory',
+  +   key: 'subunit',
+  +   label: '하위 객체',
+  +   layerGroup: 'subunits',
+  +   layerGroups: [],
+  +   presentationGroup: 'subunits',
+  +   presentationGroups: [],
+  +   type: 'entity'
+  + }
+  - undefined
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/object-registry.test.mjs:25:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { key: 'subunit', domain: 'territorial', type: 'entity', category: 'territorial', label: '하위 객체', icon: 'icon-territory', layerGroup: 'subunits', presentationGroup: 'subunits', editor: 'entity', creatable: false, createMethods: [ 'split', 'draw', 'geojson' ], layerGroups: [], presentationGroups: [], allowedActions: [] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\territory-selection-workflow.test.mjs:152:1
+✖ annexation and the three common object configurations expose concise setup, selection and review headings (4.9332ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:161:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

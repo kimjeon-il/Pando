@@ -1,0 +1,12 @@
+
+Running 1 test using 1 worker
+
+(node:1812) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Root creation verified
+Child creation verified
+Independent region creation verified
+Cross-region annex geometry and Undo verified
+  ok 1 tests\browser\unified-objects.spec.mjs:68:1 › one object flow creates a root, child and independent region; annex across the independent region and common editing survive undo and restore (1.0m)
+
+  1 passed (1.1m)

@@ -1,0 +1,12 @@
+✔ exchange targets own canonical domain and fallback metadata (1.4703ms)
+✔ one registry dispatches import and export handlers by canonical target (0.7276ms)
+✔ current GIS uses one entity import contract for general parents and independent regions (7.4986ms)
+✔ invalid imported parent aborts the entire current batch before history or storage changes (0.959ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 145.5677

@@ -1,0 +1,79 @@
+tests/browser\annex-e2e.spec.mjs:44:  await page.locator('#annexTerritoryBtn').click();
+tests/browser\country-label-flags.spec.mjs:17:  await expect(page.locator('#countryProperties')).toBeVisible();
+tests/browser\country-label-flags.spec.mjs:20:  await expect(page.locator('.territorial-label-item').filter({ hasText: await page.locator('#countryNameInput').inputValue() }).first()).toBeAttached();
+tests/browser\builtin-subunits.spec.mjs:21:  await expect(page.locator('#subunitProperties')).toBeVisible();
+tests/browser\builtin-subunits.spec.mjs:22:  await expect(page.locator('#subunitNameInput')).toHaveValue('그린란드');
+tests/browser\builtin-subunits.spec.mjs:24:  await expect(page.locator('#subunitColorInput')).toHaveValue('#ff9900');
+tests/browser\builtin-subunits.spec.mjs:30:  await expect(page.locator('#subunitNameInput')).toHaveValue('그린란드');
+tests/browser\feature-pruning-ui.spec.mjs:57:    await expect(page.locator('#countryProperties .editor-action-row')).toHaveCount(5);
+tests/browser\feature-pruning-ui.spec.mjs:65:    await expect(page.locator('#countryProperties .editor-action-grid')).toHaveCount(0);
+tests/browser\editor-workspace.spec.mjs:17:  await expect(page.locator('#countryProperties')).toBeVisible();
+tests/browser\editor-workspace.spec.mjs:33:  await page.locator('#annexTerritoryBtn').click();
+tests/browser\editor-flag-menu.spec.mjs:17:  await expect(page.locator('#editorSurface #countryNameInput, #editorSurface #flagMenuBtn')).toHaveCount(2);
+tests/browser\editor-flag-menu.spec.mjs:46:  await expect(page.locator('#countryProperties > .editor-info-section')).toHaveAttribute('aria-label', '정보');
+tests/browser\editor-flag-menu.spec.mjs:47:  await expect(page.locator('#countryProperties > .editor-action-section:not(.editor-relation-section)')).toHaveAttribute('aria-label', '편집');
+tests/browser\editor-flag-menu.spec.mjs:48:  await expect(page.locator('#countryProperties > .editor-relation-section')).toHaveAttribute('aria-label', '관계');
+tests/browser\editor-flag-menu.spec.mjs:49:  await expect(page.locator('#countryProperties > .editor-section > .editor-section-title')).toHaveCount(0);
+tests/browser\editor-flag-menu.spec.mjs:52:  await expect(page.locator('#annexTerritoryBtn')).toBeHidden();
+tests/browser\editor-flag-menu.spec.mjs:53:  await expect(page.locator('#countryNameInput')).toBeHidden();
+tests/browser\editor-flag-menu.spec.mjs:55:  await expect(page.locator('#countryNameInput')).toBeVisible();
+tests/browser\editor-flag-menu.spec.mjs:160:  await expect(page.locator('#countryProperties #objectDeleteBtn')).toHaveCount(1);
+tests/browser\map-workspace-polish.spec.mjs:108:    await expect(page.locator('#countryNameInput')).toHaveValue('독일');
+tests/browser\map-workspace-polish.spec.mjs:143:    await expect(page.locator('#countryNameInput')).toHaveValue('독일');
+tests/browser\selection-presenter-reconcile.spec.mjs:12:  await expect(page.locator('#countryProperties')).toBeVisible();
+tests/browser\selection-presenter-reconcile.spec.mjs:25:    await expect(page.locator('#countryProperties')).toBeVisible();
+tests/browser\selection-presenter-reconcile.spec.mjs:35:    await expect(page.locator('#countryProperties')).toBeHidden();
+tests/browser\style-label-cleanup.spec.mjs:31:  await expect(page.locator('#countryProperties')).toHaveClass(/\bhidden\b/);
+tests/browser\subunit-model.spec.mjs:14:  await expect(page.locator('#addSubunitBtn')).toHaveCount(1);
+tests/browser\subunit-model.spec.mjs:46:  await expect(page.locator('#subunitProperties')).toBeVisible();
+tests/browser\subunit-model.spec.mjs:47:  await expect(page.locator('#subunitNameInput')).toHaveValue('하위단위 검증');
+tests/browser\subunit-model.spec.mjs:50:  const originalColor = await page.locator('#subunitColorInput').inputValue();
+tests/browser\subunit-model.spec.mjs:52:  await expect(page.locator('#subunitColorInput')).toHaveValue('#ff9900');
+tests/browser\subunit-model.spec.mjs:57:  await expect(page.locator('#subunitColorInput')).toHaveValue(originalColor);
+tests/browser\subunit-model.spec.mjs:60:  await expect(page.locator('#subunitColorInput')).toHaveValue('#ff9900');
+tests/browser\subunit-model.spec.mjs:70:  await expect(page.locator('#addSubunitBtn')).toHaveCount(1);
+tests/browser\subunit-model.spec.mjs:71:  await page.locator('#addSubunitBtn').evaluate(button => button.click());
+tests/browser\territorial-type-conversion.spec.mjs:56:  for (const button of ['addSubunitChildBtn', 'annexSubunitBtn', 'mergeSubunitBtn', 'reassignSubunitShapeBtn', 'editSubunitCoastBtn', 'reconcileSubunitCoastBtn', 'promoteSubunitBtn']) {
+tests/browser\territorial-type-conversion.spec.mjs:82:  await selectUiOption(page, '#territorialTypeInput', 'subunit');
+tests/browser\territorial-type-conversion.spec.mjs:83:  await selectUiOption(page, '#territorialTypeSovereignInput', 'GBR');
+tests/browser\territorial-type-conversion.spec.mjs:84:  await expect(page.locator('#territorialTypeImpact')).toContainText(before.name);
+tests/browser\territorial-type-conversion.spec.mjs:85:  await expect(page.locator('#territorialTypeTitle')).toHaveText('국가를 하위단위로 전환');
+tests/browser\territorial-type-conversion.spec.mjs:86:  await expect(page.locator('#territorialTypeImpactList')).toContainText('현재 형상과 객체 ID 유지');
+tests/browser\territorial-type-conversion.spec.mjs:87:  await page.locator('#territorialTypeConfirmBtn').click();
+tests/browser\territorial-selection.spec.mjs:98:  await expect(page.locator('#subunitProperties')).toBeVisible();
+tests/browser\territorial-selection.spec.mjs:116:  await expect(page.locator('#subunitProperties')).toBeVisible();
+tests/browser\territorial-selection.spec.mjs:141:  await expect(page.locator('#regionProperties')).toBeVisible();
+tests/browser\territorial-selection.spec.mjs:179:    await expect(page.locator('#subunitProperties')).not.toHaveClass(/hidden/);
+tests/browser\territorial-common-commands.spec.mjs:48:  await page.locator('#countryNameInput').fill('공통 명령 시험 국가');
+tests/browser\territorial-common-commands.spec.mjs:49:  await page.locator('#countryNameInput').dispatchEvent('change');
+tests/browser\territorial-common-commands.spec.mjs:53:  await expect(page.locator('#countryNameInput')).toHaveValue('공통 명령 시험 국가');
+tests/browser\territorial-common-commands.spec.mjs:63:  await page.locator('#subunitNameInput').fill('사용자 하위단위 이름'); await page.locator('#subunitNameInput').dispatchEvent('change');
+tests/browser\territorial-common-commands.spec.mjs:93:  await expect(page.locator('#regionProperties')).toBeVisible();
+tests/browser\territorial-common-commands.spec.mjs:94:  await page.locator('#actionsTabBtn').click(); await page.locator('#mergeRegionBtn').click();
+tests/browser\ui-entrypoint-cleanup.spec.mjs:30:  await expect(page.locator('#countryProperties')).toBeVisible();
+tests/browser\unified-objects.spec.mjs:66:  await expect(page.locator('#addCountryBtn, #addSubunitBtn, #addRegionBtn')).toHaveCount(0);
+tests/browser\runtime.spec.mjs:38:      'countryProperties', 'territoryProperties', 'administrativeProperties', 'regionProperties',
+tests/browser\runtime.spec.mjs:51:      propertyLabel: font('label[for="countryNameInput"]'),
+tests/browser\runtime.spec.mjs:52:      editableValue: font('#countryNameInput'),
+tests/browser\runtime.spec.mjs:154:  await page.locator('#annexTerritoryBtn').click();
+tests/browser\runtime.spec.mjs:239:  await page.locator('#annexTerritoryBtn').click();
+tests/browser\runtime.spec.mjs:267:  await page.locator('#annexTerritoryBtn').click();
+tests/browser\runtime.spec.mjs:306:  await page.locator('#addCountryBtn').evaluate(button => button.click());
+tests/browser\selection-domain-smoke.spec.mjs:21:  await expect(page.locator('#countryProperties')).toBeVisible();
+tests/browser\workflow-v17.spec.mjs:66:  await page.locator('#annexTerritoryBtn').click();
+tests/browser\workflow-v17.spec.mjs:115:  for (const [command, name] of [['#annexTerritoryBtn', '영토 편입'], ['#editBorderBtn', '국경 조정']]) {
+tests/browser\workflow-v17.spec.mjs:188:  await page.locator('#addSubunitBtn').click();
+tests/browser\workflow-v17.spec.mjs:209:    await page.locator(type === 'subunit' ? '#addSubunitBtn' : '#addRegionBtn').click();
+tests/browser\workflow-v17.spec.mjs:272:  await expect(page.locator('#subunitProperties')).toBeVisible();
+tests/browser\workflow-v17.spec.mjs:276:  await page.locator('#mergeSubunitBtn').click();
+tests/browser\workflow-v17.spec.mjs:311:    ['addCountryBtn', '국가 추가', '국가 정보'],
+tests/browser\workflow-v17.spec.mjs:312:    ['addSubunitBtn', '하위단위 추가', '하위단위 정보'],
+tests/browser\workflow-v17.spec.mjs:313:    ['addRegionBtn', '지방 추가', '지방 정보'],
+tests/browser\workflow-v17.spec.mjs:323:    if (button === 'addCountryBtn') {
+tests/browser\workflow-v17.spec.mjs:329:    if (button === 'addSubunitBtn') {
+tests/browser\workflow-v17.spec.mjs:330:      await expect(page.locator('#territorialCreateSovereignRow')).toBeVisible();
+tests/browser\workflow-v17.spec.mjs:331:      await expect(page.locator('#territorialCreateSovereignFlag')).toBeVisible();
+tests/browser\workflow-v17.spec.mjs:333:    if (button === 'addRegionBtn') await expect(page.locator('#territorialCreateSovereignRow')).toBeHidden();
+tests/browser\workflow-v17.spec.mjs:493:  await page.locator('#annexTerritoryBtn').click();
+tests/unit\selection-ui-focus.test.mjs:124:      if (id === 'territorialTypeModal') return { querySelector: () => null };
+tests/unit\territorial-command-storage.test.mjs:26:    presentation: { countryName: feature => feature.properties.name }, territorialServicesB: { territorialTypeLabel: () => '하위단위' },

@@ -1,0 +1,156 @@
+✔ current entity import keeps the actual field mapping and an optional parent (1.7499ms)
+✔ independent region import has no parent or ownership settings (0.2705ms)
+✔ only current project markers replace the project and retired target types fail (0.6332ms)
+✖ project replacement rejects unmarked vectors and preserves current common fields (9.1022ms)
+✔ GIS geometry validator scopes IDs and resolves worker responses (2.1672ms)
+✔ country merge planner replaces matching IDs without mutating inputs (0.8179ms)
+✔ imported-wins authoritatively replaces the same country instead of unioning its old geometry (0.6735ms)
+✔ territory replacement deletes every country fully covered by one historical country (0.6087ms)
+✔ territory replacement preserves the remainders of several partially covered countries (0.4982ms)
+✔ historical replacement commits full country deletion and transfers dependent territories atomically (2.0893ms)
+✔ import service returns a current immutable entity plan without a retired country merge (0.9363ms)
+✔ GIS imports ignore feature metadata while project packages preserve separate assets and source history (0.5186ms)
+✔ spherical metrics provide useful live distance, area and percentage feedback (1.465ms)
+✔ snap resolution uses screen-space thresholds and nearest candidates (0.4339ms)
+✔ topology materializes a vertex into the opposite owner and moves both countries (2.4268ms)
+✔ a multi-owner boundary node moves every country that shares the junction (0.5158ms)
+✔ shared-boundary edit plan exposes only internal borders and fixes an unselected third-country junction (1.0758ms)
+✔ coast edit plan excludes shared borders and keeps their junctions as fixed anchors (0.4936ms)
+✔ geometry validation returns a located self-intersection issue and relation audit issues (3.4598ms)
+✔ full audit trusts the canonical baseline and clips only dirty countries exactly (0.7478ms)
+✔ full audit structurally validates only dirty countries when a canonical baseline exists (0.4356ms)
+✔ preview sessions never mutate their source and become stale by revision (0.4316ms)
+✔ label layout respects priority and pinned labels (0.7516ms)
+✔ a selected label wins a collision without persisting a raw priority override (0.2077ms)
+✔ label layout culls ordinary labels whose full box crosses viewport bounds (0.2197ms)
+✔ label policies override legacy tuning while preserving established manual placement (0.6096ms)
+✔ atomic map state rejects stale snapshots (0.4079ms)
+✔ label visibility stays independent: names=true, flags=true, places=true (24.6345ms)
+✔ label visibility stays independent: names=true, flags=true, places=false (4.871ms)
+✔ label visibility stays independent: names=true, flags=false, places=true (2.6736ms)
+✔ label visibility stays independent: names=true, flags=false, places=false (3.3386ms)
+✔ label visibility stays independent: names=false, flags=true, places=true (2.6948ms)
+✔ label visibility stays independent: names=false, flags=true, places=false (3.3831ms)
+✔ label visibility stays independent: names=false, flags=false, places=true (2.4107ms)
+✔ label visibility stays independent: names=false, flags=false, places=false (2.4133ms)
+✔ flag-only layout uses flag dimensions without reserving invisible name space (3.5615ms)
+✔ flag-only markers keep zoom and per-object visibility rules (3.6778ms)
+✔ all symbol switches schedule a fresh label layout without redrawing country geometry (9.4873ms)
+✔ territorial symbols are independent for countries (2.387ms)
+✔ territorial symbols are independent for subunits (2.337ms)
+✔ territorial symbols are independent for regions (3.1577ms)
+✔ river and lake display info uses only the object kind without built-in source text (2.2701ms)
+✖ per-object visibility keeps every layer master and selection intact (1.5517ms)
+✔ built-in river and lake visibility uses existing stable hidden IDs, not source switches (1.0403ms)
+✔ mixed selection and no-op/replacement guards use the same command (0.6624ms)
+✔ valid project references pass (2.8606ms)
+✖ dangling references are reported instead of silently ignored (1.5712ms)
+✔ territorial and distribution parent cycles are rejected (0.3797ms)
+✔ invalid distribution value and free geometry are rejected (0.2694ms)
+✔ public territorial model and object registry contain only the current kinds and one ref type (1.7831ms)
+✖ the canonical hierarchy rejects regional parents and cycles and protects a locked descendant root (2.5264ms)
+✔ rank is discarded while nested general objects and cycle checks remain available (0.4505ms)
+✔ country extent includes detached descendants once and caches geometry work (6.8091ms)
+✔ parent style inheritance stops at explicit style without changing country palette (0.4973ms)
+ℹ tests 54
+ℹ suites 0
+ℹ pass 50
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 352.2219
+
+✖ failing tests:
+
+test at tests\unit\import-service.test.mjs:28:1
+✖ project replacement rejects unmarked vectors and preserves current common fields (9.1022ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'external-territorial-entities'
+  - 'builtin'
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/import-service.test.mjs:64:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'external-territorial-entities',
+    expected: 'builtin',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\object-visibility-command.test.mjs:58:1
+✖ per-object visibility keeps every layer master and selection intact (1.5517ms)
+  TypeError: Cannot read properties of undefined (reading 'a')
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/object-visibility-command.test.mjs:68:46)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests\unit\project-invariants.test.mjs:23:1
+✖ dangling references are reported instead of silently ignored (1.5712ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /상위 단위/. Input:
+  
+  'Error: R의 부모는 존재하는 일반객체여야 합니다.'
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-invariants.test.mjs:32:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: R의 부모는 존재하는 일반객체여야 합니다.
+        at assertProjectReferenceIntegrity (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-invariants.js:217:17)
+        at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-invariants.test.mjs:32:23
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-invariants.test.mjs:32:10)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1402:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+        at Test.postRun (node:internal/test_runner/test:1542:19)
+        at Test.run (node:internal/test_runner/test:1467:12),
+    expected: /상위 단위/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at tests\unit\territorial-hierarchy-model.test.mjs:32:1
+✖ the canonical hierarchy rejects regional parents and cycles and protects a locked descendant root (2.5264ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /잠/. Input:
+  
+  'Error: p: 형상이 상위 단위 밖으로 벗어났습니다.'
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-hierarchy-model.test.mjs:39:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: p: 형상이 상위 단위 밖으로 벗어났습니다.
+        at Object.validate (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-edit-plan.js:95:108)
+        at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-hierarchy-model.test.mjs:39:30
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-hierarchy-model.test.mjs:39:10)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1402:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+        at Test.postRun (node:internal/test_runner/test:1542:19)
+        at Test.run (node:internal/test_runner/test:1467:12),
+    expected: /잠/,
+    operator: 'throws',
+    diff: 'simple'
+  }
