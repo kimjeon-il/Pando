@@ -47,11 +47,11 @@ export function createEditorBindings() {
   function initializeEDITOR_COMMAND_ROW_ICONS() {
     (EDITOR_COMMAND_ROW_ICONS = Object.freeze({
       multiBorderEditBtn: 'merge',
-      annexEntityBtn: 'territory',
-      mergeEntityBtn: 'merge',
+      annexEntityBtn: 'annex',
+      mergeEntityBtn: 'countryMerge',
       editEntityBorderBtn: 'boundary',
-      copyEntityRegionBtn: 'transform',
-      addEntityChildBtn: 'territory',
+      copyEntityRegionBtn: 'copy',
+      addEntityChildBtn: 'hierarchy',
       redrawEntityBtn: 'boundary',
       reconcileEntityCoastBtn: 'coastline',
       editEntityCoastBtn: 'coastline',
