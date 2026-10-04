@@ -375,13 +375,21 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
       terrainTargetTileKeys = new Set(targetSpecs.map(spec => spec.key));
       terrainRetentionKeys = new Set(terrainTargetTileKeys);
+      // Only retain already loaded detail during a LOD transition. Preview
+      // terrain remains exclusive to preview; no lower-level fetch is started.
+      const retainedDetail = view.meshQuality !== 'preview' && terrainTargetTilesLoaded < terrainTargetTileCount
+        ? terrainManifest.levels.slice(1).filter(level => level.id !== targetLevel.id)
+          .flatMap(level => visibleTerrainTileSpecs(level, false, frameContext))
+          .filter(spec => terrainTiles.has(spec.key))
+        : [];
+      for (const spec of retainedDetail) terrainRetentionKeys.add(spec.key);
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);
       pruneTerrainFetchQueue();
       for (const spec of targetSpecs) requestTerrainTile(spec, 30_000);
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 1_000);
       terrainRenderedLevel = -1;
       const prepared = [];
-      for (const spec of targetSpecs) {
+      for (const spec of [...retainedDetail, ...targetSpecs]) {
         const tile = terrainTiles.get(spec.key);
         if (!tile) continue;
         tile.lastUsed = performance.now();
