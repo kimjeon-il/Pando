@@ -113,7 +113,7 @@
       if (!pending) return;
       workerPending.delete(event.data.id);
       if (event.data.ok) pending.resolve(event.data);
-      else pending.reject(new Error(event.data.error || 'GeoPackage 처리에 실패했습니다.'));
+      else pending.reject(Object.assign(new Error(event.data.error || 'GeoPackage 처리에 실패했습니다.'), { code: event.data.code }));
     };
     gpkgWorker.onerror = event => {
       for (const pending of workerPending.values()) pending.reject(new Error(event.message || 'GeoPackage Worker 오류'));
@@ -135,14 +135,8 @@
 
   async function readAtlasMetadata(file) {
     if (!file || extension(file.name) !== 'gpkg') return null;
-    try {
-      const buffer = await file.arrayBuffer();
-      const result = await callGpkgWorker('read', buffer);
-      return result.metadata || null;
-    } catch (error) {
-      console.debug('PandoLab GeoPackage metadata not found:', error);
-      return null;
-    }
+    const result = await callGpkgWorker('read', await file.arrayBuffer());
+    return result.metadata || null;
   }
 
   function validateArchivePath(path) {
@@ -389,6 +383,16 @@
   async function inspectFiles(inputFiles, progress) {
     await closeActiveSession();
     const prepared = await prepareFiles(inputFiles, progress);
+    const projectFile = prepared.originals.find(file => extension(file.name) === 'gpkg');
+    const projectMetadata = projectFile ? await readAtlasMetadata(projectFile) : null;
+    if (projectMetadata?.projectState) {
+      activeSession = { gdal: null, datasets: [], prepared, projectMetadata, descriptors: [{
+        datasetIndex: 0, layerName: 'project', featureCount: projectMetadata.projectState.territorialEntities.length,
+        geometryType: 'None', fields: [], fieldDefinitions: [], fieldExamples: {}, fieldProfiles: {}, qgsLabelField: '',
+        crs: { hasCrs: true, label: 'EPSG:4326' }, driverName: 'PandoLab GeoPackage', datasetPath: projectFile.name,
+      }] };
+      return activeSession;
+    }
     const geoJsonProfiles = await geoJsonFieldProfiles(prepared.dataFiles);
     const gdal = await getGdal(progress);
     progress('벡터 레이어를 검사하는 중입니다.', 42);
@@ -431,8 +435,6 @@
       }
     }
     if (!descriptors.length) throw new Error('가져올 수 있는 벡터 레이어를 찾지 못했습니다.');
-    const projectFile = prepared.originals.find(file => extension(file.name) === 'gpkg');
-    const projectMetadata = projectFile ? await readAtlasMetadata(projectFile) : null;
     activeSession = { gdal, datasets: opened.datasets, descriptors, prepared, projectMetadata };
     progress(`벡터 레이어 ${descriptors.length}개 확인됨`, 100);
     return activeSession;
@@ -710,85 +712,14 @@
     return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
-  async function layerAsGeoJson(gdal, dataset, layerName, outputTag) {
-    const output = await gdal.ogr2ogr(dataset, ['-f', 'GeoJSON', '-t_srs', 'EPSG:4326', '-dim', 'XY', layerName], `pandolab_${outputTag}_${Date.now()}`);
-    return JSON.parse(new TextDecoder().decode(await gdal.getFileBytes(output)));
-  }
-
-  async function readAtlasVectorState(gdal, dataset, baseState = {}) {
-    const layerNames = new Set((dataset.info?.layers || []).map(layer => layer.name));
-    const hasPlaces = layerNames.has('places');
-    const genericFeatureLayerNames = ['generic_features_point', 'generic_features_line', 'generic_features_polygon'].filter(name => layerNames.has(name));
-    const territorialLayerNames = Object.keys(gisAdapters.TERRITORIAL_TYPES_BY_TABLE).filter(name => layerNames.has(name));
-    const distributionLayerNames = layerNames.has(gisAdapters.DISTRIBUTION_TABLE) ? [gisAdapters.DISTRIBUTION_TABLE] : [];
-    const state = {};
-    if (hasPlaces) {
-      const collection = await layerAsGeoJson(gdal, dataset, 'places', 'places');
-      state.labels = (collection.features || []).filter(feature => feature.geometry?.type === 'Point').map((feature, index) => ({
-        id: String(feature.properties?.pandolab_id || feature.id || `place_${index + 1}`),
-        name: String(feature.properties?.name || ''),
-        kind: String(feature.properties?.kind || 'custom'),
-        countryId: String(feature.properties?.country_id || ''),
-        notes: String(feature.properties?.notes || ''),
-        ...(feature.properties?.source_place_id ? { sourcePlaceId: String(feature.properties.source_place_id) } : {}),
-        coordinates: feature.geometry.coordinates.slice(0, 2),
-      }));
-    }
-    if (genericFeatureLayerNames.length) {
-      state.genericFeatures = [];
-      for (const layerName of genericFeatureLayerNames) {
-        const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
-        for (let index = 0; index < (collection.features || []).length; index += 1) {
-          const feature = collection.features[index];
-          const basic = feature.properties || {};
-          let properties = {};
-          try { properties = basic.properties_json ? JSON.parse(basic.properties_json) : {}; } catch (_) {}
-          state.genericFeatures.push({
-            type: 'Feature',
-            id: String(basic.id || feature.id || `${layerName}_${index + 1}`),
-            properties: {
-              schemaVersion: 2,
-              name: String(basic.name ?? properties.name ?? ''),
-              notes: String(basic.notes ?? properties.notes ?? ''),
-              color: String(basic.color ?? properties.color ?? ''),
-              locked: properties.locked === true,
-              source: properties.source,
-
-            },
-            geometry: feature.geometry,
-          });
-        }
-      }
-    }
-    if (territorialLayerNames.length) {
-      state.territorialEntities = [];
-      const unitIds = new Set();
-      for (const layerName of territorialLayerNames) {
-        const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
-        for (let index = 0; index < (collection.features || []).length; index += 1) {
-          const unit = gisAdapters.importTerritorialFeature(collection.features[index], layerName, index);
-          if (!unit) continue;
-          if (unitIds.has(unit.id)) throw new Error(`영역 ID 충돌: ${unit.id}`);
-          unitIds.add(unit.id);
-          state.territorialEntities.push(unit);
-        }
-      }
-    }
-    if (distributionLayerNames.length) {
-      const collections = [];
-      for (const layerName of distributionLayerNames) {
-        const collection = await layerAsGeoJson(gdal, dataset, layerName, layerName);
-        collections.push({ tableName: layerName, features: collection.features || [] });
-      }
-      const imported = gisAdapters.mergeDistributionFeatures(collections, baseState.distributionLayers || []);
-      state.distributionLayers = imported.layers;
-      state.distributionEntries = imported.entries;
-    }
-    return state;
-  }
-
   async function convertSelectedLayer(descriptor, mapping, progress) {
     if (!activeSession) throw new Error('GIS 가져오기 세션이 종료되었습니다.');
+    if (activeSession.projectMetadata?.projectState) {
+      const { normalizeImportPlan } = await importPlanModule();
+      return { collection: { type: 'FeatureCollection', features: [] }, atlasMetadata: activeSession.projectMetadata,
+        importPlan: normalizeImportPlan({ sourceKind: 'project', sourceFormat: 'gpkg', targetType: 'project' }),
+        sourceInfo: activeSession.projectMetadata.projectState.sourceInfo };
+    }
     if (/curvepolygon|circularstring|compoundcurve/i.test(descriptor.geometryType)) throw new Error('곡선 표면은 자동 변형하지 않습니다. QGIS에서 Polygon/MultiPolygon으로 변환하세요.');
     const { gdal, datasets, prepared } = activeSession;
     const dataset = datasets[descriptor.datasetIndex];
@@ -806,10 +737,6 @@
     const sourceFile = prepared.dataFiles.find(file => file.name.toLowerCase() === basename(descriptor.datasetPath).toLowerCase())
       || prepared.dataFiles.find(file => withoutExtension(file.name).toLowerCase() === withoutExtension(descriptor.datasetPath).toLowerCase());
     const atlasMetadata = activeSession.projectMetadata || (sourceFile && extension(sourceFile.name) === 'gpkg' ? await readAtlasMetadata(sourceFile) : null);
-    if (atlasMetadata?.projectState) {
-      const vectorState = await readAtlasVectorState(gdal, dataset, atlasMetadata.projectState);
-      atlasMetadata.projectState = { ...atlasMetadata.projectState, ...vectorState };
-    }
     const fileHashes = [];
     for (const file of prepared.originals) fileHashes.push({ name: file.name, size: file.size, sha256: await sha256File(file) });
     progress('가져오기 미리보기를 준비했습니다.', 100);
@@ -1092,9 +1019,18 @@
     return layers;
   }
 
+  async function gisSpatialSnapshot(projectState) {
+    const { prepareProjectForActivation } = await import('./modules/project-state.js');
+    const { staticTimelineViews } = await import('./modules/timeline-static-view.js');
+    const { createGeometryVersionStore } = await import('./modules/geometry-version-store.js');
+    const candidate = prepareProjectForActivation(projectState);
+    return { ...candidate, territorialEntities: staticTimelineViews(candidate.territorialEntities,
+      candidate.timelineRecords, createGeometryVersionStore(candidate.geometries)) };
+  }
+
   async function exportGeoJsonBundle(projectState, selectedLayers, progress = () => {}) {
     progress('GeoJSON 레이어를 만드는 중입니다.', 18);
-    const layers = buildGisExportLayers(projectState, selectedLayers);
+    const layers = buildGisExportLayers(await gisSpatialSnapshot(projectState), selectedLayers);
     if (!layers.length) throw new Error('선택한 범주에 내보낼 데이터가 없습니다.');
     const fflate = await getFflate();
     const createdAt = new Date().toISOString();
@@ -1122,29 +1058,36 @@
 
   async function exportGeoPackage(projectState, progress = () => {}, options = {}) {
     const exportMode = options.mode === 'gis' ? 'gis' : 'project';
-    const selectedLayers = exportMode === 'gis' ? [...new Set(options.layers || [])] : [];
+    if (exportMode === 'project') {
+      progress('프로젝트 기록과 형상을 저장하는 중입니다.', 25);
+      const result = await callGpkgWorker('write', new ArrayBuffer(0), { exportMode,
+        projectState: { ...projectState, countryAssets: countryAssets(projectState.territorialEntities) } });
+      progress('GeoPackage 저장 준비를 마쳤습니다.', 100);
+      return new Blob([result.buffer], { type: 'application/geopackage+sqlite3' });
+    }
+    const selectedLayers = [...new Set(options.layers || [])];
+    projectState = await gisSpatialSnapshot(projectState);
     const gdal = await getGdal(progress);
-    progress(exportMode === 'gis' ? 'GIS용 GeoPackage 구조를 준비하는 중입니다.' : '객체 레이어를 GeoPackage로 변환하는 중입니다.', 25);
-    const territorial = gisAdapters.territorialRows(projectState);
-    const gisLayers = exportMode === 'gis' ? buildGisExportLayers(projectState, selectedLayers) : [];
-    const seedCollection = exportMode === 'project' ? rowsAsFeatureCollection(Object.values(territorial).flat()) : gisLayers.find(layer => layer.collection.features.length)?.collection;
-    if (!seedCollection?.features?.length) throw new Error(exportMode === 'project' ? '저장할 객체 레이어가 없습니다.' : '선택한 범주에 내보낼 데이터가 없습니다.');
+    progress('GIS용 GeoPackage 구조를 준비하는 중입니다.', 25);
+    const gisLayers = buildGisExportLayers(projectState, selectedLayers);
+    const seedCollection = gisLayers.find(layer => layer.collection.features.length)?.collection;
+    if (!seedCollection?.features?.length) throw new Error('선택한 범주에 내보낼 데이터가 없습니다.');
     const source = new File([JSON.stringify(seedCollection)], `pandolab_export_${Date.now()}.geojson`, { type: 'application/geo+json' });
     const opened = await gdal.open(source);
     const dataset = opened.datasets?.[0];
     if (!dataset) throw new Error('GeoPackage 변환용 객체 데이터를 열 수 없습니다.');
     let bytes;
     try {
-      const layerName = exportMode === 'project' ? 'entities' : 'pandolab_export_seed';
+      const layerName = 'pandolab_export_seed';
       const output = await gdal.ogr2ogr(dataset, ['-f', 'GPKG', '-nln', layerName, '-nlt', 'PROMOTE_TO_MULTI', '-t_srs', 'EPSG:4326'], `PandoLab_${Date.now()}`);
       bytes = await gdal.getFileBytes(output);
     } finally {
       await gdal.close(dataset);
     }
-    progress(exportMode === 'project' ? '지명·지형지물·국기와 프로젝트 설정을 기록하는 중입니다.' : '선택한 GIS 레이어를 기록하는 중입니다.', 72);
+    progress('선택한 GIS 레이어를 기록하는 중입니다.', 72);
     const stateForPackage = {
       ...projectState,
-      countryAssets: exportMode === 'project' ? countryAssets(projectState.territorialEntities) : [],
+      countryAssets: [],
       sourceInfo: {
         ...(projectState.sourceInfo || {}),
         exportedAt: new Date().toISOString(),
@@ -1153,7 +1096,7 @@
     };
     const exactBytes = bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice();
     const result = await callGpkgWorker('write', exactBytes.buffer, { projectState: stateForPackage, exportMode, selectedLayers });
-    progress(exportMode === 'project' ? 'GeoPackage 저장 준비를 마쳤습니다.' : 'GIS용 GeoPackage를 만들었습니다.', 100);
+    progress('GIS용 GeoPackage를 만들었습니다.', 100);
     return new Blob([result.buffer], { type: 'application/geopackage+sqlite3' });
   }
 

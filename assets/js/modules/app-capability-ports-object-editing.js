@@ -173,7 +173,7 @@ export const OBJECT_EDITING_OWNER_PORTS = Object.freeze({
     "territorialServicesA",
     "territorialServicesB"
   ],
-  "projectSnapshots": ["applicationConstantsA","builtinCountries","countries","countryEditingB","countryRecords","countryServices","distributionServices","domainControllers","domains","hydroModel","labelPresentation","layerTree","layers","lifecycleUi","modelValidation","objectCatalog","objectOperationsA","platform","platformConfigurationA","platformConfigurationB","presentation","projectServices","projectSession","projectState","rendering","spatialQuery","surfaces","taskUi","territorialModel","territorialServicesA","territorialServicesB","geometryPreview"]
+  "projectSnapshots": ["applicationConstantsA","builtinBaseline","builtinCountries","countries","countryEditingB","countryRecords","countryServices","distributionServices","domainControllers","domains","hydroModel","labelPresentation","layerTree","layers","lifecycleUi","modelValidation","objectCatalog","objectOperationsA","platform","platformConfigurationA","platformConfigurationB","presentation","projectServices","projectSession","projectState","rendering","spatialQuery","surfaces","taskUi","territorialModel","territorialServicesA","territorialServicesB","geometryPreview"]
 });
 
 const PORT_SPECS = Object.freeze({

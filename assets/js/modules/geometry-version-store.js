@@ -46,7 +46,11 @@ function freeze(value) {
   }
   return value;
 }
+// Values branded here have passed structural validation and recursive freezing.
+// Their validity cannot change; separate registries may safely retain them.
+const immutableGeometries = new WeakSet();
 function geometry(value) {
+  if (immutableGeometries.has(value)) return value;
   fields(value, ['type', 'coordinates']);
   const copy = structuredClone(value), c = copy.coordinates;
   switch (copy.type) {
@@ -60,7 +64,9 @@ function geometry(value) {
   }
   // Structural validation matches GeometryStore::insert in the native core.
   // Topology/partition checks remain the editing owner's responsibility.
-  return freeze(copy);
+  freeze(copy);
+  immutableGeometries.add(copy);
+  return copy;
 }
 const encoder = new TextEncoder();
 function compareIds(a, b) {
@@ -72,13 +78,15 @@ function compareIds(a, b) {
 }
 
 /** Append-only geometry registry. Restoration constructs an isolated candidate. */
-export function createGeometryVersionStore(entries = []) {
+export function createGeometryVersionStore(entries = [], { reuse = null } = {}) {
   if (!Array.isArray(entries)) invalid('Geometry versions must be an array.');
   const versions = new Map();
   function insert(ref, value) {
     const key = reference(ref);
     if (versions.has(key)) fail('DUPLICATE_ID', 'Geometry version already exists.');
-    const geojson = geometry(value);
+    const validated = geometry(value);
+    const previous = reuse?.get(ref);
+    const geojson = previous && (previous === validated || JSON.stringify(previous) === JSON.stringify(validated)) ? previous : validated;
     // No registry changes are made until validation and copying have succeeded.
     versions.set(key, Object.freeze({ id: ref.id, version: ref.version, geojson }));
   }

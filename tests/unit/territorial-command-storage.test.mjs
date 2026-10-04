@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState, snapshotTestTerritorialState, restoreTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
@@ -11,9 +12,10 @@ import { createTerritorialApplicationService } from '../../assets/js/modules/ter
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] };
 function fixture({ fail = false, child = false } = {}) {
   const state = { territorialEntities: [...['A','B'].map(id=>createTerritorialFeature({id,entityKind: 'general',name:id,geometry})),createTerritorialFeature({id:'S',entityKind: 'general',name:'S',parentId:child?'A':'B',geometry})],
-    territorialRelations: [], distributionLayers: [], distributionEntries: [], hydroEdits: [], genericFeatures: [], labels: [], labelSettings: {},
+    distributionLayers: [], distributionEntries: [], hydroEdits: [], genericFeatures: [], labels: [], labelSettings: {},
     physicalSettings: { hiddenHydroIds: {} }, stateRevision: 0, historyDirtyEntityIds: new Set(), itemVisibility: {}, layerPresentation: {}, boundaryPreparation: null };
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const territorialApplicationService = createTerritorialApplicationService({ entityStore, entityRepository,
     commandPipeline: { runMutation: (_, mutate) => ({ ok: true, value: mutate() }) } });
@@ -25,8 +27,8 @@ function fixture({ fail = false, child = false } = {}) {
     objectModelB: { territorialApplicationService },
     presentation: { countryName: feature => feature.properties.name },
     objectPresentation: { territorialEntityName: feature => feature.properties.name, territorialRootName: () => 'B' },
-    projectRestore: { openConfirmModal: options => { confirm = options; } }, snapshots: { snapshotEditable: () => structuredClone(state) },
-    projectSnapshots: { restoreEditable: snapshot => { Object.assign(state, snapshot); } },
+    projectRestore: { openConfirmModal: options => { confirm = options; } }, snapshots: { snapshotEditable: () => snapshotTestTerritorialState(state) },
+    projectSnapshots: { restoreEditable: snapshot => { restoreTestTerritorialState(state, snapshot); } },
     spatialQuery: { markCountryGeometriesChanged: ids => patches.push([...ids]) },
     feedback: { setActionStatus() {}, reportOperationError(error, message, code) { diagnostics.push({error,message,code}); } }, layers: { markLayerTreeDirty() {} }, domainControllers: { objectPropertyController: { show() {} } },
     landRelations: { reassignGenericFeatureParents() {} },
@@ -53,9 +55,9 @@ test('batch deletion rechecks locks/children and rolls back a failed application
   const locked = fixture(); locked.owner.requestObjectDeletion(); locked.entityStore.setLocked('A', true); locked.state.stateRevision++;
   assert.equal(locked.confirm().onConfirm(), false); assert.ok((locked.entityStore.snapshot().find(entity => String(entity.id) === String('A') && entity.properties.entityKind === 'general' && !entity.properties.parentId) || null)); assert.equal(locked.histories(), 0);
   const parent = fixture({ child: true }); parent.owner.requestObjectDeletion(); assert.equal(parent.confirm(), undefined);
-  const failed = fixture({ fail: true }); const before = structuredClone(failed.state);
+  const failed = fixture({ fail: true }); const before = snapshotTestTerritorialState(failed.state);
   failed.owner.requestObjectDeletion(); assert.equal(failed.confirm().onConfirm(), false);
-  assert.deepEqual(failed.state, before); assert.ok(failed.entityRepository.get('A')); assert.equal(failed.histories(), 0); assert.equal(failed.saves(), 0);
+  assert.deepEqual(snapshotTestTerritorialState(failed.state), before); assert.ok(failed.entityRepository.get('A')); assert.equal(failed.histories(), 0); assert.equal(failed.saves(), 0);
   assert.equal(failed.diagnostics[0].error.message, 'apply failed');
   assert.equal(failed.diagnostics[0].code, 'PL-TERRITORIAL-DELETE-001');
 });

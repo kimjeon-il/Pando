@@ -1,11 +1,11 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTerritorialFeature, normalizeTerritorialEntities, territorialRootId } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialFeature, normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createProjectSerializer, restoreEntitiesFromDelta } from '../../assets/js/modules/project-serializer.js';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
-import { createGeometrySnapshotPool } from '../../assets/js/modules/geometry-versions.js';
 import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
 
@@ -17,13 +17,19 @@ function fixture() {
     entity('R','regional',{ })];
   const state = { territorialEntities: entities, stateRevision: 0, historyDirtyEntityIds: new Set() };
   const publications = [];
+  initializeTestTerritorialState(state);
   const store = createTerritorialEntityStore({ getState: () => state, onEntitiesReplaced: (_entities, details) => publications.push(details) });
   const repo = createTerritorialEntityRepository({ entityStore: store });
   return { state, store, repo, publications };
 }
 function serializer(snapshot) {
-  return createProjectSerializer({ appVersion: '0.35.0', baseDataset:'fixture', distributionModes:['territorial','geometry'], readSnapshot: () => ({ ...snapshot,
-    projectFields: { layerPresentation: normalizeLayerPresentation({}), distributionSettings: { renderMode:'overlap',activeLayerId:'',boundaryVisible:true } } }) });
+  return createProjectSerializer({ appVersion: '0.35.0', baseDataset:'fixture',baseDatasetFingerprint:'1'.repeat(64), distributionModes:['territorial','geometry'], readSnapshot: () => ({ baseDatasetFingerprint: '1'.repeat(64), ...snapshot,
+    projectFields: { ...snapshot.projectFields, layerPresentation: normalizeLayerPresentation({}), distributionSettings: { renderMode:'overlap',activeLayerId:'',boundaryVisible:true } } }) });
+}
+function storageSnapshot(state, store) {
+  return { territorialEntities: store.identities(), projectFields: {
+    timelineRecords: structuredClone(state.timelineRecords), geometries: state.geometries.snapshot(),
+  } };
 }
 
 test('ID-only field, lock and removal operations preserve unrelated entity types', () => {
@@ -130,49 +136,56 @@ test('reparenting keeps identity and descendants in a single publication', () =>
 });
 
 test('full project and autosave delta round-trip common metadata, relationships and geometry', () => {
-  const { store,repo }=fixture();
-  const base=store.snapshot();
+  const { state,store,repo }=fixture();
+  const base=store.identities();
   store.setField('A','notes','country memo');
   store.setField('A','flagDataUrl','data:image/png;base64,eA==');
   store.setField('S','parentId','B');
   store.setField('R','name','new region');
   store.applyChanges({features:[{...repo.get('T'),geometry:polygon(5)}]});
   const entities=store.snapshot();
-  const full=serializer({territorialEntities:entities}).buildProject();
+  const full=serializer(storageSnapshot(state,store)).buildProject();
   assertCurrentProjectSchema(JSON.parse(JSON.stringify(full)));
-  assert.deepEqual(full.territorialEntities,entities);
+  assert.deepEqual(full.territorialEntities,store.identities());
   assert.equal(full.territorialModel.storage,'territorialEntities');
   const removed=['A'];
-  const changed=entities.filter(entity=>entity.id !== 'A');
-  const delta=serializer({territorialEntities:changed,entityDelta:{changed,removedIds:removed},fullAutosave:false}).buildAutosave();
-  assertCurrentProjectSchema(delta);
-  const restored=restoreEntitiesFromDelta(JSON.parse(JSON.stringify(delta)),{base});
+  store.removeEntities(removed);
+  const changed=store.identities();
+  const delta=serializer({...storageSnapshot(state,store),entityDelta:{changed,removedIds:removed},fullAutosave:false}).buildAutosave();
+  assertCurrentProjectSchema(delta,{baseEntities:base,baseDataset:'fixture',baseDatasetFingerprint:'1'.repeat(64)});
+  const restored=restoreEntitiesFromDelta(JSON.parse(JSON.stringify(delta)),{base,baseDataset:'fixture',baseDatasetFingerprint:'1'.repeat(64)});
   assert.deepEqual(restored,changed);
-  assert.equal(territorialRootId(restored.find(entity=>entity.id==='T'),id=>restored.find(entity=>entity.id===id)),'B');
+  store.restoreProject({...delta,territorialEntities:restored});
+  assert.equal(repo.root('T').id,'B');
+  assert.deepEqual(store.snapshot(),entities.filter(entity=>entity.id !== 'A'));
   for(const retired of ['countriesData','countryOverrides','territorialUnits','countryDelta']) assert.equal(retired in full,false);
 });
 
 test('Undo snapshots restore metadata, geometry, parent chain and dirty IDs together', () => {
-  const { state,store,repo }=fixture(); const copies=createGeometrySnapshotPool();
-  const before=copies.clone(store.snapshot()); const originalGeometry=repo.get('S').geometry;
+  const { state,store,repo }=fixture();
+  const before=serializer(storageSnapshot(state,store)).buildProject(); const originalGeometry=repo.get('S').geometry;
   store.applyChanges({features:[{...repo.get('S'),geometry:polygon(5),properties:{...repo.get('S').properties,parentId:'B',name:'moved'}}]});
   store.setField('A','color','#123456');
-  const after=copies.clone(store.snapshot());
-  store.replaceEntities(copies.restore(before,state.territorialEntities));
-  assert.deepEqual(store.snapshot(),before);
+  const after=serializer(storageSnapshot(state,store)).buildProject();
+  store.restoreProject(before);
+  assert.deepEqual(store.identities(),before.territorialEntities);
+  assert.deepEqual(state.geometries.snapshot(),before.geometries);
+  assert.deepEqual(state.timelineRecords,before.timelineRecords);
   assert.equal(repo.root('T').id,'A');
   assert.deepEqual(repo.get('S').geometry,originalGeometry);
-  store.replaceEntities(copies.restore(after,state.territorialEntities));
+  store.restoreProject(after);
+  assert.deepEqual(state.geometries.snapshot(),after.geometries);
   assert.equal(repo.get('S').properties.name,'moved');
   assert.equal(repo.root('T').id,'B');
 });
 
 test('current schema rejects split storage, retired versions, malformed delta and dangling parents', () => {
-  const {store}=fixture(); const full=serializer({territorialEntities:store.snapshot()}).buildProject();
+  const {state,store}=fixture(); const full=serializer(storageSnapshot(state,store)).buildProject();
   assert.throws(()=>assertCurrentProjectSchema({...full,schemaVersion:6}),/schemaVersion/);
   assert.throws(()=>assertCurrentProjectSchema({...full,countryOverrides:{}}),/countryOverrides/);
   assert.throws(()=>normalizeTerritorialEntities([entity('X','general',{parentId:'missing'})]),/상위 단위|부모/);
   assert.throws(()=>normalizeTerritorialEntities([entity('X','regional',{parentId:'B'}),entity('B','general')]),/부모/);
   assert.throws(()=>normalizeTerritorialEntities([entity('R','regional'),entity('X','general',{parentId:'R'})]),/일반객체/);
-  assert.throws(()=>assertCurrentProjectSchema({...full,format:'pandolab-autosave-delta',entityDelta:{changed:full.territorialEntities,removedIds:['A']}}),/삭제 ID/);
+  const { territorialEntities, ...deltaFields } = full;
+  assert.throws(()=>assertCurrentProjectSchema({...deltaFields,format:'pandolab-autosave-delta',baseDatasetFingerprint:'1'.repeat(64),entityDelta:{changed:territorialEntities,removedIds:['A']}}),/삭제 ID/);
 });

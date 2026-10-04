@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState, staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature, normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
@@ -15,7 +16,7 @@ import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
-import { assertCurrentProjectSchema, applyProjectFields } from '../../assets/js/modules/project-state.js';
+import { assertCurrentProjectSchema, applyProjectFields, prepareProjectForActivation } from '../../assets/js/modules/project-state.js';
 import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
 
 const country = (id, name = id) => ({
@@ -27,18 +28,19 @@ const country = (id, name = id) => ({
 
 test('project replacement rejects unmarked vectors and preserves current common fields', async () => {
   const state = { territorialEntities: [], historyDirtyEntityIds: new Set() };
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
-  const projectFields = applyProjectFields({}, {}, {
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const projectFields = applyProjectFields({}, { timelineRecords: state.timelineRecords, geometries: state.geometries.snapshot() }, {
     normalizers: { layerPresentation: normalizeLayerPresentation },
   });
   const serializer = createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'builtin',
     distributionModes: ['territorial', 'geometry'], readSnapshot: () => ({
-      territorialEntities: state.territorialEntities, projectFields,
+      territorialEntities: entityStore.identities(), projectFields,
     }) });
   let loaded;
-  const projectDomain = createProjectDomain({ serializer, replaceSnapshot: project => {
+  const projectDomain = createProjectDomain({ serializer, prepareRestore: prepareProjectForActivation, replaceSnapshot: project => {
     assertCurrentProjectSchema(project);
-    entityStore.replaceEntities(project.territorialEntities);
+    entityStore.restoreProject(project);
     loaded = project;
     return true;
   } });
@@ -48,19 +50,19 @@ test('project replacement rejects unmarked vectors and preserves current common 
   });
   await assert.rejects(committer.applyImportedReplacement({ countriesData: { features: [country('A')] } }), /저장 정보/);
   assert.equal(state.territorialEntities.length, 0);
-  const packageState = serializer.buildProject({ fullAutosave: true, projectFields,
+  const packageState = serializer.buildProject(staticSerializerSnapshot({ fullAutosave: true, projectFields,
     territorialEntities: [createTerritorialFeature({ id: 'A', entityKind: 'general',
       name: '', color: '#123456', geometry: country('A').geometry }),
     createTerritorialFeature({ id: 'S', entityKind: 'general', parentId: 'A',
       geometry: country('A').geometry }),
     createTerritorialFeature({ id: 'R', entityKind: 'regional',
       geometry: country('A').geometry })],
-  });
+  }));
   await committer.applyImportedReplacement({ atlasMetadata: { projectState: packageState } });
   assert.equal(state.territorialEntities[0].properties.name, '');
   assert.equal(state.territorialEntities[0].properties.style.color, '#123456');
   assert.equal(state.territorialEntities[1].properties.parentId, 'A');
-  assert.deepEqual(state.territorialEntities, packageState.territorialEntities);
+  assert.deepEqual(entityStore.identities(), packageState.territorialEntities);
   assert.equal(loaded.baseDataset, packageState.baseDataset);
 });
 
@@ -222,12 +224,13 @@ test('historical replacement commits full country deletion and transfers depende
   const state = {
     territorialEntities: [normalizeCountryCollection({ features: [existing] }).features[0],
       createTerritorialFeature({ id: 'KAB', entityKind: 'general', parentId: 'KAZ', geometry: existing.geometry })],
-    territorialRelations: [], distributionLayers: [], distributionEntries: [], labels: [], genericFeatures: [],
+    distributionLayers: [], distributionEntries: [], labels: [], genericFeatures: [],
     itemVisibility: {}, labelSettings: {}, sourceInfo: null,
   };
   let transferred = null;
   let committedSnapshot = null;
-  const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
   const committer = createGisImportTransactionCommitter({
     state,
     entityStore: fixtureEntityStore1, territorialEntityRepository: createTerritorialEntityRepository({ entityStore: fixtureEntityStore1 }),

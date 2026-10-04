@@ -2,8 +2,10 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-import { matchesDefaultPreview, previewCountriesWithProjectProperties, previewSourceForProject } from './project-preview-policy.js';
+import { matchesDefaultPreview, previewSourceForProject } from './project-preview-policy.js';
 import { geometryRevision } from './geometry-versions.js';
+import { prepareProjectForActivation } from './project-state.js';
+import { createStaticTerritorialSnapshot } from './territorial-entity-store.js';
 
 export function createProgressiveStartup() {
   let dependencies;
@@ -12,6 +14,15 @@ export function createProgressiveStartup() {
   function connect(ports) {
     if (dependencies) throw new Error('progressive-startup already connected');
     dependencies = ports;
+  }
+
+  function restoreSavedProject(project) {
+    const prepared = prepareProjectForActivation(project, {
+      ...dependencies.builtinBaseline.projectBaseline,
+    });
+    dependencies.territorialModel.entityStore.restoreProject(prepared);
+    dependencies.snapshots.applySharedProjectFields(prepared);
+    return prepared;
   }
 
   function handleGeometryProgress(event) {
@@ -62,6 +73,7 @@ export function createProgressiveStartup() {
     const previewSearch = dependencies.projectState.state.layerSearch;
     const previewSelection = (dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) ? String(dependencies.projectState.state.selected.id || '') : '';
     (0, dependencies.builtinCountries.installCanonicalCountryStore)(geometry.canonicalCountryStore);
+    await dependencies.builtinBaseline.prepareProjectBaseline();
     // Preview-to-canonical promotion stays inside the same project generation.
     // A project hard reset here discarded the painted preview scene and forced
     // the renderer down the expensive canonical fallback path before the
@@ -76,12 +88,9 @@ export function createProgressiveStartup() {
     dependencies.projectState.state.countryVisualPhase = previewAllowed ? 'preview' : 'canonical';
 
     const restored = autosaveRestore.project;
-    if (restored) (0, dependencies.snapshots.applySharedProjectFields)(restored);
-    const restoredDelta = restored?.format === 'pandolab-autosave-delta';
     const baseCountries = (0, dependencies.countryServices.normalizeCountryCollection)(geometry.countries).features;
-    dependencies.territorialModel.entityStore.replaceEntities(restoredDelta
-      ? dependencies.domains.projectDomain.entitiesFromAutosaveDelta(restored, baseCountries)
-      : restored?.territorialEntities ? (0, dependencies.platform.deepClone)(restored.territorialEntities) : baseCountries);
+    if (restored) restoreSavedProject(restored);
+    else dependencies.territorialModel.entityStore.restoreProject(createStaticTerritorialSnapshot(baseCountries));
     // A display request may have initialized the edit Worker from preview countries.
     // Retire it before any canonical edit; its next request lazily rebases from this state.
     dependencies.spatialQuery.mapEditClient.stop();
@@ -284,31 +293,17 @@ export function createProgressiveStartup() {
     if (hasStoredCountryGeometry) {
       (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.RESTORE_STARTED);
     }
-    if (savedProject && !hasStoredCountryGeometry) (0, dependencies.snapshots.applySharedProjectFields)(savedProject);
     if (savedProject) (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
-    if (previewSource.kind === 'project') {
-      const savedEntities = savedProject.territorialEntities || savedProject.entityDelta.changed;
-      const savedUnits = new Map(savedEntities.filter(feature => !(feature.properties.entityKind === 'general' && !feature.properties.parentId)).map(feature => [String(feature.id), feature]));
-      const countries = previewCountriesWithProjectProperties((0, dependencies.countryServices.normalizeCountryCollection)(cachedPreview.countries), savedProject);
-      const units = cachedPreview.territorialUnits.map(unit => {
-        const source = savedUnits.get(String(unit.id));
-        if (!source) throw new Error('미리보기 객체의 저장 속성이 없습니다: ' + unit.id);
-        return { ...source, geometry: unit.geometry };
-      });
-      dependencies.territorialModel.entityStore.replaceEntities([...countries.features, ...units]);
-    } else if (hasStoredCountryGeometry) {
-      dependencies.territorialModel.entityStore.replaceEntities([]);
+    if (savedProject) {
+      restoreSavedProject(savedProject);
     } else {
       const classified = (0, dependencies.applicationServicesA.classifyBuiltinCountries)((0, dependencies.countryServices.normalizeCountryCollection)(window.PANDOLAB_COUNTRIES));
-      const properties = new Map((savedProject?.territorialEntities || savedProject?.entityDelta?.changed || []).map(feature => [String(feature.id), feature.properties]));
-      dependencies.territorialModel.entityStore.replaceEntities([...classified.countries.features, ...classified.subunits]
-        .map(feature => properties.has(String(feature.id)) ? { ...feature, properties: properties.get(String(feature.id)) } : feature));
+      dependencies.territorialModel.entityStore.restoreProject(createStaticTerritorialSnapshot([...classified.countries.features, ...classified.subunits]));
     }
     if (!hasStoredCountryGeometry) (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
-    (0, dependencies.projectSnapshots.configureDatasetSession)(null);
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
     (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = hasStoredCountryGeometry
@@ -433,15 +428,13 @@ export function createProgressiveStartup() {
 
     const autosaveRestore = await dependencies.lifecycleUi.projectUi.restoreAutosave();
     const restored = autosaveRestore.project;
-    if (restored) (0, dependencies.snapshots.applySharedProjectFields)(restored);
     (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
     dependencies.projectState.state.auditPreviewCountries = window.PANDOLAB_COUNTRIES;
 
-    const restoredDelta = restored?.format === 'pandolab-autosave-delta';
-    dependencies.territorialModel.entityStore.replaceEntities(restoredDelta
-      ? dependencies.domains.projectDomain.entitiesFromAutosaveDelta(restored)
-      : restored?.territorialEntities ? (0, dependencies.platform.deepClone)(restored.territorialEntities)
-        : (0, dependencies.builtinCountries.freshPristineCountries)().features);
+    const baseCountries = (0, dependencies.builtinCountries.freshPristineCountries)().features;
+    await dependencies.builtinBaseline.prepareProjectBaseline();
+    if (restored) restoreSavedProject(restored);
+    else dependencies.territorialModel.entityStore.restoreProject(createStaticTerritorialSnapshot(baseCountries));
     if (!restored) (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
     (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();

@@ -1,3 +1,4 @@
+import { prepareProjectForActivation } from './project-state.js';
 /** ProjectRestore: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -14,19 +15,8 @@ export function createProjectRestore() {
   }
 
   function applyAtlasState(project, manual = false, { projectGeneration = null, skipRenderReset = false } = {}) {
-    (0, dependencies.projectServices.assertCurrentProjectSchema)(project);
-    if (project.territorialEntities) {
-      (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
-        territorialEntities: project.territorialEntities,
-        territorialRelations: project.territorialRelations || [],
-        distributionLayers: project.distributionLayers || [],
-        distributionEntries: project.distributionEntries || [],
-        labels: project.labels || [],
-        genericFeatures: project.genericFeatures || [],
-        itemVisibility: project.itemVisibility || {},
-        labelSettings: project.labelSettings || {},
-      });
-    }
+    project = prepareProjectForActivation(project);
+    dependencies.territorialModel.entityStore.restoreProject(project);
     (0, dependencies.countryRecords.resetCountryLabelAnchorRuntime)();
     const nextProjectGeneration = skipRenderReset && Number.isFinite(projectGeneration)
       ? projectGeneration
@@ -38,9 +28,6 @@ export function createProjectRestore() {
     (0, dependencies.snapshots.applySharedProjectFields)(project);
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     dependencies.projectState.state.layerSearch = '';
-    dependencies.territorialModel.entityStore.replaceEntities(project.format === 'pandolab-autosave-delta'
-      ? dependencies.domains.projectDomain.entitiesFromAutosaveDelta(project)
-      : (0, dependencies.platform.deepClone)(project.territorialEntities));
     dependencies.projectState.state.auditPreviewCountries = null;
     (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
@@ -178,7 +165,8 @@ export function createProjectRestore() {
 
   async function resetProjectInPlace({ projectGeneration = null, skipRenderReset = false, prepared = null } = {}) {
     const preparedCountries = prepared?.countries || prepared;
-    if (!preparedCountries?.features) throw new Error('내장 기본 프로젝트 자료가 준비되지 않았습니다.');
+    if (!preparedCountries?.features || !prepared.territorial) throw new Error('내장 기본 프로젝트 자료가 준비되지 않았습니다.');
+    dependencies.territorialModel.entityStore.restoreProject(prepared.territorial);
     closeConfirmModal();
     (0, dependencies.workspaceUiA.closeMobileSheets)();
     const nextProjectGeneration = skipRenderReset && Number.isFinite(projectGeneration)
@@ -198,7 +186,6 @@ export function createProjectRestore() {
     dependencies.projectState.state.labelSettings = {};
     dependencies.projectState.state.genericFeatures = [];
     dependencies.projectState.state.hydroEdits = [];
-    dependencies.projectState.state.territorialRelations = [];
     dependencies.projectState.state.distributionLayers = [];
     dependencies.projectState.state.distributionEntries = [];
     dependencies.projectState.state.distributionSettings = { renderMode: dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.OVERLAP, activeLayerId: '', boundaryVisible: true };
@@ -233,7 +220,6 @@ export function createProjectRestore() {
 
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     dependencies.projectState.state.countryIndex.clear();
-    dependencies.territorialModel.entityStore.replaceEntities(preparedCountries.features);
     const restoredExactly = dependencies.builtinCountries.canonicalCountryStore
       ? dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).length === dependencies.builtinCountries.canonicalCountryStore.ids().length
         && dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).every(feature => dependencies.builtinCountries.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))

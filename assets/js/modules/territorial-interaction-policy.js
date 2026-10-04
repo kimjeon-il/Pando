@@ -62,8 +62,6 @@ export function removeTerritorialEntities(state, {
   for (const feature of unitTargets) delete state.layerPresentation?.objectStyles?.[`territorial:entity:${feature.id}`];
   for (const id of removedCountries) delete state.layerPresentation?.objectStyles?.[`territorial:entity:${id}`];
 
-  state.territorialRelations = (state.territorialRelations || []).filter(relation => !removedAll.has(String(relation.unitId || '')) && !removedAll.has(String(relation.parentId || '')));
-
   state.distributionEntries = (state.distributionEntries || []).filter(entry => (
     entry.mode !== territorialMode || !removedAll.has(String(entry.territorialUnitId || ''))
   ));

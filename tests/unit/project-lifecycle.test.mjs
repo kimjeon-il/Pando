@@ -20,6 +20,7 @@ function fixture() {
   });
   const domain = createProjectDomain({
     getSnapshot: () => value,
+    prepareRestore: structuredClone,
     history, saveState,
     persistence: {
       cancelPending: () => events.push('cancel-pending'),

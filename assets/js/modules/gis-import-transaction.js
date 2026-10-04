@@ -1,11 +1,15 @@
 import '../gis-adapters.js';
-import { territorialRootId } from './territorial-units.js';
+import { territorialRootId, normalizeTerritorialIdentities } from './territorial-units.js';
+import { prepareProjectForActivation } from './project-state.js';
+import { createGeometryVersionStore } from './geometry-version-store.js';
+import { staticTimelineViews } from './timeline-static-view.js';
 import { normalizeCountryCollection } from './country-feature.js';
 import { normalizeSourceProvenance, SOURCE_KINDS } from './source-provenance.js';
 
 export function createGisImportTransactionCommitter(runtime = {}) {
   const {
-    state,    DISTRIBUTION_MODES,
+    state,
+    DISTRIBUTION_MODES,
     GENERIC_FEATURE_SCHEMA_VERSION,
     DEFAULT_GENERIC_FEATURE_COLOR,
     uid,
@@ -83,7 +87,7 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       const parentId = kind === 'general' ? field('parentField', properties.parent_id ?? mapping.parentId ?? '') : properties.parent_id || '';
       const value = globalThis.PandoLabGisAdapters.importTerritorialFeature({ ...raw,
         id: importedId, properties: { ...properties,
-          properties_json: properties.properties_json || (properties.schemaVersion === 4 ? JSON.stringify(properties) : '{}'),
+          properties_json: properties.properties_json || (properties.schemaVersion === 5 ? JSON.stringify(properties) : '{}'),
           id: importedId, name: field('nameField', properties.name),
           parent_id: parentId, color: field('colorField', properties.color),
         },
@@ -299,17 +303,20 @@ export function createGisImportTransactionCommitter(runtime = {}) {
   async function applyImportedReplacement(result) {
     const packageState = result.atlasMetadata?.projectState;
     if (!packageState) throw new Error('현재 프로젝트 형식의 저장 정보가 필요합니다.');
-    const entities = normalizeTerritorialEntities(packageState.territorialEntities);
+    const entities = normalizeTerritorialIdentities(packageState.territorialEntities);
     const territorialEntities = applyImportedPackageAssets(result.atlasMetadata, entities);
     await projectDomain.load({ ...packageState, territorialEntities,
-      sourceInfo: result.atlasMetadata?.sourceInfo || result.sourceInfo });
+      sourceInfo: packageState.sourceInfo });
     setActionStatus(`객체 ${territorialEntityRepository.list().length}개를 새 프로젝트로 열었습니다.`, 'success', 3200);
   }
 
   async function commitGisMerge(result, plan) {
     const importedIds = new Set((result.countriesData?.features || []).map(feature => String(feature.id || '')));
+    const packageProject = result.atlasMetadata?.projectState
+      ? prepareProjectForActivation(result.atlasMetadata.projectState) : null;
     const imported = new Map(applyImportedPackageAssets(result.atlasMetadata,
-      result.atlasMetadata?.projectState?.territorialEntities || normalizeCountryCollection(result.countriesData).features)
+      packageProject ? staticTimelineViews(packageProject.territorialEntities, packageProject.timelineRecords,
+        createGeometryVersionStore(packageProject.geometries)) : normalizeCountryCollection(result.countriesData).features)
       .map(entity => [String(entity.id), entity]));
     const current = new Map(entityStore.snapshot().map(entity => [String(entity.id), entity]));
     const draftCountries = { type: 'FeatureCollection', features: plan.countriesData.features.map(feature => {
@@ -358,7 +365,6 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       }
       assertProjectReferenceIntegrity({
         territorialEntities: entityStore.snapshot(),
-        territorialRelations: state.territorialRelations || [],
         distributionLayers: state.distributionLayers || [],
         distributionEntries: state.distributionEntries || [],
         labels: state.labels || [],
