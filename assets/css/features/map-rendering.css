@@ -318,14 +318,6 @@
   display: none;
 }
 
-.map-graticule {
-  fill: none;
-  stroke: var(--map-graticule);
-  stroke-opacity: var(--map-graticule-opacity);
-  stroke-width: .55px;
-  pointer-events: none;
-}
-
 .country-shape {
   stroke: var(--map-border);
   stroke-width: .72px;

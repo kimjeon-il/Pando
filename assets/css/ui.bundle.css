@@ -52,8 +52,6 @@
   --map-stage: #0c1117;
   --map-wrap-bg: #10141a;
   --map-ocean: #0d2837;
-  --map-graticule: #688091;
-  --map-graticule-opacity: .20;
   --map-border: #323c46;
   --map-label: #d8dee5;
   --map-label-halo: rgba(11,15,20,.94);
@@ -218,8 +216,6 @@
   --map-stage: #ffffff;
   --map-wrap-bg: #ffffff;
   --map-ocean: #ffffff;
-  --map-graticule: #aaaaaa;
-  --map-graticule-opacity: .34;
   --map-border: #ffffff;
   --map-label: #1c2229;
   --map-label-halo: rgba(255,255,255,.94);
@@ -10947,14 +10943,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 
 .map-base-svg.flat-projection .globe-shadow {
   display: none;
-}
-
-.map-graticule {
-  fill: none;
-  stroke: var(--map-graticule);
-  stroke-opacity: var(--map-graticule-opacity);
-  stroke-width: .55px;
-  pointer-events: none;
 }
 
 .country-shape {

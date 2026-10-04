@@ -990,7 +990,6 @@ export function createDomainAssembly() {
         getState: () => dependencies.projectState.state,
         updatePandoGlobeShell: dependencies.projectionView.updatePandoGlobeShell,
         graticule: dependencies.projectionView.graticule,
-        graticuleLayer: dependencies.mapHostViewA.graticuleLayer,
         path: dependencies.mapView.path,
         gpuMapRenderer: dependencies.rendering.gpuMapRenderer,
         replaceGpuSceneDomain: dependencies.gpuRenderingA.replaceGpuSceneDomain,
@@ -998,7 +997,6 @@ export function createDomainAssembly() {
         getProjection: () => dependencies.projectState.state.projection,
         isLightTheme: () => (document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || dependencies.preferences.systemTheme) === 'light',
       }, {
-        graticuleLayer: () => dependencies.mapHostViewA.graticuleLayer,
       }),
       projectedOverlayResources: createResourceSnapshot('projectedOverlays', {
         layers: null,
