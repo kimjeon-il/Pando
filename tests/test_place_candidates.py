@@ -189,6 +189,56 @@ def review_ledger(raw_rows, actions):
 
 
 class CandidateReviewTests(unittest.TestCase):
+    def test_review_overrides_replace_action_and_append_reason_without_mutating_base(self):
+        row = record()
+        ledger = review_ledger([row], ["hold"])
+        before = copy.deepcopy(ledger)
+        overrides = {
+            "version": 1,
+            "sourceSha256": "fixture-source",
+            "overrides": [{
+                "geonameId": 1,
+                "action": "retain",
+                "reasonAppend": "Coordinate identity review accepted.",
+                "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#1",
+            }],
+        }
+        ledger["source"] = {"name": "cities500", "sha256": "fixture-source"}
+        before = copy.deepcopy(ledger)
+
+        merged = TOOL.apply_review_overrides(ledger, overrides)
+
+        self.assertEqual(ledger, before)
+        self.assertEqual(merged["decisions"][0]["action"], "retain")
+        self.assertIn("Coordinate identity review accepted.", merged["decisions"][0]["reason"])
+        self.assertEqual(
+            merged["decisions"][0]["coordinateCorrectionRef"],
+            "reports/places/coordinate-corrections.json#1",
+        )
+
+    def test_review_overrides_reject_unknown_and_duplicate_ids(self):
+        row = record()
+        ledger = review_ledger([row], ["hold"])
+        ledger["source"] = {"name": "cities500", "sha256": "fixture-source"}
+        unknown = {
+            "version": 1,
+            "sourceSha256": "fixture-source",
+            "overrides": [{"geonameId": 2, "action": "retain"}],
+        }
+        with self.assertRaisesRegex(ValueError, "unknown review ID 2"):
+            TOOL.apply_review_overrides(ledger, unknown)
+
+        duplicate = {
+            "version": 1,
+            "sourceSha256": "fixture-source",
+            "overrides": [
+                {"geonameId": 1, "action": "retain"},
+                {"geonameId": 1, "action": "retain"},
+            ],
+        }
+        with self.assertRaisesRegex(ValueError, "duplicate override ID 1"):
+            TOOL.apply_review_overrides(ledger, duplicate)
+
     def test_refinement_excludes_holds_without_promoting_or_changing_source(self):
         raw = [record(identifier=index + 1, code=code, name="Same name")
                for index, code in enumerate(["PPL", "PPLA2", "PPL", "PPLA3"])]
