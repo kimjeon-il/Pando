@@ -18,7 +18,8 @@ test('globe shell uses frame-context circles instead of rebuilding a D3 Sphere p
   assert.match(app, /append\('circle'\)\.attr\('class', 'map-ocean map-ocean-globe'\)/);
   assert.match(app, /append\('circle'\)\.attr\('class', 'globe-shadow'\)/);
   assert.match(rendering, /const syncBaseView = \(viewState = null\) =>/);
-  assert.match(rendering, /b\.graticuleLayer\?\.attr\('display', gpuOwnsGraticule \? 'none' : null\)/);
+  assert.match(rendering, /replaceGpuSceneDomain\?\.\('base-graticule', \{ strokes:/);
+  assert.doesNotMatch(rendering, /graticuleLayer|gpuOwnsGraticule/);
   assert.match(rendering, /viewPresentation: commitViewAttachedLayers/);
 });
 

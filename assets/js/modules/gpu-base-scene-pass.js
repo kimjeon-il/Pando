@@ -6,7 +6,7 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
   { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
-    territoryItems, polygonItems, strokeItems, deferredOverlayKeys, failedOverlayKeys } = prepared;
+    territoryItems, independentItems, deferredOverlayKeys, failedOverlayKeys } = prepared;
       gl.viewport(0, 0, pixelWidth, pixelHeight);
       gl.disable(gl.SCISSOR_TEST);
       gl.colorMask(true, true, true, true);
@@ -90,14 +90,38 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
         if (overrideMesh?.triangleIndices?.length) drawProgram(fillProgram, overrideFillVao, overrideFillIndexBuffer, overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture, null, null, overrideTriangleDraw.ranges);
       }
       gl.disable(gl.STENCIL_TEST);
-      for (const item of polygonItems) drawOverlay(item);
       resetGpuNormalBlend(gl);
       drawHydro('lake');
       drawHydro('lake-boundary');
       drawHydro('river');
       drawHydro('border-river');
       const countryStrokeResult = drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw);
-      for (const item of strokeItems) drawOverlay(item);
+      // Reserve base water and borders, then submit every independent visual
+      // in scene order. Only fills are clipped by these protected pixels.
+      if (independentItems.some(item => item.kind === 'polygon')) {
+        gl.stencilMask(0xff);
+        gl.clear(gl.STENCIL_BUFFER_BIT);
+        gl.enable(gl.STENCIL_TEST);
+        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+        gl.colorMask(false, false, false, false);
+        drawHydro('lake');
+        drawHydro('lake-boundary');
+        drawHydro('river');
+        drawHydro('border-river');
+        drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw);
+        gl.colorMask(true, true, true, true);
+        gl.stencilMask(0x00);
+        gl.stencilFunc(gl.EQUAL, 0, 0xff);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+      }
+      for (const item of independentItems) {
+        if (item.kind === 'polygon') gl.enable(gl.STENCIL_TEST);
+        else gl.disable(gl.STENCIL_TEST);
+        drawOverlay(item);
+      }
+      gl.disable(gl.STENCIL_TEST);
+      gl.stencilMask(0xff);
 
   return { overlayRenderedKeys, overlayMissingKeys, countryStrokeResult };
 }

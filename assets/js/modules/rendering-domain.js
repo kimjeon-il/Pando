@@ -885,15 +885,6 @@ export function createRenderingDomain({
     active();
     const b = base;
     b.updatePandoGlobeShell?.(viewState);
-    const renderer = b.gpuMapRenderer?.getRuntimeState?.()?.renderer;
-    const gpuOwnsGraticule = renderer === 'webgl2' || renderer === 'webgl1';
-    b.graticuleLayer?.attr('display', gpuOwnsGraticule ? 'none' : null);
-    if (!gpuOwnsGraticule) {
-      const fallbackGeometry = b.graticule?.();
-      if (fallbackGeometry && b.graticuleLayer) {
-        b.graticuleLayer.datum(fallbackGeometry).attr('d', framePath(viewState, b.path)).attr('data-gpu-scene-key', 'base:graticule');
-      }
-    }
     return true;
   };
   const renderBase = (viewState = null) => {
@@ -2082,7 +2073,6 @@ export function createRenderingDomain({
     markVisualRoot(roots.gpuCanvas, frame);
     markVisualRoot(roots.svg, frame);
     markVisualRoot(roots.interactionSvg, frame);
-    markVisualRoot(base.graticuleLayer, frame);
     markVisualRoot(labels.territorialLabelLayer, frame);
     markVisualRoot(labels.labelLayer, frame);
     markVisualRoot(selection.selectionLayer, frame);

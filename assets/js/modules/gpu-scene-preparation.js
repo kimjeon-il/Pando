@@ -41,8 +41,7 @@ export function prepareGpuBaseScene({ mesh, overrideMesh, frame, scene, budgetBy
     overlayItems,
     territoryItems: overlayItems.filter(item => item.kind === 'polygon' && item.packet.role === 'territorial-fill')
       .sort((a, b) => b.packet.territoryDepth - a.packet.territoryDepth || b.packet.order - a.packet.order),
-    polygonItems: overlayItems.filter(item => item.kind === 'polygon' && item.packet.role !== 'territorial-fill'),
-    strokeItems: overlayItems.filter(item => item.kind === 'stroke'),
+    independentItems: overlayItems.filter(item => item.kind !== 'polygon' || item.packet.role !== 'territorial-fill'),
     deferredOverlayKeys, failedOverlayKeys, overlayUploadBytes, overrunCount,
   };
 }

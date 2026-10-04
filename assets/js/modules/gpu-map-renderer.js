@@ -1380,11 +1380,15 @@ export function createGpuMapRenderer(deps) {
       const sceneCacheReady = sceneColorCache.initialize(renderDevice);
       interactionFillCache.initialize(renderDevice);
       interactionStrokeCache.initialize(renderDevice);
-      const device = renderDevice, revision = renderDeviceContextRevision;
+      const device = renderDevice, revision = renderDeviceContextRevision, generation = projectGeneration;
+      const current = () => !disposed && revision === renderDeviceContextRevision && device === renderDevice && generation === projectGeneration;
+      const assertCurrent = () => {
+        if (!current()) throw Object.assign(new Error('Stale shader initialization'), { name: 'AbortError' });
+      };
       const enqueue = (name, run) => uploadScheduler.enqueueUpload({
-        key: 'shader:' + revision + ':' + name, contextGeneration: revision, priority: 20,
+        key: 'shader:' + revision + ':' + name, contextGeneration: revision, projectGeneration: generation, priority: 20,
         step: () => {
-          if (revision !== renderDeviceContextRevision || device !== renderDevice) throw Object.assign(new Error('Stale shader initialization'), { name: 'AbortError' });
+          assertCurrent();
           const start = performance.now(), value = run();
           performanceMetrics.shaderInitializationMs = (performanceMetrics.shaderInitializationMs || 0) + performance.now() - start;
           return { done: true, value };
@@ -1392,16 +1396,22 @@ export function createGpuMapRenderer(deps) {
       });
       const initialize = async () => {
         if (!uploadScheduler) return;
-        await enqueue('polygon', () => polygonOverlayPass.initialize(device));
-        await strokeRenderer.initializeProgressively(device, enqueue);
+        assertCurrent();
+        if (await enqueue('polygon', () => polygonOverlayPass.initialize(device)) !== true) throw new Error('Required polygon renderer initialization failed');
+        assertCurrent();
+        if (await strokeRenderer.initializeProgressively(device, enqueue) !== true) throw new Error('Required stroke renderer initialization failed');
+        assertCurrent();
         if (selectionPass) await enqueue('selection', () => selectionPass.initialize(device, { strokeRenderer, polygonPass: polygonOverlayPass }));
+        assertCurrent();
         prewarmCountryStrokeResources();
         sceneColorCache.invalidate('shared-pass-ready');
         invalidateGpuFrame('shared-pass-ready');
       };
-      // At least one paint before optional pass compilation.
+      // Allow the first paint before compiling the required scene passes.
       lifecycle.frame(() => lifecycle.frame(() => { void initialize().catch(error => {
-        if (error.name !== 'AbortError') console.warn('Optional GPU pass initialization failed', error);
+        if (error.name === 'AbortError' || !current()) return;
+        console.error('[PL-GPU-005] Required scene renderer initialization failed', error);
+        activateCanvasFallback(error.message);
       }); }));
       lastSelectionRenderResult = null;
       return sceneCacheReady;
@@ -3531,6 +3541,25 @@ export function createGpuMapRenderer(deps) {
     }
 
     let canvasFillSubstrate = null;
+    function renderCanvasCountryBoundaries(path, theme, target = ctx2d, reserve = false) {
+      target.save();
+      if (state.layerVisibility.countries) {
+        target.globalAlpha = reserve ? 1 : theme.borderAlpha;
+        target.strokeStyle = theme.border;
+        target.lineJoin = 'round';
+        target.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
+        if (!shouldShowSharedCountryBorders(state.physicalSettings)) for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
+          const id = String(feature?.id || '');
+          if (!countryBoundaryStyleById(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
+          target.beginPath(); path(countryOutlineFeature(feature)); target.stroke();
+        }
+      }
+      const batches = globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(countrySharedBoundary, theme,
+        shouldShowSharedCountryBorders(state.physicalSettings), countryBoundaryStyleById);
+      globalThis.PandoLabCanvasSceneComposition.drawStrokes(target, path,
+        reserve ? batches.map(packet => ({ ...packet, style: { ...packet.style, alpha: 1 } })) : batches);
+      target.restore();
+    }
     function renderCanvasFallback() {
       if (!ctx2d || !canvas) return;
       if (resizePending) resize();
@@ -3567,7 +3596,20 @@ export function createGpuMapRenderer(deps) {
           ctx2d.fill();
         }
       }
-      globalThis.PandoLabCanvasSceneComposition.drawFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr);
+      globalThis.PandoLabCanvasSceneComposition.drawTerritorialFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr);
+      renderCanvasHydro(canvasPath, theme);
+      renderCanvasCountryBoundaries(canvasPath, theme);
+      const protection = {
+        key: [JSON.stringify(getRenderViewState()), physicalStyleStateRevision, hydroPreparation.acceptedRevision,
+          hydroPreparation.editRevision, [...hydroPreparation.activeIds()].join(','), countrySharedBoundary?.geometryRevision,
+          renderScene?.revision, canvasStyleRevision, currentRenderRevision].join(':'),
+        draw: mask => {
+          const maskPath = d3.geo.path().projection(activeProjection()).context(mask);
+          renderCanvasHydro(maskPath, theme, mask, true);
+          renderCanvasCountryBoundaries(maskPath, theme, mask, true);
+        },
+      };
+      globalThis.PandoLabCanvasSceneComposition.drawOverlays(ctx2d, canvasPath, canvasScenePolygons(), canvasSceneStrokes(), dpr, protection);
       const emphasisEntries = [];
       if (state.layerVisibility.countries) for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
         const id = String(feature.id || '');
@@ -3582,27 +3624,7 @@ export function createGpuMapRenderer(deps) {
       }
       for (const packet of canvasInteractionPolygons()) emphasisEntries.push({ key: packet.key, packet,
         priority: packet.interactionPriority || 5, style: packet.style });
-      globalThis.PandoLabCanvasSceneComposition.drawEmphasis(ctx2d, canvasPath, emphasisEntries, dpr, {
-        key: [JSON.stringify(getRenderViewState()), physicalStyleStateRevision, hydroPreparation.acceptedRevision, hydroPreparation.editRevision, [...hydroPreparation.activeIds()].join(',')].join(':'),
-        draw: mask => renderCanvasHydro(d3.geo.path().projection(activeProjection()).context(mask), theme, mask, true),
-      });
-      renderCanvasHydro(canvasPath, theme);
-      if (state.layerVisibility.countries) {
-        ctx2d.globalAlpha = theme.borderAlpha;
-        ctx2d.strokeStyle = theme.border;
-        ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
-        if (!shouldShowSharedCountryBorders(state.physicalSettings)) for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
-          const id = String(feature?.id || '');
-          if (!countryBoundaryStyleById(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
-          ctx2d.beginPath();
-          canvasPath(countryOutlineFeature(feature));
-          ctx2d.stroke();
-        }
-      }
-      globalThis.PandoLabCanvasSceneComposition.drawStrokes(ctx2d, canvasPath,
-        globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(countrySharedBoundary, theme,
-          shouldShowSharedCountryBorders(state.physicalSettings), countryBoundaryStyleById));
-      globalThis.PandoLabCanvasSceneComposition.drawStrokes(ctx2d, canvasPath, canvasSceneStrokes());
+      globalThis.PandoLabCanvasSceneComposition.drawEmphasis(ctx2d, canvasPath, emphasisEntries, dpr, protection);
       ctx2d.globalAlpha = 1;
       displayedRenderRevision = currentRenderRevision;
       markPreviewFramePresented();
@@ -3622,9 +3644,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function canvasSceneStrokes() {
-      // Canvas still owns its SVG graticule; all other base scene strokes use
-      // the same geographic packets as WebGL, including dashed child borders.
-      return (renderScene?.strokes || []).filter(packet => packet.key !== 'base:graticule').map(packet => ({
+      return (renderScene?.strokes || []).map(packet => ({
         key: packet.key, startsEnds: packet.startsEnds, ownerRanges: packet.ownerRanges, ownerIds: packet.ownerIds,
         order: packet.order, style: packet.style, blendMode: packet.blendMode,
       }));
@@ -3632,8 +3652,8 @@ export function createGpuMapRenderer(deps) {
 
     function canvasCountryBoundaryPacket() {
       if (!countrySharedBoundary) return null;
-      const { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, outlineOverrides } = countrySharedBoundary;
-      return { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds,
+      const { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, outlineOverrides, geometryRevision } = countrySharedBoundary;
+      return { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, geometryRevision,
         outlineOverrides: { startsEnds: outlineOverrides.startsEnds, ownerRanges: outlineOverrides.ownerRanges,
           ownerIds: outlineOverrides.ownerIds } };
     }
