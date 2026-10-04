@@ -354,7 +354,7 @@ export function createDomainAssembly() {
       canInspect: () => dependencies.projectState.state.tool === 'select'
         && !dependencies.projectState.state.projectReplacing && !dependencies.projectState.state.modeProcessing
         && !dependencies.projectState.state.labelPlacementMode && !editingDomain?.draftInputActive?.(),
-      getColor: view => resolveTerritorialColor(view).value,
+      getColor: view => resolveTerritorialEditorColor(view).value,
       isVisible: dependencies.objectOperationsA.objectRefVisible,
       isLocked: dependencies.objectOperationsA.objectRefLocked,
       isEditorOpen: () => dependencies.workspaceUiB.surfaceState.editorOpen,
