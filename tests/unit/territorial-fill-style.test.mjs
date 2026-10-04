@@ -111,3 +111,43 @@ test('a direct child inherits the actual parent material, including per-object o
   assert.equal(material.depth, 1);
   assert.equal(material.ownerId, 'A');
 });
+
+test('intrinsic country paint is inherited, explicit edits override it, and clearing restores it', () => {
+  const korea = createTerritorialFeature({ id: 'KOR', entityKind: 'general', geometry });
+  const child = createTerritorialFeature({ id: 'KOR-child', entityKind: 'general', parentId: 'KOR', geometry });
+  const state = { territorialEntities: [korea, child] };
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const entityRepository = createTerritorialEntityRepository({ entityStore });
+  const material = feature => createTerritorialFillResolver({ state, entityRepository, terrainAlpha: 0.22 })(feature);
+  assert.equal(material(korea).color, '#003478');
+  assert.equal(material(child).color, '#003478');
+  assert.equal(material(korea).fillAlpha, 0.22);
+  assert.deepEqual(korea.properties.style, {});
+  entityStore.setField('KOR', 'color', '#ef4444');
+  assert.equal(material(child).color, '#ef4444');
+  entityStore.setField('KOR', 'color', '');
+  assert.equal(material(child).color, '#003478');
+  state.layerPresentation = { styles: { countries: { colorVisible: false } } };
+  assert.equal(material(korea).fillAlpha, 0);
+  assert.equal(material(child).fillAlpha, 0);
+});
+
+test('unassigned territories and new countries remain unpainted, while historical identities keep their own defaults', () => {
+  const rows = [
+    ['ATA', ''], ['BRT', ''], ['KAS', ''], ['SPI', ''], ['new-country', ''],
+    ['RUS', '#3a9915'], ['historical-country:soviet-union', '#a3101f'],
+    ['CZE', '#6e63a2'], ['historical-country:czechoslovakia', '#46d8cb'],
+    ['historical-country:east-prussia', '#003153'],
+    ['historical-country:deutsche-demokratische-republik', '#8b1a1a'],
+    ['CNM', '#009edb'], ['COK', '#496a9c'], ['NIU', '#e2c65a'],
+  ];
+  const entities = rows.map(([id]) => createTerritorialFeature({ id, entityKind: 'general', geometry }));
+  const state = { territorialEntities: entities };
+  const entityRepository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => state }) });
+  const resolve = createTerritorialFillResolver({ state, entityRepository });
+  rows.forEach(([, color], index) => {
+    assert.equal(resolve(entities[index]).color, color);
+    assert.equal(resolve(entities[index]).fillAlpha, color ? 1 : 0);
+    assert.deepEqual(entities[index].properties.style, {});
+  });
+});

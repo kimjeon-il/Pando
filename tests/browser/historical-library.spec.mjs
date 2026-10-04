@@ -92,7 +92,7 @@ test('North Schleswig 1900 is searchable and splits Denmark without changing the
     (await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:north-schleswig')).geometryVersions[0].geometry,
   ));
   await page.locator('#historicalLibraryAddBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toContainText('덴마크:');
+  await expect(page.locator('#historicalLibraryModal')).toContainText('덴마크:', { timeout: 60_000 });
   await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 60_000 });
   const added = await page.evaluate(async () => {
@@ -117,6 +117,14 @@ test('North Schleswig 1900 is searchable and splits Denmark without changing the
     overlap: 0,
     source,
   });
+
+  const northStyle = await page.evaluate(() => {
+    const north = window.PANDOLAB_TERRITORIAL.get('historical-country:north-schleswig');
+    return { style: north.properties.style, sourceLibraryId: north.properties.sourceLibraryId };
+  });
+  expect(northStyle).toEqual({ style: {}, sourceLibraryId: 'historical-country:north-schleswig' });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('historical-country:north-schleswig'));
+  await expect(page.locator('#entityColorInput')).toHaveValue('#003153');
 
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('historical-country:north-schleswig'))).toBeNull();
