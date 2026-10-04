@@ -1,6 +1,6 @@
 export const TERRAIN_RASTER_VERSION = '0.12.6';
 export const TERRAIN_RASTER_DATASET = 'Natural Earth raster 3.2.0 1:10m';
-export const TERRAIN_DEM_VERSION = '0.13.2';
+export const TERRAIN_DEM_VERSION = '0.13.3';
 export const TERRAIN_DEM_FORMAT = 'dem-relief-v1';
 export const TERRAIN_RASTER_FORMAT = 'raster-rgba-v1';
 
@@ -70,7 +70,8 @@ export function validateTerrainManifest(manifest) {
         || manifest.levels.length !== 6
         || manifest.levels.some((level, index) => level.width !== 1350 * 2 ** index
           || level.height !== 675 * 2 ** index)
-        || !manifest.tint?.url || manifest.tint.width !== 2048 || manifest.tint.height !== 1024
+        || !manifest.tint?.url || !Number.isInteger(manifest.tint.width) || !Number.isInteger(manifest.tint.height)
+        || manifest.tint.height < 1 || manifest.tint.width !== manifest.tint.height * 2
         || !manifest.assetsSha256 || !Array.isArray(manifest.sources)) {
       throw new Error('DEM 지형 채널·고도·LOD 계약이 올바르지 않습니다.');
     }

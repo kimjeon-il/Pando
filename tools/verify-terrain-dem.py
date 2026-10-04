@@ -46,7 +46,7 @@ def main():
     parser.add_argument('--reference-output', type=Path)
     args = parser.parse_args()
     manifest = json.loads((args.output/'manifest.json').read_text(encoding='utf-8'))
-    if manifest['representation'] != 'dem-relief-v1' or manifest['version'] != '0.13.2':
+    if manifest['representation'] != 'dem-relief-v1' or manifest['version'] != '0.13.3':
         raise ValueError('Unexpected DEM version or format')
     if manifest['shade'].get('quantizationStep') != 4:
         raise ValueError('Unexpected DEM shade quantization')
@@ -102,7 +102,7 @@ def main():
             reports.append({'level': level_id, 'tiles': count, 'bytes': total_bytes, 'maxTileBytes': maximum})
     tint_path = args.output/'tint.webp'
     with Image.open(tint_path) as tint:
-        if tint.size != (2048, 1024):
+        if tint.size != (4096, 2048):
             raise ValueError('Wrong tint size')
     if digest_file(tint_path).hex() != manifest['tint']['sha256']:
         raise ValueError('Tint checksum mismatch')

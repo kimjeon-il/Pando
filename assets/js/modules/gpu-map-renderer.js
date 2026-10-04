@@ -2,7 +2,6 @@ import { createGpuCanvasWorker } from './gpu-canvas-worker.js';
 import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
 import { createGpuResourceLifecycle, createGpuUploadScope } from './gpu-resource-lifecycle.js';
 import { createGpuWorkerChannels } from './gpu-worker-channels.js';
-import { TERRAIN_DEM_FORMAT, TERRAIN_RASTER_DATASET, TERRAIN_RASTER_FORMAT, TERRAIN_RASTER_VERSION, terrainAssetUrl, validateTerrainManifest } from './terrain-manifest.js';
 import { terrainDemFragmentSource } from './terrain-dem-shaders.js';
 import { resolveMapInteractionStyle } from './map-interaction-style.js';
 import { decodeCountryMesh } from './country-mesh-codec.js';
@@ -25,11 +24,13 @@ import { shouldShowSharedCountryBorders, excludeCountryBoundaryOwners } from './
 import { geometryRevision } from './geometry-versions.js';
 
 const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
-const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation }] = await Promise.all([
+const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation },
+  { TERRAIN_DEM_FORMAT, TERRAIN_RASTER_DATASET, TERRAIN_RASTER_FORMAT, TERRAIN_RASTER_VERSION, terrainAssetUrl, validateTerrainManifest }] = await Promise.all([
   import(`./gpu-base-scene-pass.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-scene-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-stroke-renderer.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-terrain-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
+  import(`./terrain-manifest.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`../workers/canvas-scene-composition-core.js?v=${encodeURIComponent(rendererAssetRevision)}`),
 ]);
 

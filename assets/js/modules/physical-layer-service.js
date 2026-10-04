@@ -1,4 +1,5 @@
-import { validateTerrainManifest } from './terrain-manifest.js';
+const terrainAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
+const { validateTerrainManifest } = await import(`./terrain-manifest.js?v=${encodeURIComponent(terrainAssetRevision)}`);
 
 async function fetchManifest({ fetchWithRetry, url, operation, onRetry }) {
   const response = await fetchWithRetry(url, {}, {

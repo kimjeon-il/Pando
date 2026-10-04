@@ -17,7 +17,7 @@ const dem = {
   shade: { azimuthDegrees: 315, altitudeDegrees: 45, ambient: 0.42, diffuse: 0.58, polarFallbackDegrees: 89.5 },
   channels: { r: 'encoded elevation high byte', g: 'encoded elevation low byte',
     b: 'precomputed hillshade', a: '255' },
-  tint: { url: 'terrain/v0.13.0/tint.webp', width: 2048, height: 1024 },
+  tint: { url: 'terrain/v0.13.3/tint.webp', width: 4096, height: 2048 },
   assetsSha256: 'abc', sources: [], urlTemplate: 'terrain/v0.13.0/{level}/{column}-{row}.webp',
   levels: Array.from({ length: 6 }, (_, id) => ({ id, width: 1350*2**id, height: 675*2**id,
     columns: Math.ceil(1350*2**id/1024), rows: Math.ceil(675*2**id/1024), tileSize: 1024 })),
@@ -38,7 +38,8 @@ test('a tint-only data release uses the same strict DEM representation contract'
   assert.throws(() => validateTerrainManifest({ ...dem, version: 'local' }), /DEM/);
   assert.throws(() => validateTerrainManifest({ ...dem, version: '0.13.1',
     channels: { ...dem.channels, g: 'colour' } }), /DEM/);
-  assert.equal(terrainSources.TERRAIN_DEM_VERSION, '0.13.2');
+  assert.equal(terrainSources.TERRAIN_DEM_VERSION, '0.13.3');
+  assert.throws(() => validateTerrainManifest({ ...dem, tint: { ...dem.tint, width: 4095 } }), /DEM/);
 });
 
 test('relative and absolute data URLs resolve from the manifest without coupling DEM to app revision', () => {
