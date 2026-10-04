@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "sourceSha256": "4ba815404241c08ca40a5dcdcfe35dee4ae51bb848bfff2c01d8ad35507ae232",
+  "purpose": "Reclassify 35 Romanian SIRUTA-linked settlements from hold to retain while preserving the pinned GeoNames coordinates and tracking separate coordinate correction candidates.",
+  "checkedAt": "2026-10-04",
+  "overrides": [
+    {
+      "geonameId": 663045,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#663045"
+    },
+    {
+      "geonameId": 663575,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#663575"
+    },
+    {
+      "geonameId": 664459,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#664459"
+    },
+    {
+      "geonameId": 665382,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#665382"
+    },
+    {
+      "geonameId": 665764,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#665764"
+    },
+    {
+      "geonameId": 665914,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#665914"
+    },
+    {
+      "geonameId": 666670,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#666670"
+    },
+    {
+      "geonameId": 666933,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#666933"
+    },
+    {
+      "geonameId": 667123,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#667123"
+    },
+    {
+      "geonameId": 667243,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#667243"
+    },
+    {
+      "geonameId": 668322,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#668322"
+    },
+    {
+      "geonameId": 668809,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#668809"
+    },
+    {
+      "geonameId": 670360,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#670360"
+    },
+    {
+      "geonameId": 671363,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#671363"
+    },
+    {
+      "geonameId": 672263,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#672263"
+    },
+    {
+      "geonameId": 673140,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#673140"
+    },
+    {
+      "geonameId": 674636,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#674636"
+    },
+    {
+      "geonameId": 676798,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#676798"
+    },
+    {
+      "geonameId": 677165,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#677165"
+    },
+    {
+      "geonameId": 677360,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#677360"
+    },
+    {
+      "geonameId": 678883,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#678883"
+    },
+    {
+      "geonameId": 678923,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#678923"
+    },
+    {
+      "geonameId": 678997,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#678997"
+    },
+    {
+      "geonameId": 679177,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#679177"
+    },
+    {
+      "geonameId": 679604,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#679604"
+    },
+    {
+      "geonameId": 679909,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#679909"
+    },
+    {
+      "geonameId": 680398,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#680398"
+    },
+    {
+      "geonameId": 680831,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#680831"
+    },
+    {
+      "geonameId": 682823,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#682823"
+    },
+    {
+      "geonameId": 683166,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#683166"
+    },
+    {
+      "geonameId": 683543,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#683543"
+    },
+    {
+      "geonameId": 683641,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#683641"
+    },
+    {
+      "geonameId": 683890,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#683890"
+    },
+    {
+      "geonameId": 684583,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#684583"
+    },
+    {
+      "geonameId": 686658,
+      "action": "retain",
+      "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
+      "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#686658"
+    }
+  ]
+}
