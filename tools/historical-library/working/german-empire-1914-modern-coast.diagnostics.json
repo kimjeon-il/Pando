@@ -31,6 +31,6 @@
   "notes": [
     "This is an intermediate working base: modern coastline + historical inland frontier.",
     "Coastal land-border endpoints are temporary and will be re-snapped after 1914 shoreline reconstruction.",
-    "No intended geometry change outside the 30 km modern-coast surgery zone."
+    "No intended geometry change outside the 12 km modern-coast surgery zone."
   ]
 }
