@@ -61,10 +61,10 @@ export function createObjectPresentation() {
   function territorialEntityColor(feature) {
     const entity = dependencies.territorialModel.entityRepository.get(feature?.id) || feature;
     const fallback = (entity?.properties?.entityKind === 'general' && !entity?.properties?.parentId)
-      ? (0, dependencies.colorModel.defaultCountryColor)() : dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR;
+      ? (0, dependencies.colorModel.defaultCountryColor)(entity) : dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR;
     return (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature: entity }, {
       inherited: resolveTerritorialColor(entity, { entityRepository: dependencies.territorialModel.entityRepository,
-        countryColor: country => country.properties?.style?.color || (0, dependencies.colorModel.defaultCountryColor)(), fallback }),
+        countryColor: country => (0, dependencies.colorModel.defaultCountryColor)(country), fallback }),
       fallback,
     }).value;
   }
