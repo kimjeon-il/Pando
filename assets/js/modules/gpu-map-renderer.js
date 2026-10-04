@@ -3541,14 +3541,14 @@ export function createGpuMapRenderer(deps) {
     }
 
     let canvasFillSubstrate = null;
-    function renderCanvasCountryBoundaries(path, theme, target = ctx2d, reserve = false) {
+    function renderCanvasCountryBoundaries(path, theme, features, target = ctx2d, reserve = false) {
       target.save();
       if (state.layerVisibility.countries) {
         target.globalAlpha = reserve ? 1 : theme.borderAlpha;
         target.strokeStyle = theme.border;
         target.lineJoin = 'round';
         target.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
-        if (!shouldShowSharedCountryBorders(state.physicalSettings)) for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
+        if (!shouldShowSharedCountryBorders(state.physicalSettings)) for (const feature of features) {
           const id = String(feature?.id || '');
           if (!countryBoundaryStyleById(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
           target.beginPath(); path(countryOutlineFeature(feature)); target.stroke();
@@ -3569,8 +3569,9 @@ export function createGpuMapRenderer(deps) {
       ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
       const canvasPath = d3.geo.path().projection(activeProjection()).context(ctx2d);
       const theme = mapTheme();
+      const countryFeatures = renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId));
       const visibleFeatures = state.layerVisibility.countries
-        ? ((renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))).filter(feature => isLayerItemVisible('countries', String(feature.id))) : [];
+        ? countryFeatures.filter(feature => isLayerItemVisible('countries', String(feature.id))) : [];
       const resolveFill = createCountryFillResolver();
       ctx2d.globalAlpha = theme.baseLandAlpha;
       ctx2d.fillStyle = theme.defaultLand;
@@ -3598,7 +3599,7 @@ export function createGpuMapRenderer(deps) {
       }
       globalThis.PandoLabCanvasSceneComposition.drawTerritorialFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr);
       renderCanvasHydro(canvasPath, theme);
-      renderCanvasCountryBoundaries(canvasPath, theme);
+      renderCanvasCountryBoundaries(canvasPath, theme, countryFeatures);
       const protection = {
         key: [JSON.stringify(getRenderViewState()), physicalStyleStateRevision, hydroPreparation.acceptedRevision,
           hydroPreparation.editRevision, [...hydroPreparation.activeIds()].join(','), countrySharedBoundary?.geometryRevision,
@@ -3606,12 +3607,12 @@ export function createGpuMapRenderer(deps) {
         draw: mask => {
           const maskPath = d3.geo.path().projection(activeProjection()).context(mask);
           renderCanvasHydro(maskPath, theme, mask, true);
-          renderCanvasCountryBoundaries(maskPath, theme, mask, true);
+          renderCanvasCountryBoundaries(maskPath, theme, countryFeatures, mask, true);
         },
       };
       globalThis.PandoLabCanvasSceneComposition.drawOverlays(ctx2d, canvasPath, canvasScenePolygons(), canvasSceneStrokes(), dpr, protection);
       const emphasisEntries = [];
-      if (state.layerVisibility.countries) for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
+      if (state.layerVisibility.countries) for (const feature of countryFeatures) {
         const id = String(feature.id || '');
         const emphasis = countryEmphasisStyle(id);
         if (isLayerItemVisible('countries', id) && emphasis) emphasisEntries.push({ key: `country:${id}`, geometry: feature,
