@@ -73,11 +73,9 @@ test('physical data and visibility changes invalidate the cached base scene', ()
   assert.match(source, /function setTerrainManifest\([\s\S]*?invalidatePhysicalScene\('terrain-manifest'\);/);
   assert.match(source, /function invalidateHydroVisibility\([\s\S]*?queueHydroRender\('hydro-visibility'\);/);
   assert.match(source, /function queueHydroRender\([\s\S]*?invalidatePhysicalScene\(reason\);/);
-  assert.ok(terrain.includes('function terrainTileAt(level, longitude, latitude)'));
   assert.ok(terrain.includes('function terrainNeighbourSpecs(level, specs)'));
   assert.ok(terrain.includes("invalidate('terrain-tile-ready')"));
   assert.ok(terrain.includes('terrainRetentionKeys.has(item[0])'));
-  assert.ok(terrain.includes('terrainFallbackTileCount'));
   assert.match(terrain, /physicalScale \/ renderDpr\) \* sourceDpr/);
 });
 

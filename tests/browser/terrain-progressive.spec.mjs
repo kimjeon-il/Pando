@@ -10,14 +10,20 @@ test.use({
 });
 test.skip(process.env.PANDOLAB_VERIFY_LIVE_DEM !== '1', 'Opt in to hosted DEM network regression');
 
-test('slow mobile globe fills coarse DEM coverage before detail and discards old-view requests', async ({ page }) => {
+test('slow mobile globe uses coarse DEM only during map preview and requests detail directly after promotion', async ({ page }) => {
   test.setTimeout(240_000);
   const started = [];
   let releaseFine;
   const fineGate = new Promise(resolve => { releaseFine = resolve; });
-  await page.route(`${DEM_ORIGIN}/terrain/v0.13.0/**`, async route => {
+  let releaseCanonical;
+  const canonicalGate = new Promise(resolve => { releaseCanonical = resolve; });
+  await page.route('**/countries-canonical-v*.pcg.gz*', async route => {
+    await canonicalGate;
+    if (!page.isClosed()) await route.continue();
+  });
+  await page.route(`${DEM_ORIGIN}/terrain/**`, async route => {
     const path = new URL(route.request().url()).pathname;
-    const tile = path.match(/\/terrain\/v0\.13\.0\/(\d+)\/(\d+)-(\d+)\.webp$/);
+    const tile = path.match(/\/terrain\/v\d+\.\d+\.\d+\/(\d+)\/(\d+)-(\d+)\.webp$/);
     if (tile) {
       started.push({ level: Number(tile[1]), column: Number(tile[2]), row: Number(tile[3]) });
       await new Promise(resolve => setTimeout(resolve, 150));
@@ -34,10 +40,27 @@ test('slow mobile globe fills coarse DEM coverage before detail and discards old
     expect(started.slice(0, 2).map(tile => `${tile.level}/${tile.column}-${tile.row}`)).toEqual(['0/0-0', '0/1-0']);
     await expect.poll(() => page.evaluate(() => {
       const metrics = window.__PANDOLAB_GPU_METRICS__;
-      return metrics?.terrainTargetLevel > 0 && metrics.terrainTargetTileCount > 0
+      return metrics?.terrainTargetLevel === 0 && metrics.terrainTargetTileCount > 0
         && metrics.terrainRenderedLevel === 0
-        && metrics.terrainFallbackTileCount === metrics.terrainTargetTileCount;
+        && metrics.terrainTargetTilesSettled;
     }), { timeout: 90_000 }).toBe(true);
+    expect(started.every(tile => tile.level === 0)).toBe(true);
+    releaseCanonical();
+    await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+    await page.evaluate(() => {
+      const map = document.getElementById('map');
+      const rect = map.getBoundingClientRect();
+      const current = window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom;
+      map.dispatchEvent(new window.WheelEvent('wheel', { bubbles: true, cancelable: true,
+        clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2,
+        deltaY: -Math.log(3 / current) / 0.0013 }));
+    });
+    await expect.poll(() => page.evaluate(() => {
+      const metrics = window.__PANDOLAB_GPU_METRICS__;
+      return metrics?.terrainTargetLevel > 0 && metrics.terrainRenderedLevel === -1;
+    }), { timeout: 60_000 }).toBe(true);
+    const targetLevel = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetLevel);
+    expect(started.filter(tile => tile.level > 0).every(tile => tile.level === targetLevel)).toBe(true);
 
     for (const longitude of [-90, 0, 90]) {
       await page.evaluate(value => {
@@ -66,6 +89,8 @@ test('slow mobile globe fills coarse DEM coverage before detail and discards old
     });
     expect(currentViewRequests.length).toBeGreaterThan(0);
   } finally {
+    releaseCanonical();
     releaseFine();
+    await page.close();
   }
 });

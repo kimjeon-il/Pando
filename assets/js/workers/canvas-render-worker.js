@@ -315,23 +315,21 @@ function canvasFallbackWorkerMain() {
       if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return true;
       const levels = terrainManifest.levels;
       const baseLevel = levels[0];
-      const targetLevel = terrainLevelForView(projection, message.terrainDpr || dpr) || baseLevel;
-      const targetIndex = Math.max(0, levels.findIndex(level => Number(level.id) === Number(targetLevel.id)));
-      const activeTargetIndex = message.dataReadiness === 'enhanced' ? targetIndex : 0;
-      const specsByLevel = levels.slice(0, activeTargetIndex + 1).map((level, index) => ({
-        level,
-        specs: visibleTerrainTileSpecs(level, message, projection, width, height, false),
-      }));
-      const targetSpecs = specsByLevel[specsByLevel.length - 1]?.specs || [];
+      const targetLevel = message.meshQuality === 'preview' ? baseLevel
+        : terrainLevelForView(projection, message.terrainDpr || dpr);
+      const targetSpecs = visibleTerrainTileSpecs(targetLevel, message, projection, width, height, false);
+      const neighbours = terrainNeighbourSpecs(targetLevel, targetSpecs);
       const terrainComplete = targetSpecs.every(spec => terrainTiles.has(spec.key));
       terrainProtectedKeys.clear();
-      for (const entry of specsByLevel) for (const spec of entry.specs) terrainProtectedKeys.add(spec.key);
-      for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainProtectedKeys.add(spec.key);
-      for (let index = 0; index < specsByLevel.length; index += 1) {
-        const priority = index === 0 ? 10_000 : 1_000 - index;
-        for (const spec of specsByLevel[index].specs) requestTerrainTile(spec, priority);
+      for (const spec of [...targetSpecs, ...neighbours]) terrainProtectedKeys.add(spec.key);
+      for (let index = terrainFetchQueue.length - 1; index >= 0; index -= 1) {
+        const key = terrainFetchQueue[index].spec.key;
+        if (terrainProtectedKeys.has(key)) continue;
+        terrainQueuedKeys.delete(key);
+        terrainFetchQueue.splice(index, 1);
       }
-      for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 120);
+      for (const spec of targetSpecs) requestTerrainTile(spec, 10_000);
+      for (const spec of neighbours) requestTerrainTile(spec, 120);
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
       context.save();
       context.globalAlpha = 1;
@@ -353,15 +351,13 @@ function canvasFallbackWorkerMain() {
         context.clip();
         context.setTransform(1, 0, 0, 1, 0, 0);
       }
-      for (let levelIndex = 0; levelIndex < specsByLevel.length; levelIndex += 1) {
-        for (const spec of specsByLevel[levelIndex].specs) {
-          const tile = terrainTiles.get(spec.key);
-          if (!tile) continue;
-          tile.lastUsed = performance.now();
-          const image = tile[style];
-          if (message.projection === 'flat') drawFlatTerrainTile(spec, image, projection, dpr);
-          else drawGlobeTerrainTile(spec, image, projection, message, dpr, levelIndex === 0);
-        }
+      for (const spec of targetSpecs) {
+        const tile = terrainTiles.get(spec.key);
+        if (!tile) continue;
+        tile.lastUsed = performance.now();
+        const image = tile[style];
+        if (message.projection === 'flat') drawFlatTerrainTile(spec, image, projection, dpr);
+        else drawGlobeTerrainTile(spec, image, projection, message, dpr, targetLevel.id === 0);
       }
       context.restore();
       return terrainComplete;
