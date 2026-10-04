@@ -109,7 +109,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       return specs;
     }
 
-    function requestTerrainTile(spec, priority = 0) {
+    function requestTerrainTile(spec, priority = 0, pump = true) {
       if (!gl || disposed || terrainTiles.has(spec.key) || terrainTileRequests.has(spec.key)
           || terrainTileQueuedKeys.has(spec.key)) return;
       const queued = terrainFetchQueuedEntries.get(spec.key);
@@ -126,7 +126,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       terrainFetchQueuedEntries.set(spec.key, entry);
       terrainFetchQueue.push(entry);
       sortTerrainFetchQueue();
-      pumpTerrainFetchQueue();
+      if (pump) pumpTerrainFetchQueue();
     }
 
     function sortTerrainFetchQueue() {
@@ -182,7 +182,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
           error.demDecodeFailure = true;
           throw error;
         }
-        if (requestGeneration !== epoch || disposed) {
+        if (requestGeneration !== epoch || disposed || controller.signal.aborted) {
           bitmap.close?.();
           return;
         }
@@ -217,11 +217,12 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       }).finally(() => {
         controllers.delete(controller);
         if (requestGeneration !== epoch || disposed) return;
-        if (terrainTileRequests.get(spec.key) === request) terrainTileRequests.delete(spec.key);
+        if (terrainTileRequests.get(spec.key)?.promise === request) terrainTileRequests.delete(spec.key);
         terrainActiveFetches = Math.max(0, terrainActiveFetches - 1);
+        if (controller.signal.aborted && terrainTargetTileKeys.has(spec.key)) requestTerrainTile(spec, priority, false);
         pumpTerrainFetchQueue();
       });
-      terrainTileRequests.set(spec.key, request);
+      terrainTileRequests.set(spec.key, { promise: request, controller });
     }
 
     function uploadTerrainTile(next) {
@@ -385,8 +386,26 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       for (const spec of retainedDetail) terrainRetentionKeys.add(spec.key);
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);
       pruneTerrainFetchQueue();
-      for (const spec of targetSpecs) requestTerrainTile(spec, 30_000);
-      if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 1_000);
+      const projection = frameContext.viewState?.projection || view.projection;
+      const rotation = frameContext.viewState?.rotation || view.rotation;
+      const center = projection === 'flat' ? frameContext.viewState?.projectionCenter || view.flatCenter
+        : [-Number(rotation?.[0] || 0), -Number(rotation?.[1] || 0)];
+      for (const spec of targetSpecs) {
+        const [west, north, east, south] = spec.bounds;
+        const tileCenter = [(west + east) / 2, (north + south) / 2];
+        const distance = projection === 'flat'
+          ? Math.hypot((((tileCenter[0] - center[0]) + 540) % 360) - 180, tileCenter[1] - center[1]) * PI / 180
+          : geoDistance(center, tileCenter);
+        requestTerrainTile(spec, 30_000 - distance * 1_000, false);
+      }
+      if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 1_000, false);
+      const visibleTilesWaiting = terrainFetchQueue.some(entry => terrainTargetTileKeys.has(entry.spec.key));
+      for (const [key, request] of terrainTileRequests) {
+        if (!terrainRetentionKeys.has(key) || (visibleTilesWaiting && !terrainTargetTileKeys.has(key))) request.controller.abort();
+      }
+      // Fill the current-view batch before starting fetches so array traversal
+      // cannot consume all slots with far-away tiles ahead of the center.
+      pumpTerrainFetchQueue();
       terrainRenderedLevel = -1;
       const prepared = [];
       for (const spec of [...retainedDetail, ...targetSpecs]) {

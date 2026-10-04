@@ -8,7 +8,10 @@ function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () =>
   const deleted = [];
   const gl = { createTexture: () => ({}), deleteTexture: value => deleted.push(value), createBuffer: () => ({}) };
   for (const name of ['bindTexture', 'pixelStorei', 'texParameteri', 'texImage2D', 'bindBuffer', 'bufferData', 'deleteBuffer']) gl[name] = () => {};
-  t.mock.method(globalThis, 'fetch', (url, options) => new Promise((resolve, reject) => requests.push({ url, options, resolve, reject })));
+  t.mock.method(globalThis, 'fetch', (url, options) => new Promise((resolve, reject) => {
+    requests.push({ url, options, resolve, reject });
+    options.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })), { once: true });
+  }));
   const owner = createGpuTerrainPreparation({
     tileUrl: spec => `https://example.test/${spec.key}`,
     onUnusable,
@@ -103,6 +106,52 @@ test('rotating the mobile globe drops queued tiles from the old view', async t =
   const laterPaths = requests.slice(2).map(request => new URL(request.url).pathname);
   assert.ok(laterPaths.some(path => /^\/2\/[0123]-/.test(path)), 'new-view detail must start');
   assert.deepEqual(laterPaths.filter(path => /^\/2\/[567]-/.test(path)), [], 'old-view queued tiles must not start');
+  owner.dispose();
+});
+
+test('a new viewport starts its requests without waiting for obsolete in-flight downloads', async t => {
+  const longitudeDistance = (left, right) => Math.abs((((left[0] - right[0]) + 540) % 360) - 180) * Math.PI / 180;
+  const { owner, requests } = fixture(t, () => {}, { mobile: true, geoDistance: longitudeDistance });
+  owner.setManifest(mobileManifest);
+  owner.prepare(mobileFrame([-90, 0]), mobileView());
+  assert.equal(requests.length, 2);
+  owner.prepare(mobileFrame([90, 0]), mobileView());
+  await settle();
+  assert.ok(requests.length >= 4, 'new-view downloads must start while old responses remain unresolved');
+  assert.ok(requests.slice(0, 2).every(request => request.options.signal.aborted));
+  assert.equal(owner.stats().terrainFailureCount, 0, 'view cancellation is not a failed tile');
+  owner.dispose();
+});
+
+test('a request batch starts center tiles before viewport-edge tiles', t => {
+  const { owner, requests } = fixture(t);
+  owner.setManifest(mobileManifest);
+  const frame = { mode: 1, scale: 1200, viewport: [3000, 2000], viewState: { projection: 'flat', projectionCenter: [0, 0] } };
+  owner.prepare(frame, { ...mobileView(), devicePixelRatio: 1, projection: 'flat', flatCenter: [0, 0] });
+  const first = requests.slice(0, 4).map(request => new URL(request.url).pathname).sort();
+  assert.deepEqual(first, ['/2/3-1', '/2/3-2', '/2/4-1', '/2/4-2']);
+  owner.dispose();
+});
+
+test('in-flight neighbouring prefetch cannot block queued tiles in the current viewport', async t => {
+  const { owner, requests, jobs } = fixture(t);
+  globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
+  t.after(() => { delete globalThis.createImageBitmap; });
+  owner.setManifest(mobileManifest);
+  const frame = { mode: 1, scale: 1200, viewport: [1000, 800], viewState: { projection: 'flat', projectionCenter: [0, 0] } };
+  const view = { ...mobileView(), devicePixelRatio: 1, projection: 'flat', flatCenter: [0, 0] };
+  owner.prepare(frame, view);
+  for (let index = 0; index < 4; index++) {
+    requests[index].resolve({ ok: true, blob: async () => ({}) });
+    await settle();
+    for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain uploads. */ }
+  }
+  const before = requests.length;
+  assert.equal(before, 8);
+  owner.prepare({ ...frame, viewState: { ...frame.viewState, projectionCenter: [0, 30] } }, view);
+  await settle();
+  assert.ok(requests.length >= before + 2, 'both missing visible tiles must start before neighbouring responses finish');
+  assert.equal(owner.stats().terrainFailureCount, 0);
   owner.dispose();
 });
 
