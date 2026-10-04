@@ -42,7 +42,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     const query = `?debug=1&demTerrain=raster&renderer=${renderer}`;
     await page.goto(process.env.PANDOLAB_TEST_SITE_URL ? new URL(query, process.env.PANDOLAB_TEST_SITE_URL).href : `/${query}`);
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-    if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+    if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click({ timeout: 30_000 });
     await page.locator('#layerSearchInput').fill('홍콩');
     await page.getByRole('button', { name: '홍콩 선택 객체로 이동', exact: true }).click({ timeout: 30_000 });
     await page.keyboard.press('Escape');
@@ -74,7 +74,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     await expect(boundary).toBeChecked();
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.countryInternalBoundaryVisibleOwnerIds || [])).toContain('HKG');
     await page.mouse.click(1330, 20);
-    if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
+    if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click({ timeout: 30_000 });
     await page.locator('#layerSearchInput').fill('마카오');
     await page.getByRole('button', { name: '마카오 선택 객체로 이동', exact: true }).click({ timeout: 30_000 });
     await page.keyboard.press('Escape');
