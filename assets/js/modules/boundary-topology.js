@@ -347,6 +347,26 @@ function pointSegmentDistance(point, a, b) {
   return Math.hypot(Number(point[0]) - (Number(a[0]) + dx * t), Number(point[1]) - (Number(a[1]) + dy * t));
 }
 
+// Coincident edges on the same filled side are an exterior shared by an
+// overlapping parent/child, rather than a boundary separating their land.
+export function hasOpposingBoundaryInteriors(segment, features) {
+  const middle = [(segment.start[0] + segment.end[0]) / 2, (segment.start[1] + segment.end[1]) / 2];
+  const dx = segment.end[0] - segment.start[0], dy = segment.end[1] - segment.start[1];
+  const sides = features.map(feature => {
+    const edge = boundarySourceSegments(feature).find(row => pointSegmentDistance(middle, row.a, row.b) <= 1e-7);
+    if (!edge) throw new Error(`공유 경계의 원본 구간이 없습니다: ${feature.id}`);
+    const ring = ringForRef(feature, edge);
+    let area = 0;
+    for (let index = 1; index < ring.length; index++) {
+      const a = ring[index - 1], b = ring[index], origin = ring[0];
+      area += (a[0] - origin[0]) * (b[1] - origin[1]) - (b[0] - origin[0]) * (a[1] - origin[1]);
+    }
+    const direction = Math.sign((edge.b[0] - edge.a[0]) * dx + (edge.b[1] - edge.a[1]) * dy);
+    return direction * Math.sign(area) * (edge.ringIndex ? -1 : 1);
+  });
+  return new Set(sides).size > 1;
+}
+
 export function buildTerritorialInternalBoundarySegments(countries = [], units = [], { precision = 7, epsilon = 1e-7 } = {}) {
   // No unit can own an internal boundary: do not even inspect country geometry.
   if (!(units || []).some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) return [];

@@ -26,7 +26,8 @@ import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
 import { resolveCountryMeshQuality } from './country-mesh-zoom-policy.js';
-import { shouldShowSharedCountryBorders, visibleCountrySharedSegments } from './country-shared-boundary-packet.js';
+import { shouldShowSharedCountryBorders, excludeCountryBoundaryOwners } from './country-shared-boundary-packet.js';
+import { geometryRevision } from './geometry-versions.js';
 
 const DEFAULT_RENDER_QUALITY = Object.freeze({
   tier: 'high',
@@ -160,6 +161,7 @@ export function createGpuMapRenderer(deps) {
     hydroFeatureById,
     hydroVisibilityThreshold,
     isCountryVisibleById,
+    countryBoundaryStyleById,
     isHydroFeatureVisible,
     isLayerItemVisible,
     isMobile,
@@ -170,6 +172,7 @@ export function createGpuMapRenderer(deps) {
     queueMapResize,
     renderPendingCountryOverlays,
     renderCountryFeatures,
+    renderCountryBoundaryFeatures,
     canonicalCountryFeatures,
     renderViewFrame,
     reportOperationError,
@@ -436,6 +439,8 @@ export function createGpuMapRenderer(deps) {
     let countryBoundaryWorker = null;
     let countryBoundaryRequestId = 0;
     let countrySharedBoundary = null;
+    let countryBoundarySource = null;
+    let countryBoundarySourceRevision = '';
     let countryBoundaryLastMessage = '';
     function resetCountrySharedBoundary({ terminate = false } = {}) {
       countryBoundaryRequestId++;
@@ -446,13 +451,15 @@ export function createGpuMapRenderer(deps) {
         geometryRevision: geometryRevisionTracker.committedRevision(), projectGeneration });
     }
     function prepareCountrySharedBoundary({ features = null, removedIds = [], replace = false, baselineCache = null } = {}) {
-      let source = features || renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId));
-      if (!shouldShowSharedCountryBorders(state.physicalSettings)) {
-        resetCountrySharedBoundary({ terminate: true });
-        return;
-      }
+      const boundaryFeatures = renderCountryBoundaryFeatures();
+      countryBoundarySource = boundaryFeatures;
+      countryBoundarySourceRevision = boundaryFeatures.map(feature => geometryRevision(feature.geometry)).join(',');
+      const boundaryById = new Map(boundaryFeatures.map(feature => [String(feature.id), feature]));
+      let source = features && !replace ? features.map(feature => ({ ...feature,
+        properties: boundaryById.get(String(feature.id))?.properties || feature.properties,
+        boundaryRootId: boundaryById.get(String(feature.id))?.boundaryRootId || String(feature.id) })) : boundaryFeatures;
       if (!countryBoundaryWorker) {
-        if (!replace) source = renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId));
+        if (!replace) source = boundaryFeatures;
         countryBoundaryWorker = workerChannels.create(runtimeAssetUrl('workers/country-shared-boundary-worker.js'),
           { name: 'pandolab-country-shared-boundary' });
         countryBoundaryWorker.onmessage = ({ data }) => {
@@ -469,10 +476,13 @@ export function createGpuMapRenderer(deps) {
           if (data.type !== 'prepared') return;
           countrySharedBoundary = { ...data.packet, key: 'country-shared-boundary',
             geometryRevision: `${projectGeneration}:${data.requestId}` };
+          countrySharedBoundary.outlineOverrides.key = 'country-outline-overrides';
+          countrySharedBoundary.outlineOverrides.geometryRevision = countrySharedBoundary.geometryRevision;
           sceneColorCache.invalidate('country-shared-boundary-ready');
           if (canvasWorker) postCanvasWorkerMessage({ type: 'country-shared-boundary',
-            packet: { segments: countrySharedBoundary.segments },
-            hiddenSharedCountryIds: countrySharedBoundary.ownerIds.filter(id => !isCountryVisibleById(id)),
+            packet: canvasCountryBoundaryPacket(),
+            countryBoundaryStyles: Object.fromEntries(countrySharedBoundary.ownerIds.map(id => [id, countryBoundaryStyleById(id)])),
+            hiddenSharedCountryIds: countrySharedBoundary.ownerIds.filter(id => !countryBoundaryStyleById(id)),
             geometryRevision: Number(data.geometryRevision), projectGeneration });
           renderLatestVisualFrame();
         };
@@ -485,6 +495,10 @@ export function createGpuMapRenderer(deps) {
       if (baselineCache === null) baselineCache = !features && replace
         && meshVariants.get(activeMeshQuality)?.boundaryCacheKind === 'built-in'
         && countryOverrideIds.size === 0;
+      // Overlay-only child edits do not create a country mesh override. They
+      // still invalidate the precomputed boundary cache's geometry contract.
+      baselineCache = baselineCache && boundaryFeatures.every(feature => feature.properties.parentId
+        ? feature.boundaryPristine === true : meshCountryIds.includes(String(feature.id)));
       resetCountrySharedBoundary();
       countryBoundaryWorker.postMessage({ type: replace ? 'replace' : 'patch',
         requestId: countryBoundaryRequestId, projectGeneration,
@@ -492,6 +506,15 @@ export function createGpuMapRenderer(deps) {
         cacheUrl: replace ? runtimeAssetUrl(`../data/countries-${activeMeshQuality === 'preview' ? 'preview' : 'canonical'}-shared-v0.34.0.json.gz`).href : null,
         skipCacheReconcile: baselineCache,
         features: source, removedIds });
+    }
+    function syncCountryBoundaryScene() {
+      const features = renderCountryBoundaryFeatures();
+      if (countryBoundarySourceRevision === features.map(feature => geometryRevision(feature.geometry)).join(',')
+        && countryBoundarySource?.length === features.length && features.every((feature, index) => {
+        const previous = countryBoundarySource[index];
+        return previous.id === feature.id && previous.geometry === feature.geometry && previous.boundaryRootId === feature.boundaryRootId;
+      })) return;
+      prepareCountrySharedBoundary({ replace: true, baselineCache: false });
     }
     const countryStrokePacketCache = {
       preview: { mesh: null, countryIds: null, revision: '', resource: null },
@@ -3204,27 +3227,17 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw) {
-      if (!state.layerVisibility.countries) return { succeeded: true, renderedKeys: [], missingKeys: [] };
-      if (shouldShowSharedCountryBorders(state.physicalSettings)) {
-        if (!countrySharedBoundary || !activeFrameContext) return { succeeded: true, renderedKeys: [], missingKeys: [] };
-        const ownerIds = Object.keys(countrySharedBoundary.ownerRanges)
-          .filter(key => key.split('|').some(isCountryVisibleById));
-        if (!ownerIds.length) return { succeeded: true, renderedKeys: [], missingKeys: [] };
-        const theme = mapTheme();
-        return strokeRenderer.drawBatches([{ ...countrySharedBoundary, ownerIds,
-          style: { color: theme.border, alpha: theme.borderAlpha,
-            width: 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1), cap: 'butt', join: 'round' } }],
-        activeFrameContext);
+      const sharedOnly = shouldShowSharedCountryBorders(state.physicalSettings);
+      if (!sharedOnly && state.layerVisibility.countries) {
+        const excluded = countrySharedBoundary?.outlineOwnerIds || [];
+        drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES, null, paletteTexture, null, null,
+          excludeCountryBoundaryOwners(baseBoundaryDraw.ranges, mesh, excluded));
+        if (overrideMesh?.lineIndices?.length) drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length,
+          gl.LINES, dynamicResources, overridePaletteTexture, null, null, excludeCountryBoundaryOwners(overrideBoundaryDraw.ranges, overrideMesh, excluded));
       }
-      drawProgram(lineProgram, lineVao, lineIndexBuffer, mesh.lineIndices.length, gl.LINES, null, paletteTexture, null, null, baseBoundaryDraw.ranges);
-      if (overrideMesh?.lineIndices?.length) {
-        drawProgram(lineProgram, overrideLineVao, overrideLineIndexBuffer, overrideMesh.lineIndices.length, gl.LINES, dynamicResources, overridePaletteTexture, null, null, overrideBoundaryDraw.ranges);
-      }
-      return {
-        succeeded: true,
-        renderedKeys: [],
-        missingKeys: [],
-      };
+      if (!activeFrameContext) return { succeeded: true, renderedKeys: [], missingKeys: [] };
+      return strokeRenderer.drawBatches(globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
+        countrySharedBoundary, mapTheme(), sharedOnly, countryBoundaryStyleById), activeFrameContext);
     }
 
     let preparedBaseScene = null;
@@ -3276,7 +3289,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawCountryBoundaryMask() {
-      if (!preparedBaseScene || !state.layerVisibility.countries) return;
+      if (!preparedBaseScene) return;
       const dynamicResources = overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null;
       drawCountryBoundaryStrokes(dynamicResources, preparedBaseScene.baseBoundaryDraw, preparedBaseScene.overrideBoundaryDraw);
     }
@@ -3578,22 +3591,18 @@ export function createGpuMapRenderer(deps) {
         ctx2d.globalAlpha = theme.borderAlpha;
         ctx2d.strokeStyle = theme.border;
         ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
-        if (shouldShowSharedCountryBorders(state.physicalSettings)) {
-          if (countrySharedBoundary) {
-            const segments = visibleCountrySharedSegments(countrySharedBoundary.segments, isCountryVisibleById);
-            ctx2d.beginPath();
-            canvasPath({ type: 'MultiLineString', coordinates: segments.map(({ start, end }) => [start, end]) });
-            ctx2d.stroke();
-          }
-        } else for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
+        if (!shouldShowSharedCountryBorders(state.physicalSettings)) for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
           const id = String(feature?.id || '');
-          if (!isLayerItemVisible('countries', id)) continue;
+          if (!countryBoundaryStyleById(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
           ctx2d.beginPath();
           canvasPath(countryOutlineFeature(feature));
           ctx2d.stroke();
         }
       }
-
+      globalThis.PandoLabCanvasSceneComposition.drawStrokes(ctx2d, canvasPath,
+        globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(countrySharedBoundary, theme,
+          shouldShowSharedCountryBorders(state.physicalSettings), countryBoundaryStyleById));
+      globalThis.PandoLabCanvasSceneComposition.drawStrokes(ctx2d, canvasPath, canvasSceneStrokes());
       ctx2d.globalAlpha = 1;
       displayedRenderRevision = currentRenderRevision;
       markPreviewFramePresented();
@@ -3612,6 +3621,23 @@ export function createGpuMapRenderer(deps) {
       }));
     }
 
+    function canvasSceneStrokes() {
+      // Canvas still owns its SVG graticule; all other base scene strokes use
+      // the same geographic packets as WebGL, including dashed child borders.
+      return (renderScene?.strokes || []).filter(packet => packet.key !== 'base:graticule').map(packet => ({
+        key: packet.key, startsEnds: packet.startsEnds, ownerRanges: packet.ownerRanges, ownerIds: packet.ownerIds,
+        order: packet.order, style: packet.style, blendMode: packet.blendMode,
+      }));
+    }
+
+    function canvasCountryBoundaryPacket() {
+      if (!countrySharedBoundary) return null;
+      const { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, outlineOverrides } = countrySharedBoundary;
+      return { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds,
+        outlineOverrides: { startsEnds: outlineOverrides.startsEnds, ownerRanges: outlineOverrides.ownerRanges,
+          ownerIds: outlineOverrides.ownerIds } };
+    }
+
     const canvasSentGeometry = new Map();
     function canvasPacketDelta(packets, channel) {
       const next = new Set();
@@ -3619,9 +3645,9 @@ export function createGpuMapRenderer(deps) {
         const key = `${channel}:${packet.key}`;
         next.add(key);
         const previous = canvasSentGeometry.get(key);
-        canvasSentGeometry.set(key, packet.ringCoordinates);
-        if (previous !== packet.ringCoordinates) return packet;
-        const { ringCoordinates: _coordinates, ringOffsets: _rings, polygonOffsets: _polygons, ...metadata } = packet;
+        canvasSentGeometry.set(key, packet.ringCoordinates || packet.startsEnds);
+        if (previous !== (packet.ringCoordinates || packet.startsEnds)) return packet;
+        const { ringCoordinates: _coordinates, ringOffsets: _rings, polygonOffsets: _polygons, startsEnds: _segments, ...metadata } = packet;
         return metadata;
       });
       for (const key of canvasSentGeometry.keys()) if (key.startsWith(`${channel}:`) && !next.has(key)) canvasSentGeometry.delete(key);
@@ -3639,9 +3665,11 @@ export function createGpuMapRenderer(deps) {
         styleRevision: ++canvasStyleRevision,
         visible: !!state.layerVisibility.countries,
         hiddenCountryIds: Object.keys(state.itemVisibility.countries || {}).filter(id => state.itemVisibility.countries[id] === false),
-        hiddenSharedCountryIds: (countrySharedBoundary?.ownerIds || []).filter(id => !isCountryVisibleById(id)),
+        hiddenSharedCountryIds: (countrySharedBoundary?.ownerIds || []).filter(id => !countryBoundaryStyleById(id)),
         fills,
+        countryBoundaryStyles: Object.fromEntries((countrySharedBoundary?.ownerIds || []).map(id => [id, countryBoundaryStyleById(id)])),
         scenePolygons: canvasPacketDelta(canvasScenePolygons(), 'scene'),
+        sceneStrokes: canvasPacketDelta(canvasSceneStrokes(), 'strokes'),
         interactionFillItems: renderInteractionState.genericFillItems || [],
         interactionPolygons: canvasPacketDelta(canvasInteractionPolygons(), 'interaction'),
         countryEmphasis: {
@@ -3715,7 +3743,7 @@ export function createGpuMapRenderer(deps) {
         ...canvasWorkerStyleMessage(),
         ...canvasWorkerPhysicalStyleMessage(),
         geometryRevision: geometryRevisionTracker.committedRevision(),
-        sharedBoundary: countrySharedBoundary ? { segments: countrySharedBoundary.segments } : null,
+        sharedBoundary: canvasCountryBoundaryPacket(),
         terrainManifestUrl: (() => {
           return String(TERRAIN_RASTER_MANIFEST_URL);
         })(),
@@ -4611,6 +4639,10 @@ export function createGpuMapRenderer(deps) {
         countryBoundaryMode: shouldShowSharedCountryBorders(state.physicalSettings) ? 'shared' : 'outline',
         countrySharedBoundarySegmentCount: countrySharedBoundary?.segments.length || 0,
         countrySharedBoundaryReady: !!countrySharedBoundary,
+        countryInternalBoundarySegmentCount: Object.keys(countrySharedBoundary?.internalOwners || {})
+          .reduce((count, key) => count + countrySharedBoundary.ownerRanges[key].count, 0),
+        countryInternalBoundaryVisibleOwnerIds: [...new Set(Object.values(countrySharedBoundary?.internalOwners || {})
+          .flat().filter(id => !!countryBoundaryStyleById(id)))],
         countrySharedBoundaryWorkerActive: !!countryBoundaryWorker,
         countrySharedBoundaryRequestId: countryBoundaryRequestId,
         countrySharedBoundaryLastMessage: countryBoundaryLastMessage,
@@ -4729,6 +4761,7 @@ export function createGpuMapRenderer(deps) {
       hasBuiltinMeshBaseline: () => !!builtinMeshBaseline?.mesh,
       getProjectGeneration: () => projectGeneration,
       invalidateCountryPalette,
+      syncCountryBoundaryScene,
       setCountryEmphasis,
       setInteractionStyle, getCountryInteractionBoundaryData,
       setSelectionPass, setRenderScene, setInteractionState, invalidateSceneCache,

@@ -110,5 +110,59 @@
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
     context.globalAlpha = 1;
   }
-  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawFills, drawGeneralLand, drawEmphasis, geometryFor });
+  function countryBoundaryBatches(packet, theme, sharedOnly, styleForOwner) {
+    if (!packet) return [];
+    const solid = { color: theme.border, alpha: theme.borderAlpha,
+      width: 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1), cap: 'butt', join: 'round' };
+    const batches = [];
+    const groups = new Map();
+    const add = (source, owners, dash = false) => {
+      for (const owner of owners) {
+        const ids = dash ? packet.internalOwners[owner] : owner.split('|');
+        const opacity = Math.max(0, ...ids.map(id => styleForOwner(id)?.opacity || 0));
+        if (!opacity) continue;
+        const key = `${dash}:${opacity}:${source === packet}`;
+        if (!groups.has(key)) groups.set(key, { ...source, ownerIds: [], style: { ...solid, alpha: solid.alpha * opacity,
+          ...(dash ? { width: 1.1, dash: [3, 2], join: 'miter' } : {}) } });
+        groups.get(key).ownerIds.push(owner);
+      }
+    };
+    if (sharedOnly) {
+      add(packet, Object.keys(packet.ownerRanges).filter(key => !packet.internalOwners[key]));
+    } else {
+      add(packet.outlineOverrides, packet.outlineOverrides.ownerIds);
+    }
+    add(packet, Object.keys(packet.internalOwners), true);
+    batches.push(...groups.values());
+    return batches;
+  }
+  function drawStrokes(context, path, packets) {
+    for (const packet of [...packets].sort((a, b) => Number(a.order || 0) - Number(b.order || 0))) {
+      const ranges = packet.ownerIds && packet.ownerRanges
+        ? packet.ownerIds.map(id => packet.ownerRanges[id]).filter(Boolean)
+        : [{ first: 0, count: packet.startsEnds.length / 4 }];
+      const coordinates = [];
+      for (const range of ranges) for (let index = range.first; index < range.first + range.count; index++) {
+        const offset = index * 4;
+        const start = [packet.startsEnds[offset], packet.startsEnds[offset + 1]];
+        const end = [packet.startsEnds[offset + 2], packet.startsEnds[offset + 3]];
+        const previous = coordinates[coordinates.length - 1];
+        const last = previous?.[previous.length - 1];
+        if (last && last[0] === start[0] && last[1] === start[1]) previous.push(end);
+        else coordinates.push([start, end]);
+      }
+      context.save();
+      context.globalAlpha = packet.style.alpha;
+      context.globalCompositeOperation = packet.blendMode === 'multiply' ? 'multiply' : 'source-over';
+      context.strokeStyle = packet.style.color;
+      context.lineWidth = packet.style.width;
+      context.lineJoin = packet.style.join || 'round';
+      context.lineCap = packet.style.cap || 'butt';
+      context.setLineDash(packet.style.dash || []);
+      context.beginPath(); path({ type: 'MultiLineString', coordinates }); context.stroke();
+      context.restore();
+    }
+  }
+  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawFills, drawGeneralLand, drawEmphasis, geometryFor,
+    countryBoundaryBatches, drawStrokes });
 })(globalThis);
