@@ -3,6 +3,7 @@ import { resetReferenceImageSession } from './reference-image-input.js';
 import { geometryRevision } from './geometry-versions.js';
 import { freezeEditingGeometry } from './editing-render-packet.js';
 import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
+import { resolveTerritorialColor } from './color-adapter.js';
 /** DomainAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -257,7 +258,14 @@ export function createDomainAssembly() {
       },
     });
 
-    const resolveTerritorialColor = view => dependencies.colorModel.readDomainColor(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature: view.feature }, { inherited: dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }), fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR });
+    const defaultTerritorialColor = view => resolveTerritorialColor({ ...view.feature, properties: { ...view.properties, style: {} } }, {
+      entityRepository: territorialEntityRepository,
+      countryColor: dependencies.colorModel.defaultCountryColor,
+      fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
+    });
+    const resolveTerritorialEditorColor = view => dependencies.colorModel.readDomainColor(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature: view.feature }, {
+      inherited: defaultTerritorialColor(view), fallback: dependencies.colorModel.DEFAULT_GENERIC_FEATURE_COLOR,
+    });
     const getTerritorialView = value => {
       const ref = dependencies.selectionServices.normalizeObjectRef(value);
       if (ref?.domain !== 'territorial') return null;
@@ -283,8 +291,8 @@ export function createDomainAssembly() {
       getTerritorialView,
       getPrimaryRef: () => selectionDomain.primary(),
       showPropertyForm: (...args) => objectPropertyController.show(...args),
-      resolveColor: resolveTerritorialColor,
-      defaultColor: view => (dependencies.territorialModel.entityRepository.get(view.ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(view.ref?.id)?.properties.parentId) ? dependencies.colorModel.defaultCountryColor() : dependencies.colorModel.territorialEntityColor({ ...view.feature, properties: { ...view.properties, style: {} } }),
+      resolveColor: resolveTerritorialEditorColor,
+      defaultColor: defaultTerritorialColor,
       syncColorPicker: dependencies.colorPicker.syncColorPicker,
       calculateAreaKm2: dependencies.applicationServicesB.sphericalGeometryAreaKm2,
       formatArea: dependencies.applicationServicesA.formatArea,

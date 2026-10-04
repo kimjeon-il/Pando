@@ -1,4 +1,5 @@
 import { applyInteractionCssProperties } from './map-interaction-style.js';
+import { countryDefaultColor } from './color-adapter.js';
 import { TERRAIN_DEM_VERSION, TERRAIN_RASTER_DATASET, selectTerrainManifestUrls, terrainRasterManifestUrl } from './terrain-manifest.js';
 
 // The published DEM is the GPU default; the raster dataset remains the fallback.
@@ -130,8 +131,9 @@ export function createEnvironment() {
     return base;
   }
 
-  function defaultCountryColor() {
-    return mapTheme().defaultLand;
+  function defaultCountryColor(feature) {
+    // Unpainted objects still need a valid color input swatch, not stored paint.
+    return countryDefaultColor(feature) || mapTheme().defaultLand;
   }
 
   function applySystemTheme(matchesDark) {
@@ -149,11 +151,11 @@ export function createEnvironment() {
     if (dependencies.projectState.state?.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) {
       const id = String(dependencies.projectState.state.selected.id);
       const feature = dependencies.territorialModel.entityRepository.get(id);
-      const color = (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }, { fallback: defaultCountryColor() });
+      const color = (0, dependencies.colorModel.readDomainColor)(dependencies.colorModel.COLOR_DOMAINS.TERRITORIAL, { feature }, { fallback: defaultCountryColor(feature) });
       if (color.isDefault && $('entityColorInput')) $('entityColorInput').value = color.value;
-      (0, dependencies.colorPicker.syncColorPicker)('country', {
+      (0, dependencies.colorPicker.syncColorPicker)('entity', {
         value: color.value,
-        defaultColor: defaultCountryColor(),
+        defaultColor: defaultCountryColor(feature),
         isDefault: color.isDefault,
       });
     }

@@ -5,6 +5,8 @@
   "type": "module",
   "packageManager": "pnpm@11.19.0",
   "scripts": {
+    "build:country-default-colors": "node tools/build-country-default-colors.mjs",
+    "check:country-default-colors": "node tools/build-country-default-colors.mjs --check",
     "build:country-schema": "node tools/normalize-canonical-country-schema.mjs",
     "check:country-schema": "node tools/normalize-canonical-country-schema.mjs --check",
     "build:mesh": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-mesh.mjs",
