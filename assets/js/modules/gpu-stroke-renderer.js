@@ -70,7 +70,7 @@ function segmentProgramSources(version) {
         if(endpoint>=0.5&&hasFlag(flags,2.0)){vec2 outgoing=safeDirection(next.xy-end.xy);offset=miterOffset(current,outgoing,currentNormal,side,outerWidth);}
       }
       vec2 base=mix(start.xy,end.xy,endpoint);vec2 p=base+offset;
-      vDepth=mix(start.z,end.z,endpoint);vAcross=side*outerWidth;vAlong=aMeta.x+length(end.xy-start.xy)*endpoint;
+      vDepth=mix(start.z,end.z,endpoint);vAcross=side*outerWidth;vAlong=aMeta.x*uScale*0.017453292519943295+length(end.xy-start.xy)*endpoint;
       gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);
     }`;
   const fragmentHeader = version === 2
@@ -477,6 +477,8 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
 
   function drawStyle(resource, style, frameContext, ownerIds = null) {
     let draws = drawSegments(resource, style, frameContext, ownerIds);
+    // Solid join/cap patches would fill the gaps of densely segmented dashes.
+    if (style.dash?.[0] > 0 && style.dash?.[1] > 0) return draws;
     draws += drawRoundNodes(resource, style, frameContext, ownerIds);
     draws += drawBevelJoins(resource, style, frameContext, ownerIds);
     return draws;

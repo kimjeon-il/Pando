@@ -33,10 +33,10 @@ function canvasFallbackWorkerMain() {
 
     function mergeRenderState(message) {
       const updated = { ...message };
-      for (const channel of ['scenePolygons', 'interactionPolygons']) {
+      for (const channel of ['scenePolygons', 'interactionPolygons', 'sceneStrokes']) {
         if (!Array.isArray(message[channel])) continue;
         const previous = new Map((lastRenderMessage?.[channel] || []).map(packet => [packet.key, packet]));
-        updated[channel] = message[channel].map(packet => packet.ringCoordinates ? packet : { ...previous.get(packet.key), ...packet });
+        updated[channel] = message[channel].map(packet => packet.ringCoordinates || packet.startsEnds ? packet : { ...previous.get(packet.key), ...packet });
       }
       lastRenderMessage = { ...(lastRenderMessage || {}), ...updated, type: 'render' };
       return lastRenderMessage;
@@ -624,22 +624,19 @@ function canvasFallbackWorkerMain() {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.globalAlpha = borderAlpha;
         context.strokeStyle = border;
-        if (message.visible && message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical') {
-          if (countrySharedBoundary) {
-            const segments = countrySharedBoundary.segments.filter(segment =>
-              segment.ownerIds.some(id => !hiddenSharedCountryIds.has(id)));
-            context.beginPath();
-            geoPath({ type: 'MultiLineString', coordinates: segments.map(({ start, end }) => [start, end]) });
-            context.stroke();
-          }
-        } else for (let index = 0; message.visible && index < features.length; index += 1) {
+        const sharedOnly = message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical';
+        if (!sharedOnly) for (let index = 0; message.visible && index < features.length; index += 1) {
           const feature = features[index];
           const id = countryId(feature, index);
-          if (hiddenCountryIds.has(id)) continue;
+          if (hiddenSharedCountryIds.has(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
           context.beginPath();
           geoPath(countryOutlineFeature(feature));
           context.stroke();
         }
+        self.PandoLabCanvasSceneComposition.drawStrokes(context, geoPath,
+          self.PandoLabCanvasSceneComposition.countryBoundaryBatches(countrySharedBoundary, theme, sharedOnly,
+            id => message.countryBoundaryStyles[id]));
+        self.PandoLabCanvasSceneComposition.drawStrokes(context, geoPath, message.sceneStrokes || []);
         context.globalAlpha = 1;
       }
       const bitmap = canvas.transferToImageBitmap();
@@ -743,7 +740,8 @@ function canvasFallbackWorkerMain() {
         if (Number(message.geometryRevision) !== geometryRevision
           || Number(message.projectGeneration) !== projectGeneration) return;
         countrySharedBoundary = message.packet || null;
-        if (countrySharedBoundary) mergeRenderState({ hiddenSharedCountryIds: message.hiddenSharedCountryIds || [] });
+        if (countrySharedBoundary) mergeRenderState({ hiddenSharedCountryIds: message.hiddenSharedCountryIds || [],
+          countryBoundaryStyles: message.countryBoundaryStyles });
         scheduleHydroRender();
       } else if (message.type === 'style') {
         const incomingRevision = Number(message.styleRevision || 0);
