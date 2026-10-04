@@ -1,4 +1,4 @@
-import { normalizeTerritorialEntities } from './territorial-units.js';
+import { normalizeTerritorialEntities, normalizeTerritorialIdentities } from './territorial-units.js';
 import { normalizeTemporalInterval } from './temporal.js';
 import { validateSourceProvenance } from './source-provenance.js';
 
@@ -54,21 +54,20 @@ function geometryIssue(row, id, label) {
 
 export function validateProjectReferenceIntegrity({
   territorialEntities = [],
-  territorialRelations = [],
   distributionLayers = [],
   distributionEntries = [],
   labels = [],
   genericFeatures = [],
   itemVisibility = {},
   labelSettings = {},
+  storageOnly = false,
 } = {}) {
   const issues = [];
-  const countries=territorialEntities.filter(feature=>(feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
-  try { normalizeTerritorialEntities(territorialEntities,{cloneGeometry:geometry=>geometry}); }
+  const countries=territorialEntities.filter(feature=>(feature.properties?.entityKind === 'general' && (storageOnly || !feature.properties?.parentId)));
+  try { storageOnly ? normalizeTerritorialIdentities(territorialEntities) : normalizeTerritorialEntities(territorialEntities,{cloneGeometry:geometry=>geometry}); }
   catch(error) { issues.push(issue('PL-INV-TERRITORIAL',error.message,[], 'territorialEntities')); }
 
   issues.push(...duplicateIssues(territorialEntities, row => row?.id, 'PL-INV-ENTITY', '객체'));
-  issues.push(...duplicateIssues(territorialRelations, row => row?.id, 'PL-INV-RELATION', '기간별 관계'));
   issues.push(...duplicateIssues(distributionLayers, row => row?.id, 'PL-INV-DIST-LAYER', '분포 레이어'));
   issues.push(...duplicateIssues(distributionEntries, row => row?.id, 'PL-INV-DIST-ENTRY', '분포 엔트리'));
   issues.push(...duplicateIssues(genericFeatures, row => row?.id, 'PL-INV-GENERIC', '기타 객체'));
@@ -78,6 +77,7 @@ export function validateProjectReferenceIntegrity({
   const unitById = new Map(territorialEntities.map(row => [text(row?.id), row]));
 
   for (const feature of territorialEntities) {
+    if (storageOnly) continue; // Temporal geometry/parent integrity is owned by timeline validation.
     const id = text(feature?.id);
     const parentId = text(feature?.properties?.parentId);
     const geometryError = geometryIssue(feature, id, '영역');
@@ -95,20 +95,6 @@ export function validateProjectReferenceIntegrity({
     }
     try { normalizeTemporalInterval(feature?.properties?.validFrom, feature?.properties?.validTo); }
     catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id}의 유효기간이 올바르지 않습니다. ${error.message}`, [id], 'validFrom')); }
-  }
-
-  for (const relation of territorialRelations || []) {
-    const id = text(relation?.id);
-    const unitId = text(relation?.unitId);
-    const parentId = text(relation?.parentId);
-    if (!territorialIds.has(unitId)) {
-      issues.push(issue('PL-INV-MISSING-RELATION-UNIT', `${id || unitId}의 대상 영역 ${unitId}이 존재하지 않습니다.`, [id, unitId], 'unitId'));
-    }
-    if (parentId && !territorialIds.has(parentId)) {
-      issues.push(issue('PL-INV-MISSING-RELATION-PARENT', `${id || unitId}의 상위 단위 ${parentId}이 존재하지 않습니다.`, [id, unitId, parentId], 'parentId'));
-    }
-    try { normalizeTemporalInterval(relation?.validFrom, relation?.validTo); }
-    catch (error) { issues.push(issue('PL-INV-TEMPORAL', `${id || unitId}의 유효기간이 올바르지 않습니다. ${error.message}`, [id, unitId], 'validFrom')); }
   }
 
   const layerById = new Map((distributionLayers || []).map(layer => [text(layer?.id), layer]).filter(([id]) => id));

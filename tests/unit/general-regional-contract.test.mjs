@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerritorialFeature, normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
@@ -11,7 +12,8 @@ const entity = (id, entityKind = 'general', parentId = '') => createTerritorialF
 test('general hierarchy changes preserve identity and kind; independent regions remain unchanged', () => {
   const region = entity('Silesia', 'regional');
   const state = { territorialEntities: [entity('A'), entity('B', 'general', 'A'), entity('C', 'general', 'B'), entity('D'), region] };
-  const store = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ getState: () => state });
   const repository = createTerritorialEntityRepository({ entityStore: store });
   assert.equal(repository.root('C').id, 'A');
   store.setField('B', 'parentId', 'D');
@@ -48,7 +50,8 @@ test('a locked descendant prevents root reassignment and a locked source can be 
   const child = entity('C', 'general', 'A');
   child.properties.locked = true;
   const state = { territorialEntities: [source, child, entity('B')] };
-  const store = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ getState: () => state });
   const repository = createTerritorialEntityRepository({ entityStore: store });
   const history = [];
   const service = createTerritorialApplicationService({ entityRepository: repository, entityStore: store,
@@ -94,7 +97,8 @@ test('independent regional import retains explicit coast reconciliation without 
   const { createGisImportTransactionCommitter } = await import('../../assets/js/modules/gis-import-transaction.js');
   const root = entity('A'), region = entity('R', 'regional');
   const state = { territorialEntities: [root] };
-  const store = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ getState: () => state });
   const repository = createTerritorialEntityRepository({ entityStore: store });
   const coast = { ...geometry(), coordinates: [[[0,0],[0,2],[1,2],[1,0],[0,0]]] };
   let chosen = 'country-to-admin', opened = 0;

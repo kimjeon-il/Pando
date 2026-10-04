@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizeCountryCollection, normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
@@ -5,9 +6,8 @@ import { normalizePlace } from '../../assets/js/modules/place-contract.js';
 import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
 import { createGenericCommands } from '../../assets/js/modules/app-generic-commands.js';
 import { createProjectSnapshots } from '../../assets/js/modules/app-project-snapshots.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityStore, createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
-import { validateTerritorialRelations } from '../../assets/js/modules/territorial-units.js';
 import { applyProjectFields, pickProjectFields } from '../../assets/js/modules/project-state.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createCanonicalCountryStore } from '../../assets/js/modules/canonical-country-packet.js';
@@ -32,13 +32,14 @@ test('copy creates an independent user label via canonical history and autosave 
 function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
   const state = {
     territorialEntities: [], sourceInfo: null, labels: structuredClone(labels), genericFeatures: [], hydroEdits: [],
-    territorialRelations: [], distributionLayers: [], distributionEntries: [],
+    distributionLayers: [], distributionEntries: [],
     labelSettings: structuredClone(labelSettings), distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
     layerPresentation: {}, physicalSettings: { hiddenHydroIds: {} }, layerVisibility: {}, itemVisibility: {},
     projection: 'flat', layerFolders: {}, view: {}, historyDirtyEntityIds: new Set(), autosaveMode: 'delta',
     selectedDistributionLayerId: '', boundaryPreparation: null,
   };
   const owner = createProjectSnapshots();
+  initializeTestTerritorialState(state);
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore: entityStore });
   let searchRenders = 0;
@@ -59,6 +60,7 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
     rendering: { gpuMapRenderer: { invalidateHydroVisibility() {} } },
     hydroModel: { syncPhysicalControls() {}, normalizeHydroEditCollection: value => value || [] },
     builtinCountries: ownerBuiltinCountries,
+    builtinBaseline: { get projectBaseline() { return { baseEntities: createStaticTerritorialSnapshot(ownerBuiltinCountries.materializePristineCountriesSync().features).territorialEntities }; } },
     geometryMutation: { reindexCountries: value => value },
     countryRecords: { applyPristineLabelAnchors() {} },
     modelValidation: { normalizeGenericFeatureCollection: value => value || [], normalizeLayerPresentation: value => value || {} },
@@ -72,8 +74,6 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
       entityRepository,
       normalizeTerritorialEntities: value => value || [],
     },
-    territorialServicesA: { normalizeTerritorialRelations: value => value || [] },
-    territorialServicesB: { validateTerritorialRelations },
     presentation: { territorialRepository: { get: () => null } },
     layerTree: { normalizeLayerFolderState: value => value || {}, pruneLayerItemVisibility() {} },
     countries: { scheduleCountryLabelAnchors() {} },
@@ -115,7 +115,7 @@ test('label-only undo does not republish persistently dirty country geometry; ac
   assert.deepEqual(state.territorialEntities[0].geometry, geometry);
 });
 
-test('country date metadata survives delta save and restores on undo even with unchanged canonical geometry', () => {
+test('dated editing is rejected while static records and archive survive delta and undo', () => {
   const { owner, state, entityStore, builtinCountries } = historySnapshotFixture();
   const baseline = { type: 'FeatureCollection', features: [{
     type: 'Feature', id: 'KOR', properties: { name: '한국' },
@@ -125,21 +125,37 @@ test('country date metadata survives delta save and restores on undo even with u
   entityStore.replaceEntities(normalizeCountryCollection(builtinCountries.canonicalCountryStore.materializeCollectionSync()).features);
   builtinCountries.materializePristineCountriesSync = () => normalizeCountryCollection(builtinCountries.canonicalCountryStore.materializeCollectionSync());
   const pristine = owner.snapshotEditable();
-  entityStore.setField('KOR', 'validFrom', '1900');
+  assert.throws(() => entityStore.setField('KOR', 'validFrom', '1900'), { code: 'TIMELINE_ACTIVATION' });
+  entityStore.setField('KOR', 'name', 'changed name');
   assert.deepEqual([...state.historyDirtyEntityIds], ['KOR']);
-  assert.equal(owner.buildEntityDelta().changed[0].properties.validFrom, '1900');
+  assert.equal(Object.hasOwn(owner.buildEntityDelta().changed[0].properties, 'validFrom'), false);
+  assert.deepEqual(owner.snapshotEditable().timelineRecords, pristine.timelineRecords);
   const saved = JSON.parse(JSON.stringify(owner.snapshotEditable()));
 
   owner.restoreEntitiesFromSnapshot(pristine);
   assert.equal(entityStore.snapshot().find(entity => entity.id === 'KOR').properties.validFrom, null);
   assert.equal(state.territorialEntities.find(entity => entity.id === 'KOR').properties.validFrom, null);
   owner.restoreEntitiesFromSnapshot(saved);
-  assert.equal((entityStore.snapshot().find(entity => String(entity.id) === String('KOR') && entity.properties.entityKind === 'general' && !entity.properties.parentId) || null).properties.validFrom, '1900');
+  assert.equal(entityStore.snapshot().find(entity => entity.id === 'KOR').properties.name, 'changed name');
   assert.equal(builtinCountries.canonicalCountryStore.properties('KOR').validFrom, undefined);
 
   owner.configureDatasetSession({ territorialEntities: structuredClone(state.territorialEntities), baseDataset: 'fixture' });
   assert.deepEqual([...state.historyDirtyEntityIds], ['KOR']);
-  assert.equal(owner.buildEntityDelta().changed[0].properties.validFrom, '1900');
+  assert.equal(Object.hasOwn(owner.buildEntityDelta().changed[0].properties, 'validFrom'), false);
+});
+
+test('actual history owner rejects invalid project references before changing content or presentation', () => {
+  const { owner, state, entityStore, geometryChanges } = historySnapshotFixture();
+  entityStore.appendEntities([normalizeCountryFeature({ type: 'Feature', id: 'KOR', properties: { name: '한국' },
+    geometry: { type: 'Polygon', coordinates: [[[0,0],[0,2],[2,2],[2,0],[0,0]]] } })]);
+  const broken = owner.snapshotEditable();
+  broken.territorialEntities[0].properties.name = 'invalid candidate';
+  broken.distributionEntries = [{ id: 'entry', layerId: 'missing', mode: 'territorial', territorialUnitId: 'KOR', value: 1 }];
+  const before = owner.snapshotEditable(), selected = state.selected;
+  assert.throws(() => owner.restoreEditable(broken));
+  assert.deepEqual(owner.snapshotEditable(), before);
+  assert.equal(state.selected, selected);
+  assert.deepEqual(geometryChanges, []);
 });
 
 test('label history restores only changed user-label settings and leaves unrelated presentation alone', () => {
@@ -171,4 +187,20 @@ test('label history restores only changed user-label settings and leaves unrelat
   assert.equal('label:temporary-copy' in state.labelSettings, false);
   assert.equal(searchCancels(), 2);
   assert.equal(searchRenders(), 2);
+});
+
+
+test('unchanged static views do not become delta changes and cursor movement is session-only', () => {
+  const { owner, state, entityStore, builtinCountries } = historySnapshotFixture();
+  const base = normalizeCountryCollection({ features:[{ type:'Feature', id:'KOR', properties:{name:'한국'},
+    geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[0,0]]]}}] });
+  builtinCountries.materializePristineCountriesSync = () => base;
+  entityStore.replaceEntities(base.features);
+  owner.configureDatasetSession();
+  assert.deepEqual(owner.buildEntityDelta(), { changed:[], removedIds:[] });
+  const before = owner.snapshotEditable();
+  state.timelineCursor = '1914-06';
+  state.timelineCursor = '1914-07';
+  assert.deepEqual(owner.snapshotEditable(), before);
+  assert.deepEqual(owner.buildEntityDelta(), { changed:[], removedIds:[] });
 });

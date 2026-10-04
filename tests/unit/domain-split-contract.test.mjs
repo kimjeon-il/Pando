@@ -337,6 +337,7 @@ test('project replacement advances generation once before the canonical swap', a
   const resets = [];
   let replaceOptions = null;
   const project = createProjectDomain({
+    prepareRestore: value => value,
     replaceSnapshot: async (_value, options) => { replaceOptions = options; return true; },
     onProjectReset: event => resets.push(event),
   });

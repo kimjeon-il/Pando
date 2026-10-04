@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../../assets/js/vendor/polygon-clipping.min.js';
@@ -11,7 +12,8 @@ const square = (x0, x1) => ({ type: 'Polygon', coordinates: [[[x0,0],[x0,2],[x1,
 test('every general hierarchy level has an immutable canonical display extent; independent regions retain their own shape', () => {
   const make = (id, parentId, x0, x1, entityKind = 'general') => createTerritorialFeature({ id, entityKind, parentId, geometry: square(x0,x1) });
   const state = { territorialEntities: [make('A','',0,2),make('B','A',1,3),make('C','B',2,4),make('D','',5,7),make('R','',0,10,'regional')] };
-  const store = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ getState: () => state });
   const repo = createTerritorialEntityRepository({ entityStore: store });
   const scope = createTerritorialScopeResolver({ entityRepository: repo, getState: () => state, clipper: () => globalThis.polygonClipping });
   const before = structuredClone(state.territorialEntities);

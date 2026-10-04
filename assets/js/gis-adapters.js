@@ -125,7 +125,7 @@
       id,
       properties: {
         ...currentProperties,
-        schemaVersion: 4,
+        schemaVersion: 5,
         entityKind,
         name: text(properties.name ?? currentProperties.name) || id,
         parentId: text(properties.parent_id ?? currentProperties.parentId),

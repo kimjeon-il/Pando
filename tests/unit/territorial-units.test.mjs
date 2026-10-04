@@ -1,12 +1,12 @@
+import { normalizeTimelineRecords } from "../../assets/js/modules/timeline-records.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  TERRITORIAL_COVERAGE_MODES,  createTerritorialFeature,
-  normalizeTerritorialRelations,
+  TERRITORIAL_COVERAGE_MODES,
+  createTerritorialFeature,
   normalizeTerritorialEntities,
   runTerritorialTransaction,
-  validateTerritorialRelations,
 } from '../../assets/js/modules/territorial-units.js';
 
 const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
@@ -30,7 +30,7 @@ test('hierarchy uses parent relations without administrative levels', () => {
   ], { getEntity: id => id==='PL'?createTerritorialFeature({id,entityKind: 'general',geometry:square()}):null });
   assert.equal(units.find(item => item.id === 'a1').properties.adminLevel, undefined);
   assert.equal(units.find(item => item.id === 'a2').properties.adminLevel, undefined);
-  assert.equal(validateTerritorialRelations(units, { getEntity: id => id==='PL'?createTerritorialFeature({id,entityKind: 'general',geometry:square()}):null }).ok, true);
+  assert.equal(units.length, 3);
   assert.throws(() => normalizeTerritorialEntities([
     createTerritorialFeature({ id: 'a3', entityKind: 'general', parentId: 'missing', geometry: square() }),
   ], { getEntity: id => id==='PL'?createTerritorialFeature({id,entityKind: 'general',geometry:square()}):null }), /상위 단위|부모/);
@@ -67,19 +67,6 @@ test('dangling references and circular parents fail without automatic clearing',
 });
 
 
-test('dated relations resolve by reference date and overlapping ranges are rejected', () => {
-  const unit = createTerritorialFeature({ id: 't1', entityKind: 'general', parentId: 'A', geometry: square() });
-  const relations = normalizeTerritorialRelations([
-    { id: 'r1', schemaVersion: 3, unitId: 't1', parentId: 'B', validFrom: '1900-01-01', validTo: '1910-12-31' },
-  ]);
-  const invalid = validateTerritorialRelations([unit], {
-    getEntity: id=>['A','B'].includes(id)?createTerritorialFeature({id,entityKind: 'general',geometry:square()}):null,
-    relations: [...relations, { id: 'r2', unitId: 't1', parentId: 'A', validFrom: '1905-01-01', validTo: '1920-01-01' }],
-  });
-  assert.equal(invalid.ok, false);
-  assert.match(invalid.issues.join('\n'), /겹칩니다/);
-});
-
 test('territorial transaction records and autosaves once on success', async () => {
   const calls = [];
   const result = await runTerritorialTransaction({
@@ -102,10 +89,19 @@ test('territorial transaction restores once and skips history/autosave on failur
 });
 
 
-test('dated parent cycles are rejected only when the relationship intervals overlap', () => {
-  const units = ['A', 'B'].map(id => createTerritorialFeature({ id, entityKind: 'general', geometry: square() }));
-  const relation = (unitId, parentId, validFrom, validTo) => ({ id: unitId, schemaVersion: 3, unitId, parentId, validFrom, validTo });
-  const first = relation('A', 'B', '1900', '1910');
-  assert.equal(validateTerritorialRelations(units, { relations: [first, relation('B', 'A', '1911', '1920')] }).ok, true);
-  assert.match(validateTerritorialRelations(units, { relations: [first, relation('B', 'A', '1910', '1920')] }).issues.join(' '), /순환/);
+test('canonical timeline parents reject cycles only when intervals overlap', () => {
+  const entities = ['A', 'B'].map(id => ({ id, entityKind: 'general' }));
+  const records = { schemaVersion: 1,
+    lifetimes: entities.map(e => ({ id: 'life'+e.id, entityId: e.id, validFrom: null, validTo: null })),
+    geometryBindings: entities.map(e => ({ id: 'shape'+e.id, entityId: e.id, validFrom: null, validTo: null, geometryRef: { id: 'shape', version: 1 } })),
+    parentRelations: ['A','B'].flatMap((entityId, index) => [
+      { id: entityId+'before', entityId, parentId: '', coverageMode: 'explicit', validFrom: null, validTo: index ? '1910' : '1899' },
+      { id: entityId+'during', entityId, parentId: index ? 'A' : 'B', coverageMode: 'partition', validFrom: index ? '1911' : '1900', validTo: index ? '1920' : '1910' },
+      { id: entityId+'after', entityId, parentId: '', coverageMode: 'explicit', validFrom: index ? '1921' : '1911', validTo: null },
+    ]) };
+  const context = { entities, geometryExists: () => true };
+  assert.doesNotThrow(() => normalizeTimelineRecords(records, context));
+  records.parentRelations[3].validTo = '1909';
+  records.parentRelations[4].validFrom = '1910';
+  assert.throws(() => normalizeTimelineRecords(records, context), { code: 'TIMELINE_CYCLE' });
 });

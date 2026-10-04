@@ -96,3 +96,13 @@ test('malformed archive/reference fields are rejected, not silently dropped', ()
   for(const r of [{id:'',version:1},{id:2,version:1},{...ref(),extra:1}])
     assert.throws(()=>store.insert(r,shape()));
 });
+
+
+test('isolated registries share only validated immutable values and still reject frozen malformed inputs', () => {
+  const store=createGeometryVersionStore([{...ref(),geojson:shape()}]);
+  const fork=createGeometryVersionStore(store.snapshot());
+  assert.equal(fork.get(ref()),store.get(ref()));
+  fork.insert(ref(2),shape()); assert.equal(store.snapshot().length,1);
+  const malformed=Object.freeze({type:'Point',coordinates:Object.freeze([999,0])});
+  assert.throws(()=>createGeometryVersionStore([{...ref(),geojson:malformed}]),{code:'INVALID_GEOMETRY'});
+});

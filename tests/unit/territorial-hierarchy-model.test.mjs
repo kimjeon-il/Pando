@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -53,6 +54,7 @@ test('country extent includes detached descendants once and caches geometry work
   const units = [unit('p'), unit('c', 'p', { geometry: geometry(4.5), color: '#ee8800' })];
   const before = structuredClone({ country, units });
   const state={territorialEntities:[createTerritorialFeature({id:'DNK',entityKind:'general',geometry:country.geometry}),...units],get stateRevision(){return revision;}};
+  initializeTestTerritorialState(state);
   const repository=createTerritorialEntityRepository({entityStore:createTerritorialEntityStore({getState:()=>state})});
   const resolver = createTerritorialScopeResolver({
     entityRepository: repository,
@@ -73,11 +75,8 @@ test('country extent includes detached descendants once and caches geometry work
 
 test('parent style inheritance stops at explicit style without changing country palette', () => {
   const units = [unit('p', 'DNK', { color: '#ff9900' }), unit('c', 'p')];
-  const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => {
-    const countriesData = (() => ({ type: 'FeatureCollection', features: [
-      { type: 'Feature', id: 'DNK', properties: { name: 'DNK' }, geometry: geometry() },
-    ] }))();
-    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,entityKind:'general',name:feature.properties.name,geometry:feature.geometry})),...units],stateRevision:1};
-  } }) });
+  const state = { territorialEntities: [createTerritorialFeature({ id:'DNK',entityKind:'general',geometry:geometry() }), ...units] };
+  initializeTestTerritorialState(state);
+  const repository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => state }) });
   assert.equal(resolveTerritorialColor(units[1], { entityRepository: repository, countryColor: () => '#112233' }), '#ff9900');
 });

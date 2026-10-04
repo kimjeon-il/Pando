@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,7 +10,8 @@ import { createTerritorialApplicationService } from '../../assets/js/modules/ter
 function fixture() {
   const state={stateRevision:0,selected:{domain:'territorial',type: 'entity',id:'A'},territorialEntities:['A','B'].map(id=>createTerritorialFeature({id,entityKind: 'general',name:id,geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}))};
   const effects={history:0,save:0,refresh:0,tree:0,labels:0,base:0,patch:0,palette:0};
-  const store=createTerritorialEntityStore({getState:()=>state});
+  initializeTestTerritorialState(state);
+const store=createTerritorialEntityStore({getState:()=>state});
   const repository=createTerritorialEntityRepository({entityStore:store});
   const service=createTerritorialApplicationService({entityStore:store,entityRepository:repository,commandPipeline:{runMutation(_meta,mutate){effects.history++;const value=mutate();state.stateRevision++;effects.save++;return {ok:true,value};}}});
   const owner=createObjectMetadata();

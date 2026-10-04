@@ -3,6 +3,8 @@ import { resetReferenceImageSession } from './reference-image-input.js';
 import { geometryRevision } from './geometry-versions.js';
 import { freezeEditingGeometry } from './editing-render-packet.js';
 import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
+import { prepareProjectForActivation } from './project-state.js';
+import { createStaticTerritorialSnapshot } from './territorial-entity-store.js';
 /** DomainAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -102,8 +104,10 @@ export function createDomainAssembly() {
           (0, dependencies.builtinCountries.materializePristineCountries)(),
           dependencies.rendering.gpuMapRenderer.ensureBuiltinMeshBaseline(countryIds),
         ]);
-        return { countries, builtinMeshReady: true };
+        return { countries, territorial: createStaticTerritorialSnapshot(countries.features), builtinMeshReady: true };
       },
+      prepareRestore: async project => prepareProjectForActivation(project,
+        project.format === 'pandolab-autosave-delta' ? await dependencies.builtinBaseline.prepareProjectBaseline() : {}),
       createProjectFile: async project => {
         await (0, dependencies.gisServicesA.ensureGisIoRuntime)();
         if (!window.PandoLabGIS?.exportGeoPackage) throw new Error('GeoPackage 저장 모듈을 불러오지 못했습니다.');
@@ -113,6 +117,7 @@ export function createDomainAssembly() {
         project: dependencies.mapSettingsUi.projectSerializer.buildProject(),
         history: [...dependencies.projectState.state.history], historyMeta: [...dependencies.projectState.state.historyMeta],
         future: [...dependencies.projectState.state.future], futureMeta: [...dependencies.projectState.state.futureMeta],
+        selection: selectionDomain.snapshot(),
         save: dependencies.projectSession.saveState.checkpoint(),
       }),
       restoreReplacement: (checkpoint, generation) => {
@@ -121,6 +126,9 @@ export function createDomainAssembly() {
           history: checkpoint.history, historyMeta: checkpoint.historyMeta,
           future: checkpoint.future, futureMeta: checkpoint.futureMeta,
         });
+        const selection = checkpoint.selection.selection;
+        selectionDomain.setMany(selection.items, { primary: selection.items.find(item => item.key === selection.primaryKey), scope: selection.scope, reason: 'project-rollback' });
+        selectionDomain.setHover(checkpoint.selection.hover);
         dependencies.projectSession.saveState.restore(checkpoint.save);
         dependencies.lifecycleUi.projectUi.syncHistory();
         renderingDomain?.invalidateProject?.('project-rollback');
@@ -132,9 +140,10 @@ export function createDomainAssembly() {
       },
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'project', ...entry }),
       commandPipeline: dependencies.objectModelB.projectCommandPipeline,
-      invariants: { assertProjectReferenceIntegrity: dependencies.territorialModel.assertProjectReferenceIntegrity },
       restoreEntitiesFromDelta: (project, suppliedBase = null) => (0, dependencies.modelValidation.restoreEntitiesFromDelta)(project, {
-        base: suppliedBase || (0, dependencies.builtinCountries.materializePristineCountriesSync)().features,
+        base: suppliedBase || dependencies.builtinBaseline.projectBaseline.baseEntities,
+        baseDataset: dependencies.builtinBaseline.projectBaseline.baseDataset,
+        baseDatasetFingerprint: dependencies.builtinBaseline.projectBaseline.baseDatasetFingerprint,
         clone: dependencies.platform.deepClone,
       }),
       onProjectChanged: event => {

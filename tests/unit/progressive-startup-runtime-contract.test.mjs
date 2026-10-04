@@ -1,3 +1,6 @@
+import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
@@ -57,7 +60,7 @@ test('saved geometry is classified before any first-map source is chosen', () =>
 
 test('canonical promotion discards a worker initialized from preview geometry before editing resumes', () => {
   const promote = applicationFunctionSource(source, 'completeGeometryInitialization');
-  const canonicalAssignment = promote.indexOf('entityStore.replaceEntities');
+  const canonicalAssignment = promote.indexOf('entityStore.restoreProject');
   const discardPreviewWorker = promote.indexOf('mapEditClient.stop()');
   const editable = promote.indexOf("pandolab:editable");
   assert.ok(canonicalAssignment >= 0);
@@ -89,7 +92,8 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
     pendingCountryRenderIds: new Set(),
     autosaveMode: 'delta',
   };
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
   t.mock.method(globalThis, 'setTimeout', () => {
     // Only the host-frame fallback and preview deadline are scheduled here.
     // requestAnimationFrame supplies the host frame; the test owns preview paint.
@@ -124,7 +128,7 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
       projectDomain: { restorePreview: async () => null },
       layerTreeController: { beginHydration: noop, completeHydration: async () => {} }, editingDomain: { setTool: noop },
     },
-    snapshots: { normalizeProjectObjects: noop }, persistence: { applyAutosavedView: noop },
+    snapshots: { normalizeProjectObjects: noop, applySharedProjectFields: noop }, persistence: { applyAutosavedView: noop },
     platform: { deepClone: structuredClone },
     platformConfigurationA: { BASE_DATASET: 'fixture' },
     geometryPreview: { boundarySelectionAnalysisCache: new Map() },
@@ -138,7 +142,8 @@ function startupFixture(t, { project = null, terrainError = null } = {}) {
     },
     countryServices: { normalizeCountryCollection },
     applicationServicesA: { classifyBuiltinCountries: countries => ({ countries, subunits: [] }) },
-    builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop },
+    builtinBaseline: { prepareProjectBaseline: async () => ({}) },
+    builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop, materializePristineCountriesSync: () => normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES) },
     countryRecords: { applyPristineLabelAnchors: noop },
     layerTree: { pruneLayerItemVisibility: noop }, countries: { scheduleCountryLabelAnchors: noop },
     layers: { markLayerTreeDirty: noop }, projectSnapshots: { configureDatasetSession: noop },
@@ -210,11 +215,11 @@ test('terrain rejection is handled independently of canonical startup', async t 
   assert.equal(fixture.errors[0][2], 'PL-TERRAIN-001');
 });
 
-test('uncached saved geometry retains neutral startup until exact restoration', async t => {
-  const fixture = startupFixture(t, { project: { territorialEntities: normalizeCountryCollection({ features: [{ id: 'edited', geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } }] }).features } });
+test('uncached saved geometry uses validated exact state while builtin preview stays disabled', async t => {
+  const fixture = startupFixture(t, { project: createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'fixture', distributionModes: ['territorial','geometry'], readSnapshot: () => staticSerializerSnapshot({ fullAutosave: true, territorialEntities: normalizeCountryCollection({ features: [{ id: 'edited', geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } }] }).features }) }).buildProject() });
   await fixture.interactive.promise;
   assert.equal(fixture.calls.some(([kind]) => kind === 'terrain'), false);
-  assert.deepEqual(fixture.state.territorialEntities, []);
+  assert.deepEqual(fixture.state.territorialEntities.map(entity => entity.id), ['edited']);
   assert.equal(fixture.calls.find(([kind]) => kind === 'initialize')[1].allowPreview, false);
   const progressive = applicationFunctionSource(source, 'initProgressive');
   assert.match(progressive, /await completeGeometryInitialization[\s\S]*if \(hasStoredCountryGeometry\) startTerrainLoading\(\)/);

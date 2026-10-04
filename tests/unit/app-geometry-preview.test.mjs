@@ -14,7 +14,6 @@ function fixture({ execute } = {}) {
     stateRevision: 1,
     geometryPreview: { revision: 0, session: null },
     territorialEntities: [],
-    territorialRelations: [],
     distributionLayers: [],
     distributionEntries: [],
     labels: [],

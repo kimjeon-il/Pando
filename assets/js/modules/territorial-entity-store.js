@@ -1,7 +1,26 @@
-import { normalizeTerritorialEntities, normalizeTerritorialFeature } from './territorial-units.js';
+import { normalizeTerritorialEntities, normalizeTerritorialFeature, normalizeTerritorialIdentities,
+  TERRITORIAL_IDENTITY_FIELDS } from './territorial-units.js';
+import { createGeometryVersionStore } from './geometry-version-store.js';
+import { restoreTimelineStorage } from './timeline-storage.js';
+import { normalizeTimelineRecords } from './timeline-records.js';
+import { assertStaticTimeline, staticTimelineViews } from './timeline-static-view.js';
 import { normalizeColorValue } from './color-adapter.js';
 
 const text = value => String(value ?? '').trim();
+
+export function createEmptyTerritorialState() {
+  return { territorialEntities: [], timelineRecords: { schemaVersion: 1, lifetimes: [], geometryBindings: [], parentRelations: [] },
+    geometries: createGeometryVersionStore() };
+}
+
+/** Explicit new static project construction; persisted projects use restoreProject. */
+export function createStaticTerritorialSnapshot(features) {
+  const state = createEmptyTerritorialState();
+  const store = createTerritorialEntityStore({ getState: () => state });
+  store.replaceEntities(features);
+  return { territorialEntities: store.identities(), timelineRecords: structuredClone(state.timelineRecords),
+    geometries: state.geometries.snapshot() };
+}
 
 /** Sole writer of the unified Feature collection and entity metadata. */
 export function createTerritorialEntityStore({ getState, onEntitiesReplaced = () => {} } = {}) {
@@ -11,8 +30,68 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
   const state = () => {
     const value = getState();
     if (!Array.isArray(value?.territorialEntities)) throw new TypeError('territorialEntities 배열이 필요합니다.');
+    if (!value.timelineRecords || typeof value.geometries?.snapshot !== 'function')
+      throw new TypeError('영역 Store에는 timelineRecords와 geometry version store가 필요합니다.');
     return staging?.state || value;
   };
+  const identity = feature => ({ type: 'Feature', id: feature.id, geometry: null,
+    properties: Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.filter(key => Object.hasOwn(feature.properties, key))
+      .map(key => [key, feature.properties[key]])) });
+  const catalog = identities => identities.map(feature => ({ id: feature.id, entityKind: feature.properties.entityKind }));
+  const activationError = () => { throw Object.assign(new Error('날짜별 편집은 T4 구현 후 지원합니다.'), { code: 'TIMELINE_ACTIVATION' }); };
+  function candidateFor(next, current, validate = true) {
+    assertStaticTimeline(current.timelineRecords, current.territorialEntities);
+    const geometries = createGeometryVersionStore(current.geometries.snapshot(), { reuse: current.geometries });
+    const records = structuredClone(current.timelineRecords);
+    const ids = new Set(next.map(feature => feature.id));
+    for (const key of ['lifetimes', 'geometryBindings', 'parentRelations'])
+      records[key] = records[key].filter(record => ids.has(record.entityId));
+    const recordIds = new Set(['lifetimes', 'geometryBindings', 'parentRelations']
+      .flatMap(key => records[key].map(record => record.id)));
+    const allocateRecordId = base => {
+      let id = base, suffix = 0;
+      while (recordIds.has(id)) id = `${base}:${++suffix}`;
+      recordIds.add(id);
+      return id;
+    };
+    for (const feature of next) {
+      const p = feature.properties, id = feature.id;
+      if (p.validFrom !== null || p.validTo !== null) activationError();
+      let binding = records.geometryBindings.find(record => record.entityId === id);
+      if (!binding || (geometries.get(binding.geometryRef) !== feature.geometry
+        && JSON.stringify(geometries.get(binding.geometryRef)) !== JSON.stringify(feature.geometry))) {
+        const geometryId = binding?.geometryRef.id || `territorial-geometry:${id}`;
+        const versions = geometries.snapshot().filter(entry => entry.id === geometryId).map(entry => entry.version);
+        const version = versions.length ? Math.max(...versions) + 1 : 1;
+        const geometryRef = { id: geometryId, version };
+        geometries.insert(geometryRef, feature.geometry);
+        if (binding) binding.geometryRef = geometryRef;
+        else {
+          binding = { id: allocateRecordId(`geometry:${id}`), entityId: id, validFrom: null, validTo: null, geometryRef };
+          records.geometryBindings.push(binding);
+        }
+      }
+      if (!records.lifetimes.some(record => record.entityId === id))
+        records.lifetimes.push({ id: allocateRecordId(`lifetime:${id}`), entityId: id, validFrom: null, validTo: null });
+      let parent = records.parentRelations.find(record => record.entityId === id);
+      if (!parent) {
+        parent = { id: allocateRecordId(`parent:${id}`), entityId: id, validFrom: null, validTo: null };
+        records.parentRelations.push(parent);
+      }
+      parent.parentId = p.parentId;
+      parent.coverageMode = p.coverageMode;
+    }
+    const identities = normalizeTerritorialIdentities(next.map(identity));
+    const normalized = validate ? normalizeTimelineRecords(records, { entities: catalog(identities),
+      geometryExists: ref => ['Polygon', 'MultiPolygon'].includes(geometries.get(ref)?.type) }) : records;
+    const previous = new Map(current.territorialEntities.map(feature => [feature.id, feature]));
+    const views = staticTimelineViews(identities, normalized, geometries).map(feature => {
+      const before = previous.get(feature.id);
+      return before && before.geometry === feature.geometry
+        && JSON.stringify(before.properties) === JSON.stringify(feature.properties) ? before : feature;
+    });
+    return { timelineRecords: normalized, geometries, territorialEntities: views };
+  }
   function normalize(entities, unchanged) {
     if (!staging) return normalizeTerritorialEntities(entities, { validatedUnchanged: unchanged, cloneGeometry: geometry => geometry });
     const ids = new Set();
@@ -31,15 +110,18 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
     if (staging) return apply();
     const current = state();
     const previous = current.territorialEntities;
-    staging = { state: { ...current, territorialEntities: previous }, removed: new Set() };
+    staging = { state: { ...current, territorialEntities: previous,
+      geometries: createGeometryVersionStore(current.geometries.snapshot(), { reuse: current.geometries }),
+      timelineRecords: structuredClone(current.timelineRecords) }, removed: new Set() };
     try {
       const result = apply();
       if (result?.then) throw new TypeError('영역 transaction은 비동기 계산을 포함할 수 없습니다.');
       const pending = staging;
       const next = normalizeTerritorialEntities(pending.state.territorialEntities.filter(entity => !pending.removed.has(entity.id)), {
         validatedUnchanged: new Set(previous), cloneGeometry: geometry => geometry });
+      const candidate = candidateFor(next, pending.state);
       staging = null;
-      publish(next, previous);
+      publishCandidate(candidate, previous);
       return result;
     } finally {
       staging = null;
@@ -64,6 +146,7 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
   function setField(id, field, value) {
     const feature = entity(id);
     if (!feature) return false;
+    if (['validFrom', 'validTo'].includes(field) && value !== null) activationError();
     const properties = { ...feature.properties };
     if (field === 'color') {
       properties.style = { ...properties.style };
@@ -89,15 +172,20 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
     return snapshot();
   }
   function publish(next, previous) {
+    const candidate = candidateFor(next, state(), !staging);
     if (staging) {
-      staging.state.territorialEntities = next;
+      Object.assign(staging.state, candidate);
       cached = null;
       return;
     }
+    publishCandidate(candidate, previous);
+  }
+  function publishCandidate(candidate, previous) {
+    const next = candidate.territorialEntities;
     const before = new Map(previous.map(feature => [text(feature.id), feature]));
     const after = new Map(next.map(feature => [text(feature.id), feature]));
     const changedIds = new Set([...before.keys(), ...after.keys()].filter(id => before.get(id) !== after.get(id)));
-    state().territorialEntities = next;
+    Object.assign(state(), candidate);
     cached = null;
     state().historyDirtyEntityIds ||= new Set();
     for (const id of changedIds) state().historyDirtyEntityIds.add(id);
@@ -151,7 +239,18 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
     if (deleted.length) applyChanges({ removedIds: deleted.map(feature => feature.id) });
     return deleted;
   }
-  return Object.freeze({ snapshot, setField, hasField, replaceEntities, applyChanges, appendEntities, removeEntities, transaction,
+  function identities() { return normalizeTerritorialIdentities(state().territorialEntities.map(identity)); }
+  function restoreProject(project) {
+    const metadata = normalizeTerritorialIdentities(project.territorialEntities);
+    const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
+      geometries: project.geometries }, catalog(metadata), { reuse: state().geometries });
+    // This store drives the existing static editor: gate before replacing any owner.
+    assertStaticTimeline(storage.records, metadata);
+    publishCandidate({ territorialEntities: staticTimelineViews(metadata, storage.records, storage.geometries),
+      timelineRecords: storage.records, geometries: storage.geometries }, state().territorialEntities);
+    return snapshot();
+  }
+  return Object.freeze({ snapshot, identities, restoreProject, setField, hasField, replaceEntities, applyChanges, appendEntities, removeEntities, transaction,
     setLocked: (id, locked) => setField(id, 'locked', !!locked),
     isLocked: id => entity(id)?.properties.locked === true });
 }

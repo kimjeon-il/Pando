@@ -1,3 +1,7 @@
+import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
+import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import { staticTimelineViews } from '../../assets/js/modules/timeline-static-view.js';
+import { createGeometryVersionStore } from '../../assets/js/modules/geometry-version-store.js';
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -54,12 +58,11 @@ test('new full and delta saves retain Subunits and source-country removals', () 
   const delta = { changed: [...result.countries.features.filter(f => controllers.has(f.id)), ...result.subunits], removedIds: [...BUILTIN_SUBUNITS.map(row => row.sourceCountryId), ...BUILTIN_TERRITORY_MERGES.map(row => row.sourceId)] };
   const serializer = createProjectSerializer({ appVersion: '0.33.0', baseDataset: 'test',
     distributionTypes: ['language', 'ethnicity', 'religion'], distributionModes: ['territorial', 'geometry'],
-    readSnapshot: () => ({ territorialEntities: [...result.countries.features, ...result.subunits], projectFields: {}, entityDelta: delta, fullAutosave: false }) });
+    readSnapshot: () => staticSerializerSnapshot({ territorialEntities: [...result.countries.features, ...result.subunits], projectFields: {}, entityDelta: delta, fullAutosave: false }) });
   const full = JSON.parse(JSON.stringify(serializer.buildProject()));
-  assert.deepEqual(full.territorialEntities.filter(feature => feature.properties.parentId), result.subunits);
-  assert.equal(full.territorialEntities.filter(feature => !feature.properties.parentId).length, 207);
+  assert.deepEqual(staticTimelineViews(full.territorialEntities,full.timelineRecords,createGeometryVersionStore(full.geometries)).filter(feature => feature.properties.parentId), result.subunits);
+  assert.equal(staticTimelineViews(full.territorialEntities,full.timelineRecords,createGeometryVersionStore(full.geometries)).filter(feature => !feature.properties.parentId).length, 207);
   const saved = JSON.parse(JSON.stringify(serializer.buildAutosave()));
-  assert.deepEqual(saved.entityDelta.changed.filter(feature => feature.properties.parentId), result.subunits);
-  assert.deepEqual(restoreEntitiesFromDelta(saved, { base: normalizeCountryCollection(source).features,
-    reindex: value => value, applyPristineLabelAnchors: () => {} }), [...result.countries.features, ...result.subunits]);
+  assert.deepEqual(staticTimelineViews(saved.entityDelta.changed,saved.timelineRecords,createGeometryVersionStore(saved.geometries)).filter(feature => feature.properties.parentId), result.subunits);
+  assert.deepEqual(restoreEntitiesFromDelta(saved, { base: createStaticTerritorialSnapshot(normalizeCountryCollection(source).features).territorialEntities, baseDataset: 'test', baseDatasetFingerprint: '1'.repeat(64) }), full.territorialEntities);
 });

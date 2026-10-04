@@ -25,18 +25,6 @@
     {
       "file": "assets/js/gis-io.js",
       "functions": [
-        "readAtlasVectorState"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/gis-io.js",
-      "functions": [
         "buildGisExportLayers"
       ],
       "access": [
@@ -463,6 +451,102 @@
       ],
       "owner": "writeAtlasTables",
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+    },
+    {
+      "file": "assets/js/gis-io.js",
+      "functions": [
+        "inspectFiles",
+        "gisSpatialSnapshot"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "GIS project boundary",
+      "reason": "Reads detached validated identities; derives spatial Features from canonical records."
+    },
+    {
+      "file": "assets/js/modules/app-builtin-session.js",
+      "functions": [
+        "prepareProjectBaseline"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Builtin baseline owner",
+      "reason": "Hashes exact normalized source metadata and geometry; stores detached baseline identities."
+    },
+    {
+      "file": "assets/js/modules/app-project-snapshots.js",
+      "functions": [
+        "prepareEditable"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "History validation boundary",
+      "reason": "Validates detached identities, records, archive and project references before publishing history."
+    },
+    {
+      "file": "assets/js/modules/project-preview-policy.js",
+      "functions": [
+        "previewEntities"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Static preview derivation",
+      "reason": "Reads metadata identities and immutable bindings to derive preview Features without choosing a date."
+    },
+    {
+      "file": "assets/js/modules/project-serializer.js",
+      "functions": [
+        "content",
+        "buildAutosave"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Project serializer",
+      "reason": "Validates complete canonical identity and archive snapshots before emitting v9 full/delta records."
+    },
+    {
+      "file": "assets/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForStorage",
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Detached candidate boundary",
+      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
+    },
+    {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "candidateFor",
+        "publishCandidate",
+        "identities",
+        "restoreProject"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Canonical entity owner",
+      "reason": "Sole writer; candidate and archive validation precede atomic canonical publication."
+    },
+    {
+      "file": "assets/js/workers/gis-gpkg-worker.js",
+      "functions": [
+        "writeGeoPackage"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Project file codec",
+      "reason": "Derives static spatial views from validated detached records; complex files retain canonical JSON only."
     }
   ]
 }

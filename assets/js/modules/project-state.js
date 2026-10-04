@@ -1,4 +1,9 @@
-import { normalizeTerritorialEntities, normalizeTerritorialFeature, TERRITORIAL_SCHEMA_VERSION, TERRITORIAL_ENTITY_KINDS } from './territorial-units.js';
+import { normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS, TERRITORIAL_SCHEMA_VERSION, TERRITORIAL_ENTITY_KINDS } from './territorial-units.js';
+import { createGeometryVersionStore } from './geometry-version-store.js';
+import { restoreTimelineStorage } from './timeline-storage.js';
+import { staticTimelineViews } from './timeline-static-view.js';
+import { assertProjectReferenceIntegrity } from './project-invariants.js';
+import { restoreEntitiesFromDelta } from './project-serializer.js';
 import { normalizeDistributionLayers, normalizeDistributionEntries } from './distribution-model.js';
 import { validateSourceProvenance } from './source-provenance.js';
 import {
@@ -71,7 +76,35 @@ function prepareProjectForValidation(project) {
   return project;
 }
 
-export function assertCurrentProjectSchema(input) {
+/** Prepare a detached candidate before the current editor/session is touched. */
+export function prepareProjectForStorage(input, { baseEntities = null, baseDataset = null, baseDatasetFingerprint = null } = {}) {
+  assertCurrentProjectSchema(input, { baseEntities, baseDataset, baseDatasetFingerprint });
+  const project = structuredClone(input);
+  if (project.format === 'pandolab-autosave-delta') {
+    project.territorialEntities = restoreEntitiesFromDelta(project, { base: baseEntities, baseDataset, baseDatasetFingerprint });
+    delete project.entityDelta;
+    delete project.baseDatasetFingerprint;
+  }
+  project.format = 'pandolab-project-state';
+  project.territorialEntities = normalizeTerritorialIdentities(project.territorialEntities);
+  const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
+    geometries: project.geometries }, project.territorialEntities.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })));
+  assertProjectReferenceIntegrity({ ...project, storageOnly: true });
+  project.timelineRecords = storage.records;
+  project.geometries = storage.geometries.snapshot();
+  return project;
+}
+
+export function prepareProjectForActivation(input, options = {}) {
+  const project = prepareProjectForStorage(input, options);
+  const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
+    geometries: project.geometries }, project.territorialEntities.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })));
+  const views = staticTimelineViews(project.territorialEntities, storage.records, storage.geometries);
+  assertProjectReferenceIntegrity({ ...project, territorialEntities: views, timelineRecords: null });
+  return project;
+}
+
+export function assertCurrentProjectSchema(input, { baseEntities = null, baseDataset = null, baseDatasetFingerprint = null } = {}) {
   const project = prepareProjectForValidation(input);
   if (!PROJECT_FORMATS.has(text(project.format))) throw schemaError(`지원하지 않는 프로젝트 형식입니다: ${text(project.format) || '(없음)'}`, 'PL-SCHEMA-FORMAT');
   requireSchemaVersion(project.schemaVersion, '프로젝트');
@@ -85,13 +118,19 @@ export function assertCurrentProjectSchema(input) {
   if (kinds != null && (!Array.isArray(kinds) || kinds.length !== expectedKinds.length
     || expectedKinds.some(kind => !kinds.includes(kind)))) throw schemaError('영토 모델 kinds가 현재 객체 종류와 일치하지 않습니다.');
   assertAllowedKeys(project, new Set([
-    'format', 'schemaVersion', 'version', 'savedAt', 'territorialEntities', 'entityDelta',
+    'format', 'schemaVersion', 'version', 'savedAt', 'territorialEntities', 'entityDelta', 'baseDatasetFingerprint',
     'sourceInfo', 'labels', 'genericFeatures', 'hydroEdits',
-    'territorialRelations', 'distributionLayers', 'distributionEntries',
+    'timelineRecords', 'geometries', 'distributionLayers', 'distributionEntries',
     'labelSettings', 'distributionSettings', 'layerPresentation', 'physicalSettings',
     'layerVisibility', 'itemVisibility', 'baseDataset', 'landObjectModel', 'territorialModel',
     'distributionModel', 'physicalSourceInfo',
   ]), '프로젝트');
+  if (project.format !== 'pandolab-autosave-delta' && (Object.hasOwn(project, 'entityDelta') || Object.hasOwn(project, 'baseDatasetFingerprint'))) {
+    throw schemaError('변경분과 기준 fingerprint는 delta 자동저장에만 허용됩니다.', 'PL-SCHEMA-FIELD');
+  }
+  if (project.format === 'pandolab-autosave-delta' && Object.hasOwn(project, 'territorialEntities')) {
+    throw schemaError('delta 자동저장에는 entityDelta만 저장합니다.', 'PL-SCHEMA-FIELD');
+  }
   assertAllowedKeys(project.landObjectModel, new Set([
     'schemaVersion', 'coastlineAuthority', 'purpose', 'directCreation',
     'sourceProvenanceSchemaVersion', 'canonicalProperties',
@@ -130,26 +169,28 @@ export function assertCurrentProjectSchema(input) {
     if (typeof feature?.id !== 'string' || !id || entityIds.has(id)) throw schemaError('영역 ID가 비어 있거나 중복되었습니다: ' + id, 'PL-SCHEMA-ID-DUPLICATE');
     entityIds.add(id);
     requireSchemaVersion(feature.properties?.schemaVersion, '영역 ' + id, TERRITORIAL_SCHEMA_VERSION);
-    assertAllowedKeys(feature.properties, new Set(['schemaVersion','entityKind','name','parentId',
-      'coverageMode','style','locked','validFrom','validTo','notes','metadata','sourceFolderId','sourceLibraryId','sourceGeometryVersion']), '영역 ' + id);
-    if (!normalizeTerritorialFeature(feature, { cloneGeometry: geometry => geometry })) throw schemaError('영역 형상이 올바르지 않습니다: ' + id);
+    assertAllowedKeys(feature.properties, new Set(TERRITORIAL_IDENTITY_FIELDS), '영역 ' + id);
   }
-  if (project.format !== 'pandolab-autosave-delta') normalizeTerritorialEntities(entities, { cloneGeometry: geometry => geometry });
-  else {
+  let allEntities = normalizeTerritorialIdentities(entities);
+  if (project.format === 'pandolab-autosave-delta') {
     assertAllowedKeys(project.entityDelta, new Set(['changed','removedIds']), '영역 변경분');
     const removed = project.entityDelta.removedIds;
     if (!Array.isArray(removed) || new Set(removed).size !== removed.length
       || removed.some(id => typeof id !== 'string' || !text(id) || entityIds.has(id))) throw schemaError('영역 삭제 ID가 올바르지 않습니다.');
+    if (!Array.isArray(baseEntities) || baseDataset !== project.baseDataset)
+      throw schemaError('자동저장 기준 데이터가 없거나 저장된 기준과 다릅니다.', 'PL-SCHEMA-BASE');
+    allEntities = restoreEntitiesFromDelta(project, { base: baseEntities, baseDataset, baseDatasetFingerprint });
   }
 
-  assertUniqueProjectIds(project.territorialRelations, '기간별 관계');
+  restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords, geometries: project.geometries },
+    allEntities.map(feature => ({ id: feature.id, entityKind: feature.properties.entityKind })));
+
   assertUniqueProjectIds(project.distributionLayers, '분포 레이어');
   assertUniqueProjectIds(project.distributionEntries, '분포 엔트리');
   assertUniqueProjectIds(project.genericFeatures, '기타 객체');
   assertUniqueProjectIds(project.hydroEdits, '편집 수계');
   assertUniqueProjectIds(project.labels, '지명');
 
-  for (const relation of project.territorialRelations || []) requireSchemaVersion(relation?.schemaVersion, `기간별 관계 ${text(relation?.id)}`, 3);
   for (const layer of project.distributionLayers || []) {
     requireSchemaVersion(layer?.schemaVersion, `분포 레이어 ${text(layer?.id)}`, DISTRIBUTION_MODEL_SCHEMA_VERSION);
     assertAllowedKeys(layer, new Set(['id', 'schemaVersion', 'name', 'unit', 'valueScale', 'color', 'locked', 'parentId', 'groups', 'validFrom', 'validTo', 'metadata']), `분포 레이어 ${text(layer?.id)}`);
@@ -174,14 +215,27 @@ export function assertCurrentProjectSchema(input) {
   } catch (error) {
     throw schemaError(error.message, 'PL-SCHEMA-DISTRIBUTION');
   }
+  const objectGeometries = createGeometryVersionStore();
+  function validateObjectGeometry(feature, label) {
+    if (feature?.type !== 'Feature') throw schemaError(`${label}의 Feature 형식이 올바르지 않습니다.`);
+    assertAllowedKeys(feature, new Set(['type', 'id', 'properties', 'geometry']), label);
+    try { objectGeometries.insert({ id: `${label}:${feature.id}`, version: 1 }, feature.geometry); }
+    catch (error) { throw schemaError(`${label}의 형상이 올바르지 않습니다. ${error.message}`, 'PL-SCHEMA-GEOMETRY'); }
+  }
   for (const feature of project.genericFeatures || []) {
     const label = `기타 객체 ${text(feature?.id)}`;
+    validateObjectGeometry(feature, label);
     requireSchemaVersion(feature?.properties?.schemaVersion, label, LAND_OBJECT_SCHEMA_VERSION);
     assertAllowedKeys(feature?.properties, GENERIC_PROPERTY_KEYS, label);
     const sourceValidation = validateSourceProvenance(feature?.properties?.source);
     if (!sourceValidation.ok) throw schemaError(`${label}의 source provenance가 올바르지 않습니다. ${sourceValidation.issues[0]}`, 'PL-SCHEMA-SOURCE');
   }
   for (const feature of project.hydroEdits || []) {
+    validateObjectGeometry(feature, `편집 수계 ${text(feature?.id)}`);
+    const expectedCategory = ['Polygon', 'MultiPolygon'].includes(feature.geometry.type) ? 'lake'
+      : ['LineString', 'MultiLineString'].includes(feature.geometry.type) ? 'river' : null;
+    if (!expectedCategory || feature.properties?.category !== expectedCategory || Object.hasOwn(feature.properties, 'visible'))
+      throw schemaError(`편집 수계 ${text(feature?.id)}의 종류 또는 필드가 올바르지 않습니다.`, 'PL-SCHEMA-FIELD');
     requireSchemaVersion(feature?.properties?.pandolab_schema_version, `편집 수계 ${text(feature?.id)}`, 1);
   }
   return project;
@@ -192,7 +246,8 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'labels', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'genericFeatures', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'hydroEdits', scope: 'document', fallback: () => [] }),
-  Object.freeze({ name: 'territorialRelations', scope: 'document', fallback: () => [] }),
+  Object.freeze({ name: 'timelineRecords', scope: 'document', fallback: () => { throw schemaError('timelineRecords가 필요합니다.'); } }),
+  Object.freeze({ name: 'geometries', scope: 'document', fallback: () => { throw schemaError('geometries가 필요합니다.'); } }),
   Object.freeze({ name: 'distributionLayers', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'distributionEntries', scope: 'document', fallback: () => [] }),
   Object.freeze({ name: 'labelSettings', scope: 'presentation', fallback: () => ({}) }),
@@ -215,7 +270,8 @@ const fieldsFor = scope => {
 };
 
 export function pickProjectFields(state, { scope = 'project', clone = structuredClone } = {}) {
-  return Object.fromEntries(fieldsFor(scope).map(field => [field.name, clone(state[field.name])]));
+  return Object.fromEntries(fieldsFor(scope).map(field => [field.name,
+    clone(field.name === 'geometries' ? state.geometries.snapshot() : state[field.name])]));
 }
 
 export function applyProjectFields(target, source, {

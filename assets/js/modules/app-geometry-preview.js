@@ -21,7 +21,6 @@ export function createGeometryPreview() {
   function assertCurrentProjectReferences() {
     return (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
       territorialEntities: dependencies.territorialModel.entityRepository.list(),
-      territorialRelations: dependencies.projectState.state.territorialRelations || [],
       distributionLayers: dependencies.projectState.state.distributionLayers || [],
       distributionEntries: dependencies.projectState.state.distributionEntries || [],
       labels: dependencies.projectState.state.labels || [],
