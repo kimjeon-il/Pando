@@ -423,6 +423,7 @@ export function createGpuMapRenderer(deps) {
       terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: uploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
       preparedTerrain = terrainPreparation.prepare(frame, {
         visible: state.physicalSettings.terrainVisible,
+        meshQuality: activeMeshQuality,
         physicalStyle: state.physicalSettings.terrainStyle,
         projection: state.projection, rotation: state.view.globeRotation, flatCenter: state.view.flatCenter,
         width: cssWidth, height: cssHeight, dpr: effectivePixelRatio, devicePixelRatio: window.devicePixelRatio,
@@ -3075,7 +3076,7 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function drawTerrainTile({ spec, sourceSpec, texture, grid, gutter }, pass = 'land') {
+    function drawTerrainTile({ spec, texture, grid, gutter }, pass = 'land') {
       const dem = terrainManifest?.representation === TERRAIN_DEM_FORMAT;
       const program = dem ? terrainDemProgram : terrainProgram;
       if (!program) {
@@ -3100,19 +3101,18 @@ export function createGpuMapRenderer(deps) {
       }
       const [west, north, east, south] = spec.bounds;
       gl.uniform4f(cachedUniformLocation(program, 'uGeoBounds'), west, north, east, south);
-      const [sourceWest, sourceNorth, sourceEast, sourceSouth] = sourceSpec.bounds;
-      const sourceWidth = sourceSpec.pixelWidth + gutter * 2;
-      const sourceHeight = sourceSpec.pixelHeight + gutter * 2;
-      const u0 = (gutter + (west - sourceWest) / (sourceEast - sourceWest) * sourceSpec.pixelWidth) / sourceWidth;
-      const v0 = (gutter + (sourceNorth - north) / (sourceNorth - sourceSouth) * sourceSpec.pixelHeight) / sourceHeight;
-      const u1 = (gutter + (east - sourceWest) / (sourceEast - sourceWest) * sourceSpec.pixelWidth) / sourceWidth;
-      const v1 = (gutter + (sourceNorth - south) / (sourceNorth - sourceSouth) * sourceSpec.pixelHeight) / sourceHeight;
+      const sourceWidth = spec.pixelWidth + gutter * 2;
+      const sourceHeight = spec.pixelHeight + gutter * 2;
+      const u0 = gutter / sourceWidth;
+      const v0 = gutter / sourceHeight;
+      const u1 = (gutter + spec.pixelWidth) / sourceWidth;
+      const v1 = (gutter + spec.pixelHeight) / sourceHeight;
       gl.uniform4f(cachedUniformLocation(program, 'uUvBounds'), u0, v0, u1, v1);
       gl.uniform1f(cachedUniformLocation(program, 'uPhysicalStyle'),
         state.physicalSettings.terrainStyle === 'physical' && (!dem || terrainPreparation.tintTexture()) ? 1 : 0);
       gl.uniform1f(cachedUniformLocation(program, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
       if (dem) {
-        const sourceLevel = terrainManifest.levels[Number(sourceSpec.level)];
+        const sourceLevel = terrainManifest.levels[Number(spec.level)];
         gl.uniform2f(cachedUniformLocation(program, 'uTextureSize'), sourceWidth, sourceHeight);
         gl.uniform2f(cachedUniformLocation(program, 'uLevelSize'), sourceLevel.width, sourceLevel.height);
         gl.uniform1f(cachedUniformLocation(program, 'uLandPass'), pass === 'land' ? 1 : 0);
@@ -3673,7 +3673,6 @@ export function createGpuMapRenderer(deps) {
         physicalSettings: deepClone(state.physicalSettings),
         theme: mapTheme(),
         darkTheme: getSystemTheme() === 'dark',
-        dataReadiness: state.dataReadiness,
         terrainFetchConcurrency: isMobile() ? 2 : 4,
       };
     }
@@ -3697,6 +3696,7 @@ export function createGpuMapRenderer(deps) {
         height: Math.max(1, Number(view.size?.height || state.size.height)),
         dpr: Number(view.dpr || resolveRenderPixelRatio()),
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
+        meshQuality: activeMeshQuality,
         projection: view.projection || state.projection,
         view: workerView,
         revision: Number(revision || 0),
@@ -3758,8 +3758,7 @@ export function createGpuMapRenderer(deps) {
       const theme = mapTheme();
       const physicalSignature = [physicalStyleStateRevision, state.layerVisibility.rivers, state.layerVisibility.lakes,
         theme.riverOpacity, theme.lakeOpacity, theme.lakeBoundaryVisible, theme.ocean,
-        state.physicalSettings.terrainVisible, state.physicalSettings.terrainStyle,
-        state.dataReadiness].join(':');
+        state.physicalSettings.terrainVisible, state.physicalSettings.terrainStyle].join(':');
       if (physicalSignature !== canvasLastPhysicalStyleSignature) {
         canvasLastPhysicalStyleSignature = physicalSignature;
         postCanvasWorkerMessage(canvasWorkerPhysicalStyleMessage());

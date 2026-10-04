@@ -6,8 +6,8 @@ function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () =>
   const requests = [];
   const jobs = [];
   const deleted = [];
-  const gl = { createTexture: () => ({}), deleteTexture: value => deleted.push(value) };
-  for (const name of ['bindTexture', 'pixelStorei', 'texParameteri', 'texImage2D']) gl[name] = () => {};
+  const gl = { createTexture: () => ({}), deleteTexture: value => deleted.push(value), createBuffer: () => ({}) };
+  for (const name of ['bindTexture', 'pixelStorei', 'texParameteri', 'texImage2D', 'bindBuffer', 'bufferData', 'deleteBuffer']) gl[name] = () => {};
   t.mock.method(globalThis, 'fetch', (url, options) => new Promise((resolve, reject) => requests.push({ url, options, resolve, reject })));
   const owner = createGpuTerrainPreparation({
     tileUrl: spec => `https://example.test/${spec.key}`,
@@ -34,27 +34,55 @@ const mobileFrame = (rotation = [0, 0]) => ({
   mode: 0, scale: 1200, viewport: [390, 844],
   viewState: { projection: 'globe', rotation },
 });
-const mobileView = enhanced => ({
-  visible: true, enhanced, physicalStyle: 'political', projection: 'globe',
+const mobileView = (meshQuality = 'canonical') => ({
+  visible: true, meshQuality, physicalStyle: 'political', projection: 'globe',
   width: 390, height: 844, dpr: 1, devicePixelRatio: 2,
   cacheBudgetBytes: 128 * 1024 * 1024,
 });
 
-test('mobile globe starts both coarse coverage requests before target DEM tiles', t => {
+test('startup map preview requests only the lowest terrain level even at a detailed camera zoom', t => {
   const { owner, requests } = fixture(t, () => {}, { mobile: true });
   owner.setManifest(mobileManifest);
-  owner.prepare(mobileFrame(), mobileView(true));
-  assert.equal(owner.stats().terrainLevel, 2);
+  owner.prepare(mobileFrame(), mobileView('preview'));
+  assert.equal(owner.stats().terrainLevel, 0);
   assert.equal(owner.stats().terrainFetchConcurrency, 2);
   assert.deepEqual(requests.map(request => new URL(request.url).pathname), ['/0/0-0', '/0/1-0']);
   owner.dispose();
 });
 
-test('ready DEM selects camera target LOD before canonical country mesh is enhanced', t => {
-  const { owner } = fixture(t, () => {}, { mobile: true });
+test('canonical map requests camera target terrain directly without intermediate levels', t => {
+  const { owner, requests } = fixture(t, () => {}, { mobile: true });
   owner.setManifest(mobileManifest);
-  owner.prepare(mobileFrame(), mobileView(false));
+  owner.prepare(mobileFrame(), mobileView());
   assert.equal(owner.stats().terrainLevel, 2);
+  assert.ok(requests.length > 0);
+  assert.ok(requests.every(request => new URL(request.url).pathname.startsWith('/2/')));
+  owner.dispose();
+});
+
+test('canonical promotion stops drawing cached preview terrain while detail is pending', async t => {
+  const { owner, requests, jobs } = fixture(t, () => {}, { mobile: true });
+  globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
+  t.after(() => { delete globalThis.createImageBitmap; });
+  owner.setManifest(mobileManifest);
+  owner.prepare(mobileFrame(), mobileView('preview'));
+  for (const request of requests) request.resolve({ ok: true, blob: async () => ({}) });
+  await settle();
+  for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain the real upload owner. */ }
+  assert.equal(owner.prepare(mobileFrame(), mobileView('preview')).length, 2);
+  assert.equal(owner.stats().terrainRenderedLevel, 0);
+  const promoted = owner.prepare(mobileFrame(), mobileView());
+  assert.deepEqual(promoted, [], 'the cached preview must not be stretched over canonical target tiles');
+  assert.equal(owner.stats().terrainRenderedLevel, -1);
+  assert.equal(owner.stats().terrainLevel, 2);
+  assert.ok(requests.slice(2).every(request => new URL(request.url).pathname.startsWith('/2/')));
+  requests[2].resolve({ ok: true, blob: async () => ({}) });
+  await settle();
+  for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain the real upload owner. */ }
+  const ready = owner.prepare(mobileFrame(), mobileView());
+  assert.equal(ready.length, 1);
+  assert.equal(ready[0].spec.level, 2);
+  assert.equal(owner.stats().terrainRenderedLevel, 2);
   owner.dispose();
 });
 
@@ -64,8 +92,8 @@ test('rotating the mobile globe drops queued tiles from the old view', async t =
   globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
   t.after(() => { delete globalThis.createImageBitmap; });
   owner.setManifest(mobileManifest);
-  owner.prepare(mobileFrame([-90, 0]), mobileView(true));
-  owner.prepare(mobileFrame([90, 0]), mobileView(true));
+  owner.prepare(mobileFrame([-90, 0]), mobileView());
+  owner.prepare(mobileFrame([90, 0]), mobileView());
   for (let index = 0; index < 8; index += 1) {
     assert.ok(requests[index], `request ${index} must have started`);
     requests[index].resolve({ ok: true, blob: async () => ({}) });
@@ -73,8 +101,8 @@ test('rotating the mobile globe drops queued tiles from the old view', async t =
     for (const job of jobs.splice(0)) job.step();
   }
   const laterPaths = requests.slice(2).map(request => new URL(request.url).pathname);
-  assert.ok(laterPaths.some(path => /^\/1\/[01]-[01]$/.test(path)), 'new-view parents must start');
-  assert.deepEqual(laterPaths.filter(path => /^\/(?:1\/[23]|2\/[4567])-/.test(path)), [], 'old-view queued tiles must not start');
+  assert.ok(laterPaths.some(path => /^\/2\/[0123]-/.test(path)), 'new-view detail must start');
+  assert.deepEqual(laterPaths.filter(path => /^\/2\/[567]-/.test(path)), [], 'old-view queued tiles must not start');
   owner.dispose();
 });
 
