@@ -1,0 +1,66 @@
+✔ coast decisions preserve cancellation as a normal result (2.1177ms)
+✔ country and imported-area choices update only their selected geometry (2.6614ms)
+✔ coast analysis uses only trusted coast topology and accepts reversed chains (4.4864ms)
+✔ multiple coast conflicts are applied atomically from original ring indexes (0.6229ms)
+✔ coast validation rejects self intersections and holes outside the exterior (0.58ms)
+✔ coast validation unwraps antimeridian rings before intersection and area checks (0.2445ms)
+✔ general hierarchy changes preserve identity and kind; independent regions remain unchanged (6.1604ms)
+✔ regional parents, missing parents and cycles are rejected without publication (1.2687ms)
+✔ root and regional coverage is explicit; retired canonical fields are rejected (1.2902ms)
+✔ a locked descendant prevents root reassignment and a locked source can be copied independently (5.5897ms)
+✔ regional redraw keeps the full independent shape, including overlap and outside land (9.009ms)
+✔ independent regional import retains explicit coast reconciliation without storing membership (10.4743ms)
+✔ mixed country/subunit batch deletion uses the real Store, preserves cancel and records one history (5.4883ms)
+✔ batch deletion rechecks locks/children and rolls back a failed application (1.881ms)
+✔ deletion confirmation cannot apply after the project generation changes (0.3624ms)
+✔ one object lock guard handles countries and units with explicit refs and rejects wrong identities (0.7253ms)
+✔ country construction cannot publish overrides before the owning transaction commits (0.4396ms)
+✔ territorial deletion requires the canonical store before touching project state (2.1917ms)
+✔ multiple subunits require one parent, unlocked objects and a connected selection (1.0944ms)
+✔ single and batch deletion never expands into descendants and rechecks changed locks (3.675ms)
+✖ country deletion uses the same territorial cleanup surface and removes dangling references (1.9789ms)
+✔ territorial deletion delegates physical collection writes to the entity store (0.4908ms)
+✔ deletion clears the actual native and synthetic scene IDs without touching another country label (0.8709ms)
+✔ country deletion rejects current administrative children before changing state (0.4871ms)
+✔ locked boundary checks include interior points of differently segmented edges (0.4108ms)
+✔ explicit metadata ref updates an unselected entity without selecting or focusing it and no-ops have no effects (3.7979ms)
+✔ selected metadata refreshes the common presenter; color and flags invalidate only their actual visual responsibilities (1.803ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 26
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 239.7309
+
+✖ failing tests:
+
+test at tests\unit\territorial-interaction-policy.test.mjs:48:1
+✖ country deletion uses the same territorial cleanup surface and removes dangling references (1.9789ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   {
+  -     id: 'rel-a',
+  -     parentId: '',
+  -     unitId: 'r'
+  -   }
+  - ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-interaction-policy.test.mjs:73:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ { id: 'rel-a', unitId: 'r', parentId: '' } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

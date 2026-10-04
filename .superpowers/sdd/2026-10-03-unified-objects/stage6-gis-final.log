@@ -1,0 +1,44 @@
+
+Running 2 tests using 1 worker
+
+(node:19264) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\browser\gis-coast-cancellation.spec.mjs:43:3 › GENERAL coast reconciliation cancellation rolls the whole import back without error codes (29.0s)
+  x  2 tests\browser\gis-interchange.spec.mjs:238:1 › general GIS import preserves source geometry and existing roots through undo and redo (35.8s)
+
+
+  1) tests\browser\gis-interchange.spec.mjs:238:1 › general GIS import preserves source geometry and existing roots through undo and redo 
+
+    Error: expect(received).not.toBeNull()
+
+    Received: null
+
+    Call Log:
+    - Timeout 8000ms exceeded while waiting on the predicate
+
+      263 |   const readImported = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' })
+      264 |     .find(entity => entity.properties.name === '동프로이센주') || null);
+    > 265 |   await expect.poll(readImported).not.toBeNull();
+          |                                       ^
+      266 |   const imported = await readImported();
+      267 |   expect(imported.properties).toMatchObject({ entityKind: 'general', parentId: 'DEU', coverageMode: 'explicit' });
+      268 |   expect('sovereignId' in imported.properties).toBe(false);
+        at C:\Users\taeeu\OneDrive\문서\GitHub\map editor\tests\browser\gis-interchange.spec.mjs:265:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\gis-interchange-general-GI-b1c01-roots-through-undo-and-redo\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\gis-interchange-general-GI-b1c01-roots-through-undo-and-redo\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\gis-interchange-general-GI-b1c01-roots-through-undo-and-redo\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\gis-interchange-general-GI-b1c01-roots-through-undo-and-redo\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests\browser\gis-interchange.spec.mjs:238:1 › general GIS import preserves source geometry and existing roots through undo and redo 
+  1 passed (1.1m)

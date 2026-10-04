@@ -1,0 +1,264 @@
+✔ common color adapter reads each editable domain and reports defaults (1.9038ms)
+✔ general colors inherit through parents while an independent region uses its own default (0.6431ms)
+✔ common color adapter writes and clears canonical color fields (0.2886ms)
+✔ object registry exposes canonical domain/category/editor metadata (1.9889ms)
+✔ object refs resolve through one registry key and presentation mapping (0.3472ms)
+✔ action registry resolves dynamic lock metadata and applicability (0.3846ms)
+✔ action executor delegates canonical commands without owning mutation logic (0.3102ms)
+✔ shared layer menu and editor endpoints bind to the same action ids (0.1843ms)
+✔ toggle removal immediately reconciles the remaining presenter and toolbar (5.9134ms)
+✔ snapshot sync reconciles multi, single and empty presenters without interaction side effects (0.8039ms)
+✔ removing a non-territorial primary presents the remaining object without focusing or reopening it (0.3616ms)
+✖ country selection, reselection, toggle and range do not move the map (1.0879ms)
+✖ subunit selection, reselection, toggle and range do not move the map (0.2703ms)
+✖ region selection, reselection, toggle and range do not move the map (0.2182ms)
+✔ non-territorial selection retains automatic focus (0.3351ms)
+✖ explicit show-on-map button focuses the selected country (1.0249ms)
+✖ explicit show-on-map button focuses the selected subunit (1.1864ms)
+✖ explicit show-on-map button focuses the selected region (0.3485ms)
+✔ selection toolbar follows single selection and clears for multiple selection (0.4741ms)
+✔ task target refs resolve countries and units through the territorial entity surface (2.4356ms)
+✔ task workflow presentation derives territorial type without raw unit storage (1.4087ms)
+✔ operation errors use the common feedback slot and clear on a new normal banner (5.5519ms)
+✔ existing redraw preview keeps its real metrics and survives closing and reopening (1.781ms)
+✔ territory list uses the authoritative union, pending state and stable part IDs (1.2811ms)
+✖ task sync derives role cards without duplicate type labels or focusing the map (4.01ms)
+✔ task target labels refresh from the repository while object refs stay stable (1.0821ms)
+✔ new territory workflows never expose source or parent countries as a focus target (1.8712ms)
+✔ task status explains pending and missing-target decisions without changing retry eligibility (2.7169ms)
+✔ a disabled draft completion shows its authoritative validation reason in the shared task area (0.8228ms)
+✔ editable redraw with fewer than three vertices uses the precise redraw reason (1.6372ms)
+✖ tool bindings do not query the removed task focus button (1.3571ms)
+✖ hydro auxiliary commands run while idle and preserve their own busy guard (0.8234ms)
+✔ presenting the same entity twice while its area is pending completes with one calculation and current name (3.2407ms)
+✔ replaced entity geometry discards the old display result and calculates the new geometry only once (1.1646ms)
+✔ an area callback schedules a replaced current geometry when no new presentation has run (0.3547ms)
+✔ pending area does not update the screen after selection cleared (0.296ms)
+✔ pending area does not update the screen after disposed (0.274ms)
+✔ one entity form presents general roots, children and independent regions (2.1792ms)
+✔ annexation and the three common object configurations expose concise setup, selection and review headings (13.3481ms)
+✔ all territory draw candidates must be archived through validation before advancing (4.1192ms)
+✔ nested general and independent regional components archive on method change with their exact snapshots (3.964ms)
+✔ general object setup retains every selected source country and its reference count (1.8835ms)
+✔ all four operations use setup, selection, review and preserve a selection through back navigation (4.0936ms)
+✔ back to setup clears only transient input and preserves the draft and ready preview (1.104ms)
+✔ a mixed line, line, polygon session keeps archived units and previews their union once (1.6151ms)
+✔ line, component and polygon parts remain together across method changes and review (1.6652ms)
+✔ component units archive and undo one item at a time (2.5702ms)
+✔ removing a middle part keeps the other parts and recalculates its real aggregate (1.787ms)
+✔ switching from selected components archives them before opening another method (0.6857ms)
+✔ a method switch requested during component preview waits for validation before archiving (0.5518ms)
+✔ removing one component part keeps its shared snapshot until the last referencing part is removed (0.6636ms)
+✔ method changes preserve archived items and ask before discarding the current item (0.7177ms)
+✔ independent region can add a reference country only when a later line or component method needs it (0.6387ms)
+✔ the common scheduler only keeps the latest aggregate preview and applies once (0.7213ms)
+✔ late selection result cannot restore cleared geometry and cancel stops the worker (0.8736ms)
+✔ selection coalesces clicks without rebuilding source and supports worker error retry (2.1501ms)
+✔ line candidates use result IDs, toggle multiple pieces, clear selection and archive their union (3.3816ms)
+✔ object selection preserves a primary item and supports toggle and ranges (2.2319ms)
+✔ layer presentation applies the fixed v2 runtime policy (0.6354ms)
+✔ object selection emits only when ordered keys or the primary item change (0.4789ms)
+✔ v2 hydro presentation input normalizes to canonical river and lake styles (0.1837ms)
+✔ save state distinguishes autosave, native writes, and download fallbacks (0.5375ms)
+✔ document and presentation dirty state are tracked independently (0.2487ms)
+✔ new projects keep an unsaved-file baseline without appearing dirty (0.1803ms)
+✔ save state checkpoints restore import rollback tokens and dirty state (0.2963ms)
+ℹ tests 65
+ℹ suites 0
+ℹ pass 56
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 492.275
+
+✖ failing tests:
+
+test at tests\unit\selection-ui-focus.test.mjs:84:54
+✖ country selection, reselection, toggle and range do not move the map (1.0879ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/selection-ui-focus.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\selection-ui-focus.test.mjs:84:54
+✖ subunit selection, reselection, toggle and range do not move the map (0.2703ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/selection-ui-focus.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\selection-ui-focus.test.mjs:84:54
+✖ region selection, reselection, toggle and range do not move the map (0.2182ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/selection-ui-focus.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\selection-ui-focus.test.mjs:117:54
+✖ explicit show-on-map button focuses the selected country (1.0249ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   null
+  - ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/selection-ui-focus.test.mjs:133:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ null ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\selection-ui-focus.test.mjs:117:54
+✖ explicit show-on-map button focuses the selected subunit (1.1864ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   null
+  - ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/selection-ui-focus.test.mjs:133:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ null ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\selection-ui-focus.test.mjs:117:54
+✖ explicit show-on-map button focuses the selected region (0.3485ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   null
+  - ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/selection-ui-focus.test.mjs:133:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ null ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\task-stage-presentation.test.mjs:197:1
+✖ task sync derives role cards without duplicate type labels or focusing the map (4.01ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   '기준 객체',
+  +   '상대 객체'
+  -   '기준 하위단위',
+  -   '상대 하위단위'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/task-stage-presentation.test.mjs:204:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '기준 객체', '상대 객체' ],
+    expected: [ '기준 하위단위', '상대 하위단위' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\task-stage-presentation.test.mjs:343:1
+✖ tool bindings do not query the removed task focus button (1.3571ms)
+  TypeError: Cannot read properties of null (reading 'addEventListener')
+      at Object.bindToolUI (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/app-tool-bindings.js:14:44)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/task-stage-presentation.test.mjs:354:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\unit\task-stage-presentation.test.mjs:357:1
+✖ hydro auxiliary commands run while idle and preserve their own busy guard (0.8234ms)
+  TypeError: Cannot read properties of null (reading 'addEventListener')
+      at Object.bindToolUI (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/app-tool-bindings.js:14:44)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/task-stage-presentation.test.mjs:369:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
