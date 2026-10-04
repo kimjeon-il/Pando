@@ -1,0 +1,33 @@
+✔ territorial GIS rows keep hierarchy association dates and multipart geometry (18.7184ms)
+✔ territorial distributions materialize referenced geometry only in the GIS view (1.7337ms)
+✔ GIS distribution import keeps stable IDs and reports collisions (1.2457ms)
+✔ the canonical subunit table imports through the adapter (0.3214ms)
+✔ historical entities use stable IDs and select the geometry version for a reference year (2.329ms)
+✔ library search covers multilingual names aliases dates types and current/past status (0.6848ms)
+✔ current countries are exposed through a library adapter without mutating source geometry (0.4646ms)
+✔ pilot geometry is materialized from member countries and instances retain source tracking (1.5962ms)
+✔ pilot geometry accepts immutable inline polygons and territory-replacement metadata (0.3518ms)
+✔ pilot geometry can add and subtract explicit adjustment masks from canonical members (0.5872ms)
+✔ legacy territory-priority metadata normalizes to the unified replacement mode (0.2058ms)
+✔ historical library preserves embedded polygon geometry without a modern-country materialization source (3.4229ms)
+✔ East Prussia r3 library preserves the reviewed geometry and reports its limitations (7.0776ms)
+✔ Prussian province library entries carry their historical province flags (0.5396ms)
+✔ every static library object has a default flag (0.1891ms)
+✔ Artsakh uses the right-originating white stepped flag motif (0.1541ms)
+✔ world snapshots remain templates with independent reference lists (0.2571ms)
+✔ missing ownership never matches names or assigns an arbitrary country; intermediate parent defaults sovereign (3.3613ms)
+✔ parent choices use actual country name and depth, exclude cycles and other countries (0.8175ms)
+✔ parent choices accept the common territorial entity repository read surface (0.7821ms)
+✔ parent selector is hidden only when the sovereign is its sole valid choice (0.2312ms)
+✔ explicit country and nested parent apply once; children inherit the chosen sovereign (0.4724ms)
+✔ promotion clears active parents, preserves source refs/version/period, and reparents children (0.8593ms)
+✔ existing parent reuse and automatic linkage; missing ancestor only prompts once (0.3478ms)
+✔ invalid containing subunit and library cycles are rejected before application (0.3983ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 231.744

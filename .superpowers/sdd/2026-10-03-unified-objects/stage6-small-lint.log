@@ -1,0 +1,9 @@
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\app-territorial-drafts.js
+  123:83  error  'removedId' is not defined  no-undef
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\territorial-interaction-policy.js
+  59:49  error  'feature' is not defined  no-undef
+
+✖ 2 problems (2 errors, 0 warnings)
+

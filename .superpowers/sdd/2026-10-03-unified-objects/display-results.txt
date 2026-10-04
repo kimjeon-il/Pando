@@ -1,0 +1,243 @@
+✔ all object domains share role priority and style, including zero fill and disabled outlines (2.3644ms)
+✔ tool role overrides selection without altering canonical selection or geometry (1.5039ms)
+✔ country border keeps the selected countries primary and secondary while the boundary is edited (0.3006ms)
+✔ ownership order is stable under input reordering and prioritizes stronger roles before ancestry (0.3001ms)
+✔ worker ownership removes shared boundaries between unrelated objects without changing originals (1.5158ms)
+✔ late leave from another hover source cannot clear the current row, while reset clears all (4.2425ms)
+✔ a pending owned boundary does not poison its ready geometry cache (3.5675ms)
+✔ common role contracts reject tool colors and keep boundary preparation out of render callbacks (15.1833ms)
+✔ ID-based boundary requests use synchronized geometry and reject missing owners (0.9968ms)
+✖ tool receivers, donors and nested parents keep their semantic roles independent of selection order (1.3888ms)
+✔ country creation sources use the same secondary selection emphasis as annex donors (0.9137ms)
+✔ Canvas metadata updates share immutable coordinate reconstruction (0.4288ms)
+✖ built-in classification and display-only changes keep the shipped preview (70.1593ms)
+✖ edited borders, ownership, country creation and deletion cannot use shipped geometry (154.6843ms)
+✖ full saved geometry uses the shipped preview only when it is exactly the default classification (94.8297ms)
+✔ custom geometry uses a matching project cache, otherwise waits for exact restoration (85.3005ms)
+✖ geometry cache identity ignores presentation but changes with shapes and ownership (124.8892ms)
+✔ saved country properties replace cache properties without replacing its geometry (48.1486ms)
+✔ hover keeps pending country fill and generic polygon fill ownership distinct (2.3401ms)
+✔ pending country uses a temporary fill and fallback without submitting stale country geometry (2.1124ms)
+✔ owned country boundary and candidate use prepared generic geometry, not canonical country stroke (1.4062ms)
+✔ generic polygons request fill; interaction paths and disabled outlines do not invent a stroke (0.1902ms)
+✔ hard GPU failures never retire SVG coverage even if stale rendered keys remain (1.118ms)
+✔ real selection pass preserves ready stroke coverage alongside a missing country (3.0791ms)
+✔ real polygon pass retires fills only for objects whose every resource was drawn (2.8237ms)
+✔ display planning orders country, subunit and region ownership without changing inputs (2.1837ms)
+✔ hover suppression and disabled outlines remove ineligible hierarchy owners while retaining tool guides (0.5969ms)
+✔ fill masks order tool roles before selection, parent depth before descendants and stable peer keys (19.3221ms)
+✔ view-only reuse requires a successful frame with unchanged fill ownership (0.8736ms)
+✖ task target refs resolve countries and units through the territorial entity surface (2.931ms)
+✖ task workflow presentation derives territorial type without raw unit storage (1.1159ms)
+✔ operation errors use the common feedback slot and clear on a new normal banner (7.6332ms)
+✔ existing redraw preview keeps its real metrics and survives closing and reopening (1.0404ms)
+✔ territory list uses the authoritative union, pending state and stable part IDs (1.5677ms)
+✖ task sync derives role cards without duplicate type labels or focusing the map (4.6541ms)
+✔ task target labels refresh from the repository while object refs stay stable (1.8173ms)
+✔ new territory workflows never expose source or parent countries as a focus target (1.696ms)
+✔ task status explains pending and missing-target decisions without changing retry eligibility (2.5013ms)
+✔ a disabled draft completion shows its authoritative validation reason in the shared task area (0.9952ms)
+✔ editable redraw with fewer than three vertices uses the precise redraw reason (0.9151ms)
+✔ tool bindings do not query the removed task focus button (0.7189ms)
+✔ hydro auxiliary commands run while idle and preserve their own busy guard (1.4214ms)
+✖ territorial scope reads the administrative hierarchy from the common entity repository (1.9662ms)
+✖ territorial scope inherits country color without treating regions as administrative parents (0.4067ms)
+ℹ tests 44
+ℹ suites 0
+ℹ pass 34
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1135.6597
+
+✖ failing tests:
+
+test at tests\unit\interaction-roles.test.mjs:125:1
+✖ tool receivers, donors and nested parents keep their semantic roles independent of selection order (1.3888ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'child' !== 'parent'
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/interaction-roles.test.mjs:136:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'child',
+    expected: 'parent',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\project-preview-policy.test.mjs:22:1
+✖ built-in classification and display-only changes keep the shipped preview (70.1593ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-preview-policy.test.mjs:24:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\project-preview-policy.test.mjs:34:1
+✖ edited borders, ownership, country creation and deletion cannot use shipped geometry (154.6843ms)
+  TypeError: Cannot read properties of undefined (reading 'properties')
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-preview-policy.test.mjs:39:82)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests\unit\project-preview-policy.test.mjs:49:1
+✖ full saved geometry uses the shipped preview only when it is exactly the default classification (94.8297ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-preview-policy.test.mjs:51:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\project-preview-policy.test.mjs:68:1
+✖ geometry cache identity ignores presentation but changes with shapes and ownership (124.8892ms)
+  TypeError: Cannot read properties of undefined (reading 'properties')
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-preview-policy.test.mjs:73:88)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\unit\task-stage-model.test.mjs:20:1
+✖ task target refs resolve countries and units through the territorial entity surface (2.931ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   [
+  -     'subunit',
+  -     'parent'
+  -   ],
+  -   [
+  -     'subunit',
+  -     'child'
+  -   ]
+  - ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/task-stage-model.test.mjs:33:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ [ 'subunit', 'parent' ], [ 'subunit', 'child' ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\task-stage-model.test.mjs:39:1
+✖ task workflow presentation derives territorial type without raw unit storage (1.1159ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '하위단위 합병' !== '지방 합병'
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/task-stage-model.test.mjs:51:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '하위단위 합병',
+    expected: '지방 합병',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\task-stage-presentation.test.mjs:198:1
+✖ task sync derives role cards without duplicate type labels or focusing the map (4.6541ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   '기준 국가',
+  +   '상대 국가'
+  -   '기준 하위단위',
+  -   '상대 하위단위'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/task-stage-presentation.test.mjs:205:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '기준 국가', '상대 국가' ],
+    expected: [ '기준 하위단위', '상대 하위단위' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\territorial-scope.test.mjs:15:1
+✖ territorial scope reads the administrative hierarchy from the common entity repository (1.9662ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-scope.test.mjs:38:73
+      at Array.map (<anonymous>)
+      at getState (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-scope.test.mjs:38:60)
+      at state (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-entity-store.js:12:19)
+      at snapshot (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-entity-store.js:50:21)
+      at snapshot (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-entity-repository.js:12:20)
+      at Object.descendants (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-entity-repository.js:114:19)
+      at Object.members (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-scope.js:22:29)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-scope.test.mjs:46:29)
+
+test at tests\unit\territorial-scope.test.mjs:57:1
+✖ territorial scope inherits country color without treating regions as administrative parents (0.4067ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-scope.test.mjs:67:73
+      at Array.map (<anonymous>)
+      at getState (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-scope.test.mjs:67:60)
+      at state (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-entity-store.js:12:19)
+      at snapshot (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-entity-store.js:50:21)
+      at snapshot (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-entity-repository.js:12:20)
+      at Object.parent (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-entity-repository.js:78:23)
+      at resolveTerritorialColor (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/color-adapter.js:60:32)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-scope.test.mjs:69:16)

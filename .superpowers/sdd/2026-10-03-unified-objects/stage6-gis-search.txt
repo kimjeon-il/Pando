@@ -1,0 +1,76 @@
+assets/js/modules/gis-import-plan.js:3:const PLAN_KINDS = new Set(['project-replace', 'country-merge', 'territorial', 'generic', 'distribution']);
+assets/js/gis-io.js:40:  const TERRITORIAL_IMPORT_TARGETS = Object.freeze({
+assets/js/gis-io.js:41:    SUBUNIT: 'subunit',
+assets/js/gis-io.js:42:    REGION: 'region',
+assets/js/gis-io.js:44:  const SOVEREIGN_SELECTION_TARGETS = new Set(Object.values(TERRITORIAL_IMPORT_TARGETS));
+assets/js/gis-io.js:45:  const PARTITION_IMPORT_TARGETS = new Set([TERRITORIAL_IMPORT_TARGETS.SUBUNIT]);
+assets/js/gis-io.js:555:    populateFieldSelect(document.getElementById('gisCountryField'), fields, { ...fieldOptions, roleLabel: '소속 국가', selected: autoField(fields, ['associated_country_id', 'country_id', 'iso_a3', 'ISO_A3', 'ADM0_A3', 'country']) });
+assets/js/gis-io.js:576:    if (/country|countries|admin[_ ]?0|국가/.test(hint) && /polygon|surface/.test(hint)) return 'country';
+assets/js/gis-io.js:577:    if (/admin|subunits|행정/.test(hint) && /polygon|surface/.test(hint)) return 'subunit';
+assets/js/gis-io.js:578:    if (/territor|하위단위/.test(hint) && /polygon|surface/.test(hint)) return 'subunit';
+assets/js/gis-io.js:579:    if (/region|province|지방|지역/.test(hint) && /polygon|surface/.test(hint)) return 'region';
+assets/js/gis-io.js:593:    const country = document.getElementById('gisTargetCountry')?.selectedOptions?.[0]?.textContent || '';
+assets/js/gis-io.js:600:    } else if (SOVEREIGN_SELECTION_TARGETS.has(document.getElementById('gisTargetType')?.value)) {
+assets/js/gis-io.js:601:      summary.textContent = `${layer} → ${country || '선택한 국가'} · ${target}. 영토 이전이 적용됩니다.`;
+assets/js/gis-io.js:645:    for (const country of wizardOptions.countryOptions || []) select.add(new Option(country.name || country.id, country.id));
+assets/js/gis-io.js:654:    const country = (wizardOptions.countryOptions || []).find(item => String(item.id) === String(ownerId));
+assets/js/gis-io.js:655:    select.replaceChildren(country ? new Option(country.name || country.id, '') : placeholderOption('소속 국가 선택'));
+assets/js/gis-io.js:656:    const candidates = (wizardOptions.parentOptions || []).filter(item => String(item.countryId) === String(ownerId));
+assets/js/gis-io.js:672:    if (importSourceKind === 'project' && targetSelect) targetSelect.value = 'country';
+assets/js/gis-io.js:676:    const territorial = SOVEREIGN_SELECTION_TARGETS.has(target);
+assets/js/gis-io.js:677:    const independentRegion = target === TERRITORIAL_IMPORT_TARGETS.REGION
+assets/js/gis-io.js:681:    const countrySelect = document.getElementById('gisTargetCountry');
+assets/js/gis-io.js:682:    const countryField = document.getElementById('gisCountryField')?.value || '';
+assets/js/gis-io.js:683:    const countryProfile = descriptor?.fieldProfiles?.[countryField];
+assets/js/gis-io.js:684:    if (territorial && !countrySelect?.value && countryProfile?.complete && countryProfile.values?.length === 1) {
+assets/js/gis-io.js:685:      const wanted = String(countryProfile.values[0] || '').toLocaleLowerCase('ko');
+assets/js/gis-io.js:686:      const recommendation = (wizardOptions.countryOptions || []).find(country => [country.id, country.name]
+assets/js/gis-io.js:688:      if (recommendation) countrySelect.value = String(recommendation.id);
+assets/js/gis-io.js:692:      || countrySelect?.dataset.singleChoice === 'true');
+assets/js/gis-io.js:693:    document.getElementById('gisIndependentRegionRow')?.classList.toggle('hidden', target !== TERRITORIAL_IMPORT_TARGETS.REGION);
+assets/js/gis-io.js:697:    document.getElementById('gisParentFieldRow')?.classList.toggle('hidden', target !== 'subunit' || !useCountryField
+assets/js/gis-io.js:699:    document.getElementById('gisColorFieldRow')?.classList.toggle('hidden', target === 'country'
+assets/js/gis-io.js:703:    const sovereignId = countrySelect?.value || '';
+assets/js/gis-io.js:708:    document.getElementById('gisParentUnitRow')?.classList.toggle('hidden', target !== 'subunit' || parentChoice?.single === true
+assets/js/gis-io.js:713:    else if (target !== 'country') modeSelect.value = 'merge';
+assets/js/gis-io.js:719:    modeRow?.classList.toggle('hidden', importSourceKind === 'project' || target !== 'country');
+assets/js/gis-io.js:721:    fixedModeNote?.classList.toggle('hidden', importSourceKind !== 'project' && target === 'country');
+assets/js/gis-io.js:726:    document.getElementById('gisMergeStrategyRow')?.classList.toggle('hidden', importSourceKind === 'project' || target !== 'country' || modeSelect.value !== 'merge');
+assets/js/gis-io.js:900:        countryId: String(feature.properties?.country_id || ''),
+assets/js/gis-io.js:965:    if (mapping.targetType === 'country') options.push('-nlt', 'PROMOTE_TO_MULTI');
+assets/js/gis-io.js:975:    const countriesData = mapping.targetType === 'country' ? normalizeCountryFeatures(parsed, descriptor, mapping) : null;
+assets/js/gis-io.js:1001:        propertyMapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField, value: mapping.valueField },
+assets/js/gis-io.js:1007:        mergePolicy: mapping.targetType === 'country' ? 'same-id-multipolygon' : 'preserve-features',
+assets/js/gis-io.js:1016:        mapping: { id: mapping.idField, name: mapping.nameField, country: mapping.countryField, parent: mapping.parentField, color: mapping.colorField, value: mapping.valueField },
+assets/js/gis-io.js:1031:    if (importSourceKind !== 'project' && !compatibilityTarget && !['general', 'regional', 'country', 'subunit', 'region', 'distribution'].includes(targetType)) {
+assets/js/gis-io.js:1040:      countryField: document.getElementById('gisCountryField').value,
+assets/js/gis-io.js:1042:      colorField: targetType === 'country' ? '' : document.getElementById('gisColorField').value,
+assets/js/gis-io.js:1046:      independentRegion: targetType === TERRITORIAL_IMPORT_TARGETS.REGION && document.getElementById('gisIndependentRegion')?.checked === true,
+assets/js/gis-io.js:1049:      openMode: importSourceKind === 'project' ? 'replace' : (targetType === 'country' ? document.getElementById('gisOpenMode').value : 'merge'),
+assets/js/gis-io.js:1057:    if (!PARTITION_IMPORT_TARGETS.has(mapping.targetType) || !impact) {
+assets/js/gis-io.js:1062:    const ownerNames = new Map((wizardOptions.countryOptions || []).map(country => [String(country.id), country.name || country.id]));
+assets/js/gis-io.js:1065:      textContent: `${impact.featureCount.toLocaleString()}개 ${mapping.targetType === 'region' ? '지방' : '하위단위'} · 전체 ${formatArea(impact.totalAreaKm2)}`,
+assets/js/gis-io.js:1070:      const donors = (group.donors || []).map(donor => `${ownerNames.get(String(donor.countryId)) || donor.countryId} ${formatArea(donor.areaKm2)}`).join(', ');
+assets/js/gis-io.js:1083:      const donors = (group.donors || []).map(donor => ownerNames.get(String(donor.countryId)) || donor.countryId);
+assets/js/gis-io.js:1107:      wrapper.className = 'gis-country-identity-row';
+assets/js/gis-io.js:1109:      source.className = 'gis-country-identity-source';
+assets/js/gis-io.js:1123:      for (const country of wizardOptions.countryOptions || []) select.add(new Option(country.name || country.id, `existing:${country.id}`));
+assets/js/gis-io.js:1227:        targetSelect.value = importSourceKind === 'project' ? 'country' : compatibilityTarget ? '' : requested || suggested;
+assets/js/gis-io.js:1262:        if (SOVEREIGN_SELECTION_TARGETS.has(mapping.targetType) && !mapping.targetCountryId && !mapping.independentRegion) {
+assets/js/gis-io.js:1265:        if (mapping.useFeatureCountryField && !mapping.countryField) { revealAdvancedField('gisCountryField'); throw new Error('객체별 소속 국가에 사용할 속성을 선택하세요.'); }
+assets/js/gis-io.js:1269:        if (mapping.targetType === 'country' && mapping.openMode === 'merge' && typeof options.planCountryIdentity === 'function') {
+assets/js/gis-io.js:1279:        if (!impactCache && typeof options.planImpact === 'function' && PARTITION_IMPORT_TARGETS.has(mapping.targetType)) {
+assets/js/gis-io.js:1302:          if (importMobileStep === 1 && !compatibilityTarget && !['country', 'subunit', 'region', 'distribution'].includes(targetSelect.value)) {
+assets/js/gis-io.js:1306:          if (importMobileStep === 3 && SOVEREIGN_SELECTION_TARGETS.has(targetSelect.value)
+assets/js/gis-io.js:1308:              && !(targetSelect.value === TERRITORIAL_IMPORT_TARGETS.REGION && document.getElementById('gisIndependentRegion')?.checked)) {
+assets/js/gis-io.js:1313:          if (importMobileStep === 3 && targetSelect.value === 'country' && modeSelect.value === 'merge') {
+assets/js/gis-io.js:1388:  function countryAssets(entities) {
+assets/js/gis-io.js:1390:    for (const { id: countryId, properties } of (entities || []).filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId)) {
+assets/js/gis-io.js:1392:      if (match) assets.push({ countryId, mimeType: match[1], base64: match[2] });
+assets/js/gis-io.js:1418:    const generalRows = (territorial.entities || []).filter(row => selected.has(row.parent_id ? 'subunits' : 'countries'));
+assets/js/gis-io.js:1419:    if (generalRows.length) layers.push({ category: 'entities', file: 'entities.geojson', targetType: 'general', collection: rowsAsFeatureCollection(generalRows) });
+assets/js/gis-io.js:1420:    add('regions', 'regions.geojson', 'regional', rowsAsFeatureCollection(territorial.regions));
+assets/js/gis-io.js:1428:        properties: { pandolab_id: label.id, name: label.name || '', kind: label.kind || 'custom', country_id: label.countryId || '', notes: label.notes || '', source_place_id: label.sourcePlaceId || '' },
+assets/js/gis-io.js:1450:        ...(layer.targetType === 'country' ? { fields: ['pandolab_id', 'pandolab_name', 'valid_from', 'valid_to'] } : {}),
+assets/js/gis-io.js:1473:    countries.features = (projectState.territorialEntities || []).filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId).map(feature => ({ type: 'Feature', properties: exportCountryProperties(feature), geometry: feature.geometry }));
+assets/js/gis-io.js:1492:      countryAssets: exportMode === 'project' ? countryAssets(projectState.territorialEntities) : [],

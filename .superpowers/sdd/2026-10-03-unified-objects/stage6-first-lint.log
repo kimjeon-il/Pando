@@ -1,0 +1,27 @@
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\gis-io.js
+  461:12  error  'placeholderOption' is defined but never used       no-unused-vars
+  719:12  error  'geometryAsMultiPolygon' is defined but never used  no-unused-vars
+  725:12  error  'validateMultiPolygon' is defined but never used    no-unused-vars
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\gis-import-transaction.js
+   9:5  error  'TERRITORIAL_COVERAGE_MODES' is assigned a value but never used             no-unused-vars
+  21:5  error  'resolveImportedCountryId' is assigned a value but never used               no-unused-vars
+  23:5  error  'normalizeClippedLandGeometry' is assigned a value but never used           no-unused-vars
+  24:5  error  'createTerritorialFeature' is assigned a value but never used               no-unused-vars
+  26:5  error  'reconcileTerritorialUnitCompleteness' is assigned a value but never used   no-unused-vars
+  27:5  error  'partitionGroupMatches' is assigned a value but never used                  no-unused-vars
+  28:5  error  'multiPolygonPlanarArea' is assigned a value but never used                 no-unused-vars
+  34:5  error  'refreshCountryCentroids' is assigned a value but never used                no-unused-vars
+  45:5  error  'territorialTypeLabel' is assigned a value but never used                   no-unused-vars
+  46:5  error  'sphericalGeometryAreaKm2' is assigned a value but never used               no-unused-vars
+  47:5  error  'buildTerritorialImportTransactionPlan' is assigned a value but never used  no-unused-vars
+  48:5  error  'mapEditClient' is assigned a value but never used                          no-unused-vars
+  51:5  error  'assertCurrentProjectReferences' is assigned a value but never used         no-unused-vars
+
+C:\Users\taeeu\OneDrive\문서\GitHub\map editor\assets\js\modules\import-service.js
+  125:20  error  'featureCountryId' is not defined           no-undef
+  211:44  error  'validateCountryCollection' is not defined  no-undef
+
+✖ 18 problems (18 errors, 0 warnings)
+
