@@ -6,6 +6,7 @@ import {
   readDomainColor,
   writeDomainColor,
   resolveTerritorialColor,
+  countryDefaultColor,
 } from '../../assets/js/modules/color-adapter.js';
 
 test('common color adapter reads each editable domain and reports defaults', () => {
@@ -56,4 +57,15 @@ test('common color adapter writes and clears canonical color fields', () => {
   assert.equal(territorial.properties.style.color, '#123456');
   assert.equal(genericFeature.properties.color, '#234567');
   assert.equal(layer.color, '#345678');
+});
+
+test('country defaults follow canonical library identity rather than instance ID or edited name', () => {
+  const feature = { id: 'library-instance', properties: { entityKind: 'general', parentId: '',
+    name: '사용자가 바꾼 이름', sourceLibraryId: 'historical-country:west-prussia', style: { color: '#ff0000' } } };
+  assert.equal(countryDefaultColor(feature), '#003153');
+  feature.properties.sourceLibraryId = 'current-country:KOR';
+  feature.properties.metadata = { currentCountryId: 'KOR' };
+  assert.equal(countryDefaultColor(feature), '#003478');
+  feature.properties.entityKind = 'regional';
+  assert.equal(countryDefaultColor(feature), '');
 });
