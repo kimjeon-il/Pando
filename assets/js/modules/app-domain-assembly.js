@@ -745,6 +745,7 @@ export function createDomainAssembly() {
       getImportCommitter: dependencies.gisRuntime.getGisImportCommitter,
       onEditingStateChanged: snapshot => {
         dependencies.projectState.state.tool = snapshot.activeTool;
+        dependencies.rendering.gpuMapRenderer.setCountryEditingActive(snapshot.phase !== 'idle');
         (0, dependencies.platform.$)('map')?.classList.toggle('draft-stroke-active', snapshot.draft.strokeActive);
         (0, dependencies.taskPresentation.syncCutDraftFeedback)(snapshot.draft.cutAssessment, !!snapshot.draft.hover);
         if (!snapshot.draft.cutAssessment && !snapshot.draft.hover) (0, dependencies.interactionPresentation.syncGenericDraftFeedback)(snapshot.draft);

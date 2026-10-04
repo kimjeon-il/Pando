@@ -116,7 +116,7 @@ export function createSpatialIndex() {
   function rebuildMapObjectSpatialIndex(force = false) {
     if (force) mapObjectSpatialIndexSources.clear();
     let changed = false;
-    const territorialEntities = dependencies.objectModelB.territorialScope.displayEntities();
+    const territorialEntities = dependencies.territorialModel.entityRepository.list();
     changed = replaceSpatialDomain('label', [dependencies.projectState.state.labels, dependencies.projectState.state.labels?.length || 0, mapObjectGeometryRevisions.label], () => (dependencies.projectState.state.labels || []).flatMap(label => {
       const bounds = pointBounds(label.coordinates);
       return bounds ? [{

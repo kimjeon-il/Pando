@@ -174,6 +174,9 @@ export function createWorkspaceSurfaces() {
     referenceSurface?.sync();
     searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();
+    dependencies.domains.renderingDomain?.setCountryPropertyEditingActive?.(
+      surfaceController.isOpen('editor') && !!dependencies.projectState.state.selected,
+    );
     dependencies.domainControllers.syncSelectionToolbarInteraction();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
@@ -198,6 +201,9 @@ export function createWorkspaceSurfaces() {
     }
     searchToolbarPresentation.sync();
     editorWorkspacePresentation.sync();
+    dependencies.domains.renderingDomain?.setCountryPropertyEditingActive?.(
+      surfaceController.isOpen('editor') && !!dependencies.projectState.state.selected,
+    );
     dependencies.domainControllers.syncSelectionToolbarInteraction();
     syncEditorPanelControls();
     refreshMapSheetMetrics();

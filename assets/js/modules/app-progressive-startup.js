@@ -3,6 +3,7 @@
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 import { matchesDefaultPreview, previewCountriesWithProjectProperties, previewSourceForProject } from './project-preview-policy.js';
+import { geometryRevision } from './geometry-versions.js';
 
 export function createProgressiveStartup() {
   let dependencies;
@@ -67,9 +68,8 @@ export function createProgressiveStartup() {
     // Worker mesh was ready.
     const projectGeneration = dependencies.rendering.gpuMapRenderer.getProjectGeneration?.();
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
-    // The low-resolution country source is a one-way startup aid.  After the
-    // first canonical promotion a project reset starts from canonical data or
-    // a neutral loading state and must not briefly re-expose preview geometry.
+    // Display-only preview sources survive canonical hydration for zoom LOD.
+    // The renderer invalidates these on project replacement, never the Store.
     const previewAllowed = dependencies.rendering.gpuMapRenderer.getRuntimeState?.().previewAllowed !== false;
     dependencies.projectState.state.auditPreviewTerritorialUnits = previewAllowed
       ? dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId) : null;
@@ -107,6 +107,11 @@ export function createProgressiveStartup() {
     const externalGeometry = !!restored?.territorialEntities && restored.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
     const useBuiltInMesh = !externalGeometry
       && dependencies.projectState.state.autosaveMode !== 'full';
+    // Capture the shape that produced the display preview before readiness
+    // permits edits or an editable listener can change the canonical geometry.
+    dependencies.projectState.state.auditPreviewGeometryReferences = new Map(
+      dependencies.territorialModel.entityRepository.list().map(entity => [String(entity.id), { geometry: entity.geometry, revision: geometryRevision(entity.geometry) }]),
+    );
     window.PANDOLAB_COUNTRIES = null;
     (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.GEOMETRY_READY);
     dependencies.projectState.state.geometryProgress = 100;
@@ -123,6 +128,8 @@ export function createProgressiveStartup() {
     if (previewSelection && dependencies.territorialModel.entityRepository.get(previewSelection)) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(previewSelection) }, { refreshOnly: true, openEditor: false });
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'layer-hydration';
     await dependencies.domains.layerTreeController?.completeHydration();
+    if (Number.isFinite(projectGeneration)
+      && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'complete';
     // Do not structured-clone the full canonical country collection into the
     // edit Worker during startup. The client rebases lazily on the first edit
@@ -139,6 +146,8 @@ export function createProgressiveStartup() {
     }
     if (restored) {
       await dependencies.lifecycleUi.projectUi.completeAutosaveRecovery();
+      if (Number.isFinite(projectGeneration)
+        && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
       dependencies.projectSession.saveState.markNewProject(`content:${Date.now()}`);
       dependencies.projectSession.saveState.setAutosave(dependencies.applicationConstantsA.AUTOSAVE_STATES.SAVED, { fallback: autosaveRestore.source === 'localstorage' ? '브라우저 로컬 저장소' : '' });
       if (restored.territorialEntities && restored.baseDataset === dependencies.platformConfigurationA.BASE_DATASET) dependencies.domains.projectDomain.queueAutosave(0);
@@ -161,8 +170,10 @@ export function createProgressiveStartup() {
     const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     let meshApplied;
     const projectGeneration = context?.projectGeneration ?? dependencies.rendering.gpuMapRenderer.getProjectGeneration?.();
+    if (Number.isFinite(projectGeneration)
+      && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return;
     if (!context.useBuiltInMesh || (dependencies.projectState.state.autosaveMode === 'full')) {
-      meshApplied = (await dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinTerritorialScene)().collection.features, { projectGeneration })) !== false;
+      meshApplied = (await dependencies.rendering.gpuMapRenderer.rebuildFromCountries((0, dependencies.countries.builtinTerritorialScene)({ canonical: true }).collection.features, { projectGeneration })) !== false;
     } else {
       const dirtyIds = new Set([...dependencies.projectState.state.historyDirtyEntityIds, ...dependencies.projectState.state.pendingCountryRenderIds]);
       meshApplied = (await dependencies.rendering.gpuMapRenderer.replaceBuiltInMesh({
@@ -171,7 +182,7 @@ export function createProgressiveStartup() {
         spatialBlocks: mesh.spatialBlocks,
         builtinIdentity: mesh.identity,
         onStaged: () => {
-          dependencies.projectState.state.countryVisualPhase = 'canonical';
+          dependencies.rendering.gpuMapRenderer.syncCountryMeshQuality();
           dependencies.domains.renderingDomain?.invalidateProject?.('canonical-staging-ready');
         },
         // Binary country slots retain canonical source order, even when a
@@ -182,18 +193,14 @@ export function createProgressiveStartup() {
         projectGeneration,
       })) !== false;
     }
-    // Once the canonical mesh is successfully displayed, every country SVG
-    // path must use the same source. This prevents edit/selection state from
-    // mixing preview and canonical geometries on a single frame.
+    if (Number.isFinite(projectGeneration)
+      && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return;
+    // Keep the single preview as a display source. Exact edit/save geometry
+    // remains in the repository and mesh availability cannot override zoom.
     if (meshApplied) {
-      dependencies.projectState.state.countryVisualPhase = 'canonical';
-      dependencies.projectState.state.auditPreviewCountries = null;
-      dependencies.projectState.state.auditPreviewTerritorialUnits = null;
+      dependencies.rendering.gpuMapRenderer.syncCountryMeshQuality();
       window.PANDOLAB_COUNTRIES = null;
-      if (startupMetrics) startupMetrics.canonicalPreviewReleasedBytes = Number(
-        startupMetrics.preview?.assets?.countries?.decodedBytes || 0,
-      );
-      void window.PANDOLAB_SAMPLE_STARTUP_MEMORY?.('preview-released');
+      if (startupMetrics) startupMetrics.canonicalPreviewReleasedBytes = 0;
       (0, dependencies.renderQuality.applyAdaptiveRenderQuality)({ refreshScene: false, reason: 'canonical-ready' });
     }
     (0, dependencies.physicalData.loadHydroData)();
@@ -342,7 +349,8 @@ export function createProgressiveStartup() {
     }
     if (!hasStoredCountryGeometry) startTerrainLoading();
     dependencies.startupCommands.markRuntimeReady();
-    const previewStart = { projection: dependencies.projectState.state.projection, viewJson: JSON.stringify(dependencies.projectState.state.view) };
+    const previewStart = { projection: dependencies.projectState.state.projection, viewJson: JSON.stringify(dependencies.projectState.state.view),
+      projectGeneration: dependencies.rendering.gpuMapRenderer.getProjectGeneration?.() };
     (0, dependencies.feedback.setActionStatus)(
       hasStoredCountryGeometry || !previewFrameReady ? '저장된 지도 복원 중…' : '미리보기 표시 완료. 편집 데이터 준비 중…',
       'working',
@@ -357,10 +365,14 @@ export function createProgressiveStartup() {
     try {
       geometry = await window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE;
     } catch (error) {
+      if (Number.isFinite(previewStart.projectGeneration)
+        && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== previewStart.projectGeneration) return;
       console.error('[PL-GEOMETRY-LOAD-001]', error);
       handleGeometryError({ detail: '저장된 지도 형상을 불러오지 못했습니다.' });
       return;
     }
+    if (Number.isFinite(previewStart.projectGeneration)
+      && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== previewStart.projectGeneration) return;
     const previewEntities = hasStoredCountryGeometry ? [] : dependencies.territorialModel.entityStore.snapshot();
     const previewCountries = { type: 'FeatureCollection', features: previewEntities.filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)) };
     dependencies.projectState.state.auditPreviewCountries = previewCountries;
@@ -368,6 +380,8 @@ export function createProgressiveStartup() {
     try {
       context = await completeGeometryInitialization(geometry, autosaveRestore, previewStart);
     } catch (error) {
+      if (Number.isFinite(previewStart.projectGeneration)
+        && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== previewStart.projectGeneration) return;
       console.error('[PL-GEOMETRY-APPLY-001]', error);
       dependencies.territorialModel.entityStore.replaceEntities(previewEntities);
       (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.GEOMETRY_ERROR);
@@ -376,22 +390,28 @@ export function createProgressiveStartup() {
       handleGeometryError({ detail: '무손실 편집 지도를 적용하지 못했습니다.' });
       return;
     }
+    if (!context) return;
+    if (Number.isFinite(context.projectGeneration)
+      && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== context.projectGeneration) return;
     // Without a matching project preview, preserve the neutral restore screen
     // until exact geometry and saved display settings have been applied.
     if (hasStoredCountryGeometry) startTerrainLoading();
-    if (!context.useBuiltInMesh) {
-      await completeMeshEnhancement(null, context);
-      if (savedProject && !cachedPreview) dependencies.domains.projectDomain.ensurePreview(savedProject);
-      return;
-    }
-    if (window.__PANDOLAB_STARTUP_METRICS__?.meshError) {
-      handleMeshError({ detail: window.__PANDOLAB_STARTUP_METRICS__.meshError });
-    }
-    const mesh = await window.PANDOLAB_CANONICAL_MESH_PROMISE;
     try {
-      await completeMeshEnhancement(mesh, context);
+      if (!context.useBuiltInMesh) {
+        await completeMeshEnhancement(null, context);
+      } else {
+        if (window.__PANDOLAB_STARTUP_METRICS__?.meshError) {
+          handleMeshError({ detail: window.__PANDOLAB_STARTUP_METRICS__.meshError });
+        }
+        const mesh = await window.PANDOLAB_CANONICAL_MESH_PROMISE;
+        await completeMeshEnhancement(mesh, context);
+      }
+      if (Number.isFinite(context.projectGeneration)
+        && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== context.projectGeneration) return;
       if (savedProject && !cachedPreview) dependencies.domains.projectDomain.ensurePreview(savedProject);
     } catch (error) {
+      if (error?.name === 'AbortError' || (Number.isFinite(context.projectGeneration)
+        && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== context.projectGeneration)) return;
       console.error('[PL-MESH-APPLY-001]', error);
       handleMeshError({ detail: '고화질 지도를 적용하지 못했습니다.' });
       return;

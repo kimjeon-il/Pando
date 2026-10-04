@@ -14,18 +14,24 @@ export function createCameraNavigation() {
     const [dragX, dragY] = (0, dependencies.mapNavigation.normalizeMapSurfaceDragDelta)(dx, dy);
     if (dragX === 0 && dragY === 0) return false;
     if (dependencies.projectState.state.projection === 'globe') {
+      const previous = dependencies.projectState.state.view.globeRotation.slice();
       const sensitivity = 0.22 / Math.max(0.75, Math.sqrt(dependencies.projectState.state.view.globeZoom));
       dependencies.projectState.state.view.globeRotation[0] += dragX * sensitivity;
       dependencies.projectState.state.view.globeRotation[1] -= dragY * sensitivity;
       dependencies.projectState.state.view.globeRotation[1] = (0, dependencies.platform.clamp)(dependencies.projectState.state.view.globeRotation[1], -89, 89);
-      return true;
+      const changed = previous.some((value, index) => Math.abs(value - dependencies.projectState.state.view.globeRotation[index]) > 1e-9);
+      if (changed) dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
+      return changed;
     }
+    const previous = dependencies.projectState.state.view.flatCenter.slice();
     const scale = dependencies.mapView.flatProjection.scale();
     dependencies.projectState.state.view.flatCenter[0] -= dragX * 180 / (Math.PI * scale);
     dependencies.projectState.state.view.flatCenter[1] += dragY * 180 / (Math.PI * scale);
     dependencies.projectState.state.view.flatCenter[1] = (0, dependencies.platform.clamp)(dependencies.projectState.state.view.flatCenter[1], -dependencies.mapNavigation.FLAT_LATITUDE_LIMIT, dependencies.mapNavigation.FLAT_LATITUDE_LIMIT);
     dependencies.projectState.state.view.flatCenter[0] = ((dependencies.projectState.state.view.flatCenter[0] + 540) % 360) - 180;
-    return true;
+    const changed = previous.some((value, index) => Math.abs(value - dependencies.projectState.state.view.flatCenter[index]) > 1e-9);
+    if (changed) dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
+    return changed;
   }
 
   function dragMapBy(dx, dy) {
@@ -40,6 +46,7 @@ export function createCameraNavigation() {
   }
 
   function setMapZoomValue(value) {
+    if (!Number.isFinite(Number(value)) || Number(value) <= 0) return false;
     if (dependencies.projectState.state.projection === 'globe') {
       const next = (0, dependencies.platform.clamp)(Number(value || dependencies.projectState.state.view.globeZoom), dependencies.mapNavigation.ZOOM_LIMITS.globe.min, dependencies.mapNavigation.ZOOM_LIMITS.globe.max);
       const changed = Math.abs(next - dependencies.projectState.state.view.globeZoom) > 1e-9;
@@ -98,15 +105,17 @@ export function createCameraNavigation() {
     (0, dependencies.mapView.updateProjection)();
     const anchor = source ? (0, dependencies.mapView.screenToGeo)(source) : null;
     let changed = setMapZoomValue(zoom);
+    let dragChanged = false;
     if (anchor && target) {
       changed = alignGeographicAnchor(anchor, target) || changed;
     } else if (source && target && (source[0] !== target[0] || source[1] !== target[1])) {
-      dragMapBy(target[0] - source[0], target[1] - source[1]);
+      dragChanged = dragMapBy(target[0] - source[0], target[1] - source[1]);
       (0, dependencies.mapView.updateProjection)();
-      changed = true;
+      changed = dragChanged || changed;
     } else {
       (0, dependencies.mapView.updateProjection)();
     }
+    if (changed && !dragChanged) dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     return changed;
   }
 
@@ -114,6 +123,7 @@ export function createCameraNavigation() {
     const current = dependencies.projectState.state.projection === 'globe' ? dependencies.projectState.state.view.globeZoom : dependencies.projectState.state.view.flatZoom;
     const next = current * factor;
     if (!setMapZoomValue(next)) return false;
+    dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     if (settle) dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-settle');
     else dependencies.domains.renderingDomain?.invalidateView?.('zoom-control-interaction');
     if (persist) dependencies.domains.projectDomain.queueViewAutosave();
@@ -129,6 +139,7 @@ export function createCameraNavigation() {
     const geometryCenter = dependencies.platform.d3.geo.centroid(feature);
     const anchor = (0, dependencies.countries.validLabelAnchor)(preferredAnchor) ? preferredAnchor.map(Number) : geometryCenter;
     if (!(0, dependencies.countries.validLabelAnchor)(anchor)) return;
+    dependencies.rendering.gpuMapRenderer.requestCountryFocus();
     const { width, height } = dependencies.projectState.state.size;
     const mobile = (0, dependencies.surfaces.isMobile)();
     const safe = currentObjectFitInsets();
@@ -175,6 +186,7 @@ export function createCameraNavigation() {
 
   function focusCoordinate(coord, zoom = null) {
     if (!(0, dependencies.countries.validLabelAnchor)(coord)) return;
+    dependencies.rendering.gpuMapRenderer.requestCountryFocus();
     if (dependencies.projectState.state.projection === 'globe') {
       dependencies.projectState.state.view.globeRotation = [-Number(coord[0]), -Number(coord[1]), 0];
       dependencies.projectState.state.view.globeZoom = (0, dependencies.platform.clamp)(zoom || Math.max(4.5, dependencies.projectState.state.view.globeZoom), dependencies.mapNavigation.ZOOM_LIMITS.globe.min, dependencies.mapNavigation.ZOOM_LIMITS.globe.max);
@@ -209,6 +221,7 @@ export function createCameraNavigation() {
   }
 
   function resetView() {
+    dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     if (dependencies.projectState.state.projection === 'globe') {
       dependencies.projectState.state.view.globeZoom = 1;
     } else {
