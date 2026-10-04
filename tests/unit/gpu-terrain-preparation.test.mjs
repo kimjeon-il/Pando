@@ -133,6 +133,23 @@ test('a request batch starts center tiles before viewport-edge tiles', t => {
   owner.dispose();
 });
 
+test('desktop starts six visible downloads while missing current tiles; mobile remains at two', t => {
+  const { owner, requests } = fixture(t);
+  owner.setManifest(mobileManifest);
+  owner.prepare({ mode: 1, scale: 1200, viewport: [3000, 2000],
+    viewState: { projection: 'flat', projectionCenter: [0, 0] } },
+  { ...mobileView(), devicePixelRatio: 1, projection: 'flat', flatCenter: [0, 0] });
+  assert.equal(owner.stats().terrainFetchConcurrency, 6);
+  assert.equal(requests.length, 6);
+  owner.dispose();
+  const mobile = fixture(t, () => {}, { mobile: true });
+  mobile.owner.setManifest(mobileManifest);
+  mobile.owner.prepare(mobileFrame(), mobileView());
+  assert.equal(mobile.owner.stats().terrainFetchConcurrency, 2);
+  assert.equal(mobile.requests.length, 2);
+  mobile.owner.dispose();
+});
+
 test('in-flight neighbouring prefetch cannot block queued tiles in the current viewport', async t => {
   const { owner, requests, jobs } = fixture(t);
   globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
@@ -147,7 +164,7 @@ test('in-flight neighbouring prefetch cannot block queued tiles in the current v
     for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain uploads. */ }
   }
   const before = requests.length;
-  assert.equal(before, 8);
+  assert.equal(before, 10, 'four visible tiles followed by six neighbouring downloads');
   owner.prepare({ ...frame, viewState: { ...frame.viewState, projectionCenter: [0, 30] } }, view);
   await settle();
   assert.ok(requests.length >= before + 2, 'both missing visible tiles must start before neighbouring responses finish');
