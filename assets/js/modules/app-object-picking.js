@@ -128,10 +128,10 @@ export function createObjectPicking() {
         - layerObjectRank(dependencies.projectState.state.layerPresentation, left.key);
   }
 
-  // The exact geometry is the same phase projection used by render packets.
+  // Picking uses editable geometry even when the display uses preview coordinates.
   function territorialObjectsAt(screenPoint, coord, records = dependencies.spatialRecords.indexedMapObjectCandidates(screenPoint)) {
     return records.filter(record => record.domain === 'territorial').flatMap(record => {
-      const feature = dependencies.objectModelB.territorialScope.displayFeature(record.id);
+      const feature = dependencies.territorialModel.entityRepository.get(record.id);
       const ref = dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'entity', id: record.id });
       if (!feature || !objectRefSelectable(ref)) return [];
       dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;

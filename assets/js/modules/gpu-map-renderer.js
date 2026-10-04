@@ -25,6 +25,7 @@ import { isRenderScene } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
+import { resolveCountryMeshQuality } from './country-mesh-zoom-policy.js';
 import { shouldShowSharedCountryBorders, visibleCountrySharedSegments } from './country-shared-boundary-packet.js';
 
 const DEFAULT_RENDER_QUALITY = Object.freeze({
@@ -169,6 +170,7 @@ export function createGpuMapRenderer(deps) {
     queueMapResize,
     renderPendingCountryOverlays,
     renderCountryFeatures,
+    canonicalCountryFeatures,
     renderViewFrame,
     reportOperationError,
     rendererUi,
@@ -231,15 +233,61 @@ export function createGpuMapRenderer(deps) {
     let renderQuality = DEFAULT_RENDER_QUALITY;
     let meshSwitchCount = 0;
     let renderQualityChangeCount = 0;
-    // Preview data is a one-way startup fallback. Once canonical geometry is
-    // promoted it is never selected again for interaction or adaptive quality.
+    // Readiness and displayed quality are independent. Keep one preview and
+    // one canonical mesh; zoom history belongs to this renderer generation.
     let qualityPhase = 'startup-preview';
     let previewAllowed = true;
+    let desiredCountryMeshQuality = 'preview';
+    let countryDisplayHistoryValid = true;
+    let countryFocusPending = false;
+    let countryEditingActive = false;
+    let countryPropertyEditingActive = false;
+    let countryFocusProjection = null;
     let previewActivationCount = 0;
     let previewActivationAfterCanonical = 0;
     let canonicalPromotionCount = 0;
     let canonicalPromotionError = '';
     let canonicalReadyFrameId = 0;
+    function requestCountryFocus() {
+      countryFocusPending = true;
+      countryFocusProjection = state.projection;
+    }
+    function cancelCountryFocus() {
+      countryFocusPending = false;
+      countryFocusProjection = null;
+    }
+    function setCountryEditingActive(active) {
+      countryEditingActive = active === true;
+    }
+    function setCountryPropertyEditingActive(active) {
+      const changed = countryPropertyEditingActive !== (active === true);
+      countryPropertyEditingActive = active === true;
+      return changed;
+    }
+    function syncCountryMeshQuality() {
+      if (countryFocusPending && countryFocusProjection !== state.projection) countryFocusPending = false;
+      const previousPhase = state.countryVisualPhase;
+      desiredCountryMeshQuality = resolveCountryMeshQuality({
+        projection: state.projection,
+        zoom: state.projection === 'globe' ? state.view?.globeZoom : state.view?.flatZoom,
+        previous: countryDisplayHistoryValid ? activeMeshQuality : 'preview',
+        focus: countryFocusPending,
+        editing: countryEditingActive || countryPropertyEditingActive,
+      });
+      const hasPreview = previewAllowed && (isWebGlRenderer() ? meshVariants.has('preview') : !!state.auditPreviewCountries?.features?.length);
+      const quality = desiredCountryMeshQuality === 'preview' && hasPreview
+        ? 'preview' : canonicalMeshReady ? 'canonical' : activeMeshQuality;
+      const changed = quality !== activeMeshQuality;
+      if (changed) {
+        state.countryVisualPhase = quality;
+        if (isWebGlRenderer()) activateMeshVariant(quality, { renderFrame: false });
+        else { activeMeshQuality = quality; meshQuality = quality; meshSwitchCount += 1; }
+      }
+      state.countryVisualPhase = activeMeshQuality;
+      if (!projectRenderBlocked && (hasPreview || canonicalMeshReady)) countryDisplayHistoryValid = true;
+      if (changed) sceneColorCache.invalidate('country-zoom-quality');
+      return changed || previousPhase !== state.countryVisualPhase;
+    }
     function recordCanonicalFrameReady() {
       if (firstCanonicalFrameMs === null) {
         firstCanonicalFrameMs = Math.max(0, performance.now() - rendererStartedAt);
@@ -477,6 +525,7 @@ export function createGpuMapRenderer(deps) {
     let canvasStyleRevision = 0;
     let canvasPhysicalStyleRevision = 0;
     let canvasLastStyleSignature = '';
+    let canvasLastCountryFeatures = null;
     let canvasDisplayedStyleRevision = 0;
     let canvasLastPhysicalStyleSignature = '';
     let fallbackReason = '';
@@ -1510,7 +1559,7 @@ export function createGpuMapRenderer(deps) {
       if (Number(requestedGeneration) !== projectGeneration || !builtinMeshBaseline?.mesh) return false;
       if (!isWebGlRenderer()) {
         onStaged?.();
-        const rebuilt = await rebuildFromCountries((renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId))), {
+        const rebuilt = await rebuildFromCountries((canonicalCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId))), {
           reason: 'new-project-canvas-fallback', projectGeneration: requestedGeneration,
         });
         return rebuilt !== false;
@@ -1641,12 +1690,12 @@ export function createGpuMapRenderer(deps) {
       const requestedQuality = quality === 'preview' ? 'preview' : 'canonical';
       if (requestedQuality === 'preview') {
         previewActivationCount += 1;
-        if (!previewAllowed || canonicalMeshReady || qualityPhase === 'canonical-ready') {
-          previewActivationAfterCanonical += canonicalMeshReady || qualityPhase === 'canonical-ready' ? 1 : 0;
+        if (!previewAllowed) {
           return false;
         }
+        if (canonicalMeshReady) previewActivationAfterCanonical += 1;
       }
-      const entry = meshVariants.get(requestedQuality) || meshVariants.get('canonical');
+      const entry = meshVariants.get(requestedQuality);
       if (!entry) return false;
       const changed = activeMeshQuality !== entry.quality || mesh !== entry.mesh;
       activeMeshQuality = entry.quality;
@@ -1654,6 +1703,7 @@ export function createGpuMapRenderer(deps) {
       mesh = entry.mesh;
       meshCountryIds = entry.countryIds;
       if (changed) meshSwitchCount += 1;
+      if (changed) markPaletteDirty({ base: true, emphasis: true });
       const resources = entry.resources;
       positionBuffer = resources?.positionBuffer || null;
       countryBuffer = resources?.countryBuffer || null;
@@ -1670,13 +1720,14 @@ export function createGpuMapRenderer(deps) {
 
     function setMesh(nextMesh, countryIds, {
       renderFrame = true,
+      activate = true,
       quality = meshQuality,
       preserveOtherVariants = false,
       stagedResources = null,
       boundaryCacheKind = 'none',
     } = {}) {
       const variantQuality = quality === 'preview' ? 'preview' : 'canonical';
-      if (variantQuality === 'preview' && (!previewAllowed || canonicalMeshReady || qualityPhase === 'canonical-ready')) {
+      if (variantQuality === 'preview' && !previewAllowed) {
         previewActivationAfterCanonical += 1;
         return false;
       }
@@ -1697,7 +1748,7 @@ export function createGpuMapRenderer(deps) {
       };
       meshVariants.set(variantQuality, entry);
       if (builtinMeshBaseline?.mesh === nextMesh) builtinMeshBaseline.resources = entry.resources;
-      activateMeshVariant(variantQuality, { renderFrame });
+      if (activate) activateMeshVariant(variantQuality, { renderFrame });
       prewarmCountryStrokeResources();
       projectRenderBlocked = false;
       sceneColorCache.invalidate('mesh-ready');
@@ -1705,22 +1756,11 @@ export function createGpuMapRenderer(deps) {
 
     function promoteCanonicalMesh({ frameId = 0 } = {}) {
       canonicalMeshReady = true;
-      recordCanonicalFrameReady();
+      if (activeMeshQuality === 'canonical') recordCanonicalFrameReady();
       qualityPhase = 'canonical-ready';
-      previewAllowed = false;
-      meshQuality = 'canonical';
       canonicalPromotionCount += 1;
       canonicalReadyFrameId = Number(frameId || currentRenderRevision || 0);
       canonicalPromotionError = '';
-      const previewEntry = meshVariants.get('preview');
-      if (previewEntry) {
-        if (previewEntry !== meshVariants.get('canonical')) disposeMeshEntry(previewEntry);
-        meshVariants.delete('preview');
-      }
-      countryStrokePacketCache.preview.mesh = null;
-      countryStrokePacketCache.preview.countryIds = null;
-      countryStrokePacketCache.preview.revision = '';
-      countryStrokePacketCache.preview.resource = null;
       return true;
     }
 
@@ -1781,6 +1821,14 @@ export function createGpuMapRenderer(deps) {
         }
         return index;
       });
+      if (globalIds === meshCountryIds) {
+        for (const entry of meshVariants.values()) {
+          if (entry.countryIds === globalIds) continue;
+          const sameSlots = entry.countryIds.every((id, index) => globalIds[index] === id);
+          if (sameSlots) entry.countryIds.push(...globalIds.slice(entry.countryIds.length));
+          else if (entry.quality === 'preview') previewAllowed = false;
+        }
+      }
       const local = asMeshArray(Uint16Array, rawMesh.countryIndices);
       const countryIndices = new Uint16Array(local.length);
       for (let index = 0; index < local.length; index += 1) countryIndices[index] = globalIndices[local[index]];
@@ -1974,7 +2022,10 @@ export function createGpuMapRenderer(deps) {
 
     function compactCountryOverrides() {
       if (!countryOverrideIds.size) return;
-      rebuildFromCountries((renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId))), {
+      // Retained preview still needs exact override masks. Compacting away the
+      // masks would resurrect its old shapes; keep patches until a full rebuild.
+      if (previewAllowed && meshVariants.has('preview')) return;
+      rebuildFromCountries((canonicalCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId))), {
         geometryRevision: geometryRevisionTracker.committedRevision(),
         reason: 'compaction',
       });
@@ -2015,6 +2066,17 @@ export function createGpuMapRenderer(deps) {
     }
 
     function resetProjectRenderState({ generation = null, preserveBuiltinMesh = false } = {}) {
+      desiredCountryMeshQuality = 'preview';
+      countryDisplayHistoryValid = false;
+      countryFocusPending = false;
+      countryFocusProjection = null;
+      countryEditingActive = false;
+      countryPropertyEditingActive = false;
+      // Old-project display data is never eligible for the replacement project.
+      previewAllowed = false;
+      state.auditPreviewCountries = null;
+      state.auditPreviewTerritorialUnits = null;
+      state.auditPreviewGeometryReferences = null;
       previewFramePresented = false;
       for (const resolve of previewFrameWaiters) resolve(false);
       previewFrameWaiters.clear();
@@ -2098,14 +2160,12 @@ export function createGpuMapRenderer(deps) {
       stopPatchWorkerJobs(reason);
       const pendingIds = geometryRevisionTracker.pendingIds();
       if (rendererMode === 'canvas-worker' && canvasWorker) {
-        meshQuality = 'canonical';
         canonicalMeshReady = true;
-        recordCanonicalFrameReady();
         qualityPhase = 'canonical-ready';
-        previewAllowed = false;
         canonicalPromotionCount += 1;
         canonicalReadyFrameId = currentRenderRevision;
         projectRenderBlocked = false;
+        syncCountryMeshQuality();
         postCanvasWorkerMessage({
           type: 'data', features, ids: pendingIds,
           projectGeneration,
@@ -2118,14 +2178,12 @@ export function createGpuMapRenderer(deps) {
         return Promise.resolve(true);
       }
       if (!isWebGlRenderer()) {
-        meshQuality = 'canonical';
         canonicalMeshReady = true;
-        recordCanonicalFrameReady();
         qualityPhase = 'canonical-ready';
-        previewAllowed = false;
         canonicalPromotionCount += 1;
         canonicalReadyFrameId = currentRenderRevision;
         projectRenderBlocked = false;
+        syncCountryMeshQuality();
         countryOverrideIds.clear();
         overrideFeatureSnapshots.clear();
         overrideMesh = null;
@@ -2162,6 +2220,10 @@ export function createGpuMapRenderer(deps) {
           }
           if (taskProjectGeneration !== projectGeneration || !geometryRevisionTracker.isCurrent(token, task.revision)) { disposeMeshResources(stagedResources); return false; }
           countryOverrideIds.clear(); overrideFeatureSnapshots.clear(); overrideMesh = null;
+          // A full rebuilt mesh has absorbed overrides and no longer matches
+          // the retained preview. Fall back to exact display until regenerated.
+          previewAllowed = false;
+          state.countryVisualPhase = 'canonical';
           setMesh(nextMesh, next.countryIds || [], { stagedResources, renderFrame: false, quality: 'canonical', preserveOtherVariants: false });
           completeGeometryDisplay(pendingIds, task.revision);
           promoteCanonicalMesh({ frameId: currentRenderRevision });
@@ -3680,6 +3742,13 @@ export function createGpuMapRenderer(deps) {
 
     function syncCanvasWorkerState() {
       if (!canvasWorker || !canvasWorker.ready) return;
+      const features = renderCountryFeatures?.() || [];
+      if (canvasLastCountryFeatures !== features) {
+        canvasLastCountryFeatures = features;
+        postCanvasWorkerMessage({ type: 'replace-data', features, projectGeneration,
+          revision: currentRenderRevision, geometryRevision: geometryRevisionTracker.committedRevision() });
+        prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
+      }
       const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.countries, getSystemTheme(),
         renderScene?.revisions?.geometry, renderScene?.revisions?.style, renderScene?.revisions?.overlayOrder].join(':');
       if (styleSignature !== canvasLastStyleSignature) {
@@ -3923,8 +3992,12 @@ export function createGpuMapRenderer(deps) {
 
     function ensureCountryIdScene() {
       if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.countries) return false;
+      const pickEntry = meshVariants.get('canonical') || meshVariants.get(activeMeshQuality);
+      // The pick shader uses the active palette slots. Fall back to precise CPU
+      // picking when canonical slots differ, rather than decode another country.
+      if (pickEntry && (pickEntry.countryIds.length !== meshCountryIds.length
+        || pickEntry.countryIds.some((id, index) => id !== meshCountryIds[index]))) return false;
       try { ensurePickTarget(); } catch (_) { return false; }
-      const pickEntry = meshVariants.get(activeMeshQuality) || meshVariants.get(meshQuality);
       const pickMesh = pickEntry?.mesh || mesh;
       const pickResources = pickEntry?.resources;
       const nextSceneKey = countryIdSceneKey(pickEntry);
@@ -3965,7 +4038,7 @@ export function createGpuMapRenderer(deps) {
     function pick(screenPoint) {
       if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.countries) return null;
       resize();
-      const pickEntry = meshVariants.get(activeMeshQuality) || meshVariants.get(meshQuality);
+      const pickEntry = meshVariants.get('canonical') || meshVariants.get(activeMeshQuality);
       if (!ensureCountryIdScene()) return null;
       gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
       gl.viewport(0, 0, pixelWidth, pixelHeight);
@@ -4099,10 +4172,13 @@ export function createGpuMapRenderer(deps) {
       setMesh(decoded.mesh, decoded.ids, {
         stagedResources,
         renderFrame: false,
+        activate: quality !== 'canonical' || !meshVariants.has('preview'),
         quality,
         boundaryCacheKind: 'built-in',
         preserveOtherVariants: quality === 'canonical' && meshVariants.has('preview'),
       });
+      if (quality === 'canonical') canonicalMeshReady = true;
+      syncCountryMeshQuality();
       if (startupPatch.ids.length) {
         prepareCountrySharedBoundary({ features: startupPatch.features, removedIds: startupPatch.removedIds });
         for (const id of startupPatch.ids) countryOverrideIds.add(id);
@@ -4113,7 +4189,6 @@ export function createGpuMapRenderer(deps) {
           setOverrideMesh(stagedPatch.mesh, { renderFrame: false, stagedResources: stagedPatch.resources });
         }
       }
-      meshQuality = quality;
       if (canvasWorkerNeedsRestart) activateCanvasFallback(fallbackReason);
       if (rendererMode === 'canvas-worker' && canvasWorker) {
         await new Promise(resolve => {
@@ -4141,6 +4216,7 @@ export function createGpuMapRenderer(deps) {
           { renderFrame: !isWebGlRenderer() },
         );
       }
+      if (disposed || Number(requestedGeneration) !== projectGeneration) return false;
       updateRendererStatus(isWebGlRenderer()
         ? `${rendererName()} · GPU ${meshQualityLabel()}`
         : `${rendererMode === 'canvas-worker' ? 'Canvas Worker' : 'Canvas'} · ${meshQualityLabel()}`,
@@ -4153,8 +4229,10 @@ export function createGpuMapRenderer(deps) {
           onStaged?.();
           invalidateGpuFrame('canonical-staging-ready');
         });
+        if (disposed || Number(requestedGeneration) !== projectGeneration) return false;
         await flushDeferredCountryPatches();
       } else if (quality === 'canonical') promoteCanonicalMesh({ frameId: currentRenderRevision });
+      if (disposed || Number(requestedGeneration) !== projectGeneration) return false;
       return decoded;
     }
 
@@ -4448,6 +4526,9 @@ export function createGpuMapRenderer(deps) {
         activeWebGlContextCount: renderDevice && isWebGlRenderer() ? 1 : 0,
         canonicalMeshReady,
         previewAllowed,
+        activeMeshQuality,
+        desiredCountryMeshQuality,
+        countryFocusPending,
         firstCanonicalFrameMs,
         canonicalFrameFallbackCount,
         projectGeneration,
@@ -4515,6 +4596,8 @@ export function createGpuMapRenderer(deps) {
         qualityPhase,
         previewAllowed,
         previewActivationCount,
+        desiredCountryMeshQuality,
+        countryFocusPending,
         previewActivationAfterCanonical,
         canonicalPromotionCount,
         canonicalPromotionError,
@@ -4640,6 +4723,8 @@ export function createGpuMapRenderer(deps) {
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
       setHydroEdits,
       setHydroInteractionActive, setRenderQuality,
+      requestCountryFocus, cancelCountryFocus, setCountryEditingActive, syncCountryMeshQuality,
+      setCountryPropertyEditingActive,
       invalidateHydroVisibility, invalidatePhysicalStyle, resetCountryGeometryVisualState,
       resetProjectRenderState, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline,
       hasBuiltinMeshBaseline: () => !!builtinMeshBaseline?.mesh,
@@ -4661,6 +4746,8 @@ export function createGpuMapRenderer(deps) {
         if (gl) hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: uploadScheduler });
       },
       commitVisualFrame: frame => {
+        // Focus owns a camera session. Only explicit navigation, projection
+        // change or project replacement releases it; publishing frames does not.
         if (pendingCanonicalCommit?.generation !== projectGeneration || !pendingCanonicalCommit) return;
         const pending = pendingCanonicalCommit; pendingCanonicalCommit = null;
         promoteCanonicalMesh({ frameId: frame.frameId });

@@ -1,4 +1,5 @@
 import { normalizeCountryCollection } from './country-feature.js';
+import { geometryRevision } from './geometry-versions.js';
 import { territorialSceneDisplayId } from './builtin-subunits.js';
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -62,14 +63,19 @@ export function createBuiltinSession() {
     (0, dependencies.countryRecords.applyPristineLabelAnchors)({ features: result.subunits.map(unit => ({ id: (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit) })) });
   }
 
-  function builtinTerritorialScene() {
+  function builtinTerritorialScene({ canonical = false } = {}) {
     if (builtinGeometryStore !== canonicalCountryStore) {
       builtinGeometryStore = canonicalCountryStore;
       builtinGeometryCache = new WeakMap();
       builtinRenderCache = null;
     }
-    const entities = dependencies.objectModelB.territorialScope.displayEntities();
-    if (builtinRenderCache?.entities === entities && builtinRenderCache.presentation === dependencies.projectState.state.layerPresentation) return builtinRenderCache;
+    const entities = canonical ? dependencies.territorialModel.entityRepository.list()
+      : dependencies.objectModelB.territorialScope.displayEntities();
+    const nativeGeometryRevision = entities.reduce((revision, entity) => revision + geometryRevision(
+      entity.properties.entityKind === 'general' && entity.properties.parentId
+        ? dependencies.territorialModel.entityRepository.get(entity.id).geometry : entity.geometry), 0);
+    if (builtinRenderCache?.entities === entities && builtinRenderCache.nativeGeometryRevision === nativeGeometryRevision
+      && builtinRenderCache.presentation === dependencies.projectState.state.layerPresentation) return builtinRenderCache;
     const features = entities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId);
     const byId = new Map(features.map(feature => [String(feature.id), feature]));
     const countryIds = new Set(byId.keys());
@@ -85,18 +91,21 @@ export function createBuiltinSession() {
       if (!sourceId || byId.has(sourceId)) continue;
       const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, 'subunits', `territorial:entity:${unit.id}`);
       if (style.opacity !== 1 || style.blendMode !== 'normal' || !style.boundaryVisible) continue;
-      let unchanged = builtinGeometryCache.get(unit.geometry);
-      if (unchanged === undefined) {
-        unchanged = canonicalCountryStore ? canonicalCountryStore.geometryEquals(sourceId, unit.geometry)
-          : JSON.stringify(unit.geometry) === JSON.stringify(pristineCountriesFallback?.features.find(feature => feature.id === id)?.geometry);
-        builtinGeometryCache.set(unit.geometry, unchanged);
+      const canonicalGeometry = dependencies.territorialModel.entityRepository.get(unit.id).geometry;
+      const revision = geometryRevision(canonicalGeometry);
+      let cached = builtinGeometryCache.get(canonicalGeometry);
+      if (!cached || cached.revision !== revision) {
+        const unchanged = canonicalCountryStore ? canonicalCountryStore.geometryEquals(sourceId, canonicalGeometry)
+          : JSON.stringify(canonicalGeometry) === JSON.stringify(pristineCountriesFallback?.features.find(feature => feature.id === id)?.geometry);
+        cached = { revision, unchanged };
+        builtinGeometryCache.set(canonicalGeometry, cached);
       }
-      if (!unchanged) continue;
+      if (!cached.unchanged) continue;
       features.push(feature); byId.set(id, feature); units.set(id, unit);
     }
     const order = new Map((canonicalCountryStore?.ids() || pristineCountriesFallback?.features.map(feature => feature.id) || []).map((id, index) => [id, index]));
     features.sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity));
-    builtinRenderCache = { entities, presentation: dependencies.projectState.state.layerPresentation,
+    builtinRenderCache = { entities, nativeGeometryRevision, presentation: dependencies.projectState.state.layerPresentation,
       collection: { type: 'FeatureCollection', features }, byId, labelById, labelRefs, nativeUnits: units };
     return builtinRenderCache;
   }
@@ -136,7 +145,7 @@ export function createBuiltinSession() {
 
     (builtinGeometryStore = null);
 
-    (baseSceneFeatureById = id => builtinTerritorialScene().byId.get(String(id)) || null);
+    (baseSceneFeatureById = id => builtinTerritorialScene({ canonical: true }).byId.get(String(id)) || null);
 
     (territorialLabelFeatureById = id => builtinTerritorialScene().labelById.get(String(id)) || null);
 

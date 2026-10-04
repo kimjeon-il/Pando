@@ -4,6 +4,7 @@ import { createTerritorialFeature } from '../../assets/js/modules/territorial-un
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
+import { touchGeometry } from '../../assets/js/modules/geometry-versions.js';
 
 const square = size => ({ type: 'Polygon', coordinates: [[[0,0],[0,size],[size,size],[size,0],[0,0]]] });
 test('all entity IDs use the same stable phase-specific display projection, never the editable geometry', () => {
@@ -43,4 +44,37 @@ test('a preview receives current hierarchy and style, not cached project propert
   store.setField('B', 'color', '#123456');
   assert.equal(display.displayFeature('B').properties.style.color, '#123456');
   assert.strictEqual(display.displayFeature('B').geometry, state.auditPreviewTerritorialUnits[0].geometry);
+});
+
+test('zoom round trips retain the preview but a changed canonical shape cannot use stale preview coordinates', () => {
+  const A = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(10) });
+  const previewGeometry = square(1);
+  const state = { territorialEntities: [A], countryVisualPhase: 'preview',
+    auditPreviewCountries: { features: [{ ...A, geometry: previewGeometry }] },
+    auditPreviewGeometryReferences: new Map([['A', { geometry: A.geometry, revision: 0 }]]) };
+  const store = createTerritorialEntityStore({ getState: () => state });
+  const repo = createTerritorialEntityRepository({ entityStore: store });
+  const display = createTerritorialScopeResolver({ entityRepository: repo, getState: () => state, clipper: () => null });
+  assert.strictEqual(display.displayFeature('A').geometry, previewGeometry);
+  state.countryVisualPhase = 'canonical';
+  assert.strictEqual(display.displayFeature('A').geometry, repo.get('A').geometry);
+  state.countryVisualPhase = 'preview';
+  assert.strictEqual(display.displayFeature('A').geometry, previewGeometry);
+  store.applyChanges({ features: [{ ...repo.get('A'), geometry: square(7) }] });
+  assert.strictEqual(display.displayFeature('A').geometry, repo.get('A').geometry);
+  assert.strictEqual(state.auditPreviewCountries.features[0].geometry, previewGeometry);
+  assert.deepEqual(repo.get('A').geometry, square(7));
+});
+
+test('in-place vertex edits invalidate a cached preview by geometry revision', () => {
+  const A = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(10) });
+  const state = { territorialEntities: [A], countryVisualPhase: 'preview',
+    auditPreviewCountries: { features: [{ ...A, geometry: square(1) }] },
+    auditPreviewGeometryReferences: new Map([['A', { geometry: A.geometry, revision: 0 }]]) };
+  const repo = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => state }) });
+  const display = createTerritorialScopeResolver({ entityRepository: repo, getState: () => state, clipper: () => null });
+  assert.deepEqual(display.displayFeature('A').geometry, square(1));
+  A.geometry.coordinates[0][1][1] = 8;
+  touchGeometry(A.geometry);
+  assert.strictEqual(display.displayFeature('A').geometry, A.geometry);
 });

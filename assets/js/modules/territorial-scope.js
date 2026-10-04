@@ -1,5 +1,6 @@
 import { normalizePolygonGeometry } from './map-edit-geometry.js';
 import { builtinSubunitSourceId } from './builtin-subunits.js';
+import { geometryRevision } from './geometry-versions.js';
 
 const polygons = geometry => geometry?.type === 'Polygon' ? [geometry.coordinates]
   : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
@@ -47,19 +48,25 @@ export function createTerritorialScopeResolver({ entityRepository, clipper, getS
     return result;
   }
 
-  // One read projection for paint, labels, emphasis and picking. Preview
+  // One read projection for paint, labels and emphasis. Preview
   // coordinates never enter the editable Store or hierarchy indexes.
   function displayEntities() {
     const state = getState();
     const entities = entityRepository.list();
     const preview = state.countryVisualPhase === 'preview';
-    const sources = [entities, preview, state.auditPreviewCountries, state.auditPreviewTerritorialUnits];
+    const sources = [entities, preview, state.auditPreviewCountries, state.auditPreviewTerritorialUnits, state.auditPreviewGeometryReferences];
+    if (state.auditPreviewGeometryReferences) sources.push(entities.map(entity => geometryRevision(entity.geometry)).join(','));
     if (sources.every((source, index) => source === displaySources[index])) return displayValues;
     displaySources = sources;
     const previews = new Map(preview ? [
       ...(state.auditPreviewCountries?.features || []), ...(state.auditPreviewTerritorialUnits || []),
     ].map(feature => [String(feature.id), feature.geometry]) : []);
     displayValues = preview ? entities.map(entity => {
+      // Only the shape used to derive this preview may reuse its coordinates.
+      // Metadata changes retain preview; edits/undo/imports use exact geometry.
+      const reference = state.auditPreviewGeometryReferences?.get(String(entity.id));
+      if (state.auditPreviewGeometryReferences
+        && (reference?.geometry !== entity.geometry || reference.revision !== geometryRevision(entity.geometry))) return entity;
       // The source ID belongs to the built-in asset, not the editable object.
       const geometry = previews.get(String(entity.id)) || previews.get(builtinSubunitSourceId(entity));
       return geometry && geometry !== entity.geometry ? { ...entity, geometry } : entity;
