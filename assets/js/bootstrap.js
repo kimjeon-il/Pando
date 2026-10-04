@@ -311,6 +311,23 @@
 
   const onRuntimeError = event => fail(event?.detail || event?.reason?.message || event?.message || '애플리케이션 실행 오류');
   window.addEventListener('pandolab:error', onRuntimeError, { once: true });
+  let geometryQueued = false;
+  const queueCanonicalGeometry = () => {
+    if (geometryQueued) return;
+    geometryQueued = true;
+    startupMetrics.canonicalGeometryQueuedMs = performance.now() - bootStartedAt;
+    startupGate.queue('start-geometry', () => {
+      startupMetrics.canonicalGeometryStartedMs = performance.now() - bootStartedAt;
+      if (startupGate.getState().interactionActive) startupMetrics.canonicalWorkStartedDuringInputCount += 1;
+      void sampleStartupMemory('canonical-packet-request');
+      loader.postMessage({ type: 'start-geometry' });
+    }, { queuedState: 'geometry-queued', runningState: 'geometry-loading' });
+  };
+  // Delta restoration needs the exact baseline before any project can be painted.
+  window.addEventListener('pandolab:canonical-geometry-required', () => {
+    startupGate.allowBeforeInteractivePaint();
+    queueCanonicalGeometry();
+  }, { once: true });
   window.addEventListener('pandolab:interactive', () => {
     startupMetrics.interactiveMs = performance.now() - bootStartedAt;
     startupMetrics.previewDisplayMs = Math.max(0, startupMetrics.interactiveMs - Number(startupMetrics.previewReceivedMs || 0));
@@ -323,13 +340,7 @@
       paintMarked = true;
       startupMetrics.interactivePaintMs = performance.now() - bootStartedAt;
       startupGate.markInteractivePaint();
-      startupMetrics.canonicalGeometryQueuedMs = performance.now() - bootStartedAt;
-      startupGate.queue('start-geometry', () => {
-        startupMetrics.canonicalGeometryStartedMs = performance.now() - bootStartedAt;
-        if (startupGate.getState().interactionActive) startupMetrics.canonicalWorkStartedDuringInputCount += 1;
-        void sampleStartupMemory('canonical-packet-request');
-        loader.postMessage({ type: 'start-geometry' });
-      }, { queuedState: 'geometry-queued', runningState: 'geometry-loading' });
+      queueCanonicalGeometry();
     };
     requestAnimationFrame(() => requestAnimationFrame(markPaint));
     // A throttled or unavailable animation clock must not strand the exact

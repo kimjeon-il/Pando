@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
@@ -14,7 +15,8 @@ const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 8], [8, 8], [8, 0
 
 function harness(overrides = {}) {
   const state = { stateRevision: 0, territorialEntities: [createTerritorialFeature({ id: 'A', entityKind: 'general', geometry })] };
-  const store = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ getState: () => state });
   const repository = createTerritorialEntityRepository({ entityStore: store });
   const calls = [], rootPatches = [];
   const committer = createGisImportTransactionCommitter({ state, entityStore: store, territorialEntityRepository: repository,

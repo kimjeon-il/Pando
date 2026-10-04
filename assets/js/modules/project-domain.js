@@ -23,12 +23,12 @@ export function createProjectDomain({
   saveState = null,
   createProjectFile = null,
   prepareEmpty = async () => null,
+  prepareRestore = null,
   captureReplacement = null,
   restoreReplacement = null,
   invalidateProject = () => {},
   invalidateHistory = () => {},
   reportDiagnostic = () => {},
-  invariants = null,
   restoreEntitiesFromDelta = null,
   onProjectChanged = () => {},
   onProjectReset = () => {},
@@ -102,23 +102,24 @@ export function createProjectDomain({
     assertActive();
     if (replacing) throw new Error('Project replacement is already running.');
     if (reason === 'new' && persistence?.getRecovery?.()) throw new Error('저장본 선택을 먼저 완료하세요.');
-    if (serializedProject && invariants?.assertProjectReferenceIntegrity) {
-      invariants.assertProjectReferenceIntegrity(serializedProject);
-    }
     replacing = true;
-    onReplacementState(true, reason);
     let checkpoint;
     let resetStarted = false;
+    let replacementStarted = false;
     try {
       // Finish asynchronous preparation before touching the current project.
-      const prepared = reason === 'new' ? await prepareEmpty() : null;
+      if (reason !== 'new' && typeof prepareRestore !== 'function')
+        throw new TypeError('Project restore requires a candidate validator.');
+      const prepared = reason === 'new' ? await prepareEmpty() : await prepareRestore(serializedProject);
       checkpoint = captureReplacement?.();
+      replacementStarted = true;
+      onReplacementState(true, reason);
       persistence?.cancelPending?.();
       resetStarted = true;
       const nextGeneration = bumpGeneration(`project-${reason}`, reason === 'new'
         ? { preserveBuiltinMesh: prepared?.builtinMeshReady === true }
         : null);
-      const result = await replaceSnapshot(serializedProject, {
+      const result = await replaceSnapshot(reason === 'new' ? serializedProject : prepared, {
         reason, generation: nextGeneration, skipRenderReset: true,
         ...(reason === 'new' ? {
           prepared,
@@ -140,11 +141,11 @@ export function createProjectDomain({
         try { await restoreReplacement(checkpoint, rollbackGeneration); }
         catch (restoreError) { error.restoreError = restoreError; }
       }
-      onReplacementError(error, reason);
+      if (replacementStarted) onReplacementError(error, reason);
       throw error;
     } finally {
       replacing = false;
-      onReplacementState(false, reason);
+      if (replacementStarted) onReplacementState(false, reason);
     }
   };
   const load = project => replace(project, 'load');
@@ -216,11 +217,7 @@ export function createProjectDomain({
     getAutosaveRecovery: persistence?.getRecovery,
     resolveAutosaveRecovery: persistence?.resolveRecovery,
     completeAutosaveRecovery: persistence?.completeRecovery,
-    loadAutosave: project => {
-      const { entityDelta: _delta, ...fields } = project;
-      return load({ ...fields, format: 'pandolab-project-state',
-        territorialEntities: project.format === 'pandolab-autosave-delta' ? entitiesFromAutosaveDelta(project) : project.territorialEntities });
-    },
+    loadAutosave: project => load(project),
     restorePreview: persistence?.restorePreview,
     ensurePreview: persistence?.ensurePreview,
     flushAutosave: () => persistence?.persist(),

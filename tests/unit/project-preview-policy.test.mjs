@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { classifyBuiltinCountries } from '../../assets/js/modules/builtin-subunits.js';
-import { matchesDefaultPreview, previewCountriesWithProjectProperties, previewSourceForProject, projectPreviewGeometryRows, PROJECT_PREVIEW_ALGORITHM_REVISION } from '../../assets/js/modules/project-preview-policy.js';
+import { matchesDefaultPreview as matchWire, previewCountriesWithProjectProperties as propertiesWire, previewSourceForProject as sourceWire, projectPreviewGeometryRows as rowsWire, PROJECT_PREVIEW_ALGORITHM_REVISION } from '../../assets/js/modules/project-preview-policy.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const appVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
@@ -91,3 +91,16 @@ test('saved country properties replace cache properties without replacing its ge
   assert.equal(result.features[0].properties.color, '#123456');
   assert.equal(result.features[0].geometry, preview.features[0].geometry);
 });
+
+function previewWire(project) {
+  const source=project.territorialEntities || project.entityDelta.changed;
+  const identities=source.map(f=>({type:'Feature',id:f.id,geometry:null,properties:{...f.properties,style:f.properties?.style||{},metadata:f.properties?.metadata||{}}}));
+  const timelineRecords={schemaVersion:1,lifetimes:source.map(f=>({id:'life:'+f.id,entityId:f.id,validFrom:null,validTo:null})),
+    geometryBindings:source.map(f=>({id:'shape:'+f.id,entityId:f.id,validFrom:null,validTo:null,geometryRef:{id:f.id,version:1}})),
+    parentRelations:source.map(f=>({id:'parent:'+f.id,entityId:f.id,validFrom:null,validTo:null,parentId:f.properties?.parentId||'',coverageMode:'explicit'}))};
+  return {...project,...(project.territorialEntities?{territorialEntities:identities}:{entityDelta:{...project.entityDelta,changed:identities}}),timelineRecords,geometries:source.map(f=>({id:f.id,version:1,geojson:f.geometry}))};
+}
+function matchesDefaultPreview(project,baseline){return matchWire(previewWire(project),baseline)}
+function previewCountriesWithProjectProperties(countries,project){return propertiesWire(countries,previewWire(project))}
+function previewSourceForProject(project,baseline,cache){return sourceWire(previewWire(project),baseline,cache)}
+function projectPreviewGeometryRows(project){return rowsWire(previewWire(project))}

@@ -2,6 +2,8 @@ import { normalizeCountryCollection } from './country-feature.js';
 import { geometryRevision } from './geometry-versions.js';
 import { territorialSceneDisplayId } from './builtin-subunits.js';
 import { territorialRootId } from './territorial-units.js';
+import { fingerprintProjectBaseline } from './project-serializer.js';
+import { createStaticTerritorialSnapshot } from './territorial-entity-store.js';
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -19,6 +21,9 @@ export function createBuiltinSession() {
   let territorialLabelFeatureById;
   let builtinPaletteKey;
   let builtinPaletteVisibility;
+  let projectBaseline = null;
+  let projectBaselinePending = null;
+  let projectBaselineLoadFailure = null;
   function connect(ports) {
     if (dependencies) throw new Error('builtin-session already connected');
     dependencies = ports;
@@ -29,9 +34,49 @@ export function createBuiltinSession() {
         || typeof store.materializeFeature !== 'function' || typeof store.geometryEquals !== 'function') {
       throw new Error('무손실 국가 packet store가 올바르지 않습니다.');
     }
+    if (canonicalCountryStore === store) return;
     canonicalCountryStore = store;
+    projectBaselineLoadFailure = null;
+    projectBaseline = null;
+    projectBaselinePending = null;
     builtinCountryIds = new Set(store.ids());
     pristineCountriesFallback = null;
+  }
+
+  async function prepareProjectBaseline() {
+    if (!canonicalCountryStore && window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE) {
+      const source = window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE;
+      if (projectBaselineLoadFailure?.source === source) throw projectBaselineLoadFailure.error;
+      let onError;
+      const failure = new Promise((_resolve, reject) => {
+        onError = event => {
+          const error = Object.assign(new Error(String(event.detail || '기준 데이터를 불러오지 못했습니다.')),
+            { code: 'PL-SCHEMA-BASE', cause: event.detail });
+          projectBaselineLoadFailure = { source, error };
+          reject(error);
+        };
+        window.addEventListener('pandolab:geometry-error', onError, { once: true });
+      });
+      try {
+        window.dispatchEvent(new CustomEvent('pandolab:canonical-geometry-required'));
+        const geometry = await Promise.race([source, failure]);
+        installCanonicalCountryStore(geometry.canonicalCountryStore);
+      } finally { window.removeEventListener('pandolab:geometry-error', onError); }
+    }
+    if (projectBaseline) return projectBaseline;
+    if (projectBaselinePending) return projectBaselinePending;
+    const source = canonicalCountryStore || pristineCountriesFallback;
+    projectBaselinePending = (async () => {
+      const features = materializePristineCountriesSync().features;
+      const baseDatasetFingerprint = await fingerprintProjectBaseline(features);
+      const content = createStaticTerritorialSnapshot(features);
+      if (source !== (canonicalCountryStore || pristineCountriesFallback)) throw new Error('기준 데이터가 준비 중 변경되었습니다.');
+      projectBaseline = Object.freeze({ baseEntities: content.territorialEntities,
+        baseDataset: dependencies.platformConfigurationA.BASE_DATASET, baseDatasetFingerprint });
+      return projectBaseline;
+    })();
+    try { return await projectBaselinePending; }
+    finally { projectBaselinePending = null; }
   }
 
   function materializePristineCountriesSync() {
@@ -190,6 +235,8 @@ export function createBuiltinSession() {
     get renderCountryBoundaryStyle() { return renderCountryBoundaryStyle; },
     get materializePristineCountries() { return materializePristineCountries; },
     get materializePristineCountriesSync() { return materializePristineCountriesSync; },
+    get prepareProjectBaseline() { return prepareProjectBaseline; },
+    get projectBaseline() { return projectBaseline; },
     get pristineCountriesFallback() { return pristineCountriesFallback; },
     get baseSceneFeatureById() { return baseSceneFeatureById; },
     get syncBuiltinPalette() { return syncBuiltinPalette; },

@@ -13,7 +13,7 @@ async function savedPresentation(page) {
     try {
       return await new Promise((resolve, reject) => {
         const request = db.transaction('projects', 'readonly').objectStore('projects').get('active-project');
-        request.onsuccess = () => resolve(request.result || null);
+        request.onsuccess = () => resolve(request.result ? { layerVisibility: request.result.layerVisibility } : null);
         request.onerror = () => reject(request.error);
       });
     } finally { db.close(); }

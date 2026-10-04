@@ -66,6 +66,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "toolBindings"
   ],
   "progressiveStartup": [
+    "builtinBaseline",
     "countryServices",
     "applicationConstantsA",
     "applicationServicesA",
@@ -108,6 +109,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "workspaceUiA"
   ],
   "domainAssembly": [
+    "builtinBaseline",
     "applicationConstantsA",
     "applicationConstantsB",
     "applicationFactories",

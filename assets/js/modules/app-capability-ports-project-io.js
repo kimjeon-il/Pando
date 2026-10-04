@@ -2,6 +2,8 @@ import { createReadPorts } from './app-capability-port-utils.js';
 
 export const PROJECT_IO_OWNER_PORTS = Object.freeze({
   "mapSettings": [
+    "builtinBaseline",
+    "builtinCountries",
     "applicationConstantsA",
     "applicationServicesB",
     "distributionPresentation",
@@ -28,7 +30,9 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "workspaceUiA"
   ],
   "historyAssembly": [
+    "builtinBaseline",
     "applicationFactories",
+    "builtinCountries",
     "colorModel",
     "distributionPresentation",
     "distributionServices",
