@@ -5,7 +5,6 @@ const visualSelectors = [
   '.gpu-map-canvas',
   '.map-overlay-svg',
   '.map-interaction-svg',
-  '.map-graticule',
   '.territorial-label-layer',
   '.labels-layer',
 ];
@@ -20,7 +19,7 @@ async function visualFrameIds(page) {
 test('flat and globe view-attached layers commit the same visual frame', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/?debug=1');
+  await page.goto(process.env.PANDOLAB_TEST_SITE_URL ? new URL('?debug=1', process.env.PANDOLAB_TEST_SITE_URL).href : '/?debug=1');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
 
   for (const selector of ['#globeBtn', '#flatBtn']) {

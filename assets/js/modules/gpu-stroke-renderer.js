@@ -76,9 +76,9 @@ function segmentProgramSources(version) {
   const fragmentHeader = version === 2
     ? '#version 300 es\nprecision highp float;precision highp int;in float vDepth;in float vAcross;in float vAlong;out vec4 outColor;'
     : 'precision highp float;precision highp int;varying float vDepth;varying float vAcross;varying float vAlong;';
-  const output = version === 2 ? 'outColor=vec4(uColor.rgb,uColor.a*coverage);' : 'gl_FragColor=vec4(uColor.rgb,uColor.a*coverage);';
+  const output = `${version === 2 ? 'outColor' : 'gl_FragColor'}=vec4(uColor.rgb*(uMultiply==1?uColor.a*coverage:1.0),uColor.a*coverage);`;
   const fragment = `${fragmentHeader}
-    uniform int uMode;uniform float uHalfWidth;uniform float uAaRadius;uniform float uInnerCutout;uniform vec2 uDash;uniform vec4 uColor;
+    uniform int uMode;uniform float uHalfWidth;uniform float uAaRadius;uniform float uInnerCutout;uniform vec2 uDash;uniform vec4 uColor;uniform int uMultiply;
     void main(){
       if(uMode==0&&vDepth<0.0)discard;
       float period=uDash.x+uDash.y;if(uDash.x>0.0&&uDash.y>0.0&&mod(vAlong,max(1.0,period))>uDash.x)discard;
@@ -110,9 +110,9 @@ function roundProgramSources(version) {
   const fragmentHeader = version === 2
     ? '#version 300 es\nprecision highp float;precision highp int;in float vDepth;in vec2 vLocal;in vec2 vIncoming;in vec2 vOutgoing;in float vKind;out vec4 outColor;'
     : 'precision highp float;precision highp int;varying float vDepth;varying vec2 vLocal;varying vec2 vIncoming;varying vec2 vOutgoing;varying float vKind;';
-  const output = version === 2 ? 'outColor=vec4(uColor.rgb,uColor.a*coverage);' : 'gl_FragColor=vec4(uColor.rgb,uColor.a*coverage);';
+  const output = `${version === 2 ? 'outColor' : 'gl_FragColor'}=vec4(uColor.rgb*(uMultiply==1?uColor.a*coverage:1.0),uColor.a*coverage);`;
   const fragment = `${fragmentHeader}
-    uniform int uMode;uniform int uJoinMode;uniform int uRoundCap;uniform float uHalfWidth;uniform float uAaRadius;uniform float uInnerCutout;uniform vec4 uColor;
+    uniform int uMode;uniform int uJoinMode;uniform int uRoundCap;uniform float uHalfWidth;uniform float uAaRadius;uniform float uInnerCutout;uniform vec4 uColor;uniform int uMultiply;
     float cross2(vec2 left,vec2 right){return left.x*right.y-left.y*right.x;}
     void main(){
       if(uMode==0&&vDepth<0.0)discard;
@@ -156,9 +156,9 @@ function bevelProgramSources(version) {
   const fragmentHeader = version === 2
     ? '#version 300 es\nprecision highp float;precision highp int;in float vDepth;out vec4 outColor;'
     : 'precision highp float;precision highp int;varying float vDepth;';
-  const output = version === 2 ? 'outColor=uColor;' : 'gl_FragColor=uColor;';
+  const output = `${version === 2 ? 'outColor' : 'gl_FragColor'}=vec4(uColor.rgb*(uMultiply==1?uColor.a:1.0),uColor.a);`;
   const fragment = `${fragmentHeader}
-    uniform int uMode;uniform vec4 uColor;
+    uniform int uMode;uniform vec4 uColor;uniform int uMultiply;
     void main(){if(uMode==0&&vDepth<0.0)discard;${output}}`;
   return { vertex, fragment };
 }
@@ -171,13 +171,13 @@ function createPrograms(device, only = null) {
   return Object.freeze({
     segment: (!only || only === 'segment') && linkProgram(device, segmentSources.vertex, segmentSources.fragment,
       ['aCorner', 'aPrevious', 'aSegment', 'aNext', 'aMeta'],
-      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uInnerCutout', 'uJoinMode', 'uMiterLimit', 'uDash', 'uColor']),
+      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uInnerCutout', 'uJoinMode', 'uMiterLimit', 'uDash', 'uColor', 'uMultiply']),
     round: (!only || only === 'round') && linkProgram(device, roundSources.vertex, roundSources.fragment,
       ['aCorner', 'aNodePrevious', 'aNodePoint', 'aNodeNext', 'aNodeMeta'],
-      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uInnerCutout', 'uJoinMode', 'uRoundCap', 'uColor']),
+      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uInnerCutout', 'uJoinMode', 'uRoundCap', 'uColor', 'uMultiply']),
     bevel: (!only || only === 'bevel') && linkProgram(device, bevelSources.vertex, bevelSources.fragment,
       ['aVertexId', 'aNodePrevious', 'aNodePoint', 'aNodeNext', 'aNodeMeta'],
-      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uInnerCutout', 'uColor']),
+      [...viewUniforms, 'uHalfWidth', 'uAaRadius', 'uInnerCutout', 'uColor', 'uMultiply']),
   });
 }
 
@@ -408,6 +408,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     const smoothLines = globalThis.document?.documentElement?.dataset.smoothLines !== 'false';
     if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, style.antiAlias === false || !smoothLines ? 0 : aaRadius);
     if (programInfo.uniforms.uColor) gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
+    if (programInfo.uniforms.uMultiply) gl.uniform1i(programInfo.uniforms.uMultiply, style.blendMode === 'multiply' ? 1 : 0);
     return { width, alpha };
   }
 
@@ -698,8 +699,8 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       }
       try {
         resourceBudget.touch(key, batch?.priority);
-        const style = scaleInteractionStroke(batch.style || {}, frameContext);
-        applyGpuBlendMode(gl, batch.blendMode || style.blendMode);
+        const style = { ...scaleInteractionStroke(batch.style || {}, frameContext), blendMode: batch.blendMode || batch.style?.blendMode || 'normal' };
+        applyGpuBlendMode(gl, style.blendMode);
         let completedDraws = 0;
         if (style.casing?.width > style.width && style.casing.alpha > 0) {
           completedDraws += drawStyle(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, batch.ownerIds);

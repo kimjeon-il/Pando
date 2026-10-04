@@ -9,7 +9,6 @@ export function createMapHost() {
   let root;
   let shadowLayer;
   let oceanLayer;
-  let graticuleLayer;
   let countryLayer;
   let previewLayer;
   let hoverLayer;
@@ -246,7 +245,6 @@ export function createMapHost() {
     const interactionRoot = interactionSvg.append('g').attr('class', 'map-interaction-root');
     root = svg.append('g').attr('class', 'map-root');
     mapInteractionLayer = root.append('rect').attr('class', 'map-hit-area').attr('x', 0).attr('y', 0);
-    graticuleLayer = root.append('path').attr('class', 'map-graticule');
     countryLayer = root.append('g').attr('class', 'countries-layer');
     hydroLakeLayer = root.append('g').attr('class', 'hydro-lakes-layer');
     hydroRiverLayer = root.append('g').attr('class', 'hydro-rivers-layer');
@@ -389,7 +387,6 @@ export function createMapHost() {
     get distributionLayer() { return distributionLayer; },
     get draftLayer() { return draftLayer; },
     get genericFeatureLayer() { return genericFeatureLayer; },
-    get graticuleLayer() { return graticuleLayer; },
     get handleRenderFrameComplete() { return handleRenderFrameComplete; },
     get hoverLayer() { return hoverLayer; },
     get hydroEditLayer() { return hydroEditLayer; },

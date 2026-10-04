@@ -34,7 +34,7 @@
     }
     context.fill();
   }
-  function drawFills(context, path, packets, substrate, dpr) {
+  function drawTerritorialFills(context, path, packets, substrate, dpr) {
     const territories = packets.filter(packet => packet.role === 'territorial-fill')
       .sort((a, b) => a.territoryDepth - b.territoryDepth || a.order - b.order);
     for (const packet of territories) {
@@ -52,16 +52,51 @@
       drawPolygon(context, path, packet);
       context.restore();
     }
-    for (const packet of packets.filter(packet => packet.role !== 'territorial-fill').sort((a, b) => a.order - b.order)) {
-      context.save();
-      drawPolygon(context, path, packet);
-      context.restore();
-    }
     context.globalAlpha = 1;
     context.globalCompositeOperation = 'source-over';
   }
   const emphasisSubstrates = new WeakMap();
-  const emphasisWater = new WeakMap();
+  const protectedPixels = new WeakMap();
+  function protectionFor(context, dpr, protection) {
+    if (!protection?.draw) return null;
+    const canvas = context.canvas;
+    let cached = protectedPixels.get(canvas);
+    if (!cached || cached.mask.width !== canvas.width || cached.mask.height !== canvas.height) {
+      const make = () => typeof OffscreenCanvas === 'function' ? new OffscreenCanvas(canvas.width, canvas.height)
+        : Object.assign(canvas.ownerDocument.createElement('canvas'), { width: canvas.width, height: canvas.height });
+      cached = { mask: make(), restored: make(), key: null }; protectedPixels.set(canvas, cached);
+    }
+    if (protection.key == null || cached.key !== protection.key) {
+      const mask = cached.mask.getContext('2d');
+      mask.setTransform(1, 0, 0, 1, 0, 0); mask.clearRect(0, 0, canvas.width, canvas.height);
+      mask.setTransform(dpr, 0, 0, dpr, 0, 0); protection.draw(mask); cached.key = protection.key;
+    }
+    return cached;
+  }
+  function drawOverlays(context, path, polygons, strokes, dpr, protection = null) {
+    const items = [...polygons.filter(packet => packet.role !== 'territorial-fill').map(packet => ({ packet, polygon: true })),
+      ...strokes.map(packet => ({ packet, polygon: false }))].sort((a, b) => Number(a.packet.order || 0) - Number(b.packet.order || 0));
+    const protectedArea = items.some(item => item.polygon) ? protectionFor(context, dpr, protection) : null;
+    for (const { packet, polygon } of items) {
+      if (!polygon) { drawStrokes(context, path, [packet]); continue; }
+      context.save();
+      try {
+        if (!protectedArea) { drawPolygon(context, path, packet); continue; }
+        const scratch = protectedArea.restored, target = scratch.getContext('2d');
+        target.setTransform(1, 0, 0, 1, 0, 0); target.globalAlpha = 1; target.globalCompositeOperation = 'source-over';
+        target.clearRect(0, 0, scratch.width, scratch.height);
+        target.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const previous = path.context();
+        try { path.context(target); drawPolygon(target, path, { ...packet, blendMode: 'normal' }); }
+        finally { path.context(previous); }
+        target.setTransform(1, 0, 0, 1, 0, 0); target.globalAlpha = 1; target.globalCompositeOperation = 'destination-out';
+        target.drawImage(protectedArea.mask, 0, 0);
+        context.setTransform(1, 0, 0, 1, 0, 0); context.globalAlpha = 1;
+        context.globalCompositeOperation = packet.blendMode === 'multiply' ? 'multiply' : 'source-over';
+        context.drawImage(scratch, 0, 0);
+      } finally { context.restore(); }
+    }
+  }
   function drawEmphasis(context, path, entries, dpr, water = null) {
     const canvas = context.canvas;
     let substrate = emphasisSubstrates.get(canvas);
@@ -92,15 +127,7 @@
       context.restore();
     }
     if (water?.draw && entries.some(entry => entry.style.fillAlpha > 0)) {
-      let cached = emphasisWater.get(canvas);
-      if (!cached || cached.mask.width !== canvas.width || cached.mask.height !== canvas.height) {
-        const make = () => typeof OffscreenCanvas === 'function' ? new OffscreenCanvas(canvas.width, canvas.height) : Object.assign(canvas.ownerDocument.createElement('canvas'), { width: canvas.width, height: canvas.height });
-        cached = { mask: make(), restored: make(), key: null }; emphasisWater.set(canvas, cached);
-      }
-      if (water.key == null || cached.key !== water.key) {
-        const mask = cached.mask.getContext('2d'); mask.setTransform(1, 0, 0, 1, 0, 0); mask.clearRect(0, 0, canvas.width, canvas.height);
-        mask.setTransform(dpr, 0, 0, dpr, 0, 0); water.draw(mask); cached.key = water.key;
-      }
+      const cached = protectionFor(context, dpr, water);
       const restore = cached.restored.getContext('2d'); restore.globalCompositeOperation = 'source-over';
       restore.clearRect(0, 0, canvas.width, canvas.height); restore.drawImage(substrate, 0, 0);
       restore.globalCompositeOperation = 'destination-in'; restore.drawImage(cached.mask, 0, 0);
@@ -163,6 +190,6 @@
       context.restore();
     }
   }
-  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawFills, drawGeneralLand, drawEmphasis, geometryFor,
+  scope.PandoLabCanvasSceneComposition = Object.freeze({ drawTerritorialFills, drawOverlays, drawGeneralLand, drawEmphasis, geometryFor,
     countryBoundaryBatches, drawStrokes });
 })(globalThis);
