@@ -903,7 +903,7 @@ export function createTerritorySelectionWorkflow() {
   function canAddPart(current = session()) {
     if (!current || current.stage !== 'selection' || !current.currentGeometry || !previewReady(current)) return false;
     if (!['candidate', 'components', 'result'].includes(current.activePhase)) return false;
-    return current.unboundedMethods.includes(current.activeMethod) || !!current.remainingGeometry;
+    return current.kind === 'annex' || current.unboundedMethods.includes(current.activeMethod) || !!current.remainingGeometry;
   }
 
   function selectionGeometryReady(current = session()) {
