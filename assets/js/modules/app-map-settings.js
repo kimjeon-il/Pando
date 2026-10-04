@@ -12,7 +12,7 @@ export function createMapSettings() {
   let dependencies;
   let LAYER_STYLE_TARGETS;
   let projectSerializer;
-  let desktopViewMenuRoot = null;
+  let desktopViewMenuPath = [];
   let desktopViewMenuOpenTimer = null;
   let desktopViewMenuCloseTimer = null;
   let displayMenuLayout = null;
@@ -86,7 +86,10 @@ export function createMapSettings() {
     if (key === 'countries') dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-layer-visibility');
     if (key === 'rivers' || key === 'lakes') dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     if (key === 'labels' || SYMBOL_VISIBILITY_KEYS.has(key)) dependencies.domains.renderingDomain?.invalidateLabels?.('label-visibility');
-    else dependencies.domains.renderingDomain?.invalidateBaseScene?.('layer-visibility');
+    else {
+      dependencies.domains.renderingDomain?.invalidateBaseScene?.('layer-visibility');
+      if (TERRITORIAL_SYMBOL_KEYS[key]) dependencies.domains.renderingDomain.invalidateLabels('layer-visibility');
+    }
     dependencies.domains.projectDomain.queuePresentationAutosave();
   }
 
@@ -188,17 +191,19 @@ export function createMapSettings() {
   }
 
   function mapDisplayPanel(group) {
+    if (group === 'general') return (0, dependencies.platform.$)('generalDisplayOptions');
     if (group === 'terrain') return (0, dependencies.platform.$)('terrainDisplayOptions');
     return document.querySelector(`[data-layer-style-panel="${group}"]`);
   }
 
   function mapDisplayVisible(group) {
-    return group === 'terrain'
+    return group === 'terrain' || group === 'general'
       ? true
       : dependencies.projectState.state.layerVisibility[group] !== false;
   }
 
   function mapDisplayLabel(group) {
+    if (group === 'general') return '일반 객체 표시';
     return group === 'terrain'
       ? '지형 표시'
       : LAYER_STYLE_TARGETS[group]?.label ? `${LAYER_STYLE_TARGETS[group].label} 표시` : '표시';
@@ -314,7 +319,7 @@ export function createMapSettings() {
       surface.append(popups);
     }
     // Distribution styling belongs to distributionViewSettings, not a sibling popup.
-    const groups = ['projection', ...Object.keys(LAYER_STYLE_TARGETS).filter(group => group !== 'distributions'), 'terrain', 'distribution'];
+    const groups = ['projection', 'general', ...Object.keys(LAYER_STYLE_TARGETS).filter(group => group !== 'distributions'), 'terrain', 'distribution'];
     for (const group of groups) {
       const panel = displayPanelForDesktopGroup(group);
       if (!panel || displayMenuPanels.has(group)) continue;
@@ -331,10 +336,10 @@ export function createMapSettings() {
         separator: visibility ? createMenuSeparator() : null,
       });
     }
-    for (const entry of displayMenuPanels.values()) {
+    for (const [group, entry] of displayMenuPanels) {
       const { panel, anchor, visibility, visibilityAnchor, body, contentNodes, separator } = entry;
       setMenuPresentation(panel, desktop, ['ui-menu-surface', 'ui-menu-list', 'ui-command-menu']);
-      panel.dataset.menuLevel = '1';
+      panel.dataset.menuLevel = desktopMenuTrigger(group)?.dataset.mapDisplayParent ? '2' : '1';
       if (desktop) {
         if (body) {
           body.append(...contentNodes);
@@ -379,7 +384,7 @@ export function createMapSettings() {
     for (const chevron of surface.querySelectorAll('.view-menu-chevron')) chevron.classList.toggle('ui-menu-chevron', desktop);
     syncMenuChoices(surface, desktop);
     if (!desktop) {
-      desktopViewMenuRoot = null;
+      desktopViewMenuPath = [];
     }
     displayMenuLayout = desktop;
     pendingDisplayMenuLayout = false;
@@ -399,7 +404,7 @@ export function createMapSettings() {
     if (!desktopMenuOpen()) return;
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     positionRootMenu({ menu: surface, trigger: (0, dependencies.platform.$)('mapDisplayBtn') });
-    if (desktopViewMenuRoot) positionDesktopViewMenuGroup(desktopViewMenuRoot);
+    for (const group of desktopViewMenuPath) positionDesktopViewMenuGroup(group);
   }
 
   function positionDesktopViewMenuGroup(group) {
@@ -413,8 +418,10 @@ export function createMapSettings() {
   function setDesktopViewMenuGroup(group, { toggle = false } = {}) {
     if (!desktopMenuOpen() || !group) return false;
     cancelDesktopMenuTimers();
-    const unchanged = desktopViewMenuRoot === group;
-    desktopViewMenuRoot = toggle && unchanged ? null : group;
+    const index = desktopViewMenuPath.indexOf(group);
+    const parent = desktopMenuTrigger(group)?.dataset.mapDisplayParent;
+    desktopViewMenuPath = toggle && index !== -1 ? desktopViewMenuPath.slice(0, index)
+      : parent ? [parent, group] : [group];
     syncMapDisplayDisclosures();
     desktopViewMenuPositioner.schedule();
     return true;
@@ -422,9 +429,9 @@ export function createMapSettings() {
 
   function closeDesktopViewMenuGroup({ focusParent = false } = {}) {
     cancelDesktopMenuTimers();
-    if (!desktopViewMenuRoot) return false;
-    const parent = desktopMenuTrigger(desktopViewMenuRoot);
-    desktopViewMenuRoot = null;
+    if (!desktopViewMenuPath.length) return false;
+    const parent = desktopMenuTrigger(desktopViewMenuPath[0]);
+    desktopViewMenuPath = [];
     syncMapDisplayDisclosures();
     if (focusParent) parent?.focus({ preventScroll: true });
     return true;
@@ -433,13 +440,8 @@ export function createMapSettings() {
   function collapseDesktopViewMenuLevel({ focusParent = false } = {}) {
     if (!isDesktopViewMenu()) return false;
     cancelDesktopMenuTimers();
-    if (desktopViewMenuRoot) {
-      const trigger = desktopViewMenuRoot === 'projection'
-        ? (0, dependencies.platform.$)('mapProjectionMenuTrigger')
-        : desktopViewMenuRoot === 'distribution'
-          ? (0, dependencies.platform.$)('distributionMenuTrigger')
-          : document.querySelector(`[data-map-display-row="${desktopViewMenuRoot}"]`);
-      desktopViewMenuRoot = null;
+    if (desktopViewMenuPath.length) {
+      const trigger = desktopMenuTrigger(desktopViewMenuPath.pop());
       syncMapDisplayDisclosures();
       if (focusParent) trigger?.focus({ preventScroll: true });
       return true;
@@ -449,7 +451,7 @@ export function createMapSettings() {
 
   function scheduleDesktopViewMenuGroup(group) {
     cancelDesktopMenuTimers();
-    if (desktopViewMenuRoot === group) return;
+    if (desktopViewMenuPath.includes(group)) return;
     desktopViewMenuOpenTimer = setTimeout(() => {
       desktopViewMenuOpenTimer = null;
       if (desktopMenuOpen()) setDesktopViewMenuGroup(group);
@@ -492,7 +494,7 @@ export function createMapSettings() {
       const visible = mapDisplayVisible(group);
       if (!menuDesktop && !visible) dependencies.objectModelA.expandedMapDisplayGroups.delete(group);
       const expanded = menuDesktop
-        ? desktopViewMenuRoot === group
+        ? desktopViewMenuPath.includes(group)
         : visible && dependencies.objectModelA.expandedMapDisplayGroups.has(group);
       const panel = mapDisplayPanel(group);
       if (panel) {
@@ -516,11 +518,11 @@ export function createMapSettings() {
       }
     });
     const projectionSlot = (0, dependencies.platform.$)('mapViewProjectionSlot');
-    const projectionExpanded = menuDesktop && desktopViewMenuRoot === 'projection';
+    const projectionExpanded = menuDesktop && desktopViewMenuPath.includes('projection');
     if (projectionSlot) projectionSlot.hidden = menuDesktop && !projectionExpanded;
     (0, dependencies.platform.$)('mapProjectionMenuTrigger')?.setAttribute('aria-expanded', String(projectionExpanded));
     const distributionSettings = (0, dependencies.platform.$)('distributionViewSettings');
-    const distributionExpanded = menuDesktop && desktopViewMenuRoot === 'distribution';
+    const distributionExpanded = menuDesktop && desktopViewMenuPath.includes('distribution');
     if (distributionSettings) distributionSettings.hidden = menuDesktop && !distributionExpanded;
     (0, dependencies.platform.$)('distributionMenuTrigger')?.setAttribute('aria-expanded', String(distributionExpanded));
     surface?.classList.toggle('view-menu-desktop', menuDesktop);
@@ -531,11 +533,13 @@ export function createMapSettings() {
   function toggleMapDisplayDisclosure(group) {
     if (isDesktopViewMenu()) return setDesktopViewMenuGroup(group, { toggle: true });
     if (!mapDisplayVisible(group)) return false;
-    const panel = group === 'terrain' ? mapDisplayPanel(group) : createLayerInlineStylePanel(group);
+    const panel = group === 'terrain' || group === 'general' ? mapDisplayPanel(group) : createLayerInlineStylePanel(group);
     if (!panel) return false;
     if (dependencies.objectModelA.expandedMapDisplayGroups.has(group)) dependencies.objectModelA.expandedMapDisplayGroups.delete(group);
     else {
       dependencies.objectModelA.expandedMapDisplayGroups.clear();
+      const parent = desktopMenuTrigger(group)?.dataset.mapDisplayParent;
+      if (parent) dependencies.objectModelA.expandedMapDisplayGroups.add(parent);
       dependencies.objectModelA.expandedMapDisplayGroups.add(group);
     }
     syncMapDisplayDisclosures();
@@ -558,12 +562,13 @@ export function createMapSettings() {
     };
     for (const [id, visible] of Object.entries(available)) {
       document.querySelector(`[data-map-display-group="${id.replace(/Visible$/, '')}"]`)?.classList.toggle('hidden', !visible);
-      if (!visible && desktopViewMenuRoot === id.replace(/Visible$/, '')) desktopViewMenuRoot = null;
+      const index = desktopViewMenuPath.indexOf(id.replace(/Visible$/, ''));
+      if (!visible && index !== -1) desktopViewMenuPath = desktopViewMenuPath.slice(0, index);
       if (!visible) dependencies.objectModelA.expandedMapDisplayGroups.delete(id.replace(/Visible$/, ''));
     }
     (0, dependencies.platform.$)('distributionMenuGroup')?.classList.toggle('hidden', !hasDistribution);
-    if (!hasDistribution && desktopViewMenuRoot === 'distribution') {
-      desktopViewMenuRoot = null;
+    if (!hasDistribution && desktopViewMenuPath.includes('distribution')) {
+      desktopViewMenuPath = [];
     }
     syncMapDisplayDisclosures();
     syncDistributionPresentationControls();
@@ -645,7 +650,7 @@ export function createMapSettings() {
       const group = displayGroupForTrigger(row);
       if (group) {
         // Returning across the open parent must not collapse its child.
-        if (group === 'distribution' && desktopViewMenuRoot === group) cancelDesktopMenuTimers();
+        if (desktopViewMenuPath.includes(group)) cancelDesktopMenuTimers();
         else scheduleDesktopViewMenuGroup(group);
         return;
       }
@@ -837,7 +842,7 @@ export function createMapSettings() {
 
   function initializeLAYER_STYLE_TARGETS() {
     (LAYER_STYLE_TARGETS = Object.freeze({
-      countries: { presentationGroup: 'countries', label: '최상위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '국경' },
+      countries: { presentationGroup: 'countries', label: '상위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
       subunits: { presentationGroup: 'subunits', label: '하위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
       regions: { presentationGroup: 'regions', label: '독립 권역', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
       distributions: { presentationGroup: 'distributions', label: '분포', opacity: true, blendMode: true },
