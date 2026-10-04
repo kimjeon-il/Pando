@@ -17,7 +17,10 @@ worker.importScripts = (...urls) => {
   for (const url of urls) if (!url.endsWith('/sql-wasm.js'))
     vm.runInContext(readFileSync(new URL(url), 'utf8'), worker);
 };
-vm.runInContext(readFileSync(workerUrl, 'utf8'), worker, { importModuleDynamically: specifier => import(new URL(specifier, workerUrl)) });
+vm.runInContext(readFileSync(workerUrl, 'utf8'), worker, {
+  filename: workerUrl.href,
+  importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER,
+});
 export async function productionGeoPackage(action, buffer, projectState) {
   let message;
   worker.postMessage = value => { message = value; };

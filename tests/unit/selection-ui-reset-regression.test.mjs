@@ -6,7 +6,7 @@ import { createSelectionDomain } from '../../assets/js/modules/selection-domain.
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createSelectionUiController } from '../../assets/js/modules/selection-ui-controller.js';
 
-const country = id => normalizeObjectRef({ domain: 'territorial', type: 'country', id });
+const country = id => normalizeObjectRef({ domain: 'territorial', type: 'entity', id });
 
 function createFrameScheduler() {
   let nextHandle = 1;

@@ -24,7 +24,10 @@ test('child-only GeoJSON export writes one layer and omits administrative fields
     location: { href: 'https://example.test/' } });
   context.window = context; context.self = context;
   for (const file of ['gis-adapters.js', 'vendor/fflate/fflate.min.js', 'gis-io.js']) {
-    vm.runInContext(read(`assets/js/${file}`), context, { importModuleDynamically: specifier => import(new URL(`../../assets/js/${specifier}`, import.meta.url)) });
+    vm.runInContext(read(`assets/js/${file}`), context, {
+      filename: new URL(`../../assets/js/${file}`, import.meta.url).href,
+      importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER,
+    });
   }
   const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
   const project = createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base', distributionModes: ['territorial','geometry'],

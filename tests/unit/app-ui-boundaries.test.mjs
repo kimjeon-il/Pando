@@ -6,6 +6,7 @@ import { createPropertyEditorBindings } from '../../assets/js/modules/property-e
 import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
 import { createGisWorkflowController } from '../../assets/js/modules/gis-workflow-controller.js';
 import { createMapDebugController } from '../../assets/js/modules/map-debug-controller.js';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
 const { EventTarget, Event, CustomEvent } = globalThis;
 
@@ -227,7 +228,12 @@ function gisFixture(loadFailure = false) {
   let loads = 0;
   let builds = 0;
   let options;
-  let countries = { features: [{ id: 'A', name: 'Alpha' }] };
+  const entity = (id, name, entityKind = 'general', parentId = '') => createTerritorialFeature({
+    id, name, entityKind, parentId,
+    geometry: { type: 'Polygon', coordinates: [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]] },
+  });
+  let countries = { features: [entity('A', 'Alpha')] };
+  let units = [entity('child-a', 'Alpha child', 'general', 'A'), entity('region-a', 'Region', 'regional')];
   const service = {};
   const workflow = createGisWorkflowController({
     loadRuntime: async () => {
@@ -242,11 +248,14 @@ function gisFixture(loadFailure = false) {
         },
       };
     },
-    onRuntimeReady() {}, getCountries: () => countries, getTerritorialUnits: () => [],
+    onRuntimeReady() {}, getCountries: () => countries, getTerritorialUnits: () => units,
     getSaveSnapshot: () => ({ hasUnsavedChanges: false }),
-    countryName: feature => feature.name, layerNameCollator: new Intl.Collator('en'),
+    countryName: feature => feature.properties.name, territorialEntityName: feature => feature.properties.name,
+    layerNameCollator: new Intl.Collator('en'),
   });
-  return { workflow, service, counts: () => [loads, builds], options: () => options.getOptions(), replace: () => { countries = { features: [{ id: 'B', name: 'Beta' }] }; } };
+  return { workflow, service, counts: () => [loads, builds], options: () => options.getOptions(), replace: () => {
+    countries = { features: [entity('B', 'Beta')] }; units = [entity('child-b', 'Beta child', 'general', 'B')];
+  } };
 }
 
 test('GIS runtime stays lazy, coalesces first use and wizard options read the current project', async () => {
@@ -256,9 +265,11 @@ test('GIS runtime stays lazy, coalesces first use and wizard options read the cu
   assert.equal(f.workflow.ensure(), first);
   assert.equal(await first, f.service);
   assert.deepEqual(f.counts(), [1, 1]);
-  assert.equal(f.options().countryOptions[0].id, 'A');
+  assert.deepEqual(f.options().coastReferenceOptions, [{ id: 'A', name: 'Alpha' }]);
+  assert.deepEqual(f.options().parentOptions, [{ id: 'A', name: 'Alpha' }, { id: 'child-a', name: 'Alpha child' }]);
   f.replace();
-  assert.equal(f.options().countryOptions[0].id, 'B');
+  assert.deepEqual(f.options().coastReferenceOptions, [{ id: 'B', name: 'Beta' }]);
+  assert.deepEqual(f.options().parentOptions, [{ id: 'B', name: 'Beta' }, { id: 'child-b', name: 'Beta child' }]);
   f.workflow.dispose();
   await assert.rejects(f.workflow.ensure(), /disposed/);
 });

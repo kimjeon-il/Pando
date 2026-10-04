@@ -2,6 +2,15 @@ import { readApplicationOwners } from '../../scripts/lib/application-source.mjs'
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import '../../assets/js/vendor/polygon-clipping.min.js';
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
+import { createCountryIndex } from '../../assets/js/modules/app-country-index.js';
+import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
 
 const appSource = readApplicationOwners('camera-navigation', 'object-commands');
 const navigationBindingsSource = readApplicationOwners('navigation-bindings');
@@ -38,14 +47,49 @@ test('object focus uses the actual viewport center and safe insets only for zoom
   assert.doesNotMatch(source, /largest|sovereign|parentId|children/i);
 });
 
-test('country focus uses its own label anchor while scope extent remains zoom-only', () => {
-  const source = functionSource('focusObjectRef', 'layerGroupForObjectRef');
-  assert.match(source, /countryLabelAnchors\.get\(String\(ref\.id\)\)/);
-  assert.match(source, /validLabelAnchor\(runtimeAnchor\)/);
-  assert.match(source, /if \(countryScope\?\.members\.length\) feature = countryScope\.extent;/);
-  assert.doesNotMatch(source, /editor_label_anchor/);
-  assert.match(source, /fitMapToFeature\(feature, \{ maxZoom: isMobile\(\) \? 12 : 10, preferredAnchor \}\)/);
-  assert.doesNotMatch(source, /sovereignId|parentId|territorialChildren|territorialRelations/);
+test('territorial focus uses the root label anchor and scope extent, while children and regions keep their own geometry', () => {
+  const square = (x0, x1) => ({ type: 'Polygon', coordinates: [[[x0, 0], [x0, 2], [x1, 2], [x1, 0], [x0, 0]]] });
+  const state = initializeTestTerritorialState({ territorialEntities: [
+    createTerritorialFeature({ id: 'root', entityKind: 'general', geometry: square(0, 2) }),
+    createTerritorialFeature({ id: 'child', entityKind: 'general', parentId: 'root', geometry: square(3, 5) }),
+    createTerritorialFeature({ id: 'region', entityKind: 'regional', geometry: square(6, 8) }),
+  ] });
+  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const entityRepository = createTerritorialEntityRepository({ entityStore });
+  const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state,
+    clipper: () => globalThis.polygonClipping });
+  const anchor = [1, 1];
+  const countryLabelAnchors = new Map([['root', anchor], ['child', [99, 99]], ['region', [88, 88]]]);
+  const fits = [];
+  let mobile = false;
+  const owner = createObjectCommands();
+  owner.connect({
+    selectionServices: { normalizeObjectRef },
+    territorialModel: { entityRepository },
+    objectModelB: { territorialScope },
+    labelPresentation: { countryLabelAnchors },
+    countries: { validLabelAnchor: createCountryIndex().validLabelAnchor },
+    surfaces: { isMobile: () => mobile },
+    navigation: { fitMapToFeature: (feature, options) => fits.push({ feature, options }) },
+  });
+  const before = structuredClone(state.territorialEntities);
+  const focus = id => owner.focusObjectRef({ domain: 'territorial', type: 'entity', id }, { announce: false });
+  assert.equal(focus('root'), true);
+  assert.strictEqual(fits[0].feature, territorialScope.scope('root').extent);
+  assert.notDeepEqual(fits[0].feature.geometry, entityRepository.get('root').geometry);
+  assert.deepEqual(fits[0].options, { maxZoom: 10, preferredAnchor: anchor });
+  for (const id of ['child', 'region']) {
+    assert.equal(focus(id), true);
+    assert.strictEqual(fits.at(-1).feature, entityRepository.get(id));
+    assert.deepEqual(fits.at(-1).options, { maxZoom: 10, preferredAnchor: null });
+  }
+  mobile = true;
+  countryLabelAnchors.set('root', [NaN, 1]);
+  assert.equal(focus('root'), true);
+  assert.deepEqual(fits.at(-1).options, { maxZoom: 12, preferredAnchor: null });
+  assert.equal(focus('missing'), false);
+  assert.equal(fits.length, 4);
+  assert.deepEqual(state.territorialEntities, before, 'focus must never change canonical geometry or hierarchy');
 });
 
 test('the shared whole-map control calls the camera action without restoring a removed mobile duplicate', () => {
