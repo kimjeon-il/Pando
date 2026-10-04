@@ -167,7 +167,7 @@ diag={
     "notes":[
         "This is an intermediate working base: modern coastline + historical inland frontier.",
         "Coastal land-border endpoints are temporary and will be re-snapped after 1914 shoreline reconstruction.",
-        "No intended geometry change outside the 30 km modern-coast surgery zone."
+        f"No intended geometry change outside the {COAST_BUFFER_M/1000:g} km modern-coast surgery zone."
     ]
 }
 (OUTDIR/"german-empire-1914-modern-coast.diagnostics.json").write_text(json.dumps(diag,ensure_ascii=False,indent=2),encoding="utf-8")
