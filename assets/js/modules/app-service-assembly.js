@@ -131,6 +131,8 @@ export function createServiceAssembly() {
       hydroVisibilityThreshold: dependencies.physicalResources.hydroVisibilityThreshold,
       isCountryVisibleById: dependencies.builtinCountries.isRenderCountryVisible,
       renderCountryFeatures: () => dependencies.countries.builtinTerritorialScene().collection.features,
+      renderCountryBoundaryFeatures: () => dependencies.countries.builtinTerritorialScene().boundaryCollection.features,
+      countryBoundaryStyleById: dependencies.builtinCountries.renderCountryBoundaryStyle,
       canonicalCountryFeatures: () => dependencies.countries.builtinTerritorialScene({ canonical: true }).collection.features,
       isHydroFeatureVisible: dependencies.physicalServices.isHydroFeatureVisible,
       isLayerItemVisible: dependencies.layerPresentation.isLayerItemVisible,

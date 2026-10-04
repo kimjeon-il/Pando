@@ -47,11 +47,14 @@ self.onmessage = ({ data }) => {
       }
       segments = reconcileCountrySharedBoundarySegments(segments, features.values(), changed);
     } else return;
-    const packet = prepareCountrySharedBoundaryPacket(segments);
+    const packet = prepareCountrySharedBoundaryPacket(segments, [...features.values()].map(feature => ({
+      ...feature, boundaryRootId: feature.boundaryRootId || (!feature.properties.parentId ? String(feature.id) : '') } )));
     self.postMessage({ type: 'prepared', requestId: message.requestId,
       projectGeneration: message.projectGeneration, geometryRevision: message.geometryRevision,
       quality: message.quality, packet }, [
       packet.startsEnds.buffer, packet.preparedGeometry.instances.buffer, packet.preparedGeometry.nodes.buffer,
+      packet.outlineOverrides.startsEnds.buffer, packet.outlineOverrides.preparedGeometry.instances.buffer,
+      packet.outlineOverrides.preparedGeometry.nodes.buffer,
     ]);
   } catch (error) {
     self.postMessage({ type: 'error', requestId: message.requestId,
