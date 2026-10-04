@@ -64,7 +64,7 @@ test('canonical map requests camera target terrain directly without intermediate
   owner.dispose();
 });
 
-test('canonical promotion stops drawing cached preview terrain while detail is pending', async t => {
+test('canonical promotion keeps loaded terrain until all target tiles are ready', async t => {
   const { owner, requests, jobs } = fixture(t, () => {}, { mobile: true });
   globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
   t.after(() => { delete globalThis.createImageBitmap; });
@@ -77,8 +77,9 @@ test('canonical promotion stops drawing cached preview terrain while detail is p
   assert.equal(owner.stats().terrainRenderedLevel, 1);
   const priorRequestCount = requests.length;
   const promoted = owner.prepare(mobileFrame(), mobileView());
-  assert.deepEqual(promoted, [], 'the cached preview must not be stretched over canonical target tiles');
-  assert.equal(owner.stats().terrainRenderedLevel, -1);
+  assert.equal(promoted.length, 2, 'loaded terrain must cover the view while detail is pending');
+  assert.ok(promoted.every(tile => tile.spec.level === 1));
+  assert.equal(owner.stats().terrainRenderedLevel, 1);
   assert.equal(owner.stats().terrainLevel, 2);
   await settle();
   assert.ok(requests.slice(priorRequestCount).every(request => new URL(request.url).pathname.startsWith('/2/')));
@@ -86,9 +87,18 @@ test('canonical promotion stops drawing cached preview terrain while detail is p
   await settle();
   for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain the real upload owner. */ }
   const ready = owner.prepare(mobileFrame(), mobileView());
-  assert.equal(ready.length, 1);
-  assert.equal(ready[0].spec.level, 2);
+  assert.equal(ready.length, 3, 'partial detail must paint over the retained terrain');
+  assert.deepEqual(ready.map(tile => tile.spec.level), [1, 1, 2]);
   assert.equal(owner.stats().terrainRenderedLevel, 2);
+  for (let index = priorRequestCount + 1; index < requests.length; index++) {
+    requests[index].resolve({ ok: true, blob: async () => ({}) });
+    await settle();
+    for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain target uploads. */ }
+  }
+  const complete = owner.prepare(mobileFrame(), mobileView());
+  assert.equal(owner.stats().terrainTargetTilesLoaded, owner.stats().terrainTargetTileCount);
+  assert.ok(complete.length > 0);
+  assert.ok(complete.every(tile => tile.spec.level === 2), 'ready target tiles replace the retained terrain');
   owner.dispose();
 });
 
