@@ -8,11 +8,12 @@ function fixture(t) {
   const oldFrame = globalThis.requestAnimationFrame;
   const oldCancel = globalThis.cancelAnimationFrame;
   globalThis.window = { devicePixelRatio: 1 };
-  globalThis.Worker = class {};
+  globalThis.Worker = class { postMessage() {} terminate() {} };
   globalThis.requestAnimationFrame = () => 1;
   globalThis.cancelAnimationFrame = () => {};
   const state = { projection: 'globe', view: { globeZoom: 1, flatZoom: 1 }, physicalSettings: {}, pendingCountryRenderIds: new Set() };
   const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path, scheduleGpuFrame: () => {},
+    renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
     mapWorkScheduler: { cancel: () => {} }, isMobile: () => false, rendererUi: {}, renderViewFrame: () => {} });
   t.after(() => { renderer.dispose(); globalThis.window = oldWindow; globalThis.Worker = oldWorker;
     globalThis.requestAnimationFrame = oldFrame; globalThis.cancelAnimationFrame = oldCancel; });
