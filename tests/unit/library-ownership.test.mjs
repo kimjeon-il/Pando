@@ -69,7 +69,7 @@ test('parent selector is hidden only when the sovereign is its sole valid choice
   }), true);
 });
 
-test('explicit country and nested parent apply once; children inherit the chosen sovereign', () => {
+test('explicit country and nested parent apply once; children retain explicit parent identities', () => {
   const before = JSON.stringify([root, child]);
   const prepared = prepare([child, root], { root: { mode: 'child', countryId: 'B', parentId: 'P' } }, [unit('P', 'B')]);
   const parent = prepared.find(item => item.libraryId === 'root');
@@ -79,7 +79,7 @@ test('explicit country and nested parent apply once; children inherit the chosen
   assert.equal(nested.parentId, parent.id);
   assert.equal(nested.rootId, undefined);
   assert.equal(JSON.stringify([root, child]), before);
-  assert.throws(() => prepare([root], { root: { mode: 'child', countryId: 'A', parentId: 'P' } }, [unit('P', 'B')]), /상위 객체/);
+  assert.throws(() => prepare([root], { root: { mode: 'child', countryId: 'A', parentId: 'P' } }, [unit('P', 'B')]), /상위 단위/);
 });
 
 test('promotion clears active parents, preserves source refs/version/period, and reparents children', () => {

@@ -122,3 +122,19 @@ test('running tasks can cooperatively wait for a new quiet window and yield a fr
   await gate.yieldFrame();
   assert.equal(frameCount, 1);
 });
+
+
+test('required project validation can load the baseline before paint without claiming a painted UI', async () => {
+  const clock = createClock(); const calls=[];
+  const gate=createStartupTaskGate({now:clock.now,setTimer:clock.setTimer,clearTimer:clock.clearTimer,
+    requestIdleCallback:null,isInputPending:()=>false,isDocumentHidden:()=>false});
+  gate.queue('baseline',()=>calls.push('loaded'));
+  await clock.advance(1000); assert.deepEqual(calls,[]);
+  gate.allowBeforeInteractivePaint();
+  gate.noteInput({active:true});
+  await clock.advance(1000); assert.deepEqual(calls,[]);
+  gate.noteInput({active:false});
+  await clock.advance(500); assert.deepEqual(calls,['loaded']);
+  assert.equal(gate.getState().paintReady,false);
+  await gate.waitForQuiet(); gate.dispose();
+});

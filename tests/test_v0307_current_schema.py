@@ -19,8 +19,8 @@ class CurrentSchemaPolicyTests(unittest.TestCase):
     def test_project_save_and_load_use_central_schema_contract(self):
         self.assertIn("schemaVersion = PROJECT_SCHEMA_VERSION", SERIALIZER)
         self.assertIn("schemaVersion,", SERIALIZER)
-        self.assertIn("assertCurrentProjectSchema)(project)", APP)
-        self.assertIn("export const PROJECT_SCHEMA_VERSION = 7", VERSIONS)
+        self.assertIn("prepareProjectForActivation(project", APP)
+        self.assertIn("export const PROJECT_SCHEMA_VERSION = 9", VERSIONS)
         self.assertIn("export { PROJECT_SCHEMA_VERSION }", PROJECT)
         self.assertNotIn("migrateProject", PROJECT)
         self.assertIn("territorialEntities", SERIALIZER)
@@ -37,7 +37,8 @@ class CurrentSchemaPolicyTests(unittest.TestCase):
 
     def test_external_gis_columns_do_not_restore_internal_aliases(self):
         self.assertIn("parent_id", GIS_ADAPTERS)
-        self.assertIn("associated_country_id", GIS_ADAPTERS)
+        self.assertIn("entity_kind", GIS_ADAPTERS)
+        self.assertNotIn("associated_country_id", GIS_ADAPTERS)
         self.assertNotIn("parent_territorial_unit_id", GIS_ADAPTERS)
         self.assertNotIn("countryRegions", GIS_ADAPTERS)
 

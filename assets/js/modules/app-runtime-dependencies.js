@@ -332,11 +332,9 @@ const { runMapEditTransaction } = mapEditTransactionModule;
 const {
   TERRITORIAL_COVERAGE_MODES,
   createTerritorialFeature,
-  normalizeTerritorialRelations,
   normalizeTerritorialEntities,
   territorialRootId,
   runTerritorialTransaction,
-  validateTerritorialRelations,
 } = territorialUnitsModule;
 const {
   DISTRIBUTION_SCHEMA_VERSION,
@@ -602,11 +600,9 @@ export {
   createTerritorialFeature,
   createTerritorialEntityRepository,
   createTerritorialEntityStore,
-  normalizeTerritorialRelations,
   normalizeTerritorialEntities,
   territorialRootId,
   runTerritorialTransaction,
-  validateTerritorialRelations,
   DISTRIBUTION_SCHEMA_VERSION,
   DISTRIBUTION_MODES,
   DISTRIBUTION_RENDER_MODES,

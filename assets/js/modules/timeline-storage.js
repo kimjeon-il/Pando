@@ -24,7 +24,7 @@ export function snapshotTimelineStorage(records, geometries, entities) {
 }
 
 /** Construct and validate everything before a caller replaces its current state. */
-export function restoreTimelineStorage(input, entities) {
+export function restoreTimelineStorage(input, entities, { reuse = null } = {}) {
   const fields = ['schemaVersion', 'records', 'geometries'];
   if (!input || typeof input !== 'object' || Array.isArray(input)
     || fields.some(field => !Object.hasOwn(input, field))
@@ -33,7 +33,7 @@ export function restoreTimelineStorage(input, entities) {
     fail('TIMELINE_STORAGE_SCHEMA', 'Unexpected or missing storage fields/version.');
   }
   if (!Array.isArray(entities)) fail('TIMELINE_CONTEXT', 'An entity catalog is required.');
-  const geometries = createGeometryVersionStore(input.geometries);
+  const geometries = createGeometryVersionStore(input.geometries, { reuse });
   const records = normalizeTimelineRecords(input.records, context(geometries, entities));
   return Object.freeze({ records, geometries });
 }

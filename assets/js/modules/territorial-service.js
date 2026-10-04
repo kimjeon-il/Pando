@@ -52,6 +52,8 @@ export function createTerritorialApplicationService({
           field === 'validTo' ? value : feature.properties?.validTo,
         );
         nextValue = interval[field];
+        if (nextValue !== null) return { ok: false, code: 'TIMELINE_ACTIVATION', unit: feature,
+          issues: ['날짜별 편집은 T4 구현 후 지원합니다.'] };
       } catch (error) {
         return { ok: false, code: 'invalid-temporal', issues: [String(error?.message || error)], unit: feature };
       }

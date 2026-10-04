@@ -1,3 +1,6 @@
+import { projectForStorage } from '../helpers/timeline-project.mjs';
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -26,7 +29,8 @@ test('generic GeoJSON reimport preserves provenance and arbitrary attributes whi
       source, custom: { rank: 2 } } };
   const state = { territorialEntities: [] };
   let output;
-  const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
   const importer = createGisImportTransactionCommitter({ state, uid: () => uuid(11), deepClone: structuredClone,
     entityStore: fixtureEntityStore1, territorialEntityRepository: createTerritorialEntityRepository({ entityStore: fixtureEntityStore1 }),
     GENERIC_FEATURE_SCHEMA_VERSION: 2, DEFAULT_GENERIC_FEATURE_COLOR: '#999999', normalizeGenericFeatureSemantics,
@@ -64,6 +68,7 @@ const project = feature => ({
   distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
   layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder: [], styles: {} },
   territorialEntities: [],
+  ...createStaticTerritorialSnapshot([]),
   genericFeatures: feature ? [feature] : [],
 });
 
@@ -100,7 +105,7 @@ test('serializer publishes Generic Feature as lossless fallback with provenance 
     hydroDataset: 'hydro',
     readSnapshot: () => ({
       territorialEntities: [],
-      projectFields: { genericFeatures: [] },
+      projectFields: { ...projectForStorage().projectFields, genericFeatures: [], ...createStaticTerritorialSnapshot([]) },
       entityDelta: { changed: [], removedIds: [] },
       fullAutosave: false,
       terrainManifest: null,
