@@ -8,24 +8,24 @@
       "POL",
       "RUS"
     ],
-    "coastBufferMeters": 30000,
-    "historicalMatchBufferMeters": 30000
+    "coastBufferMeters": 12000,
+    "historicalMatchBufferMeters": 12000
   },
   "validation": {
     "valid": true,
     "geometryType": "MultiPolygon",
-    "componentCount": 28,
+    "componentCount": 29,
     "historicalAreaKm2": 542359.123,
-    "modernCoastAreaKm2": 549734.971,
-    "symmetricDifferenceKm2": 9389.328,
+    "modernCoastAreaKm2": 544282.767,
+    "symmetricDifferenceKm2": 3918.726,
     "differenceOutsideCoastZoneKm2": 0.0,
     "helgolandAreaKm2": 1.07648,
     "duneAreaKm2": 0.629302,
     "boundsWGS84": [
       5.875153,
       47.2705079,
-      23.2437917,
-      56.1518251
+      22.8904465,
+      56.001247
     ]
   },
   "notes": [
