@@ -1,0 +1,23 @@
+✔ single: choosing another distribution schedules a coordinator frame with the current visible rows (10.7943ms)
+✔ overlap: choosing another distribution schedules a coordinator frame with the current visible rows (0.7925ms)
+✔ reselecting the active distribution only refreshes selection; missing IDs do nothing (0.5339ms)
+✔ history service owns bounded record, undo, redo, and future invalidation (1.7873ms)
+✔ discard and reset keep snapshots and metadata aligned (0.275ms)
+✔ edit-sync while preview code loads rejects the stale request and retains no receipt (236.1839ms)
+✔ edit-sync while query code loads rejects the stale read result (84.7722ms)
+✔ cancel while country commands load leaves no old pending commit (96.9704ms)
+✔ rebase while country commands load leaves no old pending commit (92.416ms)
+✔ cancel while coordinate-bounds.js preloads rejects the request after initialization (82.2535ms)
+✔ cancel while polygon-clipping-calculation.js preloads rejects the request after initialization (83.617ms)
+✔ cancel at a real snap checkpoint cancels resumed work (82.1731ms)
+✔ edit-sync at a real snap checkpoint cancels resumed work (89.0811ms)
+✔ rebase at a real snap checkpoint cancels resumed work (95.5512ms)
+✔ omitted sourceRevision remains valid for source-sensitive operations and previews (120.4686ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1215.2641

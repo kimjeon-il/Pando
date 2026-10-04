@@ -1,0 +1,311 @@
+✔ general hierarchy changes preserve identity and kind; independent regions remain unchanged (5.2316ms)
+✔ regional parents, missing parents and cycles are rejected without publication (0.8346ms)
+✔ root and regional coverage is explicit; retired canonical fields are rejected (1.5227ms)
+✔ a locked descendant prevents root reassignment and a locked source can be copied independently (7.2511ms)
+✔ regional redraw keeps the full independent shape, including overlap and outside land (8.9797ms)
+✔ independent regional import retains explicit coast reconciliation without storing membership (10.7018ms)
+✔ object registry exposes canonical domain/category/editor metadata (1.6414ms)
+✔ object refs resolve through one registry key and presentation mapping (0.4291ms)
+✔ action registry resolves dynamic lock metadata and applicability (0.6386ms)
+✔ action executor delegates canonical commands without owning mutation logic (1.0892ms)
+✔ shared layer menu and editor endpoints bind to the same action ids (0.2423ms)
+✔ presenting the same entity twice while its area is pending completes with one calculation and current name (3.0844ms)
+✔ replaced entity geometry discards the old display result and calculates the new geometry only once (1.0614ms)
+✔ an area callback schedules a replaced current geometry when no new presentation has run (0.33ms)
+✔ pending area does not update the screen after selection cleared (0.2773ms)
+✔ pending area does not update the screen after disposed (0.2574ms)
+✔ one entity form presents general roots, children and independent regions (1.3294ms)
+✖ all four territory workflows expose concise setup, selection and review headings (5.4129ms)
+✖ all territory draw candidates must be archived through validation before advancing (0.5562ms)
+✖ subunit and region selected components archive on method change with their exact snapshots (0.4879ms)
+✖ new-country setup retains every selected source country and its reference count (0.3606ms)
+✖ all four operations use setup, selection, review and preserve a selection through back navigation (0.5235ms)
+✖ back to setup clears only transient input and preserves the draft and ready preview (0.5183ms)
+✖ a mixed line, line, polygon session keeps archived units and previews their union once (0.4271ms)
+✖ line, component and polygon parts remain together across method changes and review (0.5392ms)
+✖ component units archive and undo one item at a time (0.4674ms)
+✖ removing a middle part keeps the other parts and recalculates its real aggregate (0.8739ms)
+✖ switching from selected components archives them before opening another method (0.663ms)
+✖ a method switch requested during component preview waits for validation before archiving (1.2452ms)
+✖ removing one component part keeps its shared snapshot until the last referencing part is removed (0.5064ms)
+✖ method changes preserve archived items and ask before discarding the current item (0.3375ms)
+✖ region can add a reference country only when a later line or component method needs it (0.2729ms)
+✖ the common scheduler only keeps the latest aggregate preview and applies once (0.2778ms)
+✖ late selection result cannot restore cleared geometry and cancel stops the worker (0.3398ms)
+✖ selection coalesces clicks without rebuilding source and supports worker error retry (0.318ms)
+✖ line candidates use result IDs, toggle multiple pieces, clear selection and archive their union (0.4041ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 17
+ℹ fail 19
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 288.5188
+
+✖ failing tests:
+
+test at tests\unit\territory-selection-workflow.test.mjs:152:1
+✖ all four territory workflows expose concise setup, selection and review headings (5.4129ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:153:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+
+test at tests\unit\territory-selection-workflow.test.mjs:176:1
+✖ all territory draw candidates must be archived through validation before advancing (0.5562ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:177:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:196:1
+✖ subunit and region selected components archive on method change with their exact snapshots (0.4879ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:197:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:218:1
+✖ new-country setup retains every selected source country and its reference count (0.3606ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:219:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:228:1
+✖ all four operations use setup, selection, review and preserve a selection through back navigation (0.5235ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:229:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:257:1
+✖ back to setup clears only transient input and preserves the draft and ready preview (0.5183ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:258:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:291:1
+✖ a mixed line, line, polygon session keeps archived units and previews their union once (0.4271ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:292:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:320:1
+✖ line, component and polygon parts remain together across method changes and review (0.5392ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:321:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:346:1
+✖ component units archive and undo one item at a time (0.4674ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:347:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:363:1
+✖ removing a middle part keeps the other parts and recalculates its real aggregate (0.8739ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:364:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:384:1
+✖ switching from selected components archives them before opening another method (0.663ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:385:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:399:1
+✖ a method switch requested during component preview waits for validation before archiving (1.2452ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:400:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:413:1
+✖ removing one component part keeps its shared snapshot until the last referencing part is removed (0.5064ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:414:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:433:1
+✖ method changes preserve archived items and ask before discarding the current item (0.3375ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:434:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:457:1
+✖ region can add a reference country only when a later line or component method needs it (0.2729ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:458:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:474:1
+✖ the common scheduler only keeps the latest aggregate preview and applies once (0.2778ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:475:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:498:1
+✖ late selection result cannot restore cleared geometry and cancel stops the worker (0.3398ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:499:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:520:1
+✖ selection coalesces clicks without rebuilding source and supports worker error retry (0.318ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:521:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at tests\unit\territory-selection-workflow.test.mjs:546:1
+✖ line candidates use result IDs, toggle multiple pieces, clear selection and archive their union (0.4041ms)
+  Error: 영역 형식이 올바르지 않습니다.
+      at createTerritorialFeature (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/territorial-units.js:233:23)
+      at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:69
+      at Array.map (<anonymous>)
+      at harness (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:32:45)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territory-selection-workflow.test.mjs:547:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)

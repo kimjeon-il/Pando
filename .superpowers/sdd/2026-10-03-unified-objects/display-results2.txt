@@ -1,0 +1,41 @@
+✔ all object domains share role priority and style, including zero fill and disabled outlines (2.3709ms)
+✔ tool role overrides selection without altering canonical selection or geometry (1.3581ms)
+✔ country border keeps the selected countries primary and secondary while the boundary is edited (0.2808ms)
+✔ ownership order is stable under input reordering and prioritizes stronger roles before ancestry (0.7797ms)
+✔ worker ownership removes shared boundaries between unrelated objects without changing originals (2.3318ms)
+✔ late leave from another hover source cannot clear the current row, while reset clears all (0.8997ms)
+✔ a pending owned boundary does not poison its ready geometry cache (2.5589ms)
+✔ common role contracts reject tool colors and keep boundary preparation out of render callbacks (25.2421ms)
+✔ ID-based boundary requests use synchronized geometry and reject missing owners (1.0154ms)
+✔ tool receivers, donors and nested parents keep their semantic roles independent of selection order (0.5236ms)
+✔ country creation sources use the same secondary selection emphasis as annex donors (0.4043ms)
+✔ Canvas metadata updates share immutable coordinate reconstruction (0.2654ms)
+✔ built-in classification and display-only changes keep the shipped preview (194.8952ms)
+✔ edited borders, ownership, country creation and deletion cannot use shipped geometry (373.3903ms)
+✔ full saved geometry uses the shipped preview only when it is exactly the default classification (456.2758ms)
+✔ custom geometry uses a matching project cache, otherwise waits for exact restoration (222.9842ms)
+✔ geometry cache identity ignores presentation but changes with shapes and ownership (232.3853ms)
+✔ saved country properties replace cache properties without replacing its geometry (134.1145ms)
+✔ task target refs resolve countries and units through the territorial entity surface (1.8768ms)
+✔ task workflow presentation derives territorial type without raw unit storage (1.6453ms)
+✔ operation errors use the common feedback slot and clear on a new normal banner (5.6628ms)
+✔ existing redraw preview keeps its real metrics and survives closing and reopening (0.8626ms)
+✔ territory list uses the authoritative union, pending state and stable part IDs (1.6011ms)
+✔ task sync derives role cards without duplicate type labels or focusing the map (1.892ms)
+✔ task target labels refresh from the repository while object refs stay stable (0.8927ms)
+✔ new territory workflows never expose source or parent countries as a focus target (1.9599ms)
+✔ task status explains pending and missing-target decisions without changing retry eligibility (1.4201ms)
+✔ a disabled draft completion shows its authoritative validation reason in the shared task area (0.5561ms)
+✔ editable redraw with fewer than three vertices uses the precise redraw reason (0.4972ms)
+✔ tool bindings do not query the removed task focus button (0.6497ms)
+✔ hydro auxiliary commands run while idle and preserve their own busy guard (0.3196ms)
+✔ territorial scope reads the administrative hierarchy from the common entity repository (43.3943ms)
+✔ territorial scope inherits country color without treating regions as administrative parents (0.3898ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2848.0304

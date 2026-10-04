@@ -1,0 +1,113 @@
+docs/architecture\territorial-entity-contract.md:61:`unitType`, `associatedCountryId`, `sovereignId`는 최종 canonical 필드에 없다.
+docs/architecture\territorial-entity-contract.md:202:`administrativeCountry()`는 제거한다. 각 소비처가 필요로 하는 실제 의미에 따라
+docs/architecture\territorial-entity-contract.md:208:현재 기준은 단일 저장소와 unitType 3종류가 존재하는 cd85e14다.
+docs/architecture\territorial-entity-contract.md:214:| unitType: country/subunit/region | 제거, entityKind: general/regional로 대체 | 단계 3 전체 계약 전환 |
+docs/architecture\territorial-entity-contract.md:216:| 지방 parentId, associatedCountryId | 부모는 빈 문자열, 국가 연결 필드 제거 | 단계 3, 기간별 관계 포함 |
+docs/architecture\territorial-entity-contract.md:222:| Repository 종류 필터·administrativeCountry() | kind 필터·목적별 계층/범위 조회로 대체 | 단계 3 |
+docs/architecture\territorial-entity-contract.md:294:| 지방에 associatedCountryId 또는 일반에 sovereignId 저장 | 최종 필드 계약 위반, 거부 |
+docs/architecture\territorial-entity-contract.md:295:| unitType만 있는 옛 객체 입력 | 새 모델 입력으로 수용하지 않음 |
+docs/architecture\versioning-migrations-exchange.md:32:`associatedCountryId`. Missing references, duplicate IDs, invalid parents, and
+scripts\lib\territorial-storage-audit.mjs:137:          && ['get', 'list', 'children', 'parent', 'siblings', 'ancestors', 'descendants', 'root', 'administrativeCountry'].includes(name)) {
+scripts\benchmark-large-data.mjs:76:      properties: { unitType: index % 3 === 0 ? 'admin' : index % 3 === 1 ? 'region' : 'territory' },
+assets/js\modules\app-capability-ports.js:306:      get administrativeCountryName() { return providers.objectPresentation.administrativeCountryName; },
+tests\unit\annex-drawn-selection.test.mjs:44:    TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
+assets/js\modules\app-layer-list.js:130:        const countryLabel = (0, dependencies.objectPresentation.administrativeCountryName)(feature);
+tests\unit\app-geometry-preview.test.mjs:101:    properties: { unitType: 'subunit' },
+tests\unit\app-map-audit.test.mjs:21:  const entity = (id, unitType, options = {}) => createTerritorialFeature({ id, unitType, geometry, ...options });
+assets/js\modules\app-object-commands.js:57:      const context = (dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'regional') ? '' : (0, dependencies.objectPresentation.administrativeCountryName)(feature);
+assets/js\modules\app-object-presentation.js:74:  function administrativeCountryName(feature) {
+assets/js\modules\app-object-presentation.js:210:    get administrativeCountryName() { return administrativeCountryName; },
+tests\unit\application-composition.test.mjs:100:  const collectionA = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'A', unitType: 'country', name: 'A', geometry })] };
+tests\unit\application-composition.test.mjs:101:  const collectionB = { type: 'FeatureCollection', features: [createTerritorialFeature({ id: 'B', unitType: 'country', name: 'B', geometry })] };
+tests\unit\boundary-preparation-session.test.mjs:3:import { administrativeCountryId } from '../../assets/js/modules/territorial-units.js';
+tests\unit\boundary-preparation-session.test.mjs:10:    coastEditScopeGenericFeatureId: null, territorialEntities: [{ id: 'A', properties: { unitType: 'country' }, geometry: {} }, { id: 'B', properties: { unitType: 'country' }, geometry: {} }], genericFeatures: [] };
+tests\unit\boundary-preparation-session.test.mjs:12:  app.connect({ projectState: { state }, territorialModel: { administrativeCountryId, entityRepository: {
+tests\unit\boundary-preparation-session.test.mjs:13:    list: ({ type } = {}) => state.territorialEntities.filter(entity => !type || [].concat(type).includes(entity.properties.unitType)),
+tests\unit\boundary-preparation.test.mjs:64:  const rows = fixtures().slice(0, 2).map(row => ({ ...row, properties: { unitType: 'subunit', parentId: 'P', sovereignId: 'P' } }));
+tests\unit\boundary-preparation.test.mjs:131:  const meta = { unitType: 'subunit', parentId: 'P', sovereignId: 'P' };
+tests\unit\builtin-territory-policy.test.mjs:34:    const url = effectiveTerritorialFlagUrl({ id: id, properties: { unitType: 'country', metadata: {} } });
+tests\unit\builtin-territory-policy.test.mjs:38:    assert.equal(effectiveTerritorialFlagUrl({ id: id, properties: { unitType: 'country', metadata: { flagDataUrl: null } } }), null);
+tests\unit\builtin-territory-policy.test.mjs:40:  assert.equal(effectiveTerritorialFlagUrl({ id: 'CNM', properties: { unitType: 'country', metadata: {} } }), null);
+tests\unit\country-flags.test.mjs:94:  assert.equal(effectiveTerritorialFlagUrl({ id: 'KOR', properties: { unitType: 'country', metadata: { flagDataUrl: custom } } }), custom);
+tests\unit\country-flags.test.mjs:95:  assert.equal(effectiveTerritorialFlagUrl({ id: 'KOR', properties: { unitType: 'country', metadata: { flagDataUrl: null } } }), null);
+tests\unit\country-flags.test.mjs:96:  assert.match(effectiveTerritorialFlagUrl({ id: 'KOR', properties: { unitType: 'country', metadata: {} } }), /\/kr\.svg$/);
+tests\unit\country-flags.test.mjs:97:  assert.equal(effectiveTerritorialFlagUrl({ id: 'BRT', properties: { unitType: 'country', metadata: {} } }), null);
+assets/js\modules\app-runtime-dependencies.js:357:const territorialTypeLabel = unitType => TERRITORIAL_TYPE_LABELS[unitType] || '영역';
+tests\unit\draft-toolbar.test.mjs:116:    TERRITORIAL_UNIT_TYPES: { SUBUNIT: 'subunit' },
+tests\unit\edit-preparation.test.mjs:30:  const country = createTerritorialFeature({ id: 'RUS', unitType: 'country', geometry: square });
+tests\unit\edit-preparation.test.mjs:31:  const unit = createTerritorialFeature({ id: 'child', unitType: 'subunit', parentId: 'RUS',
+tests\browser\gis-coast-cancellation.spec.mjs:32:  return page.evaluate(unitType => ({
+tests\browser\gis-coast-cancellation.spec.mjs:33:    count: window.PANDOLAB_TERRITORIAL.list({ type: unitType }).length,
+tests\browser\gis-coast-cancellation.spec.mjs:40:  { targetType: 'administrative', unitType: 'admin', label: 'ADMIN' },
+tests\browser\gis-coast-cancellation.spec.mjs:41:  { targetType: 'region', unitType: 'region', label: 'REGION' },
+tests\browser\gis-coast-cancellation.spec.mjs:49:    const before = await importSnapshot(page, scenario.unitType);
+tests\browser\gis-coast-cancellation.spec.mjs:55:    await expect.poll(() => importSnapshot(page, scenario.unitType)).toEqual(before);
+assets/js\modules\boundary-topology.js:424:      unitOwners: metadata.map(item => ({ id: item.id, unitType: item.type, countryId: item.countryId })),
+tests\unit\empty-territorial-boundary.test.mjs:18:const country = (id = 'A') => polygon(id, [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], { unitType: 'country' });
+tests\unit\empty-territorial-boundary.test.mjs:26:    leftUnit('left', { unitType: 'subunit', parentId: 'A' }),
+tests\unit\empty-territorial-boundary.test.mjs:27:    rightUnit('right', { unitType: 'subunit', parentId: 'A' }),
+tests\unit\empty-territorial-boundary.test.mjs:32:    { id: 'left', unitType: 'subunit', countryId: 'A' },
+tests\unit\empty-territorial-boundary.test.mjs:33:    { id: 'right', unitType: 'subunit', countryId: 'A' },
+tests\unit\empty-territorial-boundary.test.mjs:39:    leftUnit('left', { unitType: 'subunit', parentId: 'A' }),
+tests\unit\empty-territorial-boundary.test.mjs:48:    leftUnit('left', { unitType: 'subunit', parentId: 'A' }),
+tests\unit\empty-territorial-boundary.test.mjs:49:    rightUnit('right', { unitType: 'subunit', parentId: 'B' }),
+tests\unit\empty-territorial-boundary.test.mjs:56:    leftUnit('left', { unitType: 'subunit', parentId: 'A' }),
+tests\unit\empty-territorial-boundary.test.mjs:57:    rightUnit('right', { unitType: 'region', associatedCountryId: 'A' }),
+tests\unit\empty-territorial-boundary.test.mjs:63:    leftUnit('invalid', { unitType: 'subunit', parentId: 'missing' }),
+tests\unit\empty-territorial-boundary.test.mjs:69:    polygon('whole', [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], { unitType: 'subunit', parentId: 'A' }),
+tests\unit\general-regional-contract.test.mjs:24:  assert.ok(store.snapshot().every(feature => !Object.hasOwn(feature.properties, 'unitType') && !Object.hasOwn(feature.properties, 'associatedCountryId')));
+tests\unit\general-regional-contract.test.mjs:40:  for (const field of ['unitType', 'associatedCountryId', 'sovereignId']) {
+tests\unit\general-regional-contract.test.mjs:114:  assert.equal('associatedCountryId' in region.properties, false);
+tests\browser\territorial-selection.spec.mjs:136:      unitType: feature.properties.unitType,
+tests\browser\territorial-selection.spec.mjs:140:  expect(snapshot).toMatchObject({ unitType: 'region', coverageMode: 'explicit' });
+tests\unit\import-service.test.mjs:230:      createTerritorialFeature({ id: 'KAB', unitType: 'subunit', parentId: 'KAZ', geometry: existing.geometry })],
+tests\unit\import-service.test.mjs:251:      assert.deepEqual(input.territorialEntities.filter(entity => entity.properties.unitType === 'country').map(feature => feature.id), ['historical-country:soviet-union']);
+tests\unit\library-import-atomic.test.mjs:10:  const state = {territorialEntities:[createTerritorialFeature({id:'A',unitType:'country',geometry})],historyDirtyEntityIds:new Set(),sourceInfo:null};
+tests\unit\library-import-atomic.test.mjs:24:      assert.equal(snapshot.territorialEntities.filter(entity=>entity.properties.unitType!=='country').length, 1);
+tests\unit\library-import-atomic.test.mjs:31:  const result = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',unitType:'country',geometry})] }, preparedTerritorialUnits: [createTerritorialFeature({id:'CHILD',unitType:'subunit',parentId:'NEW',geometry})],
+tests\unit\library-import-atomic.test.mjs:33:  const plan = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',unitType:'country',geometry})] }, affectedIds: ['A', 'NEW'], counts: { added: 2 } };
+tests\unit\map-editing-foundation.test.mjs:110:    countries: [createTerritorialFeature({ id: 'A', unitType: 'country',
+tests\unit\map-editing-foundation.test.mjs:113:      createTerritorialFeature({ id: 'orphan', unitType: 'subunit', name: '고아', parentId: 'NO_PARENT',
+tests\unit\map-editing-foundation.test.mjs:115:      createTerritorialFeature({ id: 'orphan', unitType: 'region', name: '중복', associatedCountryId: 'A',
+tests\unit\map-editing-foundation.test.mjs:117:      createTerritorialFeature({ id: 'unlinked', unitType: 'region', associatedCountryId: 'MISSING',
+tests\unit\map-edit-worker-client.test.mjs:107:  let unit = { id: 'child', geometry: { type: 'Polygon', coordinates: [] }, properties: { unitType: 'subunit', parentId: 'A', sovereignId: 'A' } };
+tests\unit\map-edit-preparation-worker.test.mjs:54:  unitType: properties.unitType || 'country', ...properties,
+tests\unit\map-edit-preparation-worker.test.mjs:55:  associatedCountryId: properties.unitType === 'region' ? properties.sovereignId || '' : '',
+tests\unit\map-edit-preparation-worker.test.mjs:56:  parentId: properties.parentId || (properties.unitType === 'subunit' ? properties.sovereignId || '' : '') });
+tests\unit\map-edit-preparation-worker.test.mjs:174:    draft: square(1, 1, 2, 2), newFeature: feature('child', square(1, 1, 2, 2), { unitType: 'subunit', parentId: 'RUS', sovereignId: 'RUS' }) } });
+tests\unit\map-edit-preparation-worker.test.mjs:187:    { kind: 'territorial', feature: feature('child', square(0, 0, 5, 10), { unitType: 'subunit', sovereignId: 'RUS', parentId: 'RUS' }) },
+tests\unit\map-edit-preparation-worker.test.mjs:212:  const parent = feature('S', square(0, 0, 5, 5), { unitType: 'subunit', parentId: 'A' });
+tests\unit\map-edit-preparation-worker.test.mjs:213:  const child = feature('T', square(0, 0, 2, 2), { unitType: 'subunit', parentId: 'S' });
+tests\unit\map-edit-preparation-worker.test.mjs:246:  const a = feature('a', square(0, 0, 4, 4), { unitType: 'region', parentId: 'RUS', sovereignId: 'RUS' });
+tests\unit\map-edit-preparation-worker.test.mjs:247:  const b = feature('b', square(4, 0, 8, 4), { unitType: 'region', parentId: 'RUS', sovereignId: 'RUS' });
+tests\unit\map-edit-preparation-worker.test.mjs:277:  const child = feature('child', geometry, { unitType: 'subunit', parentId: 'RUS', sovereignId: 'RUS' });
+tests\unit\map-label-visibility.test.mjs:13:    type: 'Feature', id, properties: { name: id, ...(id === 'SUBUNIT' ? { unitType: 'subunit' } : {}) },
+tests\unit\map-label-visibility.test.mjs:28:      TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country' },
+tests\unit\map-label-visibility.test.mjs:46:      territorialEntityRepository: { get: id => ({ ...features.find(feature => feature.id === id), properties: { unitType: 'country', name: id, metadata: ['AAA','BBB'].includes(id) ? { flagDataUrl: `/${id}.svg` } : {} } }) },
+tests\unit\map-label-visibility.test.mjs:144:    features.find(feature => feature.id === 'BBB').properties.unitType = 'region';
+tests\unit\map-label-visibility.test.mjs:145:    for (const feature of features.filter(feature => feature.properties.unitType)) {
+tests\unit\place-label-workflow.test.mjs:10:import { TERRITORIAL_UNIT_TYPES, validateTerritorialRelations } from '../../assets/js/modules/territorial-units.js';
+tests\unit\place-label-workflow.test.mjs:74:      TERRITORIAL_UNIT_TYPES,
+tests\unit\place-label-workflow.test.mjs:138:  assert.equal((entityStore.snapshot().find(entity => String(entity.id) === String('KOR') && entity.properties.unitType === 'country') || null).properties.validFrom, '1900');
+tests\unit\object-visibility-command.test.mjs:12:  const feature = { id: refs[0]?.id, properties: { pandolab_id: refs[0]?.id, category: refs[0]?.type, unitType: refs[0]?.type, locked: true } };
+tests\unit\object-visibility-command.test.mjs:22:    TERRITORIAL_UNIT_TYPES: { COUNTRY: 'country', SUBUNIT: 'subunit', REGION: 'region' },
+tests\unit\project-invariants.test.mjs:11:const country = id => createTerritorialFeature({id,unitType:'country',name:id,geometry:polygon()});
+tests\unit\project-invariants.test.mjs:12:const unit=(id,parentId='',countryId='A')=>createTerritorialFeature({id,unitType:'region',parentId,associatedCountryId:countryId,geometry:polygon()});
+tests\unit\subunit-model.test.mjs:6:import { createTerritorialFeature, normalizeTerritorialEntities, TERRITORIAL_UNIT_TYPES } from '../../assets/js/modules/territorial-units.js';
+tests\unit\subunit-model.test.mjs:16:const unit = (id, parentId = 'DNK', extra = {}) => createTerritorialFeature({ id, unitType: 'subunit', parentId, geometry: geometry(4), ...extra });
+tests\unit\subunit-model.test.mjs:19:  assert.deepEqual(Object.values(TERRITORIAL_UNIT_TYPES), ['country', 'subunit', 'region']);
+tests\unit\subunit-model.test.mjs:21:  for (const type of ['territory', 'admin']) assert.throws(() => createTerritorialFeature({ id: type, unitType: type, geometry: geometry() }));
+tests\unit\subunit-model.test.mjs:37:    properties: { ...parent.properties, unitType: 'region' },
+tests\unit\subunit-model.test.mjs:63:  assert.equal(normalizeTerritorialEntities([parent, child],{getEntity:id=>id==='DNK'?createTerritorialFeature({id,unitType:'country',geometry:geometry()}):null})[1].properties.adminLevel, undefined);
+tests\unit\subunit-model.test.mjs:73:  const state={territorialEntities:[createTerritorialFeature({id:'DNK',unitType:'country',geometry:country.geometry}),...units],get stateRevision(){return revision;}};
+tests\unit\subunit-model.test.mjs:98:    return {territorialEntities:[...countriesData.features.map(feature=>createTerritorialFeature({id:feature.id,unitType:'country',name:feature.properties.name,geometry:feature.geometry})),...units],stateRevision:1};
+tests\unit\subunit-ui-export.test.mjs:28:    properties: { schemaVersion: 3, unitType: 'subunit', name: '자치령', parentId: 'C', associatedCountryId: '', coverageMode: 'explicit' } }] };
+tests\unit\territorial-command-storage.test.mjs:27:    objectPresentation: { territorialEntityName: feature => feature.properties.name, administrativeCountryName: () => 'B' },
+tests\unit\territorial-interaction-policy.test.mjs:71:  assert.equal(state.territorialEntities.find(entity => entity.id === 'r').properties.associatedCountryId, undefined);
+tests\unit\territorial-interaction-policy.test.mjs:106:  assert.equal(state.territorialEntities.find(entity => entity.id === 'r').properties.associatedCountryId, undefined);
+tests\unit\territorial-units.test.mjs:47:  assert.equal(region.properties.associatedCountryId, undefined);
+tests\unit\territorial-units.test.mjs:55:  assert.equal(remainder.properties.associatedCountryId, undefined);
+tests\unit\territorial-units.test.mjs:58:  assert.equal(independent.properties.associatedCountryId, undefined);
+tests\unit\workflow-layout.test.mjs:46:    boundaryEditEntityIds: ['SUB-1', 'SUB-2', 'SUB-3'], territorialEntities: ['SUB-1', 'SUB-2', 'SUB-3'].map(id => ({ id, properties: { unitType: 'subunit' } })) });
+assets/js\modules\territorial-units.js:38:  for (const field of ['unitType', 'associatedCountryId', 'sovereignId']) {
+assets/js\modules\territorial-units.js:174:    if (Number(raw?.schemaVersion) !== 3 || ['sovereignId', 'associatedCountryId'].some(field => Object.hasOwn(raw, field))) throw new Error('기간별 관계 schemaVersion이 현재 형식과 일치하지 않습니다.');

@@ -1,0 +1,156 @@
+✔ full and delta autosaves share immutable geometry while detaching metadata (3.5145ms)
+✔ project header and physical source metadata use the current common contract (1.4186ms)
+✔ entity delta replaces, removes and adds all types in stable order without mutating inputs (1.5064ms)
+✔ external full projects remain independent from the builtin delta baseline when reopened (0.3766ms)
+✔ project serialization contains document and presentation fields only (2.0748ms)
+✔ history snapshots preserve editable object state through the shared schema (0.2984ms)
+✔ presentation and session scopes stay independent (0.2967ms)
+✔ shared project fields receive current defaults without sharing mutable values (1.6408ms)
+✖ current project schema accepts only explicit current versions and UUID object IDs (2.3479ms)
+✖ distribution boundary visibility is a shared optional presentation setting (0.4334ms)
+✖ canonical river and lake presentation groups are accepted while hydro output is rejected (0.8324ms)
+✖ missing duplicate and unsupported object fields are rejected (1.4224ms)
+✖ session state and unsupported model fields are rejected from project files (1.1791ms)
+✔ territorial service exposes commands without transaction or validation forwarding aliases (1.9667ms)
+✔ country dates use raw properties, mark the save delta and honor locks and normalized no-ops (3.596ms)
+✔ common flag fields distinguish custom, hidden and default for countries and units (0.9268ms)
+✔ country name reset and territorial color reset remove explicit fields and repeated resets do nothing (0.6859ms)
+✔ territorial deletion preflight shares lock and child rules across entity types (0.6907ms)
+✔ territorial service owns metadata transaction and lock enforcement (0.5367ms)
+✔ batch color command updates countries and units in one document mutation (0.7267ms)
+✔ batch lock command updates countries and units in one document mutation (0.7517ms)
+✔ simple unit metadata writes publish the common collection without mutating the old one (0.6029ms)
+✔ temporal unit metadata is normalized and rejected before mutation when invalid (0.5196ms)
+✔ administrative parent changes use the explicit relation command and validate cycles (1.1325ms)
+✔ unit metadata service also rejects administrative relation fields, including no-op values (0.2398ms)
+✔ country metadata service does not accept administrative or political relation fields (0.2095ms)
+✔ independent regional objects reject administrative parents (0.167ms)
+✔ country-specific metadata uses the common entity metadata surface for no-op detection (0.2766ms)
+✔ territorial normalization rejects legacy aliases and duplicate IDs (2.2439ms)
+✔ hierarchy uses parent relations without administrative levels (1.4694ms)
+✔ explicit regions keep independent parent and country association relationships (0.2539ms)
+✔ deprecated remainder flags are not stored (0.3267ms)
+✔ dangling references and circular parents fail without automatic clearing (0.3323ms)
+✔ dated relations resolve by reference date and overlapping ranges are rejected (0.7988ms)
+✔ territorial transaction records and autosaves once on success (1.1395ms)
+✔ territorial transaction restores once and skips history/autosave on failure (1.0685ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 31
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 189.7705
+
+✖ failing tests:
+
+test at tests\unit\project-state.test.mjs:96:1
+✖ current project schema accepts only explicit current versions and UUID object IDs (2.3479ms)
+  Error: 기간별 관계 00000000-0000-4000-8000-000000000002의 schemaVersion 3은 지원하지 않습니다. 현재 버전은 2입니다.
+      at schemaError (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:37:17)
+      at requireSchemaVersion (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:45:11)
+      at assertCurrentProjectSchema (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:147:62)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-state.test.mjs:97:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'PL-SCHEMA-OLD'
+  }
+
+test at tests\unit\project-state.test.mjs:103:1
+✖ distribution boundary visibility is a shared optional presentation setting (0.4334ms)
+  Error: 기간별 관계 00000000-0000-4000-8000-000000000002의 schemaVersion 3은 지원하지 않습니다. 현재 버전은 2입니다.
+      at schemaError (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:37:17)
+      at requireSchemaVersion (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:45:11)
+      at assertCurrentProjectSchema (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:147:62)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-state.test.mjs:106:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'PL-SCHEMA-OLD'
+  }
+
+test at tests\unit\project-state.test.mjs:113:1
+✖ canonical river and lake presentation groups are accepted while hydro output is rejected (0.8324ms)
+  Error: 기간별 관계 00000000-0000-4000-8000-000000000002의 schemaVersion 3은 지원하지 않습니다. 현재 버전은 2입니다.
+      at schemaError (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:37:17)
+      at requireSchemaVersion (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:45:11)
+      at assertCurrentProjectSchema (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:147:62)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-state.test.mjs:123:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'PL-SCHEMA-OLD'
+  }
+
+test at tests\unit\project-state.test.mjs:132:1
+✖ missing duplicate and unsupported object fields are rejected (1.4224ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /지원하지 않는 필드 role/. Input:
+  
+  'Error: 기간별 관계 00000000-0000-4000-8000-000000000002의 schemaVersion 3은 지원하지 않습니다. 현재 버전은 2입니다.'
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-state.test.mjs:144:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: 기간별 관계 00000000-0000-4000-8000-000000000002의 schemaVersion 3은 지원하지 않습니다. 현재 버전은 2입니다.
+        at schemaError (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:37:17)
+        at requireSchemaVersion (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:45:11)
+        at assertCurrentProjectSchema (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:147:62)
+        at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-state.test.mjs:144:23
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-state.test.mjs:144:10)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1402:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:974:18),
+    expected: /지원하지 않는 필드 role/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at tests\unit\project-state.test.mjs:147:1
+✖ session state and unsupported model fields are rejected from project files (1.1791ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /지원하지 않는 필드 unknownField/. Input:
+  
+  'Error: 기간별 관계 00000000-0000-4000-8000-000000000002의 schemaVersion 3은 지원하지 않습니다. 현재 버전은 2입니다.'
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-state.test.mjs:155:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: 기간별 관계 00000000-0000-4000-8000-000000000002의 schemaVersion 3은 지원하지 않습니다. 현재 버전은 2입니다.
+        at schemaError (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:37:17)
+        at requireSchemaVersion (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:45:11)
+        at assertCurrentProjectSchema (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/project-state.js:147:62)
+        at file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-state.test.mjs:155:23
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/project-state.test.mjs:155:10)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1402:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:974:18),
+    expected: /지원하지 않는 필드 unknownField/,
+    operator: 'throws',
+    diff: 'simple'
+  }

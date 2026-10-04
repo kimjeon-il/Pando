@@ -1,0 +1,48 @@
+assets/js/modules\app-capability-ports-foundation.js:155:  landRelations: Object.freeze([["partitionGroupMatches","landRelations","partitionGroupMatches"],["pointInCountryFeature","landRelations","pointInCountryFeature"],["reassignGenericFeatureParents","landRelations","reassignGenericFeatureParents"],["reassignLandDependents","landRelations","reassignLandDependents"],["reconcileTerritorialUnitCompleteness","landRelations","reconcileTerritorialUnitCompleteness"],["transferLandDependents","landRelations","transferLandDependents"]]),
+assets/js/modules\app-capability-ports.js:191:      get territorialUnitContainer() { return providers.objectMetadata.territorialUnitContainer; },
+assets/js/modules\app-gis-assembly.js:41:      partitionGroupMatches: dependencies.landRelations.partitionGroupMatches,
+assets/js/modules\app-land-relations.js:38:  function partitionGroupMatches(feature, { entityKind, sovereignId, parentId = '' }) {
+assets/js/modules\app-land-relations.js:40:      && String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || '') === String(sovereignId || '')
+assets/js/modules\app-land-relations.js:41:      && String(feature.properties?.parentId || '') === String(parentId || sovereignId || '');
+assets/js/modules\app-land-relations.js:54:      const container = (0, dependencies.territoryGeometry.territorialUnitContainer)(feature);
+assets/js/modules\app-land-relations.js:129:    get partitionGroupMatches() { return partitionGroupMatches; },
+assets/js/modules\app-object-metadata.js:70:  function territorialUnitContainer(feature, { sovereignId = (0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)), parentId = feature?.properties?.parentId } = {}) {
+assets/js/modules\app-object-metadata.js:75:    const country = dependencies.territorialModel.entityRepository.get(sovereignId);
+assets/js/modules\app-object-metadata.js:113:    get territorialUnitContainer() { return territorialUnitContainer; },
+assets/js/modules\app-task-stage-model.js:31:    addCountry(session.sovereignId);
+assets/js/modules\app-task-presentation.js:140:      if (selection.sovereignId) rows.push(['소속 국가', names([selection.sovereignId])]);
+assets/js/modules\app-task-presentation.js:141:      if (selection.parentId && selection.parentId !== selection.sovereignId) rows.push(['상위 단위', names([selection.parentId])]);
+assets/js/modules\app-territorial-drafts.js:97:            impacts: result.ownershipChanges.map(change => (units.find(unit => text(unit.id) === change.id)?.properties.name || change.id) + ': ' + (change.replacementId ? '합병 후 참조 이전' : '상위 단위 ' + change.to + (change.sovereignId ? ' · 소속 국가 ' + change.sovereignId : ''))).concat(partial.map(impact => `${impact.name}: ${impact.kind === 'remove-child' ? '객체와 참조 삭제' : '일부 영역 절단 · ' + (0, dependencies.applicationServicesB.sphericalGeometryAreaKm2)(impact.geometry).toFixed(3) + ' km²'}`)),
+assets/js/modules\app-territorial-drafts.js:184:    return dependencies.territorialModel.entityRepository.children(session.parentId, { kind: 'general' }).filter(feature => text((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id))) === text(session.sovereignId));
+assets/js/modules\app-territorial-drafts.js:188:    const cacheKey = `${text(session.sovereignId)}:${text(session.parentId)}:${Number(dependencies.projectState.state.stateRevision || 0)}`;
+assets/js/modules\app-territorial-drafts.js:235:      || text((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id))) !== text(session.sovereignId)
+assets/js/modules\app-territorial-drafts.js:263:      parentId: text(parentId), sovereignId: parent ? text(dependencies.territorialModel.entityRepository.root(parent.id).id) : '',
+assets/js/modules\app-territorial-drafts.js:280:    session.parentId = ''; session.sovereignId = ''; session.sourceKey = ''; session.sourceCountryIds = [];
+assets/js/modules\app-territorial-drafts.js:302:    session.parentId = text(target.properties.parentId); session.sovereignId = text((0, dependencies.territorialModel.territorialRootId)(target, id => dependencies.territorialModel.entityRepository.get(id)));
+assets/js/modules\app-territorial-drafts.js:316:    session.sovereignId = parent ? text(dependencies.territorialModel.entityRepository.root(parent.id).id) : '';
+assets/js/modules\app-territorial-drafts.js:357:      sovereignId: session.entityKind === 'general' && !!session.parentId ? session.sovereignId : '',
+assets/js/modules\app-territorial-drafts.js:360:    const fingerprint = JSON.stringify([session.kind, session.sovereignId, session.parentId, session.sourceKey, [...session.sourceCountryIds].sort()]);
+assets/js/modules\app-territorial-drafts.js:383:    session.sovereignId = text((0, dependencies.territorialModel.territorialRootId)(source, id => dependencies.territorialModel.entityRepository.get(id)));
+assets/js/modules\boundary-topology.js:411:      .filter(sovereignId => sovereignId && countryIds.has(sovereignId)));
+assets/js/modules\app-territory-selection-workflow.js:49:      sovereignId: text(options.sovereignId),
+assets/js/modules\app-territory-selection-workflow.js:343:      current.sovereignId, current.parentId, current.sourceKey, ...current.sourceCountryIds,
+assets/js/modules\gis-import-transaction.js:28:    partitionGroupMatches,
+assets/js/modules\gis-import-transaction.js:193:  function importedTerritorialParent(parentId, sovereignId, country, units = entityStore.snapshot().filter(entity => !(entity.properties.entityKind === 'general' && !entity.properties.parentId))) {
+assets/js/modules\gis-import-transaction.js:198:    return normalizedParentId === String(sovereignId || '') ? country : null;
+assets/js/modules\gis-import-transaction.js:236:        sovereignId: countryId,
+assets/js/modules\gis-import-transaction.js:239:      const siblings = nextUnits.filter(candidate => partitionGroupMatches(candidate, context));
+assets/js/modules\gis-import-transaction.js:345:        const sovereignId = countryOf(feature);
+assets/js/modules\gis-import-transaction.js:346:        if (!sovereignId && kind === 'region') continue;
+assets/js/modules\gis-import-transaction.js:347:        const country = draftCountryById.get(sovereignId);
+assets/js/modules\gis-import-transaction.js:349:        const parent = importedTerritorialParent(parentId, sovereignId, country);
+assets/js/modules\gis-import-transaction.js:352:          objectIds: [feature.id, sovereignId],
+assets/js/modules\gis-import-transaction.js:366:            objectIds: [feature.id, sovereignId, parentId],
+assets/js/modules\gis-import-transaction.js:520:        sovereignId: countryOf(feature),
+assets/js/modules\gis-import-transaction.js:523:      const siblings = nextUnits.filter(candidate => partitionGroupMatches(candidate, context));
+assets/js/modules\historical-library-controller.js:90:          sovereignId: choice.countryId,
+assets/js/modules\library-ownership.js:49:export function shouldShowTerritorialParentChoice({ sovereignId = '', parentId = '', options = [] } = {}) {
+assets/js/modules\library-ownership.js:50:  const sovereign = text(sovereignId);
+assets/js/modules\territorial-edit-plan.js:191:        ownershipChanges.push({ id: id(unit.id), from: id(unit.properties.parentId), to: id(parentId), sovereignId: countryId });
+assets/js/modules\territorial-edit-plan.js:232:        ownershipChanges.push({ id: id(unit.id), from: id(unit.properties.parentId), to: id(next.properties.parentId), sovereignId: id(newCountry.id) });
+assets/js/modules\territorial-units.js:38:  for (const field of ['unitType', 'associatedCountryId', 'sovereignId']) {
+assets/js/modules\territorial-units.js:174:    if (Number(raw?.schemaVersion) !== 3 || ['sovereignId', 'associatedCountryId'].some(field => Object.hasOwn(raw, field))) throw new Error('기간별 관계 schemaVersion이 현재 형식과 일치하지 않습니다.');

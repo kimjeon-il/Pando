@@ -1,0 +1,27 @@
+✔ all four territory workflows expose concise setup, selection and review headings (232.8513ms)
+✔ all territory draw candidates must be archived through validation before advancing (117.5156ms)
+✔ subunit and region selected components archive on method change with their exact snapshots (52.8529ms)
+✔ new-country setup retains every selected source country and its reference count (1.4458ms)
+✔ all four operations use setup, selection, review and preserve a selection through back navigation (3.5902ms)
+✔ back to setup clears only transient input and preserves the draft and ready preview (1.2758ms)
+✔ a mixed line, line, polygon session keeps archived units and previews their union once (1.3789ms)
+✔ line, component and polygon parts remain together across method changes and review (1.7071ms)
+✔ component units archive and undo one item at a time (6.3334ms)
+✔ removing a middle part keeps the other parts and recalculates its real aggregate (1.6727ms)
+✔ switching from selected components archives them before opening another method (1.7145ms)
+✔ a method switch requested during component preview waits for validation before archiving (0.6644ms)
+✔ removing one component part keeps its shared snapshot until the last referencing part is removed (0.6978ms)
+✔ method changes preserve archived items and ask before discarding the current item (0.8504ms)
+✔ region can add a reference country only when a later line or component method needs it (0.7442ms)
+✔ the common scheduler only keeps the latest aggregate preview and applies once (0.8029ms)
+✔ late selection result cannot restore cleared geometry and cancel stops the worker (0.6304ms)
+✔ selection coalesces clicks without rebuilding source and supports worker error retry (11.0848ms)
+✔ line candidates use result IDs, toggle multiple pieces, clear selection and archive their union (56.3829ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2578.2624
