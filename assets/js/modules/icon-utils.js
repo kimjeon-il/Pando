@@ -8,6 +8,8 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const ICON_REGISTRY = Object.freeze({
   entity: 'icon-territory',
   add: 'icon-plus',
+  hierarchy: 'icon-subunits',
+  copy: 'icon-copy',
   close: 'icon-close',
   check: 'icon-check',
   save: 'icon-save',
