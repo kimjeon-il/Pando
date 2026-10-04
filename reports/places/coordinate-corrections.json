@@ -1,0 +1,783 @@
+{
+  "version": 1,
+  "scope": "Romania hold reclassification coordinate corrections",
+  "checkedAt": "2026-10-04",
+  "policy": {
+    "identity": "The 35 GeoNames records are retained because the named SIRUTA seat/locality identity is established.",
+    "sourcePreservation": "Do not overwrite reports/places/candidate-reviews.json expected latitude/longitude; those fields pin the reviewed GeoNames snapshot.",
+    "coordinateUse": "These points are correction candidates for a later coordinate-override/normalization stage and are not yet runtime-applied.",
+    "provenance": "SIRUTA is used for identity and parent linkage. The correction point is a mapped physical settlement point and is explicitly not represented as an official INS centroid."
+  },
+  "records": [
+    {
+      "geonameId": 663045,
+      "name": "Vereşti",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 47.6,
+        "longitude": 26.43333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 47.60697,
+        "longitude": 26.43962
+      },
+      "shiftKm": 0.907,
+      "sirutaLocalityId": 151031,
+      "sirutaParentId": 151022,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap village point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13671768",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 663575,
+      "name": "Valea Moldovei",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 47.46667,
+        "longitude": 26.03333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 47.47336,
+        "longitude": 26.02118
+      },
+      "shiftKm": 1.178,
+      "sirutaLocalityId": 150908,
+      "sirutaParentId": 150891,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13672828",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 664459,
+      "name": "Turdaş",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45.85,
+        "longitude": 23.11667
+      },
+      "correctedSettlementPoint": {
+        "latitude": 45.85285,
+        "longitude": 23.12353
+      },
+      "shiftKm": 0.619,
+      "sirutaLocalityId": 91697,
+      "sirutaParentId": 91688,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "Wikidata locality coordinate",
+      "sourceUrl": "https://www.wikidata.org/wiki/Q15520545",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 665382,
+      "name": "Tăuții-Măgherăuș",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 47.65,
+        "longitude": 23.48333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 47.66597,
+        "longitude": 23.46799
+      },
+      "shiftKm": 2.115,
+      "sirutaLocalityId": 106470,
+      "sirutaParentId": 106461,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13676442",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 665764,
+      "name": "Suplac",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.38333,
+        "longitude": 24.51667
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.39675,
+        "longitude": 24.51992
+      },
+      "shiftKm": 1.513,
+      "sirutaLocalityId": 119670,
+      "sirutaParentId": 119661,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13677206",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 665914,
+      "name": "Strunga",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 47.16667,
+        "longitude": 26.98333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 47.16733,
+        "longitude": 26.95434
+      },
+      "shiftKm": 2.193,
+      "sirutaLocalityId": 99218,
+      "sirutaParentId": 99209,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13677506",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 666670,
+      "name": "Slobozia Conachi",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45.58333,
+        "longitude": 27.78333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 45.58429,
+        "longitude": 27.76978
+      },
+      "shiftKm": 1.06,
+      "sirutaLocalityId": 77199,
+      "sirutaParentId": 77180,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13679018",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 666933,
+      "name": "Sântana de Mureş",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.56667,
+        "longitude": 24.55
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.58074,
+        "longitude": 24.55975
+      },
+      "shiftKm": 1.733,
+      "sirutaLocalityId": 114462,
+      "sirutaParentId": 114453,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13679544",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 667123,
+      "name": "Sâmbureşti",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 44.8,
+        "longitude": 24.41667
+      },
+      "correctedSettlementPoint": {
+        "latitude": 44.80639,
+        "longitude": 24.3994
+      },
+      "shiftKm": 1.537,
+      "sirutaLocalityId": 128891,
+      "sirutaParentId": 128882,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/es/13679924",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 667243,
+      "name": "Siculeni",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.41667,
+        "longitude": 25.75
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.4361,
+        "longitude": 25.75902
+      },
+      "shiftKm": 2.268,
+      "sirutaLocalityId": 85635,
+      "sirutaParentId": 85626,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13680164",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 668322,
+      "name": "Săcel",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.3,
+        "longitude": 24.93333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.31362,
+        "longitude": 24.92999
+      },
+      "shiftKm": 1.536,
+      "sirutaLocalityId": 85476,
+      "sirutaParentId": 85467,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13682322",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 668809,
+      "name": "Râu Sadului",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45.61667,
+        "longitude": 24.06667
+      },
+      "correctedSettlementPoint": {
+        "latitude": 45.62361,
+        "longitude": 24.06054
+      },
+      "shiftKm": 0.907,
+      "sirutaLocalityId": 145391,
+      "sirutaParentId": 145382,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13683296",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 670360,
+      "name": "Pocola",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.68333,
+        "longitude": 22.28333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.69496,
+        "longitude": 22.29354
+      },
+      "shiftKm": 1.51,
+      "sirutaLocalityId": 30425,
+      "sirutaParentId": 30416,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap village node surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/N454155299",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 671363,
+      "name": "Papiu Ilarian",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.55,
+        "longitude": 24.2
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.55932,
+        "longitude": 24.20059
+      },
+      "shiftKm": 1.037,
+      "sirutaLocalityId": 118646,
+      "sirutaParentId": 118637,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13688404",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 672263,
+      "name": "Nicolae Titulescu",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 44.3,
+        "longitude": 24.8
+      },
+      "correctedSettlementPoint": {
+        "latitude": 44.2706,
+        "longitude": 24.75862
+      },
+      "shiftKm": 4.641,
+      "sirutaLocalityId": 127723,
+      "sirutaParentId": 127714,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13690204",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 673140,
+      "name": "Mirceşti",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 47.08333,
+        "longitude": 26.83333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 47.06511,
+        "longitude": 26.84739
+      },
+      "shiftKm": 2.289,
+      "sirutaLocalityId": 97820,
+      "sirutaParentId": 97811,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/fr/13691958",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 674636,
+      "name": "Loamneş",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45.93333,
+        "longitude": 24.1
+      },
+      "correctedSettlementPoint": {
+        "latitude": 45.94453,
+        "longitude": 24.08478
+      },
+      "shiftKm": 1.714,
+      "sirutaLocalityId": 144802,
+      "sirutaParentId": 144795,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13694950",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 676798,
+      "name": "Grajduri",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.96667,
+        "longitude": 27.51667
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.97282,
+        "longitude": 27.53882
+      },
+      "shiftKm": 1.814,
+      "sirutaLocalityId": 97250,
+      "sirutaParentId": 97241,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13699274",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 677165,
+      "name": "Gârnic",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 44.78639,
+        "longitude": 21.79444
+      },
+      "correctedSettlementPoint": {
+        "latitude": 44.75126,
+        "longitude": 21.79047
+      },
+      "shiftKm": 3.919,
+      "sirutaLocalityId": 52918,
+      "sirutaParentId": 52909,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap village node surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/N391032682",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 677360,
+      "name": "Ghindăreşti",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 44.65,
+        "longitude": 28.03333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 44.64068,
+        "longitude": 28.0291
+      },
+      "shiftKm": 1.089,
+      "sirutaLocalityId": 61853,
+      "sirutaParentId": 61826,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13700398",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 678883,
+      "name": "Drăguşeni",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 47.28333,
+        "longitude": 26.48333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 47.29679,
+        "longitude": 26.48985
+      },
+      "shiftKm": 1.575,
+      "sirutaLocalityId": 148391,
+      "sirutaParentId": 148382,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13703444",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 678923,
+      "name": "Dragomireşti",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 47.01667,
+        "longitude": 26.53333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 47.02914,
+        "longitude": 26.57157
+      },
+      "shiftKm": 3.213,
+      "sirutaLocalityId": 122409,
+      "sirutaParentId": 122392,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13703524",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 678997,
+      "name": "Drăgăneşti",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.61667,
+        "longitude": 22.38333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.62926,
+        "longitude": 22.39428
+      },
+      "shiftKm": 1.631,
+      "sirutaLocalityId": 29252,
+      "sirutaParentId": 29243,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/es/13703672",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 679177,
+      "name": "Ștei",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.53333,
+        "longitude": 22.45
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.53576,
+        "longitude": 22.45575
+      },
+      "shiftKm": 0.516,
+      "sirutaLocalityId": 26859,
+      "sirutaParentId": 26840,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13704032",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 679604,
+      "name": "Dealu Morii",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.31667,
+        "longitude": 27.23333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.30261,
+        "longitude": 27.29759
+      },
+      "shiftKm": 5.177,
+      "sirutaLocalityId": 22246,
+      "sirutaParentId": 22237,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13704886",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 679909,
+      "name": "Curtea",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45.81667,
+        "longitude": 22.3
+      },
+      "correctedSettlementPoint": {
+        "latitude": 45.8297,
+        "longitude": 22.30784
+      },
+      "shiftKm": 1.571,
+      "sirutaLocalityId": 156598,
+      "sirutaParentId": 156589,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13705496",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 680398,
+      "name": "Cozma",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.81667,
+        "longitude": 24.53333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.80707,
+        "longitude": 24.52253
+      },
+      "shiftKm": 1.347,
+      "sirutaLocalityId": 116233,
+      "sirutaParentId": 116224,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13706474",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 680831,
+      "name": "Cordun",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 46.95,
+        "longitude": 26.86667
+      },
+      "correctedSettlementPoint": {
+        "latitude": 46.95057,
+        "longitude": 26.8951
+      },
+      "shiftKm": 2.159,
+      "sirutaLocalityId": 120897,
+      "sirutaParentId": 120888,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13707340",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 682823,
+      "name": "Căpățânenii Pământeni",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45.31667,
+        "longitude": 24.65
+      },
+      "correctedSettlementPoint": {
+        "latitude": 45.32423,
+        "longitude": 24.63922
+      },
+      "shiftKm": 1.19,
+      "sirutaLocalityId": 14058,
+      "sirutaParentId": 14049,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13711324",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 683166,
+      "name": "Butea",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 47.06667,
+        "longitude": 26.91667
+      },
+      "correctedSettlementPoint": {
+        "latitude": 47.07365,
+        "longitude": 26.9358
+      },
+      "shiftKm": 1.644,
+      "sirutaLocalityId": 96129,
+      "sirutaParentId": 96110,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13712010",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 683543,
+      "name": "Bucovăţ",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 44.3,
+        "longitude": 23.75
+      },
+      "correctedSettlementPoint": {
+        "latitude": 44.29267,
+        "longitude": 23.73814
+      },
+      "shiftKm": 1.247,
+      "sirutaLocalityId": 69973,
+      "sirutaParentId": 69964,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13712764",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 683641,
+      "name": "Broşteni",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45.75,
+        "longitude": 27.03333
+      },
+      "correctedSettlementPoint": {
+        "latitude": 45.76553,
+        "longitude": 27.02217
+      },
+      "shiftKm": 1.932,
+      "sirutaLocalityId": 175475,
+      "sirutaParentId": 175466,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/es/13712960",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 683890,
+      "name": "Bran",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45.51667,
+        "longitude": 25.35
+      },
+      "correctedSettlementPoint": {
+        "latitude": 45.51633,
+        "longitude": 25.37157
+      },
+      "shiftKm": 1.681,
+      "sirutaLocalityId": 40642,
+      "sirutaParentId": 40633,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap village node surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/N262388424",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 684583,
+      "name": "Blejoi",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45,
+        "longitude": 26.01667
+      },
+      "correctedSettlementPoint": {
+        "latitude": 44.99185,
+        "longitude": 26.01163
+      },
+      "shiftKm": 0.989,
+      "sirutaLocalityId": 130687,
+      "sirutaParentId": 130678,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13714844",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    },
+    {
+      "geonameId": 686658,
+      "name": "Adunaţi",
+      "countryCode": "RO",
+      "sourceSnapshot": {
+        "latitude": 45.13333,
+        "longitude": 25.61667
+      },
+      "correctedSettlementPoint": {
+        "latitude": 45.18537,
+        "longitude": 25.59936
+      },
+      "shiftKm": 5.944,
+      "sirutaLocalityId": 131906,
+      "sirutaParentId": 131899,
+      "status": "proposed-coordinate-override",
+      "identityDecision": "retain",
+      "sourceType": "OpenStreetMap settlement point surfaced via Mapcarta",
+      "sourceUrl": "https://mapcarta.com/13718994",
+      "checkedAt": "2026-10-04",
+      "provenanceNote": "SIRUTA fixes the target locality identity; this coordinate is a mapped physical settlement point, not an official INS representative point. The pinned GeoNames source coordinate remains unchanged."
+    }
+  ]
+}
