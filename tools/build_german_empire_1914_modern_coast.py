@@ -20,10 +20,21 @@ def get_json(url):
     r=requests.get(url,timeout=60,headers={"User-Agent":"PandoLab-GermanEmpire1914/1.0"})
     r.raise_for_status(); return r.json()
 
-def iso3(props):
-    for k in ("ADM0_A3","SOV_A3","ISO_A3","iso_a3","adm0_a3"):
-        v=props.get(k)
-        if isinstance(v,str) and len(v)==3 and v!="-99": return v
+TARGET_ALIASES={
+    "DEU":{"DEU","Germany","Deutschland","Federal Republic of Germany"},
+    "DNK":{"DNK","Denmark","Danmark","Kingdom of Denmark"},
+    "POL":{"POL","Poland","Polska","Republic of Poland"},
+    "RUS":{"RUS","Russia","Russian Federation","Российская Федерация"},
+    "LTU":{"LTU","Lithuania","Lietuva","Republic of Lithuania"},
+}
+def target_code(feature):
+    vals=[]
+    if feature.get("id") is not None: vals.append(str(feature.get("id")))
+    for v in (feature.get("properties") or {}).values():
+        if isinstance(v,(str,int,float)): vals.append(str(v))
+    exact={v.strip() for v in vals}
+    for code,aliases in TARGET_ALIASES.items():
+        if exact & aliases: return code
     return None
 
 def clean(g):
@@ -33,11 +44,15 @@ def clean(g):
 with WORLD.open(encoding="utf-8") as f: world=json.load(f)
 features=world["features"]
 target_parts=[]
+found_codes=[]
 for f in features:
-    code=iso3(f.get("properties",{}))
+    code=target_code(f)
     if code in TARGET:
+        found_codes.append(code)
         target_parts.append(clean(shape(f["geometry"])))
-if not target_parts: raise SystemExit("target current-country geometries not found")
+if set(found_codes)!=TARGET:
+    sample=[{"id":f.get("id"),"properties":f.get("properties",{})} for f in features[:3]]
+    raise SystemExit("target current-country geometries incomplete: found="+repr(sorted(set(found_codes)))+" sample="+repr(sample))
 modern_target=clean(unary_union(target_parts))
 
 hgis=get_json(HGIS_URL)
