@@ -1,21 +1,17 @@
 import { createGpuCanvasWorker } from './gpu-canvas-worker.js';
-import { drawGpuBaseScene } from './gpu-base-scene-pass.js';
 import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
-import { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan } from './gpu-scene-preparation.js';
 import { createGpuResourceLifecycle, createGpuUploadScope } from './gpu-resource-lifecycle.js';
 import { createGpuWorkerChannels } from './gpu-worker-channels.js';
 import { createGpuTerrainPreparation } from './gpu-terrain-preparation.js';
 import { TERRAIN_DEM_FORMAT, TERRAIN_RASTER_DATASET, TERRAIN_RASTER_FORMAT, TERRAIN_RASTER_VERSION, terrainAssetUrl, validateTerrainManifest } from './terrain-manifest.js';
 import { terrainDemFragmentSource } from './terrain-dem-shaders.js';
 import { resolveMapInteractionStyle } from './map-interaction-style.js';
-import '../workers/canvas-scene-composition-core.js';
 import { decodeCountryMesh } from './country-mesh-codec.js';
 import { createCountryTriangleRangeMap } from './gpu-country-ranges.js';
 export { countryDrawRangesForFrame, createCountryTriangleRangeMap, mergeCountryDrawRanges } from './gpu-country-ranges.js';
 import { createRenderDevice } from './render-device.js';
 import { createSceneColorCache } from './scene-color-cache.js';
 import { createGpuPolygonOverlayPass } from './gpu-polygon-overlay-pass.js';
-import { createGpuStrokeRenderer } from './gpu-stroke-renderer.js';
 import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 import { linkGpuProgram } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
@@ -28,6 +24,14 @@ import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
 import { resolveCountryMeshQuality } from './country-mesh-zoom-policy.js';
 import { shouldShowSharedCountryBorders, excludeCountryBoundaryOwners } from './country-shared-boundary-packet.js';
 import { geometryRevision } from './geometry-versions.js';
+
+const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
+const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan }, { createGpuStrokeRenderer }] = await Promise.all([
+  import(`./gpu-base-scene-pass.js?v=${encodeURIComponent(rendererAssetRevision)}`),
+  import(`./gpu-scene-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
+  import(`./gpu-stroke-renderer.js?v=${encodeURIComponent(rendererAssetRevision)}`),
+  import(`../workers/canvas-scene-composition-core.js?v=${encodeURIComponent(rendererAssetRevision)}`),
+]);
 
 const DEFAULT_RENDER_QUALITY = Object.freeze({
   tier: 'high',

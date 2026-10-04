@@ -1,5 +1,7 @@
 'use strict';
-importScripts('../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js');
+const assetRevision = new URL(self.location.href).searchParams.get('v') || '';
+importScripts(...['../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js']
+  .map(path => { const url = new URL(path, self.location.href); url.searchParams.set('v', assetRevision); return url.href; }));
 
 function canvasFallbackWorkerMain() {
     let canvas = null;

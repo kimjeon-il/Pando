@@ -71,6 +71,8 @@ test('multiply strokes preserve opacity at centers and antialiased edges', async
 
 test('Canvas receives the graticule scene and paints mixed overlays with protected base pixels', async ({ page, baseURL }) => {
   test.setTimeout(180_000);
+  const coreRequests = [];
+  page.on('request', request => { if (request.url().includes('canvas-scene-composition-core.js')) coreRequests.push(request.url()); });
   await page.addInitScript(() => {
     window.__graticulePackets = [];
     const post = Worker.prototype.postMessage;
@@ -83,6 +85,8 @@ test('Canvas receives the graticule scene and paints mixed overlays with protect
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.__graticulePackets.length), { timeout: 30_000 }).toBeGreaterThan(0);
   await expect(page.locator('path.map-graticule')).toHaveCount(0);
+  const build = await page.evaluate(() => window.PANDOLAB_BUILD_META.assetRevision);
+  expect(coreRequests.some(url => new URL(url).searchParams.get('v') === build)).toBe(true);
   const pixels = await page.evaluate(async root => {
     await import(new URL('assets/js/workers/canvas-scene-composition-core.js', root).href);
     const { createRenderSceneBuilder } = await import(new URL('assets/js/modules/render-scene.js', root).href);
@@ -160,6 +164,41 @@ test('Canvas receives the graticule scene and paints mixed overlays with protect
   expect(pixels.workerPixels.grid[3]).toBeGreaterThanOrEqual(127);
   expect(pixels.workerPixels.grid[3]).toBeLessThanOrEqual(128);
   expect(pixels.workerPixels.covered).toEqual([255, 0, 0, 255]);
+});
+
+test('main-thread Canvas draws the graticule when the Canvas Worker is unavailable', async ({ page, baseURL }) => {
+  test.setTimeout(180_000);
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      constructor(url, options) {
+        if (String(url).includes('canvas-render-worker.js')) throw new Error('Injected Canvas Worker unavailable');
+        super(url, options);
+      }
+    };
+    window.__gridChangedPixels = 0;
+    const stroke = window.CanvasRenderingContext2D.prototype.stroke;
+    window.CanvasRenderingContext2D.prototype.stroke = function(...args) {
+      const inspect = !window.__gridChangedPixels && this.canvas.classList?.contains('gpu-map-canvas')
+        && this.strokeStyle === '#aaaaaa' && this.canvas.width > 100;
+      const before = inspect ? this.getImageData(0, 0, this.canvas.width, this.canvas.height).data : null;
+      stroke.apply(this, args);
+      if (inspect) {
+        const after = this.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+        let changed = 0;
+        for (let index = 0; index < after.length; index += 4) if (after[index] !== before[index]
+          || after[index + 1] !== before[index + 1] || after[index + 2] !== before[index + 2] || after[index + 3] !== before[index + 3]) changed++;
+        window.__gridChangedPixels = changed;
+      }
+    };
+  });
+  await page.goto(new URL('?renderer=canvas&debug=1', site(baseURL)).href);
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.renderer)).toBe('canvas2d');
+  await expect.poll(() => page.evaluate(() => window.__gridChangedPixels), { timeout: 30_000 }).toBeGreaterThan(100);
+  await expect(page.locator('path.map-graticule')).toHaveCount(0);
+  expect(errors).toEqual([]);
 });
 
 for (const failure of ['compile-exception', 'self-test-false', 'webgl1-no-instancing']) {
