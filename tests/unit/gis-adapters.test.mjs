@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { TERRITORIAL_SCHEMA_VERSION, normalizeTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
 await import('../../assets/js/gis-adapters.js');
 const adapters = globalThis.PandoLabGisAdapters;
@@ -75,13 +76,17 @@ test('GIS distribution import keeps stable IDs and reports collisions', () => {
     features: [{ ...feature('bad'), properties: { ...feature('bad').properties, value: '' } }] }]), /1행/);
 });
 
-test('the canonical subunit table imports through the adapter', () => {
+test('the canonical general entity table imports a child with the current schema', () => {
   const source = {
     type: 'Feature', geometry: polygon(), properties: { id: 'admin-1', name: '아티키', parent_id: 'GR' },
   };
   const imported = adapters.importTerritorialFeature(source, 'entities');
-  assert.equal(imported.properties.schemaVersion, 4);
+  assert.equal(imported.properties.schemaVersion, TERRITORIAL_SCHEMA_VERSION);
   assert.equal(imported.properties.entityKind, 'general');
   assert.equal(imported.properties.parentId, 'GR');
+  assert.equal(imported.properties.coverageMode, 'partition');
+  const normalized = normalizeTerritorialFeature(imported);
+  assert.equal(normalized.id, 'admin-1');
+  assert.deepEqual(normalized.geometry, source.geometry);
   assert.equal(adapters.TERRITORIAL_TABLES.general, 'entities');
 });

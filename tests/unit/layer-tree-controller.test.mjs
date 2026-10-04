@@ -33,7 +33,7 @@ function setup({ builtinSearch, cancelBuiltinSearch, builtinRecordVisible } = {}
   };
   const itemRef = (group, id) => normalizeObjectRef({
     domain: group === 'countries' ? 'territorial' : group === 'labels' ? 'label' : 'generic',
-    type: group === 'countries' ? 'country' : group === 'labels' ? 'label' : 'polygon', id,
+    type: group === 'countries' ? 'entity' : group === 'labels' ? 'label' : 'feature', id,
   });
   const selectionDomain = createSelectionDomain();
   const ui = createSelectionUiController({ selectionDomain, resolveRef: normalizeObjectRef });

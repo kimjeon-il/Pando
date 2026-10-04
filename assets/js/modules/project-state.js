@@ -3,7 +3,6 @@ import { createGeometryVersionStore } from './geometry-version-store.js';
 import { restoreTimelineStorage } from './timeline-storage.js';
 import { staticTimelineViews } from './timeline-static-view.js';
 import { assertProjectReferenceIntegrity } from './project-invariants.js';
-import { restoreEntitiesFromDelta } from './project-serializer.js';
 import { normalizeDistributionLayers, normalizeDistributionEntries } from './distribution-model.js';
 import { validateSourceProvenance } from './source-provenance.js';
 import {
@@ -42,6 +41,39 @@ function schemaError(message, code = 'PL-SCHEMA-001') {
   const error = new Error(message);
   error.code = code;
   return error;
+}
+
+export function assertProjectBaselineFingerprint(value) {
+  if (typeof value !== 'string' || !/^[a-f0-9]{64}$/.test(value))
+    throw schemaError('자동저장 기준 데이터 fingerprint가 필요합니다.', 'PL-SCHEMA-BASE');
+}
+
+/** Restore detached identities against the exact baseline before validating the project. */
+export function restoreEntitiesFromDelta(project, { base, baseDataset, baseDatasetFingerprint, clone = structuredClone }) {
+  const delta = project.entityDelta;
+  if (!Array.isArray(base) || !Array.isArray(delta?.changed) || !Array.isArray(delta?.removedIds)) throw new TypeError('영역 변경분 또는 기본 자료가 올바르지 않습니다.');
+  assertProjectBaselineFingerprint(project.baseDatasetFingerprint);
+  if (typeof baseDataset !== 'string' || !baseDataset || baseDataset !== project.baseDataset
+    || baseDatasetFingerprint !== project.baseDatasetFingerprint)
+    throw schemaError('자동저장 기준 데이터가 없거나 저장된 기준과 다릅니다.', 'PL-SCHEMA-BASE');
+  const changes = new Map();
+  const removed = new Set(delta.removedIds);
+  if (removed.size !== delta.removedIds.length || delta.removedIds.some(id => typeof id !== 'string' || !id.trim()))
+    throw new TypeError('영역 삭제 ID가 올바르지 않습니다.');
+  const identities = normalizeTerritorialIdentities(base);
+  for (const feature of normalizeTerritorialIdentities(delta.changed)) {
+    const id = String(feature.id);
+    if (changes.has(id) || removed.has(id)) throw new Error('영역 변경 ID 중복: ' + id);
+    changes.set(id, feature);
+  }
+  const entities = identities.filter(feature => !removed.has(String(feature.id))).map(feature => {
+    const replacement = changes.get(String(feature.id)); changes.delete(String(feature.id));
+    return clone(replacement || feature);
+  }).concat([...changes.values()].map(entity => clone(entity)));
+  const result = normalizeTerritorialIdentities(entities);
+  restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords, geometries: project.geometries },
+    result.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })));
+  return result;
 }
 
 function requireSchemaVersion(value, label, expected = PROJECT_SCHEMA_VERSION) {
