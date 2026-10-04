@@ -12,7 +12,7 @@ test.use({
 test.skip(process.env.PANDOLAB_VERIFY_LIVE_DEM !== '1' && !process.env.PANDOLAB_DEM_OUTPUT_DIR,
   'Opt in to hosted DEM network regression or provide generated DEM assets');
 
-test('slow mobile globe uses coarse DEM only during map preview and requests detail directly after promotion', async ({ page }) => {
+test('slow mobile globe retains loaded DEM while requesting promoted detail directly', async ({ page }) => {
   test.setTimeout(240_000);
   const started = [];
   let releaseFine;
@@ -65,7 +65,7 @@ test('slow mobile globe uses coarse DEM only during map preview and requests det
     });
     await expect.poll(() => page.evaluate(() => {
       const metrics = window.__PANDOLAB_GPU_METRICS__;
-      return metrics?.terrainTargetLevel > 1 && metrics.terrainRenderedLevel === -1;
+      return metrics?.terrainTargetLevel > 1 && metrics.terrainRenderedLevel === 1;
     }), { timeout: 60_000 }).toBe(true);
     const targetLevel = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetLevel);
     expect(started.filter(tile => tile.level > 1).every(tile => tile.level === targetLevel)).toBe(true);
