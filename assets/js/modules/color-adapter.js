@@ -1,3 +1,5 @@
+import { COUNTRY_DEFAULT_COLORS } from './country-default-colors.js';
+
 export const COLOR_DOMAINS = Object.freeze({
   TERRITORIAL: 'territorial',
   GENERIC: 'generic',
@@ -46,8 +48,18 @@ export function writeDomainColor(domain, target = {}, value, { clear = false, fa
   }
   return color;
 }
+/** Stable source identity, never an edited display name or a saved color override. */
+export function countryDefaultColor(feature) {
+  if (feature?.properties?.entityKind !== 'general' || feature.properties.parentId) return '';
+  const libraryId = feature.properties.sourceLibraryId;
+  // Current-country library instances use a library ID, not the canonical country ID.
+  const id = String(libraryId?.startsWith('current-country:')
+    ? feature.properties.metadata?.currentCountryId || '' : libraryId || feature.id || '');
+  return Object.hasOwn(COUNTRY_DEFAULT_COLORS, id) ? COUNTRY_DEFAULT_COLORS[id] || '' : '';
+}
+
 /** Intrinsic territorial color inheritance; layer opacity/blending stays in rendering. */
-export function resolveTerritorialColor(feature, { entityRepository, countryColor, fallback = '', colorVisible = () => true }) {
+export function resolveTerritorialColor(feature, { entityRepository, countryColor = countryDefaultColor, fallback = '', colorVisible = () => true }) {
   let current = feature;
   const seen = new Set();
   while (current) {
