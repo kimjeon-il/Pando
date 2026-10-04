@@ -49,9 +49,11 @@ function createToolbarFixture() {
   const ports = createMapInteractionPorts(providers);
   const cancelButton = new EventTarget();
   const resetButton = new EventTarget();
+  const addEntityButton = new EventTarget();
+  const regionalInput = new EventTarget();
   const bindings = createToolBindings();
   bindings.connect(Object.freeze({
-    platform: { $: id => ({ modeCancelBtn: cancelButton, resetViewBtn: resetButton })[id] || null },
+    platform: { $: id => ({ modeCancelBtn: cancelButton, resetViewBtn: resetButton, addEntityBtn: addEntityButton, territorialCreateRegionalInput: regionalInput })[id] || null },
     projectState: { state },
     countryCommitFlow: { addMultiDraftPart() {}, undoMultiDraftPart() {} },
     navigation: { resetView() {} },

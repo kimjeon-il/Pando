@@ -1,10 +1,9 @@
 import './territorial-edit-plan.js';
 import {
   normalizeTemporalInterval,
-  temporalIntervalsOverlap,
 } from './temporal.js';
 
-export const TERRITORIAL_SCHEMA_VERSION = 4;
+export const TERRITORIAL_SCHEMA_VERSION = 5;
 
 export const TERRITORIAL_ENTITY_KINDS = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional' });
 
@@ -17,6 +16,45 @@ const POLYGON_TYPES = new Set(['Polygon', 'MultiPolygon']);
 const ENTITY_KINDS = new Set(Object.values(TERRITORIAL_ENTITY_KINDS));
 const text = value => String(value ?? '').trim();
 const clone = value => structuredClone(value);
+
+export const TERRITORIAL_IDENTITY_FIELDS = Object.freeze(['schemaVersion', 'entityKind', 'name',
+  'style', 'locked', 'notes', 'metadata', 'sourceFolderId', 'sourceLibraryId', 'sourceGeometryVersion']);
+
+/** Persisted identity. Geometry, lifetime and administrative relationships live in records. */
+export function normalizeTerritorialIdentity(feature) {
+  const fail = message => { throw Object.assign(new Error(message), { code: 'PL-SCHEMA-FIELD' }); };
+  if (!feature || feature.type !== 'Feature' || typeof feature.id !== 'string' || !feature.id.length
+    || feature.geometry !== null || Object.keys(feature).some(key => !['type', 'id', 'properties', 'geometry'].includes(key)))
+    fail('영역 정체성에는 문자열 ID와 null geometry가 필요합니다.');
+  const p = feature.properties;
+  if (!p || typeof p !== 'object' || Array.isArray(p) || p.schemaVersion !== TERRITORIAL_SCHEMA_VERSION
+    || !ENTITY_KINDS.has(p.entityKind) || Object.keys(p).some(key => !TERRITORIAL_IDENTITY_FIELDS.includes(key)))
+    fail('영역 정체성 필드 또는 schemaVersion이 올바르지 않습니다.');
+  for (const key of ['name', 'notes', 'sourceFolderId', 'sourceLibraryId', 'sourceGeometryVersion']) {
+    if (Object.hasOwn(p, key) && typeof p[key] !== 'string') fail(`${key} 문자열이 필요합니다.`);
+  }
+  if (Object.hasOwn(p, 'locked') && typeof p.locked !== 'boolean') fail('locked 불리언이 필요합니다.');
+  for (const key of ['metadata', 'style']) {
+    if (Object.hasOwn(p, key) && (!p[key] || typeof p[key] !== 'object' || Array.isArray(p[key]))) fail(`${key} 객체가 필요합니다.`);
+  }
+  return { type: 'Feature', id: feature.id, geometry: null, properties: {
+    schemaVersion: TERRITORIAL_SCHEMA_VERSION, entityKind: p.entityKind,
+    name: text(p.name), style: clone(p.style || {}), locked: p.locked === true,
+    notes: text(p.notes), metadata: clone(p.metadata || {}), sourceFolderId: text(p.sourceFolderId),
+    sourceLibraryId: text(p.sourceLibraryId), sourceGeometryVersion: text(p.sourceGeometryVersion),
+  } };
+}
+
+export function normalizeTerritorialIdentities(entities) {
+  if (!Array.isArray(entities)) throw new TypeError('영역 정체성 배열이 필요합니다.');
+  const ids = new Set();
+  return entities.map(feature => {
+    const identity = normalizeTerritorialIdentity(feature);
+    if (ids.has(identity.id)) throw new Error(`영역 ID가 중복되었습니다: ${identity.id}`);
+    ids.add(identity.id);
+    return identity;
+  });
+}
 
 function territorialEntityKind(feature) {
   const properties = feature?.properties || {};
@@ -104,91 +142,6 @@ export function normalizeTerritorialEntities(value, {
     territorialRootId(feature, resolve);
   }
   return normalized;
-}
-
-export function validateTerritorialRelations(units, {
-  getEntity = () => null,
-  relations = [],
-} = {}) {
-  const issues = [];
-  const byId = new Map((units || []).map(feature => [text(feature.id), feature]));
-  const resolve = id => byId.get(text(id)) || getEntity(text(id));
-  const exists = id => !!resolve(id);
-  try { normalizeTerritorialEntities(units, { getEntity, cloneGeometry: geometry => geometry }); }
-  catch (error) { issues.push(error.message); }
-  const byRelationUnit = new Map();
-  for (const relation of Array.isArray(relations) ? relations : []) {
-    const unitId = text(relation?.unitId);
-    if (!exists(unitId)) issues.push(`${unitId || '관계'}의 대상 영역이 존재하지 않습니다.`);
-    if (relation?.parentId && (resolve(unitId)?.properties.entityKind !== 'general' || resolve(relation.parentId)?.properties.entityKind !== 'general')) issues.push(unitId + '의 기간별 부모는 일반객체여야 합니다.');
-    if (relation?.parentId === unitId) issues.push(unitId + '의 기간별 상위 관계가 순환합니다.');
-    try { normalizeTemporalInterval(relation?.validFrom, relation?.validTo); }
-    catch (error) { issues.push(`${unitId}의 기간별 관계가 올바르지 않습니다. ${error.message}`); }
-    const list = byRelationUnit.get(unitId) || [];
-    list.push(relation);
-    byRelationUnit.set(unitId, list);
-  }
-  for (const [unitId, list] of byRelationUnit) {
-    for (let leftIndex = 0; leftIndex < list.length; leftIndex += 1) {
-      for (let rightIndex = leftIndex + 1; rightIndex < list.length; rightIndex += 1) {
-        if (temporalIntervalsOverlap(list[leftIndex], list[rightIndex])) issues.push(`${unitId}의 기간별 관계가 서로 겹칩니다.`);
-      }
-    }
-  }
-  // Relationships change only at interval boundaries. Validate each distinct
-  // parent graph, including the base parent when a dated relationship expires.
-  if (!issues.length && relations.length) {
-    const key = values => values[0] * 372 + (values[1] - 1) * 31 + values[2] - 1;
-    const intervals = relations.map(relation => {
-      const interval = normalizeTemporalInterval(relation.validFrom, relation.validTo);
-      return { relation, start: interval.start ? key(interval.start.startKey) : -Infinity,
-        end: interval.end ? key(interval.end.endKey) : Infinity };
-    });
-    const boundaries = new Set([-Infinity]);
-    for (const interval of intervals) {
-      boundaries.add(interval.start);
-      if (Number.isFinite(interval.end)) boundaries.add(interval.end + 1);
-    }
-    for (const point of boundaries) {
-      const parents = new Map(intervals.filter(interval => interval.start <= point && point <= interval.end)
-        .map(({ relation }) => [text(relation.unitId), text(relation.parentId)]));
-      for (const id of byRelationUnit.keys()) {
-        const visited = new Set();
-        let cursor = id;
-        while (cursor) {
-          if (visited.has(cursor)) { issues.push(id + '의 기간별 상위 관계가 순환합니다.'); break; }
-          visited.add(cursor);
-          cursor = parents.has(cursor) ? parents.get(cursor) : text(resolve(cursor)?.properties.parentId);
-        }
-      }
-      if (issues.length) break;
-    }
-  }
-  return { ok: issues.length === 0, issues };
-}
-
-export function normalizeTerritorialRelations(value) {
-  const output = [];
-  const seen = new Set();
-  for (const raw of Array.isArray(value) ? value : []) {
-    if (Number(raw?.schemaVersion) !== 3 || ['sovereignId', 'associatedCountryId'].some(field => Object.hasOwn(raw, field))) throw new Error('기간별 관계 schemaVersion이 현재 형식과 일치하지 않습니다.');
-    const unitId = text(raw?.unitId);
-    if (!unitId) throw new Error('기간별 관계의 대상 영역 ID가 비어 있습니다.');
-    const id = text(raw.id);
-    if (!id) throw new Error('기간별 관계 ID가 비어 있습니다.');
-    if (seen.has(id)) throw new Error(`기간별 관계 ID가 중복되었습니다: ${id}`);
-    seen.add(id);
-    const interval = normalizeTemporalInterval(raw.validFrom, raw.validTo);
-    output.push({
-      id,
-      schemaVersion: 3,
-      unitId,
-      parentId: text(raw.parentId),
-      validFrom: interval.validFrom,
-      validTo: interval.validTo,
-    });
-  }
-  return output;
 }
 
 export function createTerritorialFeature({

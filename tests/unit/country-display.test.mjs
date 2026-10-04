@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import test from 'node:test';
@@ -50,7 +51,8 @@ test('renaming changes only the presented name before and after area calculation
 function readCountryName(feature, override = {}) {
   const normalized = normalizeCountryFeature({ ...feature, geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] } });
   const state = { territorialEntities: [normalized] };
-  const store = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ getState: () => state });
   if (Object.hasOwn(override, 'name')) store.setField(feature.id, 'name', override.name);
   return store.snapshot()[0].properties.name;
 }

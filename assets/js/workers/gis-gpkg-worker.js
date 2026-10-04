@@ -149,6 +149,7 @@ function insertContents(db, tableName, dataType, description, bounds = null) {
 }
 
 function createFeatureTable(db, { tableName, geometryType, rows, columns, description }) {
+  if (!rows.length) { removeTable(db, tableName); return; }
   db.run(`DROP TABLE IF EXISTS "${tableName}"`);
   db.run(`DELETE FROM gpkg_geometry_columns WHERE table_name = ?`, [tableName]);
   db.run(`DELETE FROM gpkg_contents WHERE table_name = ?`, [tableName]);
@@ -190,9 +191,10 @@ function removeTable(db, tableName) {
 
 function writeAtlasTables(db, payload) {
   const state = payload.projectState || {};
+  const spatial = payload.spatialState || state;
   const gisMode = payload.exportMode === 'gis';
   const selected = new Set(payload.selectedLayers || []);
-  const includes = layer => !gisMode || selected.has(layer);
+  const includes = layer => gisMode ? selected.has(layer) : payload.spatialState !== null;
   if (gisMode) removeTable(db, 'pandolab_export_seed');
   const labels = includes('labels') ? state.labels || [] : [];
   const genericFeatures = includes('genericFeatures') ? state.genericFeatures || [] : [];
@@ -208,8 +210,8 @@ function writeAtlasTables(db, payload) {
   const points = genericFeatures.filter(item => ['Point', 'MultiPoint'].includes(item.geometry?.type)).map(genericFeatureRow);
   const lines = genericFeatures.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(genericFeatureRow);
   const polygons = genericFeatures.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(genericFeatureRow);
-  const territorialRows = self.PandoLabGisAdapters.territorialRows(state);
-  const distributionRows = self.PandoLabGisAdapters.distributionRows(state);
+  const territorialRows = self.PandoLabGisAdapters.territorialRows(spatial);
+  const distributionRows = self.PandoLabGisAdapters.distributionRows(spatial);
   const genericFeatureColumns = [
     { name: 'id' }, { name: 'name' }, { name: 'role' }, { name: 'owner_id' }, { name: 'parent_id' },
     { name: 'topology_group' }, { name: 'land_binding' }, { name: 'color' }, { name: 'notes' }, { name: 'locked', type: 'INTEGER' }, { name: 'properties_json' },
@@ -264,10 +266,37 @@ function writeAtlasTables(db, payload) {
 }
 
 async function writeGeoPackage(buffer, projectState, options = {}) {
+  if (options.exportMode !== 'gis') {
+    const { countryAssets = [], ...content } = projectState;
+    const { prepareProjectForStorage } = await import('../modules/project-state.js');
+    const { staticTimelineViews } = await import('../modules/timeline-static-view.js');
+    const { createGeometryVersionStore } = await import('../modules/geometry-version-store.js');
+    const candidate = prepareProjectForStorage(content);
+    let spatialState = null;
+    try {
+      spatialState = { ...candidate, territorialEntities: staticTimelineViews(candidate.territorialEntities,
+        candidate.timelineRecords, createGeometryVersionStore(candidate.geometries)) };
+    } catch (error) { if (error.code !== 'TIMELINE_ACTIVATION') throw error; }
+    projectState = { ...candidate, countryAssets };
+    options = { ...options, spatialState };
+  }
   const SQL = await getSql();
   const db = new SQL.Database(new Uint8Array(buffer));
   try {
     db.run('BEGIN IMMEDIATE');
+    if (!buffer.byteLength) {
+      db.run(`PRAGMA application_id=1196444487; PRAGMA user_version=10300;
+        CREATE TABLE gpkg_spatial_ref_sys (srs_name TEXT NOT NULL, srs_id INTEGER PRIMARY KEY, organization TEXT NOT NULL,
+          organization_coordsys_id INTEGER NOT NULL, definition TEXT NOT NULL, description TEXT);
+        INSERT INTO gpkg_spatial_ref_sys VALUES ('Undefined Cartesian',-1,'NONE',-1,'undefined',NULL),
+          ('Undefined Geographic',0,'NONE',0,'undefined',NULL),
+          ('WGS 84',4326,'EPSG',4326,'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]',NULL);
+        CREATE TABLE gpkg_contents (table_name TEXT PRIMARY KEY, data_type TEXT NOT NULL, identifier TEXT UNIQUE,
+          description TEXT DEFAULT '', last_change DATETIME NOT NULL, min_x DOUBLE, min_y DOUBLE, max_x DOUBLE, max_y DOUBLE, srs_id INTEGER);
+        CREATE TABLE gpkg_geometry_columns (table_name TEXT NOT NULL, column_name TEXT NOT NULL,
+          geometry_type_name TEXT NOT NULL, srs_id INTEGER NOT NULL, z TINYINT NOT NULL, m TINYINT NOT NULL,
+          PRIMARY KEY(table_name,column_name));`);
+    }
     writeAtlasTables(db, { projectState, ...options });
     db.run('COMMIT');
     return db.export();
@@ -294,7 +323,10 @@ async function readAtlasTables(buffer) {
     const result = { projectState: null, countryAssets: [], sourceInfo: null };
     if (tableExists(db, 'pandolab_project_settings')) {
       const rows = db.exec("SELECT json_value FROM pandolab_project_settings WHERE setting_key='project_state' LIMIT 1");
-      if (rows[0]?.values?.[0]?.[0]) result.projectState = JSON.parse(rows[0].values[0][0]);
+      if (rows[0]?.values?.[0]?.[0]) {
+        const { prepareProjectForStorage } = await import('../modules/project-state.js');
+        result.projectState = prepareProjectForStorage(JSON.parse(rows[0].values[0][0]));
+      }
     }
     if (tableExists(db, 'pandolab_country_assets')) {
       const statement = db.prepare('SELECT country_id, mime_type, image_data FROM pandolab_country_assets');
@@ -329,6 +361,6 @@ self.onmessage = async event => {
     }
     throw new Error('알 수 없는 GeoPackage Worker 작업입니다.');
   } catch (error) {
-    self.postMessage({ id, ok: false, error: error?.message || String(error) });
+    self.postMessage({ id, ok: false, error: error?.message || String(error), code: error?.code });
   }
 };

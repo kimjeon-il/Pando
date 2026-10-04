@@ -1,3 +1,4 @@
+import { createEmptyTerritorialState, createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -13,7 +14,7 @@ import { normalizeSourceProvenance } from '../../assets/js/modules/source-proven
 
 const state = {
   sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],
-  territorialRelations: [{ id: 'relation-1' }],
+  ...createEmptyTerritorialState(),
   distributionLayers: [], distributionEntries: [], distributionSettings: { renderMode: 'overlap', activeLayerId: '' },
   labelSettings: { 'territorial:KOR': { pinned: true } }, layerPresentation: { styles: {} },
   physicalSettings: { terrainVisible: true }, projection: 'flat',
@@ -34,7 +35,8 @@ test('project serialization contains document and presentation fields only', () 
 test('history snapshots preserve editable object state through the shared schema', () => {
   const history = pickProjectFields(state, { scope: 'history' });
   assert.deepEqual(history.hydroEdits, state.hydroEdits);
-  assert.deepEqual(history.territorialRelations, state.territorialRelations);
+  assert.deepEqual(history.timelineRecords, state.timelineRecords);
+  assert.deepEqual(history.geometries, state.geometries.snapshot());
   assert.equal('labelSettings' in history, false);
   assert.equal('layerVisibility' in history, false);
   assert.equal('projection' in history, false);
@@ -55,16 +57,18 @@ test('presentation and session scopes stay independent', () => {
 });
 
 test('shared project fields receive current defaults without sharing mutable values', () => {
-  const restored = applyProjectFields({ physicalSettings: { terrainVisible: false }, layerVisibility: { countries: true }, view: {} }, {});
+  const restored = applyProjectFields({ physicalSettings: { terrainVisible: false }, layerVisibility: { countries: true }, view: {} },
+    { timelineRecords: createEmptyTerritorialState().timelineRecords, geometries: [] });
   assert.deepEqual(restored.labels, []);
   assert.deepEqual(restored.hydroEdits, []);
-  assert.deepEqual(restored.territorialRelations, []);
+  assert.deepEqual(restored.timelineRecords.lifetimes, []);
+  assert.throws(() => applyProjectFields({}, {}), /timelineRecords/);
   restored.labels.push({ id: 'new' });
-  assert.deepEqual(applyProjectFields({}, {}).labels, []);
+  assert.deepEqual(applyProjectFields({}, { timelineRecords: createEmptyTerritorialState().timelineRecords, geometries: [] }).labels, []);
 });
 
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
-const currentProject = () => ({
+const currentProject = () => { const project = {
   format: 'pandolab-project-state',
   schemaVersion: PROJECT_SCHEMA_VERSION,
   landObjectModel: {
@@ -75,12 +79,11 @@ const currentProject = () => ({
     sourceProvenanceSchemaVersion: 1,
     canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
   },
-  territorialModel: { schemaVersion: 4 },
+  territorialModel: { schemaVersion: 5 },
   distributionModel: { schemaVersion: 3 },
   layerPresentation: { schemaVersion: 4, overlayOrder: [], styles: {} },
   territorialEntities: [createTerritorialFeature({id:'DEU',entityKind: 'general',name:'독일',geometry:{type:'Polygon',coordinates:[[[0,0],[0,2],[2,2],[2,0],[0,0]]]}}),
     createTerritorialFeature({id:uuid(1),entityKind: 'general',parentId:'DEU',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}})],
-  territorialRelations: [{id:uuid(2),schemaVersion:3,unitId:uuid(1),parentId:'DEU',validFrom:null,validTo:null}],
   distributionLayers: [{ id: uuid(3), schemaVersion: 3, name: '분포', unit: '', valueScale: { mode: 'auto' } }],
   distributionEntries: [{ id: uuid(4), schemaVersion: 3, layerId: uuid(3), mode: 'geometry',
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [0, 1], [0, 0]]] }, value: 1 }],
@@ -89,9 +92,9 @@ const currentProject = () => ({
     type: 'Feature', id: uuid(5), geometry: { type: 'Point', coordinates: [1, 2] },
     properties: { schemaVersion: 2, name: '기타', notes: '', color: '#123456', locked: false, source: normalizeSourceProvenance({ kind: 'unsupported' }) },
   }],
-  hydroEdits: [{ type: 'Feature', id: uuid(6), properties: { pandolab_schema_version: 1 } }],
+  hydroEdits: [{ type: 'Feature', id: uuid(6), geometry: { type:'LineString', coordinates:[[0,0],[1,1]] }, properties: { pandolab_schema_version: 1, category:'river' } }],
   labels: [{ id: uuid(7) }],
-});
+}; return { ...project, ...createStaticTerritorialSnapshot(project.territorialEntities) }; };
 
 test('current project schema accepts only explicit current versions and UUID object IDs', () => {
   assert.equal(assertCurrentProjectSchema(currentProject()).schemaVersion, PROJECT_SCHEMA_VERSION);

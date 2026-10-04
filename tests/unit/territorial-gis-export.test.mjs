@@ -1,3 +1,6 @@
+import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -21,11 +24,14 @@ test('child-only GeoJSON export writes one layer and omits administrative fields
     location: { href: 'https://example.test/' } });
   context.window = context; context.self = context;
   for (const file of ['gis-adapters.js', 'vendor/fflate/fflate.min.js', 'gis-io.js']) {
-    vm.runInContext(read(`assets/js/${file}`), context);
+    vm.runInContext(read(`assets/js/${file}`), context, { importModuleDynamically: specifier => import(new URL(`../../assets/js/${specifier}`, import.meta.url)) });
   }
   const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
-  const project = { territorialEntities: [{ type: 'Feature', id: 's', geometry,
-    properties: { schemaVersion: 4, entityKind: 'general', name: '자치령', parentId: 'C', coverageMode: 'explicit' } }] };
+  const project = createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base', distributionModes: ['territorial','geometry'],
+    readSnapshot: () => staticSerializerSnapshot({ fullAutosave: true, territorialEntities: [
+      createTerritorialFeature({ id: 'C', entityKind: 'general', geometry }),
+      createTerritorialFeature({ id: 's', entityKind: 'general', parentId: 'C', name: '자치령', geometry }),
+    ] }) }).buildProject();
   const result = await context.PandoLabGIS.exportGeoJsonBundle(project, ['subunits']);
   assert.equal(result.manifest.layers.length, 1);
   assert.equal(result.manifest.layers[0].category, 'entities');
@@ -36,10 +42,10 @@ test('child-only GeoJSON export writes one layer and omits administrative fields
   assert.equal('is_remainder' in feature.properties, false);
   assert.equal(feature.properties.parent_id, 'C');
   assert.deepEqual(feature.geometry, geometry);
-  await assert.rejects(context.PandoLabGIS.exportGeoJsonBundle(project, ['countries']), /내보낼 데이터가 없습니다/);
+  await assert.rejects(context.PandoLabGIS.exportGeoJsonBundle(project, ['regions']), /내보낼 데이터가 없습니다/);
 });
 
-test('project GeoPackage conversion uses current entity rows, including child and independent region', async () => {
+test('project GeoPackage routes the complete snapshot directly to the production Worker', async () => {
   const context = vm.createContext({ URL, Blob, File, structuredClone,
     document: { currentScript: { src: 'https://example.test/assets/js/gis-io.js' } },
     location: { href: 'https://example.test/' } });
@@ -59,9 +65,8 @@ test('project GeoPackage conversion uses current entity rows, including child an
     async close() {},
   }, async (_action, buffer, extra) => { payload = extra; return { buffer }; });
   await context.PandoLabGIS.exportGeoPackage({ territorialEntities });
-  assert.equal(argumentsUsed[argumentsUsed.indexOf('-nln') + 1], 'entities');
-  assert.deepEqual(seed.features.map(feature => feature.id), ['r', 'c', 'z']);
-  assert.equal(seed.features[1].properties.parent_id, 'r');
-  assert.equal(seed.features[2].properties.entity_kind, 'regional');
+  assert.equal(argumentsUsed, undefined);
+  assert.equal(seed, undefined);
+  assert.equal(payload.exportMode, 'project');
   assert.deepEqual(payload.projectState.territorialEntities, territorialEntities);
 });

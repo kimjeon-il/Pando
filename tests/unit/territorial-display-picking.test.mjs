@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
@@ -15,7 +16,8 @@ test('canonical geometry drives precise territorial hits independently of displa
   const state = { territorialEntities: [A, B, R], layerVisibility: {}, countryVisualPhase: 'preview',
     auditPreviewCountries: { features: [{ ...A, geometry: square(20, 10) }] },
     auditPreviewTerritorialUnits: [B, R], layerPresentation: { overlayOrder: ['regions', 'subunits'] } };
-  const store = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore: store });
   const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state, clipper: () => null });
   const picking = createObjectPicking();

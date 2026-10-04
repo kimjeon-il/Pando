@@ -1,3 +1,4 @@
+import { prepareProjectForActivation } from './project-state.js';
 /** HistoryAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -25,7 +26,6 @@ export function createHistoryAssembly() {
   function validateCanonicalProjectState() {
     (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
       territorialEntities: dependencies.territorialModel.entityStore.snapshot(),
-      territorialRelations: dependencies.projectState.state.territorialRelations,
       distributionLayers: dependencies.projectState.state.distributionLayers,
       distributionEntries: dependencies.projectState.state.distributionEntries,
       labels: dependencies.projectState.state.labels,
@@ -68,7 +68,8 @@ export function createHistoryAssembly() {
         project: dependencies.domains.projectDomain?.buildAutosave?.() || dependencies.mapSettingsUi.projectSerializer.buildAutosave(),
       }),
       readView: () => ({ projection: dependencies.projectState.state.projection, view: (0, dependencies.platform.deepClone)(dependencies.projectState.state.view) }),
-      validateProject: dependencies.projectServices.assertCurrentProjectSchema,
+      validateProject: async project => prepareProjectForActivation(project,
+        project.format === 'pandolab-autosave-delta' ? await dependencies.builtinBaseline.prepareProjectBaseline() : {}),
       onDirty: scope => {
         if (scope === 'presentation') dependencies.projectSession.saveState.markPresentationChanged();
         else dependencies.projectSession.saveState.markDocumentChanged();

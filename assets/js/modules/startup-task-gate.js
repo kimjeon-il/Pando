@@ -20,6 +20,7 @@ export function createStartupTaskGate({
   let lastInputAt = now();
   let interactionActive = false;
   let paintReady = false;
+  let beforePaintAllowed = false;
   let running = false;
   let disposed = false;
   let timerId = 0;
@@ -47,7 +48,7 @@ export function createStartupTaskGate({
   };
 
   const runNext = async () => {
-    if (disposed || running || !paintReady || !pending.size) return;
+    if (disposed || running || !(paintReady || beforePaintAllowed) || !pending.size) return;
     const taskNotBefore = pending.values().next().value?.notBefore || 0;
     const elapsed = now() - Math.max(lastInputAt, taskNotBefore - quietWindowMs);
     if (interactionActive) return defer('interaction-active');
@@ -71,7 +72,7 @@ export function createStartupTaskGate({
   };
 
   function scheduleCheck() {
-    if (disposed || running || !paintReady || !pending.size || timerId || idleId) return;
+    if (disposed || running || !(paintReady || beforePaintAllowed) || !pending.size || timerId || idleId) return;
     const delay = Math.max(0, quietWindowMs - (now() - lastInputAt), (pending.values().next().value?.notBefore || 0) - now());
     timerId = setTimer?.(() => {
       timerId = 0;
@@ -129,7 +130,7 @@ export function createStartupTaskGate({
           return;
         }
         const elapsed = now() - lastInputAt;
-        if (paintReady && !interactionActive && !isDocumentHidden() && elapsed >= quietWindowMs && !isInputPending()) {
+        if ((paintReady || beforePaintAllowed) && !interactionActive && !isDocumentHidden() && elapsed >= quietWindowMs && !isInputPending()) {
           quietWaiters.delete(waiter);
           resolve();
           return;
@@ -180,6 +181,11 @@ export function createStartupTaskGate({
       pendingKeys: Object.freeze([...pending.keys()]),
       lastInputAt,
     }),
+    allowBeforeInteractivePaint() {
+      if (disposed) return;
+      beforePaintAllowed = true;
+      scheduleCheck();
+    },
     markInteractivePaint,
     noteInput,
     queue,

@@ -1,4 +1,8 @@
 import { createGeometrySnapshotPool } from './geometry-versions.js';
+import { normalizeTerritorialIdentities } from './territorial-units.js';
+import { snapshotTimelineStorage, restoreTimelineStorage } from './timeline-storage.js';
+import { staticTimelineViews } from './timeline-static-view.js';
+import { assertProjectReferenceIntegrity } from './project-invariants.js';
 /** ProjectSnapshots: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -18,20 +22,21 @@ export function createProjectSnapshots() {
     const state = dependencies.projectState.state;
     state.autosaveMode = project?.territorialEntities && project.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET ? 'full' : 'delta';
     const base = (0, dependencies.builtinCountries.materializePristineCountriesSync)().features;
-    const byId = new Map(base.map(feature => [String(feature.id), feature]));
+    const byId = new Map(dependencies.builtinBaseline.projectBaseline.baseEntities.map(feature => [String(feature.id), feature]));
     const current = dependencies.territorialModel.entityRepository.list();
     const currentIds = new Set(current.map(feature => String(feature.id)));
     state.historyDirtyEntityIds = new Set(base.filter(feature => !currentIds.has(String(feature.id))).map(feature => String(feature.id)));
+    const identities = new Map(dependencies.territorialModel.entityStore.identities().map(feature => [String(feature.id), feature]));
     for (const feature of current) {
       const id=String(feature.id), source=byId.get(id);
-      if (!source || JSON.stringify(source.properties) !== JSON.stringify(feature.properties)
+      if (!source || JSON.stringify(source.properties) !== JSON.stringify(identities.get(id).properties)
         || !(dependencies.builtinCountries.canonicalCountryStore ? dependencies.builtinCountries.canonicalCountryStore.geometryEquals(id, feature.geometry)
-          : JSON.stringify(source.geometry) === JSON.stringify(feature.geometry))) state.historyDirtyEntityIds.add(id);
+          : JSON.stringify(base.find(row => String(row.id) === id)?.geometry) === JSON.stringify(feature.geometry))) state.historyDirtyEntityIds.add(id);
     }
   }
   function buildEntityDelta() {
     const state=dependencies.projectState.state;
-    const current=new Map(state.territorialEntities.map(feature=>[String(feature.id),feature]));
+    const current=new Map(dependencies.territorialModel.entityStore.identities().map(feature=>[String(feature.id),feature]));
     const changed=[],removedIds=[];
     for(const id of state.historyDirtyEntityIds) {
       const feature=current.get(String(id));
@@ -41,8 +46,31 @@ export function createProjectSnapshots() {
   }
   function restoreEntitiesFromSnapshot(snapshot) {
     if (!Array.isArray(snapshot.territorialEntities)) throw new TypeError('이력에는 territorialEntities 배열이 필요합니다.');
-    dependencies.territorialModel.entityStore.replaceEntities(geometrySnapshots.restore(snapshot.territorialEntities, dependencies.projectState.state.territorialEntities));
+    snapshot = prepareEditable(snapshot);
+    dependencies.territorialModel.entityStore.restoreProject(snapshot);
     dependencies.projectState.state.historyDirtyEntityIds=new Set(snapshot.historyDirtyEntityIds || []);
+    return snapshot;
+  }
+
+  function prepareEditable(snapshot) {
+    const { geometries, ...fields } = snapshot;
+    const candidate = { ...structuredClone(fields), geometries };
+    const identities = normalizeTerritorialIdentities(candidate.territorialEntities);
+    const storage = restoreTimelineStorage({ schemaVersion: 1, records: candidate.timelineRecords,
+      geometries: candidate.geometries }, identities.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })),
+    { reuse: dependencies.projectState.state.geometries });
+    candidate.geometries = storage.geometries.snapshot();
+    candidate.timelineRecords = storage.records;
+    candidate.hydroEdits = dependencies.hydroModel.normalizeHydroEditCollection(candidate.hydroEdits);
+    candidate.genericFeatures = dependencies.modelValidation.normalizeGenericFeatureCollection(candidate.genericFeatures);
+    candidate.distributionLayers = dependencies.distributionServices.normalizeDistributionLayers(candidate.distributionLayers);
+    const ids = new Set(candidate.distributionLayers.map(layer => layer.id));
+    candidate.distributionEntries = dependencies.distributionServices.normalizeDistributionEntries(candidate.distributionEntries, {
+      layerExists: id => ids.has(id), cloneGeometry: geometry => geometry,
+    });
+    assertProjectReferenceIntegrity({ ...candidate,
+      territorialEntities: staticTimelineViews(identities, storage.records, storage.geometries) });
+    return candidate;
   }
 
   function historyLabelSettings(labels = dependencies.projectState.state.labels) {
@@ -74,8 +102,8 @@ export function createProjectSnapshots() {
 
   function restoreEditTransactionSnapshot(snapshot) {
     const changedIds = new Set(dependencies.projectState.state.historyDirtyEntityIds);
+    snapshot = restoreEntitiesFromSnapshot(snapshot);
     applySharedProjectFields(snapshot, 'history');
-    restoreEntitiesFromSnapshot(snapshot);
     normalizeProjectObjects();
     const restoredDirtyIds = new Set(dependencies.projectState.state.historyDirtyEntityIds);
     for (const id of dependencies.projectState.state.historyDirtyEntityIds) changedIds.add(String(id));
@@ -87,7 +115,7 @@ export function createProjectSnapshots() {
 
   function snapshotEditable() {
     return {
-      territorialEntities: geometrySnapshots.clone(dependencies.projectState.state.territorialEntities),
+      territorialEntities: dependencies.territorialModel.entityStore.identities(),
       historyDirtyEntityIds: [...dependencies.projectState.state.historyDirtyEntityIds],
       historyLabelSettings: historyLabelSettings(),
       ...(0, dependencies.projectServices.pickProjectFields)(dependencies.projectState.state, { scope: 'history', clone: geometrySnapshots.clone }),
@@ -104,7 +132,8 @@ export function createProjectSnapshots() {
         labelSettings: value => (0, dependencies.platform.deepClone)(value || {}),
         genericFeatures: value => fieldCopy('genericFeatures', value),
         hydroEdits: value => fieldCopy('hydroEdits', value),
-        territorialRelations: value => (0, dependencies.platform.deepClone)(value || []),
+        timelineRecords: (_value, current) => current,
+        geometries: (_value, current) => current,
         distributionLayers: value => (0, dependencies.platform.deepClone)(value || []),
         distributionEntries: value => fieldCopy('distributionEntries', value),
         distributionSettings: value => ({
@@ -138,12 +167,8 @@ export function createProjectSnapshots() {
     dependencies.projectState.state.selectedDistributionLayerId = distributionLayerIds.has(String(dependencies.projectState.state.selectedDistributionLayerId || ''))
       ? String(dependencies.projectState.state.selectedDistributionLayerId)
       : '';
-    dependencies.projectState.state.territorialRelations = (0, dependencies.territorialServicesA.normalizeTerritorialRelations)(dependencies.projectState.state.territorialRelations);
-    const relationValidation = (0, dependencies.territorialServicesB.validateTerritorialRelations)(dependencies.territorialModel.entityRepository.list(), {
-      getEntity: id => dependencies.territorialModel.entityRepository.get(id),
-      relations: dependencies.projectState.state.territorialRelations,
-    });
-    if (!relationValidation.ok) throw new Error(relationValidation.issues[0] || '영역 관계가 올바르지 않습니다.');
+    snapshotTimelineStorage(dependencies.projectState.state.timelineRecords, dependencies.projectState.state.geometries,
+      dependencies.territorialModel.entityStore.identities().map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })));
     const distributionValidation = (0, dependencies.distributionServices.validateDistributionModel)(dependencies.projectState.state.distributionLayers, dependencies.projectState.state.distributionEntries, {
       territorialExists: id => !!dependencies.territorialModel.entityRepository.get(id),
     });
@@ -168,11 +193,11 @@ export function createProjectSnapshots() {
     const previousGeometries = new Map(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })
       .map(feature => [String(feature.id), feature.geometry]));
     const currentLabels = (0, dependencies.platform.deepClone)(dependencies.projectState.state.labels || []);
+    snapshot = restoreEntitiesFromSnapshot(snapshot);
     applySharedProjectFields(snapshot, 'history');
     restoreHistoryLabelSettings(snapshot, currentLabels);
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     (0, dependencies.hydroModel.syncPhysicalControls)();
-    restoreEntitiesFromSnapshot(snapshot);
     normalizeProjectObjects({ history: true });
     const restoredDirtyIds = new Set(dependencies.projectState.state.historyDirtyEntityIds);
     const restoredGeometries = new Map(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })

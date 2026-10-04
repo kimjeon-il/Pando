@@ -28,11 +28,11 @@ async function importRegions(page, rows) {
   }
   return page.evaluate(names=>names.map(n=>window.PANDOLAB_TERRITORIAL.list({kind:'regional'}).find(f=>f.properties.name===n).id),rows.map(row=>row.name));
 }
-async function savedProject(page) {
+async function savedEntityNames(page) {
   return page.evaluate(() => new Promise((resolve,reject)=>{
     const r=indexedDB.open('pandolab-editor',2);
     r.onerror=()=>reject(r.error);
-    r.onsuccess=()=>{ const db=r.result,t=db.transaction('projects','readonly'),q=t.objectStore('projects').get('active-project'); t.oncomplete=()=>{db.close();resolve(q.result)};t.onerror=()=>reject(t.error); };
+    r.onsuccess=()=>{ const db=r.result,t=db.transaction('projects','readonly'),q=t.objectStore('projects').get('active-project'); t.oncomplete=()=>{db.close();resolve((q.result?.territorialEntities || q.result?.entityDelta?.changed || []).map(feature=>feature.properties.name))};t.onerror=()=>reject(t.error); };
   }));
 }
 
@@ -65,7 +65,7 @@ test('common territorial metadata, flags and deletion preserve selection, undo a
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id),unit)).toBeNull();
   await page.locator('#undoBtn').click();
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id)?.properties.name,unit)).toBe('사용자 하위단위 이름');
-  await expect.poll(async()=>JSON.stringify(await savedProject(page))).toContain('사용자 하위단위 이름');
+  await expect.poll(()=>savedEntityNames(page),{timeout:30000}).toContain('사용자 하위단위 이름');
   await page.reload();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60000});
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('DEU').properties.name)).toBe('공통 명령 시험 국가');
@@ -74,8 +74,9 @@ test('common territorial metadata, flags and deletion preserve selection, undo a
 });
 
 test('Region merge uses the common Worker plan and supports geometry undo and saved restore', async ({ page }) => {
-  test.setTimeout(150000);
-  page.setDefaultTimeout(8000);
+  test.setTimeout(240000);
+  // The real Worker validates a complete world snapshot and immutable archive.
+  page.setDefaultTimeout(30000);
   const errors=[];
   page.on('pageerror',e=>errors.push(e.stack || e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
@@ -96,7 +97,7 @@ test('Region merge uses the common Worker plan and supports geometry undo and sa
     n.dispatchEvent(new n.ownerDocument.defaultView.MouseEvent('click',{bubbles:true}));
   },b);
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled(); await page.locator('#modePrimaryBtn').click();
-  await expect(page.locator('#geometryPreviewSummary')).toBeVisible();
+  await expect(page.locator('#geometryPreviewSummary')).toBeVisible({timeout:30000});
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled(); await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#confirmModal')).toBeVisible(); await page.locator('#confirmModalOkBtn').click();
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id),b)).toBeNull();
@@ -106,7 +107,13 @@ test('Region merge uses the common Worker plan and supports geometry undo and sa
   await page.locator('#undoBtn').click();
   await expect.poll(()=>page.evaluate(id=>!!window.PANDOLAB_TERRITORIAL.get(id),b)).toBe(true);
   expect(await page.evaluate(ids=>ids.map(id=>window.PANDOLAB_TERRITORIAL.get(id).geometry),[a,b])).toEqual(before);
-  await expect.poll(async()=>JSON.stringify(await savedProject(page))).toContain('병합 B');
+  await page.locator('#redoBtn').click();
+  await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id),b)).toBeNull();
+  expect(await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id).geometry,a)).toEqual(merged);
+  await page.locator('#undoBtn').click();
+  await expect.poll(()=>page.evaluate(id=>!!window.PANDOLAB_TERRITORIAL.get(id),b)).toBe(true);
+  expect(await page.evaluate(ids=>ids.map(id=>window.PANDOLAB_TERRITORIAL.get(id).geometry),[a,b])).toEqual(before);
+  await expect.poll(()=>savedEntityNames(page),{timeout:30000}).toContain('병합 B');
   await page.reload();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60000});
   expect(await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id)?.properties.name,a)).toBe('병합 A');
