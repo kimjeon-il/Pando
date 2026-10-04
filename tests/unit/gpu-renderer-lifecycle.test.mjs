@@ -23,6 +23,7 @@ test('renderer disposal is idempotent and prevents deferred initialization', asy
   let requestedFrames = 0;
   const renderer = createGpuMapRenderer({
     state: {}, runtimeAssetUrl: path => path,
+    renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
     scheduleGpuFrame: () => requestedFrames++,
   });
   assert.equal(typeof renderer.dispose, 'function');
