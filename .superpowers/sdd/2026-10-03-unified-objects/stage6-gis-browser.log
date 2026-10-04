@@ -1,0 +1,60 @@
+
+Running 1 test using 1 worker
+
+(node:15012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\browser\gis-coast-cancellation.spec.mjs:43:3 › GENERAL coast reconciliation cancellation rolls the whole import back without error codes (39.1s)
+
+
+  1) tests\browser\gis-coast-cancellation.spec.mjs:43:3 › GENERAL coast reconciliation cancellation rolls the whole import back without error codes 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator: locator('#actionStatus')
+    Timeout: 8000ms
+    - Expected  - 1
+    + Received  + 5
+
+    - 파일 불러오기를 취소했습니다.
+    +
+    +           
+    +           전 세계 강·호수 데이터를 오프라인 저장소에 준비했습니다.
+    +           
+    +         
+
+    Call log:
+      - Expect "toHaveText" with timeout 8000ms
+      - waiting for locator('#actionStatus')
+        11 × locator resolved to <div role="status" id="actionStatus" aria-atomic="true" data-feedback-tone="success" aria-label="전 세계 강·호수 데이터를 오프라인 저장소에 준비했습니다." class="ui-status action-status ui-toast hidden ready">…</div>
+           - unexpected value "
+              
+              전 세계 강·호수 데이터를 오프라인 저장소에 준비했습니다.
+              
+            "
+
+
+      52 |     await page.locator('#coastReconciliationCancelBtn').click();
+      53 |     await expect(page.locator('#coastReconciliationModal')).toBeHidden();
+    > 54 |     await expect(page.locator('#actionStatus')).toHaveText('파일 불러오기를 취소했습니다.');
+         |                                                 ^
+      55 |     await expect.poll(() => importSnapshot(page, scenario.entityKind)).toEqual(before);
+      56 |     const diagnostics = await page.evaluate(() => window.__PANDOLAB_RELIABILITY_LOG__.snapshot()
+      57 |       .filter(entry => entry.operation === 'gis-import'));
+        at C:\Users\taeeu\OneDrive\문서\GitHub\map editor\tests\browser\gis-coast-cancellation.spec.mjs:54:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\gis-coast-cancellation-GEN-187bf-rt-back-without-error-codes\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\gis-coast-cancellation-GEN-187bf-rt-back-without-error-codes\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\gis-coast-cancellation-GEN-187bf-rt-back-without-error-codes\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\gis-coast-cancellation-GEN-187bf-rt-back-without-error-codes\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests\browser\gis-coast-cancellation.spec.mjs:43:3 › GENERAL coast reconciliation cancellation rolls the whole import back without error codes 

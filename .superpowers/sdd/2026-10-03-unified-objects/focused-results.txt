@@ -1,0 +1,121 @@
+✔ project serialization contains document and presentation fields only (1.9352ms)
+✔ history snapshots preserve editable object state through the shared schema (0.2783ms)
+✔ presentation and session scopes stay independent (0.2837ms)
+✔ shared project fields receive current defaults without sharing mutable values (0.4456ms)
+✔ current project schema accepts only explicit current versions and UUID object IDs (8.276ms)
+✔ distribution boundary visibility is a shared optional presentation setting (0.9991ms)
+✔ canonical river and lake presentation groups are accepted while hydro output is rejected (1.3148ms)
+✔ missing duplicate and unsupported object fields are rejected (2.6302ms)
+✔ session state and unsupported model fields are rejected from project files (1.1306ms)
+✖ mixed country/subunit batch deletion uses the real Store, preserves cancel and records one history (2.168ms)
+✖ batch deletion rechecks locks/children and rolls back a failed application (1.14ms)
+✖ deletion confirmation cannot apply after the project generation changes (0.5362ms)
+✖ one object lock guard handles countries and units with explicit refs and rejects wrong identities (0.4824ms)
+✔ country construction cannot publish overrides before the owning transaction commits (1.7557ms)
+✔ territorial deletion requires the canonical store before touching project state (3.4277ms)
+✔ multiple subunits require one parent, unlocked objects and a connected selection (1.0495ms)
+✔ single and batch deletion never expands into descendants and rechecks changed locks (3.277ms)
+✖ country deletion uses the same territorial cleanup surface and removes dangling references (1.8209ms)
+✔ territorial deletion delegates physical collection writes to the entity store (0.4475ms)
+✔ deletion clears the actual native and synthetic scene IDs without touching another country label (0.7647ms)
+✔ country deletion rejects current administrative children before changing state (0.4003ms)
+✔ locked boundary checks include interior points of differently segmented edges (0.2834ms)
+✔ explicit metadata ref updates an unselected entity without selecting or focusing it and no-ops have no effects (3.6086ms)
+✖ selected metadata refreshes the common presenter; color and flags invalidate only their actual visual responsibilities (0.9517ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 18
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 248.7965
+
+✖ failing tests:
+
+test at tests\unit\territorial-command-storage.test.mjs:40:1
+✖ mixed country/subunit batch deletion uses the real Store, preserves cancel and records one history (2.168ms)
+  ReferenceError: TERRITORIAL_UNIT_TYPES is not defined
+      at fixture (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-command-storage.test.mjs:24:56)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-command-storage.test.mjs:41:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+
+test at tests\unit\territorial-command-storage.test.mjs:52:1
+✖ batch deletion rechecks locks/children and rolls back a failed application (1.14ms)
+  ReferenceError: TERRITORIAL_UNIT_TYPES is not defined
+      at fixture (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-command-storage.test.mjs:24:56)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-command-storage.test.mjs:53:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests\unit\territorial-command-storage.test.mjs:63:1
+✖ deletion confirmation cannot apply after the project generation changes (0.5362ms)
+  ReferenceError: TERRITORIAL_UNIT_TYPES is not defined
+      at fixture (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-command-storage.test.mjs:24:56)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-command-storage.test.mjs:64:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\unit\territorial-command-storage.test.mjs:74:1
+✖ one object lock guard handles countries and units with explicit refs and rejects wrong identities (0.4824ms)
+  ReferenceError: TERRITORIAL_UNIT_TYPES is not defined
+      at fixture (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-command-storage.test.mjs:24:56)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-command-storage.test.mjs:75:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\unit\territorial-interaction-policy.test.mjs:48:1
+✖ country deletion uses the same territorial cleanup surface and removes dangling references (1.8209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   {
+  -     id: 'rel-a',
+  -     parentId: '',
+  -     unitId: 'r'
+  -   }
+  - ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-interaction-policy.test.mjs:73:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ { id: 'rel-a', unitId: 'r', parentId: '' } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\unit\territorial-metadata-command.test.mjs:31:1
+✖ selected metadata refreshes the common presenter; color and flags invalidate only their actual visual responsibilities (0.9517ms)
+  TypeError: Cannot read properties of undefined (reading 'entityRepository')
+      at Object.commitTerritorialMetadata (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/assets/js/modules/app-object-metadata.js:24:42)
+      at TestContext.<anonymous> (file:///C:/Users/taeeu/OneDrive/%EB%AC%B8%EC%84%9C/GitHub/map%20editor/tests/unit/territorial-metadata-command.test.mjs:36:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
