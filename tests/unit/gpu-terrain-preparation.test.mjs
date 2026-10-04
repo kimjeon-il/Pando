@@ -106,6 +106,48 @@ test('rotating the mobile globe drops queued tiles from the old view', async t =
   owner.dispose();
 });
 
+for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]]) {
+  test(`zoom transition ${previousLevel} to ${nextLevel} preserves loaded detail until replacement arrives`, async t => {
+    const { owner, requests, jobs } = fixture(t);
+    globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
+    t.after(() => { delete globalThis.createImageBitmap; });
+    owner.setManifest(mobileManifest);
+    const view = { ...mobileView(), devicePixelRatio: 1 };
+    const previousFrame = { ...mobileFrame(), scale: previousLevel === 1 ? 500 : 1200 };
+    owner.prepare(previousFrame, view);
+    for (let index = 0; index < requests.length; index++) {
+      requests[index].resolve({ ok: true, blob: async () => ({}) });
+      await settle();
+      for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain uploads. */ }
+    }
+    const before = owner.prepare(previousFrame, view);
+    assert.ok(before.length > 0);
+    assert.ok(before.every(tile => tile.spec.level === previousLevel));
+    const priorRequestCount = requests.length;
+    const nextFrame = { ...mobileFrame(), scale: nextScale };
+    const waiting = owner.prepare(nextFrame, view);
+    assert.equal(owner.stats().terrainLevel, nextLevel);
+    assert.ok(waiting.length > 0, 'loaded detail must keep painting during the zoom transition');
+    assert.ok(waiting.every(tile => tile.spec.level === previousLevel));
+    assert.ok(requests.slice(priorRequestCount).every(request => new URL(request.url).pathname.startsWith(`/${nextLevel}/`)));
+    requests[priorRequestCount].resolve({ ok: true, blob: async () => ({}) });
+    await settle();
+    for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain uploads. */ }
+    const partial = owner.prepare(nextFrame, view);
+    assert.ok(partial.some(tile => tile.spec.level === previousLevel));
+    assert.equal(partial.at(-1).spec.level, nextLevel, 'newly ready target tiles paint over retained detail');
+    for (let index = priorRequestCount + 1; index < requests.length; index++) {
+      requests[index].resolve({ ok: true, blob: async () => ({}) });
+      await settle();
+      for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain uploads. */ }
+    }
+    const completed = owner.prepare(nextFrame, view);
+    assert.ok(completed.every(tile => tile.spec.level === nextLevel));
+    assert.equal(owner.stats().terrainTargetTilesLoaded, owner.stats().terrainTargetTileCount);
+    owner.dispose();
+  });
+}
+
 test('an already queued tile gains current-view priority instead of keeping its prefetch priority', async t => {
   const { owner, requests } = fixture(t, () => {}, { mobile: true });
   globalThis.createImageBitmap = async () => ({ width: 2, height: 2, close() {} });
