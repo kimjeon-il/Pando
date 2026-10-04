@@ -26,7 +26,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
     let terrainRetentionKeys = new Set();
     function terrainLevelForView(frameContext = activeFrameContext) {
       if (!terrainManifest?.levels?.length) return null;
-      if (view.meshQuality === 'preview') return terrainManifest.levels[0];
+      if (view.meshQuality === 'preview') return terrainManifest.levels[Math.min(1, terrainManifest.levels.length - 1)];
       const physicalScale = Number(frameContext?.scale) || Number(activeFrameContext?.scale) || 1;
       // The render canvas may lower its DPR under load, but that must not
       // choose a blurrier source terrain level for an unchanged map view.
@@ -45,6 +45,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       return {
         key: `${level.id}/${column}-${row}`,
         level: level.id,
+        previewOnly: view.meshQuality === 'preview',
         column,
         row,
         pixelWidth: x1 - x0,
@@ -261,7 +262,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
           tint = { texture, byteLength };
           tintPending = false;
           invalidate('terrain-tint-ready');
-        } else terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength });
+        } else terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength, previewOnly: spec.previewOnly });
         terrainUploadCount += 1;
         let terrainBytes = [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0);
         terrainBytes += tint?.byteLength || 0;
@@ -372,6 +373,10 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       }
       const targetLevel = terrainLevelForView(frameContext);
       const targetSpecs = visibleTerrainTileSpecs(targetLevel, false, frameContext);
+      if (view.meshQuality !== 'preview') for (const spec of targetSpecs) {
+        const tile = terrainTiles.get(spec.key);
+        if (tile) tile.previewOnly = false;
+      }
       terrainLastLevel = Number(targetLevel?.id ?? -1);
       terrainTargetTileCount = targetSpecs.length;
       terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
@@ -382,7 +387,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       const retainedDetail = view.meshQuality !== 'preview' && terrainTargetTilesLoaded < terrainTargetTileCount
         ? terrainManifest.levels.slice(1).filter(level => level.id !== targetLevel.id)
           .flatMap(level => visibleTerrainTileSpecs(level, false, frameContext))
-          .filter(spec => terrainTiles.has(spec.key))
+          .filter(spec => terrainTiles.has(spec.key) && !terrainTiles.get(spec.key).previewOnly)
         : [];
       for (const spec of retainedDetail) terrainRetentionKeys.add(spec.key);
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);

@@ -1,6 +1,8 @@
 import { applyInteractionCssProperties } from './map-interaction-style.js';
 import { countryDefaultColor } from './color-adapter.js';
-import { TERRAIN_DEM_VERSION, TERRAIN_RASTER_DATASET, selectTerrainManifestUrls, terrainRasterManifestUrl } from './terrain-manifest.js';
+const terrainAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
+const { TERRAIN_DEM_VERSION, TERRAIN_RASTER_DATASET, selectTerrainManifestUrls, terrainRasterManifestUrl } =
+  await import(`./terrain-manifest.js?v=${encodeURIComponent(terrainAssetRevision)}`);
 
 // The published DEM is the GPU default; the raster dataset remains the fallback.
 const TERRAIN_DEM_DEFAULT_ENABLED = true;
