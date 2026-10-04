@@ -16,8 +16,8 @@ async function capture(page, clip = null) {
 async function pixel(page) {
   const point = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.project([32, 39]));
   const box = await page.locator('#map').boundingBox();
-  // Measure the map itself, excluding the selection card and its shadow.
-  const mask = await page.addStyleTag({ content: '#selectionToolbar { visibility: hidden !important; }' });
+  // Measure map color even when the nested display menu covers the sample point.
+  const mask = await page.addStyleTag({ content: '#selectionToolbar, #mapDisplaySurface { visibility: hidden !important; }' });
   let png;
   try {
     png = await capture(page, { x: Math.round(box.x + point[0]),
@@ -74,6 +74,7 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
     await expect.poll(mapPixel).toEqual([239, 68, 68]);
     if (renderer === 'webgl2') {
       await page.locator('#mapDisplayBtn').click();
+      await page.locator('[data-map-display-row="general"]').click();
       await page.locator('[data-map-display-row="countries"]').click();
       const toggle = page.locator('[data-layer-style-color="countries"]');
       await toggle.locator('..').click();
@@ -82,6 +83,8 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
       await toggle.locator('..').click();
       await expect(toggle).toBeChecked();
       await expect.poll(mapPixel).toEqual([239, 68, 68]);
+      await page.locator('[data-map-display-row="countries"]').focus();
+      await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
     }
@@ -111,10 +114,13 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
       const errors = await openMap(page, renderer);
       // Without country paint, terrain retains its own color/monochrome base.
       await page.locator('#mapDisplayBtn').click();
+      await page.locator('[data-map-display-row="general"]').click();
       await page.locator('[data-map-display-row="countries"]').click();
       const toggle = page.locator('[data-layer-style-color="countries"]');
       await toggle.locator('..').click();
       await expect(toggle).not.toBeChecked();
+      await page.locator('[data-map-display-row="countries"]').focus();
+      await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
       await changeMode(page, 'None');

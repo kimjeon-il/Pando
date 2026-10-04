@@ -78,6 +78,7 @@ test('distribution controls stay inside the single view submenu on desktop and m
   await expect(page.locator('#distributionActiveLayerInput').locator('..')).toBeVisible();
   await expect(page.locator('#distributionLegend')).toBeVisible();
   await expect(page.locator('#distributionBoundaryVisibleInput')).toBeVisible();
+  await page.locator('[data-map-display-row="general"]').click();
   await page.locator('[data-map-display-row="countries"]').click();
   await expect(page.locator('#layerStylePanel-countries')).toBeVisible();
   await expect(style).toBeHidden();
