@@ -8,6 +8,7 @@ Only the standard library is required. Large sources / candidates stay in .cache
 from __future__ import annotations
 
 import argparse
+import copy
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 import hashlib
@@ -378,6 +379,53 @@ def table(headers, rows):
                      ["| " + " | ".join(cell(value) for value in row) + " |" for row in rows])
 
 
+def apply_review_overrides(reviews, overrides):
+    """Overlay explicit review decisions without rewriting the pinned base ledger."""
+    if overrides is None:
+        return reviews
+    if overrides.get("version") != 1:
+        raise ValueError("Unsupported candidate review override version")
+    source_sha = reviews.get("source", {}).get("sha256")
+    if overrides.get("sourceSha256") != source_sha:
+        raise ValueError("Review override source snapshot changed; re-review required")
+    items = overrides.get("overrides")
+    if not isinstance(items, list):
+        raise ValueError("Review overrides must be a list")
+
+    merged = copy.deepcopy(reviews)
+    decisions = {item.get("geonameId"): item for item in merged.get("decisions", [])}
+    seen = set()
+    for override in items:
+        identifier = override.get("geonameId")
+        if type(identifier) is not int or identifier <= 0:
+            raise ValueError(f"Invalid override ID {identifier}")
+        if identifier in seen:
+            raise ValueError(f"duplicate override ID {identifier}")
+        seen.add(identifier)
+        decision = decisions.get(identifier)
+        if decision is None:
+            raise ValueError(f"unknown review ID {identifier}")
+        action = override.get("action")
+        if action not in REVIEW_ACTIONS:
+            raise ValueError(f"Review override {identifier}: unknown action {action}")
+        reason_append = override.get("reasonAppend", "")
+        if reason_append and (not isinstance(reason_append, str) or not reason_append.strip()):
+            raise ValueError(f"Review override {identifier}: invalid reasonAppend")
+        coordinate_ref = override.get("coordinateCorrectionRef")
+        if coordinate_ref is not None and (
+            not isinstance(coordinate_ref, str) or
+            not coordinate_ref.startswith("reports/places/coordinate-corrections.json#")
+        ):
+            raise ValueError(f"Review override {identifier}: invalid coordinateCorrectionRef")
+
+        decision["action"] = action
+        if reason_append:
+            decision["reason"] = decision["reason"].rstrip() + " " + reason_append.strip()
+        if coordinate_ref is not None:
+            decision["coordinateCorrectionRef"] = coordinate_ref
+    return merged
+
+
 def refine_candidates(rows, source_records, reviews):
     """Review only explicit IDs. Never promote, merge, rename, or edit source rows."""
     validate_candidates(rows)
@@ -464,9 +512,12 @@ def render_reviews(stats):
     return "\n".join(parts)
 
 
-def review(cache, reviews_path, stats_path, report_path):
+def review(cache, reviews_path, stats_path, report_path, overrides_path=None):
     """Re-read the pinned official snapshot, not an unverified candidate cache."""
     reviews = json.loads(reviews_path.read_text(encoding="utf-8"))
+    if overrides_path is not None:
+        overrides = json.loads(overrides_path.read_text(encoding="utf-8"))
+        reviews = apply_review_overrides(reviews, overrides)
     source = reviews["source"]
     metadata = json.loads((cache / f"{source['name']}.source.json").read_text(encoding="utf-8"))
     if metadata["sha256"] != source["sha256"]:
@@ -496,6 +547,7 @@ def review(cache, reviews_path, stats_path, report_path):
         for row in refined:
             stream.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
     stats = {"source": source, "reviewLedgerSha256": file_hash(reviews_path),
+              "reviewOverridesSha256": file_hash(overrides_path) if overrides_path is not None else None,
              "baselineCount": len(rows), "reviewCount": len(reviewed), "refinedCount": len(refined),
              "baselineExcludes": sum(excluded.values()), "baselineHolds": sum(held.values()),
              "actions": dict(sorted(Counter(item["action"] for item in reviewed).items())),
@@ -659,6 +711,7 @@ def main():
     parser.add_argument("--stats", type=Path)
     parser.add_argument("--report", type=Path)
     parser.add_argument("--reviews", type=Path, default=ROOT / "reports" / "places" / "candidate-reviews.json")
+    parser.add_argument("--review-overrides", type=Path)
     args = parser.parse_args()
     if args.command == "fetch":
         fetch(args.cache)
@@ -666,8 +719,13 @@ def main():
         build(args.cache, args.stats or ROOT / "reports" / "places" / "geonames-statistics.json",
               args.report or ROOT / "docs" / "place-data-audit.md")
     else:
+        overrides = args.review_overrides
+        default_reviews = ROOT / "reports" / "places" / "candidate-reviews.json"
+        default_overrides = ROOT / "reports" / "places" / "candidate-review-overrides.json"
+        if overrides is None and args.reviews == default_reviews and default_overrides.exists():
+            overrides = default_overrides
         review(args.cache, args.reviews, args.stats or ROOT / "reports" / "places" / "candidate-review-summary.json",
-               args.report or ROOT / "docs" / "place-candidate-review.md")
+               args.report or ROOT / "docs" / "place-candidate-review.md", overrides)
 
 
 if __name__ == "__main__":
