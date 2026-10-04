@@ -95,8 +95,10 @@ test('source geometry is never inspected or cloned to classify rows', () => {
 });
 test('mixed-type range is delegated to the normal selection controller with a shared scope', () => {
   const controller = createObjectSelectionController();
-  const refs = [{ domain: 'territorial', type: 'country', id: 'DEU' }, { domain: 'distribution', type: 'language', id: 'de' }, { domain: 'label', type: 'label', id: 'x' }];
+  const refs = [{ domain: 'territorial', type: 'entity', id: 'DEU' }, { domain: 'distribution', type: 'distribution', id: 'de' }, { domain: 'label', type: 'label', id: 'x' }];
   controller.replace(refs[0], { scope: 'layer-list' });
   controller.selectRange(refs[2], refs, { scope: 'layer-list' });
   assert.equal(controller.size(), 3);
+  assert.deepEqual(controller.snapshot().items.map(ref => ref.id), ['DEU', 'de', 'x']);
+  assert.equal(controller.primary().id, 'x');
 });

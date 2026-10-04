@@ -3,6 +3,10 @@ import test from 'node:test';
 
 import { createHistoricalLibraryController } from '../../assets/js/modules/historical-library-controller.js';
 import { shouldShowTerritorialParentChoice } from '../../assets/js/modules/library-ownership.js';
+import { normalizeHistoricalLibraryEntity } from '../../assets/js/modules/historical-library.js';
+import { resolveSelectChoice } from '../../assets/js/modules/select-option-policy.js';
+
+const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]] };
 
 function fakeElement(ownerDocument) {
   const classes = new Set(['hidden']);
@@ -47,16 +51,21 @@ function fakeElement(ownerDocument) {
   };
 }
 
-test('missing ownership remains in the modal, blocks missing country, resets parent and supports country mode', async () => {
+test('missing ownership remains in the modal, blocks missing country, resets parent and supports root mode', async () => {
   const document = { createElement: () => fakeElement(document), createDocumentFragment: () => fakeElement(document) };
   const elements = Object.fromEntries(['open', 'modal', 'card', 'close', 'backdrop', 'search', 'clearSearch', 'type', 'status', 'year', 'geographicRegion',
     'results', 'preview', 'snapshot', 'snapshotButton', 'childDepth', 'add', 'addOptions', 'optionsBack', 'ownership'].map(key => [key, fakeElement(document)]));
-  const entity = { libraryId: 'root', canonicalName: 'Root', type: 'subunit', geometryVersions: [{ id: 'v1' }] };
+  const entity = normalizeHistoricalLibraryEntity({ libraryId: 'root', canonicalName: 'Root', entityKind: 'general',
+    parentLibraryId: 'missing-parent', geometryVersions: [{ id: 'v1', geometry }] });
   const calls = [];
   const controller = createHistoricalLibraryController({ document, elements,
     service: { load: async () => {}, list: () => [entity], search: () => [entity], snapshots: () => [], get: () => entity },
     typeLabels: {}, selectGeometryVersion: () => entity.geometryVersions[0], renderMapPreview: () => fakeElement(document), createEmptyState: () => fakeElement(document),
-    replaceSelectOptions: (select, options, value) => { select.value = options.some(option => option.value === value) ? value : options[0]?.value || ''; },
+    replaceSelectOptions: (select, options, value, policy) => {
+      const choice = resolveSelectChoice(options, value, policy);
+      select.value = choice.value;
+      return choice;
+    },
     collator: new Intl.Collator('ko'), shouldShowTerritorialParentChoice, closeSurface() {}, focusSurfaceTrigger() { elements.open?.focus(); }, confirm() {}, setStatus() {}, reportError(error) { throw error; }, requestFrame: fn => fn(),
     ownershipContext: () => ({ missing: [{ libraryId: 'root', name: 'Root', countryId: '' }], countries: [{ value: 'A', label: 'A' }, { value: 'B', label: 'B' }],
       parents: id => id ? [{ value: id, label: id }, ...(id === 'A' ? [{ value: 'P', label: 'Parent' }] : [])] : [] }),
@@ -77,13 +86,16 @@ test('missing ownership remains in the modal, blocks missing country, resets par
   country.value = 'B'; country.dispatchEvent({ type: 'change' });
   assert.equal(parent.value, 'B');
   assert.equal(parentRow.hidden, true);
-  mode.value = 'country'; mode.dispatchEvent({ type: 'change' });
+  mode.value = 'root'; mode.dispatchEvent({ type: 'change' });
+  assert.equal(countryRow.hidden, true);
+  assert.equal(parentRow.hidden, true);
+  assert.equal(nameRow.hidden, false);
   name.value = ''; name.dispatchEvent({ type: 'input' });
   assert.equal(elements.add.disabled, true);
   name.value = 'Independent'; name.dispatchEvent({ type: 'input' });
   elements.add.click();
   await Promise.resolve();
-  assert.equal(calls[0][4].ownership.root.mode, 'country');
+  assert.equal(calls[0][4].ownership.root.mode, 'root');
   assert.equal(calls[0][4].ownership.root.name, 'Independent');
 });
 
@@ -96,12 +108,11 @@ test('library simplifies single versions, preserves explicit versions and resets
     'results', 'preview', 'snapshot', 'snapshotButton', 'childDepth', 'add', 'addOptions', 'optionsBack'];
   const elements = Object.fromEntries(names.map(name => [name, fakeElement(document)]));
   elements.status.value = 'all';
-  const versions = [{ id: 'old', validFrom: '1900', validTo: '1940' }, { id: 'new', validFrom: '1941', validTo: '1990' }];
-  const parent = { libraryId: 'parent', canonicalName: 'Parent', geometryVersions: versions };
-  parent.sourceInfo = { title: 'Source title', url: 'https://example.org/source', license: 'Public domain' };
-  parent.metadata = { approximateGeometry: true };
+  const versions = [{ id: 'old', validFrom: '1900', validTo: '1940', geometry }, { id: 'new', validFrom: '1941', validTo: '1990', geometry }];
+  const parent = normalizeHistoricalLibraryEntity({ libraryId: 'parent', entityKind: 'general', canonicalName: 'Parent', geometryVersions: versions,
+    sourceInfo: { title: 'Source title', url: 'https://example.org/source', license: 'Public domain' }, metadata: { approximateGeometry: true } });
   const originalSource = JSON.stringify(parent.sourceInfo);
-  const child = { libraryId: 'child', parentLibraryId: 'parent', canonicalName: 'Child', geometryVersions: [versions[0]] };
+  const child = normalizeHistoricalLibraryEntity({ libraryId: 'child', entityKind: 'general', parentLibraryId: 'parent', canonicalName: 'Child', geometryVersions: [versions[0]] });
   const entities = [parent, child], imports = [];
   const controller = createHistoricalLibraryController({
     document, elements,
@@ -137,7 +148,7 @@ test('library simplifies single versions, preserves explicit versions and resets
   assert.equal(elements.preview.children[1].children.length, 0);
   assert.match(elements.preview.children[1].textContent, /1900.*1940/);
   assert.equal(elements.preview.children[0].children.length, 1, 'no empty flag block');
-  elements.type.value = 'country';
+  elements.type.value = 'general';
   elements.type.dispatchEvent({ type: 'change' });
   assert.equal(elements.results.children[0].children.length, 2, 'changing a visible filter rerenders results');
 });
@@ -221,10 +232,11 @@ test('historical library can apply a selected default flag without importing its
     'results', 'preview', 'snapshot', 'snapshotButton', 'childDepth', 'add', 'addOptions', 'optionsBack',
   ];
   const elements = Object.fromEntries(names.map(name => [name, fakeElement(document)]));
-  const entity = {
+  const entity = normalizeHistoricalLibraryEntity({
     libraryId: 'flagged', canonicalName: 'Flagged', displayNames: { ko: '국기 항목' },
+    entityKind: 'general',
     metadata: { defaultFlagDataUrl: 'data:image/svg+xml;base64,flag' }, geometryVersions: [],
-  };
+  });
   const applied = [];
   const restoreFocus = fakeElement(document);
   const controller = createHistoricalLibraryController({
@@ -254,12 +266,12 @@ test('historical library controller locks controls while async instantiation run
     'results', 'preview', 'snapshot', 'snapshotButton', 'childDepth', 'add', 'addOptions', 'optionsBack',
   ];
   const elements = Object.fromEntries(names.map(name => [name, fakeElement(document)]));
-  const entity = {
-    libraryId: 'historical-country:test', type: 'country', canonicalName: 'Test', displayNames: { ko: '테스트' },
+  const entity = normalizeHistoricalLibraryEntity({
+    libraryId: 'historical-country:test', entityKind: 'general', canonicalName: 'Test', displayNames: { ko: '테스트' },
     alternateNames: [], metadata: { pilot: true, approximateGeometry: true, referenceDate: '1989-04-25' },
     sourceInfo: { title: 'Source' },
-  };
-  const version = { id: 'test-v1', certainty: 'medium', datePrecision: 'reference-date', geometry: { type: 'Polygon', coordinates: [] } };
+  });
+  const version = { id: 'test-v1', certainty: 'medium', datePrecision: 'reference-date', geometry };
   let rejectInstantiation;
   const gate = new Promise((resolve, reject) => { rejectInstantiation = reject; });
   let reportedErrors = 0;
@@ -270,7 +282,7 @@ test('historical library controller locks controls while async instantiation run
       load: async () => {}, list: () => [entity], snapshots: () => [], search: () => [entity],
       get: id => (id === entity.libraryId ? entity : null), getSnapshot: () => null,
     },
-    typeLabels: { country: '국가' },
+    typeLabels: { general: '일반객체' },
     selectGeometryVersion: () => version,
     renderMapPreview: () => fakeElement(document),
     createEmptyState: () => fakeElement(document),
@@ -312,12 +324,12 @@ test('historical library hides the pilot badge while retaining pilot metadata', 
     'results', 'preview', 'snapshot', 'snapshotButton', 'childDepth', 'add', 'addOptions', 'optionsBack',
   ];
   const elements = Object.fromEntries(names.map(name => [name, fakeElement(document)]));
-  const entity = {
-    libraryId: 'historical-country:test-badge', type: 'country', canonicalName: 'Test', displayNames: { ko: '테스트' },
+  const entity = normalizeHistoricalLibraryEntity({
+    libraryId: 'historical-country:test-badge', entityKind: 'general', canonicalName: 'Test', displayNames: { ko: '테스트' },
     alternateNames: [], metadata: { pilot: true, approximateGeometry: true, referenceDate: '1989-04-25' },
     sourceInfo: { title: 'Source' },
-  };
-  const version = { id: 'test-badge-v1', certainty: 'medium', datePrecision: 'reference-date', geometry: { type: 'Polygon', coordinates: [] } };
+  });
+  const version = { id: 'test-badge-v1', certainty: 'medium', datePrecision: 'reference-date', geometry };
   const controller = createHistoricalLibraryController({
     document,
     elements,
@@ -325,7 +337,7 @@ test('historical library hides the pilot badge while retaining pilot metadata', 
       load: async () => {}, list: () => [entity], snapshots: () => [], search: () => [entity],
       get: id => (id === entity.libraryId ? entity : null), getSnapshot: () => null,
     },
-    typeLabels: { country: '국가' },
+    typeLabels: { general: '일반객체' },
     selectGeometryVersion: () => version,
     renderMapPreview: () => fakeElement(document),
     createEmptyState: () => fakeElement(document),

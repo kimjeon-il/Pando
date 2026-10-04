@@ -9,7 +9,8 @@ import { readFileSync } from 'node:fs';
 import { BUILTIN_SUBUNITS, classifyBuiltinCountries, builtinSubunitSourceId } from '../../assets/js/modules/builtin-subunits.js';
 import { normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
 import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from '../../assets/js/modules/builtin-territory-policy.js';
-import { createProjectSerializer, restoreEntitiesFromDelta } from '../../assets/js/modules/project-serializer.js';
+import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import { restoreEntitiesFromDelta } from '../../assets/js/modules/project-state.js';
 
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
 const before = JSON.stringify(source);

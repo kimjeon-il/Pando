@@ -4,6 +4,7 @@ import { createPropertySelection } from '../../assets/js/modules/app-property-se
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
 import { MAP_RENDER_DIRTY } from '../../assets/js/modules/map-render-coordinator.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
 
 function setup(renderMode = 'single') {
   const layers = [{ id: 'A' }, { id: 'B' }];
@@ -17,11 +18,14 @@ function setup(renderMode = 'single') {
   const events = [];
   const frames = [];
   let visibilityRevision = 0;
+  const entityRepository = createTerritorialEntityRepository({ getEntities: () => state.territorialEntities });
+  const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state });
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
     territorialResources: {
       getState: () => state,
-      entityRepository: createTerritorialEntityRepository({ getEntities: () => state.territorialEntities }),
+      entityRepository,
+      displayEntities: territorialScope.displayEntities,
     },
     distributionResources: {
       getState: () => state,

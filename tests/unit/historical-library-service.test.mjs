@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createHistoricalLibraryService } from '../../assets/js/modules/historical-library-service.js';
+import { HISTORICAL_LIBRARY_SCHEMA_VERSION } from '../../assets/js/modules/historical-library.js';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
 const square = offset => ({
   type: 'Polygon',
@@ -10,17 +12,17 @@ const square = offset => ({
 
 function fixture() {
   return {
-    schemaVersion: 2,
+    schemaVersion: HISTORICAL_LIBRARY_SCHEMA_VERSION,
     entities: [
       {
         libraryId: 'historical-country:parent',
-        type: 'country',
+        entityKind: 'general',
         canonicalName: 'Parent',
         geometryVersions: [{ id: 'parent:1', memberCountryIds: ['AAA'] }],
       },
       {
         libraryId: 'historical-region:child',
-        type: 'region',
+        entityKind: 'general',
         canonicalName: 'Child',
         parentLibraryId: 'historical-country:parent',
         geometryVersions: [{ id: 'child:1', memberCountryIds: ['AAA'] }],
@@ -33,12 +35,7 @@ function fixture() {
 function countries() {
   return {
     type: 'FeatureCollection',
-    features: [{
-      type: 'Feature',
-      id: 'AAA',
-      properties: { name: 'Current A' },
-      geometry: square(0),
-    }],
+    features: [createTerritorialFeature({ id: 'AAA', entityKind: 'general', name: 'Current A', geometry: square(0) })],
   };
 }
 
@@ -56,7 +53,8 @@ test('historical library service shares concurrent loads and exposes current and
   const first = service.load();
   const second = service.load();
   resolveLoad(fixture());
-  assert.equal(await first, await second);
+  const [firstLibrary, secondLibrary] = await Promise.all([first, second]);
+  assert.equal(firstLibrary, secondLibrary);
   assert.equal(loads, 1);
   assert.equal(service.get('current-country:AAA').canonicalName, 'Current A');
   assert.equal(service.getSnapshot('current-world').referenceDate, '2026');
@@ -78,6 +76,8 @@ test('historical library service expands descendants and materializes descriptor
   const descriptors = service.instantiateDescriptors(['historical-country:parent'], '', 'all');
   assert.equal(descriptors.length, 2);
   assert.equal(descriptors[1].parentLibraryId, 'historical-country:parent');
+  assert.equal(descriptors[1].entityKind, 'general');
+  assert.deepEqual(descriptors[1].geometry, square(0));
 });
 
 test('historical library service allows retry after a failed load', async () => {
@@ -102,9 +102,9 @@ test('pilot geometry can use pristine countries without exposing them as current
   const service = createHistoricalLibraryService({
     dataUrl: '/library.json',
     fetchJson: async () => ({
-      schemaVersion: 2,
+      schemaVersion: HISTORICAL_LIBRARY_SCHEMA_VERSION,
       entities: [{
-        libraryId: 'historical-country:from-pristine', type: 'country', canonicalName: 'From pristine',
+        libraryId: 'historical-country:from-pristine', entityKind: 'general', canonicalName: 'From pristine',
         geometryVersions: [{ id: 'from-pristine:1', memberCountryIds: ['BBB'] }],
       }],
       snapshots: [],
@@ -112,7 +112,7 @@ test('pilot geometry can use pristine countries without exposing them as current
     getCountriesData: countries,
     getMaterializationCountriesData: () => ({
       type: 'FeatureCollection',
-      features: [{ type: 'Feature', id: 'BBB', properties: { name: 'Pristine B' }, geometry: square(4) }],
+      features: [createTerritorialFeature({ id: 'BBB', entityKind: 'general', name: 'Pristine B', geometry: square(4) })],
     }),
     displayName: feature => feature.properties.name,
     combineGeometries: geometries => geometries[0],

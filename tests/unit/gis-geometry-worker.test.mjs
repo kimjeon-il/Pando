@@ -1,15 +1,15 @@
-import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 import { validateCollection } from '../../assets/js/modules/gis-geometry-validation.js';
+import { GIS_GEOMETRY_TIMEOUT_MS, createGisGeometryValidator, createImportService } from '../../assets/js/modules/import-service.js';
+import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
+import { normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
-
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const appSource = readApplicationOwners('gis-assembly');
-const importServiceSource = fs.readFileSync(path.join(root, 'assets/js/modules/import-service.js'), 'utf8');
 
 function feature(id, coordinates) {
   return {
@@ -61,14 +61,79 @@ test('actual GIS Worker isolates component pairs and retries polygon-clipping sw
   assert.ok(result.intersectionAttempts >= 2);
 });
 
-test('country import validation has a timeout and validates imported IDs before a scoped merge', () => {
-  assert.match(importServiceSource, /GIS_GEOMETRY_TIMEOUT_MS = 60_000/);
-  assert.match(importServiceSource, /affectedIds: scopedIds\?\.length \? scopedIds : null/);
-  assert.match(importServiceSource, /affectedIds\.add\(id\)/);
-  assert.match(importServiceSource, /affectedIds: \[\.\.\.affectedIds\]/);
-  assert.match(appSource, /markCountryGeometriesChanged: markCountryGeometriesChanged/);
-  const committer = fs.readFileSync(path.join(root, 'assets/js/modules/gis-import-transaction.js'), 'utf8');
-  assert.match(committer, /markCountryGeometriesChanged\(plan\.affectedIds \|\| importedIds(?:\)|,\s*\{)/);
-  assert.match(importServiceSource, /importedFeatures\.map\(featureCountryId\)/);
-  assert.doesNotMatch(importServiceSource, /importedFeatures\.length > 1/);
+test('GIS validator sends unique affected IDs and treats an empty scope as full validation', async t => {
+  const messages = [];
+  const worker = {
+    postMessage(message) {
+      messages.push(message);
+      if (message.action === 'validate') globalThis.queueMicrotask(() => this.onmessage({ data: { id: message.id, ok: true, overlapAreaKm2: 0 } }));
+    },
+    terminate() {},
+  };
+  const validator = createGisGeometryValidator({ createWorker: () => worker });
+  t.after(() => validator.dispose());
+  const collection = { type: 'FeatureCollection', features: [feature('A', square)] };
+  assert.equal((await validator.validate(collection, ['A', 'A', '', 0])).overlapAreaKm2, 0);
+  assert.deepEqual(messages[0].affectedIds, ['A', '0']);
+  assert.deepEqual(messages[0].collection, collection);
+  await validator.validate(collection, []);
+  assert.equal(messages[1].affectedIds, null);
+});
+
+test('GIS validator rejects timed out work, disposes its worker and permits a fresh request', async t => {
+  assert.equal(GIS_GEOMETRY_TIMEOUT_MS, 60_000);
+  let builds = 0, terminations = 0;
+  const validator = createGisGeometryValidator({ timeoutMs: 15, createWorker: () => {
+    const responds = ++builds > 1;
+    return {
+      postMessage(message) {
+        if (responds && message.action === 'validate') globalThis.queueMicrotask(() => this.onmessage({ data: { id: message.id, ok: true, overlapAreaKm2: 0 } }));
+      },
+      terminate() { terminations++; },
+    };
+  } });
+  t.after(() => validator.dispose());
+  const collection = { type: 'FeatureCollection', features: [feature('A', square)] };
+  await assert.rejects(validator.validate(collection), error => error.category === 'TIMEOUT' && error.operation === 'gis.validate');
+  assert.equal(terminations, 1);
+  assert.equal(validator.stats().pendingCount, 0);
+  assert.equal((await validator.validate(collection)).overlapAreaKm2, 0);
+  assert.equal(builds, 2);
+});
+
+test('current territorial import validates the complete batch and publishes only changed root IDs', async () => {
+  const context = vm.createContext({});
+  vm.runInContext(fs.readFileSync(new URL('../../assets/js/vendor/polygon-clipping.min.js', import.meta.url), 'utf8'), context);
+  const state = { stateRevision: 0, territorialEntities: [] };
+  initializeTestTerritorialState(state);
+  const store = createTerritorialEntityStore({ getState: () => state });
+  const repository = createTerritorialEntityRepository({ entityStore: store });
+  const events = [], patches = [];
+  const committer = createGisImportTransactionCommitter({ state, entityStore: store, territorialEntityRepository: repository,
+    normalizeTerritorialEntities, normalizePolygonGeometry: value => value, uid: () => 'source', polygonClipping: context.polygonClipping,
+    recordHistory: () => events.push('history'), queueAutosave: () => events.push('save'), markLayerTreeDirty() {}, setActionStatus() {},
+    markCountryGeometriesChanged: ids => { patches.push(ids); state.stateRevision++; },
+    renderingDomain: { invalidateCountryPatch() {}, invalidateTerritorialPatch() {} },
+  });
+  let result = { targetType: 'general', collection: { type: 'FeatureCollection', features: [
+    feature('A', square), { ...feature('child', square), properties: { parent_id: 'A' } },
+  ] } };
+  const service = createImportService({ openImportWizard: async () => result, getWizardOptions: () => ({}),
+    getProjectGeneration: () => 7, validateStructuredGeometry: () => assert.fail('territorial validation belongs to the transaction') });
+  const planned = await service.openFiles([{ name: 'entities.geojson' }]);
+  assert.equal(planned.status, 'planned');
+  assert.equal(planned.plan.kind, 'territorial');
+  assert.equal(planned.plan.projectGeneration, 7);
+  assert.deepEqual(await committer.commitTerritorialImport(planned.plan.payload.result, 'entities.geojson'), ['A', 'child']);
+  assert.equal(repository.get('child').properties.parentId, 'A');
+  assert.deepEqual(repository.get('A').geometry, feature('A', square).geometry);
+  assert.deepEqual(patches, [['A']]);
+  assert.deepEqual(events, ['history', 'save']);
+  const before = store.snapshot();
+  result = { targetType: 'general', collection: { features: [feature('new', square), feature('new', square)] } };
+  const duplicate = await service.openFiles([{ name: 'duplicates.geojson' }]);
+  await assert.rejects(committer.commitTerritorialImport(duplicate.plan.payload.result, 'duplicates.geojson'), /ID가 중복/);
+  assert.deepEqual(store.snapshot(), before);
+  assert.deepEqual(patches, [['A']]);
+  assert.deepEqual(events, ['history', 'save']);
 });

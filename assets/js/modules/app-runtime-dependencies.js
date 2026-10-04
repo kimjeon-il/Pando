@@ -66,9 +66,10 @@ const {
   assertCurrentProjectSchema,
   createProjectObjectId,
   pickProjectFields,
+  restoreEntitiesFromDelta,
 } = projectStateModule;
 const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } = colorAdapterModule;
-const { createProjectSerializer, restoreEntitiesFromDelta } = projectSerializerModule;
+const { createProjectSerializer } = projectSerializerModule;
 const { createBrowserProjectStorage, createPersistenceService } = persistenceServiceModule;
 const { createHydroService, createTerrainService } = physicalLayerServiceModule;
 const { createTerritorialApplicationService } = territorialServiceModule;
