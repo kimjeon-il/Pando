@@ -16,7 +16,7 @@ function fixture({ polygon = () => true, stroke = async () => true } = {}) {
     const interactionFillCache = sceneColorCache, interactionStrokeCache = sceneColorCache;
     const performanceMetrics = {}, lifecycle = { frame: callback => frames.push(callback) };
     const uploadScheduler = { enqueueUpload: job => Promise.resolve().then(() => job.step().value) };
-    const polygonOverlayPass = { initialize: polygon }, strokeRenderer = { initializeProgressively: stroke };
+    const polygonOverlayPass = { initialize: polygon }, strokeRenderer = { initializeProgressively: stroke, isAvailable: () => false };
     const selectionPass = null, prewarmCountryStrokeResources = () => {}, invalidateGpuFrame = () => {};
     const console = { error: (...args) => diagnostics.push(args) }, activateCanvasFallback = reason => failures.push(reason);
     ${initializeSource}
@@ -24,8 +24,18 @@ function fixture({ polygon = () => true, stroke = async () => true } = {}) {
       replaceContext: () => { renderDevice = {}; renderDeviceContextRevision++; }, dispose: () => { disposed = true; } };
   `);
   return { ...create(frames, failures, diagnostics, polygon, stroke), failures, diagnostics,
+    pendingFrames: () => frames.length,
     paint: () => { frames.shift()(); frames.shift()(); }, settle: () => new Promise(resolve => setImmediate(resolve)) };
 }
+
+test('project replacement before shader compilation restarts preparation for the current project', async () => {
+  let initialized = 0;
+  const app = fixture({ stroke: async () => { initialized++; return true; } });
+  app.start(); app.replaceProject(); app.paint(); await app.settle();
+  assert.equal(app.pendingFrames(), 1);
+  app.paint(); await app.settle();
+  assert.equal(initialized, 1); assert.deepEqual(app.failures, []);
+});
 
 for (const pass of ['polygon', 'stroke']) {
   test(`required ${pass} initialization false switches to Canvas with diagnostics`, async () => {
