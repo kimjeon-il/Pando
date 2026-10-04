@@ -45,7 +45,6 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       return {
         key: `${level.id}/${column}-${row}`,
         level: level.id,
-        previewOnly: view.meshQuality === 'preview',
         column,
         row,
         pixelWidth: x1 - x0,
@@ -262,7 +261,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
           tint = { texture, byteLength };
           tintPending = false;
           invalidate('terrain-tint-ready');
-        } else terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength, previewOnly: spec.previewOnly });
+        } else terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength });
         terrainUploadCount += 1;
         let terrainBytes = [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0);
         terrainBytes += tint?.byteLength || 0;
@@ -373,21 +372,18 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       }
       const targetLevel = terrainLevelForView(frameContext);
       const targetSpecs = visibleTerrainTileSpecs(targetLevel, false, frameContext);
-      if (view.meshQuality !== 'preview') for (const spec of targetSpecs) {
-        const tile = terrainTiles.get(spec.key);
-        if (tile) tile.previewOnly = false;
-      }
       terrainLastLevel = Number(targetLevel?.id ?? -1);
       terrainTargetTileCount = targetSpecs.length;
       terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
       terrainTargetTileKeys = new Set(targetSpecs.map(spec => spec.key));
       terrainRetentionKeys = new Set(terrainTargetTileKeys);
-      // Only retain already loaded detail during a LOD transition. Preview
-      // terrain remains exclusive to preview; no lower-level fetch is started.
-      const retainedDetail = view.meshQuality !== 'preview' && terrainTargetTilesLoaded < terrainTargetTileCount
-        ? terrainManifest.levels.slice(1).filter(level => level.id !== targetLevel.id)
+      // Country-mesh quality does not invalidate loaded terrain. Keep current
+      // view coverage until the target LOD is ready, then replace it completely.
+      // Retention only uses cached textures; requests still target the new LOD.
+      const retainedDetail = terrainTargetTilesLoaded < terrainTargetTileCount
+        ? terrainManifest.levels.filter(level => level.id !== targetLevel.id)
           .flatMap(level => visibleTerrainTileSpecs(level, false, frameContext))
-          .filter(spec => terrainTiles.has(spec.key) && !terrainTiles.get(spec.key).previewOnly)
+          .filter(spec => terrainTiles.has(spec.key))
         : [];
       for (const spec of retainedDetail) terrainRetentionKeys.add(spec.key);
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);
