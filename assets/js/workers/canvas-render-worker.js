@@ -317,7 +317,7 @@ function canvasFallbackWorkerMain() {
     function renderTerrain(message, projection, width, height, dpr) {
       if (!message.physicalSettings?.terrainVisible || !terrainManifest?.levels?.length) return true;
       const levels = terrainManifest.levels;
-      const baseLevel = levels[0];
+      const baseLevel = levels[Math.min(1, levels.length - 1)];
       const targetLevel = message.meshQuality === 'preview' ? baseLevel
         : terrainLevelForView(projection, message.terrainDpr || dpr);
       const targetSpecs = visibleTerrainTileSpecs(targetLevel, message, projection, width, height, false);

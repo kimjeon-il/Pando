@@ -4,7 +4,7 @@ Example (rasterio, numpy and Pillow required):
   python tools/build-terrain-dem.py --etopo ETOPO_2022_v1_30s_N90W180_surface.tif \
       --tint-zip HYP_HR.zip --glaciated-areas ne_10m_glaciated_areas.geojson \
       --countries assets/data/countries-ne-5.1.1.geojson \
-      --output F:/map-editor-dem-0.13.0/terrain/v0.13.2
+      --output F:/map-editor-dem-0.13.0/terrain/v0.13.3
 
 The source is read in windows. No full-resolution elevation array is kept in RAM.
 The manifest is published only after every tile has been encoded and verified.
@@ -33,7 +33,9 @@ from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 
 
-VERSION = "0.13.2"
+VERSION = "0.13.3"
+TINT_WIDTH = 4096
+TINT_HEIGHT = 2048
 FORMAT = "dem-relief-v1"
 TILE_SIZE = 1024
 BIAS = 12000
@@ -335,7 +337,7 @@ def fill_tint_background(rgb, valid):
     return np.clip(np.rint(result), 0, 255).astype(np.uint8)
 
 
-def resample_tint(source, ice_geometries, land_geometries, output, width=2048, height=1024):
+def resample_tint(source, ice_geometries, land_geometries, output, width=TINT_WIDTH, height=TINT_HEIGHT):
     # A temporary masked raster keeps full-resolution arrays off the heap.
     # The source mask makes GDAL average only valid colours, so small islands
     # are not diluted by the white water background.
@@ -420,8 +422,8 @@ def build_tint(tint_zip: Path, output: Path, ice_path: Path, countries_path: Pat
             polygon = {'type': 'Polygon', 'coordinates': coordinates}
             land_geometries.append((polygon, bounds(polygon)))
     with rasterio.open(tiff_path) as source:
-        if source.width < 2048 or source.height < 1024 or source.count < 3:
-            raise ValueError("Natural Earth tint is smaller than 2048x1024 RGB")
+        if source.width < TINT_WIDTH or source.height < TINT_HEIGHT or source.count < 3:
+            raise ValueError(f"Natural Earth tint is smaller than {TINT_WIDTH}x{TINT_HEIGHT} RGB")
         if source.crs is None or source.crs.to_epsg() != 4326 or any(
                 abs(a-b) > 1e-7 for a, b in zip(source.bounds, [-180, -90, 180, 90])):
             raise ValueError('Tint source grid is not global EPSG:4326')
@@ -450,8 +452,8 @@ def rebuild_tint_release(source_output: Path, tint_zip: Path, ice_path: Path, co
         shutil.copytree(source_output/str(level['id']), output/str(level['id']))
     manifest['version'] = VERSION
     manifest['urlTemplate'] = f'terrain/v{VERSION}/{{level}}/{{column}}-{{row}}.webp'
-    manifest['tint'] = dict(tint, url=f'terrain/v{VERSION}/tint.webp', width=2048,
-                            height=1024, sha256=sha256(output/'tint.webp'))
+    manifest['tint'] = dict(tint, url=f'terrain/v{VERSION}/tint.webp', width=TINT_WIDTH,
+                            height=TINT_HEIGHT, sha256=sha256(output/'tint.webp'))
     # Reusing an earlier tint release must not accumulate source records.
     manifest['sources'] = [source for source in manifest['sources']
                            if source.get('url') != ICE_URL and source.get('role') != 'canonical-country-land-mask']
@@ -542,7 +544,7 @@ def build(etopo_path: Path, tint_zip: Path, output: Path, ice_path: Path, countr
                   "quantizationStep": SHADE_QUANTIZATION_STEP},
         "gutter": 1, "tileSize": TILE_SIZE, "levels": levels(),
         "urlTemplate": f"terrain/v{VERSION}/{{level}}/{{column}}-{{row}}.webp",
-        "tint": {"url": f"terrain/v{VERSION}/tint.webp", "width": 2048, "height": 1024,
+        "tint": {"url": f"terrain/v{VERSION}/tint.webp", "width": TINT_WIDTH, "height": TINT_HEIGHT,
                  "sha256": sha256(tint_path), **tint_report},
         "sources": [
             {"url": "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2022/data/30s/30s_surface_elev_gtif/ETOPO_2022_v1_30s_N90W180_surface.tif",

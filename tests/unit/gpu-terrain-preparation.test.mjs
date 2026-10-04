@@ -43,13 +43,14 @@ const mobileView = (meshQuality = 'canonical') => ({
   cacheBudgetBytes: 128 * 1024 * 1024,
 });
 
-test('startup map preview requests only the lowest terrain level even at a detailed camera zoom', t => {
+test('startup map preview requests the improved coarse level even at a detailed camera zoom', t => {
   const { owner, requests } = fixture(t, () => {}, { mobile: true });
   owner.setManifest(mobileManifest);
   owner.prepare(mobileFrame(), mobileView('preview'));
-  assert.equal(owner.stats().terrainLevel, 0);
+  assert.equal(owner.stats().terrainLevel, 1);
   assert.equal(owner.stats().terrainFetchConcurrency, 2);
-  assert.deepEqual(requests.map(request => new URL(request.url).pathname), ['/0/0-0', '/0/1-0']);
+  assert.ok(requests.length > 0);
+  assert.ok(requests.every(request => new URL(request.url).pathname.startsWith('/1/')));
   owner.dispose();
 });
 
@@ -73,13 +74,15 @@ test('canonical promotion stops drawing cached preview terrain while detail is p
   await settle();
   for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain the real upload owner. */ }
   assert.equal(owner.prepare(mobileFrame(), mobileView('preview')).length, 2);
-  assert.equal(owner.stats().terrainRenderedLevel, 0);
+  assert.equal(owner.stats().terrainRenderedLevel, 1);
+  const priorRequestCount = requests.length;
   const promoted = owner.prepare(mobileFrame(), mobileView());
   assert.deepEqual(promoted, [], 'the cached preview must not be stretched over canonical target tiles');
   assert.equal(owner.stats().terrainRenderedLevel, -1);
   assert.equal(owner.stats().terrainLevel, 2);
-  assert.ok(requests.slice(2).every(request => new URL(request.url).pathname.startsWith('/2/')));
-  requests[2].resolve({ ok: true, blob: async () => ({}) });
+  await settle();
+  assert.ok(requests.slice(priorRequestCount).every(request => new URL(request.url).pathname.startsWith('/2/')));
+  requests[priorRequestCount].resolve({ ok: true, blob: async () => ({}) });
   await settle();
   for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain the real upload owner. */ }
   const ready = owner.prepare(mobileFrame(), mobileView());
