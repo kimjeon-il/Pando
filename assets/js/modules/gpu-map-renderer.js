@@ -1413,7 +1413,12 @@ export function createGpuMapRenderer(deps) {
       };
       // Allow the first paint before compiling the required scene passes.
       lifecycle.frame(() => lifecycle.frame(() => { void initialize().catch(error => {
-        if (error.name === 'AbortError' || !current()) return;
+        if (!current()) {
+          if (!disposed && device === renderDevice && revision === renderDeviceContextRevision
+            && generation !== projectGeneration && !strokeRenderer.isAvailable()) initializeSharedGpuPasses();
+          return;
+        }
+        if (error.name === 'AbortError') return;
         console.error('[PL-GPU-005] Required scene renderer initialization failed', error);
         activateCanvasFallback(error.message);
       }); }));
