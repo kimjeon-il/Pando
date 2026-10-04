@@ -34,7 +34,7 @@ test('rotating the globe loads the new viewport while obsolete responses remain 
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
     phase = 'old';
     await move([0, 0, 0]);
-    await expect.poll(() => oldRequests.size, { timeout: 15_000 }).toBe(4);
+    await expect.poll(() => oldRequests.size, { timeout: 15_000 }).toBe(6);
     phase = 'new'; changedAt = Date.now();
     await move([-160, 0, 0]);
     await expect.poll(() => newRequests.length, { timeout: 3_000 }).toBeGreaterThan(0);
