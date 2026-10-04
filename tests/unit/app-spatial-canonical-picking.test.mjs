@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createSpatialIndex } from '../../assets/js/modules/app-spatial-index.js';
@@ -15,7 +16,8 @@ test('territorial spatial candidates follow canonical store hydration while prev
   const state = { territorialEntities: [preview], countryVisualPhase: 'preview',
     auditPreviewCountries: { features: [preview] }, auditPreviewTerritorialUnits: [],
     labels: [], genericFeatures: [], hydroEdits: [] };
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state, clipper: () => null });
   const spatial = createSpatialIndex();

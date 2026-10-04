@@ -1,3 +1,4 @@
+import { createEmptyTerritorialState } from './territorial-entity-store.js';
 /** ProjectSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -83,7 +84,7 @@ export function createProjectSession() {
       dataReadiness: dependencies.readiness.DATA_READINESS.PREVIEW,
       geometryProgress: 0,
       meshProgress: 0,
-      territorialEntities: [],
+      ...createEmptyTerritorialState(),
       auditPreviewCountries: null,
       countryVisualPhase: 'preview',
       auditPreviewTerritorialUnits: null,
@@ -94,7 +95,6 @@ export function createProjectSession() {
       labelSettings: {},
       genericFeatures: [],
       hydroEdits: [],
-      territorialRelations: [],
       distributionLayers: [],
       distributionEntries: [],
       distributionSettings: { renderMode: dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.OVERLAP, activeLayerId: '', boundaryVisible: true },

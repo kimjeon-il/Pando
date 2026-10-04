@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import assert from 'node:assert/strict';
@@ -20,7 +21,8 @@ test('disabled territorial paint reveals the map substrate without changing stor
       regions: { colorVisible: false },
     }, objectStyles: {} },
   };
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const resolve = createTerritorialFillResolver({ state, entityRepository, });
   assert.equal(resolve(country).fillAlpha, 0);
@@ -42,7 +44,8 @@ test('country palette and territorial fills can resolve an absent color channel'
 
 test('map modes own unpainted land; explicit gray is still object paint', () => {
   const state = { territorialEntities: [country] };
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   for (const terrainAlpha of [1, 0.68, 0.22]) {
     entityStore.setField('A', 'color', '');
@@ -62,7 +65,8 @@ test('children inherit only assigned colors and retain their opacity and blend',
   const state = { territorialEntities: [country, parent, child],
     layerPresentation: { styles: { countries: { opacity: 0.5, blendMode: 'multiply' } },
       objectStyles: { 'territorial:entity:A': { colorVisible: true } } } };
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   let resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha: 0.22 });
   assert.equal(resolve(child).fillAlpha, 0);
@@ -78,7 +82,8 @@ test('children inherit only assigned colors and retain their opacity and blend',
 
 test('pending no-terrain country patches use the map substrate without assigning a color', () => {
   const state = { territorialEntities: [country] };
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const resolve = createTerritorialFillResolver({ state, entityRepository,
     mapSubstrate: { color: '#cccccc', fillAlpha: 1 } });
@@ -92,6 +97,7 @@ test('an independent region never inherits general opacity, blend or land owners
   const state = { territorialEntities: [country, region], layerPresentation: { styles: {
     countries: { opacity: 0.25, blendMode: 'multiply' }, regions: { opacity: 0.8, blendMode: 'normal' },
   } } };
+  initializeTestTerritorialState(state);
   const entityRepository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => state }) });
   const material = createTerritorialFillResolver({ state, entityRepository })(region);
   assert.equal(material.opacity, 0.8);
@@ -104,6 +110,7 @@ test('a direct child inherits the actual parent material, including per-object o
   const state = { territorialEntities: [country, subunit], layerPresentation: { objectStyles: {
     'territorial:entity:A': { opacity: 0.4, blendMode: 'multiply' },
   } } };
+  initializeTestTerritorialState(state);
   const entityRepository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => state }) });
   const material = createTerritorialFillResolver({ state, entityRepository })(subunit);
   assert.equal(material.opacity, 0.4);
@@ -116,6 +123,7 @@ test('intrinsic country paint is inherited, explicit edits override it, and clea
   const korea = createTerritorialFeature({ id: 'KOR', entityKind: 'general', geometry });
   const child = createTerritorialFeature({ id: 'KOR-child', entityKind: 'general', parentId: 'KOR', geometry });
   const state = { territorialEntities: [korea, child] };
+  initializeTestTerritorialState(state);
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const material = feature => createTerritorialFillResolver({ state, entityRepository, terrainAlpha: 0.22 })(feature);
@@ -143,6 +151,7 @@ test('unassigned territories and new countries remain unpainted, while historica
   ];
   const entities = rows.map(([id]) => createTerritorialFeature({ id, entityKind: 'general', geometry }));
   const state = { territorialEntities: entities };
+  initializeTestTerritorialState(state);
   const entityRepository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => state }) });
   const resolve = createTerritorialFillResolver({ state, entityRepository });
   rows.forEach(([, color], index) => {

@@ -263,7 +263,7 @@ export function createPersistenceService({
         }
         if (result.value == null) continue;
         try {
-          validateProject(result.value);
+          await validateProject(result.value);
           candidates.push({ source, project: result.value });
         } catch (error) {
           rejectedError = error;

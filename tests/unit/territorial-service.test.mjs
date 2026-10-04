@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -19,7 +20,8 @@ function fixture() {
       return { ok: true, value };
     },
   };
-  const entityStore = createTerritorialEntityStore({
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({
     getState: () => state,
   });
   const entityRepository = createTerritorialEntityRepository({ entityStore: entityStore });
@@ -44,19 +46,19 @@ test('territorial service exposes commands without transaction or validation for
   assert.equal(Object.hasOwn(service, 'validateRelations'), false);
 });
 
-test('country dates use raw properties, mark the save delta and honor locks and normalized no-ops', () => {
+test('country date editing respects the activation guard locks and normalized no-ops', () => {
   const { service, state, transactions } = fixture();
   assert.equal(service.updateMetadata('country-a', 'validFrom', '').changed, false);
-  assert.equal(service.updateMetadata('country-a', 'validFrom', '1900').changed, true);
-  assert.equal(state.territorialEntities[0].properties.validFrom, '1900');
-  assert.deepEqual([...state.historyDirtyEntityIds], ['country-a']);
+  assert.equal(service.updateMetadata('country-a', 'validFrom', '1900').code, 'TIMELINE_ACTIVATION');
+  assert.equal(state.territorialEntities[0].properties.validFrom, null);
+  assert.deepEqual([...state.historyDirtyEntityIds], []);
   const count = transactions.length;
-  assert.equal(service.updateMetadata('country-a', 'validFrom', '1900').changed, false);
-  assert.equal(service.updateMetadata('country-a', 'validTo', '1800').code, 'invalid-temporal');
+  assert.equal(service.updateMetadata('country-a', 'validFrom', null).changed, false);
+  assert.equal(service.updateMetadata('country-a', 'validTo', '0').code, 'invalid-temporal');
   assert.equal(transactions.length, count);
   service.setLocked('country-a', true);
   assert.equal(service.updateMetadata('country-a', 'validFrom', '1910').code, 'locked');
-  assert.equal(state.territorialEntities[0].properties.validFrom, '1900');
+  assert.equal(state.territorialEntities[0].properties.validFrom, null);
 });
 
 test('common flag fields distinguish custom, hidden and default for countries and units', () => {
@@ -214,19 +216,19 @@ test('temporal unit metadata is normalized and rejected before mutation when inv
   const { service, entityRepository, transactions, units } = fixture();
   const before = units();
 
-  assert.equal(service.updateMetadata('unit-a', 'validFrom', '1900').changed, true);
-  assert.equal(entityRepository.get('unit-a').properties.validFrom, '1900');
+  assert.equal(service.updateMetadata('unit-a', 'validFrom', '1900').code, 'TIMELINE_ACTIVATION');
+  assert.equal(entityRepository.get('unit-a').properties.validFrom, null);
 
   const count = transactions.length;
-  const invalid = service.updateMetadata('unit-a', 'validTo', '1899');
+  const invalid = service.updateMetadata('unit-a', 'validTo', '0');
   assert.equal(invalid.ok, false);
   assert.equal(invalid.code, 'invalid-temporal');
   assert.equal(transactions.length, count);
   assert.equal(entityRepository.get('unit-a').properties.validTo, null);
 
-  assert.equal(service.updateMetadata('unit-a', 'validFrom', '').changed, true);
+  assert.equal(service.updateMetadata('unit-a', 'validFrom', '').changed, false);
   assert.equal(entityRepository.get('unit-a').properties.validFrom, null);
-  assert.notEqual(units(), before);
+  assert.equal(units(), before);
 });
 
 

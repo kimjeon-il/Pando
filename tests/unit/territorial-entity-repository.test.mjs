@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
@@ -6,7 +7,8 @@ import { createTerritorialEntityRepository } from '../../assets/js/modules/terri
 const entity=(id,entityKind,options={})=>createTerritorialFeature({id,entityKind,geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]},...options});
 function fixture() {
  const state={stateRevision:0,territorialEntities:[entity('A','general',{color:'#123456',metadata:{capital:'capital'}}),entity('B','general'),entity('S','general',{parentId:'A'}),entity('T','general',{parentId:'S'}),entity('U','general',{parentId:'A'}),entity('R','regional',{}),entity('I','regional')]};
- const store=createTerritorialEntityStore({getState:()=>state}); return {state,store,repo:createTerritorialEntityRepository({entityStore:store})};
+ initializeTestTerritorialState(state);
+const store=createTerritorialEntityStore({getState:()=>state}); return {state,store,repo:createTerritorialEntityRepository({entityStore:store})};
 }
 test('common read projection detaches metadata while sharing canonical geometry',()=>{
  const {state,repo}=fixture();const a=repo.get('A');assert.equal(a.geometry,state.territorialEntities[0].geometry);

@@ -1,3 +1,6 @@
+import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
@@ -6,7 +9,7 @@ import { normalizeCountryCollection } from '../../assets/js/modules/country-feat
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
-import { geometryRevision, touchGeometry } from '../../assets/js/modules/geometry-versions.js';
+import { geometryRevision } from '../../assets/js/modules/geometry-versions.js';
 
 function deferred() {
   let resolve;
@@ -29,13 +32,14 @@ function startupFixture(t, { pauseAt = null, restored = false, onEditable = () =
   const calls = [];
   const errors = [];
   let generation = 1;
-  const project = restored ? { territorialEntities: collection(10).features, baseDataset: 'fixture' } : null;
+  const project = restored ? createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'fixture', distributionModes: ['territorial','geometry'], readSnapshot: () => staticSerializerSnapshot({ territorialEntities: collection(10).features }) }).buildProject() : null;
   const state = {
     view: { globeZoom: 1, flatZoom: 1 }, projection: 'globe', territorialEntities: [],
     dataReadiness: 'loading', historyDirtyEntityIds: new Set(), pendingCountryRenderIds: new Set(),
     autosaveMode: 'delta', selected: null,
   };
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const originalWindow = globalThis.window;
   const originalFrame = globalThis.requestAnimationFrame;
@@ -96,7 +100,8 @@ function startupFixture(t, { pauseAt = null, restored = false, onEditable = () =
     } },
     territorialModel: { entityStore, entityRepository }, countryServices: { normalizeCountryCollection },
     applicationServicesA: { classifyBuiltinCountries: countries => ({ countries, subunits: [] }) },
-    builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop },
+    builtinBaseline: { prepareProjectBaseline: async () => ({}) },
+    builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop, materializePristineCountriesSync: () => normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES) },
     countryRecords: { applyPristineLabelAnchors: noop }, layerTree: { pruneLayerItemVisibility: noop },
     countries: { scheduleCountryLabelAnchors: noop }, layers: { markLayerTreeDirty: noop },
     projectSnapshots: { configureDatasetSession: noop }, workspaceUiA: { applyLayoutMode: noop },
@@ -180,10 +185,11 @@ for (const stage of ['geometry', 'hydration', 'recovery', 'mesh']) {
 test('an immediate editable listener edit cannot bless stale preview geometry as current', async t => {
   let baselineGeometry;
   const fixture = startupFixture(t, {
-    onEditable({ entityRepository }) {
+    onEditable({ entityRepository, entityStore }) {
       baselineGeometry = entityRepository.get('A').geometry;
-      baselineGeometry.coordinates[0][1][1] = 12;
-      touchGeometry(baselineGeometry);
+      const changed = structuredClone(entityRepository.get('A'));
+      changed.geometry.coordinates[0][1][1] = 12;
+      entityStore.applyChanges({ features: [changed] });
     },
   });
   await fixture.promote();
@@ -192,7 +198,8 @@ test('an immediate editable listener edit cannot bless stale preview geometry as
   const reference = fixture.state.auditPreviewGeometryReferences.get('A');
   assert.equal(reference.geometry, baselineGeometry);
   assert.equal(reference.revision, 0, 'preview baseline must precede editable listeners');
-  assert.equal(geometryRevision(baselineGeometry), 1);
+  assert.equal(geometryRevision(baselineGeometry), 0);
+  assert.notEqual(fixture.entityRepository.get('A').geometry, baselineGeometry);
   const scope = createTerritorialScopeResolver({ entityRepository: fixture.entityRepository,
     getState: () => fixture.state, clipper: () => null });
   assert.equal(fixture.state.countryVisualPhase, 'preview');

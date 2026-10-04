@@ -1,4 +1,4 @@
-const TEMPORAL_PATTERN = /^([+-]?)(\d{4,6})(?:-(\d{2})-(\d{2}))?$/;
+const TEMPORAL_PATTERN = /^([+-]?)(\d{4,6})(?:-(\d{2})(?:-(\d{2}))?)?$/;
 const text = value => String(value ?? '').trim();
 
 function temporalError(value, message) {
@@ -24,28 +24,29 @@ export function parseTemporal(value, { nullable = true } = {}) {
     throw temporalError(value, '값이 필요합니다.');
   }
   const match = TEMPORAL_PATTERN.exec(source);
-  if (!match) throw temporalError(value, 'YYYY 또는 YYYY-MM-DD 형식을 사용하세요.');
+  if (!match) throw temporalError(value, 'YYYY, YYYY-MM 또는 YYYY-MM-DD 형식을 사용하세요.');
   const sign = match[1];
   const digits = match[2];
   if (!sign && digits.length !== 4) throw temporalError(value, '확장 연도는 + 또는 - 부호가 필요합니다.');
   const magnitude = Number(digits);
   const year = sign === '-' ? -magnitude : magnitude;
   if (year === 0) throw temporalError(value, '연도 0은 사용할 수 없습니다. -0001 다음은 0001입니다.');
-  const hasDate = match[3] != null;
-  const month = hasDate ? Number(match[3]) : null;
+  const hasMonth = match[3] != null;
+  const hasDate = match[4] != null;
+  const month = hasMonth ? Number(match[3]) : null;
   const day = hasDate ? Number(match[4]) : null;
-  if (hasDate && (month < 1 || month > 12)) throw temporalError(value, '월은 01~12여야 합니다.');
+  if (hasMonth && (month < 1 || month > 12)) throw temporalError(value, '월은 01~12여야 합니다.');
   if (hasDate && (day < 1 || day > daysInMonth(year, month))) throw temporalError(value, '해당 월에 존재하지 않는 날짜입니다.');
   const canonicalYear = `${year < 0 ? '-' : sign === '+' ? '+' : ''}${digits}`;
   return Object.freeze({
     source,
-    canonical: hasDate ? `${canonicalYear}-${match[3]}-${match[4]}` : canonicalYear,
-    precision: hasDate ? 'date' : 'year',
+    canonical: canonicalYear + (hasMonth ? `-${match[3]}` : '') + (hasDate ? `-${match[4]}` : ''),
+    precision: hasDate ? 'date' : hasMonth ? 'month' : 'year',
     year,
     month,
     day,
-    startKey: Object.freeze([year, hasDate ? month : 1, hasDate ? day : 1]),
-    endKey: Object.freeze([year, hasDate ? month : 12, hasDate ? day : 31]),
+    startKey: Object.freeze([year, hasMonth ? month : 1, hasDate ? day : 1]),
+    endKey: Object.freeze([year, hasMonth ? month : 12, hasDate ? day : hasMonth ? daysInMonth(year, month) : 31]),
   });
 }
 

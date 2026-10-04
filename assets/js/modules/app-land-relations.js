@@ -92,9 +92,6 @@ export function createLandRelations() {
       if (removed.has(String(feature.properties?.parentId || ''))) properties.parentId = String(targetOwnerId);
       return { ...feature, properties };
     });
-    for (const relation of dependencies.projectState.state.territorialRelations) {
-      if (removed.has(String(relation.parentId || ''))) relation.parentId = String(targetOwnerId);
-    }
     for (const entry of dependencies.projectState.state.distributionEntries) {
       if (entry.mode === dependencies.territorialModel.DISTRIBUTION_MODES.TERRITORIAL && removed.has(String(entry.territorialUnitId))) entry.territorialUnitId = String(targetOwnerId);
     }

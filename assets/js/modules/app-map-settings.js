@@ -861,7 +861,8 @@ export function createMapSettings() {
       terrainDataset: dependencies.platformConfigurationB.TERRAIN_DATASET,
       hydroDataset: dependencies.platformConfigurationA.HYDRO_DATASET,
       readSnapshot: () => ({
-        territorialEntities: dependencies.territorialModel.entityStore.snapshot(),
+        baseDatasetFingerprint: dependencies.builtinBaseline.projectBaseline?.baseDatasetFingerprint,
+        territorialEntities: dependencies.territorialModel.entityStore.identities(),
         projectFields: (0, dependencies.projectServices.pickProjectFields)(dependencies.projectState.state, { clone: value => value }),
         entityDelta: (0, dependencies.projectSnapshots.buildEntityDelta)(),
         fullAutosave: dependencies.projectState.state.autosaveMode === 'full',

@@ -1,3 +1,5 @@
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 /* global Event, EventTarget */
@@ -93,7 +95,7 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
   };
   const focusCalls = [];
   const countrySourceFeature = portOverrides.countrySourceFeature || (id => id === 'COUNTRY'
-    ? { type: 'Feature', id, properties: { name: 'Country' }, geometry: { type: 'Polygon', coordinates: [] } }
+    ? { type: 'Feature', id, properties: { name: 'Country' }, geometry: { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] } }
     : null);
   const entityRepository = portOverrides.entityRepository || {
     get(id) {
@@ -109,7 +111,9 @@ function fixture(t, stateOverrides = {}, portOverrides = {}) {
   };
   const presentation = createTaskPresentation();
   state.territorialEntities = [...state.territorialEntities, ...[countrySourceFeature('COUNTRY')].filter(Boolean).map(feature => ({ ...feature, properties: { ...feature.properties, entityKind: 'general' } }))];
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  state.territorialEntities = state.territorialEntities.map(feature => createTerritorialFeature({ id: feature.id, entityKind: feature.properties.entityKind, name: feature.properties.name, parentId: feature.properties.parentId, geometry: feature.geometry.coordinates.length ? feature.geometry : countrySourceFeature('COUNTRY').geometry }));
+  initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ getState: () => state });
   presentation.connect(capabilityPortsForFixture(MAP_INTERACTION_OWNER_PORTS.taskPresentation, {
     state,
     $: id => elements[id] || null,

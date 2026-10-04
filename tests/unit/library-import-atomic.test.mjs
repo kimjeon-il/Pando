@@ -1,3 +1,4 @@
+import { initializeTestTerritorialState, snapshotTestTerritorialState, restoreTestTerritorialState } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import test from 'node:test';
@@ -8,15 +9,17 @@ import { createTerritorialEntityStore } from '../../assets/js/modules/territoria
 function harness(fail = false) {
   const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
   const state = {territorialEntities:[createTerritorialFeature({id:'A',entityKind: 'general',geometry})],historyDirtyEntityIds:new Set(),sourceInfo:null};
-  const before = structuredClone(state);
+
   const history = [], events = [];
   const noop = () => {};
-  const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
+  initializeTestTerritorialState(state);
+  const before = snapshotTestTerritorialState(state);
+const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
   const commit = createGisImportTransactionCommitter({
     state, entityStore: fixtureEntityStore1, territorialEntityRepository: createTerritorialEntityRepository({ entityStore: fixtureEntityStore1 }),
     deepClone: structuredClone, applyImportedPackageAssets: (_meta, values) => values,
     validateGisCountryCollection: async () => ({ overlapAreaKm2: 0 }),
-    snapshotEditable: () => structuredClone(state), restoreEditTransactionSnapshot: snapshot => Object.assign(state, structuredClone(snapshot)),
+    snapshotEditable: () => snapshotTestTerritorialState(state), restoreEditTransactionSnapshot: snapshot => restoreTestTerritorialState(state, snapshot),
     normalizeProjectObjects: noop, markLayerTreeDirty: noop, pruneLayerItemVisibility: noop,
     transferLandDependents: () => { events.push('transfer'); },
     assertProjectReferenceIntegrity: snapshot => {
@@ -40,17 +43,17 @@ test('country transfer and library children validate together and commit one rev
   assert.deepEqual(h.events, ['transfer', 'validate', 'history']);
   assert.equal(h.history.length, 1);
   assert.deepEqual(h.history[0], h.before);
-  const after = structuredClone(h.state);
-  Object.assign(h.state, structuredClone(h.history[0]));
-  assert.deepEqual(h.state, h.before);
-  Object.assign(h.state, after);
+  const after = snapshotTestTerritorialState(h.state);
+  restoreTestTerritorialState(h.state, h.history[0]);
+  assert.deepEqual(snapshotTestTerritorialState(h.state), h.before);
+  restoreTestTerritorialState(h.state, after);
   assert.equal(h.state.territorialEntities.find(entity=>entity.id==='CHILD').properties.parentId, 'NEW');
 });
 
 test('child validation failure restores countries, children and source; does not record history', async () => {
   const h = harness(true);
   await assert.rejects(h.run(), /invalid relation/);
-  assert.deepEqual(h.state, h.before);
+  assert.deepEqual(snapshotTestTerritorialState(h.state), h.before);
   assert.equal(h.history.length, 0);
 });
 
@@ -58,6 +61,6 @@ test('cancelled or stale request cannot commit after async country validation', 
   const h = harness();
   h.result.assertCurrent = () => { throw new Error('cancelled'); };
   await assert.rejects(h.run(), /cancelled/);
-  assert.deepEqual(h.state, h.before);
+  assert.deepEqual(snapshotTestTerritorialState(h.state), h.before);
   assert.equal(h.history.length, 0);
 });

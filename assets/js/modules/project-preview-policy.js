@@ -1,16 +1,25 @@
 import { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
+import { staticTimelineViews } from './timeline-static-view.js';
 export { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
 
 export const PROJECT_PREVIEW_ALGORITHM_REVISION = 'project-topology-3';
 export const PROJECT_PREVIEW_MAX_BYTES = 16 * 1024 * 1024;
 
+function previewEntities(project) {
+  const archive = new Map(project.geometries.map(entry => [JSON.stringify([entry.id, entry.version]), entry.geojson]));
+  const identities = (project.territorialEntities || project.entityDelta.changed).map(entity => ({ ...entity,
+    properties: { ...entity.properties, style: structuredClone(entity.properties.style), metadata: structuredClone(entity.properties.metadata) } }));
+  return staticTimelineViews(identities, project.timelineRecords, { get: ref => archive.get(JSON.stringify([ref.id, ref.version])) });
+}
+
 export function projectPreviewGeometryRows(project) {
-  const countries = (project?.territorialEntities || project?.entityDelta?.changed || []).filter(feature => (feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
+  const entities = previewEntities(project);
+  const countries = entities.filter(feature => (feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
   const removed = project?.entityDelta?.removedIds || [];
   return {
     countries: countries.map(feature => [String(feature.id), feature.geometry]).sort((a, b) => a[0].localeCompare(b[0])),
     removed: removed.map(String).sort(),
-    units: ((project?.territorialEntities || project?.entityDelta?.changed || []).filter(feature => !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId))).map(unit => [String(unit.id), unit.properties?.entityKind || '',
+    units: entities.filter(feature => !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId)).map(unit => [String(unit.id), unit.properties?.entityKind || '',
       String(unit.properties?.parentId || ''), unit.geometry])
       .sort((a, b) => a[0].localeCompare(b[0])),
   };
@@ -30,7 +39,7 @@ export function geometryFingerprint(geometry) {
 
 /** Reuse display geometry while always showing the current saved properties. */
 export function previewCountriesWithProjectProperties(countries, project) {
-  const saved = (project?.territorialEntities || project?.entityDelta?.changed || []).filter(entity => (entity.properties?.entityKind === 'general' && !entity.properties?.parentId));
+  const saved = previewEntities(project).filter(entity => (entity.properties?.entityKind === 'general' && !entity.properties?.parentId));
   if (!saved.length) return countries;
   const properties = new Map(saved.map(feature => [String(feature.id), feature.properties || {}]));
   return { ...countries, features: countries.features.map(feature => properties.has(String(feature.id))
@@ -57,10 +66,11 @@ export function matchesDefaultPreview(project, baseline) {
   if (!project) return true;
   if (!baseline?.sourceSha256 || !baseline?.defaultClassification) return false;
   const expected = baseline.defaultClassification;
-  if (!unitsMatchDefault((project.territorialEntities || project.entityDelta?.changed || []).filter(feature => !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId)), expected.units || {})) return false;
+  const entities = previewEntities(project);
+  if (!unitsMatchDefault(entities.filter(feature => !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId)), expected.units || {})) return false;
   const expectedCountries = expected.countries || {};
   if (project.format === 'pandolab-autosave-delta') {
-    const changed = (project.entityDelta?.changed || []).filter(feature => (feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
+    const changed = entities.filter(feature => (feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
     const removed = project.entityDelta?.removedIds || [];
     if (changed.length < Object.keys(expected.changed || {}).length
       || removed.length !== (expected.removedIds || []).length) return false;
@@ -74,7 +84,7 @@ export function matchesDefaultPreview(project, baseline) {
     }
     return Object.keys(expected.changed || {}).every(id => seen.has(id));
   }
-  const features = project.territorialEntities?.filter(feature => (feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
+  const features = entities.filter(feature => (feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
   if (!features || features.length !== Object.keys(expectedCountries).length) return false;
   const seen = new Set();
   for (const feature of features) {

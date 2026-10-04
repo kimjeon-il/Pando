@@ -74,14 +74,14 @@ test('structural territorial callers use the entity store for collection writes'
   ]);
 
   assert.match(drafts, /entityStore\.applyChanges/);
-  assert.match(conversion, /entityStore\.applyChanges/);
+  assert.match(conversion, /territorialApplicationService\.copyIndependentRegion/);
   assert.match(generic, /entityStore\.applyChanges/);
   assert.match(land, /entityStore\.applyChanges/);
   assert.match(commands, /entityStore:\s*dependencies\.territorialModel\.entityStore/);
   assert.match(cut, /entityStore\.applyChanges/);
-  assert.match(startup, /entityStore\.replaceEntities/);
-  assert.match(restore, /entityStore\.replaceEntities/);
-  assert.match(snapshots, /entityStore\.replaceEntities/);
+  assert.match(startup, /entityStore\.restoreProject/);
+  assert.match(restore, /entityStore\.restoreProject/);
+  assert.match(snapshots, /entityStore\.restoreProject/);
   assert.match(builtin, /entityStore\.replaceEntities/);
   assert.match(gis, /entityStore\.(?:appendEntities|applyChanges)/);
 });
