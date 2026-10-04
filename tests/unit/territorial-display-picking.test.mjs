@@ -8,7 +8,7 @@ import { createTerritorialEntityRepository } from '../../assets/js/modules/terri
 import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
 
 const square = (x, size) => ({ type: 'Polygon', coordinates: [[[x, 0], [x, size], [x + size, size], [x + size, 0], [x, 0]]] });
-test('paint order, phase geometry, hidden objects and hierarchy changes drive the same territorial hit list', () => {
+test('canonical geometry drives precise territorial hits independently of display phase', () => {
   const A = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0, 10) });
   const B = createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', coverageMode: 'explicit', geometry: square(0, 10) });
   const R = createTerritorialFeature({ id: 'R', entityKind: 'regional', geometry: square(0, 10) });
@@ -35,9 +35,11 @@ test('paint order, phase geometry, hidden objects and hierarchy changes drive th
   });
   const records = ['A', 'B', 'R'].map(id => ({ domain: 'territorial', id }));
   const hits = () => picking.territorialObjectsAt([5, 5], [5, 5], records);
-  assert.deepEqual(hits().map(item => item.ref.key), ['territorial:entity:R', 'territorial:entity:B']);
+  assert.deepEqual(hits().map(item => item.ref.key), ['territorial:entity:R', 'territorial:entity:B', 'territorial:entity:A']);
   state.layerVisibility.regions = false;
-  assert.deepEqual(hits().map(item => item.ref.id), ['B']);
+  assert.deepEqual(hits().map(item => item.ref.id), ['B', 'A']);
+  assert.deepEqual(picking.territorialObjectsAt([25, 5], [25, 5], records), []);
+  assert.deepEqual(hits().find(item => item.ref.id === 'A').feature.geometry, A.geometry);
   state.countryVisualPhase = 'canonical';
   assert.deepEqual(hits().map(item => item.ref.id), ['B', 'A']);
   state.layerVisibility.subunits = false;

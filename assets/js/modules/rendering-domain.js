@@ -1076,6 +1076,9 @@ export function createRenderingDomain({
   };
   const invalidate = (mask, reason = 'render-invalidation') => {
     active();
+    // Select the display source before the same frame builds scene packets,
+    // labels and overlays, expanding a view-only frame only on a real switch.
+    if (gpuMapRenderer?.syncCountryMeshQuality?.()) mask |= MAP_RENDER_DIRTY.PROJECT;
     stats.invalidations += 1;
     stats.lastReason = String(reason);
     if (!placeInteractionActive && mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION | MAP_RENDER_DIRTY.PROJECT)) labels.preparePlaces?.();
@@ -1226,6 +1229,9 @@ export function createRenderingDomain({
     const handler = handlers[kind];
     if (!handler) throw new TypeError(`Unknown render invalidation kind: ${kind || '<empty>'}`);
     return handler(reason);
+  };
+  const setCountryPropertyEditingActive = active => {
+    if (gpuMapRenderer?.setCountryPropertyEditingActive?.(active)) invalidate(MAP_RENDER_DIRTY.PROJECT, 'property-editor-quality');
   };
   const beginFrame = (frameContext = null) => {
     active();
@@ -2163,6 +2169,7 @@ export function createRenderingDomain({
 
   return Object.freeze({
     requestRender,
+    setCountryPropertyEditingActive,
     invalidateView,
     invalidateViewport,
     invalidateProjection,
