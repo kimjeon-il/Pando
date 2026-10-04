@@ -33,7 +33,7 @@ export function createColorPicker() {
     if (input) input.value = resolvedValue;
     triggerPreview?.style.setProperty('--swatch-color', resolvedValue);
     defaultPreview?.style.setProperty('--swatch-color', resolvedDefault);
-    if (valueLabel) valueLabel.textContent = isDefault ? (kind === 'entity' ? '기본 표현' : '기본 색상') : resolvedValue.toUpperCase();
+    if (valueLabel) valueLabel.textContent = isDefault ? '기본 색상' : resolvedValue.toUpperCase();
     defaultButton?.setAttribute('aria-pressed', String(!!isDefault));
     picker.querySelectorAll('[data-color-value]').forEach(button => {
       button.setAttribute('aria-pressed', String(!isDefault && button.dataset.colorValue === resolvedValue));

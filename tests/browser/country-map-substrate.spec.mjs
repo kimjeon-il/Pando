@@ -13,15 +13,15 @@ async function capture(page, clip = null) {
   } finally { await session.detach(); }
 }
 
-async function pixel(page, sample = null) {
+async function pixel(page) {
   const point = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.project([32, 39]));
   const box = await page.locator('#map').boundingBox();
   // Measure the map itself, excluding the selection card and its shadow.
   const mask = await page.addStyleTag({ content: '#selectionToolbar { visibility: hidden !important; }' });
   let png;
   try {
-    png = await capture(page, { x: sample?.[0] ?? Math.round(box.x + point[0]),
-      y: sample?.[1] ?? Math.round(box.y + point[1]), width: 1, height: 1 });
+    png = await capture(page, { x: Math.round(box.x + point[0]),
+      y: Math.round(box.y + point[1]), width: 1, height: 1 });
   } finally { await mask.evaluate(node => node.remove()); }
   return page.evaluate(async base64 => {
     const image = new Image(); image.src = `data:image/png;base64,${base64}`;
@@ -32,29 +32,7 @@ async function pixel(page, sample = null) {
   }, png.toString('base64'));
 }
 
-async function paintedInterior(page) {
-  const mask = await page.addStyleTag({ content: '#selectionToolbar { visibility: hidden !important; }' });
-  let png;
-  try { png = await capture(page); } finally { await mask.evaluate(node => node.remove()); }
-  return page.evaluate(async base64 => {
-    const image = new Image(); image.src = `data:image/png;base64,${base64}`; await image.decode();
-    const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
-    const context = canvas.getContext('2d'); context.drawImage(image, 0, 0);
-    const { data } = context.getImageData(0, 0, image.width, image.height);
-    const red = (x, y) => {
-      const offset = (y * image.width + x) * 4;
-      return data[offset] === 239 && data[offset + 1] === 68 && data[offset + 2] === 68;
-    };
-    for (let y = 60; y < image.height - 40; y++) for (let x = 10; x < image.width - 10; x++) {
-      if (red(x, y) && red(x - 3, y) && red(x + 3, y) && red(x, y - 3) && red(x, y + 3)) return [x, y];
-    }
-    return null;
-  }, png.toString('base64'));
-}
-
-for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
-  test.describe(renderer, () => {
-  test(`map modes supply unpainted land and color reset restores it in ${renderer}`, async ({ page }) => {
+async function openMap(page, renderer) {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
@@ -74,17 +52,25 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
     if (renderer === 'canvas') await page.locator('#flatBtn').evaluate(button => button.click());
     await page.addStyleTag({ content: '#map text, #map .map-label, #map .country-label { visibility: hidden !important; }' });
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));
-    const changeMode = async mode => {
-      await page.locator(`#terrain${mode}Radio`).evaluate(input => input.click());
-      await page.mouse.move(20, 20);
-    };
-    await changeMode('None');
-    await expect.poll(() => pixel(page), { timeout: renderer === 'canvas' ? 30_000 : 8_000 }).toEqual([204, 204, 204]);
+    return errors;
+}
+
+async function changeMode(page, mode) {
+  await page.locator(`#terrain${mode}Radio`).evaluate(input => input.click());
+  await page.mouse.move(20, 20);
+}
+
+for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
+  test.describe(renderer, () => {
+  test(`intrinsic country colors override map substrate and reset restores them in ${renderer}`, async ({ page }) => {
+    const errors = await openMap(page, renderer);
+    await changeMode(page, 'None');
+    await expect(page.locator('#entityColorInput')).toHaveValue('#c7e9b4');
+    await expect.poll(() => pixel(page), { timeout: renderer === 'canvas' ? 30_000 : 8_000 }).toEqual([199, 233, 180]);
+    expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('TUR').properties.style)).toEqual({});
     await page.locator('#entityColorTrigger').evaluate(input => input.click());
     await page.locator('#entityColorPopover [data-color-value="#ef4444"]').evaluate(input => input.click());
-    let sample;
-    await expect.poll(async () => { sample = await paintedInterior(page); return !!sample; }).toBe(true);
-    const mapPixel = () => pixel(page, sample);
+    const mapPixel = () => pixel(page);
     await expect.poll(mapPixel).toEqual([239, 68, 68]);
     if (renderer === 'webgl2') {
       await page.locator('#mapDisplayBtn').click();
@@ -101,29 +87,47 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
     }
     await page.locator('#entityColorTrigger').evaluate(input => input.click());
     await page.locator('#entityColorPopover [data-color-default]').evaluate(input => input.click());
-    await expect(page.locator('#countryColorValue')).toHaveText('지도 기본 표현');
-    await expect.poll(mapPixel).toEqual([204, 204, 204]);
+    await expect(page.locator('#entityColorValue')).toHaveText('기본 색상');
+    await expect(page.locator('#entityColorInput')).toHaveValue('#c7e9b4');
+    expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('TUR').properties.style)).toEqual({});
+    await expect.poll(mapPixel).toEqual([199, 233, 180]);
     if (renderer === 'webgl2') {
       await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('FRA'));
+      const point = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.project([32, 39]));
+      const box = await page.locator('#map').boundingBox();
       const mask = await page.addStyleTag({ content: '#selectionToolbar { visibility: hidden !important; }' });
-      try { await page.mouse.click(sample[0], sample[1]); } finally { await mask.evaluate(node => node.remove()); }
+      try { await page.mouse.click(box.x + point[0], box.y + point[1]); } finally { await mask.evaluate(node => node.remove()); }
       await expect(page.locator('#statusSelection')).toContainText('튀르키예');
     }
     await page.locator('#undoBtn').click();
     await expect.poll(mapPixel).toEqual([239, 68, 68]);
     await page.locator('#redoBtn').click();
-    await expect.poll(mapPixel).toEqual([204, 204, 204]);
-    if (renderer !== 'webgl1') {
-      await changeMode('Physical');
-      await expect.poll(async () => {
-        const [r, g, b] = await mapPixel(); return Math.max(r, g, b) - Math.min(r, g, b);
-      }, { timeout: 60_000 }).toBeGreaterThan(15);
-      await changeMode('Political');
-      await expect.poll(async () => {
-        const [r, g, b] = await mapPixel(); return Math.max(r, g, b) - Math.min(r, g, b);
-      }, { timeout: 30_000 }).toBeLessThan(4);
-    }
+    await expect.poll(mapPixel).toEqual([199, 233, 180]);
     expect(errors).toEqual([]);
+  });
+
+  // Terrain loading is a separate responsibility; retain its own regression.
+  if (renderer !== 'webgl1') test(`unpainted terrain retains color and monochrome modes in ${renderer}`, async ({ page }) => {
+      const errors = await openMap(page, renderer);
+      // Without country paint, terrain retains its own color/monochrome base.
+      await page.locator('#mapDisplayBtn').click();
+      await page.locator('[data-map-display-row="countries"]').click();
+      const toggle = page.locator('[data-layer-style-color="countries"]');
+      await toggle.locator('..').click();
+      await expect(toggle).not.toBeChecked();
+      await page.keyboard.press('Escape');
+      await page.keyboard.press('Escape');
+      await changeMode(page, 'None');
+      await expect.poll(() => pixel(page)).toEqual([204, 204, 204]);
+      await changeMode(page, 'Physical');
+      await expect.poll(async () => {
+        const [r, g, b] = await pixel(page); return Math.max(r, g, b) - Math.min(r, g, b);
+      }, { timeout: 60_000 }).toBeGreaterThan(15);
+      await changeMode(page, 'Political');
+      await expect.poll(async () => {
+        const [r, g, b] = await pixel(page); return Math.max(r, g, b) - Math.min(r, g, b);
+      }, { timeout: 30_000 }).toBeLessThan(4);
+      expect(errors).toEqual([]);
   });
   });
 }

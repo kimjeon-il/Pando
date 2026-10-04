@@ -1,0 +1,1903 @@
+{
+  "status": "confirmed",
+  "confirmedOn": "2026-10-04",
+  "purpose": "현재 객체의 고유 기본색 원본. build-country-default-colors.mjs로 앱의 표시 자료를 생성한다.",
+  "selectionRules": [
+    "사용자가 확정한 색과 미지정 지시를 우선한다.",
+    "기본 국가의 기존 HOI4 1936 MapChart 참조색을 유지하고, 없는 국가는 Millennium Dawn 정치지도 color로 보충한다.",
+    "역사 국가에는 해당 역사 객체에 대응하는 참조색만 사용한다. 현대 러시아와 소련, 체코와 체코슬로바키아는 별개다.",
+    "color_ui와 게임 렌더링의 채도·명도 보정은 적용하지 않는다.",
+    "null은 고유색 미지정이며 회색이나 임의의 대체색을 넣지 않는다.",
+    "하위단위의 독립 색상은 이번 국가 기본색 확정 범위에 포함하지 않는다."
+  ],
+  "inventory": {
+    "repositoryCommit": "5f1f4d96ad57fa0d14e26092c6fc0e6b52f79683",
+    "inputs": [
+      {
+        "path": "assets/data/world-preview-v0.34.0.json",
+        "sha256": "af214f78c2824997303e634556392dcc1193fcc992a96d6ac86298e2e4799c0b"
+      },
+      {
+        "path": "assets/data/countries-ne-5.1.1.geojson",
+        "sha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72"
+      },
+      {
+        "path": "assets/data/historical-library-pilot.json",
+        "sha256": "cf39801baf2511f7600de95a3b99d56031d45e0e079d8058a8c566653e5a9402"
+      }
+    ],
+    "baseCountryCount": 207,
+    "historicalCountryCount": 11,
+    "assignedColorCount": 214,
+    "unassignedColorCount": 4
+  },
+  "sources": {
+    "hoi4-mapchart-1936": {
+      "title": "HOI4 1936 MapChart 기본 지도 프리셋",
+      "url": "https://www.mapchart.net/txt/mapchartSave__hearts_of_iron_iv_provinces__1936.txt",
+      "mapVersion": "19",
+      "sha256": "999dc5ed10613db2c89c605739950521275dbe33702ec60f42e7edb38443bd20",
+      "note": "MapChart에서 확보한 참조색. HOI4 게임 원본 color와 완전 일치한다고 단정하지 않는다. 1936 국명·식민지명과 현재 객체의 대응은 각 sourceObject에 명시했다."
+    },
+    "millennium-dawn": {
+      "title": "Millennium Dawn 정치지도 기본색",
+      "commit": "ec95c501d9488c4bc407463c0f09bdd9747943ad",
+      "url": "https://github.com/MillenniumDawn/Millennium-Dawn/blob/ec95c501d9488c4bc407463c0f09bdd9747943ad/common/countries/colors.txt",
+      "field": "color",
+      "files": [
+        {
+          "path": "common/country_tags/00_countries.txt",
+          "sha256": "dfdb179b7bf42310f15bd3c1897517694efa2572b74699c2d75bd267b5f46438"
+        },
+        {
+          "path": "common/countries/colors.txt",
+          "sha256": "2414ffb4d0afb398224dd48c206377a14dd855ea8432407e9fe601df7ef52270"
+        },
+        {
+          "path": "common/countries/Dominica.txt",
+          "sha256": "d012bc9dd50ebbeb0b3890ad4c203a51621cbbca8b9a407518a91871739737b2"
+        },
+        {
+          "path": "common/countries/Antigua and Barbuda.txt",
+          "sha256": "ef9f0354ad2b5a15d879e4b84d370a990ac4e33714f8dd22eb90320bd6247128"
+        },
+        {
+          "path": "common/countries/St.Kitts and Nevis.txt",
+          "sha256": "4442a9e19327e17ca38e5a4e9d57c1d863962f40ff89770e6cb35cfbb68e97da"
+        },
+        {
+          "path": "common/countries/Sao Tome.txt",
+          "sha256": "4273a6a593fb7791b150952bcdee953ee4bf8f102afa666e996076ee00d67fe7"
+        },
+        {
+          "path": "common/countries/Cape Verde.txt",
+          "sha256": "9d325c79e98c1a656cf6f095fabf63d0fea484098ca39731c8f835d8e5189cc8"
+        }
+      ],
+      "note": "colors.txt의 color가 국가 파일의 기본색보다 우선한다. 이 소스에서 SOV 태그는 Russia를 가리킨다."
+    },
+    "cold-war-iron-curtain": {
+      "title": "Cold War: Iron Curtain 동독 정치지도 기본색",
+      "commit": "fa8ab452d2650932a02f13f555abb01b7d3447b7",
+      "url": "https://github.com/Cold-War-Iron-Curtain-Dev-Team/ColdWarIronCurtain/blob/fa8ab452d2650932a02f13f555abb01b7d3447b7/Cold%20War%20Iron%20Curtain/common/countries/colors.txt",
+      "field": "color",
+      "sha256": "4b9b49582af4a58bec3de734d209a9d6dd71f43235e42262ad20ca72e8771d17"
+    },
+    "un-blue": {
+      "title": "사용자 확정: 유엔 깃발 배경색 / UN blue",
+      "url": "https://www.un.org/sites/un2.un.org/files/2020/03/un75_logo_guidelines_oct_2019.pdf",
+      "color": "#009EDB"
+    },
+    "user-cook-islands": {
+      "title": "사용자 확정: 쿡 제도 지도용 추천색",
+      "color": "#496A9C",
+      "note": "국기 배경의 파랑을 참고한 직접 추천색. HOI 원본색이 아니다."
+    },
+    "user-niue": {
+      "title": "사용자 확정: 니우에 지도용 추천색",
+      "color": "#E2C65A",
+      "note": "국기 배경의 금색 노랑을 참고한 직접 추천색. HOI 원본색이 아니다."
+    },
+    "prussian-blue": {
+      "title": "사용자 확정: 프로이센 블루",
+      "url": "https://www.colorhexa.com/003153",
+      "color": "#003153"
+    },
+    "user-no-color": {
+      "title": "사용자 지시: 고유색 미지정",
+      "color": null
+    }
+  },
+  "countsBySource": {
+    "hoi4-mapchart-1936": 82,
+    "millennium-dawn": 125,
+    "un-blue": 1,
+    "user-no-color": 4,
+    "user-cook-islands": 1,
+    "user-niue": 1,
+    "prussian-blue": 3,
+    "cold-war-iron-curtain": 1
+  },
+  "baseCountries": [
+    {
+      "id": "IDN",
+      "name": "인도네시아",
+      "color": "#FFB25F",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Dutch East Indies"
+    },
+    {
+      "id": "MYS",
+      "name": "말레이시아",
+      "color": "#FF4979",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "British Malaya"
+    },
+    {
+      "id": "CHL",
+      "name": "칠레",
+      "color": "#CA828B",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Chile"
+    },
+    {
+      "id": "BOL",
+      "name": "볼리비아",
+      "color": "#FFEAB1",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Bolivian Republic"
+    },
+    {
+      "id": "PER",
+      "name": "페루",
+      "color": "#FFF6FF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Peru"
+    },
+    {
+      "id": "ARG",
+      "name": "아르헨티나",
+      "color": "#BDCCFF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Argentina"
+    },
+    {
+      "id": "CYP",
+      "name": "키프로스",
+      "color": "#E6E6E6",
+      "source": "millennium-dawn",
+      "sourceObject": "Cyprus",
+      "sourceTag": "CYP",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "IND",
+      "name": "인도",
+      "color": "#C80A0A",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "British Raj"
+    },
+    {
+      "id": "CHN",
+      "name": "중화인민공화국",
+      "color": "#CC3333",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Chinese Soviet Republic"
+    },
+    {
+      "id": "ISR",
+      "name": "이스라엘",
+      "color": "#0038B8",
+      "source": "millennium-dawn",
+      "sourceObject": "Israel",
+      "sourceTag": "ISR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "PSX",
+      "name": "팔레스타인",
+      "color": "#B3CDE3",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Mandatory Palestine"
+    },
+    {
+      "id": "LBN",
+      "name": "레바논",
+      "color": "#FB8072",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Lebanese Republic"
+    },
+    {
+      "id": "ETH",
+      "name": "에티오피아",
+      "color": "#C3A5F5",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Ethiopia"
+    },
+    {
+      "id": "SDS",
+      "name": "남수단",
+      "color": "#FCDD09",
+      "source": "millennium-dawn",
+      "sourceObject": "South Sudan",
+      "sourceTag": "SSU",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SOM",
+      "name": "소말리아",
+      "color": "#4189DD",
+      "source": "millennium-dawn",
+      "sourceObject": "Somalia",
+      "sourceTag": "SOM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "KEN",
+      "name": "케냐",
+      "color": "#BB0000",
+      "source": "millennium-dawn",
+      "sourceObject": "Kenya",
+      "sourceTag": "KEN",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MWI",
+      "name": "말라위",
+      "color": "#CE1126",
+      "source": "millennium-dawn",
+      "sourceObject": "Malawi",
+      "sourceTag": "MLW",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "TZA",
+      "name": "탄자니아",
+      "color": "#65ACB6",
+      "source": "millennium-dawn",
+      "sourceObject": "Tanzania",
+      "sourceTag": "TNZ",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SYR",
+      "name": "시리아",
+      "color": "#FDBF6F",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Republic of Syria"
+    },
+    {
+      "id": "SOL",
+      "name": "소말릴란드",
+      "color": "#DF0000",
+      "source": "millennium-dawn",
+      "sourceObject": "Somaliland",
+      "sourceTag": "SML",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "FRA",
+      "name": "프랑스",
+      "color": "#4993FF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "France"
+    },
+    {
+      "id": "SUR",
+      "name": "수리남",
+      "color": "#B40A2D",
+      "source": "millennium-dawn",
+      "sourceObject": "Suriname",
+      "sourceTag": "SUR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "GUY",
+      "name": "가이아나",
+      "color": "#FCD116",
+      "source": "millennium-dawn",
+      "sourceObject": "Guyana",
+      "sourceTag": "GUY",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "KOR",
+      "name": "대한민국",
+      "color": "#003478",
+      "source": "millennium-dawn",
+      "sourceObject": "Korea",
+      "sourceTag": "KOR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "PRK",
+      "name": "조선민주주의인민공화국",
+      "color": "#A50000",
+      "source": "millennium-dawn",
+      "sourceObject": "North Korea",
+      "sourceTag": "NKO",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MAR",
+      "name": "모로코",
+      "color": "#C1272D",
+      "source": "millennium-dawn",
+      "sourceObject": "Morocco",
+      "sourceTag": "MOR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SAH",
+      "name": "서사하라",
+      "color": "#6B9B7F",
+      "source": "millennium-dawn",
+      "sourceObject": "Sahrawi",
+      "sourceTag": "SHA",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "CRI",
+      "name": "코스타리카",
+      "color": "#927A30",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Costa Rica"
+    },
+    {
+      "id": "NIC",
+      "name": "니카라과",
+      "color": "#92B2BF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Nicaragua"
+    },
+    {
+      "id": "COG",
+      "name": "콩고 공화국",
+      "color": "#DC241F",
+      "source": "millennium-dawn",
+      "sourceObject": "Congo",
+      "sourceTag": "CNG",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "COD",
+      "name": "콩고 민주 공화국",
+      "color": "#B9A087",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Belgian Congo"
+    },
+    {
+      "id": "BTN",
+      "name": "부탄",
+      "color": "#AC7A58",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Bhutan"
+    },
+    {
+      "id": "UKR",
+      "name": "우크라이나",
+      "color": "#005AB9",
+      "source": "millennium-dawn",
+      "sourceObject": "Ukraine",
+      "sourceTag": "UKR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BLR",
+      "name": "벨라루스",
+      "color": "#8E9B52",
+      "source": "millennium-dawn",
+      "sourceObject": "Belarus",
+      "sourceTag": "BLR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "NAM",
+      "name": "나미비아",
+      "color": "#AFFF70",
+      "source": "millennium-dawn",
+      "sourceObject": "Namibia",
+      "sourceTag": "NAM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "ZAF",
+      "name": "남아프리카 공화국",
+      "color": "#BE96FA",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "South Africa"
+    },
+    {
+      "id": "OMN",
+      "name": "오만",
+      "color": "#A65628",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Sultanate of Muscat and Oman"
+    },
+    {
+      "id": "UZB",
+      "name": "우즈베키스탄",
+      "color": "#4372B8",
+      "source": "millennium-dawn",
+      "sourceObject": "Uzbekistan",
+      "sourceTag": "UZB",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "KAZ",
+      "name": "카자흐스탄",
+      "color": "#6EAAB2",
+      "source": "millennium-dawn",
+      "sourceObject": "Kazakhstan",
+      "sourceTag": "KAZ",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "TJK",
+      "name": "타지키스탄",
+      "color": "#6FAA74",
+      "source": "millennium-dawn",
+      "sourceObject": "Tajikistan",
+      "sourceTag": "TAJ",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "LTU",
+      "name": "리투아니아",
+      "color": "#FFFF9B",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Lithuania"
+    },
+    {
+      "id": "BRA",
+      "name": "브라질",
+      "color": "#62BD52",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Second Brazilian Republic"
+    },
+    {
+      "id": "URY",
+      "name": "우루과이",
+      "color": "#ABBE99",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Uruguay"
+    },
+    {
+      "id": "MNG",
+      "name": "몽골",
+      "color": "#5A771D",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Mongolia"
+    },
+    {
+      "id": "RUS",
+      "name": "러시아",
+      "color": "#3A9915",
+      "source": "millennium-dawn",
+      "sourceObject": "Russia",
+      "sourceTag": "SOV",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "CZE",
+      "name": "체코",
+      "color": "#6E63A2",
+      "source": "millennium-dawn",
+      "sourceObject": "Czech Republic",
+      "sourceTag": "CZE",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "DEU",
+      "name": "독일",
+      "color": "#525252",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "German Reich"
+    },
+    {
+      "id": "EST",
+      "name": "에스토니아",
+      "color": "#63CDFE",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Estonia"
+    },
+    {
+      "id": "LVA",
+      "name": "라트비아",
+      "color": "#7B7CB8",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Latvia"
+    },
+    {
+      "id": "NOR",
+      "name": "노르웨이",
+      "color": "#623C3C",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Norway"
+    },
+    {
+      "id": "SWE",
+      "name": "스웨덴",
+      "color": "#2EADFF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Sweden"
+    },
+    {
+      "id": "FIN",
+      "name": "핀란드",
+      "color": "#FFFFFF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Finland"
+    },
+    {
+      "id": "VNM",
+      "name": "베트남",
+      "color": "#F7EC14",
+      "source": "millennium-dawn",
+      "sourceObject": "Vietnam",
+      "sourceTag": "VIE",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "KHM",
+      "name": "캄보디아",
+      "color": "#724735",
+      "source": "millennium-dawn",
+      "sourceObject": "Cambodia",
+      "sourceTag": "CBD",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "LUX",
+      "name": "룩셈부르크",
+      "color": "#8ADBA2",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Luxembourg"
+    },
+    {
+      "id": "ARE",
+      "name": "아랍에미리트",
+      "color": "#808080",
+      "source": "millennium-dawn",
+      "sourceObject": "United Arab Emirates",
+      "sourceTag": "UAE",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BEL",
+      "name": "벨기에",
+      "color": "#FBDF0A",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Belgium"
+    },
+    {
+      "id": "GEO",
+      "name": "조지아",
+      "color": "#FFECEC",
+      "source": "millennium-dawn",
+      "sourceObject": "Georgia",
+      "sourceTag": "GEO",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MKD",
+      "name": "북마케도니아",
+      "color": "#E97300",
+      "source": "millennium-dawn",
+      "sourceObject": "Macedonia",
+      "sourceTag": "FYR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "ALB",
+      "name": "알바니아",
+      "color": "#C23B85",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Albania"
+    },
+    {
+      "id": "AZE",
+      "name": "아제르바이잔",
+      "color": "#00B9E4",
+      "source": "millennium-dawn",
+      "sourceObject": "Azerbaijan",
+      "sourceTag": "AZE",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "KOS",
+      "name": "코소보",
+      "color": "#3974D3",
+      "source": "millennium-dawn",
+      "sourceObject": "Kosovo",
+      "sourceTag": "KOS",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "TUR",
+      "name": "튀르키예",
+      "color": "#C7E9B4",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Turkey"
+    },
+    {
+      "id": "ESP",
+      "name": "에스파냐",
+      "color": "#FFFF79",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Spain"
+    },
+    {
+      "id": "LAO",
+      "name": "라오스",
+      "color": "#D71F26",
+      "source": "millennium-dawn",
+      "sourceObject": "Laos",
+      "sourceTag": "LAO",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "KGZ",
+      "name": "키르기스스탄",
+      "color": "#FF8400",
+      "source": "millennium-dawn",
+      "sourceObject": "Kyrgyzstan",
+      "sourceTag": "KYR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "ARM",
+      "name": "아르메니아",
+      "color": "#FF6400",
+      "source": "millennium-dawn",
+      "sourceObject": "Armenia",
+      "sourceTag": "ARM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "DNK",
+      "name": "덴마크",
+      "color": "#C79679",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Denmark"
+    },
+    {
+      "id": "LBY",
+      "name": "리비아",
+      "color": "#00A651",
+      "source": "millennium-dawn",
+      "sourceObject": "Libya",
+      "sourceTag": "LBA",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "TUN",
+      "name": "튀니지",
+      "color": "#E70013",
+      "source": "millennium-dawn",
+      "sourceObject": "Tunisia",
+      "sourceTag": "TUN",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "ROU",
+      "name": "루마니아",
+      "color": "#FFFF77",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Romania"
+    },
+    {
+      "id": "HUN",
+      "name": "헝가리",
+      "color": "#FFA47F",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Kingdom of Hungary"
+    },
+    {
+      "id": "SVK",
+      "name": "슬로바키아",
+      "color": "#EE1C25",
+      "source": "millennium-dawn",
+      "sourceObject": "Slovakia",
+      "sourceTag": "SLO",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "POL",
+      "name": "폴란드",
+      "color": "#FF7789",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Poland"
+    },
+    {
+      "id": "IRL",
+      "name": "아일랜드",
+      "color": "#68CF75",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Ireland"
+    },
+    {
+      "id": "GBR",
+      "name": "영국",
+      "color": "#FF4879",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "United Kingdom"
+    },
+    {
+      "id": "GRC",
+      "name": "그리스",
+      "color": "#79EBFF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Kingdom of Greece"
+    },
+    {
+      "id": "ZMB",
+      "name": "잠비아",
+      "color": "#198A00",
+      "source": "millennium-dawn",
+      "sourceObject": "Zambia",
+      "sourceTag": "ZAM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SLE",
+      "name": "시에라리온",
+      "color": "#0072C6",
+      "source": "millennium-dawn",
+      "sourceObject": "Sierra Leone",
+      "sourceTag": "SIE",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "GIN",
+      "name": "기니",
+      "color": "#009460",
+      "source": "millennium-dawn",
+      "sourceObject": "Guinea",
+      "sourceTag": "GUI",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "LBR",
+      "name": "라이베리아",
+      "color": "#CDAFFF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Liberia"
+    },
+    {
+      "id": "CAF",
+      "name": "중앙아프리카 공화국",
+      "color": "#D21034",
+      "source": "millennium-dawn",
+      "sourceObject": "Central African Republic",
+      "sourceTag": "CAR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SDN",
+      "name": "수단",
+      "color": "#007229",
+      "source": "millennium-dawn",
+      "sourceObject": "Sudan",
+      "sourceTag": "SUD",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "DJI",
+      "name": "지부티",
+      "color": "#12AD2B",
+      "source": "millennium-dawn",
+      "sourceObject": "Djibouti",
+      "sourceTag": "DJI",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "ERI",
+      "name": "에리트레아",
+      "color": "#EA0437",
+      "source": "millennium-dawn",
+      "sourceObject": "Eritrea",
+      "sourceTag": "ERI",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "AUT",
+      "name": "오스트리아",
+      "color": "#FFFEFF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Austria"
+    },
+    {
+      "id": "IRQ",
+      "name": "이라크",
+      "color": "#E79481",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Iraq"
+    },
+    {
+      "id": "ITA",
+      "name": "이탈리아",
+      "color": "#56A552",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Italy"
+    },
+    {
+      "id": "CHE",
+      "name": "스위스",
+      "color": "#C15151",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Switzerland"
+    },
+    {
+      "id": "IRN",
+      "name": "이란",
+      "color": "#5C927E",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Iran"
+    },
+    {
+      "id": "NLD",
+      "name": "네덜란드",
+      "color": "#FFB35F",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Netherlands"
+    },
+    {
+      "id": "LIE",
+      "name": "리히텐슈타인",
+      "color": "#210EC4",
+      "source": "millennium-dawn",
+      "sourceObject": "Liechtenstein",
+      "sourceTag": "LIC",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "CIV",
+      "name": "코트디부아르",
+      "color": "#F77F00",
+      "source": "millennium-dawn",
+      "sourceObject": "Cote D'Ivoire",
+      "sourceTag": "CDI",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SRB",
+      "name": "세르비아",
+      "color": "#C6363C",
+      "source": "millennium-dawn",
+      "sourceObject": "Serbia",
+      "sourceTag": "SER",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MLI",
+      "name": "말리",
+      "color": "#C1AB08",
+      "source": "millennium-dawn",
+      "sourceObject": "Mali",
+      "sourceTag": "MAL",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SEN",
+      "name": "세네갈",
+      "color": "#E31B23",
+      "source": "millennium-dawn",
+      "sourceObject": "Senegal",
+      "sourceTag": "SEN",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "NGA",
+      "name": "나이지리아",
+      "color": "#E15505",
+      "source": "millennium-dawn",
+      "sourceObject": "Nigeria",
+      "sourceTag": "NIG",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BEN",
+      "name": "베냉",
+      "color": "#FCD116",
+      "source": "millennium-dawn",
+      "sourceObject": "Benin",
+      "sourceTag": "BEN",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "AGO",
+      "name": "앙골라",
+      "color": "#AF0000",
+      "source": "millennium-dawn",
+      "sourceObject": "Angola",
+      "sourceTag": "AGL",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "HRV",
+      "name": "크로아티아",
+      "color": "#171796",
+      "source": "millennium-dawn",
+      "sourceObject": "Croatia",
+      "sourceTag": "CRO",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SVN",
+      "name": "슬로베니아",
+      "color": "#005DA4",
+      "source": "millennium-dawn",
+      "sourceObject": "Slovenia",
+      "sourceTag": "SLV",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "QAT",
+      "name": "카타르",
+      "color": "#8D1B3D",
+      "source": "millennium-dawn",
+      "sourceObject": "Qatar",
+      "sourceTag": "QAT",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SAU",
+      "name": "사우디아라비아",
+      "color": "#DEF7C6",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Saudi Arabia"
+    },
+    {
+      "id": "BWA",
+      "name": "보츠와나",
+      "color": "#75AADB",
+      "source": "millennium-dawn",
+      "sourceObject": "Botswana",
+      "sourceTag": "BOT",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "ZWE",
+      "name": "짐바브웨",
+      "color": "#DE2010",
+      "source": "millennium-dawn",
+      "sourceObject": "Zimbabwe",
+      "sourceTag": "ZIM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "PAK",
+      "name": "파키스탄",
+      "color": "#006400",
+      "source": "millennium-dawn",
+      "sourceObject": "Pakistan",
+      "sourceTag": "PAK",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BGR",
+      "name": "불가리아",
+      "color": "#329A00",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Bulgaria"
+    },
+    {
+      "id": "THA",
+      "name": "태국",
+      "color": "#D7F0C8",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Siam"
+    },
+    {
+      "id": "SMR",
+      "name": "산마리노",
+      "color": "#5EB6E4",
+      "source": "millennium-dawn",
+      "sourceObject": "San Marino",
+      "sourceTag": "SMA",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "HTI",
+      "name": "아이티",
+      "color": "#AB6F72",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Haiti"
+    },
+    {
+      "id": "DOM",
+      "name": "도미니카 공화국",
+      "color": "#BEA0F0",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Dominican Republic"
+    },
+    {
+      "id": "TCD",
+      "name": "차드",
+      "color": "#D7C448",
+      "source": "millennium-dawn",
+      "sourceObject": "Chad",
+      "sourceTag": "CHA",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "KWT",
+      "name": "쿠웨이트",
+      "color": "#B3DE69",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Sheikhdom of Kuwait"
+    },
+    {
+      "id": "SLV",
+      "name": "엘살바도르",
+      "color": "#FABE78",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "El Salvador"
+    },
+    {
+      "id": "GTM",
+      "name": "과테말라",
+      "color": "#473070",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Guatemala"
+    },
+    {
+      "id": "TLS",
+      "name": "동티모르",
+      "color": "#7607C8",
+      "source": "millennium-dawn",
+      "sourceObject": "East Timor",
+      "sourceTag": "TIM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BRN",
+      "name": "브루나이",
+      "color": "#AAAA32",
+      "source": "millennium-dawn",
+      "sourceObject": "Brunei",
+      "sourceTag": "BRU",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MCO",
+      "name": "모나코",
+      "color": "#962C03",
+      "source": "millennium-dawn",
+      "sourceObject": "Monaco",
+      "sourceTag": "MNC",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "DZA",
+      "name": "알제리",
+      "color": "#006233",
+      "source": "millennium-dawn",
+      "sourceObject": "Algeria",
+      "sourceTag": "ALG",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MOZ",
+      "name": "모잠비크",
+      "color": "#007168",
+      "source": "millennium-dawn",
+      "sourceObject": "Mozambique",
+      "sourceTag": "MOZ",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SWZ",
+      "name": "에스와티니",
+      "color": "#3E5EB9",
+      "source": "millennium-dawn",
+      "sourceObject": "Swaziland",
+      "sourceTag": "SWA",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BDI",
+      "name": "부룬디",
+      "color": "#CE1126",
+      "source": "millennium-dawn",
+      "sourceObject": "Burundi",
+      "sourceTag": "BUR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "RWA",
+      "name": "르완다",
+      "color": "#20603D",
+      "source": "millennium-dawn",
+      "sourceObject": "Rwanda",
+      "sourceTag": "RWA",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MMR",
+      "name": "미얀마",
+      "color": "#DECBE4",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "British Burma"
+    },
+    {
+      "id": "BGD",
+      "name": "방글라데시",
+      "color": "#006951",
+      "source": "millennium-dawn",
+      "sourceObject": "Bangladesh",
+      "sourceTag": "BAN",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "AND",
+      "name": "안도라",
+      "color": "#FF5A00",
+      "source": "millennium-dawn",
+      "sourceObject": "Andorra",
+      "sourceTag": "ADO",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "AFG",
+      "name": "아프가니스탄",
+      "color": "#53D0D9",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Afghanistan"
+    },
+    {
+      "id": "MNE",
+      "name": "몬테네그로",
+      "color": "#D3AE3B",
+      "source": "millennium-dawn",
+      "sourceObject": "Montenegro",
+      "sourceTag": "MNT",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BIH",
+      "name": "보스니아헤르체고비나",
+      "color": "#FECB00",
+      "source": "millennium-dawn",
+      "sourceObject": "Bosnia",
+      "sourceTag": "BOS",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "UGA",
+      "name": "우간다",
+      "color": "#C1AB08",
+      "source": "millennium-dawn",
+      "sourceObject": "Uganda",
+      "sourceTag": "UGA",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "CUB",
+      "name": "쿠바",
+      "color": "#8B40A6",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Cuba"
+    },
+    {
+      "id": "HND",
+      "name": "온두라스",
+      "color": "#809141",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Honduras"
+    },
+    {
+      "id": "ECU",
+      "name": "에콰도르",
+      "color": "#FFBE7F",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Ecuador"
+    },
+    {
+      "id": "COL",
+      "name": "콜롬비아",
+      "color": "#FFF375",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Colombia"
+    },
+    {
+      "id": "PRY",
+      "name": "파라과이",
+      "color": "#4696FA",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Republic of Paraguay"
+    },
+    {
+      "id": "PRT",
+      "name": "포르투갈",
+      "color": "#33965B",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Portugal"
+    },
+    {
+      "id": "MDA",
+      "name": "몰도바",
+      "color": "#B77000",
+      "source": "millennium-dawn",
+      "sourceObject": "Moldova",
+      "sourceTag": "MLV",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "TKM",
+      "name": "투르크메니스탄",
+      "color": "#CA3745",
+      "source": "millennium-dawn",
+      "sourceObject": "Turkmenistan",
+      "sourceTag": "TRK",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "JOR",
+      "name": "요르단",
+      "color": "#FFFFB3",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Emirate of Transjordan"
+    },
+    {
+      "id": "NPL",
+      "name": "네팔",
+      "color": "#C8AAFA",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Nepal"
+    },
+    {
+      "id": "LSO",
+      "name": "레소토",
+      "color": "#00209F",
+      "source": "millennium-dawn",
+      "sourceObject": "Lesotho",
+      "sourceTag": "LES",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "CMR",
+      "name": "카메룬",
+      "color": "#007A5E",
+      "source": "millennium-dawn",
+      "sourceObject": "Cameroon",
+      "sourceTag": "CAM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "GAB",
+      "name": "가봉",
+      "color": "#FCD116",
+      "source": "millennium-dawn",
+      "sourceObject": "Gabon",
+      "sourceTag": "GAB",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "NER",
+      "name": "니제르",
+      "color": "#008751",
+      "source": "millennium-dawn",
+      "sourceObject": "Niger",
+      "sourceTag": "NGR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BFA",
+      "name": "부르키나파소",
+      "color": "#EF2B2D",
+      "source": "millennium-dawn",
+      "sourceObject": "Burkina Faso",
+      "sourceTag": "BFA",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "TGO",
+      "name": "토고",
+      "color": "#006A4E",
+      "source": "millennium-dawn",
+      "sourceObject": "Togo",
+      "sourceTag": "TOG",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "GHA",
+      "name": "가나",
+      "color": "#CE1126",
+      "source": "millennium-dawn",
+      "sourceObject": "Ghana",
+      "sourceTag": "GAH",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "GNB",
+      "name": "기니비사우",
+      "color": "#FCD116",
+      "source": "millennium-dawn",
+      "sourceObject": "Guinea Bissau",
+      "sourceTag": "GUB",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "USA",
+      "name": "미국",
+      "color": "#57A1FF",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "United States"
+    },
+    {
+      "id": "CAN",
+      "name": "캐나다",
+      "color": "#9B3E33",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Dominion of Canada"
+    },
+    {
+      "id": "MEX",
+      "name": "멕시코",
+      "color": "#86C66C",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Mexico"
+    },
+    {
+      "id": "BLZ",
+      "name": "벨리즈",
+      "color": "#CE1126",
+      "source": "millennium-dawn",
+      "sourceObject": "Belize",
+      "sourceTag": "BLZ",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "PAN",
+      "name": "파나마",
+      "color": "#9E8ADD",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Panama"
+    },
+    {
+      "id": "VEN",
+      "name": "베네수엘라",
+      "color": "#ACBE99",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Venezuela"
+    },
+    {
+      "id": "PNG",
+      "name": "파푸아뉴기니",
+      "color": "#3C4678",
+      "source": "millennium-dawn",
+      "sourceObject": "Papua New Guinea",
+      "sourceTag": "PAP",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "EGY",
+      "name": "이집트",
+      "color": "#C09300",
+      "source": "millennium-dawn",
+      "sourceObject": "Egypt",
+      "sourceTag": "EGY",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "YEM",
+      "name": "예멘",
+      "color": "#905D5D",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Yemen"
+    },
+    {
+      "id": "MRT",
+      "name": "모리타니",
+      "color": "#00A651",
+      "source": "millennium-dawn",
+      "sourceObject": "Mauritania",
+      "sourceTag": "MAU",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "GNQ",
+      "name": "적도기니",
+      "color": "#009BC9",
+      "source": "millennium-dawn",
+      "sourceObject": "Equatorial Guinea",
+      "sourceTag": "EGU",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "GMB",
+      "name": "감비아",
+      "color": "#0C1C8C",
+      "source": "millennium-dawn",
+      "sourceObject": "Gambia",
+      "sourceTag": "GAM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "VAT",
+      "name": "바티칸 시국",
+      "color": "#C1AB08",
+      "source": "millennium-dawn",
+      "sourceObject": "Holy See",
+      "sourceTag": "HLS",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "CYN",
+      "name": "북키프로스",
+      "color": "#F91313",
+      "source": "millennium-dawn",
+      "sourceObject": "Northern Cyprus",
+      "sourceTag": "NCY",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "CNM",
+      "name": "유엔 키프로스 완충 지대",
+      "color": "#009EDB",
+      "source": "un-blue",
+      "sourceObject": "UN blue"
+    },
+    {
+      "id": "KAS",
+      "name": "시아첸빙하",
+      "color": null,
+      "source": "user-no-color",
+      "reason": "사용자 지시: 시아첸 빙하는 고유색 미지정"
+    },
+    {
+      "id": "SPI",
+      "name": "남부파타고니아빙원",
+      "color": null,
+      "source": "user-no-color",
+      "reason": "사용자 지시: 사우던 파타고니안 아이스 필드는 고유색 미지정"
+    },
+    {
+      "id": "BRT",
+      "name": "비르타윌",
+      "color": null,
+      "source": "user-no-color",
+      "reason": "사용자 지시: 비르 타윌은 고유색 미지정"
+    },
+    {
+      "id": "ATA",
+      "name": "남극",
+      "color": null,
+      "source": "user-no-color",
+      "reason": "사용자 지시: 남극은 고유색 미지정"
+    },
+    {
+      "id": "AUS",
+      "name": "오스트레일리아",
+      "color": "#49BB7E",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Australia"
+    },
+    {
+      "id": "FJI",
+      "name": "피지",
+      "color": "#5AAAD2",
+      "source": "millennium-dawn",
+      "sourceObject": "Fiji",
+      "sourceTag": "FIJ",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "NZL",
+      "name": "뉴질랜드",
+      "color": "#B99BEB",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "New Zealand"
+    },
+    {
+      "id": "MDG",
+      "name": "마다가스카르",
+      "color": "#FC3D32",
+      "source": "millennium-dawn",
+      "sourceObject": "Madagascar",
+      "sourceTag": "MAD",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "PHL",
+      "name": "필리핀",
+      "color": "#B496E6",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Philippines"
+    },
+    {
+      "id": "LKA",
+      "name": "스리랑카",
+      "color": "#FFB700",
+      "source": "millennium-dawn",
+      "sourceObject": "Sri Lanka",
+      "sourceTag": "SRI",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BHS",
+      "name": "바하마",
+      "color": "#00ABC9",
+      "source": "millennium-dawn",
+      "sourceObject": "Bahamas",
+      "sourceTag": "BAH",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "TWN",
+      "name": "중화민국",
+      "color": "#DFE5A0",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "China"
+    },
+    {
+      "id": "JPN",
+      "name": "일본",
+      "color": "#FEE8C8",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Japan"
+    },
+    {
+      "id": "ISL",
+      "name": "아이슬란드",
+      "color": "#C79779",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Iceland"
+    },
+    {
+      "id": "SYC",
+      "name": "세이셸",
+      "color": "#00FAAA",
+      "source": "millennium-dawn",
+      "sourceObject": "Seychelles",
+      "sourceTag": "SEY",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "KIR",
+      "name": "키리바시",
+      "color": "#D48CBF",
+      "source": "millennium-dawn",
+      "sourceObject": "Kiribati",
+      "sourceTag": "KIR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MHL",
+      "name": "마셜제도",
+      "color": "#D03645",
+      "source": "millennium-dawn",
+      "sourceObject": "Marshall Islands",
+      "sourceTag": "MAR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "TTO",
+      "name": "트리니다드토바고",
+      "color": "#511D53",
+      "source": "millennium-dawn",
+      "sourceObject": "Trinidad",
+      "sourceTag": "TRI",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "GRD",
+      "name": "그레나다",
+      "color": "#BED264",
+      "source": "millennium-dawn",
+      "sourceObject": "Grenada",
+      "sourceTag": "GRA",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "VCT",
+      "name": "세인트빈센트그레나딘",
+      "color": "#8CDCD2",
+      "source": "millennium-dawn",
+      "sourceObject": "St.Vincent and the Grenadines",
+      "sourceTag": "STV",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BRB",
+      "name": "바베이도스",
+      "color": "#1432C8",
+      "source": "millennium-dawn",
+      "sourceObject": "Barbados",
+      "sourceTag": "BAR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "LCA",
+      "name": "세인트루시아",
+      "color": "#3C78B4",
+      "source": "millennium-dawn",
+      "sourceObject": "St.Lucia",
+      "sourceTag": "STL",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "DMA",
+      "name": "도미니카 연방",
+      "color": "#777A69",
+      "source": "millennium-dawn",
+      "sourceObject": "Dominica",
+      "sourceTag": "DMI",
+      "sourcePath": "common/countries/Dominica.txt"
+    },
+    {
+      "id": "ATG",
+      "name": "앤티가바부다",
+      "color": "#CEC0AF",
+      "source": "millennium-dawn",
+      "sourceObject": "Antigua and Barbuda",
+      "sourceTag": "ANT",
+      "sourcePath": "common/countries/Antigua and Barbuda.txt"
+    },
+    {
+      "id": "KNA",
+      "name": "세인트키츠네비스",
+      "color": "#5CACD7",
+      "source": "millennium-dawn",
+      "sourceObject": "St.Kitts and Nevis",
+      "sourceTag": "STK",
+      "sourcePath": "common/countries/St.Kitts and Nevis.txt"
+    },
+    {
+      "id": "JAM",
+      "name": "자메이카",
+      "color": "#7FB61D",
+      "source": "millennium-dawn",
+      "sourceObject": "Jamaica",
+      "sourceTag": "JAM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MUS",
+      "name": "모리셔스",
+      "color": "#141478",
+      "source": "millennium-dawn",
+      "sourceObject": "Mauritius",
+      "sourceTag": "MRT",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "COM",
+      "name": "코모로",
+      "color": "#F0820A",
+      "source": "millennium-dawn",
+      "sourceObject": "Comoros",
+      "sourceTag": "COM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "STP",
+      "name": "상투메프린시페",
+      "color": "#12F3B2",
+      "source": "millennium-dawn",
+      "sourceObject": "Sao Tome",
+      "sourceTag": "SAO",
+      "sourcePath": "common/countries/Sao Tome.txt"
+    },
+    {
+      "id": "CPV",
+      "name": "카보베르데",
+      "color": "#44D299",
+      "source": "millennium-dawn",
+      "sourceObject": "Cape Verde",
+      "sourceTag": "VER",
+      "sourcePath": "common/countries/Cape Verde.txt"
+    },
+    {
+      "id": "MLT",
+      "name": "몰타",
+      "color": "#A00000",
+      "source": "millennium-dawn",
+      "sourceObject": "Malta",
+      "sourceTag": "MLT",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SGP",
+      "name": "싱가포르",
+      "color": "#FFFFFF",
+      "source": "millennium-dawn",
+      "sourceObject": "Singapore",
+      "sourceTag": "SIN",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "COK",
+      "name": "쿡제도",
+      "color": "#496A9C",
+      "source": "user-cook-islands",
+      "sourceObject": "쿡 제도 추천색"
+    },
+    {
+      "id": "TON",
+      "name": "통가",
+      "color": "#9882BF",
+      "source": "millennium-dawn",
+      "sourceObject": "Tonga",
+      "sourceTag": "TON",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "WSM",
+      "name": "사모아",
+      "color": "#CB6D14",
+      "source": "millennium-dawn",
+      "sourceObject": "Samoa",
+      "sourceTag": "SAM",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "SLB",
+      "name": "솔로몬제도",
+      "color": "#B45000",
+      "source": "millennium-dawn",
+      "sourceObject": "Solomon Islands",
+      "sourceTag": "SOL",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "TUV",
+      "name": "투발루",
+      "color": "#166D57",
+      "source": "millennium-dawn",
+      "sourceObject": "Tuvalu",
+      "sourceTag": "TUL",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "MDV",
+      "name": "몰디브",
+      "color": "#C8D26E",
+      "source": "millennium-dawn",
+      "sourceObject": "Maldives",
+      "sourceTag": "MLD",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "NRU",
+      "name": "나우루",
+      "color": "#403515",
+      "source": "millennium-dawn",
+      "sourceObject": "Nauru",
+      "sourceTag": "NAU",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "FSM",
+      "name": "미크로네시아 연방",
+      "color": "#28C878",
+      "source": "millennium-dawn",
+      "sourceObject": "Micronesian Federation",
+      "sourceTag": "MIC",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "VUT",
+      "name": "바누아투",
+      "color": "#AA8FC0",
+      "source": "millennium-dawn",
+      "sourceObject": "Vanuatu",
+      "sourceTag": "VAN",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "NIU",
+      "name": "니우에",
+      "color": "#E2C65A",
+      "source": "user-niue",
+      "sourceObject": "니우에 추천색"
+    },
+    {
+      "id": "PLW",
+      "name": "팔라우",
+      "color": "#7B5714",
+      "source": "millennium-dawn",
+      "sourceObject": "Palau",
+      "sourceTag": "PAU",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "id": "BHR",
+      "name": "바레인",
+      "color": "#475139",
+      "source": "millennium-dawn",
+      "sourceObject": "Bahrain",
+      "sourceTag": "BHR",
+      "sourcePath": "common/countries/colors.txt"
+    }
+  ],
+  "historicalCountries": [
+    {
+      "libraryId": "historical-country:czechoslovakia",
+      "name": "체코슬로바키아",
+      "color": "#46D8CB",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Czechoslovakia"
+    },
+    {
+      "libraryId": "historical-country:soviet-union",
+      "name": "소련",
+      "color": "#A3101F",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Soviet Union"
+    },
+    {
+      "libraryId": "historical-country:ukraine",
+      "name": "우크라이나",
+      "color": "#005AB9",
+      "source": "millennium-dawn",
+      "sourceObject": "Ukraine",
+      "sourceTag": "UKR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "libraryId": "historical-country:yugoslavia",
+      "name": "유고슬라비아",
+      "color": "#5E5EA4",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Yugoslavia"
+    },
+    {
+      "libraryId": "historical-country:sudan",
+      "name": "수단",
+      "color": "#007229",
+      "source": "millennium-dawn",
+      "sourceObject": "Sudan",
+      "sourceTag": "SUD",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "libraryId": "historical-country:indonesia",
+      "name": "인도네시아",
+      "color": "#FFB25F",
+      "source": "hoi4-mapchart-1936",
+      "sourceObject": "Dutch East Indies"
+    },
+    {
+      "libraryId": "historical-country:east-prussia",
+      "name": "동프로이센주",
+      "color": "#003153",
+      "source": "prussian-blue",
+      "sourceObject": "Prussian blue"
+    },
+    {
+      "libraryId": "historical-country:deutsche-demokratische-republik",
+      "name": "독일 민주공화국",
+      "color": "#8B1A1A",
+      "source": "cold-war-iron-curtain",
+      "sourceObject": "East Germany",
+      "sourceTag": "DDR",
+      "sourcePath": "Cold War Iron Curtain/common/countries/colors.txt"
+    },
+    {
+      "libraryId": "historical-country:nagorno-karabakh",
+      "name": "나고르노카라바흐",
+      "color": "#E68C14",
+      "source": "millennium-dawn",
+      "sourceObject": "Artsakh",
+      "sourceTag": "NKR",
+      "sourcePath": "common/countries/colors.txt"
+    },
+    {
+      "libraryId": "historical-country:west-prussia",
+      "name": "서프로이센주",
+      "color": "#003153",
+      "source": "prussian-blue",
+      "sourceObject": "Prussian blue"
+    },
+    {
+      "libraryId": "historical-country:north-schleswig",
+      "name": "북슐레스비히",
+      "color": "#003153",
+      "source": "prussian-blue",
+      "sourceObject": "Prussian blue"
+    }
+  ]
+}

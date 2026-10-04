@@ -106,7 +106,8 @@ export function createLibraryAssembly() {
         const countryFeatures = prepared.filter(item => item.entityKind === 'general' && !item.parentId).map(item => {
           const feature = (0, dependencies.objectPicking.createCountryFeature)(item.name, [], item.geometry);
           feature.id = item.id;
-          feature.properties.style = item.metadata?.defaultColor ? { color: item.metadata.defaultColor } : {};
+          feature.properties.sourceLibraryId = item.libraryId;
+          feature.properties.sourceGeometryVersion = item.geometryVersionId;
           feature.properties.metadata = { ...feature.properties.metadata, ...item.metadata };
           if (item.metadata?.defaultFlagDataUrl) feature.properties.metadata.flagDataUrl = item.metadata.defaultFlagDataUrl;
           if (item.validFrom) feature.properties.validFrom = item.validFrom;

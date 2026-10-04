@@ -26,8 +26,7 @@ export function createTerritorialFillResolver({ state, entityRepository, terrain
     const blendMode = inherited ? explicit.blendMode ?? (groupStyle.blendMode === 'multiply' ? 'multiply' : inherited.blendMode) : style.blendMode;
     const color = colorVisible(entity) ? resolveLayerDisplayColor(presentation, group, {
       objectKey: `territorial:entity:${id}`, explicitColor: properties.style?.color,
-      inheritedColor: resolveTerritorialColor(entity, { entityRepository, colorVisible,
-        countryColor: root => root.properties.style?.color || '', fallback: '' }), fallbackColor: '',
+      inheritedColor: resolveTerritorialColor(entity, { entityRepository, colorVisible, fallback: '' }), fallbackColor: '',
     }) : '';
     const substrate = !independent && !parent && !color ? mapSubstrate : null;
     const result = Object.freeze({ color: color || substrate?.color || '', opacity, blendMode,
