@@ -145,8 +145,9 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       terrainFetchQueue.length = retainedCount;
     }
 
+    const terrainFetchConcurrency = () => isMobile() ? 2 : terrainTargetTilesLoaded < terrainTargetTileCount ? 6 : 4;
     function pumpTerrainFetchQueue() {
-      const concurrency = isMobile() ? 2 : 4;
+      const concurrency = terrainFetchConcurrency();
       while (terrainActiveFetches < concurrency && pendingDecodedBytes < 32 * 1024 * 1024 && terrainFetchQueue.length) {
         const next = terrainFetchQueue.shift();
         terrainFetchQueuedEntries.delete(next.spec.key);
@@ -498,7 +499,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
       terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, tint?.byteLength || 0),
       terrainPendingDecodedBytes: pendingDecodedBytes, terrainTintReady: !!tint,
-      terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: isMobile() ? 2 : 4,
+      terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: terrainFetchConcurrency(),
       terrainUploadCount, terrainFailureCount: terrainTileFailures.size }),
     dispose() { if (disposed) return; reset(); disposed = true; gl = null; uploadScheduler = null; },
   });

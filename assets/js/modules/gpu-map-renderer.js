@@ -3151,7 +3151,7 @@ export function createGpuMapRenderer(deps) {
       const v1 = (gutter + spec.pixelHeight) / sourceHeight;
       gl.uniform4f(cachedUniformLocation(program, 'uUvBounds'), u0, v0, u1, v1);
       gl.uniform1f(cachedUniformLocation(program, 'uPhysicalStyle'),
-        state.physicalSettings.terrainStyle === 'physical' && (!dem || terrainPreparation.tintTexture()) ? 1 : 0);
+        state.physicalSettings.terrainStyle === 'physical' && (!dem || pass === 'ocean' || terrainPreparation.tintTexture()) ? 1 : 0);
       gl.uniform1f(cachedUniformLocation(program, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
       if (dem) {
         const sourceLevel = terrainManifest.levels[Number(spec.level)];
