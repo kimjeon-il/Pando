@@ -431,7 +431,6 @@ export function createGpuMapRenderer(deps) {
       terrainPreparation.setContext({ gl, ready: isWebGlRenderer(), scheduler: uploadScheduler, projectGeneration, contextGeneration: renderDeviceContextRevision });
       preparedTerrain = terrainPreparation.prepare(frame, {
         visible: state.physicalSettings.terrainVisible,
-        meshQuality: activeMeshQuality,
         physicalStyle: state.physicalSettings.terrainStyle,
         projection: state.projection, rotation: state.view.globeRotation, flatCenter: state.view.flatCenter,
         width: cssWidth, height: cssHeight, dpr: effectivePixelRatio, devicePixelRatio: window.devicePixelRatio,
@@ -3152,7 +3151,7 @@ export function createGpuMapRenderer(deps) {
       const v1 = (gutter + spec.pixelHeight) / sourceHeight;
       gl.uniform4f(cachedUniformLocation(program, 'uUvBounds'), u0, v0, u1, v1);
       gl.uniform1f(cachedUniformLocation(program, 'uPhysicalStyle'),
-        state.physicalSettings.terrainStyle === 'physical' && (!dem || pass === 'ocean' || terrainPreparation.tintTexture()) ? 1 : 0);
+        state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
       gl.uniform1f(cachedUniformLocation(program, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
       if (dem) {
         const sourceLevel = terrainManifest.levels[Number(spec.level)];
@@ -3279,7 +3278,6 @@ export function createGpuMapRenderer(deps) {
       const theme = mapTheme();
       lastBaseSceneResult = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
-        terrainRepresentation: terrainManifest?.representation,
         countriesVisible: state.layerVisibility.countries,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         countries: { mesh, overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
