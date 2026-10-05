@@ -4,7 +4,7 @@ import { applySvgInteractionMasks } from './interaction-svg-mask.js';
 import { rendererOwnsSceneGeometry } from './render-channel-ownership.js';
 import { interactionRoleStyle, resolveMapInteractionStyle, interactionNodeRole, interactionStrokeScale, scaleInteractionStroke } from './map-interaction-style.js';
 import { mapInteractionEntries } from './interaction-roles.js';
-import { selectionEntries, selectionDisplayPlan, orderSelectionFillMasks, selectionFrameOwnership, selectionGeometryKinds, planSelectionEntry, planHoverEntry, selectionCoverage } from './selection-overlay-plan.js';
+import { selectionEntries, selectionDisplayPlan, orderSelectionFillMasks, selectionFrameOwnership, selectionGeometryKinds, planSelectionEntry, planHoverEntry, selectionCoverage, selectionCoverageAvailable } from './selection-overlay-plan.js';
 import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
 import { boundaryViewBounds, queryBoundaryDisplay } from './boundary-display.js';
 import { distributionValueRange, distributionValueAlpha } from './distribution-model.js';
@@ -28,6 +28,8 @@ export function createRenderingDomain({
   mapHost = null,
   selectionDomain = null,
   projectDomain = null,
+  editPreviewController = null,
+  isEditPreviewCurrent = () => true,
   domLayers = null,
   labelResources = null,
   countryResources = null,
@@ -430,6 +432,7 @@ export function createRenderingDomain({
     const frameResult = !presentationOnly && renderViewState?.__mapVisualFrame
       ? countries.gpuMapRenderer?.renderFrame?.(renderViewState)
       : gpuResult;
+    if (!presentationOnly && frameResult?.deferred) commitViewAttachedLayers(renderViewState, frameResult);
     countries.applyGpuSceneCoverage?.(frameResult);
     countries.applyGpuInteractionCoverage?.(frameResult);
     return frameResult;
@@ -1000,7 +1003,7 @@ export function createRenderingDomain({
     active();
     const boundaryHandles = packet?.boundaryEdit?.handles || [];
     const boundaryMode = ['territorial-border', 'country-coast'].includes(packet?.tool) && boundaryHandles.length > 0;
-    const objectPacket = boundaryMode ? {
+    let objectPacket = boundaryMode ? {
       mode: packet.tool,
       handles: boundaryHandles,
       targetRef: {
@@ -1009,6 +1012,7 @@ export function createRenderingDomain({
         id: String(boundaryHandles[0]?.ownerIds?.[0] || ''),
       },
     } : packet?.objectVertices;
+    if (objectPacket?.targetRef && selection.objectRefVisible?.(objectPacket.targetRef) === false) objectPacket = null;
     const handles = objectPacket?.handles;
     let rows = handles && vertexRows.get(handles);
     if (!rows) {
@@ -1046,6 +1050,20 @@ export function createRenderingDomain({
     }
     const layer = editing.vertexLayer;
     if (!layer) return false;
+    // Selection outlines may be disabled while vertex editing remains active.
+    // In that policy the existing editing layer owns the committed hydro line.
+    const editFeature = objectPacket?.targetRef?.domain === 'hydro'
+      && editing.getInteractionStyle?.()?.selection?.outlineVisible === false
+      ? selection.mapFeatureForObjectRef(objectPacket.targetRef) : null;
+    const editOutline = layer.selectAll('path.object-edit-outline').data(editFeature?.geometry ? [editFeature] : [], feature => String(feature.id));
+    editOutline.enter().append('path').attr('class', 'object-edit-outline');
+    editOutline.exit().remove();
+    const editStyle = scaleInteractionStroke(interactionRoleStyle(editing.getInteractionStyle?.() || resolveMapInteractionStyle(),
+      'edit-target', { directManipulation: true }), frameContext);
+    layer.selectAll('path.object-edit-outline').attr('fill', 'none').attr('pointer-events', 'none')
+      .attr('data-object-key', objectPacket?.targetRef?.key || '')
+      .attr('d', framePath(frameContext, editing.path || selection.path))
+      .attr('stroke', editStyle.color).attr('stroke-width', editStyle.width).attr('stroke-opacity', editStyle.alpha);
     const handlesChanged = editingChannelChanged('vertices', layer, packet?.objectVertices, packet?.boundaryEdit, packet?.tool);
     const joinChanged = handlesChanged || data.length !== visibleVertexRows.length || data.some((row, i) => row !== visibleVertexRows[i]);
     let enteredVertices = layer.selectAll('circle.vertex-handle').filter(() => false);
@@ -1250,6 +1268,12 @@ export function createRenderingDomain({
     if (frameToken !== null && frameToken === resourceFrameToken) return resourceFrameToken;
     refreshRenderResources?.(frameToken);
     editingPacket = getEditingRenderPacket?.() || EMPTY_EDITING_RENDER_PACKET;
+    const preview = editPreviewController?.snapshot();
+    if (preview?.id && (!isEditPreviewCurrent(preview)
+      || Number(frameContext?.projectGeneration ?? preview.projectGeneration) !== preview.projectGeneration)) {
+      editPreviewController.clear(preview.id);
+      selection.syncGpuInteractionState();
+    }
     resourceFrameToken = frameToken;
     stats.renderResourceRefreshCount += 1;
     stats.renderResourceSnapshotFrameId = frameToken;
@@ -1323,10 +1347,79 @@ export function createRenderingDomain({
       const outline = interaction.buildRenderableStrokeFeature?.(interaction.featureFromGeometry?.(geometry));
       if (outline) rows.push({ geometry: outline.geometry, className: 'geometry-preview-new-boundary' });
     }
-    joinEditingNodes(layer, 'path.editing-preview-path', rows, (d, i) => `${d.className}:${i}`)
+    rows.forEach((row, index) => { row.key = `${session.sessionId}:${row.className}:${index}`; });
+    joinEditingNodes(layer, 'path.editing-preview-path', rows, d => d.key)
       .attr('class', d => `editing-preview-path ${d.className}`)
       .attr('d', d => path({ type: 'Feature', geometry: d.geometry, properties: {} }));
     interaction.syncGpuInteractionLayer?.('preview', layer);
+    return true;
+  };
+  const svgStrokePresented = (node, frame) => {
+    if (!node?.isConnected || !node.getAttribute('d')) return false;
+    if (typeof frame?.projectPath === 'function') {
+      const geometry = node.__data__?.geometry;
+      if (!geometry || node.getAttribute('d') !== frame.projectPath({ type: 'Feature', properties: {}, geometry })) return false;
+    }
+    const view = node.ownerDocument.defaultView;
+    for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+      const style = view.getComputedStyle(parent);
+      if (style.display === 'none' || Number(style.opacity) === 0) return false;
+    }
+    const style = view.getComputedStyle(node);
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.stroke !== 'none'
+      && Number(style.opacity) > 0 && Number(style.strokeOpacity) > 0 && parseFloat(style.strokeWidth) > 0;
+  };
+  const objectEditingStrokePresented = (geometry, frame) => [...(editing.vertexLayer?.node()?.querySelectorAll('path.object-edit-outline') || [])]
+    .some(node => node.__data__?.geometry === geometry && svgStrokePresented(node, frame));
+  const completeEditPreviewHandoff = (frame, gpuResult, objectPresentation = null, { canvasPresented = false } = {}) => {
+    const preview = editPreviewController?.snapshot();
+    if (preview?.status !== 'successor-ready' || !isEditPreviewCurrent(preview)) return false;
+    const canvas = ['canvas-worker', 'canvas2d'].includes(gpuMapRenderer?.getRuntimeState?.()?.renderer);
+    if (canvas && !canvasPresented) return false;
+    const successor = preview.successor;
+    let presented = null;
+    if (successor.kind === 'geometry-preview') {
+      const session = editingPacket.preview;
+      if (session?.sessionId !== successor.sessionId || session.revision !== successor.revision) return false;
+      const nodes = [...(interaction.previewLayer?.node()?.querySelectorAll('.geometry-preview-new-boundary') || [])];
+      const results = (gpuResult?.interactionResult?.previewResults || []).filter(result => !result.deferred && selectionCoverageAvailable(result));
+      const covered = new Set(results.flatMap(result => result.renderedKeys || []));
+      const missing = new Set(results.flatMap(result => result.missingKeys || []));
+      const selectionResult = gpuResult?.selection || gpuResult?.interactionResult?.selection;
+      const { renderedKeys } = selectionCoverage(selectionResult, null, new Map());
+      const commonCoverage = new Set(Object.values(renderedKeys).flatMap(keys => [...keys]));
+      const fallbacks = [...(selection.selectionLayer?.node()?.querySelectorAll('[data-selection-fallback-key]') || []),
+        ...(selection.hoverLayer?.node()?.querySelectorAll('[data-selection-fallback-key]') || [])];
+      if (!nodes.length || nodes.length !== session.delta?.newBoundaries?.length
+        || !nodes.every(node => node.__data__?.key?.startsWith(`${session.sessionId}:`) && (
+        svgStrokePresented(node, frame) || commonCoverage.has(node.getAttribute('data-object-key'))
+        || fallbacks.some(fallback => fallback.getAttribute('data-selection-fallback-key') === node.getAttribute('data-object-key') && svgStrokePresented(fallback, frame))
+        || ((node.getAttribute('data-gpu-interaction-stroke-keys') || '').trim().length > 0
+          && node.getAttribute('data-gpu-interaction-stroke-keys').trim().split(/\s+/)
+            .every(key => covered.has(key) && !missing.has(key)))))) return false;
+      presented = { kind: 'geometry-preview', sessionId: session.sessionId, revision: session.revision };
+    } else {
+      if (!objectPresentation) {
+        const ref = preview.targetRefs.find(ref => ref.key === successor.objectKey);
+        const feature = ref && selection.mapFeatureForObjectRef(ref);
+        if (feature?.geometry !== successor.geometry) return false;
+        const revision = selectionGeometryRevision(ref.key, 'boundary', feature);
+        const packet = selection.getCurrentSelectionPacket();
+        const channel = Object.keys(packet?.channels || {}).find(channel => packet.channels[channel].some(item =>
+          item.key === ref.key && (item.geometryRevision === revision || item.geometryRevision.startsWith(`${revision}:owners:`))));
+        const editingStroke = objectEditingStrokePresented(feature.geometry, frame);
+        if (!channel && !editingStroke) return false;
+        const { renderedKeys } = selectionCoverage(gpuResult?.selection || gpuResult?.interactionResult?.selection, null, new Map());
+        const fallback = [...(selection.selectionLayer?.node()?.querySelectorAll('[data-selection-fallback-key]') || [])]
+          .some(node => node.getAttribute('data-selection-fallback-key') === ref.key && svgStrokePresented(node, frame));
+        objectPresentation = { kind: 'object', objectKey: ref.key, geometry: feature.geometry,
+          geometryRevision: readGeometryRevision(feature.geometry), painted: editingStroke || !!channel && (renderedKeys[channel].has(ref.key) || fallback) };
+      }
+      if (objectPresentation.objectKey === successor.objectKey && objectPresentation.painted) presented = objectPresentation;
+    }
+    if (!presented || !editPreviewController.completeHandoff(preview.id, presented, frame)) return false;
+    selection.syncGpuInteractionState();
+    invalidateGpuInteraction('edit-preview-handoff');
     return true;
   };
   const selectionOverlayDiagnostics = {
@@ -1482,7 +1575,8 @@ export function createRenderingDomain({
     const root = selection.selectionLayer?.node?.();
     if (!root) return;
     const packet = selection.activeEditPreview?.()?.packet;
-    const covered = (result?.interactionResult?.previewResults || []).some(value => value.renderedKeys?.includes(packet?.key));
+    const covered = (result?.interactionResult?.previewResults || []).some(value => !value.deferred
+      && selectionCoverageAvailable(value) && value.renderedKeys?.includes(packet?.key) && !value.missingKeys?.includes(packet?.key));
     let node = root.querySelector('.map-direct-preview');
     if (!packet || covered) { node?.remove(); if (!packet) directPreviewGeometry = null; return; }
     const key = `${packet.key}:${packet.geometryRevision}`;
@@ -1507,7 +1601,6 @@ export function createRenderingDomain({
     active();
     if (!viewOnly) sparseFallbackDirty = true;
     if (viewOnly) {
-      renderDirectEditPreview(frameContext, gpuFrameResult);
       const { result: gpuSelectionResult, reuseView } = selectionFrameOwnership({ gpuFrameResult,
         renderer: gpuMapRenderer?.getRuntimeState?.()?.renderer, lastFillOwner: lastInteractionFillOwner });
       if (reuseView) {
@@ -1523,7 +1616,10 @@ export function createRenderingDomain({
           selectionOverlayDiagnostics.fallbackCount = keys.size;
           selection.publishMetrics?.({ svgFallbackKeys: [...keys] });
         }
-        return renderSparseSelectionFallbackView(frameContext);
+        const drawn = renderSparseSelectionFallbackView(frameContext);
+        completeEditPreviewHandoff(frameContext, gpuFrameResult);
+        renderDirectEditPreview(frameContext, gpuFrameResult);
+        return drawn;
       }
     }
     const selectionLayer = selection.selectionLayer;
@@ -1652,11 +1748,17 @@ export function createRenderingDomain({
       if (plan.stroke) selectionChannels.hover.push(plan.stroke);
       if (plan.fillRequest) interactionFillRequests.push(plan.fillRequest);
     }
+    let editSuccessor = null;
+    const expectedEdit = editPreviewController?.snapshot().successor;
     for (const { entry, channel, outlineVisible } of displayPlan.items) {
       const ref = entry.ref;
       const primary = channel === 'primary';
       const isCountry = rootGeneralSelection(ref);
       const feature = displayFeatureForRef(ref);
+      if (expectedEdit?.kind === 'object' && expectedEdit.objectKey === ref.key && expectedEdit.geometry === feature?.geometry) {
+        editSuccessor = { kind: 'object', objectKey: ref.key, geometry: feature.geometry,
+          geometryRevision: readGeometryRevision(feature.geometry), channel };
+      }
       if (!feature?.geometry && feature?.type !== 'FeatureCollection') continue;
       const boundary = (isCountry || selectionGeometryKinds(feature).boundary) && outlineVisible
         ? hierarchyBoundary(ref, feature, 'selection-outline')
@@ -1679,22 +1781,22 @@ export function createRenderingDomain({
     let gpuFillResult = null;
     let fillOwner = gpuFrameResult?.interactionResult?.fillOwner || 'svg';
     let fillResourcesByObject = new Map();
+    if (updateData) {
+      const countryBoundarySnapshot = gpuMapRenderer?.getCountryInteractionBoundaryData?.() || null;
+      selectionPass?.setCountryBoundaryResources?.(countryBoundarySnapshot);
+      selectionOverlayStage = 'selection-buffer-build';
+      const packet = selectionDomain?.createPacket?.({
+        geometryRevision: countryBoundarySnapshot?.revision || selection.getCountryLandRevision?.() || 0,
+        styleRevision: JSON.stringify(style),
+        countryBoundaryRevision: countryBoundarySnapshot?.revision || '',
+        territorialBoundaryRevision: selection.getTerritorialBoundaryRevision?.() || '',
+        channels: selectionChannels,
+        style,
+      });
+      selection.setCurrentSelectionPacket?.(packet);
+      selectionPass?.updateData?.(packet);
+    }
     if (selectionPass) {
-      if (updateData) {
-        const countryBoundarySnapshot = gpuMapRenderer?.getCountryInteractionBoundaryData?.() || null;
-        selectionPass.setCountryBoundaryResources?.(countryBoundarySnapshot);
-        selectionOverlayStage = 'selection-buffer-build';
-        const packet = selectionDomain?.createPacket?.({
-          geometryRevision: countryBoundarySnapshot?.revision || selection.getCountryLandRevision?.() || 0,
-          styleRevision: JSON.stringify(style),
-          countryBoundaryRevision: countryBoundarySnapshot?.revision || '',
-          territorialBoundaryRevision: selection.getTerritorialBoundaryRevision?.() || '',
-          channels: selectionChannels,
-          style,
-        });
-        selection.setCurrentSelectionPacket?.(packet);
-        selectionPass.updateData?.(packet);
-      }
       const interactionFills = selection.buildGpuInteractionFillItems?.(interactionFillRequests) || { items: [], resourcesByObject: new Map() };
       fillResourcesByObject = interactionFills.resourcesByObject;
       selection.publishMetrics?.({ interactionFillRequestCount: interactionFillRequests.length, interactionFillResourceCount: interactionFills.items.length });
@@ -1714,6 +1816,10 @@ export function createRenderingDomain({
         selectionGenericBatchCount: Number(gpuSelectionStats?.genericBatchCount || 0),
         selectionStrokeDrawCallCount: Number(gpuSelectionStats?.strokeDrawCallCount || 0),
       });
+    } else if (!viewOnly && ['canvas-worker', 'canvas2d'].includes(gpuMapRenderer?.getRuntimeState?.()?.renderer)) {
+      // Canvas has no GPU selection pass, but still needs the committed hydro
+      // frame submitted through the same accepted-frame queue as view changes.
+      directFrameResult = gpuFrameResult || renderGpuInteraction(frameContext);
     }
     if (!gpuSelectionStats) gpuSelectionStats = selectionPass?.stats?.() || null;
     const { renderedKeys, gpuFilledObjectKeys } = selectionCoverage(gpuRenderResult, gpuFillResult, fillResourcesByObject);
@@ -1807,6 +1913,11 @@ export function createRenderingDomain({
     selectionOverlayStage = 'selection-frame-commit';
     selectionTarget?.replaceChildren(...selectionStageNode.childNodes);
     hoverTarget?.replaceChildren(...hoverStageNode.childNodes);
+    if (editSuccessor) editSuccessor.painted = renderedKeys[editSuccessor.channel].has(editSuccessor.objectKey)
+      || objectEditingStrokePresented(editSuccessor.geometry, frameContext)
+      || [...(selectionTarget?.querySelectorAll('[data-selection-fallback-key]') || [])]
+        .some(node => node.getAttribute('data-selection-fallback-key') === editSuccessor.objectKey && svgStrokePresented(node, frameContext));
+    completeEditPreviewHandoff(frameContext, directFrameResult, editSuccessor);
     renderDirectEditPreview(frameContext, directFrameResult);
     selectionOverlayDiagnostics.retainedPreviousFrame = false;
     selectionOverlayDiagnostics.fallbackCount = new Set(svgFallbackKeys).size;
@@ -1924,6 +2035,7 @@ export function createRenderingDomain({
   const renderGpuInteraction = (viewState = null) => {
     active();
     const result = gpuMapRenderer?.renderInteraction?.(viewState) || null;
+    if (result?.deferred) commitViewAttachedLayers(viewState, result);
     interaction.applyGpuInteractionCoverage?.(result);
     return result;
   };
@@ -2072,10 +2184,14 @@ export function createRenderingDomain({
       stats.visualFrameRejectedCount += 1;
       return false;
     }
-    if (gpuResult?.deferred && !canvasPresented) {
+    if (!canvasPresented && (gpuResult?.deferred || pendingVisualFrames.has(Number(frame.frameId)))) {
       pendingVisualFrames.set(Number(frame.frameId), frame);
-      for (const key of pendingVisualFrames.keys()) {
-        if (key < Number(frame.frameId)) pendingVisualFrames.delete(key);
+      // A current Worker frame can be displayed while a later same-view frame
+      // waits behind it. Keep its identity until presentation accepts it.
+      for (const [key, pending] of pendingVisualFrames) {
+        if (pending.projectGeneration !== frame.projectGeneration
+          || pending.viewRevision !== frame.viewRevision
+          || pending.projectionRevision !== frame.projectionRevision) pendingVisualFrames.delete(key);
       }
       return false;
     }
@@ -2092,6 +2208,9 @@ export function createRenderingDomain({
       renderSnap(frame, editingPacket);
       renderValidation(frame, editingPacket);
     }
+    completeEditPreviewHandoff(frame, gpuResult, null, {
+      canvasPresented: canvasPresented || gpuMapRenderer?.getRuntimeState?.()?.renderer === 'canvas2d',
+    });
     const roots = typeof domLayers === 'function' ? domLayers() || {} : domLayers || {};
     markVisualRoot(roots.baseSvg, frame);
     markVisualRoot(roots.gpuCanvas, frame);
@@ -2115,7 +2234,11 @@ export function createRenderingDomain({
     stats.graticuleCommittedFrameId = Number(frame.frameId || 0);
     stats.labelCommittedFrameId = Number(frame.frameId || 0);
     stats.overlayCommittedFrameId = Number(frame.frameId || 0);
-    pendingVisualFrames.delete(Number(frame.frameId));
+    if (canvasPresented) {
+      for (const key of pendingVisualFrames.keys()) {
+        if (key <= Number(frame.frameId)) pendingVisualFrames.delete(key);
+      }
+    } else pendingVisualFrames.delete(Number(frame.frameId));
     gpuMapRenderer?.commitVisualFrame?.(frame);
     return true;
   };
@@ -2145,7 +2268,11 @@ export function createRenderingDomain({
     onFrameComplete,
     renderers: {
       beginFrame,
-      view: (...args) => renderPass('view', ...args),
+      view: frame => {
+        const result = renderPass('view', frame);
+        if (result?.deferred) commitViewAttachedLayers(frame, result);
+        return result;
+      },
       base: renderBase,
       countries: renderCountries,
       gpuInteraction: renderGpuInteraction,

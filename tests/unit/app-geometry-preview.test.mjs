@@ -46,7 +46,7 @@ function fixture({ execute } = {}) {
         invalidateGenericPatch(reason) { calls.push(['generic', reason]); },
       },
       editingDomain: {
-        refreshDraftPresentation(reason) { calls.push(['draft', reason]); },
+        refreshEditingPresentation(reason) { calls.push(['draft', reason]); },
       },
     },
     feedback: {
