@@ -22,11 +22,19 @@ export function createCountryCommits() {
     clearMultiDraft = false,
     selectedId = '',
   } = {}) {
+    const previousChildren = dependencies.territorialModel.entityRepository.list({ kind: 'general' })
+      .filter(feature => !!feature.properties.parentId).map(feature => String(feature.id));
     dependencies.territorialModel.entityStore.transaction(() => {
       (0, dependencies.cutOperations.applyWorkerCountryPatches)(plan, patchOptions);
       afterPatch(plan);
       updateDependents(plan);
     });
+    // Presentation is not staged by the entity store. Clean it only after the
+    // geometry transaction publishes successfully, so failed apply is atomic.
+    for (const id of previousChildren) if (!dependencies.territorialModel.entityRepository.has(id)) {
+      delete dependencies.projectState.state.itemVisibility?.subunits?.[id];
+      delete dependencies.projectState.state.layerPresentation?.objectStyles?.[`territorial:entity:${id}`];
+    }
     (0, dependencies.countryValidation.refreshCountryCentroids)(new Set([...(centroidIds || [])].map(String)));
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
