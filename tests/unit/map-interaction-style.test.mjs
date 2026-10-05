@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { interactionRoleStyle, interactionStrokeScale, resolveMapInteractionStyle, scaleInteractionStroke } from '../../assets/js/modules/map-interaction-style.js';
+import { resolveMapStrokeStyle, interactionStrokeScale, resolveMapInteractionStyle, scaleInteractionStroke } from '../../assets/js/modules/map-interaction-style.js';
 
 const darkTokens = { accent: '#cda95d', textStrong: '#f2f4f6' };
 const lightTokens = { accent: '#315e9d', textStrong: '#11161c' };
@@ -63,7 +63,7 @@ test('interaction anti-aliasing is explicit style state instead of a DOM lookup'
   assert.equal(smooth.antiAlias, true);
   assert.equal(crisp.antiAlias, false);
   for (const role of ['candidate', 'hover', 'secondary', 'primary']) {
-    assert.equal(interactionRoleStyle(smooth, role).antiAlias, true);
-    assert.equal(interactionRoleStyle(crisp, role).antiAlias, false);
+    assert.equal(resolveMapStrokeStyle(smooth, role).antiAlias, true);
+    assert.equal(resolveMapStrokeStyle(crisp, role).antiAlias, false);
   }
 });

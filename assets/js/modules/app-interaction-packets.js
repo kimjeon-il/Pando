@@ -1,6 +1,6 @@
 import { INTERACTION_ROLE_PRIORITY } from './layer-presentation.js';
 import { territorialSymbolGroup } from './layer-presentation.js';
-import { interactionNodeRole, interactionRoleStyle, resolveMapInteractionStyle } from './map-interaction-style.js';
+import { interactionNodeRole, resolveMapStrokeStyle, resolveMapInteractionStyle } from './map-interaction-style.js';
 import { applySvgInteractionOwnership } from './render-channel-ownership.js';
 /** InteractionPackets: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -102,13 +102,13 @@ export function createInteractionPackets() {
     const role = interactionNodeRole(node, domain);
     if (channel === 'stroke' && (node.classList.contains('geometry-preview-fill') || node.dataset.commonOutline === 'true')) return null;
     const directManipulation = node.classList.contains('draft-shape');
-    const style = interactionRoleStyle(dependencies.preferences.resolvedInteractionStyle || resolveMapInteractionStyle(), role, { directManipulation });
+    const style = resolveMapStrokeStyle(dependencies.preferences.resolvedInteractionStyle || resolveMapInteractionStyle(), role, { directManipulation });
     node.style.fillOpacity = String(style.fillAlpha);
     node.style.strokeWidth = `${style.width}px`;
     node.style.strokeOpacity = String(style.alpha);
     node.style.opacity = '1';
     if (channel === 'fill') return style.fillAlpha > 0 ? { color: style.color, fillAlpha: style.fillAlpha, blendMode: 'normal' } : null;
-    return { color: style.color, alpha: style.alpha, width: style.width, cap: 'round', join: 'round', dash: [0, 0], blendMode: 'normal', antiAlias: style.antiAlias, scaleWithView: true };
+    return style;
   }
 
   function buildGpuInteractionLayerPackets(domain, layer) {

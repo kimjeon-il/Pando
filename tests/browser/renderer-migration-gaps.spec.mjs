@@ -4,6 +4,75 @@ test.use({ viewport: { width: 1100, height: 760 }, trace: 'off', reducedMotion: 
   launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
 const site = baseURL => process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`;
 
+test('boundary edit SVG fallback shares the edited GPU stroke policy with outlines disabled', async ({ page, baseURL }) => {
+  await page.goto(new URL('assets/js/build-meta.js', site(baseURL)).href);
+  await page.addScriptTag({ url: new URL('assets/js/vendor/d3.min.js', site(baseURL)).href });
+  await page.addStyleTag({ url: new URL('assets/css/features/map-rendering.css', site(baseURL)).href });
+  const proof = await page.evaluate(async root => {
+    const { createRenderingDomain } = await import(new URL('assets/js/modules/rendering-domain.js', root).href);
+    const { createMapVisualFrame } = await import(new URL('assets/js/modules/map-visual-frame.js', root).href);
+    const { resolveMapInteractionStyle, scaleInteractionStroke } = await import(new URL('assets/js/modules/map-interaction-style.js', root).href);
+    const layer = window.d3.select(document.body).append('svg').append('g').attr('class', 'boundary-edit-layer');
+    const frame = createMapVisualFrame({ frameId: 1, viewRevision: 1, viewState: { projection: 'flat',
+      size: { width: 1200, height: 700 }, scale: 1200 / (2 * Math.PI) * 0.75, dpr: 2 }, projectPath: () => 'M20,20L80,20' });
+    const style = resolveMapInteractionStyle({ outlineVisible: false, selectionColor: '#123456' });
+    const frames = [], diagnostics = []; let packets;
+    const domain = createRenderingDomain({ requestFrame: callback => (frames.push(callback), frames.length), prepareView: () => frame,
+      getEditingRenderPacket: () => ({ projectGeneration: 0, revision: 1, boundaryEdit: { preparationId: 1,
+        segments: [{ kind: 'coast', start: [0, 0], end: [1, 1] }, { kind: 'shared', start: [1, 1], end: [2, 2] }] } }),
+      editingRenderResources: { boundaryEditLayer: layer, getInteractionStyle: () => style,
+        replaceGpuSceneDomain: (_key, next) => { packets = next; } },
+      renderers: { view: () => null }, reportDiagnostic: error => diagnostics.push(String(error.error || error)) });
+    domain.invalidateEditingOverlays('M5-style-regression'); frames.shift()();
+    const rows = [...layer.node().querySelectorAll('.boundary-edit-segment')].map(node => {
+      const expected = scaleInteractionStroke(packets.strokes.find(packet => packet.key === node.getAttribute('data-gpu-scene-key')).style, frame);
+      const computed = getComputedStyle(node);
+      return { kind: node.__data__.kind, width: parseFloat(computed.strokeWidth), attributeWidth: Number(node.getAttribute('stroke-width')), expected: expected.width,
+        alpha: Number(computed.strokeOpacity), expectedAlpha: expected.alpha, dash: computed.strokeDasharray,
+        expectedDash: expected.dash, color: computed.stroke, d: node.getAttribute('d') };
+    });
+    domain.dispose(); return { rows, diagnostics };
+  }, site(baseURL));
+  expect(proof.diagnostics).toEqual([]);
+  expect(proof.rows).toHaveLength(2);
+  for (const row of proof.rows) {
+    expect(row.attributeWidth).toBeCloseTo(row.expected, 6);
+    // CSSOM rounds computed lengths to six significant digits.
+    expect(row.width).toBeCloseTo(row.expected, 4);
+    expect(row.alpha).toBe(row.expectedAlpha);
+    expect(row.color).toBe('rgb(18, 52, 86)');
+    expect(row.d).toBe('M20,20L80,20');
+    if (row.kind === 'shared') expect(row.dash).toBe('6px, 3px');
+  }
+});
+
+test('shared stroke policy keeps actual CSS pixel width equal at DPR 1 and 2', async ({ page, baseURL }) => {
+  await page.goto(new URL('assets/js/build-meta.js', site(baseURL)).href);
+  const widths = await page.evaluate(async root => {
+    const { createMapVisualFrame } = await import(new URL('assets/js/modules/map-visual-frame.js', root).href);
+    const { createRenderDevice } = await import(new URL('assets/js/modules/render-device.js', root).href);
+    const { createGpuStrokeRenderer } = await import(new URL('assets/js/modules/gpu-stroke-renderer.js', root).href);
+    const measured = [];
+    for (const dpr of [1, 2]) {
+      const canvas = new OffscreenCanvas(128 * dpr, 64 * dpr), gl = canvas.getContext('webgl2');
+      const renderer = createGpuStrokeRenderer(); renderer.initialize(createRenderDevice({ gl, canvas, version: 2 }));
+      const frame = createMapVisualFrame({ frameId: 1, viewState: { projection: 'flat', size: { width: 128, height: 64 },
+        translate: [64, 32], scale: 30, dpr } });
+      gl.viewport(0, 0, canvas.width, canvas.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+      const result = renderer.drawBatches([{ key: 'guide', startsEnds: new Float32Array([-30, 0, 30, 0]),
+        style: { color: '#ffffff', alpha: 1, width: 6, cap: 'butt', join: 'round', antiAlias: false } }], frame);
+      if (!result.succeeded) throw new Error('Production GPU stroke did not draw.');
+      const column = new Uint8Array(canvas.height * 4);
+      gl.readPixels(64 * dpr, 0, 1, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, column);
+      measured.push(Array.from({ length: canvas.height }, (_, row) => column[row * 4 + 3]).filter(alpha => alpha > 127).length / dpr);
+      renderer.dispose();
+    }
+    return measured;
+  }, site(baseURL));
+  expect(widths[0]).toBe(6);
+  expect(widths[1]).toBe(widths[0]);
+});
+
 test('multiply strokes preserve opacity at centers and antialiased edges', async ({ page, baseURL }) => {
   await page.goto(new URL('assets/js/build-meta.js', site(baseURL)).href);
   const result = await page.evaluate(async root => {
@@ -94,6 +163,9 @@ test('Canvas receives the graticule scene and paints mixed overlays with protect
   const pixels = await page.evaluate(async root => {
     const { mapVisualOrder } = await import(new URL('assets/js/modules/layer-presentation.js', root).href);
     const visualOrder = { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') };
+    const { resolveMapStrokeStyle } = await import(new URL('assets/js/modules/map-interaction-style.js', root).href);
+    const theme = { baseLandAlpha: 1, defaultLand: '#00ff00', border: '#000000', borderAlpha: 1, borderWidth: 1 };
+    theme.strokes = Object.fromEntries(['country', 'country-internal', 'river', 'hydro-boundary'].map(role => [role, resolveMapStrokeStyle({ theme }, role)]));
     await import(new URL('assets/js/workers/canvas-scene-composition-core.js', root).href);
     const { createRenderSceneBuilder } = await import(new URL('assets/js/modules/render-scene.js', root).href);
     const { createRenderDevice } = await import(new URL('assets/js/modules/render-device.js', root).href);
@@ -154,7 +226,7 @@ test('Canvas receives the graticule scene and paints mixed overlays with protect
       };
       worker.postMessage({ type: 'init', features: [], visible: false, fills: {}, countryBoundaryStyles: {},
         physicalSettings: { terrainVisible: false }, riversVisible: false, lakesVisible: false,
-        theme: { baseLandAlpha: 1, defaultLand: '#00ff00', border: '#000000', borderAlpha: 1, borderWidth: 1 },
+        theme,
         scenePolygons: scene.polygons, sceneStrokes: scene.strokes.map(packet => ({ ...packet, style: { ...packet.style, alpha: 0.5 } })) });
     });
     polygonOverlayPass.dispose(); strokeRenderer.dispose();

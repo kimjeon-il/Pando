@@ -447,7 +447,7 @@ function canvasFallbackWorkerMain() {
             if (boundary.length) {
               context.beginPath();
               geoPath({ type: 'MultiLineString', coordinates: boundary });
-              context.lineWidth = Math.max(0.5, Number(message.theme?.lakeBoundaryWidth) || 1);
+              context.lineWidth = message.theme.strokes['hydro-boundary'].width;
               context.strokeStyle = featureColor;
               context.stroke();
             }
@@ -468,7 +468,7 @@ function canvasFallbackWorkerMain() {
             geoPath({ type: 'LineString', coordinates: [part[index], part[index + 1]] });
             const start = Number(widths[index] ?? fallback);
             const end = Number(widths[index + 1] ?? start);
-            context.lineWidth = (start + end) / 2 * Math.max(0.5, Number(message.theme?.riverWidth) || 1);
+            context.lineWidth = (start + end) / 2 * message.theme.strokes.river.width;
             context.stroke();
           }
         }
@@ -558,7 +558,7 @@ function canvasFallbackWorkerMain() {
       target.save(); target.setTransform(dpr, 0, 0, dpr, 0, 0);
       target.globalAlpha = reserve ? 1 : theme.borderAlpha;
       target.strokeStyle = theme.border;
-      target.lineJoin = 'round'; target.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
+      target.lineJoin = 'round'; target.lineWidth = theme.strokes.country.width;
       if (!sharedOnly) for (let index = 0; message.visible && index < features.length; index++) {
         const feature = features[index], id = countryId(feature, index);
         if (hidden.has(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
@@ -610,7 +610,7 @@ function canvasFallbackWorkerMain() {
         substrateContext.drawImage(canvas, 0, 0);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.lineJoin = 'round';
-        context.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
+        context.lineWidth = theme.strokes.country.width;
           },
           'country-fill': () => {
         for (let index = 0; message.visible && index < features.length; index += 1) {

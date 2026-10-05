@@ -1,5 +1,5 @@
 import { getInteractionStyle } from './selection-style.js';
-import { interactionRoleStyle } from './map-interaction-style.js';
+import { resolveMapStrokeStyle } from './map-interaction-style.js';
 
 function finiteCoordinate(value) {
   return Array.isArray(value) && value.length >= 2
@@ -113,7 +113,7 @@ export function createEditPreviewController({ now = () => globalThis.performance
         role: 'edit-preview',
         startsEnds,
         segmentCount: session.segmentCount,
-        style: Object.freeze({ ...interactionRoleStyle(getStyle(), 'edit-target', { directManipulation: true }), cap: 'round', join: 'round', dash: [0, 0], blendMode: 'normal' }),
+        style: resolveMapStrokeStyle(getStyle(), 'edit-target', { directManipulation: true }),
         blendMode: 'normal',
       }),
     });

@@ -1,4 +1,5 @@
 import { INTERACTION_ROLE_PRIORITY, SELECTION_PAINT_ORDER } from './layer-presentation.js';
+import { isMapVisualFrame } from './map-visual-frame.js';
 const THEMES = new Set(['light', 'dark']);
 const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 const PI = Math.PI;
@@ -17,7 +18,7 @@ function unitInterval(value, fallback) {
 export function interactionStrokeScale(frameContext = null) {
   const width = Number(frameContext?.size?.width);
   const height = Number(frameContext?.size?.height);
-  const scale = Number(frameContext?.scale);
+  const scale = Number(isMapVisualFrame(frameContext) ? frameContext.cssScale : frameContext?.scale);
   if (!(width > 0) || !(height > 0) || !(scale > 0)) return 1;
   const safe = frameContext?.safeInset || {};
   const contentWidth = Math.max(1, width - Number(safe.left || 0) - Number(safe.right || 0));
@@ -67,25 +68,64 @@ export function resolveInteractionEntries(entries = []) {
   return Object.freeze(ordered);
 }
 
-export function interactionRoleStyle(style, role = 'candidate', { directManipulation = false } = {}) {
-  const priority = INTERACTION_ROLE_PRIORITY[role] || 1;
+const STROKE_SHAPE = Object.freeze({ cap: 'round', join: 'round', dash: Object.freeze([0, 0]), casing: null,
+  blendMode: 'normal', scaleWithView: false, antiAlias: true });
+const BASE_STROKES = Object.freeze({
+  country: Object.freeze({ width: 0.72, cap: 'butt' }),
+  'country-internal': Object.freeze({ width: 1.1, cap: 'butt', join: 'miter', dash: Object.freeze([3, 2]) }),
+  subunit: Object.freeze({ width: 2 }),
+  'subunit-internal': Object.freeze({ width: 1.1, dash: Object.freeze([3, 2]) }),
+  region: Object.freeze({ width: 1.5, dash: Object.freeze([7, 3]) }),
+  generic: Object.freeze({ width: 1 }),
+  distribution: Object.freeze({ width: 1 }),
+  river: Object.freeze({ width: 1 }),
+  'hydro-boundary': Object.freeze({ width: 1 }),
+});
+
+// All widths and dash lengths returned here are CSS pixels. The current layer
+// model still fixes its width multiplier to one; this adds no width preference.
+export function resolveMapStrokeStyle(style, role = 'candidate', { directManipulation = false, boundaryKind = '' } = {}) {
+  if (Object.hasOwn(BASE_STROKES, role)) {
+    const theme = style.theme || {};
+    const layer = style.layerStyle || {};
+    const country = role === 'country' || role === 'country-internal';
+    const lake = role === 'hydro-boundary', river = role === 'river';
+    const width = lake ? theme.lakeBoundaryWidth : river ? theme.riverWidth : country ? theme.borderWidth : layer.boundaryWidth;
+    const alpha = lake ? theme.lakeOpacity : river ? theme.riverOpacity : country ? theme.borderAlpha : layer.opacity;
+    return Object.freeze({ ...STROKE_SHAPE, ...BASE_STROKES[role], color: style.color || theme.border,
+      width: BASE_STROKES[role].width * Math.max(0.5, Number(width) || 1),
+      alpha: layer.boundaryVisible === false || (lake && theme.lakeBoundaryVisible === false) ? 0 : Number(alpha ?? 1),
+      blendMode: style.blendMode || layer.blendMode || 'normal', antiAlias: style.antiAlias !== false });
+  }
+  if (!Object.hasOwn(INTERACTION_ROLE_PRIORITY, role)) throw new Error(`Unknown stroke role: ${role}`);
+  const priority = INTERACTION_ROLE_PRIORITY[role];
   const selection = style.selection;
   const antiAlias = style.antiAlias !== false;
-  if (priority === 1) return Object.freeze({ color: selection.color, width: 1, alpha: 0.45, fillAlpha: 0, scaleWithView: true, antiAlias });
-  if (priority === 2) return Object.freeze({ ...style.hover, scaleWithView: true, antiAlias });
+  if (priority === 1) return Object.freeze({ ...STROKE_SHAPE, color: selection.color, width: 1, alpha: 0.45, fillAlpha: 0, scaleWithView: true, antiAlias });
+  if (priority === 2) return Object.freeze({ ...STROKE_SHAPE, ...style.hover, scaleWithView: true, antiAlias });
   const source = priority >= 4 ? selection.primary : selection.secondary;
-  return Object.freeze({ color: selection.color,
+  return Object.freeze({ ...STROKE_SHAPE, color: selection.color,
     width: directManipulation ? (priority >= 4 ? 2.5 : 1.5) : source.innerWidth,
     alpha: directManipulation ? (priority >= 4 ? 1 : 0.72) : source.innerAlpha,
     fillAlpha: source.fillAlpha,
+    dash: boundaryKind === 'shared' ? Object.freeze([6, 3]) : STROKE_SHAPE.dash,
     scaleWithView: true,
     antiAlias });
+}
+
+/** Convert once at the device boundary; never persist or cache this as policy. */
+export function gpuStrokeStyle(style, frameContext) {
+  const dpr = Math.max(1, Number(frameContext.dpr || 1));
+  return Object.freeze({ ...style, width: Number(style.width || 0) * dpr,
+    innerCutout: Number(style.innerCutout || 0) * dpr,
+    casing: style.casing ? Object.freeze({ ...style.casing, width: Number(style.casing.width || 0) * dpr }) : null,
+    dash: Object.freeze((style.dash || STROKE_SHAPE.dash).map(value => Number(value) * dpr)) });
 }
 
 export function interactionCssProperties(style) {
   const properties = { '--map-selection-halo': style.selection.color, '--map-hover-stroke': style.hover.color };
   for (const role of ['primary', 'secondary', 'hover', 'candidate']) {
-    const value = interactionRoleStyle(style, role);
+    const value = resolveMapStrokeStyle(style, role);
     properties[`--map-${role}-fill-alpha`] = String(value.fillAlpha);
     properties[`--map-${role}-stroke-alpha`] = String(value.alpha);
     properties[`--map-${role}-stroke-width`] = `${value.width}px`;
