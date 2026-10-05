@@ -8,6 +8,7 @@ on:
       - 'tests/unit/**'
       - 'tests/helpers/**'
       - 'tests/browser/terrain-*.spec.mjs'
+      - 'tests/browser/territorial-boundary-continuity.spec.mjs'
       - 'tests/browser/server.mjs'
       - 'playwright.config.js'
       - 'scripts/check-runtime-boundaries.mjs'
@@ -42,6 +43,7 @@ on:
       - 'tests/unit/**'
       - 'tests/helpers/**'
       - 'tests/browser/terrain-*.spec.mjs'
+      - 'tests/browser/territorial-boundary-continuity.spec.mjs'
       - 'tests/browser/server.mjs'
       - 'playwright.config.js'
       - 'scripts/check-runtime-boundaries.mjs'
@@ -80,6 +82,7 @@ jobs:
       territorial-store: ${{ steps.scope.outputs.territorial_store }}
       unit-suite: ${{ steps.scope.outputs.unit_suite }}
       terrain-rendering: ${{ steps.scope.outputs.terrain_rendering }}
+      boundary-continuity: ${{ steps.scope.outputs.boundary_continuity }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -95,10 +98,12 @@ jobs:
           territorial_store=false
           unit_suite=false
           terrain_rendering=false
+          boundary_continuity=false
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             territorial_store=true
             unit_suite=true
             terrain_rendering=true
+            boundary_continuity=true
           else
             while IFS= read -r file; do
               case "$file" in
@@ -112,6 +117,11 @@ jobs:
                   ;;
               esac
               case "$file" in
+                assets/js/modules/rendering-domain.js|assets/js/modules/app-domain-assembly.js|assets/js/modules/edit-display-preparation.js|assets/js/modules/map-edit-*|assets/js/modules/boundary-*|assets/js/modules/gpu-scene-*|assets/js/modules/gpu-map-renderer.js|assets/js/modules/gpu-canvas-worker.js|assets/js/modules/gpu-base-scene-pass.js|assets/js/modules/gpu-stroke-renderer.js|assets/js/modules/app-gpu-scene.js|assets/js/modules/map-visual-frame.js|assets/js/modules/map-render-coordinator.js|assets/js/modules/render-channel-ownership.js|assets/js/workers/map-edit-worker.js|assets/js/workers/canvas-render-worker.js|tests/unit/territorial-boundary-continuity.test.mjs|tests/unit/domain-split-contract.test.mjs|tests/unit/empty-territorial-boundary.test.mjs|tests/unit/render-channel-ownership.test.mjs|tests/browser/territorial-boundary-continuity.spec.mjs|tests/browser/server.mjs|playwright.config.js|package.json|pnpm-lock.yaml|eslint.config.js|.github/workflows/application-architecture.yml)
+                  boundary_continuity=true
+                  ;;
+              esac
+              case "$file" in
                 assets/js/modules/gpu-*|assets/js/modules/terrain-*|assets/js/modules/map-visual-frame.js|assets/js/modules/rendering-domain.js|assets/js/modules/app-map-*|assets/js/modules/app-physical-*|tests/browser/terrain-*.spec.mjs|tests/browser/server.mjs|playwright.config.js|tests/unit/gpu-terrain-preparation.test.mjs|tests/unit/domain-split-contract.test.mjs|package.json|pnpm-lock.yaml|eslint.config.js|.github/workflows/application-architecture.yml)
                   terrain_rendering=true
                   ;;
@@ -121,6 +131,7 @@ jobs:
           echo "territorial_store=$territorial_store" >> "$GITHUB_OUTPUT"
           echo "unit_suite=$unit_suite" >> "$GITHUB_OUTPUT"
           echo "terrain_rendering=$terrain_rendering" >> "$GITHUB_OUTPUT"
+          echo "boundary_continuity=$boundary_continuity" >> "$GITHUB_OUTPUT"
 
   terrain-rendering-contract:
     name: Terrain coverage and GPU upload regression
@@ -172,6 +183,53 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: terrain-rendering-evidence
+          path: test-results
+          if-no-files-found: ignore
+
+  boundary-continuity:
+    name: Territorial boundary topology continuity
+    needs: changes
+    if: needs.changes.outputs.boundary-continuity == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Focused lint
+        run: >
+          pnpm exec eslint
+          assets/js/modules/rendering-domain.js
+          tests/unit/territorial-boundary-continuity.test.mjs
+          tests/unit/domain-split-contract.test.mjs
+          tests/browser/territorial-boundary-continuity.spec.mjs
+      - name: Verify topology handoff and boundary ownership
+        run: >
+          node --test
+          tests/unit/territorial-boundary-continuity.test.mjs
+          tests/unit/domain-split-contract.test.mjs
+          tests/unit/empty-territorial-boundary.test.mjs
+          tests/unit/render-channel-ownership.test.mjs
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify production UI and Worker in WebGL2 and Canvas
+        run: pnpm exec playwright test tests/browser/territorial-boundary-continuity.spec.mjs
+      - name: Upload focused browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-continuity-evidence
           path: test-results
           if-no-files-found: ignore
 

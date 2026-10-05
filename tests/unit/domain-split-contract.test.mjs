@@ -469,6 +469,8 @@ test('rendering domain owns territorial boundary cache state and resets it per p
     batchSignature: '',
     segmentCount: 0,
     groupCount: 0,
+    pendingInputSignature: '',
+    pendingStatus: 'idle',
   });
   assert.equal(rendering.resetProjectGeneration(12), 12);
   assert.deepEqual(rendering.getTerritorialBoundaryStats(), {
@@ -478,6 +480,8 @@ test('rendering domain owns territorial boundary cache state and resets it per p
     batchSignature: '',
     segmentCount: 0,
     groupCount: 0,
+    pendingInputSignature: '',
+    pendingStatus: 'idle',
   });
   assert.equal(rendering.getStats().territorialBoundaryTopologyRebuildCount, 0);
   assert.equal(rendering.getStats().territorialBoundaryRevision, '');
