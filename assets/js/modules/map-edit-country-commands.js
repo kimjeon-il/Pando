@@ -1,4 +1,4 @@
-import { normalizePolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, polygonBounds, featureId, clone } from './map-edit-geometry.js';
+import { normalizeClippedPolygonGeometry as normalizePolygonGeometry, wrapPolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, polygonBounds, featureId, clone } from './map-edit-geometry.js';
 import { ringSignedArea, hasCanonicalPolygonWinding } from './map-edit-geometry.js';
 import { clippingOperationWithPrecisionRetry } from './polygon-clipping-calculation.js';
 
@@ -324,12 +324,19 @@ export function createCountryCommandCalculator(clipper) {
   }
 
   function executeNewCountry(message, working) {
+    // A raw crossing ring and a cutter candidate describe the same spherical
+    // land, but not the same planar polygon. Keep this private geometric view
+    // separate from the originals so untouched features keep their identity.
+    const geographic = new Map([...working].map(([id, feature]) => {
+      const geometry = wrapPolygonGeometry(feature.geometry, clipper);
+      return [id, geometry === feature.geometry ? feature : { ...feature, geometry }];
+    }));
     const sourceIds = [...new Set((message.sourceIds || []).map(String))].filter(Boolean);
-    const sources = sourceIds.map(id => working.get(id)).filter(Boolean);
+    const sources = sourceIds.map(id => geographic.get(id)).filter(Boolean);
     const newFeature = clone(message.newFeature);
     const newId = featureId(newFeature);
     if (!sources.length || sources.length !== sourceIds.length || !newFeature?.geometry || !newId) throw new Error('새 국가의 원본 국가 데이터를 찾을 수 없습니다.');
-    let transferred = multiCoordinates(message.transferredGeometry);
+    let transferred = multiCoordinates(wrapPolygonGeometry(message.transferredGeometry, clipper));
     const sourceInputs = areaPolygonsNearFeatures(sources, transferred);
     const sourceUnion = sourceInputs.length ? clippingOperation('union', ...sourceInputs) : [];
     transferred = transferWithinSourceUnion(transferred, sourceUnion,
@@ -351,12 +358,13 @@ export function createCountryCommandCalculator(clipper) {
       }
     }
     if (!affectedSourceIds.length) throw new Error('선택 영역과 겹치는 국가가 없습니다.');
-    const baseline = captureBaseline(working, new Set(affectedSourceIds));
+    const baseline = captureBaseline(geographic, new Set(affectedSourceIds));
     newFeature.geometry = normalizePolygonGeometry(transferred);
     updates.push(newFeature);
-    applyPatch(working, updates, removedIds);
+    applyPatch(geographic, updates, removedIds);
     const affectedIds = new Set([...affectedSourceIds, newId]);
-    validateResult(working, affectedIds, baseline);
+    validateResult(geographic, affectedIds, baseline);
+    applyPatch(working, updates, removedIds);
     return { features: updates, removedIds, affectedIds: [...affectedIds], affectedSourceIds, transferredArea: area(transferred), newCountryId: newId };
   }
 

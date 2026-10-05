@@ -1,5 +1,5 @@
 import { geometryAreaKm2, percentChange } from './geometry-metrics.js';
-import { hasCanonicalPolygonWinding, multiCoordinates, normalizePolygonGeometry } from './map-edit-geometry.js';
+import { wrapPolygonGeometry, hasCanonicalPolygonWinding, multiCoordinates, normalizeClippedPolygonGeometry } from './map-edit-geometry.js';
 import {
   buildRenderableBoundaryGeometry,
   buildRenderableBoundarySegments,
@@ -77,13 +77,13 @@ function featureMap(features) {
 
 function unionGeometry(features, clipper) {
   if (!features.length || !clipper?.union) return null;
-  const coordinates = clipper.union(...features.map(feature => feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates));
+  const coordinates = clipper.union(...features.map(feature => multiCoordinates(wrapPolygonGeometry(feature.geometry, clipper))));
   return clippedPreviewGeometry(coordinates);
 }
 
 function clippedPreviewGeometry(coordinates) {
   if (!coordinates?.length) return null;
-  const normalized = normalizePolygonGeometry(coordinates);
+  const normalized = normalizeClippedPolygonGeometry(coordinates);
   if (!normalized) throw new Error('미리보기 계산 형상이 유효하지 않습니다.');
   return { type: 'MultiPolygon', coordinates: multiCoordinates(normalized) };
 }

@@ -1,16 +1,18 @@
+import { wrapPolygonGeometry, normalizeClippedPolygonGeometry } from './map-edit-geometry.js';
 /** Read-only geometry preparation shared by all territory selection tools. */
 export function createTerritoryComponentPlan({ clipper, normalize, checkpoint = async () => {} }) {
   const polygons = geometry => geometry?.type === 'Polygon' ? [geometry.coordinates]
     : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
-  const from = coordinates => coordinates?.length ? normalize({ type: 'MultiPolygon', coordinates }) : null;
+  const clippingPolygons = geometry => polygons(wrapPolygonGeometry(geometry, clipper));
+  const from = coordinates => coordinates?.length ? normalize(normalizeClippedPolygonGeometry(coordinates)) : null;
   const union = geometries => {
     const values = geometries.filter(Boolean);
     if (!values.length) return null;
     if (values.length === 1) return values[0];
-    return from(clipper.union(...values.map(polygons)));
+    return from(clipper.union(...values.map(clippingPolygons)));
   };
   const difference = (base, removed) => !base ? null : !removed ? base
-    : from(clipper.difference(polygons(base), polygons(removed)));
+    : from(clipper.difference(clippingPolygons(base), clippingPolygons(removed)));
 
   async function prepare({ features = [], baseGeometry = null, parts = [] }) {
     const archivedGeometry = union(parts);
