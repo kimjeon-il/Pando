@@ -237,7 +237,7 @@ export function createGenericCommands() {
     const targets = new Set(dependencies.projectState.state.genericFeatureMergeTargetIds.map(String));
     if (targets.has(String(id))) targets.delete(String(id)); else targets.add(String(id));
     dependencies.projectState.state.genericFeatureMergeTargetIds = [...targets];
-    dependencies.domains.renderingDomain?.renderGenericFeatures?.();
+    dependencies.domains.renderingDomain?.invalidateGenericPatch('view-frame-app-generic-commands');
     (0, dependencies.taskUi.updateModeButtons)();
   }
 

@@ -172,7 +172,7 @@ export function createPhysicalResources() {
         dependencies.projectState.state.physicalLoadState.hydro = 'ready';
         (0, dependencies.layerPresentation.markLayerTreeDirty)();
         dependencies.domains.layerTreeController?.render();
-        dependencies.domains.renderingDomain?.renderHydro?.();
+        dependencies.domains.renderingDomain?.invalidateOverlayGeometry('hydro', 'hydro-ready');
         return true;
       },
       onFailure: error => {

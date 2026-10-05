@@ -1,4 +1,4 @@
-# Common map visual policy — M4 and M5
+# Common map visual policy — M4, M5 and M6
 
 ## M4: visual order
 
@@ -124,3 +124,76 @@ terrain continuity, every editing-tool/browser combination and the final full
 regression (M7) are not claimed. Full suite/broad architecture checks, main merge,
 deployment and packaging were not run. Saving, time semantics and activation
 policy are unchanged.
+
+## M6: one frame for visual projection
+
+The existing coordinator prepares one view snapshot for every render request,
+including overlay-only style requests. `rendering-domain.js` rejects a missing or
+unbranded frame at its frame boundary. SVG geometry, points, labels, country patch
+paths and the globe shell consume its path/coordinate projectors and CSS values;
+they no longer read live projection fallbacks. Label layout uses the frame's
+scale, zoom, viewport and safe insets. It does not start a second projection pass.
+
+Frame preparation captures the renderer's existing adaptive DPR policy and raw
+source DPR separately. GPU/Canvas backing dimensions use the captured render DPR;
+terrain source resolution uses the captured source DPR. `MapVisualFrame` gains a
+`createCanvasPath(context)` capability, wired to the same snapshot projection as
+its SVG path. Direct Canvas drawing and its protection mask use that capability.
+The Canvas Worker receives the current `renderProjection` contract exclusively
+from the frame, including translation, scale, viewport, safe inset and revisions.
+Project generation zero is retained instead of replaced by a truthy fallback.
+
+Canvas initialization before the first coordinator frame creates transport and
+scene state without fabricating a view. View requests wait for a frame; hydro
+viewport requests also wait for a snapshot. Country data completion, patch
+previews, territorial/generic merge targets, hydro initialization and audit
+changes request the coordinator instead of invoking a renderer without a frame.
+Obsolete public direct rendering methods are removed with their callers and tests.
+The existing domain, preview controller, scene staging and frame acceptance
+owners remain unchanged. No model or persistence API is changed.
+
+Live projection reads remain in canonical view preparation, pointer inversion,
+hit/query operations and viewport data loading (`placeView`). These are input or
+loading operations, not an alternate visual renderer. Their results are rendered
+through the coordinator frame. M6 does not merge terrain/object LOD or introduce
+a new renderer, resource owner or render loop.
+
+### M6 execution evidence (2026-10-06)
+
+- Remote main: `e76857ae11b32ca9edb6da8beb1569e6308df598`.
+- Fixed parent / M5: `385141b9946bd91e1a740f5ef6fe1ad2daa0d1d9`.
+- Branch/worktree remains `codex/m2-preview-handoff`. The exact M6 candidate,
+  committed source hashes and execution artifacts are recorded after commit in
+  `test-results/m6-delivery.json`. Older stage evidence is preserved.
+- RED: focused frame consumer regression: 0 pass, 2 fail, 0 skip
+  (`test-results/m6-red.log`). It reproduces accepting a missing frame and
+  evaluating live projection even when a valid frame is supplied. Final coverage
+  also exercises the real renderer's DPR cap through production frame preparation.
+- Final focused units: 139 pass, 0 fail, 0 skip (`m6-final-units.log`):
+  `node --test tests/unit/visual-frame-consumers.test.mjs tests/unit/map-visual-frame.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/map-label-visibility.test.mjs tests/unit/edit-preview-presentation.test.mjs tests/unit/territorial-boundary-continuity.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/editing-render-packet.test.mjs tests/unit/distribution-selection.test.mjs tests/unit/label-shell-performance.test.mjs tests/unit/gpu-hydro-preparation.test.mjs tests/unit/gpu-renderer-lifecycle.test.mjs tests/unit/country-mesh-zoom-runtime.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/app-map-audit.test.mjs`.
+- WebGL2, Canvas Worker and forced direct Canvas UI: frame IDs/revisions, globe
+  circle coordinates/radius, backing dimensions, real Worker projection payloads,
+  rotation/zoom and flat/globe transitions:
+  `pnpm exec playwright test tests/browser/visual-frame-sync.spec.mjs --output=test-results/m6-accepted-frames`.
+  3 pass, 0 fail, 0 skip (`m6-accepted-frames.log`); per-backend
+  `M6-view-frame-proof.json` files are included in the delivery manifest.
+- Actual river editing in WebGL2 and Canvas, production Workers, moved line,
+  committed geometry, one history step and Undo/Redo: 2 pass, 0 fail, 0 skip:
+  `pnpm exec playwright test tests/browser/edit-preview-handoff.spec.mjs --grep='river hands.*outlines on' --output=test-results/m6-edit-ui`.
+  Log: `m6-edit-ui.log`; per-backend handoff JSONs are retained.
+- Changed JS/test ESLint: 25 files, exit 0 (`m6-final-eslint.log`); focused CI YAML
+  parse/path/job checks: 1 pass (`m6-workflow.log`); diff check: exit 0.
+- Review identified stale numeric Canvas calls, a Worker projection-field
+  mismatch and direct country/merge rendering callbacks. These are repaired at
+  their current owners; the retired paths are removed rather than aliased.
+  Earlier failures (`m6-focused-first.log`, `m6-visual-frames.log`) are retained.
+  The first Canvas UI assertion compared an accepted old frame with a newly
+  requested zoom; it now waits for matching view revision before comparing actual
+  geometry values. Direct Canvas startup also caught a missing frame in country
+  patch publication; its async callback now invalidates the coordinator.
+
+Full suite/broad architecture checks, remote CI, main merge, deployment and
+packaging are not run. M7 still owns the final full regression and the complete
+drag/Worker/topology/GPU-upload/display continuity proof. This stage establishes
+the checked projection/frame consumers, not uninterrupted rendering of every
+map element, terrain coverage or driver-independent line rasterization.

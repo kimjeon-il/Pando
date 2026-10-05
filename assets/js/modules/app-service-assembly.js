@@ -109,7 +109,6 @@ export function createServiceAssembly() {
       PHYSICAL_DATA_BASE_URL: dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL,
       TERRAIN_RASTER_MANIFEST_URL: dependencies.physicalConfig.TERRAIN_RASTER_MANIFEST_URL,
       onTerrainSourceChanged: manifest => { dependencies.projectState.state.terrainManifest = manifest; },
-      activeProjection: dependencies.mapView.activeProjection,
       createCountryFillResolver: () => {
         const resolve = createTerritorialFillResolver({ state: dependencies.projectState.state,
           entityRepository: dependencies.territorialModel.entityRepository,
@@ -123,9 +122,7 @@ export function createServiceAssembly() {
       d3: dependencies.platform.d3,
       deepClone: dependencies.platform.deepClone,
       defaultCountryColor: dependencies.colorModel.defaultCountryColor,
-      flatProjection: dependencies.mapView.flatProjection,
       getSystemTheme: () => document.documentElement.dataset.theme || window.__PANDOLAB_THEME__ || dependencies.preferences.systemTheme,
-      globeProjection: dependencies.mapView.globeProjection,
       hydroDisplayColor: dependencies.hydroPresentation.hydroDisplayColor,
       hydroFeatureById: dependencies.hydroModel.hydroFeatureById,
       hydroVisibilityThreshold: dependencies.physicalResources.hydroVisibilityThreshold,
@@ -142,7 +139,6 @@ export function createServiceAssembly() {
       mapWorkScheduler: dependencies.projectState.mapWorkScheduler,
       prepareHydroFeature: dependencies.physicalResources.prepareHydroFeature,
       queueMapResize: dependencies.mapHostViewB.queueMapResize,
-      renderPendingCountryOverlays: dependencies.countryLabelModel.renderPendingCountryOverlays,
       renderViewFrame: () => dependencies.domains.renderingDomain?.invalidateView?.('render-view') || false,
       reportOperationError: dependencies.feedback.reportOperationError,
       rendererUi: {

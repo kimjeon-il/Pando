@@ -151,13 +151,7 @@ export function createMapRenderCoordinator({
     rendering = true;
     renderRevision += 1;
     try {
-      const needsView = !!(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.GPU_INTERACTION
-        | MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS
-        | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_VIEW | MAP_RENDER_DIRTY.SELECTION_STYLE
-        | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.LABEL_LAYOUT
-        | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
-        | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH));
-      const viewState = needsView ? prepareView({ frameId: renderRevision }) : undefined;
+      const viewState = prepareView({ frameId: renderRevision });
       const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
 
       // Give domains one stable frame boundary so live render resources are

@@ -1,3 +1,4 @@
+import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import { resolveMapStrokeStyle } from '../../assets/js/modules/map-interaction-style.js';
 import { createEnvironment } from '../../assets/js/modules/app-environment.js';
 import { layerStyle, normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
@@ -52,11 +53,12 @@ test('pending country packet preserves the production theme opacity until native
     const store = createTerritorialEntityStore({ getState: () => state });
     const repo = createTerritorialEntityRepository({ entityStore: store });
     const env = createEnvironment(); env.connect({ projectState: { state }, applicationServicesB: { layerStyle } });
-    let actual;
-    rendering = createRenderingDomain({ territorialResources: { entityRepository: repo },
+    let actual; const frames = [];
+    rendering = createRenderingDomain({ requestFrame: callback => frames.push(callback),
+      prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewState: { projection: 'flat', size: { width: 800, height: 600 }, scale: 100 }, projectPath: () => '' }), territorialResources: { entityRepository: repo },
       countryResources: { getState: () => state, getEntity: repo.get, mapTheme: env.mapTheme,
         countryOutlineFeature: feature => feature, replaceGpuSceneDomain: (_domain, packets) => { actual = packets; } } });
-    rendering.renderCountries();
+    rendering.invalidateCountryPatch('pending-country-packet'); frames.shift()();
     assert.equal(actual.strokes.length, 1);
     assert.equal(actual.strokes[0].key, 'pending-country-outline:LEFT');
     assert.equal(actual.strokes[0].style.alpha, 0.46);

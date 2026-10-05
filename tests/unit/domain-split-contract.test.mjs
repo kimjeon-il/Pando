@@ -1,3 +1,4 @@
+import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -56,7 +57,7 @@ test('domain factories expose isolated public contracts', () => {
   for (const [domain, methods] of [
     [project, ['snapshot', 'buildProject', 'buildAutosave', 'entitiesFromAutosaveDelta', 'dispatch', 'load', 'dispose']],
     [selection, ['snapshot', 'replace', 'toggle', 'selectRange', 'setMany', 'remove', 'prune', 'clear', 'resetProject', 'setHover', 'has', 'primary', 'size', 'createPacket', 'dispose']],
-    [rendering, ['requestRender', 'invalidateView', 'invalidateViewport', 'invalidateProjection', 'invalidateProject', 'invalidateSelection', 'invalidateSelectionStyle', 'invalidateGpuFrame', 'invalidateGpuInteraction', 'invalidateEditingOverlays', 'invalidateGpuContext', 'invalidateQuality', 'invalidateBaseScene', 'beginInteraction', 'endInteraction', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'renderValidation', 'invalidateEditedGeometryPatch', 'renderCountries', 'renderHydro', 'renderTerritorialUnits', 'renderGenericFeatures', 'getDistributionRenderRows', 'getTerritorialBoundaryStats', 'dispose']],
+    [rendering, ['requestRender', 'invalidateView', 'invalidateViewport', 'invalidateProjection', 'invalidateProject', 'invalidateSelection', 'invalidateSelectionStyle', 'invalidateGpuFrame', 'invalidateGpuInteraction', 'invalidateEditingOverlays', 'invalidateGpuContext', 'invalidateQuality', 'invalidateBaseScene', 'beginInteraction', 'endInteraction', 'invalidateSelectionOverlay', 'syncSelectionEmphasis', 'getSelectionRenderStats', 'recordSelectionRenderError', 'invalidateEditedGeometryPatch', 'getDistributionRenderRows', 'getTerritorialBoundaryStats', 'dispose']],
     [gis, ['planImport', 'loadRiverPartitionFeatures', 'computeRiverPartition', 'dispose']],
     [editing, ['setTool', 'handleInteraction', 'createRenderPacket', 'startDraft', 'replaceDraftCoordinates', 'clearDraftHover', 'cancelActiveGesture', 'resetProject', 'draftInputActive', 'appendDraftScreenPoint', 'performDraftUndo', 'performDraftRedo', 'removeLastDraftPoint', 'deleteSelectedDraftPoint', 'moveSelectedDraftPointByPixels', 'redrawDraft', 'clearDraft', 'commitImport', 'snapshot', 'dispose']],
   ]) {
@@ -92,6 +93,7 @@ test('domain factories expose isolated public contracts', () => {
     'renderTerritorialLabelPositions',
     'renderUserLabelPositions',
     'renderHydroEdits',
+    'renderCountries', 'renderHydro', 'renderTerritorialUnits', 'renderGenericFeatures', 'renderValidation',
     'renderDistributions',
     'renderBase',
     'renderProjectedOverlays',
@@ -117,14 +119,7 @@ test('rendering domain commits label positions synchronously in the coordinator 
   const frames = [];
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
-    prepareView: ({ frameId }) => Object.freeze({
-      __mapVisualFrame: true,
-      frameId,
-      revision: 1,
-      viewRevision: 1,
-      projectionRevision: 1,
-      projection: 'flat',
-    }),
+    prepareView: ({ frameId }) => testFrame(frameId, 1),
   });
   rendering.invalidateView('label-position-contract');
   frames.shift()();
@@ -211,7 +206,7 @@ test('app delegates interaction rendering to rendering domain', () => {
   }
   assert.match(source, /getEditingRenderPacket:\s*\(\)\s*=>\s*editingDomain\?\.createRenderPacket/);
   assert.doesNotMatch(source, /renderingDomain\?\.render(?:Draft|DraftInsertionHandle|Vertices|Snap)\?\./);
-  assert.match(source, /renderingDomain\?\.renderValidation\?\./);
+  assert.match(source, /renderingDomain\?\.invalidateEditingOverlays\(/);
   assert.doesNotMatch(source, /mapRenderCoordinator|MAP_RENDER_DIRTY/);
   const renderingSource = fs.readFileSync(path.join(root, 'assets/js/modules/rendering-domain.js'), 'utf8');
   assert.match(renderingSource, /gpuInteraction:\s*renderGpuInteraction/);
@@ -257,7 +252,7 @@ test('rendering domain owns domain-specific invalidation masks', () => {
   const frames = [];
   const rendering = createRenderingDomain({
     requestFrame: callback => frames.push(callback),
-    prepareView: () => ({ revision: 1 }),
+    prepareView: () => testFrame(),
   });
   rendering.invalidateSelection('selection');
   frames.shift()();
@@ -290,17 +285,7 @@ test('view-only selection rendering reprojects only existing SVG fallbacks witho
   });
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
-    prepareView: ({ frameId }) => Object.freeze({
-      __mapVisualFrame: true,
-      frameId,
-      revision: 8,
-      viewRevision: 8,
-      projectionRevision: 1,
-      projection: 'flat',
-      translate: [0, 0],
-      rotation: [0, 0, 0],
-      projectPath: () => { projectedPaths += 1; return 'M0,0L1,1'; },
-    }),
+    prepareView: ({ frameId }) => testFrame(frameId, 8, () => { projectedPaths += 1; return 'M0,0L1,1'; }),
     gpuMapRenderer: {
       renderInteraction() {
         gpuInteractionRenders += 1;
@@ -327,16 +312,7 @@ test('view-only selection rendering is a no-op when no SVG fallback exists', () 
   };
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
-    prepareView: ({ frameId }) => Object.freeze({
-      __mapVisualFrame: true,
-      frameId,
-      revision: 9,
-      viewRevision: 9,
-      projectionRevision: 1,
-      projection: 'flat',
-      translate: [0, 0],
-      rotation: [0, 0, 0],
-    }),
+    prepareView: ({ frameId }) => testFrame(frameId, 9),
     gpuMapRenderer: {
       renderInteraction() {
         gpuInteractionRenders += 1;
@@ -508,3 +484,7 @@ test('GIS domain owns river source orchestration without mutating donors', async
   assert.deepEqual(donor, before);
   gis.dispose();
 });
+
+const testFrame = (frameId = 1, viewRevision = 1, projectPath = () => 'M0,0L1,1') => createMapVisualFrame({
+  frameId, viewRevision, projectionRevision: 1,
+  viewState: { projection: 'flat', size: { width: 800, height: 600 }, translate: [400, 300], scale: 100, dpr: 1 }, projectPath });

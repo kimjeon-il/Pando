@@ -1,3 +1,5 @@
+import { isMapVisualFrame } from './map-visual-frame.js';
+
 /** MapProjection: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -168,16 +170,14 @@ export function createMapProjection() {
     return [lon, lat];
   }
 
-  function updatePandoGlobeShell(frameContext = null) {
-    const projectionKind = frameContext?.projection || dependencies.projectState.state.projection;
+  function updatePandoGlobeShell(frameContext) {
+    if (!isMapVisualFrame(frameContext)) throw new TypeError('Globe shell requires a MapVisualFrame.');
+    const projectionKind = frameContext.projection;
     const globe = projectionKind === 'globe';
-    const translate = Array.isArray(frameContext?.cssTranslate || frameContext?.translate)
-      ? (frameContext.cssTranslate || frameContext.translate)
-      : activeProjection().translate();
-    const radius = Math.max(0, Number(frameContext?.cssScale || frameContext?.scale || activeProjection().scale() || 0));
-    const width = Math.max(1, Number(frameContext?.size?.width || dependencies.projectState.state.size.width));
-    const height = Math.max(1, Number(frameContext?.size?.height || dependencies.projectState.state.size.height));
-    const frameSignature = `${Number(frameContext?.revision || dependencies.mapLayout.viewRevision)}:${projectionKind}:${translate[0]}:${translate[1]}:${radius}`;
+    const translate = frameContext.cssTranslate;
+    const radius = frameContext.cssScale;
+    const [width, height] = frameContext.cssViewport;
+    const frameSignature = frameContext.signature;
 
     dependencies.mapLayers.baseSvg?.classed('flat-projection', !globe)
       .attr('data-shell-frame-signature', frameSignature);

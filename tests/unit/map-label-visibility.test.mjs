@@ -1,3 +1,4 @@
+import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTerritorialLabels } from '../../assets/js/modules/app-territorial-labels.js';
@@ -55,9 +56,16 @@ function fixture(visibility = {}) {
   controller.connect(Object.freeze(Object.fromEntries(
     MAP_RESOURCE_OWNER_PORTS.territorialLabels.map(portName => [portName, ports[portName]]),
   )));
+  const layoutFrame = () => Object.freeze({ ...createMapVisualFrame({ frameId: 1,
+    viewState: { projection: state.projection, size: state.size, scale: 1000, zoom: state.view.globeZoom, dpr: 1 } }),
+    projectVisibleCoordinate: coordinate => coordinate });
+  const visibleLabelLayout = controller.visibleLabelLayout;
+  // Screen-space fixture projector is explicit in its frame, never a live map port.
+  const framedController = new Proxy(controller, { get: (owner, key) => key === 'visibleLabelLayout'
+    ? () => visibleLabelLayout(layoutFrame()) : owner[key] });
   controller.initializeTerritorialLabelScreenAreas();
   controller.initializeLabelLayoutMetrics();
-  return { controller, state, anchors, hiddenIds, features };
+  return { controller: framedController, state, anchors, hiddenIds, features, layoutFrame };
 }
 
 for (const names of [true, false]) for (const flags of [true, false]) for (const places of [true, false]) {
@@ -95,9 +103,10 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
     if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument);
     else delete globalThis.document;
   });
-  const { controller, state } = fixture();
+  const { controller, state, layoutFrame } = fixture();
   const frames = [], layouts = [];
   const rendering = createRenderingDomain({
+    prepareView: layoutFrame,
     requestFrame: callback => { frames.push(callback); return frames.length; },
     renderers: { labelLayout: () => { const layout = controller.visibleLabelLayout(); layouts.push(layout); return layout; } },
   });
