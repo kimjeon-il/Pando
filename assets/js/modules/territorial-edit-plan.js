@@ -2,8 +2,8 @@
 (function (root) {
   const id = value => String(value ?? '');
   const clone = value => structuredClone(value);
-  const coordinates = geometry => geometry?.type === 'Polygon' ? [geometry.coordinates] : geometry?.coordinates || [];
-  const area = geometry => coordinates(geometry).reduce((total, polygon) => total + polygon.reduce((sum, ring, index) => {
+  const rawCoordinates = geometry => geometry?.type === 'Polygon' ? [geometry.coordinates] : geometry?.coordinates || [];
+  const planarArea = geometry => rawCoordinates(geometry).reduce((total, polygon) => total + polygon.reduce((sum, ring, index) => {
     let signed = 0;
     for (let i = 1; i < ring.length; i++) signed += ring[i - 1][0] * ring[i][1] - ring[i][0] * ring[i - 1][1];
     return sum + (index ? -1 : 1) * Math.abs(signed / 2);
@@ -29,6 +29,17 @@ function territorialRootId(feature, getEntity) {
 }
 
   function createKernel(clipper, { normalize = geometry => geometry, segmentCandidates = null } = {}) {
+    const wrapped = new WeakMap();
+    const geographic = geometry => {
+      if (!geometry) return geometry;
+      if (!wrapped.has(geometry)) wrapped.set(geometry, root.PandoLabPolygonGeometry.wrapPolygonGeometry(geometry, clipper));
+      return wrapped.get(geometry);
+    };
+    const coordinates = geometry => {
+      const value = geographic(geometry);
+      return value?.type === 'Polygon' ? [value.coordinates] : value?.coordinates || [];
+    };
+    const area = geometry => planarArea(geographic(geometry));
     const boundsCache = new WeakMap();
     const bounds = geometry => {
       if (!geometry) return [Infinity, Infinity, -Infinity, -Infinity];
@@ -45,9 +56,9 @@ function territorialRootId(feature, getEntity) {
       const left = bounds(a), right = bounds(b);
       return left[2] < right[0] || right[2] < left[0] || left[3] < right[1] || right[3] < left[1];
     };
-    const shape = value => value?.length ? { type: 'MultiPolygon', coordinates: value } : null;
+    const shape = value => value?.length ? root.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry(value) : null;
     const intersection = (a, b) => a && b && !disjoint(a, b) ? shape(clipper.intersection(coordinates(a), coordinates(b))) : null;
-    const difference = (a, b) => a && b && !disjoint(a, b) ? shape(clipper.difference(coordinates(a), coordinates(b))) : clone(a);
+    const difference = (a, b) => a && b && !disjoint(a, b) ? shape(clipper.difference(coordinates(a), coordinates(b))) : clone(geographic(a));
     const union = (...values) => {
       const valid = values.filter(Boolean);
       return valid.length ? shape(clipper.union(...valid.map(coordinates))) : null;
@@ -56,10 +67,10 @@ function territorialRootId(feature, getEntity) {
     const contains = (parent, child) => !significant(difference(child, parent), child);
     function adjacent(a, b) {
       function* allSegments(geometry) {
-        for (const polygon of coordinates(geometry)) for (const ring of polygon) for (let index = 1; index < ring.length; index++) yield { a: ring[index - 1], b: ring[index] };
+        for (const polygon of rawCoordinates(geometry)) for (const ring of polygon) for (let index = 1; index < ring.length; index++) yield { a: ring[index - 1], b: ring[index] };
       }
       // Collinear overlap works when neighboring rings have different segmentation.
-      for (const pa of coordinates(a)) for (const ra of pa) for (let i = 1; i < ra.length; i++) {
+      for (const pa of rawCoordinates(a)) for (const ra of pa) for (let i = 1; i < ra.length; i++) {
         const p = ra[i - 1], q = ra[i], dx = q[0] - p[0], dy = q[1] - p[1];
         const length = Math.hypot(dx, dy);
         if (!length) continue;
