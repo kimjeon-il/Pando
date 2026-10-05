@@ -85,9 +85,15 @@ test('Canvas receives the graticule scene and paints mixed overlays with protect
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => window.__graticulePackets.length), { timeout: 30_000 }).toBeGreaterThan(0);
   await expect(page.locator('path.map-graticule')).toHaveCount(0);
+  const interactionLayers = await page.locator('.map-interaction-root > g').evaluateAll(nodes => nodes.map(node => node.getAttribute('class')));
+  expect(interactionLayers).toEqual(['hover-overlay-layer', 'selection-overlay-layer', 'territorial-operation-layer',
+    'geometry-preview-layer', 'validation-overlay-layer', 'vertices-layer', 'draft-layer', 'snap-indicator-layer',
+    'territorial-label-layer', 'labels-layer']);
   const build = await page.evaluate(() => window.PANDOLAB_BUILD_META.assetRevision);
   expect(coreRequests.some(url => new URL(url).searchParams.get('v') === build)).toBe(true);
   const pixels = await page.evaluate(async root => {
+    const { mapVisualOrder } = await import(new URL('assets/js/modules/layer-presentation.js', root).href);
+    const visualOrder = { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') };
     await import(new URL('assets/js/workers/canvas-scene-composition-core.js', root).href);
     const { createRenderSceneBuilder } = await import(new URL('assets/js/modules/render-scene.js', root).href);
     const { createRenderDevice } = await import(new URL('assets/js/modules/render-device.js', root).href);
@@ -138,7 +144,7 @@ test('Canvas receives the graticule scene and paints mixed overlays with protect
       worker.onerror = event => { worker.terminate(); reject(new Error(event.message)); };
       worker.onmessage = ({ data }) => {
         if (data.type === 'error') { worker.terminate(); reject(new Error(data.message)); }
-        if (data.type === 'ready') worker.postMessage({ type: 'render', width: 100, height: 100, dpr: 1,
+        if (data.type === 'ready') worker.postMessage({ type: 'render', visualOrder, width: 100, height: 100, dpr: 1,
           projection: 'flat', view: { flatCenter: [0, 0] }, renderProjection: { scale: 200, translate: [50, 50] } });
         if (data.type === 'frame') {
           const target = new OffscreenCanvas(100, 100).getContext('2d'); target.drawImage(data.bitmap, 0, 0);

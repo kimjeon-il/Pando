@@ -114,7 +114,7 @@ test('common role contracts reject tool colors and keep boundary preparation out
   assert.doesNotMatch(rendering, /if \(pendingChanged[^\n]+syncGpuRenderScene/);
   assert.match(rendering, /lastInteractionFillOwner/);
   assert.doesNotMatch(pass, /innerCutout: resolvedStyle.width|phase === 'casing'/);
-  assert.match(pass, /candidate: drawChannel\('candidate', frameContext, options\.preparedOnly\)/);
+  assert.match(pass, /CHANNELS = SELECTION_PAINT_ORDER/);
   assert.match(worker, /type: 'frame',\s+styleRevision/);
 });
 
