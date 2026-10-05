@@ -1,3 +1,4 @@
+import { territorialSymbolGroup } from './layer-presentation.js';
 import { createGeometrySnapshotPool } from './geometry-versions.js';
 import { normalizeTerritorialIdentities } from './territorial-units.js';
 import { snapshotTimelineStorage, restoreTimelineStorage } from './timeline-storage.js';
@@ -100,11 +101,53 @@ export function createProjectSnapshots() {
     }
   }
 
+  function historyTerritorialAppearance() {
+    const state = dependencies.projectState.state;
+    const saved = Object.create(null);
+    for (const feature of dependencies.territorialModel.entityRepository.list()) {
+      const id = String(feature.id), group = territorialSymbolGroup(feature);
+      const entry = {};
+      if (Object.hasOwn(state.itemVisibility?.[group] || {}, id)) entry.visibility = { group, value: state.itemVisibility[group][id] };
+      const key = `territorial:entity:${id}`;
+      if (Object.hasOwn(state.layerPresentation?.objectStyles || {}, key)) entry.style = state.layerPresentation.objectStyles[key];
+      if (Object.keys(entry).length) saved[id] = (0, dependencies.platform.deepClone)(entry);
+    }
+    return saved;
+  }
+
+  function restoreHistoryTerritorialAppearance(snapshot, previousEntities) {
+    const state = dependencies.projectState.state;
+    const previous = new Map(previousEntities.map(feature => [String(feature.id), feature]));
+    const appearances = snapshot.historyTerritorialAppearance || {};
+    const current = new Map(dependencies.territorialModel.entityRepository.list().map(feature => [String(feature.id), feature]));
+    for (const id of new Set([...previous.keys(), ...current.keys()])) {
+      // Presentation remains view state for surviving objects. Only an object
+      // disappearing or reappearing participates in its deletion history.
+      if (previous.has(id) && current.has(id)) continue;
+      const group = territorialSymbolGroup(current.get(id) || previous.get(id));
+      const key = `territorial:entity:${id}`;
+      const saved = current.has(id) && Object.hasOwn(appearances, id) ? appearances[id] : null;
+      if (saved?.visibility?.group === group) {
+        state.itemVisibility ||= {};
+        state.itemVisibility[group] ||= {};
+        Object.defineProperty(state.itemVisibility[group], id, { value: saved.visibility.value,
+          writable: true, enumerable: true, configurable: true });
+      } else delete state.itemVisibility?.[group]?.[id];
+      if (saved && Object.hasOwn(saved, 'style')) {
+        state.layerPresentation ||= {};
+        state.layerPresentation.objectStyles ||= {};
+        state.layerPresentation.objectStyles[key] = (0, dependencies.platform.deepClone)(saved.style);
+      } else delete state.layerPresentation?.objectStyles?.[key];
+    }
+  }
+
   function restoreEditTransactionSnapshot(snapshot) {
+    const previousEntities = dependencies.territorialModel.entityRepository.list();
     const changedIds = new Set(dependencies.projectState.state.historyDirtyEntityIds);
     snapshot = restoreEntitiesFromSnapshot(snapshot);
     applySharedProjectFields(snapshot, 'history');
     normalizeProjectObjects();
+    restoreHistoryTerritorialAppearance(snapshot, previousEntities);
     const restoredDirtyIds = new Set(dependencies.projectState.state.historyDirtyEntityIds);
     for (const id of dependencies.projectState.state.historyDirtyEntityIds) changedIds.add(String(id));
     (0, dependencies.spatialQuery.markCountryGeometriesChanged)(changedIds);
@@ -118,6 +161,7 @@ export function createProjectSnapshots() {
       territorialEntities: dependencies.territorialModel.entityStore.identities(),
       historyDirtyEntityIds: [...dependencies.projectState.state.historyDirtyEntityIds],
       historyLabelSettings: historyLabelSettings(),
+      historyTerritorialAppearance: historyTerritorialAppearance(),
       ...(0, dependencies.projectServices.pickProjectFields)(dependencies.projectState.state, { scope: 'history', clone: geometrySnapshots.clone }),
     };
   }
@@ -190,6 +234,7 @@ export function createProjectSnapshots() {
   }
 
   function restoreEditable(snapshot, { mode = 'history' } = {}) {
+    const previousEntities = dependencies.territorialModel.entityRepository.list();
     const previousGeometries = new Map(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })
       .map(feature => [String(feature.id), feature.geometry]));
     const currentLabels = (0, dependencies.platform.deepClone)(dependencies.projectState.state.labels || []);
@@ -199,6 +244,7 @@ export function createProjectSnapshots() {
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     (0, dependencies.hydroModel.syncPhysicalControls)();
     normalizeProjectObjects({ history: true });
+    restoreHistoryTerritorialAppearance(snapshot, previousEntities);
     const restoredDirtyIds = new Set(dependencies.projectState.state.historyDirtyEntityIds);
     const restoredGeometries = new Map(dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })
       .map(feature => [String(feature.id), feature.geometry]));
