@@ -90,7 +90,7 @@ test('base pass draws map substrate before terrain and preserves territory, coun
 test('overlay preparation defers excess work and keeps protected uploads within the existing budget policy', () => {
   const uploaded = [];
   const pass = { hasResource: () => false, ensureResource: packet => { uploaded.push(packet.key); return { resource: { byteLength: packet.byteLength } }; } };
-  const result = prepareGpuBaseScene({ mesh: null, frame: {}, budgetBytes: 65536,
+  const result = prepareGpuBaseScene({ mesh: null, frame: {}, budgetBytes: 65536, presentedStrokeDomains: new Map(),
     scene: { polygons: [{ key: 'protected', protected: true, byteLength: 40000 },
       { key: 'deferred', byteLength: 40000 }, { key: 'small', byteLength: 10000 }], strokes: [] } },
   { polygonOverlayPass: pass, strokeRenderer: pass });
@@ -104,7 +104,7 @@ test('same-key polygon revision and LOD replacements are prepared before draw', 
   pass.initialize({ gl: glFixture(), version: 2, capabilities: { uintIndices: true } });
   const original = { key: 'edited', geometryRevision: 1, lod: 'low', positions: new Float32Array([0, 0, 1, 0, 0, 1]), indices: new Uint32Array([0, 1, 2]) };
   for (const packet of [original, { ...original, geometryRevision: 2 }, { ...original, geometryRevision: 2, lod: 'high' }]) {
-    prepareGpuBaseScene({ frame: {}, scene: { polygons: [packet] } }, { polygonOverlayPass: pass });
+    prepareGpuBaseScene({ frame: {}, scene: { polygons: [packet] }, presentedStrokeDomains: new Map() }, { polygonOverlayPass: pass });
     const result = pass.drawPackets([packet], frame, { preparedOnly: true });
     assert.deepEqual(result.renderedKeys, ['edited']);
     assert.deepEqual(result.missingKeys, []);
@@ -127,9 +127,11 @@ test('same-key stroke revision and LOD replacements are prepared before draw', (
   assert.equal(pass.initialize({ gl, version: 2, capabilities: { instancing: true } }), true);
   const original = { key: 'edited-stroke', geometryRevision: 1, lod: 'low', style: { width: 2 }, startsEnds: new Float32Array([0, 0, 1, 1]) };
   for (const packet of [original, { ...original, geometryRevision: 2 }, { ...original, geometryRevision: 2, lod: 'high' }]) {
-    prepareGpuBaseScene({ frame, scene: { strokes: [packet] } }, { strokeRenderer: pass });
-    const result = pass.drawBatches([packet], frame, { preparedOnly: true });
-    assert.deepEqual(result.renderedKeys, ['edited-stroke']);
+    const sourceKey = `${packet.key}:${packet.geometryRevision}:${packet.lod}`;
+    const prepared = prepareGpuBaseScene({ frame, scene: { strokes: [{ ...packet, sourceKey }] }, presentedStrokeDomains: new Map() }, { strokeRenderer: pass });
+    const resourcePacket = prepared.overlayItems[0].resourcePacket;
+    const result = pass.drawBatches([resourcePacket], frame, { preparedOnly: true });
+    assert.deepEqual(result.renderedKeys, [resourcePacket.key]);
     assert.deepEqual(result.missingKeys, []);
   }
   pass.dispose();
@@ -141,7 +143,7 @@ test('same-key polygon replacements obey the frame budget and resume next frame'
   const packets = ['one', 'two'].map(key => ({ key, geometryRevision: 1, positions: new Float32Array(12000), indices: new Uint32Array(6000) }));
   for (const packet of packets) pass.ensureResource(packet);
   const updated = packets.map(packet => ({ ...packet, geometryRevision: 2 }));
-  const input = { frame, scene: { polygons: updated }, budgetBytes: 65536 };
+  const input = { frame, scene: { polygons: updated }, budgetBytes: 65536, presentedStrokeDomains: new Map() };
   const first = prepareGpuBaseScene(input, { polygonOverlayPass: pass });
   assert.deepEqual([...first.deferredOverlayKeys], ['two']);
   assert.equal(pass.hasPreparedResource(updated[0]), true);

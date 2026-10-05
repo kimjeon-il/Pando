@@ -68,16 +68,17 @@ test('WebGL mixes overlays by order and protects base water and borders from fil
     drawPackets: packets => record(packets, 'fill') };
   const strokeRenderer = { hasResource: () => true, hasPreparedResource: () => true,
     drawBatches: packets => record(packets, 'stroke') };
-  const scene = { polygons: [{ key: 'upper-fill', order: 200 }], strokes: [{ key: 'lower-line', order: 100 }] };
-  const prepared = prepareGpuBaseScene({ scene, frame: {} }, { polygonOverlayPass, strokeRenderer });
+  const scene = { polygons: [{ key: 'upper-fill', order: 200 }], strokes: [{ key: 'lower-line', sourceKey: 'stroke:lower-line:1', order: 100 }] };
+  const prepared = prepareGpuBaseScene({ scene, frame: {}, presentedStrokeDomains: new Map() }, { polygonOverlayPass, strokeRenderer });
   drawGpuBaseScene({ gl, frame: {}, countriesVisible: false, terrainVisible: false, countries: {}, prepared },
     { renderTerrain() {}, drawHydro: kind => events.push({ key: kind, ...state }),
       drawCountryBoundaryStrokes: () => events.push({ key: 'base-borders', ...state }), polygonOverlayPass, strokeRenderer });
-  assert.deepEqual(events.filter(event => ['upper-fill', 'lower-line'].includes(event.key)).map(event => event.key), ['lower-line', 'upper-fill']);
+  const lineResourceKey = prepared.overlayItems.find(item => item.kind === 'stroke').resourcePacket.key;
+  assert.deepEqual(events.filter(event => ['upper-fill', lineResourceKey].includes(event.key)).map(event => event.key), [lineResourceKey, 'upper-fill']);
   assert.equal(events.find(event => event.key === 'upper-fill').stencil, true);
-  assert.equal(events.find(event => event.key === 'lower-line').stencil, false);
+  assert.equal(events.find(event => event.key === lineResourceKey).stencil, false);
   assert.ok(events.some(event => event.key === 'base-borders' && !event.color));
-  assert.ok(events.findIndex(event => event.key === 'lake' && event.color) < events.findIndex(event => event.key === 'lower-line'));
+  assert.ok(events.findIndex(event => event.key === 'lake' && event.color) < events.findIndex(event => event.key === lineResourceKey));
 });
 
 test('changing overlay order keeps the frontmost stroke or fill aligned with canonical picking', async t => {

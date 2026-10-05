@@ -164,6 +164,9 @@ function freezePacket(item, geometryPacket, kind, { lod = 'high', projection = '
     : undefined;
   return Object.freeze({
     key: String(item?.key || ''),
+    domain: String(item?.domain || ''),
+    objectKey: String(item?.objectKey || ''),
+    continuityOwnerIds: Object.freeze([...(item?.continuityOwnerIds || [])].map(String)),
     geometryRevision: item?.geometryRevision ?? 0,
     order: Number(item?.order || 0),
     style: normalizedStyle(item?.style),

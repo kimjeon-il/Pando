@@ -871,6 +871,14 @@ export function createRenderingDomain({
       return `${type}:${style.opacity}:${style.boundaryVisible}`;
     }).join('|');
     const boundaryColor = t.mapTheme?.().border || '#ffffff';
+    // Aggregate buffers cannot selectively hide their old segments. A visibility
+    // change makes that archive ineligible as a GPU upload fallback (M3), even
+    // while an otherwise valid new topology is still being prepared.
+    const continuityOwnerIds = [...visibleIds].sort().filter(id => {
+      const feature = visibleFeatures.find(item => String(item.id) === id);
+      const style = t.layerStyle?.(state.layerPresentation, territorialSymbolGroup(feature), `territorial:entity:${id}`) || {};
+      return style.boundaryVisible !== false && Number(style.opacity ?? 1) > 0;
+    });
     const signature = `${territorialBoundaryCache.rebuildCount};${visibleSignature};${styleSignature};${boundaryColor}`;
     if (territorialBoundaryBatchCache.signature !== signature) {
       const groups = new Map([...styleByType].map(([styleType, definition]) => [styleType, { key: styleType, styleType, width: definition.width, dash: definition.dash, segments: [] }]));
@@ -900,7 +908,7 @@ export function createRenderingDomain({
     t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
     t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
       const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits', width: 1, dash: [] };
-      return { key: `territorial-internal:${group.key}`, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 30 + index), style: { color: group.color, alpha: group.opacity, width: definition.width, dash: definition.dash, cap: 'round', join: 'round' } };
+      return { key: `territorial-internal:${group.key}`, continuityOwnerIds, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 30 + index), style: { color: group.color, alpha: group.opacity, width: definition.width, dash: definition.dash, cap: 'round', join: 'round' } };
     }) });
     return true;
   };
