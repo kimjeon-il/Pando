@@ -194,6 +194,91 @@ test('all territory draw candidates must be archived through validation before a
   }
 });
 
+for (const method of ['polygon', 'line']) {
+  test(`full-donor ${method} annex candidates can be archived before review`, async t => {
+    const h = harness(t);
+    const execute = h.worker.execute;
+    h.worker.execute = async (...args) => {
+      const response = await execute(...args);
+      if (args[0] === 'territory-selection') response.result.remainingGeometry = null;
+      return response;
+    };
+    const current = h.workflow.start('annex', starts[0][1]);
+    await h.workflow.advance();
+    await h.workflow.selectMethod(method);
+    h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+    await settle(t);
+
+    assert.equal(current.remainingGeometry, null);
+    assert.equal(h.workflow.previewReady(), true);
+    assert.equal(h.workflow.canAddPart(), true);
+    assert.equal(h.workflow.presentation().primaryDisabled, true);
+    assert.equal(await h.workflow.advance(), false);
+    assert.equal(h.workflow.addPart(), true);
+    assert.equal(h.calls.apply, 0);
+    assert.equal(current.parts.length, 1);
+    assert.equal(current.parts[0].method, method);
+    assert.deepEqual(current.selectedCandidateIds, []);
+    assert.equal(current.currentGeometry, null);
+    assert.equal(h.workflow.previewReady(), false);
+    assert.equal(await h.workflow.advance(), false);
+
+    await settle(t);
+    assert.equal(await h.workflow.advance(), true);
+    assert.equal(current.stage, 'review');
+    assert.equal(h.workflow.back(), true);
+    assert.equal(current.parts.length, 1);
+    h.workflow.clear();
+    assert.equal(h.state.geometryPreview.session, null);
+    assert.equal(h.calls.apply, 0);
+  });
+}
+
+test('full-donor annex still requires a current nonempty validated preview', async t => {
+  const h = harness(t);
+  const current = h.workflow.start('annex', starts[0][1]);
+  await h.workflow.advance();
+  await h.workflow.selectMethod('polygon');
+  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await settle(t);
+  current.remainingGeometry = null;
+  assert.equal(h.workflow.canAddPart(), true);
+
+  h.state.geometryPreview.session.validation.blocking = true;
+  assert.equal(h.workflow.addPart(), false);
+  h.state.geometryPreview.session.validation.blocking = false;
+  current.previewPending = true;
+  assert.equal(h.workflow.addPart(), false);
+  current.previewPending = false;
+  current.previewReadyKey = 'stale';
+  assert.equal(h.workflow.addPart(), false);
+  assert.equal(current.parts.length, 0);
+
+  h.workflow.selectCandidate(current.selectedCandidateIds[0]);
+  await settle(t);
+  assert.equal(current.currentGeometry, null);
+  assert.equal(h.workflow.addPart(), false);
+  assert.equal(await h.workflow.advance(), false);
+  h.workflow.clear();
+});
+
+test('bounded entity creation still requires a remaining source after drawing', async t => {
+  const h = harness(t);
+  for (const [kind, options] of starts.slice(1, 3)) {
+    const current = h.workflow.start(kind, options);
+    await h.workflow.advance();
+    await h.workflow.selectMethod('polygon');
+    h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+    await settle(t);
+    current.remainingGeometry = null;
+    assert.equal(h.workflow.previewReady(), true);
+    assert.equal(h.workflow.canAddPart(), false);
+    assert.equal(h.workflow.addPart(), false);
+    assert.equal(await h.workflow.advance(), false);
+    h.workflow.clear();
+  }
+});
+
 test('nested general and independent regional components archive on method change with their exact snapshots', async t => {
   const h = harness(t);
   for (const [kind, options] of starts.slice(2)) {

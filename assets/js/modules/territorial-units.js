@@ -1,3 +1,4 @@
+import './polygon-geometry.js';
 import './territorial-edit-plan.js';
 import {
   normalizeTemporalInterval,
