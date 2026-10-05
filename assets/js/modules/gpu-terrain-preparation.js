@@ -4,7 +4,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
   const PI = Math.PI;
   let gl = null, uploadScheduler = null, ready = false, disposed = false;
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
-  let activeFrameContext = null, effectivePixelRatio = 1, view = {};
+  let activeFrameContext = null, view = {};
   let terrainManifest = null, cacheBudgetBytes = 128 * 1024 * 1024, terrainUploadCount = 0;
   let tint = null, tintFallback = null, tintPending = false, pendingDecodedBytes = 0, unusableReported = false;
   const controllers = new Set(), retryTimers = new Set(), uploadKeys = new Set();
@@ -29,9 +29,10 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       const physicalScale = Number(frameContext?.scale) || Number(activeFrameContext?.scale) || 1;
       // The render canvas may lower its DPR under load, but that must not
       // choose a blurrier source terrain level for an unchanged map view.
-      const renderDpr = Math.max(1, Number(effectivePixelRatio || 1));
+      // Physical scale belongs to the shared frame, so divide by its own DPR.
+      const frameDpr = Math.max(1, Number(frameContext.dpr));
       const sourceDpr = Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.devicePixelRatio || 1)));
-      const desiredWidth = Math.max(1, 2 * PI * (physicalScale / renderDpr) * sourceDpr);
+      const desiredWidth = Math.max(1, 2 * PI * (physicalScale / frameDpr) * sourceDpr);
       return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
         || terrainManifest.levels[terrainManifest.levels.length - 1];
     }
@@ -203,7 +204,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
         }
         const attempts = Number(previousFailure?.attempts || 0) + 1;
         const retryDelay = attempts <= 3 ? Math.min(4000, 400 * 2 ** (attempts - 1)) : 30000;
-        terrainTileFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay });
+        terrainTileFailures.set(spec.key, { attempts, retryAt: performance.now() + retryDelay, error });
         if (attempts <= 3) {
           const timer = setTimeout(() => {
             retryTimers.delete(timer);
@@ -374,21 +375,28 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       if (terrainManifest.representation === 'dem-relief-v1') prepareTintFallback();
       const targetLevel = terrainLevelForView(frameContext);
       const targetSpecs = visibleTerrainTileSpecs(targetLevel, false, frameContext);
+      // Keep one complete world base, independent of camera/country detail.
+      // It is also the coverage reserve when rotating into an uncached region.
+      const baseLevel = terrainManifest.levels[0];
+      const baseSpecs = visibleTerrainTileSpecs(baseLevel, true, frameContext);
+      const baseKeys = new Set(baseSpecs.map(spec => spec.key));
+      const baseReady = baseSpecs.every(spec => terrainTiles.has(spec.key));
       terrainLastLevel = Number(targetLevel?.id ?? -1);
       terrainTargetTileCount = targetSpecs.length;
       terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
       terrainTargetTileKeys = new Set(targetSpecs.map(spec => spec.key));
-      terrainRetentionKeys = new Set(terrainTargetTileKeys);
+      terrainRetentionKeys = new Set([...terrainTargetTileKeys, ...baseKeys]);
       // Only GPU-ready textures replace coverage. Keep cached fallback tiles
       // over the missing target regions, including when zooming out, and pin
       // exactly those draw resources against eviction during replacement uploads.
       const missingSpecs = targetSpecs.filter(spec => !terrainTiles.has(spec.key));
       const fallbackSpecs = missingSpecs.length
-        ? terrainManifest.levels.filter(level => level.id !== targetLevel.id)
+        ? [...(baseLevel.id !== targetLevel.id && baseReady ? baseSpecs : []),
+          ...terrainManifest.levels.filter(level => level.id !== targetLevel.id && level.id !== baseLevel.id)
           .flatMap(level => visibleTerrainTileSpecs(level, false, frameContext))
           .filter(spec => terrainTiles.has(spec.key) && missingSpecs.some(target =>
             spec.bounds[0] < target.bounds[2] && spec.bounds[2] > target.bounds[0]
-            && spec.bounds[3] < target.bounds[1] && spec.bounds[1] > target.bounds[3]))
+            && spec.bounds[3] < target.bounds[1] && spec.bounds[1] > target.bounds[3]))]
         : [];
       for (const spec of fallbackSpecs) terrainRetentionKeys.add(spec.key);
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);
@@ -397,6 +405,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       const rotation = frameContext.viewState?.rotation || view.rotation;
       const center = projection === 'flat' ? frameContext.viewState?.projectionCenter || view.flatCenter
         : [-Number(rotation?.[0] || 0), -Number(rotation?.[1] || 0)];
+      for (const spec of baseSpecs) requestTerrainTile(spec, 50_000, false);
       for (const spec of targetSpecs) {
         const [west, north, east, south] = spec.bounds;
         const tileCenter = [(west + east) / 2, (north + south) / 2];
@@ -408,24 +417,30 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) requestTerrainTile(spec, 1_000, false);
       const visibleTilesWaiting = terrainFetchQueue.some(entry => terrainTargetTileKeys.has(entry.spec.key));
       for (const [key, request] of terrainTileRequests) {
-        if (!terrainRetentionKeys.has(key) || (visibleTilesWaiting && !terrainTargetTileKeys.has(key))) request.controller.abort();
+        if (!terrainRetentionKeys.has(key)
+            || (visibleTilesWaiting && !terrainTargetTileKeys.has(key) && !baseKeys.has(key))) request.controller.abort();
       }
       // Fill the current-view batch before starting fetches so array traversal
       // cannot consume all slots with far-away tiles ahead of the center.
       pumpTerrainFetchQueue();
       terrainRenderedLevel = -1;
       const prepared = [];
-      for (const spec of [...fallbackSpecs, ...targetSpecs]) {
+      // Publish only after the world reserve is GPU-ready: even complete
+      // current detail cannot cover a subsequent turn into an uncached region.
+      const drawSpecs = baseReady ? [...fallbackSpecs, ...targetSpecs] : [];
+      for (const spec of drawSpecs) {
         const tile = terrainTiles.get(spec.key);
         if (!tile) continue;
         tile.lastUsed = performance.now();
         prepared.push({ spec, texture: tile.texture, grid: terrainGridMesh(spec, frameContext), gutter: Number(terrainManifest.gutter || 0) });
         terrainRenderedLevel = Number(spec.level);
       }
+      const exhausted = spec => Number(terrainTileFailures.get(spec.key)?.attempts || 0) >= 4;
       if (!prepared.length && targetSpecs.length && !unusableReported
-          && targetSpecs.every(spec => Number(terrainTileFailures.get(spec.key)?.attempts || 0) >= 4)) {
+          && baseSpecs.some(exhausted)) {
         unusableReported = true;
-        onUnusable?.('DEM의 표시 가능한 타일을 모두 불러오지 못했습니다.');
+        const failedBase = baseSpecs.find(exhausted);
+        onUnusable?.(`지형 바탕 타일을 불러오지 못했습니다: ${failedBase.key}: ${terrainTileFailures.get(failedBase.key).error.message}`);
       }
       return prepared;
     }
@@ -514,7 +529,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       projectGeneration = next.projectGeneration; contextRevision = next.contextGeneration;
     },
     setManifest(manifest) { if (terrainManifest !== manifest) reset(); terrainManifest = manifest; },
-    prepare(frame, nextView) { activeFrameContext = frame; view = nextView; effectivePixelRatio = nextView.dpr; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },
+    prepare(frame, nextView) { activeFrameContext = frame; view = nextView; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },
     request: requestTerrainTile,
     tintTexture: () => tint?.texture || tintFallback?.texture || null,
     scheduleUpload: scheduleTerrainUpload,

@@ -7,6 +7,9 @@ on:
       - 'assets/js/**'
       - 'tests/unit/**'
       - 'tests/helpers/**'
+      - 'tests/browser/terrain-*.spec.mjs'
+      - 'tests/browser/server.mjs'
+      - 'playwright.config.js'
       - 'scripts/check-runtime-boundaries.mjs'
       - 'scripts/lib/application-source.mjs'
       - 'scripts/generate-build-metadata.mjs'
@@ -38,6 +41,9 @@ on:
       - 'assets/js/**'
       - 'tests/unit/**'
       - 'tests/helpers/**'
+      - 'tests/browser/terrain-*.spec.mjs'
+      - 'tests/browser/server.mjs'
+      - 'playwright.config.js'
       - 'scripts/check-runtime-boundaries.mjs'
       - 'scripts/lib/application-source.mjs'
       - 'scripts/check-territorial-storage.mjs'
@@ -73,6 +79,7 @@ jobs:
     outputs:
       territorial-store: ${{ steps.scope.outputs.territorial_store }}
       unit-suite: ${{ steps.scope.outputs.unit_suite }}
+      terrain-rendering: ${{ steps.scope.outputs.terrain_rendering }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -87,9 +94,11 @@ jobs:
         run: |
           territorial_store=false
           unit_suite=false
+          terrain_rendering=false
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             territorial_store=true
             unit_suite=true
+            terrain_rendering=true
           else
             while IFS= read -r file; do
               case "$file" in
@@ -102,10 +111,69 @@ jobs:
                   unit_suite=true
                   ;;
               esac
+              case "$file" in
+                assets/js/modules/gpu-*|assets/js/modules/terrain-*|assets/js/modules/map-visual-frame.js|assets/js/modules/rendering-domain.js|assets/js/modules/app-map-*|assets/js/modules/app-physical-*|tests/browser/terrain-*.spec.mjs|tests/browser/server.mjs|playwright.config.js|tests/unit/gpu-terrain-preparation.test.mjs|tests/unit/domain-split-contract.test.mjs|package.json|pnpm-lock.yaml|eslint.config.js|.github/workflows/application-architecture.yml)
+                  terrain_rendering=true
+                  ;;
+              esac
             done < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
           fi
           echo "territorial_store=$territorial_store" >> "$GITHUB_OUTPUT"
           echo "unit_suite=$unit_suite" >> "$GITHUB_OUTPUT"
+          echo "terrain_rendering=$terrain_rendering" >> "$GITHUB_OUTPUT"
+
+  terrain-rendering-contract:
+    name: Terrain coverage and GPU upload regression
+    needs: changes
+    if: needs.changes.outputs.terrain-rendering == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Focused terrain lint
+        run: >
+          pnpm exec eslint
+          assets/js/modules/gpu-terrain-preparation.js
+          assets/js/modules/gpu-map-renderer.js
+          assets/js/modules/rendering-domain.js
+          tests/unit/gpu-terrain-preparation.test.mjs
+          tests/unit/domain-split-contract.test.mjs
+          tests/browser/terrain-lod-independence.spec.mjs
+          tests/browser/terrain-preview-quality.spec.mjs
+          tests/browser/terrain-progressive.spec.mjs
+          tests/browser/terrain-request-priority.spec.mjs
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify actual terrain coverage, hover uploads and viewport cancellation
+        env:
+          PANDOLAB_VERIFY_LIVE_DEM: '1'
+        run: >
+          pnpm exec playwright test
+          tests/browser/terrain-lod-independence.spec.mjs
+          tests/browser/terrain-request-priority.spec.mjs
+          tests/browser/terrain-preview-quality.spec.mjs
+          tests/browser/terrain-progressive.spec.mjs
+          --grep 'keeps terrain resources|rotating the globe|improved webgl2|slow mobile globe|surfaces exhausted'
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terrain-rendering-evidence
+          path: test-results
+          if-no-files-found: ignore
 
   command-contract:
     runs-on: ubuntu-latest
