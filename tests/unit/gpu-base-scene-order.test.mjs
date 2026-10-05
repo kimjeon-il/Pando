@@ -8,6 +8,55 @@ import { createObjectPicking } from '../../assets/js/modules/app-object-picking.
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { layerObjectRank, OVERLAY_GROUPS } from '../../assets/js/modules/layer-presentation.js';
 
+for (const style of ['political', 'physical']) {
+    test(`${style} prepares the common land mask before its terrain passes`, () => {
+      const events = [], state = { stencil: false, color: true, func: null, mask: null };
+      const gl = new Proxy({
+        enable: key => { if (key === 'STENCIL_TEST') state.stencil = true; },
+        disable: key => { if (key === 'STENCIL_TEST') state.stencil = false; },
+        colorMask: enabled => { state.color = enabled; },
+        stencilFunc: func => { state.func = func; },
+        stencilMask: mask => { state.mask = mask; },
+      }, { get: (target, key) => target[key] ?? (/^[A-Z_]+$/.test(key) ? key : () => {}) });
+      const range = { ranges: [{ first: 0, count: 3 }] };
+      const polygonOverlayPass = { hasResource: () => true,
+        drawPackets(packets, _frame, options) {
+          if (!state.color && options.claimTransparent) {
+            events.push({ kind: 'mask-general', key: packets[0].key, ...state });
+          }
+          return { renderedKeys: packets.map(packet => packet.key), missingKeys: [] };
+        } };
+      drawGpuBaseScene({ gl, frame: {}, width: 10, height: 10, terrainVisible: true,
+        terrainStyle: style, countriesVisible: false,
+        countries: { mesh: { triangleIndices: { length: 3 } }, overrideMesh: { triangleIndices: { length: 3 } },
+          landMaskProgram: 'land-mask' },
+        prepared: { baseTriangleDraw: range, baseBoundaryDraw: range, overrideTriangleDraw: range, overrideBoundaryDraw: range,
+          deferredOverlayKeys: new Set(), failedOverlayKeys: new Set(),
+          territoryItems: [{ kind: 'polygon', packet: { key: 'general', role: 'territorial-fill' } }],
+          independentItems: [{ kind: 'polygon', packet: { key: 'regional', role: 'regional-overlay' } }] },
+      }, { polygonOverlayPass, strokeRenderer: {},
+        drawProgram: program => { if (program === 'land-mask') events.push({ kind: 'mask-country', ...state }); },
+        renderTerrain: pass => events.push({ kind: pass, ...state }),
+        drawHydro() {}, drawCountryBoundaryStrokes: () => ({ succeeded: true }) });
+      assert.deepEqual(events.map(event => event.kind),
+        ['mask-country', 'mask-country', 'mask-general', ...(style === 'physical' ? ['ocean'] : []), 'land']);
+      for (const event of events.slice(0, 3)) {
+        assert.equal(event.stencil, true);
+        assert.equal(event.color, false);
+        assert.equal(event.func, 'ALWAYS');
+      }
+      assert.equal(events[2].key, 'general', 'independent regions must not add land to the mask');
+      for (const event of events.slice(3)) {
+        assert.equal(event.stencil, true);
+        assert.equal(event.color, true);
+        assert.equal(event.func, event.kind === 'ocean' ? 'NOTEQUAL' : 'EQUAL');
+        assert.equal(event.mask, 0);
+      }
+      assert.equal(state.stencil, false);
+      assert.equal(state.mask, 0xff);
+    });
+}
+
 test('WebGL mixes overlays by order and protects base water and borders from fills', () => {
   const events = [], state = { stencil: false, color: true };
   const gl = new Proxy({ STENCIL_TEST: 'stencil', enable: key => { if (key === 'stencil') state.stencil = true; },

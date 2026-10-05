@@ -6,7 +6,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
   let activeFrameContext = null, effectivePixelRatio = 1, view = {};
   let terrainManifest = null, cacheBudgetBytes = 128 * 1024 * 1024, terrainUploadCount = 0;
-  let tint = null, tintPending = false, pendingDecodedBytes = 0, unusableReported = false;
+  let tint = null, tintFallback = null, tintPending = false, pendingDecodedBytes = 0, unusableReported = false;
   const controllers = new Set(), retryTimers = new Set(), uploadKeys = new Set();
   const isWebGlRenderer = () => ready;
     const terrainTiles = new Map();
@@ -26,7 +26,6 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
     let terrainRetentionKeys = new Set();
     function terrainLevelForView(frameContext = activeFrameContext) {
       if (!terrainManifest?.levels?.length) return null;
-      if (view.meshQuality === 'preview') return terrainManifest.levels[Math.min(1, terrainManifest.levels.length - 1)];
       const physicalScale = Number(frameContext?.scale) || Number(activeFrameContext?.scale) || 1;
       // The render canvas may lower its DPR under load, but that must not
       // choose a blurrier source terrain level for an unchanged map view.
@@ -258,13 +257,15 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
         }
         if (next.tint) {
           if (tint) gl.deleteTexture(tint.texture);
+          if (tintFallback) gl.deleteTexture(tintFallback.texture);
+          tintFallback = null;
           tint = { texture, byteLength };
           tintPending = false;
           invalidate('terrain-tint-ready');
         } else terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength });
         terrainUploadCount += 1;
         let terrainBytes = [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0);
-        terrainBytes += tint?.byteLength || 0;
+        terrainBytes += tint?.byteLength || tintFallback?.byteLength || 0;
         const terrainBudget = Math.max(8 * 1024 * 1024, Number(cacheBudgetBytes) || 128 * 1024 * 1024);
         while (terrainBytes > terrainBudget) {
           let oldest = null;
@@ -370,6 +371,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
         pruneTerrainFetchQueue();
         return false;
       }
+      if (terrainManifest.representation === 'dem-relief-v1') prepareTintFallback();
       const targetLevel = terrainLevelForView(frameContext);
       const targetSpecs = visibleTerrainTileSpecs(targetLevel, false, frameContext);
       terrainLastLevel = Number(targetLevel?.id ?? -1);
@@ -377,15 +379,18 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       terrainTargetTilesLoaded = targetSpecs.filter(spec => terrainTiles.has(spec.key)).length;
       terrainTargetTileKeys = new Set(targetSpecs.map(spec => spec.key));
       terrainRetentionKeys = new Set(terrainTargetTileKeys);
-      // Country-mesh quality does not invalidate loaded terrain. Keep current
-      // view coverage until the target LOD is ready, then replace it completely.
-      // Retention only uses cached textures; requests still target the new LOD.
-      const retainedDetail = terrainTargetTilesLoaded < terrainTargetTileCount
+      // Only GPU-ready textures replace coverage. Keep cached fallback tiles
+      // over the missing target regions, including when zooming out, and pin
+      // exactly those draw resources against eviction during replacement uploads.
+      const missingSpecs = targetSpecs.filter(spec => !terrainTiles.has(spec.key));
+      const fallbackSpecs = missingSpecs.length
         ? terrainManifest.levels.filter(level => level.id !== targetLevel.id)
           .flatMap(level => visibleTerrainTileSpecs(level, false, frameContext))
-          .filter(spec => terrainTiles.has(spec.key))
+          .filter(spec => terrainTiles.has(spec.key) && missingSpecs.some(target =>
+            spec.bounds[0] < target.bounds[2] && spec.bounds[2] > target.bounds[0]
+            && spec.bounds[3] < target.bounds[1] && spec.bounds[1] > target.bounds[3]))
         : [];
-      for (const spec of retainedDetail) terrainRetentionKeys.add(spec.key);
+      for (const spec of fallbackSpecs) terrainRetentionKeys.add(spec.key);
       if (targetLevel) for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) terrainRetentionKeys.add(spec.key);
       pruneTerrainFetchQueue();
       const projection = frameContext.viewState?.projection || view.projection;
@@ -410,7 +415,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
       pumpTerrainFetchQueue();
       terrainRenderedLevel = -1;
       const prepared = [];
-      for (const spec of [...retainedDetail, ...targetSpecs]) {
+      for (const spec of [...fallbackSpecs, ...targetSpecs]) {
         const tile = terrainTiles.get(spec.key);
         if (!tile) continue;
         tile.lastUsed = performance.now();
@@ -423,6 +428,23 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
         onUnusable?.('DEM의 표시 가능한 타일을 모두 불러오지 못했습니다.');
       }
       return prepared;
+    }
+
+    function prepareTintFallback() {
+      if (tint || tintFallback) return;
+      const texture = gl.createTexture();
+      if (!texture) throw new Error('Terrain tint texture allocation failed');
+      try {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // Neutral flat-surface shade until the color image is GPU-ready.
+        // Both styles keep a valid tint sampler and share the same height tiles.
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([212, 212, 212, 255]));
+      } catch (error) { gl.deleteTexture(texture); throw error; }
+      tintFallback = { texture, byteLength: 4 };
     }
 
     function requestTint() {
@@ -475,9 +497,10 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
     if (gl && !gl.isContextLost?.()) {
       for (const tile of terrainTiles.values()) gl.deleteTexture(tile.texture);
       if (tint) gl.deleteTexture(tint.texture);
+      if (tintFallback) gl.deleteTexture(tintFallback.texture);
       for (const grid of terrainGridMeshes.values()) { gl.deleteBuffer(grid.vertexBuffer); gl.deleteBuffer(grid.indexBuffer); }
     }
-    tint = null; terrainTiles.clear(); terrainGridMeshes.clear();
+    tint = null; tintFallback = null; terrainTiles.clear(); terrainGridMeshes.clear();
     terrainLastLevel = -1; terrainRenderedLevel = -1;
     terrainTargetTileCount = 0; terrainTargetTilesLoaded = 0;
     terrainTargetTileKeys.clear(); terrainRetentionKeys.clear();
@@ -493,12 +516,12 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, isMo
     setManifest(manifest) { if (terrainManifest !== manifest) reset(); terrainManifest = manifest; },
     prepare(frame, nextView) { activeFrameContext = frame; view = nextView; effectivePixelRatio = nextView.dpr; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },
     request: requestTerrainTile,
-    tintTexture: () => tint?.texture || null,
+    tintTexture: () => tint?.texture || tintFallback?.texture || null,
     scheduleUpload: scheduleTerrainUpload,
     settled, reset,
     stats: () => ({ terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
-      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, tint?.byteLength || 0),
+      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, tint?.byteLength || tintFallback?.byteLength || 0),
       terrainPendingDecodedBytes: pendingDecodedBytes, terrainTintReady: !!tint,
       terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: terrainFetchConcurrency(),
       terrainUploadCount, terrainFailureCount: terrainTileFailures.size }),
