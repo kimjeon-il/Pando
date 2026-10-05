@@ -71,6 +71,77 @@ async function sampleQualityFrames(page, count = 8) {
   }, count);
 }
 
+test('selected country outline follows the fill mesh on the first frame of each quality switch', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors = collectErrors(page);
+  // Observe the real renderer and SelectionPass without replacing their behavior.
+  await page.route('**/assets/js/modules/gpu-map-renderer.js*', async route => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const anchor = 'dispose, attach,';
+    expect(body.split(anchor)).toHaveLength(2);
+    await route.fulfill({ response, body: body.replace(anchor, `${anchor}
+      selectionMeshSnapshot: window.__PANDOLAB_SELECTION_MESH_SNAPSHOT__ = () => {
+        const boundary = getCountryInteractionBoundaryData();
+        const { base, selectionBase } = boundary.strokeResources;
+        return {
+          quality: activeMeshQuality,
+          sameResource: selectionBase === base,
+          sameGeometry: selectionBase?.packet.preparedGeometry === mesh?.preparedStroke,
+          selectionResourceKeys: selectionPass.resourceKeys(),
+          primaryRebuilds: selectionPass.stats().channels.primary.rebuildCount,
+          renderedKeys: lastSelectionRenderResult?.channels?.primary?.renderedKeys || [],
+          fallbackKeys: [...document.querySelectorAll('[data-selection-fallback-key]')]
+            .map(node => node.getAttribute('data-selection-fallback-key')),
+        };
+      },`) });
+  });
+  await openMap(page);
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+  // The property editor deliberately holds canonical quality; close it while
+  // retaining the selection so wheel navigation exercises both mesh variants.
+  if (await page.locator('#editorSurface').evaluate(node => node.classList.contains('surface-open'))) {
+    await page.locator('#mobileEditBtn').evaluate(button => button.click());
+  }
+  await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
+  expect(await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer)).toMatch(/^webgl/);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  for (const { projection, lower, upper } of thresholds) {
+    await selectProjection(page, projection);
+    await zoomTo(page, lower - 0.01);
+    await expectQuality(page, 'preview');
+    const initial = await page.evaluate(() => window.__PANDOLAB_SELECTION_MESH_SNAPSHOT__());
+    expect(initial.sameResource).toBe(true);
+    expect(initial.sameGeometry).toBe(true);
+    expect(initial.selectionResourceKeys).toEqual(['country-boundary:preview']);
+    let rebuilds = initial.primaryRebuilds;
+    for (const [zoom, quality] of [[upper + 0.01, 'canonical'], [lower - 0.01, 'preview']]) {
+      const firstFrame = await page.evaluate(async target => {
+        const map = document.getElementById('map');
+        const rect = map.getBoundingClientRect();
+        const current = window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom;
+        map.dispatchEvent(new window.WheelEvent('wheel', {
+          bubbles: true, cancelable: true,
+          clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2,
+          deltaY: -Math.log(target / current) / 0.0013,
+        }));
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        return window.__PANDOLAB_SELECTION_MESH_SNAPSHOT__();
+      }, zoom);
+      expect(firstFrame.quality).toBe(quality);
+      expect(firstFrame.sameResource).toBe(true);
+      expect(firstFrame.sameGeometry).toBe(true);
+      expect(firstFrame.selectionResourceKeys).toEqual([`country-boundary:${quality}`]);
+      expect(firstFrame.primaryRebuilds).toBeGreaterThan(rebuilds);
+      // The existing SVG outline covers frames whose shared GPU upload is
+      // pending. Selection must remain visible through the quality switch.
+      expect([...firstFrame.renderedKeys, ...firstFrame.fallbackKeys]).toContain('territorial:entity:DEU');
+      rebuilds = firstFrame.primaryRebuilds;
+    }
+  }
+  expect(errors).toEqual([]);
+});
+
 for (const { projection, lower, upper, band } of thresholds) {
   test(`${projection} preview and canonical switch in both directions without oscillating in the band`, async ({ page }) => {
     test.setTimeout(180_000);
