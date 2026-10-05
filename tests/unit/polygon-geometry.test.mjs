@@ -90,3 +90,47 @@ test('Borneo canonical country rings are clean before runtime normalization', ()
     }
   }
 });
+
+test('geographic wrapping preserves ordinary and exact full-world seam polygons by identity', () => {
+  const { wrapPolygonGeometry } = globalThis.PandoLabPolygonGeometry;
+  const forbidden = { intersection() { assert.fail('already planar geometry must not be clipped'); } };
+  const ordinary = { type: 'Polygon', coordinates: [counterClockwiseOuter] };
+  const world = { type: 'Polygon', coordinates: [[[-180,-90],[180,-90],[180,90],[-180,90],[-180,-90]]] };
+  assert.equal(wrapPolygonGeometry(ordinary, forbidden), ordinary);
+  assert.equal(wrapPolygonGeometry(world, forbidden), world);
+});
+
+test('wrapping a dateline component does not normalize or drop an untouched tiny island', async () => {
+  await import('../../assets/js/vendor/polygon-clipping.min.js');
+  const crossing = [[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]]];
+  const island = [[[20,0],[20,1e-9],[20+1e-9,1e-9],[20+1e-9,0],[20,0]]];
+  const source = { type: 'MultiPolygon', coordinates: [crossing, island] };
+  const before = structuredClone(source);
+  const result = globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry(source, globalThis.polygonClipping);
+  assert.equal(result.coordinates.length, 3);
+  assert.equal(result.coordinates[2], island);
+  assert.deepEqual(source, before);
+});
+
+test('full-world seam wrapping retains both sides of a dateline-crossing hole', async () => {
+  await import('../../assets/js/vendor/polygon-clipping.min.js');
+  const pc = globalThis.polygonClipping;
+  const world = [[[-180,-90],[180,-90],[180,90],[-180,90],[-180,-90]]];
+  const hole = [[179,-2],[-179,-2],[-179,2],[179,2],[179,-2]];
+  const source = { type: 'Polygon', coordinates: [...world, hole] };
+  const expected = pc.difference([world], [
+    [[[179,-2],[180,-2],[180,2],[179,2],[179,-2]]],
+    [[[-180,-2],[-179,-2],[-179,2],[-180,2],[-180,-2]]],
+  ]);
+  const result = globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry(source, pc);
+  assert.deepEqual(pc.xor(result.type === 'Polygon' ? [result.coordinates] : result.coordinates, expected), []);
+});
+
+test('wrapping is idempotent when strip clipping creates a long planar edge', async () => {
+  await import('../../assets/js/vendor/polygon-clipping.min.js');
+  const pc = globalThis.polygonClipping, wrap = globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry;
+  const source = { type: 'Polygon', coordinates: [[[170,0],[170,10],[-40,10],[110,10],[110,0],[-40,0],[170,0]]] };
+  const first = wrap(source, pc), second = wrap(first, pc);
+  const polygons = value => value.type === 'Polygon' ? [value.coordinates] : value.coordinates;
+  assert.deepEqual(pc.xor(polygons(first), polygons(second)), []);
+});

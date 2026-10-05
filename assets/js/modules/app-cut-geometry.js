@@ -1,3 +1,4 @@
+import { normalizeClippedPolygonGeometry } from './map-edit-geometry.js';
 import { tracePlanarGraphFaces } from './planar-graph-faces.js';
 import { geometryRevision } from './geometry-versions.js';
 import { geometrySegmentIndex, segmentQueryBounds } from './geometry-segment-index.js';
@@ -33,7 +34,7 @@ export function createCutGeometry() {
   }
 
   function normalizeClippedLandGeometry(multiPolygon) {
-    return (0, dependencies.geometryModel.normalizePolygonGeometry)(multiPolygon);
+    return normalizeClippedPolygonGeometry(multiPolygon);
   }
 
   function pointOnRingBoundary(point, rawRing, tolerance = 1e-7) {

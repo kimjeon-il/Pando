@@ -365,3 +365,98 @@ test('territorial-cut unwraps a connected dateline polygon and wraps only the fi
   const { result } = await client.execute('territorial-cut', { payload: cutPayload(source, [[178, 5], [-178, 5]]) });
   assertCutPartition(result, expected, 2);
 });
+
+const datelineSource = { type: 'Polygon', coordinates: [[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]]] };
+const datelineWrapped = { type: 'MultiPolygon', coordinates: [square(179,-2,180,2).coordinates, square(-180,-2,-179,2).coordinates] };
+const datelineView = { kind: 'flat', scale: 500, translate: [512,384], rotate: [0,0,0], center: [180,0],
+  size: { width: 1024, height: 768 }, coarsePointer: false, snapDistance: { mouse: 10, touch: 18 } };
+
+for (const scope of ['root', 'child']) test(`actual ${scope} split Worker accepts wrapped candidates and preserves preview partition`, async t => {
+  const parent = feature('parent', { type: 'Polygon', coordinates: [[[178,-3],[178,3],[-178,3],[-178,-3],[178,-3]]] });
+  const original = feature('A', datelineSource, scope === 'child' ? { parentId: 'parent' } : {});
+  const rows = [original, ...(scope === 'child' ? [parent] : [])].map(feature => ({ kind: 'territorial', feature }));
+  const before = structuredClone(rows);
+  const client = harness(t, rows);
+  const cut = await client.execute('territorial-cut', { payload: { source: original.geometry, sourceKey: scope,
+    coords: [[178,0],[-178,0]], view: datelineView, buildPreview: true } });
+  assert.equal(cut.result.valid, true);
+  assert.equal(cut.result.split.candidates.length, 2);
+  const selected = cut.result.split.candidates[0].geometry;
+  const payload = scope === 'root' ? { sourceIds: ['A'], newFeature: feature('B', selected), transferredGeometry: selected }
+    : { payload: { operation: 'create', targetId: 'parent', parentId: 'parent', sourceId: 'A', draft: selected,
+      newFeature: feature('B', selected, { parentId: 'parent' }) } };
+  const operation = scope === 'root' ? 'new-country' : 'territorial-edit';
+  const first = await client.execute(operation, payload);
+  assert.equal(first.result.preview.validation.blocking, false);
+  const retained = first.result.features.find(row => row.id === 'A').geometry;
+  const created = first.result.features.find(row => row.id === 'B').geometry;
+  assert.equal(area(retained), 4);
+  assert.equal(area(created), 4);
+  assert.deepEqual(globalThis.polygonClipping.xor(globalThis.polygonClipping.union(multiCoordinates(retained), multiCoordinates(created)), datelineWrapped.coordinates), []);
+  assert.deepEqual(globalThis.polygonClipping.intersection(multiCoordinates(retained), multiCoordinates(created)), []);
+  assert.equal(first.result.preview.delta.removedGeometry, null);
+  assert.equal(first.result.preview.delta.addedGeometry, null);
+  client.discard(first.requestId);
+  const second = await client.execute(operation, payload);
+  assert.deepEqual(second.result.features, first.result.features);
+  client.commit(second.requestId);
+  assert.deepEqual(rows, before);
+});
+
+for (const scope of ['root', 'child']) for (const variant of ['hole', 'multiple-crossings', 'island']) {
+  test(`actual ${scope} dateline split preserves ${variant} and rejects genuine outside area`, async t => {
+    const hole = [[179.5,0.5],[-179.5,0.5],[-179.5,1.5],[179.5,1.5],[179.5,0.5]];
+    const source = variant === 'hole' ? { ...datelineSource, coordinates: [...datelineSource.coordinates, hole] }
+      : variant === 'island' ? { type: 'MultiPolygon', coordinates: [datelineSource.coordinates, square(174,0,175,1).coordinates] } : datelineSource;
+    const parent = feature('parent', { type: 'Polygon', coordinates: [[[173,-3],[173,3],[-178,3],[-178,-3],[173,-3]]] });
+    const original = feature('A', source, scope === 'child' ? { parentId: 'parent' } : {});
+    const rows = [original, ...(scope === 'child' ? [parent] : [])].map(feature => ({ kind: 'territorial', feature }));
+    const before = structuredClone(rows), client = harness(t, rows);
+    const coords = variant === 'multiple-crossings' ? [[178,-1],[-178,-1],[-178,0],[178,0],[178,1],[-178,1]] : [[178,0],[-178,0]];
+    const cut = await client.execute('territorial-cut', { payload: { source, sourceKey: variant, coords, view: datelineView, buildPreview: true } });
+    assert.equal(cut.result.valid, true);
+    assert.equal(cut.result.split.candidates.length, variant === 'multiple-crossings' ? 4 : 2);
+    const selected = cut.result.split.candidates[0].geometry;
+    const payload = selected => scope === 'root' ? { sourceIds: ['A'], newFeature: feature('B', selected), transferredGeometry: selected }
+      : { payload: { operation: 'create', targetId: 'parent', parentId: 'parent', sourceId: 'A', draft: selected,
+        newFeature: feature('B', selected, { parentId: 'parent' }) } };
+    const operation = scope === 'root' ? 'new-country' : 'territorial-edit';
+    const { result } = await client.execute(operation, payload(selected));
+    const retained = result.features.find(row => row.id === 'A').geometry;
+    const created = result.features.find(row => row.id === 'B').geometry;
+    const pc = globalThis.polygonClipping;
+    const expected = variant === 'hole' ? pc.difference(datelineWrapped.coordinates, [square(179.5,0.5,180,1.5).coordinates, square(-180,0.5,-179.5,1.5).coordinates])
+      : variant === 'island' ? [...datelineWrapped.coordinates, square(174,0,175,1).coordinates] : datelineWrapped.coordinates;
+    assert.equal(result.preview.validation.blocking, false);
+    assert.deepEqual(pc.xor(pc.union(multiCoordinates(retained), multiCoordinates(created)), expected), []);
+    assert.deepEqual(pc.intersection(multiCoordinates(retained), multiCoordinates(created)), []);
+    assert.equal(result.preview.delta.removedGeometry, null);
+    assert.equal(result.preview.delta.addedGeometry, null);
+    if (variant === 'island') assert.deepEqual(pc.difference([square(174,0,175,1).coordinates], multiCoordinates(retained)), []);
+    await assert.rejects(client.execute(operation, payload(square(178.5,-1,179,0))), /밖으로/u);
+    assert.deepEqual(rows, before);
+  });
+}
+
+test('actual new-country Worker rejects both sides of a crossing hole in a full-world seam shell', async t => {
+  const source = { type: 'Polygon', coordinates: [
+    [[-180,-90],[180,-90],[180,90],[-180,90],[-180,-90]],
+    [[179,-2],[-179,-2],[-179,2],[179,2],[179,-2]],
+  ] };
+  const original = feature('A', source), client = harness(t, [{ kind: 'territorial', feature: original }]);
+  for (const selected of [square(179.25,0,179.5,1), square(-179.5,0,-179.25,1)]) {
+    await assert.rejects(client.execute('new-country', { sourceIds: ['A'], transferredGeometry: selected, newFeature: feature('B', selected) }), /밖으로/u);
+  }
+});
+
+test('actual new-country Worker preserves a subdivided wide source and its preview extent', async t => {
+  const wide = top => ({ type: 'Polygon', coordinates: [[[-170,0],[-170,top],[0,top],[170,top],[170,0],[0,0],[-170,0]]] });
+  const source = wide(10), selected = wide(5), original = feature('A', source);
+  const client = harness(t, [{ kind: 'territorial', feature: original }]);
+  const { result } = await client.execute('new-country', { sourceIds: ['A'], transferredGeometry: selected, newFeature: feature('B', selected) });
+  assert.equal(area(result.features.find(row => row.id === 'A').geometry), 1700);
+  assert.equal(area(result.features.find(row => row.id === 'B').geometry), 1700);
+  assert.equal(result.preview.delta.removedGeometry, null);
+  assert.equal(result.preview.delta.addedGeometry, null);
+  assert.deepEqual(globalThis.polygonClipping.xor(multiCoordinates(result.preview.delta.afterUnion), multiCoordinates(source)), []);
+});

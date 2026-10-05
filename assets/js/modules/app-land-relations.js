@@ -1,3 +1,4 @@
+import { wrapPolygonGeometry, multiCoordinates, normalizeClippedPolygonGeometry } from './map-edit-geometry.js';
 /** LandRelations: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -47,7 +48,7 @@ export function createLandRelations() {
       if (preserved.has(String(feature.id)) || feature.properties?.coverageMode === dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT) return [feature];
       const container = dependencies.territorialModel.entityRepository.parent(feature.id);
       if (!container?.geometry) return [];
-      const clipped = (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(clipper.intersection(feature.geometry.coordinates, container.geometry.coordinates));
+      const clipped = normalizeClippedPolygonGeometry(clipper.intersection(multiCoordinates(wrapPolygonGeometry(feature.geometry, clipper)), multiCoordinates(wrapPolygonGeometry(container.geometry, clipper))));
       if (!clipped) return [];
       return [{ ...feature, geometry: clipped }];
     });
@@ -73,7 +74,7 @@ export function createLandRelations() {
     const removedIds = [];
     const features = dependencies.territorialModel.entityRepository.list({ kind: 'general' }).filter(entity => !!entity.properties.parentId).flatMap(feature => {
         if (!sources.has(String((0, dependencies.territorialModel.territorialRootId)(feature, id => dependencies.territorialModel.entityRepository.get(id)) || ''))) return [];
-        const remainder = (0, dependencies.cutGeometry.normalizeClippedLandGeometry)(clipper.difference(feature.geometry.coordinates, transferredGeometry.coordinates));
+        const remainder = normalizeClippedPolygonGeometry(clipper.difference(multiCoordinates(wrapPolygonGeometry(feature.geometry, clipper)), multiCoordinates(wrapPolygonGeometry(transferredGeometry, clipper))));
         changedIds.push(String(feature.id));
         if (!remainder) { removedIds.push(feature.id); return []; }
         return [{ ...feature, geometry: remainder }];

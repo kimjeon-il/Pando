@@ -1,7 +1,7 @@
 import './polygon-geometry.js';
 import { coordinateBounds } from './coordinate-bounds.js';
 
-const { normalizePolygonGeometry, ringSignedArea, hasCanonicalPolygonWinding } = globalThis.PandoLabPolygonGeometry;
+const { normalizePolygonGeometry, normalizeClippedPolygonGeometry, wrapPolygonGeometry, ringSignedArea, hasCanonicalPolygonWinding } = globalThis.PandoLabPolygonGeometry;
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const featureId = feature => String(feature?.id || '');
 
@@ -30,4 +30,4 @@ function polygonBounds(polygon) {
   return geometryBounds({ type: 'Polygon', coordinates: polygon });
 }
 
-export { normalizePolygonGeometry, ringSignedArea, hasCanonicalPolygonWinding, clone, featureId, multiCoordinates, area, geometryBounds, boundsOverlap, polygonBounds };
+export { normalizePolygonGeometry, normalizeClippedPolygonGeometry, wrapPolygonGeometry, ringSignedArea, hasCanonicalPolygonWinding, clone, featureId, multiCoordinates, area, geometryBounds, boundsOverlap, polygonBounds };

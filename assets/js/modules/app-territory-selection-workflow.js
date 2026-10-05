@@ -471,7 +471,10 @@ export function createTerritorySelectionWorkflow() {
         current.activeMethod = null;
         return activateMethod(current, method);
       }
-      if (!current.combinedGeometry && (current.selectedComponentKeys.length || current.currentGeometry || current.parts.length)) refreshCombinedGeometry(current);
+      const unfinishedComponents = current.activePhase === 'components'
+        && (current.componentIndex?.key !== componentPreparationKey(current)
+          || current.useRiverBoundaries && current.riverPartitionStatus !== 'ready');
+      if (unfinishedComponents || !current.combinedGeometry && (current.selectedComponentKeys.length || current.currentGeometry || current.parts.length)) refreshCombinedGeometry(current);
       if (!dependencies.projectState.state.geometryPreview.session && selectionGeometryReady(current)) schedulePreview();
       refresh('territory-selection-open');
       return true;
@@ -672,7 +675,18 @@ export function createTerritorySelectionWorkflow() {
     current.computationTimer = null;
     current.combinedGeometry = null;
     current.computationError = false;
-    if (!current.parts.length && !current.currentGeometry && !current.selectedComponentKeys.length && !current.selectedCandidateIds.length) {
+    const rebuildComponents = current.activePhase === 'components'
+      && current.componentIndex?.key !== componentPreparationKey(current);
+    if (rebuildComponents) {
+      // Archived-part changes invalidate selections and rivers from the old remainder.
+      current.selectedComponentKeys = [];
+      current.currentGeometry = null;
+      current.componentIndex = null;
+      (0, dependencies.riverCandidates.resetRiverPartitionState)();
+    }
+    const rebuildRivers = current.activePhase === 'components' && current.useRiverBoundaries
+      && (rebuildComponents || current.riverPartitionStatus !== 'ready');
+    if (!rebuildComponents && !rebuildRivers && !current.parts.length && !current.currentGeometry && !current.selectedComponentKeys.length && !current.selectedCandidateIds.length) {
       current.computationPending = false;
       current.archivedGeometry = null;
       return null;
@@ -690,6 +704,10 @@ export function createTerritorySelectionWorkflow() {
         const prepared = await prepareComponentSource(current);
         if (!isCurrent()) return;
         if (!prepared) throw new Error('기준 영역이 변경되었습니다. 다시 시도하세요.');
+        if (rebuildRivers) {
+          await (0, dependencies.riverCandidates.prepareRiverPartitionCandidates)();
+          if (!isCurrent()) return;
+        }
         const selected = phase === 'components'
           ? dependencies.territoryComponents.territoryComponentItems().filter(item => item.selected).map(item => item.geometry)
           : phase === 'candidate' ? current.candidates.filter(item => current.selectedCandidateIds.includes(item.id)).map(item => item.geometry) : [];
@@ -775,10 +793,9 @@ export function createTerritorySelectionWorkflow() {
     current.selectedComponentKeys = [];
     current.currentGeometry = null;
     current.hoveredComponentKey = null;
-    refreshCombinedGeometry(current);
     (0, dependencies.riverCandidates.resetRiverPartitionState)();
-    if (next) void (0, dependencies.riverCandidates.prepareRiverPartitionCandidates)();
-    else (0, dependencies.territoryComponentUi.updateTerritoryComponentSelectionFeedback)();
+    refreshCombinedGeometry(current);
+    if (!next) (0, dependencies.territoryComponentUi.updateTerritoryComponentSelectionFeedback)();
     dependencies.domains.editingDomain?.refreshTerritorySelection?.({
       tool: current.tool,
       reason: 'territory-selection-river-toggle',
@@ -903,7 +920,7 @@ export function createTerritorySelectionWorkflow() {
   function canAddPart(current = session()) {
     if (!current || current.stage !== 'selection' || !current.currentGeometry || !previewReady(current)) return false;
     if (!['candidate', 'components', 'result'].includes(current.activePhase)) return false;
-    return current.unboundedMethods.includes(current.activeMethod) || !!current.remainingGeometry;
+    return current.kind === 'annex' || current.unboundedMethods.includes(current.activeMethod) || !!current.remainingGeometry;
   }
 
   function selectionGeometryReady(current = session()) {
