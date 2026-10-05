@@ -13,6 +13,39 @@ import { MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from '../../assets/js/modules/map-
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
+test('ordinary pointer hover does not starve real GPU uploads while dragging retains the quiet window', async t => {
+  const windowTarget = new globalThis.EventTarget(), documentTarget = new globalThis.EventTarget();
+  const previousGlobals = ['window', 'document'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
+  Object.assign(globalThis, { window: windowTarget, document: documentTarget });
+  t.after(() => { for (const [key, descriptor] of previousGlobals) {
+    if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+    else delete globalThis[key];
+  } });
+  let time = 0, scheduler, calls = 0;
+  const frames = [];
+  t.mock.method(performance, 'now', () => time);
+  const owner = createRenderingDomain({ requestFrame: callback => (frames.push(callback), frames.length),
+    gpuMapRenderer: { setUploadScheduler(value) { scheduler = value; } } });
+  t.after(() => {
+    scheduler.noteInput(false); time += 501;
+    frames.splice(0).forEach(callback => callback());
+    owner.dispose();
+  });
+  const tick = milliseconds => { time += milliseconds; frames.shift()?.(); };
+  const upload = scheduler.enqueueUpload({ key: 'terrain', step: () => { calls++; return { done: true }; } });
+  for (let index = 0; index < 10; index++) { documentTarget.dispatchEvent(new globalThis.Event('pointermove')); tick(100); }
+  assert.equal(calls, 1, 'hover alone must not keep postponing terrain');
+  await upload;
+  documentTarget.dispatchEvent(new globalThis.Event('pointerdown'));
+  const dragUpload = scheduler.enqueueUpload({ key: 'drag-terrain', step: () => { calls++; return { done: true }; } });
+  documentTarget.dispatchEvent(new globalThis.Event('pointermove')); tick(1000);
+  assert.equal(calls, 1, 'dragging still holds background uploads');
+  documentTarget.dispatchEvent(new globalThis.Event('pointerup')); tick(499);
+  assert.equal(calls, 1);
+  tick(1); await dragUpload;
+  assert.equal(calls, 2);
+});
+
 test('domain factories expose isolated public contracts', () => {
   const projectState = { entityDelta: { changed: [{ id: 'DEU' }], removedIds: [] } };
   const project = createProjectDomain({ getSnapshot: () => projectState });

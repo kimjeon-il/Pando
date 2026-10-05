@@ -2,7 +2,29 @@
 
 WebGL1·2의 기본 지형은 공개된 ETOPO DEM `0.13.3`의 색채 표현이다. DEM manifest, tint 또는 데이터셋을 사용할 수 없으면 Natural Earth raster `0.12.6`으로 전환한다. Canvas는 raster `0.12.6`을 계속 사용한다. 기존 프로젝트는 처음 불러올 때 색채 표현으로 한 번 전환되며, 그 뒤 사용자가 선택한 없음·흑백·색채 설정을 저장한다. 색채 표현은 평면의 기준 밝기를 유지하도록 DEM 음영을 정규화해 지형의 명암이 흐려지지 않게 합성한다.
 
-지형 해상도는 렌더러가 실제로 표시하는 지도 품질에 연결한다. 지도 미리보기에서는 2700×1350의 LOD 1만 요청·표시한다. 최저 단계보다 픽셀 수가 4배이며, 상세 편집 지형과 구분한다. canonical 지도에서는 현재 카메라와 기기 픽셀 비율에 필요한 LOD와 같은 단계의 인접 타일을 직접 요청한다. 중간 LOD를 순차적으로 받거나 저장된 저해상도 타일을 확대해 대체 표시하지 않는다. 상세 타일이 준비되지 않은 부분에는 기본 지도 바탕이 보인다. 축소로 지도 품질이 다시 미리보기로 전환되면 지형도 LOD 1로 돌아간다. WebGL과 Canvas Worker에 같은 규칙을 적용한다.
+WebGL 지형 해상도는 국가 메시의 preview·canonical 상태와 독립적으로 카메라 배율·기기 픽셀 비율·투영·화면 범위로 결정한다. DEM과 raster 모두 세계 전체를 덮는 LOD 0 타일을 먼저 요청하고 캐시에 유지한다. 최초 표시는 세계 바탕이 모두 GPU에 올라온 뒤 시작한다. 상세 타일이 먼저 도착해 현재 화면을 전부 덮더라도, 다음 회전에 대비한 세계 바탕이 없으면 아직 표시하지 않는다. 그 뒤에는 고해상도 타일이 GPU에 준비된 부분만 교체하고, 아직 준비되지 않은 부분은 세계 바탕과 기존 상세 타일로 덮는다. 회전해 캐시에 없는 지역을 보거나 확대·축소해도 이 바탕을 지우지 않는다. 중간 LOD를 순차 다운로드하지 않고 목표 LOD와 인접 타일을 직접 요청한다. 흑백·색채 전환은 같은 높이 또는 raster 타일을 재사용한다. 일반 마우스 호버는 GPU 업로드를 미루지 않으며 드래그·휠 조작의 기존 대기 정책은 유지한다. Canvas Worker의 별도 미리보기 LOD 1 정책은 이번 보정 범위에서 유지한다.
+
+카메라의 물리 배율을 CSS 배율로 환산할 때는 동일한 `MapVisualFrame`의 DPR을 사용한다. 적응형 Canvas backing DPR과 혼합하면 모바일의 같은 화면에서 불필요하게 높은 LOD를 요청할 수 있다. 세계 바탕 요청의 재시도 소진은 DEM에서는 기존 raster 전환 경로로 전달한다. raster에서도 실패하면 기존 작업 오류 경계로 `PL-TERRAIN-001`을 게시하며 타일 키·HTTP 오류를 진단 원인에 보존한다. 작업 알림은 기존 공통 알림 정책을 사용하므로 후속 작업 알림으로 교체될 수 있다.
+
+## 2026-10-05 지형 누락 보정 검증
+
+기준은 웹 main `f80de2493a012df198fde1bcadf2289d841d4220`, 작업 브랜치는 `codex/terrain-base-coverage`다. 기존 준비·업로드 소유자를 수정했고 국가 형상, 선택선, 저장 형식, 지형 데이터 버전은 변경하지 않았다. 공개 DEM/raster 자료를 로컬 production 렌더러와 Chromium WebGL2/SwiftShader에서 사용했다.
+
+| 실행 | 통과 | 실패 | skip | 근거 |
+| --- | ---: | ---: | ---: | --- |
+| 집중 단위 검사 | 58 | 0 | 0 | `test-results/terrain-base-unit.log` |
+| 최초 최종 브라우저 묶음 | 4 | 2 | 0 | `test-results/terrain-release-candidate.log` |
+| 남은 두 브라우저 검사 재실행 | 2 | 0 | 0 | `test-results/terrain-focused-final.log` |
+
+단위 명령: `node --test tests/unit/gpu-terrain-preparation.test.mjs tests/unit/gpu-upload-staging.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/gpu-base-scene-order.test.mjs`.
+
+브라우저 명령: `PANDOLAB_VERIFY_LIVE_DEM=1 pnpm exec playwright test tests/browser/terrain-lod-independence.spec.mjs tests/browser/terrain-progressive.spec.mjs tests/browser/terrain-request-priority.spec.mjs tests/browser/terrain-preview-quality.spec.mjs --grep 'keeps terrain resources|rotating the globe|improved webgl2|slow mobile globe|surfaces exhausted' --output=test-results/terrain-release-candidate` (PowerShell에서는 `$env:PANDOLAB_VERIFY_LIVE_DEM='1'`; 최초 실행 포트 4194). 후속 실행은 `--grep 'slow mobile globe|surfaces exhausted' --output=test-results/terrain-focused-final`, 포트 4195였다. 동일 제품 코드에 대해 여섯 시나리오가 모두 통과했으며 전체 테스트 suite는 실행하지 않았다.
+
+실패 두 건은 실제 출력과 검사 환경을 조사한 뒤 보정했다. 실패 알림은 게시된 뒤 강·호수 캐시 완료 알림에 교체돼 늦은 DOM 조회가 놓쳤다. 이제 실제로 표시된 오류의 역할·접근성 문구·코드를 게시 순간에 검사한다. 모바일은 전체 프레임 trace를 기록하며 소프트웨어 GPU가 목표 25개 중 22개까지만 올린 상태에서 제한 시간이 끝났다. 전체 trace를 끈 같은 완료 assertion으로 재실행해 초기 L1, 목표 L3, GPU 준비 25/25를 확인했다. 실패 시 메트릭과 스크린샷은 계속 남긴다.
+
+DEM 71프레임, raster 59프레임의 화면 좌표를 실제 준비 타일의 지리 범위와 대조해 빈 부분이 없는지 검사했다. 일반 호버 중 업로드, 흑백·색채 전환 시 같은 텍스처 재사용, 국가 LOD 전환, 상세 다운로드 지연, 실제 지구본 드래그·평면 복귀·확대·축소를 포함한다. 지구본 회전 스크린샷도 확인했다. 회전 우선순위 검사는 이전 다운로드 6개를 취소하고 새 화면 요청을 167ms에 시작했다. 단위 검사는 상세 타일이 먼저 도착하는 역순, 바탕만 실패하는 경우, DPR 변경, 기존 캐시·GPU 업로드 정책도 포함한다.
+
+관련 파일의 ESLint, `node scripts/check-runtime-boundaries.mjs`(302모듈, 순환 없음), `git diff --check`, workflow YAML 및 작업 연결 검사가 통과했다. 기존 Application Architecture workflow에 변경 범위별 지형 브라우저 검사 여섯 개와 증거 artifact 업로드를 추가했다. 원격 CI, main 병합, Pages 배포 및 라이브 배포 결과 검증은 이번 로컬 검증에서 실행하지 않았다. Canvas Worker 및 실제 하드웨어 GPU·모든 브라우저에서의 동등성을 통과로 간주하지 않는다. 위 로그·이미지는 ignored 로컬 검증 산출물이며 원격 실행 시 CI artifact로 보존한다.
 
 DEM 데이터는 앱 저장소가 아닌 [별도 공개 저장소](https://github.com/kimjeon-il/world-map-terrain-v0.13.0)의 GitHub Pages에서 제공한다. 앱은 `https://kimjeon-il.github.io/world-map-terrain-v0.13.0/terrain/v0.13.3/manifest.json`을 읽는다. 데이터 자산은 해당 버전에서 수정하지 않고, 변경이 필요하면 새 버전 경로를 만든다. 배포 순서는 데이터 업로드와 HTTP 검증, `?demTerrain=preview` 검수, 앱의 기본값 전환이다.
 
@@ -33,4 +55,4 @@ python tools/verify-terrain-dem.py --etopo 'F:\map-editor-dem-0.13.0\source\ETOP
 
 로컬 `0.13.2`는 `F:\map-editor-dem-0.13.0\terrain\v0.13.2`에 생성했다. tint 734,150바이트, DEM 타일과 tint 합계 853,261,814바이트이며 tint SHA-256은 `425e2c8f255017ce1d94d976f008b0c107c3fb4ee7370e021788c913136399ab`다. 재생성과 복사에 160초, 최대 작업 메모리 약 449MiB를 사용했다. 기존 타일 1,280개의 파일 해시가 모두 같고, 한반도 본토·그린란드·남극의 비교 지점 색도 같았다. 258개 국가의 4,274개 조각 대표점을 조사했고, 원본이 흰 배경인 비빙하 소형 조각 137개 중 위도 ±60° 안에서 RGB 세 채널이 모두 230 이상으로 남는 사례는 없었다. 이는 대표점 검사이며 모든 육지 픽셀의 색 품질을 보장하는 검사는 아니다. 가거도의 tint 보간색은 기존 `[200.8,218.2,213.6]`에서 `[118,162,149]`로 바뀌었고 Chromium WebGL2 화면에서 육지색으로 표시됨을 확인했다. 관련 Python 검사 14개가 통과했다. 공개 `0.13.2`는 기존 `0.13.0` 고도 타일을 재사용하고 새 manifest·tint·생성 보고·대표점 감사만 게시한다. 앱의 기본 자료도 `0.13.2`로 전환한다. 기본 국가 회색 채우기와 전체 색채 대비는 이번 변경 범위에 포함하지 않는다.
 
-`0.13.3`는 고도·음영 타일을 재생성하지 않고 원본 HYP_HR에서 tint를 4096×2048로 다시 샘플링했다. tint는 2,433,794바이트이며 SHA-256은 `1ae4c70e05494917c11d3c6b32869db61bf4f9e7e4b0239f9b4bd2b9bec582f3`다. 기존 1,280개 타일의 해시는 그대로다. 작은 섬의 흰 배경 제외와 빙하 보호 규칙도 유지한다. 미리보기 지형은 WebGL·Canvas 모두 LOD 1로 높였으며, 미리보기에서 받은 타일은 상세 편집의 더 높은 LOD 대체 표시에 사용하지 않는다.
+`0.13.3`는 고도·음영 타일을 재생성하지 않고 원본 HYP_HR에서 tint를 4096×2048로 다시 샘플링했다. tint는 2,433,794바이트이며 SHA-256은 `1ae4c70e05494917c11d3c6b32869db61bf4f9e7e4b0239f9b4bd2b9bec582f3`다. 기존 1,280개 타일의 해시는 그대로다. 작은 섬의 흰 배경 제외와 빙하 보호 규칙도 유지한다. 당시 도입한 국가 미리보기와 지형 LOD의 연결은 이후 WebGL 경로에서 제거했으며, 현재 표시·보존 규칙은 위 문단을 따른다.

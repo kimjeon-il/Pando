@@ -29,7 +29,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
       await expect(page.locator('.gpu-map-canvas')).toBeVisible();
       await expect.poll(() => tiles.length, { timeout: 90_000 }).toBeGreaterThan(0);
-      expect(tiles.every(level => level === 1)).toBe(true);
+      expect(tiles.every(level => renderer === 'webgl2' ? level === 0 || level === 1 : level === 1)).toBe(true);
       if (renderer === 'webgl2') {
         await expect.poll(() => page.evaluate(() => {
           const m = window.__PANDOLAB_GPU_METRICS__;
@@ -51,7 +51,7 @@ for (const renderer of ['webgl2', 'canvas']) {
         }), { timeout: 90_000 }).toBeGreaterThan(40_000);
       }
       await page.screenshot({ path: testInfo.outputPath(`${renderer}-improved-preview.png`) });
-      expect(tiles.every(level => level === 1)).toBe(true);
+      expect([...new Set(tiles)].sort()).toEqual(renderer === 'webgl2' ? [0, 1] : [1]);
       if (renderer === 'webgl2') {
         await page.evaluate(() => {
           const host = window.__PANDOLAB_MAP_HOST__;

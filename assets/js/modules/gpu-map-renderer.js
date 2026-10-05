@@ -410,7 +410,11 @@ export function createGpuMapRenderer(deps) {
       },
       tintUrl: () => terrainAssetUrl(terrainManifest.tint.url, { manifestUrl: terrainManifestUrl,
         dataBaseUrl: PHYSICAL_DATA_BASE_URL, revision: terrainManifest.assetsSha256.slice(0, 12) }),
-      onUnusable: reason => { void fallbackTerrainToRaster(reason || 'DEM 타일을 사용할 수 없습니다.'); },
+      onUnusable: reason => {
+        if (terrainManifest.representation === TERRAIN_DEM_FORMAT) { void fallbackTerrainToRaster(reason); }
+        else reportOperationError(new Error('Terrain tile loading failed', { cause: new Error(reason) }),
+          '지형 타일을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.', 'PL-TERRAIN-001', 0);
+      },
     });
     let preparedTerrain = [];
     function prepareTerrain(frame) {
@@ -433,7 +437,7 @@ export function createGpuMapRenderer(deps) {
         visible: state.physicalSettings.terrainVisible,
         physicalStyle: state.physicalSettings.terrainStyle,
         projection: state.projection, rotation: state.view.globeRotation, flatCenter: state.view.flatCenter,
-        width: cssWidth, height: cssHeight, dpr: effectivePixelRatio, devicePixelRatio: window.devicePixelRatio,
+        width: cssWidth, height: cssHeight, devicePixelRatio: window.devicePixelRatio,
         cacheBudgetBytes: renderQuality.terrainCacheBudgetBytes,
       });
     }
@@ -4492,7 +4496,10 @@ export function createGpuMapRenderer(deps) {
           setTerrainManifest(fallback, TERRAIN_RASTER_MANIFEST_URL, { source: 'fallback', fallbackReason: reason });
           onTerrainSourceChanged?.(fallback);
         }
-      } catch (error) { console.warn('Raster terrain fallback failed', error); }
+      } catch (error) {
+        console.warn('Raster terrain fallback failed', error);
+        reportOperationError(error, '지형 타일을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.', 'PL-TERRAIN-001', 0);
+      }
       finally { terrainFallbackPending = false; }
     }
 
