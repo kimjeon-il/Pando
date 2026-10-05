@@ -51,13 +51,13 @@ test('insert mode supports repeated single-tap insertion, selected deletion and 
   assert.equal(editing.snapshot().draft.vertexInsertMode, false);
   editing.replaceDraftCoordinates([[0, 0], [10, 0]]);
   enabled = false; // A completed preview disables draft input, including stale handles.
-  editing.refreshDraftPresentation('preview-ready');
+  editing.refreshEditingPresentation('preview-ready');
   assert.equal(editing.createRenderPacket().draft.active, false);
   assert.equal(editing.deleteSelectedDraftPoint(), false);
   assert.equal(editing.handleInteraction(eventFor(editing, 'draft-vertex-select', { vertexIndex: 0 })), false);
   assert.equal(editing.handleInteraction(eventFor(editing, 'draft-vertex-drag-start', { vertexIndex: 0 })), false);
   enabled = true;
-  editing.refreshDraftPresentation('preview-discard');
+  editing.refreshEditingPresentation('preview-discard');
   assert.equal(editing.createRenderPacket().draft.active, true);
 });
 

@@ -206,7 +206,13 @@ export function createDomainAssembly() {
       refExists: dependencies.objectLookup.objectRefExists,
       onSelectionChanged: snapshot => {
         const selection = snapshot.selection;
+        const previous = dependencies.projectState.state.selected;
         dependencies.projectState.state.selected = selection.items.find(item => item.key === selection.primaryKey) || null;
+        if (previous?.domain === 'hydro' && dependencies.projectState.state.tool === 'select'
+          && previous.key !== dependencies.projectState.state.selected?.key) {
+          editingDomain?.cancelActiveGesture('object-target-changed', { emitChange: false });
+        }
+        editingDomain?.refreshEditingPresentation('selection-edit-target');
         selectionUiController?.sync?.(snapshot);
       },
       requestRender: reason => renderingDomain?.invalidateSelectionOverlay?.(reason) || false,
@@ -551,52 +557,60 @@ export function createDomainAssembly() {
           return null;
         },
         canEditObject: feature => {
+          const ref = (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: feature?.properties?.category, id: feature?.id });
+          if (!(0, dependencies.objectOperationsA.objectRefVisible)(ref)) return false;
           if (feature?.properties?.locked === true) {
             (0, dependencies.feedback.setActionStatus)('잠금을 해제한 뒤 꼭짓점을 이동하세요.', 'error', 3200);
             return false;
           }
           const hydroEdit = (0, dependencies.hydroModel.isHydroEditFeature)(feature);
           if (!hydroEdit) return false;
-          projectDomain.recordHistory();
           return true;
         },
+        captureObjectGestureSnapshot: () => (0, dependencies.snapshots.snapshotEditable)(),
         getObjectVertexTarget: () => {
           if (dependencies.projectState.state.tool !== 'select') return null;
           const selected = dependencies.projectState.state.selected;
           if (selected?.domain === 'hydro') {
+            if (!(0, dependencies.objectOperationsA.objectRefVisible)(selected)) return null;
             const feature = dependencies.projectState.state.hydroEdits.find(item => String(item.id) === String(selected.id));
-            return feature ? { targetRef: { domain: 'hydro', type: 'hydro', id: String(feature.id) }, mode: 'hydro', feature } : null;
+            return feature ? { targetRef: (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro',
+              type: feature.properties.category, id: String(feature.id) }), mode: 'hydro', feature } : null;
           }
           return null;
         },
-        previewObjectGesture: ({ source, feature, segments }) => {
-          (0, dependencies.gpuRenderingA.beginActiveEditPreview)({
-            key: `${(0, dependencies.hydroModel.isHydroEditFeature)(source) ? 'hydro' : 'generic'}:${source.id}`,
-            segments,
+        previewObjectGesture: ({ source, feature, segments, gestureId }) => {
+          if (dependencies.geometryOperations.editPreviewController.snapshot().gestureId === gestureId) {
+            (0, dependencies.gpuRenderingB.updateActiveEditPreview)(segments);
+          } else (0, dependencies.gpuRenderingA.beginActiveEditPreview)({
+            key: `hydro:${source.id}`, gestureId, segments,
+            targetRefs: [(0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: source.properties.category, id: source.id })],
           });
           return feature;
         },
-        commitObjectGesture: ({ source, feature, beforeGeometry, changed }) => {
+        commitObjectGesture: ({ source, feature, changed, snapshot, previewId }) => {
           const hydroEdit = (0, dependencies.hydroModel.isHydroEditFeature)(source);
-          (0, dependencies.gpuRenderingA.clearActiveEditPreview)('vertex-edit-preview-end');
           if (!changed) {
-            projectDomain.discardHistory();
             renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-preview-no-change');
             return false;
           }
           const issues = ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type) ? (0, dependencies.geometryModel.validateStructuredGeometry)(feature) : [];
           if (issues.length) {
-            projectDomain.discardHistory();
             (0, dependencies.feedback.setActionStatus)(issues[0].message || '유효하지 않은 geometry라 꼭짓점 이동을 되돌렸습니다.', 'error', 3800);
             return false;
           }
           source.geometry = (0, dependencies.platform.deepClone)(feature.geometry);
           if (hydroEdit) dependencies.spatialQuery.mapObjectGeometryRevisions.hydro += 1;
           else dependencies.spatialQuery.mapObjectGeometryRevisions.generic += 1;
+          dependencies.projectState.state.stateRevision += 1;
+          projectDomain.commitHistorySnapshot(snapshot);
+          if (previewId) dependencies.geometryOperations.editPreviewController.handoff(previewId, {
+            kind: 'object', objectKey: (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'hydro', type: source.properties.category, id: source.id }).key,
+            geometry: source.geometry, geometryRevision: geometryRevision(source.geometry),
+          });
           renderingDomain?.invalidateEditedGeometryPatch?.(hydroEdit ? 'hydro' : 'generic', 'vertex-edit-commit');
           projectDomain.queueAutosave();
           (0, dependencies.feedback.setActionStatus)('꼭짓점을 이동했습니다.', 'success');
-          void beforeGeometry;
           return true;
         },
         beginBoundaryGesture: event => {
@@ -638,9 +652,10 @@ export function createDomainAssembly() {
             (0, dependencies.feedback.setActionStatus)('변경 구간의 상위 단위 또는 자식이 잠겨 있습니다.', 'error', 3400);
             return false;
           }
-          (0, dependencies.gpuRenderingA.beginActiveEditPreview)({
+          const previewId = (0, dependencies.gpuRenderingA.beginActiveEditPreview)({
             key: `${borderMode ? 'border' : 'coast'}:${[...affectedIds].sort().join('|')}:${node.key}`,
             segments: node.segments,
+            targetRefs: [...affectedIds].map(id => (0, dependencies.selectionServices.normalizeObjectRef)({ domain: 'territorial', type: 'entity', id })),
           });
           return {
             borderMode,
@@ -650,10 +665,11 @@ export function createDomainAssembly() {
             startCoordinate: node.coordinate,
             coordinate: node.coordinate,
             changed: false,
+            previewId,
           };
         },
         moveBoundaryGesture: (session, coordinate) => {
-          session.changed = session.changed || !(0, dependencies.geometryPreview.coordNear)(session.startCoordinate, coordinate, 1e-9);
+          session.changed = !(0, dependencies.geometryPreview.coordNear)(session.startCoordinate, coordinate, 1e-9);
           session.coordinate = coordinate.slice();
           const same = value => dependencies.geometryPreview.coordNear(value, session.startCoordinate, 1e-9);
           const segments = session.node.segments.map(segment => ({
@@ -663,46 +679,61 @@ export function createDomainAssembly() {
           (0, dependencies.gpuRenderingB.updateActiveEditPreview)(segments);
         },
         commitBoundaryGesture: async session => {
-          (0, dependencies.gpuRenderingA.clearActiveEditPreview)('country-boundary-preview-end');
           if (!session.changed) return false;
           const preparation = session.preparation;
           if (!preparation.current() || preparation.status !== 'ready') return false;
+          let accepted = false;
+          const current = () => preparation.current() && (accepted
+            ? dependencies.geometryOperations.editPreviewController.snapshot().lastSessionId
+            : dependencies.geometryOperations.editPreviewController.snapshot().id) === session.previewId;
           preparation.status = 'moving';
           (0, dependencies.taskUi.updateModeButtons)();
           try {
             const response = await dependencies.spatialQuery.mapEditClient.execute('boundary-move', { payload: {
               preparationId: preparation.result.preparationId, nodeKey: session.node.nodeKey, coordinate: session.coordinate,
             } }, { jobKey: 'boundary-move' });
-            if (!preparation.current()) return false;
+            if (!current()) return false;
             session.features = new Map(response.result.features.map(feature => [String(feature.id), feature]));
+            const unitTarget = territorialEntityRepository.get(dependencies.projectState.state.boundaryEditSeedEntityId);
+            let ready;
+            if (session.borderMode && !(unitTarget?.properties?.entityKind === 'general' && !unitTarget?.properties?.parentId)) {
+              ready = await (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'boundary', targetId: unitTarget.id,
+                parentId: unitTarget.properties.parentId, featurePatches: [...session.features.values()],
+              }, { selectedId: unitTarget.id, shouldKeepResult: () => current() && dependencies.projectState.state.tool === 'territorial-border'
+                && String(dependencies.projectState.state.boundaryEditSeedEntityId) === String(unitTarget.id) });
+            } else if (!session.borderMode) {
+              const countryId = [...session.affectedIds][0];
+              ready = await (0, dependencies.territorialEditingB.previewTerritorialEdit)({
+                operation: 'coast', targetId: countryId, draft: session.features.get(countryId)?.geometry,
+              }, { selectedId: dependencies.projectState.state.coastEditReturnSelection?.id || countryId,
+                shouldKeepResult: () => current() && dependencies.projectState.state.tool === 'country-coast' && String(dependencies.projectState.state.coastEditCountryId) === String(countryId) });
+            } else {
+              const ids = [...session.affectedIds];
+              ready = await (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'country-boundary', targetId: ids[0],
+                featurePatches: [...session.features.values()],
+              }, { selectedId: ids[0], shouldKeepResult: () => current() && dependencies.projectState.state.tool === 'territorial-border' });
+            }
+            if (!ready || !current()) return false;
+            const result = dependencies.projectState.state.geometryPreview.session;
+            if (result.validation.blocking || !result.delta.newBoundaries.length) {
+              (0, dependencies.geometryOperations.discardActiveGeometryPreview)({ announce: false });
+              return false;
+            }
+            accepted = dependencies.geometryOperations.editPreviewController.handoff(session.previewId, {
+              kind: 'geometry-preview', sessionId: result.sessionId, revision: result.revision,
+            });
+            return accepted;
           } catch (error) {
-            if (preparation.current()) {
+            if (current() && !error.cancelled && error.name !== 'AbortError') {
               preparation.status = 'error';
               preparation.message = error.message || '경계 이동을 계산하지 못했습니다. 다시 시도하세요.';
+              (0, dependencies.feedback.reportOperationError)(error, preparation.message, 'PL-BOUNDARY-MOVE', 3800);
             }
             return false;
           } finally {
             if (preparation.status === 'moving') preparation.status = 'ready';
             (0, dependencies.taskUi.updateModeButtons)();
           }
-          const unitTarget = territorialEntityRepository.get(dependencies.projectState.state.boundaryEditSeedEntityId);
-          if (session.borderMode && !(unitTarget?.properties?.entityKind === 'general' && !unitTarget?.properties?.parentId)) {
-            return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'boundary', targetId: unitTarget.id,
-              parentId: unitTarget.properties.parentId, featurePatches: [...session.features.values()],
-            }, { selectedId: unitTarget.id, shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'territorial-border'
-              && String(dependencies.projectState.state.boundaryEditSeedEntityId) === String(unitTarget.id) });
-          }
-          if (!session.borderMode) {
-            const countryId = [...session.affectedIds][0];
-            return (0, dependencies.territorialEditingB.previewTerritorialEdit)({
-              operation: 'coast', targetId: countryId, draft: session.features.get(countryId)?.geometry,
-            }, { selectedId: dependencies.projectState.state.coastEditReturnSelection?.id || countryId,
-              shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'country-coast' && String(dependencies.projectState.state.coastEditCountryId) === String(countryId) });
-          }
-          const ids = [...session.affectedIds];
-          return (0, dependencies.territorialEditingB.previewTerritorialEdit)({ operation: 'country-boundary', targetId: ids[0],
-            featurePatches: [...session.features.values()],
-          }, { selectedId: ids[0], shouldKeepResult: () => preparation.current() && dependencies.projectState.state.tool === 'territorial-border' });
         },
         renderPacket: () => {
           const territorySelection = dependencies.projectState.state.territorySelectionSession;
@@ -730,9 +761,12 @@ export function createDomainAssembly() {
           }
           return {
             boundaryEdit: dependencies.projectState.state.boundaryPreparation?.status === 'ready' ? dependencies.projectState.state.boundaryPreparation.packet : null,
-            preview: previewVisible && previewDelta ? { status: geometryPreview.status, delta: {
+            preview: previewVisible && previewDelta ? { sessionId: geometryPreview.sessionId, revision: geometryPreview.revision,
+              status: geometryPreview.status, delta: {
               removedGeometry: freezeEditingGeometry(previewDelta.removedGeometry),
               addedGeometry: freezeEditingGeometry(previewDelta.addedGeometry),
+              oldBoundaries: (previewDelta.oldBoundaries || []).map(freezeEditingGeometry),
+              newBoundaries: (previewDelta.newBoundaries || []).map(freezeEditingGeometry),
             } } : null,
             territoryOperation: selectionVisible && (territoryItems.length || candidates.length) ? {
               kind: dependencies.projectState.state.tool,
@@ -793,6 +827,14 @@ export function createDomainAssembly() {
       mapHost: () => dependencies.mapView.mapHost,
       selectionDomain,
       projectDomain,
+      editPreviewController: dependencies.geometryOperations.editPreviewController,
+      isEditPreviewCurrent: snapshot => snapshot.projectGeneration === projectDomain.getGeneration()
+        && snapshot.tool === dependencies.projectState.state.tool
+        && snapshot.targetRefs.every(ref => (0, dependencies.objectLookup.objectRefExists)(ref)
+          && (0, dependencies.objectOperationsA.objectRefVisible)(ref))
+        && (snapshot.targetRefs[0]?.domain !== 'hydro' || dependencies.projectState.state.selected?.key === snapshot.targetRefs[0].key)
+        && (snapshot.successor?.kind !== 'object' || snapshot.successor.geometry === dependencies.projectState.state.hydroEdits
+          .find(feature => String(feature.id) === String(snapshot.targetRefs[0].id))?.geometry),
       getEditingRenderPacket: () => editingDomain?.createRenderPacket?.(),
       emitEditingInteraction: event => editingDomain?.handleInteraction?.(event),
       domLayers: () => ({
@@ -1041,6 +1083,7 @@ export function createDomainAssembly() {
         buildGpuInteractionFillItems: dependencies.gpuRenderingA.buildGpuInteractionFillItems,
         syncGpuInteractionState: dependencies.renderScene.syncGpuInteractionState,
         setCurrentSelectionPacket: packet => { dependencies.interactionStateCommands.setSelectionPacket(packet || null); },
+        getCurrentSelectionPacket: () => dependencies.gpuRenderingA.currentSelectionPacket,
         updatePerformanceMetrics: partial => Object.assign(dependencies.rendering.selectionPerformanceMetrics, partial || {}),
         publishMetrics: metrics => {
           window.__PANDOLAB_SELECTION_RENDER_METRICS__ = {

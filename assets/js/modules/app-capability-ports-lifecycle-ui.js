@@ -182,6 +182,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "projectState",
     "projectionView",
     "propertyEditingB",
+    "snapshots",
     "readiness",
     "readinessUi",
     "renderFactories",

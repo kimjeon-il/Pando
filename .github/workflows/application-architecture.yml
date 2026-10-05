@@ -9,6 +9,7 @@ on:
       - 'tests/helpers/**'
       - 'tests/browser/terrain-*.spec.mjs'
       - 'tests/browser/territorial-boundary-continuity.spec.mjs'
+      - 'tests/browser/edit-preview-handoff.spec.mjs'
       - 'tests/browser/server.mjs'
       - 'playwright.config.js'
       - 'scripts/check-runtime-boundaries.mjs'
@@ -44,6 +45,7 @@ on:
       - 'tests/helpers/**'
       - 'tests/browser/terrain-*.spec.mjs'
       - 'tests/browser/territorial-boundary-continuity.spec.mjs'
+      - 'tests/browser/edit-preview-handoff.spec.mjs'
       - 'tests/browser/server.mjs'
       - 'playwright.config.js'
       - 'scripts/check-runtime-boundaries.mjs'
@@ -83,6 +85,7 @@ jobs:
       unit-suite: ${{ steps.scope.outputs.unit_suite }}
       terrain-rendering: ${{ steps.scope.outputs.terrain_rendering }}
       boundary-continuity: ${{ steps.scope.outputs.boundary_continuity }}
+      preview-handoff: ${{ steps.scope.outputs.preview_handoff }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -99,13 +102,20 @@ jobs:
           unit_suite=false
           terrain_rendering=false
           boundary_continuity=false
+          preview_handoff=false
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             territorial_store=true
             unit_suite=true
             terrain_rendering=true
             boundary_continuity=true
+            preview_handoff=true
           else
             while IFS= read -r file; do
+              case "$file" in
+                assets/js/modules/edit-preview-controller.js|assets/js/modules/editing-domain.js|assets/js/modules/app-domain-assembly.js|assets/js/modules/app-gpu-scene.js|assets/js/modules/app-geometry-preview.js|assets/js/modules/app-capability-ports-lifecycle-ui.js|assets/js/modules/rendering-domain.js|assets/js/modules/editing-render-packet.js|assets/js/modules/map-render-coordinator.js|assets/js/modules/app-interaction-packets.js|assets/js/modules/selection-*|assets/js/modules/render-channel-ownership.js|assets/js/modules/map-visual-frame.js|assets/js/modules/map-edit-*|assets/js/modules/gpu-map-renderer.js|assets/js/modules/gpu-canvas-worker.js|assets/js/modules/gpu-interaction-pass.js|assets/js/modules/gpu-stroke-renderer.js|assets/js/workers/canvas-render-worker.js|assets/js/workers/map-edit-worker.js|tests/unit/edit-preview-*.test.mjs|tests/unit/editing-*.test.mjs|tests/unit/app-geometry-preview.test.mjs|tests/unit/capability-ports-contract.test.mjs|tests/browser/edit-preview-handoff.spec.mjs|tests/helpers/production-geopackage.mjs|tests/fixtures/timeline-exchange/static.json|tests/browser/server.mjs|playwright.config.js|package.json|pnpm-lock.yaml|eslint.config.js|.github/workflows/application-architecture.yml)
+                  preview_handoff=true
+                  ;;
+              esac
               case "$file" in
                 assets/js/*|tests/unit/territorial-*.test.mjs|package.json|pnpm-lock.yaml|eslint.config.js|scripts/check-territorial-storage.mjs|scripts/lib/territorial-storage-audit.mjs|scripts/contracts/territorial-storage-access.json|.github/workflows/application-architecture.yml)
                   territorial_store=true
@@ -132,6 +142,74 @@ jobs:
           echo "unit_suite=$unit_suite" >> "$GITHUB_OUTPUT"
           echo "terrain_rendering=$terrain_rendering" >> "$GITHUB_OUTPUT"
           echo "boundary_continuity=$boundary_continuity" >> "$GITHUB_OUTPUT"
+          echo "preview_handoff=$preview_handoff" >> "$GITHUB_OUTPUT"
+
+  preview-handoff:
+    name: Direct edit preview handoff (M2)
+    needs: changes
+    if: needs.changes.outputs.preview-handoff == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Focused M2 lint
+        run: >
+          pnpm exec eslint
+          assets/js/modules/edit-preview-controller.js
+          assets/js/modules/editing-domain.js
+          assets/js/modules/app-domain-assembly.js
+          assets/js/modules/app-gpu-scene.js
+          assets/js/modules/app-geometry-preview.js
+          assets/js/modules/app-capability-ports-lifecycle-ui.js
+          assets/js/modules/rendering-domain.js
+          tests/unit/edit-preview-handoff.test.mjs
+          tests/unit/edit-preview-presentation.test.mjs
+          tests/unit/editing-vertex-transaction.test.mjs
+          tests/unit/editing-render-packet.test.mjs
+          tests/unit/editing-interaction-events.test.mjs
+          tests/unit/app-geometry-preview.test.mjs
+          tests/browser/edit-preview-handoff.spec.mjs
+      - name: Verify M2 lifecycle, editing packets, frame acceptance and M1 continuity
+        run: >
+          node --test
+          tests/unit/edit-preview-handoff.test.mjs
+          tests/unit/edit-preview-presentation.test.mjs
+          tests/unit/edit-preview-controller.test.mjs
+          tests/unit/app-geometry-preview.test.mjs
+          tests/unit/editing-vertex-transaction.test.mjs
+          tests/unit/editing-interaction-events.test.mjs
+          tests/unit/editing-render-packet.test.mjs
+          tests/unit/map-render-coordinator.test.mjs
+          tests/unit/map-visual-frame.test.mjs
+          tests/unit/territorial-boundary-continuity.test.mjs
+          tests/unit/empty-territorial-boundary.test.mjs
+          tests/unit/render-channel-ownership.test.mjs
+          tests/unit/domain-split-contract.test.mjs
+          tests/unit/capability-ports-contract.test.mjs
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify boundary, coastline, river and lake handoff through actual UI
+        run: pnpm exec playwright test tests/browser/edit-preview-handoff.spec.mjs
+      - name: Upload M2 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: edit-preview-handoff-evidence
+          path: test-results
+          if-no-files-found: error
 
   terrain-rendering-contract:
     name: Terrain coverage and GPU upload regression
