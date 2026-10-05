@@ -1,7 +1,32 @@
 import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 
 // Submits a prepared frame. All resource construction and range scans happen before entry.
-export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
+export function drawGpuBaseScene(input, passes) {
+  const first = submitGpuBaseScene(input, passes);
+  const missing = new Set(first.overlayMissingKeys);
+  const strokes = input.prepared.independentItems.filter(item => item.kind === 'stroke');
+  const failedDomains = new Set(strokes.filter(item => missing.has(item.packet.key)).map(item => item.packet.domain || item.packet.key));
+  if (!failedDomains.size) return { ...first, strokePresentationFailed: false, recoveredStrokeDomains: [] };
+  // One bounded redraw before publication, using only eligible previously
+  // presented resources. Upload completion alone never certifies a draw.
+  const replacements = input.prepared.strokeDomainReplacements || [];
+  const canRecover = [...failedDomains].every(domain => replacements.some(row => row.domain === domain)
+    && input.prepared.strokeDomainFallbacks.get(domain)?.length);
+  if (!canRecover) return { ...first, strokePresentationFailed: true, recoveredStrokeDomains: [] };
+  const independentItems = input.prepared.independentItems.filter(item => item.kind !== 'stroke'
+    || !failedDomains.has(item.packet.domain || item.packet.key));
+  for (const domain of failedDomains) independentItems.push(...input.prepared.strokeDomainFallbacks.get(domain));
+  independentItems.sort((left, right) => Number(left.packet.order || 0) - Number(right.packet.order || 0));
+  const prepared = { ...input.prepared, independentItems,
+    strokeDomainReplacements: replacements.filter(row => !failedDomains.has(row.domain)) };
+  const result = submitGpuBaseScene({ ...input, prepared }, passes);
+  const failed = new Set(result.overlayMissingKeys);
+  return { ...result, recoveredStrokeDomains: [...failedDomains],
+    overlayFailures: [...first.overlayFailures, ...result.overlayFailures],
+    strokePresentationFailed: independentItems.some(item => item.kind === 'stroke' && failed.has(item.packet.key)) };
+}
+
+function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
   terrainVisible, terrainStyle, countriesVisible, mapSubstrate, countries, prepared },
   { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
@@ -61,17 +86,23 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
       }
       const overlayRenderedKeys = [];
       const overlayMissingKeys = [];
+      const overlayFailures = [];
       const drawOverlay = item => {
         const pass = item.kind === 'polygon' ? polygonOverlayPass : strokeRenderer;
-        if (deferredOverlayKeys.has(String(item.packet.key)) || failedOverlayKeys.has(String(item.packet.key)) || !pass.hasResource?.(item.packet.key)) {
+        const resourcePacket = item.resourcePacket || item.packet;
+        // Stroke candidates were resolved as whole domains during preparation.
+        // A pending B key must not suppress the prepared A chosen for this frame.
+        if ((item.kind === 'polygon' && (deferredOverlayKeys.has(String(item.packet.key)) || failedOverlayKeys.has(String(item.packet.key)))) || !pass.hasResource(resourcePacket.key)) {
           overlayMissingKeys.push(String(item.packet.key));
           return;
         }
         const result = item.kind === 'polygon'
           ? polygonOverlayPass.drawPackets([item.packet], activeFrameContext, { claimTransparent: item.packet.role === 'territorial-fill', preparedOnly: true })
-          : strokeRenderer.drawBatches([item.packet], activeFrameContext, { preparedOnly: true });
-        overlayRenderedKeys.push(...(result?.renderedKeys || []));
-        overlayMissingKeys.push(...(result?.missingKeys || []));
+          : strokeRenderer.drawBatches([resourcePacket], activeFrameContext, { preparedOnly: true });
+        const visualKey = key => key === resourcePacket.key ? item.packet.key : key;
+        overlayRenderedKeys.push(...(result?.renderedKeys || []).map(visualKey));
+        overlayMissingKeys.push(...(result?.missingKeys || []).map(visualKey));
+        overlayFailures.push(...(result?.failures || []).map(failure => ({ ...failure, key: visualKey(failure.key) })));
       };
       // Front-to-back ownership: each sample receives exactly one territorial
       // fill, regardless of nesting, alpha, or the number of overlapping units.
@@ -121,5 +152,7 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
       gl.disable(gl.STENCIL_TEST);
       gl.stencilMask(0xff);
 
-  return { overlayRenderedKeys, overlayMissingKeys, countryStrokeResult };
+  return { overlayRenderedKeys, overlayMissingKeys, overlayFailures, countryStrokeResult,
+    frameId: activeFrameContext.frameId, projectGeneration: activeFrameContext.projectGeneration,
+    strokeDomainReplacements: prepared.strokeDomainReplacements };
 }

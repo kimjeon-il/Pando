@@ -72,6 +72,7 @@ export function createGpuScene() {
     const independentLod = ['base-graticule', 'generic-features', 'distributions'].includes(String(domain));
     const normalizeItem = item => Object.freeze({
       ...item,
+      domain: String(domain),
       chunkKey: String(item?.chunkKey || `${domain}:${item?.key || ''}`),
       lodPolicy: String(item?.lodPolicy || (independentLod ? 'independent' : 'exact')),
       priority: Number(item?.priority ?? (item?.protected ? 100 : 0)),

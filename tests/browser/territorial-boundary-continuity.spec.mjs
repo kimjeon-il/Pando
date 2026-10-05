@@ -6,7 +6,7 @@ test.use({ viewport: { width: 1440, height: 900 }, trace: 'off', deviceScaleFact
 
 async function observeProduction(page) {
   await page.addInitScript(() => {
-    window.__m1 = { hold: false, track: true, releases: [], packets: [], draws: [], completed: 0, workerErrors: [], requests: [], replies: [], diagnostics: [] };
+    window.__m1 = { hold: false, track: true, releases: [], packets: [], draws: [], completed: 0, workerErrors: [], requests: [], replies: [], diagnostics: [], gpuFailures: [], promotedFrames: [], failedFrames: [], renderAttempts: 0 };
     window.__m1Release = () => { window.__m1.hold = false; window.__m1.releases.splice(0).forEach(resolve => resolve()); };
     const NativeWorker = window.Worker;
     window.Worker = class extends NativeWorker {
@@ -80,13 +80,19 @@ function replaceGpuSceneDomain(domain, { polygons = [], strokes = [] } = {}) {
   });
   await page.route('**/modules/gpu-stroke-renderer.js*', async route => {
     const response = await route.fetch(), original = await response.text();
-    const body = original.replace('drawMs += performance.now() - started;', `
+    const body = original.replace('resourceBudget.touch(key, batch?.priority);', `
+if (batch.domain === 'territorial-boundaries' && window.__m1.failStrokeFrame) {
+  throw new Error('M3 UI injected unrecoverable stroke draw');
+}
+resourceBudget.touch(key, batch?.priority);`).replace('drawMs += performance.now() - started;', `
 drawMs += performance.now() - started;
+const observedBoundaryBatches = batches.filter(row => row.domain === 'territorial-boundaries');
+const observedVisualKey = key => observedBoundaryBatches.find(row => row.key === key)?.visualKey;
 if (window.__m1?.track) window.__m1.draws.push({ held: window.__m1.hold,
-  keys: renderedKeys.filter(key => key.startsWith('territorial-internal:')),
-  missing: missingKeys.filter(key => key.startsWith('territorial-internal:')),
-  requested: batches.filter(row => row.key.startsWith('territorial-internal:')).map(row => row.key),
-  coordinates: batches.filter(row => row.key.startsWith('territorial-internal:')).map(row => Array.from(row.startsEnds)),
+  keys: renderedKeys.map(observedVisualKey).filter(Boolean),
+  missing: missingKeys.map(observedVisualKey).filter(Boolean),
+  requested: observedBoundaryBatches.map(row => row.visualKey),
+  coordinates: observedBoundaryBatches.map(row => Array.from(row.startsEnds)),
   frameId: frameContext.frameId, viewRevision: frameContext.viewRevision, mode: frameContext.mode,
   view: { projection: frameContext.projection, scale: frameContext.cssScale, rotation: frameContext.viewState.rotation } });
 `);
@@ -109,7 +115,25 @@ if (window.__m1?.track) window.__m1.draws.push({ held: window.__m1.hold,
     const response = await route.fetch(), original = await response.text();
     const body = original.replace('canvasDisplayedStyleRevision = Number(message.styleRevision || 0);', `
 if (window.__m1.track && message.m1Boundaries) window.__m1.draws.push({ ...message.m1Boundaries, held: window.__m1.hold });
-canvasDisplayedStyleRevision = Number(message.styleRevision || 0);`);
+canvasDisplayedStyleRevision = Number(message.styleRevision || 0);`)
+      .replace('function renderWebGl(visualFrame, { interactionOnly = false } = {}) {', `
+function renderWebGl(visualFrame, { interactionOnly = false } = {}) {
+  const observedRenderAttempt = ++window.__m1.renderAttempts;`)
+      .replace('if (result.strokePresentationFailed) return false;', `
+if (result.strokePresentationFailed) {
+  window.__m1.gpuFailures.push({ frameId: activeFrameContext.frameId, missing: result.overlayMissingKeys,
+    eligible: preparedBaseScene.canPreserveStrokeScene, activeSameView: sceneColorCache.hasActiveFor(sceneViewSignature(), projectGeneration) });
+  return false;
+}`)
+      .replace('const promoted = sceneColorCache.finishScene(null, viewSignature, projectGeneration);', `
+window.__m1.promotedFrames.push({ frameId: visualFrame.frameId, attempt: observedRenderAttempt });
+const promoted = sceneColorCache.finishScene(null, viewSignature, projectGeneration);`)
+      .replace('if (baseResult && !baseSubmissionFailed) markPreviewFramePresented();', `
+if (window.__m1.failStrokeFrame && baseSubmissionFailed) {
+  window.__m1.failedFrames.push({ frameId: visualFrame.frameId, attempt: observedRenderAttempt, succeeded: !webglContextLost && !!baseResult && !baseSubmissionFailed });
+  window.__m1.failStrokeFrame = false;
+}
+if (baseResult && !baseSubmissionFailed) markPreviewFramePresented();`);
     expect(body).not.toBe(original); await route.fulfill({ response, body });
   });
 }
@@ -202,8 +226,17 @@ async function verifyPending(page, renderer, phase, before) {
   expect(held.draws.length).toBeGreaterThan(1);
   expect(held.draws.every(row => row.keys.length > 0 && row.missing.length === 0)).toBe(true);
   await page.screenshot({ path: test.info().outputPath(`${renderer}-${phase}-pending-topology.png`) });
+  if (renderer === 'webgl2' && phase === 'region-redraw') await page.evaluate(() => { window.__m1.failStrokeFrame = true; });
   await page.evaluate(() => window.__m1Release());
   await ready(page);
+  if (renderer === 'webgl2' && phase === 'region-redraw') {
+    await expect.poll(() => page.evaluate(() => window.__m1.failedFrames.length), { timeout: 60_000 }).toBe(1);
+    const failure = await page.evaluate(() => ({ submissions: window.__m1.gpuFailures, frames: window.__m1.failedFrames, promotions: window.__m1.promotedFrames }));
+    await writeFile(test.info().outputPath('m3-failed-scene-publication.json'), JSON.stringify(failure, null, 2));
+    expect(failure.submissions.length).toBeGreaterThan(0);
+    expect(failure.frames[0].succeeded).toBe(false);
+    expect(failure.promotions.filter(row => row.attempt === failure.frames[0].attempt)).toEqual([]);
+  }
   const after = await stats(page);
   expect(after.inputSignature).not.toBe(before.inputSignature);
   const finalGeometry = await page.evaluate(() => window.__m1.packets.at(-1).strokes.map(row => row.geometry));
