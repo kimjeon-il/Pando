@@ -76,7 +76,8 @@ test('physical data and visibility changes invalidate the cached base scene', ()
   assert.ok(terrain.includes('function terrainNeighbourSpecs(level, specs)'));
   assert.ok(terrain.includes("invalidate('terrain-tile-ready')"));
   assert.ok(terrain.includes('terrainRetentionKeys.has(item[0])'));
-  assert.match(terrain, /physicalScale \/ renderDpr\) \* sourceDpr/);
+  assert.match(terrain, /const frameDpr = Math\.max\(1, Number\(frameContext\.dpr\)\);/);
+  assert.match(terrain, /physicalScale \/ frameDpr\) \* sourceDpr/);
 });
 
 test('Canvas Worker persists independently revisioned view and style state', () => {
