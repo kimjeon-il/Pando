@@ -1,9 +1,10 @@
+import { SELECTION_PAINT_ORDER } from './layer-presentation.js';
 import { resolveMapInteractionStyle, interactionRoleStyle } from './map-interaction-style.js';
 import { isRenderDevice } from './render-device.js';
 import { buildStrokeGeometryPacket } from './render-scene.js';
 import { buildSelectionChannelSignature } from './selection-stroke-geometry.js';
 
-const CHANNELS = Object.freeze(['candidate', 'hover', 'primary', 'secondary']);
+const CHANNELS = SELECTION_PAINT_ORDER;
 const DEFAULT_INTERACTION_STYLE = resolveMapInteractionStyle();
 
 function emptyChannel(requested = []) {
@@ -223,12 +224,8 @@ export function createSelectionPass({ onRenderError = null } = {}) {
       renderFailureCount += 1;lastDrawMs = performance.now() - started;drawMs += lastDrawMs;return lastRenderResult;
     }
     try {
-      const channels = Object.freeze({
-        candidate: drawChannel('candidate', frameContext, options.preparedOnly),
-        hover: drawChannel('hover', frameContext, options.preparedOnly),
-        secondary: drawChannel('secondary', frameContext, options.preparedOnly),
-        primary: drawChannel('primary', frameContext, options.preparedOnly),
-      });
+      const channels = Object.freeze(Object.fromEntries(CHANNELS.map(name =>
+        [name, drawChannel(name, frameContext, options.preparedOnly)])));
       const after = strokeRenderer.stats?.() || {};
       bufferBuildCount += Math.max(0, Number(after.buildCount || 0) - Number(before.buildCount || 0));
       bufferBuildMs += Math.max(0, Number(after.buildMs || 0) - Number(before.buildMs || 0));

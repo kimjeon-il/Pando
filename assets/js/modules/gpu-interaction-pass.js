@@ -1,3 +1,4 @@
+import { mapVisualOrder } from './layer-presentation.js';
 import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 
 // Draw accepts already classified packets and country ranges. It never starts
@@ -17,7 +18,7 @@ export function drawGpuInteractionPass({ gl, frame, viewState, viewport, fillTar
     // Reserve water before claiming land, then one winner per sample.
     gl.stencilFunc(gl.ALWAYS, 1, 0xff); gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE); gl.colorMask(false, false, false, false);
     // Interaction fills must not tint the base water or territorial-border pixels below them.
-    drawHydro('lake'); drawHydro('river'); drawHydro('border-river'); drawCountryBoundaryMask();
+    for (const role of mapVisualOrder('hydro')) drawHydro(role); drawCountryBoundaryMask();
     gl.colorMask(true, true, true, true); gl.stencilFunc(gl.EQUAL, 0, 0xff); gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
     for (const group of fillReady ? prepared.priorities : []) {
       for (const packet of group.preview) previewFillResults.push(polygonOverlayPass.drawPackets([packet], frame, { preparedOnly: true }));
@@ -36,11 +37,16 @@ export function drawGpuInteractionPass({ gl, frame, viewState, viewport, fillTar
   const genericFillResult = { succeeded: fillReady && fillResults.every(result => result.succeeded),
     renderedKeys: fillReady ? fillResults.flatMap(result => result.renderedKeys || []) : [], missingKeys: fillResults.flatMap(result => result.missingKeys || []) };
   const strokes = packets => packets.map(packet => strokeRenderer.drawBatches([packet], frame, { preparedOnly: true }));
-  const drawInteractionStrokes = () => Object.freeze({
-    selection: selectionPass?.draw?.(viewState, viewport, { clear: false, frameContext: frame, preparedOnly: true }) || null,
-    previewResults: strokes(prepared.previewStrokes),
-    draftResults: strokes(prepared.draftStrokes),
-  });
+  const drawInteractionStrokes = () => {
+    const result = { selection: null, previewResults: [], draftResults: [] };
+    const paint = {
+      primary: () => { result.selection = selectionPass?.draw?.(viewState, viewport, { clear: false, frameContext: frame, preparedOnly: true }) || null; },
+      'edit-preview': () => { result.previewResults = strokes(prepared.previewStrokes); },
+      draft: () => { result.draftResults = strokes(prepared.draftStrokes); },
+    };
+    for (const role of mapVisualOrder('all')) if (Object.hasOwn(paint, role)) paint[role]();
+    return Object.freeze(result);
+  };
   let interactionStrokes;
   const strokeCacheReady = strokeCache?.beginScene?.(viewport.pixelWidth, viewport.pixelHeight, '', 0) === true;
   if (strokeCacheReady) {

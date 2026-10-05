@@ -192,11 +192,11 @@ test('interaction pass submits prepared priorities and ranges then composites be
     fillCache: { finishScene: () => calls.push('finish'), composite: () => { calls.push('composite'); return true; } } };
   const result = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTargetReady: true, prepared: plan }, dependencies);
   assert.equal(result.fillOwner, 'gpu');
-  assert.deepEqual(calls, ['lake', 'river', 'border-river', 'preview', 'country', 'primary', 'hover', 'finish', 'composite', 'selection', 'preview-outline']);
+  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'preview', 'country', 'primary', 'hover', 'finish', 'composite', 'selection', 'preview-outline']);
   calls.length = 0;
   const fallback = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTargetReady: true, prepared: { ...plan, fillReady: false } }, dependencies);
   assert.equal(fallback.fillOwner, 'svg');
   assert.deepEqual(fallback.genericFillResult.renderedKeys, []);
   assert.deepEqual(fallback.previewResults[0].missingKeys, ['preview']);
-  assert.deepEqual(calls, ['lake', 'river', 'border-river', 'finish', 'selection', 'preview-outline']);
+  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'finish', 'selection', 'preview-outline']);
 });

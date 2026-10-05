@@ -1,3 +1,4 @@
+import { mapVisualOrder } from './layer-presentation.js';
 import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 
 // Submits a prepared frame. All resource construction and range scans happen before entry.
@@ -32,6 +33,29 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
   const { mesh, overrideMesh, dynamicResources, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
     territoryItems, independentItems, deferredOverlayKeys, failedOverlayKeys } = prepared;
+      const overlayRenderedKeys = [];
+      const overlayMissingKeys = [];
+      const overlayFailures = [];
+      const drawOverlay = item => {
+        const pass = item.kind === 'polygon' ? polygonOverlayPass : strokeRenderer;
+        const resourcePacket = item.resourcePacket || item.packet;
+        // Stroke candidates were resolved as whole domains during preparation.
+        // A pending B key must not suppress the prepared A chosen for this frame.
+        if ((item.kind === 'polygon' && (deferredOverlayKeys.has(String(item.packet.key)) || failedOverlayKeys.has(String(item.packet.key)))) || !pass.hasResource(resourcePacket.key)) {
+          overlayMissingKeys.push(String(item.packet.key));
+          return;
+        }
+        const result = item.kind === 'polygon'
+          ? polygonOverlayPass.drawPackets([item.packet], activeFrameContext, { claimTransparent: item.packet.role === 'territorial-fill', preparedOnly: true })
+          : strokeRenderer.drawBatches([resourcePacket], activeFrameContext, { preparedOnly: true });
+        const visualKey = key => key === resourcePacket.key ? item.packet.key : key;
+        overlayRenderedKeys.push(...(result?.renderedKeys || []).map(visualKey));
+        overlayMissingKeys.push(...(result?.missingKeys || []).map(visualKey));
+        overlayFailures.push(...(result?.failures || []).map(failure => ({ ...failure, key: visualKey(failure.key) })));
+      };
+      let countryStrokeResult;
+      const phases = {
+        substrate: () => {
       gl.viewport(0, 0, pixelWidth, pixelHeight);
       gl.disable(gl.SCISSOR_TEST);
       gl.colorMask(true, true, true, true);
@@ -56,6 +80,8 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       gl.disable(gl.STENCIL_TEST);
       gl.clear(gl.STENCIL_BUFFER_BIT);
       gl.disable(gl.BLEND);
+        },
+        terrain: () => {
       if (terrainVisible) {
         gl.enable(gl.STENCIL_TEST);
         gl.stencilMask(0xff);
@@ -84,26 +110,8 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         gl.disable(gl.STENCIL_TEST);
         gl.stencilMask(0xff);
       }
-      const overlayRenderedKeys = [];
-      const overlayMissingKeys = [];
-      const overlayFailures = [];
-      const drawOverlay = item => {
-        const pass = item.kind === 'polygon' ? polygonOverlayPass : strokeRenderer;
-        const resourcePacket = item.resourcePacket || item.packet;
-        // Stroke candidates were resolved as whole domains during preparation.
-        // A pending B key must not suppress the prepared A chosen for this frame.
-        if ((item.kind === 'polygon' && (deferredOverlayKeys.has(String(item.packet.key)) || failedOverlayKeys.has(String(item.packet.key)))) || !pass.hasResource(resourcePacket.key)) {
-          overlayMissingKeys.push(String(item.packet.key));
-          return;
-        }
-        const result = item.kind === 'polygon'
-          ? polygonOverlayPass.drawPackets([item.packet], activeFrameContext, { claimTransparent: item.packet.role === 'territorial-fill', preparedOnly: true })
-          : strokeRenderer.drawBatches([resourcePacket], activeFrameContext, { preparedOnly: true });
-        const visualKey = key => key === resourcePacket.key ? item.packet.key : key;
-        overlayRenderedKeys.push(...(result?.renderedKeys || []).map(visualKey));
-        overlayMissingKeys.push(...(result?.missingKeys || []).map(visualKey));
-        overlayFailures.push(...(result?.failures || []).map(failure => ({ ...failure, key: visualKey(failure.key) })));
-      };
+        },
+        'territorial-fill': () => {
       // Front-to-back ownership: each sample receives exactly one territorial
       // fill, regardless of nesting, alpha, or the number of overlapping units.
       gl.stencilMask(0xff);
@@ -113,6 +121,8 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       gl.stencilFunc(gl.EQUAL, 0, 0xff);
       gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
       for (const item of territoryItems) drawOverlay(item);
+        },
+        'country-fill': () => {
       resetGpuNormalBlend(gl);
       if (countriesVisible) {
         drawProgram(fillProgram, fillVao, fillIndexBuffer, mesh.triangleIndices.length, gl.TRIANGLES, null, paletteTexture, null, null, baseTriangleDraw.ranges);
@@ -120,11 +130,9 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       }
       gl.disable(gl.STENCIL_TEST);
       resetGpuNormalBlend(gl);
-      drawHydro('lake');
-      drawHydro('lake-boundary');
-      drawHydro('river');
-      drawHydro('border-river');
-      const countryStrokeResult = drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw);
+        },
+        'country-boundary': () => { countryStrokeResult = drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw); },
+        'independent-overlay': () => {
       // Reserve base water and borders, then submit every independent visual
       // in scene order. Only fills are clipped by these protected pixels.
       if (independentItems.some(item => item.kind === 'polygon')) {
@@ -134,10 +142,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         gl.stencilFunc(gl.ALWAYS, 1, 0xff);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
         gl.colorMask(false, false, false, false);
-        drawHydro('lake');
-        drawHydro('lake-boundary');
-        drawHydro('river');
-        drawHydro('border-river');
+        for (const role of mapVisualOrder('hydro')) drawHydro(role);
         drawCountryBoundaryStrokes(dynamicResources, baseBoundaryDraw, overrideBoundaryDraw);
         gl.colorMask(true, true, true, true);
         gl.stencilMask(0x00);
@@ -151,6 +156,12 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       }
       gl.disable(gl.STENCIL_TEST);
       gl.stencilMask(0xff);
+        },
+      };
+      for (const role of mapVisualOrder('base', 'gpu')) {
+        if (Object.hasOwn(phases, role)) phases[role]();
+        else drawHydro(role);
+      }
 
   return { overlayRenderedKeys, overlayMissingKeys, overlayFailures, countryStrokeResult,
     frameId: activeFrameContext.frameId, projectGeneration: activeFrameContext.projectGeneration,

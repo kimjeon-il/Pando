@@ -1,3 +1,4 @@
+import { INTERACTION_ROLE_PRIORITY } from './layer-presentation.js';
 import { countryDrawRangesForFrame } from './gpu-country-ranges.js';
 
 // A scene key identifies a visual; a resource key identifies its immutable GPU
@@ -126,7 +127,7 @@ export function prepareGpuInteractionPlan({ interaction, emphasis, mesh, overrid
   const draft = (interaction.draftPackets || []).filter(item => item.kind === 'polygon').map(item => item.packet);
   const generic = interaction.genericFillItems || [];
   const emphasizedIds = [...new Set([...emphasis.selectedIds, emphasis.primaryId, emphasis.hoverId].map(String).filter(Boolean))];
-  const priorities = [5, 4, 3, 2].map(priority => {
+  const priorities = [...new Set(Object.values(INTERACTION_ROLE_PRIORITY))].filter(priority => priority > 1).sort((a, b) => b - a).map(priority => {
     const ids = countriesVisible && !blocked ? emphasizedIds.filter(id => Number(emphasis.priorities[id] || (emphasis.primaryIds.has(id) ? 4 : emphasis.selectedIds.has(id) ? 3 : 2)) === priority && !isPending(id) && isVisible(id)) : [];
     return {
       priority,

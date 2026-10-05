@@ -416,7 +416,7 @@ function canvasFallbackWorkerMain() {
       return `#${values.map(value => value.toString(16).padStart(2, '0')).join('')}`;
     }
 
-    function renderHydroPass(message, projection, dpr, borderAligned, target = context, reserve = false) {
+    function renderHydroPass(message, projection, dpr, role, target = context, reserve = false) {
       const context = target;
       const geoPath = self.d3.geo.path().projection(projection).context(context);
       const features = activeHydroFeatures();
@@ -436,13 +436,13 @@ function canvasFallbackWorkerMain() {
         if (hydroOpacity <= 0) continue;
         const isBorder = properties.border_aligned === true || (Number(properties.__flags || 0) & 1) !== 0;
         if (isLake) {
-          if (borderAligned) continue;
+          if (!['lake', 'lake-boundary'].includes(role)) continue;
           context.beginPath();
           geoPath(feature);
           context.globalAlpha = reserve ? 1 : hydroOpacity;
           context.fillStyle = featureColor;
-          context.fill();
-          if (message.theme?.lakeBoundaryVisible !== false) {
+          if (role === 'lake') context.fill();
+          if (role === 'lake-boundary' && message.theme?.lakeBoundaryVisible !== false) {
             const boundary = self.PandoLabGeographicBoundary.buildRenderableBoundarySegments(feature);
             if (boundary.length) {
               context.beginPath();
@@ -454,7 +454,7 @@ function canvasFallbackWorkerMain() {
           }
           continue;
         }
-        if (isBorder !== borderAligned) continue;
+        if (role !== (isBorder ? 'border-river' : 'river')) continue;
         const parts = lineParts(feature.geometry);
         const profiles = properties.stroke_widths || [];
         const fallback = Math.max(0.55, Math.min(2.6, Number(properties.stroke_width || 0.8)));
@@ -594,11 +594,15 @@ function canvasFallbackWorkerMain() {
         const theme = message.theme;
         const hiddenCountryIds = new Set((message.hiddenCountryIds || []).map(String));
         const geoPath = self.d3.geo.path().projection(projection).context(context);
+        const visibleLand = message.visible ? features.filter((feature, index) => !hiddenCountryIds.has(countryId(feature, index))) : [];
+        const paint = {
+          substrate: () => {
         context.globalAlpha = theme.baseLandAlpha;
         context.fillStyle = theme.defaultLand;
-        const visibleLand = message.visible ? features.filter((feature, index) => !hiddenCountryIds.has(countryId(feature, index))) : [];
         self.PandoLabCanvasSceneComposition.drawGeneralLand(context, geoPath, message.scenePolygons || [], visibleLand);
         context.globalAlpha = 1;
+          },
+          terrain: () => {
         terrainComplete = renderTerrain(message, projection, width, height, dpr);
         if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
         const substrateContext = substrate.getContext('2d');
@@ -607,6 +611,8 @@ function canvasFallbackWorkerMain() {
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.lineJoin = 'round';
         context.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
+          },
+          'country-fill': () => {
         for (let index = 0; message.visible && index < features.length; index += 1) {
           const feature = features[index];
           if (hiddenCountryIds.has(countryId(feature, index))) continue;
@@ -618,21 +624,26 @@ function canvasFallbackWorkerMain() {
           context.fillStyle = fill.color;
           context.fill();
         }
-        self.PandoLabCanvasSceneComposition.drawTerritorialFills(context, geoPath, message.scenePolygons || [], substrate, dpr);
-        renderHydroPass(message, projection, dpr, false);
-        renderHydroPass(message, projection, dpr, true);
-        renderCountryBoundaries(message, projection, dpr);
+          },
+          'territorial-fill': () => self.PandoLabCanvasSceneComposition.drawTerritorialFills(context, geoPath, message.scenePolygons || [], substrate, dpr),
+          'country-boundary': () => renderCountryBoundaries(message, projection, dpr),
+        };
         const protection = {
           key: [message.viewRevision, message.projectionRevision, pixelWidth, pixelHeight, physicalStyleRevision,
             hydroEditRevision, [...hydroActivePackIds].join(','), hydroPackRevision, geometryRevision,
             countrySharedBoundary?.geometryRevision, styleRevision].join(':'),
           draw: mask => {
-            renderHydroPass(message, projection, dpr, false, mask, true);
-            renderHydroPass(message, projection, dpr, true, mask, true);
+            for (const role of message.visualOrder.hydro) renderHydroPass(message, projection, dpr, role, mask, true);
             renderCountryBoundaries(message, projection, dpr, mask, true);
           },
         };
+        paint['independent-overlay'] = () => {
         self.PandoLabCanvasSceneComposition.drawOverlays(context, geoPath, message.scenePolygons || [], message.sceneStrokes || [], dpr, protection);
+        };
+        for (const role of message.visualOrder.base) {
+          if (Object.hasOwn(paint, role)) paint[role]();
+          else if (message.visualOrder.hydro.includes(role)) renderHydroPass(message, projection, dpr, role);
+        }
         const emphasis = message.countryEmphasis || {};
         const selectedCountryIds = new Set((emphasis.selectedIds || []).map(String));
         const emphasisEntries = [];

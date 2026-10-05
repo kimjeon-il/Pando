@@ -1,5 +1,6 @@
+import { INTERACTION_ROLE_PRIORITY } from './layer-presentation.js';
 import { territorialSymbolGroup } from './layer-presentation.js';
-import { interactionNodeRole, interactionRoleStyle, resolveMapInteractionStyle, INTERACTION_ROLE_PRIORITY } from './map-interaction-style.js';
+import { interactionNodeRole, interactionRoleStyle, resolveMapInteractionStyle } from './map-interaction-style.js';
 import { applySvgInteractionOwnership } from './render-channel-ownership.js';
 /** InteractionPackets: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
