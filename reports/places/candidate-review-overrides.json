@@ -1,8 +1,8 @@
 {
   "version": 1,
   "sourceSha256": "4ba815404241c08ca40a5dcdcfe35dee4ae51bb848bfff2c01d8ad35507ae232",
-  "purpose": "Reclassify 35 Romanian SIRUTA-linked settlements from hold to retain while preserving the pinned GeoNames coordinates and tracking separate coordinate correction candidates.",
-  "checkedAt": "2026-10-04",
+  "purpose": "Apply finalized ID-specific hold reclassifications while preserving the pinned GeoNames snapshot; includes the prior 35 Romanian coordinate-linked retains plus the finalized 22 same-name/duplicate/old-name and 42 administrative/parish/composite-name decisions.",
+  "checkedAt": "2026-10-05",
   "overrides": [
     {
       "geonameId": 663045,
@@ -213,6 +213,326 @@
       "action": "retain",
       "reasonAppend": "2026-10-04 좌표 재검토에서 SIRUTA 중심 취락의 정체를 유지할 근거와 실제 취락 대표점 후보를 분리했다. 정체 보류는 해제하고 retain하며, 원본 GeoNames 좌표는 고정 snapshot 검증값으로 보존한다. 보정 좌표는 coordinate-corrections.json의 별도 정규화 후보이며 아직 지도 런타임에 적용하지 않는다.",
       "coordinateCorrectionRef": "reports/places/coordinate-corrections.json#686658"
+    },
+    {
+      "geonameId": 678590,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별개 현행 취락 또는 법정 도시로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 683760,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별개 현행 취락 또는 법정 도시로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 829005,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별개 현행 취락 또는 법정 도시로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 1496770,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별개 현행 취락 또는 법정 도시로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 1510255,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별개 현행 취락 또는 법정 도시로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 6853140,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별개 현행 취락 또는 법정 도시로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 13192474,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별개 현행 취락 또는 법정 도시로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 510225,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 666837,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 677377,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 683459,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 824988,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 828920,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 831165,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 1489837,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 1538634,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 2012330,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 2013952,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 7871362,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 11238229,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 12750521,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 13631665,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 동명·중복·옛 이름 22건 최종 재검토에서 별도 현행 취락으로 유지하지 않을 중복·옛 이름·행정 집계 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 587629,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 588449,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 590945,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 591086,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 592459,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 2690580,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 3155676,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 7626138,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 7626325,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 7626349,
+      "action": "retain",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 행정영역 전체가 아니라 현행 개별 취락·건축 정착지 객체로 유지할 대상으로 확정했다. 기존 hold를 retain으로 변경한다."
+    },
+    {
+      "geonameId": 632421,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 635815,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 637878,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 647455,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 648382,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 651986,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 659949,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 2618741,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 2623188,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3041760,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3041798,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3041807,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3042182,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3042213,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3042221,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3042274,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3131901,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3133145,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3134599,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3147788,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 3155196,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 6424194,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 6692239,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 6692240,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 7280466,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 7535941,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 7626358,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 7626369,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 7626377,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 7626395,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 13218250,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
+    },
+    {
+      "geonameId": 13527044,
+      "action": "exclude",
+      "reasonAppend": "2026-10-05 행정·교구·복합 지명 42건 최종 재검토에서 개별 취락보다 municipality·parish·island·facility·복합 지역 범위를 가리키는 대상으로 확정했다. 기존 hold를 exclude으로 변경한다."
     }
   ]
 }
