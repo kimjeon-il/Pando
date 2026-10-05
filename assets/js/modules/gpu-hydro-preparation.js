@@ -200,7 +200,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     }
 
     function requestHydroView(viewState = getView()) {
-      if (!hydroWorker || !hydroWorkerReady || !hydroManifest) return;
+      if (!viewState || !hydroWorker || !hydroWorkerReady || !hydroManifest) return;
       const tileWindow = createHydroTileWindow({ manifest: hydroManifest, ...viewState });
       if (hydroVisibleTileCache.signature !== tileWindow.signature) {
         const tiles = hydroTileSpecsForWindow(tileWindow);

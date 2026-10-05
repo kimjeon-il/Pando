@@ -28,7 +28,7 @@ test('the application connector sends current repository entities to the audit W
   connectMapInteraction({
     ...owners,
     ports: {
-      domains: { renderingDomain: { renderValidation() {} } },
+      domains: { renderingDomain: { invalidateEditingOverlays() {} } },
       feedback: { reportOperationError() {}, setActionStatus() {} },
       lifecycleUi: { mapDebug: { renderPanel() {} } },
       platform: { runtimeAssetUrl: file => file },

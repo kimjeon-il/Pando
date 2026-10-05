@@ -39,7 +39,7 @@ export function createMapAudit() {
       dependencies.projectState.state.audit.report = message.report;
       dependencies.projectState.state.audit.selectedIssueId = null;
       renderMapAuditPanel();
-      dependencies.domains.renderingDomain?.renderValidation?.();
+      dependencies.domains.renderingDomain?.invalidateEditingOverlays('audit-visual-frame');
       (0, dependencies.feedback.setActionStatus)(message.report.issues.length
         ? `지도 검사에서 ${message.report.issues.length.toLocaleString('ko-KR')}건을 찾았습니다.`
         : '지도 검사에서 오류를 찾지 못했습니다.', message.report.issues.length ? 'error' : 'success', 3600);
@@ -55,7 +55,7 @@ export function createMapAudit() {
     geometryValidationRequestId += 1;
     dependencies.projectState.state.audit = { status: 'running', revision: geometryValidationRequestId, report: null, selectedIssueId: null };
     renderMapAuditPanel();
-    dependencies.domains.renderingDomain?.renderValidation?.();
+    dependencies.domains.renderingDomain?.invalidateEditingOverlays('audit-visual-frame');
     const worker = ensureGeometryValidationWorker();
     worker.postMessage({
       type: 'audit',
@@ -76,7 +76,7 @@ export function createMapAudit() {
     geometryValidationRequestId += 1;
     dependencies.projectState.state.audit = { status: 'idle', revision: geometryValidationRequestId, report: null, selectedIssueId: null };
     renderMapAuditPanel();
-    dependencies.domains.renderingDomain?.renderValidation?.();
+    dependencies.domains.renderingDomain?.invalidateEditingOverlays('audit-visual-frame');
   }
 
   function focusAuditIssue(issueId) {
@@ -89,7 +89,7 @@ export function createMapAudit() {
       const coordinate = issueCoordinate(issue);
       if (coordinate) (0, dependencies.navigation.focusCoordinate)(coordinate);
     }
-    dependencies.domains.renderingDomain?.renderValidation?.();
+    dependencies.domains.renderingDomain?.invalidateEditingOverlays('audit-visual-frame');
   }
 
   function initializeGeometryValidationWorker() {

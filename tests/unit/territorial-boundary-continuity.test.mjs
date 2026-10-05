@@ -1,3 +1,4 @@
+import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
@@ -29,6 +30,8 @@ function harness(t) {
     if (domain === 'territorial-boundaries') replacements.push(structuredClone(data.strokes));
   };
   const rendering = createRenderingDomain({
+    prepareView: ({ frameId }) => createMapVisualFrame({ frameId, projectGeneration: generation,
+      viewState: { projection: 'flat', size: { width: 800, height: 600 }, scale: 100, dpr: 1 }, projectPath: () => 'snapshot-path' }),
     requestFrame: callback => { scheduled.push(callback); return scheduled.length; },
     prepareEditDisplay: (payload, options) => {
       let resolve, reject;
@@ -61,7 +64,7 @@ function harness(t) {
     },
   });
   t.after(() => rendering.dispose());
-  const render = () => rendering.renderTerritorialUnits();
+  const render = () => { rendering.invalidateTerritorialPatch('M1-topology-frame'); scheduled.shift()(); };
   const resolve = async (index, segments = requests[index].segments) => {
     requests[index].resolve({ result: { segments } }); await flush();
   };

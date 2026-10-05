@@ -72,7 +72,7 @@ function harness(renderer = 'webgl2', { directFallback = false, objectSuccessor 
   });
   const render = coverage => { result = coverage; rendering.invalidateGpuInteraction('upload-complete'); frames.shift()(); };
   const renderBase = coverage => { result = coverage; rendering.invalidateGpuFrame('existing-scene-redraw'); frames.shift()(); };
-  const renderCountry = coverage => { result = coverage; rendering.renderCountries(prepareView()); };
+  const renderCountry = coverage => { result = coverage; rendering.invalidateCountryPatch('successor-country-frame'); frames.shift()(); };
   const renderLabels = () => { result = null; rendering.invalidateLabels('labels-ready'); frames.shift()(); };
   return { preview, rendering, render, renderBase, renderCountry, renderLabels, key, present: value => present(value),
     directNode: () => directNode,

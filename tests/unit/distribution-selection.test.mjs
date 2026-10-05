@@ -1,3 +1,4 @@
+import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createPropertySelection } from '../../assets/js/modules/app-property-selection.js';
@@ -21,6 +22,7 @@ function setup(renderMode = 'single') {
   const entityRepository = createTerritorialEntityRepository({ getEntities: () => state.territorialEntities });
   const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state });
   const rendering = createRenderingDomain({
+    prepareView: () => testFrame(),
     requestFrame: callback => { frames.push(callback); return frames.length; },
     territorialResources: {
       getState: () => state,
@@ -82,3 +84,7 @@ test('reselecting the active distribution only refreshes selection; missing IDs 
   assert.deepEqual(events, []);
   assert.equal(frames.length, 0);
 });
+
+const testFrame = (frameId = 1, viewRevision = 1, projectPath = () => 'M0,0L1,1') => createMapVisualFrame({
+  frameId, viewRevision, projectionRevision: 1,
+  viewState: { projection: 'flat', size: { width: 800, height: 600 }, translate: [400, 300], scale: 100, dpr: 1 }, projectPath });
