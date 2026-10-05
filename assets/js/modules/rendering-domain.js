@@ -791,6 +791,7 @@ export function createRenderingDomain({
     return true;
   };
   let pendingTerritorialBoundary = null;
+  let territorialBoundaryEpoch = 0;
   const pendingHighlights = new Map();
   let territorialBoundaryCache = { countries: null, units: null, revision: -1, inputSignature: '', segments: [], rebuildCount: 0 };
   let territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
@@ -803,6 +804,7 @@ export function createRenderingDomain({
     const units = displayed.filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId);
     const revision = t.getTerritorialGeometryRevision?.() ?? 0;
     if (!units.some(feature => ['Polygon', 'MultiPolygon'].includes(feature?.geometry?.type))) {
+      pendingTerritorialBoundary = null;
       const hadBoundaries = territorialBoundaryCache.segments.length || territorialBoundaryBatchCache.groups.length;
       territorialBoundaryCache = { countries: null, units: null, revision: -1, inputSignature: '', segments: [], rebuildCount: territorialBoundaryCache.rebuildCount };
       territorialBoundaryBatchCache = { signature: '', revision: '', groups: [] };
@@ -816,23 +818,39 @@ export function createRenderingDomain({
       countries.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry)]),
       units.map(feature => [String(feature?.id || ''), t.geometryToken?.(feature?.geometry), String(feature?.properties?.entityKind || ''), String(feature?.properties?.parentId || '')]),
     ]);
+    // A candidate belongs to one request lifetime, even if its input repeats
+    // after undo or a project reset. Only the render path promotes its result.
+    if (pendingTerritorialBoundary?.inputSignature !== inputSignature) pendingTerritorialBoundary = null;
     if (territorialBoundaryCache.revision !== revision || territorialBoundaryCache.inputSignature !== inputSignature) {
-      if (prepareEditDisplay && pendingTerritorialBoundary !== inputSignature) {
-        pendingTerritorialBoundary = inputSignature;
-        t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: [] });
-        prepareEditDisplay({ kind: 'boundaries', ...(state.countryVisualPhase === 'preview' ? { entities: displayed } : {}) }, { jobKey: 'edit-display:boundaries' }).then(response => {
-          if (disposed || pendingTerritorialBoundary !== inputSignature) return;
-          territorialBoundaryCache = { countries, units, revision, inputSignature,
-            segments: response.result.segments, rebuildCount: territorialBoundaryCache.rebuildCount + 1 };
-          pendingTerritorialBoundary = null;
+      if (pendingTerritorialBoundary?.status === 'ready') {
+        territorialBoundaryCache = { countries, units, revision, inputSignature,
+          segments: pendingTerritorialBoundary.segments, rebuildCount: territorialBoundaryCache.rebuildCount + 1 };
+        pendingTerritorialBoundary = null;
+      } else if (prepareEditDisplay && !pendingTerritorialBoundary) {
+        const candidate = { inputSignature, epoch: territorialBoundaryEpoch, status: 'preparing', segments: null };
+        pendingTerritorialBoundary = candidate;
+        // Catch synchronous preparation failures as well as Worker rejection.
+        (async () => {
+          const response = await prepareEditDisplay({ kind: 'boundaries',
+            ...(state.countryVisualPhase === 'preview' ? { entities: displayed } : {}) },
+          { jobKey: 'edit-display:boundaries' });
+          if (disposed || pendingTerritorialBoundary !== candidate || candidate.epoch !== territorialBoundaryEpoch) return;
+          if (!Array.isArray(response?.result?.segments)) throw new TypeError('Territorial boundary result requires segments');
+          candidate.segments = response.result.segments;
+          candidate.status = 'ready';
           onEditDisplayReady();
-        }).catch(() => { if (pendingTerritorialBoundary === inputSignature) pendingTerritorialBoundary = null; });
+        })().catch(error => {
+          if (disposed || pendingTerritorialBoundary !== candidate || candidate.epoch !== territorialBoundaryEpoch) return;
+          if (error?.name === 'AbortError' || error?.cancelled === true) {
+            pendingTerritorialBoundary = null;
+            return;
+          }
+          candidate.status = 'failed';
+          reportDiagnostic({ operation: 'territorial-boundary-prepare', result: 'recovered', stage: 'topology',
+            technicalMessage: String(error?.message || error), stack: error?.stack || '' });
+        });
       }
-      // Never draw a boundary belonging to an older geometry while preparing.
-      if (territorialBoundaryCache.segments.length) {
-        territorialBoundaryCache = { ...territorialBoundaryCache, segments: [], rebuildCount: territorialBoundaryCache.rebuildCount + 1 };
-      }
-    }
+    } else pendingTerritorialBoundary = null;
     const visibleIds = new Set(visibleFeatures.map(feature => String(feature.id)));
     const styleByType = new Map([
       ['subunit', { presentationGroup: 'subunits', width: 2, dash: [0, 0] }],
@@ -1908,6 +1926,7 @@ export function createRenderingDomain({
     return result;
   };
   const resetTerritorialBoundaryCache = () => {
+    territorialBoundaryEpoch++;
     pendingTerritorialBoundary = null;
     pendingHighlights.clear();
     territorialBoundaryCache = {
@@ -1927,6 +1946,8 @@ export function createRenderingDomain({
     batchSignature: territorialBoundaryBatchCache.signature || '',
     segmentCount: territorialBoundaryCache.segments.length,
     groupCount: territorialBoundaryBatchCache.groups.length,
+    pendingInputSignature: pendingTerritorialBoundary?.inputSignature || '',
+    pendingStatus: pendingTerritorialBoundary?.status || 'idle',
   });
   const resetProjectGeneration = (generation, { preserveBuiltinMesh = false } = {}) => {
     active();
@@ -1948,6 +1969,7 @@ export function createRenderingDomain({
     hasEditingDomain: typeof getEditingRenderPacket === 'function',
   });
   const dispose = () => {
+    resetTerritorialBoundaryCache();
     uploadListeners.forEach(remove => remove());
     labels.disposePlaces?.();
     gpuMapRenderer?.dispose?.();
