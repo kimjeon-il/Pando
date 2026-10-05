@@ -5,6 +5,7 @@ import * as projectState from '../../assets/js/modules/project-state.js';
 import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { projectForStorage } from '../helpers/timeline-project.mjs';
+import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
 
 function project(staticOnly = false) {
   const source = projectForStorage();
@@ -73,11 +74,17 @@ test('actual project domain and entity owner preserve content, selection, histor
   const snapshot = () => ({ identities:store.identities(), records:state.timelineRecords, geometries:state.geometries.snapshot(),
     selected:state.selected, history:state.history, future:state.future, dirty:state.dirty, target:state.saveTarget });
   const effects = [];
+  const saveState = createSaveStateController({ onChange: () => effects.push('save-publication') });
+  saveState.markOpenedFile(); saveState.markContentChanged(); effects.length = 0;
+  const publication = { render: 'current-render', session: 'current-session' };
   const domain = createProjectDomain({ prepareRestore:projectState.prepareProjectForActivation,
     replaceSnapshot: candidate => store.restoreProject(candidate),
-    onReplacementState:()=>effects.push('render'), persistence:{cancelPending:()=>effects.push('cancel')},
-    history:{reset:()=>effects.push('reset')}, saveState:{markOpenedFile:()=>effects.push('target')} });
+    onReplacementState:()=>{ effects.push('render'); publication.render = 'replaced'; },
+    onProjectReset:()=>{ effects.push('session'); publication.session = 'replaced'; },
+    onReplacementCommitted:()=>effects.push('commit'), persistence:{cancelPending:()=>effects.push('cancel')},
+    history:{reset:()=>effects.push('reset')}, saveState });
   const before = structuredClone(snapshot());
+  const beforeSave = saveState.checkpoint(), beforePublication = structuredClone(publication);
   const mutations = [
     candidate=>candidate.geometries.push(structuredClone(candidate.geometries[0])),
     candidate=>candidate.timelineRecords.geometryBindings[0].geometryRef.version=99,
@@ -85,11 +92,18 @@ test('actual project domain and entity owner preserve content, selection, histor
     candidate=>candidate.timelineRecords.parentRelations[0].parentId='missing',
     candidate=>candidate.territorialEntities[0].properties.sovereignty='A',
     candidate=>candidate.genericFeatures=[{type:'Feature',id:'00000000-0000-4000-8000-000000000001',geometry:null,properties:{schemaVersion:2}}],
+    candidate=>candidate.timelineRecords.lifetimes[0].validFrom='0000',
+    candidate=>candidate.timelineRecords.lifetimes[0].validTo='1900-02-29',
+    candidate=>Object.assign(candidate, project()),
   ];
   for (const mutate of mutations) {
     const bad = structuredClone(original); mutate(bad);
     await assert.rejects(domain.load(bad));
     assert.deepEqual(snapshot(), before);
     assert.deepEqual(effects, []);
+    assert.deepEqual(saveState.checkpoint(), beforeSave);
+    assert.deepEqual(publication, beforePublication);
+    assert.equal(domain.getGeneration(), 0);
+    assert.equal(domain.isReplacing(), false);
   }
 });

@@ -4,6 +4,7 @@ import { projectForStorage } from '../helpers/timeline-project.mjs';
 import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
 
 export function exchangeProject(kind) {
+  if (!['static', 'complex', 'calendar-boundaries'].includes(kind)) throw new Error(`Unknown exchange case: ${kind}`);
   const snapshot = projectForStorage();
   const identity = (id, entityKind = 'general') => ({ type: 'Feature', id, geometry: null, properties: {
     schemaVersion: 5, entityKind, name: `${id} 영토`, notes: '원본 메타데이터 보존', style: { color: '#507090' }, locked: false,
@@ -36,17 +37,33 @@ export function exchangeProject(kind) {
       { ...record('B:old-parent','B','1910-01-02','1915'),parentId:'A',coverageMode:'partition' },
       { ...record('B:new-parent','B','1916','1920-03'),parentId:'C',coverageMode:'explicit' });
   }
+  if (kind === 'calendar-boundaries') {
+    const boundaries = [
+      ['A', '+12000-02', '+12000-03', '+12000-02-28', '+12000-02-29'],
+      ['B', '1900-02', '1900-03', '1900-02-28', '1900-03'],
+      ['C', '-0400-02', '-0400-03', '-0400-02-28', '-0400-02-29'],
+      ['R', '2000-02', '2000-03', '2000-02-28', '2000-02-29'],
+    ];
+    records.lifetimes = boundaries.map(([id, from, to]) => record(`life:${id}`, id, from, to));
+    records.geometryBindings = boundaries.flatMap(([id, from, to, last, next]) => [
+      { ...record(`${id}:old`, id, from, last), geometryRef: { id: 'shape', version: 1 } },
+      { ...record(`${id}:new`, id, next, to), geometryRef: { id: 'shape', version: 2 } },
+    ]);
+    records.parentRelations = boundaries.map(([id, from, to]) => ({ ...record(`parent:${id}`, id, from, to),
+      parentId: '', coverageMode: 'explicit' }));
+  }
   return createProjectSerializer({ appVersion:'0.34.0',baseDataset:'timeline-exchange', distributionModes:['territorial','geometry'],
     terrainDataset:'terrain',hydroDataset:'hydro', readSnapshot:()=>snapshot,now:()=>new Date('2026-10-04T00:00:00Z') }).buildProject();
 }
 
 const destination = new URL('./timeline-exchange/', import.meta.url);
+const kinds = process.argv.slice(2);
+if (kinds.some(kind => !['static', 'complex', 'calendar-boundaries'].includes(kind))) throw new Error('Expected static, complex or calendar-boundaries.');
 await mkdir(destination, { recursive: true });
-for (const kind of ['static','complex']) {
+for (const kind of kinds.length ? kinds : ['static','complex','calendar-boundaries']) {
   const project = exchangeProject(kind);
   await writeFile(new URL(`${kind}.json`, destination), JSON.stringify(project,null,2)+'\n');
   const file = await productionGeoPackage('write',new ArrayBuffer(0),project);
   await writeFile(new URL(`${kind}.gpkg`, destination),new Uint8Array(file.buffer));
-  await writeFile(new URL(`${kind}.expected.json`, destination),JSON.stringify({ territorialEntities:project.territorialEntities,
-    timelineRecords:project.timelineRecords, geometries:project.geometries },null,2)+'\n');
+  // Independent expected files are reviewed contract oracles, never exporter output.
 }

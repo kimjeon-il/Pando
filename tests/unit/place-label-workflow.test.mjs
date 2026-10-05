@@ -12,6 +12,8 @@ import { applyProjectFields, pickProjectFields } from '../../assets/js/modules/p
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createCanonicalCountryStore } from '../../assets/js/modules/canonical-country-packet.js';
 import { encodeCanonicalCountryPacket } from '../../tools/canonical-country-packet-encoder.mjs';
+import { readFileSync } from 'node:fs';
+import { createHistoryService } from '../../assets/js/modules/history-service.js';
 const source=normalizePlace({source:'synthetic',sourceId:'1',name:'서울',kind:'capital',coordinates:[127,37]});
 test('canonical object lookup resolves builtin labels in the existing domain with readonly capabilities',()=>{
   const owner=createObjectCommands();owner.connect({selectionServices:{normalizeObjectRef},projectState:{state:{labels:[]}},labelPresentation:{labelById:id=>id===source.id?source:null}});
@@ -96,6 +98,31 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
   return { owner, state, entityStore, geometryChanges, builtinCountries: ownerBuiltinCountries,
     searchRenders: () => searchRenders, searchCancels: () => searchCancels };
 }
+
+test('real history restores shared, unused and past archive entries after static geometry edit and Undo/Redo', () => {
+  const { owner, entityStore } = historySnapshotFixture();
+  const input = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/static.json', import.meta.url), 'utf8'));
+  const expected = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/static.expected.json', import.meta.url), 'utf8'));
+  entityStore.restoreProject(input);
+  const before = owner.snapshotEditable();
+  const history = createHistoryService({ store: { history: [], historyMeta: [], future: [], futureMeta: [] },
+    snapshot: owner.snapshotEditable, restore: owner.restoreEditable, normalizeMetadata: meta => meta });
+  history.record({ description: 'static geometry edit' });
+  const geometry = { type: 'Polygon', coordinates: [[[0,0],[4,0],[4,4],[0,0]]] };
+  entityStore.applyChanges({ features: [{ ...entityStore.snapshot().find(row => row.id === 'A'), geometry }] });
+  const after = owner.snapshotEditable();
+  assert.deepEqual(after.territorialEntities, expected.territorialEntities);
+  assert.deepEqual(after.timelineRecords.lifetimes, expected.timelineRecords.lifetimes);
+  assert.deepEqual(after.timelineRecords.parentRelations, expected.timelineRecords.parentRelations);
+  assert.equal(after.geometries.length, expected.geometries.length + 1);
+  for (const entry of expected.geometries) assert.deepEqual(after.geometries.find(row => row.id === entry.id && row.version === entry.version), entry);
+  assert.deepEqual(entityStore.snapshot().find(row => row.id === 'A').geometry, geometry);
+  assert.deepEqual(entityStore.snapshot().find(row => row.id === 'B').geometry, expected.geometries.find(row => row.id === 'shape' && row.version === 1).geojson);
+  assert.equal(history.undo(), true);
+  assert.deepEqual(owner.snapshotEditable(), before);
+  assert.equal(history.redo(), true);
+  assert.deepEqual(owner.snapshotEditable(), after);
+});
 
 test('label-only undo does not republish persistently dirty country geometry; actual geometry undo still does', () => {
   const { owner, state, entityStore, geometryChanges } = historySnapshotFixture();
