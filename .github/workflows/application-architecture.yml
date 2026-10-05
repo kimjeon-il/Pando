@@ -12,6 +12,7 @@ on:
       - 'tests/browser/edit-preview-handoff.spec.mjs'
       - 'tests/browser/gpu-scene-staging.spec.mjs'
       - 'tests/browser/renderer-migration-gaps.spec.mjs'
+      - 'tests/browser/selection-interaction-style.spec.mjs'
       - 'tests/browser/server.mjs'
       - 'playwright.config.js'
       - 'scripts/check-runtime-boundaries.mjs'
@@ -50,6 +51,7 @@ on:
       - 'tests/browser/edit-preview-handoff.spec.mjs'
       - 'tests/browser/gpu-scene-staging.spec.mjs'
       - 'tests/browser/renderer-migration-gaps.spec.mjs'
+      - 'tests/browser/selection-interaction-style.spec.mjs'
       - 'tests/browser/server.mjs'
       - 'playwright.config.js'
       - 'scripts/check-runtime-boundaries.mjs'
@@ -91,6 +93,7 @@ jobs:
       boundary-continuity: ${{ steps.scope.outputs.boundary_continuity }}
       preview-handoff: ${{ steps.scope.outputs.preview_handoff }}
       scene-staging: ${{ steps.scope.outputs.scene_staging }}
+      visual-policy: ${{ steps.scope.outputs.visual_policy }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -109,6 +112,7 @@ jobs:
           boundary_continuity=false
           preview_handoff=false
           scene_staging=false
+          visual_policy=false
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             territorial_store=true
             unit_suite=true
@@ -116,8 +120,14 @@ jobs:
             boundary_continuity=true
             preview_handoff=true
             scene_staging=true
+            visual_policy=true
           else
             while IFS= read -r file; do
+              case "$file" in
+                assets/js/modules/layer-presentation.js|assets/js/modules/map-interaction-style.js|assets/js/modules/app-map-host.js|assets/js/modules/app-gpu-scene.js|assets/js/modules/gpu-base-scene-pass.js|assets/js/modules/gpu-interaction-pass.js|assets/js/modules/gpu-scene-preparation.js|assets/js/modules/gpu-map-renderer.js|assets/js/modules/rendering-domain.js|assets/js/modules/selection-pass.js|assets/js/workers/canvas-render-worker.js|tests/unit/map-visual-order.test.mjs|tests/browser/selection-interaction-style.spec.mjs|tests/browser/renderer-migration-gaps.spec.mjs|.github/workflows/application-architecture.yml)
+                  visual_policy=true
+                  ;;
+              esac
               case "$file" in
                 assets/js/modules/app-gpu-scene.js|assets/js/modules/render-scene.js|assets/js/modules/gpu-scene-preparation.js|assets/js/modules/gpu-base-scene-pass.js|assets/js/modules/gpu-map-renderer.js|assets/js/modules/gpu-stroke-renderer.js|assets/js/modules/gpu-upload-scheduler.js|assets/js/modules/gpu-resource-budget.js|assets/js/modules/rendering-domain.js|tests/unit/gpu-scene-staging.test.mjs|tests/unit/gpu-prepared-draw.test.mjs|tests/unit/gpu-base-scene-order.test.mjs|tests/unit/gpu-stroke-renderer.test.mjs|tests/unit/gpu-upload-staging.test.mjs|tests/unit/render-scene.test.mjs|tests/unit/territorial-boundary-continuity.test.mjs|tests/unit/edit-preview-presentation.test.mjs|tests/browser/gpu-scene-staging.spec.mjs|tests/browser/renderer-migration-gaps.spec.mjs|tests/browser/territorial-boundary-continuity.spec.mjs|tests/browser/server.mjs|playwright.config.js|package.json|pnpm-lock.yaml|eslint.config.js|.github/workflows/application-architecture.yml)
                   scene_staging=true
@@ -156,6 +166,53 @@ jobs:
           echo "boundary_continuity=$boundary_continuity" >> "$GITHUB_OUTPUT"
           echo "preview_handoff=$preview_handoff" >> "$GITHUB_OUTPUT"
           echo "scene_staging=$scene_staging" >> "$GITHUB_OUTPUT"
+          echo "visual_policy=$visual_policy" >> "$GITHUB_OUTPUT"
+
+  visual-policy:
+    name: Common map visual order (M4)
+    needs: changes
+    if: needs.changes.outputs.visual-policy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Focused visual policy lint
+        run: >
+          pnpm exec eslint assets/js/modules/layer-presentation.js assets/js/modules/map-interaction-style.js
+          assets/js/modules/selection-pass.js assets/js/modules/gpu-scene-preparation.js
+          assets/js/modules/app-gpu-scene.js assets/js/modules/rendering-domain.js assets/js/modules/app-map-host.js
+          assets/js/modules/gpu-base-scene-pass.js assets/js/modules/gpu-map-renderer.js
+          assets/js/modules/gpu-interaction-pass.js assets/js/modules/app-interaction-packets.js
+          assets/js/workers/canvas-render-worker.js tests/unit/map-visual-order.test.mjs
+          tests/unit/gpu-prepared-draw.test.mjs tests/unit/interaction-roles.test.mjs
+          tests/browser/renderer-migration-gaps.spec.mjs tests/browser/selection-interaction-style.spec.mjs
+      - name: Focused visual policy regressions
+        run: >
+          node --test tests/unit/map-visual-order.test.mjs tests/unit/gpu-base-scene-order.test.mjs
+          tests/unit/gpu-prepared-draw.test.mjs tests/unit/interaction-roles.test.mjs
+          tests/unit/map-interaction-style.test.mjs tests/unit/gpu-scene-staging.test.mjs
+          tests/unit/render-channel-ownership.test.mjs tests/unit/selection-overlay-plan.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify Canvas Worker and WebGL overlay pixels
+        run: pnpm exec playwright test tests/browser/renderer-migration-gaps.spec.mjs --grep='Canvas receives' --output=test-results/m4-scene-pixels
+      - name: Verify WebGL and SVG selection ownership
+        run: pnpm exec playwright test tests/browser/selection-interaction-style.spec.mjs --grep='WebGL2 country selection|renderer fallback draws a single' --output=test-results/m4-selection
+      - name: Upload visual policy evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: map-visual-policy-evidence
+          path: test-results
+          if-no-files-found: error
 
   scene-staging:
     name: GPU stroke domain staging (M3)

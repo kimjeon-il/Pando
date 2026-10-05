@@ -1,3 +1,4 @@
+import { mapVisualOrder } from './layer-presentation.js';
 import { createGpuCanvasWorker } from './gpu-canvas-worker.js';
 import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
 import { createGpuResourceLifecycle, createGpuUploadScope } from './gpu-resource-lifecycle.js';
@@ -3527,7 +3528,7 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
-    function renderCanvasHydro(canvasPath, theme, target = ctx2d, reserve = false) {
+    function renderCanvasHydro(canvasPath, theme, target = ctx2d, reserve = false, role) {
       const builtIn = [];
       for (const packId of hydroPreparation.activeIds()) builtIn.push(...(hydroPreparation.pack(packId)?.features || []));
       const features = [...builtIn, ...(state.hydroEdits || [])];
@@ -3536,14 +3537,16 @@ export function createGpuMapRenderer(deps) {
       for (const feature of features) {
         if (!feature?.geometry || !isHydroFeatureVisible(feature)) continue;
         const lake = feature.properties?.category === 'lake';
+        const border = feature.properties?.border_aligned === true || (Number(feature.properties?.__flags || 0) & 1) !== 0;
+        if (lake ? !['lake', 'lake-boundary'].includes(role) : role !== (border ? 'border-river' : 'river')) continue;
         if (state.layerVisibility[lake ? 'lakes' : 'rivers'] === false) continue;
         const opacity = lake ? theme.lakeOpacity : theme.riverOpacity;
         if (Number(opacity) <= 0) continue;
         const color = feature.properties?.editorColor || hydroDisplayColor(lake ? 'lake' : 'river');
         if (lake) {
           target.beginPath(); canvasPath(feature);
-          target.globalAlpha = reserve ? 1 : opacity; target.fillStyle = color; target.fill();
-          if (theme.lakeBoundaryVisible !== false) {
+          target.globalAlpha = reserve ? 1 : opacity; target.fillStyle = color; if (role === 'lake') target.fill();
+          if (role === 'lake-boundary' && theme.lakeBoundaryVisible !== false) {
             target.beginPath(); canvasPath(countryOutlineFeature(feature));
             target.strokeStyle = color; target.lineWidth = Math.max(0.5, Number(theme.lakeBoundaryWidth) || 1); target.stroke();
           }
@@ -3599,11 +3602,15 @@ export function createGpuMapRenderer(deps) {
       const visibleFeatures = state.layerVisibility.countries
         ? countryFeatures.filter(feature => isLayerItemVisible('countries', String(feature.id))) : [];
       const resolveFill = createCountryFillResolver();
+      const substrate = canvasFillSubstrate ||= document.createElement('canvas');
+      const paint = {
+        substrate: () => {
       ctx2d.globalAlpha = theme.baseLandAlpha;
       ctx2d.fillStyle = theme.defaultLand;
       globalThis.PandoLabCanvasSceneComposition.drawGeneralLand(ctx2d, canvasPath, canvasScenePolygons(), visibleFeatures);
       ctx2d.globalAlpha = 1;
-      const substrate = canvasFillSubstrate ||= document.createElement('canvas');
+        },
+        terrain: () => {
       if (substrate.width !== pixelWidth || substrate.height !== pixelHeight) {
         substrate.width = pixelWidth;
         substrate.height = pixelHeight;
@@ -3612,6 +3619,8 @@ export function createGpuMapRenderer(deps) {
       substrate.getContext('2d').drawImage(canvas, 0, 0);
       ctx2d.lineJoin = 'round';
       ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
+        },
+        'country-fill': () => {
       if (state.layerVisibility.countries) {
         for (const feature of visibleFeatures) {
           const fill = resolveFill(feature);
@@ -3623,20 +3632,27 @@ export function createGpuMapRenderer(deps) {
           ctx2d.fill();
         }
       }
-      globalThis.PandoLabCanvasSceneComposition.drawTerritorialFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr);
-      renderCanvasHydro(canvasPath, theme);
-      renderCanvasCountryBoundaries(canvasPath, theme, countryFeatures);
+        },
+        'territorial-fill': () => globalThis.PandoLabCanvasSceneComposition.drawTerritorialFills(ctx2d, canvasPath, canvasScenePolygons(), substrate, dpr),
+        'country-boundary': () => renderCanvasCountryBoundaries(canvasPath, theme, countryFeatures),
+      };
       const protection = {
         key: [JSON.stringify(getRenderViewState()), physicalStyleStateRevision, hydroPreparation.acceptedRevision,
           hydroPreparation.editRevision, [...hydroPreparation.activeIds()].join(','), countrySharedBoundary?.geometryRevision,
           renderScene?.revision, canvasStyleRevision, currentRenderRevision].join(':'),
         draw: mask => {
           const maskPath = d3.geo.path().projection(activeProjection()).context(mask);
-          renderCanvasHydro(maskPath, theme, mask, true);
+          for (const role of mapVisualOrder('hydro')) renderCanvasHydro(maskPath, theme, mask, true, role);
           renderCanvasCountryBoundaries(maskPath, theme, countryFeatures, mask, true);
         },
       };
+      paint['independent-overlay'] = () => {
       globalThis.PandoLabCanvasSceneComposition.drawOverlays(ctx2d, canvasPath, canvasScenePolygons(), canvasSceneStrokes(), dpr, protection);
+      };
+      for (const role of mapVisualOrder('base')) {
+        if (Object.hasOwn(paint, role)) paint[role]();
+        else if (mapVisualOrder('hydro').includes(role)) renderCanvasHydro(canvasPath, theme, ctx2d, false, role);
+      }
       const emphasisEntries = [];
       if (state.layerVisibility.countries) for (const feature of countryFeatures) {
         const id = String(feature.id || '');
@@ -3715,6 +3731,7 @@ export function createGpuMapRenderer(deps) {
         hiddenSharedCountryIds: (countrySharedBoundary?.ownerIds || []).filter(id => !countryBoundaryStyleById(id)),
         fills,
         countryBoundaryStyles: Object.fromEntries((countrySharedBoundary?.ownerIds || []).map(id => [id, countryBoundaryStyleById(id)])),
+        visualOrder: { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') },
         scenePolygons: canvasPacketDelta(canvasScenePolygons(), 'scene'),
         sceneStrokes: canvasPacketDelta(canvasSceneStrokes(), 'strokes'),
         interactionFillItems: renderInteractionState.genericFillItems || [],
@@ -4718,7 +4735,7 @@ export function createGpuMapRenderer(deps) {
         },
         interactionStyle,
         boundaryOwner: 'interaction-overlay',
-        visualPassOrder: ['territorial-fill', 'country-fill', 'overlay-fill', 'lake', 'lake-boundary', 'river', 'border-river', 'country-boundary', 'overlay-stroke', 'hover', 'secondary-selection', 'primary-selection'],
+        visualPassOrder: mapVisualOrder('all'),
         emphasizedCountryCount: countryEmphasis.selectedIds.size,
         viewportCss: [Number(cssWidth.toFixed(3)), Number(cssHeight.toFixed(3))],
         canvasBackingPixels: [pixelWidth, pixelHeight],

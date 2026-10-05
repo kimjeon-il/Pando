@@ -1,5 +1,57 @@
 export const LAYER_PRESENTATION_SCHEMA_VERSION = 4;
 
+// Presentation policy, not project state. GPU fills claim pixels front-to-back;
+// Canvas paints them back-to-front. Both implement the same territorial owner.
+const VISUAL_ROLES = Object.freeze([
+  { role: 'substrate', scope: 'base' },
+  { role: 'terrain', scope: 'base' },
+  { role: 'country-fill', scope: 'base', gpuRank: 3 },
+  { role: 'territorial-fill', scope: 'base', gpuRank: 2 },
+  { role: 'lake', scope: 'base', hydro: true },
+  { role: 'lake-boundary', scope: 'base', hydro: true },
+  { role: 'river', scope: 'base', hydro: true },
+  { role: 'border-river', scope: 'base', hydro: true },
+  { role: 'country-boundary', scope: 'base' },
+  // Mixed overlays retain group/object order and protect base water/borders.
+  { role: 'independent-overlay', scope: 'base' },
+  { role: 'candidate', scope: 'selection', priority: 1, aliases: ['reference', 'unchosen-result'] },
+  { role: 'hover', scope: 'selection', priority: 2 },
+  { role: 'secondary', scope: 'selection', priority: 3, aliases: ['selected-provider', 'selected-component'] },
+  { role: 'primary', scope: 'selection', priority: 4 },
+  { role: 'edit-preview', scope: 'interaction', priority: 5, aliases: ['edit-target', 'chosen-result'] },
+  { role: 'validation', scope: 'interaction' },
+  { role: 'edit-handles', scope: 'interaction' },
+  { role: 'draft', scope: 'interaction' },
+  { role: 'snap', scope: 'interaction' },
+  { role: 'territorial-labels', scope: 'interaction' },
+  { role: 'labels', scope: 'interaction' },
+].map((entry, rank) => Object.freeze({ ...entry, rank, aliases: Object.freeze(entry.aliases || []) })));
+
+export function mapVisualOrder(scope, backend = 'canvas') {
+  return Object.freeze(VISUAL_ROLES.filter(entry => scope === 'all' || entry.scope === scope || (scope === 'hydro' && entry.hydro))
+    .sort((a, b) => (backend === 'gpu' ? a.gpuRank ?? a.rank : a.rank) - (backend === 'gpu' ? b.gpuRank ?? b.rank : b.rank))
+    .map(entry => entry.role));
+}
+
+export function mapVisualRank(role) {
+  const entry = VISUAL_ROLES.find(entry => entry.role === role);
+  if (!entry) throw new Error(`Unknown visual role: ${role}`);
+  return entry.rank;
+}
+
+export const INTERACTION_ROLE_PRIORITY = Object.freeze(Object.fromEntries(VISUAL_ROLES.filter(entry => entry.priority)
+  .flatMap(entry => [entry.role, ...entry.aliases].map(role => [role, entry.priority]))));
+export const SELECTION_PAINT_ORDER = mapVisualOrder('selection');
+
+const OVERLAY_DETAIL_ORDER = Object.freeze({ fill: 10, line: 15, boundary: 20, 'territorial-boundary': 30 });
+export function overlayVisualOrder(presentation, group, detail = 'fill', objectKey = '', fragment = 0) {
+  if (!Object.hasOwn(OVERLAY_DETAIL_ORDER, detail)) throw new Error(`Unknown overlay visual role: ${detail}`);
+  const order = presentation?.overlayOrder || OVERLAY_GROUPS;
+  const index = order.indexOf(group);
+  return (index < 0 ? order.length : index) * 1000 + OVERLAY_DETAIL_ORDER[detail]
+    + layerObjectRank(presentation, objectKey) + fragment;
+}
+
 export const TERRITORIAL_SYMBOL_KEYS = Object.freeze({
   countries: Object.freeze({ name: 'basemapLabels', flag: 'countryFlags' }),
   subunits: Object.freeze({ name: 'subunitLabels', flag: 'subunitFlags' }),

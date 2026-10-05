@@ -1,3 +1,4 @@
+import { mapVisualRank } from './layer-presentation.js';
 /** MapHost: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -265,8 +266,12 @@ export function createMapHost() {
     territorialOperationLayer = interactionRoot.append('g').attr('class', 'territorial-operation-layer');
     territorialLabelLayer = root.append('g').attr('class', 'territorial-label-layer');
     labelLayer = root.append('g').attr('class', 'labels-layer');
-    [previewLayer, validationLayer, vertexLayer, draftLayer, snapLayer, territorialLabelLayer, labelLayer]
-      .forEach(layer => interactionRoot.node().appendChild(layer.node()));
+    const interactionLayers = [[territorialOperationLayer, 'edit-preview'], [hoverLayer, 'hover'],
+      [selectionLayer, 'primary'], [previewLayer, 'edit-preview'], [validationLayer, 'validation'],
+      [vertexLayer, 'edit-handles'], [draftLayer, 'draft'], [snapLayer, 'snap'],
+      [territorialLabelLayer, 'territorial-labels'], [labelLayer, 'labels']];
+    interactionLayers.sort((a, b) => mapVisualRank(a[1]) - mapVisualRank(b[1]))
+      .forEach(([layer]) => interactionRoot.node().appendChild(layer.node()));
 
     dependencies.mapHostCommands.installMapInputController(dependencies.lifecycleUi.mapInputPresentation.bindSvg(svg));
   }

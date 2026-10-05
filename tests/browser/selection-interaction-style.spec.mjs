@@ -38,7 +38,14 @@ async function openApp(page, {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`/${query}`);
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  try {
+    await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  } catch (error) {
+    await test.info().attach('startup-diagnostics', { contentType: 'application/json', body: JSON.stringify(await page.evaluate(() => ({
+      startup: window.__PANDOLAB_STARTUP_METRICS__, rendering: window.__PANDOLAB_RENDER_DEBUG__?.snapshot(),
+    })), null, 2) });
+    throw error;
+  }
   return errors;
 }
 
@@ -143,7 +150,7 @@ test('WebGL2 country selection produces real outline pixels before suppressing S
 
 test('renderer fallback draws a single selection outline in SVG', async ({ page }) => {
   test.setTimeout(180_000);
-  const errors = await openApp(page, { query: '?debug=1&renderer=canvas', disableWebGl: true });
+  const errors = await openApp(page, { query: '?debug=1&renderer=canvas', disableWebGl: true, selection: { color: '#cda95d' } });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toContain('territorial:entity:DEU');
   const outline = page.locator('.selection-overlay-layer .map-selection-outline.is-primary');

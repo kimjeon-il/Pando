@@ -1,3 +1,4 @@
+import { INTERACTION_ROLE_PRIORITY, SELECTION_PAINT_ORDER } from './layer-presentation.js';
 const THEMES = new Set(['light', 'dark']);
 const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 const PI = Math.PI;
@@ -37,12 +38,6 @@ export function scaleInteractionStroke(style, frameContext = null) {
   return Object.freeze({ ...style, width: Number(style.width || 0) * factor,
     innerCutout: Number(style.innerCutout || 0) * factor, casing, interactionScale: factor });
 }
-
-export const INTERACTION_ROLE_PRIORITY = Object.freeze({
-  'edit-target': 5, 'chosen-result': 5, primary: 4,
-  secondary: 3, 'selected-provider': 3, 'selected-component': 3,
-  hover: 2, reference: 1, candidate: 1, 'unchosen-result': 1,
-});
 
 /** Collapse roles without copying geometry or changing the selection model. */
 export function resolveInteractionEntries(entries = []) {
@@ -161,6 +156,6 @@ export function resolveMapInteractionStyle({
         fillAlpha: fill.secondary,
       }),
     }),
-    drawOrder: Object.freeze(['candidate', 'hover', 'secondary-inner', 'primary-inner']),
+    drawOrder: Object.freeze(SELECTION_PAINT_ORDER.map(role => ['primary', 'secondary'].includes(role) ? `${role}-inner` : role)),
   });
 }

@@ -1,3 +1,4 @@
+import { SELECTION_PAINT_ORDER } from './layer-presentation.js';
 import { territorialSymbolGroup } from './layer-presentation.js';
 import { isBuiltinPlaceId } from './place-contract.js';
 import { applySvgInteractionMasks } from './interaction-svg-mask.js';
@@ -599,7 +600,7 @@ export function createRenderingDomain({
       const geometryRevision = t.selectionGeometryRevision?.(objectKey, 'gpu-scene', feature);
       polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
         role: feature.properties.entityKind === 'regional' ? 'regional-overlay' : 'territorial-fill', ownerId: unitStyle.ownerId, parentId: unitStyle.parentId, territoryDepth: unitStyle.depth,
-        order: t.gpuSceneOrder?.(group, 10, objectKey), blendMode: unitStyle.blendMode,
+        order: t.gpuSceneOrder?.(group, 'fill', objectKey), blendMode: unitStyle.blendMode,
         style: { color: unitStyle.color, fillAlpha: unitStyle.fillAlpha, blendMode: unitStyle.blendMode } });
 
     }
@@ -671,18 +672,18 @@ export function createRenderingDomain({
       const geometryRevision = g.selectionGeometryRevision?.(objectKey, 'gpu-scene', feature);
       if (['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)) {
         polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
-          order: g.gpuSceneOrder?.('genericFeatures', 10), blendMode: style.blendMode,
+          order: g.gpuSceneOrder?.('genericFeatures', 'fill'), blendMode: style.blendMode,
           style: { color: g.genericFeatureColor?.(feature), fillAlpha: 0.34 * style.opacity, blendMode: style.blendMode } });
         if (style.boundaryVisible) strokes.push({
           key: `${objectKey}:boundary`, objectKey, geometryRevision,
           geometry: (g.buildRenderableStrokeFeature?.(feature) || feature).geometry,
-          order: g.gpuSceneOrder?.('genericFeatures', 20), blendMode: style.blendMode,
+          order: g.gpuSceneOrder?.('genericFeatures', 'boundary'), blendMode: style.blendMode,
           style: { color: g.genericFeatureColor?.(feature), alpha: style.opacity,
             width: style.boundaryWidth, cap: 'round', join: 'round', blendMode: style.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' },
         });
       } else if (['LineString', 'MultiLineString'].includes(feature.geometry?.type) && style.boundaryVisible) strokes.push({
         key: `${objectKey}:line`, objectKey, geometryRevision, geometry: feature.geometry,
-        order: g.gpuSceneOrder?.('genericFeatures', 15), blendMode: style.blendMode,
+        order: g.gpuSceneOrder?.('genericFeatures', 'line'), blendMode: style.blendMode,
         style: { color: g.genericFeatureColor?.(feature), alpha: style.opacity, width: style.boundaryWidth, cap: 'round', join: 'round', blendMode: style.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' },
       });
     }
@@ -788,9 +789,9 @@ export function createRenderingDomain({
       const geometryRevision = d.selectionGeometryRevision?.(`distribution-entry:${row.id}`, 'gpu-scene', feature);
       const fillAlpha = distributionValueAlpha(row.entry.value, row.range, renderStyle.opacity);
       if (isArea(row)) {
-        polygons.push({ key: `distribution-entry:${row.id}:fill`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 10), blendMode: renderStyle.blendMode, style: { color: color(row), fillAlpha, blendMode: renderStyle.blendMode } });
-        if (boundaryVisible && renderStyle.boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision, geometry: (d.buildRenderableStrokeFeature?.(feature) || feature).geometry, order: d.gpuSceneOrder?.(group, 20), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' } });
-      } else if (['LineString', 'MultiLineString'].includes(row.geometry?.type) && boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:line`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 15), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' } });
+        polygons.push({ key: `distribution-entry:${row.id}:fill`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 'fill'), blendMode: renderStyle.blendMode, style: { color: color(row), fillAlpha, blendMode: renderStyle.blendMode } });
+        if (boundaryVisible && renderStyle.boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision, geometry: (d.buildRenderableStrokeFeature?.(feature) || feature).geometry, order: d.gpuSceneOrder?.(group, 'boundary'), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' } });
+      } else if (['LineString', 'MultiLineString'].includes(row.geometry?.type) && boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:line`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 'line'), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' } });
     }
     d.replaceGpuSceneDomain?.('distributions', { polygons, strokes });
     return true;
@@ -908,7 +909,7 @@ export function createRenderingDomain({
     t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
     t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
       const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits', width: 1, dash: [] };
-      return { key: `territorial-internal:${group.key}`, continuityOwnerIds, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 30 + index), style: { color: group.color, alpha: group.opacity, width: definition.width, dash: definition.dash, cap: 'round', join: 'round' } };
+      return { key: `territorial-internal:${group.key}`, continuityOwnerIds, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 'territorial-boundary', '', index), style: { color: group.color, alpha: group.opacity, width: definition.width, dash: definition.dash, cap: 'round', join: 'round' } };
     }) });
     return true;
   };
@@ -1914,7 +1915,7 @@ export function createRenderingDomain({
         }
       }
     }
-    for (const selector of ['.map-selection-outline.is-secondary', '.map-selection-outline.is-primary']) {
+    for (const selector of SELECTION_PAINT_ORDER.filter(role => ['secondary', 'primary'].includes(role)).map(role => `.map-selection-outline.is-${role}`)) {
       stagedSelectionLayer.selectAll(selector).each(function() { this.parentNode?.appendChild(this); });
     }
     const fallbackPathMs = performance.now() - fallbackStartedAt;

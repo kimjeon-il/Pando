@@ -1,3 +1,4 @@
+import { overlayVisualOrder } from './layer-presentation.js';
 import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
 import { applySvgInteractionOwnership, makeSvgSceneProxy } from './render-channel-ownership.js';
 /** GpuScene: extracted application responsibility.
@@ -61,11 +62,8 @@ export function createGpuScene() {
     return `${key}:${role}:state-${dependencies.projectState.state.stateRevision}:country-${dependencies.countries.countryLandRevision}`;
   }
 
-  function gpuSceneOrder(group, offset = 0, objectKey = '') {
-    const order = dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS;
-    const index = order.indexOf(group);
-    return (index < 0 ? order.length : index) * 1000 + Number(offset || 0)
-      + (0, dependencies.applicationServicesB.layerObjectRank)(dependencies.projectState.state.layerPresentation, objectKey);
+  function gpuSceneOrder(group, detail = 'fill', objectKey = '', fragment = 0) {
+    return overlayVisualOrder(dependencies.projectState.state.layerPresentation, group, detail, objectKey, fragment);
   }
 
   function replaceGpuSceneDomain(domain, { polygons = [], strokes = [] } = {}) {
