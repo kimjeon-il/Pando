@@ -2,7 +2,7 @@ import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 
 // Submits a prepared frame. All resource construction and range scans happen before entry.
 export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
-  terrainVisible, terrainStyle, terrainRepresentation, countriesVisible, mapSubstrate, countries, prepared },
+  terrainVisible, terrainStyle, countriesVisible, mapSubstrate, countries, prepared },
   { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, landMaskProgram, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
@@ -31,7 +31,7 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
       gl.disable(gl.STENCIL_TEST);
       gl.clear(gl.STENCIL_BUFFER_BIT);
       gl.disable(gl.BLEND);
-      if (terrainVisible && (terrainStyle !== 'physical' || terrainRepresentation === 'dem-relief-v1')) {
+      if (terrainVisible) {
         gl.enable(gl.STENCIL_TEST);
         gl.stencilMask(0xff);
         gl.stencilFunc(gl.ALWAYS, 1, 0xff);
@@ -49,7 +49,7 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
         }
         gl.colorMask(true, true, true, true);
         gl.stencilMask(0x00);
-        if (terrainStyle === 'physical' && terrainRepresentation === 'dem-relief-v1') {
+        if (terrainStyle === 'physical') {
           gl.stencilFunc(gl.NOTEQUAL, 1, 0xff);
           renderTerrain('ocean');
         }
@@ -58,8 +58,6 @@ export function drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWi
         renderTerrain('land');
         gl.disable(gl.STENCIL_TEST);
         gl.stencilMask(0xff);
-      } else {
-        renderTerrain();
       }
       const overlayRenderedKeys = [];
       const overlayMissingKeys = [];

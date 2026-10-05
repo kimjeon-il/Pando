@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGpuTerrainPreparation } from '../../assets/js/modules/gpu-terrain-preparation.js';
 
-function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0 } = {}) {
+function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0, tintUrl } = {}) {
   const requests = [];
   const jobs = [];
   const deleted = [];
@@ -14,6 +14,7 @@ function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () =>
   }));
   const owner = createGpuTerrainPreparation({
     tileUrl: spec => `https://example.test/${spec.key}`,
+    tintUrl,
     onUnusable,
     isMobile: () => mobile,
     invalidate: () => {},
@@ -37,24 +38,24 @@ const mobileFrame = (rotation = [0, 0]) => ({
   mode: 0, scale: 1200, viewport: [390, 844],
   viewState: { projection: 'globe', rotation },
 });
-const mobileView = (meshQuality = 'canonical') => ({
-  visible: true, meshQuality, physicalStyle: 'political', projection: 'globe',
+const mobileView = () => ({
+  visible: true, physicalStyle: 'political', projection: 'globe',
   width: 390, height: 844, dpr: 1, devicePixelRatio: 2,
   cacheBudgetBytes: 128 * 1024 * 1024,
 });
 
-test('startup map preview requests the improved coarse level even at a detailed camera zoom', t => {
+test('country preview cannot cap terrain detail requested by a high-DPR camera', t => {
   const { owner, requests } = fixture(t, () => {}, { mobile: true });
   owner.setManifest(mobileManifest);
-  owner.prepare(mobileFrame(), mobileView('preview'));
-  assert.equal(owner.stats().terrainLevel, 1);
+  owner.prepare(mobileFrame(), { ...mobileView(), meshQuality: 'preview' });
+  assert.equal(owner.stats().terrainLevel, 2);
   assert.equal(owner.stats().terrainFetchConcurrency, 2);
   assert.ok(requests.length > 0);
-  assert.ok(requests.every(request => new URL(request.url).pathname.startsWith('/1/')));
+  assert.ok(requests.every(request => new URL(request.url).pathname.startsWith('/2/')));
   owner.dispose();
 });
 
-test('canonical map requests camera target terrain directly without intermediate levels', t => {
+test('camera requests target terrain directly without intermediate levels', t => {
   const { owner, requests } = fixture(t, () => {}, { mobile: true });
   owner.setManifest(mobileManifest);
   owner.prepare(mobileFrame(), mobileView());
@@ -64,16 +65,49 @@ test('canonical map requests camera target terrain directly without intermediate
   owner.dispose();
 });
 
-test('canonical promotion keeps loaded terrain until all target tiles are ready', async t => {
+test('only fallback tiles covering missing GPU-ready targets stay drawn and protected from eviction', async t => {
+  const { owner, requests, jobs, deleted } = fixture(t);
+  globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
+  t.after(() => { delete globalThis.createImageBitmap; owner.dispose(); });
+  owner.setManifest(mobileManifest);
+  const view = { ...mobileView(), devicePixelRatio: 1, projection: 'flat', flatCenter: [0, 0], cacheBudgetBytes: 8 * 1024 * 1024 };
+  const frame = { mode: 1, scale: 100, viewport: [5000, 5000], viewState: { projection: 'flat', projectionCenter: [0, 0] } };
+  const drain = () => { for (const job of jobs.splice(0)) while (!job.step().done) { /* Real uploads. */ } };
+  owner.prepare(frame, view);
+  for (const request of requests) request.resolve({ ok: true, blob: async () => ({}) });
+  await settle(); drain();
+  const coarse = owner.prepare(frame, view);
+  assert.deepEqual(coarse.map(tile => tile.spec.key), ['0/0-0', '0/1-0']);
+  const detailedFrame = { ...frame, scale: 500 };
+  assert.equal(owner.prepare(detailedFrame, view).length, 2);
+  // Upload the four western target tiles. Eastern downloads remain stalled.
+  for (const request of requests.filter(request => /\/1\/[01]-[01]$/.test(request.url))) {
+    request.resolve({ ok: true, blob: async () => ({}) });
+    await settle(); drain();
+  }
+  const partial = owner.prepare(detailedFrame, view);
+  assert.equal(owner.stats().terrainTargetTilesLoaded, 4);
+  assert.equal(owner.stats().terrainTargetTileCount, 8);
+  assert.deepEqual(partial.filter(tile => tile.spec.level === 0).map(tile => tile.spec.key), ['0/1-0']);
+  owner.request({ key: 'pressure', pixelWidth: 1024, pixelHeight: 1024 });
+  requests.find(request => request.url.endsWith('/pressure')).resolve({ ok: true, blob: async () => ({}) });
+  await settle(); drain();
+  assert.ok(deleted.includes(coarse[0].texture), 'replaced western fallback is evictable');
+  assert.ok(!deleted.includes(coarse[1].texture), 'fallback still drawing eastern coverage must survive cache pressure');
+  assert.ok(owner.prepare(detailedFrame, view).some(tile => tile.texture === coarse[1].texture));
+});
+
+test('zoom keeps loaded terrain until replacement tiles finish decoding and GPU upload', async t => {
   const { owner, requests, jobs } = fixture(t, () => {}, { mobile: true });
   globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
   t.after(() => { delete globalThis.createImageBitmap; });
   owner.setManifest(mobileManifest);
-  owner.prepare(mobileFrame(), mobileView('preview'));
+  const previousFrame = { ...mobileFrame(), scale: 250 };
+  owner.prepare(previousFrame, mobileView());
   for (const request of requests) request.resolve({ ok: true, blob: async () => ({}) });
   await settle();
   for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain the real upload owner. */ }
-  assert.equal(owner.prepare(mobileFrame(), mobileView('preview')).length, 2);
+  assert.equal(owner.prepare(previousFrame, mobileView()).length, 2);
   assert.equal(owner.stats().terrainRenderedLevel, 1);
   const priorRequestCount = requests.length;
   const promoted = owner.prepare(mobileFrame(), mobileView());
@@ -85,6 +119,9 @@ test('canonical promotion keeps loaded terrain until all target tiles are ready'
   assert.ok(requests.slice(priorRequestCount).every(request => new URL(request.url).pathname.startsWith('/2/')));
   requests[priorRequestCount].resolve({ ok: true, blob: async () => ({}) });
   await settle();
+  const decoded = owner.prepare(mobileFrame(), mobileView());
+  assert.equal(decoded.length, 2, 'decoding alone must not replace fallback coverage');
+  assert.ok(decoded.every(tile => tile.spec.level === 1));
   for (const job of jobs.splice(0)) while (!job.step().done) { /* Drain the real upload owner. */ }
   const ready = owner.prepare(mobileFrame(), mobileView());
   assert.equal(ready.length, 3, 'partial detail must paint over the retained terrain');
@@ -350,4 +387,35 @@ test('DEM tint upload is counted in the same budget and released on reset', asyn
   assert.equal(renderer.stats().terrainCacheBytes, 0);
   assert.equal(deleted.length, 1);
   renderer.dispose();
+});
+
+test('DEM has a valid neutral tint sampler while color is delayed without changing cached height tiles', async t => {
+  const { owner, requests, jobs, deleted } = fixture(t, () => {}, { tintUrl: () => 'https://example.test/tint.webp' });
+  t.after(() => owner.dispose());
+  globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
+  t.after(() => { delete globalThis.createImageBitmap; });
+  owner.setManifest({ ...mobileManifest, tint: { width: 1024, height: 1024 } });
+  const frame = { ...mobileFrame(), scale: 100 };
+  const view = { ...mobileView(), devicePixelRatio: 1 };
+  owner.prepare(frame, view);
+  for (const request of requests) request.resolve({ ok: true, blob: async () => ({}) });
+  await settle();
+  for (const job of jobs.splice(0)) while (!job.step().done) { /* Upload heights. */ }
+  const gray = owner.prepare(frame, view);
+  assert.equal(gray.length, 2);
+  const neutralTint = owner.tintTexture();
+  assert.ok(neutralTint, 'physical shader needs a complete sampler before the color image arrives');
+  assert.equal(owner.stats().terrainTintReady, false);
+  const uploads = owner.stats().terrainUploadCount;
+  const colored = owner.prepare(frame, { ...view, physicalStyle: 'physical' });
+  assert.deepEqual(colored.map(tile => tile.texture), gray.map(tile => tile.texture));
+  assert.equal(owner.stats().terrainUploadCount, uploads, 'style switch must not reupload heights');
+  assert.equal(requests.filter(request => request.url.endsWith('/tint.webp')).length, 1);
+  requests.find(request => request.url.endsWith('/tint.webp')).resolve({ ok: true, blob: async () => ({}) });
+  await settle();
+  for (const job of jobs.splice(0)) while (!job.step().done) { /* Upload tint. */ }
+  assert.equal(owner.stats().terrainTintReady, true);
+  assert.notEqual(owner.tintTexture(), neutralTint);
+  assert.ok(deleted.includes(neutralTint));
+  assert.deepEqual(owner.prepare(frame, view).map(tile => tile.texture), gray.map(tile => tile.texture));
 });

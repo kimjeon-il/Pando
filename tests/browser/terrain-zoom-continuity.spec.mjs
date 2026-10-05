@@ -5,7 +5,7 @@ test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
 
 for (const initialQuality of ['preview', 'detail']) {
 test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is delayed`, async ({ page, baseURL }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
   let heldLevel = -1;
   let release;
   const gate = new Promise(resolve => { release = resolve; });
@@ -34,8 +34,10 @@ test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is
       for (let i = 0; i < pixels.length; i += 64) {
         if (pixels[i + 3] && Math.max(pixels[i], pixels[i + 1], pixels[i + 2]) - Math.min(pixels[i], pixels[i + 1], pixels[i + 2]) > 20) colored++;
       }
-      window.__terrainDrawPixels.push({ level: Math.round(Math.log2(size[0] / 1350)), colored });
+      const level = Math.round(Math.log2(size[0] / 1350));
+      window.__terrainDrawPixels.push({ level, colored });
       if (window.__terrainDrawPixels.length > 20) window.__terrainDrawPixels.shift();
+      if (colored > 100 && level === window.__terrainExpectedFallbackLevel) window.__captureTerrainDraws = false;
       return result;
     };
   });
@@ -52,25 +54,29 @@ test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is
       const m = window.__PANDOLAB_GPU_METRICS__;
       return m?.terrainTargetLevel > 0 && m.terrainTargetTilesLoaded === m.terrainTargetTileCount && m.terrainTintReady;
     }), { timeout: 60_000 }).toBe(true);
+    if (initialQuality === 'detail') await expect.poll(() => page.evaluate(() =>
+      window.__PANDOLAB_GPU_METRICS__.activeMeshQuality), { timeout: 60_000 }).toBe('canonical');
     const previousLevel = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetLevel);
     if (initialQuality === 'preview') expect(previousLevel).toBe(1);
     expect(previousLevel).toBeLessThan(5);
     heldLevel = initialQuality === 'preview' ? -2 : previousLevel + 1;
-    await page.evaluate(() => { window.__captureTerrainDraws = true; });
+    await page.evaluate(level => {
+      window.__terrainExpectedFallbackLevel = level; window.__captureTerrainDraws = true;
+    }, previousLevel);
     const bounds = await page.locator('#map').boundingBox();
     const center = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
     await page.mouse.move(center.x, center.y);
     // Cross the globe's 2.2x country-detail threshold from the initial overview.
     await page.mouse.wheel(0, -Math.log(initialQuality === 'preview' ? 3 : 2) / 0.0013);
     if (initialQuality === 'preview') {
-      await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTargetLevel)).toBeGreaterThan(previousLevel);
+      await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTargetLevel), { timeout: 30_000 }).toBeGreaterThan(previousLevel);
       heldLevel = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetLevel);
-    } else await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTargetLevel)).toBe(heldLevel);
+    } else await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTargetLevel), { timeout: 30_000 }).toBe(heldLevel);
     await expect.poll(() => page.evaluate(level => window.__terrainDrawPixels.some(draw => draw.level === level && draw.colored > 100), previousLevel)).toBe(true);
     expect(await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetTilesLoaded)).toBe(0);
     expect(await page.evaluate(() => window.__terrainDrawPixels.some(draw => draw.level === 0))).toBe(false);
     if (initialQuality === 'preview') {
-      await page.evaluate(() => { window.__terrainDrawPixels = []; });
+      await page.evaluate(() => { window.__terrainDrawPixels = []; window.__captureTerrainDraws = true; });
       await page.mouse.down();
       await page.mouse.move(center.x + 40, center.y + 40, { steps: 5 });
       await page.mouse.up();
@@ -78,12 +84,25 @@ test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is
       expect(await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetTilesLoaded)).toBe(0);
     }
     await page.screenshot({ path: test.info().outputPath('terrain-during-zoom.png') });
+    // Pixel reads prove fallback coverage above; stop synchronizing the whole
+    // software GPU on every tile draw while checking replacement completion.
+    await page.evaluate(() => { window.__captureTerrainDraws = false; });
     release();
+    // Camera-selected detail can stream twenty remote DEM textures on
+    // SwiftShader. This checks eventual replacement, not a load-time SLA.
     await expect.poll(() => page.evaluate(() => {
       const m = window.__PANDOLAB_GPU_METRICS__;
       return m.terrainTargetTilesLoaded === m.terrainTargetTileCount && m.terrainRenderedLevel === m.terrainTargetLevel;
-    }), { timeout: 60_000 }).toBe(true);
+    }), { timeout: 120_000 }).toBe(true);
     expect(errors).toEqual([]);
+  } catch (error) {
+    console.log('TERRAIN_ZOOM_FAILURE', JSON.stringify(await page.evaluate(() => ({
+      metrics: Object.fromEntries(Object.entries(window.__PANDOLAB_GPU_METRICS__)
+        .filter(([key]) => key.startsWith('terrain') || ['p99CpuSubmitMs', 'effectivePixelRatio', 'interactionActive'].includes(key))),
+      view: window.__PANDOLAB_VIEW_DEBUG__.snapshot(),
+      uploads: window.__PANDOLAB_RENDER_DEBUG__.snapshot().uploads,
+    }))));
+    throw error;
   } finally { release(); }
 });
 }
