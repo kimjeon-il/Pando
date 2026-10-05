@@ -52,3 +52,75 @@ Full suite, broad architecture checks, deployment and remote CI execution were
 not run. The scoped CI job covers these focused regressions and uploads evidence.
 M4 proves order/ownership in the checked paths, not whole-map temporal continuity;
 M6 frame audit and M7 end-to-end/full verification remain outstanding.
+
+## M5: CSS stroke policy
+
+`map-interaction-style.js` now resolves current base and interaction stroke roles
+through `resolveMapStrokeStyle`. Current callers/tests replace the retired
+`interactionRoleStyle` API; no alias, wrapper or second policy is retained.
+Country, internal country, subunit, subunit-internal, region, generic,
+distribution, river, lake boundary, hover, selection and direct editing use this
+policy. The current fixed layer widths, colors, role priorities and dash patterns
+remain; no width setting or persistence/model API is added.
+
+Policy widths, dash lengths and casing/cutout widths are CSS pixels. View scaling
+uses `MapVisualFrame.cssScale`, independent of DPR. The GPU stroke boundary scales
+these values once by DPR; hydro ribbons/picking and native country line submission
+use the same CSS-to-device boundary. SVG primary/secondary and direct boundary
+editing use the same resolved CSS styles. Shared boundary editing retains its
+`[6,3]` dash. The obsolete SVG boundary CSS widths are removed from the source and
+`node scripts/build-ui-bundle.mjs` regenerates the bundle.
+
+Country shared batches apply effective per-owner opacity exactly once. Their
+theme ink is unmultiplied; native and pending country outlines use the resolved
+`borderAlpha`. A production theme/packet regression verifies opacity 0.5 produces
+0.46 on all these paths instead of 0.23 or 0.92.
+
+### M5 execution evidence (2026-10-06)
+
+- M5 parent / fixed M4 checkpoint: `c6c62664fdae5b39ed8f839411cce5d3dba13a14`.
+- Candidate SHA, exact source/evidence hashes and command results:
+  `test-results/m5-delivery.json`, generated after the M5 commit.
+- Initial policy RED: 0 pass, 3 fail, 0 skip (`test-results/m5-red.log`).
+- Actual GPU RED: 6 CSS px at DPR 1 became 3 CSS px at DPR 2
+  (`test-results/m5-dpr-red.log`); current pixels are 6 at both DPRs.
+- Production opacity RED: shared 0.23 versus expected 0.46; review exposed a
+  pending-packet regression, 0.92 versus 0.46. Both production paths now pass
+  (`test-results/m5-opacity-red.log`, `m5-pending-opacity-red.log`,
+  `m5-opacity-final.log`).
+- Review also exposed unscaled SVG coast/shared editing. A real D3/SVG production
+  rendering-domain test at DPR 2/overview zoom, with selection outlines disabled,
+  failed before the repair and now matches the edited GPU packet's path, color,
+  width, alpha and shared dash (`m5-boundary-red.log`, `m5-boundary-accepted.log`).
+  The test checks exact SVG width and computed width; CSSOM's six-significant-digit
+  formatting is accounted for separately.
+- Final focused unit command: 123 pass, 0 fail, 0 skip, exit 0:
+  `node --test tests/unit/map-stroke-style.test.mjs tests/unit/map-interaction-style.test.mjs tests/unit/interaction-roles.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/territorial-boundary-continuity.test.mjs tests/unit/edit-preview-presentation.test.mjs tests/unit/edit-preview-controller.test.mjs tests/unit/map-visual-order.test.mjs tests/unit/gpu-base-scene-order.test.mjs tests/unit/gpu-prepared-draw.test.mjs tests/unit/gpu-scene-staging.test.mjs tests/unit/gpu-stroke-renderer.test.mjs tests/unit/selection-overlay-plan.test.mjs tests/unit/render-channel-ownership.test.mjs`.
+  Log: `test-results/m5-final-units.log`.
+- `pnpm exec playwright test tests/browser/renderer-migration-gaps.spec.mjs --grep='shared stroke policy|multiply strokes|Canvas receives' --output=test-results/m5-stroke-pixels`:
+  3 pass, 0 fail, 0 skip. Covers actual DPR width, multiply/AA pixels and production
+  Canvas Worker/WebGL mixed overlay pixels; `test-results/m5-stroke-pixels.log`.
+- `pnpm exec playwright test tests/browser/selection-interaction-style.spec.mjs --grep='WebGL2 country selection|renderer fallback draws a single' --output=test-results/m5-selection-ui`:
+  2 pass, 0 fail, 0 skip. Actual GPU selection pixels/single visual owner and SVG
+  fallback widths through flat/globe transitions; `test-results/m5-selection-ui.log`.
+- `pnpm exec playwright test tests/browser/edit-preview-handoff.spec.mjs --grep='river hands.*outlines on' --output=test-results/m5-edit-ui`:
+  2 pass, 0 fail, 0 skip. Actual WebGL2/Canvas UI edits, production Worker/file
+  path, last coordinates, matching committed geometry/display frame, one history
+  step and Undo/Redo; `test-results/m5-edit-ui.log` and its JSON evidence.
+- `pnpm exec playwright test tests/browser/renderer-migration-gaps.spec.mjs --grep='boundary edit SVG' --output=test-results/m5-boundary-accepted`:
+  1 pass, 0 fail, 0 skip. Browser role fallback evidence described above.
+- Changed JavaScript/test ESLint: 18 files, exit 0
+  (`test-results/m5-final-eslint.log`); focused workflow YAML: 1 pass;
+  `git diff --check`: exit 0. Scoped CI includes current M4/M5 dependencies,
+  regressions and evidence upload. Remote CI was not executed.
+
+### Limits
+
+The existing native `GL_LINES` country path still obeys the driver's supported
+line-width range; requesting the common width does not establish identical
+subpixel rasterization on every driver. This work does not replace that geometry
+or GPU resource path. General frame enforcement (M6), whole-map continuity,
+terrain continuity, every editing-tool/browser combination and the final full
+regression (M7) are not claimed. Full suite/broad architecture checks, main merge,
+deployment and packaging were not run. Saving, time semantics and activation
+policy are unchanged.

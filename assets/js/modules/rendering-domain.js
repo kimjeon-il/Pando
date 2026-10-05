@@ -1,9 +1,8 @@
-import { SELECTION_PAINT_ORDER } from './layer-presentation.js';
-import { territorialSymbolGroup } from './layer-presentation.js';
+import { SELECTION_PAINT_ORDER, territorialSymbolGroup } from './layer-presentation.js';
 import { isBuiltinPlaceId } from './place-contract.js';
 import { applySvgInteractionMasks } from './interaction-svg-mask.js';
 import { rendererOwnsSceneGeometry } from './render-channel-ownership.js';
-import { interactionRoleStyle, resolveMapInteractionStyle, interactionNodeRole, interactionStrokeScale, scaleInteractionStroke } from './map-interaction-style.js';
+import { resolveMapStrokeStyle, resolveMapInteractionStyle, interactionNodeRole, interactionStrokeScale, scaleInteractionStroke } from './map-interaction-style.js';
 import { mapInteractionEntries } from './interaction-roles.js';
 import { selectionEntries, selectionDisplayPlan, orderSelectionFillMasks, selectionFrameOwnership, selectionGeometryKinds, planSelectionEntry, planHoverEntry, selectionCoverage, selectionCoverageAvailable } from './selection-overlay-plan.js';
 import { geometryRevision as readGeometryRevision } from './geometry-versions.js';
@@ -146,7 +145,7 @@ export function createRenderingDomain({
     layer?.selectAll('path').each(function(d) {
       if (this.hasAttribute('data-interaction-priority')) {
         const directManipulation = this.classList.contains('draft-shape') || this.classList.contains('draft-auto-close-preview');
-        const style = scaleInteractionStroke(interactionRoleStyle(
+        const style = scaleInteractionStroke(resolveMapStrokeStyle(
           selection.resolvedInteractionStyle?.() || selection.getInteractionStyle?.() || resolveMapInteractionStyle(),
           interactionNodeRole(this, this.closest('[data-interaction-domain]')?.getAttribute('data-interaction-domain') || 'draft'),
           { directManipulation },
@@ -423,7 +422,7 @@ export function createRenderingDomain({
       pendingPolygons.push({ key: `pending-country-fill:${id}`, geometryRevision, geometry: feature.geometry, order: -300,
         role: 'territorial-fill', ownerId: id, territoryDepth: 0,
         style: resolveFill(feature) });
-      pendingStrokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: { color: countries.mapTheme?.().border, alpha: countries.mapTheme?.().borderAlpha, width: 1, cap: 'round' } });
+      pendingStrokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: Object.freeze({ ...theme.strokes.country, alpha: theme.borderAlpha }) });
     }
     countries.replaceGpuSceneDomain?.('country-overlays', {
       polygons: pendingPolygons,
@@ -678,13 +677,12 @@ export function createRenderingDomain({
           key: `${objectKey}:boundary`, objectKey, geometryRevision,
           geometry: (g.buildRenderableStrokeFeature?.(feature) || feature).geometry,
           order: g.gpuSceneOrder?.('genericFeatures', 'boundary'), blendMode: style.blendMode,
-          style: { color: g.genericFeatureColor?.(feature), alpha: style.opacity,
-            width: style.boundaryWidth, cap: 'round', join: 'round', blendMode: style.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' },
+          style: resolveMapStrokeStyle({ color: g.genericFeatureColor?.(feature), layerStyle: style, antiAlias: document.documentElement.dataset.smoothLines !== 'false' }, 'generic'),
         });
       } else if (['LineString', 'MultiLineString'].includes(feature.geometry?.type) && style.boundaryVisible) strokes.push({
         key: `${objectKey}:line`, objectKey, geometryRevision, geometry: feature.geometry,
         order: g.gpuSceneOrder?.('genericFeatures', 'line'), blendMode: style.blendMode,
-        style: { color: g.genericFeatureColor?.(feature), alpha: style.opacity, width: style.boundaryWidth, cap: 'round', join: 'round', blendMode: style.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' },
+        style: resolveMapStrokeStyle({ color: g.genericFeatureColor?.(feature), layerStyle: style, antiAlias: document.documentElement.dataset.smoothLines !== 'false' }, 'generic'),
       });
     }
     g.replaceGpuSceneDomain?.('generic-features', { polygons, strokes });
@@ -790,8 +788,8 @@ export function createRenderingDomain({
       const fillAlpha = distributionValueAlpha(row.entry.value, row.range, renderStyle.opacity);
       if (isArea(row)) {
         polygons.push({ key: `distribution-entry:${row.id}:fill`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 'fill'), blendMode: renderStyle.blendMode, style: { color: color(row), fillAlpha, blendMode: renderStyle.blendMode } });
-        if (boundaryVisible && renderStyle.boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision, geometry: (d.buildRenderableStrokeFeature?.(feature) || feature).geometry, order: d.gpuSceneOrder?.(group, 'boundary'), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' } });
-      } else if (['LineString', 'MultiLineString'].includes(row.geometry?.type) && boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:line`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 'line'), blendMode: renderStyle.blendMode, style: { color: color(row), alpha: renderStyle.opacity, width: renderStyle.boundaryWidth, cap: 'round', join: 'round', blendMode: renderStyle.blendMode, antiAlias: document.documentElement.dataset.smoothLines !== 'false' } });
+        if (boundaryVisible && renderStyle.boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision, geometry: (d.buildRenderableStrokeFeature?.(feature) || feature).geometry, order: d.gpuSceneOrder?.(group, 'boundary'), blendMode: renderStyle.blendMode, style: resolveMapStrokeStyle({ color: color(row), layerStyle: renderStyle, antiAlias: document.documentElement.dataset.smoothLines !== 'false' }, 'distribution') });
+      } else if (['LineString', 'MultiLineString'].includes(row.geometry?.type) && boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:line`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 'line'), blendMode: renderStyle.blendMode, style: resolveMapStrokeStyle({ color: color(row), layerStyle: renderStyle, antiAlias: document.documentElement.dataset.smoothLines !== 'false' }, 'distribution') });
     }
     d.replaceGpuSceneDomain?.('distributions', { polygons, strokes });
     return true;
@@ -859,9 +857,9 @@ export function createRenderingDomain({
     } else pendingTerritorialBoundary = null;
     const visibleIds = new Set(visibleFeatures.map(feature => String(feature.id)));
     const styleByType = new Map([
-      ['subunit', { presentationGroup: 'subunits', width: 2, dash: [0, 0] }],
-      ['subunit-internal', { presentationGroup: 'subunits', width: 1.1, dash: [3, 2] }],
-      ['region', { presentationGroup: 'regions', width: 1.5, dash: [7, 3] }],
+      ['subunit', { presentationGroup: 'subunits' }],
+      ['subunit-internal', { presentationGroup: 'subunits' }],
+      ['region', { presentationGroup: 'regions' }],
     ]);
     const visibleSignature = [...visibleIds].sort().map(id => {
       const feature = visibleFeatures.find(item => String(item.id) === id);
@@ -882,7 +880,7 @@ export function createRenderingDomain({
     });
     const signature = `${territorialBoundaryCache.rebuildCount};${visibleSignature};${styleSignature};${boundaryColor}`;
     if (territorialBoundaryBatchCache.signature !== signature) {
-      const groups = new Map([...styleByType].map(([styleType, definition]) => [styleType, { key: styleType, styleType, width: definition.width, dash: definition.dash, segments: [] }]));
+      const groups = new Map([...styleByType].map(([styleType, definition]) => [styleType, { key: styleType, styleType, segments: [] }]));
       for (const segment of territorialBoundaryCache.segments) {
         const owner = (segment.unitOwners || []).find(item => visibleIds.has(String(item.id)));
         if (!owner) continue;
@@ -908,8 +906,8 @@ export function createRenderingDomain({
     // owner with different cache and transition timing.
     t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
     t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
-      const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits', width: 1, dash: [] };
-      return { key: `territorial-internal:${group.key}`, continuityOwnerIds, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 'territorial-boundary', '', index), style: { color: group.color, alpha: group.opacity, width: definition.width, dash: definition.dash, cap: 'round', join: 'round' } };
+      const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'subunits' };
+      return { key: `territorial-internal:${group.key}`, continuityOwnerIds, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 'territorial-boundary', '', index), style: resolveMapStrokeStyle({ color: group.color, layerStyle: { opacity: group.opacity, boundaryWidth: 1 } }, group.styleType) };
     }) });
     return true;
   };
@@ -952,6 +950,7 @@ export function createRenderingDomain({
       return segments.length ? {
         key: `${boundary?.preparationId || packet?.revision || 0}:${kind}:${view ?? 0}:${projection ?? 0}`,
         kind,
+        style: resolveMapStrokeStyle(editing.getInteractionStyle?.() || resolveMapInteractionStyle(), 'edit-target', { directManipulation: true, boundaryKind: kind }),
         geometry: { type: 'MultiLineString', coordinates: segments.map(segment => [segment.start, segment.end]) },
       } : null;
     }).filter(Boolean);
@@ -963,6 +962,11 @@ export function createRenderingDomain({
     layer.selectAll('path.boundary-edit-segment')
       .attr('d', d => framePath(frameContext, editing.path)?.({ type: 'Feature', geometry: d.geometry, properties: {} }))
       .attr('data-gpu-scene-key', d => `boundary-edit:${d.key}`)
+      .attr('stroke', d => d.style.color)
+      .attr('stroke-width', d => scaleInteractionStroke(d.style, frameContext).width)
+      .attr('stroke-opacity', d => d.style.alpha)
+      .attr('stroke-dasharray', d => d.style.dash.join(' '))
+      .attr('stroke-linecap', d => d.style.cap).attr('stroke-linejoin', d => d.style.join)
       .classed('coast', d => d.kind === 'coast')
       .classed('shared', d => d.kind === 'shared')
       .on('click.vertex-add', null);
@@ -972,11 +976,7 @@ export function createRenderingDomain({
         geometryRevision: item.key,
         geometry: item.geometry,
         order: 9800,
-        style: {
-          ...interactionRoleStyle(editing.getInteractionStyle?.() || resolveMapInteractionStyle(), 'edit-target', { directManipulation: true }),
-          dash: item.kind === 'shared' ? [6, 3] : [0, 0],
-          cap: 'round', join: 'round',
-        },
+        style: item.style,
       })),
     });
     return true;
@@ -1067,7 +1067,7 @@ export function createRenderingDomain({
     const editOutline = layer.selectAll('path.object-edit-outline').data(editFeature?.geometry ? [editFeature] : [], feature => String(feature.id));
     editOutline.enter().append('path').attr('class', 'object-edit-outline');
     editOutline.exit().remove();
-    const editStyle = scaleInteractionStroke(interactionRoleStyle(editing.getInteractionStyle?.() || resolveMapInteractionStyle(),
+    const editStyle = scaleInteractionStroke(resolveMapStrokeStyle(editing.getInteractionStyle?.() || resolveMapInteractionStyle(),
       'edit-target', { directManipulation: true }), frameContext);
     layer.selectAll('path.object-edit-outline').attr('fill', 'none').attr('pointer-events', 'none')
       .attr('data-object-key', objectPacket?.targetRef?.key || '')
@@ -1595,7 +1595,7 @@ export function createRenderingDomain({
       directPreviewGeometry = { key, feature: { type: 'Feature', properties: {}, geometry: { type: 'MultiLineString', coordinates } } };
     }
     if (!node) { node = root.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path'); root.appendChild(node); }
-    const style = scaleInteractionStroke(interactionRoleStyle(selection.resolvedInteractionStyle?.() || selection.getInteractionStyle?.(), 'edit-target', { directManipulation: true }), frame);
+    const style = scaleInteractionStroke(resolveMapStrokeStyle(selection.resolvedInteractionStyle?.() || selection.getInteractionStyle?.(), 'edit-target', { directManipulation: true }), frame);
     node.__data__ = directPreviewGeometry.feature;
     for (const [name, value] of Object.entries({ class: 'map-selection-shape map-direct-preview', fill: 'none', stroke: style.color,
       'stroke-width': style.width, 'stroke-opacity': style.alpha, 'data-object-key': packet.key,
@@ -1691,7 +1691,7 @@ export function createRenderingDomain({
     labels.labelLayer?.selectAll('g.user-label').each(function(label) {
       const key = labels.normalizeObjectRef?.({ domain: 'label', type: label.kind || 'label', id: label.id })?.key;
       const entry = displayPlan.labelEntriesByKey.get(key);
-      const roleStyle = entry ? scaleInteractionStroke(interactionRoleStyle(style, entry.role), frameContext) : null;
+      const roleStyle = entry ? scaleInteractionStroke(resolveMapStrokeStyle(style, entry.role), frameContext) : null;
       let ring = this.querySelector('.user-label-interaction');
       if (!(roleStyle?.width > 0)) { ring?.remove(); return; }
       if (!ring) { ring = this.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'circle'); this.appendChild(ring); }
@@ -1842,7 +1842,7 @@ export function createRenderingDomain({
     if (fillOwner === 'svg' && !sceneOwnsFills) {
       for (const entry of emphasisEntries) {
         if (!rootGeneralSelection(entry.ref)) continue;
-        const itemStyle = interactionRoleStyle(style, entry.role);
+        const itemStyle = resolveMapStrokeStyle(style, entry.role);
         if (!(itemStyle.fillAlpha > 0) || (entry.role === 'hover' && !hoverActive)) continue;
         const feature = displayFeatureForRef(entry.ref);
         if (!feature?.geometry) continue;
@@ -1887,7 +1887,7 @@ export function createRenderingDomain({
     };
     for (const request of [...fallbackRequests.candidate.map(item => ({ ...item, candidate: true })), ...fallbackRequests.hover]) {
       const channel = request.candidate ? 'candidate' : 'hover';
-      const guideStyle = scaleInteractionStroke(interactionRoleStyle(style, channel), frameContext);
+      const guideStyle = scaleInteractionStroke(resolveMapStrokeStyle(style, channel), frameContext);
       if (renderedKeys[channel].has(request.key)) continue;
       const fallbackFeature = request.feature || request.resolveFeature?.();
       const d = cachedSelectionPath(request.cacheKey || request.key, fallbackFeature, frameContext);
@@ -1900,7 +1900,7 @@ export function createRenderingDomain({
     if (selectionOutlinesVisible) {
       for (const channel of ['secondary', 'primary']) {
         const primary = channel === 'primary';
-        const itemStyle = scaleInteractionStroke({ ...(primary ? selectionStyle.primary : selectionStyle.secondary), scaleWithView: true }, frameContext);
+        const itemStyle = scaleInteractionStroke(resolveMapStrokeStyle(style, channel), frameContext);
         const priorityClass = primary ? ' is-primary' : ' is-secondary';
         for (const request of fallbackRequests[channel]) {
           if (renderedKeys[channel].has(request.key)) continue;
@@ -1909,8 +1909,8 @@ export function createRenderingDomain({
           if (!d) continue;
           stagedSelectionLayer.append('path').datum(fallbackFeature).attr('class', `map-selection-shape map-selection-outline${priorityClass}`)
             .attr('data-selection-fallback-key', request.key).attr('data-selection-channel', channel)
-            .attr('fill', 'none').attr('stroke', selectionStyle.color).attr('stroke-width', itemStyle?.innerWidth)
-            .attr('stroke-opacity', itemStyle?.innerAlpha).attr('d', d);
+            .attr('fill', 'none').attr('stroke', selectionStyle.color).attr('stroke-width', itemStyle.width)
+            .attr('stroke-opacity', itemStyle.alpha).attr('d', d);
           pathCount += 1; pathCharacterCount += d.length; svgFallbackKeys.push(request.key); boundarySegmentCount += countFallbackSegments(fallbackFeature);
         }
       }

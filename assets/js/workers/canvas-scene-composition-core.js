@@ -139,8 +139,7 @@
   }
   function countryBoundaryBatches(packet, theme, sharedOnly, styleForOwner) {
     if (!packet) return [];
-    const solid = { color: theme.border, alpha: theme.borderAlpha,
-      width: 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1), cap: 'butt', join: 'round' };
+    const solid = theme.strokes.country;
     const batches = [];
     const groups = new Map();
     const add = (source, owners, dash = false) => {
@@ -149,8 +148,7 @@
         const opacity = Math.max(0, ...ids.map(id => styleForOwner(id)?.opacity || 0));
         if (!opacity) continue;
         const key = `${dash}:${opacity}:${source === packet}`;
-        if (!groups.has(key)) groups.set(key, { ...source, ownerIds: [], style: { ...solid, alpha: solid.alpha * opacity,
-          ...(dash ? { width: 1.1, dash: [3, 2], join: 'miter' } : {}) } });
+        if (!groups.has(key)) groups.set(key, { ...source, ownerIds: [], style: { ...(dash ? theme.strokes['country-internal'] : solid), alpha: solid.alpha * opacity } });
         groups.get(key).ownerIds.push(owner);
       }
     };

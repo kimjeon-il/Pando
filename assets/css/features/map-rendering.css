@@ -552,20 +552,8 @@
 
 .boundary-edit-segment {
   fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
   pointer-events: none;
   vector-effect: non-scaling-stroke;
-}
-
-.boundary-edit-segment.coast {
-  stroke: var(--map-selection-halo);
-  stroke-width: 2.5px;
-}
-
-.boundary-edit-segment.shared {
-  stroke: var(--map-selection-halo);
-  stroke-width: 2.5px;
 }
 
 .vertex-handle.country-vertex.coast-vertex {

@@ -5,7 +5,7 @@ import { createGpuResourceBudget } from './gpu-resource-budget.js';
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from './gpu-blend-utils.js';
 import { linkGpuProgram } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
-import { scaleInteractionStroke } from './map-interaction-style.js';
+import { scaleInteractionStroke, gpuStrokeStyle } from './map-interaction-style.js';
 
 const FLOATS_PER_INSTANCE = 10;
 const FLOATS_PER_NODE = 8;
@@ -399,14 +399,14 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     return Object.values(attributes);
   }
 
-  function applyCommonStyleUniforms(programInfo, style) {
+  function applyCommonStyleUniforms(programInfo, style, frameContext) {
     const [red, green, blue] = parseGpuColor(style.color);
     const alpha = Math.max(0, Math.min(1, Number(style.alpha ?? 1)));
     const width = Math.max(0.25, Number(style.width || 1));
     if (programInfo.uniforms.uInnerCutout) gl.uniform1f(programInfo.uniforms.uInnerCutout, Number(style.innerCutout || 0) / 2);
     if (programInfo.uniforms.uHalfWidth) gl.uniform1f(programInfo.uniforms.uHalfWidth, width / 2);
     const smoothLines = globalThis.document?.documentElement?.dataset.smoothLines !== 'false';
-    if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, style.antiAlias === false || !smoothLines ? 0 : aaRadius);
+    if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, style.antiAlias === false || !smoothLines ? 0 : aaRadius * Math.max(1, Number(frameContext.dpr || 1)));
     if (programInfo.uniforms.uColor) gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
     if (programInfo.uniforms.uMultiply) gl.uniform1i(programInfo.uniforms.uMultiply, style.blendMode === 'multiply' ? 1 : 0);
     return { width, alpha };
@@ -415,7 +415,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
   function drawSegments(resource, style, frameContext, ownerIds) {
     const programInfo = programs.segment;
     gl.useProgram(programInfo.program);
-    applyCommonStyleUniforms(programInfo, style);
+    applyCommonStyleUniforms(programInfo, style, frameContext);
     gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
     gl.uniform1f(programInfo.uniforms.uMiterLimit, Math.max(1, Number(style.miterLimit) || 4));
     gl.uniform2f(programInfo.uniforms.uDash, Math.max(0, Number(style.dash?.[0]) || 0), Math.max(0, Number(style.dash?.[1]) || 0));
@@ -438,7 +438,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     if (!resource.nodeCount) return 0;
     const programInfo = programs.round;
     gl.useProgram(programInfo.program);
-    applyCommonStyleUniforms(programInfo, style);
+    applyCommonStyleUniforms(programInfo, style, frameContext);
     gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
     gl.uniform1i(programInfo.uniforms.uRoundCap, style.cap === 'round' ? 1 : 0);
     const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
@@ -460,7 +460,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     if (!resource.nodeCount || style.join === 'round') return 0;
     const programInfo = programs.bevel;
     gl.useProgram(programInfo.program);
-    applyCommonStyleUniforms(programInfo, style);
+    applyCommonStyleUniforms(programInfo, style, frameContext);
     const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
     let completedDraws = 0;
     for (const range of ranges) {
@@ -699,7 +699,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       }
       try {
         resourceBudget.touch(key, batch?.priority);
-        const style = { ...scaleInteractionStroke(batch.style || {}, frameContext), blendMode: batch.blendMode || batch.style?.blendMode || 'normal' };
+        const style = { ...gpuStrokeStyle(scaleInteractionStroke(batch.style || {}, frameContext), frameContext), blendMode: batch.blendMode || batch.style?.blendMode || 'normal' };
         applyGpuBlendMode(gl, style.blendMode);
         let completedDraws = 0;
         if (style.casing?.width > style.width && style.casing.alpha > 0) {

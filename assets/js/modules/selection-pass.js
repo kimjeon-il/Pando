@@ -1,5 +1,5 @@
 import { SELECTION_PAINT_ORDER } from './layer-presentation.js';
-import { resolveMapInteractionStyle, interactionRoleStyle } from './map-interaction-style.js';
+import { resolveMapInteractionStyle, resolveMapStrokeStyle } from './map-interaction-style.js';
 import { isRenderDevice } from './render-device.js';
 import { buildStrokeGeometryPacket } from './render-scene.js';
 import { buildSelectionChannelSignature } from './selection-stroke-geometry.js';
@@ -15,13 +15,7 @@ function emptyChannel(requested = []) {
 }
 
 function channelStyle(name, style) {
-  return Object.freeze({
-    ...interactionRoleStyle(style, name),
-    cap: 'round',
-    join: 'round',
-    dash: [0, 0],
-    blendMode: 'normal',
-  });
+  return resolveMapStrokeStyle(style, name);
 }
 
 export function createSelectionPass({ onRenderError = null } = {}) {
