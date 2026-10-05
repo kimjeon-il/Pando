@@ -1,3 +1,4 @@
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -62,6 +63,7 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
     builtinCountries: ownerBuiltinCountries,
     builtinBaseline: { get projectBaseline() { return { baseEntities: createStaticTerritorialSnapshot(ownerBuiltinCountries.materializePristineCountriesSync().features).territorialEntities }; } },
     geometryMutation: { reindexCountries: value => value },
+    geometryPreview: { rebuildBoundaryTopology() {} },
     countryRecords: { applyPristineLabelAnchors() {} },
     modelValidation: { normalizeGenericFeatureCollection: value => value || [], normalizeLayerPresentation: value => value || {} },
     distributionServices: {
@@ -203,4 +205,38 @@ test('unchanged static views do not become delta changes and cursor movement is 
   state.timelineCursor = '1914-07';
   assert.deepEqual(owner.snapshotEditable(), before);
   assert.deepEqual(owner.buildEntityDelta(), { changed:[], removedIds:[] });
+});
+
+for (const removedId of ['removed', '__proto__']) for (const restore of ['restoreEditable', 'restoreEditTransactionSnapshot']) test(`${restore} restores ${removedId} entity appearance without undoing survivor view changes`, () => {
+  const styleKey = `territorial:entity:${removedId}`;
+  const { owner, state, entityStore } = historySnapshotFixture();
+  const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] };
+  entityStore.appendEntities(['root',removedId,'kept'].map(id => createTerritorialFeature({ id, name: id,
+    entityKind: 'general', parentId: id === 'root' ? '' : 'root', geometry })));
+  state.itemVisibility = { subunits: { [removedId]: false, kept: false }, countries: { root: false } };
+  state.layerPresentation = { objectStyles: { [styleKey]: { opacity: 0.5 }, 'territorial:entity:kept': { opacity: 0.6 } } };
+  const before = owner.snapshotEditable();
+  assert.equal(Object.hasOwn(before, 'itemVisibility'), false);
+  assert.equal(Object.hasOwn(before, 'layerPresentation'), false);
+  assert.equal(Object.hasOwn(pickProjectFields({ ...state, historyTerritorialAppearance: before.historyTerritorialAppearance }, { scope: 'project' }), 'historyTerritorialAppearance'), false);
+  entityStore.removeEntities([removedId]);
+  delete state.itemVisibility.subunits[removedId];
+  delete state.layerPresentation.objectStyles[styleKey];
+  const after = owner.snapshotEditable();
+  state.itemVisibility.subunits.kept = true;
+  state.itemVisibility.countries.root = true;
+  state.layerPresentation.objectStyles['territorial:entity:kept'] = { opacity: 0.9 };
+  owner[restore](before);
+  assert.equal(state.territorialEntities.some(feature => feature.id === removedId), true);
+  assert.equal(state.itemVisibility.subunits[removedId], false);
+  assert.deepEqual(state.layerPresentation.objectStyles[styleKey], { opacity: 0.5 });
+  assert.equal(state.itemVisibility.subunits.kept, true);
+  assert.equal(state.itemVisibility.countries.root, true);
+  assert.deepEqual(state.layerPresentation.objectStyles['territorial:entity:kept'], { opacity: 0.9 });
+  owner[restore](after);
+  assert.equal(state.territorialEntities.some(feature => feature.id === removedId), false);
+  assert.equal(Object.hasOwn(state.itemVisibility.subunits, removedId), false);
+  assert.equal(Object.hasOwn(state.layerPresentation.objectStyles, styleKey), false);
+  assert.equal(state.itemVisibility.subunits.kept, true);
+  assert.deepEqual(state.layerPresentation.objectStyles['territorial:entity:kept'], { opacity: 0.9 });
 });
