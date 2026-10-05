@@ -62,8 +62,10 @@ test('static v9 UI file save/open and full autosave restore metadata, records an
   expect(saved.geometries).toEqual((await fixtureJson('static')).geometries);
   await page.locator('#undoBtn').click();
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('A 영토');
+  await expect.poll(async()=>semantics(await readAutosave(page)),{timeout:30000}).toEqual(semantics(await fixtureJson('static')));
   await page.locator('#redoBtn').click();
   await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('저장 검증');
+  await expect.poll(async()=>semantics(await readAutosave(page)),{timeout:30000}).toEqual(semantics(saved));
   const file=await downloadProject(page);
   expect(semantics(file.project)).toEqual(semantics(saved));
   await openProject(page,file.path);
@@ -88,7 +90,15 @@ test('complex timeline file roundtrip preserves temporal meaning and UI rejectio
     return result.changed;
   })).toBe(true);
   await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.[0]?.properties.name,{timeout:30000}).toBe('선택 유지');
+  await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('A','Redo 보존'));
+  await page.locator('#undoBtn').click();
+  await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('선택 유지');
+  await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.select('A'));
+  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.[0]?.properties.name,{timeout:30000}).toBe('선택 유지');
+  await expect(page.locator('#projectSaveStatus')).not.toHaveAttribute('data-save-state','saving',{timeout:30000});
   const before=await readAutosave(page);
+  const renderGeneration=await page.evaluate(()=>window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.projectGeneration);
+  expect(Number.isInteger(renderGeneration)).toBe(true);
   const selection=await page.evaluate(()=>window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection);
   const undoDisabled=await page.locator('#undoBtn').isDisabled();
   const redoDisabled=await page.locator('#redoBtn').isDisabled();
@@ -109,6 +119,10 @@ test('complex timeline file roundtrip preserves temporal meaning and UI rejectio
   expect(await page.locator('#undoBtn').isDisabled()).toBe(undoDisabled);
   expect(await page.locator('#redoBtn').isDisabled()).toBe(redoDisabled);
   expect(await page.locator('#projectSaveStatus').getAttribute('data-tooltip')).toBe(status);
+  expect(await page.evaluate(()=>window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.projectGeneration)).toBe(renderGeneration);
+  await page.locator('#redoBtn').click();
+  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('Redo 보존');
+  await page.locator('#undoBtn').click();
   await page.locator('#undoBtn').click();
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('A 영토');
   expect(errors).toEqual([]);
@@ -116,7 +130,8 @@ test('complex timeline file roundtrip preserves temporal meaning and UI rejectio
 
 test('builtin delta autosave includes archive and fingerprint and restores omitted identities',async({page})=>{
   const errors=await openApp(page);
-  const before=await page.evaluate(()=>({count:window.PANDOLAB_TERRITORIAL.list().length,geometry:window.PANDOLAB_TERRITORIAL.get('IRL').geometry}));
+  const before=await page.evaluate(()=>({count:window.PANDOLAB_TERRITORIAL.list().length,
+    name:window.PANDOLAB_TERRITORIAL.get('IRL').properties.name,geometry:window.PANDOLAB_TERRITORIAL.get('IRL').geometry}));
   await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('IRL','시간 저장 아일랜드'));
   await expect.poll(async()=> (await readAutosave(page))?.entityDelta?.changed?.find(entity=>entity.id==='IRL')?.properties.name,{timeout:30000}).toBe('시간 저장 아일랜드');
   const saved=await readAutosave(page);
@@ -130,5 +145,29 @@ test('builtin delta autosave includes archive and fingerprint and restores omitt
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().length)).toBe(before.count);
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').properties.name)).toBe('시간 저장 아일랜드');
+  await expect(page.locator('#projectSaveStatus')).not.toHaveAttribute('data-save-state','saving',{timeout:30000});
+  // Seed after leaving the editor: its beforeunload flush legitimately rewrites a live save.
+  await page.goto('/assets/css/app.css');
+  await page.evaluate(async()=>{
+    const database=await new Promise((resolve,reject)=>{
+      const request=indexedDB.open('pandolab-editor',2);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
+    });
+    try { await new Promise((resolve,reject)=>{
+      const transaction=database.transaction('projects','readwrite'),store=transaction.objectStore('projects');
+      const request=store.get('active-project');
+      request.onsuccess=()=>{const project=request.result;project.baseDatasetFingerprint='0'.repeat(64);store.put(project,'active-project');};
+      transaction.oncomplete=()=>resolve();transaction.onerror=()=>reject(transaction.error);transaction.onabort=()=>reject(transaction.error);
+    }); } finally {database.close();}
+  });
+  const invalidSave=await readAutosave(page);
+  expect(invalidSave.baseDatasetFingerprint).toBe('0'.repeat(64));
+  await page.goto('/?debug=1');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
+  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').properties.name)).toBe(before.name);
+  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
+  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().length)).toBe(before.count);
+  expect(await readAutosave(page)).toEqual(invalidSave);
+  expect(await page.locator('#undoBtn').isDisabled()).toBe(true);
+  expect(await page.locator('#redoBtn').isDisabled()).toBe(true);
   expect(errors).toEqual([]);
 });
