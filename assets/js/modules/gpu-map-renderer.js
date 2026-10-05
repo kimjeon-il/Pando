@@ -3218,19 +3218,12 @@ export function createGpuMapRenderer(deps) {
     }
 
     function currentCountryStrokeResources() {
-      const canonicalEntry = meshVariants.get('canonical');
-      const canonicalMesh = canonicalEntry?.mesh || mesh;
-      const canonicalCountryIds = canonicalEntry?.countryIds || meshCountryIds;
       const activeRevision = `${activeMeshQuality}:${countryStrokeMeshRevision(mesh)}:${mesh?.lineIndices?.length || 0}`;
-      const canonicalRevision = `canonical:${countryStrokeMeshRevision(canonicalMesh)}:${canonicalMesh?.lineIndices?.length || 0}`;
       const revisionOverride = `override:${countryStrokeMeshRevision(overrideMesh)}:${overrideMesh?.lineIndices?.length || 0}`;
-      const selectionBase = buildCountryStrokeResource(canonicalMesh, canonicalCountryIds, 'canonical', canonicalRevision);
-      const base = mesh === canonicalMesh && meshCountryIds === canonicalCountryIds
-        ? selectionBase
-        : buildCountryStrokeResource(mesh, meshCountryIds, 'preview', activeRevision);
+      const base = buildCountryStrokeResource(mesh, meshCountryIds, activeMeshQuality, activeRevision);
       return Object.freeze({
         base,
-        selectionBase,
+        selectionBase: base,
         override: buildCountryStrokeResource(overrideMesh, meshCountryIds, 'override', revisionOverride),
       });
     }

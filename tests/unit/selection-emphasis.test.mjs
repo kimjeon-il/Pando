@@ -178,7 +178,7 @@ test('country interaction boundaries reuse stable shared resources and draw only
   assert.match(gpu, /preparedGeometry\.startsEnds/);
   assert.match(gpu, /preparedGeometry\.inputOwnerRanges/);
   assert.match(gpu, /function prewarmCountryStrokeResources/);
-  assert.match(gpu, /buildCountryStrokeResource\(canonicalMesh, canonicalCountryIds, 'canonical', canonicalRevision\)/);
+  assert.match(gpu, /buildCountryStrokeResource\(mesh, meshCountryIds, activeMeshQuality, activeRevision\)/);
   assert.doesNotMatch(gpu, /const selectedOwnerIds = new Set/);
   assert.doesNotMatch(gpu, /ownerFilter/);
   assert.match(meshCore, /strokeStartsEnds/);
