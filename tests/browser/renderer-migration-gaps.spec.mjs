@@ -118,7 +118,7 @@ test('Canvas receives the graticule scene and paints mixed overlays with protect
       style: { color: '#00ff00', fillAlpha: 1 } }] }).polygons[0];
     polygonOverlayPass.ensureResource(water);
     const drawGpu = current => {
-      const prepared = prepareGpuBaseScene({ scene: current, frame }, { polygonOverlayPass, strokeRenderer });
+      const prepared = prepareGpuBaseScene({ scene: current, frame, presentedStrokeDomains: new Map() }, { polygonOverlayPass, strokeRenderer });
       drawGpuBaseScene({ gl, frame, width: 100, height: 100, countriesVisible: false, countries: {}, prepared }, {
         polygonOverlayPass, strokeRenderer, drawCountryBoundaryStrokes() {},
         renderTerrain: () => { gl.clearColor(0, 1, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); },

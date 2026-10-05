@@ -24,7 +24,7 @@ import { shouldShowSharedCountryBorders, excludeCountryBoundaryOwners } from './
 import { geometryRevision } from './geometry-versions.js';
 
 const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
-const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation },
+const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan, sceneStrokeResourcePacket, commitGpuStrokeDomains }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation },
   { TERRAIN_DEM_FORMAT, TERRAIN_RASTER_DATASET, TERRAIN_RASTER_FORMAT, TERRAIN_RASTER_VERSION, terrainAssetUrl, validateTerrainManifest }] = await Promise.all([
   import(`./gpu-base-scene-pass.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-scene-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
@@ -216,6 +216,9 @@ export function createGpuMapRenderer(deps) {
     let selectionPass = null;
     let lastSelectionRenderResult = null;
     let lastBaseSceneResult = null;
+    // Desired domains remain in app-gpu-scene. This cache records only stroke
+    // resources already presented by the GPU, including the pending fallback.
+    const presentedStrokeDomains = new Map();
     const sceneColorCache = createSceneColorCache();
     const interactionFillCache = createSceneColorCache();
     const interactionStrokeCache = createSceneColorCache({ nearestSampling: true });
@@ -227,7 +230,8 @@ export function createGpuMapRenderer(deps) {
       isInputActive: () => interactionActive,
       getUploadBudget: () => renderQuality.uploadBudgetBytes,
       onResourceReady: key => overlayResourceReady(key),
-      onError: payload => console.warn(`[${payload?.stage || 'gpu-stroke'}]`, payload?.error || payload),
+      onError: payload => reportOperationError(new Error(`GPU stroke ${payload.stage}${payload.key ? ` (${payload.key})` : ''}`, { cause: payload.error }),
+        '지도 선을 표시하지 못했습니다.', 'PL-GPU-STROKE-001', 0),
     });
     let sceneCacheFallbackFrame = false;
     let sceneCacheFullDrawCount = 0;
@@ -2143,6 +2147,7 @@ export function createGpuMapRenderer(deps) {
       resetCountryGeometryVisualState({ renderFrame: false, renderPending: false });
       sceneColorCache.reset?.({ dropActive: !preserveBuiltinMesh });
       renderScene = null;
+      presentedStrokeDomains.clear();
       renderInteractionState = Object.freeze({
         selectionPacket: null,
         genericFillItems: Object.freeze([]),
@@ -3178,7 +3183,8 @@ export function createGpuMapRenderer(deps) {
         invalidateGpuFrame('country-shared-boundary-uploaded');
         return;
       }
-      if ([...(renderScene?.polygons || []), ...(renderScene?.strokes || [])].some(packet => packet.key === key)) {
+      if ((renderScene?.polygons || []).some(packet => packet.key === key)
+        || (renderScene?.strokes || []).some(packet => sceneStrokeResourcePacket(packet, projectGeneration).key === key)) {
         sceneColorCache.invalidate('overlay-resource-ready'); invalidateGpuFrame('overlay-resource-ready');
       } else scheduleGpuInteractionFrame?.('interaction-resource-ready');
     }
@@ -3260,7 +3266,7 @@ export function createGpuMapRenderer(deps) {
     function prepareBaseScene() {
       prepareTerrain(activeFrameContext);
       preparedBaseScene = prepareGpuBaseScene({ mesh, overrideMesh, frame: activeFrameContext,
-        scene: renderScene, budgetBytes: renderQuality.uploadBudgetBytes }, { polygonOverlayPass, strokeRenderer });
+        scene: renderScene, budgetBytes: renderQuality.uploadBudgetBytes, presentedStrokeDomains }, { polygonOverlayPass, strokeRenderer });
       const { baseTriangleDraw, baseBoundaryDraw, overrideTriangleDraw, overrideBoundaryDraw,
         overlayUploadBytes, deferredOverlayKeys, overrunCount } = preparedBaseScene;
       performanceMetrics.countryBaseIndexCount = baseTriangleDraw.indexCount + overrideTriangleDraw.indexCount;
@@ -3280,7 +3286,7 @@ export function createGpuMapRenderer(deps) {
     function drawBaseSceneContent() {
       if (!gl || !mesh || !activeFrameContext || projectRenderBlocked || !preparedBaseScene) return false;
       const theme = mapTheme();
-      lastBaseSceneResult = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
+      const result = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         terrainVisible: state.physicalSettings.terrainVisible, terrainStyle: state.physicalSettings.terrainStyle,
         countriesVisible: state.layerVisibility.countries,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
@@ -3289,6 +3295,8 @@ export function createGpuMapRenderer(deps) {
       }, { drawProgram, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
       performanceMetrics.baseSceneDrawCount += 1;
       sceneCacheFullDrawCount += 1;
+      if (result.strokePresentationFailed) return false;
+      lastBaseSceneResult = result;
       return lastBaseSceneResult;
     }
 
@@ -3370,6 +3378,12 @@ export function createGpuMapRenderer(deps) {
       const started = performance.now();
       let sceneCacheHit = false;
       let baseResult = null;
+      let baseSubmissionFailed = false;
+      const submitBaseScene = () => {
+        const result = drawBaseSceneContent();
+        if (!result) baseSubmissionFailed = true;
+        return result;
+      };
       let preservedCountryPatchPromoted = false;
       sceneCacheFallbackFrame = false;
       const viewSignature = sceneViewSignature(viewState);
@@ -3395,8 +3409,14 @@ export function createGpuMapRenderer(deps) {
         if (interactionOnly) sceneCacheSelectionOnlyBaseDrawCount += 1;
         if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
           const previousBaseResult = lastBaseSceneResult;
-          baseResult = drawBaseSceneContent();
-          if (baseResult !== false) {
+          baseResult = submitBaseScene();
+          if (baseResult === false) {
+            // A failed stroke submission must never publish its staging
+            // texture. Keep a usable current-view scene instead.
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            if (preparedBaseScene.canPreserveStrokeScene && sceneColorCache.hasActiveFor(viewSignature, projectGeneration)
+              && sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) baseResult = previousBaseResult;
+          } else {
             const holdPreservedScene = shouldHoldCountryPatchScene(viewSignature);
             if (holdPreservedScene && sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) {
               const presentation = countryPatchPresentation;
@@ -3414,7 +3434,7 @@ export function createGpuMapRenderer(deps) {
               if (!promoted || !sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) {
                 recordSceneCacheFallback();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-                baseResult = drawBaseSceneContent();
+                baseResult = submitBaseScene();
               }
               preservedCountryPatchPromoted = countryPatchPresentation?.phase === 'staging';
             }
@@ -3426,13 +3446,13 @@ export function createGpuMapRenderer(deps) {
           // direct redraw is only safe before the first scene exists.
           if (countryPatchPresentation?.phase === 'staging') {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            baseResult = drawBaseSceneContent();
+            baseResult = submitBaseScene();
             preservedCountryPatchPromoted = baseResult !== false;
-          } else if (sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
+          } else if (preparedBaseScene.canPreserveStrokeScene && sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
             baseResult = lastBaseSceneResult;
           } else {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            baseResult = drawBaseSceneContent();
+            baseResult = submitBaseScene();
           }
         }
       } else {
@@ -3448,7 +3468,7 @@ export function createGpuMapRenderer(deps) {
           // A failed composite does not make a same-view active scene stale.
           // Preserve the already displayed frame instead of clearing it and
           // exposing a partially redrawn/transparent framebuffer.
-          if (sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
+          if (preparedBaseScene.canPreserveStrokeScene && sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
             baseResult = lastBaseSceneResult;
           } else {
             // Do not expose a transparent failed composite. If there is no
@@ -3456,19 +3476,19 @@ export function createGpuMapRenderer(deps) {
             // safe first-frame fallback.
             prepareForSubmission();
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            baseResult = drawBaseSceneContent();
+            baseResult = submitBaseScene();
           }
         }
         if (reproject) sceneCacheReprojectCount += 1;
         if (!baseResult) baseResult = lastBaseSceneResult;
       } else if (!baseResult) {
         recordSceneCacheFallback();
-        if (sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
+        if (preparedBaseScene.canPreserveStrokeScene && sceneColorCache.hasActiveFor?.(viewSignature, projectGeneration)) {
           baseResult = lastBaseSceneResult;
         } else {
           prepareForSubmission();
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-          baseResult = drawBaseSceneContent();
+          baseResult = submitBaseScene();
         }
       }
       const preparedInteraction = prepareGpuInteractionPlan({ interaction: renderInteractionState, emphasis: countryEmphasis,
@@ -3489,13 +3509,14 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.interactionFrameCount += 1;
       gl.flush();
       displayedRenderRevision = currentRenderRevision;
-      markPreviewFramePresented();
+      if (baseResult && !baseSubmissionFailed) markPreviewFramePresented();
       frameTimes.push(performance.now() - started);
+      if (!webglContextLost && !baseSubmissionFailed) commitGpuStrokeDomains(baseResult, visualFrame, presentedStrokeDomains, strokeRenderer);
       if (frameTimes.length > 240) frameTimes.shift();
       activeFrameContext = null;
       publishLightweightMetrics();
       return {
-        succeeded: !webglContextLost,
+        succeeded: !webglContextLost && !!baseResult && !baseSubmissionFailed,
         frameId: visualFrame.frameId,
         viewRevision: visualFrame.viewRevision,
         projectionRevision: visualFrame.projectionRevision,
@@ -4377,7 +4398,8 @@ export function createGpuMapRenderer(deps) {
       const countryStrokeKeys = Object.values(currentCountryStrokeResources())
         .map(resource => resource?.packet?.key).filter(Boolean);
       strokeRenderer.retain([
-        ...(renderScene?.strokes || []).map(packet => packet.key),
+        ...(renderScene?.strokes || []).map(packet => sceneStrokeResourcePacket(packet, projectGeneration).key),
+        ...[...presentedStrokeDomains.values()].flatMap(items => items.map(item => item.resourcePacket.key)),
         ...interactionPackets.filter(packet => packet.startsEnds instanceof Float32Array).map(packet => packet.key),
         ...countryStrokeKeys,
         ...(countrySharedBoundary ? [countrySharedBoundary.key] : []),
@@ -4746,6 +4768,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function dispose() {
+      presentedStrokeDomains.clear();
       if (disposed) return;
       if (demShadeTimer !== null) { clearTimeout(demShadeTimer); demShadeTimer = null; }
       disposed = true;

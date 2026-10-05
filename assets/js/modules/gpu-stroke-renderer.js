@@ -734,6 +734,11 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
 
   function retain(keys = [], { protectedKeys = [] } = {}) {
     if (!gl || gl.isContextLost?.()) return [];
+    const current = new Set(keys);
+    for (const [key, job] of pendingUploads) if (!current.has(key)) {
+      for (const buffer of job.buffers) if (buffer) gl.deleteBuffer(buffer);
+      pendingUploads.delete(key);
+    }
     const evicted = resourceBudget.reconcile({ active: keys, protected: protectedKeys });
     for (const key of evicted) deleteResource(key);
     return evicted;
@@ -803,6 +808,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       }
     },
     retain,
+    releaseResource: deleteResource,
     setByteBudget,
     handleContextLost,
     dispose,
