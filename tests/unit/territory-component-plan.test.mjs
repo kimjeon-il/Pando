@@ -113,3 +113,20 @@ test('cooperative cancellation stops before preparing the rest of a source', asy
   await assert.rejects(abort.prepare({ features: [feature(geometry)] }), /cancelled/);
   assert.equal(checkpoints, 2);
 });
+
+test('dateline cut selection subtracts wrapped candidates without changing the raw cutter source', async () => {
+  const source = { type: 'Polygon', coordinates: [[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]]] };
+  const lower = { type: 'MultiPolygon', coordinates: [square(179,-2,180,0).coordinates, square(-180,-2,-179,0).coordinates] };
+  const upper = { type: 'MultiPolygon', coordinates: [square(179,0,180,2).coordinates, square(-180,0,-179,2).coordinates] };
+  const before = structuredClone(source);
+  const initial = await plan.prepare({ features: [feature(source)] });
+  assert.equal(initial.workingSourceGeometry, source);
+  const partial = await plan.selection({ selected: [lower], candidates: true, workingSourceGeometry: source });
+  assert.deepEqual(clipper.xor(coords(partial.remainingGeometry), coords(upper)), []);
+  const complete = await plan.selection({ selected: [lower, upper], candidates: true, workingSourceGeometry: source });
+  assert.equal(complete.remainingGeometry, null);
+  const archived = await plan.prepare({ features: [feature(source)], parts: [lower] });
+  assert.deepEqual(clipper.xor(coords(archived.workingSourceGeometry), coords(upper)), []);
+  assert.deepEqual(archived.items.map(item => item.sourcePolygonIndex), [0, 0]);
+  assert.deepEqual(source, before);
+});

@@ -1,3 +1,4 @@
+import { wrapPolygonGeometry } from './map-edit-geometry.js';
 import { buildGeometryPreview } from './geometry-preview.js';
 import { validateGeometry, validateTerritorialGeometry } from './geometry-validation.js';
 
@@ -16,6 +17,11 @@ export function calculateEditPreview(operation, result, originals, clipper) {
 }
 
 export function calculateCountryPreview(message, result, before, after, clipper) {
+  if (message.operation === 'new-country') {
+    const geographic = features => features.map(feature => ({ ...feature, geometry: wrapPolygonGeometry(feature.geometry, clipper) }));
+    before = geographic(before);
+    after = geographic(after);
+  }
   const affectedIds = new Set(result.affectedIds.map(String));
   const issueKey = issue => String(issue.kind) + ':' + [...(issue.entityRefs || [])].sort().join('|');
   const baseline = new Set(validateTerritorialGeometry(before, { clipper, affectedIds }).map(issueKey));
