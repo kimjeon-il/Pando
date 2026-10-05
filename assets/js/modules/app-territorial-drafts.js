@@ -414,7 +414,7 @@ export function createTerritorialDrafts() {
     dependencies.projectState.state.territorialUnitMergeTargetIds = [];
     (0, dependencies.taskUi.setModeBanner)('합칠 인접 영역을 선택하세요.');
     (0, dependencies.taskUi.updateModeButtons)();
-    dependencies.domains.renderingDomain?.renderTerritorialUnits?.();
+    dependencies.domains.renderingDomain?.invalidateTerritorialPatch('view-frame-app-territorial-drafts');
     return true;
   }
 
@@ -438,7 +438,7 @@ export function createTerritorialDrafts() {
     if (targets.has(String(id))) targets.delete(String(id)); else targets.add(String(id));
     dependencies.projectState.state.territorialUnitMergeTargetIds = [...targets];
     (0, dependencies.taskUi.setModeBanner)('합칠 인접 영역을 선택하세요.');
-    dependencies.domains.renderingDomain?.renderTerritorialUnits?.();
+    dependencies.domains.renderingDomain?.invalidateTerritorialPatch('view-frame-app-territorial-drafts');
     (0, dependencies.taskUi.updateModeButtons)();
   }
 

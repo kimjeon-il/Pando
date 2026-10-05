@@ -9,9 +9,9 @@ const rendering = await readFile(new URL('../../assets/js/modules/rendering-doma
 const functionSource = applicationFunctionSource;
 
 test('globe shell uses frame-context circles instead of rebuilding a D3 Sphere path', () => {
-  const shell = functionSource(app, 'updatePandoGlobeShell', 'featureFromGeometry');
-  assert.match(shell, /frameContext\?\.cssTranslate/);
-  assert.match(shell, /frameContext\?\.cssScale/);
+  const shell = functionSource(readApplicationOwners('map-projection'), 'updatePandoGlobeShell', 'featureFromGeometry');
+  assert.match(shell, /frameContext\.cssTranslate/);
+  assert.match(shell, /frameContext\.cssScale/);
   assert.match(shell, /\.attr\('cx', translate\[0\]\)/);
   assert.match(shell, /\.attr\('r', radius\)/);
   assert.doesNotMatch(shell, /Sphere|\.attr\('d'|\bpath\b/);
@@ -29,7 +29,7 @@ test('label positioning commits inside the shared visual frame without a private
   assert.match(rendering, /renderUserLabelPositions = frameContext => applyUserLabelPositions\(frameContext\)/);
   assert.match(rendering, /renderTerritorialLabelPositions\(frame\)/);
   assert.match(rendering, /renderUserLabelPositions\(frame\)/);
-  assert.match(rendering, /projectVisibleCoordinate\(coordinate, frameContext\)/);
+  assert.match(rendering, /frameProjectCoordinate\(coordinate, frameContext\)/);
   assert.match(app, /territorialLabelPoints: new Map/);
   assert.match(app, /userLabelPoints: new Map/);
   assert.doesNotMatch(app, /if \(!isCoordVisible\(coordinate\)\) continue;\s*const point = activeProjection\(\)\(coordinate\)/);

@@ -113,6 +113,7 @@ export function createMapVisualFrame({
   layoutSnapshot = null,
   projectCoordinate = null,
   projectPath = null,
+  createCanvasPath = null,
 } = {}) {
   if (!viewState || typeof viewState !== 'object') throw new TypeError('MapVisualFrame requires viewState.');
   const projectionKind = viewState.projection === 'flat' ? 'flat' : 'globe';
@@ -204,6 +205,7 @@ export function createMapVisualFrame({
     projectCoordinate: projectors.projectCoordinate,
     projectVisibleCoordinate: projectors.projectVisibleCoordinate,
     projectPath: typeof projectPath === 'function' ? projectPath : null,
+    createCanvasPath: typeof createCanvasPath === 'function' ? createCanvasPath : null,
     signature,
     viewState: frozenViewState,
   });

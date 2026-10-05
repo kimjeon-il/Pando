@@ -1,4 +1,4 @@
-import { createMapVisualFrame } from './map-visual-frame.js';
+import { createMapVisualFrame, isMapVisualFrame } from './map-visual-frame.js';
 import { placeLabelDimensions } from './label-layout.js';
 import { createPlaceRuntime } from './place-runtime.js';
 import { PLACE_LIMITS } from './place-contract.js';
@@ -89,20 +89,20 @@ export function createTerritorialLabels() {
     return dependencies.preferences.userPreferences;
   }
 
-  function territorialLabelScreenMetrics(feature, fontSize = (0, dependencies.surfaces.isMobile)() ? 8 : 9, projectedExtent = null, labelFeature = feature) {
+  function territorialLabelScreenMetrics(feature, fontSize, projectedExtent, labelFeature, frame) {
     let width = Number(projectedExtent?.width);
     let height = Number(projectedExtent?.height);
     if (!Number.isFinite(width) || !Number.isFinite(height)) {
       const geometry = feature?.geometry;
       const bounds = geometry ? (0, dependencies.spatialQuery.geometryBounds)(geometry) : null;
-      const scale = Math.max(1, Number((0, dependencies.mapView.activeProjection)()?.scale?.()) || 1);
+      const scale = frame.cssScale;
       const lonSpan = bounds?.every(Number.isFinite)
         ? Math.max(0, Math.min(360, Number(bounds[2]) - Number(bounds[0]))) * Math.PI / 180
         : 0;
       const latSpan = bounds?.every(Number.isFinite)
         ? Math.max(0, Math.min(180, Number(bounds[3]) - Number(bounds[1]))) * Math.PI / 180
         : 0;
-      if (dependencies.projectState.state.projection === 'globe') {
+      if (frame.projection === 'globe') {
         const centerLatitude = bounds?.every(Number.isFinite)
           ? Math.max(-89.999, Math.min(89.999, (Number(bounds[1]) + Number(bounds[3])) / 2)) * Math.PI / 180
           : 0;
@@ -123,7 +123,7 @@ export function createTerritorialLabels() {
     };
   }
 
-  function shouldShowTerritorialLabel(feature, metrics = territorialLabelScreenMetrics(feature)) {
+  function shouldShowTerritorialLabel(feature, metrics) {
     const id = String(feature.id || '');
     if (!(0, dependencies.layerPresentation.isLayerItemVisible)('countryLabels', id) || dependencies.labelPresentation.pendingCountryLabelAnchors.has(id)) return false;
     if ((dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) && dependencies.projectState.state.selected.id === id) return true;
@@ -133,8 +133,9 @@ export function createTerritorialLabels() {
     return widthFit && heightFit && areaFit;
   }
 
-  function renderPendingCountryOverlays() {
+  function renderPendingCountryOverlays(frame) {
     if (!dependencies.mapLayers.countryLayer) return;
+    if (!isMapVisualFrame(frame) || typeof frame.projectPath !== 'function') throw new TypeError('Country patch SVG requires a MapVisualFrame path.');
     const theme = dependencies.preferences.mapTheme();
     const resolveFill = createTerritorialFillResolver({ state: dependencies.projectState.state,
       entityRepository: dependencies.territorialModel.entityRepository,
@@ -150,7 +151,7 @@ export function createTerritorialLabels() {
       .data(pending, feature => feature.id);
     patchFill.enter().append('path').attr('class', 'country-patch-preview country-patch-preview-fill');
     dependencies.mapLayers.countryLayer.selectAll('path.country-patch-preview-fill')
-      .attr('d', feature => (0, dependencies.mapView.path)(feature))
+      .attr('d', feature => frame.projectPath(feature))
       .attr('data-gpu-scene-key', feature => `pending-country-fill:${feature.id}`)
       .style('fill', feature => resolveFill(feature).color || 'none')
       .style('fill-opacity', feature => resolveFill(feature).fillAlpha)
@@ -160,7 +161,7 @@ export function createTerritorialLabels() {
       .data(pending, feature => feature.id);
     patchOutline.enter().append('path').attr('class', 'country-patch-preview country-patch-preview-outline');
     dependencies.mapLayers.countryLayer.selectAll('path.country-patch-preview-outline')
-      .attr('d', feature => (0, dependencies.mapView.path)(countryOutlineFeature(feature)))
+      .attr('d', feature => frame.projectPath(countryOutlineFeature(feature)))
       .attr('data-gpu-scene-key', feature => `pending-country-outline:${feature.id}`)
       .style('fill', 'none')
       .style('stroke', (0, dependencies.preferences.mapTheme)().border)
@@ -168,14 +169,15 @@ export function createTerritorialLabels() {
     patchOutline.exit().remove();
   }
 
-  function visibleLabelLayout(frameContext = null) {
+  function visibleLabelLayout(frameContext) {
+    if (!isMapVisualFrame(frameContext)) throw new TypeError('Label layout requires a MapVisualFrame.');
     dependencies.countries.scheduleCountryLabelAnchors?.();
     const candidates = [];
     const indexedLabelIds = dependencies.projectState.state.layerVisibility.labels
       ? new Set((0, dependencies.spatialQuery.visibleMapObjectCandidates)(['label']).map(record => String(record.id)))
       : new Set();
     territorialLabelScreenAreas.clear();
-    const zoom = currentMapZoom();
+    const zoom = frameContext.viewState.zoom;
     const renderCountries = (0, dependencies.countries.builtinTerritorialScene)();
     const visibility = Object.fromEntries(['countries', 'subunits', 'regions'].map(group =>
       [group, territorialSymbolVisibility(dependencies.projectState.state, group)]));
@@ -200,13 +202,13 @@ export function createTerritorialLabels() {
       const anchor = dependencies.labelPresentation.countryLabelAnchors.get(id);
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : anchor;
       if (!Array.isArray(coordinate)) continue;
-      const point = (0, dependencies.mapLayout.projectVisibleCoordinate)(coordinate, frameContext);
+      const point = frameContext.projectVisibleCoordinate(coordinate);
       if (!point) continue;
       const selected = dependencies.domains.selectionDomain.has(labelRef);
       const displayFeature = dependencies.objectModelB.territorialScope.displayFeature(renderCountries.labelRefs.get(String(feature.id))?.id || feature.id);
-      const baseMetrics = territorialLabelScreenMetrics(displayFeature, (0, dependencies.surfaces.isMobile)() ? 8 : 9, null, feature);
+      const baseMetrics = territorialLabelScreenMetrics(displayFeature, (0, dependencies.surfaces.isMobile)() ? 8 : 9, null, feature, frameContext);
       const fontSize = baseMetrics.area >= ((0, dependencies.surfaces.isMobile)() ? 3200 : 2200) ? ((0, dependencies.surfaces.isMobile)() ? 10 : 12) : (0, dependencies.surfaces.isMobile)() ? 8 : 9;
-      const metrics = territorialLabelScreenMetrics(displayFeature, fontSize, baseMetrics, feature);
+      const metrics = territorialLabelScreenMetrics(displayFeature, fontSize, baseMetrics, feature, frameContext);
       territorialLabelScreenAreas.set(id, metrics.area);
       if (namesVisible && !selected && !shouldShowTerritorialLabel(feature, metrics)) continue;
       candidates.push({
@@ -230,7 +232,7 @@ export function createTerritorialLabels() {
       const settings = (0, dependencies.labelPresentation.automaticLabelSettings)(label.kind, dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', label.id)] || {});
       if (zoom < Number(settings.minZoom ?? -Infinity) || zoom > Number(settings.maxZoom ?? Infinity)) continue;
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
-      const point = (0, dependencies.mapLayout.projectVisibleCoordinate)(coordinate, frameContext);
+      const point = frameContext.projectVisibleCoordinate(coordinate);
       if (!point) continue;
       const priority = settings.priority ?? (label.kind === 'capital' ? dependencies.labelPresentation.LABEL_PRIORITIES.capital : label.kind === 'city' ? dependencies.labelPresentation.LABEL_PRIORITIES.majorCity : label.kind === 'region' ? dependencies.labelPresentation.LABEL_PRIORITIES.administrative : dependencies.labelPresentation.LABEL_PRIORITIES.place);
       candidates.push({
@@ -242,7 +244,7 @@ export function createTerritorialLabels() {
       });
     }
     const labelDensity = Math.max(0.25, Math.min(1, Number(dependencies.renderScene.currentRenderQuality.labelDensity) || 1));
-    const viewportArea = Math.max(1, Number(dependencies.projectState.state.size.width || 1) * Number(dependencies.projectState.state.size.height || 1));
+    const viewportArea = frameContext.cssViewport[0] * frameContext.cssViewport[1];
     const backgroundLimit = labelDensity >= 0.99
       ? PLACE_LIMITS.layoutCandidates
       : Math.max(labelDensity < 0.6 ? 42 : 72, Math.floor(viewportArea / 8_500 * labelDensity));
@@ -258,15 +260,15 @@ export function createTerritorialLabels() {
       qualityCandidateCount: qualityCandidates.length,
       qualityCulledCount: Math.max(0, candidates.length - qualityCandidates.length),
     };
-    const safe = dependencies.mapLayout.mapLayoutMetricsSnapshot?.safe || {};
+    const safe = frameContext.safeInset;
     const placed = (0, dependencies.labelPresentation.layoutLabels)(qualityCandidates, {
       zoom,
       padding: (0, dependencies.surfaces.isMobile)() ? 5 : 3,
       bounds: {
         left: Number(safe.left || 0),
         top: Number(safe.top || 0),
-        right: Number(dependencies.projectState.state.size.width || 0) - Number(safe.right || 0),
-        bottom: Number(dependencies.projectState.state.size.height || 0) - Number(safe.bottom || 0),
+        right: frameContext.cssViewport[0] - Number(safe.right || 0),
+        bottom: frameContext.cssViewport[1] - Number(safe.bottom || 0),
       },
       metrics: nextLabelLayoutMetrics,
     });

@@ -55,7 +55,8 @@ export function createMapHost() {
       projection: dependencies.projectState.state.projection,
       flatProjectionKind: dependencies.platformConfigurationA.FLAT_PROJECTION_KIND,
       size: { width: dependencies.projectState.state.size.width, height: dependencies.projectState.state.size.height },
-      dpr: (0, dependencies.hydroModel.currentMapDevicePixelRatio)(),
+      dpr: dependencies.rendering.gpuMapRenderer.getRenderPixelRatio(),
+      sourceDpr: Math.max(1, Number(window.devicePixelRatio || 1)),
       safeInset: (0, dependencies.projectionView.currentMapSafeInsets)(),
       translate,
       scale: Number(projection.scale()),
@@ -237,7 +238,6 @@ export function createMapHost() {
       }
     };
     dependencies.mapHostCommands.installSelectionPass((0, dependencies.renderFactories.createSelectionPass)({
-      projectionForView: () => (0, dependencies.mapView.activeProjection)(),
       onRenderError: handleSelectionRenderError,
     }));
     dependencies.rendering.gpuMapRenderer.setSelectionPass?.(dependencies.gpuRenderingA.selectionPass);

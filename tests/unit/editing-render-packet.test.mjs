@@ -1,3 +1,4 @@
+import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -200,7 +201,7 @@ test('renderer clears inactive draft channels but still draws territory componen
   } });
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
-    prepareView: () => ({ frameId: ++frameId, projection: 'flat' }),
+    prepareView: () => testFrame(++frameId),
     getEditingRenderPacket: () => packet,
     interactionResources: { draftLayer: layer },
   });
@@ -232,7 +233,7 @@ test('one coordinator frame reads one editing packet for every editing pass', ()
   let reads = 0;
   const rendering = createRenderingDomain({
     requestFrame: callback => { frames.push(callback); return frames.length; },
-    prepareView: () => ({ revision: 9, projection: 'flat' }),
+    prepareView: () => testFrame(1, 9),
     getEditingRenderPacket: () => { reads += 1; return packet; },
   });
   assert.equal(rendering.requestRender({ kind: 'editing-overlays', reason: 'packet-contract' }), true);
@@ -255,3 +256,7 @@ test('object selection and deselection refresh vertex packets without an active 
   assert.equal(editing.createRenderPacket().objectVertices, null);
   editing.dispose();
 });
+
+const testFrame = (frameId = 1, viewRevision = 1, projectPath = () => 'M0,0L1,1') => createMapVisualFrame({
+  frameId, viewRevision, projectionRevision: 1,
+  viewState: { projection: 'flat', size: { width: 800, height: 600 }, translate: [400, 300], scale: 100, dpr: 1 }, projectPath });

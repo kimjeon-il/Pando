@@ -153,16 +153,13 @@ export function createGpuMapRenderer(deps) {
     PHYSICAL_DATA_BASE_URL,
     TERRAIN_RASTER_MANIFEST_URL,
     onTerrainSourceChanged,
-    activeProjection,
     createCountryFillResolver,
     baseSceneFeatureById,
     countryOutlineFeature,
     d3,
     deepClone,
     defaultCountryColor,
-    flatProjection,
     getSystemTheme,
-    globeProjection,
     hydroDisplayColor,
     hydroFeatureById,
     hydroVisibilityThreshold,
@@ -176,7 +173,6 @@ export function createGpuMapRenderer(deps) {
     mapWorkScheduler,
     prepareHydroFeature,
     queueMapResize,
-    renderPendingCountryOverlays,
     renderCountryFeatures,
     renderCountryBoundaryFeatures,
     canonicalCountryFeatures,
@@ -441,8 +437,8 @@ export function createGpuMapRenderer(deps) {
       preparedTerrain = terrainPreparation.prepare(frame, {
         visible: state.physicalSettings.terrainVisible,
         physicalStyle: state.physicalSettings.terrainStyle,
-        projection: state.projection, rotation: state.view.globeRotation, flatCenter: state.view.flatCenter,
-        width: cssWidth, height: cssHeight, devicePixelRatio: window.devicePixelRatio,
+        projection: frame.projection, rotation: frame.viewState.rotation, flatCenter: frame.viewState.flatCenter,
+        width: frame.cssViewport[0], height: frame.cssViewport[1], devicePixelRatio: frame.viewState.sourceDpr || frame.dpr,
         cacheBudgetBytes: renderQuality.terrainCacheBudgetBytes,
       });
     }
@@ -550,10 +546,8 @@ export function createGpuMapRenderer(deps) {
     let pixelHeight = 0;
     let cssWidth = 0;
     let cssHeight = 0;
-    let resizePending = true;
     let pickFramebuffer = null;
     let pickTexture = null;
-    let activeRenderViewState = null;
     let lastSceneFrameContext = null;
     let canvasWorker = null;
     let canvasWorkerUrl = null;
@@ -1259,7 +1253,6 @@ export function createGpuMapRenderer(deps) {
 
     function attach(nextCanvas) {
       canvas = nextCanvas;
-      resizePending = true;
       canvas.className = 'gpu-map-canvas';
       canvas.setAttribute('aria-hidden', 'true');
       canvas.style.position = 'absolute';
@@ -1912,7 +1905,7 @@ export function createGpuMapRenderer(deps) {
         renderLatestVisualFrame();
       }
       for (const id of cleared) state.pendingCountryRenderIds.delete(String(id));
-      renderPendingCountryOverlays?.();
+      if (cleared.length) invalidateGpuFrame('country-geometry-displayed');
       if (lastGeometryCommitTimings && Number(geometryRevision) === geometryRevisionTracker.committedRevision()) {
         lastGeometryCommitTimings.gpuPatchDisplayedAt ||= performance.now();
         if (!geometryRevisionTracker.pendingIds().length) lastGeometryCommitTimings.overlayRemovedAt ||= performance.now();
@@ -1959,7 +1952,7 @@ export function createGpuMapRenderer(deps) {
           deferredCountryPatchIds.add(id);
           state.pendingCountryRenderIds.add(id);
         }
-        renderPendingCountryOverlays?.();
+        invalidateGpuFrame('country-patch-preview');
         window.__PANDOLAB_GPU_METRICS__ = getStats();
         return Promise.resolve(true);
       }
@@ -1997,7 +1990,7 @@ export function createGpuMapRenderer(deps) {
       for (const id of removedIds) overrideFeatureSnapshots.delete(String(id));
       prepareCountrySharedBoundary({ features, removedIds });
       for (const id of ids) state.pendingCountryRenderIds.add(id);
-      renderPendingCountryOverlays?.();
+      invalidateGpuFrame('country-patch-preview');
       lastGeometryCommitTimings.optimisticOverlayShownAt = performance.now();
       if (rendererMode === 'canvas-worker' && canvasWorker) {
         postCanvasWorkerMessage({
@@ -2112,7 +2105,7 @@ export function createGpuMapRenderer(deps) {
         updatePalette();
         renderLatestVisualFrame();
       }
-      if (renderPending) renderPendingCountryOverlays?.();
+      if (renderPending) invalidateGpuFrame('country-patch-preview');
       window.__PANDOLAB_GPU_METRICS__ = getStats();
       rendererUi.onContextStateChange?.('fallback');
     }
@@ -2227,7 +2220,7 @@ export function createGpuMapRenderer(deps) {
           taskToken: task.token,
           reason,
         });
-        renderCanvasWorker(currentRenderRevision);
+        invalidateGpuFrame('canvas-country-data');
         return Promise.resolve(true);
       }
       if (!isWebGlRenderer()) {
@@ -2488,24 +2481,6 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function getRenderViewState() {
-      if (activeRenderViewState && typeof activeRenderViewState === 'object') return activeRenderViewState;
-      const projection = state.projection;
-      const active = projection === 'globe' ? globeProjection : flatProjection;
-      return {
-        revision: currentRenderRevision,
-        projection,
-        flatProjectionKind: 'equirectangular',
-        size: { width: state.size.width, height: state.size.height },
-        dpr: resolveRenderPixelRatio(),
-        translate: active.translate().map(Number),
-        scale: Number(active.scale()),
-        rotation: projection === 'globe' ? state.view.globeRotation.map(Number) : null,
-        projectionCenter: projection === 'flat' ? state.view.flatCenter.map(Number) : null,
-        zoom: Number(projection === 'globe' ? state.view.globeZoom : state.view.flatZoom),
-      };
-    }
-
     function setViewUniforms(program, worldOffset = 0, frameContext = activeFrameContext || lastVisualFrame) {
       if (!frameContext) return false;
       return setGpuViewUniforms(gl, {
@@ -2515,11 +2490,11 @@ export function createGpuMapRenderer(deps) {
       });
     }
 
-    function resize() {
+    function resize(frame = lastVisualFrame) {
       if (!canvas) return;
-      cssWidth = Math.max(1, state.size.width);
-      cssHeight = Math.max(1, state.size.height);
-      const dpr = resolveRenderPixelRatio();
+      cssWidth = Math.max(1, frame ? frame.cssViewport[0] : state.size.width);
+      cssHeight = Math.max(1, frame ? frame.cssViewport[1] : state.size.height);
+      const dpr = frame ? frame.dpr : resolveRenderPixelRatio();
       const nextWidth = Math.max(1, Math.round(cssWidth * dpr));
       const nextHeight = Math.max(1, Math.round(cssHeight * dpr));
       const backingChanged = pixelWidth !== nextWidth || pixelHeight !== nextHeight || canvas.width !== nextWidth || canvas.height !== nextHeight;
@@ -2535,7 +2510,6 @@ export function createGpuMapRenderer(deps) {
       pixelHeight = nextHeight;
       canvas.style.width = '100%';
       canvas.style.height = '100%';
-      resizePending = false;
     }
 
     function layoutMismatch() {
@@ -3058,12 +3032,11 @@ export function createGpuMapRenderer(deps) {
       if (logicalIds.size) hydroVisibilityDirty = true;
     }
 
-    function hydroViewSnapshot(viewState = getRenderViewState()) {
-      const projection = viewState?.projection || state.projection;
-      const projectionState = projection === 'globe' ? globeProjection : flatProjection;
-      return { projection, threshold: hydroVisibilityThreshold(), width: Number(viewState?.size?.width || state.size.width),
-        height: Number(viewState?.size?.height || state.size.height), scale: Number(viewState?.scale || projectionState.scale()),
-        flatCenter: viewState?.projectionCenter || viewState?.flatCenter || state.view.flatCenter, rotation: viewState?.rotation || state.view.globeRotation };
+    function hydroViewSnapshot(viewState = lastVisualFrame?.viewState) {
+      if (!viewState) return null;
+      return { projection: viewState.projection, threshold: hydroVisibilityThreshold(), width: viewState.size.width,
+        height: viewState.size.height, scale: viewState.scale,
+        flatCenter: viewState.projectionCenter || viewState.flatCenter, rotation: viewState.rotation };
     }
     function requestHydroView(viewState) { return hydroPreparation.requestView(hydroViewSnapshot(viewState)); }
     function setHydroManifest(manifest, sourceUrl) { return hydroPreparation.setManifest(manifest, sourceUrl); }
@@ -3318,7 +3291,7 @@ export function createGpuMapRenderer(deps) {
       drawCountryBoundaryStrokes(dynamicResources, preparedBaseScene.baseBoundaryDraw, preparedBaseScene.overrideBoundaryDraw);
     }
 
-    function sceneViewSignature(viewState = activeRenderViewState || getRenderViewState()) {
+    function sceneViewSignature(viewState = lastVisualFrame.viewState) {
       return [
         renderDeviceContextRevision,
         viewState?.projection,
@@ -3371,7 +3344,7 @@ export function createGpuMapRenderer(deps) {
     function renderWebGl(visualFrame, { interactionOnly = false } = {}) {
       if (!gl || !mesh) return null;
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('GPU render requires a MapVisualFrame.');
-      if (resizePending) resize();
+      resize(visualFrame);
       activeFrameContext = visualFrame;
       lastVisualFrame = visualFrame;
       performanceMetrics.visualFrameConsumeCount += 1;
@@ -3589,14 +3562,16 @@ export function createGpuMapRenderer(deps) {
         reserve ? batches.map(packet => ({ ...packet, style: { ...packet.style, alpha: 1 } })) : batches);
       target.restore();
     }
-    function renderCanvasFallback() {
+    function renderCanvasFallback(frame = lastVisualFrame) {
       if (!ctx2d || !canvas) return;
-      if (resizePending) resize();
+      if (!frame) return;
+      if (!isMapVisualFrame(frame) || typeof frame.createCanvasPath !== 'function') throw new TypeError('Canvas requires a MapVisualFrame with a Canvas path projector.');
+      resize(frame);
       const dpr = pixelWidth / cssWidth;
       ctx2d.setTransform(1, 0, 0, 1, 0, 0);
       ctx2d.clearRect(0, 0, pixelWidth, pixelHeight);
       ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const canvasPath = d3.geo.path().projection(activeProjection()).context(ctx2d);
+      const canvasPath = frame.createCanvasPath(ctx2d);
       const theme = mapTheme();
       const countryFeatures = renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId));
       const visibleFeatures = state.layerVisibility.countries
@@ -3637,11 +3612,11 @@ export function createGpuMapRenderer(deps) {
         'country-boundary': () => renderCanvasCountryBoundaries(canvasPath, theme, countryFeatures),
       };
       const protection = {
-        key: [JSON.stringify(getRenderViewState()), physicalStyleStateRevision, hydroPreparation.acceptedRevision,
+        key: [frame.signature, physicalStyleStateRevision, hydroPreparation.acceptedRevision,
           hydroPreparation.editRevision, [...hydroPreparation.activeIds()].join(','), countrySharedBoundary?.geometryRevision,
           renderScene?.revision, canvasStyleRevision, currentRenderRevision].join(':'),
         draw: mask => {
-          const maskPath = d3.geo.path().projection(activeProjection()).context(mask);
+          const maskPath = frame.createCanvasPath(mask);
           for (const role of mapVisualOrder('hydro')) renderCanvasHydro(maskPath, theme, mask, true, role);
           renderCanvasCountryBoundaries(maskPath, theme, countryFeatures, mask, true);
         },
@@ -3769,33 +3744,19 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
-    function canvasWorkerViewMessage(revision = currentRenderRevision, visualFrame = null) {
-      const frame = isMapVisualFrame(visualFrame) ? visualFrame : lastVisualFrame;
-      const view = frame?.viewState || visualFrame || getRenderViewState();
-      const workerView = {
-        ...deepClone(state.view),
-        ...deepClone(view),
-        flatCenter: view.projectionCenter || state.view.flatCenter,
-        globeRotation: view.rotation || state.view.globeRotation,
-        flatZoom: view.zoom ?? state.view.flatZoom,
-        globeZoom: view.zoom ?? state.view.globeZoom,
-      };
+    function canvasWorkerViewMessage(frame = lastVisualFrame) {
+      if (!isMapVisualFrame(frame)) throw new TypeError('Canvas Worker view requires a MapVisualFrame.');
+      const view = frame.viewState;
       return {
-        type: 'view',
-        renderProjection: { translate: frame?.cssTranslate || view.translate, scale: frame?.cssScale || view.scale,
-          safeInset: frame?.safeInset || null, flatProjectionKind: 'equirectangular' },
-        width: Math.max(1, Number(view.size?.width || state.size.width)),
-        height: Math.max(1, Number(view.size?.height || state.size.height)),
-        dpr: Number(view.dpr || resolveRenderPixelRatio()),
-        terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
-        meshQuality: activeMeshQuality,
-        projection: view.projection || state.projection,
-        view: workerView,
-        revision: Number(revision || 0),
-        viewRevision: Number(view.revision || revision || 0),
-        frameId: Number(frame?.frameId || revision || 0),
-        projectionRevision: Number(frame?.projectionRevision || 0),
-        projectGeneration: Number(frame?.projectGeneration || projectGeneration),
+        type: 'view', width: frame.cssViewport[0], height: frame.cssViewport[1], dpr: frame.dpr,
+        terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.sourceDpr || frame.dpr))),
+        meshQuality: activeMeshQuality, projection: frame.projection,
+        view: { flatCenter: view.projectionCenter || view.flatCenter, globeRotation: view.rotation,
+          flatZoom: view.flatZoom, globeZoom: view.globeZoom },
+        renderProjection: { translate: frame.cssTranslate, scale: frame.cssScale,
+          size: view.size, dpr: frame.dpr, safeInset: frame.safeInset, flatProjectionKind: 'equirectangular' },
+        revision: frame.viewRevision, viewRevision: frame.viewRevision, frameId: frame.frameId,
+        projectionRevision: frame.projectionRevision, projectGeneration: frame.projectGeneration,
         geometryRevision: geometryRevisionTracker.committedRevision(),
       };
     }
@@ -3803,7 +3764,7 @@ export function createGpuMapRenderer(deps) {
     function canvasWorkerInitMessage() {
       canvasSentGeometry.clear();
       const message = {
-        ...canvasWorkerViewMessage(currentRenderRevision),
+        ...(lastVisualFrame ? canvasWorkerViewMessage() : { projectGeneration }),
         ...canvasWorkerStyleMessage(),
         ...canvasWorkerPhysicalStyleMessage(),
         geometryRevision: geometryRevisionTracker.committedRevision(),
@@ -3857,11 +3818,11 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
-    function renderCanvasWorker(revision = currentRenderRevision, visualFrame = null) {
+    function renderCanvasWorker(visualFrame) {
       if (!canvasWorker) return;
-      if (resizePending) resize();
+      resize(visualFrame);
       syncCanvasWorkerState();
-      canvasWorker.queueFrame(canvasWorkerViewMessage(revision, visualFrame));
+      canvasWorker.queueFrame(canvasWorkerViewMessage(visualFrame));
     }
 
     function renderLatestVisualFrame() {
@@ -3874,17 +3835,16 @@ export function createGpuMapRenderer(deps) {
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('renderFrame() requires a MapVisualFrame.');
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
       lastVisualFrame = visualFrame;
-      activeRenderViewState = visualFrame.viewState;
-      requestHydroView(activeRenderViewState);
+      requestHydroView(visualFrame.viewState);
       let result = null;
       if (isWebGlRenderer()) {
         result = renderWebGl(visualFrame, { interactionOnly });
       }
       else if (rendererMode === 'canvas-worker') {
-        renderCanvasWorker(currentRenderRevision, visualFrame);
+        renderCanvasWorker(visualFrame);
         result = { deferred: true, frameId: visualFrame.frameId, viewRevision: visualFrame.viewRevision };
       }
-      else if (rendererMode === 'canvas2d') renderCanvasFallback();
+      else if (rendererMode === 'canvas2d') renderCanvasFallback(visualFrame);
       publishLightweightMetrics();
       return result;
     }
@@ -3892,7 +3852,6 @@ export function createGpuMapRenderer(deps) {
     function renderInteraction(visualFrame = lastVisualFrame) {
       if (!isMapVisualFrame(visualFrame)) return null;
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
-      activeRenderViewState = visualFrame.viewState;
       if (!isWebGlRenderer()) return renderFrame(visualFrame);
       performanceMetrics.selectionOnlyFrameCount += 1;
       return renderWebGl(visualFrame, { interactionOnly: true });
@@ -3901,7 +3860,7 @@ export function createGpuMapRenderer(deps) {
     function prioritizeLatest() {
       if (rendererMode !== 'canvas-worker' || !canvasWorker) return;
       syncCanvasWorkerState();
-      canvasWorker.queueFrame(canvasWorkerViewMessage(currentRenderRevision, activeRenderViewState));
+      if (lastVisualFrame) canvasWorker.queueFrame(canvasWorkerViewMessage());
     }
 
     function failCanvasWorker(message) {
@@ -3956,7 +3915,6 @@ export function createGpuMapRenderer(deps) {
         canvasDataReplacementResolver?.();
         canvasDataReplacementResolver = null;
         invalidateGpuFrame('canvas-data-ready');
-        renderCanvasWorker(Math.max(currentRenderRevision, Number(message.revision || 0)));
         return;
       }
       if (message.type === 'error') {
@@ -4018,7 +3976,7 @@ export function createGpuMapRenderer(deps) {
               && Number(message.styleRevision || 0) === canvasStyleRevision,
             onStale: () => { performanceMetrics.canvasWorkerStaleFrameCount += 1; },
           });
-          canvasWorker.queueFrame(canvasWorkerViewMessage(currentRenderRevision));
+          if (lastVisualFrame) canvasWorker.queueFrame(canvasWorkerViewMessage());
           canvasWorkerBitmapContext = canvas.getContext('bitmaprenderer');
           if (!canvasWorkerBitmapContext) canvasWorker2dContext = canvas.getContext('2d', { alpha: true });
           if (!canvasWorkerBitmapContext && !canvasWorker2dContext) throw new Error('Canvas 표시 컨텍스트를 만들 수 없습니다.');
@@ -4819,7 +4777,7 @@ export function createGpuMapRenderer(deps) {
       dispose, attach,
       initialize, replaceBuiltInMesh, renderFrame, renderInteraction,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
-      rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, setTerrainManifest, activeTerrainSourceInfo,
+      rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, getRenderPixelRatio: resolveRenderPixelRatio, setTerrainManifest, activeTerrainSourceInfo,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
       setHydroEdits,
       setHydroInteractionActive, setRenderQuality,
