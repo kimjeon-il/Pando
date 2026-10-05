@@ -63,7 +63,9 @@ export function createRenderingDomain({
   };
   listenUploadInput(globalThis.window, 'pandolab:interaction-state', event => { uploadMapMoving = event.detail?.active === true; pulseUploadInput(); });
   listenUploadInput(globalThis.document, 'pointerdown', event => { uploadPointers.add(event.pointerId); pulseUploadInput(); });
-  listenUploadInput(globalThis.document, 'pointermove', pulseUploadInput);
+  listenUploadInput(globalThis.document, 'pointermove', () => {
+    if (uploadMapMoving || uploadPointers.size > 0 || uploadTouches > 0) pulseUploadInput();
+  });
   for (const type of ['pointerup', 'pointercancel']) listenUploadInput(globalThis.document, type, event => { uploadPointers.delete(event.pointerId); pulseUploadInput(); });
   for (const type of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) listenUploadInput(globalThis.document, type, event => { uploadTouches = event.touches?.length || 0; pulseUploadInput(); });
   listenUploadInput(globalThis.document, 'wheel', pulseUploadInput);
