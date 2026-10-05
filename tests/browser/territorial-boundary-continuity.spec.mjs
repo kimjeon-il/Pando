@@ -218,7 +218,9 @@ async function verifyPending(page, renderer, phase, before) {
 
 for (const renderer of ['webgl2', 'canvas']) {
   test(`${renderer} retains real boundaries during delayed topology after child creation and region redraw`, async ({ page }) => {
-    test.setTimeout(360_000);
+    // CI software Canvas takes longer to present the canonical world during
+    // setup. Keep each operation's deadline and continuity assertions intact.
+    test.setTimeout(renderer === 'canvas' ? 540_000 : 360_000);
     const errors = [], logs = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (['error', 'warning'].includes(message.type())) logs.push(message.text()); });
