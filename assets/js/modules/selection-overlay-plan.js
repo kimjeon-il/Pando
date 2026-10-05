@@ -1,5 +1,5 @@
 import { interactionChannel, mapInteractionEntries } from './interaction-roles.js';
-import { resolveInteractionEntries, interactionRoleStyle } from './map-interaction-style.js';
+import { resolveInteractionEntries, resolveMapStrokeStyle } from './map-interaction-style.js';
 
 /** Selection policy only: callers resolve geometry/cache entries before planning. */
 export function selectionEntries(snapshot, state, options, toolEntries = []) {
@@ -23,7 +23,7 @@ export function selectionDisplayPlan({ entries, hoverKey, hoverHasGeometry = fal
   const labelEntriesByKey = new Map(entries.filter(entry => !(entry.role === 'hover' && (mobile || mapMoving)))
     .map(entry => [entry.key, entry]));
   const fillMasks = entries.map(entry => ({ key: entry.key, ref: entry.ref, priority: entry.priority,
-    depth: entry.depth, fillAlpha: interactionRoleStyle(style, entry.role).fillAlpha }));
+    depth: entry.depth, fillAlpha: resolveMapStrokeStyle(style, entry.role).fillAlpha }));
   return { hoverActive, items, boundaryOwnersByKey, labelEntriesByKey, fillMasks };
 }
 

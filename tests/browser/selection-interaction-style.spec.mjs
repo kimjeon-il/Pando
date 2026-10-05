@@ -156,12 +156,23 @@ test('renderer fallback draws a single selection outline in SVG', async ({ page 
   const outline = page.locator('.selection-overlay-layer .map-selection-outline.is-primary');
   await expect(outline).toHaveCount(1);
   await expect(outline).toHaveAttribute('stroke', '#cda95d');
-  await expect(outline).toHaveAttribute('stroke-width', '2.5');
+  const checkWidth = async () => {
+    const { width, expected } = await page.evaluate(async () => {
+      const { resolveMapStrokeStyle, scaleInteractionStroke } = await import('/assets/js/modules/map-interaction-style.js');
+      const style = window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.interactionStyle;
+      return { width: Number(document.querySelector('.map-selection-outline.is-primary').getAttribute('stroke-width')),
+        expected: scaleInteractionStroke(resolveMapStrokeStyle(style, 'primary'), window.__PANDOLAB_VIEW_STATE__).width };
+    });
+    expect(width).toBeCloseTo(expected, 6);
+    expect(width).toBeGreaterThan(0);
+  };
+  await checkWidth();
   for (const [button, projection] of [['#flatBtn', 'flat'], ['#globeBtn', 'globe']]) {
     await page.evaluate(selector => document.querySelector(selector).click(), button);
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_STATE__?.projection)).toBe(projection);
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.svgFallbackKeys || [])).toContain('territorial:entity:DEU');
     await expect(outline).toHaveCount(1);
+    await checkWidth();
   }
   expect(errors).toEqual([]);
 });

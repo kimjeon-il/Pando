@@ -2,7 +2,7 @@ import '../../assets/js/workers/canvas-scene-composition-core.js';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveMapInteractionStyle, resolveInteractionEntries, interactionRoleStyle } from '../../assets/js/modules/map-interaction-style.js';
+import { resolveMapInteractionStyle, resolveInteractionEntries, resolveMapStrokeStyle } from '../../assets/js/modules/map-interaction-style.js';
 import { mapInteractionEntries as interactionEntries } from '../../assets/js/modules/interaction-roles.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
@@ -24,11 +24,11 @@ test('all object domains share role priority and style, including zero fill and 
       const entries = resolveInteractionEntries([{ key, role: 'hover' }, { key, role: 'primary' }, { key, role: 'edit-target' }]);
       assert.equal(entries.length, 1);
       assert.equal(entries[0].role, 'edit-target');
-      assert.equal(interactionRoleStyle(style, entries[0].role).color, '#123456');
-      assert.equal(interactionRoleStyle(style, entries[0].role).width, 0);
-      assert.equal(interactionRoleStyle(style, 'candidate').fillAlpha, 0);
-      assert.equal(interactionRoleStyle(style, 'hover').width, 1.5);
-      if (!fillStrength) for (const role of entries[0].roles) assert.equal(interactionRoleStyle(style, role).fillAlpha, 0);
+      assert.equal(resolveMapStrokeStyle(style, entries[0].role).color, '#123456');
+      assert.equal(resolveMapStrokeStyle(style, entries[0].role).width, 0);
+      assert.equal(resolveMapStrokeStyle(style, 'candidate').fillAlpha, 0);
+      assert.equal(resolveMapStrokeStyle(style, 'hover').width, 1.5);
+      if (!fillStrength) for (const role of entries[0].roles) assert.equal(resolveMapStrokeStyle(style, role).fillAlpha, 0);
     }
   }
 });
@@ -109,7 +109,7 @@ test('common role contracts reject tool colors and keep boundary preparation out
     read('modules/selection-pass.js'), read('workers/canvas-render-worker.js'),
   ]);
   assert.doesNotMatch(packets, /getComputedStyle|gpuInteractionColor/);
-  assert.match(packets, /interactionRoleStyle/);
+  assert.match(packets, /resolveMapStrokeStyle/);
   assert.doesNotMatch(rendering, /buildTerritorialInternalBoundarySegments|mixWithWhite/);
   assert.doesNotMatch(rendering, /if \(pendingChanged[^\n]+syncGpuRenderScene/);
   assert.match(rendering, /lastInteractionFillOwner/);
@@ -153,9 +153,9 @@ test('country creation sources use the same secondary selection emphasis as anne
     assert.ok(rows.every(row => row.priority === 3));
   }
   const style = resolveMapInteractionStyle({ theme: 'light', fillStrength: 0.35 });
-  const selected = interactionRoleStyle(style, 'selected-provider');
+  const selected = resolveMapStrokeStyle(style, 'selected-provider');
   assert.ok(selected.fillAlpha > 0);
-  assert.ok(selected.width > interactionRoleStyle(style, 'reference').width);
+  assert.ok(selected.width > resolveMapStrokeStyle(style, 'reference').width);
 });
 
 test('Canvas metadata updates share immutable coordinate reconstruction', () => {

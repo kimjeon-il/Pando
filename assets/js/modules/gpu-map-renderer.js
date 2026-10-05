@@ -2618,7 +2618,7 @@ export function createGpuMapRenderer(deps) {
       }
       if (program === lineProgram) {
         const theme = mapTheme();
-        gl.lineWidth(Math.max(1, Number(lineWidth) || Number(theme.borderWidth) || 1));
+        gl.lineWidth(Math.max(0.25, Number(lineWidth) || theme.strokes.country.width) * activeFrameContext.dpr);
         const color = lineColor || [theme.borderGpu[0], theme.borderGpu[1], theme.borderGpu[2], theme.borderAlpha];
         gl.uniform4f(cachedUniformLocation(program, 'uBorderColor'), color[0], color[1], color[2], color[3]);
       }
@@ -2854,16 +2854,16 @@ export function createGpuMapRenderer(deps) {
       if (!count) return;
       setHydroUniforms(program, color);
       const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources, category);
+      const frameContext = activeFrameContext || lastVisualFrame;
+      if (!frameContext) return false;
       const widthBoostLocation = cachedUniformLocation(program, 'uWidthBoost');
-      if (widthBoostLocation) gl.uniform1f(widthBoostLocation, picking ? 6 : 0);
+      if (widthBoostLocation) gl.uniform1f(widthBoostLocation, picking ? 6 * frameContext.dpr : 0);
       const widthScaleLocation = cachedUniformLocation(program, 'uWidthScale');
       if (widthScaleLocation) {
         const theme = mapTheme();
-        const width = category === 'lake-boundary' ? theme.lakeBoundaryWidth : theme.riverWidth;
-        gl.uniform1f(widthScaleLocation, Math.max(0.5, Number(width) || 1));
+        const width = theme.strokes[category === 'lake-boundary' ? 'hydro-boundary' : 'river'].width;
+        gl.uniform1f(widthScaleLocation, width * frameContext.dpr);
       }
-      const frameContext = activeFrameContext || lastVisualFrame;
-      if (!frameContext) return false;
       for (const offset of frameContext.worldOffsets) {
         setViewUniforms(program, offset, frameContext);
         if (category === 'lake') gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_INT, 0);
@@ -3548,7 +3548,7 @@ export function createGpuMapRenderer(deps) {
           target.globalAlpha = reserve ? 1 : opacity; target.fillStyle = color; if (role === 'lake') target.fill();
           if (role === 'lake-boundary' && theme.lakeBoundaryVisible !== false) {
             target.beginPath(); canvasPath(countryOutlineFeature(feature));
-            target.strokeStyle = color; target.lineWidth = Math.max(0.5, Number(theme.lakeBoundaryWidth) || 1); target.stroke();
+            target.strokeStyle = color; target.lineWidth = theme.strokes['hydro-boundary'].width; target.stroke();
           }
           continue;
         }
@@ -3562,7 +3562,7 @@ export function createGpuMapRenderer(deps) {
             canvasPath({ type: 'LineString', coordinates: [part[index], part[index + 1]] });
             const start = Number(widths[index] ?? fallback);
             const end = Number(widths[index + 1] ?? start);
-            target.lineWidth = (start + end) / 2 * Math.max(0.5, Number(theme.riverWidth) || 1);
+            target.lineWidth = (start + end) / 2 * theme.strokes.river.width;
             target.stroke();
           }
         }
@@ -3576,7 +3576,7 @@ export function createGpuMapRenderer(deps) {
         target.globalAlpha = reserve ? 1 : theme.borderAlpha;
         target.strokeStyle = theme.border;
         target.lineJoin = 'round';
-        target.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
+        target.lineWidth = theme.strokes.country.width;
         if (!shouldShowSharedCountryBorders(state.physicalSettings)) for (const feature of features) {
           const id = String(feature?.id || '');
           if (!countryBoundaryStyleById(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
@@ -3618,7 +3618,7 @@ export function createGpuMapRenderer(deps) {
       substrate.getContext('2d').clearRect(0, 0, pixelWidth, pixelHeight);
       substrate.getContext('2d').drawImage(canvas, 0, 0);
       ctx2d.lineJoin = 'round';
-      ctx2d.lineWidth = 0.72 * Math.max(0.5, Number(theme.borderWidth) || 1);
+      ctx2d.lineWidth = theme.strokes.country.width;
         },
         'country-fill': () => {
       if (state.layerVisibility.countries) {

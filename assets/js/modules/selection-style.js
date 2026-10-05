@@ -1,13 +1,12 @@
 import { resolveMapInteractionStyle } from './map-interaction-style.js';
-export const SELECTION_STYLE = {
-  color: '#cda95d',
-  primaryWidth: 2.5,
-  primaryAlpha: 1,
-  secondaryWidth: 1.5,
-  secondaryAlpha: 0.72,
-};
-
 let interactionStyle = resolveMapInteractionStyle();
+export const SELECTION_STYLE = {
+  color: interactionStyle.selection.color,
+  primaryWidth: interactionStyle.selection.primary.innerWidth,
+  primaryAlpha: interactionStyle.selection.primary.innerAlpha,
+  secondaryWidth: interactionStyle.selection.secondary.innerWidth,
+  secondaryAlpha: interactionStyle.selection.secondary.innerAlpha,
+};
 
 export function setInteractionStyle(nextStyle) {
   if (!nextStyle?.hover || !nextStyle?.selection) return interactionStyle;
