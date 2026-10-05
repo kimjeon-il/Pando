@@ -72,10 +72,17 @@ export function createEditPreviewController({ now = () => globalThis.performance
     return validCount;
   }
 
-  function begin({ key = 'edit-preview', segments = [], order = 20_000 } = {}) {
+  function begin({ key = 'edit-preview', segments = [], order = 20_000, projectGeneration = 0,
+    gestureId = '', tool = '', targetRefs = [] } = {}) {
     session = {
       id: ++sequence,
       key: String(key || 'edit-preview'),
+      projectGeneration: Number(projectGeneration),
+      status: 'dragging',
+      successor: null,
+      gestureId: String(gestureId),
+      tool: String(tool),
+      targetRefs: Object.freeze(targetRefs.map(ref => Object.freeze({ ...ref }))),
       revision: 0,
       startsEnds: new Float32Array(0),
       segmentCount: 0,
@@ -89,7 +96,7 @@ export function createEditPreviewController({ now = () => globalThis.performance
   }
 
   function update(segments = []) {
-    if (!session) return false;
+    if (!session || session.status !== 'dragging') return false;
     writeSegments(segments);
     return true;
   }
@@ -112,12 +119,41 @@ export function createEditPreviewController({ now = () => globalThis.performance
     });
   }
 
-  function clear() {
-    if (!session) return false;
+  function clear(expectedId = session?.id) {
+    if (!session || session.id !== expectedId) return false;
     metrics.lastSessionMs = Math.max(0, now() - session.startedAt);
     session = null;
     metrics.clearCount += 1;
     return true;
+  }
+
+  function waitForResult(id) {
+    if (!session || session.id !== id || session.status !== 'dragging') return false;
+    session.status = 'pending-result';
+    return true;
+  }
+
+  function handoff(id, successor) {
+    if (!session || session.id !== id || session.status !== 'pending-result') return false;
+    if (successor?.kind === 'geometry-preview' && successor.sessionId && Number.isFinite(successor.revision)
+      || successor?.kind === 'object' && successor.objectKey && successor.geometry && Number.isFinite(successor.geometryRevision)) {
+      session.successor = Object.freeze({ ...successor });
+      session.status = 'successor-ready';
+      return true;
+    }
+    throw new TypeError('Edit preview handoff requires an identified geometry preview or committed object geometry.');
+  }
+
+  function completeHandoff(id, presented, frame) {
+    if (!session || session.id !== id || session.status !== 'successor-ready'
+      || Number(frame?.projectGeneration) !== session.projectGeneration || !(Number(frame?.frameId) > 0)) return false;
+    const expected = session.successor;
+    if (expected.kind !== presented?.kind) return false;
+    const matches = expected.kind === 'geometry-preview'
+      ? expected.sessionId === presented.sessionId && expected.revision === presented.revision
+      : expected.objectKey === presented.objectKey && expected.geometry === presented.geometry
+        && expected.geometryRevision === presented.geometryRevision;
+    return matches && clear(id);
   }
 
   return Object.freeze({
@@ -125,6 +161,12 @@ export function createEditPreviewController({ now = () => globalThis.performance
     update,
     packet,
     clear,
+    waitForResult,
+    handoff,
+    completeHandoff,
+    snapshot: () => Object.freeze({ id: session?.id || 0, lastSessionId: sequence, key: session?.key || '',
+      projectGeneration: session?.projectGeneration || 0, status: session?.status || 'idle', successor: session?.successor || null,
+      gestureId: session?.gestureId || '', tool: session?.tool || '', targetRefs: session?.targetRefs || Object.freeze([]) }),
     isActive: () => !!session,
     revision: () => Number(session?.revision || 0),
     stats: () => Object.freeze({
@@ -132,6 +174,8 @@ export function createEditPreviewController({ now = () => globalThis.performance
       active: !!session,
       activeSegmentCount: Number(session?.segmentCount || 0),
       activeRevision: Number(session?.revision || 0),
+      status: session?.status || 'idle',
+      sessionId: session?.id || 0,
       activeAgeMs: session ? Math.max(0, now() - session.startedAt) : 0,
       updateP95Ms: percentile(updateSamples, 0.95),
       updateP99Ms: percentile(updateSamples, 0.99),

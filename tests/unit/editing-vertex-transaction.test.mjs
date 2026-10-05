@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { touchGeometry } from '../../assets/js/modules/geometry-versions.js';
 
 test('object vertex gesture keeps canonical geometry detached until one commit', async () => {
   const source = {
@@ -69,4 +70,60 @@ test('cancelled object gesture never commits its detached preview', () => {
   assert.equal(editing.cancelActiveGesture('pointercancel'), true);
   assert.equal(commits, 0);
   assert.deepEqual(source.geometry.coordinates[0], [0, 0]);
+});
+
+test('returning a dragged object vertex to its starting coordinate commits no change', async () => {
+  const source = { type: 'Feature', id: 'river-1', properties: {},
+    geometry: { type: 'LineString', coordinates: [[0, 0], [10, 0]] } };
+  const frames = [], commits = [], before = { history: ['existing'], future: ['redo'], dirty: false };
+  const editing = createEditingDomain({ transactionRunner: ({ patch }) => patch.commit(),
+    draftServices: { screenToCoordinate: value => value, projectCoordinate: value => value,
+      requestFrame: callback => (frames.push(callback), frames.length) },
+    geometryEditing: { resolveObjectFeature: () => source,
+      captureObjectGestureSnapshot: () => before,
+      commitObjectGesture: gesture => { commits.push(gesture); return gesture.changed; } },
+  });
+  const packet = editing.createRenderPacket();
+  const event = { projectGeneration: 0, packetRevision: packet.revision, gestureId: 'return-to-start',
+    targetRef: { domain: 'hydro', id: source.id }, vertexKey: '0:0', vertexIndex: 0 };
+  editing.handleInteraction({ ...event, type: 'object-vertex-drag-start', screenPoint: [0, 0] });
+  for (const screenPoint of [[4, 5], [0, 0]]) {
+    editing.handleInteraction({ ...event, type: 'object-vertex-drag-move', screenPoint });
+    frames.shift()();
+  }
+  assert.equal(await editing.handleInteraction({ ...event, type: 'object-vertex-drag-end' }), false);
+  assert.equal(commits.length, 1);
+  assert.equal(commits[0].changed, false);
+  assert.equal(commits[0].snapshot, before);
+  assert.deepEqual(source.geometry.coordinates[0], [0, 0]);
+  editing.dispose();
+});
+
+test('hidden, deleted, replaced, locked or externally revised targets cancel their detached drag without history', async () => {
+  for (const invalidation of ['hidden', 'deleted', 'replaced', 'locked', 'geometry-replaced', 'geometry-revised']) {
+    const source = { type: 'Feature', id: 'river-1', properties: {},
+      geometry: { type: 'LineString', coordinates: [[0, 0], [10, 0]] } };
+    let current = source, editable = true, commits = 0;
+    const frames = [];
+    const editing = createEditingDomain({ transactionRunner: ({ patch }) => patch.commit(),
+      draftServices: { screenToCoordinate: value => value, projectCoordinate: value => value,
+        requestFrame: callback => (frames.push(callback), frames.length) },
+      geometryEditing: { resolveObjectFeature: () => current, canEditObject: () => editable,
+        commitObjectGesture: () => { commits += 1; return true; } },
+    });
+    const event = { projectGeneration: 0, packetRevision: editing.createRenderPacket().revision,
+      gestureId: invalidation, targetRef: { domain: 'hydro', id: source.id }, vertexKey: '0:0', vertexIndex: 0 };
+    editing.handleInteraction({ ...event, type: 'object-vertex-drag-start', screenPoint: [0, 0] });
+    editing.handleInteraction({ ...event, type: 'object-vertex-drag-move', screenPoint: [4, 5] });
+    frames.shift()();
+    if (invalidation === 'deleted') current = null;
+    else if (invalidation === 'replaced') current = structuredClone(source);
+    else if (invalidation === 'geometry-replaced') source.geometry = structuredClone(source.geometry);
+    else if (invalidation === 'geometry-revised') touchGeometry(source.geometry);
+    else editable = false;
+    assert.equal(await editing.handleInteraction({ ...event, type: 'object-vertex-drag-end' }), false, invalidation);
+    assert.equal(commits, 0, invalidation);
+    assert.deepEqual(source.geometry.coordinates[0], [0, 0], invalidation);
+    editing.dispose();
+  }
 });

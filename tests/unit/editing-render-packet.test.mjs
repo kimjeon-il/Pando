@@ -241,3 +241,17 @@ test('one coordinator frame reads one editing packet for every editing pass', ()
   assert.equal(reads, 1);
   rendering.dispose();
 });
+
+test('object selection and deselection refresh vertex packets without an active draft', () => {
+  let target = null;
+  const editing = createEditingDomain({ geometryEditing: { getObjectVertexTarget: () => target } });
+  assert.equal(editing.createRenderPacket().objectVertices, null);
+  target = { targetRef: { domain: 'hydro', type: 'river', id: 'river-1' }, mode: 'hydro',
+    feature: { type: 'Feature', geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] } } };
+  assert.equal(editing.refreshEditingPresentation('selection-target'), true);
+  assert.equal(editing.createRenderPacket().objectVertices.handles.length, 2);
+  target = null;
+  assert.equal(editing.refreshEditingPresentation('selection-target'), true);
+  assert.equal(editing.createRenderPacket().objectVertices, null);
+  editing.dispose();
+});

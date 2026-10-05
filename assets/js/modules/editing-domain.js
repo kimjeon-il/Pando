@@ -1,4 +1,4 @@
-import { touchGeometry } from './geometry-versions.js';
+import { geometryRevision, touchGeometry } from './geometry-versions.js';
 import {
   createDraftEditState,
   deleteDraftVertex,
@@ -529,8 +529,8 @@ export function createEditingDomain({
   };
 
   function cancelActiveGesture(reason = 'gesture-cancel', { emitChange = true } = {}) {
-    if (!activeGesture) return false;
-    geometry.cancelGesture?.(activeGesture, reason);
+    if (!activeGesture && !previewController?.isActive?.()) return false;
+    if (activeGesture) geometry.cancelGesture?.(activeGesture, reason);
     activeGesture = null;
     draftEdit.dragging = false;
     activeSnap = null;
@@ -547,6 +547,7 @@ export function createEditingDomain({
     if (Number(event.projectGeneration) !== projectGeneration || Number(event.packetRevision) !== revision) return false;
     if (event.type === 'draft-vertex-drag-start' && (!draftInputActive() || draftStroke.active)) return false;
     const gestureId = String(event.gestureId || `editing-${++gestureSequence}`);
+    cancelActiveGesture('gesture-replaced', { emitChange: false });
     activeGesture = { id: gestureId, type: event.type, targetRef: event.targetRef || null, vertexKey: event.vertexKey || null };
     if (event.type === 'draft-vertex-drag-start') {
       const index = Number(event.vertexIndex);
@@ -574,10 +575,14 @@ export function createEditingDomain({
           activeGesture.session = {
             kind: 'object',
             source,
+            sourceGeometry: source.geometry,
+            sourceGeometryRevision: geometryRevision(source.geometry),
             detached,
             vertex: selectedVertex,
+            startCoordinate: selectedVertex.coordinate.slice(),
             beforeGeometry: structuredClone(source.geometry),
             changed: false,
+            snapshot: geometry.captureObjectGestureSnapshot?.(),
           };
           began = true;
         }
@@ -586,6 +591,14 @@ export function createEditingDomain({
     }
     emit(event.type);
     return true;
+  };
+
+  const objectGestureCurrent = gesture => {
+    const session = gesture.session;
+    return geometry.resolveObjectFeature(gesture.targetRef) === session.source
+      && session.source.geometry === session.sourceGeometry
+      && geometryRevision(session.sourceGeometry) === session.sourceGeometryRevision
+      && geometry.canEditObject?.(session.source, session.vertex) !== false;
   };
 
   const applyGestureMove = event => {
@@ -599,7 +612,8 @@ export function createEditingDomain({
       refreshDerivedState({ buildPreview: false });
     } else if (activeGesture.session?.kind === 'object') {
       const session = activeGesture.session;
-      session.changed = session.changed || !coordinateNear(session.vertex.coordinate, value);
+      if (!objectGestureCurrent(activeGesture)) return cancelActiveGesture('object-target-invalidated');
+      session.changed = !coordinateNear(session.startCoordinate, value);
       setEditableVertex(session.detached, session.vertex, value);
       session.vertex = editableVertices(session.detached).find(item => item.key === session.vertex.key) || session.vertex;
       geometry.previewObjectGesture?.({
@@ -607,6 +621,7 @@ export function createEditingDomain({
         feature: session.detached,
         vertex: session.vertex,
         segments: vertexPreviewSegments(session.detached, session.vertex),
+        gestureId: activeGesture.id,
       });
     } else if (activeGesture.session?.kind === 'boundary') {
       geometry.moveBoundaryGesture?.(activeGesture.session, value, event);
@@ -631,7 +646,14 @@ export function createEditingDomain({
   const endGesture = async event => {
     if (!activeGesture || String(event.gestureId || '') !== activeGesture.id || Number(event.projectGeneration) !== projectGeneration) return false;
     if (pendingMove) flushPendingMove();
+    if (!activeGesture) return false;
+    if (activeGesture.session?.kind === 'object' && !objectGestureCurrent(activeGesture)) {
+      cancelActiveGesture('object-target-invalidated');
+      return false;
+    }
     const gesture = activeGesture;
+    const generation = projectGeneration;
+    const previewId = previewController?.snapshot?.().id;
     activeGesture = null;
     if (gesture.type === 'draft-vertex-drag-start') {
       draftEdit.dragging = false;
@@ -641,23 +663,33 @@ export function createEditingDomain({
       return true;
     }
     let result;
-    if (gesture.session?.kind === 'object') {
-      const editDomain = gesture.targetRef?.domain === 'hydro' ? 'hydro' : 'generic';
-      result = await applyGeometryPatch(editDomain, {
-        commit: () => geometry.commitObjectGesture?.({
-          source: gesture.session.source,
-          feature: gesture.session.detached,
-          beforeGeometry: gesture.session.beforeGeometry,
-          changed: gesture.session.changed,
-        }),
-      });
-    } else if (gesture.session?.kind === 'boundary') {
-      result = await applyGeometryPatch('country', {
-        commit: () => geometry.commitBoundaryGesture?.(gesture.session, event),
-      });
-    } else result = await geometry.endGesture?.(gesture, event);
+    if (previewId) previewController.waitForResult(previewId);
+    try {
+      if (gesture.session?.kind === 'object') {
+        const editDomain = gesture.targetRef?.domain === 'hydro' ? 'hydro' : 'generic';
+        result = await applyGeometryPatch(editDomain, {
+          commit: () => geometry.commitObjectGesture?.({
+            source: gesture.session.source,
+            feature: gesture.session.detached,
+            beforeGeometry: gesture.session.beforeGeometry,
+            changed: gesture.session.changed,
+            snapshot: gesture.session.snapshot,
+            previewId,
+          }),
+        });
+      } else if (gesture.session?.kind === 'boundary') {
+        result = await applyGeometryPatch('country', {
+          commit: () => geometry.commitBoundaryGesture?.({ ...gesture.session, previewId }, event),
+        });
+      } else result = await geometry.endGesture?.(gesture, event);
+    } catch (error) {
+      if (previewId) previewController.clear(previewId);
+      if (!disposed && generation === projectGeneration) emit('vertex-commit-failed');
+      throw error;
+    }
+    if (disposed || generation !== projectGeneration) return false;
     activeSnap = null;
-    previewController?.clear?.();
+    if (result === false && previewId) previewController.clear(previewId);
     emit(event.type);
     return result !== false;
   };
@@ -788,6 +820,7 @@ export function createEditingDomain({
   };
 
   const resetProject = generation => {
+    cancelActiveGesture('project-reset', { emitChange: false });
     projectGeneration = Number(generation || 0);
     activeGesture = null;
     activeTool = 'select';
@@ -826,10 +859,10 @@ export function createEditingDomain({
 
   return Object.freeze({
     setTool, handleInteraction, createRenderPacket,
-    refreshDraftPresentation: reason => {
-      if (disposed || (!draftCoords.length && !draftInputActive())) return false;
+    refreshEditingPresentation: reason => {
+      if (disposed) return false;
       if (!draftInputActive()) draftEdit.vertexInsertMode = false;
-      emit(reason || 'draft-presentation-changed');
+      emit(reason || 'editing-presentation-changed');
       return true;
     },
     refreshTerritorySelection: ({ tool: expectedTool, reason } = {}) => {

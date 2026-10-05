@@ -216,9 +216,11 @@ export function createGpuScene() {
     dependencies.domains.renderingDomain?.invalidateGpuInteraction?.(reason);
   }
 
-  function beginActiveEditPreview({ key, segments }) {
-    dependencies.geometryOperations.editPreviewController.begin({ key, segments, order: 25_000 });
+  function beginActiveEditPreview({ key, segments, gestureId = '', targetRefs = [] }) {
+    const id = dependencies.geometryOperations.editPreviewController.begin({ key, segments, order: 25_000, gestureId, targetRefs,
+      projectGeneration: dependencies.domains.projectDomain.getGeneration(), tool: dependencies.projectState.state.tool });
     syncActiveEditPreview('edit-preview-start');
+    return id;
   }
 
   function updateActiveEditPreview(segments) {
@@ -227,7 +229,8 @@ export function createGpuScene() {
     return true;
   }
 
-  function clearActiveEditPreview(reason = 'edit-preview-clear') {
+  function clearActiveEditPreview(reason = 'edit-preview-clear', expectedId = null) {
+    if (expectedId !== null && dependencies.geometryOperations.editPreviewController.snapshot().id !== expectedId) return false;
     if (!dependencies.geometryOperations.editPreviewController.clear() && !dependencies.interactionPresentation.currentGpuEditPreviewPackets.length) return false;
     dependencies.interactionStateCommands.replaceGpuEditPreviewPackets([]);
     syncGpuInteractionState();

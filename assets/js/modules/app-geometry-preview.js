@@ -383,7 +383,7 @@ export function createGeometryPreview() {
         return false;
       }
     };
-    dependencies.domains.editingDomain?.refreshDraftPresentation?.('draft-preview-ready');
+    dependencies.domains.editingDomain?.refreshEditingPresentation?.('draft-preview-ready');
     dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('local-geometry-preview-ready');
     (0, dependencies.taskUi.updateModeButtons)();
     const blockingIssue = issues.find(issue => issue.severity !== 'warning');
@@ -408,7 +408,7 @@ export function createGeometryPreview() {
     activeGeometryPreviewApply = null;
     activeGeometryPreviewDiscard = null;
     (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
-    dependencies.domains.editingDomain?.refreshDraftPresentation?.('draft-preview-discard');
+    dependencies.domains.editingDomain?.refreshEditingPresentation?.('draft-preview-discard');
     dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('geometry-preview-discard');
     (0, dependencies.taskUi.updateModeButtons)();
     if (announce) (0, dependencies.feedback.setActionStatus)('미리보기를 닫았습니다.', 'success', 2600);
