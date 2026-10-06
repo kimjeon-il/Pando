@@ -274,14 +274,17 @@ for (const renderer of ['webgl2', 'canvas']) {
         .toMatch(/^(Multi)?Polygon$/);
       await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
       await page.locator('#focusSelectedObjectBtn').evaluate(button => button.click());
-      await expect.poll(() => page.evaluate(() => {
-        const current = window.__m1Client.stats();
-        return current.ready && current.pendingCount === 0 && current.runningCount === 0;
-      }), { timeout: 60_000 }).toBe(true);
       await page.locator('#addEntityChildBtn').evaluate(button => button.click());
       await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
       await page.locator('#territorialCreateNameInput').fill('M1 경계 연속성');
       await page.locator('#modePrimaryBtn').click();
+      // Canonical startup stops the preview edit Worker. The actual edit UI
+      // request above lazily rebases it; an idle, stopped Worker before that
+      // request is valid. Keep readiness/idle checks after preparation starts.
+      await expect.poll(() => page.evaluate(() => {
+        const current = window.__m1Client.stats();
+        return current.ready && current.pendingCount === 0 && current.runningCount === 0;
+      }), { timeout: 60_000 }).toBe(true);
       await drawPolygon(page, [[10.3, 49.3], [11.3, 49.3], [11.3, 50.3], [10.3, 50.3]], { confirmArea: true });
       await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
       await page.locator('#modePrimaryBtn').click();

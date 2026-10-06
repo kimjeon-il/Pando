@@ -3,7 +3,7 @@
 검증일: 2026-10-06. 작업 브랜치: `codex/info-tab-v9`.
 기준 main: `933eb5efc21533574ff6d826361d0395a2a710c0`.
 검증한 구현 커밋: `a1555722813fbb7f2ae397f1999e21dd9fa0ed66`.
-후속 커밋은 아래 빌드 메타데이터와 이 문서만 갱신한다.
+빌드 메타데이터 커밋 `d7c3513`은 구현 검증 뒤 메타데이터와 이 문서만 갱신했다.
 
 ## Source and captures
 
@@ -85,3 +85,30 @@ final result: passed
 후속 검토는 feature 파생값이 아닌 lifetime record의 정본 변경 경로, 실패 원자성/history,
 유한 프로젝트의 재열기·활성화 판정 및 앱 PandoEditor와의 계약 대조를 먼저 확정해야 한다.
 승인 없이 공통 계약·스키마·activation guard를 바꾸지 않는다. 별도 기능은 아직 구현하지 않았다.
+
+## Delivery follow-up — commit, push, main and Pages
+
+이후 사용자가 커밋·푸시·배포를 요청했다. `d7c3513`을 작업 브랜치와 main에 푸시하고 Pages 배포를 확인했다.
+Pages run `37401701785`와 UI Architecture run `37401702078`은 success.
+원격 UI 집중 단위 51/0/0, UI 단위 18/0/0, Canvas info browser 1/0/0.
+Application run `37401702147`의 전체 단위 job은 1668/0/0으로 통과했다.
+실제 Pages의 HTML·build meta·UI bundle·관련 JS 4개 모두 커밋 Git blob과 byte/SHA-256가 일치했다(7/7).
+기본 렌더러로 공개 사이트를 열고 정보 탭을 표시했다. build ID가 일치하고 페이지/콘솔 오류는 0건이었다.
+산출물: `test-results/info-v9-live-assets.json`, `info-v9-live-browser.json`, `info-v9-live-desktop.png`.
+
+같은 Application run의 M1 boundary browser는 WebGL2 1 pass, Canvas 1 fail이었다.
+Canvas는 실제 편집 전 `current.ready` 대기에서 실패했다. 진단에는 pending/running=0,
+completed=1, ready=false, workerActive=false, errors/workerErrors/diagnostics=[]가 기록됐다.
+기존 `app-progressive-startup.js`는 canonical 적용 후 preview edit Worker를 stop하고,
+`map-edit-worker-client.js`는 다음 execute에서 다시 준비한다. 두 제품 파일은 이번 작업에서 바뀌지 않았다.
+검사 준비 순서가 이 지연 초기화 계약과 맞지 않았다.
+
+`territorial-boundary-continuity.spec.mjs`의 동일한 ready·pending·running 검사를 실제 UI의
+첫 편집 요청 뒤로 옮겼다. timeout/연속성/픽셀/Worker 오류 assertions는 바꾸지 않았다.
+Canvas 한 경로를 다시 실행해 1 pass / 0 fail / 0 skip, 두 계산 대기 구간의 경계 유지와
+최종 표시 교체 및 uploadMisses=0을 확인했다(3.9분).
+명령: `pnpm.cmd exec playwright test tests/browser/territorial-boundary-continuity.spec.mjs --grep='canvas retains' --output=test-results/info-v9-boundary-setup-verified`.
+해당 파일 ESLint와 `git diff --check`도 exit 0.
+로그: `test-results/info-v9-boundary-setup-verified.log`.
+이 후속 보정은 테스트와 실행 기록만 바꾸며 배포 UI/JS/CSS·저장 계약·build ID를 바꾸지 않는다.
+후속 배포 및 원격 CI의 최종 상태는 `test-results/info-v9-release-manifest.json`에 기록한다.
