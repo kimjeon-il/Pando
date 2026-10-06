@@ -127,7 +127,7 @@ test('mobile sheet drag stays compositor-only until snap settlement', () => {
 test('map chrome avoids live backdrop blur over animated map content', () => {
   assert.doesNotMatch(editorShell, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
   assert.doesNotMatch(surfaces, /(?:-webkit-)?backdrop-filter:\s*blur\(/);
-  assert.match(read('assets/css/components/selection-toolbar.css'), /\.selection-card\s*\{[^}]*backdrop-filter: none/);
+  assert.doesNotMatch(read('index.html'), /selection-card|selectionToolbar/);
 });
 
 test('canonical startup is input-gated and strictly sequential', () => {

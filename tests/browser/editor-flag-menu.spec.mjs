@@ -1,21 +1,20 @@
 import { expect, test } from '@playwright/test';
 
-test('territorial selection enters the editor directly and preserves its flag menu and tabs', async ({ page }) => {
+test('territorial selection enters the editor directly and preserves its flag menu and tabs', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
-  const slotPointerEvents = await page.locator('.selection-toolbar-slot').evaluate(node => getComputedStyle(node).pointerEvents);
+  const slotPointerEvents = await page.locator('.map-overlay-layer').evaluate(node => getComputedStyle(node).pointerEvents);
   expect(slotPointerEvents).toBe('none');
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  await expect(page.locator('#selectionToolbar')).toBeHidden();
+  await expect(page.locator('#selectionToolbar')).toHaveCount(0);
   await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
   await expect(page.locator('#propertyTitle')).toHaveText('독일');
   await expect(page.locator('#flagPreview')).toBeVisible();
-  await expect(page.locator('g.territorial-label-item.selection-card-source-hidden')).toHaveCount(0);
   await expect(page.locator('#editorSurface #entityNameInput, #editorSurface #flagMenuBtn')).toHaveCount(2);
   await expect(page.locator('#editorSurface #entityNotesInput')).toHaveCount(1);
-  await expect(page.locator('#selectionToolbar #objectVisibilityBtn, #selectionToolbar #objectLockBtn')).toHaveCount(2);
+  await expect(page.locator('#editorObjectHeader #objectVisibilityBtn, #editorObjectHeader #objectLockBtn')).toHaveCount(2);
   await expect(page.locator('#editorSurface .surface-header-actions #objectVisibilityBtn, #editorSurface .surface-header-actions #objectLockBtn, #editorSurface .surface-header-actions #objectDeleteBtn')).toHaveCount(0);
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('BGR'));
@@ -28,8 +27,7 @@ test('territorial selection enters the editor directly and preserves its flag me
   await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
   await expect(page.locator('#changeCountryTypeBtn')).toHaveCount(0);
   await expect(page.locator('#editorObjectHeader')).toBeVisible();
-  await expect(page.locator('#selectionToolbar')).toBeHidden();
-  await expect(page.locator('g.territorial-label-item.selection-card-source-hidden')).toHaveCount(0);
+  await expect(page.locator('#selectionToolbar')).toHaveCount(0);
   await expect(page.locator('#editorTabBtn')).toBeVisible();
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
   await expect(page.locator('#relationTabBtn')).toBeVisible();
@@ -54,6 +52,7 @@ test('territorial selection enters the editor directly and preserves its flag me
     await page.keyboard.press('Escape');
     await expect(page.locator('#flagMenu')).toBeHidden();
     await expect(page.locator('#flagMenuBtn')).toBeFocused();
+    await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath(`editor-header-${width}.png`) });
   }
 
   await page.locator('#flagMenuBtn').click();

@@ -129,7 +129,6 @@ const renderingDomainModule = await import(versionedModuleUrl('./modules/renderi
 const gisDomainModule = await import(versionedModuleUrl('./modules/gis-domain.js'));
 const editingDomainModule = await import(versionedModuleUrl('./modules/editing-domain.js'));
 const selectionUiControllerModule = await import(versionedModuleUrl('./modules/selection-ui-controller.js'));
-const selectionToolbarPresentationModule = await import(versionedModuleUrl('./modules/selection-toolbar-presentation.js'));
 const territorialPropertyControllerModule = await import(versionedModuleUrl('./modules/territorial-property-controller.js'));
 const objectPropertyControllerModule = await import(versionedModuleUrl('./modules/object-property-controller.js'));
 const { effectiveTerritorialFlagUrl } = countryFlagsModule;
@@ -140,7 +139,6 @@ const { createRenderingDomain } = renderingDomainModule;
 const { createGisDomain } = gisDomainModule;
 const { createEditingDomain } = editingDomainModule;
 const { createSelectionUiController } = selectionUiControllerModule;
-const { createSelectionToolbarPresentation } = selectionToolbarPresentationModule;
 const { createTerritorialPropertyController } = territorialPropertyControllerModule;
 const { createObjectPropertyController } = objectPropertyControllerModule;
 
@@ -504,7 +502,6 @@ export {
   gisDomainModule,
   editingDomainModule,
   selectionUiControllerModule,
-  selectionToolbarPresentationModule,
   territorialPropertyControllerModule,
   objectPropertyControllerModule,
   effectiveTerritorialFlagUrl,
@@ -515,7 +512,6 @@ export {
   createGisDomain,
   createEditingDomain,
   createSelectionUiController,
-  createSelectionToolbarPresentation,
   createTerritorialPropertyController,
   createObjectPropertyController,
   createProjectUiBridge,

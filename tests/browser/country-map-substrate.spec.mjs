@@ -17,7 +17,7 @@ async function pixel(page) {
   const point = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.project([32, 39]));
   const box = await page.locator('#map').boundingBox();
   // Measure map color even when the nested display menu covers the sample point.
-  const mask = await page.addStyleTag({ content: '#selectionToolbar, #mapDisplaySurface { visibility: hidden !important; }' });
+  const mask = await page.addStyleTag({ content: '#mapDisplaySurface { visibility: hidden !important; }' });
   let png;
   try {
     png = await capture(page, { x: Math.round(box.x + point[0]),
@@ -98,8 +98,7 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
       await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('FRA'));
       const point = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.project([32, 39]));
       const box = await page.locator('#map').boundingBox();
-      const mask = await page.addStyleTag({ content: '#selectionToolbar { visibility: hidden !important; }' });
-      try { await page.mouse.click(box.x + point[0], box.y + point[1]); } finally { await mask.evaluate(node => node.remove()); }
+      await page.mouse.click(box.x + point[0], box.y + point[1]);
       await expect(page.locator('#statusSelection')).toContainText('튀르키예');
     }
     await page.locator('#undoBtn').click();

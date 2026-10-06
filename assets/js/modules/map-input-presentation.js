@@ -35,6 +35,7 @@ export function createMapInputPresentation({
   mapClickBlocked,
   screenToGeo,
   queueCountryHoverPick,
+  getTerritorialLabelRef,
 } = {}) {
 
   let boundInput = null;
@@ -159,6 +160,12 @@ export function createMapInputPresentation({
       }
       if (mapInputController?.isPanning()) {
         editingDomain?.clearDraftHover?.('map-panning');
+        return;
+      }
+      const label = d3.event.target?.closest?.('.territorial-label-item[data-label-id]');
+      if (label && getInputSnapshot().tool === 'select' && !isMobile()) {
+        cancelCountryHoverPick();
+        selectionDomain.setHover(getTerritorialLabelRef(label.dataset.labelId), { source: 'map' });
         return;
       }
       const screenPoint = d3.mouse(this);

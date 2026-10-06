@@ -23,7 +23,7 @@ export function createEditorBindings() {
 
   function bindUI() {
     syncEditorCommandRows();
-    (0, dependencies.platformConfigurationB.bindUiTooltips)();
+    dependencies.platformConfigurationB.tooltipController.bind();
     (0, dependencies.navigationBindings.bindNavigationUI)();
     (0, dependencies.navigationBindings.bindLayerUI)();
     (0, dependencies.toolBindings.bindToolUI)();
