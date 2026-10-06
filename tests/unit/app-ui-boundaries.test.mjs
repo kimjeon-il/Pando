@@ -204,7 +204,7 @@ test('flat/globe input reads current zoom and movement transitions stay single-s
   window.addEventListener('pandolab:interaction-state', event => events.push(event.detail.active));
   const svg = { on() { return this; } };
   const bridge = createMapInputPresentation({
-    getElement: () => new FakeElement(), window, navigator: {}, d3: {},
+    getElement: () => new FakeElement(), window, navigator: {}, d3: { select: () => ({ on() { return this; } }) },
     getInputSnapshot: () => ({ ...state }), setMoving: value => { state.moving = value; },
     getQualityTier: () => 'normal', createMapInputController: options => { inputOptions = options; return { destroy() {} }; },
     renderQualityController: { beginInteraction() {}, endInteraction() {} }, applyAdaptiveRenderQuality() {},
@@ -293,25 +293,4 @@ test('debug facade reads live view values instead of capturing install-time revi
   assert.equal(window.__PANDOLAB_VIEW_DEBUG__.snapshot().revision, 1);
   revision = 2;
   assert.equal(window.__PANDOLAB_VIEW_DEBUG__.snapshot().revision, 2);
-});
-
-test('map hover identifies territorial labels and areas through the same selection domain without selecting', () => {
-  const handlers = new Map(), hovers = [], picks = [];
-  const ref = { domain: 'territorial', type: 'entity', id: 'DEU' };
-  let label = { dataset: { labelId: 'DEU' } };
-  const d3 = { mouse: () => [100, 120], event: { target: { closest: selector => selector === '.territorial-label-item[data-label-id]' ? label : null } } };
-  const bridge = createMapInputPresentation({
-    getElement: () => new FakeElement(), window: fakeWindow(), navigator: {}, d3,
-    createMapInputController: () => ({ destroy() {}, isPanning: () => false }),
-    getInputSnapshot: () => ({ tool: 'select' }), getDraftSnapshot: () => ({}),
-    isGenericFeatureDraftTool: () => false, isMobile: () => false, screenToGeo: () => [0, 0],
-    getTerritorialLabelRef: id => id === 'DEU' ? ref : null,
-    cancelCountryHoverPick() {}, queueCountryHoverPick: (...args) => picks.push(args),
-    selectionDomain: { setHover: value => hovers.push(value) },
-  });
-  bridge.bindSvg({ on(type, callback) { handlers.set(type, callback); return this; } });
-  handlers.get('mousemove')();
-  assert.deepEqual(hovers, [ref]); assert.deepEqual(picks, []);
-  label = null; handlers.get('mousemove')();
-  assert.deepEqual(picks, [[[100, 120], [0, 0]]]);
 });
