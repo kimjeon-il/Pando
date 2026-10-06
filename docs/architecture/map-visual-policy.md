@@ -272,3 +272,68 @@ results, browser evidence and final commit are recorded in the M7 delivery manif
 This continuity proof concerns the edited boundary line through the observed
 UI/Worker/topology/upload/display paths. It does not establish uninterrupted
 coverage of every terrain tile or every map object on every GPU driver.
+
+### M7 integration findings and delivery evidence
+
+Verified production source: `127e9db5e926921c0500437ce1f32bde39fc94cb`.
+The subsequent `726a17dbe160` source revision changes only a browser regression
+and its CI wiring. Its release metadata is generated from that revision;
+the exact delivery/main revision and Git-blob SHA-256 comparisons are retained
+in `test-results/m7-delivery.json`. Runtime sources remain identical to the
+production source used by the 1650-unit and focused continuity checks.
+
+The coastline style regression previously required deletion eight seconds after
+mouse-up, even while the successor's topology calculation was pending. Returning
+the screen pointer does not prove that both asynchronous results have been
+presented. The current test explicitly cancels with Escape and verifies removal,
+unchanged actual geometry and no Undo entry. Canvas passes in
+`m7-coast-cancellation.log`; WebGL passes in the isolated
+`m7-coast-webgl-final.log` (1 pass, 0 fail/skip). The first WebGL attempt timed out
+preparing handles while other browser tests were running; its failure is retained
+and is not represented as a successful run. CI now watches this test and runs both
+coastline cases, retaining the existing assertions for color and visual ownership.
+Updated test ESLint and workflow parse/path/job checks pass.
+
+Broad browser inventory: 300 tests. Completed before narrowing verification:
+
+| Evidence log | Pass | Fail | Skip |
+| --- | ---: | ---: | ---: |
+| `m7-full-browser.log` | 6 | 8 | 0 |
+| `m7-full-browser-remaining.log` | 16 | 22 | 0 |
+| `m7-full-browser-resumed.log` | 6 | 4 | 0 |
+| Total completed | 28 | 34 | 0 |
+
+The remaining **238 tests are not executed**, including interrupted cases and
+the deferred performance group. They are not reported as skips or passes.
+The broad run stopped to investigate relevant failures rather than continue
+hundreds of obsolete UI/fixture assertions. Focused reruns are reported separately;
+their passes do not rewrite the original broad-run failures.
+
+The unchanged main base independently reproduces the cut-line draft count,
+hidden palette trigger, both country-add initial cache-state failures, the Canvas
+country-color pixel mismatch and the GPU context-loss fill assertion:
+`m7-main-browser-baseline.log`, `m7-main-browser-baseline-extra.log` and
+`m7-main-browser-visual-baseline.log`. These are six confirmed baseline browser
+failures. Other failures include a retired `zoomInBtn`, absent `countryProperties`
+and obsolete autosave inputs, plus timeouts and still-unclassified regressions.
+The manifest retains test names, errors and evidence paths; not all broad failures
+are presumed pre-existing, and full browser validation is incomplete.
+
+Candidate CI `37393163331` passed command, storage, full units, M1 continuity,
+M3 staging and M4-M6 visual-policy/frame jobs. Its terrain job originally passed
+5 and failed 1: the hosted mobile test timed out with 20/25 target textures and
+decoded bitmaps awaiting uploads. Unchanged-main CI `37394734016` passes that
+same terrain job (6/6), so this is not classified as an established baseline
+failure. The unmodified candidate test passes in isolation with all 25 textures:
+`PANDOLAB_VERIFY_LIVE_DEM=1 pnpm exec playwright test tests/browser/terrain-progressive.spec.mjs`
+(1 pass, 0 fail/skip, `m7-mobile-terrain-final.log`). Remote retry/final CI and
+live deployment results are appended to the delivery manifest, preserving the
+first failure rather than changing assertions or treating an unexecuted check as
+success. UI Architecture `37393175273` passes.
+
+The recorded integration ruling keeps the identical Python and historical-recipe
+baseline failures outside this renderer change. Its cost is an unresolved red
+combined `pnpm test` gate and incomplete broad browser coverage; this release is
+not described as a green full regression suite. Saved schemas, timeline/date
+semantics, geometry archives and activation policy are unchanged. No application
+packaging or Web/App exchange-parity claim is made.
