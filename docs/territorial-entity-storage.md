@@ -207,3 +207,13 @@ M15의 성능 gate는 미통과 상태로 남긴다. 배포 완료와 전체 계
 결과는 **1 통과·0 실패·0 skip**(45.6초)다. enhanced startup에서 catalog 요청 0,
 검색 시 index 1회, 대한민국 반복 선택 시 동일 chunk 1회와 동일 geometry version을
 검증했다. metadata/doc 정리 commit은 이 구현 commit 다음에 위치한다.
+
+배포 요청 후 원격 CI `37441148742`에서 Python root suite 247개 중 1개가 실패했다
+(246 통과·1 실패·0 skip). `test_data_assets_use_the_data_cache_revision`이 공통
+`stored-asset-loader.js`로 옮긴 cache prefix를 옛 Worker 파일에서 찾는 낡은 소스 검사(B)였다.
+로컬에서 해당 1개를 먼저 실행해 exit 1을 재현한 뒤, Worker가 DATA_REVISION을
+단일 cache owner에 전달하고 owner가 같은 prefix + revision 이름을 사용함을 검사하도록
+보정했다. 옛 Worker에 cache owner가 중복되지 않는 assertion도 추가했다.
+동일 명령 `python -m unittest tests.test_v0126_runtime.V0126RuntimeTests.test_data_assets_use_the_data_cache_revision`
+재실행 결과 **1 통과·0 실패·0 skip**, 종료 코드 0. 제품 코드·데이터·build revision은
+변경하지 않았다. 기존 원격 실패를 지우거나 전체 Python 성공으로 표시하지 않는다.

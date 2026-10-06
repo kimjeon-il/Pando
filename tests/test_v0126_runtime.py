@@ -18,6 +18,7 @@ RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_tex
 CANVAS = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
 CORE = (ROOT / "assets" / "js" / "workers" / "gpu-mesh-core.js").read_text(encoding="utf-8")
 LOADER = (ROOT / "assets" / "js" / "workers" / "data-loader-worker.js").read_text(encoding="utf-8")
+STORED_ASSETS = read_module(ROOT, "stored-asset-loader.js")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 COMMITS = read_module(ROOT, "app-country-commits.js")
 PREVIEW = read_module(ROOT, "app-geometry-preview.js")
@@ -85,7 +86,10 @@ class V0126RuntimeTests(unittest.TestCase):
     def test_data_assets_use_the_data_cache_revision(self):
         self.assertIn("function versionedDataUrl(relativePath)", LOADER)
         self.assertIn("url.searchParams.set('v', DATA_REVISION)", LOADER)
-        self.assertIn("const DATA_CACHE_PREFIX = 'pandolab-data-'", LOADER)
+        self.assertIn("createStoredAssetLoader({dataRevision: DATA_REVISION", LOADER)
+        self.assertIn("const DATA_CACHE_PREFIX = 'pandolab-data-'", STORED_ASSETS)
+        self.assertIn("const DATA_CACHE_NAME = DATA_CACHE_PREFIX + dataRevision", STORED_ASSETS)
+        self.assertNotIn("const DATA_CACHE_PREFIX", LOADER)
 
     def test_land_only_relief_and_automatic_water_colours(self):
         manifest = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))
