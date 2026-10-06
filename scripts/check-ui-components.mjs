@@ -63,7 +63,7 @@ for (const match of css.matchAll(/([^{}]*\btextarea\b[^{}]*)\{([^{}]*)\}/g)) {
   failures.push(`unsupported textarea resize override: ${match[1].trim()} { resize: ${resize} }`);
 }
 
-for (const id of ['layerSearchInput', 'historicalLibrarySearchInput']) {
+for (const id of ['layerSearchInput', 'territorialLibrarySearchInput']) {
   const index = html.indexOf(`id="${id}"`);
   const wrapperStart = html.lastIndexOf('class="ui-search-field', index);
   const wrapperEnd = html.indexOf('</div>', index);

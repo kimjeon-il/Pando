@@ -410,12 +410,12 @@ body.map-sheet-dragging {
   scrollbar-gutter: auto;
 }
 
-.ui-native-scroll.historical-library-results {
+.ui-native-scroll.territorial-library-results {
   scrollbar-width: none;
   scrollbar-gutter: auto;
 }
 
-.ui-native-scroll.historical-library-preview {
+.ui-native-scroll.territorial-library-preview {
   scrollbar-width: none;
   scrollbar-gutter: auto;
 }
