@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import read_application_sources, read_module, function_source
 
 import gzip
 import json
@@ -19,6 +19,11 @@ CANVAS = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_t
 CORE = (ROOT / "assets" / "js" / "workers" / "gpu-mesh-core.js").read_text(encoding="utf-8")
 LOADER = (ROOT / "assets" / "js" / "workers" / "data-loader-worker.js").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
+COMMITS = read_module(ROOT, "app-country-commits.js")
+PREVIEW = read_module(ROOT, "app-geometry-preview.js")
+CODEC = read_module(ROOT, "country-mesh-codec.js")
+TERRAIN = read_module(ROOT, "gpu-terrain-preparation.js")
+BASE_PASS = read_module(ROOT, "gpu-base-scene-pass.js")
 
 
 def section(source: str, start: str, end: str) -> str:
@@ -28,14 +33,14 @@ def section(source: str, start: str, end: str) -> str:
 
 class V0126RuntimeTests(unittest.TestCase):
     def test_annex_render_succeeds_before_history_commit(self):
-        annex = section(APP, "function completeLinearAnnexation", "function completeNewCountryCreation")
-        self.assertIn("await beginWorkerGeometryPreview({", annex)
-        self.assertIn("invalidateTerritorialPatch('territory-annex-committed');", annex)
-        preview = section(APP, "async function beginWorkerGeometryPreview", "function beginLocalGeometryPreview")
+        annex = function_source(COMMITS, "prepareAnnexSelectionPreview")
+        self.assertIn("dependencies.geometryOperations.beginWorkerGeometryPreview", annex)
+        self.assertIn("invalidateTerritorialPatch?.('territory-annex-committed');", annex)
+        preview = PREVIEW[PREVIEW.index("async function beginWorkerGeometryPreview"):]
         self.assertLess(preview.index("await applyResult(result);"), preview.index("mapEditClient.commit(requestId);"))
         self.assertLess(preview.index("mapEditClient.commit(requestId);"), preview.index("commitHistorySnapshot(snapshot);"))
         labels = RENDERING
-        self.assertLess(labels.index("selection.exit().remove();"), labels.index("const all = layer.selectAll('text.country-label')"))
+        self.assertLess(labels.index("selection.exit().remove();"), labels.index("enter.append('text').attr('class', 'country-label')"))
         self.assertIn("Array.isArray(anchor)", labels)
 
     def test_notifications_do_not_append_raw_internal_messages(self):
@@ -47,7 +52,8 @@ class V0126RuntimeTests(unittest.TestCase):
         self.assertIn("MESH_ALGORITHM_REVISION = 3", CORE)
         self.assertIn("expected.length === headerWords", LOADER)
         self.assertIn("expected.every((value, index) => header[index] === value)", LOADER)
-        self.assertIn("header[7] !== 3", RENDERER)
+        self.assertIn("header[7] !== 3", CODEC)
+        self.assertIn("decodeCountryMesh", RENDERER)
         self.assertIn("isArtificialPolarClosureEdge(a, b)", CORE)
         self.assertIn("countryOutlineFeature(feature)", RENDERER)
         self.assertIn("countryOutlineFeature(feature)", CANVAS)
@@ -87,7 +93,7 @@ class V0126RuntimeTests(unittest.TestCase):
         self.assertIn("drainage-free", manifest["channels"]["rgb"])
         self.assertIn("HYP_HR_SR.tif", {row["file"] for row in manifest["sources"]})
         self.assertIn("stencil: true", RENDERER)
-        self.assertIn("gl.stencilFunc(gl.EQUAL, 1", RENDERER)
+        self.assertIn("gl.stencilFunc(gl.EQUAL, 1", BASE_PASS)
         self.assertIn("style === 'political'", CANVAS)
         self.assertEqual(manifest["displayColors"]["oceanRepresentative"].lower(), "#6aa8d2")
         for element_id in ("riverColorSelect", "lakeColorSelect"):
@@ -97,14 +103,18 @@ class V0126RuntimeTests(unittest.TestCase):
         self.assertIn("automaticWaterColor", CANVAS)
 
     def test_terrain_quality_uses_progressive_levels_and_transient_retry(self):
-        self.assertIn("state.dataReadiness === 'enhanced' ? targetIndex : 0", RENDERER)
-        self.assertIn("terrainFetchQueue", RENDERER)
-        self.assertIn("terrainTileFailures", RENDERER)
-        self.assertIn("terrainRenderedLevel", RENDERER)
-        self.assertIn("message.dataReadiness === 'enhanced' ? targetIndex : 0", CANVAS)
+        level = function_source(TERRAIN, "terrainLevelForView")
+        self.assertIn("physicalScale / frameDpr", level)
+        self.assertIn("sourceDpr", level)
+        self.assertNotIn("meshQuality", level)
+        self.assertNotIn("dataReadiness", level)
+        self.assertIn("terrainFetchQueue", TERRAIN)
+        self.assertIn("terrainTileFailures", TERRAIN)
+        self.assertIn("terrainRenderedLevel", TERRAIN)
+        self.assertIn("terrainLevelForView(projection, message.terrainDpr || dpr)", CANVAS)
         self.assertIn("terrainFetchQueue", CANVAS)
         self.assertIn("terrainFailures", CANVAS)
-        self.assertIn("attempts <= 3", RENDERER)
+        self.assertIn("attempts <= 3", TERRAIN)
         self.assertIn("attempts <= 3", CANVAS)
 
 

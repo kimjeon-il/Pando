@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import function_source, read_application_sources, read_module
 
 import unittest
 from pathlib import Path
@@ -19,12 +19,15 @@ class V0241GenericFeatureFlatListTests(unittest.TestCase):
         self.assertNotIn("pandolab_folder_id", INDEX)
 
     def test_geojson_import_adds_canonical_genericFeatures_to_the_flat_list(self):
-        importer = APP[APP.index("async function importGeoJson"):APP.index("function gisExportCounts")]
-        self.assertIn("genericFeatureService.addMany(supported)", importer)
-        self.assertIn("documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), ...normalized]))", GENERIC_FEATURE_SERVICE)
-        self.assertIn("role: p.role || 'generic'", importer)
-        self.assertIn("key === 'genericFeatures'", importer)
-        self.assertNotIn("createImportedGenericFeatureFolder", importer)
+        transaction = read_module(ROOT,'gis-import-transaction.js')
+        importer = function_source(transaction,'importGeoJson')
+        self.assertIn('genericFeatureService.addMany(supported)', importer)
+        self.assertIn('documentStore.replaceFeatures(normalizeGenericFeatureCollection([...genericFeatures(), ...normalized]))', GENERIC_FEATURE_SERVICE)
+        self.assertIn('supported.push(normalizeGenericFeatureSemantics(f))', importer)
+        self.assertIn('const sourceId = String(f.id', importer)
+        self.assertIn('sourceId,', importer)
+        self.assertNotIn('createImportedGenericFeatureFolder', importer)
+        self.assertIn("mutateDocument({ type: 'generic-feature-import'", function_source(GENERIC_FEATURE_SERVICE,'addMany'))
 
     def test_editor_and_layer_tree_have_no_folder_controls(self):
         self.assertNotIn('id="genericFeatureFolderInput"', INDEX)

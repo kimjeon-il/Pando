@@ -1,243 +1,185 @@
 import { expect, test } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
-test('historical library search previews and instantiates a sourced historical country', async ({ page }) => {
-  test.setTimeout(120_000);
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  page.on('console', message => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
-  await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
+// Observe the production owners. These hooks never substitute a serializer,
+// activation policy, selection implementation, or operation error boundary.
+async function observeOwners(page) {
+  const patches = [
+    ['app-project-session.js', 'get state() { return state; }',
+      'get state() { window.__libraryState = state; window.__librarySaveState = saveState; return state; }'],
+    ['selection-domain.js', '  return Object.freeze({\n    replace,',
+      '  return window.__librarySelection = Object.freeze({\n    replace,'],
+    ['historical-library-controller.js', '  reportError,',
+      `  reportError: originalReportError,`],
+  ];
+  for (const [file, before, after] of patches) {
+    await page.route(`**/assets/js/modules/${file}*`, async route => {
+      const response = await route.fetch();
+      const original = (await response.text()).replace(/\r\n/g, '\n');
+      expect(original).toContain(before);
+      let source = original.replace(before, after);
+      if (file === 'historical-library-controller.js') {
+        const marker = '  let selectedId =';
+        expect(source).toContain(marker);
+        source = source.replace(marker, `  const reportError = (error, message, operationCode, duration) => {
+    window.__libraryErrors.push({ code: error.code, message: error.message, stack: error.stack, operationCode });
+    return originalReportError(error, message, operationCode, duration);
+  };
+  let selectedId =`);
+      }
+      await route.fulfill({ response, body: source });
+    });
+  }
+  await page.addInitScript(() => { window.__libraryErrors = []; });
+}
 
-  await page.locator('#createMenuBtn').click();
-  await page.locator('#addFromLibraryBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeVisible();
-  await expect.poll(() => page.locator('#historicalLibraryResults [data-library-entity-id]').count()).toBeGreaterThan(200);
-  const currentCountry = page.locator('[data-library-entity-id="current-country:DEU"]');
-  await expect(currentCountry).toBeVisible();
-  await expect(currentCountry.locator('.historical-library-result-flag img')).toHaveCount(1);
-
-  await page.locator('#historicalLibrarySearchInput').fill('USSR');
-  await expect(page.locator('.historical-library-filters summary')).toHaveCount(0);
-  await selectUiOption(page, '#historicalLibraryStatusInput', 'past');
-  await page.locator('#historicalLibraryYearInput').fill('1991');
-  const result = page.locator('[data-library-entity-id="historical-country:soviet-union"]');
-  await expect(result).toBeVisible();
-  await result.click();
-  await expect(result.locator('.historical-library-result-flag img')).toHaveCount(1);
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('소련');
-  await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
-  await expect(result).not.toHaveAttribute('aria-controls');
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('근사 경계');
-  await expect(page.locator('#historicalLibraryPreview')).not.toContainText('출처·이용 조건');
-  await expect(page.locator('#historicalLibraryPreview a[aria-label^="출처"]')).toHaveCount(0);
-  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
-  const hasChildren = await page.evaluate(async () => (await window.PANDOLAB_HISTORICAL_LIBRARY.list()).some(entity => entity.parentLibraryId === 'historical-country:soviet-union'));
-  if (hasChildren) {
-    await expect(page.locator('#historicalLibraryAddOptions summary')).toHaveCount(0);
-    await expect(page.locator('#historicalLibraryChildDepthInput')).toContainText('모든 하위 영역');
-  } else await expect(page.locator('#historicalLibraryAddOptions')).toBeHidden();
-
-  const originalGeometry = await page.evaluate(async () => JSON.stringify(
-    (await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union')).geometryVersions[0].geometry,
-  ));
-  await page.locator('#historicalLibraryAddBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 90_000 });
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
-    .filter(unit => unit.id === 'historical-country:soviet-union').length)).toBe(1);
-  const instanceId = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
-    .find(unit => unit.id === 'historical-country:soviet-union')?.id);
-  expect(instanceId).toBe('historical-country:soviet-union');
-  const sourceAfterEdit = await page.evaluate(async () => JSON.stringify(
-    (await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:soviet-union')).geometryVersions[0].geometry,
-  ));
-  expect(sourceAfterEdit).toBe(originalGeometry);
-
-  await page.locator('#undoBtn').click();
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
-    .filter(unit => unit.id === 'historical-country:soviet-union').length)).toBe(0);
-  expect(errors).toEqual([]);
-});
-
-test('North Schleswig 1900 is searchable and splits Denmark without changing the source', async ({ page }) => {
-  test.setTimeout(180_000);
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  page.on('console', message => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
-  await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 60_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
-
-  const before = await page.evaluate(() => ({
-    count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
-    denmark: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DNK').geometry),
-  }));
-  await page.locator('#createMenuBtn').click();
-  await page.locator('#addFromLibraryBtn').click();
-  await page.locator('#historicalLibrarySearchInput').fill('북슐레스비히');
-  await page.locator('#historicalLibraryYearInput').fill('1900');
-  const result = page.locator('[data-library-entity-id="historical-country:north-schleswig"]');
-  await expect(result).toBeVisible();
-  await expect(result.locator('.historical-library-result-flag img')).toHaveCount(1);
-  await result.click();
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('북슐레스비히');
-  const source = await page.evaluate(async () => JSON.stringify(
-    (await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:north-schleswig')).geometryVersions[0].geometry,
-  ));
-  await page.locator('#historicalLibraryAddBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toContainText('덴마크:', { timeout: 60_000 });
-  await page.locator('#historicalLibraryAddBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 60_000 });
-  const added = await page.evaluate(async () => {
-    const north = window.PANDOLAB_TERRITORIAL.get('historical-country:north-schleswig');
-    const denmark = window.PANDOLAB_TERRITORIAL.get('DNK');
-    return {
-      count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
-      id: north?.id,
-      name: north?.properties?.name,
-      components: north?.geometry?.coordinates?.length,
-      denmarkExists: Boolean(denmark),
-      overlap: window.polygonClipping.intersection(north.geometry.coordinates, denmark.geometry.coordinates).length,
-      source: JSON.stringify((await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:north-schleswig')).geometryVersions[0].geometry),
-    };
-  });
-  expect(added).toEqual({
-    count: before.count + 1,
-    id: 'historical-country:north-schleswig',
-    name: '북슐레스비히',
-    components: 2,
-    denmarkExists: true,
-    overlap: 0,
-    source,
-  });
-
-  const northStyle = await page.evaluate(() => {
-    const north = window.PANDOLAB_TERRITORIAL.get('historical-country:north-schleswig');
-    return { style: north.properties.style, sourceLibraryId: north.properties.sourceLibraryId };
-  });
-  expect(northStyle).toEqual({ style: {}, sourceLibraryId: 'historical-country:north-schleswig' });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('historical-country:north-schleswig'));
-  await expect(page.locator('#entityColorInput')).toHaveValue('#003153');
-
-  await page.locator('#undoBtn').click();
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('historical-country:north-schleswig'))).toBeNull();
-  const afterUndo = await page.evaluate(() => ({
-    count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
-    denmark: JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DNK').geometry),
-  }));
-  expect(afterUndo).toEqual(before);
-  expect(errors).toEqual([]);
-});
-
-async function autosaveContainsEastGermany(page) {
-  return page.evaluate(async () => {
+async function stateProof(page, sourceId) {
+  return page.evaluate(async sourceId => {
+    const state = window.__libraryState;
+    const hash = async value => Array.from(new Uint8Array(await crypto.subtle.digest(
+      'SHA-256', new TextEncoder().encode(JSON.stringify(value)),
+    )), byte => byte.toString(16).padStart(2, '0')).join('');
     const database = await new Promise((resolve, reject) => {
       const request = indexedDB.open('pandolab-editor', 2);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
-    try {
-      const project = await new Promise((resolve, reject) => {
-        const transaction = database.transaction('projects', 'readonly');
-        const request = transaction.objectStore('projects').get('active-project');
-        request.onsuccess = () => resolve(request.result || null);
-        request.onerror = () => reject(request.error);
-      });
-      const changedCountries = project?.format === 'pandolab-autosave-delta'
-        ? (project.entityDelta?.changed || [])
-        : (project?.countriesData?.features || []);
-      return changedCountries.some(country => (
-        country?.id === 'historical-country:deutsche-demokratische-republik'
-      )) && project?.countryOverrides?.DEU?.name === '독일 연방공화국';
-    } finally {
-      database.close();
-    }
-  });
+    const saved = await new Promise((resolve, reject) => {
+      const transaction = database.transaction('projects', 'readonly');
+      const request = transaction.objectStore('projects').get('active-project');
+      transaction.oncomplete = () => { database.close(); resolve(request.result || null); };
+      transaction.onerror = () => { database.close(); reject(transaction.error); };
+    });
+    const source = structuredClone(await window.PANDOLAB_HISTORICAL_LIBRARY.get(sourceId));
+    const rendering = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
+    return {
+      entities: await hash(state.territorialEntities),
+      records: await hash(state.timelineRecords),
+      archive: await hash(state.geometries.snapshot()),
+      history: await hash(state.history), future: await hash(state.future),
+      historyMeta: await hash(state.historyMeta), futureMeta: await hash(state.futureMeta),
+      historyCount: state.history.length, futureCount: state.future.length,
+      source: await hash(source), sourceInfo: await hash(state.sourceInfo),
+      savedProject: await hash(saved), saveState: window.__librarySaveState.checkpoint(),
+      stateRevision: state.stateRevision, transitionRevision: state.transitionRevision,
+      contentToken: state.contentToken, lastSavedAt: state.lastSavedAt,
+      selection: window.__librarySelection.snapshot().selection,
+      session: { projection: state.projection, view: state.view, tool: state.tool,
+        countryVisualPhase: state.countryVisualPhase, pendingCountryRenderIds: [...state.pendingCountryRenderIds] },
+      publication: { projectGeneration: rendering.projectGeneration,
+        territorialBoundaryRevision: rendering.territorialBoundaryRevision,
+        activeMeshQuality: rendering.gpu.activeMeshQuality },
+      germanyName: window.PANDOLAB_TERRITORIAL.get('DEU').properties.name,
+    };
+  }, sourceId);
 }
 
-async function runDebugAudit(page) {
-  const panel = page.locator('#debugMapPanel');
-  await panel.getByRole('button', { name: '전체 지도 검사' }).click();
-  await expect.poll(() => panel.locator('pre').innerText(), { timeout: 120_000 }).toContain('audit: ready / 0 issues');
-}
-
-test('East Germany pilot subtracts canonical Germany as one undoable puzzle-fit transaction', async ({ page }) => {
-  test.setTimeout(300_000);
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
+async function openLibrary(page) {
+  page.setDefaultTimeout(10_000);
+  await observeOwners(page);
+  const pageErrors = [], unexpectedConsoleErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
   page.on('console', message => {
-    if (message.type() === 'error') errors.push(`error: ${message.text()}`);
-    if (message.type() === 'warning' && !message.text().includes('GL Driver Message')) {
-      errors.push(`warning: ${message.text()}`);
-    }
+    if (message.type() === 'error' && !message.text().startsWith('[PL-LIB-002]')) unexpectedConsoleErrors.push(message.text());
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?debug');
-  await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 60_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
-
-  const before = await page.evaluate(() => {
-    const countries = window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' });
-    const germany = countries.find(country => country.id === 'DEU');
-    return { count: countries.length, name: germany.properties.name, geometry: JSON.stringify(germany.geometry) };
-  });
-
+  await page.goto('/?debug=1&demTerrain=raster');
+  await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  // Preserve a real nonempty Undo and Redo chain through a rejected operation.
+  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setName('DEU', '보존 이름 A'))).toMatchObject({ changed: true });
+  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setName('DEU', '보존 이름 B'))).toMatchObject({ changed: true });
+  await page.locator('#undoBtn').click();
+  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'))).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__librarySaveState.snapshot().autosave), { timeout: 30_000 }).toBe('saved');
   await page.locator('#createMenuBtn').click();
   await page.locator('#addFromLibraryBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeVisible();
-  await page.locator('#historicalLibrarySearchInput').fill('동독');
-  const result = page.locator('[data-library-entity-id="historical-country:deutsche-demokratische-republik"]');
-  await expect(result).toBeVisible();
+  return { pageErrors, unexpectedConsoleErrors };
+}
+
+async function refuseFiniteActivation(page, testInfo, id, errors) {
+  const source = await page.evaluate(async id => {
+    const entity = await window.PANDOLAB_HISTORICAL_LIBRARY.get(id);
+    return { libraryId: entity.libraryId, startDate: entity.startDate, endDate: entity.endDate,
+      geometryVersionIds: entity.geometryVersions.map(version => version.id),
+      metadata: structuredClone(entity.metadata), sourceInfo: structuredClone(entity.sourceInfo) };
+  }, id);
+  expect(source.startDate || source.endDate).toBeTruthy();
+  expect(source.geometryVersionIds.length).toBeGreaterThan(0);
+  const before = await stateProof(page, id);
+  expect(before.historyCount).toBeGreaterThan(0);
+  expect(before.futureCount).toBeGreaterThan(0);
+  expect(before.selection.primaryKey).toBeTruthy();
+  await page.locator('#historicalLibraryAddBtn').click();
+  await expect.poll(() => page.evaluate(() => window.__libraryErrors.length)
+    .then(async count => count || (await page.locator('[data-library-impact]').count())), { timeout: 60_000 }).toBeGreaterThan(0);
+  if (await page.locator('[data-library-impact]').count()) await page.locator('#historicalLibraryAddBtn').click();
+  await expect.poll(() => page.evaluate(() => window.__libraryErrors.map(error => error.code)), { timeout: 60_000 }).toEqual(['TIMELINE_ACTIVATION']);
+  const diagnostics = await page.evaluate(() => window.__libraryErrors);
+  expect(diagnostics[0]).toMatchObject({ operationCode: 'PL-LIB-002', message: '날짜별 편집은 T4 구현 후 지원합니다.' });
+  expect(diagnostics[0].stack).toContain('territorial-entity-store');
+  await expect(page.locator('#historicalLibraryModal')).toBeVisible();
+  await expect(page.locator('#historicalLibraryAddBtn')).toBeEnabled();
+  const after = await stateProof(page, id);
+  const proofPath = testInfo.outputPath('finite-activation-atomicity.json');
+  await writeFile(proofPath, JSON.stringify({ id, startDate: source.startDate, endDate: source.endDate, before, after, diagnostics }));
+  await testInfo.attach('finite-activation-atomicity', { path: proofPath, contentType: 'application/json' });
+  expect(after).toEqual(before);
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.list()
+    .some(entity => entity.properties.sourceLibraryId === id), id)).toBe(false);
+  await page.locator('#historicalLibraryCloseBtn').click();
+  // These commands restore the complete baseline archive. Their actual click
+  // work exceeded the small selector timeout in the isolated USSR case.
+  await page.locator('#redoBtn').click({ timeout: 30_000, noWaitAfter: true });
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.name), { timeout: 30_000 }).toBe('보존 이름 B');
+  await page.locator('#undoBtn').click({ timeout: 30_000, noWaitAfter: true });
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.name), { timeout: 30_000 }).toBe('보존 이름 A');
+  expect(errors.pageErrors).toEqual([]);
+  expect(errors.unexpectedConsoleErrors).toEqual([]);
+}
+
+test('historical library search previews a sourced country and rejects finite activation atomically', async ({ page }, testInfo) => {
+  test.setTimeout(240_000);
+  const errors = await openLibrary(page);
+  await expect.poll(() => page.locator('#historicalLibraryResults [data-library-entity-id]').count()).toBeGreaterThan(200);
+  await expect(page.locator('[data-library-entity-id="current-country:DEU"] .historical-library-result-flag img')).toHaveCount(1);
+  await page.locator('#historicalLibrarySearchInput').fill('USSR');
+  await expect(page.locator('.historical-library-filters summary')).toHaveCount(0);
+  await selectUiOption(page, '#historicalLibraryStatusInput', 'past');
+  await page.locator('#historicalLibraryYearInput').fill('1991');
+  const result = page.locator('[data-library-entity-id="historical-country:soviet-union"]');
   await result.click();
+  await expect(result.locator('.historical-library-result-flag img')).toHaveCount(1);
+  await expect(page.locator('#historicalLibraryPreview')).toContainText('소련');
+  await expect(page.locator('#historicalLibraryPreview')).toContainText('근사 경계');
+  await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
+  await expect(result).not.toHaveAttribute('aria-controls');
+  await expect(page.locator('#historicalLibraryPreview a[aria-label^="출처"]')).toHaveCount(0);
+  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
+  await refuseFiniteActivation(page, testInfo, 'historical-country:soviet-union', errors);
+});
+
+test('North Schleswig 1900 remains searchable and finite activation preserves Denmark and source', async ({ page }, testInfo) => {
+  test.setTimeout(240_000);
+  const errors = await openLibrary(page);
+  await page.locator('#historicalLibrarySearchInput').fill('북슐레스비히');
+  await page.locator('#historicalLibraryYearInput').fill('1900');
+  const result = page.locator('[data-library-entity-id="historical-country:north-schleswig"]');
+  await expect(result.locator('.historical-library-result-flag img')).toHaveCount(1);
+  await result.click();
+  await expect(page.locator('#historicalLibraryPreview')).toContainText('북슐레스비히');
+  await refuseFiniteActivation(page, testInfo, 'historical-country:north-schleswig', errors);
+});
+
+test('East Germany finite activation preserves identity, archive, history, save and original source', async ({ page }, testInfo) => {
+  test.setTimeout(240_000);
+  const errors = await openLibrary(page);
+  await page.locator('#historicalLibrarySearchInput').fill('동독');
+  await page.locator('[data-library-entity-id="historical-country:deutsche-demokratische-republik"]').click();
   await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
   await expect(page.locator('#historicalLibraryPreview details')).toHaveCount(0);
   await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
-  await page.locator('#historicalLibraryAddBtn').click();
-  await page.locator('#historicalLibraryAddBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 60_000 });
-
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length)).toBe(before.count + 1);
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties?.name)).toBe('독일 연방공화국');
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
-    .filter(country => country.id === 'historical-country:deutsche-demokratische-republik').length)).toBe(1);
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.pendingCountryCount || 0), { timeout: 60_000 }).toBe(0);
-
-  await page.locator('#undoBtn').click();
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
-    .filter(country => country.id === 'historical-country:deutsche-demokratische-republik').length)).toBe(0);
-  const afterUndo = await page.evaluate(() => {
-    const countries = window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' });
-    const germany = countries.find(country => country.id === 'DEU');
-    return { count: countries.length, name: germany.properties.name, geometry: JSON.stringify(germany.geometry) };
-  });
-  expect(afterUndo).toEqual(before);
-
-  const apiResult = await page.evaluate(() => window.PANDOLAB_HISTORICAL_LIBRARY.instantiate(
-    'historical-country:deutsche-demokratische-republik', '1989-04-25', 'none',
-  ));
-  expect(apiResult.added).toBe(1);
-  expect(apiResult.subtracted).toBe(1);
-  expect(apiResult.deleted).toBe(0);
-  expect(apiResult.affectedIds).toContain('DEU');
-  const duplicate = await page.evaluate(() => window.PANDOLAB_HISTORICAL_LIBRARY.instantiate(
-    'historical-country:deutsche-demokratische-republik', '1989-04-25', 'none',
-  ));
-  expect(duplicate).toEqual({ added: 0, subtracted: 0, deleted: 0, affectedIds: [] });
-
-  await expect.poll(() => autosaveContainsEastGermany(page), { timeout: 20_000 }).toBe(true);
-  await page.reload();
-  await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 60_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU')?.properties?.name)).toBe('독일 연방공화국');
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' })
-    .filter(country => country.id === 'historical-country:deutsche-demokratische-republik').length)).toBe(1);
-  await runDebugAudit(page);
-  expect(errors).toEqual([]);
+  await refuseFiniteActivation(page, testInfo, 'historical-country:deutsche-demokratische-republik', errors);
 });

@@ -72,6 +72,6 @@ test('nested general objects use the common desktop/mobile creation and editor s
   await page.locator('#addEntityBtn').evaluate(button => button.click());
   await expect(page.locator('#editorTaskSlot #territorialCreateSetup')).toBeVisible();
   await expect(page.locator('#territorialCreateParentInput')).toHaveValue('');
-  await page.locator('#territorialCreateParentInput').selectOption('DEU');
+  await selectUiOption(page, '#territorialCreateParentInput', 'DEU');
   expect(errors).toEqual([]);
 });

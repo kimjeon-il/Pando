@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import assert_shell_versions, read_application_sources, read_ui_sources
 
 import pathlib
 import re
@@ -9,7 +9,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
-CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
+CSS = read_ui_sources(ROOT)
 
 
 class StatusLayoutV0191Tests(unittest.TestCase):
@@ -21,11 +21,13 @@ class StatusLayoutV0191Tests(unittest.TestCase):
         self.assertLess(markup.index('id="statusView"'), markup.index('id="statusSelection"'))
 
     def test_status_bar_has_one_unqualified_base_rule(self):
-        self.assertEqual(len(re.findall(r"(?m)^\.map-bottom-status\s*\{", CSS)), 1)
-        self.assertIn(".status-inner {", CSS)
-        self.assertIn("display: flex;", CSS)
-        self.assertIn("left: var(--map-safe-left, 0px);", CSS)
-        self.assertIn("right: var(--map-safe-right, 0px);", CSS)
+        source = (ROOT / "assets/css/components/statusbar.css").read_text(encoding="utf-8")
+        self.assertEqual(len(re.findall(r"(?m)^\.status-inner\s*\{", source)), 1)
+        rule = re.search(r"(?m)^\.status-inner\s*\{([^}]+)\}", source).group(1)
+        self.assertIn("display: flex", rule)
+        self.assertIn("left: var(--map-safe-left, 0)", rule)
+        self.assertIn("right: var(--map-safe-right, 0)", rule)
+        self.assertNotIn("grid-column", rule)
 
     def test_legacy_distributed_alignment_is_removed(self):
         self.assertNotIn("grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);", CSS)
@@ -41,9 +43,7 @@ class StatusLayoutV0191Tests(unittest.TestCase):
         self.assertIn('preferencesStatusBarVisibleInput', INDEX)
 
     def test_version_is_updated(self):
-        self.assertIn('data-app-version="0.30.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.30.0'", APP)
-        self.assertIn("app.css?v=0.30.0-r44", INDEX)
+        assert_shell_versions(self, ROOT, INDEX)
 
 
 if __name__ == "__main__":

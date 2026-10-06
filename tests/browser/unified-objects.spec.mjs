@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { selectUiOption } from './helpers/ui-select.mjs';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 }, trace: 'off' });
 
@@ -88,7 +89,7 @@ test('one object flow creates a root, child and independent region; annex across
   await expect(page.locator('#addEntityBtn')).toHaveText('객체');
   await expect(page.locator('#addCountryBtn, #addSubunitBtn, #addRegionBtn')).toHaveCount(0);
   await page.locator('#addEntityBtn').click();
-  await page.locator('#territorialCreateParentInput').selectOption('DEU');
+  await selectUiOption(page, '#territorialCreateParentInput', 'DEU');
   await page.locator('#territorialCreateRegionalInput').check();
   await expect(page.locator('#territorialCreateParentInput')).toHaveValue('');
   await expect(page.locator('#territorialCreateParentInput')).toBeDisabled();

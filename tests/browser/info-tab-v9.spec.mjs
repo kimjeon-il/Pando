@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
 import { currentCountryFlagUrl } from '../../assets/js/modules/country-flags.js';
+import { selectUiOption } from './helpers/ui-select.mjs';
 
 test('info v9 derives live hierarchy, focuses only via GPS and preserves metadata validation and history', async ({ page }, testInfo) => {
   test.setTimeout(210_000);
@@ -92,8 +93,8 @@ test('info v9 derives live hierarchy, focuses only via GPS and preserves metadat
     await expect(page.locator('#entityNameInput')).toHaveValue('B 영토');
   }
   await page.locator('#relationTabBtn').click();
-  await expect(page.locator('#entityParentInput')).toBeVisible();
-  await page.locator('#entityParentInput').selectOption('');
+  await expect(page.locator('#entityParentInputControl')).toBeVisible();
+  await selectUiOption(page, '#entityParentInput', '');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('B').properties.parentId)).toBe('');
   await page.locator('#editorTabBtn').click();
   await expect(page.locator('#entityInfoParent')).toBeHidden();

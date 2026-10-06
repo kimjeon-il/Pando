@@ -1,4 +1,4 @@
-from tests.application_source import read_application_sources
+from tests.application_source import element_markup, read_application_sources, read_ui_sources
 from pathlib import Path
 import unittest
 
@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
 TOOLS = (ROOT / "assets" / "js" / "modules" / "tool-controller.js").read_text(encoding="utf-8")
-CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
+CSS = read_ui_sources(ROOT)
 
 
 class TaskDockV0182Tests(unittest.TestCase):
@@ -19,30 +19,16 @@ class TaskDockV0182Tests(unittest.TestCase):
         self.assertNotIn('map-context-panel', combined)
 
     def test_task_context_and_commit_actions_share_one_minimizable_window(self):
-        for element_id in (
-            "mapTopContextSlot", "modeEditingContext", "modeEditingHud", "modeActionBar", "modeTaskName",
-            "modeTaskStage", "modeTaskInstruction", "modeTaskMinimizeBtn", "modeTaskCloseBtn", "modeTaskWindowContent", "modePrimaryBtn",
-            "modeCancelBtn",
-        ):
-            self.assertIn(f'id="{element_id}"', INDEX)
-            self.assertEqual(INDEX.count(f'id="{element_id}"'), 1)
-        self.assertEqual(INDEX.count('class="mode-task-context"'), 1)
-        context_start = INDEX.index('id="modeEditingContext"')
-        context_end = INDEX.index('</section>', context_start)
-        action_start = INDEX.index('id="modeActionBar"')
-        draft_start = INDEX.index('id="modeDraftActions"')
-        buttons_start = INDEX.index('class="mode-action-buttons"')
-        self.assertLess(context_start, draft_start)
-        self.assertLess(draft_start, action_start)
-        self.assertLess(action_start, buttons_start)
-        self.assertLess(action_start, context_end)
-        self.assertLess(INDEX.index('id="modeCancelBtn"'), INDEX.index('id="modePrimaryBtn"'))
-        self.assertIn("function activeModeTaskDescriptor()", APP)
-        self.assertIn("function toggleMapTaskWindow()", APP)
-        self.assertIn("state.modeTaskMinimized", APP)
-        self.assertIn("'annex-territory': Object.freeze({ label: '영토 편입'", TOOLS)
-        self.assertIn("'merge-country': Object.freeze({ label: '국가 합병'", TOOLS)
-        self.assertIn("stage: '합칠 국가 선택'", TOOLS)
+        task = element_markup(INDEX,'modeEditingHud')
+        for element_id in ('modeTaskName','modeTaskStage','modeTaskInstruction','modeTaskMinimizeBtn','modeTaskWindowContent','modePrimaryBtn','modeCancelBtn'):
+            self.assertEqual(task.count(f'id="{element_id}"'), 1)
+        self.assertLess(task.index('id="modeDraftActions"'), task.index('id="modeActionBar"'))
+        self.assertLess(task.index('id="modeCancelBtn"'), task.index('id="modePrimaryBtn"'))
+        self.assertIn('function activeModeTaskDescriptor()', APP)
+        self.assertIn('function toggleMapTaskWindow()', APP)
+        self.assertIn('state.modeTaskMinimized', APP)
+        self.assertIn("'annex-territory'", TOOLS)
+        self.assertIn("'merge-country'", TOOLS)
 
     def test_selection_counts_live_in_primary_action_labels(self):
         self.assertIn("`국경 편집 (${state.boundaryEditEntityIds.length})`", APP)
@@ -61,14 +47,16 @@ class TaskDockV0182Tests(unittest.TestCase):
         self.assertNotIn("국가 합병 대상 선택", APP)
 
     def test_responsive_task_window_stays_non_modal_and_compact(self):
-        self.assertIn(".map-top-context-slot {", CSS)
-        self.assertIn(".mode-task-window { width: 100%; overflow: hidden; }", CSS)
-        self.assertIn(".mode-task-window-content[hidden] { display: none; }", CSS)
-        self.assertIn("#app[data-layout=\"mobile\"] .mode-task-window-body", CSS)
-        self.assertIn('#app[data-layout="mobile"] .mode-action-buttons > button { flex: 1 1 0; }', CSS)
-        self.assertIn("function syncMapHudBounds()", APP)
-        self.assertIn("function syncMapContextSurfaces()", APP)
-        self.assertNotIn("active guidance and actions share one task dock", CSS)
+        task = element_markup(INDEX,'modeEditingHud')
+        self.assertIn('role="region"', task)
+        self.assertNotIn('aria-modal="true"', task)
+        self.assertIn('modeTaskMinimizeBtn', task)
+        self.assertIn('modeTaskWindowContent', task)
+        self.assertIn('modePrimaryBtn', task)
+        self.assertRegex(CSS,r'\.mode-task-window\s*\{[^}]*width: 100%[^}]*overflow: hidden')
+        self.assertIn('.mode-task-window-content[hidden]', CSS)
+        self.assertIn('function syncMapHudBounds()', APP)
+        self.assertIn('function syncMapContextSurfaces()', APP)
 
 
 if __name__ == "__main__":

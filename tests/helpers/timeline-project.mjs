@@ -1,5 +1,7 @@
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 import { createEmptyTerritorialState, createTerritorialEntityStore, createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
+import { DISTRIBUTION_MODES } from '../../assets/js/modules/distribution-model.js';
 
 export function projectForStorage(row = timelineStorageCases()[0]) {
   return {
@@ -30,6 +32,13 @@ export function staticSerializerSnapshot(snapshot) {
       changed: snapshot.entityDelta.changed.map(feature => content.territorialEntities.find(entity => entity.id === feature.id)) } : undefined,
     projectFields: { ...projectForStorage().projectFields, ...snapshot.projectFields,
       timelineRecords: content.timelineRecords, geometries: content.geometries } };
+}
+
+/** Current complete autosave for browser fixtures, without a baseline delta. */
+export function staticAutosaveProject(projectFields = {}, territorialEntities = []) {
+  const snapshot = staticSerializerSnapshot({ territorialEntities, fullAutosave: true, projectFields });
+  return createProjectSerializer({ appVersion: 'fixture', distributionModes: Object.values(DISTRIBUTION_MODES),
+    terrainDataset: 'fixture-terrain', hydroDataset: 'fixture-hydro', readSnapshot: () => snapshot }).buildAutosave();
 }
 
 export function snapshotTestTerritorialState(state) {

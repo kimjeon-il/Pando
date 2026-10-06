@@ -69,11 +69,13 @@ export function createCountryCommits() {
       multiDraftPreviewTimer = null;
       if (generation !== multiDraftPreviewGeneration || dependencies.projectState.state.multiDraft !== draft) return;
       const geometry = composeMultiDraftGeometry({ polygon: draft.shape === 'polygon' });
-      const feature = geometry && draft.shape === 'polygon'
+      const feature = geometry
         ? { type: 'Feature', id: 'multi-draft-preview', properties: {}, geometry }
         : null;
       draft.previewGeometry = geometry;
-      const issues = feature ? (0, dependencies.geometryModel.validateStructuredGeometry)(feature) : [{ message: '그린 조각을 하나의 형상으로 만들 수 없습니다.', severity: 'error' }];
+      const issues = !feature
+        ? [{ message: '그린 조각을 하나의 형상으로 만들 수 없습니다.', severity: 'error' }]
+        : draft.shape === 'polygon' ? (0, dependencies.geometryModel.validateStructuredGeometry)(feature) : [];
       draft.previewIssues = issues.filter(issue => issue.severity !== 'warning');
       draft.previewPending = false;
       dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('multi-draft-preview-ready');

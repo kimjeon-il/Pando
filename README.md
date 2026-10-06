@@ -14,7 +14,26 @@ python -m http.server 8080
 
 브라우저에서 `http://localhost:8080/`을 엽니다.
 
-## GitHub Pages
+## 검사 실행
+
+`pnpm install --frozen-lockfile` 후 변경 범위에 맞는 `pnpm lint`,
+`pnpm check:architecture`, `pnpm test:unit`, `pnpm test:browser -- <파일>`을
+실행합니다. 전체 검사는 `pnpm test`입니다.
+
+Python 검사는 Python 3.12와 아래 의존성을 준비한 뒤 `pnpm test:python`으로
+실행합니다. 이 명령은 루트 계약 검사와 `tests/python`의 DEM 생성·검증 회귀를
+모두 실행합니다. Windows에서 PowerShell 실행 정책이 `pnpm.ps1`을 막으면
+`pnpm.cmd`를 사용합니다.
+
+```powershell
+python -m pip install -r tools/requirements-hydro-tiles.txt -r tools/requirements-historical-library.txt "numpy>=2,<3" "rasterio>=1.4,<2"
+pnpm.cmd test:python
+```
+
+현재 계약으로 검사 파일과 CI를 검수한 범위·실행 증거는
+[검사 최신화 기록](docs/validation-audit.md)에 기록합니다.
+
+## GitHub Pages 배포
 
 1. 이 폴더의 내용을 GitHub 저장소에 올립니다.
 2. 저장소의 **Settings → Pages**에서 배포할 브랜치와 루트 폴더를 선택합니다.

@@ -9,6 +9,9 @@ import { buildGeometryPreview } from '../../assets/js/modules/geometry-preview.j
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 import '../../assets/js/vendor/polygon-clipping.min.js';
 import { hasCanonicalPolygonWinding, normalizePolygonGeometry } from '../../assets/js/modules/map-edit-geometry.js';
+import { validateGeometry as validateStructuredGeometry } from '../../assets/js/modules/geometry-validation.js';
+import { createCutGeometry } from '../../assets/js/modules/app-cut-geometry.js';
+import { createTerritoryComponents } from '../../assets/js/modules/app-territory-components.js';
 
 const box = (x0, y0, x1, y1) => ({
   type: 'Polygon',
@@ -132,4 +135,101 @@ test('preview unions and differences retain canonical outer and hole winding', (
   }
   assert.equal(preview.delta.beforeUnion.coordinates[0].length, 2);
   assert.equal(preview.delta.afterUnion.coordinates[0].length, 2);
+});
+
+function hydroPreviewHarness(t, shape, geometry) {
+  const state = { multiDraft: { kind: 'hydro', shape, parts: [], current: geometry ? { geometry } : null,
+    previewGeometry: null, previewIssues: [] } };
+  const callbacks = [], validations = [], invalidations = [], errors = [];
+  t.mock.method(globalThis, 'setTimeout', callback => { callbacks.push(callback); return callbacks.length; });
+  t.mock.method(globalThis, 'clearTimeout', () => {});
+  const previousWindow = globalThis.window;
+  globalThis.window = globalThis;
+  t.after(() => {
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+  });
+  const commits = createCountryCommits();
+  commits.connect(capabilityPortsForFixture(OBJECT_EDITING_OWNER_PORTS.countryCommits, {
+    state, geometryMultiCoordinates: createTerritoryComponents().geometryMultiCoordinates,
+    normalizeClippedLandGeometry: createCutGeometry().normalizeClippedLandGeometry,
+    validateStructuredGeometry: feature => { validations.push(feature); return validateStructuredGeometry(feature); },
+    updateModeButtons() {}, reportOperationError: error => errors.push(error),
+    renderingDomain: { invalidateEditingOverlays: reason => invalidations.push(reason) },
+  }));
+  return { state, commits, callbacks, validations, invalidations, errors };
+}
+
+for (const [shape, geometry] of [
+  ['line', { type: 'LineString', coordinates: [[0, 0], [1, 1]] }],
+  ['polygon', box(0, 0, 1, 1)],
+]) test(`hydro ${shape} preview validates its completed production geometry`, t => {
+  const h = hydroPreviewHarness(t, shape, geometry);
+  const current = h.state.multiDraft.current;
+  assert.equal(h.commits.scheduleMultiDraftPreview({ delay: 0 }), true);
+  assert.equal(h.state.multiDraft.previewPending, true);
+  h.callbacks.shift()();
+  assert.equal(h.state.multiDraft.previewPending, false);
+  if (shape === 'polygon') {
+    assert.deepEqual(globalThis.polygonClipping.xor(h.state.multiDraft.previewGeometry.coordinates, geometry.coordinates), []);
+    assert.equal(hasCanonicalPolygonWinding(h.state.multiDraft.previewGeometry), true);
+  } else assert.deepEqual(h.state.multiDraft.previewGeometry, geometry);
+  assert.deepEqual(h.state.multiDraft.previewIssues, []);
+  assert.strictEqual(h.state.multiDraft.current, current);
+  assert.deepEqual(h.invalidations, ['multi-draft-preview-ready']);
+  assert.deepEqual(h.errors, []);
+  if (shape === 'polygon') assert.equal(h.validations.length, 1);
+});
+
+test('hydro line preview preserves completed and archived strokes as distinct multi-line parts', t => {
+  const first = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
+  const second = { type: 'LineString', coordinates: [[2, 2], [3, 3]] };
+  const h = hydroPreviewHarness(t, 'line', second);
+  h.state.multiDraft.parts.push({ geometry: first });
+  const before = structuredClone(h.state.multiDraft);
+  h.commits.scheduleMultiDraftPreview({ delay: 0 });
+  h.callbacks.shift()();
+  assert.deepEqual(h.state.multiDraft.previewGeometry, {
+    type: 'MultiLineString', coordinates: [first.coordinates, second.coordinates],
+  });
+  assert.deepEqual(h.state.multiDraft.previewIssues, []);
+  assert.deepEqual(h.state.multiDraft.parts, before.parts);
+  assert.deepEqual(h.state.multiDraft.current, before.current);
+  assert.equal(h.validations.length, 0);
+  assert.deepEqual(h.errors, []);
+});
+
+for (const geometry of [null, box(0, 0, 0, 0)]) test(`hydro preview rejects ${geometry ? 'zero-area polygon' : 'empty parts'} without publishing usable geometry`, t => {
+  const h = hydroPreviewHarness(t, 'polygon', geometry);
+  h.commits.scheduleMultiDraftPreview({ delay: 0 });
+  h.callbacks.shift()();
+  assert.equal(h.state.multiDraft.previewGeometry, null);
+  assert.equal(h.state.multiDraft.previewPending, false);
+  assert.ok(h.state.multiDraft.previewIssues.some(issue => issue.severity === 'error'));
+});
+
+test('hydro preview rejects cancelled generation and replaced project draft callbacks', t => {
+  const h = hydroPreviewHarness(t, 'polygon', box(0, 0, 1, 1));
+  h.commits.scheduleMultiDraftPreview({ delay: 0 });
+  const stale = h.callbacks.shift();
+  h.commits.cancelScheduledMultiDraftPreview();
+  h.state.multiDraft.current = { geometry: box(2, 2, 3, 3) };
+  h.commits.scheduleMultiDraftPreview({ delay: 0 });
+  stale();
+  assert.equal(h.state.multiDraft.previewGeometry, null);
+  assert.equal(h.state.multiDraft.previewPending, true);
+  assert.equal(h.validations.length, 0);
+  h.callbacks.shift()();
+  assert.deepEqual(globalThis.polygonClipping.xor(h.state.multiDraft.previewGeometry.coordinates, box(2, 2, 3, 3).coordinates), []);
+  assert.equal(hasCanonicalPolygonWinding(h.state.multiDraft.previewGeometry), true);
+  assert.deepEqual(h.state.multiDraft.previewIssues, []);
+  assert.equal(h.validations.length, 1);
+  h.commits.scheduleMultiDraftPreview({ delay: 0 });
+  const previousProject = h.callbacks.shift();
+  h.state.multiDraft = { kind: 'hydro', shape: 'line', parts: [], current: null,
+    previewGeometry: null, previewIssues: [], previewPending: false };
+  const expected = structuredClone(h.state.multiDraft);
+  previousProject();
+  assert.deepEqual(h.state.multiDraft, expected);
+  assert.equal(h.validations.length, 1);
 });

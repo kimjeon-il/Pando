@@ -34,3 +34,20 @@ test('every territorial workflow exposes draft input from the shared session onl
     assert.equal(toolDraftDefinition(tool, state), null);
   }
 });
+
+for (const tool of ['river', 'lake']) test(`${tool} pauses draft input for a completed hydro part and resumes for the next part`, () => {
+  const definition = toolDraftDefinition(tool);
+  const state = { multiDraft: { kind: 'hydro', parts: [], current: null } };
+  assert.deepEqual(toolDraftDefinition(tool, state), definition);
+  state.multiDraft.current = { geometry: tool === 'river'
+    ? { type: 'LineString', coordinates: [[0, 0], [1, 1]] }
+    : { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [0, 0]]] } };
+  assert.equal(toolDraftDefinition(tool, state), null);
+  state.multiDraft.parts.push(state.multiDraft.current);
+  state.multiDraft.current = null;
+  assert.deepEqual(toolDraftDefinition(tool, state), definition);
+  state.multiDraft.current = { geometry: state.multiDraft.parts[0].geometry };
+  assert.equal(toolDraftDefinition(tool, state), null);
+  state.multiDraft.current = null;
+  assert.deepEqual(toolDraftDefinition(tool, state), definition);
+});

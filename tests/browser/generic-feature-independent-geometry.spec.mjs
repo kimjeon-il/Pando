@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
+import { GENERIC_FEATURE_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 
 test('restored generic geometry ignores source ownership metadata', async ({ page }) => {
   test.setTimeout(60_000);
@@ -18,26 +20,14 @@ test('restored generic geometry ignores source ownership metadata', async ({ pag
   });
   const geometry = { type: 'Polygon', coordinates: [[[5, 45], [5, 55], [15, 55], [15, 45], [5, 45]]] };
   await page.goto('/assets/css/app.css');
-  await page.evaluate(async geometry => {
-    const { PROJECT_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } =
-      await import('/assets/js/modules/version-contract.js');
-    const { assertCurrentProjectSchema } = await import('/assets/js/modules/project-state.js');
-    const saved = { format: 'pandolab-autosave-delta', schemaVersion: PROJECT_SCHEMA_VERSION,
-      version: '0.34.0', savedAt: '2026-10-01T00:00:00Z', entityDelta: { changed: [], removedIds: [] },
-      landObjectModel: { schemaVersion: 2, purpose: 'lossless-fallback', directCreation: false,
-        coastlineAuthority: 'territorialEntities', sourceProvenanceSchemaVersion: 1 },
-      territorialModel: { schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION }, distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION },
-      distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
-      layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder: [], styles: {} },
+  const saved = staticAutosaveProject({
       layerVisibility: { genericFeatures: true },
       genericFeatures: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000006', geometry,
-        properties: { schemaVersion: 2, name: '독립 형상 검증', color: '#8c68d8', notes: '', locked: false,
-          source: { schemaVersion: 1, kind: 'gis', sourceId: 'original', sourceFormat: 'geojson',
+        properties: { schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION, name: '독립 형상 검증', color: '#8c68d8', notes: '', locked: false,
+          source: { schemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION, kind: 'gis', sourceId: 'original', sourceFormat: 'geojson',
             details: { legacyGenericSemantics: { ownerId: 'DEU', landBinding: 'hard' } } } } }],
-    };
-    assertCurrentProjectSchema(saved);
-    localStorage.setItem('pandolab-editor-project', JSON.stringify(saved));
-  }, geometry);
+  });
+  await page.evaluate(saved => localStorage.setItem('pandolab-editor-project', JSON.stringify(saved)), saved);
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   await page.locator('#objectSearchBtn').click();

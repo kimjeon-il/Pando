@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { selectUiOption } from './helpers/ui-select.mjs';
 
 test.use({ channel: 'chromium', trace: 'off', actionTimeout: 15000, viewport: { width: 1440, height: 900 } });
 
@@ -60,7 +61,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     const interior = [-8, 53];
     await expect.poll(() => mapPixel(page, interior), { timeout: renderer === 'canvas' ? 20000 : 8000 }).toEqual([255, 0, 0]);
     await page.locator('#relationTabBtn').click();
-    await page.locator('#entityParentInput').selectOption('GBR');
+    await selectUiOption(page, '#entityParentInput', 'GBR');
     await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('GBR');
     expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
     await expect.poll(() => page.locator('path.territorial-unit-shape').evaluateAll(nodes =>

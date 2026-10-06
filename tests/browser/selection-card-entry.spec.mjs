@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 async function openMap(page) {
   page.setDefaultTimeout(10_000);
-  await page.goto('/?debug=1');
+  await page.goto('/?debug=1&demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 }
 
@@ -46,9 +46,9 @@ test('hover card keeps quick actions usable and applies them to the hovered coun
   await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
   await page.locator('#objectLockBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.locked)).toBe(false);
-  await page.locator('#countryColorTrigger').click();
-  await expect(page.locator('#countryColorPopover')).toBeVisible();
-  await page.locator('#countryColorPopover [data-color-value]').first().click();
+  await page.locator('#entityColorTrigger').click();
+  await expect(page.locator('#entityColorPopover')).toBeVisible();
+  await page.locator('#entityColorPopover [data-color-value]').first().click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.style.color)).not.toBeUndefined();
   // The palette is outside the card; closing it can end that hover preview.
   await label(page).hover();

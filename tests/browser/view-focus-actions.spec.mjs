@@ -1,11 +1,13 @@
 import { expect, test } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 
 async function openDebugMap(page, viewport) {
+  page.setDefaultTimeout(10_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize(viewport);
-  await page.goto('/?debug=1');
+  await page.goto('/?debug=1&demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await expect.poll(() => page.evaluate(() => !!window.__PANDOLAB_VIEW_DEBUG__)).toBe(true);
@@ -29,7 +31,7 @@ async function zoomAndPan(page) {
 }
 
 test('whole-map view is zoom-only in flat and globe projections', async ({ page }) => {
-  test.setTimeout(180_000);
+    test.setTimeout(180_000);
   const errors = await openDebugMap(page, { width: 1440, height: 900 });
 
   await page.evaluate(() => document.getElementById('flatBtn')?.click());
@@ -83,14 +85,18 @@ test('object focus uses the actual viewport center with the editor panel open', 
   expect(errors).toEqual([]);
 });
 
-test('mobile focus keeps the object visible and whole-map view remains zoom-only', async ({ browser }) => {
-  test.setTimeout(180_000);
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
-  const page = await context.newPage();
-  try {
+test.describe('mobile focus', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  test('mobile focus keeps the object visible and whole-map view remains zoom-only', async ({ page }, testInfo) => {
+    test.setTimeout(180_000);
     const errors = await openDebugMap(page, { width: 390, height: 844 });
-    await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-    await page.evaluate(() => document.getElementById('focusSelectedObjectBtn')?.click());
+    await page.locator('#mobileSearchBtn').click();
+    await page.locator('#layerSearchInput').fill('독일');
+    await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+    await expect(page.locator('#selectionStatus')).toContainText('독일');
+    await expect(page.locator('#mobileEditBtn')).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#focusSelectedObjectBtn')).toBeVisible();
+    await page.locator('#focusSelectedObjectBtn').click();
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom), { timeout: 20_000 }).toBeGreaterThan(1);
     const focused = await page.evaluate(() => {
       const feature = window.PANDOLAB_TERRITORIAL.get('DEU');
@@ -115,13 +121,22 @@ test('mobile focus keeps the object visible and whole-map view remains zoom-only
     expect(focused.screen[1]).toBeLessThanOrEqual(focused.bounds[1][1]);
 
     const cameraBeforeReset = focused.snapshot.projection === 'globe' ? focused.snapshot.globeRotation : focused.snapshot.flatCenter;
-    await expect(page.locator('#mobileWorldBtn')).toHaveAttribute('aria-label', '전체 지도 보기');
-    await page.evaluate(() => document.getElementById('mobileWorldBtn')?.click());
+    await expect(page.locator('#mobileEditBtn')).toHaveAttribute('aria-expanded', 'true');
+    await page.locator('#mobileEditBtn').click();
+    await expect(page.locator('#mobileEditBtn')).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#editorSurface')).toBeHidden();
+    await expect(page.locator('#selectionStatus')).toContainText('독일');
+    const closedEditor = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot());
+    expect(closedEditor.zoom).toBe(focused.snapshot.zoom);
+    expectPairClose(closedEditor.projection === 'globe' ? closedEditor.globeRotation : closedEditor.flatCenter, cameraBeforeReset);
+    await expect(page.locator('#resetViewBtn')).toHaveAttribute('aria-label', '전체 지도 보기');
+    await page.locator('#resetViewBtn').click();
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot().zoom)).toBe(1);
     const reset = await page.evaluate(() => window.__PANDOLAB_VIEW_DEBUG__.snapshot());
     expectPairClose(reset.projection === 'globe' ? reset.globeRotation : reset.flatCenter, cameraBeforeReset);
+    const proofPath = testInfo.outputPath('mobile-focus-camera.json');
+    await writeFile(proofPath, JSON.stringify({ focused, closedEditor, reset }));
+    await testInfo.attach('mobile-focus-camera', { path: proofPath, contentType: 'application/json' });
     expect(errors).toEqual([]);
-  } finally {
-    await context.close();
-  }
+  });
 });

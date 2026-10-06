@@ -186,7 +186,7 @@ test('editor identity returns to header flag and focus controls without changing
 
   await page.locator('#createMenuBtn').click();
   await page.locator('#addEntityBtn').click();
-  await page.locator('#territorialCreateParentInput').selectOption('DEU');
+  await selectUiOption(page, '#territorialCreateParentInput', 'DEU');
   const task = await page.locator('#modeEditingHud').evaluateHandle(node => node);
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
@@ -208,7 +208,7 @@ for (const kind of ['general', 'regional']) test(`${kind} creation retains candi
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await page.locator('#createMenuBtn').click();
     await page.locator('#addEntityBtn').click();
-    if (kind === 'general') await page.locator('#territorialCreateParentInput').selectOption('DEU');
+    if (kind === 'general') await selectUiOption(page, '#territorialCreateParentInput', 'DEU');
     else await page.locator('#territorialCreateRegionalInput').check();
     const name = `v17 ${kind}`;
     await page.locator('#territorialCreateNameInput').fill(name);
@@ -316,7 +316,7 @@ test('territory setup uses actual role cards and the shared spacing', async ({ p
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await page.locator('#createMenuBtn').click();
     await page.locator('#addEntityBtn').click();
-    if (placement === 'nested') await page.locator('#territorialCreateParentInput').selectOption('DEU');
+    if (placement === 'nested') await selectUiOption(page, '#territorialCreateParentInput', 'DEU');
     else if (placement === 'regional') await page.locator('#territorialCreateRegionalInput').check();
     await expect(page.locator('#modeTaskName')).toHaveText('객체 추가');
     await expect(page.locator('#modeTaskStage')).toHaveText('객체 정보');

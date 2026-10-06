@@ -94,3 +94,35 @@ test('the actual GPU hydro revision gate accepts an edited color and skips an un
   owner.commitHydroEdit('editorColor', ' #ABCDEF ');
   assert.equal(renderer.setHydroEdits(state.hydroEdits, state.stateRevision), false);
 });
+
+test('replacing the restored hydro collection refreshes actual paint batches at the same state revision', t => {
+  const previousWindow = globalThis.window;
+  globalThis.window = { devicePixelRatio: 1 };
+  t.after(() => {
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+  });
+  const { state } = setup();
+  state.hydroEdits.push({ ...structuredClone(state.hydroEdits[0]), id: 'river-2' });
+  const original = structuredClone(state.hydroEdits);
+  const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path, isMobile: () => false,
+    scheduleGpuFrame() {}, renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null });
+  t.after(() => renderer.dispose());
+  renderer.setHydroEdits(state.hydroEdits, state.stateRevision);
+  state.hydroEdits[0].properties.editorColor = '#abcdef';
+  state.stateRevision += 1;
+  renderer.setHydroEdits(state.hydroEdits, state.stateRevision);
+  assert.equal(renderer.getStats().hydroEditBatchCount, 2);
+  const edited = structuredClone(state.hydroEdits);
+  state.hydroEdits = original;
+  assert.equal(renderer.setHydroEdits(state.hydroEdits, state.stateRevision), true);
+  assert.equal(renderer.getStats().hydroEditBatchCount, 1);
+  assert.equal(renderer.getStats().hydroEditRevision, 8);
+  assert.equal(renderer.setHydroEdits(state.hydroEdits, state.stateRevision), false);
+  state.hydroEdits = edited;
+  assert.equal(renderer.setHydroEdits(state.hydroEdits, state.stateRevision), true);
+  assert.equal(renderer.getStats().hydroEditBatchCount, 2);
+  state.hydroEdits = [];
+  assert.equal(renderer.setHydroEdits(state.hydroEdits, state.stateRevision), true);
+  assert.equal(renderer.getStats().hydroEditBatchCount, 0);
+});

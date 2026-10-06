@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import node_json, read_application_sources
 
 import unittest
 from pathlib import Path
@@ -18,15 +18,20 @@ class TemporalRemainderPolicyTests(unittest.TestCase):
             self.assertIn(f"function {symbol}", TEMPORAL)
         self.assertIn("daysInMonth", TEMPORAL)
         self.assertIn("year === 0", TEMPORAL)
-        self.assertIn("temporalIntervalsOverlap", TERRITORIAL)
+        self.assertIn("normalizeTemporalInterval", TERRITORIAL)
         self.assertNotIn("localeCompare(text(right.validFrom", TERRITORIAL)
 
-    def test_strict_distribution_share_does_not_clamp(self):
-        share = DISTRIBUTION[DISTRIBUTION.index("function shareValue"):DISTRIBUTION.index("export function normalizeDistributionLayer")]
-        self.assertIn("Number.isFinite", share)
-        self.assertIn("share < 0 || share > 100", share)
-        self.assertNotIn("Math.max", share)
-        self.assertNotIn("Math.min", share)
+    def test_distribution_values_are_finite_and_preserved_without_percentage_clamping(self):
+        actual = node_json(ROOT, """
+        import { createDistributionEntry } from './assets/js/modules/distribution-model.js';
+        const entry=value=>createDistributionEntry({id:'a',layerId:'L',mode:'territorial',territorialUnitId:'T',value});
+        const values=[-1,0,100,250].map(value=>entry(value).value);
+        let rejected=0;for(const value of [Infinity,NaN,'',null,true]) {try{entry(value)}catch{rejected++}}
+        console.log(JSON.stringify({values,rejected}));
+        """)
+        self.assertEqual(actual['values'], [-1,0,100,250])
+        self.assertEqual(actual['rejected'], 5)
+        self.assertNotIn('shareValue', DISTRIBUTION)
 
     def test_partition_remainder_objects_are_removed(self):
         self.assertNotIn("validatePartitionRemainders", TERRITORIAL)

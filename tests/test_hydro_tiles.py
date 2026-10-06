@@ -8,12 +8,15 @@ import struct
 import unittest
 from collections import defaultdict
 from pathlib import Path
+import re
+from tests.application_source import read_module
 
 from shapely.geometry import LineString, MultiLineString, shape
 
 
 ROOT = Path(__file__).parents[1]
-DATA = ROOT / "assets" / "data" / "hydro" / "v0.12.6"
+HYDRO_VERSION = re.search(r"HYDRO_DATA_VERSION = '([^']+)'", read_module(ROOT, "app-environment.js")).group(1)
+DATA = ROOT / "assets" / "data" / "hydro" / ("v" + HYDRO_VERSION)
 KOREA_BOUNDS = (124.0, 33.0, 131.0, 43.0)
 
 
@@ -185,6 +188,7 @@ def decode_pack(raw: bytes, pack_id: int, metadata: dict[int, dict]):
             "bounds": bounds,
             "pandolab_id": meta["awId"],
             "name": meta["name"],
+            "role": meta.get("role"),
             "source": meta["source"],
             "layer_id": meta["layerId"],
             "source_ids": [value for value in str(meta.get("sourceId") or "").split(",") if value],
@@ -225,18 +229,28 @@ class HydroTileTests(unittest.TestCase):
             cls.features.extend(decode_pack(gzip.decompress(compressed), pack_id, cls.metadata))
 
     def test_manifest_index_and_shards_stay_within_limits(self):
-        self.assertEqual(self.manifest["version"], "0.12.6")
-        self.assertEqual(self.manifest["schema"], "pandolab-water-shards-v4")
+        self.assertEqual(self.manifest["version"], HYDRO_VERSION)
+        self.assertEqual(self.manifest["schema"], "pandolab-water-shards-v5")
         self.assertLess(self.manifest_path.stat().st_size, 100 * 1024)
         self.assertLess((DATA / self.manifest["index"]["url"]).stat().st_size, 100 * 1024)
         self.assertEqual(self.manifest["metadata"]["featureCount"], self.manifest["stats"]["featureCount"])
-        self.assertLess(self.manifest["metadata"]["core"]["bytes"], 700 * 1024)
+        core_path = DATA / self.manifest["metadata"]["core"]["url"]
+        core_bytes = core_path.read_bytes()
+        self.assertEqual(len(core_bytes), self.manifest["metadata"]["core"]["bytes"])
+        self.assertEqual(hashlib.sha256(core_bytes).hexdigest(), self.manifest["metadata"]["core"]["sha256"])
+        # v5 adds system identity, mainstem labels and branch roles to the v4
+        # delivery fields. Keep the original delivery-field budget independently
+        # of those explicitly added columns, and verify the full published pack.
+        core = json.loads(gzip.decompress(core_bytes))
+        delivery = {**core, "features": [{key: value for key, value in row.items()
+                     if key not in {"systemId", "mainstemNameKo", "role"}} for row in core["features"]]}
+        self.assertLess(len(gzip.compress(json.dumps(delivery, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))), 700 * 1024)
         self.assertTrue(self.manifest["metadata"]["detail"]["lazy"])
         self.assertLess(self.manifest["stats"]["compressedBytes"], 48 * 1024 * 1024)
         self.assertTrue(all(row["bytes"] <= 4 * 1024 * 1024 for row in self.manifest["shards"]))
         self.assertEqual(len(self.packs), self.manifest["stats"]["packCount"])
         self.assertEqual(len(self.logical_index), self.manifest["stats"]["logicalFeatureCount"])
-        self.assertTrue(self.manifest["cache"]["name"].endswith(self.manifest["index"]["sha256"][:12]))
+        self.assertEqual(self.manifest["cache"]["name"], f'pandolab-water-v{HYDRO_VERSION}-{self.manifest["metadata"]["core"]["sha256"][:12]}')
 
     def test_selection_uses_new_detail_and_downstream_closure(self):
         selection = self.manifest["selection"]
@@ -284,8 +298,14 @@ class HydroTileTests(unittest.TestCase):
         allowed = {"sea", "lake", "confluence", "endorheic"}
         for logical_fid, fragments in groups.items():
             terminal_rows = [row for row in fragments if row.get("terminal")]
-            self.assertEqual(len(terminal_rows), 1, f"logical river {logical_fid}")
-            self.assertIn(terminal_rows[0]["terminal"]["class"], allowed)
+            mainstem_terminals = [row for row in terminal_rows if row["role"] == "mainstem"]
+            self.assertEqual(len(mainstem_terminals), 1, f"logical system {logical_fid}")
+            for row in fragments:
+                self.assertIn(row["role"], {"mainstem", "tributary"})
+            for row in terminal_rows:
+                self.assertIn(row["terminal"]["class"], allowed)
+                expected = tuple(round(value * 1_000_000) / 1_000_000 for value in row["terminal"]["renderEndpoint"])
+                self.assertEqual(row["end"], expected, (logical_fid, row["fid"]))
 
     def test_every_river_part_and_fragment_uses_an_exact_shared_endpoint(self):
         groups = defaultdict(list)
@@ -297,6 +317,10 @@ class HydroTileTests(unittest.TestCase):
         for logical_fid, fragments in groups.items():
             fragments.sort(key=lambda row: row["fragment_index"])
             for left, right in zip(fragments, fragments[1:]):
+                # A terminal ends one mainstem/tributary chain. The next chain
+                # in a v5 system starts at its own headwater, not that outlet.
+                if left["terminal"]:
+                    continue
                 self.assertEqual(left["end"], right["start"], f"logical river {logical_fid}")
 
     def test_river_width_never_narrows_inside_a_fragment(self):
@@ -310,8 +334,12 @@ class HydroTileTests(unittest.TestCase):
     def test_korea_density_and_named_main_stems(self):
         korea = [feature for feature in self.features if intersects(feature["bounds"], KOREA_BOUNDS)]
         river_groups = {feature["logical_fid"] for feature in korea if feature["kind"] == 1}
+        river_chains = [feature for feature in korea if feature["kind"] == 1 and feature["terminal"]]
         lakes = [feature for feature in korea if feature["kind"] == 2]
-        self.assertGreaterEqual(len(river_groups), 18)
+        # v5 merges mainstem and tributaries under one system identity; retain
+        # the geographic coverage guarantee for the actual displayed chains.
+        self.assertGreaterEqual(len(river_chains), 18)
+        self.assertTrue(river_groups)
         self.assertGreaterEqual(len(lakes), 1)
         source_ids = {source_id for feature in korea for source_id in feature["source_ids"]}
         self.assertTrue({"40425195", "40425194", "40391748"}.issubset(source_ids))
