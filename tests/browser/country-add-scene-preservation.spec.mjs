@@ -35,13 +35,13 @@ for (const renderer of ['webgl2', 'webgl1']) {
 
     await page.locator('#createMenuBtn').click();
     await page.locator('#addFromLibraryBtn').click();
-    await expect(page.locator('#historicalLibraryModal')).toBeVisible();
-    await page.locator('#historicalLibrarySearchInput').fill('동프로이센');
-    await page.locator('#historicalLibraryYearInput').fill('1900');
+    await expect(page.locator('#territorialLibraryModal')).toBeVisible();
+    await page.locator('#territorialLibrarySearchInput').fill('동프로이센');
+    await page.locator('#territorialLibraryReferenceDateInput').fill('1900');
     await page.locator('[data-library-entity-id="state:east-prussia"]').click();
-    await page.locator('#historicalLibraryAddBtn').click();
-    await expect(page.locator('#historicalLibraryAddBtn')).toHaveText('확인 후 추가');
-    await page.locator('#historicalLibraryAddBtn').click();
+    await page.locator('#territorialLibraryAddBtn').click();
+    await expect(page.locator('#territorialLibraryAddBtn')).toHaveText('확인 후 추가');
+    await page.locator('#territorialLibraryAddBtn').click();
 
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.countryPatchPresentation?.phase), {
       timeout: 15_000,

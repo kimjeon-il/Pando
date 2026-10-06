@@ -191,11 +191,14 @@ test('static library merge preserves source metadata, flag, geometry version and
 test('source-equal project ID is preserved and repeated imports allocate independent identities',async t=>{
   const h=await libraryAssemblyHarness(t,false);
   const store=createTerritorialEntityStore({getState:()=>h.state});
-  store.appendEntities([createTerritorialFeature({id:h.entityId,entityKind:'general',geometry:h.geometry,name:'Unrelated'})]);
+  store.appendEntities([createTerritorialFeature({id:h.entityId,entityKind:'general',geometry:{type:'Polygon',coordinates:[[[10,0],[10,1],[11,1],[11,0],[10,0]]]},name:'Unrelated'})]);
   await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId,'2026');
+  const first=store.snapshot().find(item=>item.properties.sourceEntityId===h.entityId);
+  store.applyChanges({features:[{...first,geometry:{type:'Polygon',coordinates:[[[4,0],[4,1],[5,1],[5,0],[4,0]]]},properties:{...first.properties,name:'Edited copy'}}]});
   await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId,'2026');
   const copies=store.snapshot().filter(item=>item.properties.sourceEntityId===h.entityId);
   assert.equal(copies.length,2);assert.notEqual(copies[0].id,copies[1].id);
+  assert.equal(copies[0].properties.name,'Edited copy');assert.deepEqual(copies[1].geometry,h.geometry);assert.notDeepEqual(copies[0].geometry,copies[1].geometry);
   assert.ok(copies.every(item=>item.id!==h.entityId));
   assert.equal(store.snapshot().find(item=>item.id===h.entityId).properties.name,'Unrelated');
   assert.equal(h.history.length,2);

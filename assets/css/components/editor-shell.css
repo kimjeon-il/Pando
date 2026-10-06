@@ -1246,7 +1246,7 @@
   }
 }
 
-.historical-library-ownership {
+.territorial-library-ownership {
   min-height: 0;
   max-height: 45dvh;
   overflow-y: auto;
@@ -1257,11 +1257,11 @@
   flex-shrink: 0;
 }
 
-.historical-library-ownership .field-group[hidden] {
+.territorial-library-ownership .field-group[hidden] {
   display: none;
 }
 
-.historical-library-ownership h3 {
+.territorial-library-ownership h3 {
   margin: 0;
 }
 
