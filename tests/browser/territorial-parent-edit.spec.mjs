@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { selectUiOption } from './helpers/ui-select.mjs';
 
 test.use({ channel: 'chromium', trace: 'off', viewport: { width: 1440, height: 900 } });
 
@@ -14,11 +15,11 @@ test('parent changes replace type conversion while preserving entity ID, kind, g
   await page.locator('#relationTabBtn').click();
   await expect(page.locator('#entityParentInput')).toHaveValue('');
   await expect(page.locator('#territorialTypeModal, #changeCountryTypeBtn, #promoteSubunitBtn')).toHaveCount(0);
-  await page.locator('#entityParentInput').selectOption('GBR');
+  await selectUiOption(page, '#entityParentInput', 'GBR');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('GBR');
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.entityKind)).toBe('general');
-  await page.locator('#entityParentInput').selectOption('');
+  await selectUiOption(page, '#entityParentInput', '');
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('');
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('GBR');

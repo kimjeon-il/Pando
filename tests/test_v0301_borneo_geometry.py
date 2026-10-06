@@ -11,7 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 COUNTRY_PREVIEW = (ROOT / "assets/js/modules/map-edit-preview-calculations.js").read_text(encoding="utf-8")
 COUNTRY_GEOMETRY = (ROOT / "assets/js/modules/polygon-geometry.js").read_text(encoding="utf-8")
 COUNTRIES = json.loads((ROOT / "assets/data/countries-ne-5.1.1.geojson").read_text(encoding="utf-8"))
-PREVIEW_COUNTRIES = json.loads(gzip.decompress((ROOT / "assets/data/countries-preview-v0.30.0.geojson.gz").read_bytes()))
+VERSION = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+PREVIEW_COUNTRIES = json.loads(gzip.decompress((ROOT / f"assets/data/countries-preview-v{VERSION}.geojson.gz").read_bytes()))
 
 
 def polygons(geometry):
@@ -55,7 +56,9 @@ class BorneoGeometryRegressionTests(unittest.TestCase):
     def test_egypt_canonical_geometry_is_unchanged(self):
         egypt = next(feature for feature in COUNTRIES["features"] if feature.get("id") == "EGY")
         encoded = json.dumps(egypt["geometry"], ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-        self.assertEqual(hashlib.sha256(encoded).hexdigest(), "513e81cd5b16c86d59e048f90ee4c51d3a114f50a357cdb5e4ffd1aad7a33576")
+        # f2ff89b deliberately repaired canonical geometry; preserve that fixed
+        # baseline instead of the preceding development snapshot.
+        self.assertEqual(hashlib.sha256(encoded).hexdigest(), "94f3310f78826e03f68019de5b0cea0b17e226fbbe9b754fe3d3d7a6c729a665")
         self.assertNotIn([35.429207, 22.97833], egypt["geometry"]["coordinates"][0][0])
 
     def test_borneo_shared_coordinate_is_not_consecutively_duplicated(self):

@@ -86,9 +86,11 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
   await page.goto(`/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   if (renderer === 'canvas') await page.locator('#terrainNoneRadio').check();
-  const add = async (type, parentId, name, coords) => {
-    await page.evaluate(({ type, parentId }) => window.PANDOLAB_TERRITORIAL.select(type, parentId), { type, parentId });
-    await page.locator(type === 'country' ? '#addEntityChildBtn' : '#addEntityChildBtn').evaluate(button => button.click());
+  const add = async (parentId, name, coords) => {
+    expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), parentId)).toBe(true);
+    if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
+    await page.locator('#actionsTabBtn').click();
+    await page.locator('#addEntityChildBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#territorialCreateNameInput').fill(name);
     await page.locator('#modePrimaryBtn').click();
@@ -101,6 +103,8 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
     await page.mouse.up();
     await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled({ timeout: 30000 });
     await page.locator('#modeDraftDoneBtn').click();
+    await expect(page.locator('#modeDraftDoneBtn')).toHaveAttribute('aria-label', '현재 영역 확정', { timeout: 30000 });
+    await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modePrimaryBtn').click();
     await expect(page.locator('#modePrimaryBtn')).toContainText('생성');
@@ -110,7 +114,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
     return page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).find(item => item.properties.name === name).id, name);
   };
 
-  const id = await add('country', 'RUS', '강조 중첩 시험', [[45, 56], [57, 56], [51, 63]]);
+  const id = await add('RUS', '강조 중첩 시험', [[45, 56], [57, 56], [51, 63]]);
   const country = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('RUS').geometry);
   expect(country.coordinates).toHaveLength(214);
   const pixels = async () => {
@@ -129,7 +133,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
     });
   };
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
-  if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [], id)).toContain(`territorial:subunit:${encodeURIComponent(id)}`);
+  if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [], id)).toContain(`territorial:entity:${encodeURIComponent(id)}`);
   if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.interactionFillCoverage?.renderedKeys?.some(key => key.includes(id)), id), { timeout: 30000 }).toBe(true);
   await expect(page.locator('.map-selection-fill')).toHaveCount(0);
   const single = await pixels();

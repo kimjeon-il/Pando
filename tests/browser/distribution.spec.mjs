@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { selectUiOption } from './helpers/ui-select.mjs';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 
 async function openApp(page) {
   const errors = [];
@@ -7,9 +10,11 @@ async function openApp(page) {
   page.on('console', message => {
     if (message.type() === 'error') errors.push(message.text());
   });
-  await page.goto('/');
+  await page.goto('/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
+  // startup-readiness.canMutateProject allows these two states; distribution
+  // editing does not depend on the optional enhanced mesh finishing first.
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', /^(editable|enhanced)$/, { timeout: 30_000 });
   await expect(page.locator('#map .map-svg')).toBeVisible();
   return errors;
 }
@@ -94,18 +99,31 @@ test('single display follows distribution selection without another view menu ch
   test.setTimeout(90_000);
   page.setDefaultTimeout(15_000);
   await page.setViewportSize({ width: 1440, height: 900 });
+  // Exercise this display contract with the two real countries it uses rather
+  // than spending its action budget preparing every unrelated world object.
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const saved = staticAutosaveProject({}, ['DEU', 'FRA'].map(id => {
+    const country = countries.find(feature => feature.id === id);
+    return createTerritorialFeature({ id, entityKind: 'general',
+      name: country.properties.name, geometry: country.geometry });
+  }));
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   const errors = await openApp(page);
 
-  for (const [name, countryName] of [['분포 A', '독일'], ['분포 B', '프랑스']]) {
+  for (const [name, countryName, unitId] of [['분포 A', '독일', 'DEU'], ['분포 B', '프랑스', 'FRA']]) {
     await createDistribution(page, name);
     await page.locator('#actionsTabBtn').click();
-    const unitId = await page.locator('#distributionTerritorialUnitInput option')
-      .evaluateAll((options, label) => options.find(option => option.textContent.trim() === `${label} · 국가`)?.value, countryName);
-    expect(unitId).toBeTruthy();
-    await page.locator('#distributionTerritorialUnitInput').selectOption(unitId, { force: true });
+    await expect(page.locator(`#distributionTerritorialUnitInput option[value="${unitId}"]`)).toHaveText(countryName);
+    await selectUiOption(page, '#distributionTerritorialUnitInput', unitId);
     await page.locator('#distributionValueInput').fill('10');
     await page.locator('#addTerritorialDistributionBtn').click();
     await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
+    const stored = await page.evaluate(name => {
+      const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers().find(layer => layer.name === name);
+      return window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id);
+    }, name);
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatchObject({ mode: 'territorial', territorialUnitId: unitId, value: 10 });
   }
   const ids = await page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers().map(layer => layer.id));
   expect(ids).toHaveLength(2);

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { TERRAIN_RASTER_VERSION } from '../../assets/js/modules/terrain-manifest.js';
 
 const layouts = [
   { name: 'wide', viewport: { width: 1440, height: 900 } },
@@ -536,6 +537,8 @@ test('wide editor opens from object selection without the retired edge toggle', 
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page);
   await expect(page.locator('#togglePanelBtn')).toHaveCount(0);
+  await page.locator('#objectSearchBtn').click();
+  await expect(page.locator('#objectSearchSurface')).toBeVisible();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
   await expect(page.locator('#editorSurface')).toBeVisible();
@@ -543,20 +546,27 @@ test('wide editor opens from object selection without the retired edge toggle', 
   expect(errors).toEqual([]);
 });
 
-test('sheet titles match object titles and mobile zoom dock has symmetric insets', async ({ page }) => {
+test('sheet titles match object titles and mobile map commands have symmetric insets', async ({ page }) => {
   await page.setViewportSize(layouts[2].viewport);
   const errors = await openApp(page);
   const metrics = await page.evaluate(() => {
     const fontSize = selector => getComputedStyle(document.querySelector(selector)).fontSize;
-    const dock = document.querySelector('.mobile-zoom-dock').getBoundingClientRect();
-    const button = document.querySelector('.mobile-zoom-dock button').getBoundingClientRect();
+    const dock = document.querySelector('.map-command-toolbar').getBoundingClientRect();
+    const buttons = [...document.querySelectorAll('.map-command-toolbar > button')].filter(node => node.getBoundingClientRect().width > 0);
+    const first = buttons[0].getBoundingClientRect();
+    const last = buttons[buttons.length - 1].getBoundingClientRect();
     return {
-      fontSizes: [fontSize('#mapSheetTitle'), fontSize('#editSheetTitle'), fontSize('#propertyTitle')],
-      leftInset: button.left - dock.left,
-      rightInset: dock.right - button.right,
+      fontSizes: [fontSize('#displaySheetTitle'), fontSize('#searchSheetTitle'), fontSize('#propertyTitle')],
+      titleFont: (() => {
+        const probe = document.createElement('span'); probe.style.fontSize = 'var(--design-font-xl)';
+        document.body.appendChild(probe); const value = getComputedStyle(probe).fontSize; probe.remove(); return value;
+      })(),
+      leftInset: first.left - dock.left,
+      rightInset: dock.right - last.right,
     };
   });
-  expect(metrics.fontSizes).toEqual(['18px', '18px', '18px']);
+  await expect(page.locator('#editSheetTitle')).toBeHidden();
+  expect(metrics.fontSizes).toEqual([metrics.titleFont, metrics.titleFont, metrics.titleFont]);
   expect(Math.abs(metrics.leftInset - metrics.rightInset)).toBeLessThanOrEqual(0.5);
   expect(errors).toEqual([]);
 });
@@ -565,11 +575,12 @@ test('terrain schedules a retry after a transient high-resolution tile failure',
   await page.setViewportSize(layouts[0].viewport);
   let failedUrl = '';
   const attempts = new Map();
-  await page.route('**/terrain/v0.12.6/**/*.webp*', async route => {
+  await page.route(`**/terrain/v${TERRAIN_RASTER_VERSION}/**/*.webp*`, async route => {
     const url = route.request().url();
     const count = (attempts.get(url) || 0) + 1;
     attempts.set(url, count);
-    const level = Number(/\/v0\.12\.6\/(\d+)\//.exec(url)?.[1] || 0);
+    const tilePath = new URL(url).pathname.split(`/terrain/v${TERRAIN_RASTER_VERSION}/`)[1];
+    const level = Number(tilePath.split('/')[0]);
     if (!failedUrl && level > 0) {
       failedUrl = url;
       await route.fulfill({ status: 503, contentType: 'text/plain', body: 'transient terrain failure' });
@@ -577,7 +588,10 @@ test('terrain schedules a retry after a transient high-resolution tile failure',
     }
     await route.continue();
   });
-  const errors = await openApp(page);
+  const errors = await openApp(page, { url: '/?demTerrain=raster' });
+  const map = await page.locator('#map').boundingBox();
+  await page.mouse.move(map.x + map.width / 2, map.y + map.height / 2);
+  await page.mouse.wheel(0, -1200);
   await expect.poll(() => failedUrl && (attempts.get(failedUrl) || 0), { timeout: 30_000 }).toBeGreaterThanOrEqual(2);
   expect(failedUrl).not.toBe('');
   expect(attempts.get(failedUrl)).toBeGreaterThanOrEqual(2);

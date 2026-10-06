@@ -22,7 +22,10 @@ async function searchFor(page, query) {
 }
 
 async function setStatusBarVisible(page, visible) {
-  await page.locator('#preferencesBtn').click();
+  if (await page.locator('#mobileMenuBtn').isVisible()) {
+    await page.locator('#mobileMenuBtn').click();
+    await page.locator('#mobilePreferencesBtn').click();
+  } else await page.locator('#preferencesBtn').click();
   await expect(page.locator('#preferencesModal')).toBeVisible();
   await page.locator('#preferencesStatusBarVisibleInput').setChecked(visible);
   await page.locator('#preferencesApplyBtn').click();
@@ -218,16 +221,21 @@ test('compact map commands stay clickable and search closes only after a single 
   expect(errors).toEqual([]);
 });
 
-test('mobile bottom navigation opens the display sheet without restoring desktop navigation', async ({ page }) => {
+test('mobile global menu opens the display sheet without restoring desktop navigation', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 390, height: 844 });
 
+  await expect(page.locator('.mobile-bottom-bar #mobileDisplayBtn')).toHaveCount(0);
+  await page.locator('#mobileMenuBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
   await expect(page.locator('#mobileDisplayBtn')).toBeVisible();
   await expect(page.locator('#mapDisplayBtn')).toBeHidden();
   await expect(page.locator('#objectSearchBtn')).toBeHidden();
   await page.locator('#mobileDisplayBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeHidden();
   await expect(page.locator('#mapDisplaySurface')).toBeVisible();
-  await expect(page.locator('[data-map-display-row="terrain"] .view-menu-leading')).toBeHidden();
+  await expect(page.locator('[data-map-display-row="terrain"] .view-menu-icon')).toBeHidden();
+  await expect(page.locator('[data-map-display-row="terrain"] .view-menu-leading span')).toBeVisible();
   await expect(page.locator('[data-map-display-row="terrain"] .view-menu-leading span')).toHaveText('지형');
   await page.locator('[data-map-display-row="terrain"]').click();
   await expect(page.locator('#terrainDisplayOptions')).toBeVisible();

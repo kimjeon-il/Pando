@@ -421,8 +421,15 @@ def build_library(recipe: dict[str, Any], geometry) -> bytes:
     output_path = ROOT / recipe["output"]
     library = load_json(output_path)
     entity = east_germany_entity(recipe, geometry)
-    entities = [item for item in library.get("entities", []) if item.get("libraryId") != recipe["entityId"]]
-    entities.append(entity)
+    # The geometry recipe owns its geometry/provenance fields. Catalog
+    # presentation metadata (including the curated default flag) has its own
+    # owner and must survive a geometry regeneration.
+    previous = next((item for item in library["entities"] if item["libraryId"] == recipe["entityId"]), None)
+    if previous is not None:
+        entity["metadata"] = {**previous["metadata"], **entity["metadata"]}
+    entities = [entity if item["libraryId"] == recipe["entityId"] else item for item in library["entities"]]
+    if previous is None:
+        entities.append(entity)
     library["entities"] = entities
     return (json.dumps(library, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 

@@ -1,4 +1,4 @@
-from tests.application_source import read_application_sources
+from tests.application_source import element_markup, read_application_sources, read_module, read_ui_sources
 import re
 import unittest
 from pathlib import Path
@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
-CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
+CSS = read_ui_sources(ROOT)
 SAVE_STATE = (ROOT / "assets/js/modules/save-state-controller.js").read_text(encoding="utf-8")
 GIS_IO = (ROOT / "assets/js/gis-io.js").read_text(encoding="utf-8")
 IMPORT_SERVICE = (ROOT / "assets/js/modules/import-service.js").read_text(encoding="utf-8")
@@ -25,20 +25,14 @@ class ShellFileSaveContractTests(unittest.TestCase):
             self.assertNotIn(identifier, combined)
 
     def test_topbar_uses_command_groups_and_status_overlay_owns_save_state(self):
-        topbar = re.search(r'<header class="topbar"[^>]*>(.*?)</header>', HTML, re.S)
-        self.assertIsNotNone(topbar)
-        markup = topbar.group(1)
-        self.assertNotIn('class="brand"', markup)
-        self.assertLess(markup.index('id="undoBtn"'), markup.index('id="mobileFileBtn"'))
-        self.assertLess(markup.index('id="mobileFileBtn"'), markup.index('id="preferencesBtn"'))
-        self.assertLess(markup.index('id="preferencesBtn"'), markup.index('id="helpBtn"'))
-        file_actions = re.search(r'<div class="topbar-file-actions">(.*?)</nav>\s*</div>', HTML, re.S)
-        self.assertIsNotNone(file_actions)
-        self.assertNotIn('id="projectSaveStatus"', file_actions.group(1))
-        bottom_status_start = HTML.index('id="mapBottomStatus"')
-        self.assertIn('id="projectSaveStatus"', HTML[bottom_status_start:HTML.index('</main>', bottom_status_start)])
-        self.assertNotIn('id="projectSaveStatus"', re.search(r'<div class="topbar-center"(.*?)</div>\s*</div>', HTML, re.S).group(1))
-        self.assertIn('class="topbar-center"', markup)
+        topbar = re.search(r'<header class="topbar"[^>]*>(.*?)</header>', HTML, re.S).group(1)
+        self.assertNotIn('class="brand"', topbar)
+        self.assertLess(topbar.index('id="undoBtn"'),topbar.index('id="mobileFileBtn"'))
+        self.assertLess(topbar.index('id="mobileFileBtn"'),topbar.index('id="preferencesBtn"'))
+        self.assertLess(topbar.index('id="preferencesBtn"'),topbar.index('id="helpBtn"'))
+        self.assertNotIn('id="projectSaveStatus"',topbar)
+        self.assertIn('topbar-file-actions',topbar)
+        self.assertIn('id="projectSaveStatus"',element_markup(HTML,'mapBottomStatus'))
 
     def test_file_menu_uses_application_commands_and_accessible_menu_roles(self):
         menu = re.search(r'<nav id="fileMenu"(.*?)</nav>', HTML, re.S)
@@ -49,32 +43,34 @@ class ShellFileSaveContractTests(unittest.TestCase):
             self.assertIn(label, markup)
         for old_label in ("GeoPackage 저장", "GIS 파일 열기", "GeoJSON 가져오기", "GeoJSON 내보내기", "벡터 데이터 가져오기"):
             self.assertNotIn(old_label, markup)
-        self.assertEqual(markup.count('role="menuitem"'), 5)
+        self.assertEqual(markup.count('role="menuitem"'), 6)
         topbar_markup = re.search(r'<header class="topbar"[^>]*>(.*?)</header>', HTML, re.S).group(1)
         self.assertIn('id="preferencesBtn"', topbar_markup)
         self.assertIn('id="helpBtn"', topbar_markup)
 
     def test_dirty_state_is_separate_from_autosave_and_transient_notifications(self):
-        self.assertIn("hasUnsavedChanges: false", SAVE_STATE)
-        self.assertIn("cleanContentToken", SAVE_STATE)
-        self.assertIn("status.hidden = false", APP)
-        self.assertIn("자동저장 실패. 파일로 저장하세요.", APP)
-        self.assertIn("프로젝트 저장에 실패했습니다.", APP)
-        self.assertNotIn("자동저장 용량을 초과했습니다", APP)
-        self.assertNotIn("saveStatusNeutralTimer", APP)
+        self.assertIn('hasUnsavedChanges: false', SAVE_STATE)
+        self.assertIn('cleanContentToken', SAVE_STATE)
+        self.assertIn('documentDirty', SAVE_STATE)
+        self.assertIn('presentationDirty', SAVE_STATE)
+        self.assertIn('project-save-status',element_markup(HTML,'projectSaveStatus'))
+        self.assertIn('queueAutosave',read_module(ROOT,'project-domain.js'))
+        self.assertNotIn('saveStatusNeutralTimer', APP)
+        self.assertNotIn('자동저장 용량을 초과했습니다', APP)
 
     def test_one_loader_classifies_projects_from_real_project_state_metadata(self):
         self.assertIn("importSourceKind = session.projectMetadata?.projectState ? 'project' : 'vector'", GIS_IO)
-        self.assertIn("importStepRoute = importSourceKind === 'project' ? [0, 4] : [0, 1, 2, 3, 4]", GIS_IO)
+        self.assertIn("importStepRoute = importSourceKind === 'project' ? [4] : [1, 3, 4]", GIS_IO)
         self.assertIn("result.sourceKind === 'project'", IMPORT_SERVICE)
         self.assertNotIn("dataset.fileIntent", APP)
 
     def test_project_save_and_gis_data_export_are_separate_commands(self):
         self.assertIn('id="saveProjectBtn"', HTML)
         self.assertIn('id="dataExportBtn"', HTML)
-        self.assertIn("mode: 'gis'", APP)
-        self.assertIn("exportGeoJsonBundle", GIS_IO)
-        self.assertIn("pandolab_project_settings", GIS_IO + (ROOT / "assets/js/workers/gis-gpkg-worker.js").read_text(encoding="utf-8"))
+        self.assertIn('projectDomain',read_module(ROOT,'gis-file-controller.js'))
+        self.assertIn('exportGeoJsonBundle', GIS_IO)
+        self.assertIn('pandolab_project_settings',GIS_IO+(ROOT/'assets/js/workers/gis-gpkg-worker.js').read_text(encoding='utf-8'))
+        self.assertIn('saveProject',read_module(ROOT,'gis-file-controller.js'))
 
 
 if __name__ == "__main__":

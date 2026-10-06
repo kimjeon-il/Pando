@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import function_source, read_application_sources, read_module
 
 import unittest
 from pathlib import Path
@@ -12,19 +12,16 @@ LAYER_TREE = (ROOT / "assets" / "js" / "modules" / "layer-tree-controller.js").r
 
 class LayerLockSyncTests(unittest.TestCase):
     def test_lock_changes_patch_rendered_object_rows_without_tree_invalidation(self):
-        row_factory = LAYER_TREE
-        batch_lock = APP[APP.index("function batchSetLocked"):APP.index("function batchToggleLocked")]
-        distribution_lock = APP[APP.index("function commitDistributionMeta"):APP.index("function createDistributionLayerFromPrompt")]
-        territorial_lock = APP[APP.index("function setTerritorialEntityLocked"):APP.index("window.PANDOLAB_TERRITORIAL")]
-
-        self.assertIn("const syncLock =", row_factory)
-        self.assertIn("rowRef.key !== ref.key", row_factory)
-        self.assertIn("row.classList.contains('has-no-menu')", row_factory)
-        self.assertIn("if (hasMenu && ref && objectRefLocked(ref))", row_factory)
-        self.assertIn("layerTreeController?.syncLocks(refs);", batch_lock)
-        self.assertNotIn("markLayerTreeDirty();", batch_lock)
-        self.assertIn("field === 'locked') layerTreeController?.syncLocks", distribution_lock)
-        self.assertIn("layerTreeController?.syncLocks([{ domain: 'territorial', type, id: key }]);", territorial_lock)
+        commands = read_module(ROOT, 'app-object-commands.js')
+        batch = function_source(commands, 'batchSetLocked')
+        self.assertIn('syncLocks(refs)', batch)
+        self.assertNotIn('markLayerTreeDirty', batch)
+        search_row = function_source(LAYER_TREE, 'rowFor')
+        self.assertNotIn('locked', search_row)
+        self.assertNotIn('Lock', search_row)
+        self.assertIn('objectRefLocked', APP)
+        self.assertIn('presentPrimary({ refreshOnly: true })', batch)
+        self.assertIn('syncBatchActionAvailability', batch)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 import unittest
 
@@ -11,18 +12,20 @@ HTML = (ROOT / 'index.html').read_text(encoding='utf-8')
 class LayerStyleCapabilityTests(unittest.TestCase):
     def test_layer_controls_only_expose_supported_capabilities(self):
         targets = MAP_SETTINGS[MAP_SETTINGS.index('(LAYER_STYLE_TARGETS = Object.freeze({'):MAP_SETTINGS.index('(projectSerializer =')]
-        self.assertIn("countries: { presentationGroup: 'countries', label: '국가', opacity: true, boundary: true, boundaryLabel: '국경 표시' }", targets)
-        for group in ('subunits', 'regions'):
-            self.assertIn(f"{group}: {{ presentationGroup: '{group}'", targets)
-        for group in ('languages', 'ethnicities', 'religions'):
-            self.assertIn(f"{group}: {{ presentationGroup: '{group}',", targets)
-            self.assertIn("blendMode: true", targets)
-        self.assertIn("rivers: { presentationGroup: 'rivers', label: '강', opacity: true }", targets)
-        self.assertIn("lakes: { presentationGroup: 'lakes', label: '호수', opacity: true }", targets)
-        self.assertIn("genericFeatures: { presentationGroup: 'genericFeatures', label: '기타 객체', opacity: true, opacityLabel: '전체 투명도' }", targets)
+        rows = dict(re.findall(r"(\w+): \{([^}]*)\}", targets))
+        self.assertEqual(set(rows), {'countries','subunits','regions','distributions','rivers','lakes','genericFeatures'})
+        for group in ('countries','subunits','regions'):
+            for capability in ('color','opacity','boundary'):
+                self.assertIn(f'{capability}: true', rows[group])
+        self.assertIn('blendMode: true', rows['distributions'])
+        self.assertNotIn('boundary: true', rows['distributions'])
+        for group in ('rivers','lakes','genericFeatures'):
+            self.assertIn('opacity: true', rows[group])
+            self.assertNotIn('boundary: true', rows[group])
+            self.assertNotIn('blendMode: true', rows[group])
 
     def test_distribution_controls_live_in_view_not_layer_tree(self):
-        self.assertIn('id="distributionViewSettingsTitle">인문 분포', HTML)
+        self.assertIn('id="distributionViewSettingsTitle">분포', HTML)
         self.assertIn('id="distributionLayerModeInput"', HTML)
         self.assertIn('id="distributionBoundaryVisibleInput"', HTML)
         self.assertNotIn('data-map-display-disclosure="distribution"', HTML)

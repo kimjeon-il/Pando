@@ -65,52 +65,56 @@ async function selectionColorPixelCount(page, expected = [205, 169, 93]) {
   }, expected);
 }
 
-test('theme defaults, custom selection colors, and reset stay synchronized', async ({ page }) => {
+test('theme defaults, accent previews, cancel and reset keep selection and hover synchronized', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page);
 
   const initialStyle = await page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__);
   expect(initialStyle).toMatchObject({
     theme: 'dark',
-    hover: { color: '#d7ba7d', fillAlpha: 0.05775 },
-    selection: { color: '#cda95d' },
+    hover: { color: '#70a6ff', fillAlpha: 0.10 * 0.35 },
+    selection: { color: '#70a6ff' },
   });
-  await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--map-selection-halo').trim())).toBe('#cda95d');
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--map-selection-halo').trim())).toBe('#70a6ff');
 
   await page.evaluate(() => document.querySelector('#preferencesBtn').click());
   await expect(page.locator('#preferencesModal')).toBeVisible();
-  await expect(page.locator('#preferencesSelectionColorValue')).toHaveText('기본 색상');
-  await expect(page.locator('#preferencesSelectionColorInput')).toHaveValue('#cda95d');
+  await expect(page.locator('[data-preference-accent="blue"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#preferencesSelectionColorInput')).toHaveCount(0);
 
   await page.locator('[data-preference-theme="light"]').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__)).toMatchObject({
     theme: 'light',
-    hover: { color: '#5a7eb1', fillAlpha: 0.05 },
-    selection: { color: '#315e9d' },
+    hover: { color: '#316fd3', fillAlpha: 0.08 * 0.35 },
+    selection: { color: '#316fd3' },
   });
-  await expect(page.locator('#preferencesSelectionColorInput')).toHaveValue('#315e9d');
-
-  await page.locator('#preferencesSelectionColorTrigger').click();
-  await page.locator('#preferencesSelectionColorPopover [data-color-value="#8b5cf6"]').click();
+  await page.locator('[data-preference-accent="purple"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__)).toMatchObject({
-    hover: { color: '#a27df8' },
-    selection: { color: '#8b5cf6' },
+    hover: { color: '#7856d6' },
+    selection: { color: '#7856d6' },
   });
   await page.locator('[data-preference-theme="dark"]').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__)).toMatchObject({
     theme: 'dark',
-    hover: { color: '#a27df8' },
-    selection: { color: '#8b5cf6' },
+    hover: { color: '#ad8cff' },
+    selection: { color: '#ad8cff' },
   });
 
-  await page.locator('#preferencesSelectionColorTrigger').click();
-  await page.locator('#preferencesSelectionColorPopover [data-color-default]').click();
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences')).selection.color)).toBeNull();
-  await expect(page.locator('#preferencesSelectionColorValue')).toHaveText('기본 색상');
+  // Preview does not overwrite the stored preferences. Cancel restores both theme and accent.
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences')).selection.color)).toBeNull();
+  await page.locator('#preferencesCancelBtn').click();
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__)).toMatchObject({
-    hover: { color: '#d7ba7d' },
-    selection: { color: '#cda95d' },
+    theme: 'dark', hover: { color: '#70a6ff' }, selection: { color: '#70a6ff' },
+  });
+  await page.evaluate(() => document.querySelector('#preferencesBtn').click());
+  await page.locator('[data-preference-accent="purple"]').click();
+  await page.locator('#preferencesResetBtn').click();
+  await expect(page.locator('[data-preference-accent="blue"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-preference-theme="dark"]').click();
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_INTERACTION_STYLE__)).toMatchObject({
+    hover: { color: '#70a6ff' },
+    selection: { color: '#70a6ff' },
   });
   expect(errors).toEqual([]);
 });

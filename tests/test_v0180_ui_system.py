@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import assert_shell_versions, element_markup, function_source, read_application_sources, read_ui_sources
 
 import re
 import unittest
@@ -10,69 +10,68 @@ ROOT = Path(__file__).parents[1]
 LAYER_MODEL = (ROOT / "assets/js/modules/layer-list-model.js").read_text(encoding="utf-8")
 LAYER_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
-CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
-PHASE_CSS = (ROOT / "assets" / "css" / "phase1-ui-cleanup.css").read_text(encoding="utf-8")
+CSS = read_ui_sources(ROOT)
+DIALOG_CSS = (ROOT / "assets/css/components/dialogs.css").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
 LAYER_TREE = (ROOT / "assets" / "js" / "modules" / "layer-tree-controller.js").read_text(encoding="utf-8")
 
 
 class V0180UiSystemTests(unittest.TestCase):
     def test_build_and_cache_revision_are_coherent(self):
-        self.assertIn('data-app-version="0.30.0"', INDEX)
-        for asset in ("app.css", "gis-io.js", "bootstrap.js"):
-            self.assertIn(f"{asset}?v=0.30.0-r44", INDEX)
-        self.assertIn("const APP_VERSION = '0.30.0'", APP)
+        assert_shell_versions(self, ROOT, INDEX)
 
     def test_disclosures_use_one_svg_icon(self):
-        toggles = re.findall(r'class="ui-button layer-folder-toggle"[^>]*>(.*?)</button>', INDEX)
-        self.assertEqual(len(toggles), 0)
-        self.assertIn("createIcon('chevronDown', 'ui-icon disclosure-icon')", LAYER_CONTROLLER)
         self.assertNotIn('>›</button>', INDEX)
         self.assertNotIn("content: '⌄'", CSS)
-        self.assertIn(".editor-disclosure > summary::-webkit-details-marker { display: none; }", CSS)
+        self.assertIn('icon-chevron-down', element_markup(INDEX, 'gisAdvancedMapping'))
+        self.assertIn('disclosure-icon', element_markup(INDEX, 'gisAdvancedMapping'))
+        self.assertIn('summary::-webkit-details-marker', CSS)
+        self.assertIn('display: none', CSS)
 
     def test_transient_button_flash_is_removed(self):
         self.assertNotIn("function flashButton", APP)
         self.assertNotIn("button-flash", CSS)
 
     def test_gis_import_layout_is_owned_by_the_canonical_dialog_stylesheet(self):
-        for selector in ("#gisImportModal", "#gisImportForm"):
-            self.assertNotIn(selector, PHASE_CSS)
-        for selector in (
-            "#gisImportModal .ui-dialog-card {",
-            "#gisImportForm > .gis-import-content-rail {",
-            "#gisImportModal .ui-dialog-actions {",
-            "body[data-layout=\"mobile\"] #gisImportModal .ui-dialog-card {",
-        ):
-            self.assertIn(selector, CSS)
+        modals = (ROOT / 'assets/css/components/modals.css').read_text(encoding='utf-8')
+        for selector in ('.gis-import-dialog .ui-dialog-card', '.gis-import-form > .gis-import-content-rail', '.gis-import-dialog .ui-dialog-actions'):
+            self.assertIn(selector, DIALOG_CSS)
+            self.assertNotIn(selector, modals)
+        self.assertIn('gis-import-content-rail', element_markup(INDEX, 'gisImportForm'))
+        self.assertFalse((ROOT / 'assets/css/phase1-ui-cleanup.css').exists())
 
     def test_layer_hydration_is_scoped_and_present_in_initial_markup(self):
-        self.assertIn('id="layerSection" class="panel-section ui-panel--dense layer-panel-section is-hydrating"', INDEX)
-        self.assertIn('aria-busy="true"', INDEX)
-        self.assertRegex(INDEX, r'id="layerSearchInput"[^>]*disabled')
-        self.assertEqual(INDEX.count('class="layer-skeleton-group"'), 3)
-        self.assertEqual(INDEX.count('class="layer-skeleton-row"'), 10)
-        self.assertIn('.layer-panel-section.is-hydrating .layer-real-items { display: none; }', CSS)
-        self.assertIn('const completeHydration = async', LAYER_TREE)
+        section = element_markup(INDEX, 'objectSearchSection')
+        self.assertIn('object-search-section is-hydrating', section)
+        self.assertIn('aria-busy="true"', section)
+        self.assertRegex(element_markup(INDEX,'layerSearchInput'), r'\bdisabled\b')
+        self.assertIn('async function completeHydration', LAYER_TREE)
+        hydration = function_source(LAYER_TREE,'completeHydration')
+        self.assertIn("setAttribute('aria-busy', 'false')", hydration)
+        self.assertIn('elements.search.disabled = false', hydration)
         self.assertNotIn('body.is-hydrating', CSS)
 
     def test_native_selection_controls_are_visually_normalized(self):
-        self.assertIn('input[type="checkbox"],\ninput[type="radio"]', CSS)
-        self.assertIn("appearance: none;", CSS)
-        self.assertIn("select {", CSS)
-        self.assertIn("icon-chevron-down", INDEX)
+        for input_type in ('checkbox','radio'):
+            self.assertIn(f'input[type="{input_type}"]', CSS)
+        self.assertIn('appearance: none', CSS)
+        self.assertIn('select {', CSS)
+        self.assertIn('icon-chevron-down', INDEX)
 
     def test_segmented_controls_share_one_rule(self):
         self.assertIn(".ui-segmented {", CSS)
         self.assertIn(".ui-segment-option {", CSS)
         self.assertIn('class="ui-segmented projection-control"', INDEX)
-        self.assertIn('class="ui-segmented mode-method-switch hidden"', INDEX)
+        methods = element_markup(INDEX,'modeMethodSwitch')
+        self.assertIn('role="radiogroup"', methods)
+        self.assertEqual(re.findall(r'type="radio"[^>]*value="([^"]+)"', methods), ['line','polygon','components'])
 
     def test_touch_controls_keep_shared_component_language(self):
-        self.assertIn('#app[data-layout="mobile"] .icon-btn,', CSS)
-        self.assertIn("width: var(--ui-touch-height);", CSS)
-        self.assertIn('id="mobileZoomInBtn" class="ui-button icon-btn"', INDEX)
-        self.assertIn('id="mobileZoomOutBtn" class="ui-button icon-btn"', INDEX)
+        self.assertIn('min-height: var(--ui-touch-height)', CSS)
+        for element_id in ('resetViewBtn','objectSearchBtn','createMenuBtn'):
+            self.assertIn('ui-button', element_markup(INDEX,element_id))
+        self.assertIn('touch-action: manipulation', CSS)
+        self.assertNotIn('mobileZoomInBtn', INDEX)
 
     def test_browser_metadata_keeps_the_name_while_topbar_omits_branding(self):
         self.assertIn('<link rel="icon" href="data:," />', INDEX)

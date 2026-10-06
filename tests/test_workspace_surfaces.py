@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.application_source import read_ui_sources
 
 import re
 import unittest
@@ -9,7 +10,7 @@ ROOT = Path(__file__).parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 SURFACE = (ROOT / "assets/js/modules/surface-controller.js").read_text(encoding="utf-8")
 SHEETS = (ROOT / "assets/js/modules/mobile-sheet-controller.js").read_text(encoding="utf-8")
-CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
+CSS = read_ui_sources(ROOT)
 
 
 class WorkspaceSurfaceContracts(unittest.TestCase):

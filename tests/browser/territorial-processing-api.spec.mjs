@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { PROJECT_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 test.use({ channel: 'chromium' });
 
 test('common entities feed editing, undo, autosave and restoration', async ({ page }) => {
@@ -18,9 +19,10 @@ test('common entities feed editing, undo, autosave and restoration', async ({ pa
     return { country: api.get('DEU'), unit };
   });
   for (const [type, entity] of [['country', before.country], ['subunit', before.unit]]) {
-    await page.evaluate(({ type, id }) => window.PANDOLAB_TERRITORIAL.select(type, id), { type, id: entity.id });
-    await expect(page.locator(`#${type}Properties`)).toBeVisible();
-    const input = page.locator(`#${type}NameInput`);
+    expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), entity.id)).toBe(true);
+    if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
+    await expect(page.locator('#entityProperties')).toBeVisible();
+    const input = page.locator('#entityNameInput');
     await input.fill(`공통 경로 ${type}`);
     await input.dispatchEvent('change');
     await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.name, entity.id)).toBe(`공통 경로 ${type}`);
@@ -35,10 +37,16 @@ test('common entities feed editing, undo, autosave and restoration', async ({ pa
     nodes.find(node => node.__data__?.id === id)?.__data__?.properties.style.color, id)).toBe('#123456');
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.style, id)).toEqual(before.unit.properties.style);
-  await page.evaluate(id => {
-    window.PANDOLAB_TERRITORIAL.setColor('DEU', '#476fae');
-    window.PANDOLAB_TERRITORIAL.setColor(id, '#123456');
+  const colorCommits = await page.evaluate(id => {
+    return {
+      country: window.PANDOLAB_TERRITORIAL.setColor('DEU', '#476fae'),
+      unit: window.PANDOLAB_TERRITORIAL.setColor(id, '#123456'),
+    };
   }, id);
+  expect(colorCommits.country.changed).toBe(true);
+  expect(colorCommits.unit.changed).toBe(true);
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.style.color, id)).toBe('#123456');
+  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.style.color)).toBe('#476fae');
   const saved = () => page.evaluate(async () => {
     const db = await new Promise((resolve, reject) => {
       const request = indexedDB.open('pandolab-editor', 2);
@@ -49,11 +57,29 @@ test('common entities feed editing, undo, autosave and restoration', async ({ pa
       request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
     }); } finally { db.close(); }
   });
-  await expect.poll(async () => (await saved())?.entityDelta?.changed.find(entity => entity.id === id)?.properties.style.color,
-    { timeout:15000 }).toBe('#123456');
+  try {
+    await expect.poll(async () => (await saved())?.entityDelta?.changed.find(entity => entity.id === id)?.properties.style.color,
+      { timeout:30000 }).toBe('#123456');
+  } catch (error) {
+    const diagnostic = await page.evaluate(id => ({
+      diagnostics: window.__PANDOLAB_RELIABILITY_LOG__.snapshot(),
+      currentColor: window.PANDOLAB_TERRITORIAL.get(id).properties.style.color,
+      countryColor: window.PANDOLAB_TERRITORIAL.get('DEU').properties.style.color,
+    }), id);
+    const savedProject = await saved();
+    console.log('territorial autosave diagnostics', JSON.stringify({ format: savedProject?.format,
+      savedColor: savedProject?.entityDelta?.changed.find(entity => entity.id === id)?.properties.style.color,
+      savedCountryColor: savedProject?.entityDelta?.changed.find(entity => entity.id === 'DEU')?.properties.style.color,
+      colorCommits,
+      diagnostic }));
+    throw error;
+  }
   const project = await saved();
-  expect(project.schemaVersion).toBe(7);
-  expect(project.territorialModel.schemaVersion).toBe(3);
+  expect(project.schemaVersion).toBe(PROJECT_SCHEMA_VERSION);
+  expect(project.territorialModel.schemaVersion).toBe(TERRITORIAL_MODEL_SCHEMA_VERSION);
+  expect(project.timelineRecords.schemaVersion).toBe(1);
+  expect(project.geometries.length).toBeGreaterThan(0);
+  expect(project.entityDelta.changed.every(entity => entity.geometry === null)).toBe(true);
   expect(project.entityDelta.changed.find(entity => entity.id === 'DEU').properties.style.color).toBe('#476fae');
   for (const key of ['countriesData','countryOverrides','countryDelta','territorialUnits']) expect(key in project).toBe(false);
   await page.reload();

@@ -15,6 +15,9 @@ export async function selectUiOption(page, selector, value) {
   const control = select.locator('..').locator('.ui-select-control');
   if (await control.count() && await control.isVisible()) {
     await control.click();
+    // The current searchable control renders a bounded result list. Query it
+    // through the real input so an option beyond that list can be selected.
+    if (await control.getAttribute('aria-autocomplete') === 'list') await control.fill(label);
     await page.locator('.ui-select-popover:not([hidden])')
       .getByRole('option', { name: label, exact: true })
       .click();

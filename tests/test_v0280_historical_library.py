@@ -25,7 +25,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
             self.assertIn(field, MODEL)
 
     def test_current_and_past_are_dates_not_distinct_types(self):
-        self.assertIn("COUNTRY: 'country'", MODEL)
+        self.assertIn("GENERAL: 'general'", MODEL)
         self.assertNotIn("COUNTRY: 'currentCountry'", MODEL)
         self.assertNotIn("COUNTRY: 'historicalCountry'", MODEL)
         self.assertIn("status === 'current'", MODEL)
@@ -49,7 +49,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertIn("geometry: clone(version.geometry)", MODEL)
 
     def test_pilot_data_discloses_approximation_and_sources(self):
-        self.assertEqual(PILOT["schemaVersion"], 2)
+        self.assertEqual(PILOT["schemaVersion"], 3)
         self.assertGreaterEqual(len(PILOT["entities"]), 4)
         pilot_entities = [entity for entity in PILOT["entities"] if entity["metadata"].get("pilot")]
         self.assertGreaterEqual(len(pilot_entities), 3)
@@ -69,7 +69,11 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertEqual(east_germany["geometryVersions"][0]["certainty"], "medium")
         self.assertEqual(east_germany["instantiation"]["mode"], "territory-replacement")
         for entity in pilot_entities:
-            if entity["type"] != "country" or entity is east_germany or entity["libraryId"] == "historical-country:nagorno-karabakh":
+            if entity["entityKind"] != "general" or entity is east_germany or entity["libraryId"] == "historical-country:nagorno-karabakh":
+                continue
+            if entity.get("parentLibraryId"):
+                self.assertEqual(entity["geometryVersions"][0]["datePrecision"], "reference-year")
+                self.assertEqual(entity["geometryVersions"][0]["certainty"], "medium")
                 continue
             if entity["libraryId"] in supplemental_ids:
                 self.assertEqual(entity["geometryVersions"][0]["datePrecision"], "reference-date")
@@ -88,7 +92,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         by_id = {entity["libraryId"]: entity for entity in PILOT["entities"]}
         for library_id, dates in expected.items():
             entity = by_id[library_id]
-            self.assertEqual(entity["type"], "country")
+            self.assertEqual(entity["entityKind"], "general")
             self.assertEqual(entity["instantiation"]["mode"], "territory-replacement")
             self.assertEqual((entity["startDate"], entity["endDate"]), dates)
             if library_id == "historical-country:yugoslavia":
@@ -108,15 +112,15 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         ]
         self.assertEqual(len(children), 15)
         for entity in children:
-            self.assertEqual(entity["type"], "subunit")
-            self.assertEqual(entity["sovereignLibraryId"], "historical-country:soviet-union")
+            self.assertEqual(entity["entityKind"], "general")
+            self.assertEqual(entity["parentLibraryId"], "historical-country:soviet-union")
             self.assertNotIn("adminLevel", entity)
             self.assertTrue(entity["metadata"]["defaultFlagDataUrl"].startswith("data:image/svg+xml;base64,"))
 
     def test_east_prussia_rebuild_preserves_identity_and_discloses_uncertainty(self):
         entity = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:east-prussia")
         version = entity["geometryVersions"][0]
-        self.assertEqual(entity["type"], "country")
+        self.assertEqual(entity["entityKind"], "general")
         self.assertEqual(entity["displayNames"]["ko"], "동프로이센주")
         self.assertEqual(entity["startDate"], "1878-04-01")
         self.assertEqual(entity["endDate"], "1920-01-10")
@@ -136,7 +140,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
 
     def test_north_schleswig_is_registered_as_a_reference_date_country(self):
         entity = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:north-schleswig")
-        self.assertEqual(entity["type"], "country")
+        self.assertEqual(entity["entityKind"], "general")
         self.assertEqual(entity["displayNames"]["ko"], "북슐레스비히")
         self.assertEqual(entity["geometryVersions"][0]["id"], "north-schleswig-1900-r3")
         self.assertEqual(entity["geometryVersions"][0]["validFrom"], "1900-01-01")

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import assert_shell_versions, element_markup, function_source, read_application_sources, read_module, read_ui_sources
 
 import hashlib
 import re
@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 APP = read_application_sources(ROOT)
 BOOTSTRAP = (ROOT / "assets" / "js" / "bootstrap.js").read_text(encoding="utf-8")
-CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
+CSS = read_ui_sources(ROOT)
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 README = (ROOT / "README.md").read_text(encoding="utf-8")
 FONT = ROOT / "assets" / "fonts" / "pretendard-v1.3.9" / "PretendardVariable.woff2"
@@ -28,21 +28,7 @@ REVISION_FILES = [
 
 class V0150TypographyCopyTests(unittest.TestCase):
     def test_versioned_shell_and_cache_keys_match(self):
-        self.assertIn('data-app-version="0.30.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.30.0'", APP)
-        self.assertIn("const BUILD_ID = '0.30.0'", BOOTSTRAP)
-        self.assertIn("const ASSET_REVISION = '0.30.0-r44'", BOOTSTRAP)
-        self.assertIn("app.css?v=0.30.0-r44", INDEX)
-        self.assertIn("bootstrap.js?v=0.30.0-r44", INDEX)
-        self.assertIn("recoverCacheMismatch()", BOOTSTRAP)
-        self.assertIn("location.replace(recoveryUrl.href)", BOOTSTRAP)
-
-        revisions = {
-            match
-            for file_path in REVISION_FILES
-            for match in re.findall(r"0\.30\.0-r\d+", file_path.read_text(encoding="utf-8"))
-        }
-        self.assertEqual(revisions, {"0.30.0-r44"})
+        assert_shell_versions(self, ROOT, INDEX)
 
     def test_official_pretendard_is_bundled_and_preloaded(self):
         self.assertTrue(FONT.is_file())
@@ -58,17 +44,17 @@ class V0150TypographyCopyTests(unittest.TestCase):
 
     def test_semantic_type_scale_and_weights(self):
         for token in (
-            "--ui-font-map: 12px",
-            "--ui-font-caption: 13px",
-            "--ui-font-label: 14px",
-            "--ui-font-body: 15px",
-            "--ui-font-section: 16px",
-            "--ui-font-title: 18px",
-            "--ui-font-modal-title: 20px",
-            "--ui-weight-regular: 400",
-            "--ui-weight-medium: 500",
-            "--ui-weight-semibold: 600",
-            "--ui-weight-bold: 700",
+            "--ui-font-map: var(--map-font-body)",
+            "--ui-font-caption: var(--design-font-sm)",
+            "--ui-font-label: var(--design-font-md)",
+            "--ui-font-body: var(--design-font-md)",
+            "--ui-font-section: var(--design-font-lg)",
+            "--ui-font-title: var(--design-font-xl)",
+            "--ui-font-modal-title: var(--design-font-xl)",
+            "--ui-weight-regular: var(--design-weight-regular)",
+            "--ui-weight-medium: var(--design-weight-medium)",
+            "--ui-weight-semibold: var(--design-weight-semibold)",
+            "--ui-weight-bold: var(--design-weight-bold)",
         ):
             self.assertIn(token, CSS)
         self.assertFalse(re.search(r"font-weight:\s*(?:650|750|760|800)\b", CSS))
@@ -78,7 +64,7 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn('id="modeTaskName"', INDEX)
         self.assertIn('id="modeTaskStage"', INDEX)
         self.assertIn('id="modeTaskInstruction"', INDEX)
-        self.assertIn('placeholder="레이어 검색"', INDEX)
+        self.assertIn('placeholder="지도에서 찾기"', INDEX)
         self.assertNotIn('>현재 작업<', INDEX)
         self.assertNotIn("현재 도구", INDEX)
         self.assertNotIn("레이어 항목 검색", INDEX)
@@ -106,15 +92,20 @@ class V0150TypographyCopyTests(unittest.TestCase):
         self.assertIn("영토를 가져올 국가", APP)
         self.assertIn("기준 국가", APP)
         self.assertIn("합병할 국가", APP)
-        self.assertIn("가져올 국가를 고른 뒤, 아래에서 편입 방식을 선택하세요.", APP)
-        self.assertIn("영역 안쪽을 클릭하세요.", APP)
+        self.assertIn("가져올 국가를 선택하세요.", APP)
+        self.assertIn("국가 영토 안쪽을 선택하세요.", APP)
 
     def test_fatal_initialization_and_runtime_errors_are_separate(self):
-        self.assertIn("let runtimeReady = false", APP)
-        self.assertIn("runtimeReady = true", APP)
-        self.assertIn("function handleUnexpectedRuntimeError", APP)
-        self.assertIn("if (!runtimeReady)", APP)
-        self.assertNotIn("GitHub Pages 또는 로컬 HTTP 서버에서 열었는지 확인", APP)
+        environment = read_module(ROOT, "app-environment.js")
+        notifications = read_module(ROOT, "app-readiness-notifications.js")
+        ports = read_module(ROOT, "app-capability-ports-lifecycle-ui.js")
+        self.assertIn("runtimeReady = false", environment)
+        self.assertIn("providers.environment.runtimeReady = true", ports)
+        handler = function_source(notifications, "handleUnexpectedRuntimeError")
+        self.assertIn("if (!dependencies.readiness.runtimeReady)", handler)
+        self.assertIn("showFatalError", handler)
+        self.assertIn("PL-RUNTIME-001", handler)
+        self.assertIn("console.error", handler)
 
     def test_bootstrap_loading_copy_and_hierarchy_are_fixed(self):
         text_index = INDEX.index('id="bootstrapLoadingText"')
@@ -122,12 +113,11 @@ class V0150TypographyCopyTests(unittest.TestCase):
         progress_index = INDEX.index('class="ui-progress bootstrap-progress"')
         self.assertLess(text_index, probe_index)
         self.assertLess(probe_index, progress_index)
-        self.assertIn('id="bootstrapLoadingText">지도를 표시하는 중입니다<', INDEX)
-        self.assertIn('id="startupProbe" class="startup-probe">잠시만 기다려 주세요<', INDEX)
-        self.assertNotIn("JavaScript·Worker 실행을 확인하세요", INDEX)
-        self.assertIn('#bootstrapLoadingText { color: var(--text-strong); font-size: var(--ui-font-body); font-weight: var(--ui-weight-semibold);', CSS)
-        self.assertIn('.startup-probe { margin-top: var(--ui-space-1-5); color: var(--muted); font-size: var(--ui-font-caption);', CSS)
-        self.assertIn('.ui-progress.bootstrap-progress { height: 4px; margin-top: var(--ui-space-4);', CSS)
+        self.assertIn('지도를 표시하는 중입니다', element_markup(INDEX, 'bootstrapLoadingText'))
+        self.assertIn('잠시만 기다려 주세요', element_markup(INDEX, 'startupProbe'))
+        feedback = (ROOT / 'assets/css/components/feedback.css').read_text(encoding='utf-8')
+        self.assertRegex(feedback, r'\.bootstrap-loading-text\s*\{[^}]*font-size: var\(--ui-font-body\)')
+        self.assertRegex(feedback, r'\.startup-probe\s*\{[^}]*font-size: var\(--ui-font-caption\)')
         self.assertIn("message.textContent = '지도를 불러오지 못했습니다'", BOOTSTRAP)
         self.assertIn("probe.textContent = '페이지를 새로고침해 다시 시도해 주세요'", BOOTSTRAP)
 
