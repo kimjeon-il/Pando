@@ -19,7 +19,7 @@ const DATA_MANIFEST_PATHS = Object.freeze([
   'assets/data/terrain/v0.12.6/manifest.json',
   'assets/data/hydro/v0.13.1/manifest.json',
   'assets/data/places/manifest.json',
-  'assets/data/territorial-entities/generated/v1/index.json',
+  'assets/data/territorial-entities/generated/v2/index.json',
 ]);
 
 function gitRevision() {
@@ -64,7 +64,7 @@ function buildDataRevision() {
 }
 
 const dataRevision = buildDataRevision();
-const indexBytes = readFileSync(resolve(projectRoot, 'assets/data/territorial-entities/generated/v1/index.json'));
+const indexBytes = readFileSync(resolve(projectRoot, 'assets/data/territorial-entities/generated/v2/index.json'));
 const territorialIndex = { encoding: 'identity', compressedBytes: indexBytes.length, decodedBytes: indexBytes.length,
   sha256: createHash('sha256').update(indexBytes).digest('hex') };
 

@@ -354,12 +354,11 @@ def east_germany_entity(recipe: dict[str, Any], geometry) -> dict[str, Any]:
     # places can collapse nearby nodes and reintroduce self-intersections.
     mapped["coordinates"] = round_coordinates(mapped["coordinates"], 12)
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "entityId": recipe["entityId"],
         "parentEntityId": "",
         "entityKind": "general",
-        "canonicalName": "German Democratic Republic",
-        "displayNames": {
+        "names": {
             "ko": "독일 민주공화국",
             "en": "German Democratic Republic",
             "de": "Deutsche Demokratische Republik",
@@ -372,7 +371,7 @@ def east_germany_entity(recipe: dict[str, Any], geometry) -> dict[str, Any]:
         },
         "geometryVersions": [
             {
-                "id": recipe["id"],
+                "versionId": recipe["id"],
                 "validFrom": recipe["referenceDate"],
                 "validTo": recipe["referenceDate"],
                 "geometry": mapped,
@@ -420,20 +419,23 @@ def east_germany_entity(recipe: dict[str, Any], geometry) -> dict[str, Any]:
 
 def build_entity(recipe: dict[str, Any], geometry) -> bytes:
     output_path = ROOT / recipe["output"]
-    previous = load_json(output_path)
-    if previous["entityId"] != recipe["entityId"]:
+    lineage = load_json(output_path)
+    matches = [entity for entity in lineage["entities"] if entity["entityId"] == recipe["entityId"]]
+    if len(matches) != 1:
         raise RuntimeError("Recipe target identity mismatch")
+    previous = matches[0]
     replacement = east_germany_entity(recipe, geometry)
     # Geometry regeneration must preserve independently curated names, flags,
     # parent links and import provenance in the one authoritative entity file.
-    if not any(version["id"] == recipe["id"] for version in previous["geometryVersions"]):
+    if not any(version["versionId"] == recipe["id"] for version in previous["geometryVersions"]):
         raise RuntimeError("Recipe target version is absent; review the new version explicitly")
     entity = {**previous,
-              "geometryVersions": [replacement["geometryVersions"][0] if version["id"] == recipe["id"] else version
+              "geometryVersions": [replacement["geometryVersions"][0] if version["versionId"] == recipe["id"] else version
                                    for version in previous["geometryVersions"]],
               "metadata": {**previous["metadata"], **replacement["metadata"]},
               "sourceInfo": {**previous["sourceInfo"], **replacement["sourceInfo"]}}
-    return (json.dumps(entity, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+    lineage["entities"] = [entity if item["entityId"] == recipe["entityId"] else item for item in lineage["entities"]]
+    return (json.dumps(lineage, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 
 
 def main() -> int:
@@ -446,14 +448,14 @@ def main() -> int:
     builder = RecipeBuilder(recipe)
     geometry = builder.build_geometry()
     payload = build_entity(recipe, geometry)
-    stored_entity = json.loads(payload.decode("utf-8"))
-    stored_geometry = shape(stored_entity["geometryVersions"][0]["geometry"])
+    stored_entity = next(entity for entity in json.loads(payload.decode("utf-8"))["entities"] if entity["entityId"] == recipe["entityId"])
+    stored_geometry = shape(next(version["geometry"] for version in stored_entity["geometryVersions"] if version["versionId"] == recipe["id"]))
     diagnostics = validate_geometry(
         stored_geometry,
         builder.results["canonical-country"],
         recipe["validation"],
     )
-    if len(payload) > int(recipe["validation"]["maximumLibraryBytes"]):
+    if len(json.dumps(stored_entity).encode("utf-8")) > int(recipe["validation"]["maximumLibraryBytes"]):
         raise RuntimeError(f"historical library is {len(payload)} bytes, above the configured budget")
     output_path = ROOT / recipe["output"]
     if arguments.check:

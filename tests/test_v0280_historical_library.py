@@ -11,14 +11,14 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
 MODEL = (ROOT / "assets" / "js" / "modules" / "territorial-library.js").read_text(encoding="utf-8")
 CONTROLLER = (ROOT / "assets" / "js" / "modules" / "territorial-library-controller.js").read_text(encoding="utf-8")
-PILOT = {"schemaVersion": 1, "entities": [json.loads(p.read_text(encoding="utf-8")) for p in (ROOT / "assets/data/territorial-entities/source").glob("*.json")], "snapshots": json.loads((ROOT / "assets/data/territorial-entities/generated/v1/index.json").read_text(encoding="utf-8"))["snapshots"]}
+PILOT = {"schemaVersion": 1, "entities": [e for p in (ROOT / "assets/data/territorial-entities/source/countries").glob("*.json") for e in json.loads(p.read_text(encoding="utf-8"))["entities"]], "snapshots": json.loads((ROOT / "assets/data/territorial-entities/generated/v2/index.json").read_text(encoding="utf-8"))["snapshots"]}
 SERVICE = (ROOT / "assets/js/modules/territorial-library-service.js").read_text(encoding="utf-8")
 
 
 class V0280HistoricalLibraryTests(unittest.TestCase):
     def test_library_entity_and_geometry_version_are_separate(self):
         for field in (
-            "entityId", "canonicalName", "displayNames", "alternateNames", "lifetime",
+            "entityId", "names", "lineageId", "alternateNames", "lifetime",
             "parentEntityId", "geometryVersions", "sourceInfo",
         ):
             self.assertIn(field, MODEL)
@@ -124,7 +124,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         entity = next(item for item in PILOT["entities"] if item["entityId"] == "state:east-prussia")
         version = entity["geometryVersions"][0]
         self.assertEqual(entity["entityKind"], "general")
-        self.assertEqual(entity["displayNames"]["ko"], "동프로이센주")
+        self.assertEqual(entity["names"]["ko"], "동프로이센주")
         self.assertEqual(entity["lifetime"]["validFrom"], "1878-04-01")
         self.assertEqual(entity["lifetime"]["validTo"], "1920-01-10")
         self.assertEqual(entity["metadata"]["preferredInstanceId"], "HIST_DEU_OSTPREUSSEN_1900")
@@ -144,7 +144,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
     def test_north_schleswig_is_registered_as_a_reference_date_country(self):
         entity = next(item for item in PILOT["entities"] if item["entityId"] == "state:north-schleswig")
         self.assertEqual(entity["entityKind"], "general")
-        self.assertEqual(entity["displayNames"]["ko"], "북슐레스비히")
+        self.assertEqual(entity["names"]["ko"], "북슐레스비히")
         self.assertEqual(entity["geometryVersions"][0]["id"], "north-schleswig-1900-r3")
         self.assertEqual(entity["geometryVersions"][0]["validFrom"], "1900-01-01")
         self.assertEqual(entity["geometryVersions"][0]["validTo"], "1900-01-01")

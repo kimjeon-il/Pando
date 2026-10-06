@@ -249,7 +249,7 @@ export function createEnvironment() {
     (TERRAIN_FALLBACK_MANIFEST_URL = terrainSelection.fallback);
     (TERRAIN_SOURCE_CHOICE = terrainSelection.source);
 
-    (TERRITORIAL_LIBRARY_INDEX_URL = new URL('territorial-entities/generated/v1/index.json', PHYSICAL_DATA_BASE_URL));
+    (TERRITORIAL_LIBRARY_INDEX_URL = new URL('territorial-entities/generated/v2/index.json', PHYSICAL_DATA_BASE_URL));
 
     TERRITORIAL_LIBRARY_INDEX_URL.searchParams.set('v', ASSET_REVISION);
 
