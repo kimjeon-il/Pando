@@ -49,7 +49,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       .toBe(renderer === 'canvas' ? 'canvas-worker' : renderer);
     await page.locator('#terrainNoneRadio').evaluate(input => input.click());
     await page.locator('#flatBtn').evaluate(input => input.click());
-    await page.addStyleTag({ content: '#map text, #selectionToolbar { visibility: hidden !important; } #map .territorial-label-item { pointer-events: none !important; }' });
+    await page.addStyleTag({ content: '#map text { visibility: hidden !important; } #map .territorial-label-item { pointer-events: none !important; }' });
     const before = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL'));
     await page.evaluate(() => {
       window.PANDOLAB_TERRITORIAL.setColor('IRL', '#ff0000');

@@ -13,7 +13,6 @@ const sourceEntries = Object.freeze([
   Object.freeze({ role: 'surface-layout', path: 'assets/css/layout/surfaces.css' }),
   Object.freeze({ role: 'topbar', path: 'assets/css/components/topbar.css' }),
   Object.freeze({ role: 'editor-shell', path: 'assets/css/components/editor-shell.css' }),
-  Object.freeze({ role: 'selection-toolbar', path: 'assets/css/components/selection-toolbar.css' }),
   Object.freeze({ role: 'panels', path: 'assets/css/components/panels.css' }),
   Object.freeze({ role: 'menus', path: 'assets/css/components/menus.css' }),
   Object.freeze({ role: 'view-menu', path: 'assets/css/components/view-menu.css' }),

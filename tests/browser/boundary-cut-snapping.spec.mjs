@@ -72,7 +72,6 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   for (let index = 0; index < 2 && await page.locator('#mapDisplaySurface').isVisible(); index++) await page.keyboard.press('Escape');
   await expect(page.locator('#mapDisplaySurface')).toBeHidden();
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), parentId)).toBe(true);
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.locator('#focusSelectedObjectBtn').click();
   const before = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), parentId);

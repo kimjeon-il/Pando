@@ -3,32 +3,32 @@ import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createFoundationPorts } from '../../assets/js/modules/app-capability-ports-foundation.js';
 
-test('foundation toolbar capabilities expose the actual presentation methods without aliases', () => {
-  const selectionToolbarPresentation = { closeTransient() {}, syncInteraction() {} };
-  const ports = createFoundationPorts({ domainAssembly: { selectionToolbarPresentation } });
-  assert.equal(ports.domainControllers.closeSelectionToolbarTransient, selectionToolbarPresentation.closeTransient);
-  assert.equal(ports.domainControllers.syncSelectionToolbarInteraction, selectionToolbarPresentation.syncInteraction);
+test('foundation editor capabilities expose the actual presentation methods without aliases', () => {
+  const territorialPropertyController = { closeTransient() {}, syncInteraction() {} };
+  const ports = createFoundationPorts({ domainAssembly: { territorialPropertyController } });
+  assert.equal(ports.domainControllers.closeTerritorialEditorTransient, territorialPropertyController.closeTransient);
+  assert.equal(ports.domainControllers.syncTerritorialEditorInteraction, territorialPropertyController.syncInteraction);
   assert.equal(Object.hasOwn(ports.domainControllers, 'syncSelectionToolbarOcclusion'), false);
 });
 
-test('required toolbar capabilities fail before initialization and after their owner is reset', () => {
-  const domainAssembly = { selectionToolbarPresentation: null };
+test('required editor capabilities fail before initialization and after their owner is reset', () => {
+  const domainAssembly = { territorialPropertyController: null };
   const ports = createFoundationPorts({ domainAssembly });
-  for (const capability of ['closeSelectionToolbarTransient', 'syncSelectionToolbarInteraction']) {
+  for (const capability of ['closeTerritorialEditorTransient', 'syncTerritorialEditorInteraction']) {
     assert.throws(() => ports.domainControllers[capability], TypeError, capability);
   }
-  const toolbar = { closeTransient: () => true, syncInteraction: () => false };
-  domainAssembly.selectionToolbarPresentation = toolbar;
-  assert.equal(ports.domainControllers.closeSelectionToolbarTransient(), true);
-  assert.equal(ports.domainControllers.syncSelectionToolbarInteraction(), false);
-  domainAssembly.selectionToolbarPresentation = null;
-  for (const capability of ['closeSelectionToolbarTransient', 'syncSelectionToolbarInteraction']) {
+  const editor = { closeTransient: () => true, syncInteraction: () => false };
+  domainAssembly.territorialPropertyController = editor;
+  assert.equal(ports.domainControllers.closeTerritorialEditorTransient(), true);
+  assert.equal(ports.domainControllers.syncTerritorialEditorInteraction(), false);
+  domainAssembly.territorialPropertyController = null;
+  for (const capability of ['closeTerritorialEditorTransient', 'syncTerritorialEditorInteraction']) {
     assert.throws(() => ports.domainControllers[capability], TypeError, capability);
   }
   const replacement = { closeTransient: () => false, syncInteraction: () => true };
-  domainAssembly.selectionToolbarPresentation = replacement;
-  assert.equal(ports.domainControllers.closeSelectionToolbarTransient, replacement.closeTransient);
-  assert.equal(ports.domainControllers.syncSelectionToolbarInteraction, replacement.syncInteraction);
+  domainAssembly.territorialPropertyController = replacement;
+  assert.equal(ports.domainControllers.closeTerritorialEditorTransient, replacement.closeTransient);
+  assert.equal(ports.domainControllers.syncTerritorialEditorInteraction, replacement.syncInteraction);
 });
 
 const root = new URL('../../', import.meta.url);

@@ -13,10 +13,7 @@ function setup() {
   const focused = [];
   const presented = [];
   const opened = [];
-  const toolbarSynced = [];
   const presentationEvents = [];
-  const toolbarEvents = [];
-  let toolbarCleared = 0;
   const ui = createSelectionUiController({
     selectionDomain: domain,
     resolveRef: normalizeObjectRef,
@@ -28,14 +25,12 @@ function setup() {
       focusObject: ref => focused.push(ref.key),
       openEditor: ref => opened.push(ref.key),
       clearPresenter: () => presentationEvents.push({ kind: 'clear' }),
-      syncSelectionToolbar: ref => { toolbarSynced.push(ref?.key || ''); toolbarEvents.push(ref.key); },
-      clearSelectionToolbar: () => { toolbarCleared += 1; toolbarEvents.push(null); },
     },
   });
-  return { domain, ui, focused, presented, opened, toolbarSynced, presentationEvents, toolbarEvents, get toolbarCleared() { return toolbarCleared; } };
+  return { domain, ui, focused, presented, opened, presentationEvents };
 }
 
-test('toggle removal immediately reconciles the remaining presenter and toolbar', () => {
+test('toggle removal immediately reconciles the remaining presenter', () => {
   const state = setup();
   const a = country('A');
   const b = country('B');
@@ -44,7 +39,6 @@ test('toggle removal immediately reconciles the remaining presenter and toolbar'
   assert.equal(state.ui.applyIntent(b, { mode: 'toggle' }), false);
   assert.equal(state.ui.applyIntent(a, { mode: 'toggle' }), false);
   assert.deepEqual(state.presentationEvents.map(event => event.kind === 'single' ? event.key : event.kind), [a.key, 'multiple', a.key, 'clear']);
-  assert.deepEqual(state.toolbarEvents, [a.key, null, a.key, null]);
   assert.deepEqual(state.focused, []);
   assert.deepEqual(state.opened, [a.key]);
 });
@@ -61,7 +55,6 @@ test('snapshot sync reconciles multi, single and empty presenters without intera
   state.ui.syncNow(state.domain.snapshot());
   assert.deepEqual(state.presentationEvents.map(event => event.kind === 'single' ? event.key : event.kind), ['multiple', a.key, 'clear']);
   assert.equal(state.presentationEvents[1].refreshOnly, true);
-  assert.deepEqual(state.toolbarEvents, [null, a.key, null]);
   assert.deepEqual(state.focused, []);
   assert.deepEqual(state.opened, []);
 });
@@ -114,7 +107,7 @@ test('non-territorial selection retains automatic focus', () => {
   assert.equal(focused.length, 4);
 });
 
-test('a single territorial click opens the editor immediately without moving the map', () => {
+test('a single territorial map click opens the editor without moving the map', () => {
   const { ui, opened, focused } = setup();
   const ref = country('DEU');
   ui.applyIntent(ref, { scope: 'map' });
@@ -142,13 +135,10 @@ for (const type of ['entity']) test(`explicit show-on-map button focuses the sel
   bindings.dispose();
 });
 
-test('selection toolbar follows single selection and clears for multiple selection', () => {
-  const setupState = setup();
-  const a = country('A');
-  const b = country('B');
-  setupState.ui.applyIntent(a, { openEditor: false });
-  assert.equal(setupState.toolbarSynced.at(-1), a.key);
-  setupState.ui.applyIntent(b, { mode: 'toggle', openEditor: false });
-  setupState.ui.syncNow(setupState.domain.snapshot(), { force: true });
-  assert.ok(setupState.toolbarCleared > 0);
+test('explicit territorial edit entrypoint still opens the editor without moving the map', () => {
+  const { ui, opened, focused } = setup();
+  const ref = country('DEU');
+  ui.applyIntent(ref, { scope: 'layer', openEditor: true });
+  assert.deepEqual(opened, [ref.key]);
+  assert.deepEqual(focused, []);
 });
