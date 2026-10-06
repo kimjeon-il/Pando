@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "entityId": "state:CLP",
+  "entityKind": "general",
+  "canonicalName": "클리퍼턴섬",
+  "displayNames": {
+    "ko": "클리퍼턴섬"
+  },
+  "alternateNames": [],
+  "lifetime": {
+    "validFrom": null,
+    "validTo": null
+  },
+  "parentEntityId": "state:FRA",
+  "geometryVersions": [
+    {
+      "id": "state:CLP:natural-earth-5.1.1",
+      "validFrom": null,
+      "validTo": null,
+      "datePrecision": "current",
+      "certainty": "high",
+      "sourceId": "natural-earth-5.1.1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -109.212026,
+              10.30268
+            ],
+            [
+              -109.210357,
+              10.288723
+            ],
+            [
+              -109.218577,
+              10.281562
+            ],
+            [
+              -109.228017,
+              10.292141
+            ],
+            [
+              -109.234242,
+              10.307929
+            ],
+            [
+              -109.225942,
+              10.311021
+            ],
+            [
+              -109.212026,
+              10.30268
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "instantiation": {
+    "mode": "independent",
+    "countryUpdates": {}
+  },
+  "metadata": {
+    "sourceFeatureId": "CLP",
+    "projectEntityId": "d34b00a1-9b13-8000-8000-000000434c50"
+  },
+  "sourceInfo": {
+    "sourceId": "natural-earth-5.1.1",
+    "title": "Natural Earth 5.1.1 Admin 0 Countries",
+    "license": "Public domain",
+    "featureId": "CLP",
+    "featureProperties": {
+      "name": "클리퍼턴섬"
+    },
+    "geometrySha256": "d99ad616d0a840a55539e7f8da453bd336e11cd3dc14bbe028b79c89cdb97dc0"
+  }
+}

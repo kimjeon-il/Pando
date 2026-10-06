@@ -1,0 +1,2711 @@
+{
+  "baseSha": "2091ee2c294df237d844e32f9b926449677c45e4",
+  "status": "release requested; implementation recorded, M15 performance gate remains incomplete",
+  "counts": {
+    "M": 58,
+    "A": 606,
+    "D": 11
+  },
+  "files": [
+    {
+      "status": "M",
+      "path": ".github/workflows/application-architecture.yml"
+    },
+    {
+      "status": "D",
+      "path": "assets/data/countries-ne-5.1.1.geojson.gz"
+    },
+    {
+      "status": "D",
+      "path": "assets/data/historical-library-pilot.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/.gitattributes"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/current-world.geojson"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/index.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ABW.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-AFG.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-AGO.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-AIA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ALB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ALD.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-AND.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ARE.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ARG.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ARM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ASM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ATA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ATC.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ATF.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ATG.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-AUS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-AUT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-AZE.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BDI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BEL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BEN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BFA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BGD.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BGR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BHR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BHS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BIH.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BJN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BLM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BLR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BLZ.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BMU.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BOL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BRA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BRB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BRI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BRN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BRT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BTN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-BWA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CAF.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CAN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CHE.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CHL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CHN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CIV.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CLP.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CMR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CNM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-COD.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-COG.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-COK.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-COL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-COM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CPV.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CRI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CSI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CUB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CUW.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CYM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CYN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CYP.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-CZE.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-czechoslovakia.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-DEU.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-deutsche-demokratische-republik.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-DJI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-DMA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-DNK.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-DOM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-DZA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-east-prussia.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ECU.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-EGY.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ERI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ESB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ESP.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-EST.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ETH.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-FIN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-FJI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-FLK.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-FRA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-FRO.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-FSM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GAB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GBR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GEO.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GGY.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GHA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GIB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GIN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GMB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GNB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GNQ.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GRC.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GRD.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GRL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GTM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GUM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-GUY.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-HKG.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-HMD.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-HND.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-HRV.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-HTI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-HUN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-IDN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-IMN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-IND.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-indonesia.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-IOA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-IOT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-IRL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-IRN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-IRQ.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ISL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ISR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ITA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-JAM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-JEY.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-JOR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-JPN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KAB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KAS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KAZ.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KEN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KGZ.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KHM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KIR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KNA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KOR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KOS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-KWT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LAO.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LBN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LBR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LBY.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LCA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LIE.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LKA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LSO.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LTU.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LUX.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-LVA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MAC.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MAF.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MAR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MCO.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MDA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MDG.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MDV.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MEX.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MHL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MKD.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MLI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MLT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MMR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MNE.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MNG.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MNP.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MOZ.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MRT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MSR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MUS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MWI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-MYS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-nagorno-karabakh.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NAM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NCL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NER.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NFK.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NGA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NIC.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NIU.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NLD.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NOR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-north-schleswig.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NPL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NRU.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-NZL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-OMN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PAK.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PAN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PCN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PER.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PGA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PHL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PLW.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PNG.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-POL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PRI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PRK.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PRT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PRY.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PSX.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-PYF.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-QAT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ROU.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-RUS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-RWA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SAH.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SAU.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SCR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SDN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SDS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SEN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SER.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SGP.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SGS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SHN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SLB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SLE.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SLV.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SMR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SOL.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SOM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-armenian-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-azerbaijan-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-byelorussian-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-estonian-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-georgian-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-kazakh-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-kirghiz-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-latvian-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-lithuanian-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-moldavian-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-russian-sfsr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-tajik-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-turkmen-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-ukrainian-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union-uzbek-ssr.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-soviet-union.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SPI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SPM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SRB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-STP.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-sudan.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SUR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SVK.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SVN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SWE.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SWZ.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SXM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SYC.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-SYR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TCA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TCD.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TGO.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-THA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TJK.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TKM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TLS.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TON.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TTO.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TUN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TUR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TUV.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TWN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-TZA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-UGA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-UKR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ukraine.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-UMI.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-URY.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-USA.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-USG.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-UZB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-VAT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-VCT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-VEN.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-VGB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-VIR.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-VNM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-VUT.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-west-prussia.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-WLF.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-WSB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-WSM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-YEM.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-yugoslavia.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ZAF.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ZMB.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/generated/v1/state-ZWE.json.gz"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/snapshots/current-world.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/snapshots/pilot-1991.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ABW.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-AFG.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-AGO.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-AIA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ALB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ALD.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-AND.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ARE.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ARG.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ARM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ASM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ATA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ATC.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ATF.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ATG.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-AUS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-AUT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-AZE.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BDI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BEL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BEN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BFA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BGD.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BGR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BHR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BHS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BIH.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BJN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BLM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BLR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BLZ.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BMU.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BOL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BRA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BRB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BRI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BRN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BRT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BTN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-BWA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CAF.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CAN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CHE.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CHL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CHN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CIV.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CLP.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CMR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CNM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-COD.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-COG.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-COK.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-COL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-COM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CPV.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CRI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CSI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CUB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CUW.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CYM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CYN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CYP.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-CZE.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-czechoslovakia.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-DEU.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-deutsche-demokratische-republik.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-DJI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-DMA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-DNK.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-DOM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-DZA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-east-prussia.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ECU.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-EGY.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ERI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ESB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ESP.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-EST.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ETH.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-FIN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-FJI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-FLK.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-FRA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-FRO.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-FSM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GAB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GBR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GEO.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GGY.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GHA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GIB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GIN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GMB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GNB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GNQ.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GRC.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GRD.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GRL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GTM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GUM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-GUY.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-HKG.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-HMD.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-HND.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-HRV.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-HTI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-HUN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-IDN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-IMN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-IND.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-indonesia.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-IOA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-IOT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-IRL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-IRN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-IRQ.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ISL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ISR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ITA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-JAM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-JEY.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-JOR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-JPN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KAB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KAS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KAZ.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KEN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KGZ.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KHM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KIR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KNA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KOR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KOS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-KWT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LAO.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LBN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LBR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LBY.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LCA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LIE.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LKA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LSO.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LTU.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LUX.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-LVA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MAC.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MAF.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MAR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MCO.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MDA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MDG.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MDV.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MEX.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MHL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MKD.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MLI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MLT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MMR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MNE.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MNG.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MNP.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MOZ.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MRT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MSR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MUS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MWI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-MYS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-nagorno-karabakh.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NAM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NCL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NER.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NFK.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NGA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NIC.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NIU.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NLD.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NOR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-north-schleswig.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NPL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NRU.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-NZL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-OMN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PAK.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PAN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PCN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PER.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PGA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PHL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PLW.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PNG.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-POL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PRI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PRK.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PRT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PRY.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PSX.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-PYF.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-QAT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ROU.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-RUS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-RWA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SAH.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SAU.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SCR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SDN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SDS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SEN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SER.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SGP.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SGS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SHN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SLB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SLE.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SLV.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SMR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SOL.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SOM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-armenian-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-azerbaijan-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-byelorussian-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-estonian-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-georgian-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-kazakh-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-kirghiz-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-latvian-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-lithuanian-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-moldavian-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-russian-sfsr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-tajik-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-turkmen-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-ukrainian-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union-uzbek-ssr.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-soviet-union.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SPI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SPM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SRB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-STP.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-sudan.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SUR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SVK.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SVN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SWE.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SWZ.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SXM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SYC.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-SYR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TCA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TCD.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TGO.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-THA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TJK.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TKM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TLS.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TON.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TTO.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TUN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TUR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TUV.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TWN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-TZA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-UGA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-UKR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ukraine.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-UMI.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-URY.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-USA.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-USG.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-UZB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-VAT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-VCT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-VEN.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-VGB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-VIR.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-VNM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-VUT.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-west-prussia.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-WLF.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-WSB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-WSM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-YEM.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-yugoslavia.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ZAF.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ZMB.json"
+    },
+    {
+      "status": "A",
+      "path": "assets/data/territorial-entities/source/state-ZWE.json"
+    },
+    {
+      "status": "M",
+      "path": "assets/data/world-preview-v0.35.0.json"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/build-meta.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/app-capability-ports-foundation.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/app-capability-ports-lifecycle-ui.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/app-capability-ports-project-io.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/app-composition.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/app-environment.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/app-file-bindings.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/app-global-input-bindings.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/app-library-assembly.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/app-runtime-dependencies.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/color-adapter.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/country-default-colors.js"
+    },
+    {
+      "status": "D",
+      "path": "assets/js/modules/historical-library-controller.js"
+    },
+    {
+      "status": "D",
+      "path": "assets/js/modules/historical-library-service.js"
+    },
+    {
+      "status": "D",
+      "path": "assets/js/modules/historical-library.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/library-ownership.js"
+    },
+    {
+      "status": "A",
+      "path": "assets/js/modules/stored-asset-loader.js"
+    },
+    {
+      "status": "A",
+      "path": "assets/js/modules/territorial-entity-loader.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/modules/territorial-entity-store.js"
+    },
+    {
+      "status": "A",
+      "path": "assets/js/modules/territorial-library-controller.js"
+    },
+    {
+      "status": "A",
+      "path": "assets/js/modules/territorial-library-service.js"
+    },
+    {
+      "status": "A",
+      "path": "assets/js/modules/territorial-library.js"
+    },
+    {
+      "status": "M",
+      "path": "assets/js/workers/data-loader-worker.js"
+    },
+    {
+      "status": "M",
+      "path": "docs/architecture/app-refactor-inventory.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/architecture/ui-architecture.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/research/country-default-colors.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/territorial-entity-storage.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/validation/territorial-entity-storage/file-inventory.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/validation/territorial-entity-storage/performance.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/validation/territorial-entity-storage/speed-diagnosis.json"
+    },
+    {
+      "status": "M",
+      "path": "index.html"
+    },
+    {
+      "status": "M",
+      "path": "package.json"
+    },
+    {
+      "status": "M",
+      "path": "reports/territorial-integration/storage-access.json"
+    },
+    {
+      "status": "M",
+      "path": "reports/territorial-integration/storage-access.md"
+    },
+    {
+      "status": "D",
+      "path": "scripts/check-historical-library.mjs"
+    },
+    {
+      "status": "M",
+      "path": "scripts/check-runtime-boundaries.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/check-territorial-library.mjs"
+    },
+    {
+      "status": "M",
+      "path": "scripts/contracts/territorial-storage-access.json"
+    },
+    {
+      "status": "M",
+      "path": "scripts/generate-build-metadata.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/browser/canonical-country-packet-memory.spec.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/browser/country-add-scene-preservation.spec.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/browser/east-prussia-library.spec.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/browser/helpers/library-state.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/browser/helpers/static-catalog-source.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/browser/historical-library.spec.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/browser/russia-edit-preparation.spec.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/browser/startup-interaction-gate.spec.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/browser/startup-performance.spec.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/fixtures/territorial-entity-baseline.json"
+    },
+    {
+      "status": "A",
+      "path": "tests/helpers/territorial-catalog.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/helpers/world-assets.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_historical_generator_contract.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_v0280_historical_library.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_v0300_east_germany_library.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_v0308_refactor_boundaries.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/color-adapter.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/geographic-name-spacing.test.mjs"
+    },
+    {
+      "status": "D",
+      "path": "tests/unit/historical-library-controller.test.mjs"
+    },
+    {
+      "status": "D",
+      "path": "tests/unit/historical-library-service.test.mjs"
+    },
+    {
+      "status": "D",
+      "path": "tests/unit/historical-library.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/import-service.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/library-import-atomic.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/library-ownership.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/selection-fallback-coverage.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/startup-performance-contract.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/startup-performance.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-canonical-parity.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-chunks.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-entity-loader.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/territorial-entity-store.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/territorial-fill-style.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-library-controller.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-library-data.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-library-service.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-library.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-snapshots.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-source-files.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-source-parity.test.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/territorial-timeline-storage.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tools/build-country-default-colors.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tools/build-country-shared-boundaries.mjs"
+    },
+    {
+      "status": "D",
+      "path": "tools/build-historical-library.py"
+    },
+    {
+      "status": "M",
+      "path": "tools/build-physical-data.py"
+    },
+    {
+      "status": "A",
+      "path": "tools/build-territorial-current-world.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tools/build-territorial-entity-chunks.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tools/build-territorial-entity-sources.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tools/build-territorial-geometry.py"
+    },
+    {
+      "status": "M",
+      "path": "tools/build-world-mesh.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tools/build-world-preview.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tools/compact-geographic-source-names.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tools/historical-library/east-germany-1989.recipe.json"
+    },
+    {
+      "status": "M",
+      "path": "tools/historical-library/README.md"
+    },
+    {
+      "status": "M",
+      "path": "tools/import-east-prussia-rebuild.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tools/measure-territorial-startup.mjs"
+    },
+    {
+      "status": "D",
+      "path": "tools/normalize-canonical-country-schema.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tools/territorial-current-world.mjs"
+    },
+    {
+      "status": "A",
+      "path": "tools/territorial-entity-sources.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tools/validate-country-geometry.py"
+    }
+  ]
+}

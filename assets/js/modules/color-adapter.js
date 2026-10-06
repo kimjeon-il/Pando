@@ -51,10 +51,8 @@ export function writeDomainColor(domain, target = {}, value, { clear = false, fa
 /** Stable source identity, never an edited display name or a saved color override. */
 export function countryDefaultColor(feature) {
   if (feature?.properties?.entityKind !== 'general' || feature.properties.parentId) return '';
-  const libraryId = feature.properties.sourceLibraryId;
-  // Current-country library instances use a library ID, not the canonical country ID.
-  const id = String(libraryId?.startsWith('current-country:')
-    ? feature.properties.metadata?.currentCountryId || '' : libraryId || feature.id || '');
+  // Catalog identity and the Natural Earth palette source ID are separate domains.
+  const id = String(feature.properties.metadata?.sourceFeatureId || feature.properties.sourceLibraryId || feature.id || '');
   return Object.hasOwn(COUNTRY_DEFAULT_COLORS, id) ? COUNTRY_DEFAULT_COLORS[id] || '' : '';
 }
 

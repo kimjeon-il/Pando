@@ -2,7 +2,7 @@
   {
     "file": "assets/js/gis-adapters.js",
     "function": "countryGeometryIndex",
-    "line": 36,
+    "line": 35,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -22,7 +22,7 @@
   {
     "file": "assets/js/gis-adapters.js",
     "function": "territorialRows",
-    "line": 53,
+    "line": 52,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -41,133 +41,50 @@
   },
   {
     "file": "assets/js/gis-io.js",
-    "function": "readAtlasVectorState",
-    "line": 933,
+    "function": "inspectFiles",
+    "line": 390,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
-    "expression": "state.territorialEntities",
+    "expression": "projectMetadata.projectState.territorialEntities",
     "classification": {
       "file": "assets/js/gis-io.js",
       "functions": [
-        "readAtlasVectorState"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/gis-io.js",
-    "function": "readAtlasVectorState",
-    "line": 933,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "baseState.territorialEntities",
-    "classification": {
-      "file": "assets/js/gis-io.js",
-      "functions": [
-        "readAtlasVectorState"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/gis-io.js",
-    "function": "readAtlasVectorState",
-    "line": 933,
-    "access": "write",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state.territorialEntities = (baseState.territorialEntities || []).filter(entity => entity.properties.unitType === 'country')",
-    "classification": {
-      "file": "assets/js/gis-io.js",
-      "functions": [
-        "readAtlasVectorState"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/gis-io.js",
-    "function": "readAtlasVectorState",
-    "line": 942,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state.territorialEntities",
-    "classification": {
-      "file": "assets/js/gis-io.js",
-      "functions": [
-        "readAtlasVectorState"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/gis-io.js",
-    "function": "readAtlasVectorState",
-    "line": 942,
-    "access": "write",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state.territorialEntities.push(unit)",
-    "classification": {
-      "file": "assets/js/gis-io.js",
-      "functions": [
-        "readAtlasVectorState"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/gis-io.js",
-    "function": "buildGisExportLayers",
-    "line": 1420,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "projectState.territorialEntities",
-    "classification": {
-      "file": "assets/js/gis-io.js",
-      "functions": [
-        "buildGisExportLayers"
+        "inspectFiles",
+        "gisSpatialSnapshot"
       ],
       "access": [
         "read"
       ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+      "owner": "GIS project boundary",
+      "reason": "Reads detached validated identities; derives spatial Features from canonical records."
+    }
+  },
+  {
+    "file": "assets/js/gis-io.js",
+    "function": "gisSpatialSnapshot",
+    "line": 1027,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "candidate.territorialEntities",
+    "classification": {
+      "file": "assets/js/gis-io.js",
+      "functions": [
+        "inspectFiles",
+        "gisSpatialSnapshot"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "GIS project boundary",
+      "reason": "Reads detached validated identities; derives spatial Features from canonical records."
     }
   },
   {
     "file": "assets/js/gis-io.js",
     "function": "exportGeoPackage",
-    "line": 1478,
+    "line": 1064,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -185,29 +102,29 @@
     }
   },
   {
-    "file": "assets/js/gis-io.js",
-    "function": "exportGeoPackage",
-    "line": 1497,
+    "file": "assets/js/modules/app-builtin-session.js",
+    "function": "prepareProjectBaseline",
+    "line": 74,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
-    "expression": "projectState.territorialEntities",
+    "expression": "content.territorialEntities",
     "classification": {
-      "file": "assets/js/gis-io.js",
+      "file": "assets/js/modules/app-builtin-session.js",
       "functions": [
-        "exportGeoPackage"
+        "prepareProjectBaseline"
       ],
       "access": [
         "read"
       ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+      "owner": "Builtin baseline owner",
+      "reason": "Hashes exact normalized source metadata and geometry; stores detached baseline identities."
     }
   },
   {
     "file": "assets/js/modules/app-library-assembly.js",
-    "function": "instantiateHistoricalLibraryEntities",
-    "line": 77,
+    "function": "instantiateTerritorialLibraryEntities",
+    "line": 61,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -215,19 +132,19 @@
     "classification": {
       "file": "assets/js/modules/app-library-assembly.js",
       "functions": [
-        "instantiateHistoricalLibraryEntities"
+        "instantiateTerritorialLibraryEntities"
       ],
       "access": [
         "read"
       ],
-      "owner": "instantiateHistoricalLibraryEntities",
+      "owner": "instantiateTerritorialLibraryEntities",
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     }
   },
   {
     "file": "assets/js/modules/app-library-assembly.js",
     "function": "assertCurrent",
-    "line": 80,
+    "line": 64,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -245,9 +162,29 @@
     }
   },
   {
+    "file": "assets/js/modules/app-library-assembly.js",
+    "function": "getProjectGeneration",
+    "line": 218,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "dependencies.projectState.state.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/app-library-assembly.js",
+      "functions": [
+        "getProjectGeneration"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "territorial library preview session generation",
+      "reason": "Read the canonical project collection identity to reject async results from a replaced project; no project writes."
+    }
+  },
+  {
     "file": "assets/js/modules/app-progressive-startup.js",
     "function": "completeGeometryInitialization",
-    "line": 85,
+    "line": 116,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -267,7 +204,7 @@
   {
     "file": "assets/js/modules/app-progressive-startup.js",
     "function": "completeGeometryInitialization",
-    "line": 85,
+    "line": 162,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -281,93 +218,13 @@
         "read"
       ],
       "owner": "completeGeometryInitialization",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-progressive-startup.js",
-    "function": "completeGeometryInitialization",
-    "line": 108,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "restored?.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-progressive-startup.js",
-      "functions": [
-        "completeGeometryInitialization"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "completeGeometryInitialization",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-progressive-startup.js",
-    "function": "completeGeometryInitialization",
-    "line": 145,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "restored.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-progressive-startup.js",
-      "functions": [
-        "completeGeometryInitialization"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "completeGeometryInitialization",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-progressive-startup.js",
-    "function": "initProgressive",
-    "line": 286,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "savedProject.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-progressive-startup.js",
-      "functions": [
-        "initProgressive"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "initProgressive",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-progressive-startup.js",
-    "function": "initProgressive",
-    "line": 299,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "savedProject?.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-progressive-startup.js",
-      "functions": [
-        "initProgressive"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "initProgressive",
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     }
   },
   {
     "file": "assets/js/modules/app-progressive-startup.js",
     "function": "init",
-    "line": 426,
+    "line": 444,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -387,47 +244,7 @@
   {
     "file": "assets/js/modules/app-progressive-startup.js",
     "function": "init",
-    "line": 426,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "restored.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-progressive-startup.js",
-      "functions": [
-        "init"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "init",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-progressive-startup.js",
-    "function": "init",
-    "line": 434,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "restored?.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-progressive-startup.js",
-      "functions": [
-        "init"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "init",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-progressive-startup.js",
-    "function": "init",
-    "line": 469,
+    "line": 478,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -447,67 +264,7 @@
   {
     "file": "assets/js/modules/app-project-restore.js",
     "function": "applyAtlasState",
-    "line": 18,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "project.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-project-restore.js",
-      "functions": [
-        "applyAtlasState"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "applyAtlasState",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-project-restore.js",
-    "function": "applyAtlasState",
-    "line": 20,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "project.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-project-restore.js",
-      "functions": [
-        "applyAtlasState"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "applyAtlasState",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-project-restore.js",
-    "function": "applyAtlasState",
-    "line": 44,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "project.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-project-restore.js",
-      "functions": [
-        "applyAtlasState"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "applyAtlasState",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-project-restore.js",
-    "function": "applyAtlasState",
-    "line": 51,
+    "line": 37,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -527,7 +284,7 @@
   {
     "file": "assets/js/modules/app-project-snapshots.js",
     "function": "configureDatasetSession",
-    "line": 19,
+    "line": 24,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -546,28 +303,8 @@
   },
   {
     "file": "assets/js/modules/app-project-snapshots.js",
-    "function": "buildEntityDelta",
-    "line": 34,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-project-snapshots.js",
-      "functions": [
-        "buildEntityDelta"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "buildEntityDelta",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-project-snapshots.js",
     "function": "restoreEntitiesFromSnapshot",
-    "line": 43,
+    "line": 49,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -586,88 +323,28 @@
   },
   {
     "file": "assets/js/modules/app-project-snapshots.js",
-    "function": "restoreEntitiesFromSnapshot",
-    "line": 44,
+    "function": "prepareEditable",
+    "line": 59,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
-    "expression": "snapshot.territorialEntities",
+    "expression": "candidate.territorialEntities",
     "classification": {
       "file": "assets/js/modules/app-project-snapshots.js",
       "functions": [
-        "restoreEntitiesFromSnapshot"
+        "prepareEditable"
       ],
       "access": [
         "read"
       ],
-      "owner": "restoreEntitiesFromSnapshot",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-project-snapshots.js",
-    "function": "restoreEntitiesFromSnapshot",
-    "line": 44,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "dependencies.projectState.state.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-project-snapshots.js",
-      "functions": [
-        "restoreEntitiesFromSnapshot"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "restoreEntitiesFromSnapshot",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/app-project-snapshots.js",
-    "function": "snapshotEditable",
-    "line": 90,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "dependencies.projectState.state.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/app-project-snapshots.js",
-      "functions": [
-        "snapshotEditable"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "snapshotEditable",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+      "owner": "History validation boundary",
+      "reason": "Validates detached identities, records, archive and project references before publishing history."
     }
   },
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "applyImportedReplacement",
-    "line": 738,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "packageState.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/gis-import-transaction.js",
-      "functions": [
-        "applyImportedReplacement"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "applyImportedReplacement",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/gis-import-transaction.js",
-    "function": "applyImportedReplacement",
-    "line": 740,
+    "line": 306,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -687,11 +364,51 @@
   {
     "file": "assets/js/modules/gis-import-transaction.js",
     "function": "commitGisMerge",
-    "line": 760,
+    "line": 318,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
-    "expression": "result.atlasMetadata?.projectState?.territorialEntities",
+    "expression": "packageProject.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/gis-import-transaction.js",
+      "functions": [
+        "commitGisMerge"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "commitGisMerge",
+      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+    }
+  },
+  {
+    "file": "assets/js/modules/gis-import-transaction.js",
+    "function": "commitGisMerge",
+    "line": 344,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "state.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/gis-import-transaction.js",
+      "functions": [
+        "commitGisMerge"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "commitGisMerge",
+      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+    }
+  },
+  {
+    "file": "assets/js/modules/gis-import-transaction.js",
+    "function": "commitGisMerge",
+    "line": 391,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "state.territorialEntities",
     "classification": {
       "file": "assets/js/modules/gis-import-transaction.js",
       "functions": [
@@ -706,48 +423,8 @@
   },
   {
     "file": "assets/js/modules/gpu-map-renderer.js",
-    "function": "prepareCountrySharedBoundary",
-    "line": 400,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/gpu-map-renderer.js",
-      "functions": [
-        "prepareCountrySharedBoundary"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "prepareCountrySharedBoundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/gpu-map-renderer.js",
-    "function": "prepareCountrySharedBoundary",
-    "line": 406,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/gpu-map-renderer.js",
-      "functions": [
-        "prepareCountrySharedBoundary"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "prepareCountrySharedBoundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/gpu-map-renderer.js",
     "function": "markPreviewFramePresented",
-    "line": 494,
+    "line": 575,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -767,7 +444,7 @@
   {
     "file": "assets/js/modules/gpu-map-renderer.js",
     "function": "activateBuiltinMeshBaseline",
-    "line": 1513,
+    "line": 1608,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -787,7 +464,7 @@
   {
     "file": "assets/js/modules/gpu-map-renderer.js",
     "function": "compactCountryOverrides",
-    "line": 1977,
+    "line": 2074,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -807,47 +484,7 @@
   {
     "file": "assets/js/modules/gpu-map-renderer.js",
     "function": "renderCanvasFallback",
-    "line": 3467,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/gpu-map-renderer.js",
-      "functions": [
-        "renderCanvasFallback"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "renderCanvasFallback",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/gpu-map-renderer.js",
-    "function": "renderCanvasFallback",
-    "line": 3497,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/gpu-map-renderer.js",
-      "functions": [
-        "renderCanvasFallback"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "renderCanvasFallback",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/gpu-map-renderer.js",
-    "function": "renderCanvasFallback",
-    "line": 3526,
+    "line": 3580,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -867,7 +504,7 @@
   {
     "file": "assets/js/modules/gpu-map-renderer.js",
     "function": "canvasWorkerStyleMessage",
-    "line": 3572,
+    "line": 3702,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -887,7 +524,7 @@
   {
     "file": "assets/js/modules/gpu-map-renderer.js",
     "function": "activateCanvasFallback",
-    "line": 3866,
+    "line": 3988,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -905,89 +542,9 @@
     }
   },
   {
-    "file": "assets/js/modules/project-domain.js",
-    "function": "loadAutosave",
-    "line": 222,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "project.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/project-domain.js",
-      "functions": [
-        "loadAutosave"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "loadAutosave",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
     "file": "assets/js/modules/project-preview-policy.js",
-    "function": "projectPreviewGeometryRows",
-    "line": 8,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "project?.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/project-preview-policy.js",
-      "functions": [
-        "projectPreviewGeometryRows"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "projectPreviewGeometryRows",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/project-preview-policy.js",
-    "function": "projectPreviewGeometryRows",
-    "line": 13,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "project?.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/project-preview-policy.js",
-      "functions": [
-        "projectPreviewGeometryRows"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "projectPreviewGeometryRows",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/project-preview-policy.js",
-    "function": "previewCountriesWithProjectProperties",
-    "line": 33,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "project?.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/project-preview-policy.js",
-      "functions": [
-        "previewCountriesWithProjectProperties"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "previewCountriesWithProjectProperties",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/project-preview-policy.js",
-    "function": "matchesDefaultPreview",
-    "line": 60,
+    "function": "previewEntities",
+    "line": 10,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -995,39 +552,19 @@
     "classification": {
       "file": "assets/js/modules/project-preview-policy.js",
       "functions": [
-        "matchesDefaultPreview"
+        "previewEntities"
       ],
       "access": [
         "read"
       ],
-      "owner": "matchesDefaultPreview",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/project-preview-policy.js",
-    "function": "matchesDefaultPreview",
-    "line": 77,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "project.territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/project-preview-policy.js",
-      "functions": [
-        "matchesDefaultPreview"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "matchesDefaultPreview",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+      "owner": "Static preview derivation",
+      "reason": "Reads metadata identities and immutable bindings to derive preview Features without choosing a date."
     }
   },
   {
     "file": "assets/js/modules/project-serializer.js",
-    "function": "buildProject",
-    "line": 26,
+    "function": "content",
+    "line": 29,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1035,19 +572,217 @@
     "classification": {
       "file": "assets/js/modules/project-serializer.js",
       "functions": [
-        "buildProject"
+        "content",
+        "buildAutosave"
       ],
       "access": [
         "read"
       ],
-      "owner": "buildProject",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+      "owner": "Project serializer",
+      "reason": "Validates complete canonical identity and archive snapshots before emitting v9 full/delta records."
+    }
+  },
+  {
+    "file": "assets/js/modules/project-serializer.js",
+    "function": "buildAutosave",
+    "line": 55,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "destructured",
+    "expression": "{ territorialEntities, ...fields } = content(snapshot, copies.clone)",
+    "classification": {
+      "file": "assets/js/modules/project-serializer.js",
+      "functions": [
+        "content",
+        "buildAutosave"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Project serializer",
+      "reason": "Validates complete canonical identity and archive snapshots before emitting v9 full/delta records."
+    }
+  },
+  {
+    "file": "assets/js/modules/project-state.js",
+    "function": "prepareProjectForStorage",
+    "line": 116,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "project.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForStorage",
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Detached candidate boundary",
+      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
+    }
+  },
+  {
+    "file": "assets/js/modules/project-state.js",
+    "function": "prepareProjectForStorage",
+    "line": 116,
+    "access": "write",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "project.territorialEntities = restoreEntitiesFromDelta(project, { base: baseEntities, baseDataset, baseDatasetFingerprint })",
+    "classification": {
+      "file": "assets/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForStorage",
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Detached candidate boundary",
+      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
+    }
+  },
+  {
+    "file": "assets/js/modules/project-state.js",
+    "function": "prepareProjectForStorage",
+    "line": 121,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "project.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForStorage",
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Detached candidate boundary",
+      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
+    }
+  },
+  {
+    "file": "assets/js/modules/project-state.js",
+    "function": "prepareProjectForStorage",
+    "line": 121,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "project.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForStorage",
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Detached candidate boundary",
+      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
+    }
+  },
+  {
+    "file": "assets/js/modules/project-state.js",
+    "function": "prepareProjectForStorage",
+    "line": 121,
+    "access": "write",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "project.territorialEntities = normalizeTerritorialIdentities(project.territorialEntities)",
+    "classification": {
+      "file": "assets/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForStorage",
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Detached candidate boundary",
+      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
+    }
+  },
+  {
+    "file": "assets/js/modules/project-state.js",
+    "function": "prepareProjectForStorage",
+    "line": 123,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "project.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForStorage",
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Detached candidate boundary",
+      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
+    }
+  },
+  {
+    "file": "assets/js/modules/project-state.js",
+    "function": "prepareProjectForActivation",
+    "line": 133,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "project.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForStorage",
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Detached candidate boundary",
+      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
+    }
+  },
+  {
+    "file": "assets/js/modules/project-state.js",
+    "function": "prepareProjectForActivation",
+    "line": 134,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "project.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForStorage",
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Detached candidate boundary",
+      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
     }
   },
   {
     "file": "assets/js/modules/project-state.js",
     "function": "assertCurrentProjectSchema",
-    "line": 120,
+    "line": 196,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1067,7 +802,7 @@
   {
     "file": "assets/js/modules/rendering-domain.js",
     "function": "buildDistributionRenderRows",
-    "line": 698,
+    "line": 703,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1087,7 +822,7 @@
   {
     "file": "assets/js/modules/rendering-domain.js",
     "function": "buildDistributionRenderRows",
-    "line": 720,
+    "line": 725,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1107,7 +842,7 @@
   {
     "file": "assets/js/modules/rendering-domain.js",
     "function": "selectionGeometryRevision",
-    "line": 1343,
+    "line": 1468,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1127,7 +862,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "state",
-    "line": 14,
+    "line": 32,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1146,8 +881,56 @@
   },
   {
     "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "candidateFor",
+    "line": 43,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "current.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "candidateFor",
+        "publishCandidate",
+        "identities",
+        "restoreProject"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Canonical entity owner",
+      "reason": "Sole writer; candidate and archive validation precede atomic canonical publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "candidateFor",
+    "line": 93,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "current.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "candidateFor",
+        "publishCandidate",
+        "identities",
+        "restoreProject"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Canonical entity owner",
+      "reason": "Sole writer; candidate and archive validation precede atomic canonical publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
     "function": "transaction",
-    "line": 34,
+    "line": 118,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1167,7 +950,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "transaction",
-    "line": 40,
+    "line": 126,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1187,7 +970,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "snapshot",
-    "line": 52,
+    "line": 139,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1207,7 +990,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "snapshot",
-    "line": 53,
+    "line": 140,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1227,7 +1010,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "snapshot",
-    "line": 55,
+    "line": 142,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1247,7 +1030,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "entity",
-    "line": 58,
+    "line": 145,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1267,7 +1050,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "replaceEntities",
-    "line": 90,
+    "line": 174,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1286,92 +1069,32 @@
   },
   {
     "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "publish",
-    "line": 101,
+    "function": "publishCandidate",
+    "line": 190,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
-    "expression": "staging.state.territorialEntities",
+    "expression": "candidate.territorialEntities",
     "classification": {
       "file": "assets/js/modules/territorial-entity-store.js",
       "functions": [
-        "publish"
+        "candidateFor",
+        "publishCandidate",
+        "identities",
+        "restoreProject"
       ],
       "access": [
         "read",
         "write"
       ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "publish",
-    "line": 101,
-    "access": "write",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "staging.state.territorialEntities = next",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "publish"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "publish",
-    "line": 108,
-    "access": "read",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state().territorialEntities",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "publish"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    }
-  },
-  {
-    "file": "assets/js/modules/territorial-entity-store.js",
-    "function": "publish",
-    "line": 108,
-    "access": "write",
-    "field": "territorialEntities",
-    "via": "raw",
-    "expression": "state().territorialEntities = next",
-    "classification": {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "publish"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+      "owner": "Canonical entity owner",
+      "reason": "Sole writer; candidate and archive validation precede atomic canonical publication."
     }
   },
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "applyChanges",
-    "line": 115,
+    "line": 201,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1391,7 +1114,7 @@
   {
     "file": "assets/js/modules/territorial-entity-store.js",
     "function": "appendEntities",
-    "line": 143,
+    "line": 232,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
@@ -1409,23 +1132,95 @@
     }
   },
   {
-    "file": "assets/js/workers/gis-gpkg-worker.js",
-    "function": "writeAtlasTables",
-    "line": 218,
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "identities",
+    "line": 248,
     "access": "read",
     "field": "territorialEntities",
     "via": "raw",
-    "expression": "state.territorialEntities",
+    "expression": "state().territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "candidateFor",
+        "publishCandidate",
+        "identities",
+        "restoreProject"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Canonical entity owner",
+      "reason": "Sole writer; candidate and archive validation precede atomic canonical publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "restoreProject",
+    "line": 250,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "project.territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "candidateFor",
+        "publishCandidate",
+        "identities",
+        "restoreProject"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Canonical entity owner",
+      "reason": "Sole writer; candidate and archive validation precede atomic canonical publication."
+    }
+  },
+  {
+    "file": "assets/js/modules/territorial-entity-store.js",
+    "function": "restoreProject",
+    "line": 256,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "state().territorialEntities",
+    "classification": {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": [
+        "candidateFor",
+        "publishCandidate",
+        "identities",
+        "restoreProject"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "owner": "Canonical entity owner",
+      "reason": "Sole writer; candidate and archive validation precede atomic canonical publication."
+    }
+  },
+  {
+    "file": "assets/js/workers/gis-gpkg-worker.js",
+    "function": "writeGeoPackage",
+    "line": 277,
+    "access": "read",
+    "field": "territorialEntities",
+    "via": "raw",
+    "expression": "candidate.territorialEntities",
     "classification": {
       "file": "assets/js/workers/gis-gpkg-worker.js",
       "functions": [
-        "writeAtlasTables"
+        "writeGeoPackage"
       ],
       "access": [
         "read"
       ],
-      "owner": "writeAtlasTables",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+      "owner": "Project file codec",
+      "reason": "Derives static spatial views from validated detached records; complex files retain canonical JSON only."
     }
   }
 ]

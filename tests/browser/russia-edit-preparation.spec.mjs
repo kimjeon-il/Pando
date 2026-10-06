@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
-import { selectUiOption } from './helpers/ui-select.mjs';
+import {routeStaticCatalogSource} from './helpers/static-catalog-source.mjs';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
 
@@ -54,8 +54,9 @@ test('Russia nested edits retain parent candidates, locks and history after auto
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id)?.properties, child)).toMatchObject({ entityKind: 'general', parentId: parent, locked: true });
 });
 
-test('Russia library replacement reuses the confirmed batch and undoes atomically', async ({ page }) => {
+test('Russia static library replacement reuses the confirmed batch and undoes atomically', async ({ page }) => {
   test.setTimeout(150_000);
+  await routeStaticCatalogSource(page,'state:soviet-union');
   await page.addInitScript(() => {
     const NativeWorker = window.Worker;
     window.__libraryBatchRequests = 0;
@@ -73,18 +74,17 @@ test('Russia library replacement reuses the confirmed batch and undoes atomicall
   await page.locator('#addFromLibraryBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeVisible();
   await page.locator('#historicalLibrarySearchInput').fill('USSR');
-  await selectUiOption(page, '#historicalLibraryStatusInput', 'past');
   await page.locator('#historicalLibraryYearInput').fill('1991');
-  await page.locator('[data-library-entity-id="historical-country:soviet-union"]').click();
+  await page.locator('[data-library-entity-id="state:soviet-union"]').click();
   await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('[data-library-impact]')).toBeVisible({ timeout: 60000 });
   expect(await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry))).toBe(original);
   await page.locator('#historicalLibraryAddBtn').click();
   await expect(page.locator('#historicalLibraryModal')).toBeHidden({ timeout: 60000 });
   expect(await page.evaluate(() => window.__libraryBatchRequests)).toBe(1);
-  expect(await page.evaluate(() => !!window.PANDOLAB_TERRITORIAL.get('historical-country:soviet-union'))).toBe(true);
+  expect(await page.evaluate(() => !!window.PANDOLAB_TERRITORIAL.get('state:soviet-union'))).toBe(true);
   await page.locator('#undoBtn').click();
-  await expect.poll(() => page.evaluate(() => !!window.PANDOLAB_TERRITORIAL.get('historical-country:soviet-union'))).toBe(false);
+  await expect.poll(() => page.evaluate(() => !!window.PANDOLAB_TERRITORIAL.get('state:soviet-union'))).toBe(false);
   expect(await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry))).toBe(original);
 });
 

@@ -15,8 +15,7 @@ import { geometryFingerprint } from '../assets/js/modules/project-preview-policy
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
 const APP_VERSION = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')).version;
-const sourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson');
-const canonicalCountriesGzipPath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson.gz');
+const sourcePath = path.join(projectRoot, 'assets', 'data', 'territorial-entities', 'generated', 'current-world.geojson');
 const canonicalCountryPacketPath = path.join(projectRoot, 'assets', 'data', `countries-canonical-v${APP_VERSION}.pcg.gz`);
 const canonicalMeshPath = path.join(projectRoot, 'assets', 'data', 'world-mesh-v0.12.6.bin.gz');
 const labelAnchorsPath = path.join(projectRoot, 'assets', 'data', 'country-label-anchors-v0.10.1.json');
@@ -201,7 +200,6 @@ const defaultClassification = {
 };
 const previewJson = Buffer.from(JSON.stringify(preview.collection));
 const previewCountries = zlib.gzipSync(previewJson, { level: 9, mtime: 0 });
-const canonicalCountries = zlib.gzipSync(canonicalBytes, { level: 9, mtime: 0 });
 const canonicalCountryPacketBuffer = encodeCanonicalCountryPacket(canonicalSource);
 const canonicalCountryPacketHeader = inspectCanonicalCountryPacket(canonicalCountryPacketBuffer);
 const canonicalCountryPacket = zlib.gzipSync(Buffer.from(canonicalCountryPacketBuffer), { level: 9, mtime: 0 });
@@ -215,7 +213,7 @@ if (combinedCompressedBytes > MAX_COMPRESSED_BYTES) throw new Error(`미리보�
 
 const manifest = {
   version: APP_VERSION,
-  source: 'countries-ne-5.1.1.geojson',
+  source: 'territorial-entities/generated/current-world.geojson',
   sourceSha256: sha256(canonicalBytes),
   defaultClassification,
   previewDerivation: 'canonical-topology-simplified',
@@ -237,7 +235,6 @@ const manifest = {
     previewCountries: { url: `countries-preview-v${APP_VERSION}.geojson.gz`, encoding: 'gzip', compressedBytes: previewCountries.length, decodedBytes: previewJson.length, sha256: sha256(previewCountries) },
     previewMesh: { url: `world-mesh-preview-v${APP_VERSION}.bin.gz`, encoding: 'gzip', compressedBytes: packedMesh.compressed.length, decodedBytes: packedMesh.raw.length, sha256: sha256(packedMesh.compressed), header: meshHeader(packedMesh.raw) },
     labelAnchors: { url: 'country-label-anchors-v0.10.1.json', encoding: 'identity', compressedBytes: labelAnchorBytes.length, decodedBytes: labelAnchorBytes.length, sha256: sha256(labelAnchorBytes) },
-    canonicalCountries: { url: 'countries-ne-5.1.1.geojson.gz', encoding: 'gzip', compressedBytes: canonicalCountries.length, decodedBytes: canonicalBytes.length, sha256: sha256(canonicalCountries) },
     canonicalCountryPacket: {
       url: `countries-canonical-v${APP_VERSION}.pcg.gz`,
       encoding: 'gzip',
@@ -255,6 +252,5 @@ compareOrWrite(previewCountriesPath, previewCountries);
 compareOrWrite(previewMeshPath, packedMesh.compressed);
 compareOrWrite(canonicalCountryPacketPath, canonicalCountryPacket);
 compareOrWrite(previewManifestPath, manifestBytes);
-if (!fs.readFileSync(canonicalCountriesGzipPath).equals(canonicalCountries)) throw new Error('canonical 국가 gzip이 변경되어 있습니다. preview 빌드가 canonical 자산을 덮어쓰지 않았습니다.');
 
 console.log(JSON.stringify({ mode: checkOnly ? 'check' : 'build', ...manifest, milliseconds: Math.round(performance.now() - startedAt) }, null, 2));

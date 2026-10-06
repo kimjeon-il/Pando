@@ -14,6 +14,7 @@ const terrainPreparation = read('assets/js/modules/gpu-terrain-preparation.js');
 const mapVisualFrame = read('assets/js/modules/map-visual-frame.js');
 const bootstrap = read('assets/js/bootstrap.js');
 const loader = read('assets/js/workers/data-loader-worker.js');
+const storedAssetLoader = read('assets/js/modules/stored-asset-loader.js');
 const projectRestore = read('assets/js/modules/app-project-restore.js');
 const lifecycleWiring = read('assets/js/modules/app-connect-lifecycle-ui.js');
 const foundationPorts = read('assets/js/modules/app-capability-ports-foundation.js');
@@ -89,7 +90,7 @@ test('data and asset revisions remain separate contracts', () => {
   assert.match(metadata, /"assetRevision":\s*"[^"]+"/);
   assert.match(metadata, /"dataRevision":\s*"data-[a-f0-9]{32}"/);
   assert.match(loader, /const DATA_REVISION/);
-  assert.match(loader, /const DATA_CACHE_PREFIX = 'pandolab-data-'/);
+  assert.match(storedAssetLoader, /const DATA_CACHE_PREFIX = 'pandolab-data-'/);
   assert.match(loader, /url\.searchParams\.set\('v', DATA_REVISION\)/);
   assert.match(bootstrap, /window\.PANDOLAB_DATA_REVISION = DATA_REVISION/);
   assert.match(bootstrap, /firstCanonicalFrameMs: null/);
@@ -179,14 +180,14 @@ test('modal, GIS, and historical runtimes are absent from the initial request gr
     'coast-reconciliation.js',
     'annex-geometry.js',
     'river-territory-partition.js',
-    'historical-library.js',
-    'historical-library-service.js',
-    'historical-library-controller.js',
+    'territorial-library.js',
+    'territorial-library-service.js',
+    'territorial-library-controller.js',
   ]) assert.doesNotMatch(eagerImportBlock, new RegExp(moduleName.replace('.', '\\.')));
   assert.doesNotMatch(indexHtml, /assets\/js\/gis-(?:adapters|io)\.js/);
   assert.match(app, /async function ensureModalRuntime/);
   assert.match(app, /async function ensureGisRuntime/);
-  assert.match(app, /async function ensureHistoricalRuntime/);
+  assert.match(app, /async function ensureTerritorialLibraryRuntime/);
   assert.match(modalBundle, /modal-source-count:\s*1/);
   assert.match(modalBundle, /modal-source: assets\/css\/components\/modals\.css/);
   assert.match(bootstrap, /PANDOLAB_ENSURE_MODAL_STYLES/);

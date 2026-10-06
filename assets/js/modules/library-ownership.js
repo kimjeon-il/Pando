@@ -57,34 +57,34 @@ export function shouldShowTerritorialParentChoice({ rootId = '', parentId = '', 
 }
 
 export function missingLibraryOwnership(descriptors, resolve, countries, units) {
-  const included = new Map(descriptors.map(item => [item.libraryId, item]));
+  const included = new Map(descriptors.map(item => [item.entityId, item]));
   const existing = new Map([...countries, ...units].map(item => [text(item.id), item]));
-  return descriptors.filter(item => item.entityKind === 'general' && !!item.parentLibraryId && !resolve(item.libraryId)).filter(item => {
-    if (included.has(item.parentLibraryId)) return false;
-    const parent = included.get(item.parentLibraryId) || existing.get(resolve(item.parentLibraryId));
+  return descriptors.filter(item => item.entityKind === 'general' && !!item.parentEntityId && !resolve(item.entityId)).filter(item => {
+    if (included.has(item.parentEntityId)) return false;
+    const parent = included.get(item.parentEntityId) || existing.get(resolve(item.parentEntityId));
     return !parent;
   }).map(item => ({
-    libraryId: item.libraryId, name: item.name,
+    entityId: item.entityId, name: item.name,
     countryId: '',
   }));
 }
 
 export function prepareLibraryOwnership({ descriptors, resolve, countries, units, choices = {}, allocateId, contains }) {
-  const pending = descriptors.filter(item => !resolve(item.libraryId));
-  const ids = new Map(pending.map(item => [item.libraryId,
-    item.entityKind === 'general' && (!item.parentLibraryId || choices[item.libraryId]?.mode === 'root') ? item.libraryId : allocateId(item.entityKind)]));
+  const pending = descriptors.filter(item => !resolve(item.entityId));
+  const ids = new Map(pending.map(item => [item.entityId,
+    item.entityKind === 'general' && (!item.parentEntityId || choices[item.entityId]?.mode === 'root') ? item.entityId : allocateId(item.entityKind)]));
   const existing = new Map([...countries, ...units].map(item => [text(item.id), item]));
-  const byLibrary = new Map(pending.map(item => [item.libraryId, item]));
+  const byLibrary = new Map(pending.map(item => [item.entityId, item]));
   const prepared = new Map();
   const visiting = new Set();
   function prepare(item) {
-    if (prepared.has(item.libraryId)) return prepared.get(item.libraryId);
-    if (visiting.has(item.libraryId)) throw new Error('라이브러리 상위 객체 관계가 순환합니다.');
-    visiting.add(item.libraryId);
-    const choice = choices[item.libraryId];
+    if (prepared.has(item.entityId)) return prepared.get(item.entityId);
+    if (visiting.has(item.entityId)) throw new Error('라이브러리 상위 객체 관계가 순환합니다.');
+    visiting.add(item.entityId);
+    const choice = choices[item.entityId];
     if (choice && !['child', 'root'].includes(choice.mode)) throw new Error('추가 방식을 선택하세요.');
-    const root = item.entityKind === 'general' && (choice?.mode === 'root' || !item.parentLibraryId);
-    const next = { ...item, id: ids.get(item.libraryId), parentId: '' };
+    const root = item.entityKind === 'general' && (choice?.mode === 'root' || !item.parentEntityId);
+    const next = { ...item, id: ids.get(item.entityId), parentId: '' };
     if (existing.has(next.id)) throw new Error('추가할 객체 ID가 현재 프로젝트와 중복됩니다.');
     if (root) {
       next.name = String(choice?.name ?? item.name).trim();
@@ -100,8 +100,8 @@ export function prepareLibraryOwnership({ descriptors, resolve, countries, units
         parent = existing.get(parentId);
         next.parentId = parentId;
       } else {
-        const descriptor = byLibrary.get(item.parentLibraryId);
-        parent = descriptor ? prepare(descriptor) : existing.get(resolve(item.parentLibraryId));
+        const descriptor = byLibrary.get(item.parentEntityId);
+        parent = descriptor ? prepare(descriptor) : existing.get(resolve(item.parentEntityId));
         if (!parent) throw new Error(`${item.name}의 소속 국가와 상위 단위를 선택하세요.`);
         const parentKind = parent.type === 'Feature' ? parent.properties.entityKind : parent.entityKind;
         if (parentKind !== 'general') throw new Error('상위 단위는 국가 또는 하위단위여야 합니다.');
@@ -113,10 +113,10 @@ export function prepareLibraryOwnership({ descriptors, resolve, countries, units
         throw new Error(`${item.name}의 경계가 상위 단위 안에 포함되지 않습니다. 국가 자신이나 적합한 상위 단위를 선택하세요.`);
       }
     } else {
-      if (item.parentLibraryId) throw new Error('독립 권역에는 부모를 지정할 수 없습니다.');
+      if (item.parentEntityId) throw new Error('독립 권역에는 부모를 지정할 수 없습니다.');
     }
-    visiting.delete(item.libraryId);
-    prepared.set(item.libraryId, next);
+    visiting.delete(item.entityId);
+    prepared.set(item.entityId, next);
     return next;
   }
   for (const item of pending) prepare(item);

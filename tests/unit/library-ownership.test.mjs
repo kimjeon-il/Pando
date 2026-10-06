@@ -12,8 +12,8 @@ import { createTerritorialEntityRepository } from '../../assets/js/modules/terri
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
 const country = id => createTerritorialFeature({ id, entityKind: 'general', name: id, geometry });
 const unit = (id, parentId = 'A') => createTerritorialFeature({ id, entityKind: 'general', name: id, parentId, geometry });
-const root = { libraryId: 'root', entityKind: 'general', name: 'Root', parentLibraryId: 'old-parent', geometry: {}, geometryVersionId: 'v1', validFrom: '1900' };
-const child = { ...root, libraryId: 'child', name: 'Child', parentLibraryId: 'root' };
+const root = { entityId: 'root', entityKind: 'general', name: 'Root', parentEntityId: 'old-parent', geometry: {}, geometryVersionId: 'v1', validFrom: '1900' };
+const child = { ...root, entityId: 'child', name: 'Child', parentEntityId: 'root' };
 function prepare(descriptors, choices = {}, units = [], refs = {}) {
   let counter = 0;
   return prepareLibraryOwnership({ descriptors, choices, countries: [country('A'), country('B')], units,
@@ -21,7 +21,7 @@ function prepare(descriptors, choices = {}, units = [], refs = {}) {
 }
 
 test('missing ownership never matches names or assigns an arbitrary country; intermediate parent defaults sovereign', () => {
-  assert.deepEqual(missingLibraryOwnership([root], () => '', [country('A')], []), [{ libraryId: 'root', name: 'Root', countryId: '' }]);
+  assert.deepEqual(missingLibraryOwnership([root], () => '', [country('A')], []), [{ entityId: 'root', name: 'Root', countryId: '' }]);
   const refs = { 'old-country': 'A' };
   assert.equal(missingLibraryOwnership([root], id => refs[id] || '', [country('A')], [])[0].countryId, '');
   refs['old-parent'] = 'P';
@@ -72,8 +72,8 @@ test('parent selector is hidden only when the sovereign is its sole valid choice
 test('explicit country and nested parent apply once; children retain explicit parent identities', () => {
   const before = JSON.stringify([root, child]);
   const prepared = prepare([child, root], { root: { mode: 'child', countryId: 'B', parentId: 'P' } }, [unit('P', 'B')]);
-  const parent = prepared.find(item => item.libraryId === 'root');
-  const nested = prepared.find(item => item.libraryId === 'child');
+  const parent = prepared.find(item => item.entityId === 'root');
+  const nested = prepared.find(item => item.entityId === 'child');
   assert.equal(parent.parentId, 'P');
   assert.equal(parent.rootId, undefined);
   assert.equal(nested.parentId, parent.id);
@@ -88,7 +88,7 @@ test('promotion clears active parents, preserves source refs/version/period, and
   assert.equal(result[0].parentId, '');
   assert.equal(result[0].rootId, undefined);
   assert.equal(result[0].name, 'New country');
-  assert.equal(result[0].parentLibraryId, 'old-parent');
+  assert.equal(result[0].parentEntityId, 'old-parent');
   assert.equal(result[0].geometryVersionId, 'v1');
   assert.equal(result[0].validFrom, '1900');
   assert.equal(result[1].parentId, 'root');
@@ -105,5 +105,5 @@ test('existing parent reuse and automatic linkage; missing ancestor only prompts
 test('invalid containing subunit and library cycles are rejected before application', () => {
   assert.throws(() => prepareLibraryOwnership({ descriptors: [root], choices: { root: { mode: 'child', countryId: 'A', parentId: 'P' } },
     countries: [country('A')], units: [unit('P')], resolve: () => '', allocateId: () => 'new', contains: () => false }), /포함되지/);
-  assert.throws(() => prepare([{ ...root, parentLibraryId: 'child' }, child]), /순환/);
+  assert.throws(() => prepare([{ ...root, parentEntityId: 'child' }, child]), /순환/);
 });

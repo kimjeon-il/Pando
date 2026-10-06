@@ -248,7 +248,7 @@ export async function composeApplication({ revision }) {
   historyAssembly.initializeBrowserProjectStorage();
   projectRestore.initializeConfirmModalController();
   gisAssembly.initializeGisImportCommitterPromise();
-  libraryAssembly.initializeHistoricalLibraryService();
+  libraryAssembly.initializeTerritorialLibraryService();
   editorBindings.initializeEDITOR_COMMAND_ROW_ICONS();
   lifecycleAssembly.initializeLifecycle();
   const lifecycle = lifecycleAssembly.lifecycle;

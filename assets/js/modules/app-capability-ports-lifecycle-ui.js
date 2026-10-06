@@ -288,7 +288,7 @@ const PORT_SPECS = Object.freeze({
   fileBindings: Object.freeze([["bindFileAndGisUI","fileBindings","bindFileAndGisUI"]]),
   globalInput: Object.freeze([["bindGlobalInputUI","globalInputBindings","bindGlobalInputUI"]]),
   gpuRenderingB: Object.freeze([["syncGpuRenderScene","gpuScene","syncGpuRenderScene"],["updateActiveEditPreview","gpuScene","updateActiveEditPreview"]]),
-  libraryUi: Object.freeze([["getHistoricalLibraryController","libraryAssembly","getHistoricalLibraryController"],["historicalLibraryController","libraryAssembly","historicalLibraryController"]]),
+  libraryUi: Object.freeze([["getTerritorialLibraryController","libraryAssembly","getTerritorialLibraryController"],["territorialLibraryController","libraryAssembly","territorialLibraryController"]]),
   mapAudit: Object.freeze([["clearMapAudit","mapAudit","clearMapAudit"],["focusAuditIssue","mapAudit","focusAuditIssue"],["issueCoordinate","mapAudit","issueCoordinate"],["runFullMapAudit","mapAudit","runFullMapAudit"]]),
   navigationBindings: Object.freeze([["bindLayerUI","navigationBindings","bindLayerUI"],["bindNavigationUI","navigationBindings","bindNavigationUI"]]),
   persistence: Object.freeze([["applyAutosavedView","historyAssembly","applyAutosavedView"],["persistenceService","historyAssembly","persistenceService"]]),
@@ -304,7 +304,7 @@ export function createLifecycleUiPorts(providers) {
     flagLibrary: Object.freeze({
       openFlagLibraryPicker: async options => {
         try {
-          const controller = await providers.libraryAssembly.getHistoricalLibraryController();
+          const controller = await providers.libraryAssembly.getTerritorialLibraryController();
           await controller.open(options);
         } catch (error) {
           providers.readinessNotifications.reportOperationError(error, '국가·지역 라이브러리를 불러오지 못했습니다.', 'PL-LIB-001', 4800);

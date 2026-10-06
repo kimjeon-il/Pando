@@ -10,11 +10,11 @@ from shapely.ops import transform, unary_union
 
 
 ROOT = Path(__file__).parents[1]
-PILOT_PATH = ROOT / "assets" / "data" / "historical-library-pilot.json"
+PILOT_PATH = ROOT / "assets/data/territorial-entities/source/state-deutsche-demokratische-republik.json"
 COUNTRIES_PATH = ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson"
-PILOT = json.loads(PILOT_PATH.read_text(encoding="utf-8"))
+PILOT = {"entities": [json.loads(PILOT_PATH.read_text(encoding="utf-8"))]}
 COUNTRIES = json.loads(COUNTRIES_PATH.read_text(encoding="utf-8"))
-ENTITY = next(item for item in PILOT["entities"] if item["libraryId"] == "historical-country:deutsche-demokratische-republik")
+ENTITY = next(item for item in PILOT["entities"] if item["entityId"] == "state:deutsche-demokratische-republik")
 GEOMETRY = shape(ENTITY["geometryVersions"][0]["geometry"])
 CANONICAL_DEU = shape(next(
     item["geometry"] for item in COUNTRIES["features"] if item["id"] == "DEU"
@@ -32,8 +32,8 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
         self.assertEqual(ENTITY["displayNames"]["ko"], "독일 민주공화국")
         self.assertEqual(ENTITY["displayNames"]["de"], "Deutsche Demokratische Republik")
         self.assertEqual(set(ENTITY["alternateNames"]), {"동독", "East Germany", "DDR", "GDR", "Ostdeutschland"})
-        self.assertEqual(ENTITY["startDate"], "1949-10-07")
-        self.assertEqual(ENTITY["endDate"], "1990-10-02")
+        self.assertEqual(ENTITY["lifetime"]["validFrom"], "1949-10-07")
+        self.assertEqual(ENTITY["lifetime"]["validTo"], "1990-10-02")
         self.assertEqual(ENTITY["metadata"]["dissolutionDate"], "1990-10-03")
         self.assertEqual(ENTITY["metadata"]["referenceDate"], "1989-04-25")
         self.assertEqual(ENTITY["instantiation"], {

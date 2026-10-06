@@ -15,14 +15,14 @@ test('East Prussia r3 preserves reviewed geometry and rejects finite activation 
   const before = await neighbors();
   await page.locator('#historicalLibrarySearchInput').fill('동프로이센');
   await page.locator('#historicalLibraryYearInput').fill('1900');
-  const result = page.locator('[data-library-entity-id="historical-country:east-prussia"]');
+  const result = page.locator('[data-library-entity-id="state:east-prussia"]');
   await expect(result).toBeVisible();
   await result.click();
   await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
   await expect(page.locator('#historicalLibraryPreview details')).toHaveCount(0);
   await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
   const source = await page.evaluate(async () => {
-    const entity = await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:east-prussia');
+    const entity = await window.PANDOLAB_TERRITORIAL_LIBRARY.get('state:east-prussia');
     const version = entity.geometryVersions[0];
     const bytes = new TextEncoder().encode(JSON.stringify(version.geometry));
     return {
@@ -40,6 +40,6 @@ test('East Prussia r3 preserves reviewed geometry and rejects finite activation 
   expect(source.metadataHash).toBe(source.hash);
   expect(source.certainty).toBe('medium');
   expect(source.validation.modernEastUnmatchedLengthM).toBe(0);
-  await refuseFiniteActivation(page, testInfo, 'historical-country:east-prussia', errors);
+  await refuseFiniteActivation(page, testInfo, 'state:east-prussia', errors);
   expect(await neighbors()).toEqual(before);
 });

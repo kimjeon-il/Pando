@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "entityId": "state:BLM",
+  "entityKind": "general",
+  "canonicalName": "생바르텔레미",
+  "displayNames": {
+    "ko": "생바르텔레미"
+  },
+  "alternateNames": [],
+  "lifetime": {
+    "validFrom": null,
+    "validTo": null
+  },
+  "parentEntityId": "state:FRA",
+  "geometryVersions": [
+    {
+      "id": "state:BLM:natural-earth-5.1.1",
+      "validFrom": null,
+      "validTo": null,
+      "datePrecision": "current",
+      "certainty": "high",
+      "sourceId": "natural-earth-5.1.1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -62.838857,
+              17.881985
+            ],
+            [
+              -62.850942,
+              17.890448
+            ],
+            [
+              -62.861318,
+              17.905422
+            ],
+            [
+              -62.86734,
+              17.920396
+            ],
+            [
+              -62.866119,
+              17.929145
+            ],
+            [
+              -62.857411,
+              17.925035
+            ],
+            [
+              -62.791656,
+              17.915473
+            ],
+            [
+              -62.79894,
+              17.904486
+            ],
+            [
+              -62.810129,
+              17.892279
+            ],
+            [
+              -62.823842,
+              17.883246
+            ],
+            [
+              -62.838857,
+              17.881985
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "instantiation": {
+    "mode": "independent",
+    "countryUpdates": {}
+  },
+  "metadata": {
+    "sourceFeatureId": "BLM",
+    "projectEntityId": "d34b00a1-9b13-8000-8000-000000424c4d",
+    "defaultFlagDataUrl": "assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/bl.svg"
+  },
+  "sourceInfo": {
+    "sourceId": "natural-earth-5.1.1",
+    "title": "Natural Earth 5.1.1 Admin 0 Countries",
+    "license": "Public domain",
+    "featureId": "BLM",
+    "featureProperties": {
+      "name": "생바르텔레미"
+    },
+    "geometrySha256": "b40619b0c86684bafd17a47b427cf361fcc0f743690c0abbd478e5846eb74b0a"
+  }
+}

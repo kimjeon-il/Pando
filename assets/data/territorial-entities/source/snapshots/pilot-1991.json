@@ -1,0 +1,17 @@
+{
+  "id": "pilot-1991",
+  "name": "1991년 기능 시험",
+  "referenceDate": "1991",
+  "entityRefs": [
+    "state:czechoslovakia",
+    "state:soviet-union"
+  ],
+  "metadata": {
+    "partial": true,
+    "pilot": true
+  },
+  "sourceInfo": {
+    "notes": "전체 세계 스냅샷이 아닌 라이브러리 기능 시험용 부분 구성입니다."
+  },
+  "schemaVersion": 1
+}

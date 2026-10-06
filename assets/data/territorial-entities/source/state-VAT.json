@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "entityId": "state:VAT",
+  "entityKind": "general",
+  "canonicalName": "바티칸 시국",
+  "displayNames": {
+    "ko": "바티칸 시국"
+  },
+  "alternateNames": [],
+  "lifetime": {
+    "validFrom": null,
+    "validTo": null
+  },
+  "parentEntityId": "",
+  "geometryVersions": [
+    {
+      "id": "state:VAT:natural-earth-5.1.1",
+      "validFrom": null,
+      "validTo": null,
+      "datePrecision": "current",
+      "certainty": "high",
+      "sourceId": "natural-earth-5.1.1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12.453137,
+              41.902752
+            ],
+            [
+              12.452714,
+              41.903016
+            ],
+            [
+              12.452767,
+              41.903439
+            ],
+            [
+              12.453031,
+              41.903915
+            ],
+            [
+              12.453983,
+              41.903862
+            ],
+            [
+              12.454035,
+              41.902752
+            ],
+            [
+              12.453137,
+              41.902752
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "instantiation": {
+    "mode": "independent",
+    "countryUpdates": {}
+  },
+  "metadata": {
+    "sourceFeatureId": "VAT",
+    "projectEntityId": "VAT",
+    "defaultFlagDataUrl": "assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/va.svg"
+  },
+  "sourceInfo": {
+    "sourceId": "natural-earth-5.1.1",
+    "title": "Natural Earth 5.1.1 Admin 0 Countries",
+    "license": "Public domain",
+    "featureId": "VAT",
+    "featureProperties": {
+      "name": "바티칸 시국"
+    },
+    "geometrySha256": "c003bf425add34e4483281d1eb72f476bc1a3d6d7125f5f6d3cc8f3551739450"
+  }
+}

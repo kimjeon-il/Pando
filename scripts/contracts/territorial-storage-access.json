@@ -47,13 +47,24 @@
     {
       "file": "assets/js/modules/app-library-assembly.js",
       "functions": [
-        "instantiateHistoricalLibraryEntities"
+        "instantiateTerritorialLibraryEntities"
       ],
       "access": [
         "read"
       ],
-      "owner": "instantiateHistoricalLibraryEntities",
+      "owner": "instantiateTerritorialLibraryEntities",
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+    },
+    {
+      "file": "assets/js/modules/app-library-assembly.js",
+      "functions": [
+        "getProjectGeneration"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "territorial library preview session generation",
+      "reason": "Read the canonical project collection identity to reject async results from a replaced project; no project writes."
     },
     {
       "file": "assets/js/modules/app-library-assembly.js",

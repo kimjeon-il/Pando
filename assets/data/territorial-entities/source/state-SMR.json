@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "entityId": "state:SMR",
+  "entityKind": "general",
+  "canonicalName": "산마리노",
+  "displayNames": {
+    "ko": "산마리노"
+  },
+  "alternateNames": [],
+  "lifetime": {
+    "validFrom": null,
+    "validTo": null
+  },
+  "parentEntityId": "",
+  "geometryVersions": [
+    {
+      "id": "state:SMR:natural-earth-5.1.1",
+      "validFrom": null,
+      "validTo": null,
+      "datePrecision": "current",
+      "certainty": "high",
+      "sourceId": "natural-earth-5.1.1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12.42945,
+              43.892056
+            ],
+            [
+              12.399581,
+              43.903218
+            ],
+            [
+              12.385629,
+              43.924534
+            ],
+            [
+              12.395654,
+              43.948409
+            ],
+            [
+              12.411049,
+              43.959661
+            ],
+            [
+              12.421389,
+              43.967219
+            ],
+            [
+              12.453325,
+              43.979053
+            ],
+            [
+              12.48216,
+              43.982567
+            ],
+            [
+              12.489188,
+              43.97311
+            ],
+            [
+              12.492392,
+              43.956419
+            ],
+            [
+              12.490325,
+              43.939159
+            ],
+            [
+              12.483094,
+              43.929205
+            ],
+            [
+              12.48216,
+              43.927919
+            ],
+            [
+              12.479576,
+              43.9258
+            ],
+            [
+              12.478026,
+              43.923216
+            ],
+            [
+              12.477494,
+              43.920051
+            ],
+            [
+              12.478287,
+              43.917038
+            ],
+            [
+              12.460456,
+              43.895259
+            ],
+            [
+              12.42945,
+              43.892056
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "instantiation": {
+    "mode": "independent",
+    "countryUpdates": {}
+  },
+  "metadata": {
+    "sourceFeatureId": "SMR",
+    "projectEntityId": "SMR",
+    "defaultFlagDataUrl": "assets/vendor/flag-icons/7.5.0/flags/4x3/sm.svg"
+  },
+  "sourceInfo": {
+    "sourceId": "natural-earth-5.1.1",
+    "title": "Natural Earth 5.1.1 Admin 0 Countries",
+    "license": "Public domain",
+    "featureId": "SMR",
+    "featureProperties": {
+      "name": "산마리노"
+    },
+    "geometrySha256": "3f03ac73f401ecce873197ded602f8486901bebb7ccd3aa160b2ce95a26e0611"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "entityId": "state:ATC",
+  "entityKind": "general",
+  "canonicalName": "애시모어카르티에제도",
+  "displayNames": {
+    "ko": "애시모어카르티에제도"
+  },
+  "alternateNames": [],
+  "lifetime": {
+    "validFrom": null,
+    "validTo": null
+  },
+  "parentEntityId": "state:AUS",
+  "geometryVersions": [
+    {
+      "id": "state:ATC:natural-earth-5.1.1",
+      "validFrom": null,
+      "validTo": null,
+      "datePrecision": "current",
+      "certainty": "high",
+      "sourceId": "natural-earth-5.1.1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              123.597016,
+              -12.428318
+            ],
+            [
+              123.597748,
+              -12.438572
+            ],
+            [
+              123.575613,
+              -12.436782
+            ],
+            [
+              123.575043,
+              -12.426609
+            ],
+            [
+              123.597016,
+              -12.428318
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "instantiation": {
+    "mode": "independent",
+    "countryUpdates": {}
+  },
+  "metadata": {
+    "sourceFeatureId": "ATC",
+    "projectEntityId": "d34b00a1-9b13-8000-8000-000000415443"
+  },
+  "sourceInfo": {
+    "sourceId": "natural-earth-5.1.1",
+    "title": "Natural Earth 5.1.1 Admin 0 Countries",
+    "license": "Public domain",
+    "featureId": "ATC",
+    "featureProperties": {
+      "name": "애시모어카르티에제도"
+    },
+    "geometrySha256": "19354f70609b55d13e93fc068d65698aa3f66ebd86826abfd9ff9bb3dfcf3d42"
+  }
+}

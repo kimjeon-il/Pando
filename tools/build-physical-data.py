@@ -313,7 +313,7 @@ def main() -> None:
     if not args.terrain_only:
         build_hydro(args.source_root, args.output_root)
     if not args.hydro_only:
-        countries_path = (args.countries or (args.output_root / "countries-ne-5.1.1.geojson")).resolve()
+        countries_path = (args.countries or (args.output_root / "territorial-entities/generated/current-world.geojson")).resolve()
         build_terrain(args.source_root, args.output_root, countries_path)
 
 

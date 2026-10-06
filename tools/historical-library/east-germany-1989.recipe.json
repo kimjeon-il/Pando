@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "historical-country:deutsche-demokratische-republik:1989-04-25-r1",
+  "id": "state:deutsche-demokratische-republik:1989-04-25-r1",
   "referenceDate": "1989-04-25",
-  "output": "assets/data/historical-library-pilot.json",
-  "entityId": "historical-country:deutsche-demokratische-republik",
+  "output": "assets/data/territorial-entities/source/state-deutsche-demokratische-republik.json",
+  "entityId": "state:deutsche-demokratische-republik",
   "sources": {
     "naturalEarthAdmin1": {
       "path": "tools/historical-library/sources/east-germany/natural-earth-admin1-germany-v5.1.1.geojson",
@@ -46,7 +46,14 @@
       "source": "naturalEarthAdmin1",
       "selector": {
         "field": "iso_3166_2",
-        "values": ["DE-BB", "DE-BE", "DE-MV", "DE-SN", "DE-ST", "DE-TH"]
+        "values": [
+          "DE-BB",
+          "DE-BE",
+          "DE-MV",
+          "DE-SN",
+          "DE-ST",
+          "DE-TH"
+        ]
       }
     },
     {
@@ -54,21 +61,37 @@
       "operation": "polygonize-mask",
       "boundarySource": "berlinLand",
       "lineSource": "berlinWall",
-      "primaryLayers": ["a_grenzmauer"],
-      "priorityLayers": ["c_politischegrenze"],
-      "referencePoint": [13.304, 52.503],
-      "excludePoint": [13.413, 52.522],
+      "primaryLayers": [
+        "a_grenzmauer"
+      ],
+      "priorityLayers": [
+        "c_politischegrenze"
+      ],
+      "referencePoint": [
+        13.304,
+        52.503
+      ],
+      "excludePoint": [
+        13.413,
+        52.522
+      ],
       "maxSnapMeters": 100
     },
     {
       "id": "modern-east-with-amt-neuhaus",
       "operation": "union",
-      "inputs": ["east-five-states-and-berlin", "amtNeuhaus"]
+      "inputs": [
+        "east-five-states-and-berlin",
+        "amtNeuhaus"
+      ]
     },
     {
       "id": "gdr-candidate",
       "operation": "difference",
-      "inputs": ["modern-east-with-amt-neuhaus", "west-berlin-mask"]
+      "inputs": [
+        "modern-east-with-amt-neuhaus",
+        "west-berlin-mask"
+      ]
     },
     {
       "id": "gdr-final",
@@ -79,22 +102,52 @@
     }
   ],
   "validation": {
-    "areaKm2": {"minimum": 108000, "maximum": 109000},
+    "areaKm2": {
+      "minimum": 108000,
+      "maximum": 109000
+    },
     "maximumCoordinates": 10000,
     "maximumLibraryBytes": 6291456,
     "maximumPuzzleDifferenceKm2": 0.001,
     "insidePoints": {
-      "Rostock": [12.0991, 54.0924],
-      "Potsdam": [13.0645, 52.3906],
-      "Magdeburg": [11.6276, 52.1205],
-      "Leipzig": [12.3731, 51.3397],
-      "Dresden": [13.7373, 51.0504],
-      "Erfurt": [11.0299, 50.9848],
-      "Alexanderplatz": [13.4132, 52.5219],
-      "Amt Neuhaus": [10.928, 53.285]
+      "Rostock": [
+        12.0991,
+        54.0924
+      ],
+      "Potsdam": [
+        13.0645,
+        52.3906
+      ],
+      "Magdeburg": [
+        11.6276,
+        52.1205
+      ],
+      "Leipzig": [
+        12.3731,
+        51.3397
+      ],
+      "Dresden": [
+        13.7373,
+        51.0504
+      ],
+      "Erfurt": [
+        11.0299,
+        50.9848
+      ],
+      "Alexanderplatz": [
+        13.4132,
+        52.5219
+      ],
+      "Amt Neuhaus": [
+        10.928,
+        53.285
+      ]
     },
     "outsidePoints": {
-      "Kurfurstendamm": [13.304, 52.503]
+      "Kurfurstendamm": [
+        13.304,
+        52.503
+      ]
     }
   }
 }

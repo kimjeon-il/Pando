@@ -1,6 +1,6 @@
 {
   "version": "0.35.0",
-  "source": "countries-ne-5.1.1.geojson",
+  "source": "territorial-entities/generated/current-world.geojson",
   "sourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
   "defaultClassification": {
     "countries": {
@@ -511,13 +511,6 @@
       "compressedBytes": 13826,
       "decodedBytes": 13826,
       "sha256": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512"
-    },
-    "canonicalCountries": {
-      "url": "countries-ne-5.1.1.geojson.gz",
-      "encoding": "gzip",
-      "compressedBytes": 4379693,
-      "decodedBytes": 12415783,
-      "sha256": "0595527ed6fdc4c40fb8b7709c56d7267f214b797c7d116ea0b467f4635388dd"
     },
     "canonicalCountryPacket": {
       "url": "countries-canonical-v0.35.0.pcg.gz",

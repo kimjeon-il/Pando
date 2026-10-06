@@ -658,8 +658,20 @@ jobs:
         run: pnpm check:js && pnpm check:version
       - name: Validate canonical country sources and shared boundaries
         run: pnpm check:country-schema && pnpm check:country-default-colors && pnpm check:country-shared-boundaries
-      - name: Validate generated preview assets and historical exchange library
-        run: pnpm check:preview && pnpm check:historical-library
+      - name: Validate generated preview assets and unified territorial catalog
+        run: pnpm check:preview && pnpm check:territorial-library
+      - name: Validate catalog geometry parity, lazy loading and timeline storage
+        run: >-
+          node --test tests/unit/territorial-library.test.mjs
+          tests/unit/territorial-library-data.test.mjs
+          tests/unit/territorial-source-files.test.mjs
+          tests/unit/territorial-source-parity.test.mjs
+          tests/unit/territorial-chunks.test.mjs
+          tests/unit/territorial-canonical-parity.test.mjs
+          tests/unit/territorial-library-service.test.mjs
+          tests/unit/territorial-entity-loader.test.mjs
+          tests/unit/territorial-timeline-storage.test.mjs
+          tests/unit/territorial-snapshots.test.mjs
 
   full-unit-suite:
     name: Full unit suite

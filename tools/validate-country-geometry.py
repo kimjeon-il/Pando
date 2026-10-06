@@ -10,7 +10,7 @@ from shapely.validation import explain_validity
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CANONICAL_PATH = ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson"
+CANONICAL_PATH = ROOT / "assets/data/territorial-entities/generated/current-world.geojson"
 APP_VERSION = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
 PREVIEW_PATH = ROOT / "assets" / "data" / f"countries-preview-v{APP_VERSION}.geojson.gz"
 EXPECTED_COUNTRIES = 258

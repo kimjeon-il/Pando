@@ -17,9 +17,8 @@ const geometry = artifact.features[0].geometry;
 if (geometry.type !== 'MultiPolygon' || validateGeometry(artifact.features[0]).length) throw new Error('Invalid reviewed geometry');
 const canonicalHash = hash(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson')));
 if (canonicalHash !== audit.canonical_sha256) throw new Error('Canonical geometry has changed; reconcile again before importing');
-const target = path.join(root, 'assets/data/historical-library-pilot.json');
-const library = JSON.parse(fs.readFileSync(target, 'utf8'));
-const entity = library.entities.find(item => item.libraryId === 'historical-country:east-prussia');
+const target = path.join(root, 'assets/data/territorial-entities/source/state-east-prussia.json');
+const entity = JSON.parse(fs.readFileSync(target, 'utf8'));
 if (!entity || entity.geometryVersions.length !== 1) throw new Error('Unexpected East Prussia library structure');
 const version = entity.geometryVersions[0];
 Object.assign(version, {
@@ -51,11 +50,12 @@ Object.assign(entity.metadata, {
 delete entity.metadata.canonicalAssetRevision;
 delete entity.metadata.canonicalGzipSha256;
 entity.sourceInfo = {
+  ...entity.sourceInfo,
   title: 'Interaktive Karte Ostpreußens IV (2018), LKI / Goethe-Universität / Latvijas Universitāte; PandoLab canonical alignment',
   url: 'https://prusija.lki.lt/DE.html',
   license: 'LKI project derivative redistribution permission unconfirmed; Natural Earth public domain',
   notes: 'KML의 주 경계선과 별도 사주 경계선을 사용했습니다. 현대 칼리닌그라드 동쪽 좌표 44개와 기본 해안을 재사용했으며 연결점 이동은 약 1,766m·626m입니다. 기본 Polygon의 석호 수역 포함으로 육지 통계와 면적 차이가 있습니다. 공개 재배포 허가는 별도 확인이 필요합니다.',
 };
-fs.writeFileSync(target, `${JSON.stringify(library, null, 2)}\n`);
-console.log(JSON.stringify({ libraryId: entity.libraryId, version: version.id,
+fs.writeFileSync(target, `${JSON.stringify(entity, null, 2)}\n`);
+console.log(JSON.stringify({ entityId: entity.entityId, version: version.id,
   geometrySha256: entity.metadata.geometrySha256, artifactSha256: entity.metadata.artifactSha256 }));

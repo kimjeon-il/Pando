@@ -177,7 +177,7 @@ workspace-surface
 - Mobile sheet snap과 직접 편집 전환: `mobile-sheet-controller.js`
 - Toast/feedback routing: `feedback-controller.js`
 - Dialog focus containment/restore: dialog controller 및 `dialog-accessibility-controller.js`
-- Library listbox selection/keyboard: `historical-library-controller.js`
+- Library listbox selection/keyboard: `territorial-library-controller.js`
 - 공통 UI initialization: `ui-runtime.js`
 
 문자열이나 렌더된 DOM을 관찰해서 domain state를 역추론하는 방식보다 명시적 controller state와 event를 우선한다.

@@ -171,15 +171,15 @@ test('territory replacement deletes every country fully covered by one historica
     validateCountryCollection: async () => ({ overlapAreaKm2: 0 }),
   });
   const current = { type: 'FeatureCollection', features: [country('CZE'), country('SVK')] };
-  const historical = { type: 'FeatureCollection', features: [country('historical-country:czechoslovakia')] };
+  const historical = { type: 'FeatureCollection', features: [country('state:czechoslovakia')] };
   const plan = await planner(current, historical, 'territory-replacement');
   assert.equal(plan.canCommit, true);
   assert.equal(plan.counts.subtracted, 2);
   assert.equal(plan.counts.deleted, 2);
-  assert.deepEqual(plan.affectedIds.sort(), ['CZE', 'SVK', 'historical-country:czechoslovakia'].sort());
+  assert.deepEqual(plan.affectedIds.sort(), ['CZE', 'SVK', 'state:czechoslovakia'].sort());
   assert.deepEqual(plan.donorIds, ['CZE', 'SVK']);
   assert.equal(plan.transferredGeometry.type, 'Polygon');
-  assert.deepEqual(plan.countriesData.features.map(feature => feature.id), ['historical-country:czechoslovakia']);
+  assert.deepEqual(plan.countriesData.features.map(feature => feature.id), ['state:czechoslovakia']);
   assert.equal(current.features.length, 2);
 });
 
@@ -205,14 +205,14 @@ test('territory replacement preserves the remainders of several partially covere
     validateCountryCollection: async () => ({ overlapAreaKm2: 0 }),
   });
   const current = { type: 'FeatureCollection', features: [country('DEU'), country('POL')] };
-  const historical = { type: 'FeatureCollection', features: [country('historical-country:east-prussia')] };
+  const historical = { type: 'FeatureCollection', features: [country('state:east-prussia')] };
   const plan = await planner(current, historical, 'territory-replacement');
   assert.equal(plan.canCommit, true);
   assert.equal(plan.counts.subtracted, 2);
   assert.equal(plan.counts.deleted, 0);
   assert.deepEqual(plan.donorIds, ['DEU', 'POL']);
   assert.deepEqual(plan.countriesData.features.map(feature => feature.id), [
-    'DEU', 'POL', 'historical-country:east-prussia',
+    'DEU', 'POL', 'state:east-prussia',
   ]);
   assert.deepEqual(plan.countriesData.features[0].geometry.coordinates, remainder);
   assert.deepEqual(plan.countriesData.features[1].geometry.coordinates, remainder);
@@ -220,7 +220,7 @@ test('territory replacement preserves the remainders of several partially covere
 
 test('historical replacement commits full country deletion and transfers dependent territories atomically', async () => {
   const existing = country('KAZ');
-  const replacement = country('historical-country:soviet-union');
+  const replacement = country('state:soviet-union');
   const state = {
     territorialEntities: [normalizeCountryCollection({ features: [existing] }).features[0],
       createTerritorialFeature({ id: 'KAB', entityKind: 'general', parentId: 'KAZ', geometry: existing.geometry })],
@@ -245,7 +245,7 @@ const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state
     },
     pruneLayerItemVisibility() {},
     assertProjectReferenceIntegrity(input) {
-      assert.deepEqual(input.territorialEntities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId).map(feature => feature.id), ['historical-country:soviet-union']);
+      assert.deepEqual(input.territorialEntities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId).map(feature => feature.id), ['state:soviet-union']);
       assert.equal(input.territorialEntities.find(entity => entity.id === 'KAB').properties.parentId, replacement.id);
     },
     snapshotEditable: () => ({ marker: 'before' }),
@@ -269,7 +269,7 @@ const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state
     affectedIds: ['KAZ', replacement.id], donorIds: ['KAZ'], transferredGeometry: replacement.geometry,
   });
   assert.deepEqual(result, {
-    added: 1, subtracted: 1, deleted: 1, affectedIds: ['KAZ', 'historical-country:soviet-union'],
+    added: 1, subtracted: 1, deleted: 1, affectedIds: ['KAZ', 'state:soviet-union'],
   });
   assert.equal(transferred.targetId, replacement.id);
   assert.deepEqual(transferred.donorIds, ['KAZ']);

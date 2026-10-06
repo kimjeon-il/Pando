@@ -3,7 +3,8 @@
 // are left byte-for-byte intact; generated map assets are rebuilt separately.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { gzipSync } from 'node:zlib';
+import {readTerritorialSources,entityFileName,territorialDataRoot} from './territorial-entity-sources.mjs';
+import path from 'node:path';
 
 const root = new URL('../', import.meta.url);
 const names = new Map([
@@ -21,29 +22,22 @@ const names = new Map([
   ['PYF', '프랑스령폴리네시아'], ['TUR', '튀르키예'], ['ESP', '에스파냐'],
 ]);
 
-const canonicalPath = new URL('assets/data/countries-ne-5.1.1.geojson', root);
-const original = fs.readFileSync(canonicalPath, 'utf8');
-const collection = JSON.parse(original);
-const replacements = new Map();
-for (const [id, name] of names) {
-  const feature = collection.features.find(feature => feature.id === id);
-  assert.ok(feature, `missing country ${id}`);
-  const previous = feature.properties.name;
-  if (previous === name) continue;
-  if (!['TUR', 'ESP'].includes(id)) assert.equal(previous.replace(/\s+/gu, ''), name, `unexpected source name ${id}`);
-  else assert.equal(previous, id === 'TUR' ? '터키' : '스페인', `unexpected source name ${id}`);
-  replacements.set(previous, name);
+let countryNamesChanged=0;
+const sources=readTerritorialSources();
+for(const [id,name] of names){
+  const entity=sources.find(e=>e.entityId===`state:${id}`);
+  assert.ok(entity, `missing country ${id}`);
+  const previous=entity.sourceInfo.featureProperties.name;
+  if(previous===name)continue;
+  if(!['TUR','ESP'].includes(id))assert.equal(previous.replace(/\s+/gu,''),name);
+  else assert.equal(previous,id==='TUR'?'터키':'스페인');
+  const next=structuredClone(entity);
+  next.sourceInfo.featureProperties.name=name;
+  next.canonicalName=name;next.displayNames.ko=name;
+  assert.deepEqual(next.geometryVersions,entity.geometryVersions);
+  fs.writeFileSync(path.join(territorialDataRoot,'source',entityFileName(entity.entityId)),`${JSON.stringify(next,null,2)}\n`);
+  countryNamesChanged++;
 }
-const canonical = original.replace(/"name":(\s*)("(?:\\.|[^"\\])*")/gu, (match, gap, quoted) => {
-  const name = replacements.get(JSON.parse(quoted));
-  return name ? `"name":${gap}${JSON.stringify(name)}` : match;
-});
-const next = JSON.parse(canonical);
-assert.deepEqual(next.features.map(feature => feature.geometry), collection.features.map(feature => feature.geometry));
-assert.deepEqual(next.features.map(feature => feature.id), collection.features.map(feature => feature.id));
-for (const [id, name] of names) assert.equal(next.features.find(feature => feature.id === id).properties.name, name);
-if (canonical !== original) fs.writeFileSync(canonicalPath, canonical);
-fs.writeFileSync(new URL('assets/data/countries-ne-5.1.1.geojson.gz', root), gzipSync(Buffer.from(canonical), { level: 9, mtime: 0 }));
 
 const hydroChanges = {};
 for (const filename of ['rivers_base.geojson', 'lakes_base.geojson', 'hydronym-ko-overrides.json']) {
@@ -61,4 +55,4 @@ for (const filename of ['rivers_base.geojson', 'lakes_base.geojson', 'hydronym-k
   if (output !== source) fs.writeFileSync(path, output);
   hydroChanges[filename] = count;
 }
-console.log(JSON.stringify({ countryNamesChanged: replacements.size, hydroNameFieldsChanged: hydroChanges }));
+console.log(JSON.stringify({ countryNamesChanged, hydroNameFieldsChanged: hydroChanges }));
