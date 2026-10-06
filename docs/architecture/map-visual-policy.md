@@ -337,3 +337,36 @@ combined `pnpm test` gate and incomplete broad browser coverage; this release is
 not described as a green full regression suite. Saved schemas, timeline/date
 semantics, geometry archives and activation policy are unchanged. No application
 packaging or Web/App exchange-parity claim is made.
+
+### M7 final harness and CI partition
+
+The first candidate's complete handoff CI job reached its 35-minute limit:
+13 tests passed, 1 failed and 1 was interrupted. All three M7 continuity cases
+passed in that run. The Canvas lake failure occurred before fixture import or
+editing, while focusing DEU in the default world that the hydro scenario would
+immediately replace. Hydro scenarios now focus their actual imported object,
+using the same strict frame-acceptance helper as country scenarios. Its frame ID,
+view/projection revisions and project generation checks remain intact.
+
+CI partitions the same 15 tests into 8 WebGL and 7 Canvas tests. Each keeps the
+35-minute job limit and existing test timeouts, with separate evidence artifacts
+and `fail-fast: false`; no case is deleted, skipped or weakened.
+
+The final hydro command records 7 pass, 1 initialization timeout and 0 skip
+(`m7-hydro-final.log`). The final M7 command records 2 pass, 1 projection-wait
+timeout and 0 skip (`m7-accepted-final.log`). The failed projection observation
+still records one GPU owner for the edited line; it is not evidence of an
+ownerless frame. Both failed cases pass unchanged in a subsequent isolated,
+sequential run: **2 pass, 0 fail, 0 skip** (`m7-isolated-followup.log`). The
+original failures remain recorded separately, rather than relabeled as passes.
+Together these focused runs verify the eight hydro scenarios and three M7
+scenarios with the final harness. No production code changes follow the verified
+production source `127e9db5e926921c0500437ce1f32bde39fc94cb`.
+
+The original candidate's isolated remote terrain retry passes all six tests
+(`m7-ci-terrain-retry.log`), preserving the initial 5-pass/1-fail result. The
+overall original Application Architecture run remains cancelled because of the
+handoff job limit. The final source/candidate SHA, regenerated build metadata,
+runtime Git-blob hashes, fresh main CI statuses and live Pages deployment proof
+are recorded in `test-results/m7-delivery.json`. Earlier delivery candidate
+`19f8eb0d33bec4a06850547a51661715b8464e26` is superseded by that final SHA.
