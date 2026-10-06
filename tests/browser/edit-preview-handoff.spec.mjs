@@ -238,7 +238,7 @@ async function loadProjectFile(page, project, name) {
   await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 30_000 });
 }
 
-async function openApp(page, renderer, staticInput = false) {
+async function openApp(page, renderer, { staticInput = false, focusCountry = true } = {}) {
   await observe(page, staticInput, renderer);
   await page.goto(`/?debug=1&renderer=${renderer}&demTerrain=raster`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -258,6 +258,7 @@ async function openApp(page, renderer, staticInput = false) {
     }
     await loadProjectFile(page, project, 'static-boundary');
   }
+  if (!focusCountry) return;
   if (staticInput) {
     await expect.poll(() => page.evaluate(() => !!window.PANDOLAB_TERRITORIAL.get('A')), { timeout: 30_000 }).toBe(true);
     await page.evaluate(() => {
@@ -266,6 +267,10 @@ async function openApp(page, renderer, staticInput = false) {
     });
     await expect.poll(() => page.evaluate(() => window.__m2State().selected)).toMatchObject({ domain: 'territorial', type: 'entity', id: 'A' });
   } else await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+  await focusSelectedObject(page, renderer);
+}
+
+async function focusSelectedObject(page, renderer) {
   const focusAfterFrame = await page.evaluate(() => [...window.__m2Frames.values()].at(-1).frameId);
   await page.locator('#focusSelectedObjectBtn').evaluate(button => button.click());
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer), { timeout: 60_000 })
@@ -358,7 +363,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       const preferences = defaultUserPreferences(); preferences.selection.outlineVisible = false;
       await page.addInitScript(({ key, preferences }) => localStorage.setItem(key, JSON.stringify(preferences)), { key: STORAGE_KEY, preferences });
     }
-    await openApp(page, renderer, staticInput);
+    await openApp(page, renderer, { staticInput });
     const button = page.locator(kind === 'coastline' ? '#editEntityCoastBtn' : '#editEntityBorderBtn');
     await expect(button).toBeEnabled({ timeout: 60_000 });
     await button.evaluate(button => button.click());
@@ -481,7 +486,9 @@ for (const renderer of ['webgl2', 'canvas']) {
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     const preferences = defaultUserPreferences(); preferences.selection.outlineVisible = outlineVisible;
     await page.addInitScript(({ key, preferences }) => localStorage.setItem(key, JSON.stringify(preferences)), { key: STORAGE_KEY, preferences });
-    await openApp(page, renderer);
+    // Hydro scenarios import their own static project. Focusing the default
+    // world before replacing it adds unrelated expensive Canvas work.
+    await openApp(page, renderer, { focusCountry: false });
     const project = JSON.parse(await readFile(new URL('../fixtures/timeline-exchange/static.json', import.meta.url), 'utf8'));
     project.hydroEdits = [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000005',
       geometry: kind === 'river' ? { type: 'LineString', coordinates: [[2, 5], [4, 6], [6, 5]] }
@@ -492,7 +499,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     await page.locator('#objectSearchBtn').click();
     await page.locator('#layerSearchInput').fill(`M2 ${kind}`);
     await page.locator('#layerSearchResults .layer-search-result-select').first().click();
-    await page.locator('#focusSelectedObjectBtn').evaluate(button => button.click());
+    await focusSelectedObject(page, renderer);
     await expect.poll(() => page.evaluate(() => window.__m2State().selected)).toMatchObject({
       domain: 'hydro', type: kind, id: project.hydroEdits[0].id,
     });
