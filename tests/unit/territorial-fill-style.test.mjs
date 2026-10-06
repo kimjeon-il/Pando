@@ -143,10 +143,10 @@ test('intrinsic country paint is inherited, explicit edits override it, and clea
 test('unassigned territories and new countries remain unpainted, while historical identities keep their own defaults', () => {
   const rows = [
     ['ATA', ''], ['BRT', ''], ['KAS', ''], ['SPI', ''], ['new-country', ''],
-    ['RUS', '#3a9915'], ['historical-country:soviet-union', '#a3101f'],
-    ['CZE', '#6e63a2'], ['historical-country:czechoslovakia', '#46d8cb'],
-    ['historical-country:east-prussia', '#003153'],
-    ['historical-country:deutsche-demokratische-republik', '#8b1a1a'],
+    ['RUS', '#3a9915'], ['state:soviet-union', '#a3101f'],
+    ['CZE', '#6e63a2'], ['state:czechoslovakia', '#46d8cb'],
+    ['state:east-prussia', '#003153'],
+    ['state:deutsche-demokratische-republik', '#8b1a1a'],
     ['CNM', '#009edb'], ['COK', '#496a9c'], ['NIU', '#e2c65a'],
   ];
   const entities = rows.map(([id]) => createTerritorialFeature({ id, entityKind: 'general', geometry }));

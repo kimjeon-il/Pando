@@ -47,7 +47,7 @@ The inventory above records the pre-extraction responsibility map. Phase 06 keep
 | `generic-feature-service.js` | generic feature CRUD and semantics | hydro objects, UI rendering |
 | `history-service.js` | bounded document undo/redo snapshots and metadata | draft-local history, project serialization |
 | `import-service.js` | GIS staging result routing, strict country validation, merge planning | wizard DOM, status presentation |
-| `historical-library-service.js` | load/query/descendant expansion/instance descriptors | modal DOM, canonical project mutation |
+| `territorial-library-service.js` | load/query/descendant expansion/instance descriptors | modal DOM, canonical project mutation |
 | `map-render-coordinator.js` | full/view render order and render revision scheduling | canonical document mutation |
 | `map-edit-worker-client.js` | rebase/patch/execute protocol, revision rejection, cancellation | applying results to the document |
 | UI controllers | tooltip, confirm modal, layer panel, historical-library modal lifecycle | raw workers, geometry/domain mutation rules |

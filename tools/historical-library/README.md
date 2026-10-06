@@ -1,14 +1,14 @@
 # Historical library geometry builds
 
 `east-germany-1989.recipe.json` is the pinned, declarative build recipe for the
-PandoLab historical-country pilot `historical-country:deutsche-demokratische-republik`.
+PandoLab historical-country pilot `state:deutsche-demokratische-republik`.
 
 The normal build is offline and deterministic:
 
 ```powershell
 python -m pip install -r tools/requirements-historical-library.txt
-pnpm build:historical-library
-pnpm check:historical-library
+pnpm build:territorial-geometry
+pnpm check:territorial-library
 ```
 
 The checked-in files below are the only geometry inputs used by that build:
@@ -39,20 +39,20 @@ replacement line.
 
 ## Additional historical-country entries
 
-`assets/data/historical-library-pilot.json` also contains six territory-replacement
+`assets/data/territorial-entities/source/` contains one file per modern or historical entity, including territory-replacement
 entries built from the canonical Natural Earth Admin 0 polygons. They are
 reference-date approximations, not a claim of cadastral historical precision:
 
-- `historical-country:ukraine`: current Ukraine plus the canonical Russian
+- `state:ukraine`: current Ukraine plus the canonical Russian
   Crimea component, through 17 March 2014.
-- `historical-country:yugoslavia`: three geometry versions for the Kingdom of
+- `state:yugoslavia`: three geometry versions for the Kingdom of
   Yugoslavia (1918–1941), Socialist Federal Republic (1945–1992), and Federal
   Republic (1992–2003).
-- `historical-country:sudan`: present Sudan plus South Sudan through 8 July
+- `state:sudan`: present Sudan plus South Sudan through 8 July
   2011.
-- `historical-country:indonesia`: present Indonesia plus Timor-Leste through
+- `state:indonesia`: present Indonesia plus Timor-Leste through
   19 May 2002.
 
-All six use the same `territory-replacement` materialization mode, so adding one
+These entries use the same `territory-replacement` materialization mode, so adding one
 subtracts its transferred geometry from overlapping current-country objects in
 one undoable operation.

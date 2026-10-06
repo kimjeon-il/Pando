@@ -153,7 +153,7 @@ const { createApplicationLifecycle } = await import(versionedModuleUrl('./module
 
 let modalRuntimePromise = null;
 let gisRuntimePromise = null;
-let historicalRuntimePromise = null;
+let territorialLibraryRuntimePromise = null;
 let gisIoRuntimePromise = null;
 let gisExportControllerPromise = null;
 let gisExportController = null;
@@ -178,8 +178,9 @@ let composeRiverBoundaryTerritoryComponents;
 let RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION;
 let RIVER_TERRITORY_PARTITION_CONFIG;
 let riverTerritoryPartitionConfigFingerprint;
-let historicalLibraryServiceModule;
-let historicalLibraryControllerModule;
+let territorialLibraryServiceModule;
+let territorialEntityLoaderModule;
+let territorialLibraryControllerModule;
 let LIBRARY_ENTITY_TYPES;
 let selectGeometryVersion;
 
@@ -276,26 +277,28 @@ async function ensureGisIoRuntime() {
   return gisIoRuntimePromise;
 }
 
-async function ensureHistoricalRuntime() {
-  if (historicalRuntimePromise) return historicalRuntimePromise;
+async function ensureTerritorialLibraryRuntime() {
+  if (territorialLibraryRuntimePromise) return territorialLibraryRuntimePromise;
   const startedAt = performance.now();
-  historicalRuntimePromise = Promise.all([
+  territorialLibraryRuntimePromise = Promise.all([
     window.PANDOLAB_ENSURE_MODAL_STYLES?.() || Promise.resolve(),
-    import(versionedModuleUrl('./modules/historical-library.js')),
-    import(versionedModuleUrl('./modules/historical-library-service.js')),
-    import(versionedModuleUrl('./modules/historical-library-controller.js')),
-  ]).then(([, library, service, controller]) => {
-    historicalLibraryServiceModule = service;
-    historicalLibraryControllerModule = controller;
+    import(versionedModuleUrl('./modules/territorial-library.js')),
+    import(versionedModuleUrl('./modules/territorial-library-service.js')),
+    import(versionedModuleUrl('./modules/territorial-library-controller.js')),
+    import(versionedModuleUrl('./modules/territorial-entity-loader.js')),
+  ]).then(([, library, service, controller, loader]) => {
+    territorialLibraryServiceModule = service;
+    territorialEntityLoaderModule = loader;
+    territorialLibraryControllerModule = controller;
     ({ LIBRARY_ENTITY_TYPES, selectGeometryVersion } = library);
-    recordLazyRuntime('lazyHistoricalLoadedMs', startedAt);
+    recordLazyRuntime('lazyTerritorialLibraryLoadedMs', startedAt);
     return { library, service, controller };
   }).catch(error => {
-    historicalRuntimePromise = null;
+    territorialLibraryRuntimePromise = null;
     recordLazyRuntimeError();
     throw error;
   });
-  return historicalRuntimePromise;
+  return territorialLibraryRuntimePromise;
 }
 const {
   RELIABILITY_ERROR_CATEGORIES,
@@ -523,7 +526,7 @@ export {
   createApplicationLifecycle,
   modalRuntimePromise,
   gisRuntimePromise,
-  historicalRuntimePromise,
+  territorialLibraryRuntimePromise,
   gisIoRuntimePromise,
   gisExportControllerPromise,
   gisExportController,
@@ -548,8 +551,9 @@ export {
   RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION,
   RIVER_TERRITORY_PARTITION_CONFIG,
   riverTerritoryPartitionConfigFingerprint,
-  historicalLibraryServiceModule,
-  historicalLibraryControllerModule,
+  territorialLibraryServiceModule,
+  territorialEntityLoaderModule,
+  territorialLibraryControllerModule,
   LIBRARY_ENTITY_TYPES,
   selectGeometryVersion,
   recordLazyRuntime,
@@ -558,7 +562,7 @@ export {
   ensureGisRuntime,
   loadClassicRuntime,
   ensureGisIoRuntime,
-  ensureHistoricalRuntime,
+  ensureTerritorialLibraryRuntime,
   RELIABILITY_ERROR_CATEGORIES,
   createCancellationError,
   createDiagnosticLog,

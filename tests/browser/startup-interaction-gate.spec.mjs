@@ -24,7 +24,7 @@ test('canonical geometry request waits for a complete quiet input window', async
     'ui-modal.bundle.css',
     'confirm-modal-controller.js',
     'import-service.js',
-    'historical-library.js',
+    'territorial-library.js',
   ]) expect(requestedUrls.some(url => url.includes(lazyAsset))).toBe(false);
 
   const map = page.locator('#map');

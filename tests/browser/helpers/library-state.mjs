@@ -9,7 +9,7 @@ async function observeOwners(page) {
       'get state() { window.__libraryState = state; window.__librarySaveState = saveState; return state; }'],
     ['selection-domain.js', '  return Object.freeze({\n    replace,',
       '  return window.__librarySelection = Object.freeze({\n    replace,'],
-    ['historical-library-controller.js', '  reportError,',
+    ['territorial-library-controller.js', '  reportError,',
       `  reportError: originalReportError,`],
   ];
   for (const [file, before, after] of patches) {
@@ -18,7 +18,7 @@ async function observeOwners(page) {
       const original = (await response.text()).replace(/\r\n/g, '\n');
       expect(original).toContain(before);
       let source = original.replace(before, after);
-      if (file === 'historical-library-controller.js') {
+      if (file === 'territorial-library-controller.js') {
         const marker = '  let selectedId =';
         expect(source).toContain(marker);
         source = source.replace(marker, `  const reportError = (error, message, operationCode, duration) => {
@@ -50,7 +50,7 @@ async function stateProof(page, sourceId) {
       transaction.oncomplete = () => { database.close(); resolve(request.result || null); };
       transaction.onerror = () => { database.close(); reject(transaction.error); };
     });
-    const source = structuredClone(await window.PANDOLAB_HISTORICAL_LIBRARY.get(sourceId));
+    const source = structuredClone(await window.PANDOLAB_TERRITORIAL_LIBRARY.get(sourceId));
     const rendering = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
     return {
       entities: await hash(state.territorialEntities),
@@ -100,12 +100,12 @@ export async function openLibrary(page) {
 
 export async function refuseFiniteActivation(page, testInfo, id, errors) {
   const source = await page.evaluate(async id => {
-    const entity = await window.PANDOLAB_HISTORICAL_LIBRARY.get(id);
-    return { libraryId: entity.libraryId, startDate: entity.startDate, endDate: entity.endDate,
+    const entity = await window.PANDOLAB_TERRITORIAL_LIBRARY.get(id);
+    return { entityId: entity.entityId, lifetime: structuredClone(entity.lifetime),
       geometryVersionIds: entity.geometryVersions.map(version => version.id),
       metadata: structuredClone(entity.metadata), sourceInfo: structuredClone(entity.sourceInfo) };
   }, id);
-  expect(source.startDate || source.endDate).toBeTruthy();
+  expect(source.lifetime.validFrom || source.lifetime.validTo).toBeTruthy();
   expect(source.geometryVersionIds.length).toBeGreaterThan(0);
   const before = await stateProof(page, id);
   expect(before.historyCount).toBeGreaterThan(0);
@@ -123,7 +123,7 @@ export async function refuseFiniteActivation(page, testInfo, id, errors) {
   await expect(page.locator('#historicalLibraryAddBtn')).toBeEnabled();
   const after = await stateProof(page, id);
   const proofPath = testInfo.outputPath('finite-activation-atomicity.json');
-  await writeFile(proofPath, JSON.stringify({ id, startDate: source.startDate, endDate: source.endDate, before, after, diagnostics }));
+  await writeFile(proofPath, JSON.stringify({ id, lifetime: source.lifetime, before, after, diagnostics }));
   await testInfo.attach('finite-activation-atomicity', { path: proofPath, contentType: 'application/json' });
   expect(after).toEqual(before);
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.list()

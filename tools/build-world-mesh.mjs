@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
-const sourcePath = path.join(projectRoot, 'assets', 'data', 'countries-ne-5.1.1.geojson');
+const sourcePath = path.join(projectRoot, 'assets', 'data', 'territorial-entities', 'generated', 'current-world.geojson');
 const outputPath = path.resolve(
   projectRoot,
   process.argv[2] || path.join('assets', 'data', 'world-mesh-v0.12.6.bin.gz'),

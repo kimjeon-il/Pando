@@ -10,7 +10,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const data = path.join(root, 'assets', 'data');
 const inputs = [
   ['preview', 'countries-preview-v0.34.0.geojson.gz', 'countries-preview-shared-v0.34.0.json.gz'],
-  ['canonical', 'countries-ne-5.1.1.geojson', 'countries-canonical-shared-v0.34.0.json.gz'],
+  ['canonical', 'territorial-entities/generated/current-world.geojson', 'countries-canonical-shared-v0.34.0.json.gz'],
 ];
 for (const [quality, input, output] of inputs) {
   const raw = fs.readFileSync(path.join(data, input));

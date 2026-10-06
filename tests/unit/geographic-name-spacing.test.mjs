@@ -4,7 +4,7 @@ import test from 'node:test';
 import { gunzipSync } from 'node:zlib';
 
 import { normalizeCountryFeature } from '../../assets/js/modules/country-feature.js';
-import { createCurrentCountryLibraryEntities } from '../../assets/js/modules/historical-library.js';
+import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
 
 const data = new URL('../../assets/data/', import.meta.url);
 const version = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url))).version;
@@ -12,7 +12,7 @@ const canonical = JSON.parse(fs.readFileSync(new URL('countries-ne-5.1.1.geojson
 const preview = JSON.parse(gunzipSync(fs.readFileSync(new URL(`countries-preview-v${version}.geojson.gz`, data))));
 
 test('default compound geographic names are compact in source, preview and current library', () => {
-  const library = createCurrentCountryLibraryEntities(canonical);
+  const library = readTerritorialSources();
   for (const [id, name] of [
     ['MHL', '마셜제도'], ['TCA', '터크스케이커스제도'], ['HMD', '허드맥도널드제도'],
     ['SGS', '사우스조지아사우스샌드위치제도'], ['UMI', '미국령군소제도'],
@@ -26,7 +26,7 @@ test('default compound geographic names are compact in source, preview and curre
       assert.equal(feature.properties.name, name, `${id} asset`);
       assert.equal(normalizeCountryFeature(feature).properties.name, name, `${id} runtime`);
     }
-    assert.equal(library.find(item => item.metadata.currentCountryId === id).displayNames.ko, name, `${id} library`);
+    assert.equal(library.find(item => item.metadata.sourceFeatureId === id).displayNames.ko, name, `${id} library`);
   }
 });
 

@@ -1,0 +1,4434 @@
+{
+  "baseSha": "2091ee2c294df237d844e32f9b926449677c45e4",
+  "candidateSha": null,
+  "status": "diagnosis and local optimization; final performance gate not passed",
+  "tests": {
+    "pass": 50,
+    "fail": 0,
+    "skip": 0
+  },
+  "before": [
+    {
+      "label": "baseline",
+      "root": "D:/dev/Pandoeditor(Web)",
+      "heapBefore": {
+        "usedSize": 209681600,
+        "totalSize": 272531456,
+        "embedderHeapUsedSize": 9560680,
+        "backingStorageSize": 149412671
+      },
+      "heapAfter": {
+        "usedSize": 130004848,
+        "totalSize": 133767168,
+        "embedderHeapUsedSize": 6383304,
+        "backingStorageSize": 145512227
+      },
+      "top": [
+        {
+          "functionName": "(program)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 12499.592
+        },
+        {
+          "functionName": "(idle)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 8472.433
+        },
+        {
+          "functionName": "(garbage collector)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 782.604
+        },
+        {
+          "functionName": "compareIds",
+          "scriptId": "145",
+          "url": "http://127.0.0.1:4291/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 71,
+          "columnNumber": 19,
+          "ms": 412.609
+        },
+        {
+          "functionName": "compareIds",
+          "scriptId": "145",
+          "url": "http://127.0.0.1:4291/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 71,
+          "columnNumber": 19,
+          "ms": 411.884
+        },
+        {
+          "functionName": "compareIds",
+          "scriptId": "145",
+          "url": "http://127.0.0.1:4291/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 71,
+          "columnNumber": 19,
+          "ms": 393.501
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "145",
+          "url": "http://127.0.0.1:4291/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 356.94
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "145",
+          "url": "http://127.0.0.1:4291/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 349.482
+        },
+        {
+          "functionName": "guardedWorkerPostMessage",
+          "scriptId": "299",
+          "url": "http://127.0.0.1:4291/assets/js/modules/boundary-ghosting-guard.js",
+          "lineNumber": 127,
+          "columnNumber": 59,
+          "ms": 228.778
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "98",
+          "url": "http://127.0.0.1:4291/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 188.242
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "98",
+          "url": "http://127.0.0.1:4291/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 184.909
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "98",
+          "url": "http://127.0.0.1:4291/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 184.178
+        },
+        {
+          "functionName": "fingerprintProjectBaseline",
+          "scriptId": "99",
+          "url": "http://127.0.0.1:4291/assets/js/modules/project-serializer.js",
+          "lineNumber": 62,
+          "columnNumber": 48,
+          "ms": 131.555
+        },
+        {
+          "functionName": "insert",
+          "scriptId": "145",
+          "url": "http://127.0.0.1:4291/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 83,
+          "columnNumber": 17,
+          "ms": 130.505
+        },
+        {
+          "functionName": "freeze",
+          "scriptId": "145",
+          "url": "http://127.0.0.1:4291/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 41,
+          "columnNumber": 15,
+          "ms": 73.925
+        },
+        {
+          "functionName": "e",
+          "scriptId": "7",
+          "url": "http://127.0.0.1:4291/assets/js/vendor/d3.min.js",
+          "lineNumber": 1,
+          "columnNumber": 2457,
+          "ms": 73.655
+        },
+        {
+          "functionName": "runSelfTest",
+          "scriptId": "235",
+          "url": "http://127.0.0.1:4291/assets/js/modules/gpu-stroke-renderer.js?v=0.35.0-build-5d2cd820c4ed",
+          "lineNumber": 528,
+          "columnNumber": 22,
+          "ms": 73.517
+        },
+        {
+          "functionName": "freeze",
+          "scriptId": "145",
+          "url": "http://127.0.0.1:4291/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 41,
+          "columnNumber": 15,
+          "ms": 70.681
+        }
+      ],
+      "startup": {
+        "buildId": "0.35.0-build-5d2cd820c4ed",
+        "assetRevision": "0.35.0-build-5d2cd820c4ed",
+        "dataRevision": "data-1f83d070c0b42ac01de6a5eb0547fa01",
+        "dataCacheName": "pandolab-data-data-1f83d070c0b42ac01de6a5eb0547fa01",
+        "uiStylesheetRequestCount": 0,
+        "coreStylesheetRequestCount": 2,
+        "modalStylesheetRequestCount": 0,
+        "uiBundleBuildSourceCount": 13,
+        "firstCanonicalFrameMs": null,
+        "canonicalFrameFallbackCount": 0,
+        "signals": {
+          "layout": "wide",
+          "deviceMemory": 16,
+          "hardwareConcurrency": 6,
+          "effectiveType": "4g",
+          "saveData": false
+        },
+        "loadPolicy": {
+          "mode": "sequential",
+          "reason": "interaction-first-v1",
+          "constrained": false,
+          "signals": {
+            "layout": "wide",
+            "deviceMemory": 16,
+            "hardwareConcurrency": 6,
+            "effectiveType": "4g",
+            "saveData": false
+          }
+        },
+        "startupPhase": "canonical-ready",
+        "interactivePaintMs": 2383.2000000029802,
+        "canonicalQuietWindowMs": 500,
+        "canonicalInputDeferralCount": 0,
+        "canonicalGeometryQueuedMs": 2383.2999999970198,
+        "canonicalGeometryStartedMs": 3785.10000000149,
+        "canonicalGeometryReceivedMs": 3965.2000000029802,
+        "canonicalGeometryAppliedMs": 18366.89999999851,
+        "canonicalMeshQueuedMs": 18366.89999999851,
+        "canonicalMeshStartedMs": 18921.10000000149,
+        "canonicalMeshReceivedMs": 21751.70000000298,
+        "canonicalMeshAppliedMs": 26282.5,
+        "canonicalWorkStartedDuringInputCount": 0,
+        "canonicalPacketCompressedBytes": 5122041,
+        "canonicalPacketDecodedBytes": 8826208,
+        "canonicalPacketRetainedBytes": 8826208,
+        "canonicalPacketTransferBytes": 8826208,
+        "canonicalStructuredCloneMetadataBytes": 1122,
+        "canonicalCacheWriteMs": 25.899999998509884,
+        "canonicalDecompressMs": 56.399999998509884,
+        "canonicalPacketValidateMs": 7.399999998509884,
+        "canonicalPacketTransferMs": 40.2998046875,
+        "canonicalMaterializeMs": 7801.79999999702,
+        "canonicalMaterializeSliceCount": 134,
+        "canonicalMaterializeMaxSliceMs": 0.6999999955296516,
+        "canonicalMaterializedCoordinateCount": 548454,
+        "canonicalPreviewReleasedBytes": 0,
+        "canonicalPristineReparseCount": 0,
+        "canonicalMemorySamples": [
+          {
+            "label": "canonical-packet-request",
+            "atMs": 3785.39999999851,
+            "supported": true,
+            "bytes": 90049791,
+            "source": "performance.memory"
+          },
+          {
+            "label": "packet-transferred",
+            "atMs": 3965.39999999851,
+            "supported": true,
+            "bytes": 100743779,
+            "source": "performance.memory"
+          },
+          {
+            "label": "materialization-start",
+            "atMs": 7069.10000000149,
+            "supported": true,
+            "bytes": 110425136,
+            "source": "performance.memory"
+          },
+          {
+            "label": "materialization-complete",
+            "atMs": 14866,
+            "supported": true,
+            "bytes": 108194243,
+            "source": "performance.memory"
+          },
+          {
+            "label": "canonical-mesh-committed",
+            "atMs": 26282.79999999702,
+            "supported": true,
+            "bytes": 285015564,
+            "source": "performance.memory"
+          }
+        ],
+        "lazyModalLoadedMs": null,
+        "lazyGisLoadedMs": null,
+        "lazyHistoricalLoadedMs": null,
+        "lazyModuleLoadErrorCount": 0,
+        "initialModuleRequestCount": 247,
+        "startedAt": 69.20000000298023,
+        "preview": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 211.89999999850988,
+          "transferredBytes": 2664924,
+          "decodedBytes": 6216008,
+          "assets": {
+            "countries": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 917550,
+              "storedBytes": 917550,
+              "decodedBytes": 2438942,
+              "loadMs": 37.899999998509884,
+              "cacheWriteMs": 7.299999997019768,
+              "decompressMs": 17.100000001490116,
+              "parseMs": 19.69999999552965
+            },
+            "mesh": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 1733548,
+              "storedBytes": 1733548,
+              "decodedBytes": 3763240,
+              "loadMs": 60.79999999701977,
+              "cacheWriteMs": 13.100000001490116,
+              "decompressMs": 36.29999999701977,
+              "parseMs": 0
+            },
+            "labelAnchors": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 13826,
+              "storedBytes": 13826,
+              "decodedBytes": 13826,
+              "loadMs": 16.700000002980232,
+              "cacheWriteMs": 9.100000001490116,
+              "decompressMs": 0,
+              "parseMs": 0.20000000298023224
+            }
+          }
+        },
+        "geometry": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 139.19999999552965,
+          "transferredBytes": 5122041,
+          "decodedBytes": 8826208,
+          "canonicalPacketCompressedBytes": 5122041,
+          "canonicalPacketDecodedBytes": 8826208,
+          "canonicalCacheWriteMs": 25.899999998509884,
+          "canonicalDecompressMs": 56.399999998509884,
+          "canonicalPacketValidateMs": 7.399999998509884,
+          "assets": {
+            "countryPacket": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 5122041,
+              "storedBytes": 5122041,
+              "decodedBytes": 8826208,
+              "loadMs": 118.89999999850988,
+              "cacheWriteMs": 25.899999998509884,
+              "decompressMs": 56.399999998509884,
+              "parseMs": 0
+            }
+          }
+        },
+        "mesh": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 2829.39999999851,
+          "transferredBytes": 14619043,
+          "decodedBytes": 32644700,
+          "assets": {
+            "mesh": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 14619043,
+              "storedBytes": 14619043,
+              "decodedBytes": 32644700,
+              "loadMs": 223.80000000447035,
+              "cacheWriteMs": 42.100000001490116,
+              "decompressMs": 124.10000000149012,
+              "parseMs": 0
+            }
+          }
+        },
+        "canonical": {
+          "geometry": {
+            "policy": {
+              "mode": "sequential",
+              "reason": "interaction-first-v1",
+              "constrained": false,
+              "signals": {
+                "layout": "wide",
+                "deviceMemory": 16,
+                "hardwareConcurrency": 6,
+                "effectiveType": "4g",
+                "saveData": false
+              }
+            },
+            "milliseconds": 139.19999999552965,
+            "transferredBytes": 5122041,
+            "decodedBytes": 8826208,
+            "canonicalPacketCompressedBytes": 5122041,
+            "canonicalPacketDecodedBytes": 8826208,
+            "canonicalCacheWriteMs": 25.899999998509884,
+            "canonicalDecompressMs": 56.399999998509884,
+            "canonicalPacketValidateMs": 7.399999998509884,
+            "assets": {
+              "countryPacket": {
+                "source": "network",
+                "cacheHit": false,
+                "transferredBytes": 5122041,
+                "storedBytes": 5122041,
+                "decodedBytes": 8826208,
+                "loadMs": 118.89999999850988,
+                "cacheWriteMs": 25.899999998509884,
+                "decompressMs": 56.399999998509884,
+                "parseMs": 0
+              }
+            },
+            "materialization": {
+              "sliceCount": 134,
+              "maxSliceMs": 0.6999999955296516,
+              "coordinateCount": 548454
+            }
+          },
+          "mesh": {
+            "policy": {
+              "mode": "sequential",
+              "reason": "interaction-first-v1",
+              "constrained": false,
+              "signals": {
+                "layout": "wide",
+                "deviceMemory": 16,
+                "hardwareConcurrency": 6,
+                "effectiveType": "4g",
+                "saveData": false
+              }
+            },
+            "milliseconds": 2829.39999999851,
+            "transferredBytes": 14619043,
+            "decodedBytes": 32644700,
+            "assets": {
+              "mesh": {
+                "source": "network",
+                "cacheHit": false,
+                "transferredBytes": 14619043,
+                "storedBytes": 14619043,
+                "decodedBytes": 32644700,
+                "loadMs": 223.80000000447035,
+                "cacheWriteMs": 42.100000001490116,
+                "decompressMs": 124.10000000149012,
+                "parseMs": 0
+              }
+            }
+          }
+        },
+        "interactiveMs": 2063.7000000029802,
+        "editableMs": 18366.89999999851,
+        "readyMs": 26282.5,
+        "layerHydrationStartedMs": 1717.7000000029802,
+        "layerTreeRenderedMs": 18366.5,
+        "layerReadyMs": 18366.5,
+        "geometryError": "",
+        "meshError": "",
+        "previewReceivedMs": 356.1000000014901,
+        "previewMainThreadTransferMs": 47.2998046875,
+        "rendererStatus": "Natural Earth 5.1.1 · WebGL2 고화질",
+        "mapHostStage": "ready",
+        "previewMeshUploadMs": 152.79999999701977,
+        "renderer": "webgl2",
+        "fallbackReason": "",
+        "devicePixelRatio": 1,
+        "effectivePixelRatio": 1,
+        "previewDisplayMs": 1707.6000000014901,
+        "geometryProgress": {
+          "stage": "countries",
+          "percent": 98
+        },
+        "geometryReceivedMs": 3965.2000000029802,
+        "geometryMainThreadTransferMs": 40.2998046875,
+        "canonicalStateApplyStage": "complete",
+        "geometryApplyMs": 3500,
+        "geometryDisplayMs": 14401.69999999553,
+        "meshProgress": {
+          "stage": "mesh",
+          "percent": 98
+        },
+        "meshReceivedMs": 21751.70000000298,
+        "meshMainThreadTransferMs": 0.899658203125,
+        "meshApplyMs": 4324.79999999702,
+        "meshDisplayMs": 4530.79999999702
+      },
+      "observations": {
+        "uploads": [
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0.5,
+            "bytes": 1003704
+          },
+          {
+            "ms": 0.10000000149011612,
+            "bytes": 250926
+          },
+          {
+            "ms": 0.7999999970197678,
+            "bytes": 1686624
+          },
+          {
+            "ms": 0.6000000014901161,
+            "bytes": 812648
+          },
+          {
+            "ms": 0.30000000447034836,
+            "bytes": 112
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 168
+          },
+          {
+            "ms": 0,
+            "bytes": 144
+          },
+          {
+            "ms": 0,
+            "bytes": 56
+          },
+          {
+            "ms": 0,
+            "bytes": 41136
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 40
+          },
+          {
+            "ms": 0,
+            "bytes": 408
+          },
+          {
+            "ms": 0,
+            "bytes": 104
+          },
+          {
+            "ms": 0,
+            "bytes": 1272
+          },
+          {
+            "ms": 0,
+            "bytes": 400
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 328
+          },
+          {
+            "ms": 0,
+            "bytes": 184
+          },
+          {
+            "ms": 0.10000000149011612,
+            "bytes": 184
+          },
+          {
+            "ms": 0,
+            "bytes": 120
+          },
+          {
+            "ms": 0,
+            "bytes": 128
+          },
+          {
+            "ms": 0,
+            "bytes": 112
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 128
+          },
+          {
+            "ms": 0,
+            "bytes": 88
+          },
+          {
+            "ms": 0,
+            "bytes": 616
+          },
+          {
+            "ms": 0,
+            "bytes": 552
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 352
+          },
+          {
+            "ms": 0,
+            "bytes": 776
+          },
+          {
+            "ms": 0,
+            "bytes": 120
+          },
+          {
+            "ms": 0,
+            "bytes": 168
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 156
+          },
+          {
+            "ms": 0,
+            "bytes": 192
+          },
+          {
+            "ms": 0,
+            "bytes": 60
+          },
+          {
+            "ms": 0,
+            "bytes": 58632
+          },
+          {
+            "ms": 0,
+            "bytes": 84
+          },
+          {
+            "ms": 0,
+            "bytes": 36
+          },
+          {
+            "ms": 0,
+            "bytes": 324
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 1476
+          },
+          {
+            "ms": 0,
+            "bytes": 288
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 396
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 144
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 540
+          },
+          {
+            "ms": 0,
+            "bytes": 564
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 288
+          },
+          {
+            "ms": 0,
+            "bytes": 876
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 80
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 958080
+          },
+          {
+            "ms": 0,
+            "bytes": 768160
+          },
+          {
+            "ms": 0,
+            "bytes": 509160
+          },
+          {
+            "ms": 0,
+            "bytes": 10800
+          },
+          {
+            "ms": 0,
+            "bytes": 30624
+          },
+          {
+            "ms": 0.10000000149011612,
+            "bytes": 3600
+          },
+          {
+            "ms": 0,
+            "bytes": 9744
+          },
+          {
+            "ms": 0,
+            "bytes": 1472
+          },
+          {
+            "ms": 0,
+            "bytes": 3696
+          },
+          {
+            "ms": 0,
+            "bytes": 811840
+          },
+          {
+            "ms": 0,
+            "bytes": 2760
+          },
+          {
+            "ms": 0,
+            "bytes": 7392
+          },
+          {
+            "ms": 0,
+            "bytes": 4232
+          },
+          {
+            "ms": 0,
+            "bytes": 11616
+          },
+          {
+            "ms": 0,
+            "bytes": 4063240
+          },
+          {
+            "ms": 0,
+            "bytes": 960
+          },
+          {
+            "ms": 0,
+            "bytes": 2352
+          },
+          {
+            "ms": 0,
+            "bytes": 3250912
+          },
+          {
+            "ms": 0,
+            "bytes": 8215808
+          },
+          {
+            "ms": 0,
+            "bytes": 2053952
+          },
+          {
+            "ms": 0,
+            "bytes": 18018516
+          },
+          {
+            "ms": 0,
+            "bytes": 4347088
+          },
+          {
+            "ms": 0,
+            "bytes": 901984
+          },
+          {
+            "ms": 0,
+            "bytes": 225496
+          },
+          {
+            "ms": 0,
+            "bytes": 2013360
+          },
+          {
+            "ms": 0,
+            "bytes": 452440
+          },
+          {
+            "ms": 0,
+            "bytes": 2262200
+          },
+          {
+            "ms": 0,
+            "bytes": 55488
+          },
+          {
+            "ms": 0,
+            "bytes": 162408
+          },
+          {
+            "ms": 0,
+            "bytes": 18496
+          },
+          {
+            "ms": 0,
+            "bytes": 53064
+          },
+          {
+            "ms": 0,
+            "bytes": 21632
+          },
+          {
+            "ms": 0,
+            "bytes": 62424
+          }
+        ],
+        "yields": [
+          25.69999999552965,
+          800.5999999940395,
+          836,
+          1787.2999999970198,
+          1713,
+          15,
+          17,
+          16.799999997019768,
+          15.399999998509884,
+          16.600000001490116,
+          16.600000001490116,
+          16.899999998509884,
+          16.799999997019768,
+          16.600000001490116,
+          15.900000005960464,
+          16.700000002980232,
+          16.80000000447035,
+          16.80000000447035,
+          15.200000002980232,
+          16.899999998509884,
+          15.700000002980232,
+          18.299999997019768,
+          15.299999997019768,
+          16.69999999552965,
+          16.899999998509884,
+          17.100000001490116,
+          16,
+          16.30000000447035,
+          16.19999999552965,
+          15.899999998509884,
+          17.80000000447035,
+          525.2999999970198,
+          6.100000001490116,
+          16.799999997019768,
+          16.899999998509884,
+          17,
+          15.399999998509884,
+          16.899999998509884,
+          16.799999997019768,
+          16.899999998509884,
+          15.299999997019768,
+          16.899999998509884,
+          16.899999998509884,
+          16.69999999552965,
+          16.799999997019768,
+          15.200000002980232,
+          16.900000005960464,
+          16.80000000447035,
+          16.899999998509884,
+          16.899999998509884,
+          15.399999998509884,
+          16.899999998509884,
+          16.80000000447035,
+          16.900000005960464,
+          15.400000005960464,
+          18.5,
+          15.300000004470348,
+          16.799999997019768,
+          15.400000005960464,
+          17,
+          16.600000001490116,
+          17,
+          15,
+          16.700000002980232,
+          16.799999997019768,
+          16.899999998509884,
+          16.399999998509884,
+          16.399999998509884,
+          17.100000001490116,
+          15.299999997019768,
+          16.600000001490116,
+          16.900000005960464,
+          16.30000000447035,
+          16.899999998509884,
+          16.799999997019768,
+          17.100000001490116,
+          16.799999997019768,
+          15.600000001490116,
+          16.69999999552965,
+          17.100000001490116,
+          16.899999998509884,
+          15.5,
+          17,
+          16.600000001490116,
+          16.19999999552965,
+          17.100000001490116,
+          16.600000001490116,
+          16.900000005960464,
+          15.200000002980232,
+          17,
+          17.099999994039536,
+          15.300000004470348,
+          17.19999999552965,
+          18,
+          15.200000002980232,
+          16.80000000447035,
+          16.899999998509884,
+          15.099999994039536,
+          16.80000000447035,
+          16.700000002980232,
+          16.30000000447035,
+          16.899999998509884,
+          15.700000002980232,
+          16.799999997019768,
+          17,
+          16.899999998509884,
+          15.100000001490116,
+          16.899999998509884,
+          16.799999997019768,
+          16.899999998509884,
+          16.799999997019768,
+          16.899999998509884,
+          15.300000004470348,
+          17,
+          16.799999997019768,
+          16.399999998509884,
+          17,
+          16.899999998509884,
+          15.399999998509884,
+          16.80000000447035,
+          17.100000001490116,
+          15.5,
+          17,
+          16.80000000447035,
+          16.80000000447035,
+          16.799999997019768,
+          15.5,
+          17,
+          16.600000001490116,
+          16.799999997019768,
+          15.299999997019768,
+          16.899999998509884,
+          16.799999997019768
+        ]
+      },
+      "memory": 374895337,
+      "scene": {
+        "valid": true,
+        "dirty": true,
+        "activeViewSignature": "1:globe:640,363:330.33:-15,-25,0::1280:752",
+        "stagingViewSignature": "1:globe:640,363:330.33:-15,-25,0::1280:752",
+        "activeProjectGeneration": 0,
+        "stagingProjectGeneration": 0,
+        "state": "rebuilding",
+        "disabled": false,
+        "width": 1280,
+        "height": 752,
+        "generation": 71,
+        "hitCount": 29,
+        "missCount": 20,
+        "compositeCount": 29,
+        "compositeMs": 0.8000000044703484,
+        "recreateCount": 2,
+        "failureCount": 0,
+        "lastFailureReason": "",
+        "lastInvalidationReason": "country-shared-boundary-reset"
+      }
+    },
+    {
+      "label": "candidate",
+      "root": "C:\\Users\\taeeu\\.codex\\worktrees\\unified-territorial-entity-storage\\Pandoeditor(Web)",
+      "heapBefore": {
+        "usedSize": 181452152,
+        "totalSize": 254054400,
+        "embedderHeapUsedSize": 7666544,
+        "backingStorageSize": 145625604
+      },
+      "heapAfter": {
+        "usedSize": 130564824,
+        "totalSize": 135077888,
+        "embedderHeapUsedSize": 6517464,
+        "backingStorageSize": 145539517
+      },
+      "top": [
+        {
+          "functionName": "(program)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 11728.289
+        },
+        {
+          "functionName": "(idle)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 8533.253
+        },
+        {
+          "functionName": "(garbage collector)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 766.319
+        },
+        {
+          "functionName": "compareIds",
+          "scriptId": "141",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 71,
+          "columnNumber": 19,
+          "ms": 406.852
+        },
+        {
+          "functionName": "compareIds",
+          "scriptId": "141",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 71,
+          "columnNumber": 19,
+          "ms": 392.695
+        },
+        {
+          "functionName": "compareIds",
+          "scriptId": "141",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 71,
+          "columnNumber": 19,
+          "ms": 381.048
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "141",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 346.281
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "141",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 332.181
+        },
+        {
+          "functionName": "guardedWorkerPostMessage",
+          "scriptId": "299",
+          "url": "http://127.0.0.1:4292/assets/js/modules/boundary-ghosting-guard.js",
+          "lineNumber": 127,
+          "columnNumber": 59,
+          "ms": 223.341
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "105",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 197.315
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "105",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 192.217
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "105",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 184.496
+        },
+        {
+          "functionName": "fingerprintProjectBaseline",
+          "scriptId": "106",
+          "url": "http://127.0.0.1:4292/assets/js/modules/project-serializer.js",
+          "lineNumber": 62,
+          "columnNumber": 48,
+          "ms": 130.394
+        },
+        {
+          "functionName": "insert",
+          "scriptId": "141",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 83,
+          "columnNumber": 17,
+          "ms": 129.282
+        },
+        {
+          "functionName": "runSelfTest",
+          "scriptId": "235",
+          "url": "http://127.0.0.1:4292/assets/js/modules/gpu-stroke-renderer.js?v=0.35.0-build-df425327ac08",
+          "lineNumber": 528,
+          "columnNumber": 22,
+          "ms": 91.352
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "141",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 85.256
+        },
+        {
+          "functionName": "result",
+          "scriptId": "6",
+          "url": "http://127.0.0.1:4292/assets/js/vendor/d3.min.js",
+          "lineNumber": 0,
+          "columnNumber": 30397,
+          "ms": 80.269
+        },
+        {
+          "functionName": "freeze",
+          "scriptId": "141",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 41,
+          "columnNumber": 15,
+          "ms": 77.724
+        }
+      ],
+      "startup": {
+        "buildId": "0.35.0-build-df425327ac08",
+        "assetRevision": "0.35.0-build-df425327ac08",
+        "dataRevision": "data-316b74f62dddbf9ab4d988ff5950883e",
+        "dataCacheName": "pandolab-data-data-316b74f62dddbf9ab4d988ff5950883e",
+        "uiStylesheetRequestCount": 0,
+        "coreStylesheetRequestCount": 2,
+        "modalStylesheetRequestCount": 0,
+        "uiBundleBuildSourceCount": 13,
+        "firstCanonicalFrameMs": null,
+        "canonicalFrameFallbackCount": 0,
+        "signals": {
+          "layout": "wide",
+          "deviceMemory": 16,
+          "hardwareConcurrency": 6,
+          "effectiveType": "4g",
+          "saveData": false
+        },
+        "loadPolicy": {
+          "mode": "sequential",
+          "reason": "interaction-first-v1",
+          "constrained": false,
+          "signals": {
+            "layout": "wide",
+            "deviceMemory": 16,
+            "hardwareConcurrency": 6,
+            "effectiveType": "4g",
+            "saveData": false
+          }
+        },
+        "startupPhase": "canonical-ready",
+        "interactivePaintMs": 2420.1999999955297,
+        "canonicalQuietWindowMs": 500,
+        "canonicalInputDeferralCount": 0,
+        "canonicalGeometryQueuedMs": 2420.2999999970198,
+        "canonicalGeometryStartedMs": 3740.5999999940395,
+        "canonicalGeometryReceivedMs": 4613.0999999940395,
+        "canonicalGeometryAppliedMs": 17565.89999999851,
+        "canonicalMeshQueuedMs": 17565.89999999851,
+        "canonicalMeshStartedMs": 18242,
+        "canonicalMeshReceivedMs": 21085.19999999553,
+        "canonicalMeshAppliedMs": 25428.29999999702,
+        "canonicalWorkStartedDuringInputCount": 0,
+        "canonicalPacketCompressedBytes": 5122041,
+        "canonicalPacketDecodedBytes": 8826208,
+        "canonicalPacketRetainedBytes": 8826208,
+        "canonicalPacketTransferBytes": 8826208,
+        "canonicalStructuredCloneMetadataBytes": 1120,
+        "canonicalCacheWriteMs": 24.400000005960464,
+        "canonicalDecompressMs": 68.29999999701977,
+        "canonicalPacketValidateMs": 4.899999998509884,
+        "canonicalPacketTransferMs": 731.199951171875,
+        "canonicalMaterializeMs": 6976.10000000149,
+        "canonicalMaterializeSliceCount": 134,
+        "canonicalMaterializeMaxSliceMs": 1.1999999955296516,
+        "canonicalMaterializedCoordinateCount": 548454,
+        "canonicalPreviewReleasedBytes": 0,
+        "canonicalPristineReparseCount": 0,
+        "canonicalMemorySamples": [
+          {
+            "label": "canonical-packet-request",
+            "atMs": 3740.89999999851,
+            "supported": true,
+            "bytes": 91085039,
+            "source": "performance.memory"
+          },
+          {
+            "label": "packet-transferred",
+            "atMs": 4613.19999999553,
+            "supported": true,
+            "bytes": 103465195,
+            "source": "performance.memory"
+          },
+          {
+            "label": "materialization-start",
+            "atMs": 7065.5,
+            "supported": true,
+            "bytes": 116018245,
+            "source": "performance.memory"
+          },
+          {
+            "label": "materialization-complete",
+            "atMs": 14037,
+            "supported": true,
+            "bytes": 122754644,
+            "source": "performance.memory"
+          },
+          {
+            "label": "canonical-mesh-committed",
+            "atMs": 25428.5,
+            "supported": true,
+            "bytes": 283554769,
+            "source": "performance.memory"
+          }
+        ],
+        "lazyModalLoadedMs": null,
+        "lazyGisLoadedMs": null,
+        "lazyHistoricalLoadedMs": null,
+        "lazyModuleLoadErrorCount": 0,
+        "initialModuleRequestCount": 247,
+        "startedAt": 58.100000001490116,
+        "preview": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 194.60000000149012,
+          "transferredBytes": 2664924,
+          "decodedBytes": 6216008,
+          "assets": {
+            "countries": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 917550,
+              "storedBytes": 917550,
+              "decodedBytes": 2438942,
+              "loadMs": 35.50000000745058,
+              "cacheWriteMs": 8.200000002980232,
+              "decompressMs": 16.399999998509884,
+              "parseMs": 22.899999998509884
+            },
+            "mesh": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 1733548,
+              "storedBytes": 1733548,
+              "decodedBytes": 3763240,
+              "loadMs": 71.10000000149012,
+              "cacheWriteMs": 18.299999997019768,
+              "decompressMs": 38.399999998509884,
+              "parseMs": 0
+            },
+            "labelAnchors": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 13826,
+              "storedBytes": 13826,
+              "decodedBytes": 13826,
+              "loadMs": 22.400000005960464,
+              "cacheWriteMs": 8.900000005960464,
+              "decompressMs": 0,
+              "parseMs": 0.3999999985098839
+            }
+          }
+        },
+        "geometry": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 140.80000000447035,
+          "transferredBytes": 5122041,
+          "decodedBytes": 8826208,
+          "canonicalPacketCompressedBytes": 5122041,
+          "canonicalPacketDecodedBytes": 8826208,
+          "canonicalCacheWriteMs": 24.400000005960464,
+          "canonicalDecompressMs": 68.29999999701977,
+          "canonicalPacketValidateMs": 4.899999998509884,
+          "assets": {
+            "countryPacket": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 5122041,
+              "storedBytes": 5122041,
+              "decodedBytes": 8826208,
+              "loadMs": 123.90000000596046,
+              "cacheWriteMs": 24.400000005960464,
+              "decompressMs": 68.29999999701977,
+              "parseMs": 0
+            }
+          }
+        },
+        "mesh": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 2842,
+          "transferredBytes": 14619043,
+          "decodedBytes": 32644700,
+          "assets": {
+            "mesh": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 14619043,
+              "storedBytes": 14619043,
+              "decodedBytes": 32644700,
+              "loadMs": 229.00000000745058,
+              "cacheWriteMs": 43,
+              "decompressMs": 124.40000000596046,
+              "parseMs": 0
+            }
+          }
+        },
+        "canonical": {
+          "geometry": {
+            "policy": {
+              "mode": "sequential",
+              "reason": "interaction-first-v1",
+              "constrained": false,
+              "signals": {
+                "layout": "wide",
+                "deviceMemory": 16,
+                "hardwareConcurrency": 6,
+                "effectiveType": "4g",
+                "saveData": false
+              }
+            },
+            "milliseconds": 140.80000000447035,
+            "transferredBytes": 5122041,
+            "decodedBytes": 8826208,
+            "canonicalPacketCompressedBytes": 5122041,
+            "canonicalPacketDecodedBytes": 8826208,
+            "canonicalCacheWriteMs": 24.400000005960464,
+            "canonicalDecompressMs": 68.29999999701977,
+            "canonicalPacketValidateMs": 4.899999998509884,
+            "assets": {
+              "countryPacket": {
+                "source": "network",
+                "cacheHit": false,
+                "transferredBytes": 5122041,
+                "storedBytes": 5122041,
+                "decodedBytes": 8826208,
+                "loadMs": 123.90000000596046,
+                "cacheWriteMs": 24.400000005960464,
+                "decompressMs": 68.29999999701977,
+                "parseMs": 0
+              }
+            },
+            "materialization": {
+              "sliceCount": 134,
+              "maxSliceMs": 1.1999999955296516,
+              "coordinateCount": 548454
+            }
+          },
+          "mesh": {
+            "policy": {
+              "mode": "sequential",
+              "reason": "interaction-first-v1",
+              "constrained": false,
+              "signals": {
+                "layout": "wide",
+                "deviceMemory": 16,
+                "hardwareConcurrency": 6,
+                "effectiveType": "4g",
+                "saveData": false
+              }
+            },
+            "milliseconds": 2842,
+            "transferredBytes": 14619043,
+            "decodedBytes": 32644700,
+            "assets": {
+              "mesh": {
+                "source": "network",
+                "cacheHit": false,
+                "transferredBytes": 14619043,
+                "storedBytes": 14619043,
+                "decodedBytes": 32644700,
+                "loadMs": 229.00000000745058,
+                "cacheWriteMs": 43,
+                "decompressMs": 124.40000000596046,
+                "parseMs": 0
+              }
+            }
+          }
+        },
+        "interactiveMs": 2110.5,
+        "editableMs": 17565.89999999851,
+        "readyMs": 25428.29999999702,
+        "layerHydrationStartedMs": 1767.0999999940395,
+        "layerTreeRenderedMs": 17565.5,
+        "layerReadyMs": 17565.5,
+        "geometryError": "",
+        "meshError": "",
+        "previewReceivedMs": 346.29999999701977,
+        "previewMainThreadTransferMs": 37.599853515625,
+        "rendererStatus": "Natural Earth 5.1.1 · WebGL2 고화질",
+        "mapHostStage": "ready",
+        "previewMeshUploadMs": 153.89999999850988,
+        "renderer": "webgl2",
+        "fallbackReason": "",
+        "devicePixelRatio": 1,
+        "effectivePixelRatio": 1,
+        "previewDisplayMs": 1764.2000000029802,
+        "geometryProgress": {
+          "stage": "countries",
+          "percent": 98
+        },
+        "geometryReceivedMs": 4613.0999999940395,
+        "geometryMainThreadTransferMs": 731.199951171875,
+        "canonicalStateApplyStage": "complete",
+        "geometryApplyMs": 3528,
+        "geometryDisplayMs": 12952.80000000447,
+        "meshProgress": {
+          "stage": "mesh",
+          "percent": 98
+        },
+        "meshReceivedMs": 21085.19999999553,
+        "meshMainThreadTransferMs": 0.800048828125,
+        "meshApplyMs": 4322.5,
+        "meshDisplayMs": 4343.10000000149
+      },
+      "observations": {
+        "uploads": [
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0.6999999955296516,
+            "bytes": 1003704
+          },
+          {
+            "ms": 0.10000000149011612,
+            "bytes": 250926
+          },
+          {
+            "ms": 0.6000000014901161,
+            "bytes": 1686624
+          },
+          {
+            "ms": 0.3999999985098839,
+            "bytes": 812648
+          },
+          {
+            "ms": 0,
+            "bytes": 112
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 168
+          },
+          {
+            "ms": 0,
+            "bytes": 144
+          },
+          {
+            "ms": 0,
+            "bytes": 56
+          },
+          {
+            "ms": 0,
+            "bytes": 41136
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 40
+          },
+          {
+            "ms": 0,
+            "bytes": 408
+          },
+          {
+            "ms": 0,
+            "bytes": 104
+          },
+          {
+            "ms": 0,
+            "bytes": 1272
+          },
+          {
+            "ms": 0,
+            "bytes": 400
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 328
+          },
+          {
+            "ms": 0,
+            "bytes": 184
+          },
+          {
+            "ms": 0,
+            "bytes": 184
+          },
+          {
+            "ms": 0,
+            "bytes": 120
+          },
+          {
+            "ms": 0,
+            "bytes": 128
+          },
+          {
+            "ms": 0,
+            "bytes": 112
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 128
+          },
+          {
+            "ms": 0,
+            "bytes": 88
+          },
+          {
+            "ms": 0,
+            "bytes": 616
+          },
+          {
+            "ms": 0,
+            "bytes": 552
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 352
+          },
+          {
+            "ms": 0,
+            "bytes": 776
+          },
+          {
+            "ms": 0,
+            "bytes": 120
+          },
+          {
+            "ms": 0,
+            "bytes": 168
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 156
+          },
+          {
+            "ms": 0,
+            "bytes": 192
+          },
+          {
+            "ms": 0,
+            "bytes": 60
+          },
+          {
+            "ms": 0,
+            "bytes": 58632
+          },
+          {
+            "ms": 0,
+            "bytes": 84
+          },
+          {
+            "ms": 0,
+            "bytes": 36
+          },
+          {
+            "ms": 0,
+            "bytes": 324
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 1476
+          },
+          {
+            "ms": 0,
+            "bytes": 288
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 396
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 144
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 540
+          },
+          {
+            "ms": 0,
+            "bytes": 564
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 288
+          },
+          {
+            "ms": 0,
+            "bytes": 876
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0.09999999403953552,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 80
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 958080
+          },
+          {
+            "ms": 0,
+            "bytes": 768160
+          },
+          {
+            "ms": 0,
+            "bytes": 509160
+          },
+          {
+            "ms": 0,
+            "bytes": 10800
+          },
+          {
+            "ms": 0,
+            "bytes": 30624
+          },
+          {
+            "ms": 0,
+            "bytes": 3600
+          },
+          {
+            "ms": 0,
+            "bytes": 9744
+          },
+          {
+            "ms": 0,
+            "bytes": 4232
+          },
+          {
+            "ms": 0,
+            "bytes": 11616
+          },
+          {
+            "ms": 0,
+            "bytes": 1472
+          },
+          {
+            "ms": 0,
+            "bytes": 3696
+          },
+          {
+            "ms": 0,
+            "bytes": 811840
+          },
+          {
+            "ms": 0,
+            "bytes": 2760
+          },
+          {
+            "ms": 0,
+            "bytes": 7392
+          },
+          {
+            "ms": 0,
+            "bytes": 4063240
+          },
+          {
+            "ms": 0,
+            "bytes": 960
+          },
+          {
+            "ms": 0,
+            "bytes": 2352
+          },
+          {
+            "ms": 0,
+            "bytes": 3250912
+          },
+          {
+            "ms": 0,
+            "bytes": 8215808
+          },
+          {
+            "ms": 0,
+            "bytes": 2053952
+          },
+          {
+            "ms": 0,
+            "bytes": 18018516
+          },
+          {
+            "ms": 0,
+            "bytes": 4347088
+          },
+          {
+            "ms": 0,
+            "bytes": 901984
+          },
+          {
+            "ms": 0,
+            "bytes": 225496
+          },
+          {
+            "ms": 0,
+            "bytes": 2013360
+          },
+          {
+            "ms": 0,
+            "bytes": 452440
+          },
+          {
+            "ms": 0,
+            "bytes": 2262200
+          },
+          {
+            "ms": 0,
+            "bytes": 55488
+          },
+          {
+            "ms": 0,
+            "bytes": 162408
+          },
+          {
+            "ms": 0,
+            "bytes": 18496
+          },
+          {
+            "ms": 0,
+            "bytes": 53064
+          },
+          {
+            "ms": 0,
+            "bytes": 21632
+          },
+          {
+            "ms": 0,
+            "bytes": 62424
+          }
+        ],
+        "yields": [
+          14.299999997019768,
+          817.9000000059605,
+          1800,
+          1703.1000000014901,
+          0.7000000029802322,
+          16.299999997019768,
+          17,
+          16.799999997019768,
+          15.600000001490116,
+          16.600000001490116,
+          16.599999994039536,
+          16.899999998509884,
+          15.299999997019768,
+          16.5,
+          17.5,
+          21.799999997019768,
+          11.799999997019768,
+          16.299999997019768,
+          15.600000001490116,
+          16.700000002980232,
+          17.100000001490116,
+          16.100000001490116,
+          16.69999999552965,
+          16.399999998509884,
+          17,
+          15.600000001490116,
+          16.700000002980232,
+          16.899999998509884,
+          16.19999999552965,
+          15.699999995529652,
+          34,
+          512.3000000044703,
+          4.399999998509884,
+          16,
+          15.5,
+          17.099999994039536,
+          16.80000000447035,
+          16.80000000447035,
+          15.5,
+          16.5,
+          16.69999999552965,
+          17.100000001490116,
+          17,
+          16.200000002980232,
+          15.399999998509884,
+          16.899999998509884,
+          17.200000002980232,
+          17,
+          15.399999998509884,
+          16.400000005960464,
+          18.200000002980232,
+          15.899999998509884,
+          15.799999997019768,
+          16.700000002980232,
+          17.19999999552965,
+          16.799999997019768,
+          16.899999998509884,
+          14.599999994039536,
+          17,
+          16.100000001490116,
+          16.600000001490116,
+          16.80000000447035,
+          15.300000004470348,
+          16.700000002980232,
+          17,
+          16.399999998509884,
+          17.100000001490116,
+          15.100000001490116,
+          16.5,
+          18.19999999552965,
+          16.700000002980232,
+          15.600000001490116,
+          17,
+          15.600000001490116,
+          16.899999998509884,
+          16.299999997019768,
+          16,
+          17.599999994039536,
+          15.700000002980232,
+          16.799999997019768,
+          16.69999999552965,
+          16.30000000447035,
+          15.899999998509884,
+          16.80000000447035,
+          16.899999998509884,
+          16.700000002980232,
+          17,
+          15.400000005960464,
+          17,
+          16.5,
+          16.799999997019768,
+          17.100000001490116,
+          17,
+          15.400000005960464,
+          17.200000002980232,
+          16.5,
+          17.299999997019768,
+          15.200000002980232,
+          16.600000001490116,
+          16.899999998509884,
+          17,
+          16.799999997019768,
+          16.5,
+          16.900000005960464,
+          15.5,
+          16.600000001490116,
+          17.100000001490116,
+          16.900000005960464,
+          15.400000005960464,
+          16.30000000447035,
+          16.600000001490116,
+          16.600000001490116,
+          16.899999998509884,
+          17,
+          15.600000001490116,
+          16.69999999552965,
+          16.80000000447035,
+          17.099999994039536,
+          15.399999998509884,
+          18,
+          15.5,
+          16.80000000447035,
+          17.100000001490116,
+          16.19999999552965,
+          15.899999998509884,
+          16.799999997019768,
+          17,
+          17,
+          15.699999995529652,
+          16.5,
+          16.69999999552965,
+          16.799999997019768,
+          15.5
+        ]
+      },
+      "memory": 305844610,
+      "scene": {
+        "valid": true,
+        "dirty": true,
+        "activeViewSignature": "1:globe:640,363:330.33:-15,-25,0::1280:752",
+        "stagingViewSignature": "1:globe:640,363:330.33:-15,-25,0::1280:752",
+        "activeProjectGeneration": 0,
+        "stagingProjectGeneration": 0,
+        "state": "rebuilding",
+        "disabled": false,
+        "width": 1280,
+        "height": 752,
+        "generation": 71,
+        "hitCount": 28,
+        "missCount": 19,
+        "compositeCount": 28,
+        "compositeMs": 1.1000000089406967,
+        "recreateCount": 2,
+        "failureCount": 0,
+        "lastFailureReason": "",
+        "lastInvalidationReason": "country-shared-boundary-reset"
+      }
+    }
+  ],
+  "after": [
+    {
+      "label": "candidate-after",
+      "root": "C:\\Users\\taeeu\\.codex\\worktrees\\unified-territorial-entity-storage\\Pandoeditor(Web)",
+      "heapBefore": {
+        "usedSize": 129903676,
+        "totalSize": 222765056,
+        "embedderHeapUsedSize": 7604880,
+        "backingStorageSize": 145617551
+      },
+      "heapAfter": {
+        "usedSize": 96526192,
+        "totalSize": 101785600,
+        "embedderHeapUsedSize": 6361096,
+        "backingStorageSize": 145531446
+      },
+      "top": [
+        {
+          "functionName": "(program)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 23635.096
+        },
+        {
+          "functionName": "(idle)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 8435.237
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "140",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 343.34
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "140",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 338.188
+        },
+        {
+          "functionName": "(garbage collector)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 323.838
+        },
+        {
+          "functionName": "guardedWorkerPostMessage",
+          "scriptId": "302",
+          "url": "http://127.0.0.1:4292/assets/js/modules/boundary-ghosting-guard.js",
+          "lineNumber": 127,
+          "columnNumber": 59,
+          "ms": 225.652
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "105",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 188.445
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "105",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 186.533
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "105",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 180.123
+        },
+        {
+          "functionName": "insert",
+          "scriptId": "140",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 83,
+          "columnNumber": 17,
+          "ms": 138.128
+        },
+        {
+          "functionName": "fingerprintProjectBaseline",
+          "scriptId": "107",
+          "url": "http://127.0.0.1:4292/assets/js/modules/project-serializer.js",
+          "lineNumber": 62,
+          "columnNumber": 48,
+          "ms": 130.829
+        },
+        {
+          "functionName": "freeze",
+          "scriptId": "140",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 41,
+          "columnNumber": 15,
+          "ms": 91.308
+        },
+        {
+          "functionName": "freeze",
+          "scriptId": "140",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 41,
+          "columnNumber": 15,
+          "ms": 80.067
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "140",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 72.717
+        },
+        {
+          "functionName": "runSelfTest",
+          "scriptId": "235",
+          "url": "http://127.0.0.1:4292/assets/js/modules/gpu-stroke-renderer.js?v=0.35.0-build-df425327ac08",
+          "lineNumber": 528,
+          "columnNumber": 22,
+          "ms": 70.537
+        },
+        {
+          "functionName": "e",
+          "scriptId": "7",
+          "url": "http://127.0.0.1:4292/assets/js/vendor/d3.min.js",
+          "lineNumber": 1,
+          "columnNumber": 2457,
+          "ms": 67.964
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "105",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 66.165
+        },
+        {
+          "functionName": "result",
+          "scriptId": "7",
+          "url": "http://127.0.0.1:4292/assets/js/vendor/d3.min.js",
+          "lineNumber": 0,
+          "columnNumber": 30397,
+          "ms": 64.745
+        }
+      ],
+      "startup": {
+        "buildId": "0.35.0-build-df425327ac08",
+        "assetRevision": "0.35.0-build-df425327ac08",
+        "dataRevision": "data-316b74f62dddbf9ab4d988ff5950883e",
+        "dataCacheName": "pandolab-data-data-316b74f62dddbf9ab4d988ff5950883e",
+        "uiStylesheetRequestCount": 0,
+        "coreStylesheetRequestCount": 2,
+        "modalStylesheetRequestCount": 0,
+        "uiBundleBuildSourceCount": 13,
+        "firstCanonicalFrameMs": null,
+        "canonicalFrameFallbackCount": 0,
+        "signals": {
+          "layout": "wide",
+          "deviceMemory": 16,
+          "hardwareConcurrency": 6,
+          "effectiveType": "4g",
+          "saveData": false
+        },
+        "loadPolicy": {
+          "mode": "sequential",
+          "reason": "interaction-first-v1",
+          "constrained": false,
+          "signals": {
+            "layout": "wide",
+            "deviceMemory": 16,
+            "hardwareConcurrency": 6,
+            "effectiveType": "4g",
+            "saveData": false
+          }
+        },
+        "startupPhase": "canonical-ready",
+        "interactivePaintMs": 1814.2999999970198,
+        "canonicalQuietWindowMs": 500,
+        "canonicalInputDeferralCount": 0,
+        "canonicalGeometryQueuedMs": 1814.2999999970198,
+        "canonicalGeometryStartedMs": 2591.7999999970198,
+        "canonicalGeometryReceivedMs": 2749.89999999851,
+        "canonicalGeometryAppliedMs": 27996.5,
+        "canonicalMeshQueuedMs": 27996.5,
+        "canonicalMeshStartedMs": 28509.39999999851,
+        "canonicalMeshReceivedMs": 31389.69999999553,
+        "canonicalMeshAppliedMs": 35715.89999999851,
+        "canonicalWorkStartedDuringInputCount": 0,
+        "canonicalPacketCompressedBytes": 5122041,
+        "canonicalPacketDecodedBytes": 8826208,
+        "canonicalPacketRetainedBytes": 8826208,
+        "canonicalPacketTransferBytes": 8826208,
+        "canonicalStructuredCloneMetadataBytes": 1103,
+        "canonicalCacheWriteMs": 17.900000005960464,
+        "canonicalDecompressMs": 55.20000000298023,
+        "canonicalPacketValidateMs": 4,
+        "canonicalPacketTransferMs": 45,
+        "canonicalMaterializeMs": 22843.20000000298,
+        "canonicalMaterializeSliceCount": 134,
+        "canonicalMaterializeMaxSliceMs": 0.8999999985098839,
+        "canonicalMaterializedCoordinateCount": 548454,
+        "canonicalPreviewReleasedBytes": 0,
+        "canonicalPristineReparseCount": 0,
+        "canonicalMemorySamples": [
+          {
+            "label": "canonical-packet-request",
+            "atMs": 2592,
+            "supported": true,
+            "bytes": 93582399,
+            "source": "performance.memory"
+          },
+          {
+            "label": "packet-transferred",
+            "atMs": 2750.0999999940395,
+            "supported": true,
+            "bytes": 108844935,
+            "source": "performance.memory"
+          },
+          {
+            "label": "materialization-start",
+            "atMs": 2788.39999999851,
+            "supported": true,
+            "bytes": 81869465,
+            "source": "performance.memory"
+          },
+          {
+            "label": "materialization-complete",
+            "atMs": 25626.89999999851,
+            "supported": true,
+            "bytes": 110973149,
+            "source": "performance.memory"
+          },
+          {
+            "label": "canonical-mesh-committed",
+            "atMs": 35716.09999999404,
+            "supported": true,
+            "bytes": 249144122,
+            "source": "performance.memory"
+          }
+        ],
+        "lazyModalLoadedMs": null,
+        "lazyGisLoadedMs": null,
+        "lazyHistoricalLoadedMs": null,
+        "lazyModuleLoadErrorCount": 0,
+        "initialModuleRequestCount": 247,
+        "startedAt": 62.600000001490116,
+        "preview": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 193.19999999552965,
+          "transferredBytes": 2664924,
+          "decodedBytes": 6216008,
+          "assets": {
+            "countries": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 917550,
+              "storedBytes": 917550,
+              "decodedBytes": 2438942,
+              "loadMs": 32.099999994039536,
+              "cacheWriteMs": 9.299999997019768,
+              "decompressMs": 13.399999998509884,
+              "parseMs": 20
+            },
+            "mesh": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 1733548,
+              "storedBytes": 1733548,
+              "decodedBytes": 3763240,
+              "loadMs": 65.69999999552965,
+              "cacheWriteMs": 17.600000001490116,
+              "decompressMs": 35.399999998509884,
+              "parseMs": 0
+            },
+            "labelAnchors": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 13826,
+              "storedBytes": 13826,
+              "decodedBytes": 13826,
+              "loadMs": 53.5,
+              "cacheWriteMs": 36.399999998509884,
+              "decompressMs": 0,
+              "parseMs": 0.19999999552965164
+            }
+          }
+        },
+        "geometry": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 112.80000000447035,
+          "transferredBytes": 5122041,
+          "decodedBytes": 8826208,
+          "canonicalPacketCompressedBytes": 5122041,
+          "canonicalPacketDecodedBytes": 8826208,
+          "canonicalCacheWriteMs": 17.900000005960464,
+          "canonicalDecompressMs": 55.20000000298023,
+          "canonicalPacketValidateMs": 4,
+          "assets": {
+            "countryPacket": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 5122041,
+              "storedBytes": 5122041,
+              "decodedBytes": 8826208,
+              "loadMs": 93.80000000447035,
+              "cacheWriteMs": 17.900000005960464,
+              "decompressMs": 55.20000000298023,
+              "parseMs": 0
+            }
+          }
+        },
+        "mesh": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 2879.2000000029802,
+          "transferredBytes": 14619043,
+          "decodedBytes": 32644700,
+          "assets": {
+            "mesh": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 14619043,
+              "storedBytes": 14619043,
+              "decodedBytes": 32644700,
+              "loadMs": 223.29999999701977,
+              "cacheWriteMs": 41.600000001490116,
+              "decompressMs": 121.39999999850988,
+              "parseMs": 0
+            }
+          }
+        },
+        "canonical": {
+          "geometry": {
+            "policy": {
+              "mode": "sequential",
+              "reason": "interaction-first-v1",
+              "constrained": false,
+              "signals": {
+                "layout": "wide",
+                "deviceMemory": 16,
+                "hardwareConcurrency": 6,
+                "effectiveType": "4g",
+                "saveData": false
+              }
+            },
+            "milliseconds": 112.80000000447035,
+            "transferredBytes": 5122041,
+            "decodedBytes": 8826208,
+            "canonicalPacketCompressedBytes": 5122041,
+            "canonicalPacketDecodedBytes": 8826208,
+            "canonicalCacheWriteMs": 17.900000005960464,
+            "canonicalDecompressMs": 55.20000000298023,
+            "canonicalPacketValidateMs": 4,
+            "assets": {
+              "countryPacket": {
+                "source": "network",
+                "cacheHit": false,
+                "transferredBytes": 5122041,
+                "storedBytes": 5122041,
+                "decodedBytes": 8826208,
+                "loadMs": 93.80000000447035,
+                "cacheWriteMs": 17.900000005960464,
+                "decompressMs": 55.20000000298023,
+                "parseMs": 0
+              }
+            },
+            "materialization": {
+              "sliceCount": 134,
+              "maxSliceMs": 0.8999999985098839,
+              "coordinateCount": 548454
+            }
+          },
+          "mesh": {
+            "policy": {
+              "mode": "sequential",
+              "reason": "interaction-first-v1",
+              "constrained": false,
+              "signals": {
+                "layout": "wide",
+                "deviceMemory": 16,
+                "hardwareConcurrency": 6,
+                "effectiveType": "4g",
+                "saveData": false
+              }
+            },
+            "milliseconds": 2879.2000000029802,
+            "transferredBytes": 14619043,
+            "decodedBytes": 32644700,
+            "assets": {
+              "mesh": {
+                "source": "network",
+                "cacheHit": false,
+                "transferredBytes": 14619043,
+                "storedBytes": 14619043,
+                "decodedBytes": 32644700,
+                "loadMs": 223.29999999701977,
+                "cacheWriteMs": 41.600000001490116,
+                "decompressMs": 121.39999999850988,
+                "parseMs": 0
+              }
+            }
+          }
+        },
+        "interactiveMs": 1505.8999999985099,
+        "editableMs": 27996.5,
+        "readyMs": 35715.89999999851,
+        "layerHydrationStartedMs": 1147,
+        "layerTreeRenderedMs": 27996,
+        "layerReadyMs": 27996,
+        "geometryError": "",
+        "meshError": "",
+        "previewReceivedMs": 324.3999999985099,
+        "previewMainThreadTransferMs": 37.699951171875,
+        "rendererStatus": "Natural Earth 5.1.1 · WebGL2 고화질",
+        "mapHostStage": "ready",
+        "previewMeshUploadMs": 165.09999999403954,
+        "renderer": "webgl2",
+        "fallbackReason": "",
+        "devicePixelRatio": 1,
+        "effectivePixelRatio": 1,
+        "previewDisplayMs": 1181.5,
+        "geometryProgress": {
+          "stage": "countries",
+          "percent": 98
+        },
+        "geometryReceivedMs": 2749.89999999851,
+        "geometryMainThreadTransferMs": 45,
+        "canonicalStateApplyStage": "complete",
+        "geometryApplyMs": 2368.89999999851,
+        "geometryDisplayMs": 25246.60000000149,
+        "meshProgress": {
+          "stage": "mesh",
+          "percent": 98
+        },
+        "meshReceivedMs": 31389.69999999553,
+        "meshMainThreadTransferMs": 0.900146484375,
+        "meshApplyMs": 4323.60000000149,
+        "meshDisplayMs": 4326.20000000298
+      },
+      "observations": {
+        "uploads": [
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0.10000000149011612,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0.5,
+            "bytes": 1003704
+          },
+          {
+            "ms": 0.20000000298023224,
+            "bytes": 250926
+          },
+          {
+            "ms": 0.7999999970197678,
+            "bytes": 1686624
+          },
+          {
+            "ms": 0.30000000447034836,
+            "bytes": 812648
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 80
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 4063240
+          },
+          {
+            "ms": 0,
+            "bytes": 112
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 168
+          },
+          {
+            "ms": 0,
+            "bytes": 144
+          },
+          {
+            "ms": 0,
+            "bytes": 56
+          },
+          {
+            "ms": 0,
+            "bytes": 41136
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 40
+          },
+          {
+            "ms": 0,
+            "bytes": 408
+          },
+          {
+            "ms": 0,
+            "bytes": 104
+          },
+          {
+            "ms": 0,
+            "bytes": 1272
+          },
+          {
+            "ms": 0,
+            "bytes": 400
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 328
+          },
+          {
+            "ms": 0,
+            "bytes": 184
+          },
+          {
+            "ms": 0,
+            "bytes": 184
+          },
+          {
+            "ms": 0,
+            "bytes": 120
+          },
+          {
+            "ms": 0,
+            "bytes": 128
+          },
+          {
+            "ms": 0,
+            "bytes": 112
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 128
+          },
+          {
+            "ms": 0,
+            "bytes": 88
+          },
+          {
+            "ms": 0,
+            "bytes": 616
+          },
+          {
+            "ms": 0,
+            "bytes": 552
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 352
+          },
+          {
+            "ms": 0,
+            "bytes": 776
+          },
+          {
+            "ms": 0,
+            "bytes": 120
+          },
+          {
+            "ms": 0,
+            "bytes": 168
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 156
+          },
+          {
+            "ms": 0,
+            "bytes": 192
+          },
+          {
+            "ms": 0,
+            "bytes": 60
+          },
+          {
+            "ms": 0,
+            "bytes": 58632
+          },
+          {
+            "ms": 0,
+            "bytes": 84
+          },
+          {
+            "ms": 0,
+            "bytes": 36
+          },
+          {
+            "ms": 0,
+            "bytes": 324
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 1476
+          },
+          {
+            "ms": 0,
+            "bytes": 288
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 396
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 144
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 540
+          },
+          {
+            "ms": 0,
+            "bytes": 564
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 288
+          },
+          {
+            "ms": 0,
+            "bytes": 876
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 3250912
+          },
+          {
+            "ms": 0,
+            "bytes": 958080
+          },
+          {
+            "ms": 0,
+            "bytes": 768160
+          },
+          {
+            "ms": 0,
+            "bytes": 509160
+          },
+          {
+            "ms": 0,
+            "bytes": 811840
+          },
+          {
+            "ms": 0,
+            "bytes": 10800
+          },
+          {
+            "ms": 0,
+            "bytes": 30624
+          },
+          {
+            "ms": 0,
+            "bytes": 3600
+          },
+          {
+            "ms": 0,
+            "bytes": 9744
+          },
+          {
+            "ms": 0,
+            "bytes": 1472
+          },
+          {
+            "ms": 0,
+            "bytes": 3696
+          },
+          {
+            "ms": 0,
+            "bytes": 2760
+          },
+          {
+            "ms": 0,
+            "bytes": 7392
+          },
+          {
+            "ms": 0,
+            "bytes": 4232
+          },
+          {
+            "ms": 0,
+            "bytes": 11616
+          },
+          {
+            "ms": 0,
+            "bytes": 960
+          },
+          {
+            "ms": 0,
+            "bytes": 2352
+          },
+          {
+            "ms": 0,
+            "bytes": 8215808
+          },
+          {
+            "ms": 0,
+            "bytes": 2053952
+          },
+          {
+            "ms": 0,
+            "bytes": 18018516
+          },
+          {
+            "ms": 0,
+            "bytes": 4347088
+          },
+          {
+            "ms": 0,
+            "bytes": 901984
+          },
+          {
+            "ms": 0,
+            "bytes": 225496
+          },
+          {
+            "ms": 0,
+            "bytes": 2013360
+          },
+          {
+            "ms": 0.10000000149011612,
+            "bytes": 452440
+          },
+          {
+            "ms": 0,
+            "bytes": 2262200
+          },
+          {
+            "ms": 0,
+            "bytes": 55488
+          },
+          {
+            "ms": 0.19999999552965164,
+            "bytes": 162408
+          },
+          {
+            "ms": 0,
+            "bytes": 18496
+          },
+          {
+            "ms": 0,
+            "bytes": 53064
+          },
+          {
+            "ms": 0,
+            "bytes": 21632
+          },
+          {
+            "ms": 0,
+            "bytes": 62424
+          }
+        ],
+        "yields": [
+          3.3000000044703484,
+          16.899999998509884,
+          16.899999998509884,
+          15.299999997019768,
+          16.5,
+          17.299999997019768,
+          16.799999997019768,
+          15.799999997019768,
+          16.5,
+          16.899999998509884,
+          16.600000001490116,
+          15.100000001490116,
+          16.700000002980232,
+          16.69999999552965,
+          16.80000000447035,
+          16.899999998509884,
+          14.799999997019768,
+          17.5,
+          17,
+          16.599999994039536,
+          15.5,
+          32.20000000298023,
+          23.099999994039536,
+          11.799999997019768,
+          16.200000002980232,
+          17.100000001490116,
+          15.899999998509884,
+          16.799999997019768,
+          38.600000001490116,
+          680.7000000029802,
+          12.700000002980232,
+          16.80000000447035,
+          16.600000001490116,
+          16.19999999552965,
+          1594.6000000014901,
+          5.5,
+          1663.1000000014901,
+          491.70000000298023,
+          1602.3000000044703,
+          8,
+          19.899999998509884,
+          12.699999995529652,
+          1588.5,
+          1585.1000000014901,
+          1654.1000000014901,
+          1624.7000000029802,
+          1652.6999999955297,
+          1683.7999999970198,
+          1694.2999999970198,
+          1695.1999999955297,
+          1638.7999999970198,
+          13.299999997019768,
+          16.799999997019768,
+          16.799999997019768,
+          16.899999998509884,
+          15.100000001490116,
+          17,
+          16.700000002980232,
+          16.5,
+          16.399999998509884,
+          16.799999997019768,
+          15.700000002980232,
+          16.899999998509884,
+          18.099999994039536,
+          15.399999998509884,
+          16.399999998509884,
+          16.700000002980232,
+          16.5,
+          16.899999998509884,
+          16.899999998509884,
+          15.399999998509884,
+          16.600000001490116,
+          16.899999998509884,
+          16.5,
+          17.19999999552965,
+          16.700000002980232,
+          15.300000004470348,
+          17.600000001490116,
+          15.799999997019768,
+          16.69999999552965,
+          16.900000005960464,
+          15.400000005960464,
+          16.80000000447035,
+          16.899999998509884,
+          17,
+          16.899999998509884,
+          16.899999998509884,
+          16.599999994039536,
+          16.399999998509884,
+          16.80000000447035,
+          15.200000002980232,
+          16.69999999552965,
+          16.899999998509884,
+          16.600000001490116,
+          17,
+          14.899999998509884,
+          16.899999998509884,
+          16.19999999552965,
+          17,
+          15.899999998509884,
+          16.5,
+          15.400000005960464,
+          18.400000005960464,
+          15.100000001490116,
+          17,
+          16.700000002980232,
+          17.200000002980232,
+          16.69999999552965,
+          15.200000002980232,
+          16.80000000447035,
+          17,
+          16.799999997019768,
+          15.399999998509884,
+          16.69999999552965,
+          16.5,
+          17.299999997019768,
+          16.80000000447035,
+          16.900000005960464,
+          15.300000004470348,
+          17.19999999552965,
+          16.700000002980232,
+          16.80000000447035,
+          15.600000001490116,
+          17.700000002980232,
+          15.400000005960464,
+          16.600000001490116,
+          16.799999997019768,
+          16.5,
+          17.100000001490116,
+          16.80000000447035,
+          15.200000002980232,
+          16.5,
+          18.400000005960464
+        ]
+      },
+      "memory": 291320577,
+      "scene": {
+        "valid": true,
+        "dirty": true,
+        "activeViewSignature": "1:globe:640,363:330.33:-15,-25,0::1280:752",
+        "stagingViewSignature": "1:globe:640,363:330.33:-15,-25,0::1280:752",
+        "activeProjectGeneration": 0,
+        "stagingProjectGeneration": 0,
+        "state": "rebuilding",
+        "disabled": false,
+        "width": 1280,
+        "height": 752,
+        "generation": 71,
+        "hitCount": 31,
+        "missCount": 22,
+        "compositeCount": 31,
+        "compositeMs": 0.9000000134110451,
+        "recreateCount": 2,
+        "failureCount": 0,
+        "lastFailureReason": "",
+        "lastInvalidationReason": "country-shared-boundary-reset"
+      }
+    }
+  ],
+  "trace": [
+    {
+      "label": "candidate-gl-trace",
+      "root": "C:\\Users\\taeeu\\.codex\\worktrees\\unified-territorial-entity-storage\\Pandoeditor(Web)",
+      "heapBefore": {
+        "usedSize": 176916960,
+        "totalSize": 252067840,
+        "embedderHeapUsedSize": 7998824,
+        "backingStorageSize": 145700150
+      },
+      "heapAfter": {
+        "usedSize": 129634720,
+        "totalSize": 134815744,
+        "embedderHeapUsedSize": 6395328,
+        "backingStorageSize": 145531417
+      },
+      "top": [
+        {
+          "functionName": "(program)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 10084.102
+        },
+        {
+          "functionName": "(idle)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 8521.147
+        },
+        {
+          "functionName": "(garbage collector)",
+          "scriptId": "0",
+          "url": "",
+          "lineNumber": -1,
+          "columnNumber": -1,
+          "ms": 368.882
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "150",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 342.332
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "150",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 340.382
+        },
+        {
+          "functionName": "guardedWorkerPostMessage",
+          "scriptId": "299",
+          "url": "http://127.0.0.1:4292/assets/js/modules/boundary-ghosting-guard.js",
+          "lineNumber": 127,
+          "columnNumber": 59,
+          "ms": 224.415
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "98",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 187.042
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "98",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 186.848
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "98",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 182.224
+        },
+        {
+          "functionName": "fingerprintProjectBaseline",
+          "scriptId": "99",
+          "url": "http://127.0.0.1:4292/assets/js/modules/project-serializer.js",
+          "lineNumber": 62,
+          "columnNumber": 48,
+          "ms": 129.899
+        },
+        {
+          "functionName": "insert",
+          "scriptId": "150",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 83,
+          "columnNumber": 17,
+          "ms": 129.195
+        },
+        {
+          "functionName": "freeze",
+          "scriptId": "150",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 41,
+          "columnNumber": 15,
+          "ms": 84.544
+        },
+        {
+          "functionName": "clone",
+          "scriptId": "98",
+          "url": "http://127.0.0.1:4292/assets/js/modules/territorial-units.js",
+          "lineNumber": 18,
+          "columnNumber": 14,
+          "ms": 74.648
+        },
+        {
+          "functionName": "type.<computed>",
+          "scriptId": "4",
+          "url": "",
+          "lineNumber": 1,
+          "columnNumber": 376,
+          "ms": 72.882
+        },
+        {
+          "functionName": "result",
+          "scriptId": "7",
+          "url": "http://127.0.0.1:4292/assets/js/vendor/d3.min.js",
+          "lineNumber": 0,
+          "columnNumber": 30397,
+          "ms": 68.691
+        },
+        {
+          "functionName": "e",
+          "scriptId": "7",
+          "url": "http://127.0.0.1:4292/assets/js/vendor/d3.min.js",
+          "lineNumber": 1,
+          "columnNumber": 2457,
+          "ms": 68.12
+        },
+        {
+          "functionName": "geometry",
+          "scriptId": "150",
+          "url": "http://127.0.0.1:4292/assets/js/modules/geometry-version-store.js",
+          "lineNumber": 51,
+          "columnNumber": 17,
+          "ms": 66.349
+        },
+        {
+          "functionName": "builtinTerritorialScene",
+          "scriptId": "31",
+          "url": "http://127.0.0.1:4292/assets/js/modules/app-builtin-session.js?v=0.35.0-build-df425327ac08",
+          "lineNumber": 111,
+          "columnNumber": 34,
+          "ms": 63.972
+        }
+      ],
+      "startup": {
+        "buildId": "0.35.0-build-df425327ac08",
+        "assetRevision": "0.35.0-build-df425327ac08",
+        "dataRevision": "data-316b74f62dddbf9ab4d988ff5950883e",
+        "dataCacheName": "pandolab-data-data-316b74f62dddbf9ab4d988ff5950883e",
+        "uiStylesheetRequestCount": 0,
+        "coreStylesheetRequestCount": 2,
+        "modalStylesheetRequestCount": 0,
+        "uiBundleBuildSourceCount": 13,
+        "firstCanonicalFrameMs": null,
+        "canonicalFrameFallbackCount": 0,
+        "signals": {
+          "layout": "wide",
+          "deviceMemory": 16,
+          "hardwareConcurrency": 6,
+          "effectiveType": "4g",
+          "saveData": false
+        },
+        "loadPolicy": {
+          "mode": "sequential",
+          "reason": "interaction-first-v1",
+          "constrained": false,
+          "signals": {
+            "layout": "wide",
+            "deviceMemory": 16,
+            "hardwareConcurrency": 6,
+            "effectiveType": "4g",
+            "saveData": false
+          }
+        },
+        "startupPhase": "canonical-ready",
+        "interactivePaintMs": 1833.1000000014901,
+        "canonicalQuietWindowMs": 500,
+        "canonicalInputDeferralCount": 0,
+        "canonicalGeometryQueuedMs": 1833.2000000029802,
+        "canonicalGeometryStartedMs": 3445.89999999851,
+        "canonicalGeometryReceivedMs": 4474.5,
+        "canonicalGeometryAppliedMs": 14298.20000000298,
+        "canonicalMeshQueuedMs": 14298.20000000298,
+        "canonicalMeshStartedMs": 14842.30000000447,
+        "canonicalMeshReceivedMs": 17730.89999999851,
+        "canonicalMeshAppliedMs": 22063.89999999851,
+        "canonicalWorkStartedDuringInputCount": 0,
+        "canonicalPacketCompressedBytes": 5122041,
+        "canonicalPacketDecodedBytes": 8826208,
+        "canonicalPacketRetainedBytes": 8826208,
+        "canonicalPacketTransferBytes": 8826208,
+        "canonicalStructuredCloneMetadataBytes": 1105,
+        "canonicalCacheWriteMs": 39.100000001490116,
+        "canonicalDecompressMs": 89.39999999850988,
+        "canonicalPacketValidateMs": 4.600000001490116,
+        "canonicalPacketTransferMs": 831.800048828125,
+        "canonicalMaterializeMs": 5071.69999999553,
+        "canonicalMaterializeSliceCount": 134,
+        "canonicalMaterializeMaxSliceMs": 1.1000000014901161,
+        "canonicalMaterializedCoordinateCount": 548454,
+        "canonicalPreviewReleasedBytes": 0,
+        "canonicalPristineReparseCount": 0,
+        "canonicalMemorySamples": [
+          {
+            "label": "canonical-packet-request",
+            "atMs": 3446.10000000149,
+            "supported": true,
+            "bytes": 102992202,
+            "source": "performance.memory"
+          },
+          {
+            "label": "packet-transferred",
+            "atMs": 4474.60000000149,
+            "supported": true,
+            "bytes": 81973211,
+            "source": "performance.memory"
+          },
+          {
+            "label": "materialization-start",
+            "atMs": 6890.30000000447,
+            "supported": true,
+            "bytes": 94599005,
+            "source": "performance.memory"
+          },
+          {
+            "label": "materialization-complete",
+            "atMs": 11957.70000000298,
+            "supported": true,
+            "bytes": 133661779,
+            "source": "performance.memory"
+          },
+          {
+            "label": "canonical-mesh-committed",
+            "atMs": 22064.10000000149,
+            "supported": true,
+            "bytes": 284172278,
+            "source": "performance.memory"
+          }
+        ],
+        "lazyModalLoadedMs": null,
+        "lazyGisLoadedMs": null,
+        "lazyHistoricalLoadedMs": null,
+        "lazyModuleLoadErrorCount": 0,
+        "initialModuleRequestCount": 247,
+        "startedAt": 61.29999999701977,
+        "preview": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 198.89999999850988,
+          "transferredBytes": 2664924,
+          "decodedBytes": 6216008,
+          "assets": {
+            "countries": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 917550,
+              "storedBytes": 917550,
+              "decodedBytes": 2438942,
+              "loadMs": 50.5,
+              "cacheWriteMs": 9.200000002980232,
+              "decompressMs": 26.69999999552965,
+              "parseMs": 18.30000000447035
+            },
+            "mesh": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 1733548,
+              "storedBytes": 1733548,
+              "decodedBytes": 3763240,
+              "loadMs": 49.20000000298023,
+              "cacheWriteMs": 9.800000004470348,
+              "decompressMs": 29.399999998509884,
+              "parseMs": 0
+            },
+            "labelAnchors": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 13826,
+              "storedBytes": 13826,
+              "decodedBytes": 13826,
+              "loadMs": 34.1000000089407,
+              "cacheWriteMs": 22.700000002980232,
+              "decompressMs": 0,
+              "parseMs": 0.30000000447034836
+            }
+          }
+        },
+        "geometry": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 196.5,
+          "transferredBytes": 5122041,
+          "decodedBytes": 8826208,
+          "canonicalPacketCompressedBytes": 5122041,
+          "canonicalPacketDecodedBytes": 8826208,
+          "canonicalCacheWriteMs": 39.100000001490116,
+          "canonicalDecompressMs": 89.39999999850988,
+          "canonicalPacketValidateMs": 4.600000001490116,
+          "assets": {
+            "countryPacket": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 5122041,
+              "storedBytes": 5122041,
+              "decodedBytes": 8826208,
+              "loadMs": 177.30000000447035,
+              "cacheWriteMs": 39.100000001490116,
+              "decompressMs": 89.39999999850988,
+              "parseMs": 0
+            }
+          }
+        },
+        "mesh": {
+          "policy": {
+            "mode": "sequential",
+            "reason": "interaction-first-v1",
+            "constrained": false,
+            "signals": {
+              "layout": "wide",
+              "deviceMemory": 16,
+              "hardwareConcurrency": 6,
+              "effectiveType": "4g",
+              "saveData": false
+            }
+          },
+          "milliseconds": 2887.5,
+          "transferredBytes": 14619043,
+          "decodedBytes": 32644700,
+          "assets": {
+            "mesh": {
+              "source": "network",
+              "cacheHit": false,
+              "transferredBytes": 14619043,
+              "storedBytes": 14619043,
+              "decodedBytes": 32644700,
+              "loadMs": 222.40000000596046,
+              "cacheWriteMs": 41.5,
+              "decompressMs": 121.60000000149012,
+              "parseMs": 0
+            }
+          }
+        },
+        "canonical": {
+          "geometry": {
+            "policy": {
+              "mode": "sequential",
+              "reason": "interaction-first-v1",
+              "constrained": false,
+              "signals": {
+                "layout": "wide",
+                "deviceMemory": 16,
+                "hardwareConcurrency": 6,
+                "effectiveType": "4g",
+                "saveData": false
+              }
+            },
+            "milliseconds": 196.5,
+            "transferredBytes": 5122041,
+            "decodedBytes": 8826208,
+            "canonicalPacketCompressedBytes": 5122041,
+            "canonicalPacketDecodedBytes": 8826208,
+            "canonicalCacheWriteMs": 39.100000001490116,
+            "canonicalDecompressMs": 89.39999999850988,
+            "canonicalPacketValidateMs": 4.600000001490116,
+            "assets": {
+              "countryPacket": {
+                "source": "network",
+                "cacheHit": false,
+                "transferredBytes": 5122041,
+                "storedBytes": 5122041,
+                "decodedBytes": 8826208,
+                "loadMs": 177.30000000447035,
+                "cacheWriteMs": 39.100000001490116,
+                "decompressMs": 89.39999999850988,
+                "parseMs": 0
+              }
+            },
+            "materialization": {
+              "sliceCount": 134,
+              "maxSliceMs": 1.1000000014901161,
+              "coordinateCount": 548454
+            }
+          },
+          "mesh": {
+            "policy": {
+              "mode": "sequential",
+              "reason": "interaction-first-v1",
+              "constrained": false,
+              "signals": {
+                "layout": "wide",
+                "deviceMemory": 16,
+                "hardwareConcurrency": 6,
+                "effectiveType": "4g",
+                "saveData": false
+              }
+            },
+            "milliseconds": 2887.5,
+            "transferredBytes": 14619043,
+            "decodedBytes": 32644700,
+            "assets": {
+              "mesh": {
+                "source": "network",
+                "cacheHit": false,
+                "transferredBytes": 14619043,
+                "storedBytes": 14619043,
+                "decodedBytes": 32644700,
+                "loadMs": 222.40000000596046,
+                "cacheWriteMs": 41.5,
+                "decompressMs": 121.60000000149012,
+                "parseMs": 0
+              }
+            }
+          }
+        },
+        "interactiveMs": 1526.8999999985099,
+        "editableMs": 14298.20000000298,
+        "readyMs": 22063.89999999851,
+        "layerHydrationStartedMs": 1180,
+        "layerTreeRenderedMs": 14297.89999999851,
+        "layerReadyMs": 14297.89999999851,
+        "geometryError": "",
+        "meshError": "",
+        "previewReceivedMs": 333.6000000014901,
+        "previewMainThreadTransferMs": 39.699951171875,
+        "rendererStatus": "Natural Earth 5.1.1 · WebGL2 고화질",
+        "mapHostStage": "ready",
+        "previewMeshUploadMs": 155.80000000447035,
+        "renderer": "webgl2",
+        "fallbackReason": "",
+        "devicePixelRatio": 1,
+        "effectivePixelRatio": 1,
+        "previewDisplayMs": 1193.2999999970198,
+        "geometryProgress": {
+          "stage": "countries",
+          "percent": 98
+        },
+        "geometryReceivedMs": 4474.5,
+        "geometryMainThreadTransferMs": 831.800048828125,
+        "canonicalStateApplyStage": "complete",
+        "geometryApplyMs": 2339.7999999970198,
+        "geometryDisplayMs": 9823.70000000298,
+        "meshProgress": {
+          "stage": "mesh",
+          "percent": 98
+        },
+        "meshReceivedMs": 17730.89999999851,
+        "meshMainThreadTransferMs": 0.800048828125,
+        "meshApplyMs": 4321.29999999702,
+        "meshDisplayMs": 4333
+      },
+      "observations": {
+        "uploads": [
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0.6000000014901161,
+            "bytes": 1003704
+          },
+          {
+            "ms": 0.20000000298023224,
+            "bytes": 250926
+          },
+          {
+            "ms": 0.7999999970197678,
+            "bytes": 1686624
+          },
+          {
+            "ms": 0.5,
+            "bytes": 812648
+          },
+          {
+            "ms": 0,
+            "bytes": 112
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 168
+          },
+          {
+            "ms": 0,
+            "bytes": 144
+          },
+          {
+            "ms": 0,
+            "bytes": 56
+          },
+          {
+            "ms": 0,
+            "bytes": 41136
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 40
+          },
+          {
+            "ms": 0,
+            "bytes": 408
+          },
+          {
+            "ms": 0,
+            "bytes": 104
+          },
+          {
+            "ms": 0,
+            "bytes": 1272
+          },
+          {
+            "ms": 0,
+            "bytes": 400
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 32
+          },
+          {
+            "ms": 0,
+            "bytes": 328
+          },
+          {
+            "ms": 0,
+            "bytes": 184
+          },
+          {
+            "ms": 0,
+            "bytes": 184
+          },
+          {
+            "ms": 0,
+            "bytes": 120
+          },
+          {
+            "ms": 0,
+            "bytes": 128
+          },
+          {
+            "ms": 0,
+            "bytes": 112
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 128
+          },
+          {
+            "ms": 0,
+            "bytes": 88
+          },
+          {
+            "ms": 0,
+            "bytes": 616
+          },
+          {
+            "ms": 0,
+            "bytes": 552
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 352
+          },
+          {
+            "ms": 0,
+            "bytes": 776
+          },
+          {
+            "ms": 0,
+            "bytes": 120
+          },
+          {
+            "ms": 0,
+            "bytes": 168
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 156
+          },
+          {
+            "ms": 0,
+            "bytes": 192
+          },
+          {
+            "ms": 0,
+            "bytes": 60
+          },
+          {
+            "ms": 0,
+            "bytes": 58632
+          },
+          {
+            "ms": 0,
+            "bytes": 84
+          },
+          {
+            "ms": 0,
+            "bytes": 36
+          },
+          {
+            "ms": 0,
+            "bytes": 324
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 1476
+          },
+          {
+            "ms": 0,
+            "bytes": 288
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 24
+          },
+          {
+            "ms": 0,
+            "bytes": 396
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 144
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 108
+          },
+          {
+            "ms": 0,
+            "bytes": 540
+          },
+          {
+            "ms": 0,
+            "bytes": 564
+          },
+          {
+            "ms": 0,
+            "bytes": 72
+          },
+          {
+            "ms": 0,
+            "bytes": 288
+          },
+          {
+            "ms": 0,
+            "bytes": 876
+          },
+          {
+            "ms": 0,
+            "bytes": 132
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 48
+          },
+          {
+            "ms": 0,
+            "bytes": 12
+          },
+          {
+            "ms": 0,
+            "bytes": 80
+          },
+          {
+            "ms": 0,
+            "bytes": 96
+          },
+          {
+            "ms": 0,
+            "bytes": 958080
+          },
+          {
+            "ms": 0,
+            "bytes": 768160
+          },
+          {
+            "ms": 0.8999999985098839,
+            "bytes": 10800
+          },
+          {
+            "ms": 0,
+            "bytes": 30624
+          },
+          {
+            "ms": 0,
+            "bytes": 3600
+          },
+          {
+            "ms": 0,
+            "bytes": 9744
+          },
+          {
+            "ms": 0,
+            "bytes": 1472
+          },
+          {
+            "ms": 0,
+            "bytes": 3696
+          },
+          {
+            "ms": 0,
+            "bytes": 2760
+          },
+          {
+            "ms": 0.10000000149011612,
+            "bytes": 7392
+          },
+          {
+            "ms": 0,
+            "bytes": 509160
+          },
+          {
+            "ms": 0,
+            "bytes": 4232
+          },
+          {
+            "ms": 0.10000000149011612,
+            "bytes": 11616
+          },
+          {
+            "ms": 0,
+            "bytes": 811840
+          },
+          {
+            "ms": 0,
+            "bytes": 960
+          },
+          {
+            "ms": 0,
+            "bytes": 2352
+          },
+          {
+            "ms": 0,
+            "bytes": 4063240
+          },
+          {
+            "ms": 0,
+            "bytes": 3250912
+          },
+          {
+            "ms": 0,
+            "bytes": 8215808
+          },
+          {
+            "ms": 0,
+            "bytes": 2053952
+          },
+          {
+            "ms": 0,
+            "bytes": 18018516
+          },
+          {
+            "ms": 0,
+            "bytes": 4347088
+          },
+          {
+            "ms": 0,
+            "bytes": 901984
+          },
+          {
+            "ms": 0,
+            "bytes": 225496
+          },
+          {
+            "ms": 0,
+            "bytes": 2013360
+          },
+          {
+            "ms": 0,
+            "bytes": 452440
+          },
+          {
+            "ms": 0,
+            "bytes": 2262200
+          },
+          {
+            "ms": 0,
+            "bytes": 55488
+          },
+          {
+            "ms": 0,
+            "bytes": 162408
+          },
+          {
+            "ms": 0.10000000149011612,
+            "bytes": 18496
+          },
+          {
+            "ms": 0,
+            "bytes": 53064
+          },
+          {
+            "ms": 0,
+            "bytes": 21632
+          },
+          {
+            "ms": 0,
+            "bytes": 62424
+          }
+        ],
+        "yields": [
+          12.200000002980232,
+          729.2000000029802,
+          36.5,
+          1655.2000000029802,
+          15.199999995529652,
+          17.099999994039536,
+          21.700000002980232,
+          12.599999994039536,
+          14.399999998509884,
+          15.199999995529652,
+          16.80000000447035,
+          16.600000001490116,
+          16.69999999552965,
+          15.100000001490116,
+          17,
+          16.799999997019768,
+          16.799999997019768,
+          17.399999998509884,
+          16.5,
+          15.5,
+          16.899999998509884,
+          17,
+          15.700000002980232,
+          16.600000001490116,
+          16.700000002980232,
+          17,
+          15.300000004470348,
+          16.400000005960464,
+          18.200000002980232,
+          15.400000005960464,
+          16,
+          33.79999999701977,
+          499.29999999701977,
+          1.2999999970197678,
+          14.600000001490116,
+          16.099999994039536,
+          16.899999998509884,
+          16.69999999552965,
+          16.5,
+          15.399999998509884,
+          18,
+          15.300000004470348,
+          16.700000002980232,
+          16.799999997019768,
+          16.69999999552965,
+          15.600000001490116,
+          16.5,
+          15.800000004470348,
+          17.700000002980232,
+          15.200000002980232,
+          16.69999999552965,
+          16.600000001490116,
+          17,
+          16.600000001490116,
+          16.5,
+          15.399999998509884,
+          17.100000001490116,
+          17,
+          16.69999999552965,
+          15.399999998509884,
+          16.5,
+          16.80000000447035,
+          15.700000002980232,
+          16.899999998509884,
+          16,
+          18.5,
+          15.5,
+          16.30000000447035,
+          16.600000001490116,
+          17.100000001490116,
+          16.799999997019768,
+          15.699999995529652,
+          16.700000002980232,
+          17.19999999552965,
+          16.899999998509884,
+          15.399999998509884,
+          16.299999997019768,
+          17.100000001490116,
+          17,
+          15.400000005960464,
+          16.900000005960464,
+          16.80000000447035,
+          16.600000001490116,
+          16.600000001490116,
+          15.5,
+          16.600000001490116,
+          16.700000002980232,
+          17.100000001490116,
+          15.799999997019768,
+          16.80000000447035,
+          16.80000000447035,
+          17,
+          16.80000000447035,
+          16.80000000447035,
+          15.200000002980232,
+          16.899999998509884,
+          16.799999997019768,
+          15.199999995529652,
+          16.799999997019768,
+          17.100000001490116,
+          17,
+          16.80000000447035,
+          15.5,
+          16.899999998509884,
+          17,
+          16.899999998509884,
+          15.399999998509884,
+          16.899999998509884,
+          16.899999998509884,
+          17,
+          15.399999998509884,
+          17.899999998509884,
+          15.5,
+          16.700000002980232,
+          15.599999994039536,
+          18.100000001490116,
+          15.600000001490116,
+          16.899999998509884,
+          15.5,
+          16.80000000447035,
+          17.100000001490116,
+          16.899999998509884,
+          15.299999997019768,
+          16.899999998509884,
+          17.100000001490116,
+          15.400000005960464,
+          17,
+          16.899999998509884,
+          16.799999997019768,
+          16.799999997019768,
+          15.399999998509884,
+          16.799999997019768,
+          16.700000002980232
+        ],
+        "slowCalls": [
+          {
+            "name": "readPixels",
+            "ms": 72.5,
+            "phase": "geometry-queued"
+          },
+          {
+            "name": "texImage2D",
+            "ms": 23.80000000447035,
+            "phase": "geometry-loading"
+          }
+        ]
+      },
+      "memory": 300828712,
+      "scene": {
+        "valid": true,
+        "dirty": true,
+        "activeViewSignature": "1:globe:640,363:330.33:-15,-25,0::1280:752",
+        "stagingViewSignature": "1:globe:640,363:330.33:-15,-25,0::1280:752",
+        "activeProjectGeneration": 0,
+        "stagingProjectGeneration": 0,
+        "state": "rebuilding",
+        "disabled": false,
+        "width": 1280,
+        "height": 752,
+        "generation": 72,
+        "hitCount": 29,
+        "missCount": 21,
+        "compositeCount": 29,
+        "compositeMs": 0.800000011920929,
+        "recreateCount": 2,
+        "failureCount": 0,
+        "lastFailureReason": "",
+        "lastInvalidationReason": "country-shared-boundary-reset"
+      }
+    }
+  ],
+  "optimizationCommit": "47b94026a1dc9207cd2af0467cf84d843add853d",
+  "testedTree": "This optimization commit plus the uncommitted unified-storage implementation; not a finalized candidate"
+}
