@@ -276,8 +276,10 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
     return { identities: restored.territorialEntities, timelineRecords: restored.timelineRecords, geometries: restored.geometries };
   }, { timeout: 30_000 }).toEqual({ identities: beforeStorage.territorialEntities,
     timelineRecords: beforeStorage.timelineRecords, geometries: beforeStorage.geometries });
-  await page.locator('#redoBtn').click();
-  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id)).toEqual(child);
+  // Trace snapshots and complete archive restoration share this native action's budget.
+  await page.locator('#redoBtn').click({ timeout: 30_000, noWaitAfter: true });
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id),
+    { timeout: 30_000 }).toEqual(child);
   const committedProofPath = testInfo.outputPath('cut-geometry-history.json');
   await writeFile(committedProofPath, JSON.stringify({ parent: before, child, candidates,
     restored: { identities: beforeStorage.territorialEntities, timelineRecords: beforeStorage.timelineRecords,

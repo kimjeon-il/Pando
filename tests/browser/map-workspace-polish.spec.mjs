@@ -66,6 +66,7 @@ async function cameraSnapshot(page) {
 
 test('task workspace and toolbar search preserve their DOM and camera across layouts', async ({ page }, testInfo) => {
   test.setTimeout(240_000);
+  page.setDefaultTimeout(15_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -81,7 +82,10 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     const mobile = viewport.width < 800;
     await expect(page.locator('#app')).toHaveAttribute('data-layout', mobile ? 'mobile' : viewport.width >= 1280 ? 'wide' : 'compact');
     if (mobile) {
-      await page.locator('#preferencesBtn').click();
+      await page.locator('#mobileMenuBtn').click();
+      await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+      await page.locator('#mobilePreferencesBtn').click();
+      await expect(page.locator('#preferencesModal')).toBeVisible();
       await page.locator('[data-preference-theme="dark"]').click();
       await page.locator('#preferencesApplyBtn').click();
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -111,6 +115,8 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     await expect(page.locator('#entityNameInput')).toHaveValue('독일');
     expect(await cameraSnapshot(page)).toEqual(beforeSelect);
     await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
+    await page.locator('#actionsTabBtn').click();
+    await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-view', 'actions');
     await expect(page.locator('#editEntityBorderBtn')).toBeVisible();
     const beforeTask = await cameraSnapshot(page);
     await page.locator('#editEntityBorderBtn').click();
@@ -143,7 +149,9 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
     await page.screenshot({ path: testInfo.outputPath(`task-${viewport.width}-${mobile ? 'mobile' : 'desktop'}.png`) });
     await page.locator('#modeCancelBtn').click();
     await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
+    await page.locator('#editorTabBtn').click();
     await expect(page.locator('#entityNameInput')).toHaveValue('독일');
+    await page.locator('#actionsTabBtn').click();
     await expect(page.locator('#editEntityBorderBtn')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);

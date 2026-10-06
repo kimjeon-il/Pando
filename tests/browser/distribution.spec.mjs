@@ -193,8 +193,9 @@ test('a numeric distribution stores signed values and survives undo and redo', a
   expect(errors).toEqual([]);
 });
 
-test('overlap and single display preserve independent values and free geometry on reload', async ({ page }) => {
+test('overlap and single display preserve independent values and free geometry on reload', async ({ page }, testInfo) => {
   test.setTimeout(180_000);
+  page.setDefaultTimeout(15_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await openApp(page);
 
@@ -202,10 +203,14 @@ test('overlap and single display preserve independent values and free geometry o
   await page.locator('#distributionNameInput').fill('인구 밀도');
   await page.locator('#distributionNameInput').blur();
   await page.locator('#actionsTabBtn').click();
-  const firstUnit = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');
+  const firstUnit = 'DEU';
+  await expect(page.locator('#distributionTerritorialUnitInput option[value="DEU"]')).toHaveText('독일');
   await selectUiOption(page, '#distributionTerritorialUnitInput', firstUnit);
   await page.locator('#distributionValueInput').fill('100');
   await page.locator('#addTerritorialDistributionBtn').click();
+  // Put the two independent entries in one actual viewport. World option order
+  // does not guarantee the territorial entry survives free-geometry focusing.
+  await page.locator('#focusSelectedObjectBtn').click();
 
   await createDistribution(page, '기온');
   await page.locator('#distributionUnitInput').fill('°C');
@@ -215,11 +220,14 @@ test('overlap and single display preserve independent values and free geometry o
   await page.locator('#addGeometryDistributionBtn').click();
   const mapBox = await page.locator('#map').boundingBox();
   expect(mapBox).not.toBeNull();
-  await page.mouse.click(mapBox.x + mapBox.width * 0.47, mapBox.y + mapBox.height * 0.43);
-  await page.mouse.click(mapBox.x + mapBox.width * 0.55, mapBox.y + mapBox.height * 0.48);
-  await page.mouse.click(mapBox.x + mapBox.width * 0.49, mapBox.y + mapBox.height * 0.56);
-  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
-  await page.locator('#modePrimaryBtn').click();
+  await page.mouse.move(mapBox.x + mapBox.width * 0.47, mapBox.y + mapBox.height * 0.43);
+  await page.mouse.down();
+  await page.mouse.move(mapBox.x + mapBox.width * 0.55, mapBox.y + mapBox.height * 0.48);
+  await page.mouse.move(mapBox.x + mapBox.width * 0.49, mapBox.y + mapBox.height * 0.56);
+  await page.mouse.up();
+  await expect(page.locator('g.draft-vertex')).toHaveCount(3);
+  await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled();
+  await page.locator('#modeDraftDoneBtn').click();
   await page.locator('#actionsTabBtn').click();
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
 
@@ -230,14 +238,36 @@ test('overlap and single display preserve independent values and free geometry o
 
   const current = await page.evaluate(() => ({
     layers: window.PANDOLAB_DISTRIBUTIONS.listLayers(),
+    freeEntry: window.PANDOLAB_DISTRIBUTIONS.listEntries(
+      window.PANDOLAB_DISTRIBUTIONS.listLayers().find(layer => layer.name === '기온').id,
+    )[0],
   }));
   expect(current.layers.map(layer => layer.name)).toEqual(['인구 밀도', '기온']);
   await page.locator('#mapDisplayBtn').click();
   await page.locator('#distributionMenuTrigger').click();
-  await page.locator('#distributionSingleRadio').check();
+  await page.locator('#distributionSingleRadio').locator('..').click();
+  await expect(page.locator('#distributionSingleRadio')).toBeChecked();
   await selectUiOption(page, '#distributionActiveLayerInput', current.layers[1].id);
   await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
-  await page.locator('#distributionOverlapRadio').check();
+  // The select's external popover closes the view menu; reopen it for the next command.
+  await page.locator('#mapDisplayBtn').click();
+  await page.locator('#distributionMenuTrigger').click();
+  await page.locator('#distributionOverlapRadio').locator('..').click();
+  await expect(page.locator('#distributionOverlapRadio')).toBeChecked();
+  await testInfo.attach('overlap-distribution-model-and-frame', {
+    body: JSON.stringify(await page.evaluate(id => ({
+      territorialUnitId: id,
+      territorialName: window.PANDOLAB_TERRITORIAL.get(id).properties.name,
+      layers: window.PANDOLAB_DISTRIBUTIONS.listLayers().map(layer => ({
+        layer, entries: window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id),
+      })),
+      shown: [...document.querySelectorAll('#map path.distribution-shape')].map(node => ({
+        layerId: node.__data__.layer.id, entryId: node.__data__.entry.id,
+      })),
+      frame: { ...document.querySelector('#map .map-svg').dataset },
+    }), firstUnit)),
+    contentType: 'application/json',
+  });
   await expect(page.locator('#map path.distribution-shape')).toHaveCount(2);
 
   await expect.poll(async () => {
@@ -264,5 +294,6 @@ test('overlap and single display preserve independent values and free geometry o
   expect(restored.unit).toBe('°C');
   expect(restored.entries[0]).toMatchObject({ mode: 'geometry', territorialUnitId: '', value: -4.25 });
   expect(restored.entries[0].geometry?.type).toBe('Polygon');
+  expect(restored.entries[0]).toEqual(current.freeEntry);
   expect(errors).toEqual([]);
 });

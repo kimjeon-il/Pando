@@ -233,6 +233,7 @@ test('GIS data export writes only selected layers and omits project-only metadat
 
 test('mobile vector import advances by stage and preserves detected choices when moving back', async ({ page }) => {
   test.setTimeout(180_000);
+  page.setDefaultTimeout(15_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
@@ -241,10 +242,12 @@ test('mobile vector import advances by stage and preserves detected choices when
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 
-  await page.locator('#mobileFileBtn').click();
-  const fileChooserPromise = page.waitForEvent('filechooser');
-  await page.locator('#openGisBtn').click();
-  const fileChooser = await fileChooserPromise;
+  await expect(page.locator('.topbar')).toBeHidden();
+  await page.locator('#mobileMenuBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+  await page.locator('#mobileMenuFileBtn').click();
+  await expect(page.locator('#fileMenu')).toBeVisible();
+  const [fileChooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#openGisBtn').click()]);
   await fileChooser.setFiles({
     name: 'mobile-region.geojson',
     mimeType: 'application/geo+json',
@@ -253,7 +256,7 @@ test('mobile vector import advances by stage and preserves detected choices when
       features: [{
         type: 'Feature',
         id: 'mobile-region',
-        properties: { name: '모바일 시험 지역', country_id: 'DEU' },
+        properties: { name: '모바일 시험 지역', parent_id: 'DEU' },
         geometry: { type: 'Polygon', coordinates: [[[9, 50], [9, 51], [10, 51], [10, 50], [9, 50]]] },
       }],
     })),
@@ -289,8 +292,9 @@ test('mobile vector import advances by stage and preserves detected choices when
   await expect(page.locator('#gisFinalSummary')).toContainText('현재 지도에 추가');
   await expect(page.locator('#gisImportConfirmBtn')).toBeVisible();
 
-  await page.locator('#gisImportCancelBtn').click();
+  await page.locator('#gisImportModal [data-gis-cancel="true"]').click();
   await expect(page.locator('#gisImportModal')).toBeHidden();
+  await expect(page.locator('#fileMenu')).toBeVisible();
   await expect(page.locator('#openGisBtn')).toBeFocused();
   expect(errors).toEqual([]);
 });
