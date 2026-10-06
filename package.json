@@ -7,15 +7,13 @@
   "scripts": {
     "build:country-default-colors": "node tools/build-country-default-colors.mjs",
     "check:country-default-colors": "node tools/build-country-default-colors.mjs --check",
-    "build:country-schema": "node tools/normalize-canonical-country-schema.mjs",
-    "check:country-schema": "node tools/normalize-canonical-country-schema.mjs --check",
+    "build:country-schema": "pnpm build:current-world",
+    "check:country-schema": "node tools/build-territorial-current-world.mjs --check",
     "build:mesh": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-mesh.mjs",
     "build:preview": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-preview.mjs && python tools/validate-country-geometry.py",
     "build:country-shared-boundaries": "node tools/build-country-shared-boundaries.mjs",
     "check:country-shared-boundaries": "node tools/build-country-shared-boundaries.mjs --check",
-    "build:map-assets": "pnpm build:country-schema && pnpm build:mesh && pnpm build:preview",
-    "build:historical-library": "python tools/build-historical-library.py",
-    "check:historical-library": "python tools/build-historical-library.py --check && node scripts/check-historical-library.mjs",
+    "build:map-assets": "pnpm build:territorial-library && pnpm build:current-world && pnpm build:mesh && pnpm build:preview && pnpm build:country-shared-boundaries",
     "generate:build-meta": "node scripts/generate-build-metadata.mjs",
     "build:ui-bundle": "node scripts/build-ui-bundle.mjs",
     "check:version": "node scripts/check-version.mjs",
@@ -42,7 +40,11 @@
     "test:python": "python -m unittest discover -s tests -p \"test_*.py\" && python -m unittest discover -s tests/python -p \"test_*.py\"",
     "test:unit": "node --test \"tests/unit/*.test.mjs\"",
     "test:browser": "playwright test",
-    "test": "pnpm lint && pnpm check:js && pnpm check:version && pnpm check:architecture && pnpm check:country-schema && pnpm check:historical-library && pnpm test:python && pnpm check:ui && node --test \"tests/unit/*.test.mjs\" && playwright test"
+    "test": "pnpm lint && pnpm check:js && pnpm check:version && pnpm check:architecture && pnpm check:country-schema && pnpm check:territorial-library && pnpm test:python && pnpm check:ui && node --test \"tests/unit/*.test.mjs\" && playwright test",
+    "build:territorial-geometry": "python tools/build-territorial-geometry.py",
+    "build:territorial-library": "node tools/build-territorial-entity-chunks.mjs",
+    "build:current-world": "node tools/build-territorial-current-world.mjs",
+    "check:territorial-library": "python tools/build-territorial-geometry.py --check && node tools/build-territorial-entity-chunks.mjs --check && node scripts/check-territorial-library.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

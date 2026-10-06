@@ -15,7 +15,7 @@ export function createFileBindings() {
   function bindFileAndGisUI() {
     (0, dependencies.platform.$)('addFromLibraryBtn')?.addEventListener('click', async () => {
       try {
-        const controller = await (0, dependencies.libraryUi.getHistoricalLibraryController)();
+        const controller = await (0, dependencies.libraryUi.getTerritorialLibraryController)();
         await controller.open();
       } catch (error) {
         (0, dependencies.feedback.reportOperationError)(error, '국가·지역 라이브러리를 불러오지 못했습니다.', 'PL-LIB-001', 4800);

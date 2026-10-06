@@ -7,8 +7,11 @@ import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createLibraryAssembly } from '../../assets/js/modules/app-library-assembly.js';
 import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
-import { createHistoricalLibraryService } from '../../assets/js/modules/historical-library-service.js';
-import { HISTORICAL_LIBRARY_SCHEMA_VERSION } from '../../assets/js/modules/historical-library.js';
+import { createTerritorialLibraryService } from '../../assets/js/modules/territorial-library-service.js';
+import { TERRITORIAL_LIBRARY_SCHEMA_VERSION } from '../../assets/js/modules/territorial-library.js';
+import {createTerritorialEntityLoader} from '../../assets/js/modules/territorial-entity-loader.js';
+import {gzipSync} from 'node:zlib';
+import {createHash} from 'node:crypto';
 import * as libraryOwnership from '../../assets/js/modules/library-ownership.js';
 
 function harness(fail = false, expectedChildren = 1, { failTransfer = false } = {}) {
@@ -96,17 +99,21 @@ async function libraryAssemblyHarness(t, finite) {
   globalThis.window = {};
   globalThis.document = { querySelector: () => null };
   t.after(() => { globalThis.window = previousWindow; globalThis.document = previousDocument; });
-  const libraryId = 'historical-country:fixture', geometry = { type: 'Polygon',
+  const entityId = 'state:fixture', geometry = { type: 'Polygon',
     coordinates: [[[2, 0], [2, 1], [3, 1], [3, 0], [2, 0]]] };
-  const pilot = { schemaVersion: HISTORICAL_LIBRARY_SCHEMA_VERSION, snapshots: [], entities: [{
-    libraryId, entityKind: 'general', canonicalName: 'Fixture',
-    startDate: finite ? '1900' : null, endDate: finite ? '1991-12' : null,
+  const pilot = { schemaVersion: TERRITORIAL_LIBRARY_SCHEMA_VERSION, snapshots: [], entities: [{
+    entityId, entityKind: 'general', canonicalName: 'Fixture',
+    schemaVersion: 1, lifetime: {validFrom: finite ? '1900' : null, validTo: finite ? '1991-12' : null},
     metadata: { defaultFlagDataUrl: 'data:image/svg+xml;base64,ZmxhZw==', fixtureProvenance: 'immutable-source' },
     sourceInfo: { title: 'Fixture source', license: 'test' },
     geometryVersions: [{ id: 'fixture:1', geometry, validFrom: finite ? '1900' : null,
       validTo: finite ? '1991-12' : null }],
   }] };
-  t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify(pilot)));
+  const stored=gzipSync(Buffer.from(JSON.stringify(pilot.entities[0])));
+  const entry={...pilot.entities[0],validFrom:pilot.entities[0].lifetime.validFrom,validTo:pilot.entities[0].lifetime.validTo,bbox:[2,0,3,1],geometryVersions:pilot.entities[0].geometryVersions.map(({geometry,...v})=>v),file:'state-fixture.json.gz',geometryVersionCount:1,compressedBytes:stored.length,decodedBytes:Buffer.byteLength(JSON.stringify(pilot.entities[0])),sha256:createHash('sha256').update(stored).digest('hex')};
+  const index=Buffer.from(JSON.stringify({...pilot,entities:[entry]}));
+  globalThis.window.PANDOLAB_BUILD_META={dataRevision:'unit-test',territorialIndex:{encoding:'identity',compressedBytes:index.length,decodedBytes:index.length,sha256:createHash('sha256').update(index).digest('hex')}};
+  t.mock.method(globalThis,'fetch',async url=>new Response(String(url).includes('state-fixture.json.gz')?stored:index));
   const store = createTerritorialEntityStore({ getState: () => h.state });
   const repository = createTerritorialEntityRepository({ entityStore: store });
   const picking = createObjectPicking();
@@ -116,12 +123,13 @@ async function libraryAssemblyHarness(t, finite) {
   assembly.connect({
     projectState: { state: h.state }, countries: { countryLandRevision: 0 },
     territorialModel: { entityRepository: repository }, objectPicking: picking,
-    libraryServices: { ...libraryOwnership, ensureHistoricalRuntime: noop,
-      historicalLibraryServiceModule: { createHistoricalLibraryService },
-      historicalLibraryControllerModule: { createHistoricalLibraryController: () => ({ connect: noop }) } },
+    libraryServices: { ...libraryOwnership, ensureTerritorialLibraryRuntime: noop,
+      territorialEntityLoaderModule: {createTerritorialEntityLoader},
+      territorialLibraryServiceModule: { createTerritorialLibraryService },
+      territorialLibraryControllerModule: { createTerritorialLibraryController: () => ({ connect: noop }) } },
     gisRuntime: { gisWorkflow: { ensure: noop }, getGisImportCommitter: async () => h.commit },
     applicationServicesA: { ensureModalRuntime: noop }, applicationServicesB: {},
-    platform: { $: () => fakeElement }, platformConfigurationA: { HISTORICAL_LIBRARY_DATA_URL: 'fixture' },
+    platform: { $: () => fakeElement }, platformConfigurationA: { TERRITORIAL_LIBRARY_INDEX_URL: 'https://fixture/index.json' },
     platformConfigurationB: {}, builtinCountries: { materializePristineCountriesSync: () => ({ features: repository.list() }) },
     objectPresentation: { territorialEntityName: entity => entity.properties.name },
     cutGeometry: { normalizeClippedLandGeometry: coordinates => ({ type: 'MultiPolygon', coordinates }) },
@@ -136,31 +144,31 @@ async function libraryAssemblyHarness(t, finite) {
     spatialRecords: { scheduleMapObjectSpatialIndexRebuild: () => operations.push('index') },
     projectSession: { saveState: { markNewProject: () => operations.push('new-project') } },
   });
-  assembly.initializeHistoricalLibraryService();
-  await globalThis.window.PANDOLAB_HISTORICAL_LIBRARY.load();
-  return { ...h, operations, libraryId, pilot, geometry, source: structuredClone(await globalThis.window.PANDOLAB_HISTORICAL_LIBRARY.get(libraryId)) };
+  assembly.initializeTerritorialLibraryService();
+  await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.load();
+  return { ...h, operations, entityId, pilot, geometry, source: structuredClone(await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.get(entityId)) };
 }
 
 test('finite library activation reaches TIMELINE_ACTIVATION and preserves the complete current session', async t => {
   const h = await libraryAssemblyHarness(t, true);
   const before = snapshotTestTerritorialState(h.state);
-  await assert.rejects(globalThis.window.PANDOLAB_HISTORICAL_LIBRARY.instantiate(h.libraryId, '1914'),
+  await assert.rejects(globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId, '1914'),
     error => error.code === 'TIMELINE_ACTIVATION');
   assert.deepEqual(snapshotTestTerritorialState(h.state), before);
   assert.deepEqual(h.history, []);
   assert.deepEqual(h.events, []);
   assert.deepEqual(h.operations, []);
   assert.equal(h.restores.length, 0, 'an unpublished rejected candidate must not invoke public snapshot restoration');
-  assert.deepEqual(await globalThis.window.PANDOLAB_HISTORICAL_LIBRARY.get(h.libraryId), h.source);
+  assert.deepEqual(await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.get(h.entityId), h.source);
 });
 
 test('static library merge preserves source metadata, flag, geometry version and one reversible history entry', async t => {
   const h = await libraryAssemblyHarness(t, false);
   const before = snapshotTestTerritorialState(h.state);
-  const result = await globalThis.window.PANDOLAB_HISTORICAL_LIBRARY.instantiate(h.libraryId);
+  const result = await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId);
   assert.equal(result.added, 1);
-  const added = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => h.state }) }).get(h.libraryId);
-  assert.equal(added.properties.sourceLibraryId, h.libraryId);
+  const added = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => h.state }) }).get(h.entityId);
+  assert.equal(added.properties.sourceLibraryId, h.entityId);
   assert.equal(added.properties.sourceGeometryVersion, 'fixture:1');
   assert.equal(added.properties.metadata.flagDataUrl, 'data:image/svg+xml;base64,ZmxhZw==');
   assert.equal(added.properties.metadata.fixtureProvenance, 'immutable-source');
@@ -169,8 +177,16 @@ test('static library merge preserves source metadata, flag, geometry version and
   assert.equal(added.properties.validTo, null);
   assert.equal(h.history.length, 1);
   assert.deepEqual(h.history[0], before);
-  assert.equal(h.state.sourceInfo.imports[0].sourceId, h.libraryId);
+  assert.equal(h.state.sourceInfo.imports[0].sourceId, h.entityId);
   assert.equal(h.state.sourceInfo.imports[0].geometryVersionId, 'fixture:1');
   assert.equal(h.state.sourceInfo.imports[0].license, 'test');
-  assert.deepEqual(await globalThis.window.PANDOLAB_HISTORICAL_LIBRARY.get(h.libraryId), h.source);
+  assert.deepEqual(await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.get(h.entityId), h.source);
+});
+test('an unrelated logical ID equal to a catalog ID is rejected instead of reused',async t=>{
+  const h=await libraryAssemblyHarness(t,false);
+  const store=createTerritorialEntityStore({getState:()=>h.state});
+  store.appendEntities([createTerritorialFeature({id:h.entityId,entityKind:'general',geometry:h.geometry,name:'Unrelated'})]);
+  const before=snapshotTestTerritorialState(h.state);
+  await assert.rejects(globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId),/중복/);
+  assert.deepEqual(snapshotTestTerritorialState(h.state),before);assert.deepEqual(h.history,[]);assert.deepEqual(h.events,[]);
 });

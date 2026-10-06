@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import {worldAssets} from '../helpers/world-assets.mjs';
 
 test.use({ trace: 'off' });
 
@@ -12,7 +13,7 @@ test('canonical packet materializes cooperatively in an isolated browser harness
   }));
   await page.goto('/packet-harness');
 
-  const result = await page.evaluate(async () => {
+  const result = await page.evaluate(async packetUrl => {
     const longTasks = [];
     if (typeof globalThis.PerformanceObserver === 'function') {
       try {
@@ -23,7 +24,7 @@ test('canonical packet materializes cooperatively in an isolated browser harness
     const heapBefore = Number(performance.memory?.usedJSHeapSize || 0);
     const [{ createCanonicalCountryStore }, response] = await Promise.all([
       import('/assets/js/modules/canonical-country-packet.js'),
-      fetch('/assets/data/countries-canonical-v0.32.0.pcg.gz'),
+      fetch(`/assets/data/${packetUrl}`),
     ]);
     if (!response.ok) throw new Error(`packet request failed: ${response.status}`);
     const compressed = await response.arrayBuffer();
@@ -52,9 +53,9 @@ test('canonical packet materializes cooperatively in an isolated browser harness
       heapBefore,
       heapAfter: Number(performance.memory?.usedJSHeapSize || 0),
     };
-  });
+  }, worldAssets.canonicalCountryPacket.url);
 
-  expect(requests.filter(url => url.includes('countries-canonical-v0.32.0.pcg.gz'))).toHaveLength(1);
+  expect(requests.filter(url => url.includes(worldAssets.canonicalCountryPacket.url))).toHaveLength(1);
   expect(requests.filter(url => url.includes('countries-ne-5.1.1.geojson.gz'))).toHaveLength(0);
   expect(result.compressedBytes).toBeLessThan(5.5 * 1024 * 1024);
   expect(result.decodedBytes).toBeLessThan(10 * 1024 * 1024);
@@ -64,4 +65,14 @@ test('canonical packet materializes cooperatively in an isolated browser harness
   expect(result.sliceCount).toBeGreaterThan(1);
   expect(result.maxSliceCoordinates).toBeLessThanOrEqual(4096);
   expect(result.longTaskCount).toBe(0);
+});
+
+test('default world startup uses packed assets without catalog index or entity chunk requests',async({page})=>{
+ const requests=[];page.on('request',request=>requests.push(request.url()));
+ await page.goto('/');
+ await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90_000});
+ expect(requests.filter(url=>url.includes('/territorial-entities/'))).toEqual([]);
+ expect(requests.filter(url=>url.includes(worldAssets.canonicalCountryPacket.url))).toHaveLength(1);
+ expect(requests.filter(url=>url.includes(worldAssets.canonicalMesh.url))).toHaveLength(1);
+ expect(await page.evaluate(()=>window.__PANDOLAB_STARTUP_METRICS__.canonicalMaterializedCoordinateCount)).toBe(548_454);
 });

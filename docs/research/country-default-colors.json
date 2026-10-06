@@ -1815,21 +1815,21 @@
   ],
   "historicalCountries": [
     {
-      "libraryId": "historical-country:czechoslovakia",
+      "entityId": "state:czechoslovakia",
       "name": "체코슬로바키아",
       "color": "#46D8CB",
       "source": "hoi4-mapchart-1936",
       "sourceObject": "Czechoslovakia"
     },
     {
-      "libraryId": "historical-country:soviet-union",
+      "entityId": "state:soviet-union",
       "name": "소련",
       "color": "#A3101F",
       "source": "hoi4-mapchart-1936",
       "sourceObject": "Soviet Union"
     },
     {
-      "libraryId": "historical-country:ukraine",
+      "entityId": "state:ukraine",
       "name": "우크라이나",
       "color": "#005AB9",
       "source": "millennium-dawn",
@@ -1838,14 +1838,14 @@
       "sourcePath": "common/countries/colors.txt"
     },
     {
-      "libraryId": "historical-country:yugoslavia",
+      "entityId": "state:yugoslavia",
       "name": "유고슬라비아",
       "color": "#5E5EA4",
       "source": "hoi4-mapchart-1936",
       "sourceObject": "Yugoslavia"
     },
     {
-      "libraryId": "historical-country:sudan",
+      "entityId": "state:sudan",
       "name": "수단",
       "color": "#007229",
       "source": "millennium-dawn",
@@ -1854,21 +1854,21 @@
       "sourcePath": "common/countries/colors.txt"
     },
     {
-      "libraryId": "historical-country:indonesia",
+      "entityId": "state:indonesia",
       "name": "인도네시아",
       "color": "#FFB25F",
       "source": "hoi4-mapchart-1936",
       "sourceObject": "Dutch East Indies"
     },
     {
-      "libraryId": "historical-country:east-prussia",
+      "entityId": "state:east-prussia",
       "name": "동프로이센주",
       "color": "#003153",
       "source": "prussian-blue",
       "sourceObject": "Prussian blue"
     },
     {
-      "libraryId": "historical-country:deutsche-demokratische-republik",
+      "entityId": "state:deutsche-demokratische-republik",
       "name": "독일 민주공화국",
       "color": "#8B1A1A",
       "source": "cold-war-iron-curtain",
@@ -1877,7 +1877,7 @@
       "sourcePath": "Cold War Iron Curtain/common/countries/colors.txt"
     },
     {
-      "libraryId": "historical-country:nagorno-karabakh",
+      "entityId": "state:nagorno-karabakh",
       "name": "나고르노카라바흐",
       "color": "#E68C14",
       "source": "millennium-dawn",
@@ -1886,14 +1886,14 @@
       "sourcePath": "common/countries/colors.txt"
     },
     {
-      "libraryId": "historical-country:west-prussia",
+      "entityId": "state:west-prussia",
       "name": "서프로이센주",
       "color": "#003153",
       "source": "prussian-blue",
       "sourceObject": "Prussian blue"
     },
     {
-      "libraryId": "historical-country:north-schleswig",
+      "entityId": "state:north-schleswig",
       "name": "북슐레스비히",
       "color": "#003153",
       "source": "prussian-blue",

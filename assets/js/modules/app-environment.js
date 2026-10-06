@@ -26,7 +26,7 @@ export function createEnvironment() {
   let TERRAIN_PRIMARY_MANIFEST_URL;
   let TERRAIN_FALLBACK_MANIFEST_URL;
   let TERRAIN_SOURCE_CHOICE;
-  let HISTORICAL_LIBRARY_DATA_URL;
+  let TERRITORIAL_LIBRARY_INDEX_URL;
   let PHYSICAL_DATASET;
   let TERRAIN_DATASET;
   let HYDRO_DATASET;
@@ -249,9 +249,9 @@ export function createEnvironment() {
     (TERRAIN_FALLBACK_MANIFEST_URL = terrainSelection.fallback);
     (TERRAIN_SOURCE_CHOICE = terrainSelection.source);
 
-    (HISTORICAL_LIBRARY_DATA_URL = new URL('historical-library-pilot.json', PHYSICAL_DATA_BASE_URL));
+    (TERRITORIAL_LIBRARY_INDEX_URL = new URL('territorial-entities/generated/v1/index.json', PHYSICAL_DATA_BASE_URL));
 
-    HISTORICAL_LIBRARY_DATA_URL.searchParams.set('v', ASSET_REVISION);
+    TERRITORIAL_LIBRARY_INDEX_URL.searchParams.set('v', ASSET_REVISION);
 
     (PHYSICAL_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · raster 3.2.0');
 
@@ -460,7 +460,7 @@ export function createEnvironment() {
     get DEFAULT_GENERIC_FEATURE_COLOR() { return DEFAULT_GENERIC_FEATURE_COLOR; },
     get FLAT_LATITUDE_LIMIT() { return FLAT_LATITUDE_LIMIT; },
     get FLAT_PROJECTION_KIND() { return FLAT_PROJECTION_KIND; },
-    get HISTORICAL_LIBRARY_DATA_URL() { return HISTORICAL_LIBRARY_DATA_URL; },
+    get TERRITORIAL_LIBRARY_INDEX_URL() { return TERRITORIAL_LIBRARY_INDEX_URL; },
     get HYDRO_DATASET() { return HYDRO_DATASET; },
     get HYDRO_DATA_VERSION() { return HYDRO_DATA_VERSION; },
     get HYDRO_LAYER_META() { return HYDRO_LAYER_META; },

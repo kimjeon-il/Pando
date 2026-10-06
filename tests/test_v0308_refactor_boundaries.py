@@ -18,9 +18,9 @@ TOOLTIP_CONTROLLER = (ROOT / "assets/js/modules/tooltip-controller.js").read_tex
 CONFIRM_MODAL_CONTROLLER = (ROOT / "assets/js/modules/confirm-modal-controller.js").read_text(encoding="utf-8")
 LAYER_TREE_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
 HISTORY_SERVICE = (ROOT / "assets/js/modules/history-service.js").read_text(encoding="utf-8")
-HISTORICAL_LIBRARY_SERVICE = (ROOT / "assets/js/modules/historical-library-service.js").read_text(encoding="utf-8")
+HISTORICAL_LIBRARY_SERVICE = (ROOT / "assets/js/modules/territorial-library-service.js").read_text(encoding="utf-8")
 IMPORT_SERVICE = (ROOT / "assets/js/modules/import-service.js").read_text(encoding="utf-8")
-HISTORICAL_LIBRARY_CONTROLLER = (ROOT / "assets/js/modules/historical-library-controller.js").read_text(encoding="utf-8")
+HISTORICAL_LIBRARY_CONTROLLER = (ROOT / "assets/js/modules/territorial-library-controller.js").read_text(encoding="utf-8")
 MAP_EDIT_WORKER_CLIENT = (ROOT / "assets/js/modules/map-edit-worker-client.js").read_text(encoding="utf-8")
 
 
@@ -105,7 +105,7 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn('store.future = []', HISTORY_SERVICE)
 
     def test_historical_library_loading_and_queries_are_behind_service(self):
-        self.assertIn("createHistoricalLibraryService({", APP)
+        self.assertIn("createTerritorialLibraryService({", APP)
         self.assertIn("await service.load()", HISTORICAL_LIBRARY_CONTROLLER)
         self.assertIn("instantiateDescriptors", HISTORICAL_LIBRARY_SERVICE)
         self.assertNotIn("pandolab:historical-library-ready", APP)
@@ -121,8 +121,8 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertNotIn('gisGeometryPending', APP)
 
     def test_historical_library_dom_lifecycle_is_behind_controller(self):
-        self.assertIn("createHistoricalLibraryController({", APP)
-        self.assertIn("historicalLibraryController.connect()", APP)
+        self.assertIn("createTerritorialLibraryController({", APP)
+        self.assertIn("territorialLibraryController.connect()", APP)
         self.assertIn("function renderResults()", HISTORICAL_LIBRARY_CONTROLLER)
         self.assertIn("function renderPreview()", HISTORICAL_LIBRARY_CONTROLLER)
         self.assertNotIn("function renderHistoricalLibraryResults", APP)

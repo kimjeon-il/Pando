@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import {routeStaticCatalogSource} from './helpers/static-catalog-source.mjs';
 
 async function openApp(page, renderer) {
   await page.goto(`/?debug=1&renderer=${renderer}`);
@@ -12,6 +13,7 @@ for (const renderer of ['webgl2', 'webgl1']) {
   test(`${renderer} keeps the completed scene visible while a country addition patch is prepared`, async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 1440, height: 900 });
+    await routeStaticCatalogSource(page,'state:east-prussia');
     await page.addInitScript(() => {
       const NativeWorker = window.Worker;
       window.Worker = class DelayedCountryAddPatchWorker extends NativeWorker {
@@ -36,7 +38,7 @@ for (const renderer of ['webgl2', 'webgl1']) {
     await expect(page.locator('#historicalLibraryModal')).toBeVisible();
     await page.locator('#historicalLibrarySearchInput').fill('동프로이센');
     await page.locator('#historicalLibraryYearInput').fill('1900');
-    await page.locator('[data-library-entity-id="historical-country:east-prussia"]').click();
+    await page.locator('[data-library-entity-id="state:east-prussia"]').click();
     await page.locator('#historicalLibraryAddBtn').click();
     await expect(page.locator('#historicalLibraryAddBtn')).toHaveText('확인 후 추가');
     await page.locator('#historicalLibraryAddBtn').click();
