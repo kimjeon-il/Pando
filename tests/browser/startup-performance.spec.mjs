@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { canonicalVertexCount, worldAssets } from '../helpers/world-assets.mjs';
 
 // The canonical map contains more than half a million coordinates. Retained
 // Playwright DOM snapshots can stall for minutes after the enhanced handoff;
@@ -18,7 +19,8 @@ test('Android-density mobile viewport caps the map backing store at DPR two', as
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
   const metrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__ || {});
   expect(metrics.devicePixelRatio).toBe(3);
-  expect(metrics.effectivePixelRatio).toBe(2);
+  // The mobile ceiling is two; adaptive quality can impose a lower cap.
+  expect(metrics.effectivePixelRatio).toBe(Math.min(3, 2, metrics.renderQuality.dprCap));
   expect(metrics.canvasBackingPixels[0] / metrics.viewportCss[0]).toBeLessThanOrEqual(2.01);
   expect(metrics.canvasBackingPixels[1] / metrics.viewportCss[1]).toBeLessThanOrEqual(2.01);
 });
@@ -45,15 +47,15 @@ test('a damaged cached country asset is deleted and recovered from the network',
   test.setTimeout(180_000);
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await page.evaluate(async () => {
+  await page.evaluate(async packetUrl => {
     const revision = window.PANDOLAB_DATA_REVISION;
     const cache = await caches.open(`pandolab-data-${revision}`);
-    const url = new URL(`/assets/data/countries-canonical-v0.32.0.pcg.gz?v=${encodeURIComponent(revision)}`, location.href);
+    const url = new URL(`/assets/data/${packetUrl}?v=${encodeURIComponent(revision)}`, location.href);
     await cache.put(url, new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'Content-Type': 'application/gzip' } }));
-  });
+  }, worldAssets.canonicalCountryPacket.url);
   let recoveryRequests = 0;
   page.on('request', request => {
-    if (request.url().includes('countries-canonical-v0.32.0.pcg.gz')) recoveryRequests += 1;
+    if (request.url().includes(worldAssets.canonicalCountryPacket.url)) recoveryRequests += 1;
   });
 
   await page.reload();
@@ -97,7 +99,7 @@ for (const renderer of ['webgl1', 'canvas']) {
     test.setTimeout(180_000);
     let releaseCanonical;
     const canonicalGate = new Promise(resolve => { releaseCanonical = resolve; });
-    for (const pattern of ['**/countries-canonical-v0.32.0.pcg.gz*', '**/world-mesh-v0.12.6.bin.gz*']) {
+    for (const pattern of [worldAssets.canonicalCountryPacket.url, worldAssets.canonicalMesh.url].map(url => `**/${url}*`)) {
       await page.route(pattern, async route => {
         await canonicalGate;
         await route.continue();
@@ -110,8 +112,16 @@ for (const renderer of ['webgl1', 'canvas']) {
       () => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.meshQuality),
       { timeout: 30_000 },
     ).toBe('preview');
+    expect(await page.evaluate(() => {
+      window.__startupCanvas = document.querySelector('.gpu-map-canvas');
+      return !!window.__startupCanvas;
+    })).toBe(true);
     releaseCanonical();
     await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 45_000 });
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.canonicalMeshReady), { timeout: 45_000 }).toBe(true);
+    // World scale intentionally retains preview LOD even after canonical upload.
+    await page.mouse.move(720, 450);
+    await page.mouse.wheel(0, -1800);
     await expect.poll(() => page.evaluate(() => {
       const metrics = window.__PANDOLAB_GPU_METRICS__ || {};
       return metrics.meshQuality === 'canonical' && metrics.canonicalMeshReady === true;
@@ -119,7 +129,9 @@ for (const renderer of ['webgl1', 'canvas']) {
     const metrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__ || {});
     expect(metrics.meshQuality).toBe('canonical');
     expect(metrics.canonicalMeshReady).toBe(true);
-    expect(metrics.renderVertices).toBe(1_028_628);
+    expect(metrics.renderVertices).toBe(canonicalVertexCount);
+    expect(await page.evaluate(() => window.__startupCanvas.isConnected
+      && window.__startupCanvas === document.querySelector('.gpu-map-canvas'))).toBe(true);
     if (renderer === 'webgl1') expect(metrics.renderer).toBe('webgl1');
     else expect(['canvas-worker', 'canvas2d']).toContain(metrics.renderer);
   });
