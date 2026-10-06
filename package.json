@@ -20,7 +20,7 @@
     "build:ui-bundle": "node scripts/build-ui-bundle.mjs",
     "check:version": "node scripts/check-version.mjs",
     "check:preview": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-preview.mjs --check && python tools/validate-country-geometry.py",
-    "lint": "eslint assets/js tests/browser tests/unit scripts playwright.config.js eslint.config.js",
+    "lint": "eslint assets/js tests/browser tests/unit tests/helpers scripts tools playwright.config.js eslint.config.js",
     "check:js": "node scripts/check-js.mjs",
     "check:ui-spacing": "node scripts/check-ui-spacing.mjs",
     "check:ui-components": "node scripts/check-ui-components.mjs",
@@ -39,10 +39,10 @@
     "check:domains": "eslint assets/js/modules/project-domain.js assets/js/modules/selection-domain.js assets/js/modules/rendering-domain.js assets/js/modules/gis-domain.js assets/js/modules/editing-domain.js tests/unit/domain-split-contract.test.mjs && node --test tests/unit/domain-split-contract.test.mjs",
     "check:startup-performance": "pnpm exec eslint tests/unit/startup-performance-contract.test.mjs && node --test tests/unit/startup-performance-contract.test.mjs",
     "check:architecture": "node scripts/check-runtime-boundaries.mjs && pnpm check:commands && pnpm check:provenance && pnpm check:versioning && pnpm check:workers && pnpm check:renderer-v2 && pnpm check:domains && pnpm check:startup-performance",
-    "test:python": "python -m unittest discover -s tests -p \"test_*.py\"",
+    "test:python": "python -m unittest discover -s tests -p \"test_*.py\" && python -m unittest discover -s tests/python -p \"test_*.py\"",
     "test:unit": "node --test \"tests/unit/*.test.mjs\"",
     "test:browser": "playwright test",
-    "test": "eslint assets/js tests/browser tests/unit scripts tools playwright.config.js eslint.config.js && node scripts/check-js.mjs && node scripts/check-version.mjs && pnpm check:architecture && pnpm check:country-schema && pnpm check:historical-library && python -m unittest discover -s tests -p \"test_*.py\" && pnpm check:ui && node --test \"tests/unit/*.test.mjs\" && playwright test"
+    "test": "pnpm lint && pnpm check:js && pnpm check:version && pnpm check:architecture && pnpm check:country-schema && pnpm check:historical-library && pnpm test:python && pnpm check:ui && node --test \"tests/unit/*.test.mjs\" && playwright test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

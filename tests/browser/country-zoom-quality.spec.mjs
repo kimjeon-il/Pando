@@ -27,7 +27,7 @@ async function openMap(page, { enhanced = true } = {}) {
 async function activeQuality(page) {
   return page.evaluate(() => {
     const metrics = window.__PANDOLAB_GPU_METRICS__ || {};
-    return metrics.activeMeshQuality || metrics.meshQuality || null;
+    return metrics.activeMeshQuality;
   });
 }
 
@@ -65,7 +65,7 @@ async function sampleQualityFrames(page, count = 8) {
     for (let index = 0; index < frameCount; index += 1) {
       await new Promise(resolve => requestAnimationFrame(resolve));
       const metrics = window.__PANDOLAB_GPU_METRICS__ || {};
-      qualities.push(metrics.activeMeshQuality || metrics.meshQuality || null);
+      qualities.push(metrics.activeMeshQuality);
     }
     return qualities;
   }, count);

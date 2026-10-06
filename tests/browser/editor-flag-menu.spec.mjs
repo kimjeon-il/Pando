@@ -39,12 +39,12 @@ test('territorial selection enters the editor directly and preserves its flag me
   await expect(page.locator('#entityProperties > .editor-relation-section')).toHaveAttribute('aria-label', '관계');
   await expect(page.locator('#entityProperties > .editor-section > .editor-section-title')).toHaveCount(0);
   await page.locator('#relationTabBtn').click();
-  await expect(page.locator('#entityParentInput')).toBeVisible();
+  await expect(page.locator('#entityParentInputControl')).toBeVisible();
   await expect(page.locator('#annexEntityBtn')).toBeHidden();
   await expect(page.locator('#entityNameInput')).toBeHidden();
   await page.locator('#editorTabBtn').click();
   await expect(page.locator('#entityNameInput')).toBeVisible();
-  await expect(page.locator('#entityParentInput')).toBeHidden();
+  await expect(page.locator('#entityParentInputControl')).toBeHidden();
   for (const width of [1366, 1024, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await expect(page.locator('#flagMenuBtn')).toBeVisible();

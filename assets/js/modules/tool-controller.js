@@ -61,6 +61,7 @@ export const toolLabel = tool => TOOL_DEFINITIONS[tool]?.label || String(tool ||
 export const isSpecialTool = tool => !!TOOL_DEFINITIONS[tool]?.special;
 
 export function toolDraftDefinition(tool, state = {}) {
+  if (['river', 'lake'].includes(tool) && state.multiDraft?.kind === 'hydro' && state.multiDraft.current) return null;
   const territorySelection = territorySelectionForTool(tool, state);
   if (territorySelection) {
     if (territorySelection.stage !== 'selection') return null;

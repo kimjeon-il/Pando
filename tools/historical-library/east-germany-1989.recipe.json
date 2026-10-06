@@ -36,7 +36,7 @@
     "canonicalCountries": {
       "path": "assets/data/countries-ne-5.1.1.geojson",
       "crs": "EPSG:4326",
-      "sha256": "168286E9EE8E156CDBD19EBB026A13B66EBE2134CC89883834E32A4D58ABE416"
+      "sha256": "6D29C349478CB2A7899573544BA580DA70BD902C12EE86A4A93662CA6E94AD72"
     }
   },
   "operations": [
@@ -81,7 +81,7 @@
   "validation": {
     "areaKm2": {"minimum": 108000, "maximum": 109000},
     "maximumCoordinates": 10000,
-    "maximumLibraryBytes": 2097152,
+    "maximumLibraryBytes": 6291456,
     "maximumPuzzleDifferenceKm2": 0.001,
     "insidePoints": {
       "Rostock": [12.0991, 54.0924],

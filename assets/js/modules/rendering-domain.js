@@ -1323,6 +1323,11 @@ export function createRenderingDomain({
         interaction.d3?.event?.preventDefault?.();
         interaction.d3?.event?.stopPropagation?.();
         publishEditingInteraction({ type: 'draft-insert-request' });
+      })
+      .on('mouseleave', d => {
+        const relatedTarget = interaction.d3.event.relatedTarget;
+        if (relatedTarget?.closest?.('path.draft-segment-hit')?.parentNode === layer.node()) return;
+        publishEditingInteraction({ type: 'draft-segment-leave', segmentIndex: d.segmentIndex });
       });
     return true;
   };
@@ -2135,12 +2140,18 @@ export function createRenderingDomain({
     joinEditingNodes(layer, 'path.draft-segment-hit', draft.segments, d => d.segmentIndex)
       .attr('class', 'draft-segment-hit draft-interactive')
       .on('mousemove', d => { if (!isMobile?.() && !editingPacket.draft.dragging) publishEditingInteraction({ type: 'draft-segment-hover', segmentIndex: d.segmentIndex, screenPoint: localEditingPoint() }); })
-      .on('mouseleave', d => publishEditingInteraction({ type: 'draft-segment-leave', segmentIndex: d.segmentIndex }))
+      .on('mouseleave', d => {
+        const relatedTarget = d3.event.relatedTarget;
+        if (relatedTarget?.closest?.('g.draft-insert-handle')?.parentNode === layer.node()) return;
+        publishEditingInteraction({ type: 'draft-segment-leave', segmentIndex: d.segmentIndex });
+      })
       .on('click', d => { stop(); publishEditingInteraction({ type: editingPacket.draft.vertexInsertMode ? 'draft-segment-insert' : 'draft-segment-hover', segmentIndex: d.segmentIndex, screenPoint: localEditingPoint() }); });
     const vertices = joinEditingNodes(layer, 'g.draft-vertex', draft.vertices, d => d.index)
       .attr('class', d => 'draft-vertex draft-interactive' + (d.selected ? ' selected' : ''))
       .on('click', d => { stop(); publishEditingInteraction({ type: 'draft-vertex-select', vertexIndex: d.index }); });
     vertices.each(function() {
+      // Reused vertices must stay above newly appended segment hit paths.
+      this.parentNode.appendChild(this);
       const node = d3.select(this);
       if (node.select('circle').empty()) {
         node.append('circle').attr('class', 'draft-vertex-hit').attr('r', isMobile?.() ? 16 : 10);

@@ -297,19 +297,18 @@ async function moveHandle(page, selector, preferredCoordinate = null) {
   expect(box).toBeTruthy();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
-  const original = (await snapshot(page)).coordinates;
+  const originalCoordinate = await page.evaluate(() => window.__m2EditingPacket().boundaryActiveCoordinate);
+  expect(originalCoordinate).toHaveLength(2);
   await page.mouse.move(box.x + box.width / 2 + 20, box.y + box.height / 2 - 14, { steps: 4 });
   const moved = await snapshot(page);
   expect(moved.coordinates.length).toBeGreaterThan(0);
-  const editedCoordinate = [];
-  for (let index = 0; index < moved.coordinates.length; index += 2) {
-    const point = moved.coordinates.slice(index, index + 2);
-    if (!original.some((_, offset) => offset % 2 === 0
-      && Math.hypot(original[offset] - point[0], original[offset + 1] - point[1]) < 0.00002)) {
-      editedCoordinate.push(...point); break;
-    }
-  }
+  // The editing packet owns the dragged vertex. The first new packet endpoint
+  // can instead be an unchanged neighbour when the initial preview is pending.
+  const editedCoordinate = await page.evaluate(() => window.__m2EditingPacket().boundaryActiveCoordinate);
   expect(editedCoordinate).toHaveLength(2);
+  expect(Math.hypot(editedCoordinate[0] - originalCoordinate[0], editedCoordinate[1] - originalCoordinate[1])).toBeGreaterThan(0.00002);
+  expect(moved.coordinates.some((_, index, values) => index % 2 === 0
+    && Math.hypot(values[index] - editedCoordinate[0], values[index + 1] - editedCoordinate[1]) < 0.00002)).toBe(true);
   const continuity = await page.evaluate(point => {
     if (!window.__m7) return false;
     window.__m7.point = point; window.__m7.tracking = true;
@@ -548,6 +547,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     await page.locator('#objectSearchBtn').click();
     await page.locator('#layerSearchInput').fill(`M2 ${kind}`);
     await page.locator('#layerSearchResults .layer-search-result-select').first().click();
+    await focusSelectedObject(page, renderer);
     const unchanged = await page.evaluate(() => window.__m2History());
     const originalHandle = page.locator('.vertex-handle:not(.country-vertex)').first();
     await expect(originalHandle).toBeVisible();
@@ -559,6 +559,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       await page.locator('#objectSearchBtn').click();
       await page.locator('#layerSearchInput').fill(`M2 ${kind}`);
       await page.locator('#layerSearchResults .layer-search-result-select').first().click();
+      await focusSelectedObject(page, renderer);
       const valid = await geometry(), history = await page.evaluate(() => window.__m2History());
       const handle = page.locator('.vertex-handle:not(.country-vertex)').first();
       await expect(handle).toBeVisible();

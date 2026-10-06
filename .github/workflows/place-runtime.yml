@@ -23,6 +23,13 @@ on:
       - 'tests/unit/place-interaction-runtime.test.mjs'
       - 'tests/unit/worker-rpc.test.mjs'
       - 'tests/browser/place-runtime.spec.mjs'
+      - 'tests/fixtures/**'
+      - 'tests/helpers/**'
+      - 'tests/browser/server.mjs'
+      - 'playwright.config.js'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'eslint.config.js'
       - '.github/workflows/place-runtime.yml'
 
 permissions:

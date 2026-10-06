@@ -2,7 +2,7 @@ import { readdirSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const roots = ['assets/js', 'scripts', 'tests/browser', 'tests/unit'];
+const roots = ['assets/js', 'scripts', 'tests/browser', 'tests/unit', 'tests/helpers', 'tools'];
 const files = [];
 
 function collect(path) {

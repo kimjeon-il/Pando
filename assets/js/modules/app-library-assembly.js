@@ -161,7 +161,6 @@ export function createLibraryAssembly() {
       countriesData: { type: 'FeatureCollection', features: countryFeatures },
       preparedTerritorialUnits: units, landTransfers: transfers, assertCurrent,
       countryUpdates: Object.assign({}, ...prepared.map(item => item.instantiation?.countryUpdates || {})),
-      atlasMetadata: { projectState: { territorialEntities: countryFeatures } },
       sourceInfo: { imports: prepared.map(item => ({
         ...(item.metadata?.librarySourceInfo || {}), kind: 'library', sourceId: item.libraryId,
         objectId: item.id, sourceType: descriptors.find(original => original.libraryId === item.libraryId)?.type,

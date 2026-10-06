@@ -1,30 +1,22 @@
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
+import { GENERIC_FEATURE_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION } from '../../assets/js/modules/version-contract.js';
 
 for (const cancelFirst of [true, false]) {
 test(`startup save conflict restores safely ${cancelFirst ? 'after cancel and persistent retry' : 'with an immediate choice'}`, async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/assets/css/app.css');
-  await page.evaluate(async () => {
-    const { PROJECT_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } =
-      await import('/assets/js/modules/version-contract.js');
-    const { assertCurrentProjectSchema } = await import('/assets/js/modules/project-state.js');
-    const save = name => ({ format: 'pandolab-autosave-delta', schemaVersion: PROJECT_SCHEMA_VERSION,
-      version: '0.34.0', savedAt: '2026-09-30T00:00:00Z', entityDelta: { changed: [], removedIds: [] },
-      landObjectModel: { schemaVersion: 2, purpose: 'lossless-fallback', directCreation: false,
-        coastlineAuthority: 'territorialEntities', sourceProvenanceSchemaVersion: 1 },
-      territorialModel: { schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION }, distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION },
-      distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
-      layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder: [], styles: {} },
+    const save = name => ({ ...staticAutosaveProject({
       sourceInfo: { name },
       genericFeatures: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000010', geometry: { type: 'Point', coordinates: [1, 2] },
-        properties: { schemaVersion: 2, name: `${name}-marker`, color: '#123456', notes: '', locked: false,
-          source: { schemaVersion: 1, kind: 'gis', sourceId: 'original', details: {} } } }],
-    });
+        properties: { schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION, name: `${name}-marker`, color: '#123456', notes: '', locked: false,
+          source: { schemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION, kind: 'gis', sourceId: 'original', details: {} } } }],
+    }), savedAt: '2026-09-30T00:00:00Z' });
     const dbProject = save('database');
     const localProject = save('local');
-    assertCurrentProjectSchema(dbProject); assertCurrentProjectSchema(localProject);
+  await page.evaluate(async ({ dbProject, localProject }) => {
     localStorage.setItem('pandolab-editor-project', JSON.stringify(localProject));
     await new Promise((resolve, reject) => {
       const request = indexedDB.open('pandolab-editor', 2);
@@ -37,7 +29,7 @@ test(`startup save conflict restores safely ${cancelFirst ? 'after cancel and pe
         tx.oncomplete = () => { db.close(); resolve(); };
       };
     });
-  });
+  }, { dbProject, localProject });
   await page.goto('/?renderer=canvas');
   await expect(page.locator('#confirmModal')).toBeVisible();
   await expect(page.locator('#confirmModalTitle')).toHaveText('저장본 선택');
@@ -80,29 +72,33 @@ test('real GIS GeoJSON export and reimport preserve original provenance and deta
   await page.goto('/assets/css/app.css');
   await page.addScriptTag({ url: '/assets/js/gis-adapters.js' });
   await page.addScriptTag({ url: '/assets/js/gis-io.js' });
-  const result = await page.evaluate(async () => {
+  const result = await page.evaluate(async project => {
     const { normalizeSourceProvenance } = await import('/assets/js/modules/source-provenance.js');
     const { normalizeGenericFeatureSemantics } = await import('/assets/js/modules/generic-feature-service.js');
     const { createGisImportTransactionCommitter } = await import('/assets/js/modules/gis-import-transaction.js');
-    const { createTerritorialEntityStore } = await import('/assets/js/modules/territorial-entity-store.js');
+    const { createTerritorialEntityStore, createEmptyTerritorialState } = await import('/assets/js/modules/territorial-entity-store.js');
+    const { createTerritorialEntityRepository } = await import('/assets/js/modules/territorial-entity-repository.js');
+    const { GENERIC_FEATURE_SCHEMA_VERSION } = await import('/assets/js/modules/version-contract.js');
     const source = normalizeSourceProvenance({ kind: 'gis', dataset: 'survey', sourceId: 'fid-42', sourceFormat: 'geojson',
       details: { licence: 'test', attributes: { rank: 3 } } });
     const original = { type: 'Feature', id: '00000000-0000-4000-8000-000000000010',
-      geometry: { type: 'Point', coordinates: [1, 2] }, properties: { schemaVersion: 2, name: 'Survey', notes: 'memo',
+      geometry: { type: 'Point', coordinates: [1, 2] }, properties: { schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION, name: 'Survey', notes: 'memo',
         color: '#123456', locked: false, source } };
-    const bundle = await window.PandoLabGIS.exportGeoJsonBundle({ genericFeatures: [original], countriesData: { features: [] } }, ['genericFeatures']);
+    const bundle = await window.PandoLabGIS.exportGeoJsonBundle({ ...project, genericFeatures: [original] }, ['genericFeatures']);
     const files = window.fflate.unzipSync(new Uint8Array(await bundle.blob.arrayBuffer()));
     const parsed = JSON.parse(window.fflate.strFromU8(files['generic_features.geojson']));
     let imported;
-    const state = {};
-    const importer = createGisImportTransactionCommitter({ state, entityStore: createTerritorialEntityStore({ getState: () => state }), deepClone: structuredClone,
-      uid: () => '00000000-0000-4000-8000-000000000011', GENERIC_FEATURE_SCHEMA_VERSION: 2,
+    const state = createEmptyTerritorialState();
+    const entityStore = createTerritorialEntityStore({ getState: () => state });
+    const importer = createGisImportTransactionCommitter({ state, entityStore,
+      territorialEntityRepository: createTerritorialEntityRepository({ entityStore }), deepClone: structuredClone,
+      uid: () => '00000000-0000-4000-8000-000000000011', GENERIC_FEATURE_SCHEMA_VERSION,
       DEFAULT_GENERIC_FEATURE_COLOR: '#888888', normalizeGenericFeatureSemantics, validateStructuredGeometry: () => [],
       genericFeatureService: { addMany: values => { imported = values[0]; } }, activeLayerFolderKeys: () => [],
       markLayerTreeDirty() {}, setActionStatus() {} });
     await importer.importGeoJson({ name: 'generic_features.geojson' }, { parsed });
     return { oldId: original.id, id: imported.id, properties: imported.properties, expected: original.properties };
-  });
+  }, staticAutosaveProject());
   expect(result.id).not.toBe(result.oldId);
   expect(result.properties).toEqual(result.expected);
 });

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-async function openApp(page, viewport, path = '/') {
+async function openApp(page, viewport, path = '/?demTerrain=raster') {
   await page.setViewportSize(viewport);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -27,11 +27,13 @@ test('desktop keeps automatic snapping and area feedback while removed map tools
   await expect(page.locator('.measurement-layer')).toHaveCount(0);
   await expect(page.locator('.snap-indicator-layer')).toHaveCount(1);
 
+  await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').first().click();
-  await expect(page.locator('#entityAreaValue')).toBeVisible();
-  await expect(page.locator('#entityAreaValue')).toContainText('km²');
-  await expect(page.locator('#coordStatus')).toBeHidden();
+  await expect(page.locator('#selectionStatus')).toBeVisible();
+  await expect(page.locator('#selectionStatus')).toContainText('폴란드');
+  await expect(page.locator('#selectionStatus')).toContainText('km²');
+  await expect(page.locator('#coordStatus')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
@@ -52,6 +54,6 @@ test('mobile uses the same simplified map surface without removed tool entry poi
   for (const id of removedToolIds) await expect(page.locator(`#${id}`)).toHaveCount(0);
   await expect(page.locator('.measurement-layer')).toHaveCount(0);
   await expect(page.locator('#debugMapPanel')).toBeHidden();
-  await expect(page.locator('#coordStatus')).toBeHidden();
+  await expect(page.locator('#coordStatus')).toHaveCount(0);
   expect(errors).toEqual([]);
 });

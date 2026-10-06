@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import function_source, read_application_sources, read_module
 
 import unittest
 from pathlib import Path
@@ -25,19 +25,21 @@ class StyleLabelCleanupTests(unittest.TestCase):
         self.assertIn("const overlayOrder = [...OVERLAY_GROUPS]", PRESENTATION)
 
     def test_country_labels_use_projected_screen_metrics_and_collision_layout(self):
-        block = APP[APP.index("function countryLabelScreenMetrics"):APP.index("function renderPendingCountryOverlays")]
-        self.assertIn("path.bounds(feature)", block)
-        self.assertIn("metrics.textWidth", block)
-        self.assertIn("metrics.area", block)
-        self.assertNotIn("pop_est", block)
-        layout = APP[APP.index("function visibleLabelLayout"):APP.index("function renderTerritorialLabels")]
-        self.assertIn("countryLabelScreenMetrics(displayFeature", layout)
-        self.assertIn("layoutLabels(qualityCandidates", layout)
-        self.assertIn("protectedCandidates", layout)
-        self.assertIn("selected,", layout)
+        source = read_module(ROOT,'app-territorial-labels.js')
+        metrics = function_source(source,'territorialLabelScreenMetrics')
+        self.assertIn('projectedExtent', metrics)
+        self.assertIn('textWidth', metrics)
+        self.assertIn('area', metrics)
+        self.assertNotIn('pop_est', metrics)
+        layout = function_source(source,'visibleLabelLayout')
+        self.assertIn('territorialLabelScreenMetrics(displayFeature', layout)
+        self.assertIn('layoutLabels)(qualityCandidates', layout)
+        self.assertIn('protectedCandidates', layout)
+        self.assertIn('selected,', layout)
+        self.assertIn('frameContext.safeInset', layout)
 
     def test_editable_domains_use_the_common_color_adapter(self):
-        for domain in ("COUNTRY", "TERRITORIAL", "GENERIC", "DISTRIBUTION"):
+        for domain in ("TERRITORIAL", "GENERIC", "DISTRIBUTION"):
             self.assertIn(f"COLOR_DOMAINS.{domain}", APP)
         for symbol in ("readDomainColor", "writeDomainColor", "normalizeColorValue"):
             self.assertIn(f"function {symbol}", COLOR)

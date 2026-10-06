@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import read_application_sources, read_module, function_source
 
 import unittest
 from pathlib import Path
@@ -12,6 +12,8 @@ TRANSACTION = (ROOT / "assets" / "js" / "modules" / "map-edit-transaction.js").r
 COUNTRY_COMMANDS = (ROOT / "assets" / "js" / "modules" / "map-edit-country-commands.js").read_text(encoding="utf-8")
 WORKER = (ROOT / "assets" / "js" / "workers" / "hydro-tile-worker.js").read_text(encoding="utf-8")
 CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
+HYDRO = read_module(ROOT, "gpu-hydro-preparation.js")
+COMMITS = read_module(ROOT, "app-country-commits.js")
 
 
 def section(source: str, start: str, end: str) -> str:
@@ -20,15 +22,15 @@ def section(source: str, start: str, end: str) -> str:
 
 class V0125RuntimeTests(unittest.TestCase):
     def test_hydro_pack_delivery_does_not_trigger_full_app_render(self):
-        handler = section(RENDERER, "function receiveHydroWorkerMessage", "function pruneHydroCache")
+        handler = function_source(HYDRO, "receiveHydroWorkerMessage")
         self.assertNotIn("renderAll()", handler)
         self.assertIn("scheduleHydroUpload(entry)", handler)
         self.assertNotIn("renderLayerTree()", handler)  # progress no longer rebuilds layer rows
 
     def test_webgl_receives_mesh_descriptors_not_geojson(self):
         self.assertIn("features: includeGeometry ? pack.features : null", WORKER)
-        self.assertIn("const wantedIncludeGeometry = rendererMode === 'canvas2d'", RENDERER)
-        self.assertIn("includeGeometry: wantedIncludeGeometry", RENDERER)
+        self.assertIn("const wantedIncludeGeometry = getMode() === 'canvas2d'", HYDRO)
+        self.assertIn("includeGeometry: wantedIncludeGeometry", HYDRO)
         self.assertIn("descriptors", section(WORKER, "function postPack", "async function processView"))
         self.assertIn("new MessageChannel()", RENDERER)
         self.assertIn("canvasPort?.postMessage({ type: 'pack'", WORKER)
@@ -43,10 +45,12 @@ class V0125RuntimeTests(unittest.TestCase):
 
     def test_country_mesh_and_annex_validation_are_revision_safe(self):
         self.assertIn("const pending = geometryRevisionTracker.isPending(id)", RENDERER)
-        self.assertIn("base[offset + 3] = overridden ? 0 : visible", RENDERER)
-        self.assertIn("override[offset + 3] = overridden && !pending ? visible : 0", RENDERER)
-        self.assertIn("gpuMapRenderer.applyCountryPatch({ ids: [...changed], features, removedIds })", APP)
-        annex = section(APP, "function completeLinearAnnexation", "function completeNewCountryCreation")
+        self.assertIn("base[visibilityOffset] = overridden ? 0 : visible", RENDERER)
+        self.assertIn("override[visibilityOffset] = overridden && (!pending || countryPatchPresentationCanDrawOverride(id)) ? visible : 0", RENDERER)
+        self.assertIn("decideCountryPatchPresentation({", RENDERER)
+        patch = read_module(ROOT, "app-spatial-index.js")
+        self.assertRegex(patch, r"applyCountryPatch\(\s*\{ ids: \[\.\.\.changed\], features, removedIds \},\s*\{ presentation \}")
+        annex = function_source(COMMITS, "prepareAnnexSelectionPreview")
         self.assertIn("operation: 'annex'", annex)
         self.assertIn("client.execute(operation, payload)", TRANSACTION)
         self.assertIn("overlap > Number(baseline.overlaps.get(key) || 0) + tolerance", COUNTRY_COMMANDS)

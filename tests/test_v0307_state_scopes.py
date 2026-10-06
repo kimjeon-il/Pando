@@ -1,4 +1,4 @@
-from tests.application_source import read_application_sources
+from tests.application_source import function_source, node_json, read_application_sources, read_module
 import unittest
 from pathlib import Path
 
@@ -26,31 +26,33 @@ class StateScopeContractTests(unittest.TestCase):
         self.assertIn("assertAllowedKeys(project.layerVisibility, LAYER_VISIBILITY_KEYS", PROJECT_STATE)
         self.assertIn("assertAllowedKeys(project.itemVisibility, ITEM_VISIBILITY_KEYS", PROJECT_STATE)
         self.assertIn("assertAllowedKeys(project.layerPresentation?.styles, PRESENTATION_GROUP_KEYS", PROJECT_STATE)
-        self.assertIn("'countries', 'territories', 'administrative', 'regions'", PROJECT_STATE)
+        self.assertIn("'countries', 'subunits', 'regions'", PROJECT_STATE)
 
     def test_project_and_view_use_separate_indexeddb_records(self):
         self.assertIn("readProject: () => readRecord(projectKey", PERSISTENCE)
         self.assertIn("readView: () => readRecord(viewKey", PERSISTENCE)
         self.assertIn("writeProject: project => writeRecord(projectKey", PERSISTENCE)
         self.assertIn("writeView: view => writeRecord(viewKey", PERSISTENCE)
-        self.assertIn("applyAutosavedView(autosaveRestore.view)", APP)
+        self.assertIn('(0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view)', APP)
 
     def test_presentation_changes_do_not_record_document_history(self):
-        visibility = APP[APP.index("function setLayerVisibility"):APP.index("const LAYER_STYLE_TARGETS")]
-        style = APP[APP.index("function updateLayerPresentationStyle"):APP.index("function setMapPanelView")]
-        self.assertIn("queuePresentationAutosave()", visibility)
-        self.assertNotIn("recordHistory", visibility)
-        self.assertIn("queuePresentationAutosave()", style)
-        self.assertNotIn("recordHistory", style)
-        self.assertIn("markPresentationChanged", SAVE_STATE)
-        self.assertIn("documentDirty: false", SAVE_STATE)
-        self.assertIn("presentationDirty: false", SAVE_STATE)
+        settings = read_module(ROOT, 'app-map-settings.js')
+        for name in ('setLayerVisibility', 'updateLayerPresentationStyle'):
+            operation = function_source(settings, name)
+            self.assertIn('queuePresentationAutosave', operation)
+            self.assertNotIn('recordHistory', operation)
+        self.assertIn('markPresentationChanged', SAVE_STATE)
+        self.assertIn('documentDirty: false', SAVE_STATE)
+        self.assertIn('presentationDirty: false', SAVE_STATE)
 
     def test_folder_expansion_is_session_only(self):
-        handler = APP[APP.index("toggleTerritorialUnitFolder: folderKey => {"):APP.index("selectItem:", APP.index("toggleTerritorialUnitFolder: folderKey => {"))]
-        self.assertIn("state.layerFolders", handler)
-        self.assertNotIn("queueAutosave", handler)
-        self.assertNotIn("queuePresentationAutosave", handler)
+        fields = node_json(ROOT, """
+        import { PROJECT_STATE_FIELDS } from './assets/js/modules/project-state.js';
+        console.log(JSON.stringify(PROJECT_STATE_FIELDS));
+        """)
+        folders = next(field for field in fields if field['name'] == 'layerFolders')
+        self.assertEqual(folders['scope'], 'session')
+        self.assertFalse(folders.get('history', False))
 
 
 if __name__ == "__main__":

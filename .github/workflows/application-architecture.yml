@@ -5,35 +5,21 @@ on:
   pull_request:
     paths:
       - 'assets/js/**'
-      - 'assets/css/features/map-rendering.css'
-      - 'assets/css/ui.bundle.css'
+      - 'assets/data/**'
+      - 'assets/css/**'
+      - 'tools/**'
+      - 'tests/**/*.py'
+      - 'tests/fixtures/**'
+      - 'scripts/check*.mjs'
+      - 'scripts/lib/**'
+      - 'scripts/contracts/**'
+      - 'index.html'
+      - 'README.md'
       - 'tests/unit/**'
       - 'tests/helpers/**'
-      - 'tests/browser/terrain-*.spec.mjs'
-      - 'tests/browser/territorial-boundary-continuity.spec.mjs'
-      - 'tests/browser/edit-preview-handoff.spec.mjs'
-      - 'tests/browser/gpu-scene-staging.spec.mjs'
-      - 'tests/browser/renderer-migration-gaps.spec.mjs'
-      - 'tests/browser/selection-interaction-style.spec.mjs'
-      - 'tests/browser/interaction-unification.spec.mjs'
-      - 'tests/browser/visual-frame-sync.spec.mjs'
-      - 'tests/browser/server.mjs'
+      - 'tests/browser/**'
       - 'playwright.config.js'
-      - 'scripts/check-runtime-boundaries.mjs'
-      - 'scripts/lib/application-source.mjs'
       - 'scripts/generate-build-metadata.mjs'
-      - 'scripts/check-version.mjs'
-      - 'scripts/check-command-architecture.mjs'
-      - 'scripts/check-territorial-storage.mjs'
-      - 'scripts/lib/territorial-storage-audit.mjs'
-      - 'scripts/contracts/territorial-storage-access.json'
-      - 'scripts/check-generic-provenance.mjs'
-      - 'scripts/check-version-architecture.mjs'
-      - 'scripts/check-worker-architecture.mjs'
-      - 'scripts/check-renderer-v2.mjs'
-      - 'scripts/lib/renderer-v2-architecture.mjs'
-      - 'scripts/check-object-registry.mjs'
-      - 'tests/test_v0307_current_schema.py'
       - 'docs/architecture/application-command-pipeline.md'
       - 'docs/architecture/generic-feature-provenance.md'
       - 'docs/architecture/versioning-migrations-exchange.md'
@@ -48,35 +34,21 @@ on:
       - main
     paths:
       - 'assets/js/**'
-      - 'assets/css/features/map-rendering.css'
-      - 'assets/css/ui.bundle.css'
+      - 'assets/data/**'
+      - 'assets/css/**'
+      - 'tools/**'
+      - 'tests/**/*.py'
+      - 'tests/fixtures/**'
+      - 'scripts/check*.mjs'
+      - 'scripts/lib/**'
+      - 'scripts/contracts/**'
+      - 'index.html'
+      - 'README.md'
       - 'tests/unit/**'
       - 'tests/helpers/**'
-      - 'tests/browser/terrain-*.spec.mjs'
-      - 'tests/browser/territorial-boundary-continuity.spec.mjs'
-      - 'tests/browser/edit-preview-handoff.spec.mjs'
-      - 'tests/browser/gpu-scene-staging.spec.mjs'
-      - 'tests/browser/renderer-migration-gaps.spec.mjs'
-      - 'tests/browser/selection-interaction-style.spec.mjs'
-      - 'tests/browser/interaction-unification.spec.mjs'
-      - 'tests/browser/visual-frame-sync.spec.mjs'
-      - 'tests/browser/server.mjs'
+      - 'tests/browser/**'
       - 'playwright.config.js'
-      - 'scripts/check-runtime-boundaries.mjs'
-      - 'scripts/lib/application-source.mjs'
-      - 'scripts/check-territorial-storage.mjs'
-      - 'scripts/lib/territorial-storage-audit.mjs'
-      - 'scripts/contracts/territorial-storage-access.json'
       - 'scripts/generate-build-metadata.mjs'
-      - 'scripts/check-version.mjs'
-      - 'scripts/check-command-architecture.mjs'
-      - 'scripts/check-generic-provenance.mjs'
-      - 'scripts/check-version-architecture.mjs'
-      - 'scripts/check-worker-architecture.mjs'
-      - 'scripts/check-renderer-v2.mjs'
-      - 'scripts/lib/renderer-v2-architecture.mjs'
-      - 'scripts/check-object-registry.mjs'
-      - 'tests/test_v0307_current_schema.py'
       - 'docs/architecture/application-command-pipeline.md'
       - 'docs/architecture/generic-feature-provenance.md'
       - 'docs/architecture/versioning-migrations-exchange.md'
@@ -97,11 +69,14 @@ jobs:
     outputs:
       territorial-store: ${{ steps.scope.outputs.territorial_store }}
       unit-suite: ${{ steps.scope.outputs.unit_suite }}
+      python-contracts: ${{ steps.scope.outputs.python_contracts }}
+      data-contracts: ${{ steps.scope.outputs.data_contracts }}
       terrain-rendering: ${{ steps.scope.outputs.terrain_rendering }}
       boundary-continuity: ${{ steps.scope.outputs.boundary_continuity }}
       preview-handoff: ${{ steps.scope.outputs.preview_handoff }}
       scene-staging: ${{ steps.scope.outputs.scene_staging }}
       visual-policy: ${{ steps.scope.outputs.visual_policy }}
+      current-browser-specs: ${{ steps.browser.outputs.specs }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,6 +91,8 @@ jobs:
         run: |
           territorial_store=false
           unit_suite=false
+          python_contracts=false
+          data_contracts=false
           terrain_rendering=false
           boundary_continuity=false
           preview_handoff=false
@@ -124,6 +101,8 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             territorial_store=true
             unit_suite=true
+            python_contracts=true
+            data_contracts=true
             terrain_rendering=true
             boundary_continuity=true
             preview_handoff=true
@@ -131,6 +110,16 @@ jobs:
             visual_policy=true
           else
             while IFS= read -r file; do
+              case "$file" in
+                assets/js/*|assets/css/*|assets/data/*|index.html|README.md|tools/*|tests/*.py|tests/fixtures/*|scripts/*|package.json|.github/workflows/application-architecture.yml)
+                  python_contracts=true
+                  ;;
+              esac
+              case "$file" in
+                assets/js/*|assets/data/*|index.html|README.md|tools/*|tests/fixtures/*|scripts/*|package.json|pnpm-lock.yaml|.github/workflows/application-architecture.yml)
+                  data_contracts=true
+                  ;;
+              esac
               case "$file" in
                 assets/css/features/map-rendering.css|assets/css/ui.bundle.css|assets/js/modules/app-environment.js|assets/js/modules/edit-preview-controller.js|assets/js/modules/gpu-stroke-renderer.js|assets/js/modules/selection-overlay-plan.js|assets/js/modules/selection-style.js|assets/js/workers/canvas-scene-composition-core.js|tests/unit/map-stroke-style.test.mjs|tests/unit/country-shared-boundary.test.mjs|assets/js/modules/layer-presentation.js|assets/js/modules/map-interaction-style.js|assets/js/modules/app-map-host.js|assets/js/modules/app-gpu-scene.js|assets/js/modules/gpu-base-scene-pass.js|assets/js/modules/gpu-interaction-pass.js|assets/js/modules/gpu-scene-preparation.js|assets/js/modules/gpu-map-renderer.js|assets/js/modules/rendering-domain.js|assets/js/modules/selection-pass.js|assets/js/workers/canvas-render-worker.js|tests/unit/map-visual-order.test.mjs|tests/browser/selection-interaction-style.spec.mjs|tests/browser/interaction-unification.spec.mjs|tests/browser/renderer-migration-gaps.spec.mjs|assets/js/modules/app-domain-assembly.js|assets/js/modules/app-map-projection.js|assets/js/modules/app-territorial-labels.js|assets/js/modules/app-service-assembly.js|assets/js/modules/app-generic-commands.js|assets/js/modules/app-physical-resources.js|assets/js/modules/app-territorial-drafts.js|assets/js/modules/app-map-audit.js|assets/js/modules/gpu-hydro-preparation.js|assets/js/modules/map-visual-frame.js|assets/js/modules/map-render-coordinator.js|tests/unit/visual-frame-consumers.test.mjs|tests/unit/map-visual-frame.test.mjs|tests/unit/map-render-coordinator.test.mjs|tests/unit/app-map-audit.test.mjs|tests/unit/map-label-visibility.test.mjs|tests/unit/distribution-selection.test.mjs|tests/unit/domain-split-contract.test.mjs|tests/unit/editing-render-packet.test.mjs|tests/unit/label-shell-performance.test.mjs|tests/browser/visual-frame-sync.spec.mjs|.github/workflows/application-architecture.yml)
                   visual_policy=true
@@ -152,7 +141,7 @@ jobs:
                   ;;
               esac
               case "$file" in
-                assets/js/*|tests/unit/*|tests/helpers/*|package.json|pnpm-lock.yaml|eslint.config.js|.github/workflows/application-architecture.yml)
+                assets/js/*|tests/unit/*|tests/helpers/*|tests/fixtures/*|scripts/*|tools/*.mjs|package.json|pnpm-lock.yaml|eslint.config.js|.github/workflows/application-architecture.yml)
                   unit_suite=true
                   ;;
               esac
@@ -170,11 +159,81 @@ jobs:
           fi
           echo "territorial_store=$territorial_store" >> "$GITHUB_OUTPUT"
           echo "unit_suite=$unit_suite" >> "$GITHUB_OUTPUT"
+          echo "python_contracts=$python_contracts" >> "$GITHUB_OUTPUT"
+          echo "data_contracts=$data_contracts" >> "$GITHUB_OUTPUT"
           echo "terrain_rendering=$terrain_rendering" >> "$GITHUB_OUTPUT"
           echo "boundary_continuity=$boundary_continuity" >> "$GITHUB_OUTPUT"
           echo "preview_handoff=$preview_handoff" >> "$GITHUB_OUTPUT"
           echo "scene_staging=$scene_staging" >> "$GITHUB_OUTPUT"
           echo "visual_policy=$visual_policy" >> "$GITHUB_OUTPUT"
+      - name: Select changed browser contracts and actual helper consumers
+        id: browser
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
+          import { posix } from 'node:path';
+          const base = process.env.BASE_SHA && !/^0+$/.test(process.env.BASE_SHA) ? process.env.BASE_SHA : 'origin/main';
+          const changed = new Set(execFileSync('git', ['diff', '--name-only', base, process.env.HEAD_SHA], { encoding: 'utf8' }).split('\n').filter(Boolean));
+          const specs = readdirSync('tests/browser').filter(name => name.endsWith('.spec.mjs')).map(name => `tests/browser/${name}`);
+          const fullyCovered = new Set(['edit-preview-handoff', 'territorial-boundary-continuity', 'gpu-scene-staging', 'visual-frame-sync'].map(name => `tests/browser/${name}.spec.mjs`));
+          const selected = new Set(specs.filter(file => changed.has(file) && !fullyCovered.has(file)));
+          const helpers = new Set([...changed].filter(file => file.startsWith('tests/helpers/') || file.startsWith('tests/browser/helpers/')));
+          function consumesChangedHelper(file, visited = new Set()) {
+            if (helpers.has(file)) return true;
+            if (visited.has(file) || !file.startsWith('tests/') || !existsSync(file)) return false;
+            visited.add(file);
+            return [...readFileSync(file, 'utf8').matchAll(/(?:from\s*|import\s*)['"](\.[^'"]+)['"]/g)]
+              .some(match => consumesChangedHelper(posix.normalize(posix.join(posix.dirname(file), match[1])), visited));
+          }
+          for (const spec of specs) if (!fullyCovered.has(spec) && consumesChangedHelper(spec)) selected.add(spec);
+          const infrastructure = ['tests/browser/server.mjs', 'playwright.config.js', '.github/workflows/application-architecture.yml', 'package.json', 'pnpm-lock.yaml', 'eslint.config.js'];
+          if (process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' || infrastructure.some(file => changed.has(file)) || [...changed].some(file => file.startsWith('tests/fixtures/'))) {
+            for (const name of ['boundary-cut-snapping', 'country-label-flags', 'generic-feature-independent-geometry', 'hydro-metadata-edit', 'storage-protection', 'ui-components', 'gis-interchange']) selected.add(`tests/browser/${name}.spec.mjs`);
+          }
+          appendFileSync(process.env.GITHUB_OUTPUT, `specs=${JSON.stringify([...selected].sort())}\n`);
+          NODE
+
+  current-browser-contracts:
+    name: Current browser contract (${{ matrix.spec }})
+    needs: changes
+    if: needs.changes.outputs.current-browser-specs != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        spec: ${{ fromJSON(needs.changes.outputs.current-browser-specs) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec eslint "${{ matrix.spec }}"
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify the changed current workflow
+        run: |
+          mkdir -p test-results
+          set -o pipefail
+          pnpm exec playwright test "${{ matrix.spec }}" --workers=1 --output=test-results/current-browser-contracts 2>&1 | tee test-results/current-browser-contract.log
+      - name: Upload current browser contract evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: current-browser-contract-${{ strategy.job-index }}
+          path: test-results
+          if-no-files-found: error
 
   visual-policy:
     name: Common map visual policy and frame consumers (M4-M6)
@@ -478,6 +537,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -548,6 +611,55 @@ jobs:
           tests/unit/territorial-interaction-policy.test.mjs
       - name: Audit classified territorial storage access
         run: pnpm check:territorial-storage
+
+  python-contracts:
+    name: Current Python contracts and terrain DEM
+    needs: changes
+    if: needs.changes.outputs.python-contracts == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install current GIS and raster test dependencies
+        run: python -m pip install -r tools/requirements-hydro-tiles.txt -r tools/requirements-historical-library.txt "numpy>=2,<3" "rasterio>=1.4,<2"
+      - name: Root Python contracts
+        run: python -m unittest discover -s tests -p "test_*.py"
+      - name: Terrain DEM production generator and verifier regressions
+        run: python -m unittest discover -s tests/python -p "test_*.py"
+
+  data-contracts:
+    name: Validation entrypoints and current generated assets
+    needs: changes
+    if: needs.changes.outputs.data-contracts == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: python -m pip install -r tools/requirements-historical-library.txt
+      - name: Validate JavaScript syntax and shared asset versions
+        run: pnpm check:js && pnpm check:version
+      - name: Validate canonical country sources and shared boundaries
+        run: pnpm check:country-schema && pnpm check:country-default-colors && pnpm check:country-shared-boundaries
+      - name: Validate generated preview assets and historical exchange library
+        run: pnpm check:preview && pnpm check:historical-library
 
   full-unit-suite:
     name: Full unit suite

@@ -27,13 +27,16 @@ test('a selected small-country label stays visible and screen-space zoom control
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), countryId);
   await expect.poll(() => renderedCountryLabelCount(page, countryId)).toBe(1);
   await page.locator('#focusSelectedObjectBtn').click();
+  if (await page.locator('#notificationCloseBtn').isVisible()) await page.locator('#notificationCloseBtn').click();
   await page.keyboard.press('Escape');
   await expect(page.locator('#entityProperties')).toHaveClass(/\bhidden\b/);
   await expect.poll(() => renderedCountryLabelCount(page, countryId)).toBe(1);
 
-  for (let step = 0; step < 12; step += 1) await page.locator('#zoomOutBtn').click();
+  const map = await page.locator('#map').boundingBox();
+  await page.mouse.move(map.x + map.width / 2, map.y + map.height / 2);
+  await page.mouse.wheel(0, 3000);
   await expect.poll(() => renderedCountryLabelCount(page, countryId)).toBe(0);
-  for (let step = 0; step < 12; step += 1) await page.locator('#zoomInBtn').click();
+  await page.mouse.wheel(0, -3000);
   await expect.poll(() => renderedCountryLabelCount(page, countryId)).toBe(1);
   expect(errors).toEqual([]);
 });

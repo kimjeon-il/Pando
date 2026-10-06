@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import element_markup, read_application_sources, read_ui_sources
 
 import pathlib
 import unittest
@@ -8,7 +8,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
-CSS = (ROOT / "assets/css/app.css").read_text(encoding="utf-8")
+CSS = read_ui_sources(ROOT)
 
 
 class InformationHierarchyV0170Tests(unittest.TestCase):
@@ -33,19 +33,18 @@ class InformationHierarchyV0170Tests(unittest.TestCase):
         self.assertNotIn('id="coordStatus"', INDEX)
         self.assertNotIn('id="statusPrimary"', INDEX)
         self.assertIn("function syncStatusBar()", APP)
-        self.assertIn("$('projectionStatus').textContent = projectionLabel", APP)
+        self.assertIn("(0, dependencies.platform.$)('projectionStatus').textContent = projectionLabel", APP)
         self.assertIn('dataset.statusBarVisible', INDEX + APP)
 
     def test_editor_uses_minimal_primary_information(self):
-        self.assertNotIn("변경사항 자동 저장", INDEX)
-        self.assertNotIn("countryActionHint", INDEX + APP)
-        self.assertIn("지도나 레이어 목록에서 편집할 대상을 선택하세요.", INDEX)
+        self.assertNotIn('변경사항 자동 저장', INDEX)
+        self.assertNotIn('countryActionHint', INDEX + APP)
+        self.assertIn('지도에서 객체를 선택하면 여기서 편집할 수 있습니다.', element_markup(INDEX, 'emptyProperties'))
         self.assertIn('id="focusSelectedObjectBtn"', INDEX)
-        copy_index = INDEX.index('id="copyHydroBtn"')
-        self.assertGreater(INDEX.index('class="ui-disclosure editor-disclosure"', copy_index), copy_index)
         self.assertIn('id="propertyTypeLabel"', INDEX)
         self.assertNotIn('id="propertyAreaValue"', INDEX)
-        self.assertIn('id="countryAreaValue"', INDEX)
+        self.assertIn('id="entityAreaValue"', INDEX)
+        self.assertIn('copyHydroBtn', element_markup(INDEX, 'hydroProperties'))
 
 
 if __name__ == "__main__":

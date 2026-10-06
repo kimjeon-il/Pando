@@ -31,16 +31,55 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined });
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await page.goto('/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
 
+  // The production GeoPackage writer omits empty spatial layers. Add an
+  // actual regional object so the regional-table guarantee is exercised.
+  const regionalSource = createTerritorialFeature({ id: 'qgis-regional-source', entityKind: 'regional',
+    name: 'QGIS 독립 권역', geometry: { type: 'MultiPolygon', coordinates: [[[[5, 35], [5, 36], [6, 36], [6, 35], [5, 35]]]] } });
+  const regionalRow = globalThis.PandoLabGisAdapters.territorialRows({ territorialEntities: [regionalSource] }).regions[0];
+  await page.locator('#mobileFileBtn').click();
+  const [regionalPicker] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#openGisBtn').click()]);
+  await regionalPicker.setFiles({ name: 'regions.geojson', mimeType: 'application/geo+json',
+    buffer: Buffer.from(JSON.stringify({ type: 'FeatureCollection', features: [{ type: 'Feature', id: regionalSource.id,
+      properties: Object.fromEntries(Object.entries(regionalRow).filter(([key]) => key !== 'geometry')), geometry: regionalRow.geometry }] })) });
+  await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
+  await selectUiOption(page, '#gisTargetType', 'regional');
+  for (const step of ['2/3', '3/3']) {
+    await page.locator('#gisImportNextBtn').click();
+    await expect(page.locator('#gisStepIndicator')).toContainText(step);
+  }
+  await page.locator('#gisImportConfirmBtn').click();
+  await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 90_000 });
+  const regional = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'regional' })
+    .find(entity => entity.properties.name === 'QGIS 독립 권역'));
+  expect(regional.properties).toMatchObject({ entityKind: 'regional', parentId: '', coverageMode: 'explicit' });
+  const regionalCoverageDifference = await page.evaluate(({ source, imported }) => {
+    const polygons = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+    return window.polygonClipping.xor(polygons(source), polygons(imported));
+  }, { source: regionalSource.geometry, imported: regional.geometry });
+  expect(regionalCoverageDifference).toEqual([]);
+  expect(planarArea(regional.geometry)).toBe(1);
+  const regionalCorners = regional.geometry.coordinates.flat(regional.geometry.type === 'Polygon' ? 1 : 2);
+  expect([...new Set(regionalCorners.map(point => JSON.stringify(point)))].sort()).toEqual(['[5,35]', '[5,36]', '[6,35]', '[6,36]']);
+
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/pl\.svg\?v=0\.30\.0-r44$/);
+  const assetRevision = await page.evaluate(() => window.PANDOLAB_BUILD_META.assetRevision);
+  await expect.poll(() => page.locator('#flagPreview img').evaluate(img => {
+    const url = new URL(img.src);
+    return { pathname: url.pathname, revision: url.searchParams.get('v') };
+  })).toEqual({ pathname: '/assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/pl.svg', revision: assetRevision });
+  await page.locator('#flagMenuBtn').click();
   await page.locator('#flagRemoveBtn').click();
-  await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
+  await expect(page.locator('#flagPreview img')).toHaveCount(0);
+  await expect(page.locator('#flagPreview svg')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('POL').properties.metadata.flagDataUrl)).toBeNull();
 
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
   await page.locator('#flagFileInput').setInputFiles({
@@ -54,10 +93,13 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   page.once('dialog', dialog => dialog.accept('스모크 값'));
   await page.locator('#addDistributionBtn').click();
   await page.locator('#actionsTabBtn').click();
-  const territorialUnitId = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');
+  const territorialUnitId = 'DEU';
   await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
   await page.locator('#distributionValueInput').fill('73');
   await page.locator('#addTerritorialDistributionBtn').click();
+  expect(await page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()
+    .flatMap(layer => window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id))))
+    .toContainEqual(expect.objectContaining({ mode: 'territorial', territorialUnitId, value: 73 }));
 
   await page.locator('#mobileFileBtn').click();
   await expect(page.locator('#saveProjectBtn')).toBeVisible();
@@ -82,6 +124,8 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     for (const field of ['pandolab_id', 'pandolab_name', 'type', 'sovereign_id']) {
       expect(entityColumns.has(field)).toBe(false);
     }
+    expect(db.prepare('SELECT id, name, entity_kind, parent_id, typeof(geom) AS geometry_type FROM regions').all())
+      .toContainEqual({ id: regional.id, name: 'QGIS 독립 권역', entity_kind: 'regional', parent_id: '', geometry_type: 'blob' });
     const distributionColumns = new Set(db.prepare('PRAGMA table_info(distributions)').all().map(row => row.name));
     for (const field of ['entry_id', 'layer_id', 'unit', 'value_scale_mode', 'value', 'source_mode', 'territorial_unit_id', 'certainty']) {
       expect(distributionColumns.has(field)).toBe(true);
@@ -101,9 +145,12 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
     db.close();
   }
 
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
+  await page.locator('#flagMenuBtn').click();
   await page.locator('#flagRemoveBtn').click();
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
   await page.locator('#flagFileInput').setInputFiles({
@@ -114,21 +161,32 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
 
   await page.locator('#mobileFileBtn').click();
   const chooserPromise = page.waitForEvent('filechooser');
-  await page.locator('#openGisBtn').click();
+  await page.locator('#openProjectBtn').click();
   await (await chooserPromise).setFiles({
     name: 'flag-roundtrip.gpkg',
     mimeType: 'application/geopackage+sqlite3',
     buffer: readFileSync(filePath),
   });
+  await expect(page.locator('#gisImportTitle')).toHaveText('프로젝트 불러오기', { timeout: 90_000 });
+  await expect(page.locator('#gisStepIndicator')).toHaveText('1/1 · 프로젝트 복원 확인', { timeout: 90_000 });
   await expect(page.locator('#gisImportForm')).not.toHaveClass(/\bis-busy\b/, { timeout: 90_000 });
-  await expect(page.locator('#gisStepIndicator')).toHaveText('1/1 · 프로젝트 복원 확인');
+  await expect(page.locator('#gisImportError')).toBeEmpty();
+  await expect(page.locator('#gisImportConfirmBtn')).toBeEnabled();
   await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 120_000 });
   await expect(page.locator('#actionStatus')).not.toHaveClass(/\bworking\b/, { timeout: 120_000 });
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), regional.id)).toEqual(regional);
+  expect(await page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()
+    .flatMap(layer => window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id))))
+    .toContainEqual(expect.objectContaining({ mode: 'territorial', territorialUnitId, value: 73 }));
 
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
-  await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
+  await expect(page.locator('#flagPreview img')).toHaveCount(0);
+  await expect(page.locator('#flagPreview svg')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('POL').properties.metadata.flagDataUrl)).toBeNull();
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);

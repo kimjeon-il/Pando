@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import read_application_sources, read_ui_sources, read_module, function_source, assert_shell_versions
 
 import gzip
 import json
@@ -13,11 +13,13 @@ ROOT = Path(__file__).parents[1]
 LAYER_MODEL = (ROOT / "assets/js/modules/layer-list-model.js").read_text(encoding="utf-8")
 LAYER_CONTROLLER = (ROOT / "assets/js/modules/layer-tree-controller.js").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
-CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
+CSS = read_ui_sources(ROOT)
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 README = (ROOT / "README.md").read_text(encoding="utf-8")
 CANVAS = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
 GPU = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
+RENDERING = read_module(ROOT, "rendering-domain.js")
+COUNTRY_MODES = read_module(ROOT, "app-country-modes.js")
 TERRAIN_MANIFEST = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))
 DATA = ROOT / "assets" / "data" / "hydro" / "v0.13.1"
 
@@ -35,7 +37,7 @@ class V0131RuntimeTests(unittest.TestCase):
         cls.detail = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["detail"]["url"]).read_bytes()))["features"]
 
     def test_current_shell_and_v0131_assets_are_compatible(self):
-        self.assertIn('data-app-version="0.33.0"', INDEX)
+        assert_shell_versions(self, ROOT, INDEX)
         self.assertIn("HYDRO_DATA_VERSION = '0.13.1'", APP)
         self.assertEqual(self.manifest["version"], "0.13.1")
         self.assertEqual(self.manifest["schema"], "pandolab-water-shards-v5")
@@ -70,19 +72,19 @@ class V0131RuntimeTests(unittest.TestCase):
 
     def test_ui_type_camera_and_country_selection_fill(self):
         for token in (
-            "--ui-font-caption: 13px",
-            "--ui-font-body: 15px",
-            "--ui-font-title: 18px",
+            "--ui-font-caption: var(--design-font-sm)",
+            "--ui-font-body: var(--design-font-md)",
+            "--ui-font-title: var(--design-font-xl)",
         ):
             self.assertIn(token, CSS)
         self.assertIn(".map-selection-outline", CSS)
-        self.assertIn("syncGpuCountryEmphasis", APP)
+        self.assertIn("syncSelectionEmphasis", RENDERING)
         self.assertIn("countryEmphasis", GPU)
-        self.assertNotIn("selectionUnderlayLayer", APP)
-        self.assertIn("path.country-highlight-fill", APP)
-        self.assertIn("feature => path(feature)", APP)
-        annex_entry = source_section(APP, "function enterAnnexTerritoryMode", "function toggleAnnexDonor")
-        annex_donor = source_section(APP, "function toggleAnnexDonor", "function enterCountryCoastEdit")
+        self.assertNotIn("path.country-highlight-fill", RENDERING)
+        self.assertIn("gpuMapRenderer.setCountryEmphasis", RENDERING)
+        self.assertIn("selection.syncGpuInteractionState", RENDERING)
+        annex_entry = function_source(COUNTRY_MODES, "enterAnnexTerritoryMode")
+        annex_donor = function_source(COUNTRY_MODES, "prepareAnnexSelection")
         self.assertNotIn("fitMapToFeature(", annex_entry)
         self.assertNotIn("fitMapToFeature(", annex_donor)
 
@@ -95,10 +97,10 @@ class V0131RuntimeTests(unittest.TestCase):
         self.assertIn("label: '강', shortLabel: '강', sourceLabel: 'HydroRIVERS'", APP)
         self.assertIn("label: '호수', shortLabel: '호수', sourceLabel: 'Natural Earth'", APP)
         self.assertNotIn("HYDRO_FOLDER_STATE_PREFIX", APP)
-        self.assertIn("name: '기본 강'", LAYER_MODEL)
-        self.assertIn("name: '기본 호수'", LAYER_MODEL)
+        self.assertIn("name: '지형지물'", LAYER_MODEL)
+        self.assertIn("hydroCategory === 'lake' ? '호수' : '강'", LAYER_MODEL)
         self.assertIn("name: meta.sourceLabel", APP)
-        self.assertIn("layerGroup === 'hydro' && source.isBuiltin", LAYER_MODEL)
+        self.assertIn("layerGroup === 'hydro') bundles[1].items.push(item)", LAYER_MODEL)
 
     def test_hydro_uses_the_current_ocean_colour_without_intrinsic_alpha(self):
         lake_rule = source_section(CSS, ".hydro-lake-group {", "}")
@@ -110,9 +112,9 @@ class V0131RuntimeTests(unittest.TestCase):
         self.assertIn("stroke-opacity: 1", river_rule)
         self.assertNotIn(".hydro-lake-group { fill: #376f91", CSS)
         self.assertNotIn(".hydro-river-group { stroke: #66b5e5", CSS)
-        self.assertIn(".style('fill-opacity', lakeStyle.opacity)", APP)
-        self.assertIn(".style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0)", APP)
-        self.assertIn(".style('stroke-opacity', riverStyle.opacity)", APP)
+        self.assertIn(".style('fill-opacity', lakeStyle.opacity)", RENDERING)
+        self.assertIn(".style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0)", RENDERING)
+        self.assertIn(".style('stroke-opacity', riverStyle.opacity)", RENDERING)
 
     def test_hydro_fragments_share_system_identity_and_roles(self):
         rivers = [row for row in self.core if row["category"] == "river"]
@@ -171,7 +173,10 @@ class V0131RuntimeTests(unittest.TestCase):
                 return 1
             return sum(count_coordinates(item) for item in value)
 
-        self.assertEqual(sum(count_coordinates(row["geometry"]["coordinates"]) for row in countries["features"]), 548_464)
+        version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+        preview = json.loads((ROOT / f"assets/data/world-preview-v{version}.json").read_text(encoding="utf-8"))
+        expected_source_count = preview["assets"]["canonicalMesh"]["header"][6]
+        self.assertEqual(sum(count_coordinates(row["geometry"]["coordinates"]) for row in countries["features"]), expected_source_count)
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ const removedIds = [
   'projectSavePopover', 'distributionInspectPanel',
   'countryComponentsSection', 'countryComponentList', 'propertyAreaValue',
   'regionLockedInput', 'administrativeLockedInput', 'regionLockedInput',
-  'deleteCountryBtn', 'deleteRegionBtn', 'objectFocusMenuBtn',
+  'deleteCountryBtn', 'deleteRegionBtn',
 ];
 
 async function openApp(page, viewport) {
@@ -21,7 +21,7 @@ async function openApp(page, viewport) {
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
-  await page.goto('/');
+  await page.goto('/?demTerrain=raster');
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 30_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   return errors;
@@ -33,6 +33,8 @@ for (const viewport of viewports) {
     const errors = await openApp(page, viewport);
 
     for (const id of removedIds) await expect(page.locator(`#${id}`)).toHaveCount(0);
+    await expect(page.locator('#objectFocusMenuBtn')).toHaveText('선택 객체로 이동');
+    await expect(page.locator('#objectActionsMenu')).toBeHidden();
     await expect(page.locator('.measurement-layer, .country-component-item')).toHaveCount(0);
     await expect(page.locator('.editor-danger-zone:visible')).toHaveCount(0);
     await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
@@ -44,23 +46,37 @@ for (const viewport of viewports) {
     await search.fill('폴란드');
     await page.locator('#layerSearchResults .layer-search-result').first().click();
     await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
-    await expect(page.locator('.editor-view-tabs')).toHaveText(/작업/);
-    await expect(page.locator('#editorTabBtn')).toBeHidden();
-    await expect(page.locator('#entityAreaValue')).toContainText('km²');
+    await expect(page.locator('#editorTabBtn')).toBeVisible();
+    await expect(page.locator('#editorTabBtn')).toHaveText('정보');
+    await expect(page.locator('#actionsTabBtn')).toHaveText('편집');
+    await expect(page.locator('#relationTabBtn')).toHaveText('관계');
+    await expect(page.locator('#selectionStatus')).toContainText('km²');
     await expect(page.locator('#focusSelectedObjectBtn')).toHaveAttribute('aria-label', '선택 객체로 이동');
     await page.locator('#actionsTabBtn').click();
     await expect(page.locator('#objectActionsBtn')).toHaveCount(0);
     await expect(page.locator('#objectLockBtn')).toHaveAttribute('aria-pressed', /true|false/);
     await expect(page.locator('#objectDeleteBtn')).toBeVisible();
     await expect(page.locator('#propertyTitle')).toHaveCSS('white-space', 'normal');
-    await expect(page.locator('#entityProperties .editor-action-row')).toHaveCount(8);
-    const inconsistentActionRows = await page.locator('#editorSurface .editor-action-row').evaluateAll(rows => rows
+    const commandRows = page.locator('#entityProperties .editor-action-row:not(.editor-delete-row)');
+    expect(await commandRows.evaluateAll(rows => rows.map(row => row.id))).toEqual([
+      'addEntityChildBtn', 'annexEntityBtn', 'mergeEntityBtn', 'editEntityBorderBtn',
+      'redrawEntityBtn', 'editEntityCoastBtn', 'reconcileEntityCoastBtn', 'copyEntityRegionBtn',
+    ]);
+    const inconsistentActionRows = await commandRows.evaluateAll(rows => rows
       .filter(row => !row.classList.contains('has-command-row-icon')
         || row.querySelectorAll(':scope > .command-row-icon').length !== 1
         || row.querySelectorAll(':scope > span').length !== 1
-        || row.querySelectorAll(':scope > .command-row-chevron').length !== 1)
+        || row.querySelectorAll(':scope > span > strong').length !== 1
+        || row.querySelectorAll(':scope > span > small').length !== 1
+        || !row.querySelector(':scope > span > strong')?.textContent.trim()
+        || !row.querySelector(':scope > span > small')?.textContent.trim()
+        || row.querySelectorAll(':scope > .command-row-chevron').length !== 0)
       .map(row => row.id));
     expect(inconsistentActionRows).toEqual([]);
+    await expect(page.locator('#entityProperties #objectDeleteBtn > .command-row-icon')).toHaveCount(1);
+    await expect(page.locator('#entityProperties #objectDeleteBtn > span')).toHaveCount(1);
+    await expect(page.locator('#entityProperties #objectDeleteBtn > .command-row-chevron')).toHaveCount(0);
+    expect(await page.locator('#editorDeleteSection').evaluate(node => node.previousElementSibling.id)).toBe('editEntityCoastBtn');
     await expect(page.locator('#entityProperties .editor-action-grid')).toHaveCount(0);
     const overflow = await page.evaluate(() => ({
       viewport: window.innerWidth,
@@ -68,8 +84,8 @@ for (const viewport of viewports) {
       body: document.body.scrollWidth,
     }));
     if (viewport.name === 'mobile') {
-      await expect(page.locator('[data-sheet-handle="editorSurface"]')).toHaveAttribute('aria-valuemax', '1');
-      await expect(page.locator('[data-sheet-handle="editorSurface"]')).toHaveAttribute('aria-valuetext', '기본 높이');
+      await expect(page.locator('[data-sheet-handle="editorSurface"]')).toHaveAttribute('aria-valuemax', '2');
+      await expect(page.locator('[data-sheet-handle="editorSurface"]')).toHaveAttribute('aria-valuetext', '중간 높이');
     }
     const viewRevisionBeforeFocus = await page.evaluate(() => Number(window.__PANDOLAB_VIEW_REVISION__ || 0));
     await page.locator('#focusSelectedObjectBtn').click();
@@ -79,16 +95,23 @@ for (const viewport of viewports) {
       selectedType: document.querySelector('#propertyTypeLabel')?.textContent || '',
       editorView: document.querySelector('#editorSurface')?.getAttribute('data-editor-view') || '',
     }));
-    expect(focusedState).toEqual({ headerVisible: false, selectedType: '국가', editorView: 'actions' });
+    expect(focusedState).toEqual({ headerVisible: true, selectedType: '객체', editorView: 'actions' });
     expect(overflow.document).toBeLessThanOrEqual(overflow.viewport + 1);
     expect(overflow.body).toBeLessThanOrEqual(overflow.viewport + 1);
     expect(errors).toEqual([]);
   });
 }
 
-test('country flag actions remain icon-only and preserve the existing data flow', async ({ page }) => {
+test('country flag thumbnail and menu preserve the existing data flow', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { name: 'wide', width: 1440, height: 900 });
+  const assetRevision = await page.evaluate(() => window.PANDOLAB_BUILD_META.assetRevision);
+  const expectFlagSource = async pathname => {
+    await expect.poll(() => page.locator('#flagPreview img').evaluate(img => {
+      const url = new URL(img.src);
+      return { pathname: url.pathname, revision: url.searchParams.get('v') };
+    })).toEqual({ pathname, revision: assetRevision });
+  };
   const expectRenderedFlagRatio = async expected => {
     const flag = page.locator('#flagPreview img');
     await expect.poll(() => flag.evaluate(img => {
@@ -100,10 +123,11 @@ test('country flag actions remain icon-only and preserve the existing data flow'
       return box.width / box.height;
     })).toBeCloseTo(expected, 1);
   };
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/pl\.svg\?v=0\.30\.0-r44$/);
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '폴란드 국기');
+  await expectFlagSource('/assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/pl.svg');
+  await expect(page.locator('#flagPreview img')).toHaveAttribute('alt', '폴란드 깃발');
   await expectRenderedFlagRatio(1.6);
   await page.locator('#flagFileInput').setInputFiles({
     name: 'test-flag.svg',
@@ -112,29 +136,41 @@ test('country flag actions remain icon-only and preserve the existing data flow'
   });
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
   await expectRenderedFlagRatio(1.5);
+  await page.locator('#flagMenuBtn').click();
   await expect(page.locator('#flagRemoveBtn')).toBeVisible();
-  await expect(page.locator('#flagUploadBtn')).toHaveAttribute('aria-label', '국기 변경');
-  await expect(page.locator('#flagRemoveBtn')).toHaveAttribute('aria-label', '국기 삭제');
+  await expect(page.locator('#flagUploadBtn')).toHaveAccessibleName('파일');
+  await expect(page.locator('#flagRemoveBtn')).toHaveAccessibleName('삭제');
+  await page.keyboard.press('Escape');
 
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/country-flags\/c09927e63705529bbf59ca6684cd9b23225dddad\/svg\/de\.svg\?v=0\.30\.0-r44$/);
+  await expectFlagSource('/assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/de.svg');
   await expectRenderedFlagRatio(5 / 3);
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('가봉');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '가봉' }).first().click();
-  await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /\/assets\/vendor\/flag-icons\/7\.5\.0\/flags\/4x3\/ga\.svg\?v=0\.30\.0-r44$/);
+  await expectFlagSource('/assets/vendor/flag-icons/7.5.0/flags/4x3/ga.svg');
   await expectRenderedFlagRatio(4 / 3);
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
   await expect(page.locator('#flagPreview img')).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
+  await page.locator('#flagMenuBtn').click();
   await page.locator('#flagRemoveBtn').click();
-  await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
+  await expect(page.locator('#flagPreview img')).toHaveCount(0);
+  await expect(page.locator('#flagPreview svg')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('POL').properties.metadata.flagDataUrl)).toBeNull();
   await expect(page.locator('#flagRemoveBtn')).toBeHidden();
 
+  if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('BRT');
   await page.locator('#layerSearchResults .layer-search-result').first().click();
-  await expect(page.locator('#flagPreview')).toHaveText('국기 없음');
   await expect(page.locator('#flagPreview img')).toHaveCount(0);
+  await expect(page.locator('#flagPreview svg')).toBeVisible();
+  await page.locator('#flagMenuBtn').click();
+  await expect(page.locator('#flagRemoveBtn')).toBeDisabled();
+  await page.keyboard.press('Escape');
   await expect(page.locator('#flagRemoveBtn')).toBeHidden();
 
   expect(errors).toEqual([]);

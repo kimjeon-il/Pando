@@ -341,6 +341,8 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       existingIds.add(String(unit.id));
     }
     const before = snapshotEditable();
+    const previousEntities = state.territorialEntities;
+    let otherMutationStarted = false;
     try {
       entityStore.transaction(() => {
       entityStore.applyChanges({ features: draftCountries.features,
@@ -349,12 +351,15 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       entityStore.appendEntities(deepClone(preparedUnits));
       const dependentTargetId = String(result.landDependentsTargetId || '');
       if (dependentTargetId && plan.transferredGeometry && Array.isArray(plan.donorIds)) {
+        otherMutationStarted = true;
         transferLandDependents(plan.transferredGeometry, plan.donorIds, dependentTargetId);
       }
       for (const transfer of result.landTransfers || []) {
+        otherMutationStarted = true;
         transferLandDependents(transfer.geometry, transfer.donorIds, transfer.targetId);
       }
       if (preparedUnits.length) {
+        otherMutationStarted = true;
         normalizeProjectObjects();
         markLayerTreeDirty();
       }
@@ -380,7 +385,10 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       });
       commitHistorySnapshot(before);
     } catch (error) {
-      restoreEditTransactionSnapshot(before);
+      // Store validation rejects unpublished candidates atomically. Restoring
+      // those through the public edit path would advance rendering revisions.
+      // Published entities or mutations outside the Store still need rollback.
+      if (otherMutationStarted || state.territorialEntities !== previousEntities) restoreEditTransactionSnapshot(before);
       throw error;
     }
     // Canonical data and history are committed. Notification/autosave failures

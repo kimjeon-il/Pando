@@ -101,7 +101,7 @@ export function createObjectPropertyController(runtime = {}) {
       entity: 'entityProperties', distribution: 'distributionProperties', generic: 'genericFeatureProperties',
       label: 'labelProperties', hydro: 'hydroProperties', multi: 'multiProperties',
     })) $(id)?.classList.toggle('hidden', type !== kind);
-    $('flagMenuBtn')?.classList.toggle('hidden', !type === 'entity');
+    $('flagMenuBtn')?.classList.toggle('hidden', type !== 'entity');
     $('propertyTitle').textContent = type ? String(title || '') : '';
     const visibleTypeLabel = typeLabel || (type ? PROPERTY_TYPE_LABELS[type] || type : '');
     if ($('propertyTypeLabel')) {
@@ -120,7 +120,7 @@ export function createObjectPropertyController(runtime = {}) {
     const actionList = type === 'entity'
       ? activeForm(type).querySelector('.editor-action-section:not(.editor-relation-section) > .editor-action-list')
       : null;
-    const coastAction = actionList?.querySelector('#editEntityCoastBtn, #editEntityCoastBtn');
+    const coastAction = actionList?.querySelector('#editEntityCoastBtn');
     const deleteHost = actionList || $('editorScrollBody');
     if (coastAction && deleteControl.previousElementSibling !== coastAction) coastAction.after(deleteControl);
     else if (!coastAction && deleteControl.parentElement !== deleteHost) deleteHost.append(deleteControl);

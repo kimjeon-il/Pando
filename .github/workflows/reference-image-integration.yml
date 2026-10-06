@@ -12,6 +12,13 @@ on:
       - 'assets/css/features/reference-images.css'
       - 'tests/unit/reference-image-*.test.mjs'
       - 'tests/browser/reference-image-*.spec.mjs'
+      - 'tests/fixtures/**'
+      - 'tests/helpers/**'
+      - 'tests/browser/server.mjs'
+      - 'playwright.config.js'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'eslint.config.js'
       - '.github/workflows/reference-image-integration.yml'
 
 permissions:

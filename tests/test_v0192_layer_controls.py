@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tests.application_source import read_application_sources
+from tests.application_source import assert_shell_versions, element_markup, function_source, read_application_sources, read_module, read_ui_sources
 
 import re
 import unittest
@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
-CSS = (ROOT / "assets" / "css" / "app.css").read_text(encoding="utf-8")
+CSS = read_ui_sources(ROOT)
 APP = read_application_sources(ROOT)
 
 
@@ -22,19 +22,21 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertNotIn("layer-child-swatch", APP)
         self.assertNotIn(".layer-child-swatch", CSS)
 
-    def test_country_lock_is_only_an_object_menu_action(self):
+    def test_lock_is_owned_by_the_object_action_toolbar(self):
         self.assertIn('symbol id="icon-lock-open"', INDEX)
         self.assertIn('symbol id="icon-lock-closed"', INDEX)
         self.assertNotIn('id="countriesLocked"', INDEX)
-        self.assertIn('id="objectLockMenuBtn"', INDEX)
+        self.assertIn('id="objectLockBtn"', INDEX)
         self.assertNotIn(".layer-folder-name::after", CSS)
         self.assertNotRegex(CSS, r'content:\s*["\']\s*잠금')
         self.assertNotIn("state.countriesLocked", APP)
 
     def test_checkbox_uses_one_border_and_matching_checked_fill(self):
-        base_rule = re.search(r'input\[type="checkbox"\]\s*\{([^}]*)\}', CSS)
-        self.assertIsNotNone(base_rule)
-        self.assertIn("box-shadow: none", base_rule.group(1))
+        controls = (ROOT / 'assets/css/primitives/controls.css').read_text(encoding='utf-8')
+        base_rules = re.findall(r'input\[type="checkbox"\]\s*\{([^}]*)\}', controls)
+        self.assertTrue(base_rules)
+        self.assertIn("box-shadow: none", '\n'.join(base_rules))
+        self.assertIn("border: 1px solid", controls)
         checkbox_rule = re.search(r'input\[type="checkbox"\]:checked\s*\{([^}]*)\}', CSS)
         self.assertIsNotNone(checkbox_rule)
         rule = checkbox_rule.group(1)
@@ -44,29 +46,31 @@ class V0192LayerControlTests(unittest.TestCase):
         self.assertRegex(CSS, r'input\[type="radio"\]:checked\s*\{[^}]*border-color:\s*var\(--accent-surface\)')
 
     def test_layer_visibility_uses_eye_icons_without_changing_checkbox_state(self):
-        self.assertEqual(INDEX.count('class="layer-visibility-toggle"'), 10)
-        self.assertEqual(INDEX.count('class="layer-visibility-control"'), 10)
-        self.assertIn('symbol id="icon-eye"', INDEX)
+        visibility = element_markup(INDEX,'objectVisibilityBtn')
+        self.assertIn('aria-pressed="false"', visibility)
+        self.assertIn('href="#icon-eye"', visibility)
         self.assertIn('symbol id="icon-eye-off"', INDEX)
-        self.assertIn('.layer-visibility-control:has(.layer-visibility-toggle:not(:checked))', CSS)
-        self.assertIn("visibility.className = 'layer-visibility-toggle'", APP)
-        self.assertIn("createSvgIcon(document, 'icon-eye'", APP)
-        self.assertIn('function syncLayerVisibilityToggle(input)', APP)
-        self.assertIn("input.dataset.tooltip = input.checked ? `${label} 숨기기` : `${label} 표시`", APP)
+        self.assertIn('data-layer-visibility="countries"', INDEX)
+        self.assertIn('data-layer-visibility="rivers"', INDEX)
+        self.assertIn('data-layer-visibility="lakes"', INDEX)
+        self.assertNotIn('class="layer-visibility-toggle"', INDEX)
+        setter = function_source(read_module(ROOT,'app-map-settings.js'),'setLayerVisibility')
+        self.assertIn('dependencies.projectState.state.layerVisibility[key] = visible', setter)
+        self.assertIn('queuePresentationAutosave()', setter)
+        self.assertNotIn('.checked =', setter)
 
-    def test_layer_children_use_context_menus_without_duplicate_copy(self):
-        tree_items = APP[APP.index("function layerTreeItems"):APP.index("function pruneLayerItemVisibility")]
-        self.assertNotIn("사용자 지형지물", tree_items)
-        self.assertNotIn("'국명'", tree_items)
-        self.assertIn("'계산 중'", tree_items)
-        self.assertIn('symbol id="icon-more"', INDEX)
-        self.assertIn("menuButton.className = 'ui-button layer-child-menu'", APP)
-        self.assertIn("openObjectActionsMenu(trigger);", APP)
-        self.assertIn(".layer-child-menu", CSS)
+    def test_search_rows_only_select_and_focus_objects(self):
+        search = read_module(ROOT,'layer-tree-controller.js')
+        row = function_source(search,'rowFor')
+        self.assertIn('layer-search-result-select', row)
+        self.assertIn('layer-search-focus-action', row)
+        self.assertIn("row.setAttribute('aria-selected'", row)
+        self.assertNotIn('menuButton', row)
+        self.assertNotIn('locked', row)
+        self.assertNotIn('visibility', row)
 
     def test_build_version_is_updated(self):
-        self.assertIn('data-app-version="0.30.0"', INDEX)
-        self.assertIn("const APP_VERSION = '0.30.0'", APP)
+        assert_shell_versions(self, ROOT, INDEX)
 
 
 if __name__ == "__main__":

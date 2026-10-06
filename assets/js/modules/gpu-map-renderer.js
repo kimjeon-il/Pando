@@ -328,6 +328,7 @@ export function createGpuMapRenderer(deps) {
     let hydroVisibilityWidth = 1;
     let hydroVisibilityHeight = 1;
     const hydroEditFeatureByFid = new Map();
+    let hydroEditSource = null;
     const hydroDescriptorPacksByLogicalId = new Map();
     const hydroDescriptorPacksByFid = new Map();
     let interactionActive = false, hydroVisibilityDirty = true;
@@ -2694,7 +2695,9 @@ export function createGpuMapRenderer(deps) {
 
     function setHydroEdits(features = [], revision = 0) {
       const nextRevision = Number(revision || 0);
-      if (nextRevision === hydroPreparation.editRevision) return false;
+      // History can replace the canonical collection without changing country
+      // geometry revision. Both its source and revision identify this cache.
+      if (features === hydroEditSource && nextRevision === hydroPreparation.editRevision) return false;
       const entries = [];
       hydroEditFeatureByFid.clear();
       const baseFid = Math.max(0, Number(hydroPreparation.manifest?.stats?.featureCount || 0));
@@ -2716,6 +2719,7 @@ export function createGpuMapRenderer(deps) {
         nextFid += group.features.length;
       }
       hydroPreparation.replaceEdits(entries, nextRevision);
+      hydroEditSource = features;
       hydroVisibilityDirty = true;
       if (rendererMode === 'canvas-worker' && canvasWorker) postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroPreparation.editRevision, features: features || [] });
       invalidatePhysicalScene('hydro-edit-data');
