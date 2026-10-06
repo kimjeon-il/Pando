@@ -55,8 +55,8 @@ async function editorTypographySnapshot(page) {
       distributionUnit: font('#distributionUnitInput'),
       helper: font('#entityRegionalStatus'),
       colorValue: font('#entityColorValue'),
-      periodHeading: font('.editor-period-group > legend'),
-      periodSubfield: font('label[for="entityValidFromInput"]'),
+      periodLabel: font('label[for="entityPeriodInput"]'),
+      periodValue: font('#entityPeriodInput'),
     };
   });
 }
@@ -135,8 +135,8 @@ for (const layout of layouts) {
       expect(typography.distributionUnit).toEqual(['15px', '400']);
       expect(typography.helper).toEqual(['13px', '400']);
       expect(typography.colorValue).toEqual(['15px', '400']);
-      expect(typography.periodHeading).toEqual(['14px', '500']);
-      expect(typography.periodSubfield).toEqual(['13px', '500']);
+      expect(typography.periodLabel).toEqual(typography.propertyLabel);
+      expect(typography.periodValue).toEqual(typography.editableValue);
       expect(errors).toEqual([]);
     });
   }

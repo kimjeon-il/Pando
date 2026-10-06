@@ -35,7 +35,7 @@ export function createTerritorialApplicationService({
     if (field === 'parentId' || field === 'entityKind') {
       return { ok: false, code: 'unsupported-relation-field', unit: feature };
     }
-    if (!['name', 'notes', 'color', 'capital', 'flagDataUrl', 'validFrom', 'validTo'].includes(field)) {
+    if (!['name', 'notes', 'color', 'capital', 'flagDataUrl', 'validFrom', 'validTo', 'validity'].includes(field)) {
       return { ok: false, code: 'unsupported-field', unit: feature };
     }
     let nextValue = value;
@@ -45,18 +45,30 @@ export function createTerritorialApplicationService({
       if (typeof value !== 'string' || !value.trim()) return { ok: false, code: 'invalid-flag', unit: feature };
       nextValue = value.trim();
     }
-    if (field === 'validFrom' || field === 'validTo') {
+    if (field === 'validFrom' || field === 'validTo' || field === 'validity') {
       try {
+        if (field === 'validity' && (!value || typeof value !== 'object'
+          || !Object.hasOwn(value, 'validFrom') || !Object.hasOwn(value, 'validTo'))) {
+          throw new TypeError('존속기간의 시작과 끝 값이 모두 필요합니다.');
+        }
         const interval = normalizeTemporalInterval(
-          field === 'validFrom' ? value : feature.properties?.validFrom,
-          field === 'validTo' ? value : feature.properties?.validTo,
+          field === 'validity' ? value.validFrom : field === 'validFrom' ? value : feature.properties?.validFrom,
+          field === 'validity' ? value.validTo : field === 'validTo' ? value : feature.properties?.validTo,
         );
-        nextValue = interval[field];
-        if (nextValue !== null) return { ok: false, code: 'TIMELINE_ACTIVATION', unit: feature,
+        nextValue = field === 'validity' ? { validFrom: interval.validFrom, validTo: interval.validTo } : interval[field];
+        if (field === 'validity' ? interval.validFrom !== null || interval.validTo !== null : nextValue !== null) return { ok: false, code: 'TIMELINE_ACTIVATION', unit: feature,
           issues: ['날짜별 편집은 T4 구현 후 지원합니다.'] };
       } catch (error) {
         return { ok: false, code: 'invalid-temporal', issues: [String(error?.message || error)], unit: feature };
       }
+    }
+    if (field === 'validity') {
+      if ((feature.properties.validFrom ?? null) === nextValue.validFrom && (feature.properties.validTo ?? null) === nextValue.validTo) return { ok: true, changed: false, unit: feature };
+      mutateDocument({ type: 'territorial-metadata', affectedIds: [key] }, () => entityStore.transaction(() => {
+        entityStore.setField(key, 'validFrom', nextValue.validFrom);
+        entityStore.setField(key, 'validTo', nextValue.validTo);
+      }), { renderDirty: { domain: 'territorial', change: 'metadata' } });
+      return { ok: true, changed: true, unit: entityRepository.get(key) };
     }
     const currentValue = field === 'color' ? text(feature.properties?.style?.color)
       : ['capital', 'flagDataUrl'].includes(field) ? feature.properties?.metadata?.[field] : feature.properties?.[field];

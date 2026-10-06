@@ -443,11 +443,12 @@
             <div class="editor-country-area" aria-hidden="true" hidden><strong id="entityAreaValue">—</strong></div>
             <section class="editor-section editor-info-section editor-section-primary" aria-label="정보">
               <div class="ui-field field-group editor-field"><label for="entityNameInput">이름</label><input id="entityNameInput" type="text" autocomplete="off" /></div>
-              <div class="ui-field field-group editor-field"><label for="entityNotesInput">메모</label><textarea id="entityNotesInput" rows="5" placeholder="객체에 관한 메모를 입력하세요."></textarea></div>
-              <fieldset class="editor-period-group"><legend>유효 기간</legend><div class="editor-period-fields">
-                <div class="ui-field field-group editor-field"><label for="entityValidFromInput">시작일</label><input id="entityValidFromInput" type="text" inputmode="numeric" placeholder="예: 1910-01-01" /></div>
-                <div class="ui-field field-group editor-field"><label for="entityValidToInput">종료일</label><input id="entityValidToInput" type="text" inputmode="numeric" placeholder="현재까지면 비워 둠" /></div>
-              </div></fieldset>
+              <section id="entityInfoRelations" class="editor-info-relations" aria-label="소속 및 산하 관계" hidden>
+                <div id="entityInfoParent" class="editor-info-relation-block editor-field" hidden><span class="editor-info-relation-label">소속</span><div id="entityInfoParentRows" class="editor-info-relation-list"></div></div>
+                <div id="entityInfoChildren" class="editor-info-relation-block editor-field" hidden><span class="editor-info-relation-label">산하</span><div id="entityInfoChildRows" class="editor-info-relation-list"></div></div>
+              </section>
+              <div class="ui-field field-group editor-field"><label for="entityPeriodInput">존속기간</label><input id="entityPeriodInput" type="text" autocomplete="off" /></div>
+              <div class="ui-field field-group editor-field"><label for="entityNotesInput">비고</label><textarea id="entityNotesInput" rows="5"></textarea></div>
             </section>
             <section class="editor-section editor-action-section" aria-label="편집"><div class="editor-action-list">
               <button id="addEntityChildBtn" type="button" class="ui-button editor-action-row"><span><strong>하위 객체 추가</strong><small>이 객체를 상위 객체로 지정하여 추가</small></span></button>
@@ -522,7 +523,7 @@
               </div>
               <div class="ui-info-list editor-info-list editor-property-list"><div><span>위치</span><strong id="labelPositionValue">지도에서 자동 배치</strong></div></div>
               <div id="labelBuiltinInfo" hidden><p class="ui-help-text">내장 지명입니다. 직접 수정하려면 편집용 복사본을 만드세요.</p><div class="ui-info-list editor-info-list editor-property-list"><div><span>출처</span><strong id="labelBuiltinSource"></strong></div><div><span>원본 ID</span><strong id="labelBuiltinId"></strong></div></div></div>
-              <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="label-details"><summary><span>메모</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="labelNotesInput">메모</label><textarea id="labelNotesInput" rows="5"></textarea></div></div></details>
+              <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="label-details"><summary><span>비고</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="labelNotesInput">비고</label><textarea id="labelNotesInput" rows="5"></textarea></div></div></details>
             </section>
 
             <section id="copyPlaceSection" class="editor-section editor-action-section" aria-label="편집" hidden><button id="copyPlaceBtn" type="button" class="ui-button btn wide editor-primary-action">복사하여 편집</button></section>
@@ -538,7 +539,7 @@
                   <input id="hydroColorInput" class="ui-native-color-input" type="color" value="#3b82c4" tabindex="-1" aria-hidden="true" />
                   <div id="hydroColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="강 색상 팔레트"><div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div><button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button></div>
                 </div>
-                <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="hydro-details"><summary><span>메모</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="hydroNotesInput">메모</label><textarea id="hydroNotesInput" rows="5"></textarea></div></div></details>
+                <details class="ui-disclosure editor-disclosure editor-info-section" data-od-id="hydro-details"><summary><span>비고</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary><div class="editor-disclosure-body"><div class="ui-field field-group editor-field"><label for="hydroNotesInput">비고</label><textarea id="hydroNotesInput" rows="5"></textarea></div></div></details>
               </div>
               <div class="ui-info-list editor-info-list editor-property-list">
                 <div><span>분류</span><strong id="hydroCategoryValue">—</strong></div>
