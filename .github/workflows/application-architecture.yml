@@ -302,11 +302,15 @@ jobs:
           if-no-files-found: error
 
   preview-handoff:
-    name: Direct edit preview and end-to-end continuity (M2/M7)
+    name: Direct edit preview and end-to-end continuity (M2/M7, ${{ matrix.renderer }})
     needs: changes
     if: needs.changes.outputs.preview-handoff == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        renderer: [webgl2, canvas]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -359,12 +363,12 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify M7 per-frame ownership through Workers, topology and GPU upload plus M2 editing UI
-        run: pnpm exec playwright test tests/browser/edit-preview-handoff.spec.mjs
+        run: pnpm exec playwright test tests/browser/edit-preview-handoff.spec.mjs --grep='${{ matrix.renderer }} '
       - name: Upload M2/M7 browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: edit-preview-handoff-evidence
+          name: edit-preview-handoff-evidence-${{ matrix.renderer }}
           path: test-results
           if-no-files-found: error
 
