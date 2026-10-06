@@ -7,7 +7,57 @@ import { defaultUserPreferences, STORAGE_KEY } from '../../assets/js/modules/use
 test.use({ viewport: { width: 1440, height: 900 }, trace: 'off',
   launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
 
-async function observe(page) {
+async function observe(page, continuity = false, renderer = 'webgl2') {
+  if (continuity) await page.addInitScript(renderer => {
+    window.__m7 = { renderer, tracking: false, holdUploads: false, blockedUploads: 0, frames: [] };
+    window.__m7Frame = frame => {
+      const proof = window.__m7;
+      if (!proof.tracking) return;
+      const point = proof.point;
+      const contains = coordinates => Array.isArray(coordinates) && (typeof coordinates[0] === 'number'
+        ? Math.hypot(coordinates[0] - point[0], coordinates[1] - point[1]) < 0.00002
+        : coordinates.some(contains));
+      const visible = node => {
+        for (let parent = node; parent; parent = parent.parentElement) {
+          const style = getComputedStyle(parent);
+          if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) return false;
+        }
+        const style = getComputedStyle(node);
+        return style.stroke !== 'none' && Number(style.strokeOpacity) > 0 && parseFloat(style.strokeWidth) > 0;
+      };
+      const packet = window.__m2Preview().packet()?.packet;
+      const lines = [];
+      if (packet) for (let index = 0; index < packet.startsEnds.length; index += 4) lines.push([
+        [packet.startsEnds[index], packet.startsEnds[index + 1]], [packet.startsEnds[index + 2], packet.startsEnds[index + 3]],
+      ]);
+      const directPath = packet ? frame.projectPath({ type: 'Feature', properties: {},
+        geometry: { type: 'MultiLineString', coordinates: lines } }) : null;
+      const direct = [...document.querySelectorAll('.map-direct-preview')].filter(node => visible(node)
+        && packet && directPath && node.getAttribute('d') === directPath && packet.startsEnds.some((_, index, values) => index % 2 === 0
+          && Math.hypot(values[index] - point[0], values[index + 1] - point[1]) < 0.00002))
+        .map(() => packet.key);
+      const svg = [...document.querySelectorAll('.geometry-preview-new-boundary')].filter(node => visible(node)
+        && contains(node.__data__?.geometry?.coordinates) && node.getAttribute('d')
+        && node.getAttribute('d') === frame.projectPath({ type: 'Feature', properties: {}, geometry: node.__data__.geometry }))
+        .map(node => node.getAttribute('data-object-key'));
+      const gpu = window.__m2.draws.filter(row => row.frameId === frame.frameId && row.painted
+        && row.coordinates.some((_, index, values) => index % 2 === 0
+          && Math.hypot(values[index] - point[0], values[index + 1] - point[1]) < 0.00002))
+        .map(row => row.key);
+      proof.frames.push({ frameId: frame.frameId, viewRevision: frame.viewRevision, projectionRevision: frame.projectionRevision,
+        projectGeneration: frame.projectGeneration, projectedPoint: frame.projectVisibleCoordinate(point),
+        phase: window.__m2.hold || (proof.holdUploads ? 'gpu-upload' : 'presented'),
+        status: window.__m2Preview().snapshot().status, direct, svg, gpu, owners: direct.length + svg.length + gpu.length });
+    };
+  }, renderer);
+  if (continuity && renderer === 'webgl2') await page.route('**/modules/map-render-coordinator.js*', async route => {
+    const response = await route.fetch(), original = await response.text();
+    // Includes GPU_FRAME / GPU_INTERACTION upload-completion frames, which do
+    // not necessarily commit view-attached layers again. Observe after all passes.
+    const body = original.replace('metrics.lastRenderMs = Math.max(0, now() - startedAt);',
+      'window.__m7Frame(viewState); metrics.lastRenderMs = Math.max(0, now() - startedAt);');
+    expect(body).not.toBe(original); await route.fulfill({ response, body });
+  });
   await page.addInitScript(() => {
     window.__m2 = { hold: '', releases: [], results: [], draws: [], presentations: [], handoffs: [], waits: [] };
     window.addEventListener('error', event => {
@@ -86,6 +136,7 @@ export function createGeometryPreview() {
   await page.route('**/modules/rendering-domain.js*', async route => {
     const response = await route.fetch(), original = await response.text();
     const body = original.replace('export function createRenderingDomain(', 'function createObservedRendering(')
+      .replace('gpuMapRenderer?.commitVisualFrame?.(frame);', "gpuMapRenderer?.commitVisualFrame?.(frame); if (window.__m7?.renderer === 'canvas') window.__m7Frame(frame);")
       .replace('const completeEditPreviewHandoff = (frame, gpuResult, objectPresentation = null, { canvasPresented = false } = {}) => {', `
 const completeEditPreviewHandoff = (frame, gpuResult, objectPresentation = null, { canvasPresented = false } = {}) => {
 if (editPreviewController?.snapshot().status === 'successor-ready') window.__m2.presentations.push({
@@ -113,6 +164,14 @@ export function createRenderingDomain(options) {
     const frame = options.prepareView(...args); window.__m2Frames.set(frame.frameId, frame); return frame;
   } }); window.__m2Rendering = domain; return domain;
 }`;
+    expect(body).not.toBe(original); await route.fulfill({ response, body });
+  });
+  if (continuity) await page.route('**/modules/gpu-upload-scheduler.js*', async route => {
+    const response = await route.fetch(), original = await response.text();
+    const body = original.replace('const result = job.step(', `if (job.key.endsWith(':stroke-prepared') && window.__m7.holdUploads) {
+      window.__m7.blockedUploads++; continue;
+    }
+    const result = job.step(`);
     expect(body).not.toBe(original); await route.fulfill({ response, body });
   });
   await page.route('**/modules/gpu-stroke-renderer.js*', async route => {
@@ -151,7 +210,7 @@ test.afterEach(async ({ page }) => {
   if (test.info().status === test.info().expectedStatus) return;
   await writeFile(test.info().outputPath('failure-observations.json'), JSON.stringify(await page.evaluate(() => ({
     observed: window.__m2, selected: window.__m2State?.().selected,
-    preview: window.__m2Preview?.().snapshot(), editing: window.__m2EditingPacket?.(),
+    preview: window.__m2Preview?.().snapshot(), editing: window.__m2EditingPacket?.(), continuity: window.__m7,
   })), null, 2));
 });
 
@@ -180,7 +239,7 @@ async function loadProjectFile(page, project, name) {
 }
 
 async function openApp(page, renderer, staticInput = false) {
-  await observe(page);
+  await observe(page, staticInput, renderer);
   await page.goto(`/?debug=1&renderer=${renderer}&demTerrain=raster`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#terrainNoneRadio').evaluate(input => input.click());
@@ -200,9 +259,11 @@ async function openApp(page, renderer, staticInput = false) {
     await loadProjectFile(page, project, 'static-boundary');
   }
   if (staticInput) {
-    await page.locator('#objectSearchBtn').click();
-    await page.locator('#layerSearchInput').fill('A 영토');
-    await page.locator('#layerSearchResults .layer-search-result-select').first().click();
+    await expect.poll(() => page.evaluate(() => !!window.PANDOLAB_TERRITORIAL.get('A')), { timeout: 30_000 }).toBe(true);
+    await page.evaluate(() => {
+      window.__m2.selectionSetup = { entities: window.PANDOLAB_TERRITORIAL.list().map(feature => ({ id: feature.id, kind: feature.properties.entityKind, name: feature.properties.name })),
+        found: !!window.PANDOLAB_TERRITORIAL.get('A'), accepted: window.PANDOLAB_TERRITORIAL.select('A') };
+    });
     await expect.poll(() => page.evaluate(() => window.__m2State().selected)).toMatchObject({ domain: 'territorial', type: 'entity', id: 'A' });
   } else await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   const focusAfterFrame = await page.evaluate(() => [...window.__m2Frames.values()].at(-1).frameId);
@@ -233,7 +294,6 @@ async function moveHandle(page, selector, preferredCoordinate = null) {
   await page.mouse.down();
   const original = (await snapshot(page)).coordinates;
   await page.mouse.move(box.x + box.width / 2 + 20, box.y + box.height / 2 - 14, { steps: 4 });
-  await page.mouse.up();
   const moved = await snapshot(page);
   expect(moved.coordinates.length).toBeGreaterThan(0);
   const editedCoordinate = [];
@@ -245,7 +305,15 @@ async function moveHandle(page, selector, preferredCoordinate = null) {
     }
   }
   expect(editedCoordinate).toHaveLength(2);
-  return { ...moved, editedCoordinate };
+  const continuity = await page.evaluate(point => {
+    if (!window.__m7) return false;
+    window.__m7.point = point; window.__m7.tracking = true;
+    window.__m2Rendering.invalidateViewport('m7-dragging'); return true;
+  }, editedCoordinate);
+  if (continuity) await expect.poll(() => page.evaluate(() => window.__m7.frames.some(row => row.status === 'dragging'
+    && row.owners > 0)), { timeout: 120_000 }).toBe(true);
+  await page.mouse.up();
+  return { ...await snapshot(page), editedCoordinate };
 }
 
 async function projectPendingLine(page, moved) {
@@ -281,11 +349,15 @@ async function projectPendingLine(page, moved) {
 }
 
 for (const renderer of ['webgl2', 'canvas']) {
-  for (const { kind, staticInput = false } of [{ kind: 'coastline' }, { kind: 'shared-boundary' },
-    ...(renderer === 'canvas' ? [{ kind: 'shared-boundary', staticInput: true }] : [])])
-    test(`${renderer} ${staticInput ? 'static ' : ''}${kind} retains the moved line through both production Worker results`, async ({ page }) => {
+  for (const { kind, staticInput = false, cancel = false } of [{ kind: 'coastline' }, { kind: 'shared-boundary' },
+    { kind: 'shared-boundary', staticInput: true }, ...(renderer === 'webgl2' ? [{ kind: 'shared-boundary', staticInput: true, cancel: true }] : [])])
+    test(`${renderer} ${staticInput ? 'M7 static ' : ''}${kind} retains the moved line through both production Worker results${cancel ? ' and discards it with outlines off' : ''}`, async ({ page }) => {
     test.setTimeout(renderer === 'canvas' ? 540_000 : 360_000);
     const errors = []; page.on('pageerror', error => errors.push(error.message));
+    if (cancel) {
+      const preferences = defaultUserPreferences(); preferences.selection.outlineVisible = false;
+      await page.addInitScript(({ key, preferences }) => localStorage.setItem(key, JSON.stringify(preferences)), { key: STORAGE_KEY, preferences });
+    }
     await openApp(page, renderer, staticInput);
     const button = page.locator(kind === 'coastline' ? '#editEntityCoastBtn' : '#editEntityBorderBtn');
     await expect(button).toBeEnabled({ timeout: 60_000 });
@@ -302,6 +374,10 @@ for (const renderer of ['webgl2', 'canvas']) {
     await page.evaluate(() => { window.__m2.hold = 'boundary-move'; });
     const moved = await moveHandle(page, kind === 'coastline' ? '.country-vertex:not(.fixed-boundary-vertex)'
       : '.shared-boundary-vertex:not(.fixed-boundary-vertex)', staticInput ? [16, 52] : null);
+    if (staticInput) await page.evaluate(point => {
+      window.__m7.point = point; window.__m7.tracking = true;
+      window.__m2Rendering.invalidateViewport('m7-start');
+    }, moved.editedCoordinate);
     await expect.poll(() => page.evaluate(() => window.__m2.results.length), { timeout: 60_000 }).toBe(1);
     expect((await snapshot(page)).coordinates).toEqual(moved.coordinates);
     await expect.poll(async () => (await snapshot(page)).status).toBe('pending-result');
@@ -309,6 +385,11 @@ for (const renderer of ['webgl2', 'canvas']) {
     await page.evaluate(() => window.__m2Release('territorial-edit'));
     await expect.poll(() => page.evaluate(() => window.__m2.results.length), { timeout: 60_000 }).toBe(2);
     expect((await snapshot(page)).coordinates).toEqual(moved.coordinates);
+    if (staticInput) {
+      await page.evaluate(() => window.__m2Rendering.invalidateViewport('m7-territorial-edit-wait'));
+      await expect.poll(() => page.evaluate(() => window.__m7.frames.some(row => row.phase === 'territorial-edit')),
+        { timeout: 120_000 }).toBe(true);
+    }
     if (kind === 'shared-boundary') {
       const delta = await page.evaluate(() => window.__m2.results.at(-1).result.preview.delta);
       expect(delta.addedGeometry).toBeNull();
@@ -321,7 +402,27 @@ for (const renderer of ['webgl2', 'canvas']) {
       window.__m2.boundaryRelease = { frameId, at: performance.now() };
       return frameId;
     });
+    if (staticInput && renderer === 'webgl2' && !cancel) await page.evaluate(() => { window.__m7.holdUploads = true; });
     await page.evaluate(() => window.__m2Release());
+    if (cancel) {
+      await expect.poll(async () => (await snapshot(page)).status, { timeout: 60_000 }).toBe('successor-ready');
+      const history = await page.evaluate(() => window.__m2History());
+      await page.keyboard.press('Escape');
+      await expect.poll(async () => (await snapshot(page)).status).toBe('idle');
+      await expect.poll(() => page.evaluate(() => window.__m2State().geometryPreview.session)).toBeNull();
+      await expect(page.locator('.map-direct-preview')).toHaveCount(0);
+      expect(await page.evaluate(() => window.__m2History())).toEqual(history);
+      expect(errors).toEqual([]);
+      await writeFile(test.info().outputPath('m7-outline-off-discard.json'), JSON.stringify(await page.evaluate(() => ({
+        continuity: window.__m7, preview: window.__m2Preview().snapshot(), tool: window.__m2State().tool,
+      })), null, 2));
+      return;
+    }
+    if (staticInput && renderer === 'webgl2') {
+      await expect.poll(() => page.evaluate(() => window.__m7.blockedUploads), { timeout: 30_000 }).toBeGreaterThan(2);
+      await expect.poll(() => page.evaluate(() => window.__m7.frames.filter(row => row.phase === 'gpu-upload').length)).toBeGreaterThan(0);
+      await page.evaluate(() => { window.__m7.holdUploads = false; });
+    }
     if (renderer === 'canvas') {
       // The production bitmap may still be behind earlier rotation/redraws.
       // Wait for actual accepted presentation before judging the handoff.
@@ -351,6 +452,20 @@ for (const renderer of ['webgl2', 'canvas']) {
         .some(coordinate => Math.hypot(coordinate[0] - point[0], coordinate[1] - point[1]) < 0.00002));
     }, { handoff, point: moved.editedCoordinate });
     expect(proof).toBe(true);
+    if (staticInput) {
+      if (renderer === 'webgl2') await expect.poll(() => page.evaluate(point => window.__m2.draws.some(row => row.painted
+        && row.key.includes('geometry-preview-new-boundary') && row.coordinates.some((_, index, values) => index % 2 === 0
+          && Math.hypot(values[index] - point[0], values[index + 1] - point[1]) < 0.00002)), moved.editedCoordinate), { timeout: 60_000 }).toBe(true);
+      const continuity = await page.evaluate(() => { window.__m7.tracking = false; return window.__m7; });
+      await writeFile(test.info().outputPath(`${renderer}-m7-continuity.json`), JSON.stringify(continuity, null, 2));
+      expect(continuity.frames.length).toBeGreaterThan(3);
+      expect(continuity.frames.filter(row => row.owners === 0)).toEqual([]);
+      expect(continuity.frames.some(row => row.status === 'dragging')).toBe(true);
+      expect(continuity.frames.some(row => row.phase === 'boundary-move')).toBe(true);
+      expect(continuity.frames.some(row => row.phase === 'territorial-edit')).toBe(true);
+      expect(continuity.frames.some(row => row.frameId === handoff.frame.frameId && (row.svg.length || row.gpu.length))).toBe(true);
+      if (renderer === 'webgl2') expect(continuity.frames.some(row => row.phase === 'gpu-upload')).toBe(true);
+    }
     const history = await page.evaluate(() => window.__m2History());
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
     await page.locator('#modePrimaryBtn').click();

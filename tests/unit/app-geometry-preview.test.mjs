@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { createGeometryPreview } from '../../assets/js/modules/app-geometry-preview.js';
+import { createEditPreviewController } from '../../assets/js/modules/edit-preview-controller.js';
 import {
   beginGeometryPreview,
   clearGeometryPreview,
@@ -70,7 +71,7 @@ function fixture({ execute } = {}) {
     readiness: { reliabilityDiagnostic: [] },
     snapshots: { snapshotEditable: () => ({ snapshot: true }) },
     spatialFactories: {
-      createEditPreviewController() { return {}; },
+      createEditPreviewController,
     },
     spatialQuery: {
       mapEditClient,
@@ -90,8 +91,31 @@ function fixture({ execute } = {}) {
       restoreEditTransactionSnapshot(snapshot) { calls.push(['restore', snapshot]); },
     },
   });
+  preview.initializeEditPreviewController();
   return { preview, state, calls, mapEditClient };
 }
+
+test('discard clears only the direct preview awaiting that geometry session, preserving a newer drag', () => {
+  const { preview, state } = fixture();
+  const owner = preview.editPreviewController;
+  const begin = () => owner.begin({ projectGeneration: 1, tool: 'territorial-border', targetRefs: [] });
+  const id = begin();
+  owner.update([[[0, 0], [1, 1]]]);
+  owner.waitForResult(id);
+  state.geometryPreview.session = { sessionId: 'discarded', revision: 1 };
+  owner.handoff(id, { kind: 'geometry-preview', sessionId: 'discarded', revision: 1 });
+  assert.ok(owner.packet());
+  assert.equal(preview.discardActiveGeometryPreview({ announce: false }), true);
+  assert.equal(owner.snapshot().status, 'idle');
+  assert.equal(owner.packet(), null);
+  const newer = begin();
+  owner.update([[[0, 0], [2, 2]]]);
+  state.geometryPreview.session = { sessionId: 'old', revision: 1 };
+  preview.discardActiveGeometryPreview({ announce: false });
+  assert.equal(owner.snapshot().id, newer);
+  assert.equal(owner.snapshot().status, 'dragging');
+  assert.ok(owner.packet());
+});
 
 test('worker geometry preview resolves affected entities through the supplied resolver', async () => {
   const before = {
