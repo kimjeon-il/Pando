@@ -147,6 +147,16 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   expect(await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision)).toBe(addRevision);
   await expect(rows).toHaveCount(2);
   await expect(page.locator('#entityChildInput option[value="C"], #entityChildInput option[value="A"], #entityChildInput option[value="B"]')).toHaveCount(0);
+  const assertAddButtonFits = async () => {
+    const shape = await page.locator('#entityAddChildBtn').evaluate(button => {
+      const range = document.createRange(); range.selectNodeContents(button);
+      return { lines: [...range.getClientRects()].filter(rect => rect.width > 0).length,
+        fits: button.scrollWidth <= button.clientWidth,
+        rowFits: button.parentElement.scrollWidth <= button.parentElement.clientWidth };
+    });
+    expect(shape).toEqual({ lines: 1, fits: true, rowFits: true });
+  };
+  await assertAddButtonFits();
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath('relations-desktop.png') });
   await page.locator('#editorTabBtn').click();
 
@@ -156,6 +166,7 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await page.locator('#relationTabBtn').click();
   await rows.last().scrollIntoViewIfNeeded();
   expect(await rows.last().evaluate(row => row.scrollWidth <= row.clientWidth)).toBe(true);
+  await assertAddButtonFits();
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath('info-mobile.png') });
   await page.locator('#editorTabBtn').click();
   await page.locator('#entityNotesInput').scrollIntoViewIfNeeded();

@@ -6,6 +6,11 @@ import { assertCurrentProjectSchema } from '../../assets/js/modules/project-stat
 
 async function openMap(page) {
   page.setDefaultTimeout(12_000);
+  await page.addInitScript(() => document.addEventListener('pointermove', event => {
+    window.__countryHoverPointer = { x: event.clientX, y: event.clientY, pointerType: event.pointerType,
+      target: event.target.closest('svg')?.getAttribute('class') || event.target.tagName,
+      label: event.target.closest('[data-label-id]')?.dataset.labelId || null };
+  }, true));
   await page.goto('/?debug=1&renderer=canvas&demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 }
@@ -14,7 +19,17 @@ const view = page => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewSta
 const revision = page => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision);
 async function assertTooltip(page, name) {
   const tooltip = page.locator('#uiTooltip[data-kind="country"]');
-  await expect(tooltip).toBeVisible();
+  try { await expect(tooltip).toBeVisible(); }
+  catch (error) {
+    await test.info().attach('hover-integration-diagnostics', { contentType: 'application/json', body: JSON.stringify(await page.evaluate(() => ({
+      pointer: window.__countryHoverPointer,
+      media: window.matchMedia('(hover: hover) and (pointer: fine)').matches,
+      svgRoots: [...document.querySelectorAll('#map > svg')].map(node => node.getAttribute('class')),
+      tooltip: document.querySelector('#uiTooltip').outerHTML,
+      selectionInput: window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput,
+    })), null, 2) });
+    throw error;
+  }
   await expect(tooltip.locator('span')).toHaveText(name);
   await expect(tooltip.locator('img')).toHaveCount(1);
   expect(await tooltip.evaluate(node => ({ pointerEvents: getComputedStyle(node).pointerEvents,
@@ -60,9 +75,19 @@ for (const width of [1366, 1024]) test(`country hover only identifies; one label
 test('area hover, long names, header commands and color use the current editor target', async ({ page }, testInfo) => {
   test.setTimeout(150_000); await page.setViewportSize({ width: 1366, height: 900 }); await openMap(page);
   const box = await page.locator('#map').boundingBox();
-  const point = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.project([10, 49]));
+  const point = await page.evaluate(() => {
+    const map = document.querySelector('#map').getBoundingClientRect();
+    for (const coordinate of [[10, 49], [10, 50], [9, 51], [12, 51], [12, 52]]) {
+      const projected = window.__PANDOLAB_MAP_HOST__.project(coordinate);
+      const target = document.elementFromPoint(map.x + projected[0], map.y + projected[1]);
+      if (target?.closest('#map') && !target.closest('.territorial-label-item')) return projected;
+    }
+    throw new Error('No unobscured German territory sample was found for the area-hover regression.');
+  });
   const before = await view(page), initialRevision = await revision(page);
   await page.mouse.move(box.x + point[0], box.y + point[1]); await assertTooltip(page, '독일');
+  expect(await page.evaluate(() => window.__countryHoverPointer.label)).toBeNull();
+  await page.screenshot({ path: testInfo.outputPath('country-area-hover.png') });
   expect(await revision(page)).toBe(initialRevision);
   await page.mouse.click(box.x + point[0], box.y + point[1]);
   await expect(page.locator('#entityNameInput')).toHaveValue('독일');
@@ -125,6 +150,7 @@ for (const width of [1366, 390]) test(`pinned country label over another territo
     await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
     await openMap(page);
     const namedLabel = label(page); await expect(namedLabel).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.querySelector('.territorial-label-layer').dataset.viewRevision === String(window.__PANDOLAB_VIEW_STATE__.revision))).toBe(true);
     const mapBox = await page.locator('#map').boundingBox(), labelBox = await namedLabel.boundingBox();
     const pinned = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.project([0, 8]));
     expect(Math.abs(labelBox.x + labelBox.width / 2 - mapBox.x - pinned[0])).toBeLessThan(12);

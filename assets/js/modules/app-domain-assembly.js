@@ -804,6 +804,7 @@ export function createDomainAssembly() {
         mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
         handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
         handleMapClick: dependencies.objectPicking.handleMapClick,
+        getTerritorialLabelRef: dependencies.objectPicking.getTerritorialLabelRef,
         countryName: dependencies.objectPresentation.territorialEntityName,
         layerStyle: dependencies.applicationServicesB.layerStyle,
         isMobile: dependencies.surfaces.isMobile,

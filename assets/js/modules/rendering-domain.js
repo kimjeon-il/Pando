@@ -299,7 +299,7 @@ export function createRenderingDomain({
       .style('opacity', labels.layerStyle?.(state.layerPresentation, 'countryLabels').opacity)
       .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200))
       .attr('transform', d => {
-        const settings = labels.automaticLabelSettings?.('country', labels.labelSettings?.(state, 'country', d.id) || {});
+        const settings = labels.automaticLabelSettings?.('country', labels.labelSettings(state, 'territorial', labels.getTerritorialLabelRef(d.id).id));
         const anchor = settings?.pinned && settings.manualPosition
           ? settings.manualPosition
           : labels.countryLabelAnchors?.()?.get?.(String(d.id || ''));
@@ -323,7 +323,7 @@ export function createRenderingDomain({
         image.setAttribute('width', flag.width); image.setAttribute('height', flag.height);
         if (image.getAttribute('href') !== flag.url) image.setAttribute('href', flag.url);
       } else image.removeAttribute('href');
-      const settings = labels.automaticLabelSettings?.('country', labels.labelSettings?.(state, 'country', feature.id) || {});
+      const settings = labels.automaticLabelSettings?.('country', labels.labelSettings(state, 'territorial', labels.getTerritorialLabelRef(feature.id).id));
       const coordinate = settings?.pinned && settings.manualPosition ? settings.manualPosition : labels.countryLabelAnchors?.()?.get?.(String(feature.id || ''));
       territorialLabelPositionBindings.push({ node: this, coordinate: coordinate?.slice() });
     });
