@@ -127,7 +127,7 @@ export async function refuseFiniteActivation(page, testInfo, id, errors) {
   await testInfo.attach('finite-activation-atomicity', { path: proofPath, contentType: 'application/json' });
   expect(after).toEqual(before);
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.list()
-    .some(entity => entity.properties.sourceLibraryId === id), id)).toBe(false);
+    .some(entity => entity.properties.sourceEntityId === id), id)).toBe(false);
   await page.locator('#historicalLibraryCloseBtn').click();
   // These commands restore the complete baseline archive. Their actual click
   // work exceeded the small selector timeout in the isolated USSR case.

@@ -1,3 +1,4 @@
+import {TERRITORIAL_SCHEMA_VERSION} from '../../assets/js/modules/territorial-units.js';
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 import { createEmptyTerritorialState, createTerritorialEntityStore, createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
@@ -6,8 +7,8 @@ import { DISTRIBUTION_MODES } from '../../assets/js/modules/distribution-model.j
 export function projectForStorage(row = timelineStorageCases()[0]) {
   return {
     territorialEntities: row.entities.map(({ id, entityKind }) => ({ type: 'Feature', id,
-      geometry: null, properties: { schemaVersion: 5, entityKind, name: id, notes: '',
-        style: {}, locked: false, metadata: {}, sourceFolderId: '', sourceLibraryId: '', sourceGeometryVersion: '' } })),
+      geometry: null, properties: { schemaVersion: TERRITORIAL_SCHEMA_VERSION, entityKind, name: id, notes: '',
+        style: {}, locked: false, metadata: {}, sourceFolderId: '', sourceEntityId: '', sourceGeometryVersion: '' } })),
     projectFields: { timelineRecords: structuredClone(row.input.records),
       geometries: structuredClone(row.input.geometries), sourceInfo: null, labels: [],
       genericFeatures: [], hydroEdits: [], distributionLayers: [], distributionEntries: [],

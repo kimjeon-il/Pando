@@ -168,7 +168,7 @@ test('static library merge preserves source metadata, flag, geometry version and
   const result = await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId);
   assert.equal(result.added, 1);
   const added = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => h.state }) }).get(h.entityId);
-  assert.equal(added.properties.sourceLibraryId, h.entityId);
+  assert.equal(added.properties.sourceEntityId, h.entityId);
   assert.equal(added.properties.sourceGeometryVersion, 'fixture:1');
   assert.equal(added.properties.metadata.flagDataUrl, 'data:image/svg+xml;base64,ZmxhZw==');
   assert.equal(added.properties.metadata.fixtureProvenance, 'immutable-source');

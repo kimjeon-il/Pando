@@ -1,5 +1,5 @@
 import '../gis-adapters.js';
-import { territorialRootId, normalizeTerritorialIdentities } from './territorial-units.js';
+import { territorialRootId, normalizeTerritorialIdentities, TERRITORIAL_SCHEMA_VERSION } from './territorial-units.js';
 import { prepareProjectForActivation } from './project-state.js';
 import { createGeometryVersionStore } from './geometry-version-store.js';
 import { staticTimelineViews } from './timeline-static-view.js';
@@ -87,11 +87,11 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       const parentId = kind === 'general' ? field('parentField', properties.parent_id ?? mapping.parentId ?? '') : properties.parent_id || '';
       const value = globalThis.PandoLabGisAdapters.importTerritorialFeature({ ...raw,
         id: importedId, properties: { ...properties,
-          properties_json: properties.properties_json || (properties.schemaVersion === 5 ? JSON.stringify(properties) : '{}'),
+          properties_json: properties.properties_json || (properties.schemaVersion === TERRITORIAL_SCHEMA_VERSION ? JSON.stringify(properties) : '{}'),
           id: importedId, name: field('nameField', properties.name),
           parent_id: parentId, color: field('colorField', properties.color),
         },
-      }, table, index);
+      }, table, index, TERRITORIAL_SCHEMA_VERSION);
       if (!value) throw new Error('가져온 객체 형식이 올바르지 않습니다.');
       value.geometry = normalizePolygonGeometry(value.geometry);
       if (!value.geometry) throw new Error('가져온 객체 형상이 올바르지 않습니다.');
