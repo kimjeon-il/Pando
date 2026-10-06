@@ -189,11 +189,7 @@ export function createLifecycleAssembly() {
             mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
             screenToGeo: dependencies.mapView.screenToGeo,
             queueCountryHoverPick: dependencies.pointerInteractionA.queueCountryHoverPick,
-            getTerritorialLabelRef: labelId => {
-              const ref = dependencies.countries.builtinTerritorialScene().labelRefs.get(labelId);
-              const entity = dependencies.territorialModel.entityRepository.get(labelId);
-              return ref || (entity ? { domain: 'territorial', type: 'entity', id: entity.id } : null);
-            },
+            getTerritorialLabelRef: dependencies.objectPicking.getTerritorialLabelRef,
           });
             mapDebug.installRenderFacade();
         },

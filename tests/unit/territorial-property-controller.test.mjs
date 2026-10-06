@@ -142,12 +142,13 @@ test('relation controls target parent and child explicitly and GPS never retarge
 });
 
 function flagFixture(commit = () => {}) {
-  const readers = [], errors = [], flags = [];
+  const readers = [], errors = [], flags = [], libraries = [];
   let generation = 1;
   const state = setup({
     window: { ...editorNode(), setTimeout() {}, FileReader: class {
       constructor() { const node = editorNode(); node.readAsDataURL = () => {}; readers.push(node); return node; }
     } },
+    openFlagLibrary: options => { libraries.push(options); },
     getProjectGeneration: () => generation,
     commitFlag: (...args) => { commit(...args); flags.push(args); },
     reportFlagError: error => errors.push(error),
@@ -157,7 +158,7 @@ function flagFixture(commit = () => {}) {
     state.fields.get('flagUploadBtn').click();
     const input = state.fields.get('flagFileInput'); input.files = [{}]; input.dispatch('change');
   };
-  return { ...state, upload, readers, errors, flags, changeProject: () => { generation++; } };
+  return { ...state, upload, readers, errors, flags, libraries, changeProject: () => { generation++; } };
 }
 
 for (const invalidation of ['project', 'selection', 'clear', 'dispose', 'lock']) test(`pending flag read cannot commit after ${invalidation} change`, () => {
@@ -198,4 +199,18 @@ test('child relation rows use the real GPS and remove icons and keep locked chil
   assert.equal(actions[0].children[0].children[0].getAttribute('href'), '#icon-focus-target');
   assert.equal(actions[1].children[0].children[0].getAttribute('href'), '#icon-minus');
   assert.equal(actions[1].disabled, true);
+});
+
+for (const operation of ['upload', 'library']) test(`pending flag ${operation} cannot survive lock then unlock; a fresh choice can commit`, () => {
+  const state = flagFixture();
+  if (operation === 'upload') state.upload();
+  else state.fields.get('flagLibraryBtn').click();
+  const feature = state.views.get(state.a.key).feature;
+  feature.properties.locked = true; state.controller.syncInteraction();
+  feature.properties.locked = false; state.controller.syncInteraction();
+  if (operation === 'upload') { state.readers[0].result = 'data:image/png;base64,stale'; state.readers[0].dispatch('load'); }
+  else state.libraries[0].onPickFlag('data:image/png;base64,stale');
+  assert.deepEqual(state.flags, []);
+  state.upload(); state.readers.at(-1).result = 'data:image/png;base64,fresh'; state.readers.at(-1).dispatch('load');
+  assert.deepEqual(state.flags, [[state.a, 'data:image/png;base64,fresh']]);
 });

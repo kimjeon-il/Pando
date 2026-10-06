@@ -202,7 +202,7 @@ export function createTerritorialPropertyController({
 
   const refresh = entityRef => present(entityRef, { refreshOnly: true });
 
-  let activeRef = null, flagReadRevision = 0, pendingUpload = null;
+  let activeRef = null, flagReadRevision = 0, pendingUpload = null, wasMutationBlocked = false;
   const closeFlag = ({ restoreFocus = false } = {}) => {
     const menu = $('flagMenu');
     if (!menu?.matches(':popover-open')) return false;
@@ -239,6 +239,8 @@ export function createTerritorialPropertyController({
   function syncInteraction() {
     if (!activeRef) return;
     const blocked = isMutationBlocked(activeRef);
+    if (blocked && !wasMutationBlocked) { flagReadRevision += 1; pendingUpload = null; }
+    wasMutationBlocked = blocked;
     $('flagMenuBtn').disabled = blocked;
     $('entityColorTrigger').disabled = blocked;
     if (blocked) closeTransient();
@@ -260,7 +262,7 @@ export function createTerritorialPropertyController({
     if (!validFlagTarget(target)) return;
     try { commitFlag(target.ref, value); } catch (error) { reportFlagError(error); }
   };
-  const clear = () => { flagReadRevision += 1; pendingUpload = null; closeTransient(); activeRef = null; };
+  const clear = () => { flagReadRevision += 1; pendingUpload = null; closeTransient(); activeRef = null; wasMutationBlocked = false; };
 
   const bind = () => {
     if (bound || disposed) return api;
