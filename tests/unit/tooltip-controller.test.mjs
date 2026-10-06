@@ -45,3 +45,39 @@ test('touch and a pointer outside the map cannot display country hover', () => {
   controller.setMapHover({ name: 'Country' });
   assert.equal(tooltip.classList.contains('hidden'), true);
 });
+
+for (const dismissal of ['pointerdown', 'resize', 'keydown']) test(`fresh same-country movement resumes after ${dismissal} without a new domain hover change`, async () => {
+  const { createSelectionDomain } = await import('../../assets/js/modules/selection-domain.js');
+  const state = fixture();
+  const domain = createSelectionDomain({ onHoverChanged: snapshot => state.controller.setMapHover(snapshot.hover ? { name: snapshot.hover.id } : null) });
+  const move = (x, extra = {}) => state.document.dispatch('pointermove', { clientX: x, clientY: 100, pointerType: 'mouse', buttons: 0, target: { closest: selector => selector === '#map' ? {} : null }, ...extra });
+  const ref = { domain: 'territorial', type: 'entity', id: 'A' };
+  move(100); domain.setHover(ref, { source: 'map' });
+  const before = domain.snapshot();
+  assert.equal(state.tooltip.classList.contains('hidden'), false);
+  (dismissal === 'resize' ? state.window : state.document).dispatch(dismissal, { key: 'Escape' });
+  assert.equal(state.tooltip.classList.contains('hidden'), true);
+  move(100); assert.equal(state.tooltip.classList.contains('hidden'), true, 'stationary pointer does not undo dismissal');
+  move(101); domain.setHover(ref, { source: 'map' });
+  assert.equal(state.tooltip.classList.contains('hidden'), false);
+  assert.equal(domain.snapshot(), before, 'canonical same-ref hover remains deduplicated');
+  assert.equal(domain.size(), 0);
+  domain.setHover(null, { source: 'map' }); assert.equal(state.tooltip.classList.contains('hidden'), true);
+  move(102); domain.setHover(ref, { source: 'map' }); assert.equal(state.tooltip.classList.contains('hidden'), false);
+});
+
+test('dismissed map hover stays suppressed during buttons, gestures, touch and overlays', () => {
+  const { controller, tooltip, document, window } = fixture();
+  const move = (x, extra = {}) => document.dispatch('pointermove', { clientX: x, clientY: 100, buttons: 0, pointerType: 'mouse', target: { closest: selector => selector === '#map' ? {} : null }, ...extra });
+  move(100); controller.setMapHover({ name: 'A' }); document.dispatch('pointerdown');
+  move(101, { buttons: 1 }); assert.equal(tooltip.classList.contains('hidden'), true);
+  window.dispatch('pandolab:interaction-state', { detail: { active: true } });
+  move(102); assert.equal(tooltip.classList.contains('hidden'), true);
+  window.dispatch('pandolab:interaction-state', { detail: { active: false } });
+  assert.equal(tooltip.classList.contains('hidden'), true);
+  move(103, { pointerType: 'touch' }); assert.equal(tooltip.classList.contains('hidden'), true);
+  move(104, { target: { closest: () => ({}) } }); assert.equal(tooltip.classList.contains('hidden'), true);
+  move(105); assert.equal(tooltip.classList.contains('hidden'), false);
+  window.dispatch('pandolab:project-changed'); move(106);
+  assert.equal(tooltip.classList.contains('hidden'), true, 'project change invalidates cached presentation');
+});
