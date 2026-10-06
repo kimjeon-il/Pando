@@ -10,11 +10,19 @@ on:
       - 'assets/js/modules/object-action-registry.js'
       - 'assets/js/modules/object-registry-presenter.js'
       - 'assets/js/modules/phase1-ui-cleanup.js'
+      - 'assets/js/modules/territorial-property-controller.js'
+      - 'assets/js/modules/territorial-service.js'
+      - 'assets/js/modules/app-domain-assembly.js'
+      - 'assets/js/modules/app-environment.js'
       - 'index.html'
       - 'scripts/check-ui-*.mjs'
       - 'scripts/check-object-registry.mjs'
       - 'tests/unit/surface-controller.test.mjs'
       - 'tests/unit/object-registry.test.mjs'
+      - 'tests/unit/territorial-info-period.test.mjs'
+      - 'tests/unit/territorial-property-controller.test.mjs'
+      - 'tests/unit/territorial-service.test.mjs'
+      - 'tests/browser/info-tab-v9.spec.mjs'
       - 'docs/architecture/ui-*.md'
       - 'package.json'
       - 'pnpm-lock.yaml'
@@ -29,11 +37,19 @@ on:
       - 'assets/js/modules/object-action-registry.js'
       - 'assets/js/modules/object-registry-presenter.js'
       - 'assets/js/modules/phase1-ui-cleanup.js'
+      - 'assets/js/modules/territorial-property-controller.js'
+      - 'assets/js/modules/territorial-service.js'
+      - 'assets/js/modules/app-domain-assembly.js'
+      - 'assets/js/modules/app-environment.js'
       - 'index.html'
       - 'scripts/check-ui-*.mjs'
       - 'scripts/check-object-registry.mjs'
       - 'tests/unit/surface-controller.test.mjs'
       - 'tests/unit/object-registry.test.mjs'
+      - 'tests/unit/territorial-info-period.test.mjs'
+      - 'tests/unit/territorial-property-controller.test.mjs'
+      - 'tests/unit/territorial-service.test.mjs'
+      - 'tests/browser/info-tab-v9.spec.mjs'
       - 'docs/architecture/ui-*.md'
       - 'package.json'
       - 'pnpm-lock.yaml'
@@ -67,3 +83,40 @@ jobs:
 
       - name: Check UI contracts
         run: pnpm check:ui
+
+      - name: Check current info presenter and metadata contracts
+        run: |
+          pnpm exec eslint assets/js/modules/territorial-property-controller.js assets/js/modules/territorial-service.js assets/js/modules/app-domain-assembly.js assets/js/modules/app-environment.js tests/unit/territorial-info-period.test.mjs tests/unit/territorial-property-controller.test.mjs tests/unit/territorial-service.test.mjs tests/browser/info-tab-v9.spec.mjs
+          node --test tests/unit/territorial-info-period.test.mjs tests/unit/territorial-property-controller.test.mjs tests/unit/territorial-service.test.mjs tests/unit/territorial-metadata-command.test.mjs tests/unit/label-metadata-edit.test.mjs tests/unit/hydro-metadata-edit.test.mjs
+
+  info-tab:
+    name: Info tab hierarchy, focus and metadata UI
+    needs: ui-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify actual info tab editing and focus
+        run: pnpm exec playwright test tests/browser/info-tab-v9.spec.mjs
+      - name: Upload info tab browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: info-tab-v9-evidence
+          path: test-results
+          if-no-files-found: error

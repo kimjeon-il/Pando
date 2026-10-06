@@ -1,8 +1,26 @@
 import { territorialSelectionStatus } from './country-display.js';
+import { normalizeObjectRef } from './object-selection-controller.js';
+import { normalizeTemporalInterval } from './temporal.js';
+
+export function formatTerritorialPeriodInput({ validFrom, validTo }) {
+  return validFrom || validTo ? `${validFrom || ''} ~ ${validTo || ''}`.trim() : '';
+}
+
+export function parseTerritorialPeriodInput(value) {
+  const input = value.trim();
+  const parts = input ? input.split('~') : ['', ''];
+  if (parts.length !== 2) throw Object.assign(new Error('존속기간의 시작과 끝을 ~ 하나로 구분하세요.'), { code: 'PL-EDITOR-PERIOD' });
+  const { validFrom, validTo } = normalizeTemporalInterval(parts[0], parts[1]);
+  return { validFrom, validTo };
+}
 
 export function createTerritorialPropertyController({
   window,
+  document,
   elements = {},
+  entityRepository,
+  focusObject,
+  createIcon,
   getTerritorialView,
   getElement,
   territorialParentOptions,
@@ -23,20 +41,63 @@ export function createTerritorialPropertyController({
   metrics = {},
 } = {}) {
   const $ = getElement;
+  const listeners = [];
+  const listen = (element, type, handler) => {
+    element.addEventListener(type, handler);
+    listeners.push(() => element.removeEventListener(type, handler));
+  };
+  const clearPeriodError = () => {
+    $('entityPeriodInput').setCustomValidity('');
+    $('entityPeriodInput').removeAttribute('aria-invalid');
+  };
+  function presentRelations(view) {
+    const parent = entityRepository.parent(view.ref.id);
+    const children = entityRepository.children(view.ref.id);
+    const rowFor = feature => {
+      const related = getTerritorialView(normalizeObjectRef({ domain: 'territorial', type: 'entity', id: String(feature.id) }));
+      const row = document.createElement('div');
+      row.className = 'editor-info-relation-row';
+      const flag = document.createElement('span');
+      flag.className = 'editor-info-relation-flag';
+      if (related.flagUrl) {
+        const image = document.createElement('img');
+        image.src = related.flagUrl; image.alt = '';
+        flag.append(image);
+      }
+      const name = document.createElement('span');
+      name.className = 'editor-info-relation-name';
+      name.textContent = related.displayName;
+      const focus = document.createElement('button');
+      focus.type = 'button';
+      focus.className = 'ui-button icon-btn editor-info-relation-focus';
+      focus.dataset.infoRelationFocus = String(feature.id);
+      focus.dataset.tooltip = '선택 객체로 이동';
+      focus.setAttribute('aria-label', `${related.displayName}으로 이동`);
+      focus.append(createIcon('focus', 'ui-icon'));
+      row.append(flag, name, focus);
+      return row;
+    };
+    $('entityInfoParentRows').replaceChildren(...(parent ? [rowFor(parent)] : []));
+    $('entityInfoChildRows').replaceChildren(...children.map(rowFor));
+    $('entityInfoParent').hidden = !parent;
+    $('entityInfoChildren').hidden = !children.length;
+    $('entityInfoRelations').hidden = !parent && !children.length;
+  }
   function presentFields(view) {
     const properties = view.feature.properties;
     const general = properties.entityKind === 'general', nested = general && !!properties.parentId;
     elements.name.value = view.displayName;
     elements.notes.value = properties.notes;
-    $('entityValidFromInput').value = properties.validFrom || '';
-    $('entityValidToInput').value = properties.validTo || '';
+    $('entityPeriodInput').value = formatTerritorialPeriodInput(properties);
+    clearPeriodError();
+    presentRelations(view);
     const color = resolveColor(view);
     elements.color.value = color.value;
     syncColorPicker('entity', { value: color.value, defaultColor: defaultColor(view), isDefault: color.isDefault });
     $('entityParentRow').classList.toggle('hidden', !general);
     $('entityRegionalStatus').classList.toggle('hidden', general);
     replaceSelectOptions($('entityParentInput'), general ? territorialParentOptions(view.feature) : [], properties.parentId);
-    for (const control of [elements.name, elements.notes, $('entityParentInput'), $('entityValidFromInput'), $('entityValidToInput')]) control.disabled = properties.locked;
+    for (const control of [elements.name, elements.notes, $('entityParentInput'), $('entityPeriodInput')]) control.disabled = properties.locked;
     const actions = {
       addEntityChildBtn: general, annexEntityBtn: general, mergeEntityBtn: true,
       editEntityBorderBtn: general, redrawEntityBtn: !general, editEntityCoastBtn: general,
@@ -112,22 +173,43 @@ export function createTerritorialPropertyController({
   const clear = () => {};
 
   const bind = () => {
-    const bindField = (element, field, relation = false) => element?.addEventListener('change', event => {
+    const bindField = (element, field, relation = false) => listen(element, 'change', event => {
       const ref = getPrimaryRef();
       if (ref?.domain !== 'territorial') return;
-      const value = ['name', 'validFrom', 'validTo'].includes(field) ? event.target.value.trim() : event.target.value;
+      const value = field === 'name' ? event.target.value.trim() : event.target.value;
       if (relation) commitRelation(field, value);
       else commitField(ref, field, value);
     });
     bindField(elements.name, 'name'); bindField(elements.notes, 'notes');
-    bindField($('entityValidFromInput'), 'validFrom');
-    bindField($('entityValidToInput'), 'validTo');
+    listen($('entityPeriodInput'), 'input', clearPeriodError);
+    listen($('entityPeriodInput'), 'change', event => {
+      const ref = getPrimaryRef();
+      if (ref?.domain !== 'territorial') return;
+      const input = event.target;
+      const showError = message => {
+        input.setCustomValidity(message);
+        input.setAttribute('aria-invalid', 'true');
+        input.reportValidity();
+      };
+      let interval;
+      try { interval = parseTerritorialPeriodInput(input.value); }
+      catch (error) { showError(error.message); return; }
+      clearPeriodError();
+      const result = commitField(ref, 'validity', interval);
+      if (!result.ok) showError(result.issues?.[0] || '존속기간을 변경할 수 없습니다.');
+      else input.value = formatTerritorialPeriodInput(interval);
+    });
     bindField($('entityParentInput'), 'parentId', true);
+    listen($('entityInfoRelations'), 'click', event => {
+      const button = event.target.closest('[data-info-relation-focus]');
+      if (button) focusObject(normalizeObjectRef({ domain: 'territorial', type: 'entity', id: button.dataset.infoRelationFocus }));
+    });
     return api;
   };
 
   const dispose = () => {
     disposed = true;
+    for (const remove of listeners.splice(0)) remove();
   };
 
   const api = Object.freeze({ bind, present, refresh, clear, dispose });

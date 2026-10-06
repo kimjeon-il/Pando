@@ -61,6 +61,31 @@ test('country date editing respects the activation guard locks and normalized no
   assert.equal(state.territorialEntities[0].properties.validFrom, null);
 });
 
+test('one info period command validates both endpoints and preserves the activation boundary atomically', () => {
+  const { service, state, transactions } = fixture();
+  const before = state.territorialEntities;
+  for (const value of [
+    { validFrom: '1871-01-18', validTo: '1918-11-09' },
+    { validFrom: '1871-01-18', validTo: null },
+    { validFrom: null, validTo: '1918-11-09' },
+  ]) {
+    assert.equal(service.updateMetadata('country-a', 'validity', value).code, 'TIMELINE_ACTIVATION');
+    assert.equal(state.territorialEntities, before);
+    assert.equal(transactions.length, 0);
+  }
+  for (const value of [
+    null, {}, { validFrom: null }, '1900 ~ 1901',
+    { validFrom: '1900-02-29', validTo: null },
+    { validFrom: '1918', validTo: '1871' },
+    { validFrom: null, validTo: '0000' },
+  ]) assert.equal(service.updateMetadata('country-a', 'validity', value).code, 'invalid-temporal');
+  assert.deepEqual([...state.historyDirtyEntityIds], []);
+  assert.equal(transactions.length, 0);
+  assert.equal(service.updateMetadata('country-a', 'validity', { validFrom: null, validTo: null }).changed, false);
+  service.setLocked('country-a', true);
+  assert.equal(service.updateMetadata('country-a', 'validity', { validFrom: null, validTo: null }).code, 'locked');
+});
+
 test('common flag fields distinguish custom, hidden and default for countries and units', () => {
   const { service, entityRepository, transactions } = fixture();
   for (const id of ['country-a', 'unit-a']) {
