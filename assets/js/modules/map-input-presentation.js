@@ -40,11 +40,14 @@ export function createMapInputPresentation({
 
   let boundInput = null;
   let boundSvg = null;
+  let boundHoverSurface = null;
   function dispose() {
     boundInput?.destroy();
     boundInput = null;
-    boundSvg?.on('click', null).on('mousemove', null).on('mouseleave', null);
+    boundSvg?.on('click', null);
+    boundHoverSurface?.on('mousemove.map-input', null).on('mouseleave.map-input', null);
     boundSvg = null;
+    boundHoverSurface = null;
   }
 
   function beginMapMovement() {
@@ -150,7 +153,10 @@ export function createMapInputPresentation({
       handleMapClick(d3.mouse(this));
     });
 
-    svg.on('mousemove', function() {
+    // Labels and editing overlays live in a sibling interaction SVG. Hover
+    // belongs to their common map surface; ground clicks keep their SVG owner.
+    const hoverSurface = d3.select($('map'));
+    hoverSurface.on('mousemove.map-input', function() {
       if (getInputSnapshot().projectReplacing) return;
       const draft = getDraftSnapshot();
       if (draft.strokeActive) return;
@@ -190,7 +196,7 @@ export function createMapInputPresentation({
       }
     });
 
-    svg.on('mouseleave', function() {
+    hoverSurface.on('mouseleave.map-input', function() {
       cancelCountryHoverPick();
       dispatchEditingInteraction('draft-hover-clear');
       clearHoverHit();
@@ -198,6 +204,7 @@ export function createMapInputPresentation({
     });
     boundInput = mapInputController;
     boundSvg = svg;
+    boundHoverSurface = hoverSurface;
     return mapInputController;
   }
 
