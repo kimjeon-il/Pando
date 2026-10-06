@@ -1,0 +1,47 @@
+{
+  "referenceDate": "1914-07-28",
+  "outputPath": "tools/historical-library/working/austro-hungarian-empire-1914-base.geojson",
+  "baseBlobSha": "fbcf6e4bbbf591834d4b72fc35c06aabdcd8cc62",
+  "geometryType": "MultiPolygon",
+  "mainRingVertices": 7039,
+  "islandComponents": 23,
+  "componentCount": 24,
+  "coordinateCount": 7861,
+  "bounds": [
+    9.528983,
+    42.1588604,
+    26.5097507,
+    51.0568033
+  ],
+  "areaKm2Approx": 674635.513,
+  "closedMainRing": true,
+  "selfIntersectionCount": 0,
+  "northernVerifiedEdges": 3417,
+  "modernCanonicalBlobSha": "563cb4b45da28eb9367abf23bf111b1636b85c97",
+  "gradoSplice": [
+    13.5506338,
+    45.7357506
+  ],
+  "gradoModernEdge": [
+    555,
+    556
+  ],
+  "gradoHistoricalGoriziaEdge": [
+    215,
+    214
+  ],
+  "fGConnector": {
+    "type": "historical Montenegro boundary edge",
+    "start": [
+      18.649998,
+      42.59673
+    ],
+    "end": [
+      18.678837,
+      42.57575
+    ],
+    "lengthKmApprox": 3.323
+  },
+  "policy": "1914 verified terrestrial borders; current Pando canonical Adriatic coast and Bodensee where topologically compatible; short historical Gorizia coast splice at Grado.",
+  "sourceLicense": "ACDH-CH HistoGIS CC BY 4.0; Natural Earth public domain"
+}
