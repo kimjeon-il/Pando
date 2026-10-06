@@ -22,10 +22,13 @@ for (const [quality, input, output] of inputs) {
   }))];
   const signatures = Object.fromEntries(countries.map(feature => [String(feature.id), countryGeometrySignature(feature)]));
   const segments = buildCountrySharedBoundarySegments(countries);
-  const payload = gzipSync(JSON.stringify({ version: 1, quality, signatures, segments }), { level: 9, mtime: 0 });
+  const content = Buffer.from(JSON.stringify({ version: 1, quality, signatures, segments }));
+  const payload = gzipSync(content, { level: 9, mtime: 0 });
   const destination = path.join(data, output);
   if (process.argv.includes('--check')) {
-    if (!fs.existsSync(destination) || !fs.readFileSync(destination).equals(payload)) throw new Error(`${output} is stale`);
+    // Gzip headers and DEFLATE encodings vary by platform and zlib version.
+    // Verify the exact generated content, including geometry order and signatures.
+    if (!fs.existsSync(destination) || !gunzipSync(fs.readFileSync(destination)).equals(content)) throw new Error(`${output} is stale`);
   } else fs.writeFileSync(destination, payload);
   console.log(`${quality}: ${countries.length} countries, ${segments.length} segments, ${payload.length} bytes`);
 }

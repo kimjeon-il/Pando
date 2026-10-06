@@ -5,6 +5,10 @@ import { createTerritorialFeature } from '../../assets/js/modules/territorial-un
 import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
 
+// Tracing stalls focused software WebGL even with screencast frames disabled.
+// Keep failure screenshots and the explicit exact model/frame proofs below.
+test.use({ trace: 'off' });
+
 async function expectCurrentLabelFrame(page) {
   await expect.poll(() => page.evaluate(() =>
     document.querySelector('.territorial-label-layer').dataset.viewRevision
