@@ -165,8 +165,6 @@ export function createLibraryAssembly() {
         referenceDate: (0, dependencies.platform.$)('territorialLibraryReferenceDateInput'),
         results: (0, dependencies.platform.$)('territorialLibraryResults'),
         preview: (0, dependencies.platform.$)('territorialLibraryPreview'),
-        snapshot: (0, dependencies.platform.$)('territorialLibrarySnapshotInput'),
-        snapshotButton: (0, dependencies.platform.$)('territorialLibrarySnapshotBtn'),
         childDepth: (0, dependencies.platform.$)('territorialLibraryChildDepthInput'),
         add: (0, dependencies.platform.$)('territorialLibraryAddBtn'),
         addOptions: (0, dependencies.platform.$)('territorialLibraryAddOptions'),
@@ -183,7 +181,7 @@ export function createLibraryAssembly() {
       closeSurface: dependencies.workspaceUiA.closeSurface,
       focusSurfaceTrigger: dependencies.workspaceUiB.focusSurfaceTrigger,
       instantiate: instantiateTerritorialLibraryEntities,
-      getProjectGeneration: () => dependencies.projectState.state.territorialEntities,
+      getProjectGeneration: () => dependencies.domains.projectDomain.getGeneration(),
       ownershipContext: async (ids, referenceDate, depth) => {
         return {
           missing: (0, dependencies.libraryServices.missingLibraryOwnership)(
@@ -199,7 +197,6 @@ export function createLibraryAssembly() {
           ),
         };
       },
-      confirm: dependencies.projectRestore.openConfirmModal,
       setStatus: dependencies.feedback.setActionStatus,
       reportError: dependencies.feedback.reportOperationError,
     });

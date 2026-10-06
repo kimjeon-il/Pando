@@ -38,7 +38,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         for element_id in (
             "addFromLibraryBtn", "territorialLibraryModal", "territorialLibrarySearchInput",
             "territorialLibraryReferenceDateInput",
-            "territorialLibraryResults", "territorialLibraryPreview", "territorialLibrarySnapshotInput",
+            "territorialLibraryResults", "territorialLibraryPreview",
             "territorialLibraryChildDepthInput", "territorialLibraryAddBtn",
         ):
             self.assertIn(f'id="{element_id}"', INDEX)
@@ -154,7 +154,13 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
     def test_world_snapshot_is_a_template(self):
         self.assertIn("normalizeTerritorialLibraryIndex", MODEL)
         self.assertTrue(PILOT["snapshots"])
-        self.assertIn("instantiate(snapshot.entityRefs", CONTROLLER)
+        ids = {entity["entityId"] for entity in PILOT["entities"]}
+        for snapshot in PILOT["snapshots"]:
+            self.assertTrue(snapshot["entityRefs"])
+            self.assertTrue(set(snapshot["entityRefs"]) <= ids)
+            self.assertIn("referenceDate", snapshot)
+            self.assertNotIn("geometry", snapshot)
+        self.assertNotIn("requestSnapshot", CONTROLLER)
 
 
 if __name__ == "__main__":

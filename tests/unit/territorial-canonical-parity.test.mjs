@@ -8,11 +8,12 @@ import {buildCountrySharedBoundarySegments} from '../../assets/js/modules/bounda
 import {countryGeometrySignature} from '../../assets/js/modules/country-shared-boundary-cache.js';
 import {classifyBuiltinCountries} from '../../assets/js/modules/builtin-subunits.js';
 const root=new URL('../../',import.meta.url);
+const appVersion=JSON.parse(fs.readFileSync(new URL('package.json',root))).version;
 test('catalog current snapshot exactly reproduces all canonical features and encoded PCG bytes',()=>{
  const original=JSON.parse(fs.readFileSync(new URL('assets/data/countries-ne-5.1.1.geojson',root),'utf8'));
  const candidate=buildCurrentWorld();
  assert.deepEqual(candidate,original);
- const bytes=gunzipSync(fs.readFileSync(new URL('assets/data/countries-canonical-v0.35.0.pcg.gz',root)));
+ const bytes=gunzipSync(fs.readFileSync(new URL(`assets/data/countries-canonical-v${appVersion}.pcg.gz`,root)));
  assert.deepEqual(Buffer.from(encodeCanonicalCountryPacket(candidate)),bytes);
 });
 test('catalog current snapshot reproduces canonical shared-boundary signatures and every segment',()=>{
