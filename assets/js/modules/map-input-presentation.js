@@ -45,7 +45,7 @@ export function createMapInputPresentation({
     boundInput?.destroy();
     boundInput = null;
     boundSvg?.on('click', null);
-    boundHoverSurface?.on('mousemove.map-input', null).on('mouseleave.map-input', null);
+    boundHoverSurface?.on('mouseover.map-input', null).on('mousemove.map-input', null).on('mouseleave.map-input', null);
     boundSvg = null;
     boundHoverSurface = null;
   }
@@ -156,6 +156,13 @@ export function createMapInputPresentation({
     // Labels and editing overlays live in a sibling interaction SVG. Hover
     // belongs to their common map surface; ground clicks keep their SVG owner.
     const hoverSurface = d3.select($('map'));
+    const preservePeerLabelHover = () => {
+      if (getInputSnapshot().tool !== 'select' || !d3.event.target?.closest?.('.user-label')) return false;
+      // Cancel on entry too: the pointer can stop before another mousemove.
+      cancelCountryHoverPick();
+      return true;
+    };
+    hoverSurface.on('mouseover.map-input', preservePeerLabelHover);
     hoverSurface.on('mousemove.map-input', function() {
       if (getInputSnapshot().projectReplacing) return;
       const draft = getDraftSnapshot();
@@ -168,6 +175,8 @@ export function createMapInputPresentation({
         editingDomain?.clearDraftHover?.('map-panning');
         return;
       }
+      // User/place labels already publish their own explicit hover ref.
+      if (preservePeerLabelHover()) return;
       const label = d3.event.target?.closest?.('.territorial-label-item[data-label-id]');
       if (label && getInputSnapshot().tool === 'select' && !isMobile()) {
         cancelCountryHoverPick();
