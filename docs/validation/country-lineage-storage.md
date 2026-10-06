@@ -86,7 +86,7 @@ UI architecture/layering/IA/registry/surface 검사가 통과했다. 이는 중�
 현재 packed build와 metadata/version checker는 exit 0, 앱 선택 target 빌드는
 기존 Qt/MinGW/ZLIB 도구체인과 별도 `D:/build/Pandoeditor-country-lineage`를 사용한다.
 마지막 세대/미리보기 보정의 controller/import/preview 18개와 capability wiring 7개도
-통과했다. App 후보는 `6044e0611fece3716c1d014b9712b58b2d26f71c`다.
+통과했다. App 후보는 `4006e41745c9f03a70eea21de22411f3954cbbf8`다.
 선택 native target 빌드 exit 0, GIS export/historical 생성 프로그램 3개와
 독립 ZIP/SQLite oracle exit 0, GeoPackage 프로그램 exit 0, Qt StorageTests
 11 통과/0 실패/0 skip, timeline probe 31 storage + 9 numeric + 2 flag +
@@ -99,7 +99,12 @@ UI architecture/layering/IA/registry/surface 검사가 통과했다. 이는 중�
 WebGL2/WebGL1 country scene의 rebuilding 대기다. 이번 계보 경로 밖이며,
 동일 기준 SHA에서 원인을 확정하는 재실행은 하지 않았다. 실패를 성공으로 세지 않는다.
 보정 전 집중 browser의 East Prussia modal 미해제와 USSR Undo timeout도 로그를 보존한다.
-최종 관련 browser/native 교환 결과는 아래 확정 기록 및 manifest에 남긴다.
+최종 관련 browser는 7 통과/0 실패/0 skip이다. 실제 WebGL2/Canvas의
+North Schleswig, USSR, East Prussia, GDR 정적 가져오기·archive/정체성/출처·
+단일 history·Undo/Redo와 index/chunk/flag/preview·헤더를 검증했다.
+실제 codec/Worker 교환은 첫 고정 코드 쌍에서도 10 통과/0 실패/0 skip이며,
+fixture README의 v9 안내만 v10으로 갱신한 뒤 새 문서 포함 SHA 쌍에서 다시 실행해
+manifest에 기록한다. 제품 코드 및 fixture 입력/expected는 이 마지막 갱신에서 바꾸지 않았다.
 
 ## 12. 성능 범위
 
