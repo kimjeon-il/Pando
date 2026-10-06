@@ -2,7 +2,8 @@ import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs'
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerritorialFeature, normalizeTerritorialEntities } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityStore, createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import { createGeometryVersionStore } from '../../assets/js/modules/geometry-version-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { restoreEntitiesFromDelta } from '../../assets/js/modules/project-state.js';
@@ -189,4 +190,51 @@ test('current schema rejects split storage, retired versions, malformed delta an
   assert.throws(()=>normalizeTerritorialEntities([entity('R','regional'),entity('X','general',{parentId:'R'})]),/일반객체/);
   const { territorialEntities, ...deltaFields } = full;
   assert.throws(()=>assertCurrentProjectSchema({...deltaFields,format:'pandolab-autosave-delta',baseDatasetFingerprint:'1'.repeat(64),entityDelta:{changed:territorialEntities,removedIds:['A']}}),/삭제 ID/);
+});
+
+
+test('bulk static construction preserves every binding without quadratic archive ID encoding', () => {
+  const features = Array.from({length:100}, (_, index) => entity('speed-' + index, 'general'));
+  const original = globalThis.TextEncoder.prototype.encode;
+  let encodings = 0;
+  globalThis.TextEncoder.prototype.encode = function (...args) {
+    encodings += 1;
+    return Reflect.apply(original, this, args);
+  };
+  let snapshot;
+  try { snapshot = createStaticTerritorialSnapshot(features); }
+  finally { globalThis.TextEncoder.prototype.encode = original; }
+  assert.equal(snapshot.territorialEntities.length, features.length);
+  assert.equal(snapshot.geometries.length, features.length);
+  assert.equal(snapshot.timelineRecords.geometryBindings.length, features.length);
+  for (const binding of snapshot.timelineRecords.geometryBindings) {
+    assert.equal(binding.geometryRef.id, 'territorial-geometry:' + binding.entityId);
+    assert.equal(binding.geometryRef.version, 1);
+  }
+  assert.ok(encodings <= features.length * 20,
+    'Avoid repeated full-archive sorts; actual ID encodings: ' + encodings);
+});
+
+test('bulk geometry edits allocate above unreferenced versions and preserve shared archive history', () => {
+  const state = { territorialEntities: [], stateRevision: 0, historyDirtyEntityIds: new Set() };
+  initializeTestTerritorialState(state);
+  const store = createTerritorialEntityStore({ getState: () => state });
+  store.replaceEntities([entity('A', 'general'), entity('B', 'general')]);
+  const previous = state.geometries.snapshot();
+  state.geometries = createGeometryVersionStore([...previous,
+    { id: 'shared', version: 2, geojson: polygon() },
+    { id: 'shared', version: 8, geojson: polygon(8) },
+    { id: 'unused', version: 9, geojson: polygon(9) },
+  ]);
+  state.timelineRecords = structuredClone(state.timelineRecords);
+  for (const binding of state.timelineRecords.geometryBindings)
+    binding.geometryRef = { id: 'shared', version: 2 };
+  const before = state.geometries.snapshot();
+  store.replaceEntities([entity('A', 'general', { geometry: polygon(1) }),
+    entity('B', 'general', { geometry: polygon(3) })]);
+  assert.deepEqual(state.timelineRecords.geometryBindings.map(binding => binding.geometryRef),
+    [{ id: 'shared', version: 9 }, { id: 'shared', version: 10 }]);
+  for (const entry of before) assert.equal(state.geometries.get({ id: entry.id, version: entry.version }), entry.geojson);
+  assert.deepEqual(state.geometries.get({ id: 'shared', version: 9 }), polygon(1));
+  assert.deepEqual(state.geometries.get({ id: 'shared', version: 10 }), polygon(3));
 });
