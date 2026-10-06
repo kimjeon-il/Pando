@@ -1,3 +1,4 @@
+import {TERRITORIAL_SCHEMA_VERSION} from '../../assets/js/modules/territorial-units.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { projectForStorage } from '../helpers/timeline-project.mjs';
@@ -7,9 +8,9 @@ export function exchangeProject(kind) {
   if (!['static', 'complex', 'calendar-boundaries'].includes(kind)) throw new Error(`Unknown exchange case: ${kind}`);
   const snapshot = projectForStorage();
   const identity = (id, entityKind = 'general') => ({ type: 'Feature', id, geometry: null, properties: {
-    schemaVersion: 5, entityKind, name: `${id} 영토`, notes: '원본 메타데이터 보존', style: { color: '#507090' }, locked: false,
+    schemaVersion: TERRITORIAL_SCHEMA_VERSION, entityKind, name: `${id} 영토`, notes: '원본 메타데이터 보존', style: { color: '#507090' }, locked: false,
     metadata: { capital: '서울', source: { provider: 'T2-2 exchange corpus', sourceId: id }, originalName: `${id} Territory` },
-    sourceFolderId: 'exchange', sourceLibraryId: 'timeline-test', sourceGeometryVersion: 'source-1',
+    sourceFolderId: 'exchange', sourceEntityId: 'timeline-test', sourceGeometryVersion: 'source-1',
   } });
   snapshot.territorialEntities = [identity('A'), identity('B'), identity('C'), identity('R', 'regional')];
   const records = snapshot.projectFields.timelineRecords;

@@ -79,7 +79,7 @@ const currentProject = () => { const project = {
     sourceProvenanceSchemaVersion: 1,
     canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
   },
-  territorialModel: { schemaVersion: 5 },
+  territorialModel: { schemaVersion: 6 },
   distributionModel: { schemaVersion: 3 },
   layerPresentation: { schemaVersion: 4, overlayOrder: [], styles: {} },
   territorialEntities: [createTerritorialFeature({id:'DEU',entityKind: 'general',name:'독일',geometry:{type:'Polygon',coordinates:[[[0,0],[0,2],[2,2],[2,0],[0,0]]]}}),
