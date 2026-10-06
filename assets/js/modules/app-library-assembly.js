@@ -24,8 +24,8 @@ export function createLibraryAssembly() {
     // D3 spherical paths need canonical winding; normalize only a display copy.
     const feature = { type: 'Feature', properties: {}, geometry: (0, dependencies.geometryModel.normalizePolygonGeometry)(version.geometry) };
     const bounds = previewPath.bounds(feature);
-    const width = Math.max(1, bounds[1][0] - bounds[0][0]);
-    const height = Math.max(1, bounds[1][1] - bounds[0][1]);
+    const width = Math.max(Number.EPSILON, bounds[1][0] - bounds[0][0]);
+    const height = Math.max(Number.EPSILON, bounds[1][1] - bounds[0][1]);
     const scale = 0.86 / Math.max(width / 420, height / 190);
     const center = [(bounds[0][0] + bounds[1][0]) / 2, (bounds[0][1] + bounds[1][1]) / 2];
     projection.scale(scale).translate([210 - scale * center[0], 95 - scale * center[1]]);
