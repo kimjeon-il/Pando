@@ -404,6 +404,11 @@ export function createGeometryPreview() {
       dependencies.spatialQuery.mapEditClient.stop();
     }
     if (!dependencies.projectState.state.geometryPreview.session) return false;
+    const direct = editPreviewController.snapshot();
+    if (direct.successor?.kind === 'geometry-preview'
+      && direct.successor.sessionId === dependencies.projectState.state.geometryPreview.session.sessionId) {
+      editPreviewController.clear(direct.id);
+    }
     activeGeometryPreviewDiscard?.();
     activeGeometryPreviewApply = null;
     activeGeometryPreviewDiscard = null;
