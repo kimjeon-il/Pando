@@ -243,3 +243,145 @@ GitHub Pages 배포를 진행한다. 검사 결과와 원격 배포·실제 사�
 - main은 검수 코드와 생성된 배포 metadata를 함께 반영한다. GitHub Pages
   완료와 실제 사이트의 build metadata 및 수정 모듈 내용은 main 푸시 뒤 확인한다.
   원격 CI 상태는 로컬 검사 통과 또는 Pages 배포 성공으로 대체하지 않는다.
+
+## 첫 배포와 Linux CI 후속 검증
+
+`ad0291d3a8e2e1f27a34f0b920ea13ef5a256d26`을 수정 브랜치와 main에
+푸시했다. Pages 실행 [37417882532](https://github.com/kimjeon-il/Pando/actions/runs/37417882532)는
+성공했고 Pages API의 built commit도 동일하다. 실제 사이트의 cache-busted
+HTML, build metadata와 수정 모듈 7개(총 9개 응답)는 모두 HTTP 200이며 해당
+커밋의 `git show` 바이트와 SHA-256이 일치했다(`deploy-live-hashes.json`).
+
+Application Architecture 실행
+[37417882644](https://github.com/kimjeon-il/Pando/actions/runs/37417882644)의
+Full unit suite는 1,695 통과 / 0 실패 / 0 skip이다. Python, command,
+territorial storage, M1, M3 검사가 통과했고 별도 UI Architecture도 통과했다.
+전체 browser matrix 완료를 뜻하지 않으며 다음 실패를 별도로 조사했다.
+
+- **B/C: 생성된 공유 경계 gzip의 플랫폼 표현.** `--check`가 압축 바이트를
+  비교하여 동일한 생성 JSON도 OS 헤더 차이로 거부했다. 현재 canonical
+  generator의 체크를 CRC 검증한 gzip 해제 후 정확한 JSON 바이트 비교로
+  보정한다. 정렬, 좌표, 서명, 공백 변경과 누락·손상 파일은 계속 거부한다.
+  기존 gzip 생성 옵션, 자산, 데이터 형식은 바꾸지 않았다. 새 generator
+  7개와 기존 공유 경계 15개: 22 통과 / 0 실패 / 0 skip. Windows Node
+  22.23.3 / 24.21.0 `--check` 및 관련 ESLint는 각각 exit 0이다. 실제 Linux
+  실행 결과는 후속 Actions에서 확인하며 로컬 Linux 실행을 주장하지 않는다.
+- **C: 경계 archive Redo의 native action 시간 제한.** CI desktop 실패는
+  버튼이 준비된 뒤 마지막 Redo action의 10초 제한 소진이다. Trace에는
+  입력 직전 약 6.21초 공백과 이후 Redo 성공 메시지·비활성화 상태가 남았다.
+  공백의 원인을 snapshot 수집 자체라고 단정하지 않는다. 해당 archive
+  Redo만 30초와 navigation 대기 해제로 제한하고 같은 child의 정확한 복원을
+  poll한다. 전체 360초 제한, 좌표·coverage·identity·records·전체 archive
+  assertions는 유지한다. trace=on desktop 집중 재실행은 1 통과 / 0 실패 /
+  0 skip, 34.2초이며 관련 lint·구문 검사는 exit 0이다. 같은 CI의 별도
+  mobile 경로는 이미 1 통과 / 0 실패였으며 제품 복원 성능 개선을 주장하지 않는다.
+
+- **B: 분포 자유 영역의 이전 입력·완료 호출.** CI의 분포 4개 중 3개는
+  통과했지만 마지막 검사가 점별 click 및 숨겨진 `modePrimaryBtn`을 사용했다.
+  현재 canonical 입력은 native pointer stroke이고 분포 영역의
+  `modeDraftDoneBtn`은 기존 `finishGenericFeatureDraft`의 distribution 분기로
+  직접 entry 생성·저장·선택을 완료한다. 실제 3개 꼭짓점을 만드는 stroke와
+  현재 Done 명령으로 호출을 맞춘다. signed 값, 독립 자유 형상, 저장·재열기
+  검증은 유지하며 현재 출력에 맞춰 기대값을 바꾸지 않는다. 같은 spec의
+  앞선 통과 사례와 동일하게 radio의 실제 label을 native click하고 checked
+  상태를 확인한다. 저장 전후 entry 전체 equality로 ID·값·형상 보장을 강화한다.
+  중간 집중 실행은 이전 click 입력의 꼭짓점 0개로 0 통과 / 1 실패, 이어진
+  native stroke 실행은 생성 후 radio label interception으로 0 통과 / 1 실패였다.
+  두 실패를 통과로 기록하거나 삭제하지 않는다.
+  다음 실행은 active-layer select의 외부 popover가 view menu를 닫아 overlap
+  label을 찾지 못한 0 통과 / 1 실패였다. 기존 통과 사례의 메뉴 재열기 두
+  호출도 함께 적용한다. 마지막 case의 native action은 기존 두 번째 case와
+  같은 15초로 제한하여 숨겨진 버튼에 전체 180초 예산을 소비하지 않게 한다.
+  전체 180초, readiness 90초와 모델·저장 검증의 기대값은 유지한다.
+  이어진 실제 overlap은 2개 기대에 1개였다. 첫 옵션의 실제 ID는 GAB이며
+  free geometry 자동 focus 뒤 북아프리카 viewport에 가봉이 남는다는 보장이
+  없었다. `visibleDistributionRenderRows`는 현행 spatial viewport 계약으로
+  이를 제외한다. DEU를 명시하고 첫 분포를 native focus한 같은 영역에 자유
+  형상을 그려 두 독립 entry가 실제 같은 viewport에 있도록 전제를 보정했다.
+  마지막 실행은 **trace 활성 상태**에서 1 통과 / 0 실패 / 0 skip(exit 0),
+  약 2.5분이다. 두 path와 signed 값·저장·재열기 entry 전체 equality가 모두
+  통과했다(`deploy-ci-distribution-trace-off-native.log`; 파일명과 달리 trace는
+  활성이다). 효과 없는 trace override는 제거했으며 새 helper나 spec을 만들지
+  않았다. JSON body 첨부는 list reporter의 성공 실행에서 물리 파일로 남지 않았다.
+- **C: 국기 검사에서 tracing 중 표시·프로토콜 지연.** Linux 로그·trace에
+  `ReadPixels` GPU stall과 zoom 10 이후 8초 수준의 frame 간격이 남았고,
+  마지막 메뉴 조작 후 180초 전체 제한이 종료됐다. DOM snapshot 수집 자체는
+  4~13ms이므로 이를 긴 정체의 원인이라고 단정하지 않는다. 동일 spec의
+  trace=off 집중 실행은 원본 assertions 모두 1 통과 / 0 실패 / 0 skip,
+  22.8초다. screencast 캡처만 제외한 추가 실행에서도 지연되어 영상을 단독
+  원인으로 확정하지 않는다. 해당 spec만 tracing을 끄고 실패 PNG와 정확한
+  모델·표시 프레임 JSON을 유지한다. 이 spec의 DOM/source trace도 미수집임을
+  명시하며 다른 spec이나 전역 trace 설정은 유지한다. timeout, fixture,
+  제품 코드는 바꾸지 않는다. 변경한 설정의 검증과 Linux 후속 결과를 별도로 기록한다.
+- **C: 수계 색상 screenshot 판정의 tracing 비용.** CI의 첫 paint poll에서
+  실제 screenshot은 5.25초, pixel evaluate는 1.86초를 소모했다. Trace의
+  실제 결과는 예상 RGB 범위에 드는 pixel **3개**지만 client 완료가 8초
+  poll 예산 뒤였다. paint 불일치나 geometry 회귀로 분류하지 않는다.
+  해당 spec만 tracing을 끄고 실제 screenshot의 RGB 허용 오차 8, 양수 pixel,
+  색상 변경, revision 증가, Undo의 metadata·형상·원래 색상 복원을 모두
+  유지한다. 전체 120초와 8초 poll 제한은 변경하지 않는다. DOM/source
+  trace 미수집과 로컬·Linux 후속 실행 결과는 구분한다.
+- **B: 모바일 GIS 가져오기의 숨긴 desktop 진입 버튼.** 같은 CI의 GIS
+  4개 중 3개는 통과했지만 390×844 case가 숨겨진 topbar의 `mobileFileBtn`을
+  클릭하며 전체 180초를 소비했다. 현재 모바일 shell은 `mobileMenuBtn`의
+  메뉴에서 `mobileMenuFileBtn`으로 파일 메뉴에 진입한다. 이 실제 native
+  진입 경로로 맞추며 import 결과·실패 원자성·Undo/Redo assertions는 유지한다.
+
+국기 최종 기본 명령 실행은 1 통과 / 0 실패 / 0 skip, 25.7초(exit 0)이며
+`validation-ci-flags-final.log`와 `post-zoom-label-state.json`,
+`flag-removal-state.json`을 보존했다. 해당 spec ESLint는 exit 0이다.
+영상만 제외한 tracing 실행의 180초 실패는 `validation-ci-flags-current-trace.log`에
+별도로 남겼다. 원격 실패와 로컬 성공은 각각의 실행 환경 결과로 구분한다.
+
+수계 paint의 집중 실행은 1 통과 / 0 실패 / 0 skip, 10.5초(exit 0)이며
+RGB screenshot·원래 metadata와 형상·revision·Undo paint 모두 검증했다
+(`validation-ci-hydro-final.log`). 그 실행은 JSON body 첨부 방식이었다.
+이후 artifact-only 변경으로 `hydro-color-paint.json`의 물리 저장 경로를
+보강했고 최종 ESLint·구문 검사는 exit 0이다. 물리 JSON 저장의 실행 확인은
+후속 CI에 남으며 이 부수 변경만으로 browser를 다시 실행하지 않는다.
+
+GIS mobile 최종 집중 실행은 1 통과 / 0 실패 / 0 skip(exit 0), 29.1초다.
+현재 cancel 버튼의 `data-gis-cancel` 호출과 file menu·focus 복원도 확인했다.
+이 검사는 동일 HEAD `ad0291d`인 primary checkout에서 실행했고 agent 소유의
+해당 test 변경만 SHA-256 일치를 확인해 audit worktree로 옮긴 후 primary의
+해당 변경은 원복했다. `.last-run.json` 증거는
+`test-results/deploy-ci-gis-mobile-last-run.json`에 보존한다.
+
+## 검사 범위 축소와 남은 항목
+
+2026-10-06 사용자 요청에 따라 전체 브라우저 대기열과 추가 검수·진단을
+중단했다. 원격 실행 37417882644의 최종 결과는 job 기준 **19 success / 10
+failure / 19 cancelled**이며 test 개수와 혼동하지 않는다. 완료된 원래
+실패와 로그를 보존하고 취소된 job을 성공이나 skip된 test로 기록하지 않는다.
+
+- 라벨 metadata: label 편집을 `canMutateProject`가 허용하는 editable/enhanced
+  두 상태에서 시작하도록 초기 기대값만 보정했다. optional enhanced mesh
+  30초 대기는 이 SVG label metadata 검증에 필요하지 않았다. 최종 이름·kind·
+  실제 지도 text assertions와 전체 45초 제한을 유지한다.
+  최종 해당 case만 1 통과 / 0 실패 / 0 skip, 12.4초(exit 0), 관련 ESLint
+  exit 0이다(`deploy-ci-label-readiness.log`).
+- workspace 첫 case: 정보→actions 명시 전환과 mobile menu→preferences 진입을
+  현재 계약에 맞췄다. ESLint exit 0이며 로컬 browser는 미실행이다. 다른
+  세 case는 원래 CI에서 통과했고 제품 코드는 바꾸지 않았다.
+- interaction-unification의 Russia child WebGL2/WebGL1 생성 poll 실패 2건은
+  제품/fixture 원인을 확정하지 않았다. 현재 read API의 parentId는 유효하므로
+  이를 임의로 교체하지 않았다. Canvas의 숨긴 terrain radio 호출과 context
+  lost 중 SVG fallback을 무조건 금지한 기대값은 현행 UI/ownership과 다르지만
+  이번 후속에서 수정·재실행하지 않았다. 이 파일의 원래 CI 결과는 7 통과 /
+  4 실패이며 남은 실패를 해결했다고 보고하지 않는다.
+- interaction-clarity 원래 CI 2개 실패는 미해결이다. 기존 notification 주입은
+  현재 geometry-error 처리의 notification 계약과 다르고, 겹침의 고정 화면
+  좌표도 현재 표시 프레임을 보장하지 않는다. fixture 보정 시도 두 실행은
+  각각 0 통과 / 2 실패 / 0 skip이었다. 마지막 실행에서는 지명 생성·좌표
+  검증 및 실제 PL-GIS-001 오류까지 확인했지만 chooser 표시와 GIS 모달 중
+  알림 visibility가 실패했다. 원인을 더 확대 조사하지 않고 **해당 테스트
+  파일의 이번 수정 전체를 배포에서 제외**했다. 원래 CI와 두 로컬 실패
+  로그·PNG·trace를 보존했으며 테스트 삭제나 skip을 추가하지 않았다.
+
+후속 변경은 테스트·생성기 검사·실행 기록에 한정된다. runtime assets와
+build/data revision은 첫 배포 값을 유지한다. 새로운 main commit과 Pages
+실제 내용 검증은 별도 증거로 구분하며 전체 CI 통과를 주장하지 않는다.
+
+실행 중이거나 실행하지 않은 matrix 검사를 통과로 기록하지 않는다.
+이 후속 보정에서는 전체 로컬 suite를 다시 실행하지 않는다. 저장 형식,
+날짜 의미, TIMELINE_ACTIVATION 정책과 공통 계약·교환 fixture는 변경하지 않는다.

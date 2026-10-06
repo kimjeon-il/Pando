@@ -9,7 +9,8 @@ test('editing label metadata immediately refreshes its map text and preserves th
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
+  // Label editing uses canMutateProject; the optional enhanced mesh is not required.
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', /^(editable|enhanced)$/, { timeout: 30_000 });
   await page.locator('#createMenuBtn').click();
   await page.locator('#addLabelBtn').click();
   const bounds = await page.locator('#map').boundingBox();

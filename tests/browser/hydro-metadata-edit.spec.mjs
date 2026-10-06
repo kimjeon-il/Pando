@@ -1,9 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
-test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
+// Tracing delayed a positive screenshot pixel result beyond the CI poll budget.
+// Preserve the real paint oracle, failure screenshots, and explicit paint proof.
+test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 }, trace: 'off' });
 
-test('editing a river color updates actual GPU paint and undo restores metadata, geometry and paint', async ({ page }) => {
+test('editing a river color updates actual GPU paint and undo restores metadata, geometry and paint', async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   page.setDefaultTimeout(8_000);
   const errors = [];
@@ -31,9 +34,10 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.hydroEditBatchCount)).toBe(1);
   const originalColor = await page.locator('#hydroColorInput').inputValue();
   const original = await page.locator('path.hydro-edit-shape').evaluate(node => structuredClone(node.__data__));
+  const pixelSamples = [];
   const colorPixels = async color => {
     const screenshot = (await page.screenshot()).toString('base64');
-    return page.evaluate(async ({ screenshot, color }) => {
+    const sample = await page.evaluate(async ({ screenshot, color }) => {
       const image = new Image(); image.src = `data:image/png;base64,${screenshot}`; await image.decode();
       const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
       const context = canvas.getContext('2d', { willReadFrequently: true }); context.drawImage(image, 0, 0);
@@ -43,8 +47,10 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
       const expected = [1, 3, 5].map(index => parseInt(color.slice(index, index + 2), 16));
       let count = 0;
       for (let index = 0; index < pixels.length; index += 4) if (expected.every((value, channel) => Math.abs(pixels[index + channel] - value) <= 8)) count++;
-      return count;
+      return { color, count, revision: window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.hydroEditRevision };
     }, { screenshot, color });
+    pixelSamples.push(sample);
+    return sample.count;
   };
   await expect.poll(() => colorPixels(originalColor)).toBeGreaterThan(0);
   const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.hydroEditRevision);
@@ -64,4 +70,7 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   expect(await page.locator('path.hydro-edit-shape').evaluate(node => node.__data__)).toEqual(original);
   await expect.poll(() => colorPixels(originalColor)).toBeGreaterThan(0);
   expect(errors).toEqual([]);
+  const paintProof = testInfo.outputPath('hydro-color-paint.json');
+  await writeFile(paintProof, JSON.stringify(pixelSamples, null, 2));
+  await testInfo.attach('hydro-color-paint', { path: paintProof, contentType: 'application/json' });
 });
