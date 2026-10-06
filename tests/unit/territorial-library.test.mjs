@@ -56,4 +56,3 @@ test('invalid IDs, versions, geometry and reversed lifetime fail visibly', () =>
     assert.throws(() => normalizeTerritorialLibraryEntity(raw));
   }
 });
-
