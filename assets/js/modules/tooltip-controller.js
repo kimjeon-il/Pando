@@ -7,6 +7,10 @@ export function createTooltipController({
 }) {
   let showTimer = 0;
   let mapPointer = null;
+  // Derived presentation is updated only by the canonical hover callback. A
+  // dismissal hides it, while a fresh pointer hover can present the same ref.
+  let mapHoverView = null;
+  let mapInteractionActive = false;
 
   function hide() {
     window.clearTimeout(showTimer);
@@ -60,7 +64,13 @@ export function createTooltipController({
   }
 
   function setMapHover(view) {
-    if (!view || !mapPointer || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    mapHoverView = view;
+    presentMapHover();
+  }
+
+  function presentMapHover() {
+    const view = mapHoverView;
+    if (!view || !mapPointer || mapInteractionActive || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
       if (tooltip.dataset.kind === 'country') hide();
       return;
     }
@@ -84,17 +94,19 @@ export function createTooltipController({
   function bind() {
     document.addEventListener('pointermove', event => {
       const map = event.target.closest?.('#map');
-      if (event.pointerType !== 'mouse' || !map || event.target.closest?.('.map-overlay-layer, button, input, select, textarea')) {
+      if (event.pointerType !== 'mouse' || event.buttons > 0 || mapInteractionActive || !map || event.target.closest?.('.map-overlay-layer, button, input, select, textarea')) {
         mapPointer = null;
         if (tooltip.dataset.kind === 'country') hide();
         return;
       }
+      const moved = !mapPointer || mapPointer.x !== event.clientX || mapPointer.y !== event.clientY;
       mapPointer = { x: event.clientX, y: event.clientY };
       if (tooltip.dataset.kind === 'country') positionMapHover();
+      else if (moved) presentMapHover();
     }, true);
     document.addEventListener('pointerdown', hide, true);
-    window.addEventListener('pandolab:project-changed', hide);
-    window.addEventListener('pandolab:interaction-state', hide);
+    window.addEventListener('pandolab:project-changed', () => { mapHoverView = null; hide(); });
+    window.addEventListener('pandolab:interaction-state', event => { mapInteractionActive = event.detail?.active === true; hide(); });
     document.addEventListener('pointerover', event => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
       const target = event.target.closest?.('[data-tooltip]');

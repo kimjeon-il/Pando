@@ -274,13 +274,13 @@ export function createRenderingDomain({
     const data = resolvedLayout?.territorialLabels || [];
     const selection = layer.selectAll('g.territorial-label-item').data(data, d => d.id);
     selection.exit().remove();
-    // Use ground hit-testing and tool dispatch, rather than forcing the named object.
+    // Preserve label identity for selection; the common input owner still dispatches editing tools by ground coordinates.
     const enter = selection.enter().append('g')
       .attr('class', 'territorial-label-item')
-      .on('click', function() {
+      .on('click', function(feature) {
         if (labels.mapClickBlocked?.()) return;
         labels.d3.event.stopPropagation();
-        labels.handleMapClick(labels.d3.mouse(labels.svg.node()));
+        labels.handleMapClick(labels.d3.mouse(labels.svg.node()), { territorialLabelId: String(feature.id) });
       });
     enter.append('image').attr('class', 'territorial-label-flag').attr('preserveAspectRatio', 'xMidYMid meet')
       .attr('aria-hidden', 'true').style('pointer-events', 'none')

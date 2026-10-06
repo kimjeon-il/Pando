@@ -62,6 +62,7 @@ export const MAP_INTERACTION_OWNER_PORTS = Object.freeze({
   "taskPresentation": ["applicationServicesA","applicationServicesB","countries","countryCommitFlow","countryEditingA","countryEditingB","domainControllers","domains","draftPresentation","feedback","genericEditingA","geometryOperations","labelPresentation","layerPresentation","lifecycleUi","objectOperationsA","platform","presentation","projectState","propertyEditingB","readinessUi","surfaceCommands","surfaces","territorialEditingA","territorialEditingB","territorialModel","territorialServicesA","territorySelectionA","territorySelectionB","territoryComponents","toolServices","workspaceUiB","objectPresentation"],
   "countryModes": ["domains","feedback","geometryOperations","geometryPreview","gisServicesA","hydroPresentation","interactionPresentation","objectOperationsA","objectOperationsB","objectPresentation","platform","presentation","projectState","propertyEditingA","readinessUi","spatialQuery","surfaces","taskPresentation","taskUi","territorialEditingA","territorialEditingB","territorialModel","territorialServicesA","territorySelectionA","toolServices","selectionServices"],
   "objectPicking": [
+    "countries",
     "objectModelB",
     "applicationConstantsA",
     "applicationServicesB",

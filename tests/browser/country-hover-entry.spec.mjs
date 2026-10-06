@@ -1,4 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
+import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
 
 async function openMap(page) {
   page.setDefaultTimeout(12_000);
@@ -36,9 +40,15 @@ for (const width of [1366, 1024]) test(`country hover only identifies; one label
   await expect(page.locator('#undoBtn')).toBeDisabled();
   await page.screenshot({ path: testInfo.outputPath(`country-hover-${width}.png`) });
   await page.keyboard.press('Escape'); await expect(page.locator('#uiTooltip')).toBeHidden();
+  const hoverBox = await label(page).boundingBox();
+  await page.mouse.move(hoverBox.x + hoverBox.width / 2 + 1, hoverBox.y + hoverBox.height / 2);
+  await assertTooltip(page, '독일');
   await label(page).click();
   await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
   await expect(page.locator('#propertyTitle')).toHaveText('독일');
+  const clickedBox = await label(page).boundingBox();
+  await page.mouse.move(clickedBox.x + clickedBox.width / 2 + 2, clickedBox.y + clickedBox.height / 2);
+  await assertTooltip(page, '독일');
   expect(await view(page)).toEqual(before.view);
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU'))).toEqual(before.country);
   await expect(page.locator('#undoBtn')).toBeDisabled();
@@ -96,5 +106,39 @@ test('390px mobile country tap opens the editor directly without hover controls'
     await expect(page.locator('#objectLockBtn')).toBeVisible();
     expect(await page.locator('#editorObjectHeader').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath('mobile-tap-editor.png') });
+  } finally { await context.close(); }
+});
+
+for (const width of [1366, 390]) test(`pinned country label over another territory selects the named country at ${width}px`, async ({ browser }, testInfo) => {
+  test.setTimeout(150_000);
+  const context = await browser.newContext({ viewport: { width, height: 900 }, isMobile: width === 390, hasTouch: width === 390 });
+  const page = await context.newPage();
+  try {
+    const saved = staticAutosaveProject();
+    const square = (x, y, size) => ({ type: 'Polygon', coordinates: [[[x, y], [x, y + size], [x + size, y + size], [x + size, y], [x, y]]] });
+    Object.assign(saved, createStaticTerritorialSnapshot([
+      createTerritorialFeature({ id: 'DEU', entityKind: 'general', name: 'A 국가의 긴 이름', geometry: square(10, 0, 15) }),
+      createTerritorialFeature({ id: 'FRA', entityKind: 'general', name: 'B 국가', geometry: square(-10, 0, 15) }),
+    ]));
+    saved.labelSettings = { 'territorial:DEU': { pinned: true, manualPosition: [0, 8] }, 'territorial:FRA': { pinned: true, manualPosition: [-8, 1] } };
+    assertCurrentProjectSchema(saved);
+    await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
+    await openMap(page);
+    const namedLabel = label(page); await expect(namedLabel).toBeVisible();
+    const mapBox = await page.locator('#map').boundingBox(), labelBox = await namedLabel.boundingBox();
+    const pinned = await page.evaluate(() => window.__PANDOLAB_MAP_HOST__.project([0, 8]));
+    expect(Math.abs(labelBox.x + labelBox.width / 2 - mapBox.x - pinned[0])).toBeLessThan(12);
+    expect(Math.abs(labelBox.y + labelBox.height / 2 - mapBox.y - pinned[1])).toBeLessThan(12);
+    const before = await view(page);
+    if (width === 390) await namedLabel.tap();
+    else {
+      await namedLabel.hover(); await expect(page.locator('#uiTooltip span')).toHaveText('A 국가의 긴 이름');
+      await namedLabel.click();
+    }
+    await expect(page.locator('#objectChooser')).toBeHidden();
+    await expect(page.locator('#entityNameInput')).toHaveValue('A 국가의 긴 이름');
+    await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
+    expect((await view(page)).geographicCenter).toEqual(before.geographicCenter);
+    await page.screenshot({ path: testInfo.outputPath(`pinned-label-identity-${width}.png`) });
   } finally { await context.close(); }
 });

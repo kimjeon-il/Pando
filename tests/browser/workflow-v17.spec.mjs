@@ -136,8 +136,8 @@ test('editor identity returns to header flag and focus controls without changing
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = await boot(page);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  await expect(page.locator('#selectionCardName')).toHaveText('독일');
-  await expect(page.locator('#selectionCardFlagPreview img')).toBeVisible();
+  await expect(page.locator('#editorObjectHeader #propertyTitle')).toHaveText('독일');
+  await expect(page.locator('#editorObjectHeader #flagPreview img')).toBeVisible();
   const flag = page.locator('#editorObjectHeader #flagMenuBtn');
   const focus = page.locator('#editorObjectHeader #focusSelectedObjectBtn');
   await expect(page.locator('#editorScrollBody #flagMenuBtn, #editorScrollBody #focusSelectedObjectBtn')).toHaveCount(0);

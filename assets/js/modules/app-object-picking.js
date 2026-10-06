@@ -293,8 +293,29 @@ export function createObjectPicking() {
     return true;
   }
 
-  async function handleMapClick(screenPoint) {
+  function getTerritorialLabelRef(labelId) {
+    const key = String(labelId);
+    const ref = dependencies.countries.builtinTerritorialScene().labelRefs.get(key);
+    const entity = dependencies.territorialModel.entityRepository.get(key);
+    return dependencies.selectionServices.normalizeObjectRef(ref || (entity
+      ? { domain: 'territorial', type: 'entity', id: entity.id } : null));
+  }
+
+  async function handleMapClick(screenPoint, { territorialLabelId = '' } = {}) {
     if (dependencies.projectState.state.spacePanActive || dependencies.projectState.state.tool === 'move') return;
+    // A label names an explicit object even when its text is over another
+    // territory or outside the globe. Other tools retain coordinate dispatch.
+    if (territorialLabelId && dependencies.projectState.state.tool === 'select' && !dependencies.projectState.state.labelPlacementMode) {
+      if (dependencies.projectState.state.projectReplacing || dependencies.projectState.state.modeProcessing) return false;
+      const ref = getTerritorialLabelRef(territorialLabelId);
+      if (!objectRefSelectable(ref)) return false;
+      closeObjectChooser();
+      const event = dependencies.platform.d3.event;
+      const source = event?.sourceEvent || event || {};
+      return dependencies.domains.selectionUiController.applyIntent(ref, {
+        mode: source.ctrlKey || source.metaKey ? 'toggle' : 'replace', scope: 'map',
+      });
+    }
     const rawCoord = (0, dependencies.mapView.screenToGeo)(screenPoint);
     if (!rawCoord) return;
     const pointerType = dependencies.platform.d3.event?.pointerType === 'touch' || dependencies.platform.d3.event?.changedTouches ? 'touch' : 'mouse';
@@ -365,6 +386,7 @@ export function createObjectPicking() {
     get territorialObjectsAt() { return territorialObjectsAt; },
     get geometryHitsScreenPoint() { return geometryHitsScreenPoint; },
     get handleMapClick() { return handleMapClick; },
+    get getTerritorialLabelRef() { return getTerritorialLabelRef; },
     get handleObjectSelectionAt() { return handleObjectSelectionAt; },
     get projectedLineDistance() { return projectedLineDistance; },
   });
