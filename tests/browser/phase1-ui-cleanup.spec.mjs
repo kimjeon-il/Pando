@@ -23,7 +23,7 @@ test.describe('phase 1 residual UI cleanup', () => {
     await page.locator('#createMenuBtn').click();
     await page.locator('#addFromLibraryBtn').click();
 
-    const card = page.locator('.historical-library-card');
+    const card = page.locator('.territorial-library-card');
     await expect(card).toBeVisible();
     const desktop = await card.evaluate(el => ({
       width: el.getBoundingClientRect().width,

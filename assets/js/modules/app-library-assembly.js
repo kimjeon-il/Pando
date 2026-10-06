@@ -7,7 +7,6 @@ export function createLibraryAssembly() {
   let territorialLibraryService;
   let territorialLibraryController;
   let controllerPromise = null;
-  let LIBRARY_TYPE_LABELS;
   let batchPreparation = null;
   function connect(ports) {
     if (dependencies) throw new Error('library-assembly already connected');
@@ -16,13 +15,14 @@ export function createLibraryAssembly() {
 
   function territorialLibraryPreviewSvg(entity, version) {
     const wrapper = document.createElement('div');
-    wrapper.className = 'historical-library-preview-map';
+    wrapper.className = 'territorial-library-preview-map';
     const svgNode = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svgNode.setAttribute('viewBox', '0 0 420 190');
-    svgNode.setAttribute('aria-label', `${entity.displayNames?.ko || entity.canonicalName} 경계 미리보기`);
+    svgNode.setAttribute('aria-label', `${entity.names.ko || entity.names.en || Object.values(entity.names)[0]} 경계 미리보기`);
     const projection = dependencies.platform.d3.geo.equirectangular().scale(1).translate([0, 0]);
     const previewPath = dependencies.platform.d3.geo.path().projection(projection);
-    const feature = { type: 'Feature', properties: {}, geometry: version.geometry };
+    // D3 spherical paths need canonical winding; normalize only a display copy.
+    const feature = { type: 'Feature', properties: {}, geometry: (0, dependencies.geometryModel.normalizePolygonGeometry)(version.geometry) };
     const bounds = previewPath.bounds(feature);
     const width = Math.max(1, bounds[1][0] - bounds[0][0]);
     const height = Math.max(1, bounds[1][1] - bounds[0][1]);
@@ -133,7 +133,7 @@ export function createLibraryAssembly() {
     });
     (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.spatialRecords.scheduleMapObjectSpatialIndexRebuild)();
-    if (!preserveExistingScene) dependencies.domains.renderingDomain?.invalidateProject?.('historical-library-import');
+    if (!preserveExistingScene) dependencies.domains.renderingDomain?.invalidateProject?.('territorial-library-import');
     dependencies.projectSession.saveState.markNewProject('content:0');
     batchPreparation = null;
     return result;
@@ -152,39 +152,33 @@ export function createLibraryAssembly() {
       indexUrl: dependencies.platformConfigurationA.TERRITORIAL_LIBRARY_INDEX_URL,
       indexSpec: meta.territorialIndex, dataRevision: meta.dataRevision,
     })});
-    LIBRARY_TYPE_LABELS = Object.freeze({ general: '객체', regional: '독립 권역' });
     territorialLibraryController = createTerritorialLibraryController({
       document,
       elements: {
         open: null,
-        modal: (0, dependencies.platform.$)('historicalLibraryModal'),
-        card: document.querySelector('.historical-library-card'),
-        close: (0, dependencies.platform.$)('historicalLibraryCloseBtn'),
-        backdrop: (0, dependencies.platform.$)('historicalLibraryModal').querySelector('.ui-dialog-backdrop'),
-        search: (0, dependencies.platform.$)('historicalLibrarySearchInput'),
-        clearSearch: (0, dependencies.platform.$)('historicalLibrarySearchClearBtn'),
-        type: (0, dependencies.platform.$)('historicalLibraryTypeInput'),
-        status: (0, dependencies.platform.$)('historicalLibraryStatusInput'),
-        year: (0, dependencies.platform.$)('historicalLibraryYearInput'),
-        geographicRegion: (0, dependencies.platform.$)('historicalLibraryGeographicRegionInput'),
-        results: (0, dependencies.platform.$)('historicalLibraryResults'),
-        preview: (0, dependencies.platform.$)('historicalLibraryPreview'),
-        snapshot: (0, dependencies.platform.$)('historicalLibrarySnapshotInput'),
-        snapshotButton: (0, dependencies.platform.$)('historicalLibrarySnapshotBtn'),
-        childDepth: (0, dependencies.platform.$)('historicalLibraryChildDepthInput'),
-        add: (0, dependencies.platform.$)('historicalLibraryAddBtn'),
-        addOptions: (0, dependencies.platform.$)('historicalLibraryAddOptions'),
-        optionsBack: (0, dependencies.platform.$)('historicalLibraryOptionsBackBtn'),
-        ownership: (0, dependencies.platform.$)('historicalLibraryOwnership'),
+        modal: (0, dependencies.platform.$)('territorialLibraryModal'),
+        card: document.querySelector('.territorial-library-card'),
+        close: (0, dependencies.platform.$)('territorialLibraryCloseBtn'),
+        backdrop: (0, dependencies.platform.$)('territorialLibraryModal').querySelector('.ui-dialog-backdrop'),
+        search: (0, dependencies.platform.$)('territorialLibrarySearchInput'),
+        clearSearch: (0, dependencies.platform.$)('territorialLibrarySearchClearBtn'),
+        referenceDate: (0, dependencies.platform.$)('territorialLibraryReferenceDateInput'),
+        results: (0, dependencies.platform.$)('territorialLibraryResults'),
+        preview: (0, dependencies.platform.$)('territorialLibraryPreview'),
+        snapshot: (0, dependencies.platform.$)('territorialLibrarySnapshotInput'),
+        snapshotButton: (0, dependencies.platform.$)('territorialLibrarySnapshotBtn'),
+        childDepth: (0, dependencies.platform.$)('territorialLibraryChildDepthInput'),
+        add: (0, dependencies.platform.$)('territorialLibraryAddBtn'),
+        addOptions: (0, dependencies.platform.$)('territorialLibraryAddOptions'),
+        optionsBack: (0, dependencies.platform.$)('territorialLibraryOptionsBackBtn'),
+        ownership: (0, dependencies.platform.$)('territorialLibraryOwnership'),
       },
       service: territorialLibraryService,
-      typeLabels: LIBRARY_TYPE_LABELS,
       selectGeometryVersion: dependencies.applicationServicesB.selectGeometryVersion,
       renderMapPreview: territorialLibraryPreviewSvg,
       createEmptyState: dependencies.platformConfigurationB.createEmptyState,
       replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
       shouldShowTerritorialParentChoice: dependencies.territorialServicesA.shouldShowTerritorialParentChoice,
-      collator: dependencies.objectModelA.layerNameCollator,
       isMobile: dependencies.surfaces.isMobile,
       closeSurface: dependencies.workspaceUiA.closeSurface,
       focusSurfaceTrigger: dependencies.workspaceUiB.focusSurfaceTrigger,
@@ -221,7 +215,6 @@ export function createLibraryAssembly() {
     (territorialLibraryController = null);
     controllerPromise = null;
 
-    (LIBRARY_TYPE_LABELS = Object.freeze({}));
 
     window.PANDOLAB_TERRITORIAL_LIBRARY = Object.freeze({
       load: async () => { await getTerritorialLibraryController(); return territorialLibraryService.load(); },

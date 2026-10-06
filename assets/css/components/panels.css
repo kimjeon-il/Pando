@@ -310,7 +310,7 @@ body.file-menu-open .mobile-backdrop {
 }
 
 @media (max-width: 799px) {
-  .historical-library-modal .historical-library-card {
+  .territorial-library-modal .territorial-library-card {
     width: calc(100vw - var(--ui-space-4));
     max-height: calc(100dvh - var(--ui-space-4));
   }
@@ -331,14 +331,14 @@ body.file-menu-open .mobile-backdrop {
 }
 
 @media (max-width: 799px) {
-  .historical-library-layout {
+  .territorial-library-layout {
     grid-template-columns: 1fr;
     border-bottom: 0;
   }
 }
 
 @media (max-width: 799px) {
-  .historical-library-footer {
+  .territorial-library-footer {
     position: sticky;
     bottom: 0;
     z-index: 2;

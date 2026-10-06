@@ -11,7 +11,7 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP = read_application_sources(ROOT)
 MODEL = (ROOT / "assets" / "js" / "modules" / "territorial-library.js").read_text(encoding="utf-8")
 CONTROLLER = (ROOT / "assets" / "js" / "modules" / "territorial-library-controller.js").read_text(encoding="utf-8")
-PILOT = {"schemaVersion": 1, "entities": [e for p in (ROOT / "assets/data/territorial-entities/source/countries").glob("*.json") for e in json.loads(p.read_text(encoding="utf-8"))["entities"]], "snapshots": json.loads((ROOT / "assets/data/territorial-entities/generated/v2/index.json").read_text(encoding="utf-8"))["snapshots"]}
+PILOT = {"schemaVersion": 2, "entities": [e for p in (ROOT / "assets/data/territorial-entities/source/countries").glob("*.json") for e in json.loads(p.read_text(encoding="utf-8"))["entities"]], "snapshots": json.loads((ROOT / "assets/data/territorial-entities/generated/v2/index.json").read_text(encoding="utf-8"))["snapshots"]}
 SERVICE = (ROOT / "assets/js/modules/territorial-library-service.js").read_text(encoding="utf-8")
 
 
@@ -31,16 +31,15 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertIn("GENERAL: 'general'", MODEL)
         self.assertNotIn("COUNTRY: 'currentCountry'", MODEL)
         self.assertNotIn("COUNTRY: 'historicalCountry'", MODEL)
-        self.assertIn("territorialEntityExistsAt(e,today())", SERVICE)
+        self.assertIn("territorialEntityExistsAt(e,referenceDate)", SERVICE)
         self.assertNotIn("isHistorical", SERVICE)
 
     def test_library_ui_is_separate_from_project_layers(self):
         for element_id in (
-            "addFromLibraryBtn", "historicalLibraryModal", "historicalLibrarySearchInput",
-            "historicalLibraryTypeInput", "historicalLibraryStatusInput", "historicalLibraryYearInput",
-            "historicalLibraryGeographicRegionInput",
-            "historicalLibraryResults", "historicalLibraryPreview", "historicalLibrarySnapshotInput",
-            "historicalLibraryChildDepthInput", "historicalLibraryAddBtn",
+            "addFromLibraryBtn", "territorialLibraryModal", "territorialLibrarySearchInput",
+            "territorialLibraryReferenceDateInput",
+            "territorialLibraryResults", "territorialLibraryPreview", "territorialLibrarySnapshotInput",
+            "territorialLibraryChildDepthInput", "territorialLibraryAddBtn",
         ):
             self.assertIn(f'id="{element_id}"', INDEX)
         self.assertIn("window.PANDOLAB_TERRITORIAL_LIBRARY", APP)
@@ -52,7 +51,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertIn("geometry: structuredClone(version.geometry)", MODEL)
 
     def test_pilot_data_discloses_approximation_and_sources(self):
-        self.assertEqual(PILOT["schemaVersion"], 1)
+        self.assertEqual(PILOT["schemaVersion"], 2)
         self.assertGreaterEqual(len(PILOT["entities"]), 4)
         pilot_entities = [entity for entity in PILOT["entities"] if entity["metadata"].get("pilot")]
         self.assertGreaterEqual(len(pilot_entities), 3)
@@ -131,7 +130,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertEqual(entity["metadata"]["defaultColor"], "#53657A")
         self.assertEqual(entity["instantiation"]["mode"], "territory-replacement")
         self.assertNotIn("territoryMerge", entity["metadata"])
-        self.assertEqual(version["id"], "ostpreussen-1878-1920-r3")
+        self.assertEqual(version["versionId"], "ostpreussen-1878-1920-r3")
         self.assertEqual(version["datePrecision"], "exact")
         self.assertEqual(version["certainty"], "medium")
         self.assertTrue(entity["metadata"]["approximateGeometry"])
@@ -145,7 +144,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         entity = next(item for item in PILOT["entities"] if item["entityId"] == "state:north-schleswig")
         self.assertEqual(entity["entityKind"], "general")
         self.assertEqual(entity["names"]["ko"], "북슐레스비히")
-        self.assertEqual(entity["geometryVersions"][0]["id"], "north-schleswig-1900-r3")
+        self.assertEqual(entity["geometryVersions"][0]["versionId"], "north-schleswig-1900-r3")
         self.assertEqual(entity["geometryVersions"][0]["validFrom"], "1900-01-01")
         self.assertEqual(entity["geometryVersions"][0]["validTo"], "1900-01-01")
         self.assertEqual(entity["geometryVersions"][0]["geometry"]["type"], "MultiPolygon")

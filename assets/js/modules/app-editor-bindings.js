@@ -31,7 +31,7 @@ export function createEditorBindings() {
     (0, dependencies.fileBindings.bindFileAndGisUI)();
     (0, dependencies.globalInput.bindGlobalInputUI)();
     (0, dependencies.platformConfigurationB.syncSearchClearButton)((0, dependencies.platform.$)('layerSearchInput'), (0, dependencies.platform.$)('layerSearchClearBtn'));
-    (0, dependencies.platformConfigurationB.syncSearchClearButton)((0, dependencies.platform.$)('historicalLibrarySearchInput'), (0, dependencies.platform.$)('historicalLibrarySearchClearBtn'));
+    (0, dependencies.platformConfigurationB.syncSearchClearButton)((0, dependencies.platform.$)('territorialLibrarySearchInput'), (0, dependencies.platform.$)('territorialLibrarySearchClearBtn'));
     (0, dependencies.colorPicker.syncColorPicker)('multiProperties', { value: (0, dependencies.platform.$)('multiPropertiesColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
     dependencies.lifecycleUi.projectUi.syncSaveStatus(dependencies.projectSession.saveState.snapshot());
   }

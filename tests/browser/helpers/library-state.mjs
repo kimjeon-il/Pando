@@ -74,7 +74,7 @@ async function stateProof(page, sourceId) {
   }, sourceId);
 }
 
-export async function openLibrary(page) {
+export async function openLibrary(page, {renderer='webgl2'}={}) {
   page.setDefaultTimeout(10_000);
   await observeOwners(page);
   const pageErrors = [], unexpectedConsoleErrors = [];
@@ -83,7 +83,7 @@ export async function openLibrary(page) {
     if (message.type() === 'error' && !message.text().startsWith('[PL-LIB-002]')) unexpectedConsoleErrors.push(message.text());
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?debug=1&demTerrain=raster');
+  await page.goto(`/?debug=1&demTerrain=raster${renderer==='canvas'?'&renderer=canvas':''}`);
   await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 45_000 });
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   // Preserve a real nonempty Undo and Redo chain through a rejected operation.
@@ -94,48 +94,39 @@ export async function openLibrary(page) {
   await expect.poll(() => page.evaluate(() => window.__librarySaveState.snapshot().autosave), { timeout: 30_000 }).toBe('saved');
   await page.locator('#createMenuBtn').click();
   await page.locator('#addFromLibraryBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeVisible();
+  await expect(page.locator('#territorialLibraryModal')).toBeVisible();
   return { pageErrors, unexpectedConsoleErrors };
 }
 
-export async function refuseFiniteActivation(page, testInfo, id, errors) {
-  const source = await page.evaluate(async id => {
-    const entity = await window.PANDOLAB_TERRITORIAL_LIBRARY.get(id);
-    return { entityId: entity.entityId, lifetime: structuredClone(entity.lifetime),
-      geometryVersionIds: entity.geometryVersions.map(version => version.id),
-      metadata: structuredClone(entity.metadata), sourceInfo: structuredClone(entity.sourceInfo) };
-  }, id);
+export async function importFiniteSource(page, testInfo, id, errors) {
+  const before=await stateProof(page,id);
+  const source=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),id);
   expect(source.lifetime.validFrom || source.lifetime.validTo).toBeTruthy();
-  expect(source.geometryVersionIds.length).toBeGreaterThan(0);
-  const before = await stateProof(page, id);
-  expect(before.historyCount).toBeGreaterThan(0);
-  expect(before.futureCount).toBeGreaterThan(0);
-  expect(before.selection.primaryKey).toBeTruthy();
-  await page.locator('#historicalLibraryAddBtn').click();
-  await expect.poll(() => page.evaluate(() => window.__libraryErrors.length)
-    .then(async count => count || (await page.locator('[data-library-impact]').count())), { timeout: 60_000 }).toBeGreaterThan(0);
-  if (await page.locator('[data-library-impact]').count()) await page.locator('#historicalLibraryAddBtn').click();
-  await expect.poll(() => page.evaluate(() => window.__libraryErrors.map(error => error.code)), { timeout: 60_000 }).toEqual(['TIMELINE_ACTIVATION']);
-  const diagnostics = await page.evaluate(() => window.__libraryErrors);
-  expect(diagnostics[0]).toMatchObject({ operationCode: 'PL-LIB-002', message: '날짜별 편집은 T4 구현 후 지원합니다.' });
-  expect(diagnostics[0].stack).toContain('territorial-entity-store');
-  await expect(page.locator('#historicalLibraryModal')).toBeVisible();
-  await expect(page.locator('#historicalLibraryAddBtn')).toBeEnabled();
-  const after = await stateProof(page, id);
-  const proofPath = testInfo.outputPath('finite-activation-atomicity.json');
-  await writeFile(proofPath, JSON.stringify({ id, lifetime: source.lifetime, before, after, diagnostics }));
-  await testInfo.attach('finite-activation-atomicity', { path: proofPath, contentType: 'application/json' });
-  expect(after).toEqual(before);
-  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.list()
-    .some(entity => entity.properties.sourceEntityId === id), id)).toBe(false);
-  await page.locator('#historicalLibraryCloseBtn').click();
-  // These commands restore the complete baseline archive. Their actual click
-  // work exceeded the small selector timeout in the isolated USSR case.
-  await page.locator('#redoBtn').click({ timeout: 30_000, noWaitAfter: true });
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.name), { timeout: 30_000 }).toBe('보존 이름 B');
-  await page.locator('#undoBtn').click({ timeout: 30_000, noWaitAfter: true });
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.name), { timeout: 30_000 }).toBe('보존 이름 A');
-  expect(errors.pageErrors).toEqual([]);
-  expect(errors.unexpectedConsoleErrors).toEqual([]);
+  const date=await page.locator('#territorialLibraryReferenceDateInput').inputValue();
+  const selected=await page.evaluate(async({id,date})=>{
+    const {selectGeometryVersion}=await import('/assets/js/modules/territorial-library.js');
+    return selectGeometryVersion(await window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),date);
+  },{id,date});
+  expect(selected).toBeTruthy();
+  await page.locator('#territorialLibraryAddBtn').click();
+  await expect.poll(async()=> (await page.locator('[data-library-impact]').count()) || (await page.locator('#territorialLibraryModal.hidden').count()),{timeout:60_000}).toBeGreaterThan(0);
+  if(await page.locator('[data-library-impact]').count())await page.locator('#territorialLibraryAddBtn').click();
+  await expect(page.locator('#territorialLibraryModal')).toBeHidden({timeout:60_000});
+  const added=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.list().filter(e=>e.properties.sourceEntityId===id),id);
+  expect(added).toHaveLength(1);expect(added[0].id).not.toBe(id);
+  expect(added[0].geometry).toEqual(selected.geometry);
+  expect(added[0].properties).toMatchObject({validFrom:null,validTo:null,sourceGeometryVersion:selected.versionId,
+    metadata:{sourceLifetime:source.lifetime,sourceGeometryValidity:{validFrom:selected.validFrom,validTo:selected.validTo},sourceReferenceDate:date,sourceInfo:source.sourceInfo}});
+  const after=await stateProof(page,id);expect(after.historyCount).toBe(before.historyCount+1);expect(after.source).toBe(before.source);
+  await page.locator('#undoBtn').click({timeout:30_000,noWaitAfter:true});
+  await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.list().some(e=>e.properties.sourceEntityId===id),id),{timeout:30_000}).toBe(false);
+  const undone=await stateProof(page,id);
+  for(const key of ['entities','records','archive','source','sourceInfo'])expect(undone[key],key).toBe(before[key]);
+  await page.locator('#redoBtn').click({timeout:30_000,noWaitAfter:true});
+  await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.list().filter(e=>e.properties.sourceEntityId===id).map(e=>e.id),id),{timeout:30_000}).toEqual([added[0].id]);
+  const redone=await stateProof(page,id);for(const key of ['entities','records','archive','source','sourceInfo'])expect(redone[key],key).toBe(after[key]);
+  const proofPath=testInfo.outputPath('static-import-provenance.json');
+  await writeFile(proofPath,JSON.stringify({id,date,versionId:selected.versionId,objectId:added[0].id,before,after,undone,redone}));
+  await testInfo.attach('static-import-provenance',{path:proofPath,contentType:'application/json'});
+  expect(errors.pageErrors).toEqual([]);expect(errors.unexpectedConsoleErrors).toEqual([]);
 }
-

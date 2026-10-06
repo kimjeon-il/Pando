@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
-import {gzipSync} from 'node:zlib';
+import {gzipSync,gunzipSync} from 'node:zlib';
 
 // Static editing fixture, not a change to historical dates in production data.
 // The real loader verifies these actual gzip bytes and the matching index hash.
 export async function routeStaticCatalogSource(page,entityId){
   const root=new URL('../../../assets/data/territorial-entities/',import.meta.url);
   const file=entityId.replace(':','-');
-  const entity=JSON.parse(fs.readFileSync(new URL(`source/${file}.json`,root),'utf8'));
+  const entity=JSON.parse(gunzipSync(fs.readFileSync(new URL(`generated/v2/${file}.json.gz`,root))).toString('utf8'));
   if(entity.geometryVersions.length!==1)throw new Error('Static fixture requires one snapshot');
   entity.lifetime={validFrom:null,validTo:null};
   Object.assign(entity.geometryVersions[0],{validFrom:null,validTo:null});
