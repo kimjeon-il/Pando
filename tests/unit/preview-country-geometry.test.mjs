@@ -13,8 +13,9 @@ await import('../../assets/js/modules/polygon-geometry.js');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const appVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
 const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, `assets/data/countries-preview-v${appVersion}.geojson.gz`))));
-const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
-const canonicalBytes = Buffer.from(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8').replaceAll('\r\n', '\n'));
+const canonicalSourcePath = 'territorial-entities/generated/current-world.geojson';
+const canonicalBytes = Buffer.from(fs.readFileSync(path.join(root, 'assets/data', canonicalSourcePath), 'utf8').replaceAll('\r\n', '\n'));
+const canonical = JSON.parse(canonicalBytes.toString('utf8'));
 const manifest = JSON.parse(fs.readFileSync(path.join(root, `assets/data/world-preview-v${appVersion}.json`), 'utf8'));
 const { hasCanonicalPolygonWinding } = globalThis.PandoLabPolygonGeometry;
 
@@ -68,7 +69,7 @@ test('preview derives every country and component from the canonical source', ()
   assert.equal(manifest.previewSourceScale, 'derived');
   assert.equal(manifest.previewSourceSha256, crypto.createHash('sha256').update(canonicalBytes).digest('hex'));
   assert.equal(manifest.previewSourceSha256, manifest.canonicalSourceSha256);
-  assert.equal(manifest.source, 'countries-ne-5.1.1.geojson');
+  assert.equal(manifest.source, canonicalSourcePath);
   assert.equal(manifest.supplementedCountryIds, undefined);
   const ringCounts = geometry => (geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates)
     .map(polygon => polygon.length);

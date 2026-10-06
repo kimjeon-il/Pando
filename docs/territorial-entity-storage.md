@@ -217,3 +217,18 @@ M15의 성능 gate는 미통과 상태로 남긴다. 배포 완료와 전체 계
 동일 명령 `python -m unittest tests.test_v0126_runtime.V0126RuntimeTests.test_data_assets_use_the_data_cache_revision`
 재실행 결과 **1 통과·0 실패·0 skip**, 종료 코드 0. 제품 코드·데이터·build revision은
 변경하지 않았다. 기존 원격 실패를 지우거나 전체 Python 성공으로 표시하지 않는다.
+
+같은 원격 실행의 Full unit suite는 **1714 통과·1 실패·0 skip**이었다.
+실패한 `preview derives every country and component from the canonical source`는
+manifest의 입력 경로가 여전히 옛 Natural Earth 직접 입력이라고 기대하는 낡은 검사(B)였다.
+해당 파일만 실행해 실패를 재현한 뒤 실제 authoritative generated current-world를
+읽도록 갱신했다. 형상 repair 불필요·좌표 순서·ring 수·공유 topology·구멍 검증은 유지했다.
+`node --test tests/unit/preview-country-geometry.test.mjs` **5 통과·0 실패·0 skip**,
+해당 파일 ESLint 종료 코드 0. 전체 suite를 로컬에서 재실행하지 않았다.
+
+원격 `Validation entrypoints and current generated assets`의 preview gzip 재생성 byte
+불일치는 기준 main 실행 `37421819302`의 같은 job에서도 같은 asset·오류로 실패했다(C).
+후보의 기존 preview gzip은 기준과 동일하며 geometry parity는 통과했다.
+Linux Node 22 CI와 로컬 Windows Node 24 사이의 정확한 재생성 차이 원인은 이번 배포에서
+확정하지 않았다. 비교 규칙을 완화하거나 기존 packed 자산을 교체해 실패를 숨기지 않는다.
+이 항목과 원격 미완료 browser 검사 때문에 CI 전체 성공이라고 보고하지 않는다.

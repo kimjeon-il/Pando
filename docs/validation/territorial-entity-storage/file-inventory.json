@@ -2,9 +2,9 @@
   "baseSha": "2091ee2c294df237d844e32f9b926449677c45e4",
   "implementationSha": "5213223aa10b8f145203a0643a4ff18b0c2c0d2d",
   "buildId": "0.35.0-build-5213223aa10b",
-  "status": "release requested; M15 performance gate remains incomplete; cache owner CI fixture corrected",
+  "status": "release requested; related CI fixtures corrected; M15 and baseline preview gzip CI failure remain open",
   "counts": {
-    "M": 59,
+    "M": 60,
     "A": 606,
     "D": 11
   },
@@ -2572,6 +2572,10 @@
     {
       "status": "M",
       "path": "tests/unit/library-ownership.test.mjs"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/preview-country-geometry.test.mjs"
     },
     {
       "status": "M",
