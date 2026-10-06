@@ -10,9 +10,12 @@ function setup() {
   const a = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'A' });
   const feature = createTerritorialFeature({ id: 'A', entityKind: 'general', name: 'A', geometry: square(1) });
   const views = new Map([[a.key, { ref: a, displayName: 'A', feature, properties: feature.properties }]]);
+  const node = () => ({ value: '', disabled: false, dataset: {}, classList: { toggle() {} },
+    addEventListener() {}, removeEventListener() {}, replaceChildren() {}, append() {},
+    setCustomValidity() {}, removeAttribute() {}, setAttribute() {} });
   const fields = new Map();
   const getElement = id => {
-    if (!fields.has(id)) fields.set(id, { value: '', disabled: false, classList: { toggle() {} }, addEventListener() {} });
+    if (!fields.has(id)) fields.set(id, node());
     return fields.get(id);
   };
   const forms = []; 
@@ -23,6 +26,11 @@ function setup() {
   const selectionStatus = { textContent: '' };
   const controller = createTerritorialPropertyController({
     window: { requestIdleCallback: callback => callbacks.push(callback) },
+    document: { createElement: node }, createIcon: node,
+    entityRepository: {
+      parent: id => [...views.values()].find(view => view.feature.id === views.get(a.key).feature.properties.parentId)?.feature || null,
+      children: id => [...views.values()].filter(view => view.feature.properties.parentId === id).map(view => view.feature),
+    },
     elements: { area, selectionStatus, name: getElement('entityNameInput'), notes: getElement('entityNotesInput'), color: getElement('entityColorInput') },
     getElement, territorialParentOptions: () => [{ value: '', label: '상위 객체 없음' }],
     replaceSelectOptions: (element, _choices, value) => { element.value = value; },

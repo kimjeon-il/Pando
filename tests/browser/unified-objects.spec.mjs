@@ -179,8 +179,10 @@ test('one object flow creates a root, child and independent region; annex across
   await page.locator('#editorTabBtn').click();
   await page.locator('#entityNotesInput').fill('공통 폼 저장');
   await page.locator('#entityNotesInput').dispatchEvent('change');
-  await page.locator('#entityValidFromInput').fill('1900-01-01');
-  await page.locator('#entityValidFromInput').dispatchEvent('change');
+  await page.locator('#entityPeriodInput').fill('1900-01-01 ~');
+  await page.locator('#entityPeriodInput').dispatchEvent('change');
+  await expect(page.locator('#entityPeriodInput')).toHaveAttribute('aria-invalid', 'true');
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.validFrom, root.id)).toBeNull();
   const beforeCopy = await page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id)), [root.id, child.id]);
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setLocked(id, true), root.id);
   await page.locator('#actionsTabBtn').click();
@@ -199,7 +201,7 @@ test('one object flow creates a root, child and independent region; annex across
   await page.reload();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60000 });
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.notes, root.id)).toBe('공통 폼 저장');
-  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.validFrom, root.id)).toBe('1900-01-01');
+  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.validFrom, root.id)).toBeNull();
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.parentId, child.id)).toBe(root.id);
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).geometry, copy.id)).toEqual(copy.geometry);
 

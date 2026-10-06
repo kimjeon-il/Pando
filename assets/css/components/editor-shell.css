@@ -549,32 +549,73 @@
   padding-top: var(--ui-space-1);
 }
 
-.editor-period-group {
+.editor-info-relations {
   min-width: 0;
-  display: grid;
-  gap: var(--ui-field-label-gap);
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.editor-period-group > legend {
-  margin: 0 0 var(--ui-field-label-gap);
-  padding: 0;
-  color: var(--text-soft);
-  font-size: var(--ui-font-label);
-  font-weight: var(--ui-weight-medium);
-}
-
-.editor-period-fields {
   display: grid;
   gap: var(--ui-field-gap);
 }
 
-.editor-panel .editor-period-fields .editor-field > label {
-  color: var(--muted);
-  font-size: var(--ui-font-sm);
+.editor-info-relation-label {
+  color: var(--text-soft);
+  font-size: var(--ui-font-label);
   font-weight: var(--ui-weight-medium);
+  line-height: var(--ui-line-normal);
+}
+
+.editor-info-relation-list {
+  display: grid;
+  gap: 0;
+}
+
+.editor-info-relations[hidden],
+.editor-info-relation-block[hidden] {
+  display: none;
+}
+
+.editor-info-relation-row {
+  min-width: 0;
+  min-height: var(--ui-control-height);
+  display: grid;
+  grid-template-columns: calc(var(--ui-icon-size) + var(--ui-space-3)) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding-block: var(--ui-space-1);
+  border: 0;
+  background: transparent;
+}
+
+.editor-info-relation-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--ui-font-body);
+}
+
+.editor-info-relation-flag {
+  display: grid;
+  place-items: center;
+}
+
+.editor-info-relation-flag img {
+  display: block;
+  max-width: calc(var(--ui-icon-size) + var(--ui-space-3));
+  max-height: var(--ui-icon-size);
+  object-fit: contain;
+}
+
+.surface-editor .editor-info-relation-focus {
+  width: var(--ui-control-height);
+  height: var(--ui-control-height);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.surface-editor .editor-info-relation-focus:is(:hover, :focus-visible) {
+  background: var(--surface-hover);
+  color: var(--text-strong);
 }
 
 .editor-action-list {
