@@ -676,6 +676,7 @@ jobs:
           tests/unit/country-lineage-preservation.test.mjs
           tests/unit/library-ownership.test.mjs
           tests/unit/library-import-atomic.test.mjs
+          tests/unit/library-map-preview.test.mjs
           tests/unit/territorial-library-controller.test.mjs
           tests/unit/territorial-source-provenance.test.mjs
 

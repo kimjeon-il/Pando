@@ -66,6 +66,7 @@ test('catalog search loads only the index and repeated selection loads one uncha
   const sourceAspect=await page.evaluate(async()=>{const e=await window.PANDOLAB_TERRITORIAL_LIBRARY.get('state:deutsche-demokratische-republik');
     const points=e.geometryVersions[0].geometry.coordinates.flat(2),x=points.map(p=>p[0]),y=points.map(p=>p[1]);return (Math.max(...x)-Math.min(...x))/(Math.max(...y)-Math.min(...y));});
   expect(Math.abs(previewAspect-sourceAspect)).toBeLessThan(0.03);
+  expect(await page.locator('#territorialLibraryPreview svg path').evaluate(path=>path.getBBox().height)).toBeGreaterThan(160);
   await page.screenshot({path:testInfo.outputPath('lineage-preview.png')});
   await page.locator('#territorialLibraryCloseBtn').click();
   await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.select('DEU'));
