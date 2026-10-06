@@ -1,13 +1,16 @@
-import {instantiateLibraryEntity, territorialEntityExistsAt} from './territorial-library.js';
+import {instantiateLibraryEntity, territorialEntityExistsAt, selectGeometryVersion} from './territorial-library.js';
+import {parseTemporal} from './temporal.js';
 
-export function createTerritorialLibraryService({loader, today = () => new Date().toISOString().slice(0,10)}) {
+export function createTerritorialLibraryService({loader, today = () => {
+  const date=new Date();return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}}) {
   if (!loader || !['loadIndex','loadEntity','peek'].every(key=>typeof loader[key] === 'function')) throw new Error('Territorial loader is required');
   let catalog = null;
   let pending = null;
   async function load() {
     if(catalog) return catalog;
     if(!pending) pending=loader.loadIndex().then(index=>{
-      if(index.schemaVersion!==1)throw new Error('Territorial index schema mismatch');
+      if(index.schemaVersion!==2)throw new Error('Territorial index schema mismatch');
       const ids=new Set();
       for(const e of index.entities){if(!e.entityId || ids.has(e.entityId))throw new Error('Duplicate catalog identity');ids.add(e.entityId);}
       catalog=index;return index;
@@ -26,22 +29,27 @@ export function createTerritorialLibraryService({loader, today = () => new Date(
     }
     return [...selected];
   }
-  async function instantiateDescriptors(rootIds, referenceDate, depth='none', overrides={}) {
+  async function instantiateDescriptors(rootIds, referenceDate, depth='none') {
+    if(!referenceDate)throw new Error('A reference date is required');
+    parseTemporal(referenceDate,{nullable:false});
     await load();
-    const root=get(rootIds[0]);
-    const date=referenceDate || root?.geometryVersions[0]?.validFrom || root?.lifetime.validFrom || today();
-    const entities=await Promise.all(entityRefsWithChildren(rootIds,depth,date).map(id=>loader.loadEntity(id)));
-    return entities.map(e=>instantiateLibraryEntity(e,date,overrides[e.entityId]));
+    const entities=await Promise.all(entityRefsWithChildren(rootIds,depth,referenceDate).map(id=>loader.loadEntity(id)));
+    return entities.map(e=>instantiateLibraryEntity(e,referenceDate));
   }
   return Object.freeze({load,get,list,loadEntity:loader.loadEntity, getLoadedEntity:loader.peek,entityRefsWithChildren,instantiateDescriptors,
     snapshots:()=>catalog?.snapshots || [],getSnapshot:id=>catalog?.snapshots.find(s=>s.id===id) || null,
-    search({query='',entityKind='',status='all',referenceDate='',geographicRegion=''}={}){
+    today,
+    search({query='',referenceDate=today()}={}){
+      parseTemporal(referenceDate,{nullable:false});
       const needle=String(query).trim().toLocaleLowerCase('ko');
-      return list().filter(e=>(!entityKind || e.entityKind===entityKind)
-        && (status==='all' || territorialEntityExistsAt(e,today())===(status==='current'))
-        && (!referenceDate || territorialEntityExistsAt(e,referenceDate))
-        && (!geographicRegion || e.metadata.geographicRegion===geographicRegion)
-        && (!needle || [e.canonicalName,...Object.values(e.displayNames),...e.alternateNames].some(name=>name.toLocaleLowerCase('ko').includes(needle))));
+      const matches=values=>values.some(name=>name.toLocaleLowerCase('ko').includes(needle));
+      return (catalog?.lineages || []).map(lineage=>{
+        const groupMatches=!needle || matches(Object.values(lineage.names));
+        const entities=lineage.entityRefs.map(get).filter(e=>territorialEntityExistsAt(e,referenceDate)
+          && (groupMatches || matches([...Object.values(e.names),...e.alternateNames])))
+          .map(e=>({...e,selectedVersionId:selectGeometryVersion(e,referenceDate)?.versionId || null}));
+        return {lineageId:lineage.lineageId,names:lineage.names,entities};
+      }).filter(group=>group.entities.length);
     },
   });
 }
