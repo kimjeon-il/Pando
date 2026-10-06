@@ -120,9 +120,9 @@ class ObjectEditorV0303Tests(unittest.TestCase):
 
     def test_entity_relations_and_three_mobile_snaps_are_present(self):
         entity = self.form_markup('entityProperties')
-        self.assertIn('entityInfoRelations', entity)
-        self.assertIn('entityInfoParentRows', entity)
-        self.assertIn('entityInfoChildRows', entity)
+        self.assertIn('entityRelations', entity)
+        self.assertIn('entityParentRows', entity)
+        self.assertIn('entityChildRows', entity)
         workspace = read_module(ROOT,'app-workspace-surfaces.js')
         for token in ('MOBILE_SHEET_SNAP_COLLAPSED_PX','MOBILE_SHEET_EDITOR_RATIOS','MOBILE_SHEET_AUXILIARY_RATIOS','mobileSheetSnapHeight'):
             self.assertIn(token, workspace)

@@ -6,6 +6,7 @@ export function createTooltipController({
   idPrefix = 'ui-tooltip-owner-',
 }) {
   let showTimer = 0;
+  let mapPointer = null;
 
   function hide() {
     window.clearTimeout(showTimer);
@@ -22,6 +23,7 @@ export function createTooltipController({
     tooltip.setAttribute('aria-hidden', 'true');
     tooltip.textContent = '';
     delete tooltip.dataset.ownerId;
+    delete tooltip.dataset.kind;
   }
 
   function show(target, source = 'pointer') {
@@ -50,7 +52,49 @@ export function createTooltipController({
     tooltip.style.top = `${Math.round(top)}px`;
   }
 
+  function positionMapHover() {
+    const rect = tooltip.getBoundingClientRect(), edge = 8;
+    tooltip.style.left = `${Math.round(clamp(mapPointer.x + edge, edge, Math.max(edge, window.innerWidth - rect.width - edge)))}px`;
+    tooltip.style.top = `${Math.round(mapPointer.y + edge + rect.height <= window.innerHeight - edge
+      ? mapPointer.y + edge : Math.max(edge, mapPointer.y - rect.height - edge))}px`;
+  }
+
+  function setMapHover(view) {
+    if (!view || !mapPointer || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      if (tooltip.dataset.kind === 'country') hide();
+      return;
+    }
+    hide();
+    const name = document.createElement('span');
+    name.textContent = view.name || view.displayName || '이름 없는 객체';
+    const nodes = [name];
+    if (view.flagUrl) {
+      const flag = document.createElement('img');
+      flag.src = view.flagUrl; flag.alt = '';
+      flag.addEventListener('error', () => flag.remove(), { once: true });
+      nodes.unshift(flag);
+    }
+    tooltip.replaceChildren(...nodes);
+    tooltip.dataset.kind = 'country';
+    tooltip.classList.remove('hidden');
+    tooltip.setAttribute('aria-hidden', 'false');
+    positionMapHover();
+  }
+
   function bind() {
+    document.addEventListener('pointermove', event => {
+      const map = event.target.closest?.('#map');
+      if (event.pointerType !== 'mouse' || !map || event.target.closest?.('.map-overlay-layer, button, input, select, textarea')) {
+        mapPointer = null;
+        if (tooltip.dataset.kind === 'country') hide();
+        return;
+      }
+      mapPointer = { x: event.clientX, y: event.clientY };
+      if (tooltip.dataset.kind === 'country') positionMapHover();
+    }, true);
+    document.addEventListener('pointerdown', hide, true);
+    window.addEventListener('pandolab:project-changed', hide);
+    window.addEventListener('pandolab:interaction-state', hide);
     document.addEventListener('pointerover', event => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
       const target = event.target.closest?.('[data-tooltip]');
@@ -77,5 +121,5 @@ export function createTooltipController({
     window.addEventListener('resize', hide);
   }
 
-  return Object.freeze({ bind, hide, show });
+  return Object.freeze({ bind, hide, show, setMapHover });
 }
