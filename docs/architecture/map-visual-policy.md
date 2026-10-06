@@ -1,4 +1,4 @@
-# Common map visual policy — M4, M5 and M6
+# Common map visual policy — M4 through M7
 
 ## M4: visual order
 
@@ -197,3 +197,78 @@ packaging are not run. M7 still owns the final full regression and the complete
 drag/Worker/topology/GPU-upload/display continuity proof. This stage establishes
 the checked projection/frame consumers, not uninterrupted rendering of every
 map element, terrain coverage or driver-independent line rasterization.
+
+## M7: end-to-end editing continuity and integration validation
+
+M7 reuses `edit-preview-handoff.spec.mjs`, the production map-edit Worker,
+the production GeoPackage file import and the shared GPU upload scheduler.
+The static exchange fixture supplies two adjacent polygon geometries in memory;
+the original exchange fixture and timeline/save contracts are unchanged.
+The test edits their common vertex through the existing map UI, holds both
+`boundary-move` and `territorial-edit` result delivery, rotates/zooms while waiting,
+and holds actual scoped stroke uploads before allowing the successor to draw.
+
+WebGL observations run after every coordinator pass, including upload-ready
+`GPU_FRAME` and `GPU_INTERACTION` frames that do not republish view-attached
+layers. Canvas observations use accepted presentation frames. Each observation
+records frame/view/projection/project identity, the edited geographic coordinate,
+its projected location, and visible direct-preview/SVG/actual GPU stroke owners.
+SVG owners must match the current frame's projected path; GPU owners must have
+drawn the edited coordinate. The test retains observation through the final GPU
+stroke draw, rather than treating the Worker response, packet construction or
+first SVG handoff as GPU completion. Dragging and both calculation waits require
+observed frames; no recorded frame may have zero owners for the edited line.
+
+Final focused browser command:
+`pnpm exec playwright test tests/browser/edit-preview-handoff.spec.mjs --grep='M7' --output=test-results/m7-final-continuity`:
+**3 pass, 0 fail, 0 skip** (`m7-final-continuity.log`). The WebGL case records
+36 coordinator frames (3 blocked upload steps), and Canvas records 5 accepted
+frames; both have **0 ownerless frames**. Each backend observes dragging, both
+Worker waits and successor presentation. WebGL also observes the upload wait and
+actual successor GPU draw. The third case checks outline-disabled Escape.
+Their coordinate/frame proofs, screenshots and real imported GeoPackages remain
+in `test-results/m7-final-continuity` and are hashed in the delivery manifest.
+
+Final review reproduced a cancellation defect: with selection outlines disabled,
+the successor has no visible selection stroke and the direct preview can still
+be `successor-ready` when Escape discards its geometry preview. The existing
+geometry-preview owner now clears only the matching direct successor. A newer
+drag remains intact. The real-controller regression failed before the fix
+(`m7-discard-red.log`) and the focused lifecycle/presentation checks pass 27/27
+after it (`m7-discard-green.log`). The browser additionally checks Escape,
+preview removal and unchanged history with outlines disabled.
+
+Execution base: `e76857ae11b32ca9edb6da8beb1569e6308df598`; M6 parent:
+`315de72ee1dc602a7771c4096fd11080e68f0503`. Work remains on the existing
+`codex/m2-preview-handoff` worktree. Release assets for app `0.35.0` are generated
+from canonical sources using `build-world-preview.mjs` and build metadata using
+`generate-build-metadata.mjs`, following the documented runtime-contract MINOR
+policy. No schema, persistence, geometry archive, time meaning or activation
+policy changes accompany this release.
+
+Full validation deliberately distinguishes current regressions from main's
+existing failures. Initial Node units found two obsolete M4/M6 source assertions:
+literal hydro calls and the retired numeric Canvas redraw. Their current tests
+check the shared hydro-before-country-boundary policy and frame-owned Canvas
+queue instead, retaining independent view/style revision checks. Final Node
+units: **1650 pass, 0 fail, 0 skip** (`m7-full-unit-release.log`). Full architecture:
+**180 Node plus 3 current-schema Python pass, 0 fail/skip**
+(`m7-full-architecture-final.log`). Full ESLint, JS syntax (702 files), version,
+UI checks and M7 workflow checks pass; final changed-file ESLint is retained.
+
+Full Python discovery: **225 total, 101 pass, 102 fail, 22 errors, 0 skip**.
+The exact failing/error test-name list matches an independent run on the unchanged
+main base (`m7-full-python.log`, `m7-main-python-baseline.log`). Its retired UI,
+schema and monolithic-source assertions are not repaired by restoring legacy
+production paths. The historical recipe also rejects the current canonical
+source hash on both main and this branch (`m7-main-historical-baseline.log`):
+expected `168286E9EE8E156CDBD19EBB026A13B66EBE2134CC89883834E32A4D58ABE416`,
+actual `6D29C349478CB2A7899573544BA580DA70BD902C12EE86A4A93662CA6E94AD72`.
+Current JS historical validation still passes all 26 entries. Consequently the
+combined `pnpm test` command stops at the existing recipe failure; it is not
+reported as a green full suite. Later stages are executed separately and their
+results, browser evidence and final commit are recorded in the M7 delivery manifest.
+
+This continuity proof concerns the edited boundary line through the observed
+UI/Worker/topology/upload/display paths. It does not establish uninterrupted
+coverage of every terrain tile or every map object on every GPU driver.

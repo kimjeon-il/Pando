@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { createGpuMapRenderer } from '../../assets/js/modules/gpu-map-renderer.js';
+import { mapVisualOrder } from '../../assets/js/modules/layer-presentation.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -220,16 +221,25 @@ test('completed hydro renders before canonical country boundaries in every nativ
   const gpu = read('assets/js/modules/gpu-map-renderer.js');
   const worker = read('assets/js/workers/canvas-render-worker.js');
   const webgl = read('assets/js/modules/gpu-base-scene-pass.js');
-  assert.ok(gpu.includes('lastBaseSceneResult = drawGpuBaseScene('));
-  assert.ok(webgl.indexOf("drawHydro('border-river')") >= 0);
-  assert.ok(webgl.indexOf("drawHydro('border-river')") < webgl.indexOf('drawCountryBoundaryStrokes(dynamicResources,'));
+  assert.ok(gpu.includes('const result = drawGpuBaseScene('));
+  for (const backend of ['gpu', 'canvas']) {
+    const order = mapVisualOrder('base', backend);
+    assert.ok(order.indexOf('border-river') >= 0);
+    assert.ok(order.indexOf('border-river') < order.indexOf('country-boundary'));
+  }
+  assert.ok(webgl.includes("for (const role of mapVisualOrder('base', 'gpu'))"));
+  assert.ok(webgl.includes("for (const role of mapVisualOrder('hydro')) drawHydro(role)"));
+  assert.ok(webgl.includes('drawCountryBoundaryStrokes(dynamicResources,'));
   const canvas = gpu.slice(gpu.indexOf('function renderCanvasFallback'), gpu.indexOf('function canvasWorkerStyleMessage'));
-  assert.ok(canvas.indexOf('renderCanvasHydro(canvasPath, theme)') >= 0);
-  assert.ok(canvas.indexOf('renderCanvasHydro(canvasPath, theme)') < canvas.indexOf('renderCanvasCountryBoundaries(canvasPath, theme, countryFeatures)'));
+  assert.ok(canvas.includes("for (const role of mapVisualOrder('base'))"));
+  assert.ok(canvas.includes('renderCanvasHydro(canvasPath, theme, ctx2d, false, role)'));
+  assert.ok(canvas.includes("'country-boundary': () => renderCanvasCountryBoundaries(canvasPath, theme, countryFeatures)"));
   assert.ok(gpu.includes('path(countryOutlineFeature(feature))'));
   const workerRender = worker.slice(worker.indexOf('function render(message)'), worker.indexOf('self.onmessage'));
-  assert.ok(workerRender.indexOf('renderHydroPass(message, projection, dpr, true)') >= 0);
-  assert.ok(workerRender.indexOf('renderHydroPass(message, projection, dpr, true)') < workerRender.indexOf('renderCountryBoundaries(message, projection, dpr)'));
+  assert.ok(gpu.includes("visualOrder: { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') }"));
+  assert.ok(workerRender.includes('message.visualOrder.base'));
+  assert.ok(workerRender.includes('renderHydroPass(message, projection, dpr, role)'));
+  assert.ok(workerRender.includes('renderCountryBoundaries(message, projection, dpr)'));
   assert.ok(worker.includes('path(countryOutlineFeature(feature))'));
   assert.doesNotMatch(workerRender, /strokeStyle = '#346733'/);
   assert.ok(gpu.includes('setHydroEdits'));
