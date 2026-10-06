@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
+import { createPointerTargets } from '../../assets/js/modules/app-pointer-targets.js';
+import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
 import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
 import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
@@ -19,24 +21,28 @@ function node(name, parent = null) {
     n.listeners.set(type, list);
   };
   n.removeEventListener = (type, fn) => n.listeners.set(type, (n.listeners.get(type) || []).filter(x => x.fn !== fn));
-  n.closest = selector => selector === '#map'
-    ? (name === 'document' ? null : map)
-    : selector === '.territorial-label-item[data-label-id]' && ['label', 'text'].includes(name) ? label : null;
+  n.closest = selector => {
+    for (let current = n; current; current = current.parent) {
+      if (selector === '#map' && current.name === 'map') return current;
+      if (selector === '.territorial-label-item[data-label-id]' && current.name === 'label') return current;
+      if (selector === '.user-label' && current.name === 'user-label') return current;
+    }
+    return null;
+  };
   return n;
 }
 
-let map, label;
-function fixture() {
+function fixture({ queuedPicks = false, peerKind = 'city' } = {}) {
   const document = node('document');
   document.documentElement = editorNode();
   document.createElement = editorNode;
   document.getElementById = () => null;
-  map = node('map', document);
+  const map = node('map', document);
   const rect = { left: 40, top: 60, width: 1000, height: 800 };
   map.getBoundingClientRect = () => rect; map.clientLeft = 0; map.clientTop = 0;
   const overlay = node('overlaySvg', map), interaction = node('interactionSvg', map);
   overlay.getBoundingClientRect = () => rect; overlay.clientLeft = 0; overlay.clientTop = 0;
-  label = node('label', interaction);
+  const label = node('label', interaction);
   label.dataset.labelId = 'DEU';
   const text = node('text', label), hit = node('ground', overlay);
   const window = node('window');
@@ -53,17 +59,33 @@ function fixture() {
   let panning = false;
   const domain = createSelectionDomain({ onHoverChanged: s => {
     published++;
-    tip.setMapHover(s.hover ? { name: '독일' } : null);
+    tip.setMapHover(s.hover?.domain === 'territorial' ? { name: '독일' } : null);
   } });
+  let executedPicks = 0;
+  const pointers = createPointerTargets();
+  pointers.connect({ domains: { selectionDomain: domain }, projectState: { state },
+    draftPresentation: { editingDraftSnapshot: () => draft }, mapLayout: { viewRevision: 1 },
+    objectPicking: { territorialObjectsAt: () => { executedPicks++; return [{ ref }]; } } });
+  pointers.initializeHoverPickFrame();
+  const peer = node('user-label', interaction), peerText = node('peer-text', peer);
+  peer.__data__ = { id: 'PLACE', kind: peerKind };
+  const renderingSource = readFileSync(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
+  const start = renderingSource.indexOf("    enter.on('mouseenter.hover'", renderingSource.indexOf('  const renderUserLabels ='));
+  const end = renderingSource.indexOf("    enter.append('circle')", start);
+  // Register the existing peer-label hover owner with real D3, then allow its
+  // mousemove to bubble to the shared map input boundary.
+  vm.runInNewContext(renderingSource.slice(start, end), { enter: d3.select(peer),
+    labels: { isMobile: () => false }, labelState: () => state, selectionDomain: domain,
+    labelRef: value => normalizeObjectRef({ domain: 'label', type: value.kind, id: value.id }) });
   const input = createMapInputPresentation({
     getElement: () => map, window, navigator: {}, d3,
     createMapInputController: () => ({ destroy() {}, isPanning: () => panning }),
     getInputSnapshot: () => state, getDraftSnapshot: () => draft,
     isMobile: () => false, isGenericFeatureDraftTool: () => false,
     screenToGeo: () => [10, 49], getTerritorialLabelRef: () => ref,
-    cancelCountryHoverPick() {}, clearHoverHit() {}, dispatchEditingInteraction: (...args) => draftEvents.push(args), mapClickBlocked: () => false,
+    cancelCountryHoverPick: pointers.cancelCountryHoverPick, clearHoverHit() {}, dispatchEditingInteraction: (...args) => draftEvents.push(args), mapClickBlocked: () => false,
     handleMapClick: point => clicks.push(point),
-    queueCountryHoverPick(point) { areaPicks++; points.push(point); domain.setHover(ref, { source: 'map' }); },
+    queueCountryHoverPick(point, coord) { areaPicks++; points.push(point); if (queuedPicks) pointers.queueCountryHoverPick(point, coord); else domain.setHover(ref, { source: 'map' }); },
     selectionDomain: domain,
   });
   input.bindSvg(d3.select(overlay));
@@ -84,7 +106,7 @@ function fixture() {
       selectionRevision: domain.snapshot().revision,
     };
   };
-  return { hover, label: text, hit, map, overlay, dispatch, points, clicks, input, domain, state, draft, draftEvents, setPanning: value => { panning = value; } };
+  return { hover, label: text, peer: peerText, hit, map, overlay, dispatch, points, clicks, input, domain, state, draft, draftEvents, pointers, executedPicks: () => executedPicks, setPanning: value => { panning = value; } };
 }
 
 // Reflect app-map-host's actual sibling SVG topology. Real D3 listeners see
@@ -126,4 +148,26 @@ test('shared-map mouseleave clears hover and draft movement retains one map-loca
   f.setPanning(true); f.hover(f.hit);
   assert.equal(f.draftEvents.length, 1, 'panning cannot add draft points');
   assert.equal(f.domain.size(), 0);
+});
+
+for (const peerKind of ['city', 'label']) for (const moveWithinLabel of [false, true]) test(`shared hover preserves ${peerKind} labels and cancels stale queued country picks (move=${moveWithinLabel})`, async t => {
+  const f = fixture({ queuedPicks: true, peerKind });
+  t.after(() => { f.pointers.cancelCountryHoverPick(); f.input.dispose(); });
+  f.hover(f.hit);
+  assert.equal(f.domain.snapshot().hover, null, 'ground pick is still queued');
+  f.dispatch(f.peer, 'mouseover'); f.dispatch(f.peer, 'mouseenter');
+  assert.equal(f.domain.snapshot().hover.key, `label:${peerKind}:PLACE`);
+  if (moveWithinLabel) assert.equal(f.hover(f.peer).tooltip, null);
+  await new Promise(resolve => setTimeout(resolve, 75));
+  assert.equal(f.domain.snapshot().hover.key, `label:${peerKind}:PLACE`, 'a stale ground result must not overwrite peer-label hover');
+  assert.equal(f.executedPicks(), 0);
+  assert.equal(f.hover(f.peer).areaPicks, 1, 'movement within a peer label must not queue new ground picks');
+  f.dispatch(f.peer, 'mouseout'); f.dispatch(f.peer, 'mouseleave');
+  assert.equal(f.domain.snapshot().hover, null);
+  f.hover(f.hit);
+  await new Promise(resolve => setTimeout(resolve, 75));
+  assert.equal(f.domain.snapshot().hover.key, 'territorial:entity:DEU');
+  assert.equal(f.executedPicks(), 1);
+  assert.equal(f.hover(f.label).tooltip, 'country');
+  assert.equal(f.domain.size(), 0); assert.equal(f.domain.snapshot().revision, 0);
 });
