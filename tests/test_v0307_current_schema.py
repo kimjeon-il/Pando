@@ -20,7 +20,7 @@ class CurrentSchemaPolicyTests(unittest.TestCase):
         self.assertIn("schemaVersion = PROJECT_SCHEMA_VERSION", SERIALIZER)
         self.assertIn("schemaVersion,", SERIALIZER)
         self.assertIn("prepareProjectForActivation(project", APP)
-        self.assertIn("export const PROJECT_SCHEMA_VERSION = 9", VERSIONS)
+        self.assertIn("export const PROJECT_SCHEMA_VERSION = 10", VERSIONS)
         self.assertIn("export { PROJECT_SCHEMA_VERSION }", PROJECT)
         self.assertNotIn("migrateProject", PROJECT)
         self.assertIn("territorialEntities", SERIALIZER)

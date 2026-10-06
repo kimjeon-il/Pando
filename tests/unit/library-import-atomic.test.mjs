@@ -122,14 +122,16 @@ async function libraryAssemblyHarness(t, finite) {
   picking.connect({ surfaces: { uid: () => 'generated' }, platform: { deepClone: structuredClone } });
   let allocated=0;
   const operations = [], fakeElement = { querySelector: () => null };
+  let controllerOptions;
   const assembly = createLibraryAssembly();
   assembly.connect({
     projectState: { state: h.state }, countries: { countryLandRevision: 0 },
+    domains: { projectDomain: { getGeneration: () => 7 } },
     territorialModel: { entityRepository: repository }, objectPicking: picking,
     libraryServices: { ...libraryOwnership, ensureTerritorialLibraryRuntime: noop,
       territorialEntityLoaderModule: {createTerritorialEntityLoader},
       territorialLibraryServiceModule: { createTerritorialLibraryService },
-      territorialLibraryControllerModule: { createTerritorialLibraryController: () => ({ connect: noop }) } },
+      territorialLibraryControllerModule: { createTerritorialLibraryController: options => { controllerOptions=options; return { connect: noop }; } } },
     gisRuntime: { gisWorkflow: { ensure: noop }, getGisImportCommitter: async () => h.commit },
     applicationServicesA: { ensureModalRuntime: noop }, applicationServicesB: {},
     platform: { $: () => fakeElement }, platformConfigurationA: { TERRITORIAL_LIBRARY_INDEX_URL: 'https://fixture/index.json' },
@@ -149,7 +151,7 @@ async function libraryAssemblyHarness(t, finite) {
   });
   assembly.initializeTerritorialLibraryService();
   await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.load();
-  return { ...h, operations, entityId, pilot, geometry, source: structuredClone(await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.get(entityId)) };
+  return { ...h, operations, entityId, pilot, geometry, controllerGeneration:()=>controllerOptions.getProjectGeneration(), source: structuredClone(await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.get(entityId)) };
 }
 
 test('finite source imports as static geometry with original dates and reversible archive', async t => {
@@ -170,9 +172,13 @@ test('finite source imports as static geometry with original dates and reversibl
 
 test('static library merge preserves source metadata, flag, geometry version and one reversible history entry', async t => {
   const h = await libraryAssemblyHarness(t, false);
+  const initialEntities=h.state.territorialEntities;
+  assert.equal(h.controllerGeneration(),7,'UI must use the canonical project session generation');
   const before = snapshotTestTerritorialState(h.state);
   const result = await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId, '2026-10-06');
   assert.equal(result.added, 1);
+  assert.notEqual(h.state.territorialEntities,initialEntities,'production commit publishes a new collection');
+  assert.equal(h.controllerGeneration(),7,'successful content commit is not project replacement');
   const added = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => h.state }) }).list().find(item=>item.properties.sourceEntityId===h.entityId);
   assert.equal(added.properties.sourceEntityId, h.entityId);
   assert.equal(added.properties.sourceGeometryVersion, 'fixture:1');

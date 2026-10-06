@@ -1,8 +1,45 @@
 # 웹 T2-2 프로젝트 영속성
 
+## 현재 계보·출처 계약 검증 (2026-10-06)
+
+이번 실행은 계보 source/index 1/2와 프로젝트 wire 10, identity 6의 이전이다.
+시간 의미와 timelineRecords 1, 정적 UI 활성화 제한은 유지했다.
+Web 기준은 `008b99b5ca2dd39936e51f7ddd11c0c70fc7bb74`, App 기준은
+`b5120b5b9cf03780783b642782e93db8dbfa565c`이며 App 후보는
+`6044e0611fece3716c1d014b9712b58b2d26f71c`다.
+아래 과거 실행 기록의 SHA·실패는 당시 증거이며 이번 후보 결과로 재사용하지 않는다.
+
+단계·실패·원인·명령 범위는 `docs/validation/country-lineage-storage.md`에 기록했다.
+전체 단위 1,729개와 Python 247+15개가 통과했고 최종 보정은 영향받은 집중 검사로
+재확인했다. 전체 브라우저는 사용자 요청으로 중단했으며 4 통과/4 실패,
+298 미완료다. 전체 브라우저 통과 또는 모든 제품 경로 동등성을 주장하지 않는다.
+정적 객체의 전체 archive/기록/독립 프로젝트 ID·출처와 UI 가져오기/Undo/Redo는
+실제 production owner를 사용한다. 최종 UI 및 Web Worker↔native codec 교환의
+실행 결과는 후보 고정 후 아래 산출물에 추가한다.
+
+`test-results/country-lineage-storage/manifest-<WEB_CANDIDATE_SHA>.json`은
+고정 Web/App SHA 쌍, 공통 계약과 스키마/fixture/expected 파일의 checkout byte SHA-256,
+명령별 통과/실패/skip/미실행과 로그·브라우저·교환 증거를 포함한다.
+common temporal contract hash는
+`49194028cee9b18bdfe8af331e920ebec9be7df37f2137a998fc0a1791afef29`,
+양쪽 동일한 territorial source contract hash는
+`cccbaf0a72ce81f6c3dec6a26909d82b6dbc65d7b4297309ebe3547bfd90ab95`다.
+fixture는 기존 `tests/fixtures/timeline-exchange`와 expected를 사용한다.
+
+```powershell
+$env:PATH = 'C:/Users/taeeu/Qt/6.8.3/mingw_64/bin;C:/Users/taeeu/Qt/Tools/mingw1310_64/bin;' + $env:PATH
+$env:QT_QPA_PLATFORM = 'offscreen'
+node tools/check-timeline-exchange.mjs D:/build/Pandoeditor-country-lineage/timeline_project_tests.exe test-results/country-lineage-storage/exchange
+```
+
+App delta는 baseline 미제공 시 `BASE_DATA_REQUIRED`다. App catalog UI 개편과 전체 성능
+비교는 이번 실행 범위가 아니다. 수정 브랜치만 푸시하며 main·배포·패키징은 하지 않는다.
+후보 고정 뒤 코드/fixture가 바뀌면 기존 검증 쌍을 폐기하고 새 SHA·결과를 남긴다.
+
 ## 계약과 소유권
 
-프로젝트 형식은 schemaVersion 9, timelineRecords는 schemaVersion 1이다.
+프로젝트 형식은 schemaVersion 10, territorial identity는 6, timelineRecords는 1이다.
+원본 출처는 sourceEntityId/sourceGeometryVersion을 사용하며 시간 의미·활성화 정책은 유지한다.
 현재 형식만 읽으며 구형 개발 저장본의 reader·migration·별칭은 없다.
 
 `territorial-entity-store`가 ID, general/regional 종류와 메타데이터를 소유한다.

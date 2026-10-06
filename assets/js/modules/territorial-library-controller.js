@@ -13,7 +13,6 @@ export function createTerritorialLibraryController({
   focusSurfaceTrigger,
   instantiate,
   ownershipContext = () => ({ missing: [], countries: [], parents: () => [] }),
-  confirm,
   setStatus,
   reportError,
   getProjectGeneration,
@@ -109,12 +108,10 @@ export function createTerritorialLibraryController({
       elements.search,
       elements.clearSearch,
       elements.referenceDate,
-      elements.snapshot,
       elements.childDepth,
     ]) {
       if (element) element.disabled = loading;
     }
-    if (elements.snapshotButton) elements.snapshotButton.disabled = loading || !elements.snapshot.value;
     if (elements.add) elements.add.disabled = true;
     if (elements.results) elements.results.setAttribute('aria-busy', String(loading));
   }
@@ -138,14 +135,6 @@ export function createTerritorialLibraryController({
   function period(entity) {
     if (!entity.lifetime.validFrom && !entity.lifetime.validTo) return '기간 미상';
     return `${entity.lifetime.validFrom || '?'}–${entity.lifetime.validTo || '현재'}`;
-  }
-
-  function syncSnapshotOptions() {
-    replaceSelectOptions(elements.snapshot, [
-      { value: '', label: '스냅샷 선택', placeholder: true },
-      ...service.snapshots().map(snapshot => ({ value: snapshot.id, label: `${snapshot.name}${snapshot.metadata?.partial ? ' · 부분' : ''}` })),
-    ], elements.snapshot.value, { autoSelectSingle: true });
-    if (elements.snapshotButton) elements.snapshotButton.disabled = !elements.snapshot.value;
   }
 
   function searchResults() {
@@ -325,7 +314,6 @@ export function createTerritorialLibraryController({
       if (generation !== requestGeneration || project !== getProjectGeneration()) return;
       setLoadingState(false);
       if (!elements.referenceDate.value) elements.referenceDate.value=service.today();
-      syncSnapshotOptions();
       renderResults();
       renderPreview();
       elements.search.focus();
@@ -341,17 +329,28 @@ export function createTerritorialLibraryController({
   async function addSelected() {
     if (loading || !selectedId) return;
     const generation = ++requestGeneration;
+    const project = getProjectGeneration();
+    function isCurrent() {
+      if (generation !== requestGeneration) return false;
+      if (project === getProjectGeneration()) return true;
+      selectedId = '';
+      resetOwnership();
+      setLoadingState(false);
+      renderResults();
+      renderPreview();
+      return false;
+    }
     setLoadingState(true);
     try {
       const context = await ownershipContext([selectedId], elements.referenceDate.value, elements.childDepth.value);
-      if (generation !== requestGeneration) return;
+      if (!isCurrent()) return;
       if (!ownershipChoices && context.missing.length) {
         setLoadingState(false);
         showOwnership(context);
         return;
       }
     } catch (error) {
-      if (generation !== requestGeneration) return;
+      if (!isCurrent()) return;
       setLoadingState(false);
       renderPreview();
       reportError(error, '선택한 항목의 소속과 경계 버전을 확인하세요.', 'PL-LIB-002', 4800);
@@ -362,9 +361,9 @@ export function createTerritorialLibraryController({
     try {
       const result = await instantiate([selectedId], elements.referenceDate.value, elements.childDepth.value, {
         ownership: ownershipChoices || {}, confirmedImpact,
-        isCurrent: () => requestGeneration === generation,
+        isCurrent,
       });
-      if (requestGeneration !== generation) return;
+      if (!isCurrent()) return;
       if (result?.confirmationRequired) {
         const host = elements.ownership;
         host.classList.remove('hidden');
@@ -398,7 +397,7 @@ export function createTerritorialLibraryController({
       }
       close();
     } catch (error) {
-      if (requestGeneration !== generation) return;
+      if (!isCurrent()) return;
       setLoadingState(false);
       renderPreview();
       reportError(error, '라이브러리 항목을 프로젝트에 추가하지 못했습니다.', 'PL-LIB-002', 4800);
@@ -432,27 +431,6 @@ export function createTerritorialLibraryController({
     elements.add.textContent = '추가';
     elements.card?.classList.remove('is-detail', 'is-options');
     requestFrame(() => elements.results.querySelector('[aria-selected="true"]')?.focus());
-  }
-
-  function requestSnapshot() {
-    const snapshot = service.getSnapshot(elements.snapshot.value);
-    if (!snapshot) return;
-    confirm({
-      title: `${snapshot.name} 스냅샷`,
-      message: snapshot.metadata?.partial
-        ? '이 스냅샷은 라이브러리 기능 시험용 부분 구성입니다. 선택 시점의 항목을 새 프로젝트 객체로 가져옵니다.'
-        : '선택 시점의 스냅샷 항목을 새 프로젝트 객체로 가져옵니다.',
-      confirmText: '항목 가져오기',
-      onConfirm: async () => {
-        try {
-          const result = await instantiate(snapshot.entityRefs, snapshot.referenceDate, 'all');
-          setStatus(`${snapshot.name}에서 ${Number(result?.added || 0)}개 항목을 추가했습니다.`, 'success', 4200);
-          close();
-        } catch (error) {
-          reportError(error, '세계 스냅샷을 프로젝트에 추가하지 못했습니다.', 'PL-LIB-003', 4800);
-        }
-      },
-    });
   }
 
   function connect() {
@@ -503,8 +481,6 @@ export function createTerritorialLibraryController({
     });
     elements.add?.addEventListener('click', advanceAdd);
     elements.optionsBack?.addEventListener('click', returnToDetail);
-    elements.snapshot?.addEventListener('change', () => { elements.snapshotButton.disabled = !elements.snapshot.value; });
-    elements.snapshotButton?.addEventListener('click', requestSnapshot);
   }
 
   return Object.freeze({ close, connect, isOpen: () => !elements.modal.classList.contains('hidden'), open, renderPreview, renderResults, select });
