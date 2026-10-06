@@ -75,6 +75,10 @@ embedded entity와 generated index/chunk는 schema 2다. entity는 `entityId`, `
 
 기존 실제 파일의 소유자: [catalog model](<C:/Users/taeeu/.codex/worktrees/unified-territorial-entity-storage/Pandoeditor(Web)/assets/js/modules/territorial-library.js>), [source reader](<C:/Users/taeeu/.codex/worktrees/unified-territorial-entity-storage/Pandoeditor(Web)/tools/territorial-entity-sources.mjs>), [import assembly](<C:/Users/taeeu/.codex/worktrees/unified-territorial-entity-storage/Pandoeditor(Web)/assets/js/modules/app-library-assembly.js>), [project identity](<C:/Users/taeeu/.codex/worktrees/unified-territorial-entity-storage/Pandoeditor(Web)/assets/js/modules/territorial-units.js>), [앱 codec](<D:/dev/Pandoeditor(App)/app/projectcodec.cpp>).
 
+## 실행 시 사용자 보정
+
+사용자가 구현 시작 후 “마지막 단계 전에는 필요한 검사만, 전체 검사는 마지막 단계가 끝난 후에만”으로 검사 순서를 지정했다. M0–M6에는 집중 검사만 실행했고 M7 구현 완료 후 전체 검사를 시작했다. 최종 전체 브라우저에서 범위 밖 실패가 나타난 뒤 사용자가 전체 실행 중단과 변경 관련 경로 마무리를 선택했다. 전체 브라우저 통과로 보고하지 않는다.
+
 ## 작업 순서와 단계별 gate
 
 각 단계는 실패 회귀 → 최소 변경 → 같은 집중 검사 → 단계 커밋 순서로 한다. 관련 실패를 남긴 채 다음 단계의 통과를 선언하지 않는다. 데이터/표시/저장 포맷 변경과 그 tests/fixture/CI 경로 갱신은 같은 단계에 포함한다.

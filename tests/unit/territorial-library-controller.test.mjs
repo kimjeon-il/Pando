@@ -381,6 +381,26 @@ test('territorial library hides the pilot badge while retaining pilot metadata',
 });
 
 
+test('Add rejects an ownership response from the replaced project before instantiating', async () => {
+  const document={createElement:()=>fakeElement(document),createDocumentFragment:()=>fakeElement(document)};
+  const elements=Object.fromEntries(['modal','search','referenceDate','results','preview','snapshot','snapshotButton','childDepth','add','ownership'].map(name=>[name,fakeElement(document)]));
+  const entity=catalogEntity({entityId:'state:root',names:{en:'Root'},entityKind:'general',geometryVersions:[{versionId:'root:v1',geometry}]});
+  let project=1, resolveOwnership; const calls=[], reports=[];
+  const ownership=new Promise(resolve=>{resolveOwnership=resolve;});
+  const service={today:()=> '2026-10-06',load:async()=>{},list:()=>[entity],snapshots:()=>[],get:id=>id===entity.entityId?entity:null,getLoadedEntity:id=>id===entity.entityId?entity:null,
+    search:()=>[{lineageId:'group',names:{en:'Group'},entities:[entity]}],loadEntity:async()=>entity};
+  const controller=createTerritorialLibraryController({document,elements,service,getProjectGeneration:()=>project,
+    selectGeometryVersion:()=>entity.geometryVersions[0],renderMapPreview:()=>fakeElement(document),
+    createEmptyState:()=>fakeElement(document),replaceSelectOptions(){},closeSurface(){},focusSurfaceTrigger(){},setStatus(){},
+    reportError:error=>reports.push(error),requestFrame:fn=>fn(),ownershipContext:()=>ownership,
+    instantiate:async()=>{calls.push(project);return {added:1};}});
+  controller.connect(); await controller.open(); await controller.select(entity.entityId);
+  const adding=elements.add.click(); project=2; resolveOwnership({missing:[]}); await adding;
+  assert.deepEqual(calls,[],'stale ownership must not start a replacement-project transaction');
+  assert.equal(elements.add.disabled,true); assert.equal(elements.search.disabled,false);
+  assert.deepEqual(reports,[],'project replacement is expected invalidation');
+});
+
 test('late geometry responses cannot replace a new selection, closed modal or reset project', async () => {
   const document={createElement:()=>fakeElement(document),createDocumentFragment:()=>fakeElement(document)};
   const elements=Object.fromEntries(['modal','search','referenceDate','results','preview','snapshot','snapshotButton','childDepth','add','ownership'].map(name=>[name,fakeElement(document)]));

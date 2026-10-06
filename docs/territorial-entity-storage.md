@@ -1,4 +1,38 @@
-# Unified territorial entity storage
+# Country lineage storage — current contract
+
+2026-10-06 country-lineage follow-up supersedes the flat-source/catalog descriptions
+in the dated M0–M16 execution record below. Work is on Web and App candidate branches
+`codex/country-lineage-storage`; this follow-up does not merge main or deploy.
+
+- Authoritative source: `assets/data/territorial-entities/source/countries/<lineageId>.json`.
+- Lineage schema 1: `lineageId`, `names`, embedded `entities`, explicit `relations`.
+- Entity/index schema 2: `entityId`, `names`, `alternateNames`, `lifetime`,
+  `geometryVersions[].versionId`, provenance, administrative parent and instantiation.
+- 284 entities / 287 versions / 262 lineages. No identity merge/split, invented
+  periods or geometry; source coordinates and current canonical/shared boundaries preserved.
+- Individual generated chunks remain entity-scoped in `generated/v2`; index has
+  lineage membership and version metadata without coordinates. Existing loader/cache
+  owners verify bytes and schema before publication.
+- Search and explicit year/month/day date query produce lineage groups and entity
+  leaves. Geometry gaps disable Add. Every available selected version has a real
+  geographic preview; flags can be picked using only index metadata.
+- Import allocates a fresh project ID, selects one geometry, creates unbounded
+  static records and retains source lifetime/version validity/reference date/sourceInfo
+  in metadata. Existing overlap prohibition and territory-replacement confirmation
+  remain: importing at the same position replaces an earlier instance after confirmation.
+- Web/App shared project/native schema 10, territorial identity 6, timeline records 1;
+  `sourceEntityId` / `source_entity_id` replace the retired library provenance field.
+  Catalog never needs to load during project read/write. See `territorial-source-contract.md`.
+- App delta import still requires its unavailable original baseline (`BASE_DATA_REQUIRED`).
+  No baseline reader or migration was introduced. App lineage/catalog UI is outside scope.
+- Current world startup still reads packed preview → canonical → mesh/shared boundary;
+  source-lineage files and generated entity chunks are not startup inputs.
+- Actual Qt codec/Web Worker cross-exchange, selected UI evidence and final candidate
+  hashes are recorded in `timeline-persistence.md` and the execution evidence manifest.
+
+## Previous M0–M16 execution record (historical evidence)
+
+### Unified territorial entity storage
 
 ## Approved execution
 
