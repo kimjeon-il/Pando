@@ -15,6 +15,7 @@ on:
       - 'tests/browser/gpu-scene-staging.spec.mjs'
       - 'tests/browser/renderer-migration-gaps.spec.mjs'
       - 'tests/browser/selection-interaction-style.spec.mjs'
+      - 'tests/browser/interaction-unification.spec.mjs'
       - 'tests/browser/visual-frame-sync.spec.mjs'
       - 'tests/browser/server.mjs'
       - 'playwright.config.js'
@@ -57,6 +58,7 @@ on:
       - 'tests/browser/gpu-scene-staging.spec.mjs'
       - 'tests/browser/renderer-migration-gaps.spec.mjs'
       - 'tests/browser/selection-interaction-style.spec.mjs'
+      - 'tests/browser/interaction-unification.spec.mjs'
       - 'tests/browser/visual-frame-sync.spec.mjs'
       - 'tests/browser/server.mjs'
       - 'playwright.config.js'
@@ -130,7 +132,7 @@ jobs:
           else
             while IFS= read -r file; do
               case "$file" in
-                assets/css/features/map-rendering.css|assets/css/ui.bundle.css|assets/js/modules/app-environment.js|assets/js/modules/edit-preview-controller.js|assets/js/modules/gpu-stroke-renderer.js|assets/js/modules/selection-overlay-plan.js|assets/js/modules/selection-style.js|assets/js/workers/canvas-scene-composition-core.js|tests/unit/map-stroke-style.test.mjs|tests/unit/country-shared-boundary.test.mjs|assets/js/modules/layer-presentation.js|assets/js/modules/map-interaction-style.js|assets/js/modules/app-map-host.js|assets/js/modules/app-gpu-scene.js|assets/js/modules/gpu-base-scene-pass.js|assets/js/modules/gpu-interaction-pass.js|assets/js/modules/gpu-scene-preparation.js|assets/js/modules/gpu-map-renderer.js|assets/js/modules/rendering-domain.js|assets/js/modules/selection-pass.js|assets/js/workers/canvas-render-worker.js|tests/unit/map-visual-order.test.mjs|tests/browser/selection-interaction-style.spec.mjs|tests/browser/renderer-migration-gaps.spec.mjs|assets/js/modules/app-domain-assembly.js|assets/js/modules/app-map-projection.js|assets/js/modules/app-territorial-labels.js|assets/js/modules/app-service-assembly.js|assets/js/modules/app-generic-commands.js|assets/js/modules/app-physical-resources.js|assets/js/modules/app-territorial-drafts.js|assets/js/modules/app-map-audit.js|assets/js/modules/gpu-hydro-preparation.js|assets/js/modules/map-visual-frame.js|assets/js/modules/map-render-coordinator.js|tests/unit/visual-frame-consumers.test.mjs|tests/unit/map-visual-frame.test.mjs|tests/unit/map-render-coordinator.test.mjs|tests/unit/app-map-audit.test.mjs|tests/unit/map-label-visibility.test.mjs|tests/unit/distribution-selection.test.mjs|tests/unit/domain-split-contract.test.mjs|tests/unit/editing-render-packet.test.mjs|tests/unit/label-shell-performance.test.mjs|tests/browser/visual-frame-sync.spec.mjs|.github/workflows/application-architecture.yml)
+                assets/css/features/map-rendering.css|assets/css/ui.bundle.css|assets/js/modules/app-environment.js|assets/js/modules/edit-preview-controller.js|assets/js/modules/gpu-stroke-renderer.js|assets/js/modules/selection-overlay-plan.js|assets/js/modules/selection-style.js|assets/js/workers/canvas-scene-composition-core.js|tests/unit/map-stroke-style.test.mjs|tests/unit/country-shared-boundary.test.mjs|assets/js/modules/layer-presentation.js|assets/js/modules/map-interaction-style.js|assets/js/modules/app-map-host.js|assets/js/modules/app-gpu-scene.js|assets/js/modules/gpu-base-scene-pass.js|assets/js/modules/gpu-interaction-pass.js|assets/js/modules/gpu-scene-preparation.js|assets/js/modules/gpu-map-renderer.js|assets/js/modules/rendering-domain.js|assets/js/modules/selection-pass.js|assets/js/workers/canvas-render-worker.js|tests/unit/map-visual-order.test.mjs|tests/browser/selection-interaction-style.spec.mjs|tests/browser/interaction-unification.spec.mjs|tests/browser/renderer-migration-gaps.spec.mjs|assets/js/modules/app-domain-assembly.js|assets/js/modules/app-map-projection.js|assets/js/modules/app-territorial-labels.js|assets/js/modules/app-service-assembly.js|assets/js/modules/app-generic-commands.js|assets/js/modules/app-physical-resources.js|assets/js/modules/app-territorial-drafts.js|assets/js/modules/app-map-audit.js|assets/js/modules/gpu-hydro-preparation.js|assets/js/modules/map-visual-frame.js|assets/js/modules/map-render-coordinator.js|tests/unit/visual-frame-consumers.test.mjs|tests/unit/map-visual-frame.test.mjs|tests/unit/map-render-coordinator.test.mjs|tests/unit/app-map-audit.test.mjs|tests/unit/map-label-visibility.test.mjs|tests/unit/distribution-selection.test.mjs|tests/unit/domain-split-contract.test.mjs|tests/unit/editing-render-packet.test.mjs|tests/unit/label-shell-performance.test.mjs|tests/browser/visual-frame-sync.spec.mjs|.github/workflows/application-architecture.yml)
                   visual_policy=true
                   ;;
               esac
@@ -206,6 +208,7 @@ jobs:
           tests/unit/map-visual-order.test.mjs
           tests/unit/gpu-prepared-draw.test.mjs tests/unit/interaction-roles.test.mjs
           tests/browser/renderer-migration-gaps.spec.mjs tests/browser/selection-interaction-style.spec.mjs
+          tests/browser/interaction-unification.spec.mjs
           assets/js/modules/app-map-projection.js assets/js/modules/app-territorial-labels.js
           assets/js/modules/app-domain-assembly.js assets/js/modules/app-service-assembly.js
           assets/js/modules/app-generic-commands.js assets/js/modules/app-territorial-drafts.js
@@ -238,6 +241,8 @@ jobs:
         run: pnpm exec playwright test tests/browser/selection-interaction-style.spec.mjs --grep='WebGL2 country selection|renderer fallback draws a single' --output=test-results/m4-selection
       - name: Verify direct edited line handoff in both renderers
         run: pnpm exec playwright test tests/browser/edit-preview-handoff.spec.mjs --grep='river hands.*outlines on' --output=test-results/m5-edit-ui
+      - name: Verify direct coastline style and cancellation in both renderers
+        run: pnpm exec playwright test tests/browser/interaction-unification.spec.mjs --grep='direct coastline gesture' --output=test-results/m7-coast-cancellation
       - name: Verify M6 frame consumers in WebGL, Canvas Worker and direct Canvas
         run: pnpm exec playwright test tests/browser/visual-frame-sync.spec.mjs --output=test-results/m6-visual-frames
       - name: Upload visual policy evidence

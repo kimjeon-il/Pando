@@ -232,6 +232,8 @@ for (const renderer of ['webgl2', 'canvas']) test(`direct coastline gesture uses
   await page.mouse.move(mapBox.x + center[0], mapBox.y + center[1]);
   await page.mouse.wheel(0, -1500);
   await page.locator('#editEntityCoastBtn').evaluate(button => button.click());
+  const originalGeometry = await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DEU').geometry));
+  await expect(page.locator('#undoBtn')).toBeDisabled();
   const handles = page.locator('.country-vertex:not(.fixed-boundary-vertex)');
   await expect.poll(() => handles.count(), { timeout: 45000 }).toBeGreaterThan(0);
   const point = await handles.evaluateAll(nodes => nodes.map(node => ({ node, rect: node.getBoundingClientRect() })).find(({ node, rect }) => rect.width && rect.x > 50 && rect.x < 1100 && rect.y > 100 && rect.y < 750 && document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === node)?.rect.toJSON());
@@ -244,6 +246,12 @@ for (const renderer of ['webgl2', 'canvas']) test(`direct coastline gesture uses
   await expect(page.locator('.map-direct-preview')).toHaveAttribute('stroke', '#1267ad');
   await page.mouse.move(point.x + point.width / 2, point.y + point.height / 2);
   await page.mouse.up();
+  // Returning the screen pointer does not establish that both asynchronous
+  // topology calculations have produced a matching displayed successor.
+  // Explicit cancellation exercises cleanup without requiring a premature handoff.
+  await page.keyboard.press('Escape');
   await expect(page.locator('.map-direct-preview')).toHaveCount(0);
+  expect(await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DEU').geometry))).toBe(originalGeometry);
+  await expect(page.locator('#undoBtn')).toBeDisabled();
   expect(errors).toEqual([]);
 });
