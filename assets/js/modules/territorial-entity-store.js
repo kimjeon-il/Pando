@@ -41,7 +41,13 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
   const activationError = () => { throw Object.assign(new Error('날짜별 편집은 T4 구현 후 지원합니다.'), { code: 'TIMELINE_ACTIVATION' }); };
   function candidateFor(next, current, validate = true) {
     assertStaticTimeline(current.timelineRecords, current.territorialEntities);
-    const geometries = createGeometryVersionStore(current.geometries.snapshot(), { reuse: current.geometries });
+    const archive = current.geometries.snapshot();
+    const geometries = createGeometryVersionStore(archive, { reuse: current.geometries });
+    // Candidate-local lookup includes past/unreferenced versions. Read the archive
+    // once instead of sorting every geometry again for each incoming entity.
+    const highestGeometryVersions = new Map();
+    for (const entry of archive) highestGeometryVersions.set(entry.id,
+      Math.max(highestGeometryVersions.get(entry.id) || 0, entry.version));
     const records = structuredClone(current.timelineRecords);
     const ids = new Set(next.map(feature => feature.id));
     for (const key of ['lifetimes', 'geometryBindings', 'parentRelations'])
@@ -61,10 +67,10 @@ export function createTerritorialEntityStore({ getState, onEntitiesReplaced = ()
       if (!binding || (geometries.get(binding.geometryRef) !== feature.geometry
         && JSON.stringify(geometries.get(binding.geometryRef)) !== JSON.stringify(feature.geometry))) {
         const geometryId = binding?.geometryRef.id || `territorial-geometry:${id}`;
-        const versions = geometries.snapshot().filter(entry => entry.id === geometryId).map(entry => entry.version);
-        const version = versions.length ? Math.max(...versions) + 1 : 1;
+        const version = (highestGeometryVersions.get(geometryId) || 0) + 1;
         const geometryRef = { id: geometryId, version };
         geometries.insert(geometryRef, feature.geometry);
+        highestGeometryVersions.set(geometryId, version);
         if (binding) binding.geometryRef = geometryRef;
         else {
           binding = { id: allocateRecordId(`geometry:${id}`), entityId: id, validFrom: null, validTo: null, geometryRef };
