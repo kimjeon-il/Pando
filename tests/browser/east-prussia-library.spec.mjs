@@ -1,103 +1,45 @@
 import { expect, test } from '@playwright/test';
+import { openLibrary, refuseFiniteActivation } from './helpers/library-state.mjs';
 
-async function runDebugAudit(page) {
-  const panel = page.locator('#debugMapPanel');
-  await panel.getByRole('button', { name: '전체 지도 검사' }).click();
-  await expect.poll(() => panel.locator('pre').innerText(), { timeout: 120_000 }).toContain('audit: ready / 0 issues');
-}
-
-test('East Prussia r3 library entry adds the reviewed overlap-free country', async ({ page }) => {
+test('East Prussia r3 preserves reviewed geometry and rejects finite activation atomically', async ({ page }, testInfo) => {
   test.setTimeout(240_000);
-  const consoleIssues = [];
-  page.on('pageerror', error => consoleIssues.push(`pageerror: ${error.message}`));
-  page.on('console', message => {
-    if (message.type() === 'warning' && message.text().includes('GL Driver Message')) return;
-    if (['error', 'warning'].includes(message.type())) consoleIssues.push(`${message.type()}: ${message.text()}`);
+  const errors = await openLibrary(page);
+  const neighbors = () => page.evaluate(async () => {
+    const result = {};
+    for (const id of ['POL', 'RUS', 'LTU']) {
+      const bytes = new TextEncoder().encode(JSON.stringify(window.PANDOLAB_TERRITORIAL.get(id).geometry));
+      result[id] = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), n => n.toString(16).padStart(2, '0')).join('');
+    }
+    return result;
   });
-
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?debug');
-  await expect(page.locator('#bootstrapLoading')).toHaveAttribute('hidden', '', { timeout: 60_000 });
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
-
-  const before = await page.evaluate(() => ({
-    count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
-    geometries: Object.fromEntries(['POL', 'RUS', 'LTU'].map(id => [id, JSON.stringify(
-      window.PANDOLAB_TERRITORIAL.get(id)?.geometry,
-    )])),
-  }));
-
-  await page.locator('#createMenuBtn').click();
-  await page.locator('#addFromLibraryBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeVisible();
+  const before = await neighbors();
   await page.locator('#historicalLibrarySearchInput').fill('동프로이센');
   await page.locator('#historicalLibraryYearInput').fill('1900');
   const result = page.locator('[data-library-entity-id="historical-country:east-prussia"]');
   await expect(result).toBeVisible();
   await result.click();
-  await expect(page.locator('#historicalLibraryPreview')).toContainText('동프로이센주');
   await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
   await expect(page.locator('#historicalLibraryPreview details')).toHaveCount(0);
   await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
-
-  const sourceBefore = await page.evaluate(() => JSON.stringify(
-    window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:east-prussia').geometryVersions[0].geometry,
-  ));
-  await expect(page.locator('#historicalLibraryAddOptions')).toBeVisible();
-  await expect(page.locator('#historicalLibraryAddOptions')).toContainText('불러올 범위');
-  await page.locator('#historicalLibraryAddBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeHidden();
-
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get(
-    'historical-country:east-prussia',
-  )?.id || '')).toBe('historical-country:east-prussia');
-  const resultState = await page.evaluate(() => {
-    const countries = window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' });
-    const east = window.PANDOLAB_TERRITORIAL.get('historical-country:east-prussia');
-    const overlapIds = ['POL', 'RUS', 'LTU'].filter(id => {
-      const country = window.PANDOLAB_TERRITORIAL.get(id);
-      return window.polygonClipping.intersection(east.geometry.coordinates, country.geometry.coordinates).length;
-    });
+  const source = await page.evaluate(async () => {
+    const entity = await window.PANDOLAB_HISTORICAL_LIBRARY.get('historical-country:east-prussia');
+    const version = entity.geometryVersions[0];
+    const bytes = new TextEncoder().encode(JSON.stringify(version.geometry));
     return {
-      count: countries.length,
-      color: east.properties.style.color,
-      id: east.id,
-      name: east.properties.name,
-      validFrom: east.properties.validFrom,
-      validTo: east.properties.validTo,
-      components: east.geometry.coordinates.length,
-      overlapIds,
-      sourceAfter: JSON.stringify(window.PANDOLAB_HISTORICAL_LIBRARY.get(
-        'historical-country:east-prussia',
-      ).geometryVersions[0].geometry),
+      versionId: version.id, components: version.geometry.coordinates.length,
+      coordinateCount: version.geometry.coordinates.flat(2).length,
+      hash: Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), n => n.toString(16).padStart(2, '0')).join(''),
+      metadataHash: entity.metadata.geometrySha256, certainty: version.certainty,
+      validation: entity.metadata.validation,
     };
   });
-  expect(resultState).toEqual({
-    count: before.count + 1,
-    color: '#53657A',
-    id: 'historical-country:east-prussia',
-    name: '동프로이센주',
-    validFrom: '1878-04-01',
-    validTo: '1920-01-10',
-    components: 1,
-    overlapIds: [],
-    sourceAfter: sourceBefore,
-  });
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.pendingCountryCount || 0), {
-    timeout: 45_000,
-  }).toBe(0);
-  await runDebugAudit(page);
-
-  await page.locator('#undoBtn').click();
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get(
-    'historical-country:east-prussia',
-  ))).toBeNull();
-  const afterUndo = await page.evaluate(() => ({
-    count: window.PANDOLAB_TERRITORIAL.list({ kind: 'general', parentId: '' }).length,
-    geometries: Object.fromEntries(['POL', 'RUS', 'LTU'].map(id => [id, JSON.stringify(
-      window.PANDOLAB_TERRITORIAL.get(id)?.geometry,
-    )])),
-  }));
-  expect(afterUndo).toEqual(before);
-  expect(consoleIssues).toEqual([]);
+  expect(source.versionId).toBe('ostpreussen-1878-1920-r3');
+  expect(source.components).toBe(1);
+  expect(source.coordinateCount).toBe(6766);
+  expect(source.hash).toBe('54c45d4de9f5f16e9dffb06eec24aeaef8f89b82aa455fd7c26b1064fe716237');
+  expect(source.metadataHash).toBe(source.hash);
+  expect(source.certainty).toBe('medium');
+  expect(source.validation.modernEastUnmatchedLengthM).toBe(0);
+  await refuseFiniteActivation(page, testInfo, 'historical-country:east-prussia', errors);
+  expect(await neighbors()).toEqual(before);
 });
