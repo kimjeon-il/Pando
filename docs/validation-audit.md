@@ -231,3 +231,15 @@ timeout은 미확정 실행 부하 문제로 남기고 성능을 해결했다고
 수정은 격리된 `codex/validation-current-contracts` 브랜치에서 검수했다.
 2026-10-06 후속 사용자 요청에 따라 해당 변경을 커밋·푸시하고 main 반영 및
 GitHub Pages 배포를 진행한다. 검사 결과와 원격 배포·실제 사이트 확인은 구분한다.
+
+## 발행 준비
+
+- 검수 코드 커밋: `5d2cd820c4edb34441ffb96778708c12759b53f4`.
+- 배포 build/asset revision: `0.35.0-build-5d2cd820c4ed`.
+- 데이터 revision은 기존 `data-1f83d070c0b42ac01de6a5eb0547fa01`를 유지한다.
+- 사용자 배포 요청 후 실제 실행한 관련 unit: 17 통과 / 0 실패 / 0 skip
+  (`deploy-validation-focused-unit.log`); 관련 11개 파일 ESLint exit 0
+  (`deploy-validation-focused-eslint.log`); 생성 후 `node scripts/check-version.mjs` exit 0.
+- main은 검수 코드와 생성된 배포 metadata를 함께 반영한다. GitHub Pages
+  완료와 실제 사이트의 build metadata 및 수정 모듈 내용은 main 푸시 뒤 확인한다.
+  원격 CI 상태는 로컬 검사 통과 또는 Pages 배포 성공으로 대체하지 않는다.
