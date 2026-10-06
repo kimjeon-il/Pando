@@ -2,6 +2,8 @@
 
 검증일: 2026-10-06. 작업 브랜치: `codex/info-tab-v9`.
 기준 main: `933eb5efc21533574ff6d826361d0395a2a710c0`.
+검증한 구현 커밋: `a1555722813fbb7f2ae397f1999e21dd9fa0ed66`.
+후속 커밋은 아래 빌드 메타데이터와 이 문서만 갱신한다.
 
 ## Source and captures
 
@@ -50,13 +52,15 @@ final result: passed
 | Command | Result | Evidence |
 |---|---|---|
 | `node --test tests/unit/territorial-info-period.test.mjs tests/unit/territorial-property-controller.test.mjs tests/unit/territorial-service.test.mjs tests/unit/territorial-metadata-command.test.mjs tests/unit/label-metadata-edit.test.mjs tests/unit/hydro-metadata-edit.test.mjs` | 51 pass / 0 fail / 0 skip | `info-v9-focused-final.log` |
-| `pnpm.cmd build:ui-bundle` | source CSSから生成成功 | `info-v9-bundle-final.log` |
+| `pnpm.cmd build:ui-bundle` | source CSS에서 번들 생성 성공 | `info-v9-bundle-final.log` |
 | `pnpm.cmd check:ui` | 6 audits + 18 tests pass / 0 fail / 0 skip | `info-v9-ui-final.log` |
-| Changed product JS and affected unit/browser files: `pnpm.cmd exec eslint ...` | 0 errors | `info-v9-eslint-final.log`; 最終 browser追加後も同ファイル lint exit 0 |
+| Changed product JS and affected unit/browser files: `pnpm.cmd exec eslint ...` | 0 errors | `info-v9-eslint-final.log`; 최종 브라우저 검사 추가 뒤에도 해당 파일 lint exit 0 |
 | `node scripts/check-runtime-boundaries.mjs` | 302 modules / no cycles | direct tool output |
 | `git diff --check` | pass | direct tool output |
 | Existing PyYAML BaseLoader workflow assertions | 4 pass | `info-v9-workflow.log` |
 | `PANDOLAB_TEST_PORT=4202 pnpm.cmd exec playwright test tests/browser/info-tab-v9.spec.mjs --output=test-results/info-v9-console-acceptance` | Canvas 1 pass / 0 fail / 0 skip; console/page errors 0 | `info-v9-console-acceptance.log` |
+| `pnpm.cmd generate:build-meta` | `0.35.0-build-a1555722813f` 생성 성공 | `info-v9-build-meta.log` |
+| `pnpm.cmd check:version` | pass | `info-v9-version.log` |
 
 브라우저에서는 production GeoPackage Worker로 파일을 만들고 실제 불러오기 UI를 사용했다.
 네 가지 관계 존재 조합, GPS와 이름 클릭의 차이, 관계 변경·Undo, 유한/잘못된 기간의 거부와 데이터 보존,
