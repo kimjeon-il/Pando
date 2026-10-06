@@ -53,7 +53,7 @@ test('catalog search loads only the index and repeated selection loads one uncha
   const [first,second]=await page.evaluate(()=>Promise.all([window.PANDOLAB_TERRITORIAL_LIBRARY.get('state:KOR'),window.PANDOLAB_TERRITORIAL_LIBRARY.get('state:KOR')]));
   expect(first).toEqual(second);expect(first.geometryVersions[0].id).toBe('state:KOR:natural-earth-5.1.1');
   expect(requests.filter(url=>url.includes('/territorial-entities/') && url.includes('index.json'))).toHaveLength(1);
-  expect(requests.filter(url=>url.includes('/territorial-entities/') && url.includes('.json.gz')).map(url=>new URL(url).pathname)).toEqual(['/assets/data/territorial-entities/generated/v1/state-KOR.json.gz']);
+  expect(requests.filter(url=>url.includes('/territorial-entities/') && url.includes('.json.gz')).map(url=>new URL(url).pathname)).toEqual(['/assets/data/territorial-entities/generated/v2/state-KOR.json.gz']);
 });
 
 test('East Germany finite activation preserves identity, archive, history, save and original source', async ({ page }, testInfo) => {
