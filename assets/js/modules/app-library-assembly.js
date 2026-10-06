@@ -48,10 +48,10 @@ export function createLibraryAssembly() {
     if (currentCountry?.properties?.entityKind === 'general') return currentCountryId;
     const sameId = dependencies.territorialModel.entityRepository.get(entityId);
     if (sameId?.properties?.entityKind === 'general' && !sameId.properties.parentId
-      && sameId.properties.sourceLibraryId === entityId) return String(entityId);
+      && sameId.properties.sourceEntityId === entityId) return String(entityId);
     const unit = dependencies.territorialModel.entityRepository.list().find(feature =>
       !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId)
-      && String(feature.properties?.sourceLibraryId || '') === String(entityId));
+      && String(feature.properties?.sourceEntityId || '') === String(entityId));
     return unit ? String(unit.id) : '';
   }
 
@@ -90,7 +90,7 @@ export function createLibraryAssembly() {
         const countryFeatures = prepared.filter(item => item.entityKind === 'general' && !item.parentId).map(item => {
           const feature = (0, dependencies.objectPicking.createCountryFeature)(item.name, [], item.geometry);
           feature.id = item.id;
-          feature.properties.sourceLibraryId = item.entityId;
+          feature.properties.sourceEntityId = item.entityId;
           feature.properties.sourceGeometryVersion = item.geometryVersionId;
           feature.properties.metadata = { ...feature.properties.metadata, ...item.metadata };
           if (item.metadata?.defaultFlagDataUrl) feature.properties.metadata.flagDataUrl = item.metadata.defaultFlagDataUrl;
@@ -104,7 +104,7 @@ export function createLibraryAssembly() {
           coverageMode: item.entityKind === 'regional' ? dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.EXPLICIT : dependencies.territorialModel.TERRITORIAL_COVERAGE_MODES.PARTITION,
           validFrom: item.validFrom, validTo: item.validTo,
           color: item.metadata?.defaultColor || '',
-          metadata: item.metadata, sourceLibraryId: item.entityId, sourceGeometryVersion: item.geometryVersionId,
+          metadata: item.metadata, sourceEntityId: item.entityId, sourceGeometryVersion: item.geometryVersionId,
         }));
         const response = await dependencies.spatialQuery.mapEditClient.execute('territorial-library-batch', { payload: { countries: countryFeatures, units } });
         return { descriptors, prepared, countryFeatures, units, batch: response.result, sourceRevision: response.sourceRevision };

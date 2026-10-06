@@ -65,7 +65,7 @@
         valid_to: text(properties.validTo),
         color: text(properties.style?.color),
         style_key: text(properties.style?.key),
-        source_library_id: text(properties.sourceLibraryId),
+        source_entity_id: text(properties.sourceEntityId),
         source_geometry_version: text(properties.sourceGeometryVersion),
         metadata_json: JSON.stringify(properties.metadata || {}),
         properties_json: JSON.stringify(properties),
@@ -112,7 +112,8 @@
     return rows;
   }
 
-  function importTerritorialFeature(feature, tableName, index = 0) {
+  function importTerritorialFeature(feature, tableName, index, schemaVersion) {
+    if (!Number.isInteger(schemaVersion)) throw new TypeError('Current territorial schema version is required');
     const properties = feature?.properties || {};
     const entityKind = TERRITORIAL_TYPES_BY_TABLE[tableName];
     const geometry = polygonGeometry(feature?.geometry);
@@ -125,7 +126,7 @@
       id,
       properties: {
         ...currentProperties,
-        schemaVersion: 5,
+        schemaVersion,
         entityKind,
         name: text(properties.name ?? currentProperties.name) || id,
         parentId: text(properties.parent_id ?? currentProperties.parentId),
@@ -137,7 +138,7 @@
           color: text(properties.color ?? currentProperties.style?.color),
           key: text(properties.style_key ?? currentProperties.style?.key),
         },
-        sourceLibraryId: text(properties.source_library_id ?? currentProperties.sourceLibraryId),
+        sourceEntityId: text(properties.source_entity_id ?? currentProperties.sourceEntityId),
         sourceGeometryVersion: text(properties.source_geometry_version ?? currentProperties.sourceGeometryVersion),
         metadata: territorialProperties({ metadata: parseJson(properties.metadata_json, currentProperties.metadata || {}) }).metadata,
       },

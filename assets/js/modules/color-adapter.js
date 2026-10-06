@@ -52,7 +52,7 @@ export function writeDomainColor(domain, target = {}, value, { clear = false, fa
 export function countryDefaultColor(feature) {
   if (feature?.properties?.entityKind !== 'general' || feature.properties.parentId) return '';
   // Catalog identity and the Natural Earth palette source ID are separate domains.
-  const id = String(feature.properties.metadata?.sourceFeatureId || feature.properties.sourceLibraryId || feature.id || '');
+  const id = String(feature.properties.metadata?.sourceFeatureId || feature.properties.sourceEntityId || feature.id || '');
   return Object.hasOwn(COUNTRY_DEFAULT_COLORS, id) ? COUNTRY_DEFAULT_COLORS[id] || '' : '';
 }
 

@@ -46,7 +46,7 @@ class V0280HistoricalLibraryTests(unittest.TestCase):
         self.assertIn("window.PANDOLAB_TERRITORIAL_LIBRARY", APP)
 
     def test_project_instances_track_but_do_not_mutate_library_sources(self):
-        self.assertIn("sourceLibraryId", APP)
+        self.assertIn("sourceEntityId", APP)
         self.assertIn("sourceGeometryVersion", APP)
         self.assertIn("instantiateLibraryEntity", MODEL)
         self.assertIn("geometry: structuredClone(version.geometry)", MODEL)

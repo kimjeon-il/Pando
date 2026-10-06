@@ -12,7 +12,7 @@ import { prepareProjectForActivation } from '../../assets/js/modules/project-sta
 const serialize = snapshot => createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base',
   distributionModes: ['territorial','geometry'], terrainDataset: 'terrain', hydroDataset: 'hydro', readSnapshot: () => snapshot }).buildProject();
 
-for (const kind of ['complex','static','empty']) test(`production GeoPackage worker round-trips ${kind} v9 project`, async () => {
+for (const kind of ['complex','static','empty']) test(`production GeoPackage worker round-trips ${kind} v10 project`, async () => {
   const snapshot = kind === 'complex' ? projectForStorage() : staticSerializerSnapshot({ fullAutosave: true,
     territorialEntities: kind === 'empty' ? [] : [createTerritorialFeature({ id: 'A', entityKind: 'general', name: 'A',
       geometry: { type: 'Polygon', coordinates: [[[179,0],[-179,0],[-179,1],[179,0]]] }, metadata: { capital: '서울', source: 'original' } })] });
