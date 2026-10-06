@@ -7,7 +7,7 @@ import {selectGeometryVersion} from '../../assets/js/modules/territorial-library
 const data = new URL('../../assets/data/',import.meta.url);
 const baseline = JSON.parse(fs.readFileSync(new URL('../fixtures/territorial-entity-baseline.json',import.meta.url),'utf8'));
 const sha = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-test('all 258 source features retain their IDs, properties, types and coordinate order in one source per entity', () => {
+test('all 258 source features retain their IDs, properties, types and coordinate order in lineage sources', () => {
   const raw = JSON.parse(fs.readFileSync(new URL('countries-ne-5.1.1.geojson',data),'utf8'));
   const entities = readTerritorialSources();
   const imported = entities.filter(e=>e.sourceInfo.sourceId === 'natural-earth-5.1.1');
@@ -28,7 +28,7 @@ test('26 historical entities and all 29 production geometry versions retain thei
   assert.equal(migrated.length,26);
   let count=0;
   for(const e of migrated) for(const v of e.geometryVersions) {
-    assert.equal(sha(v.geometry),baseline.historicalGeometry[e.sourceInfo.importProvenance.versionIds[v.id]]);
+    assert.equal(sha(v.geometry),baseline.historicalGeometry[e.sourceInfo.importProvenance.versionIds[v.versionId]]);
     count++;
   }
   assert.equal(count,29);
@@ -37,6 +37,6 @@ test('26 historical entities and all 29 production geometry versions retain thei
   const newVersion=selectGeometryVersion(yugo,'1992-04-27');
   assert.equal(oldVersion.validTo,'1992-04-26');
   assert.equal(newVersion.validFrom,'1992-04-27');
-  assert.notEqual(oldVersion.id,newVersion.id);
+  assert.notEqual(oldVersion.versionId,newVersion.versionId);
   assert.equal(selectGeometryVersion(yugo,'1943'),null);
 });

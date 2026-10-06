@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import test from 'node:test';
 import {createTerritorialEntityLoader} from '../../assets/js/modules/territorial-entity-loader.js';
 import {territorialDataRoot} from '../../tools/territorial-entity-sources.mjs';
-const root=path.join(territorialDataRoot,'generated/v1');
+const root=path.join(territorialDataRoot,'generated/v2');
 function fixture(corrupt=false){
  const index=fs.readFileSync(path.join(root,'index.json'));let calls=0;
  const service=createTerritorialEntityLoader({indexUrl:'https://test/index.json',dataRevision:'test',indexSpec:{encoding:'identity',compressedBytes:index.length,decodedBytes:index.length,sha256:createHash('sha256').update(index).digest('hex')},cacheStorage:null,

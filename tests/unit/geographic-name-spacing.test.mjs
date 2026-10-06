@@ -26,7 +26,7 @@ test('default compound geographic names are compact in source, preview and curre
       assert.equal(feature.properties.name, name, `${id} asset`);
       assert.equal(normalizeCountryFeature(feature).properties.name, name, `${id} runtime`);
     }
-    assert.equal(library.find(item => item.metadata.sourceFeatureId === id).displayNames.ko, name, `${id} library`);
+    assert.equal(library.find(item => item.metadata.sourceFeatureId === id).names.ko, name, `${id} library`);
   }
 });
 
