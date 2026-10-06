@@ -10,7 +10,7 @@ function fixture(corrupt=false,wrongMetadata=false){
  let index=fs.readFileSync(path.join(root,'index.json'));let calls=0;
  if(wrongMetadata){const raw=JSON.parse(index);raw.entities.find(e=>e.entityId==='state:KOR').lineageId='france';raw.lineages.find(l=>l.lineageId==='korea').entityRefs=raw.lineages.find(l=>l.lineageId==='korea').entityRefs.filter(id=>id!=='state:KOR');raw.lineages.find(l=>l.lineageId==='france').entityRefs.push('state:KOR');index=Buffer.from(JSON.stringify(raw));}
  const service=createTerritorialEntityLoader({indexUrl:'https://test/index.json',dataRevision:'test',indexSpec:{encoding:'identity',compressedBytes:index.length,decodedBytes:index.length,sha256:createHash('sha256').update(index).digest('hex')},cacheStorage:null,
- fetchFn:async url=>{calls++;const name=new URL(url).pathname.split('/').at(-1);return new Response(corrupt && name!=='index.json'?new Uint8Array([1,2,3]):fs.readFileSync(path.join(root,name)));}});
+ fetchFn:async url=>{calls++;const name=new URL(url).pathname.split('/').at(-1);return new Response(name==='index.json'?index:corrupt?new Uint8Array([1,2,3]):fs.readFileSync(path.join(root,name)));}});
  return {service,calls:()=>calls};
 }
 test('lazy loader fetches index once and one gzip once for concurrent requests and dated selection',async()=>{
