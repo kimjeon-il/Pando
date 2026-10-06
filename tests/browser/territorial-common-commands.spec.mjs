@@ -53,7 +53,10 @@ test('common territorial metadata, flags and deletion preserve selection, undo a
   expect(await page.evaluate(()=>JSON.stringify(window.__PANDOLAB_VIEW_STATE__))).toBe(camera);
   const unit=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list({kind:'general'}).filter(f=>f.properties.parentId).find(f=>f.properties.metadata?.builtinSubunit?.sourceCountryId==='ALD').id);
   await select(page,unit);
-  await page.locator('#flagFileInput').setInputFiles({name:'test.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="12"><path fill="red" d="M0 0h24v12H0z"/></svg>')});
+  await page.locator('#flagMenuBtn').click();
+  const flagChooser = page.waitForEvent('filechooser');
+  await page.locator('#flagUploadBtn').click();
+  await (await flagChooser).setFiles({name:'test.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="12"><path fill="red" d="M0 0h24v12H0z"/></svg>')});
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id).properties.metadata.flagDataUrl,unit)).toMatch(/^data:image/);
   await page.locator('#flagMenuBtn').click(); await page.locator('#flagRemoveBtn').click();
   expect(await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id).properties.metadata.flagDataUrl,unit)).toBeNull();
