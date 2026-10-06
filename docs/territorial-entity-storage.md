@@ -198,3 +198,12 @@ M15의 성능 gate는 미통과 상태로 남긴다. 배포 완료와 전체 계
 `file-inventory.json`은 기준 SHA와 commit된 파일 변경 분류를 기록하며,
 `performance.json`/`speed-diagnosis.json`의 과거 측정 tree를 최종 배포 SHA의 새 성능 결과로
 치환하지 않는다. 배포 SHA·Pages 실행·실제 배포 revision은 최종 완료 보고에서 고정한다.
+
+구조 개편 구현 commit은 `5213223aa10b8f145203a0643a4ff18b0c2c0d2d`다.
+이 commit을 기준으로 build metadata `0.35.0-build-5213223aa10b`를 생성했으며,
+`node scripts/check-version.mjs` 종료 코드 0을 확인했다.
+배포 전 최종 native browser smoke
+`pnpm exec playwright test tests/browser/historical-library.spec.mjs --grep 'catalog search loads only'`
+결과는 **1 통과·0 실패·0 skip**(45.6초)다. enhanced startup에서 catalog 요청 0,
+검색 시 index 1회, 대한민국 반복 선택 시 동일 chunk 1회와 동일 geometry version을
+검증했다. metadata/doc 정리 commit은 이 구현 commit 다음에 위치한다.
