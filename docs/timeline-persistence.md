@@ -6,7 +6,7 @@
 시간 의미와 timelineRecords 1, 정적 UI 활성화 제한은 유지했다.
 Web 기준은 `008b99b5ca2dd39936e51f7ddd11c0c70fc7bb74`, App 기준은
 `b5120b5b9cf03780783b642782e93db8dbfa565c`이며 App 후보는
-`6044e0611fece3716c1d014b9712b58b2d26f71c`다.
+`4006e41745c9f03a70eea21de22411f3954cbbf8`다.
 아래 과거 실행 기록의 SHA·실패는 당시 증거이며 이번 후보 결과로 재사용하지 않는다.
 
 단계·실패·원인·명령 범위는 `docs/validation/country-lineage-storage.md`에 기록했다.
@@ -14,8 +14,10 @@ Web 기준은 `008b99b5ca2dd39936e51f7ddd11c0c70fc7bb74`, App 기준은
 재확인했다. 전체 브라우저는 사용자 요청으로 중단했으며 4 통과/4 실패,
 298 미완료다. 전체 브라우저 통과 또는 모든 제품 경로 동등성을 주장하지 않는다.
 정적 객체의 전체 archive/기록/독립 프로젝트 ID·출처와 UI 가져오기/Undo/Redo는
-실제 production owner를 사용한다. 최종 UI 및 Web Worker↔native codec 교환의
-실행 결과는 후보 고정 후 아래 산출물에 추가한다.
+실제 production owner를 사용한다. 최종 관련 UI는 7 통과/0 실패/0 skip이며 실제 WebGL2/Canvas 가져오기·Undo/Redo를
+검증했다. 실제 Web Worker↔native codec 교환은 첫 고정 코드 쌍에서 10개 통과했다.
+fixture README의 옛 버전 안내를 수정한 새 SHA 쌍의 실제 교환 결과는 후보 고정 후
+아래 산출물에 추가한다. 마지막 문서 갱신은 제품 코드/fixture 입력을 바꾸지 않았다.
 
 `test-results/country-lineage-storage/manifest-<WEB_CANDIDATE_SHA>.json`은
 고정 Web/App SHA 쌍, 공통 계약과 스키마/fixture/expected 파일의 checkout byte SHA-256,

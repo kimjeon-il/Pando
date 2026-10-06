@@ -1,4 +1,4 @@
-# Web v9 exchange fixtures
+# Web/App v10 exchange fixtures
 
 These are fixed web production-codec fixtures for the app import/export task.
 Pinned execution evidence and remaining app discrepancies are recorded in
@@ -11,9 +11,10 @@ Pinned execution evidence and remaining app discrepancies are recorded in
 | calendar-boundaries.json / calendar-boundaries.gpkg | Extended/BCE leap years and February transitions in 1900/2000 |
 | *.expected.json | Exact identities, timeline records, geometry archive and nested metadata expected after exchange |
 
-All files use project schemaVersion **9** and timelineRecords schemaVersion **1**.
+All files use project schemaVersion **10**, territorial identity **6**, and timelineRecords schemaVersion **1**.
 Territorial Feature.geometry is null. A/B/C are general; R is regional.
-Names, 서울 capital and nested source/originalName metadata must remain unchanged.
+Names, 서울 capital, sourceEntityId/sourceGeometryVersion and nested
+source/originalName metadata must remain unchanged. No sourceLibraryId alias is read.
 No sovereignty is inferred from hierarchy.
 
 The archive has four entries: shape v1 (holes, islands and dateline coordinates),
@@ -39,7 +40,7 @@ The temporal expectations are literal values derived from the existing contract,
 independent of the serializer. Identities/archive reuse the pinned static oracle.
 Do not regenerate expected files from codec output.
 
-Reproduce from the repository root with Node and the bundled sql.js WASM:
+Reproduce from the Web repository root with Node and the bundled sql.js WASM:
 
 ```powershell
 node tests/fixtures/generate-timeline-exchange.mjs calendar-boundaries
@@ -51,17 +52,19 @@ vary when regenerated; compare the embedded project semantics with expected.json
 Explicit case arguments regenerate only those cases; no arguments regenerate all
 three inputs. The generator never writes `*.expected.json`.
 
-For real native QFile/web decode, native v9 encode/decode, app encodeWeb and web
+For real native QFile/web decode, native v10 encode/decode, app encodeWeb and web
 Worker reread against the same independent oracles:
 
 ```powershell
-node tools/check-timeline-exchange.mjs D:/build/Pandoeditor-t22-54aa51d/timeline_project_tests.exe test-results/timeline-exchange-native
+node tools/check-timeline-exchange.mjs D:/build/Pandoeditor-country-lineage/timeline_project_tests.exe test-results/timeline-exchange-native
 ```
 
 The Qt/MinGW runtime directories must be on PATH. This uses the existing app
 `timeline_project_tests` probe, not a replacement codec. It reports every negative
 case and exits nonzero for any rejected-input category mismatch or output
-publication. In the pinned reference app, year-zero and nonleap-day file decoding
-currently emits INVALID_DATE instead of the record oracle's TIMELINE_INTERVAL;
-both inputs are rejected, but these two diagnostics remain failed cross-checks.
+publication. Year-zero and nonleap-day inputs must report TIMELINE_INTERVAL;
+inclusive overlap must report TIMELINE_OVERLAP and missing leap day TIMELINE_GAP.
+The current Web/App candidate pair and actual results are pinned in the validation
+manifest described by docs/timeline-persistence.md; old reference results are not
+a substitute for executing the fixed candidates.
 The existing app record/storage/exchange parity tools remain additional checks.
