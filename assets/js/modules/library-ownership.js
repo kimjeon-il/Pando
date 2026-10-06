@@ -56,25 +56,23 @@ export function shouldShowTerritorialParentChoice({ rootId = '', parentId = '', 
   return candidates.length !== 1 || candidates[0] !== root;
 }
 
-export function missingLibraryOwnership(descriptors, resolve, countries, units) {
-  const included = new Map(descriptors.map(item => [item.entityId, item]));
-  const existing = new Map([...countries, ...units].map(item => [text(item.id), item]));
-  return descriptors.filter(item => item.entityKind === 'general' && !!item.parentEntityId && !resolve(item.entityId)).filter(item => {
-    if (included.has(item.parentEntityId)) return false;
-    const parent = included.get(item.parentEntityId) || existing.get(resolve(item.parentEntityId));
-    return !parent;
-  }).map(item => ({
-    entityId: item.entityId, name: item.name,
-    countryId: '',
-  }));
+export function missingLibraryOwnership(descriptors) {
+  const included = new Set(descriptors.map(item => item.entityId));
+  return descriptors.filter(item => item.entityKind === 'general' && !!item.parentEntityId && !included.has(item.parentEntityId))
+    .map(item => ({entityId:item.entityId,name:item.name,countryId:''}));
 }
 
-export function prepareLibraryOwnership({ descriptors, resolve, countries, units, choices = {}, allocateId, contains }) {
-  const pending = descriptors.filter(item => !resolve(item.entityId));
-  const ids = new Map(pending.map(item => [item.entityId,
-    item.entityKind === 'general' && (!item.parentEntityId || choices[item.entityId]?.mode === 'root') ? item.entityId : allocateId(item.entityKind)]));
+export function prepareLibraryOwnership({ descriptors, countries, units, choices = {}, allocateId, contains }) {
+  const bySource = new Map();
+  const ids = new Map();
   const existing = new Map([...countries, ...units].map(item => [text(item.id), item]));
-  const byLibrary = new Map(pending.map(item => [item.entityId, item]));
+  const allocated = new Set(existing.keys());
+  for (const item of descriptors) {
+    if (bySource.has(item.entityId)) throw new Error('추가할 원본 ID가 중복됩니다.');
+    const id=text(allocateId(item.entityKind));
+    if (!id || allocated.has(id)) throw new Error('추가할 객체 ID가 현재 프로젝트와 중복됩니다.');
+    allocated.add(id);ids.set(item.entityId,id);bySource.set(item.entityId,item);
+  }
   const prepared = new Map();
   const visiting = new Set();
   function prepare(item) {
@@ -100,8 +98,8 @@ export function prepareLibraryOwnership({ descriptors, resolve, countries, units
         parent = existing.get(parentId);
         next.parentId = parentId;
       } else {
-        const descriptor = byLibrary.get(item.parentEntityId);
-        parent = descriptor ? prepare(descriptor) : existing.get(resolve(item.parentEntityId));
+        const descriptor = bySource.get(item.parentEntityId);
+        parent = descriptor ? prepare(descriptor) : null;
         if (!parent) throw new Error(`${item.name}의 소속 국가와 상위 단위를 선택하세요.`);
         const parentKind = parent.type === 'Feature' ? parent.properties.entityKind : parent.entityKind;
         if (parentKind !== 'general') throw new Error('상위 단위는 국가 또는 하위단위여야 합니다.');
@@ -119,6 +117,6 @@ export function prepareLibraryOwnership({ descriptors, resolve, countries, units
     prepared.set(item.entityId, next);
     return next;
   }
-  for (const item of pending) prepare(item);
+  for (const item of descriptors) prepare(item);
   return [...prepared.values()];
 }
