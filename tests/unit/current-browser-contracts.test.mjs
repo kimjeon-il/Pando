@@ -417,6 +417,7 @@ test('all focused job names are distinct while normal names and matrix suffixes 
     'command-contract': 'command-contract',
     'territorial-store-contract': 'Territorial storage contract',
     'python-contracts': 'Current Python contracts and terrain DEM',
+    'historical-geometry': 'Exact historical geometry regeneration (Windows)',
     'data-contracts': 'Validation entrypoints and current generated assets',
     'full-unit-suite': 'Full unit suite',
   };
@@ -425,7 +426,7 @@ test('all focused job names are distinct while normal names and matrix suffixes 
   assert.deepEqual(Object.keys(jobs), Object.keys(expectedNames));
   for (const [id, expected] of Object.entries(expectedNames)) {
     assert.equal(jobs[id].match(/^ {4}name: (.+)$/m)?.[1],
-      ['boundary-capture-comparison', 'boundary-native-capture', 'boundary-revision-comparison'].includes(id) ? expected : `${namePrefix}${editorPrefix}${expected}`, id);
+      ['boundary-capture-comparison', 'boundary-native-capture', 'boundary-revision-comparison', 'historical-geometry'].includes(id) ? expected : `${namePrefix}${editorPrefix}${expected}`, id);
   }
   assert.match(jobs['current-browser-contracts'], /^ {6}max-parallel: 2$/m);
   assert.match(jobs['current-browser-contracts'], /^ {6}fail-fast: false$/m);
