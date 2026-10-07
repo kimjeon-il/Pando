@@ -5,17 +5,13 @@ import { commandHistoryTrace } from '../../tools/parity/command-history.mjs';
 import { compareObservations } from '../../tools/parity/contract.mjs';
 const corpus = JSON.parse(readFileSync(new URL('../fixtures/portability/command-history.json', import.meta.url)));
 
-test('current command/history observer preserves the Web save-token behavior', () => {
+test('current command/history observer matches the saved-state contract', () => {
   const trace = commandHistoryTrace(corpus);
   assert.equal(trace.length, corpus.operations.length);
-  // Reviewed current behavior, not the shared desired result. Keep the
-  // discrepancy visible until a separately authorized product change.
-  const dirtyDifferences = new Set(['undo-to-save', 'redo-to-save']);
   for (const [index, operation] of corpus.operations.entries()) {
-    assert.deepEqual(trace[index], { ...operation.expected,
-      dirty: dirtyDifferences.has(operation.id) ? true : operation.expected.dirty });
+    assert.deepEqual(trace[index], operation.expected);
     const differences = compareObservations(trace[index], operation.expected, operation.expected);
-    assert.deepEqual(differences.map(row => row.path), dirtyDifferences.has(operation.id) ? ['/dirty'] : []);
+    assert.deepEqual(differences, []);
   }
 });
 test('unsupported scenario operations cannot silently become observations', () => {
