@@ -21,6 +21,7 @@ test('blank catalog, neutral events and native clock keyboard interactions remai
   await expect(page.locator('#territorialLibraryResults [data-library-entity-id]')).toHaveCount(284);
   await expect(page.locator('#territorialLibraryResults > h3, #territorialLibraryResults input[type="checkbox"]')).toHaveCount(0);
   await page.locator('#territorialLibrarySearchInput').fill('동독');
+  await expect(page.locator('#territorialLibrarySearchClearBtn')).toBeVisible();
   await expect(row(page, gdrId).locator('small')).toHaveText('1949–1990');
   await input.fill('2000'); await expect(row(page, gdrId)).toHaveCount(0);
   await clock.focus(); await page.keyboard.press('Enter'); await expect(popover).toBeVisible();
@@ -41,6 +42,7 @@ test('blank catalog, neutral events and native clock keyboard interactions remai
   await expect(page.locator('#territorialLibraryAddBtn')).toBeDisabled();
   await input.fill(''); await page.locator('#territorialLibrarySearchClearBtn').click();
   await expect(page.locator('#territorialLibrarySearchInput')).toHaveValue(''); await expect(page.locator('#territorialLibrarySearchInput')).toBeFocused();
+  await expect(page.locator('#territorialLibrarySearchClearBtn')).toBeHidden();
   await expect(page.locator('#territorialLibraryResults [data-library-entity-id]')).toHaveCount(284);
   const rows = page.locator('#territorialLibraryResults [data-library-entity-id]');
   await rows.first().focus(); await page.keyboard.press('ArrowDown'); await expect(rows.nth(1)).toBeFocused();
