@@ -356,8 +356,12 @@ for (const svgFallback of [false, true]) {
     await page.locator('#resetViewBtn').click();
     await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('path.geometry-preview-add.geometry-preview-fill')).toHaveCount(1, { timeout: 90_000 });
-    await expect.poll(() => page.locator('#modePrimaryBtn').evaluate(button => !button.disabled && button.getAttribute('aria-busy') === 'false'),
+    await expect(page.locator('path.territory-candidate.selected-candidate')).toHaveCount(1);
+    await expect(page.locator('#modeDraftDoneBtn')).toBeVisible();
+    await expect(page.locator('#modeDraftDoneBtn')).toHaveAttribute('aria-label', '현재 영역 확정');
+    await expect.poll(() => page.locator('#modeDraftDoneBtn').evaluate(button => !button.disabled && button.getAttribute('aria-busy') === 'false'),
       { timeout: 90_000 }).toBe(true);
+    await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
     if (!svgFallback) await expect.poll(() => page.locator('path.geometry-preview-add.geometry-preview-fill')
       .evaluate(node => node.style.fill), { timeout: 10_000 }).toBe('none');
     await expect(page.locator('path.geometry-preview-add.geometry-preview-outline'))
