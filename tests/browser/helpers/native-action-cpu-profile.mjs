@@ -6,12 +6,16 @@ import { withDiagnosticDeadline } from './map-diagnostics.mjs';
 
 const compress = promisify(gzip);
 const DEADLINE_MS = 250;
+// Profiler commands can wait behind the observed ~9 s renderer tasks. These
+// CPU-only budgets never change the original native action timeout or timer.
+const SETUP_DEADLINE_MS = 15_000;
+const STOP_DEADLINE_MS = 15_000;
 const WATCHDOG_MS = 20_000;
 const ENCODE_MS = 1000;
 const RAW_BYTES = 2 * 1024 * 1024;
 const GZIP_BYTES = 1024 * 1024;
 const SUMMARY_BYTES = 32 * 1024;
-const LIMITS = { setupMs: DEADLINE_MS, stopMs: DEADLINE_MS, disableMs: DEADLINE_MS, detachMs: DEADLINE_MS,
+const LIMITS = { setupMs: SETUP_DEADLINE_MS, stopMs: STOP_DEADLINE_MS, disableMs: DEADLINE_MS, detachMs: DEADLINE_MS,
   encodeMs: ENCODE_MS, outputMs: DEADLINE_MS, watchdogMs: WATCHDOG_MS, rawBytes: RAW_BYTES, gzipBytes: GZIP_BYTES, summaryBytes: SUMMARY_BYTES };
 const clipped = value => String(value).slice(0, 240);
 let nextOutput = 0;
@@ -20,6 +24,11 @@ let nextOutput = 0;
 // application hooks. All waits here bound diagnostics, never the native action.
 export async function startNativeActionCpuProfile(page, { label, now = () => performance.now(), write = console.log }) {
   const report = { label, status: 'unavailable', stopReason: null, samplingIntervalUs: 2000, limits: LIMITS,
+    watchdogOrigin: 'Profiler.start request, not acknowledgement; start latency consumes the 20 s window. A delayed stop acknowledgement may overrun it.',
+    setupExpiredStage: null,
+    cdpStages: Object.fromEntries(['session', 'enable', 'samplingInterval', 'start', 'stop', 'disable', 'detach'].map(name => [name, {
+      requestedAtMs: null, acknowledgedAtMs: null, settledAtMs: null, durationMs: null, deadlineExceededAtMs: null, status: 'not-requested',
+    }])),
     coverage: 'Renderer main-thread V8 samples, including app, injected, native, idle and GC frames; no worker, GPU or other-process CPU coverage.',
     caveat: 'Sampling adds overhead. This diagnostic experiment is not a latency fix or benchmark. Empty or partial samples cannot rule out blocking.',
     clocks: { host: 'host performance.now() milliseconds', profile: 'CDP monotonic microseconds; separate origin from host and browser performance.now()' },
@@ -28,6 +37,26 @@ export async function startNativeActionCpuProfile(page, { label, now = () => per
       stopAcknowledgementOverrunMs: null, stopRoundTripMs: null, action: null }, errors: [] };
   let session, setupAbandoned = false, startIssued = false, watchdog, stopPromise, cleanupPromise, rawProfile;
   const record = (phase, error) => { if (report.errors.length < 8) report.errors.push({ phase, error: clipped(error) }); };
+  const stage = async (name, operation, requestedAtMs = now()) => {
+    const entry = report.cdpStages[name];
+    entry.requestedAtMs = requestedAtMs; entry.status = 'pending';
+    try {
+      const value = await operation();
+      entry.acknowledgedAtMs = now();
+      entry.status = entry.deadlineExceededAtMs === null ? 'fulfilled' : 'fulfilled-after-deadline';
+      return value;
+    } catch (error) {
+      entry.status = entry.deadlineExceededAtMs === null ? 'rejected' : 'rejected-after-deadline';
+      throw error;
+    } finally {
+      entry.settledAtMs = now(); entry.durationMs = entry.settledAtMs - entry.requestedAtMs;
+    }
+  };
+  const expireStage = name => {
+    const entry = report.cdpStages[name];
+    if (entry.status !== 'pending') return;
+    entry.deadlineExceededAtMs = now(); entry.status = 'pending-after-deadline';
+  };
   const log = (tag, value) => {
     try { Promise.resolve(write(`[${tag}] ${JSON.stringify(value)}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
   };
@@ -35,10 +64,10 @@ export async function startNativeActionCpuProfile(page, { label, now = () => per
     if (!session) return Promise.resolve();
     if (cleanupPromise) return cleanupPromise;
     cleanupPromise = (async () => {
-      try { await withDiagnosticDeadline(() => session.send('Profiler.disable'), DEADLINE_MS); }
-      catch (error) { record('disable', error); }
-      try { await withDiagnosticDeadline(() => session.detach(), DEADLINE_MS); }
-      catch (error) { record('detach', error); }
+      try { await withDiagnosticDeadline(() => stage('disable', () => session.send('Profiler.disable')), DEADLINE_MS); }
+      catch (error) { expireStage('disable'); record('disable', error); }
+      try { await withDiagnosticDeadline(() => stage('detach', () => session.detach()), DEADLINE_MS); }
+      catch (error) { expireStage('detach'); record('detach', error); }
     })();
     return cleanupPromise;
   };
@@ -52,14 +81,14 @@ export async function startNativeActionCpuProfile(page, { label, now = () => per
     stopPromise = (async () => {
       if (session && startIssued) {
         try {
-          const result = await withDiagnosticDeadline(() => session.send('Profiler.stop'), DEADLINE_MS);
+          const result = await withDiagnosticDeadline(() => stage('stop', () => session.send('Profiler.stop')), STOP_DEADLINE_MS);
           report.host.stopAcknowledgedAtMs = now();
           report.host.stopRoundTripMs = report.host.stopAcknowledgedAtMs - report.host.stopRequestedAtMs;
           report.host.stopAcknowledgementOverrunMs = Math.max(0, now() - report.host.watchdogDueAtMs);
           rawProfile = result.profile;
           if (rawProfile) report.status = setupAbandoned ? 'partial' : 'captured';
           else record('stop', 'CPU profile missing');
-        } catch (error) { record('stop', error); }
+        } catch (error) { expireStage('stop'); record('stop', error); }
       }
       await cleanup();
     })();
@@ -67,24 +96,26 @@ export async function startNativeActionCpuProfile(page, { label, now = () => per
   };
   try {
     await withDiagnosticDeadline(async () => {
-      session = await page.context().newCDPSession(page);
+      session = await stage('session', () => page.context().newCDPSession(page));
       if (setupAbandoned) { await cleanup(); return; }
-      await session.send('Profiler.enable');
+      await stage('enable', () => session.send('Profiler.enable'));
       if (setupAbandoned) { await cleanup(); return; }
-      await session.send('Profiler.setSamplingInterval', { interval: 2000 });
+      await stage('samplingInterval', () => session.send('Profiler.setSamplingInterval', { interval: 2000 }));
       if (setupAbandoned) { await cleanup(); return; }
       startIssued = true;
       report.host.startRequestedAtMs = now();
-      report.host.watchdogDueAtMs = now() + WATCHDOG_MS;
+      report.host.watchdogDueAtMs = report.host.startRequestedAtMs + WATCHDOG_MS;
       watchdog = setTimeout(() => { stop('watchdog').catch(error => record('watchdog', error)); }, WATCHDOG_MS);
-      await session.send('Profiler.start');
+      await stage('start', () => session.send('Profiler.start'), report.host.startRequestedAtMs);
       report.host.startAcknowledgedAtMs = now();
       // A stop is queued even while start is pending; CDP orders these commands.
       // No continuation after the setup deadline can start another profiler.
       if (setupAbandoned) await stop('setup-expired');
-    }, DEADLINE_MS);
+    }, SETUP_DEADLINE_MS);
   } catch (error) {
     setupAbandoned = true;
+    const pending = ['session', 'enable', 'samplingInterval', 'start'].find(name => report.cdpStages[name].status === 'pending');
+    if (pending) { report.setupExpiredStage = pending; expireStage(pending); }
     record('setup', error);
     stop('setup-failed').catch(error => record('cleanup', error));
   }
