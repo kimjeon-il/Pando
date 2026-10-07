@@ -1,9 +1,7 @@
 import { territorialSymbolGroup } from './layer-presentation.js';
 import { createGeometrySnapshotPool } from './geometry-versions.js';
-import { normalizeTerritorialIdentities } from './territorial-units.js';
-import { snapshotTimelineStorage, restoreTimelineStorage } from './timeline-storage.js';
-import { staticTimelineViews } from './timeline-static-view.js';
-import { assertProjectReferenceIntegrity } from './project-invariants.js';
+import { prepareEditableProjectSnapshot } from './project-state.js';
+import { snapshotTimelineStorage } from './timeline-storage.js';
 /** ProjectSnapshots: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -47,32 +45,16 @@ export function createProjectSnapshots() {
   }
   function restoreEntitiesFromSnapshot(snapshot) {
     if (!Array.isArray(snapshot.territorialEntities)) throw new TypeError('이력에는 territorialEntities 배열이 필요합니다.');
-    snapshot = prepareEditable(snapshot);
+    snapshot = prepareEditableProjectSnapshot(snapshot, {
+      reuseGeometries: dependencies.projectState.state.geometries,
+      normalizeHydroEditCollection: dependencies.hydroModel.normalizeHydroEditCollection,
+      normalizeGenericFeatureCollection: dependencies.modelValidation.normalizeGenericFeatureCollection,
+    });
     dependencies.territorialModel.entityStore.restoreProject(snapshot);
     dependencies.projectState.state.historyDirtyEntityIds=new Set(snapshot.historyDirtyEntityIds || []);
     return snapshot;
   }
 
-  function prepareEditable(snapshot) {
-    const { geometries, ...fields } = snapshot;
-    const candidate = { ...structuredClone(fields), geometries };
-    const identities = normalizeTerritorialIdentities(candidate.territorialEntities);
-    const storage = restoreTimelineStorage({ schemaVersion: 1, records: candidate.timelineRecords,
-      geometries: candidate.geometries }, identities.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })),
-    { reuse: dependencies.projectState.state.geometries });
-    candidate.geometries = storage.geometries.snapshot();
-    candidate.timelineRecords = storage.records;
-    candidate.hydroEdits = dependencies.hydroModel.normalizeHydroEditCollection(candidate.hydroEdits);
-    candidate.genericFeatures = dependencies.modelValidation.normalizeGenericFeatureCollection(candidate.genericFeatures);
-    candidate.distributionLayers = dependencies.distributionServices.normalizeDistributionLayers(candidate.distributionLayers);
-    const ids = new Set(candidate.distributionLayers.map(layer => layer.id));
-    candidate.distributionEntries = dependencies.distributionServices.normalizeDistributionEntries(candidate.distributionEntries, {
-      layerExists: id => ids.has(id), cloneGeometry: geometry => geometry,
-    });
-    assertProjectReferenceIntegrity({ ...candidate,
-      territorialEntities: staticTimelineViews(identities, storage.records, storage.geometries) });
-    return candidate;
-  }
 
   function historyLabelSettings(labels = dependencies.projectState.state.labels) {
     const saved = {};

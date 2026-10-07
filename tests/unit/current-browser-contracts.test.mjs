@@ -513,7 +513,7 @@ test('manual revision job checks out immutable main separately and uses one boun
   assert.match(comparison, /^ {4}if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-revision-comparison'$/m);
   assert.match(comparison, /^ {4}needs: changes$/m);
   assert.equal(comparison.match(/actions\/checkout@v4/g)?.length, 2);
-  assert.match(comparison, /ref: ebcfae4d27b29cbbea6416a7045a4806930204be/);
+  assert.match(comparison, /ref: 0c55e8e4e8bacb3b125091c9b3a12ff535b5bdb6/);
   assert.match(comparison, /path: boundary-main\n {10}fetch-depth: 1/);
   assert.match(comparison, /path: boundary-pr/);
   assert.equal(comparison.match(/pnpm install --frozen-lockfile/g)?.length, 1);

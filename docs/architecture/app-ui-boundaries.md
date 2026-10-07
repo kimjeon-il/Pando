@@ -20,10 +20,17 @@ initialization is retryable, while disposal prevents late initialization.
 Import execution continues through GIS planning and the existing EditingDomain
 commit path. These UI modules do not change canonical geometry or history formats.
 
-Detailed geometry transactions, color-picker implementation, canonical startup
-application and domain resource adapters still live in `app.js`. This extraction
-does not claim that the application has become a complete thin bootstrap.
+Application implementations now live in the existing app-* owners and are wired
+by app-composition.js and capability ports. app.js is only the versioned loader.
+The remaining workflow owners include app-country-commits, app-territorial-drafts,
+app-project-restore and app-domain-assembly; they are not alternative model stores.
 
-`check-runtime-boundaries.mjs` rejects reintroduced extracted function declarations
-and limits non-empty app lines to 14,100. Focused behavior coverage lives in
-`tests/unit/app-ui-boundaries.test.mjs`.
+SelectionDomain supplies the current primary selection as a read-only session
+query. Selection change callbacks receive the previous selection directly, so the
+UI can cancel an old editing target without a second mutable selection field.
+History candidate preparation belongs to project-state; app-project-snapshots
+performs the existing publication and history wiring. Browser storage I/O belongs
+to browser-project-storage, while persistence-service retains queue/recovery policy.
+
+See [platform-boundaries.md](platform-boundaries.md) for Web/App owners and evidence.
+Focused behavior coverage remains in the existing UI/composition/domain tests.

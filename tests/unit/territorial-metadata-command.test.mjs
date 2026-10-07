@@ -28,7 +28,7 @@ const store=createTerritorialEntityStore({getState:()=>state});
     discardHistory: () => { effects.history--; history.discardLast(); }, validateProject: () => true,
     advanceRevision: () => ++state.stateRevision, queueAutosave: () => { effects.save++; },
   });
-  const service=createTerritorialApplicationService({entityStore:store,entityRepository:repository,commandPipeline});
+  const service=createTerritorialApplicationService({ createId: () => globalThis.crypto.randomUUID(),entityStore:store,entityRepository:repository,commandPipeline});
   const owner=createObjectMetadata();
   owner.connect({territorialModel:{entityRepository:repository},projectState:{state},objectModelB:{territorialApplicationService:service},feedback:{setActionStatus(){}},layers:{markLayerTreeDirty(){effects.tree++;}},rendering:{gpuMapRenderer:{invalidateCountryPalette(){effects.palette++;}}},domains:{selectionUiController:{presentPrimary(){effects.refresh++;},applyIntent(){assert.fail('metadata must not change selection or focus');}},renderingDomain:{invalidateLabels(){effects.labels++;},invalidateBaseScene(){effects.base++;},invalidateTerritorialPatch(){effects.patch++;}}}});
   return {owner,state,repository,effects,history,historyStore};

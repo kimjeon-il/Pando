@@ -1,0 +1,357 @@
+{
+  "refs": [
+    {
+      "domain": "territorial",
+      "type": "entity",
+      "id": "A"
+    },
+    {
+      "domain": "territorial",
+      "type": "entity",
+      "id": "B"
+    },
+    {
+      "domain": "territorial",
+      "type": "entity",
+      "id": "지방:%/ 1"
+    }
+  ],
+  "scopes": [
+    "list",
+    "search"
+  ],
+  "operations": [
+    {
+      "op": "replace",
+      "ref": {
+        "domain": "territorial",
+        "type": "entity",
+        "id": "A"
+      },
+      "scope": "list"
+    },
+    {
+      "op": "replace",
+      "ref": {
+        "domain": "territorial",
+        "type": "entity",
+        "id": "A"
+      },
+      "scope": "search"
+    },
+    {
+      "op": "toggle",
+      "ref": {
+        "domain": "territorial",
+        "type": "entity",
+        "id": "B"
+      },
+      "scope": "list"
+    },
+    {
+      "op": "range",
+      "ref": {
+        "domain": "territorial",
+        "type": "entity",
+        "id": "지방:%/ 1"
+      },
+      "ordered": [
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "A"
+        },
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "B"
+        },
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "지방:%/ 1"
+        }
+      ],
+      "scope": "list"
+    },
+    {
+      "op": "setMany",
+      "refs": [
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "A"
+        },
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "B"
+        },
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "A"
+        }
+      ],
+      "scope": "list"
+    },
+    {
+      "op": "prune",
+      "keep": [
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "B"
+        }
+      ]
+    },
+    {
+      "op": "range",
+      "ref": {
+        "domain": "territorial",
+        "type": "entity",
+        "id": "지방:%/ 1"
+      },
+      "ordered": [
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "A"
+        },
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "B"
+        },
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "지방:%/ 1"
+        }
+      ],
+      "scope": "list"
+    },
+    {
+      "op": "remove",
+      "ref": {
+        "domain": "territorial",
+        "type": "entity",
+        "id": "지방:%/ 1"
+      }
+    },
+    {
+      "op": "clear"
+    },
+    {
+      "op": "toggle",
+      "ref": {
+        "domain": "territorial",
+        "type": "entity",
+        "id": "A"
+      },
+      "scope": "list"
+    },
+    {
+      "op": "toggle",
+      "ref": {
+        "domain": "territorial",
+        "type": "entity",
+        "id": "A"
+      },
+      "scope": "list"
+    },
+    {
+      "op": "clear"
+    },
+    {
+      "op": "range",
+      "ref": {
+        "domain": "territorial",
+        "type": "entity",
+        "id": "지방:%/ 1"
+      },
+      "ordered": [
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "A"
+        },
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "B"
+        },
+        {
+          "domain": "territorial",
+          "type": "entity",
+          "id": "지방:%/ 1"
+        }
+      ],
+      "scope": "list"
+    },
+    {
+      "op": "replace",
+      "ref": null
+    }
+  ],
+  "expected": [
+    {
+      "keys": [
+        "territorial:entity:A"
+      ],
+      "primaryKey": "territorial:entity:A",
+      "revision": 1,
+      "anchors": {
+        "list": "territorial:entity:A",
+        "search": null
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:A"
+      ],
+      "primaryKey": "territorial:entity:A",
+      "revision": 1,
+      "anchors": {
+        "list": "territorial:entity:A",
+        "search": "territorial:entity:A"
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:A",
+        "territorial:entity:B"
+      ],
+      "primaryKey": "territorial:entity:B",
+      "revision": 2,
+      "anchors": {
+        "list": "territorial:entity:B",
+        "search": "territorial:entity:A"
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:B",
+        "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201"
+      ],
+      "primaryKey": "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201",
+      "revision": 3,
+      "anchors": {
+        "list": "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201",
+        "search": "territorial:entity:A"
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:A",
+        "territorial:entity:B"
+      ],
+      "primaryKey": "territorial:entity:A",
+      "revision": 4,
+      "anchors": {
+        "list": "territorial:entity:A",
+        "search": "territorial:entity:A"
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:B"
+      ],
+      "primaryKey": "territorial:entity:B",
+      "revision": 5,
+      "anchors": {
+        "list": "territorial:entity:A",
+        "search": "territorial:entity:A"
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:A",
+        "territorial:entity:B",
+        "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201"
+      ],
+      "primaryKey": "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201",
+      "revision": 6,
+      "anchors": {
+        "list": "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201",
+        "search": "territorial:entity:A"
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:A",
+        "territorial:entity:B"
+      ],
+      "primaryKey": "territorial:entity:B",
+      "revision": 7,
+      "anchors": {
+        "list": "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201",
+        "search": "territorial:entity:A"
+      }
+    },
+    {
+      "keys": [],
+      "primaryKey": null,
+      "revision": 8,
+      "anchors": {
+        "list": null,
+        "search": null
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:A"
+      ],
+      "primaryKey": "territorial:entity:A",
+      "revision": 9,
+      "anchors": {
+        "list": "territorial:entity:A",
+        "search": null
+      }
+    },
+    {
+      "keys": [],
+      "primaryKey": null,
+      "revision": 10,
+      "anchors": {
+        "list": "territorial:entity:A",
+        "search": null
+      }
+    },
+    {
+      "keys": [],
+      "primaryKey": null,
+      "revision": 10,
+      "anchors": {
+        "list": "territorial:entity:A",
+        "search": null
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:A",
+        "territorial:entity:B",
+        "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201"
+      ],
+      "primaryKey": "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201",
+      "revision": 11,
+      "anchors": {
+        "list": "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201",
+        "search": null
+      }
+    },
+    {
+      "keys": [
+        "territorial:entity:A",
+        "territorial:entity:B",
+        "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201"
+      ],
+      "primaryKey": "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201",
+      "revision": 11,
+      "anchors": {
+        "list": "territorial:entity:%EC%A7%80%EB%B0%A9%3A%25%2F%201",
+        "search": null
+      }
+    }
+  ]
+}

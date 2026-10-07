@@ -48,6 +48,7 @@ export const FOUNDATION_OWNER_PORTS = Object.freeze({
     "domains"
   ],
   "projectSession": [
+    "domains",
     "applicationConstantsA",
     "applicationFactories",
     "lifecycleUi",

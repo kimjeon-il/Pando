@@ -6,8 +6,8 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BOUNDARY_REVISION_STAGES } from '../tests/browser/helpers/boundary-revision-timings.mjs';
 
-const baselineRevision = 'ebcfae4d27b29cbbea6416a7045a4806930204be';
-const prProduct = { assets: 'fcaf7e192cd08faece7ce7f80d0d1fead8282e14', index: '858e2efcda0ddab7e460cdb021b9fce4f2d3578a' };
+const baselineRevision = '0c55e8e4e8bacb3b125091c9b3a12ff535b5bdb6';
+const prProduct = { assets: '710ae68872869f8a63145fc7d190d4c2ea34dcf2', index: '12c97886e4018a3c88ee454557b3feee97cb3055' };
 const spec = 'tests/browser/boundary-cut-snapping.spec.mjs';
 const title = 'a child cut snaps to both parent boundaries, preserves coverage and undoes in one step';
 const sequence = ['PR1', 'main1', 'main2', 'PR2'];
@@ -109,7 +109,7 @@ export function checkBoundaryRevisionInputs({ cwd, baselineRoot, expectedHead })
       productHash: createHash('sha256').update(tree).digest('hex') };
   };
   const pr = product(cwd), main = product(baselineRoot);
-  if (pr.assetsTree !== prProduct.assets || pr.indexBlob !== prProduct.index) throw new Error('PR product differs from the declared bd7ccd67 product baseline');
+  if (pr.assetsTree !== prProduct.assets || pr.indexBlob !== prProduct.index) throw new Error('PR product differs from the declared latest-main integrated product baseline');
   return { pr, main, fixtureFiles };
 }
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
 import { createGisImportPlan } from '../../assets/js/modules/gis-import-plan.js';
 
 test('GIS import forwards the complete coast reconciliation mapping', async () => {
