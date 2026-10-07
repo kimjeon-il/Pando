@@ -1,12 +1,26 @@
 import { test, expect } from '@playwright/test';
-import { logMapDiagnostic, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
+import { installGpuStrokeDiagnostics, instrumentSelectionPassSource, instrumentStrokeRendererSource, logMapDiagnostic, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
 
 const diagnosticErrors = new WeakMap();
+const diagnosticStages = new WeakMap();
+const childRequests = new WeakMap();
+const childPredicateCalls = new WeakMap();
+const cachedInteractionFacts = page => ({ stage: diagnosticStages.get(page), childRequest: childRequests.get(page),
+  childPredicateCalls: childPredicateCalls.get(page) || [], pageErrors: diagnosticErrors.get(page) || [] });
 test.beforeEach(async ({ page }) => {
   const errors = [];
   diagnosticErrors.set(page, errors);
+  diagnosticStages.set(page, 'startup');
+  await page.addInitScript(installGpuStrokeDiagnostics);
+  for (const [file, instrument] of [['selection-pass.js', instrumentSelectionPassSource], ['gpu-stroke-renderer.js', instrumentStrokeRendererSource]]) {
+    await page.route(`**/modules/${file}*`, async route => {
+      const response = await route.fetch();
+      const original = (await response.text()).replace(/\r\n/g, '\n');
+      await route.fulfill({ response, body: instrument(original) });
+    });
+  }
   page.on('pageerror', error => { errors.push(error.message); if (errors.length > 8) errors.shift(); });
   // Same read-only production-owner observer as helpers/library-state.mjs.
   // The factory still returns its original frozen object with unchanged methods.
@@ -19,6 +33,37 @@ test.beforeEach(async ({ page }) => {
       '  return window.__selectionDiagnostics = Object.freeze({\n    replace,') });
   });
 });
+
+async function selectionProbe(page, request = {}) {
+  const observed = await page.evaluate(() => ({ at: performance.now(),
+    availability: { canonicalSelection: !!window.__selectionDiagnostics, gpuProbe: !!window.__gpuStrokeProbe,
+      resourceReader: typeof window.__readStrokeUploadDiagnostics === 'function' },
+    canonicalSelection: window.__selectionDiagnostics?.snapshot(), probe: window.__gpuStrokeProbe,
+    resourceState: window.__readStrokeUploadDiagnostics?.(window.__gpuStrokeProbe?.required || []),
+    childPredicate: window.__childPredicateObservations,
+    mode: { name: document.querySelector('#modeTaskName')?.textContent,
+      stage: document.querySelector('#modeTaskStage')?.textContent, status: document.querySelector('#modeTaskStatus')?.textContent,
+      taskState: document.querySelector('#modeTaskStatus')?.dataset.taskState,
+      primaryDisabled: document.querySelector('#modePrimaryBtn')?.disabled,
+      selection: document.querySelector('#statusSelection')?.textContent },
+  }));
+  return { request, ...cachedInteractionFacts(page), ...observed };
+}
+
+async function childMetadataDiagnostics(page) {
+  return page.evaluate(expected => {
+    const selection = window.__selectionDiagnostics.snapshot().selection;
+    const selected = selection.items.find(item => item.key === selection.primaryKey);
+    const feature = selected?.domain === 'territorial' ? window.PANDOLAB_TERRITORIAL.get(selected.id) : null;
+    const entries = window.PANDOLAB_TERRITORIAL.list({ kind: 'general' });
+    const metadata = item => item ? ({ id: item.id, name: item.properties.name, parentId: item.properties.parentId,
+      entityKind: item.properties.entityKind, coverageMode: item.properties.coverageMode }) : null;
+    const matches = entries.filter(item => item.properties.name === expected.name);
+    return { at: performance.now(), expected, selected, selectedLookupFound: !!feature, selectedMetadata: metadata(feature),
+      selectedInGeneralList: entries.some(item => item.id === selected?.id), generalCount: entries.length,
+      exactNameMatchCount: matches.length, exactNameMatches: matches.slice(0, 8).map(metadata) };
+  }, childRequests.get(page));
+}
 
 async function selectionDiagnostics(page, request = {}) {
   const data = await page.evaluate(() => {
@@ -42,8 +87,7 @@ async function selectionDiagnostics(page, request = {}) {
       recentFrames: snapshot.rendering.recentFrames?.slice(-4),
       mapHost: snapshot.mapHost,
       status: document.querySelector('#statusAction')?.textContent,
-      unavailable: ['selection-pass requested item keys and packet resources', 'per-owner boundary pending/source reasons',
-        'raw drawBatches failure reasons'],
+      unavailable: ['per-owner boundary pending/source reasons'],
     };
   });
   return { request, ...data, pageErrors: diagnosticErrors.get(page) || [] };
@@ -51,6 +95,9 @@ async function selectionDiagnostics(page, request = {}) {
 
 test.afterEach(async ({ page }) => {
   if (test.info().status !== test.info().expectedStatus) {
+    await logMapDiagnostic(test.info().title, 'failed-case-cached', () => cachedInteractionFacts(page));
+    await logMapDiagnostic(test.info().title, 'failed-case-probe', () => selectionProbe(page));
+    if (childRequests.has(page)) await logMapDiagnostic(test.info().title, 'failed-child-metadata', () => childMetadataDiagnostics(page));
     await logMapDiagnostic(test.info().title, 'failed-case', () => selectionDiagnostics(page));
   }
 });
@@ -138,9 +185,12 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
   if (renderer === 'canvas') {
     await page.locator('#mapDisplayBtn').click();
     await page.locator('[data-map-display-row="terrain"]').click();
-    await page.locator('#terrainNoneRadio').check();
+    await page.locator('label[for="terrainNoneRadio"]').click();
+    await expect(page.locator('#terrainNoneRadio')).toBeChecked();
   }
   const add = async (parentId, name, coords) => {
+    childRequests.set(page, { parentId, name });
+    diagnosticStages.set(page, 'child-create-setup');
     expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), parentId)).toBe(true);
     await page.locator('#actionsTabBtn').click();
     await page.locator('#addEntityChildBtn').click();
@@ -148,6 +198,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
     await page.locator('#territorialCreateNameInput').fill(name);
     await page.locator('#modePrimaryBtn').click();
     await page.locator('#modePolygonMethodInput').check();
+    diagnosticStages.set(page, 'child-create-polygon');
     const map = await page.locator('#map').boundingBox();
     const points = await page.evaluate(coords => coords.map(coord => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coord)), coords);
     await page.mouse.move(map.x + points[0][0], map.y + points[0][1]);
@@ -163,7 +214,29 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
     await expect(page.locator('#modePrimaryBtn')).toContainText('생성');
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#modePrimaryBtn').click();
-    await expect.poll(() => page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).some(item => item.properties.name === name), name)).toBe(true);
+    diagnosticStages.set(page, 'child-existence-predicate');
+    await expect.poll(async () => {
+      const call = { startedAt: Date.now() };
+      const calls = childPredicateCalls.get(page) || [];
+      calls.push(call); if (calls.length > 8) calls.shift(); childPredicateCalls.set(page, calls);
+      try {
+        const result = await page.evaluate(name => {
+          const observation = { startedAt: performance.now() };
+          const observations = window.__childPredicateObservations ||= [];
+          observations.push(observation); if (observations.length > 8) observations.shift();
+          try {
+            const result = window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).some(item => item.properties.name === name);
+            observation.completedAt = performance.now(); observation.result = result;
+            return result;
+          } catch (error) {
+            observation.completedAt = performance.now(); observation.error = error.message;
+            throw error;
+          }
+        }, name);
+        call.completedAt = Date.now(); call.result = result;
+        return result;
+      } catch (error) { call.completedAt = Date.now(); call.error = error.message; throw error; }
+    }).toBe(true);
     return page.evaluate(name => window.PANDOLAB_TERRITORIAL.list({ kind: 'general' }).filter(f => f.properties.parentId).find(item => item.properties.name === name).id, name);
   };
 
@@ -185,10 +258,11 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
       return pixel;
     });
   };
+  diagnosticStages.set(page, 'child-selection-coverage');
   const selectionRequest = { id, renderer, accepted: null };
-  await withMapDiagnostics(`parent-child-selection:${renderer}`, () => selectionDiagnostics(page, selectionRequest), async () => {
+  await withMapDiagnostics(`parent-child-selection:${renderer}`, () => selectionProbe(page, selectionRequest), async () => {
     selectionRequest.accepted = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
-    await logMapDiagnostic(`parent-child-selection:${renderer}`, 'after-select', () => selectionDiagnostics(page, selectionRequest));
+    await logMapDiagnostic(`parent-child-selection:${renderer}`, 'after-select', () => selectionProbe(page, selectionRequest));
     if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [], id)).toContain(`territorial:entity:${encodeURIComponent(id)}`);
     if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.interactionFillCoverage?.renderedKeys?.some(key => key.includes(id)), id), { timeout: 30000 }).toBe(true);
   });
@@ -263,10 +337,11 @@ test('GPU context recovery never gives scene fills back to SVG', async ({ page }
   test.setTimeout(120000);
   await page.goto('/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
+  diagnosticStages.set(page, 'context-recovery-initial-selection');
   const selectionRequest = { id: 'DEU', accepted: null, contextLossRequested: false };
-  await withMapDiagnostics('context-recovery-initial-selection', () => selectionDiagnostics(page, selectionRequest), async () => {
+  await withMapDiagnostics('context-recovery-initial-selection', () => selectionProbe(page, selectionRequest), async () => {
     selectionRequest.accepted = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-    await logMapDiagnostic('context-recovery-initial-selection', 'after-select', () => selectionDiagnostics(page, selectionRequest));
+    await logMapDiagnostic('context-recovery-initial-selection', 'after-select', () => selectionProbe(page, selectionRequest));
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [])).toContain('territorial:entity:DEU');
   });
   const supported = await page.evaluate(() => {
