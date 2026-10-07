@@ -53,8 +53,12 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   }
   await page.locator('#gisImportConfirmBtn').click();
   await expect(page.locator('#gisImportModal')).toBeHidden({ timeout: 90_000 });
-  const regional = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'regional' })
-    .find(entity => entity.properties.name === 'QGIS 독립 권역'));
+  let regional;
+  await expect.poll(async () => {
+    regional = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list({ kind: 'regional' })
+      .find(entity => entity.properties.name === 'QGIS 독립 권역') || null);
+    return regional;
+  }).not.toBeNull();
   expect(regional.properties).toMatchObject({ entityKind: 'regional', parentId: '', coverageMode: 'explicit' });
   const regionalCoverageDifference = await page.evaluate(({ source, imported }) => {
     const polygons = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;

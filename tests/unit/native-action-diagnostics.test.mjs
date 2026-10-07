@@ -1,11 +1,23 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import test, { after } from 'node:test';
 import vm from 'node:vm';
+import { mkdtempSync } from 'node:fs';
+import fs, { readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { withNativeActionDiagnostics, nativeActionProbe } from '../browser/helpers/native-action-diagnostics.mjs';
+
+const temporaryDirectories = [];
+after(async () => { await Promise.all(temporaryDirectories.map(path => rm(path, { recursive: true, force: true }))); });
 
 function hostFixture(evaluate = async () => ({ installed: true })) {
   const attachments = [], lines = [];
-  return { page: { evaluate }, testInfo: { attach: async (name, attachment) => attachments.push({ name, ...attachment }) },
+  const directory = mkdtempSync(join(tmpdir(), 'native-action-diagnostics-'));
+  temporaryDirectories.push(directory);
+  return { page: { evaluate }, testInfo: {
+    outputPath: name => join(directory, name),
+    attach: async (name, attachment) => attachments.push({ name, ...attachment }),
+  },
     attachments, lines, options: { label: 'project-undo', selector: '#undoBtn', write: line => lines.push(line) } };
 }
 
@@ -16,10 +28,71 @@ test('one unchanged native action retains its return value and measures only the
   assert.equal(await withNativeActionDiagnostics(fixture.page, fixture.testInfo,
     { ...fixture.options, now: () => now }, async () => { attempts++; now = 9750; return result; }), result);
   assert.equal(attempts, 1);
-  const report = JSON.parse(fixture.attachments[0].body);
+  const report = JSON.parse(await readFile(fixture.attachments[0].path, 'utf8'));
   assert.deepEqual(report.host, { startedAtMs: 100, endedAtMs: 9750, durationMs: 9650, outcome: 'fulfilled' });
   assert.equal(report.label, 'project-undo');
   assert.equal(fixture.lines.length, 1);
+});
+
+test('a successful action persists compact JSON in the test output directory and attaches the saved path', async () => {
+  const fixture = hostFixture();
+  assert.equal(await withNativeActionDiagnostics(fixture.page, fixture.testInfo, fixture.options, () => 42), 42);
+  const path = fixture.testInfo.outputPath('project-undo-native-action.json');
+  const text = await readFile(path, 'utf8');
+  const report = JSON.parse(text);
+  assert.equal(report.host.outcome, 'fulfilled');
+  assert.equal(report.label, 'project-undo');
+  assert.deepEqual(report.browser, { installed: true });
+  assert.equal(text, JSON.stringify(report));
+  assert.deepEqual(fixture.attachments, [{ name: 'project-undo-native-action.json', path, contentType: 'application/json' }]);
+});
+
+test('a failed action retains its real output file even when the reporter attachment fails', async () => {
+  const fixture = hostFixture();
+  fixture.testInfo.attach = () => { throw new Error('reporter unavailable'); };
+  const original = new Error('native timeout');
+  await assert.rejects(withNativeActionDiagnostics(fixture.page, fixture.testInfo, fixture.options,
+    () => { throw original; }), error => error === original);
+  const report = JSON.parse(await readFile(fixture.testInfo.outputPath('project-undo-native-action.json'), 'utf8'));
+  assert.equal(report.host.outcome, 'rejected');
+});
+
+test('a rejected real file write cannot change the successful native outcome or create a body-only attachment', async () => {
+  const fixture = hostFixture();
+  const directory = fixture.testInfo.outputPath('');
+  fixture.testInfo.outputPath = () => directory; // Writing a file over a directory rejects.
+  assert.equal(await withNativeActionDiagnostics(fixture.page, fixture.testInfo, fixture.options, () => 42), 42);
+  assert.equal(fixture.attachments.length, 0);
+  assert.ok(fixture.lines.some(line => line.startsWith('[native-action-output] ')));
+});
+
+test('a never-settling file write is aborted at the output deadline and cannot attach after late fulfillment', { timeout: 1500 }, async t => {
+  const fixture = hostFixture();
+  let resolveWrite, signal;
+  t.mock.method(fs, 'writeFile', (path, data, options) => {
+    signal = options.signal;
+    return new Promise(resolve => { resolveWrite = resolve; });
+  });
+  const original = new Error('native failure');
+  const startedAt = performance.now();
+  await assert.rejects(withNativeActionDiagnostics(fixture.page, fixture.testInfo, fixture.options,
+    () => { throw original; }), error => error === original);
+  assert.ok(performance.now() - startedAt < 1000);
+  assert.equal(signal.aborted, true);
+  assert.equal(fixture.attachments.length, 0);
+  resolveWrite();
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(fixture.attachments.length, 0);
+});
+
+test('late file-write rejection remains handled after a successful action returns', { timeout: 1500 }, async t => {
+  const fixture = hostFixture();
+  let rejectWrite;
+  t.mock.method(fs, 'writeFile', () => new Promise((_, reject) => { rejectWrite = reject; }));
+  assert.equal(await withNativeActionDiagnostics(fixture.page, fixture.testInfo, fixture.options, () => 42), 42);
+  rejectWrite(new Error('late disk closure'));
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(fixture.attachments.length, 0);
 });
 
 test('setup, collection and attachment rejection never replace the original action error', async () => {

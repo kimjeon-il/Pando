@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises';
 import { withDiagnosticDeadline } from './map-diagnostics.mjs';
 
 let nextToken = 0;
@@ -27,12 +28,22 @@ export async function withNativeActionDiagnostics(page, testInfo, {
     // withhold this evidence. Host and browser time origins are not interchangeable.
     try { Promise.resolve(write(`[native-action] ${JSON.stringify({ label, host, setup })}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
     const browser = await read({ command: 'take', token });
+    let outputController;
     try {
       const body = JSON.stringify({ label, host, setup, browser });
-      await withDiagnosticDeadline(() => testInfo.attach(`${label}-native-action.json`, {
-        body: Buffer.from(body), contentType: 'application/json',
-      }), DIAGNOSTIC_DEADLINE_MS);
-    } catch (_) { /* Output failure must preserve the original result/error. */ }
+      const name = `${label}-native-action.json`;
+      outputController = new AbortController();
+      await withDiagnosticDeadline(async () => {
+        // Body-only attachments are not files in a passing list-reporter run.
+        const path = testInfo.outputPath(name);
+        await fs.writeFile(path, body, { encoding: 'utf8', signal: outputController.signal });
+        if (outputController.signal.aborted) return;
+        await testInfo.attach(name, { path, contentType: 'application/json' });
+      }, DIAGNOSTIC_DEADLINE_MS);
+    } catch (error) {
+      // Diagnose lost output, but preserve the original action result/error.
+      try { Promise.resolve(write(`[native-action-output] ${JSON.stringify({ label, diagnosticError: String(error).slice(0, 240) })}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
+    } finally { outputController?.abort(); }
   }
 }
 
