@@ -8,14 +8,14 @@ const DIAGNOSTIC_DEADLINE_MS = 250;
 // No retry, timeout override or altered click options. The callback owns the
 // original native action; diagnostic setup/output never determine its outcome.
 export async function withNativeActionDiagnostics(page, testInfo, {
-  label, selector, rowSelector, cpuProfile = false, now = () => performance.now(), write = console.log,
+  label, selector, rowSelector, cpuProfile = false, longAnimationFrames = false, now = () => performance.now(), write = console.log,
 }, action) {
   const token = String(++nextToken);
   const read = async options => {
     try { return await withDiagnosticDeadline(() => page.evaluate(nativeActionProbe, options), DIAGNOSTIC_DEADLINE_MS); }
     catch (error) { return { diagnosticError: String(error).slice(0, 240) }; }
   };
-  const setup = await read({ command: 'install', token, selector, rowSelector,
+  const setup = await read({ command: 'install', token, selector, rowSelector, longAnimationFrames,
     installBeforeEpochMs: Date.now() + DIAGNOSTIC_DEADLINE_MS });
   const cpu = cpuProfile ? await startNativeActionCpuProfile(page, { label, now, write }) : null;
   const host = { startedAtMs: now(), endedAtMs: null, durationMs: null, outcome: 'rejected' };
@@ -30,7 +30,10 @@ export async function withNativeActionDiagnostics(page, testInfo, {
     // Emit the host clock before any browser read: a stalled renderer cannot
     // withhold this evidence. Host and browser time origins are not interchangeable.
     try { Promise.resolve(write(`[native-action] ${JSON.stringify({ label, host, setup })}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
-    const browser = await read({ command: 'take', token });
+    // This completion was already awaited below. Retain the independently
+    // observed frames after delayed stop/cleanup, without adding a wait or retry.
+    await cpu?.finish(testInfo);
+    const browser = await read({ command: 'take', token, longAnimationFrames });
     let outputController;
     try {
       const body = JSON.stringify({ label, host, setup, browser });
@@ -47,13 +50,12 @@ export async function withNativeActionDiagnostics(page, testInfo, {
       // Diagnose lost output, but preserve the original action result/error.
       try { Promise.resolve(write(`[native-action-output] ${JSON.stringify({ label, diagnosticError: String(error).slice(0, 240) })}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
     } finally { outputController?.abort(); }
-    await cpu?.finish(testInfo);
   }
 }
 
 // Self-contained for page.evaluate and browser-free VM tests. Never reads layout,
 // replaces an app function, cancels an event or schedules recurring frame polling.
-export function nativeActionProbe({ command, token, selector, rowSelector, installBeforeEpochMs }) {
+export function nativeActionProbe({ command, token, selector, rowSelector, installBeforeEpochMs, longAnimationFrames = false }) {
   const scope = globalThis;
   const key = '__PANDOLAB_NATIVE_ACTION_TEST_PROBE__';
   const clock = () => scope.performance.now();
@@ -110,15 +112,31 @@ export function nativeActionProbe({ command, token, selector, rowSelector, insta
     performanceCollection.endedAtMs = clock();
     return { performance: performanceReport, performanceCollection };
   };
+  const collectLongAnimationFrames = (probe, unavailableReason) => {
+    if (!longAnimationFrames) return {};
+    const missing = { status: 'unavailable', frames: null,
+      coverage: 'LoAF observation unavailable; missing samples cannot rule out blocking.',
+      reason: unavailableReason || 'missing-init-script-at-native-install' };
+    try {
+      if (probe && !unavailableReason) return { longAnimationFrames: probe.take() };
+      // Early LoAF evidence remains useful when native setup expired. Unknown
+      // document/action association permits a snapshot, never a destructive take.
+      const currentProbe = scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__;
+      return { longAnimationFrames: typeof currentProbe?.snapshot === 'function' ? currentProbe.snapshot(missing.reason) : missing };
+    } catch (error) {
+      return { longAnimationFrames: { ...missing, status: 'error', reason: String(error).slice(0, 240) } };
+    }
+  };
   if (command === 'take') {
     const current = scope[key];
     if (current?.token !== token) {
       const errors = [];
       return { unavailable: true, unavailableReason: current ? 'token-mismatch' : 'missing-token', nativeWindow: null,
-        ...collectPerformance(null, error => errors.push(error)), errors };
+        ...collectPerformance(null, error => errors.push(error)),
+        ...collectLongAnimationFrames(null, current ? 'token-mismatch' : 'missing-native-token'), errors };
     }
     delete scope[key];
-    return current.take();
+    return { ...current.take(), ...collectLongAnimationFrames(current.longAnimationFrameProbe) };
   }
   if (installBeforeEpochMs != null && Date.now() > installBeforeEpochMs) return { installationExpired: true };
   scope[key]?.dispose();
@@ -174,7 +192,10 @@ export function nativeActionProbe({ command, token, selector, rowSelector, insta
     pendingFrames.clear();
     safe(() => scope.clearTimeout(timer));
   };
-  const api = { token, dispose, take() {
+  // Bind the observer in this document to this successful native installation.
+  // A stale take after navigation must not consume a newer document's observer.
+  const api = { token, dispose,
+    longAnimationFrameProbe: longAnimationFrames ? scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__ : null, take() {
     dispose();
     const endedAtMs = clock();
     const nativeWindow = { startedAtMs, endedAtMs };
