@@ -4,7 +4,7 @@ import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
 import { boundaryDragCommitEvidence } from '../helpers/boundary-drag-commit.mjs';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
 import { defaultUserPreferences, STORAGE_KEY } from '../../assets/js/modules/user-preferences.js';
-import { logMapDiagnostic, withDiagnosticDeadline, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
+import { withPollTimingDiagnostics, logMapDiagnostic, withDiagnosticDeadline, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
 
 test.use({ viewport: { width: 1440, height: 900 }, trace: 'off',
   launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
@@ -285,7 +285,7 @@ test.afterEach(async ({ page }) => {
   }
 });
 
-const snapshot = page => page.evaluate(() => {
+const snapshot = (page, evaluate = read => page.evaluate(read)) => evaluate(() => {
   const controller = window.__m2Preview(), packet = controller.packet();
   return { ...controller.snapshot(), successor: controller.snapshot().successor?.kind,
     coordinates: packet ? Array.from(packet.packet.startsEnds) : [], key: packet?.packet.key,
@@ -636,7 +636,10 @@ for (const renderer of ['webgl2', 'canvas']) {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2 + 16, box.y + box.height / 2 - 16, { steps: 6 });
-    await expect.poll(async () => (await snapshot(page)).status).toBe('dragging');
+    if (renderer === 'canvas' && kind === 'river' && !outlineVisible) {
+      await withPollTimingDiagnostics(page, test.info(), { label: 'canvas-river-preview-entry', valueField: 'status' }, timing =>
+        expect.poll(() => timing.call(async evaluate => (await snapshot(page, evaluate)).status)).toBe('dragging'));
+    } else await expect.poll(async () => (await snapshot(page)).status).toBe('dragging');
     const firstId = (await snapshot(page)).id;
     await page.mouse.move(box.x + box.width / 2 + 24, box.y + box.height / 2 - 18, { steps: 3 });
     expect((await snapshot(page)).id).toBe(firstId);

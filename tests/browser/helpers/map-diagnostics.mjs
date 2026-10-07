@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises';
+
 // Test-log summaries only. Never pass model geometry, DOM trees or render buffers.
 export function boundedDiagnostic(value) {
   const seen = new WeakSet();
@@ -59,6 +61,126 @@ export async function withMapDiagnostics(boundary, read, action, write = console
     return result;
   } catch (error) {
     await logMapDiagnostic(boundary, 'failed', read, write);
+    throw error;
+  }
+}
+
+
+let nextPollTimingToken = 0;
+const POLL_DIAGNOSTIC_DEADLINE_MS = 250;
+
+// One gate, one collector. No new predicate invocations, timeout overrides, or
+// extra application reads. The separate diagnostic reads never sample readiness.
+export async function withPollTimingDiagnostics(page, testInfo, {
+  label, valueField = null, now = () => performance.now(), write = console.log,
+}, action) {
+  const token = String(++nextPollTimingToken);
+  const key = `__PANDOLAB_POLL_TIMING_${token}`;
+  const scalar = value => typeof value === 'string' ? value.slice(0, 240)
+    : value == null || ['number', 'boolean'].includes(typeof value) ? value ?? null : '[non-scalar]';
+  const safe = read => { try { return read(); } catch (_) { return null; } };
+  const errorSummary = error => safe(() => ({ name: scalar(error?.name), message: scalar(error?.message ?? String(error)) }));
+  const clock = () => safe(now);
+  const calls = [];
+  let count = 0, pendingCalls = 0, lateReports = 0, omittedLateReports = 0;
+  const gate = { startedAtMs: null, settledAtMs: null, outcome: 'pending' };
+  // Capture the current test's destination now. Late settlements cannot consult
+  // test.info() from a following test or overwrite its collector/artifacts.
+  const stem = `${String(label).replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 100)}-poll-timing`;
+  const paths = safe(() => Object.fromEntries(['settled', 'observed', ...Array.from({ length: 8 }, (_, i) => `late-${i + 1}`)]
+    .map(phase => [phase, testInfo.outputPath(`${stem}-${phase}.json`)])));
+  const emit = report => {
+    try { Promise.resolve(write(`[poll-timing] ${JSON.stringify(report)}`)).catch(() => {}); } catch (_) { /* Evidence only. */ }
+  };
+  const snapshot = (phase, browser = { notCollected: true }, settledCall = null) => ({
+    label: scalar(label), token, phase, clocks: 'host/page monotonic; different origins',
+    gate: { ...gate }, callCount: count, pendingCalls, droppedCalls: Math.max(0, count - calls.length),
+    omittedLateReports, calls: calls.map(call => ({ ...call })), browser, ...(settledCall ? { settledCall: { ...settledCall } } : {}),
+  });
+  const persist = async report => {
+    emit(report);
+    const controller = new AbortController();
+    try {
+      if (!paths) throw new Error('Test output path unavailable');
+      const path = paths[report.phase];
+      await withDiagnosticDeadline(async () => {
+        await fs.writeFile(path, JSON.stringify(report), { encoding: 'utf8', signal: controller.signal });
+        if (!controller.signal.aborted) await testInfo.attach(`${stem}-${report.phase}.json`, { path, contentType: 'application/json' });
+      }, POLL_DIAGNOSTIC_DEADLINE_MS);
+    } catch (error) { emit({ label: scalar(label), phase: report.phase, outputError: errorSummary(error) }); }
+    finally { controller.abort(); }
+  };
+  const collect = async () => {
+    try {
+      return await withDiagnosticDeadline(() => page.evaluate(key => window[key] || { unavailable: true }, key), POLL_DIAGNOSTIC_DEADLINE_MS);
+    } catch (error) { return { incomplete: true, error: errorSummary(error) }; }
+  };
+  const late = async (call, phase) => {
+    // Keep host evidence even when the page has closed or the diagnostic read stalls.
+    emit(snapshot(`${phase}-host`, { notCollected: true }, call));
+    await persist(snapshot(phase, await collect(), call));
+  };
+  const timing = {
+    async call(predicate) {
+      const call = { id: ++count, startedAtMs: clock(), settledAtMs: null, outcome: 'pending' };
+      calls.push(call); if (calls.length > 8) calls.shift();
+      pendingCalls++;
+      const evaluate = (read, ...args) => {
+        // Serialize a wrapper around the original self-contained Playwright
+        // callback. Its argument list and original return payload stay unchanged.
+        const metadata = JSON.stringify({ key, id: call.id, valueField });
+        const wrapped = new Function(`return function(...args) { return (${observePollPageRead.toString()})(${metadata}, (${read.toString()}), args); };`)();
+        return page.evaluate(wrapped, ...args);
+      };
+      try {
+        const value = await predicate(evaluate);
+        call.settledAtMs = clock(); call.outcome = 'fulfilled'; call.valueType = typeof value; call.value = scalar(value);
+        return value;
+      } catch (error) { call.settledAtMs = clock(); call.outcome = 'rejected'; call.error = errorSummary(error); throw error; }
+      finally {
+        call.late = gate.outcome !== 'pending'; pendingCalls--;
+        if (call.late) {
+          if (lateReports < 8) late(call, `late-${++lateReports}`).catch(() => {});
+          else omittedLateReports++;
+        }
+      }
+    },
+  };
+  gate.startedAtMs = clock();
+  try {
+    const result = await action(timing);
+    gate.outcome = 'fulfilled';
+    return result;
+  } catch (error) { gate.outcome = 'rejected'; gate.error = errorSummary(error); throw error; }
+  finally {
+    gate.settledAtMs = clock();
+    await persist(snapshot('settled'));
+    await persist(snapshot('observed', await collect()));
+  }
+}
+
+// Self-contained for serialization. The original synchronous page callback runs
+// exactly once, returning its original value/error. Only scalar evidence is kept.
+function observePollPageRead({ key, id, valueField }, read, args) {
+  const safe = action => { try { return action(); } catch (_) { return null; } };
+  const scalar = value => typeof value === 'string' ? value.slice(0, 240)
+    : value == null || ['number', 'boolean'].includes(typeof value) ? value ?? null : '[non-scalar]';
+  const call = { id, enteredAtMs: safe(() => performance.now()), startedAtMs: null, settledAtMs: null, outcome: 'pending' };
+  safe(() => {
+    const probe = window[key] ||= { calls: [], callCount: 0, droppedCalls: 0 };
+    probe.callCount++; probe.calls.push(call);
+    if (probe.calls.length > 8) { probe.calls.shift(); probe.droppedCalls++; }
+  });
+  try {
+    call.startedAtMs = safe(() => performance.now());
+    const value = read(...args);
+    call.settledAtMs = safe(() => performance.now());
+    call.outcome = 'fulfilled';
+    safe(() => { const observed = valueField ? value?.[valueField] : value; call.valueType = typeof observed; call.value = scalar(observed); });
+    return value;
+  } catch (error) {
+    call.settledAtMs = safe(() => performance.now()); call.outcome = 'rejected';
+    safe(() => { call.error = { name: scalar(error?.name), message: scalar(error?.message ?? String(error)) }; });
     throw error;
   }
 }
