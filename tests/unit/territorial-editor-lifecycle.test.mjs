@@ -13,6 +13,7 @@ import { createMapDebugController } from '../../assets/js/modules/map-debug-cont
 import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
 import { LIFECYCLE_UI_OWNER_PORTS, MAP_INTERACTION_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
+import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 const { EventTarget, Event, CustomEvent } = globalThis;
 
@@ -71,7 +72,8 @@ test('real lifecycle assembly creates editor capabilities before startup task sy
   const { window, listeners } = environment(t);
   let flagOpen = true;
   const flagMenu = { matches: () => flagOpen, hidePopover: () => { flagOpen = false; } };
-  const getElement = id => id === 'flagMenu' ? flagMenu : null;
+  const relationElements = new Map(['entityParentRow', 'entityChildRow', 'entityChangeParentBtn', 'entityAddChildBtn'].map(id => [id, editorNode()]));
+  const getElement = id => id === 'flagMenu' ? flagMenu : relationElements.get(id) || null;
   const domainAssembly = {
     territorialPropertyController: null,
     initializeDomainBoundaries() {

@@ -6245,6 +6245,7 @@ body.file-menu-open .app-root .topbar {
 }
 
 .editor-relations[hidden],
+.editor-relations [hidden],
 .editor-relation-block[hidden] {
   display: none;
 }
@@ -7002,6 +7003,7 @@ body.file-menu-open .app-root .topbar {
 }
 
 .editor-relation-actions { display: flex; flex: 0 0 auto; }
+.editor-relation-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); }
 .editor-relation-add { display: flex; align-items: end; gap: var(--ui-space-2); }
 .editor-relation-add > .editor-field { flex: 1 1 auto; min-width: 0; }
 .editor-relation-add > .ui-button { flex: 0 0 auto; min-width: var(--ui-touch-height); white-space: nowrap; }

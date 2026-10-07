@@ -1,3 +1,4 @@
+import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -14,7 +15,7 @@ test('nested general objects use the common desktop/mobile creation and editor s
   await expect(page.locator('#addEntityBtn')).toHaveCount(1);
   await expect(page.locator('#addTerritoryBtn, #addAdministrativeBtn, #territoryProperties, #administrativeProperties')).toHaveCount(0);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  await page.locator('#addEntityChildBtn').evaluate(button => button.click());
+  await startChildCreation(page, 'DEU');
   await expect(page.locator('#editorTaskSlot #territorialCreateSetup')).toBeVisible();
   await expect(page.locator('#modeTaskName')).toContainText('객체 추가');
   await expect(page.locator('#territorialCreateNameLabel')).toHaveText('이름');

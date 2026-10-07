@@ -81,7 +81,6 @@ export function createLifecycleAssembly() {
             runEntityEditAction: dependencies.territorialEditingB.runEntityEditAction,
             runModePrimaryAction: dependencies.taskPresentation.runModePrimaryAction,
             copySelectedEntityToRegion: dependencies.territorialConversion.copySelectedEntityToRegion,
-            enterTerritorialCreateWorkflow: dependencies.territorialEditingA.enterTerritorialCreateWorkflow,
             entityRepository: dependencies.territorialModel.entityRepository,
             reconcileAdminCountryCoast: dependencies.projectRestore.reconcileAdminCountryCoast,
             focusObjectRef: dependencies.objectOperationsA.focusObjectRef,

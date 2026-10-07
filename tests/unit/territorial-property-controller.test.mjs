@@ -131,7 +131,7 @@ test('relation controls target parent and child explicitly and GPS never retarge
   const parent = state.fields.get('entityParentInput'); parent.value = 'B'; parent.dispatch('change');
   assert.deepEqual(state.relations[0], [state.a, 'parentId', 'B']);
   const child = state.fields.get('entityChildInput'); child.value = 'B';
-  state.fields.get('entityAddChildBtn').click();
+  child.dispatch('change');
   assert.deepEqual(state.relations[1], [b, 'parentId', 'A']);
   const relations = state.fields.get('entityRelations');
   relations.dispatch('click', { target: { closest: selector => selector === '[data-relation-remove]' ? { dataset: { relationRemove: 'B' } } : null } });
@@ -139,6 +139,54 @@ test('relation controls target parent and child explicitly and GPS never retarge
   relations.dispatch('click', { target: { closest: selector => selector === '[data-relation-focus]' ? { dataset: { relationFocus: 'B' } } : null } });
   assert.deepEqual(state.focused, [b]);
   assert.equal(state.forms.at(-1)[1], 'A');
+});
+
+test('relation buttons toggle one picker at a time without changing the model', () => {
+  const state = setup();
+  const b = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'B' });
+  const feature = createTerritorialFeature({ id: 'B', entityKind: 'general', geometry: square(1) });
+  state.views.set(b.key, { ref: b, displayName: 'B', feature });
+  state.controller.present(state.a); state.controller.bind();
+  const parent = state.fields.get('entityParentRow'), child = state.fields.get('entityChildRow');
+  const change = state.fields.get('entityChangeParentBtn'), add = state.fields.get('entityAddChildBtn');
+  assert.equal(parent.hidden, true); assert.equal(child.hidden, true);
+  change.click();
+  assert.equal(parent.hidden, false); assert.equal(change.getAttribute('aria-expanded'), 'true');
+  change.click(); assert.equal(parent.hidden, true);
+  change.click(); add.click();
+  assert.equal(parent.hidden, true); assert.equal(change.getAttribute('aria-expanded'), 'false');
+  assert.equal(child.hidden, false); assert.equal(add.getAttribute('aria-expanded'), 'true');
+  add.click(); assert.equal(child.hidden, true);
+  assert.deepEqual(state.relations, []);
+});
+
+test('successful relation selection closes the picker; rejected selection stays open', () => {
+  let ok = false;
+  const state = setup({ commitRelation: () => ({ ok }) });
+  state.controller.present(state.a); state.controller.bind();
+  const change = state.fields.get('entityChangeParentBtn'), panel = state.fields.get('entityParentRow');
+  const input = state.fields.get('entityParentInput');
+  change.click(); input.value = 'B'; input.dispatch('change');
+  assert.equal(panel.hidden, false);
+  ok = true; input.dispatch('change');
+  assert.equal(panel.hidden, true);
+});
+
+test('relation picker closes on Escape, clear, selection change and locking', () => {
+  const state = setup();
+  state.controller.present(state.a); state.controller.bind();
+  const change = state.fields.get('entityChangeParentBtn'), panel = state.fields.get('entityParentRow');
+  change.click();
+  state.fields.get('entityRelations').dispatch('keydown', { key: 'Escape' });
+  assert.equal(panel.hidden, true); assert.equal(change.focused, true);
+  change.click(); state.controller.clear(); assert.equal(panel.hidden, true);
+  state.controller.present(state.a); change.click();
+  const b = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'B' });
+  const feature = createTerritorialFeature({ id: 'B', entityKind: 'general', geometry: square(1) });
+  state.views.set(b.key, { ref: b, displayName: 'B', feature, properties: feature.properties });
+  state.setPrimary(b); state.controller.present(b); assert.equal(panel.hidden, true);
+  change.click(); feature.properties.locked = true; state.controller.syncInteraction();
+  assert.equal(panel.hidden, true); assert.equal(change.disabled, true);
 });
 
 function flagFixture(commit = () => {}) {

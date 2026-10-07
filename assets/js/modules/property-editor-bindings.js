@@ -11,7 +11,6 @@ export function createPropertyEditorBindings({
   requestDraftDiscard,
   completeToolStart,
   startGeometryDistributionDraft,
-  enterTerritorialCreateWorkflow,
   runEntityEditAction,
   runModePrimaryAction,
   copySelectedEntityToRegion,
@@ -97,11 +96,6 @@ export function createPropertyEditorBindings({
     });
     listen($('addTerritorialDistributionBtn'), 'click', addTerritorialDistributionEntry);
     listen($('addGeometryDistributionBtn'), 'click', () => requestDraftDiscard(() => completeToolStart(startGeometryDistributionDraft())));
-    listen($('addEntityChildBtn'), 'click', () => {
-      const feature = entityRepository.get(getPrimary()?.id);
-      if (feature?.properties.entityKind !== 'general' || feature.properties.locked) return;
-      requestDraftDiscard(() => completeToolStart(enterTerritorialCreateWorkflow({ parentId: feature.id })));
-    });
     for (const [id, action] of [['annexEntityBtn', 'annex'], ['mergeEntityBtn', 'merge'], ['editEntityBorderBtn', 'boundary'], ['editEntityCoastBtn', 'coast'], ['redrawEntityBtn', 'redraw']]) {
       listen($(id), 'click', () => requestDraftDiscard(() => runModePrimaryAction(async () =>
         completeToolStart(await runEntityEditAction(action, getPrimary()?.id)))));

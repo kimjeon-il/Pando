@@ -113,6 +113,7 @@ export function createTerritorialPropertyController({
     ], '');
     $('entityChildInput').disabled = blocked || !candidates.length;
     $('entityAddChildBtn').disabled = blocked || !candidates.length;
+    if (!general || (relationPicker === 'child' && !candidates.length)) closeRelationPicker();
   }
   function presentFields(view) {
     const properties = view.feature.properties;
@@ -126,12 +127,11 @@ export function createTerritorialPropertyController({
     const color = resolveColor(view);
     elements.color.value = color.value;
     syncColorPicker('entity', { value: color.value, defaultColor: defaultColor(view), isDefault: color.isDefault });
-    $('entityParentRow').classList.toggle('hidden', !general);
     $('entityRegionalStatus').classList.toggle('hidden', general);
     replaceSelectOptions($('entityParentInput'), general ? territorialParentOptions(view.feature) : [], properties.parentId);
     for (const control of [elements.name, elements.notes, $('entityParentInput'), $('entityPeriodInput')]) control.disabled = isMutationBlocked(view.ref);
     const actions = {
-      addEntityChildBtn: general, annexEntityBtn: general, mergeEntityBtn: true,
+      annexEntityBtn: general, mergeEntityBtn: true,
       editEntityBorderBtn: general, redrawEntityBtn: !general, editEntityCoastBtn: general,
       reconcileEntityCoastBtn: nested, copyEntityRegionBtn: general,
     };
@@ -203,6 +203,24 @@ export function createTerritorialPropertyController({
   const refresh = entityRef => present(entityRef, { refreshOnly: true });
 
   let activeRef = null, flagReadRevision = 0, pendingUpload = null, wasMutationBlocked = false;
+  let relationPicker = null;
+  function syncRelationPicker() {
+    for (const [kind, panel, button] of [
+      ['parent', 'entityParentRow', 'entityChangeParentBtn'],
+      ['child', 'entityChildRow', 'entityAddChildBtn'],
+    ]) {
+      const open = relationPicker === kind;
+      $(panel).hidden = !open;
+      $(button).setAttribute('aria-expanded', String(open));
+    }
+  }
+  function closeRelationPicker({ restoreFocus = false } = {}) {
+    const previous = relationPicker;
+    relationPicker = null;
+    syncRelationPicker();
+    if (restoreFocus && previous) $(previous === 'parent' ? 'entityChangeParentBtn' : 'entityAddChildBtn').focus({ preventScroll: true });
+    return !!previous;
+  }
   const closeFlag = ({ restoreFocus = false } = {}) => {
     const menu = $('flagMenu');
     if (!menu?.matches(':popover-open')) return false;
@@ -215,7 +233,8 @@ export function createTerritorialPropertyController({
     const flagClosed = closeFlag({ restoreFocus: restoreFocus && !colorTrigger });
     closeColorPickers();
     if (restoreFocus && colorTrigger) colorTrigger.focus({ preventScroll: true });
-    return flagClosed || !!colorTrigger;
+    const relationClosed = closeRelationPicker({ restoreFocus: restoreFocus && !flagClosed && !colorTrigger });
+    return flagClosed || !!colorTrigger || relationClosed;
   };
   function renderFlag(view) {
     const preview = $('flagPreview');
@@ -243,6 +262,8 @@ export function createTerritorialPropertyController({
     wasMutationBlocked = blocked;
     $('flagMenuBtn').disabled = blocked;
     $('entityColorTrigger').disabled = blocked;
+    $('entityChangeParentBtn').disabled = blocked;
+    $('entityAddChildBtn').disabled = blocked || $('entityChildInput').disabled;
     if (blocked) closeTransient();
   }
   function positionFlagMenu() {
@@ -267,12 +288,11 @@ export function createTerritorialPropertyController({
   const bind = () => {
     if (bound || disposed) return api;
     bound = true;
-    const bindField = (element, field, relation = false) => listen(element, 'change', event => {
+    const bindField = (element, field) => listen(element, 'change', event => {
       const ref = getPrimaryRef();
       if (ref?.domain !== 'territorial' || isMutationBlocked(ref)) return;
       const value = field === 'name' ? event.target.value.trim() : event.target.value;
-      if (relation) commitRelation(ref, field, value);
-      else commitField(ref, field, value);
+      commitField(ref, field, value);
     });
     bindField(elements.name, 'name'); bindField(elements.notes, 'notes');
     listen($('entityPeriodInput'), 'input', clearPeriodError);
@@ -293,11 +313,25 @@ export function createTerritorialPropertyController({
       if (!result.ok) showError(result.issues?.[0] || '존속기간을 변경할 수 없습니다.');
       else input.value = formatTerritorialPeriodInput(interval);
     });
-    bindField($('entityParentInput'), 'parentId', true);
-    listen($('entityAddChildBtn'), 'click', () => {
+    for (const [kind, button] of [['parent', 'entityChangeParentBtn'], ['child', 'entityAddChildBtn']]) listen($(button), 'click', () => {
+      if ($(button).disabled || !activeRef || isMutationBlocked(activeRef)) return;
+      relationPicker = relationPicker === kind ? null : kind;
+      syncRelationPicker();
+    });
+    listen($('entityParentInput'), 'change', event => {
+      const ref = getPrimaryRef();
+      if (ref?.domain !== 'territorial' || isMutationBlocked(ref)) return;
+      if (commitRelation(ref, 'parentId', event.target.value).ok) closeRelationPicker({ restoreFocus: true });
+    });
+    listen($('entityChildInput'), 'change', () => {
       const ref = getPrimaryRef(), childId = $('entityChildInput').value;
       if (ref?.domain !== 'territorial' || !childId || isMutationBlocked(ref)) return;
-      commitRelation(entityRef(childId), 'parentId', ref.id);
+      if (commitRelation(entityRef(childId), 'parentId', ref.id).ok) closeRelationPicker({ restoreFocus: true });
+    });
+    listen($('entityRelations'), 'keydown', event => {
+      if (event.key === 'Escape' && relationPicker) {
+        event.preventDefault(); event.stopPropagation(); closeRelationPicker({ restoreFocus: true });
+      }
     });
     listen($('entityRelations'), 'click', event => {
       const focus = event.target.closest('[data-relation-focus]');

@@ -5,11 +5,14 @@ import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capabili
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 import { createTerritorialPropertyController } from '../../assets/js/modules/territorial-property-controller.js';
 import { createFoundationPorts } from '../../assets/js/modules/app-capability-ports-foundation.js';
+import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 test('foundation transient capability closes the actual editor flag popover and restores focus', () => {
   let flagOpen = true;
   const focusCalls = [];
   const elements = {
+    entityParentRow: editorNode(), entityChildRow: editorNode(),
+    entityChangeParentBtn: editorNode(), entityAddChildBtn: editorNode(),
     editorSurface: { querySelector: () => null },
     flagMenu: {
       matches: selector => selector === ':popover-open' && flagOpen,
