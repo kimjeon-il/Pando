@@ -1,0 +1,234 @@
+{
+  "schema": "web-app-property-commands",
+  "version": 1,
+  "initial": {
+    "id": "A",
+    "name": "Alpha"
+  },
+  "operations": [
+    {
+      "id": "rename",
+      "op": "field",
+      "target": "A",
+      "field": "name",
+      "value": "Beta",
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "name": "Beta",
+        "notes": "",
+        "locked": false,
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "rename-noop",
+      "op": "field",
+      "target": "A",
+      "field": "name",
+      "value": "Beta",
+      "expected": {
+        "ok": true,
+        "changed": false,
+        "name": "Beta",
+        "notes": "",
+        "locked": false,
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "notes",
+      "op": "field",
+      "target": "A",
+      "field": "notes",
+      "value": "memo",
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "name": "Beta",
+        "notes": "memo",
+        "locked": false,
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "invalid-reference",
+      "op": "field",
+      "target": "missing",
+      "field": "name",
+      "value": "Other",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "name": "Beta",
+        "notes": "memo",
+        "locked": false,
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "lock",
+      "op": "lock",
+      "target": "A",
+      "field": null,
+      "value": true,
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "name": "Beta",
+        "notes": "memo",
+        "locked": true,
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "locked-rename",
+      "op": "field",
+      "target": "A",
+      "field": "name",
+      "value": "Other",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "name": "Beta",
+        "notes": "memo",
+        "locked": true,
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "lock-noop",
+      "op": "lock",
+      "target": "A",
+      "field": null,
+      "value": true,
+      "expected": {
+        "ok": true,
+        "changed": false,
+        "name": "Beta",
+        "notes": "memo",
+        "locked": true,
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "undo-lock",
+      "op": "undo",
+      "target": null,
+      "field": null,
+      "value": null,
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "name": "Beta",
+        "notes": "memo",
+        "locked": false,
+        "undo": true,
+        "redo": true
+      }
+    },
+    {
+      "id": "undo-notes",
+      "op": "undo",
+      "target": null,
+      "field": null,
+      "value": null,
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "name": "Beta",
+        "notes": "",
+        "locked": false,
+        "undo": true,
+        "redo": true
+      }
+    },
+    {
+      "id": "redo-notes",
+      "op": "redo",
+      "target": null,
+      "field": null,
+      "value": null,
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "name": "Beta",
+        "notes": "memo",
+        "locked": false,
+        "undo": true,
+        "redo": true
+      }
+    },
+    {
+      "id": "invalid-date",
+      "op": "field",
+      "target": "A",
+      "field": "validFrom",
+      "value": "0000",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "name": "Beta",
+        "notes": "memo",
+        "locked": false,
+        "undo": true,
+        "redo": true
+      }
+    },
+    {
+      "id": "activation-guard",
+      "op": "field",
+      "target": "A",
+      "field": "validFrom",
+      "value": "1900",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "name": "Beta",
+        "notes": "memo",
+        "locked": false,
+        "undo": true,
+        "redo": true
+      }
+    },
+    {
+      "id": "new-edit-clears-redo",
+      "op": "field",
+      "target": "A",
+      "field": "name",
+      "value": "Gamma",
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "name": "Gamma",
+        "notes": "memo",
+        "locked": false,
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "redo-empty",
+      "op": "redo",
+      "target": null,
+      "field": null,
+      "value": null,
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "name": "Gamma",
+        "notes": "memo",
+        "locked": false,
+        "undo": true,
+        "redo": false
+      }
+    }
+  ]
+}

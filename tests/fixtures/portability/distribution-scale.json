@@ -1,0 +1,245 @@
+[
+  {
+    "id": "empty-auto",
+    "input": {
+      "layers": [
+        {
+          "id": "L"
+        }
+      ],
+      "entries": []
+    },
+    "expected": {
+      "ranges": {
+        "L": null
+      },
+      "alpha": {}
+    }
+  },
+  {
+    "id": "constant",
+    "input": {
+      "layers": [
+        {
+          "id": "L"
+        }
+      ],
+      "entries": [
+        {
+          "id": "a",
+          "layerId": "L",
+          "value": 42
+        },
+        {
+          "id": "b",
+          "layerId": "L",
+          "value": 42
+        }
+      ]
+    },
+    "expected": {
+      "ranges": {
+        "L": {
+          "min": 42,
+          "max": 42
+        }
+      },
+      "alpha": {
+        "a": 0.7,
+        "b": 0.7
+      }
+    }
+  },
+  {
+    "id": "negative-to-positive",
+    "input": {
+      "layers": [
+        {
+          "id": "L"
+        }
+      ],
+      "entries": [
+        {
+          "id": "a",
+          "layerId": "L",
+          "value": -10
+        },
+        {
+          "id": "b",
+          "layerId": "L",
+          "value": 10
+        }
+      ]
+    },
+    "expected": {
+      "ranges": {
+        "L": {
+          "min": -10,
+          "max": 10
+        }
+      },
+      "alpha": {
+        "a": 0.12,
+        "b": 0.7
+      }
+    }
+  },
+  {
+    "id": "manual-clamps",
+    "input": {
+      "layers": [
+        {
+          "id": "L",
+          "valueScale": {
+            "mode": "manual",
+            "min": -10,
+            "max": 10
+          }
+        }
+      ],
+      "entries": [
+        {
+          "id": "below",
+          "layerId": "L",
+          "value": -100
+        },
+        {
+          "id": "middle",
+          "layerId": "L",
+          "value": 0
+        },
+        {
+          "id": "above",
+          "layerId": "L",
+          "value": 100
+        }
+      ],
+      "opacity": 0.5
+    },
+    "expected": {
+      "ranges": {
+        "L": {
+          "min": -10,
+          "max": 10
+        }
+      },
+      "alpha": {
+        "below": 0.06,
+        "middle": 0.205,
+        "above": 0.35
+      }
+    }
+  },
+  {
+    "id": "zero-opacity",
+    "input": {
+      "layers": [
+        {
+          "id": "L",
+          "valueScale": {
+            "mode": "manual",
+            "min": 100,
+            "max": 200
+          }
+        }
+      ],
+      "entries": [
+        {
+          "id": "a",
+          "layerId": "L",
+          "value": 0
+        },
+        {
+          "id": "b",
+          "layerId": "L",
+          "value": 1000000000000
+        }
+      ],
+      "opacity": 0
+    },
+    "expected": {
+      "ranges": {
+        "L": {
+          "min": 100,
+          "max": 200
+        }
+      },
+      "alpha": {
+        "a": 0,
+        "b": 0
+      }
+    }
+  },
+  {
+    "id": "independent-layer-ranges",
+    "input": {
+      "layers": [
+        {
+          "id": "A"
+        },
+        {
+          "id": "B"
+        }
+      ],
+      "entries": [
+        {
+          "id": "a",
+          "layerId": "A",
+          "value": -4
+        },
+        {
+          "id": "b",
+          "layerId": "A",
+          "value": 4
+        },
+        {
+          "id": "c",
+          "layerId": "B",
+          "value": 100
+        }
+      ]
+    },
+    "expected": {
+      "ranges": {
+        "A": {
+          "min": -4,
+          "max": 4
+        },
+        "B": {
+          "min": 100,
+          "max": 100
+        }
+      },
+      "alpha": {
+        "a": 0.12,
+        "b": 0.7,
+        "c": 0.7
+      }
+    }
+  },
+  {
+    "id": "manual-without-entries",
+    "input": {
+      "layers": [
+        {
+          "id": "L",
+          "valueScale": {
+            "mode": "manual",
+            "min": 0,
+            "max": 1
+          }
+        }
+      ],
+      "entries": []
+    },
+    "expected": {
+      "ranges": {
+        "L": {
+          "min": 0,
+          "max": 1
+        }
+      },
+      "alpha": {}
+    }
+  }
+]

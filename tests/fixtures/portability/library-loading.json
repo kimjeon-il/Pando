@@ -1,0 +1,50 @@
+{
+  "entityId": "state:VAT",
+  "webPath": "assets/data/territorial-entities/generated/v2/state-VAT.json.gz",
+  "appPath": "assets/territorial-library-v2/state-VAT.json.gz",
+  "sha256": "ae64d5f4f50112ac01dcc82495c29361e7b3ef799f42a6f6cbbc351faecffe19",
+  "expectation": "The pinned decompressed source is preserved exactly by a successful load; failed loads may be retried; repeated successful reads use the existing cache.",
+  "operations": [
+    {
+      "id": "lazy-index",
+      "op": "observe",
+      "fail": false,
+      "expected": {
+        "ok": true,
+        "readPerformed": false,
+        "value": null
+      }
+    },
+    {
+      "id": "failed-load",
+      "op": "load",
+      "fail": true,
+      "expected": {
+        "ok": false,
+        "readPerformed": true,
+        "value": null
+      }
+    },
+    {
+      "id": "retry-success",
+      "op": "load",
+      "fail": false,
+      "expected": {
+        "ok": true,
+        "readPerformed": true,
+        "value": "source"
+      }
+    },
+    {
+      "id": "cached-after-source-failure",
+      "op": "load",
+      "fail": true,
+      "expected": {
+        "ok": true,
+        "readPerformed": false,
+        "value": "source"
+      }
+    }
+  ],
+  "entityFile": "state-VAT.json.gz"
+}

@@ -1,0 +1,759 @@
+{
+  "schema": "web-app-structure-commands",
+  "version": 1,
+  "initial": {
+    "id": "A",
+    "name": "Alpha",
+    "entities": [
+      {
+        "id": "A",
+        "name": "Alpha",
+        "kind": "general",
+        "parent": "",
+        "locked": false
+      },
+      {
+        "id": "B",
+        "name": "Beta",
+        "kind": "general",
+        "parent": "",
+        "locked": false
+      },
+      {
+        "id": "S",
+        "name": "Child",
+        "kind": "general",
+        "parent": "A",
+        "locked": false
+      },
+      {
+        "id": "R",
+        "name": "Region",
+        "kind": "regional",
+        "parent": "",
+        "locked": false
+      }
+    ]
+  },
+  "operations": [
+    {
+      "id": "parent-cannot-delete",
+      "op": "canDelete",
+      "target": "A",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "A",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": false,
+        "redo": false
+      }
+    },
+    {
+      "id": "leaf-can-delete",
+      "op": "canDelete",
+      "target": "S",
+      "expected": {
+        "ok": true,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "A",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": false,
+        "redo": false
+      }
+    },
+    {
+      "id": "reparent",
+      "op": "parent",
+      "target": "S",
+      "parent": "B",
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "parent-noop",
+      "op": "parent",
+      "target": "S",
+      "parent": "B",
+      "expected": {
+        "ok": true,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "self-parent",
+      "op": "parent",
+      "target": "S",
+      "parent": "S",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "cycle-parent",
+      "op": "parent",
+      "target": "B",
+      "parent": "S",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "missing-parent",
+      "op": "parent",
+      "target": "S",
+      "parent": "missing",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "regional-parent-refused",
+      "op": "parent",
+      "target": "R",
+      "parent": "A",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "undo-reparent",
+      "op": "undo",
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "A",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": false,
+        "redo": true
+      }
+    },
+    {
+      "id": "redo-reparent",
+      "op": "redo",
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": false
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "lock-child",
+      "op": "lock",
+      "target": "S",
+      "value": true,
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "locked-parent-refused",
+      "op": "parent",
+      "target": "S",
+      "parent": "A",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "locked-delete-refused",
+      "op": "canDelete",
+      "target": "S",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "missing-delete-refused",
+      "op": "canDelete",
+      "target": "missing",
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "batch-missing-is-atomic",
+      "op": "lockBatch",
+      "targets": [
+        "A",
+        "missing",
+        "B"
+      ],
+      "value": true,
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "batch-lock-two",
+      "op": "lockBatch",
+      "targets": [
+        "A",
+        "B"
+      ],
+      "value": true,
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": true
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": true
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "batch-lock-noop",
+      "op": "lockBatch",
+      "targets": [
+        "A",
+        "B"
+      ],
+      "value": true,
+      "expected": {
+        "ok": true,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": true
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": true
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "batch-undo-one-unit",
+      "op": "undo",
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": true
+      }
+    },
+    {
+      "id": "batch-redo-one-unit",
+      "op": "redo",
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": true
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": true
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "batch-unlock-missing-is-atomic",
+      "op": "lockBatch",
+      "targets": [
+        "A",
+        "missing",
+        "B"
+      ],
+      "value": false,
+      "expected": {
+        "ok": false,
+        "changed": false,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": true
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": true
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    },
+    {
+      "id": "batch-unlock-two",
+      "op": "lockBatch",
+      "targets": [
+        "A",
+        "B"
+      ],
+      "value": false,
+      "expected": {
+        "ok": true,
+        "changed": true,
+        "entities": [
+          {
+            "id": "A",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "B",
+            "parent": "",
+            "locked": false
+          },
+          {
+            "id": "S",
+            "parent": "B",
+            "locked": true
+          },
+          {
+            "id": "R",
+            "parent": "",
+            "locked": false
+          }
+        ],
+        "undo": true,
+        "redo": false
+      }
+    }
+  ]
+}

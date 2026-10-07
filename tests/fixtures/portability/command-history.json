@@ -1,0 +1,17 @@
+{
+  "schema": "web-app-command-history",
+  "version": 1,
+  "initial": { "id": "A", "name": "Alpha" },
+  "operations": [
+    { "id": "initial", "op": "observe", "expected": { "name": "Alpha", "undo": false, "redo": false, "dirty": false } },
+    { "id": "rename", "op": "rename", "target": "A", "value": "Beta", "expected": { "name": "Beta", "undo": true, "redo": false, "dirty": true } },
+    { "id": "noop", "op": "rename", "target": "A", "value": "Beta", "expected": { "name": "Beta", "undo": true, "redo": false, "dirty": true } },
+    { "id": "save", "op": "markSaved", "expected": { "name": "Beta", "undo": true, "redo": false, "dirty": false } },
+    { "id": "rename-again", "op": "rename", "target": "A", "value": "Gamma", "expected": { "name": "Gamma", "undo": true, "redo": false, "dirty": true } },
+    { "id": "undo-to-save", "op": "undo", "expected": { "name": "Beta", "undo": true, "redo": true, "dirty": false } },
+    { "id": "undo-to-initial", "op": "undo", "expected": { "name": "Alpha", "undo": false, "redo": true, "dirty": true } },
+    { "id": "redo-to-save", "op": "redo", "expected": { "name": "Beta", "undo": true, "redo": true, "dirty": false } },
+    { "id": "redo-to-latest", "op": "redo", "expected": { "name": "Gamma", "undo": true, "redo": false, "dirty": true } },
+    { "id": "invalid-reference", "op": "rename", "target": "missing", "value": "Other", "expected": { "name": "Gamma", "undo": true, "redo": false, "dirty": true } }
+  ]
+}
