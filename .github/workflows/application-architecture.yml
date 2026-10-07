@@ -2,6 +2,15 @@ name: Application Architecture
 
 on:
   workflow_dispatch:
+    inputs:
+      browser_scope:
+        description: Browser validation scope; default preserves existing checks
+        required: false
+        type: choice
+        default: default
+        options:
+          - default
+          - map-rendering
   pull_request:
     paths:
       - 'assets/js/**'
@@ -64,7 +73,7 @@ permissions:
 
 jobs:
   changes:
-    name: Detect application scopes
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Detect application scopes
     runs-on: ubuntu-latest
     outputs:
       territorial-store: ${{ steps.scope.outputs.territorial_store }}
@@ -88,6 +97,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
         run: |
           territorial_store=false
           unit_suite=false
@@ -98,16 +108,27 @@ jobs:
           preview_handoff=false
           scene_staging=false
           visual_policy=false
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            territorial_store=true
-            unit_suite=true
-            python_contracts=true
-            data_contracts=true
-            terrain_rendering=true
-            boundary_continuity=true
-            preview_handoff=true
-            scene_staging=true
-            visual_policy=true
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            case "${BROWSER_SCOPE:-default}" in
+              default)
+                territorial_store=true
+                unit_suite=true
+                python_contracts=true
+                data_contracts=true
+                terrain_rendering=true
+                boundary_continuity=true
+                preview_handoff=true
+                scene_staging=true
+                visual_policy=true
+                ;;
+              map-rendering)
+                preview_handoff=true
+                ;;
+              *)
+                printf '%s\n' 'Unsupported browser_scope' >&2
+                exit 1
+                ;;
+            esac
           else
             while IFS= read -r file; do
               case "$file" in
@@ -172,34 +193,52 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
         run: |
           node --input-type=module <<'NODE'
           import { execFileSync } from 'node:child_process';
           import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
           import { posix } from 'node:path';
-          const base = process.env.BASE_SHA && !/^0+$/.test(process.env.BASE_SHA) ? process.env.BASE_SHA : 'origin/main';
-          const changed = new Set(execFileSync('git', ['diff', '--name-only', base, process.env.HEAD_SHA], { encoding: 'utf8' }).split('\n').filter(Boolean));
-          const specs = readdirSync('tests/browser').filter(name => name.endsWith('.spec.mjs')).map(name => `tests/browser/${name}`);
-          const fullyCovered = new Set(['edit-preview-handoff', 'territorial-boundary-continuity', 'gpu-scene-staging', 'visual-frame-sync'].map(name => `tests/browser/${name}.spec.mjs`));
-          const selected = new Set(specs.filter(file => changed.has(file) && !fullyCovered.has(file)));
-          const helpers = new Set([...changed].filter(file => file.startsWith('tests/helpers/') || file.startsWith('tests/browser/helpers/')));
-          function consumesChangedHelper(file, visited = new Set()) {
-            if (helpers.has(file)) return true;
-            if (visited.has(file) || !file.startsWith('tests/') || !existsSync(file)) return false;
-            visited.add(file);
-            return [...readFileSync(file, 'utf8').matchAll(/(?:from\s*|import\s*)['"](\.[^'"]+)['"]/g)]
-              .some(match => consumesChangedHelper(posix.normalize(posix.join(posix.dirname(file), match[1])), visited));
+          const manualScope = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch'
+            ? process.env.BROWSER_SCOPE || 'default'
+            : 'default';
+          if (!['default', 'map-rendering'].includes(manualScope)) {
+            throw new Error('Unsupported browser_scope');
           }
-          for (const spec of specs) if (!fullyCovered.has(spec) && consumesChangedHelper(spec)) selected.add(spec);
-          const infrastructure = ['tests/browser/server.mjs', 'playwright.config.js', '.github/workflows/application-architecture.yml', 'package.json', 'pnpm-lock.yaml', 'eslint.config.js'];
-          if (process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' || infrastructure.some(file => changed.has(file)) || [...changed].some(file => file.startsWith('tests/fixtures/'))) {
-            for (const name of ['boundary-cut-snapping', 'country-label-flags', 'generic-feature-independent-geometry', 'hydro-metadata-edit', 'storage-protection', 'ui-components', 'gis-interchange']) selected.add(`tests/browser/${name}.spec.mjs`);
+          if (manualScope === 'map-rendering') {
+            const selected = [
+              'tests/browser/country-map-substrate.spec.mjs',
+              'tests/browser/interaction-unification.spec.mjs',
+            ];
+            for (const spec of selected) {
+              if (!existsSync(spec)) throw new Error(`Missing focused browser spec: ${spec}`);
+            }
+            appendFileSync(process.env.GITHUB_OUTPUT, `specs=${JSON.stringify(selected)}\n`);
+          } else {
+            const base = process.env.BASE_SHA && !/^0+$/.test(process.env.BASE_SHA) ? process.env.BASE_SHA : 'origin/main';
+            const changed = new Set(execFileSync('git', ['diff', '--name-only', base, process.env.HEAD_SHA], { encoding: 'utf8' }).split('\n').filter(Boolean));
+            const specs = readdirSync('tests/browser').filter(name => name.endsWith('.spec.mjs')).map(name => `tests/browser/${name}`);
+            const fullyCovered = new Set(['edit-preview-handoff', 'territorial-boundary-continuity', 'gpu-scene-staging', 'visual-frame-sync'].map(name => `tests/browser/${name}.spec.mjs`));
+            const selected = new Set(specs.filter(file => changed.has(file) && !fullyCovered.has(file)));
+            const helpers = new Set([...changed].filter(file => file.startsWith('tests/helpers/') || file.startsWith('tests/browser/helpers/')));
+            function consumesChangedHelper(file, visited = new Set()) {
+              if (helpers.has(file)) return true;
+              if (visited.has(file) || !file.startsWith('tests/') || !existsSync(file)) return false;
+              visited.add(file);
+              return [...readFileSync(file, 'utf8').matchAll(/(?:from\s*|import\s*)['"](\.[^'"]+)['"]/g)]
+                .some(match => consumesChangedHelper(posix.normalize(posix.join(posix.dirname(file), match[1])), visited));
+            }
+            for (const spec of specs) if (!fullyCovered.has(spec) && consumesChangedHelper(spec)) selected.add(spec);
+            const infrastructure = ['tests/browser/server.mjs', 'playwright.config.js', '.github/workflows/application-architecture.yml', 'package.json', 'pnpm-lock.yaml', 'eslint.config.js'];
+            if (process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' || infrastructure.some(file => changed.has(file)) || [...changed].some(file => file.startsWith('tests/fixtures/'))) {
+              for (const name of ['boundary-cut-snapping', 'country-label-flags', 'generic-feature-independent-geometry', 'hydro-metadata-edit', 'storage-protection', 'ui-components', 'gis-interchange']) selected.add(`tests/browser/${name}.spec.mjs`);
+            }
+            appendFileSync(process.env.GITHUB_OUTPUT, `specs=${JSON.stringify([...selected].sort())}\n`);
           }
-          appendFileSync(process.env.GITHUB_OUTPUT, `specs=${JSON.stringify([...selected].sort())}\n`);
           NODE
 
   current-browser-contracts:
-    name: Current browser contract (${{ matrix.spec }})
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Current browser contract (${{ matrix.spec }})
     needs: changes
     if: needs.changes.outputs.current-browser-specs != '[]'
     runs-on: ubuntu-latest
@@ -236,7 +275,7 @@ jobs:
           if-no-files-found: error
 
   visual-policy:
-    name: Common map visual policy and frame consumers (M4-M6)
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Common map visual policy and frame consumers (M4-M6)
     needs: changes
     if: needs.changes.outputs.visual-policy == 'true'
     runs-on: ubuntu-latest
@@ -313,7 +352,7 @@ jobs:
           if-no-files-found: error
 
   scene-staging:
-    name: GPU stroke domain staging (M3)
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}GPU stroke domain staging (M3)
     needs: changes
     if: needs.changes.outputs.scene-staging == 'true'
     runs-on: ubuntu-latest
@@ -361,7 +400,7 @@ jobs:
           if-no-files-found: error
 
   preview-handoff:
-    name: Direct edit preview and end-to-end continuity (M2/M7, ${{ matrix.renderer }})
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Direct edit preview and end-to-end continuity (M2/M7, ${{ matrix.renderer }})
     needs: changes
     if: needs.changes.outputs.preview-handoff == 'true'
     runs-on: ubuntu-latest
@@ -432,7 +471,7 @@ jobs:
           if-no-files-found: error
 
   terrain-rendering-contract:
-    name: Terrain coverage and GPU upload regression
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Terrain coverage and GPU upload regression
     needs: changes
     if: needs.changes.outputs.terrain-rendering == 'true'
     runs-on: ubuntu-latest
@@ -485,7 +524,7 @@ jobs:
           if-no-files-found: ignore
 
   boundary-continuity:
-    name: Territorial boundary topology continuity
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Territorial boundary topology continuity
     needs: changes
     if: needs.changes.outputs.boundary-continuity == 'true'
     runs-on: ubuntu-latest
@@ -532,6 +571,8 @@ jobs:
           if-no-files-found: ignore
 
   command-contract:
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}command-contract
+    if: github.event_name != 'workflow_dispatch' || inputs.browser_scope != 'map-rendering'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -557,7 +598,7 @@ jobs:
         run: pnpm check:architecture
 
   territorial-store-contract:
-    name: Territorial storage contract
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Territorial storage contract
     needs: changes
     if: needs.changes.outputs.territorial-store == 'true'
     runs-on: ubuntu-latest
@@ -613,7 +654,7 @@ jobs:
         run: pnpm check:territorial-storage
 
   python-contracts:
-    name: Current Python contracts and terrain DEM
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Current Python contracts and terrain DEM
     needs: changes
     if: needs.changes.outputs.python-contracts == 'true'
     runs-on: ubuntu-latest
@@ -634,7 +675,7 @@ jobs:
         run: python -m unittest discover -s tests/python -p "test_*.py"
 
   data-contracts:
-    name: Validation entrypoints and current generated assets
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Validation entrypoints and current generated assets
     needs: changes
     if: needs.changes.outputs.data-contracts == 'true'
     runs-on: ubuntu-latest
@@ -681,7 +722,7 @@ jobs:
           tests/unit/territorial-source-provenance.test.mjs
 
   full-unit-suite:
-    name: Full unit suite
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Full unit suite
     needs: changes
     if: needs.changes.outputs.unit-suite == 'true'
     runs-on: ubuntu-latest

@@ -1,8 +1,45 @@
 import { expect, test } from '@playwright/test';
+import { logMapDiagnostic, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
 
 test.use({ viewport: { width: 1440, height: 900 }, actionTimeout: 8_000, launchOptions: {
   args: ['--disable-gpu', '--enable-unsafe-swiftshader'],
 } });
+
+const pixelSamples = new WeakMap();
+
+async function colorDiagnostics(page, errors = []) {
+  const data = await page.evaluate(() => {
+    const snapshot = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
+    const pick = (value, keys) => Object.fromEntries(keys.map(key => [key, value?.[key]]));
+    const country = window.PANDOLAB_TERRITORIAL.get('TUR');
+    const trigger = document.querySelector('#entityColorTrigger');
+    const picker = document.querySelector('[data-color-picker="entity"]');
+    const canvas = document.querySelector('.gpu-map-canvas');
+    return {
+      at: performance.now(),
+      model: { id: country?.id, properties: pick(country?.properties, ['style', 'locked', 'entityKind', 'parentId']) },
+      control: { value: document.querySelector('#entityColorInput')?.value,
+        label: document.querySelector('#entityColorValue')?.textContent, disabled: trigger?.disabled,
+        expanded: trigger?.getAttribute('aria-expanded'), colorValue: picker?.dataset.colorValue,
+        colorIsDefault: picker?.dataset.colorIsDefault,
+        redPressed: document.querySelector('#entityColorPopover [data-color-value="#ef4444"]')?.getAttribute('aria-pressed') },
+      status: { action: document.querySelector('#statusAction')?.textContent,
+        selection: document.querySelector('#statusSelection')?.textContent },
+      gpu: pick(snapshot.gpu, ['renderer', 'projectGeneration', 'projectRenderBlocked', 'canvasStyleRevision',
+        'canvasDisplayedStyleRevision', 'canvasWorkerBusy', 'canvasWorkerHasPendingFrame', 'canvasWorkerStaleFrameCount',
+        'canvasWorkerMessagesByType', 'canvasWorkerViewMessageCount', 'canvasWorkerStateMessageCount', 'requestedRevision',
+        'displayedRevision', 'committedGeometryRevision', 'displayedGeometryRevision', 'renderSceneRevision', 'paletteDirty', 'countryEmphasis']),
+      rendering: pick(snapshot.rendering, ['invalidations', 'lastReason', 'lastReasons', 'pendingMask', 'frameQueued',
+        'lastPreparedVisualFrameId', 'lastCommittedVisualFrameId', 'visualFrameRejectedCount']),
+      recentFrames: snapshot.rendering.recentFrames?.slice(-4), mapHost: snapshot.mapHost,
+      canvas: canvas && { width: canvas.width, height: canvas.height, rect: canvas.getBoundingClientRect().toJSON(),
+        frameId: canvas.getAttribute('data-visual-frame-id'), viewRevision: canvas.getAttribute('data-view-revision'),
+        projectionRevision: canvas.getAttribute('data-projection-revision') },
+      unavailable: ['actual worker style fills payload', 'incoming rejected Canvas frame identity/reason'],
+    };
+  });
+  return { ...data, lastPixelSample: pixelSamples.get(page) || null, errors: errors.slice(-8) };
+}
 
 async function capture(page, clip = null) {
   const session = await page.context().newCDPSession(page);
@@ -23,13 +60,15 @@ async function pixel(page) {
     png = await capture(page, { x: Math.round(box.x + point[0]),
       y: Math.round(box.y + point[1]), width: 1, height: 1 });
   } finally { await mask.evaluate(node => node.remove()); }
-  return page.evaluate(async base64 => {
+  const value = await page.evaluate(async base64 => {
     const image = new Image(); image.src = `data:image/png;base64,${base64}`;
     await image.decode();
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
     const context = canvas.getContext('2d'); context.drawImage(image, 0, 0);
     return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
   }, png.toString('base64'));
+  pixelSamples.set(page, { sampledAt: Date.now(), coordinate: [32, 39], point, mapRect: box, value });
+  return value;
 }
 
 async function openMap(page, renderer) {
@@ -68,10 +107,13 @@ for (const renderer of ['webgl2', 'canvas', 'webgl1']) {
     await expect(page.locator('#entityColorInput')).toHaveValue('#c7e9b4');
     await expect.poll(() => pixel(page), { timeout: renderer === 'canvas' ? 30_000 : 8_000 }).toEqual([199, 233, 180]);
     expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('TUR').properties.style)).toEqual({});
-    await page.locator('#entityColorTrigger').evaluate(input => input.click());
-    await page.locator('#entityColorPopover [data-color-value="#ef4444"]').evaluate(input => input.click());
     const mapPixel = () => pixel(page);
-    await expect.poll(mapPixel).toEqual([239, 68, 68]);
+    await withMapDiagnostics(`country-red-color:${renderer}`, () => colorDiagnostics(page, errors), async () => {
+      await page.locator('#entityColorTrigger').evaluate(input => input.click());
+      await page.locator('#entityColorPopover [data-color-value="#ef4444"]').evaluate(input => input.click());
+      await logMapDiagnostic(`country-red-color:${renderer}`, 'after-color-click', () => colorDiagnostics(page, errors));
+      await expect.poll(mapPixel).toEqual([239, 68, 68]);
+    });
     if (renderer === 'webgl2') {
       await page.locator('#mapDisplayBtn').click();
       await page.locator('[data-map-display-row="general"]').click();
