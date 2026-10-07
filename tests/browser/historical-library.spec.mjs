@@ -53,7 +53,11 @@ test('catalog search loads only the index and repeated selection loads one uncha
   expect(requests.filter(url=>url.includes('/territorial-entities/') && url.includes('.json.gz')).map(url=>new URL(url).pathname)).toEqual(['/assets/data/territorial-entities/generated/v2/state-KOR.json.gz']);
   await page.locator('#territorialLibraryReferenceDateInput').fill('1970');
   await page.locator('#territorialLibrarySearchInput').fill('독일');
-  await expect(page.locator('.territorial-library-lineage-title')).toContainText('독일');
+  await expect(page.locator('#territorialLibraryResults > h3')).toHaveCount(0);
+  await expect(page.locator('[data-library-entity-id="state:DEU"]')).toBeVisible();
+  await expect(page.locator('[data-library-entity-id="state:DEU"] strong')).toHaveText('독일');
+  await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]')).toBeVisible();
+  await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"] strong')).toHaveText('독일 민주공화국');
   await page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]').click();
   await expect(page.locator('#territorialLibraryPreview')).toContainText('국토 자료가 없습니다');
   await expect(page.locator('#territorialLibraryAddBtn')).toBeDisabled();

@@ -66,6 +66,31 @@ function fakeElement(ownerDocument) {
   };
 }
 
+test('library results render only entity rows in group order for single and multiple entity lineages', () => {
+  const document = {
+    createElement: tagName => ({ ...fakeElement(document), tagName: tagName.toUpperCase() }),
+    createDocumentFragment: () => fakeElement(document),
+  };
+  const elements = Object.fromEntries(['search', 'referenceDate', 'results'].map(name => [name, fakeElement(document)]));
+  const germany = catalogEntity({ entityId: 'state:DEU', entityKind: 'general', names: { ko: '독일' }, geometryVersions: [{ versionId: 'deu:v1', geometry }] });
+  const eastGermany = catalogEntity({ entityId: 'state:deutsche-demokratische-republik', entityKind: 'general', names: { ko: '독일 민주공화국' },
+    lifetime: { validFrom: '1949-10-07', validTo: '1990-10-02' }, geometryVersions: [{ versionId: 'gdr:v1', geometry }] });
+  const korea = catalogEntity({ entityId: 'state:KOR', entityKind: 'general', names: { ko: '대한민국' }, geometryVersions: [{ versionId: 'kor:v1', geometry }] });
+  const groups = [
+    { lineageId: 'germany', names: { ko: '독일' }, entities: [germany, eastGermany] },
+    { lineageId: 'korea', names: { ko: '한국' }, entities: [korea] },
+  ];
+  const controller = createTerritorialLibraryController({ document, elements, service: { search: () => groups } });
+
+  controller.renderResults();
+
+  const rows = elements.results.children[0].children;
+  assert.deepEqual(rows.map(row => row.tagName), ['BUTTON', 'BUTTON', 'BUTTON'], 'no lineage headings or other extra rows');
+  assert.deepEqual(rows.map(row => row.dataset.libraryEntityId), ['state:DEU', 'state:deutsche-demokratische-republik', 'state:KOR']);
+  assert.deepEqual(rows.map(row => row.children[0].textContent), ['독일', '독일 민주공화국', '대한민국']);
+  assert.deepEqual(rows.map(row => row.tabIndex), [0, -1, -1]);
+});
+
 test('missing ownership remains in the modal, blocks missing country, resets parent and supports root mode', async () => {
   const document = { createElement: () => fakeElement(document), createDocumentFragment: () => fakeElement(document) };
   const elements = Object.fromEntries(['open', 'modal', 'card', 'close', 'backdrop', 'search', 'clearSearch', 'referenceDate',
