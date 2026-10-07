@@ -160,3 +160,24 @@ test('view-only reuse requires a successful frame with unchanged fill ownership'
   assert.equal(selectionFrameOwnership({ gpuFrameResult: { interactionResult: { fillOwner: 'gpu' } }, renderer: 'webgl', lastFillOwner: 'svg' }).reuseView, false);
   assert.equal(selectionFrameOwnership({ gpuFrameResult: { succeeded: true }, renderer: 'webgl', lastFillOwner: 'svg' }).reuseView, true);
 });
+
+test('Canvas scene ownership replaces stale SVG ownership even without an interaction result', () => {
+  for (const renderer of ['canvas-worker', 'canvas2d']) {
+    for (const gpuFrameResult of [null, { deferred: true }, { renderer }, { interactionResult: { fillOwner: 'svg' } }]) {
+      const ownership = selectionFrameOwnership({ renderer, gpuFrameResult, lastFillOwner: 'svg' });
+      assert.equal(ownership.fillOwner, 'canvas');
+      assert.equal(ownership.reuseView, false);
+      assert.equal(selectionFrameOwnership({ renderer, gpuFrameResult, lastFillOwner: 'canvas' }).reuseView, true);
+    }
+  }
+});
+
+test('recovery and stable GPU frames keep their current fill owner without inventing coverage', () => {
+  assert.equal(selectionFrameOwnership({ renderer: 'webgl-recovering', gpuFrameResult: null, lastFillOwner: 'svg' }).fillOwner, 'svg');
+  for (const renderer of ['webgl1', 'webgl2']) {
+    const stable = selectionFrameOwnership({ renderer, gpuFrameResult: { succeeded: true }, lastFillOwner: 'gpu' });
+    assert.equal(stable.fillOwner, 'gpu');
+    assert.equal(stable.reuseView, true);
+    assert.equal(selectionFrameOwnership({ renderer, gpuFrameResult: { selection: { contextLost: true } }, lastFillOwner: 'gpu' }).reuseView, false);
+  }
+});

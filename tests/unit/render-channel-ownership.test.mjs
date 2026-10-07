@@ -6,11 +6,11 @@ import * as ownership from '../../assets/js/modules/render-channel-ownership.js'
 import { createGpuScene } from '../../assets/js/modules/app-gpu-scene.js';
 import { createInteractionPackets } from '../../assets/js/modules/app-interaction-packets.js';
 
-test('every runtime scene renderer owns visual map geometry', () => {
-  for (const renderer of ['webgl2', 'webgl1', 'canvas-worker', 'canvas2d']) {
+test('scene ownership stays reserved through recovery without claiming startup ownership', () => {
+  for (const renderer of ['webgl2', 'webgl1', 'webgl-recovering', 'canvas-worker', 'canvas2d']) {
     assert.equal(rendererOwnsSceneGeometry(renderer), true);
   }
-  for (const renderer of ['', null, 'svg']) assert.equal(rendererOwnsSceneGeometry(renderer), false);
+  for (const renderer of ['', null, 'svg', 'pending', 'disposed']) assert.equal(rendererOwnsSceneGeometry(renderer), false);
 });
 
 test('scene proxy clears stale inline paint while preserving the SVG node as a hit target', () => {
@@ -54,9 +54,9 @@ test('interaction ownership hides only completed channels and restores CSS after
   assert.equal(classes.size, 0);
 });
 
-test('presentation-only updates retain completed GPU channels; actual failure restores SVG', () => {
+for (const channel of ['preview', 'draft']) test(`${channel} presentation-only updates retain completed GPU channels; actual failure restores SVG`, () => {
   const values = new Map(), classes = new Set();
-  const attributes = new Map([['data-gpu-interaction-fill-keys', 'preview:fill'], ['data-gpu-interaction-stroke-keys', 'preview:stroke']]);
+  const attributes = new Map([['data-gpu-interaction-fill-keys', `${channel}:fill`], ['data-gpu-interaction-stroke-keys', `${channel}:stroke`]]);
   const node = {
     style: { setProperty: (key, value) => values.set(key, value), removeProperty: key => values.delete(key) },
     classList: { toggle: (key, enabled) => enabled ? classes.add(key) : classes.delete(key), remove: key => classes.delete(key) },
@@ -66,14 +66,15 @@ test('presentation-only updates retain completed GPU channels; actual failure re
   const runtime = { renderer: 'webgl2' };
   scene.connect({ rendering: { gpuMapRenderer: { getRuntimeState: () => runtime } },
     mapHostViewB: { interactionSvg: { selectAll: () => ({ each: fn => fn.call(node) }) } } });
-  scene.applyGpuInteractionCoverage({ interactionResult: { previewResults: [{ renderedKeys: ['preview:fill', 'preview:stroke'], missingKeys: [] }] } });
+  scene.applyGpuInteractionCoverage({ interactionResult: { [`${channel}Results`]: [{ renderedKeys: [`${channel}:fill`, `${channel}:stroke`], missingKeys: [] }] } });
   scene.applyGpuInteractionCoverage(null);
   assert.equal(values.get('fill'), 'none');
   assert.equal(values.get('stroke'), 'none');
-  scene.applyGpuInteractionCoverage({ interactionResult: { previewResults: [{ renderedKeys: ['preview:stroke'], missingKeys: ['preview:fill'] }] } });
+  scene.applyGpuInteractionCoverage({ interactionResult: { [`${channel}Results`]: [{ renderedKeys: [`${channel}:stroke`], missingKeys: [`${channel}:fill`] }] } });
   assert.equal(values.has('fill'), false);
   assert.equal(values.get('stroke'), 'none');
   runtime.renderer = 'webgl-recovering';
+  assert.equal(rendererOwnsSceneGeometry(runtime.renderer), true, 'scene ownership stays reserved independently of direct controls');
   scene.applyGpuInteractionCoverage(null);
   assert.equal(values.has('fill'), false);
   assert.equal(values.has('stroke'), false);

@@ -8,7 +8,6 @@ test('global file menus stay above the object editor and keep their existing foc
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('BIH'));
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#editorObjectHeader')).toBeVisible();
   const menu = page.locator('#fileMenu');
   await expect(page.locator('.overlay-root > #fileMenu')).toHaveCount(1);

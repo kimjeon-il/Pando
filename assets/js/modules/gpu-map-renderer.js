@@ -3650,6 +3650,9 @@ export function createGpuMapRenderer(deps) {
       ctx2d.globalAlpha = 1;
       displayedRenderRevision = currentRenderRevision;
       markPreviewFramePresented();
+      const pendingIds = geometryRevisionTracker.pendingIds();
+      if (pendingIds.length) completeGeometryDisplay(pendingIds,
+        geometryRevisionTracker.committedRevision(), { renderFrame: false });
     }
 
     function canvasInteractionPolygons() {
@@ -3835,7 +3838,7 @@ export function createGpuMapRenderer(deps) {
 
     function renderFrame(visualFrame, { interactionOnly = false } = {}) {
       if (disposed) return null;
-      if (canvasWorkerNeedsRestart && !projectRenderBlocked) activateCanvasFallback(fallbackReason);
+      if (canvasWorkerNeedsRestart && !projectRenderBlocked) activateCanvasFallback(fallbackReason, { scheduleFrame: false });
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('renderFrame() requires a MapVisualFrame.');
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
       lastVisualFrame = visualFrame;
@@ -3879,12 +3882,9 @@ export function createGpuMapRenderer(deps) {
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
       setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
       if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
-      renderCanvasFallback();
-      completeGeometryDisplay(
-        geometryRevisionTracker.pendingIds(),
-        geometryRevisionTracker.committedRevision(),
-        { renderFrame: false },
-      );
+      // The first fallback paint must share the domain's presentation boundary
+      // so it also retires recovery SVG emphasis, even without pending geometry.
+      if (lastVisualFrame) invalidateGpuFrame('canvas-fallback-ready');
     }
 
     function receiveCanvasWorkerMessage(event) {
@@ -3952,7 +3952,7 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
-    function activateCanvasFallback(reason) {
+    function activateCanvasFallback(reason, { scheduleFrame = true } = {}) {
       if (disposed) return;
       canvasWorkerNeedsRestart = false;
       canvasSentGeometry.clear();
@@ -4008,12 +4008,7 @@ export function createGpuMapRenderer(deps) {
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
       setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
       if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
-      renderCanvasFallback();
-      completeGeometryDisplay(
-        geometryRevisionTracker.pendingIds(),
-        geometryRevisionTracker.committedRevision(),
-        { renderFrame: false },
-      );
+      if (lastVisualFrame && scheduleFrame) invalidateGpuFrame('canvas-fallback-ready');
       window.__PANDOLAB_GPU_METRICS__ = getStats();
     }
 

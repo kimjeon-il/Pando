@@ -47,6 +47,24 @@ on:
       - 'pnpm-lock.yaml'
       - '.github/workflows/ui-architecture.yml'
 
+# Only this trusted PR shares a group; every other run and attempt stays independent.
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.event_name == 'pull_request'
+    && github.run_attempt == 1
+    && github.repository == 'kimjeon-il/Pando'
+    && github.event.pull_request.number == 76
+    && github.event.pull_request.head.repo.full_name == 'kimjeon-il/Pando'
+    && github.event.pull_request.head.ref == 'codex/country-editor-hover-relations'
+    && 'pr-76-country-editor-hover-relations' || format('run-{0}-attempt-{1}', github.run_id, github.run_attempt) }}
+  cancel-in-progress: >-
+    ${{ github.event_name == 'pull_request'
+    && github.run_attempt == 1
+    && github.repository == 'kimjeon-il/Pando'
+    && github.event.pull_request.number == 76
+    && github.event.pull_request.head.repo.full_name == 'kimjeon-il/Pando'
+    && github.event.pull_request.head.ref == 'codex/country-editor-hover-relations' }}
+
 permissions:
   contents: read
 

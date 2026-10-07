@@ -148,7 +148,6 @@ test('annex territory exposes river boundaries as a retained component-selection
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1' });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
@@ -233,7 +232,6 @@ test('annex role cards show actual flags and retain every donor country name', a
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1' });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#modeTaskObjects [aria-label="넘겨받는 객체"] strong')).toHaveText('독일');
@@ -261,7 +259,6 @@ test('annex archives a component and starts the next method without losing the c
   await page.setViewportSize(layouts[0].viewport);
   const errors = await openApp(page, { url: '/?debug=1' });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexEntityBtn').click();
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');

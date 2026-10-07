@@ -8,7 +8,6 @@ test('Ctrl deselection restores the remaining country presenter and toolbar', as
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#entityProperties')).toBeVisible();
   const map = await page.locator('#map').boundingBox();
   const points = await page.evaluate(() => [[2, 47], [13, 51]].map(coordinate => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate)));
@@ -20,12 +19,12 @@ test('Ctrl deselection restores the remaining country presenter and toolbar', as
   try {
     await page.mouse.click(map.x + points[0][0], map.y + points[0][1]);
     await expect(page.locator('#multiProperties')).toBeVisible();
-    await expect(page.locator('#selectionToolbar')).toBeHidden();
+    await expect(page.locator('#flagMenuBtn')).toBeHidden();
     await page.mouse.click(map.x + points[0][0], map.y + points[0][1]);
     await expect(page.locator('#entityProperties')).toBeVisible();
     await expect(page.locator('#propertyTitle')).toContainText('독일');
-    // The card stays hidden while the editor is open, but must track its single object.
-    await expect(page.locator('#selectionToolbar')).toHaveAttribute('data-object-key', 'territorial:entity:DEU');
+    await expect(page.locator('#flagMenuBtn')).toBeVisible();
+    await expect(page.locator('#entityNameInput')).toHaveValue('독일');
     const viewAfter = await page.evaluate(() => {
       const view = window.__PANDOLAB_VIEW_STATE__;
       return { scale: view.scale, rotation: view.rotation, translate: view.translate, center: view.projectionCenter };
@@ -34,7 +33,7 @@ test('Ctrl deselection restores the remaining country presenter and toolbar', as
     await page.mouse.click(map.x + points[1][0], map.y + points[1][1]);
     await expect(page.locator('#entityProperties')).toBeHidden();
     await expect(page.locator('#multiProperties')).toBeHidden();
-    await expect(page.locator('#selectionToolbar')).toBeHidden();
+    await expect(page.locator('#flagMenuBtn')).toBeHidden();
   } finally {
     await page.keyboard.up('Control');
   }
@@ -81,7 +80,6 @@ test('reselecting a country before idle area calculation finishes still displays
     window.PANDOLAB_TERRITORIAL.select('DEU');
     window.PANDOLAB_TERRITORIAL.select('DEU');
   });
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click({ timeout: 8_000 });
   await expect(page.locator('#entityAreaValue')).toHaveText('면적 계산 중…');
   expect(await page.evaluate(() => window.__countryAreaCallbacks.length)).toBe(1);
   await page.evaluate(() => window.__countryAreaCallbacks.shift()());

@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
+import { withNativeActionDiagnostics } from './helpers/native-action-diagnostics.mjs';
+
+const hydroSearchDiagnostic = {
+  selector: '#layerSearchResults .layer-search-result',
+  rowSelector: '.layer-search-result[data-object-key="hydro:river:00000000-0000-4000-8000-000000000005"]',
+};
 
 // Tracing delayed a positive screenshot pixel result beyond the CI poll budget.
 // Preserve the real paint oracle, failure screenshots, and explicit paint proof.
@@ -22,7 +28,9 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 30_000 });
   await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('메타데이터 검증 강');
-  await page.locator('#layerSearchResults .layer-search-result').click();
+  await withNativeActionDiagnostics(page, testInfo, { ...hydroSearchDiagnostic, label: 'hydro-search-selection' }, async () => {
+    await page.locator('#layerSearchResults .layer-search-result').click();
+  });
   await expect(page.locator('#hydroProperties')).toBeVisible();
   await page.locator('#mapDisplayBtn').click();
   await page.locator('#mapProjectionMenuTrigger').click();
@@ -65,7 +73,9 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   await expect(page.locator('#hydroProperties')).toBeHidden();
   await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('메타데이터 검증 강');
-  await page.locator('#layerSearchResults .layer-search-result').click();
+  await withNativeActionDiagnostics(page, testInfo, { ...hydroSearchDiagnostic, label: 'hydro-search-reselection' }, async () => {
+    await page.locator('#layerSearchResults .layer-search-result').click();
+  });
   await expect(page.locator('#hydroColorInput')).toHaveValue(originalColor);
   expect(await page.locator('path.hydro-edit-shape').evaluate(node => node.__data__)).toEqual(original);
   await expect.poll(() => colorPixels(originalColor)).toBeGreaterThan(0);
