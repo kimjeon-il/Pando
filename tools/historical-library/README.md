@@ -3,13 +3,21 @@
 `east-germany-1989.recipe.json` is the pinned, declarative build recipe for the
 PandoLab historical-country pilot `state:deutsche-demokratische-republik`.
 
-The normal build is offline and deterministic:
+The normal build uses offline source data. Exact regeneration of the stored
+coordinates is verified on Windows with the pinned Shapely/pyproj versions:
 
 ```powershell
 python -m pip install -r tools/requirements-historical-library.txt
 pnpm build:territorial-geometry
 pnpm check:territorial-library
 ```
+
+CI runs `build-territorial-geometry.py --check` in the required Windows
+`historical-geometry` job. The Linux `data-contracts` job depends on that check
+and retains preview regeneration, catalog chunk regeneration and catalog
+validation. Coordinate projection can differ by one floating-point step between
+Windows and Linux, crossing the existing 12-decimal rounding boundary. The
+generator, stored coordinates and exact comparison remain unchanged.
 
 The checked-in files below are the only geometry inputs used by that build:
 
