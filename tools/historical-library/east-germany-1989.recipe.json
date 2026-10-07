@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "state:deutsche-demokratische-republik:1989-04-25-r1",
   "referenceDate": "1989-04-25",
-  "output": "assets/data/territorial-entities/source/state-deutsche-demokratische-republik.json",
+  "output": "assets/data/territorial-entities/source/countries/germany.json",
   "entityId": "state:deutsche-demokratische-republik",
   "sources": {
     "naturalEarthAdmin1": {

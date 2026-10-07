@@ -110,7 +110,7 @@ class RefactorBoundaryTests(unittest.TestCase):
         self.assertIn("createTerritorialLibraryService({", APP)
         self.assertIn("await service.load()", HISTORICAL_LIBRARY_CONTROLLER)
         self.assertIn("instantiateDescriptors", HISTORICAL_LIBRARY_SERVICE)
-        self.assertNotIn("pandolab:historical-library-ready", APP)
+        self.assertNotIn("pandolab:territorial-library-ready", APP)
 
     def test_gis_import_staging_validation_and_materialization_are_behind_service(self):
         workflow = read_module(ROOT,'gis-workflow-controller.js')

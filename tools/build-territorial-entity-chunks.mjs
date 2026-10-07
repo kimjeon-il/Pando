@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
-import {readTerritorialSources,entityFileName,territorialDataRoot} from './territorial-entity-sources.mjs';
+import {readTerritorialSources,readTerritorialLineages,entityFileName,territorialDataRoot} from './territorial-entity-sources.mjs';
 import {parseTemporal} from '../assets/js/modules/temporal.js';
-const output=path.join(territorialDataRoot,'generated/v1');
+const output=path.join(territorialDataRoot,'generated/v2');
 const check=process.argv.includes('--check');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 function bounds(geometry){
@@ -15,7 +15,7 @@ function bounds(geometry){
 const entities=readTerritorialSources();
 const expectedFiles=new Set(['index.json']);
 fs.mkdirSync(output,{recursive:true});
-const index={schemaVersion:1,entities:entities.map(entity=>{
+const index={schemaVersion:2,lineages:readTerritorialLineages().map(({entities,...lineage})=>({...lineage,entityRefs:entities.map(entity=>entity.entityId)})),entities:entities.map(entity=>{
  const bytes=Buffer.from(`${JSON.stringify(entity,null,2)}\n`);
  const file=`${entityFileName(entity.entityId)}.gz`;expectedFiles.add(file);
  const destination=path.join(output,file);

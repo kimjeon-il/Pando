@@ -4,7 +4,7 @@ import {
   normalizeTemporalInterval,
 } from './temporal.js';
 
-export const TERRITORIAL_SCHEMA_VERSION = 5;
+export const TERRITORIAL_SCHEMA_VERSION = 6;
 
 export const TERRITORIAL_ENTITY_KINDS = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional' });
 
@@ -19,7 +19,7 @@ const text = value => String(value ?? '').trim();
 const clone = value => structuredClone(value);
 
 export const TERRITORIAL_IDENTITY_FIELDS = Object.freeze(['schemaVersion', 'entityKind', 'name',
-  'style', 'locked', 'notes', 'metadata', 'sourceFolderId', 'sourceLibraryId', 'sourceGeometryVersion']);
+  'style', 'locked', 'notes', 'metadata', 'sourceFolderId', 'sourceEntityId', 'sourceGeometryVersion']);
 
 /** Persisted identity. Geometry, lifetime and administrative relationships live in records. */
 export function normalizeTerritorialIdentity(feature) {
@@ -31,7 +31,7 @@ export function normalizeTerritorialIdentity(feature) {
   if (!p || typeof p !== 'object' || Array.isArray(p) || p.schemaVersion !== TERRITORIAL_SCHEMA_VERSION
     || !ENTITY_KINDS.has(p.entityKind) || Object.keys(p).some(key => !TERRITORIAL_IDENTITY_FIELDS.includes(key)))
     fail('영역 정체성 필드 또는 schemaVersion이 올바르지 않습니다.');
-  for (const key of ['name', 'notes', 'sourceFolderId', 'sourceLibraryId', 'sourceGeometryVersion']) {
+  for (const key of ['name', 'notes', 'sourceFolderId', 'sourceEntityId', 'sourceGeometryVersion']) {
     if (Object.hasOwn(p, key) && typeof p[key] !== 'string') fail(`${key} 문자열이 필요합니다.`);
   }
   if (Object.hasOwn(p, 'locked') && typeof p.locked !== 'boolean') fail('locked 불리언이 필요합니다.');
@@ -42,7 +42,7 @@ export function normalizeTerritorialIdentity(feature) {
     schemaVersion: TERRITORIAL_SCHEMA_VERSION, entityKind: p.entityKind,
     name: text(p.name), style: clone(p.style || {}), locked: p.locked === true,
     notes: text(p.notes), metadata: clone(p.metadata || {}), sourceFolderId: text(p.sourceFolderId),
-    sourceLibraryId: text(p.sourceLibraryId), sourceGeometryVersion: text(p.sourceGeometryVersion),
+    sourceEntityId: text(p.sourceEntityId), sourceGeometryVersion: text(p.sourceGeometryVersion),
   } };
 }
 
@@ -97,7 +97,7 @@ function normalizedProperties(feature, type) {
     notes: text(source.notes),
     metadata: source.metadata && typeof source.metadata === 'object' ? clone(source.metadata) : {},
     sourceFolderId: text(source.sourceFolderId),
-    sourceLibraryId: text(source.sourceLibraryId),
+    sourceEntityId: text(source.sourceEntityId),
     sourceGeometryVersion: text(source.sourceGeometryVersion),
   };
   if (!color) delete properties.style.color;
@@ -159,7 +159,7 @@ export function createTerritorialFeature({
   notes = '',
   metadata = {},
   sourceFolderId = '',
-  sourceLibraryId = '',
+  sourceEntityId = '',
   sourceGeometryVersion = '',
 }) {
   const resolvedCoverageMode = coverageMode || (entityKind === 'general' && text(parentId) ? 'partition' : 'explicit');
@@ -179,7 +179,7 @@ export function createTerritorialFeature({
       notes,
       metadata,
       sourceFolderId,
-      sourceLibraryId,
+      sourceEntityId,
       sourceGeometryVersion,
     },
     geometry,

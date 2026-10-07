@@ -1,0 +1,566 @@
+{
+  "version": "0.36.0",
+  "source": "territorial-entities/generated/current-world.geojson",
+  "sourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
+  "defaultClassification": {
+    "countries": {
+      "IDN": "9g6r:voqbzb",
+      "MYS": "16wq:1qhyfbc",
+      "CHL": "8s25:1vm0sbz",
+      "BOL": "rak:r7m3ym",
+      "PER": "176n:4ekp2d",
+      "ARG": "2ds2:vjcmy7",
+      "CYP": "53d:jt5nyt",
+      "IND": "3loi:4zl7un",
+      "CHN": "6u58:16s3qbj",
+      "ISR": "7x3:2foanb",
+      "PSX": "3yj:1sm15x0",
+      "LBN": "597:1qgfi0c",
+      "ETH": "hlx:60bdoi",
+      "SDS": "ipp:vyfsiw",
+      "SOM": "azl:8cjx4s",
+      "KEN": "ef6:j2ddpo",
+      "MWI": "e8u:i9t0rr",
+      "TZA": "tyt:1tl2t4n",
+      "SYR": "9yc:1yr0vls",
+      "SOL": "5b0:1n19fsj",
+      "FRA": "24y5:y81n84",
+      "SUR": "ceq:iobdxv",
+      "GUY": "ivh:1gs0ica",
+      "KOR": "1hyc:3go4s",
+      "PRK": "vd7:1n0vzo8",
+      "MAR": "hha:1tnqn35",
+      "SAH": "51m:1r9en7d",
+      "CRI": "e76:280jk4",
+      "NIC": "gi9:t6e02i",
+      "COG": "m77:1k5n7yt",
+      "COD": "1bvz:emp5mr",
+      "BTN": "5iy:8vaqa2",
+      "UKR": "18qo:1g121uz",
+      "BLR": "jqa:tpn0b",
+      "NAM": "ktr:1wm497u",
+      "ZAF": "12ur:1ark733",
+      "OMN": "hf5:p4slln",
+      "UZB": "s1d:e86zrc",
+      "KAZ": "1yup:vbl96x",
+      "TJK": "l6k:1ofxk3f",
+      "LTU": "9h2:jxzbwr",
+      "BRA": "5hrd:ljjqbf",
+      "URY": "aqc:rfnle7",
+      "MNG": "ppp:17w2ifn",
+      "RUS": "hkvy:1294wb8",
+      "CZE": "fit:1fb933o",
+      "DEU": "1dwx:5gkrwz",
+      "EST": "hln:1efdoln",
+      "LVA": "95j:1fdiuqa",
+      "NOR": "7ayi:b09u",
+      "SWE": "26ka:mzqmlb",
+      "FIN": "1ibg:1rqyej8",
+      "VNM": "214l:1r6easn",
+      "KHM": "l9z:grd3jj",
+      "LUX": "36l:1rrqj2f",
+      "ARE": "dgs:xztwre",
+      "BEL": "afg:e93akt",
+      "GEO": "8yx:162lia0",
+      "MKD": "64p:1uinyvd",
+      "ALB": "9c0:1pafq1n",
+      "AZE": "g45:1pa1vvp",
+      "KOS": "4ky:1lu2kn2",
+      "TUR": "1p73:6demg0",
+      "ESP": "1dxh:xtjizr",
+      "LAO": "uyd:1h9bvjf",
+      "KGZ": "kam:190e4g5",
+      "ARM": "7bs:1wobu9q",
+      "DNK": "1000:1phe1co",
+      "LBY": "b3g:eyw1w",
+      "TUN": "bm7:luyyvj",
+      "ROU": "k61:1bjhjd8",
+      "HUN": "e9t:j797ou",
+      "SVK": "9mr:fq3kyo",
+      "POL": "me5:eonm1a",
+      "IRL": "14j1:zhwlmx",
+      "GBR": "3bid:shdl5p",
+      "GRC": "2uqg:4hkqe1",
+      "ZMB": "qe7:1pos5ht",
+      "SLE": "bp3:1hc4t4v",
+      "GIN": "rke:r65sah",
+      "LBR": "bbq:1viqk3c",
+      "CAF": "sut:m0n7z9",
+      "SDN": "jpz:swsxfx",
+      "DJI": "3k1:1pbqb75",
+      "ERI": "h05:1j7683i",
+      "AUT": "ick:z7okmv",
+      "IRQ": "e5a:8d5q5n",
+      "ITA": "1jmy:1r7uqz9",
+      "CHE": "c4h:1oq8s8",
+      "IRN": "19wf:144jucg",
+      "NLD": "dv5:15iy1bc",
+      "LIE": "ho:199dpde",
+      "CIV": "pxd:supmvy",
+      "SRB": "ftp:1j5ugw6",
+      "MLI": "tjp:8lyak5",
+      "SEN": "o8f:1e8ktbo",
+      "NGA": "rt1:q1wq13",
+      "BEN": "9oy:83l3kz",
+      "AGO": "sc2:10v7jie",
+      "HRV": "13fb:tctfjv",
+      "SVN": "8rr:12a3q7l",
+      "QAT": "432:qdvz6t",
+      "SAU": "13um:1r4uerk",
+      "BWA": "gud:dki1xh",
+      "ZWE": "dhn:sdri1e",
+      "PAK": "zzc:wiltmd",
+      "BGR": "et2:rc50dy",
+      "THA": "1k67:z61ser",
+      "SMR": "cf:m8tcdw",
+      "HTI": "bi9:j8ob6g",
+      "DOM": "a89:15x9bbo",
+      "TCD": "k5b:k73pht",
+      "KWT": "47q:ocptcm",
+      "SLV": "6pz:relyuq",
+      "GTM": "830:11vl5m",
+      "TLS": "4xw:9ucwbo",
+      "BRN": "2ns:17ayizl",
+      "MCO": "7y:14qcbrv",
+      "DZA": "kfu:18y9c24",
+      "MOZ": "153g:1ews61b",
+      "SWZ": "1it:16me08e",
+      "BDI": "56c:wvm007",
+      "RWA": "5f0:pio3jh",
+      "MMR": "25l6:1e57jx6",
+      "BGD": "12el:1eile2o",
+      "AND": "ul:e7hbpx",
+      "AFG": "pqo:136bdrt",
+      "MNE": "61u:lrtbba",
+      "BIH": "adj:fu57tt",
+      "UGA": "9y2:1uos5pi",
+      "CUB": "1bkl:h580x",
+      "HND": "kua:jazas8",
+      "ECU": "qef:1av5rvy",
+      "COL": "1kcn:3zrssf",
+      "PRY": "kwr:qkk06",
+      "PRT": "lgd:ceuh5r",
+      "MDA": "c54:7cx5w3",
+      "TKM": "s0o:amwnvo",
+      "JOR": "651:xbvq4c",
+      "NPL": "h5r:610rqm",
+      "LSO": "5qc:onzeau",
+      "CMR": "nb8:193uufx",
+      "GAB": "noz:5t5iz",
+      "NER": "h2i:r05htv",
+      "BFA": "i9r:1j7ys8",
+      "TGO": "7k6:1yysw1u",
+      "GHA": "d8a:rzhhtq",
+      "GNB": "mmg:99mc70",
+      "USA": "i3uf:1182u52",
+      "CAN": "xqak:19ny8ov",
+      "MEX": "3qlm:vtbpjj",
+      "BLZ": "8q0:6vrt0t",
+      "PAN": "xnj:7p1oi0",
+      "VEN": "1iwk:4dwkbu",
+      "PNG": "2d22:1nyrwd6",
+      "EGY": "wat:7i9c43",
+      "YEM": "hd1:14b3u16",
+      "MRT": "k03:1snomyk",
+      "GNQ": "3wg:1xnezkq",
+      "GMB": "75z:5i2z6p",
+      "VAT": "5a:6gzup6",
+      "CYN": "3f4:dw510w",
+      "CNM": "3rq:13k46f2",
+      "KAS": "o3:1cuv6ct",
+      "SPI": "rh:8t2itn",
+      "BRT": "8x:1gbasa5",
+      "ATA": "c0up:13y1s5o",
+      "AUS": "6ysk:1ehugv7",
+      "FJI": "rck:m96vd0",
+      "NZL": "2bdy:a8xmyp",
+      "MDG": "t0p:1mt0xz5",
+      "PHL": "3kms:49k9sz",
+      "LKA": "e08:ttm3mu",
+      "BHS": "sra:14aq1ue",
+      "TWN": "9wn:6znt5x",
+      "JPN": "3emo:or4737",
+      "ISL": "1itn:8z2meq",
+      "SYC": "5nf:11te37u",
+      "KIR": "cjf:156us3f",
+      "MHL": "3oc:s1onzt",
+      "TTO": "3h2:1orak1t",
+      "GRD": "15t:k66j5h",
+      "VCT": "1i4:3rdgi6",
+      "BRB": "n4:ytq0er",
+      "LCA": "wl:bbgegq",
+      "DMA": "1cf:1rulodo",
+      "ATG": "23r:ksf6dk",
+      "KNA": "si:1oy0pjr",
+      "JAM": "4hr:q25plv",
+      "MUS": "213:eun820",
+      "COM": "29o:1fzjuhm",
+      "STP": "1i2:1qqmdvn",
+      "CPV": "7ny:1lqalm4",
+      "MLT": "ys:185807",
+      "SGP": "pa:1a0zdvo",
+      "COK": "2k8:8uozo1",
+      "TON": "440:12d6il4",
+      "WSM": "2k7:n4rxze",
+      "SLB": "12si:2xizfr",
+      "TUV": "19z:y0xsgh",
+      "MDV": "nxk:1pqtnmc",
+      "NRU": "6q:frwjtt",
+      "FSM": "4dg:4og1wf",
+      "VUT": "ipl:940ijv",
+      "NIU": "pw:1leiliq",
+      "PLW": "2u5:eublvq",
+      "BHR": "2ie:1gf5v3t"
+    },
+    "changed": {
+      "CHN": "6u58:16s3qbj",
+      "BRA": "5hrd:ljjqbf",
+      "COL": "1kcn:3zrssf"
+    },
+    "removedIds": [
+      "ESB",
+      "MAF",
+      "SXM",
+      "USG",
+      "BRI",
+      "GIB",
+      "HKG",
+      "KAB",
+      "WSB",
+      "GRL",
+      "NCL",
+      "CUW",
+      "ABW",
+      "TCA",
+      "SPM",
+      "PCN",
+      "PYF",
+      "ATF",
+      "UMI",
+      "MSR",
+      "VIR",
+      "BLM",
+      "PRI",
+      "AIA",
+      "VGB",
+      "CYM",
+      "BMU",
+      "HMD",
+      "SHN",
+      "JEY",
+      "GGY",
+      "IMN",
+      "ALD",
+      "FRO",
+      "IOA",
+      "IOT",
+      "NFK",
+      "WLF",
+      "SGS",
+      "FLK",
+      "ASM",
+      "GUM",
+      "MNP",
+      "CSI",
+      "PGA",
+      "CLP",
+      "MAC",
+      "ATC",
+      "SER",
+      "BJN",
+      "SCR"
+    ],
+    "units": {
+      "d34b00a1-9b13-8000-8000-000000455342": {
+        "parentId": "GBR",
+        "geometry": "1to:dtaxkq"
+      },
+      "d34b00a1-9b13-8000-8000-0000004d4146": {
+        "parentId": "FRA",
+        "geometry": "ez:4e3ip5"
+      },
+      "d34b00a1-9b13-8000-8000-00000053584d": {
+        "parentId": "NLD",
+        "geometry": "6m:zxl87w"
+      },
+      "d34b00a1-9b13-8000-8000-000000555347": {
+        "parentId": "CUB",
+        "geometry": "t6:tuei7d"
+      },
+      "d34b00a1-9b13-8000-8000-000000474942": {
+        "parentId": "GBR",
+        "geometry": "54:8a6t4p"
+      },
+      "d34b00a1-9b13-8000-8000-000000484b47": {
+        "parentId": "CHN",
+        "geometry": "71x:nu9wjz"
+      },
+      "d34b00a1-9b13-8000-8000-0000004b4142": {
+        "parentId": "KAZ",
+        "geometry": "146:1yodeuq"
+      },
+      "d34b00a1-9b13-8000-8000-000000575342": {
+        "parentId": "GBR",
+        "geometry": "tf:14sey7x"
+      },
+      "d34b00a1-9b13-8000-8000-00000047524c": {
+        "parentId": "DNK",
+        "geometry": "9u8q:14d2d8m"
+      },
+      "d34b00a1-9b13-8000-8000-0000004e434c": {
+        "parentId": "FRA",
+        "geometry": "i69:myz3t8"
+      },
+      "d34b00a1-9b13-8000-8000-000000435557": {
+        "parentId": "NLD",
+        "geometry": "sw:wkccri"
+      },
+      "d34b00a1-9b13-8000-8000-000000414257": {
+        "parentId": "NLD",
+        "geometry": "hj:4982hh"
+      },
+      "d34b00a1-9b13-8000-8000-000000544341": {
+        "parentId": "GBR",
+        "geometry": "3tb:xa8nr8"
+      },
+      "d34b00a1-9b13-8000-8000-00000053504d": {
+        "parentId": "FRA",
+        "geometry": "1ha:l52t9y"
+      },
+      "d34b00a1-9b13-8000-8000-00000050434e": {
+        "parentId": "GBR",
+        "geometry": "rk:8cftwk"
+      },
+      "d34b00a1-9b13-8000-8000-000000505946": {
+        "parentId": "FRA",
+        "geometry": "k4w:1pm12ag"
+      },
+      "d34b00a1-9b13-8000-8000-000000415446": {
+        "parentId": "FRA",
+        "geometry": "9g5:ja9o6q"
+      },
+      "d34b00a1-9b13-8000-8000-000000554d49": {
+        "parentId": "USA",
+        "geometry": "28o:g9lpvg"
+      },
+      "d34b00a1-9b13-8000-8000-0000004d5352": {
+        "parentId": "GBR",
+        "geometry": "fj:1q831em"
+      },
+      "d34b00a1-9b13-8000-8000-000000564952": {
+        "parentId": "USA",
+        "geometry": "1ab:1loid8z"
+      },
+      "d34b00a1-9b13-8000-8000-000000424c4d": {
+        "parentId": "FRA",
+        "geometry": "7z:1tencom"
+      },
+      "d34b00a1-9b13-8000-8000-000000505249": {
+        "parentId": "USA",
+        "geometry": "5d4:16b6s5w"
+      },
+      "d34b00a1-9b13-8000-8000-000000414941": {
+        "parentId": "GBR",
+        "geometry": "168:mn9yf5"
+      },
+      "d34b00a1-9b13-8000-8000-000000564742": {
+        "parentId": "GBR",
+        "geometry": "1oo:xyd3cq"
+      },
+      "d34b00a1-9b13-8000-8000-00000043594d": {
+        "parentId": "GBR",
+        "geometry": "1gp:18kd5f2"
+      },
+      "d34b00a1-9b13-8000-8000-000000424d55": {
+        "parentId": "GBR",
+        "geometry": "1j2:1mwrjht"
+      },
+      "d34b00a1-9b13-8000-8000-000000484d44": {
+        "parentId": "AUS",
+        "geometry": "z2:1k678tm"
+      },
+      "d34b00a1-9b13-8000-8000-00000053484e": {
+        "parentId": "GBR",
+        "geometry": "1im:1qt13zt"
+      },
+      "d34b00a1-9b13-8000-8000-0000004a4559": {
+        "parentId": "GBR",
+        "geometry": "t9:170cerj"
+      },
+      "d34b00a1-9b13-8000-8000-000000474759": {
+        "parentId": "GBR",
+        "geometry": "11b:cthno7"
+      },
+      "d34b00a1-9b13-8000-8000-000000494d4e": {
+        "parentId": "GBR",
+        "geometry": "195:1hef7zr"
+      },
+      "d34b00a1-9b13-8000-8000-000000414c44": {
+        "parentId": "FIN",
+        "geometry": "80j:yvxoi6"
+      },
+      "d34b00a1-9b13-8000-8000-00000046524f": {
+        "parentId": "DNK",
+        "geometry": "87v:10lf77w"
+      },
+      "d34b00a1-9b13-8000-8000-000000494f41": {
+        "parentId": "AUS",
+        "geometry": "10h:ea0yfg"
+      },
+      "d34b00a1-9b13-8000-8000-000000494f54": {
+        "parentId": "GBR",
+        "geometry": "1rx:9aqu74"
+      },
+      "d34b00a1-9b13-8000-8000-0000004e464b": {
+        "parentId": "AUS",
+        "geometry": "i8:1pv5tjp"
+      },
+      "d34b00a1-9b13-8000-8000-000000574c46": {
+        "parentId": "FRA",
+        "geometry": "rf:5ityn8"
+      },
+      "d34b00a1-9b13-8000-8000-000000534753": {
+        "parentId": "GBR",
+        "geometry": "atr:mg9yli"
+      },
+      "d34b00a1-9b13-8000-8000-000000464c4b": {
+        "parentId": "GBR",
+        "geometry": "omv:17z8a65"
+      },
+      "d34b00a1-9b13-8000-8000-00000041534d": {
+        "parentId": "USA",
+        "geometry": "17n:1anmtv3"
+      },
+      "d34b00a1-9b13-8000-8000-00000047554d": {
+        "parentId": "USA",
+        "geometry": "w0:1ketn2u"
+      },
+      "d34b00a1-9b13-8000-8000-0000004d4e50": {
+        "parentId": "USA",
+        "geometry": "3a6:cucx7e"
+      },
+      "d34b00a1-9b13-8000-8000-000000435349": {
+        "parentId": "AUS",
+        "geometry": "3n:liguu4"
+      },
+      "d34b00a1-9b13-8000-8000-000000504741": {
+        "parentId": "USA",
+        "geometry": "1un:wo6dad"
+      },
+      "d34b00a1-9b13-8000-8000-000000434c50": {
+        "parentId": "FRA",
+        "geometry": "5m:1m2ents"
+      },
+      "d34b00a1-9b13-8000-8000-0000004d4143": {
+        "parentId": "CHN",
+        "geometry": "1nj:13mg2tv"
+      },
+      "d34b00a1-9b13-8000-8000-000000415443": {
+        "parentId": "AUS",
+        "geometry": "4c:1k66bxt"
+      }
+    }
+  },
+  "previewDerivation": "canonical-topology-simplified",
+  "previewSourceScale": "derived",
+  "previewSourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
+  "canonicalSourceSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72",
+  "simplificationQuantile": 0.16,
+  "countries": 258,
+  "coordinateCount": 105884,
+  "globalAreaError": 0.000199,
+  "meshAlgorithmRevision": 3,
+  "meshVertices": 125463,
+  "countriesCompressedBytes": 917549,
+  "meshCompressedBytes": 1733548,
+  "combinedCompressedBytes": 2651097,
+  "countriesSha256": "25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38",
+  "meshSha256": "a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48",
+  "assets": {
+    "previewCountries": {
+      "url": "countries-preview-v0.36.0.geojson.gz",
+      "encoding": "gzip",
+      "compressedBytes": 917549,
+      "decodedBytes": 2438942,
+      "sha256": "25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38"
+    },
+    "previewMesh": {
+      "url": "world-mesh-preview-v0.36.0.bin.gz",
+      "encoding": "gzip",
+      "compressedBytes": 1733548,
+      "decodedBytes": 3763240,
+      "sha256": "a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48",
+      "header": [
+        1129137969,
+        2,
+        258,
+        125463,
+        421656,
+        203162,
+        105884,
+        3,
+        516,
+        516,
+        1032,
+        258
+      ]
+    },
+    "labelAnchors": {
+      "url": "country-label-anchors-v0.10.1.json",
+      "encoding": "identity",
+      "compressedBytes": 13826,
+      "decodedBytes": 13826,
+      "sha256": "caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512"
+    },
+    "canonicalCountryPacket": {
+      "url": "countries-canonical-v0.36.0.pcg.gz",
+      "encoding": "gzip",
+      "compressedBytes": 5122041,
+      "decodedBytes": 8826208,
+      "sha256": "753e21400c5a9123169379ba023ccce00d604ae15faf4963cf40ab6cc1652845",
+      "header": [
+        826753872,
+        1,
+        258,
+        4274,
+        4291,
+        548454,
+        13232,
+        258,
+        259,
+        4275,
+        4292,
+        516,
+        80,
+        13312,
+        13572,
+        14608,
+        31708,
+        48876,
+        50944,
+        8826208
+      ]
+    },
+    "canonicalMesh": {
+      "url": "world-mesh-v0.12.6.bin.gz",
+      "encoding": "gzip",
+      "compressedBytes": 14619043,
+      "decodedBytes": 32644700,
+      "sha256": "9fe1f686728e83d4615998a7b023db680b3b561b0a26e7f2f4357b7fe8bcfb86",
+      "header": [
+        1129137969,
+        2,
+        258,
+        1026976,
+        4504629,
+        1086772,
+        548454,
+        3,
+        516,
+        516,
+        1032,
+        258
+      ]
+    }
+  }
+}

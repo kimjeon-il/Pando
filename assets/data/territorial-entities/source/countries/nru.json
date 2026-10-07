@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "lineageId": "nru",
+  "names": {
+    "ko": "나우루"
+  },
+  "entities": [
+    {
+      "schemaVersion": 2,
+      "entityId": "state:NRU",
+      "entityKind": "general",
+      "alternateNames": [],
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "geometryVersions": [
+        {
+          "versionId": "state:NRU:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  166.938813,
+                  -0.490411
+                ],
+                [
+                  166.955577,
+                  -0.497979
+                ],
+                [
+                  166.958263,
+                  -0.517673
+                ],
+                [
+                  166.951345,
+                  -0.539158
+                ],
+                [
+                  166.938813,
+                  -0.551853
+                ],
+                [
+                  166.916352,
+                  -0.54754
+                ],
+                [
+                  166.906993,
+                  -0.524835
+                ],
+                [
+                  166.913422,
+                  -0.500177
+                ],
+                [
+                  166.938813,
+                  -0.490411
+                ]
+              ]
+            ]
+          }
+        }
+      ],
+      "instantiation": {
+        "mode": "independent",
+        "countryUpdates": {}
+      },
+      "metadata": {
+        "sourceFeatureId": "NRU",
+        "defaultFlagDataUrl": "assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/nr.svg"
+      },
+      "sourceInfo": {
+        "sourceId": "natural-earth-5.1.1",
+        "title": "Natural Earth 5.1.1 Admin 0 Countries",
+        "license": "Public domain",
+        "featureId": "NRU",
+        "featureProperties": {
+          "name": "나우루"
+        },
+        "geometrySha256": "5a2491bbc480e4acf21fb97af67240098f96ae20bdcfd14eab7dc61fedb06e07"
+      },
+      "names": {
+        "ko": "나우루"
+      }
+    }
+  ],
+  "relations": []
+}

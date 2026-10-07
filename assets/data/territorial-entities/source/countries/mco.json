@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "lineageId": "mco",
+  "names": {
+    "ko": "모나코"
+  },
+  "entities": [
+    {
+      "schemaVersion": 2,
+      "entityId": "state:MCO",
+      "entityKind": "general",
+      "alternateNames": [],
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "geometryVersions": [
+        {
+          "versionId": "state:MCO:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  7.437454,
+                  43.743361
+                ],
+                [
+                  7.432845,
+                  43.739853
+                ],
+                [
+                  7.417957,
+                  43.730904
+                ],
+                [
+                  7.404319,
+                  43.717969
+                ],
+                [
+                  7.380723,
+                  43.719273
+                ],
+                [
+                  7.36575,
+                  43.72273
+                ],
+                [
+                  7.367263,
+                  43.734125
+                ],
+                [
+                  7.372655,
+                  43.745832
+                ],
+                [
+                  7.387538,
+                  43.757899
+                ],
+                [
+                  7.406969,
+                  43.763506
+                ],
+                [
+                  7.426246,
+                  43.755464
+                ],
+                [
+                  7.437454,
+                  43.743361
+                ]
+              ]
+            ]
+          }
+        }
+      ],
+      "instantiation": {
+        "mode": "independent",
+        "countryUpdates": {}
+      },
+      "metadata": {
+        "sourceFeatureId": "MCO",
+        "defaultFlagDataUrl": "assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/mc.svg"
+      },
+      "sourceInfo": {
+        "sourceId": "natural-earth-5.1.1",
+        "title": "Natural Earth 5.1.1 Admin 0 Countries",
+        "license": "Public domain",
+        "featureId": "MCO",
+        "featureProperties": {
+          "name": "모나코"
+        },
+        "geometrySha256": "c552245a0fe8ac70c1b6eba5b89349c46191026b1d17f78f89a0cebeb1b0149b"
+      },
+      "names": {
+        "ko": "모나코"
+      }
+    }
+  ],
+  "relations": []
+}

@@ -33,3 +33,9 @@ export function spatialLayerCount(buffer) {
   const db = new SQL.Database(new Uint8Array(buffer));
   try { return db.exec("SELECT count(*) FROM gpkg_contents WHERE data_type='features'")[0].values[0][0]; } finally { db.close(); }
 }
+
+export function spatialColumns(buffer, table) {
+  if (!['entities','regions'].includes(table)) throw new Error('Unexpected table');
+  const db=new SQL.Database(new Uint8Array(buffer));
+  try { return db.exec(`PRAGMA table_info(${table})`)[0].values.map(row=>row[1]); } finally { db.close(); }
+}

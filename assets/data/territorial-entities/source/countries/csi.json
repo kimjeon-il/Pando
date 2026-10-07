@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "lineageId": "csi",
+  "names": {
+    "ko": "산호해제도"
+  },
+  "entities": [
+    {
+      "schemaVersion": 2,
+      "entityId": "state:CSI",
+      "entityKind": "general",
+      "alternateNames": [],
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:AUS",
+      "geometryVersions": [
+        {
+          "versionId": "state:CSI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  154.391287,
+                  -21.030043
+                ],
+                [
+                  154.38852,
+                  -21.029067
+                ],
+                [
+                  154.391287,
+                  -21.028741
+                ],
+                [
+                  154.391287,
+                  -21.030043
+                ]
+              ]
+            ]
+          }
+        }
+      ],
+      "instantiation": {
+        "mode": "independent",
+        "countryUpdates": {}
+      },
+      "metadata": {
+        "sourceFeatureId": "CSI"
+      },
+      "sourceInfo": {
+        "sourceId": "natural-earth-5.1.1",
+        "title": "Natural Earth 5.1.1 Admin 0 Countries",
+        "license": "Public domain",
+        "featureId": "CSI",
+        "featureProperties": {
+          "name": "산호해제도"
+        },
+        "geometrySha256": "d7426535e915f3b3c7f1b98e694bf9f63fdd4520c1166108198cf2376f0005d9"
+      },
+      "names": {
+        "ko": "산호해제도"
+      }
+    }
+  ],
+  "relations": []
+}

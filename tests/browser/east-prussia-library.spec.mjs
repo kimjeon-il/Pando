@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { openLibrary, refuseFiniteActivation } from './helpers/library-state.mjs';
+import { openLibrary, importFiniteSource } from './helpers/library-state.mjs';
 
-test('East Prussia r3 preserves reviewed geometry and rejects finite activation atomically', async ({ page }, testInfo) => {
+test('East Prussia r3 preserves reviewed geometry and imports the selected static geometry reversibly', async ({ page }, testInfo) => {
   test.setTimeout(240_000);
   const errors = await openLibrary(page);
   const neighbors = () => page.evaluate(async () => {
@@ -13,20 +13,20 @@ test('East Prussia r3 preserves reviewed geometry and rejects finite activation 
     return result;
   });
   const before = await neighbors();
-  await page.locator('#historicalLibrarySearchInput').fill('동프로이센');
-  await page.locator('#historicalLibraryYearInput').fill('1900');
+  await page.locator('#territorialLibrarySearchInput').fill('동프로이센');
+  await page.locator('#territorialLibraryReferenceDateInput').fill('1900');
   const result = page.locator('[data-library-entity-id="state:east-prussia"]');
   await expect(result).toBeVisible();
   await result.click();
-  await expect(page.locator('#historicalLibraryPreview')).toBeHidden();
-  await expect(page.locator('#historicalLibraryPreview details')).toHaveCount(0);
-  await expect(page.locator('#historicalLibraryPreview svg path')).toHaveCount(0);
+  await expect(page.locator('#territorialLibraryPreview')).toBeVisible();
+  await expect(page.locator('#territorialLibraryPreview details')).toHaveCount(0);
+  await expect(page.locator('#territorialLibraryPreview svg path')).toHaveCount(1);
   const source = await page.evaluate(async () => {
     const entity = await window.PANDOLAB_TERRITORIAL_LIBRARY.get('state:east-prussia');
     const version = entity.geometryVersions[0];
     const bytes = new TextEncoder().encode(JSON.stringify(version.geometry));
     return {
-      versionId: version.id, components: version.geometry.coordinates.length,
+      versionId: version.versionId, components: version.geometry.coordinates.length,
       coordinateCount: version.geometry.coordinates.flat(2).length,
       hash: Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), n => n.toString(16).padStart(2, '0')).join(''),
       metadataHash: entity.metadata.geometrySha256, certainty: version.certainty,
@@ -40,6 +40,8 @@ test('East Prussia r3 preserves reviewed geometry and rejects finite activation 
   expect(source.metadataHash).toBe(source.hash);
   expect(source.certainty).toBe('medium');
   expect(source.validation.modernEastUnmatchedLengthM).toBe(0);
-  await refuseFiniteActivation(page, testInfo, 'state:east-prussia', errors);
+  await importFiniteSource(page, testInfo, 'state:east-prussia', errors);
+  expect(await neighbors()).not.toEqual(before); // approved territory replacement changes donors
+  await page.locator('#undoBtn').click();
   expect(await neighbors()).toEqual(before);
 });

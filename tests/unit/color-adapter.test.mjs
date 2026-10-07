@@ -61,9 +61,9 @@ test('common color adapter writes and clears canonical color fields', () => {
 
 test('country defaults follow canonical library identity rather than instance ID or edited name', () => {
   const feature = { id: 'library-instance', properties: { entityKind: 'general', parentId: '',
-    name: '사용자가 바꾼 이름', sourceLibraryId: 'state:west-prussia', style: { color: '#ff0000' } } };
+    name: '사용자가 바꾼 이름', sourceEntityId: 'state:west-prussia', style: { color: '#ff0000' } } };
   assert.equal(countryDefaultColor(feature), '#003153');
-  feature.properties.sourceLibraryId = 'state:KOR';
+  feature.properties.sourceEntityId = 'state:KOR';
   feature.properties.metadata = { sourceFeatureId: 'KOR' };
   assert.equal(countryDefaultColor(feature), '#003478');
   feature.properties.entityKind = 'regional';

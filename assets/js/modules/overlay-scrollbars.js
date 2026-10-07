@@ -9,7 +9,7 @@ export function scrollbarGeometry(viewport, content, offset, minimum = 48) {
 export function installOverlayScrollbars(documentRef = document) {
   const view = documentRef.defaultView;
   if (!view?.ResizeObserver) return () => {};
-  const selector = '.ui-scroll-surface, .surface-body, .gis-import-content-rail, .historical-library-results, .historical-library-preview';
+  const selector = '.ui-scroll-surface, .surface-body, .gis-import-content-rail, .territorial-library-results, .territorial-library-preview';
   const popupSelector = '[role="menu"], .ui-popover, .ui-select-popover';
   const visible = node => node.getClientRects().length
     && !node.closest('[hidden], .hidden, [aria-hidden="true"]')

@@ -107,13 +107,13 @@ for (const check of supplementalHistoricalChecks) {
   const materialized = materializedById.get(check.id);
   const versions = check.versions || [{ id: check.version, points: check.points, outside: check.outside }];
   for (const expectedVersion of versions) {
-    const version = definition.geometryVersions?.find(item => item.id === expectedVersion.id);
+    const version = definition.geometryVersions?.find(item => item.versionId === expectedVersion.id);
     if (!version) throw new Error(`${check.id} geometry version is missing: ${expectedVersion.id}`);
-    const geometry = materialized?.geometryVersions?.find(item => item.id === expectedVersion.id)?.geometry;
+    const geometry = materialized?.geometryVersions?.find(item => item.versionId === expectedVersion.id)?.geometry;
     if (!geometry) throw new Error(`${check.id} could not be materialized: ${expectedVersion.id}`);
     const issues = validateGeometry({
       type: 'Feature', id: check.id,
-      properties: { name: definition.displayNames?.ko || definition.canonicalName },
+      properties: { name: definition.names.ko || definition.names.en },
       geometry,
     });
     if (issues.length) throw new Error(`${expectedVersion.id} fails app geometry validation: ${issues[0].message}`);
@@ -137,9 +137,9 @@ if (nagornoEntity.geometryVersions?.length !== 2) throw new Error('Nagorno-Karab
 if (nagornoEntity.instantiation?.mode !== 'territory-replacement') throw new Error('Nagorno-Karabakh must use territory-replacement');
 if (!String(nagornoEntity.metadata?.defaultFlagDataUrl || '').startsWith('data:image/svg+xml;base64,')) throw new Error('Nagorno-Karabakh flag asset is missing');
 for (const versionId of ['state:nagorno-karabakh:1991-2020-r1', 'state:nagorno-karabakh:2020-2023-r1']) {
-  const version = nagornoEntity.geometryVersions.find(candidate => candidate.id === versionId);
+  const version = nagornoEntity.geometryVersions.find(candidate => candidate.versionId === versionId);
   if (!version) throw new Error(`Nagorno-Karabakh geometry version is missing: ${versionId}`);
-  const feature = { type: 'Feature', id: 'state:nagorno-karabakh', properties: { name: nagornoEntity.displayNames?.ko || nagornoEntity.canonicalName }, geometry: version.geometry };
+  const feature = { type: 'Feature', id: 'state:nagorno-karabakh', properties: { name: nagornoEntity.names.ko || nagornoEntity.names.en }, geometry: version.geometry };
   const issues = validateGeometry(feature);
   if (issues.length) throw new Error(`${versionId} fails app geometry validation: ${issues[0].message}`);
 }
@@ -167,7 +167,7 @@ for (const child of sovietChildren) {
   if (!materialized?.geometryVersions?.[0]?.geometry) throw new Error(`${child.entityId} could not be materialized`);
   sovietChildGeometries.push([child.entityId, materialized.geometryVersions[0].geometry]);
   const issues = validateGeometry({
-    type: 'Feature', id: child.entityId, properties: { name: child.displayNames?.ko || child.canonicalName },
+    type: 'Feature', id: child.entityId, properties: { name: child.names.ko || child.names.en },
     geometry: materialized.geometryVersions[0].geometry,
   });
   if (issues.length) throw new Error(`${child.entityId} fails app geometry validation: ${issues[0].message}`);
@@ -211,7 +211,7 @@ if (remainderIssues.length) throw new Error(`Subtracted Germany fails app geomet
 const overlap = polygonClipping.intersection(geometry.coordinates, remainderGeometry.coordinates);
 if (overlap.length) throw new Error('East Germany and subtracted Germany retain polygon overlap');
 
-const aliases = new Set([entity.canonicalName, ...Object.values(entity.displayNames || {}), ...(entity.alternateNames || [])]);
+const aliases = new Set([...Object.values(entity.names), ...(entity.alternateNames || [])]);
 for (const required of ['동독', '독일 민주공화국', 'East Germany', 'DDR', 'GDR', 'Ostdeutschland']) {
   if (!aliases.has(required)) throw new Error(`East Germany search alias is missing: ${required}`);
 }

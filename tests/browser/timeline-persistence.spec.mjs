@@ -48,7 +48,7 @@ async function downloadProject(page) {
 }
 const semantics = project => ({entities:project.territorialEntities,records:project.timelineRecords,geometries:project.geometries});
 
-test('static v9 UI file save/open and full autosave restore metadata, records and complete archive',async({page})=>{
+test('static v10 UI file save/open and full autosave restore metadata, records and complete archive',async({page})=>{
   const errors=await openApp(page);
   await openProject(page,fixturePath('static'));
   await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
@@ -57,7 +57,7 @@ test('static v9 UI file save/open and full autosave restore metadata, records an
   await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='A')?.properties.name,{timeout:30000}).toBe('저장 검증');
   const saved=await readAutosave(page);
   expect(saved.format).toBe('pandolab-autosave-full');
-  expect(saved.schemaVersion).toBe(9);
+  expect(saved.schemaVersion).toBe(10);
   expect(saved.territorialEntities.every(entity=>entity.geometry===null)).toBe(true);
   expect(saved.geometries).toEqual((await fixtureJson('static')).geometries);
   await page.locator('#undoBtn').click();

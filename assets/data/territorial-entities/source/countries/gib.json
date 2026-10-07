@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "lineageId": "gib",
+  "names": {
+    "ko": "지브롤터"
+  },
+  "entities": [
+    {
+      "schemaVersion": 2,
+      "entityId": "state:GIB",
+      "entityKind": "general",
+      "alternateNames": [],
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "geometryVersions": [
+        {
+          "versionId": "state:GIB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "datePrecision": "current",
+          "certainty": "high",
+          "sourceId": "natural-earth-5.1.1",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -5.358387,
+                  36.141109
+                ],
+                [
+                  -5.338773,
+                  36.14112
+                ],
+                [
+                  -5.339915,
+                  36.129828
+                ],
+                [
+                  -5.33906,
+                  36.123847
+                ],
+                [
+                  -5.34203,
+                  36.1105
+                ],
+                [
+                  -5.35025,
+                  36.119289
+                ],
+                [
+                  -5.358387,
+                  36.141109
+                ]
+              ]
+            ]
+          }
+        }
+      ],
+      "instantiation": {
+        "mode": "independent",
+        "countryUpdates": {}
+      },
+      "metadata": {
+        "sourceFeatureId": "GIB",
+        "defaultFlagDataUrl": "assets/vendor/country-flags/c09927e63705529bbf59ca6684cd9b23225dddad/svg/gi.svg"
+      },
+      "sourceInfo": {
+        "sourceId": "natural-earth-5.1.1",
+        "title": "Natural Earth 5.1.1 Admin 0 Countries",
+        "license": "Public domain",
+        "featureId": "GIB",
+        "featureProperties": {
+          "name": "지브롤터"
+        },
+        "geometrySha256": "2487a23a5dd2e3e826ce942172326de798244d7536ff95248e66d76ab1f547ee"
+      },
+      "names": {
+        "ko": "지브롤터"
+      }
+    }
+  ],
+  "relations": []
+}

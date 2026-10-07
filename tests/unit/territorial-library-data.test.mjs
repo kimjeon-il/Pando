@@ -11,7 +11,7 @@ test('East Prussia r3 library preserves the reviewed geometry and reports its li
   const geometrySha256 = createHash('sha256').update(JSON.stringify(version.geometry)).digest('hex');
   assert.equal(geometrySha256, '54c45d4de9f5f16e9dffb06eec24aeaef8f89b82aa455fd7c26b1064fe716237');
   assert.equal(entity.metadata.geometrySha256, geometrySha256);
-  assert.equal(version.id, 'ostpreussen-1878-1920-r3');
+  assert.equal(version.versionId, 'ostpreussen-1878-1920-r3');
   assert.equal(version.geometry.coordinates.length, 1);
   assert.equal(coordinates.length, 6766);
   assert.ok(coordinateKeys.has('22.76722,54.35627'));
