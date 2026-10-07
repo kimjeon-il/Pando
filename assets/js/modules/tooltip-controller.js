@@ -35,6 +35,7 @@ export function createTooltipController({
     if (source !== 'keyboard' && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     const value = String(target.dataset.tooltip || '').trim();
     if (!value || !tooltip) return;
+    mapPointer = null;
     hide();
     if (!target.id) target.id = `${idPrefix}${Math.random().toString(36).slice(2, 9)}`;
     tooltip.textContent = value;
@@ -111,7 +112,10 @@ export function createTooltipController({
       if (event.pointerType && event.pointerType !== 'mouse') return;
       const target = event.target.closest?.('[data-tooltip]');
       if (!target || target.contains(event.relatedTarget)) return;
-      window.clearTimeout(showTimer);
+      // Transfer ownership before scheduling: the following map leave/move
+      // must not dismiss the country tooltip and cancel this control's timer.
+      mapPointer = null;
+      hide();
       showTimer = window.setTimeout(() => {
         showTimer = 0;
         if (target.matches(':hover')) show(target);
