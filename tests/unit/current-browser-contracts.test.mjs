@@ -124,7 +124,7 @@ for (const { file, source } of automaticWorkflows) {
     const concurrency = concurrencyContract(source);
     const automatic = concurrency(concurrencyContext()).group;
     for (const eventName of ['workflow_dispatch', 'push', 'schedule', 'workflow_call', 'pull_request_target']) {
-      for (const browserScope of [undefined, 'default', 'map-rendering', 'editor-diagnostics', '$(touch sentinel)']) {
+      for (const browserScope of [undefined, 'default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison', '$(touch sentinel)']) {
         const github = concurrencyContext({ event_name: eventName, event: {}, inputs: { browser_scope: browserScope } });
         assert.deepEqual(concurrency(github), { group: 'Application Architecture-run-1001-attempt-1', cancel: false });
         assert.notEqual(concurrency(github).group, automatic);
@@ -316,7 +316,7 @@ for (const browserScope of [undefined, '', 'default']) {
 }
 
 for (const eventName of ['pull_request', 'push']) {
-  for (const browserScope of ['map-rendering', 'editor-diagnostics', 'unknown']) {
+  for (const browserScope of ['map-rendering', 'editor-diagnostics', 'boundary-capture-comparison', 'unknown']) {
     test(`${eventName} selector ignores supplied ${browserScope} manual scope`, async t => {
       const changed = ['tests/helpers/timeline-project.mjs', 'package.json'];
       const expected = [...new Set([...timelineConsumers, ...coreSmoke])].sort();
@@ -381,7 +381,7 @@ test('workflow exposes only the allowlisted optional dispatch choice and keeps r
   assert.match(dispatch, /^ {8}required: false$/m);
   assert.match(dispatch, /^ {8}type: choice$/m);
   assert.match(dispatch, /^ {8}default: default$/m);
-  assert.deepEqual([...dispatch.matchAll(/^ {10}- (.+)$/gm)].map(match => match[1]), ['default', 'map-rendering', 'editor-diagnostics']);
+  assert.deepEqual([...dispatch.matchAll(/^ {10}- (.+)$/gm)].map(match => match[1]), ['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison']);
   assert.deepEqual([...dispatch.matchAll(/^ {6}(\w+):$/gm)].map(match => match[1]), ['browser_scope']);
   assert.match(workflow, /^permissions:\n {2}contents: read\n\njobs:/m);
   assert.equal(workflow.match(/^ {10}BROWSER_SCOPE: \$\{\{ inputs.browser_scope \|\| 'default' \}\}$/gm)?.length, 2);
@@ -391,13 +391,14 @@ test('workflow exposes only the allowlisted optional dispatch choice and keeps r
 });
 
 test('focused dispatch skips only the broad unconditional architecture job through an explicit event and input gate', () => {
-  assert.match(jobs['command-contract'], /^ {4}if: github.event_name != 'workflow_dispatch' \|\| \(inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics'\)$/m);
+  assert.match(jobs['command-contract'], /^ {4}if: github.event_name != 'workflow_dispatch' \|\| \(inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison'\)$/m);
   assert.match(jobs['command-contract'], /^ {8}run: pnpm check:architecture$/m);
 });
 
 test('all focused job names are distinct while normal names and matrix suffixes stay exact', () => {
   const expectedNames = {
     changes: 'Detect application scopes',
+    'boundary-capture-comparison': 'Boundary screencast comparison (A1, B1, B2, A2)',
     'current-browser-contracts': 'Current browser contract (${{ matrix.spec }})',
     'visual-policy': 'Common map visual policy and frame consumers (M4-M6)',
     'scene-staging': 'GPU stroke domain staging (M3)',
@@ -414,7 +415,8 @@ test('all focused job names are distinct while normal names and matrix suffixes 
   const editorPrefix = "${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}";
   assert.deepEqual(Object.keys(jobs), Object.keys(expectedNames));
   for (const [id, expected] of Object.entries(expectedNames)) {
-    assert.equal(jobs[id].match(/^ {4}name: (.+)$/m)?.[1], `${namePrefix}${editorPrefix}${expected}`, id);
+    assert.equal(jobs[id].match(/^ {4}name: (.+)$/m)?.[1],
+      id === 'boundary-capture-comparison' ? expected : `${namePrefix}${editorPrefix}${expected}`, id);
   }
   assert.match(jobs['current-browser-contracts'], /^ {6}max-parallel: 2$/m);
   assert.match(jobs['current-browser-contracts'], /^ {6}fail-fast: false$/m);
@@ -422,4 +424,34 @@ test('all focused job names are distinct while normal names and matrix suffixes 
   assert.doesNotMatch(jobs['current-browser-contracts'], /--grep/);
   assert.match(jobs['preview-handoff'], /^ {8}renderer: \[webgl2, canvas\]$/m);
   assert.match(jobs['preview-handoff'], /pnpm exec playwright test tests\/browser\/edit-preview-handoff\.spec\.mjs --grep='\$\{\{ matrix.renderer \}\} '/);
+});
+
+test('manual capture comparison selects no unrelated browser matrix and ignores git', async t => {
+  assert.deepEqual(await runSelector(t, ['package.json', specPath('territorial-library')],
+    'workflow_dispatch', 'boundary-capture-comparison', { expectedGitCalls: 0 }), []);
+});
+
+test('manual capture comparison disables every existing optional application job', () => {
+  const result = runScope('workflow_dispatch', 'boundary-capture-comparison');
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(result.scopes, Object.fromEntries(scopeNames.map(name => [name, 'false'])));
+  assert.deepEqual(result.gitCalls, []);
+});
+
+test('capture comparison job is explicitly manual and invokes only the bounded four-process runner', () => {
+  const comparison = jobs['boundary-capture-comparison'];
+  assert.ok(comparison, 'the new manual comparison job must exist');
+  assert.match(comparison, /^ {4}needs: changes$/m);
+  assert.match(comparison, /^ {4}if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-capture-comparison'$/m);
+  assert.match(comparison, /^ {4}runs-on: ubuntu-latest$/m);
+  assert.doesNotMatch(comparison, /strategy:|matrix:|continue-on-error:|pnpm check:|--grep|playwright test|pnpm test:/);
+  assert.equal(comparison.match(/node scripts\/run-boundary-capture-comparison\.mjs/g)?.length, 1);
+  assert.equal(comparison.match(/actions\/upload-artifact@v4/g)?.length, 5);
+  assert.equal(comparison.match(/^ {8}if: always\(\)$/gm)?.length, 5);
+  for (const id of ['A1', 'B1', 'B2', 'A2']) {
+    assert.match(comparison, new RegExp(`name: boundary-capture-${id}-\\$\\{\\{ github.run_id \\}\\}-attempt-\\$\\{\\{ github.run_attempt \\}\\}`));
+    assert.ok(comparison.includes(`path: test-results/boundary-capture-comparison/comparison-*/${id}`));
+  }
+  assert.ok(comparison.includes('          path: |\n            test-results/boundary-capture-comparison/comparison-*/summary.json\n            test-results/boundary-capture-comparison/comparison-*/**/evidence/**'));
+  assert.equal(comparison.match(/^ {10}if-no-files-found: error$/gm)?.length, 5);
 });

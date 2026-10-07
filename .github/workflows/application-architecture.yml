@@ -12,6 +12,7 @@ on:
           - default
           - map-rendering
           - editor-diagnostics
+          - boundary-capture-comparison
   pull_request:
     paths:
       - 'assets/js/**'
@@ -143,7 +144,7 @@ jobs:
               map-rendering)
                 preview_handoff=true
                 ;;
-              editor-diagnostics)
+              editor-diagnostics|boundary-capture-comparison)
                 ;;
               *)
                 printf '%s\n' 'Unsupported browser_scope' >&2
@@ -223,10 +224,12 @@ jobs:
           const manualScope = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch'
             ? process.env.BROWSER_SCOPE || 'default'
             : 'default';
-          if (!['default', 'map-rendering', 'editor-diagnostics'].includes(manualScope)) {
+          if (!['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison'].includes(manualScope)) {
             throw new Error('Unsupported browser_scope');
           }
-          if (manualScope === 'map-rendering' || manualScope === 'editor-diagnostics') {
+          if (manualScope === 'boundary-capture-comparison') {
+            appendFileSync(process.env.GITHUB_OUTPUT, 'specs=[]\n');
+          } else if (manualScope === 'map-rendering' || manualScope === 'editor-diagnostics') {
             const selected = manualScope === 'map-rendering' ? [
               'tests/browser/country-map-substrate.spec.mjs',
               'tests/browser/interaction-unification.spec.mjs',
@@ -262,6 +265,64 @@ jobs:
             appendFileSync(process.env.GITHUB_OUTPUT, `specs=${JSON.stringify([...selected].sort())}\n`);
           }
           NODE
+
+  boundary-capture-comparison:
+    name: Boundary screencast comparison (A1, B1, B2, A2)
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-capture-comparison'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Compare screenshot capture in four independent desktop runs
+        run: node scripts/run-boundary-capture-comparison.mjs
+      - name: Upload comparison manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-capture-summary-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: |
+            test-results/boundary-capture-comparison/comparison-*/summary.json
+            test-results/boundary-capture-comparison/comparison-*/**/evidence/**
+          if-no-files-found: error
+      - name: Upload A1 comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-capture-A1-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: test-results/boundary-capture-comparison/comparison-*/A1
+          if-no-files-found: error
+      - name: Upload B1 comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-capture-B1-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: test-results/boundary-capture-comparison/comparison-*/B1
+          if-no-files-found: error
+      - name: Upload B2 comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-capture-B2-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: test-results/boundary-capture-comparison/comparison-*/B2
+          if-no-files-found: error
+      - name: Upload A2 comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-capture-A2-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: test-results/boundary-capture-comparison/comparison-*/A2
+          if-no-files-found: error
 
   current-browser-contracts:
     name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Current browser contract (${{ matrix.spec }})
@@ -598,7 +659,7 @@ jobs:
 
   command-contract:
     name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}command-contract
-    if: github.event_name != 'workflow_dispatch' || (inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics')
+    if: github.event_name != 'workflow_dispatch' || (inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
