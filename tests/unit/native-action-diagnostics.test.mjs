@@ -6,6 +6,7 @@ import fs, { readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRuntimePerformanceMetrics } from '../../assets/js/modules/runtime-performance-metrics.js';
+import { installLongAnimationFrameProbe } from '../browser/helpers/long-animation-frame-diagnostics.mjs';
 import { withNativeActionDiagnostics, nativeActionProbe } from '../browser/helpers/native-action-diagnostics.mjs';
 
 const temporaryDirectories = [];
@@ -173,7 +174,7 @@ function browserFixture({ report, observerThrows = false } = {}) {
     closest: () => row,
     getBoundingClientRect: () => { geometryReads++; throw new Error('layout read forbidden'); }, ...extra });
   return { call, node, listeners, observers, frames, timers, scope,
-    install: () => call({ command: 'install', token: 'test', selector: '.layer-search-result', rowSelector: '[data-object-key="hydro:river:exact"]' }),
+    install: (options = {}) => call({ command: 'install', token: 'test', selector: '.layer-search-result', rowSelector: '[data-object-key="hydro:river:exact"]', ...options }),
     take: () => call({ command: 'take', token: 'test' }),
     setRow: value => { row = value; }, setNow: value => { now = value; },
     mutate(records = []) { for (const observer of observers) if (!observer.disconnected) observer.callback(records); },
@@ -576,3 +577,157 @@ for (const [description, hook] of [
   assert.equal(report.browser.errors.length, 1);
   assert.equal(browser.listeners.length, 0);
 });
+
+test('LoAF collection is opt-in and consumes the independently installed snapshot only in the final read', () => {
+  const f = browserFixture(); let takes = 0;
+  const frames = { status: 'available', frames: [{ startTime: 1, duration: 70 }] };
+  f.scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__ = { take() { takes++; return frames; } };
+  f.install({ longAnimationFrames: true }); assert.equal(takes, 0);
+  const native = f.call({ command: 'take', token: 'test', longAnimationFrames: true });
+  assert.equal(takes, 1); assert.equal(native.longAnimationFrames, frames);
+  assert.equal(native.events.length, 0);
+  const other = browserFixture(); other.scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__ = { take() { throw new Error('must not consume'); } };
+  other.install(); assert.equal(other.take().longAnimationFrames, undefined);
+});
+
+test('an expired associated native probe captures LoAF while missing and stale tokens cannot consume it', () => {
+  for (const scenario of ['expired', 'missing', 'stale']) {
+    const f = browserFixture(); let takes = 0;
+    f.scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__ = { take() { takes++; return { status: 'available' }; } };
+    if (scenario === 'expired') { f.install({ longAnimationFrames: true }); for (const callback of [...f.timers.values()]) callback(); }
+    if (scenario === 'stale') f.call({ command: 'install', token: 'new', selector: '#undoBtn' });
+    const result = f.call({ command: 'take', token: 'test', longAnimationFrames: true });
+    assert.equal(takes, scenario === 'expired' ? 1 : 0);
+    assert.equal(result.longAnimationFrames.status, scenario === 'expired' ? 'available' : 'unavailable');
+    if (scenario === 'expired') assert.equal(result.expired, true);
+  }
+});
+
+for (const throws of [false, true]) test(`LoAF ${throws ? 'snapshot failure' : 'missing init script'} is explicit diagnostic evidence`, () => {
+  const f = browserFixture();
+  if (throws) f.scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__ = { take() { throw new Error('snapshot failure'); } };
+  f.install({ longAnimationFrames: true });
+  const result = f.call({ command: 'take', token: 'test', longAnimationFrames: true });
+  assert.equal(result.longAnimationFrames.status, throws ? 'error' : 'unavailable');
+  assert.equal(result.longAnimationFrames.frames, null);
+  assert.match(result.longAnimationFrames.coverage, /cannot rule out/);
+  assert.equal(f.listeners.length, 0);
+});
+
+for (const failed of [false, true]) test(`final take waits for already-awaited CPU stop/finish and preserves ${failed ? 'error' : 'result'} and host timing`, async () => {
+  let resolveStop, requestedStop, now = 1, attempts = 0;
+  const stop = new Promise(resolve => { resolveStop = resolve; });
+  const stopped = new Promise(resolve => { requestedStop = resolve; });
+  const stages = [];
+  const f = hostFixture(async (probe, options) => { stages.push(options.command); return { command: options.command, longAnimationFrames: options.longAnimationFrames }; });
+  f.page.context = () => ({ newCDPSession: async () => ({
+    async send(method) {
+      stages.push(method);
+      if (method === 'Profiler.stop') { requestedStop(); return stop; }
+      return {};
+    }, async detach() { stages.push('detach'); },
+  }) });
+  const original = failed ? new Error('original locator timeout') : {};
+  const running = withNativeActionDiagnostics(f.page, f.testInfo,
+    { ...f.options, cpuProfile: true, longAnimationFrames: true, now: () => now }, () => {
+      attempts++; now = 9751; if (failed) throw original; return original;
+    });
+  const settled = running.then(value => ({ value }), error => ({ error }));
+  await stopped;
+  for (let i = 0; i < 30; i++) await Promise.resolve();
+  // Resolve before assertions so a red test cannot leave the profiler hanging.
+  const tookBeforeStop = stages.includes('take');
+  const host = JSON.parse(f.lines.find(line => line.startsWith('[native-action] ')).slice('[native-action] '.length)).host;
+  now = 20000; resolveStop({}); const result = await settled;
+  assert.equal(tookBeforeStop, false);
+  assert.ok(stages.indexOf('detach') < stages.indexOf('take'));
+  assert.equal(stages.filter(value => value === 'take').length, 1);
+  assert.equal(stages.filter(value => value === 'Profiler.stop').length, 1);
+  assert.equal(result[failed ? 'error' : 'value'], original); assert.equal(attempts, 1);
+  assert.deepEqual(host, { startedAtMs: 1, endedAtMs: 9751, durationMs: 9750, outcome: failed ? 'rejected' : 'fulfilled' });
+  const report = JSON.parse(await readFile(f.testInfo.outputPath('project-undo-native-action.json'), 'utf8'));
+  assert.equal(report.setup.longAnimationFrames, true);
+  assert.equal(report.browser.longAnimationFrames, true);
+  assert.deepEqual(report.host, host);
+});
+
+test('a stale native take after navigation cannot consume a newer document observer', () => {
+  const oldPage = browserFixture(); oldPage.install();
+  const nextPage = browserFixture(); let takes = 0;
+  nextPage.scope.performance.timeOrigin = 456000;
+  nextPage.scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__ = { take() { takes++; return { status: 'available' }; } };
+  const result = nextPage.call({ command: 'take', token: 'test', longAnimationFrames: true });
+  assert.equal(result.unavailableReason, 'missing-token');
+  assert.equal(result.longAnimationFrames.status, 'unavailable');
+  assert.equal(result.longAnimationFrames.reason, 'missing-native-token');
+  assert.equal(takes, 0);
+});
+
+test('a native take consumes only its installation-associated observer, not a replacement', () => {
+  const f = browserFixture(); let oldTakes = 0, newTakes = 0;
+  const oldProbe = { take() { oldTakes++; return { status: 'available', identity: 'old' }; } };
+  f.scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__ = oldProbe;
+  f.call({ command: 'install', token: 'test', selector: '#undoBtn', longAnimationFrames: true });
+  f.scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__ = { take() { newTakes++; return { status: 'available', identity: 'new' }; } };
+  const result = f.call({ command: 'take', token: 'test', longAnimationFrames: true });
+  assert.equal(result.longAnimationFrames.identity, 'old');
+  assert.equal(oldTakes, 1); assert.equal(newTakes, 0);
+});
+
+test('late observer installation cannot arm an unassociated native take', () => {
+  const f = browserFixture(); f.call({ command: 'install', token: 'test', selector: '#undoBtn', longAnimationFrames: true });
+  let takes = 0;
+  f.scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__ = { take() { takes++; return { status: 'available' }; } };
+  const result = f.call({ command: 'take', token: 'test', longAnimationFrames: true });
+  assert.equal(result.longAnimationFrames.status, 'unavailable'); assert.equal(takes, 0);
+});
+
+function addRealLongAnimationFrameObserver(fixture) {
+  const observers = [];
+  fixture.scope.PerformanceObserver = class {
+    static supportedEntryTypes = ['long-animation-frame'];
+    constructor(callback) { this.callback = callback; this.disconnected = false; observers.push(this); }
+    observe() {}
+    takeRecords() { return []; }
+    disconnect() { this.disconnected = true; }
+  };
+  fixture.scope.addEventListener = () => {};
+  fixture.scope.removeEventListener = () => {};
+  vm.runInNewContext(`(${installLongAnimationFrameProbe.toString()})()`, { globalThis: fixture.scope });
+  return { observer: observers[0], emit: startTime => observers[0].callback({
+    getEntries: () => [{ startTime, duration: 75, scripts: [] }],
+  }) };
+}
+
+for (const scenario of ['expired-install', 'new-document', 'stale-token', 'late-observer']) {
+  test(`real LoAF ${scenario} snapshots are useful but non-destructive and explicitly unassociated`, () => {
+    const f = browserFixture();
+    if (scenario === 'new-document') {
+      const old = browserFixture(); const oldLoaf = addRealLongAnimationFrameObserver(old); old.install({ longAnimationFrames: true });
+      old.scope.__PANDOLAB_LONG_ANIMATION_FRAME_TEST_PROBE__.dispose('pagehide');
+      assert.equal(oldLoaf.observer.disconnected, true);
+      f.scope.performance.timeOrigin = 456000;
+    }
+    if (scenario === 'late-observer') f.install({ longAnimationFrames: true });
+    const loaf = addRealLongAnimationFrameObserver(f); loaf.emit(555);
+    if (scenario === 'expired-install') assert.equal(f.call({ command: 'install', token: 'test', selector: '#undoBtn',
+      longAnimationFrames: true, installBeforeEpochMs: 0 }).installationExpired, true);
+    if (scenario === 'stale-token') f.call({ command: 'install', token: 'new', selector: '#undoBtn', longAnimationFrames: true });
+    const result = f.call({ command: 'take', token: 'test', longAnimationFrames: true });
+    assert.equal(result.longAnimationFrames.status, 'available');
+    assert.equal(result.longAnimationFrames.collectionMode, 'non-destructive-snapshot');
+    assert.equal(result.longAnimationFrames.nativeAssociation, 'unknown');
+    assert.equal(result.longAnimationFrames.nativeAssociationReason, scenario === 'stale-token' ? 'token-mismatch'
+      : scenario === 'late-observer' ? 'missing-init-script-at-native-install' : 'missing-native-token');
+    assert.equal(result.longAnimationFrames.frames[0].startTime, 555);
+    assert.equal(result.longAnimationFrames.timeOrigin, scenario === 'new-document' ? 456000 : 123000);
+    assert.equal(loaf.observer.disconnected, false);
+    loaf.emit(777);
+    assert.equal(result.longAnimationFrames.frames.length, 1, 'earlier snapshots remain independent');
+    if (scenario !== 'stale-token') f.call({ command: 'install', token: 'new', selector: '#undoBtn', longAnimationFrames: true });
+    const final = f.call({ command: 'take', token: 'new', longAnimationFrames: true });
+    assert.equal(final.longAnimationFrames.collectionMode, 'final-take');
+    assert.deepEqual(Array.from(final.longAnimationFrames.frames, frame => frame.startTime), [555, 777]);
+    assert.equal(loaf.observer.disconnected, true);
+  });
+}
