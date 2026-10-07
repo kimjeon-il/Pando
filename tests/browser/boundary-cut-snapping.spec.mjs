@@ -2,14 +2,20 @@ import { expect, test as base } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { installLongAnimationFrameProbe } from './helpers/long-animation-frame-diagnostics.mjs';
-import { withNativeActionDiagnostics } from './helpers/native-action-diagnostics.mjs';
-import { boundaryNativeTimelineFixture } from './helpers/native-action-timeline.mjs';
+import { boundaryRevisionTimingFixture, isBoundaryRevisionComparison } from './helpers/boundary-revision-timings.mjs';
 
+const comparison = isBoundaryRevisionComparison();
+const loaf = comparison ? null : await import('./helpers/long-animation-frame-diagnostics.mjs');
+const diagnostics = comparison ? null : await import('./helpers/native-action-diagnostics.mjs');
+const timeline = comparison ? null : await import('./helpers/native-action-timeline.mjs');
+const installLongAnimationFrameProbe = comparison ? null : loaf.installLongAnimationFrameProbe;
+const withNativeActionDiagnostics = comparison ? null : diagnostics.withNativeActionDiagnostics;
 const test = base.extend({
-  // Playwright shares a custom fixture's slot between setup and teardown.
-  // Allow 2 s preflight plus the controller's independent 20 s teardown cap.
-  nativeTimeline: [boundaryNativeTimelineFixture, { timeout: 22_000 }],
+  boundaryTimings: boundaryRevisionTimingFixture,
+  // The comparator uses a null slot, never the native controller fixture.
+  // Its host fixture validates the isolated config before any test action.
+  nativeTimeline: comparison ? async ({ boundaryTimings }, use) => { await use(null); }
+    : [timeline.boundaryNativeTimelineFixture, { timeout: 22_000 }],
 });
 
 const parentId = '00000000-0000-4000-8000-000000000021';
@@ -52,9 +58,9 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
   return errors;
 }
 
-test('a child cut snaps to both parent boundaries, preserves coverage and undoes in one step', async ({ page, nativeTimeline }, testInfo) => {
+test('a child cut snaps to both parent boundaries, preserves coverage and undoes in one step', async ({ page, nativeTimeline, boundaryTimings }, testInfo) => {
   test.setTimeout(360_000);
-  await page.addInitScript(installLongAnimationFrameProbe);
+  if (!comparison) await page.addInitScript(installLongAnimationFrameProbe);
   const errors = await openApp(page);
 
   await page.locator('#createMenuBtn').click();
@@ -279,20 +285,33 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   expect(candidates).toContainEqual(child.geometry);
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), parentId)).toEqual(before);
   await expect.poll(async () => (await savedProject(page)).territorialEntities.some(entity => entity.id === child.id), { timeout: 30_000 }).toBe(true);
-  await withNativeActionDiagnostics(page, testInfo, { label: 'boundary-project-undo', selector: '#undoBtn', cpuProfile: true, longAnimationFrames: true, nativeTimeline }, async () => {
+  const timed = (name, operation) => boundaryTimings ? boundaryTimings.measure(name, operation) : operation();
+  const undo = async () => {
     await page.locator('#undoBtn').click();
+  };
+  if (comparison) await timed('undo-click', undo);
+  else await withNativeActionDiagnostics(page, testInfo, { label: 'boundary-project-undo', selector: '#undoBtn', cpuProfile: true, longAnimationFrames: true, nativeTimeline }, undo);
+  await timed('child-observation', async () => {
+    expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id)).toBeNull();
   });
-  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id)).toBeNull();
-  expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), parentId)).toEqual(before);
-  await expect.poll(async () => {
-    const restored = await savedProject(page);
-    return { identities: restored.territorialEntities, timelineRecords: restored.timelineRecords, geometries: restored.geometries };
-  }, { timeout: 30_000 }).toEqual({ identities: beforeStorage.territorialEntities,
-    timelineRecords: beforeStorage.timelineRecords, geometries: beforeStorage.geometries });
+  await timed('parent-observation', async () => {
+    expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), parentId)).toEqual(before);
+  });
+  await timed('storage-observation', async () => {
+    await expect.poll(async () => {
+      const restored = await savedProject(page);
+      return { identities: restored.territorialEntities, timelineRecords: restored.timelineRecords, geometries: restored.geometries };
+    }, { timeout: 30_000 }).toEqual({ identities: beforeStorage.territorialEntities,
+      timelineRecords: beforeStorage.timelineRecords, geometries: beforeStorage.geometries });
+  });
   // Trace snapshots and complete archive restoration share this native action's budget.
-  await page.locator('#redoBtn').click({ timeout: 30_000, noWaitAfter: true });
-  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id),
-    { timeout: 30_000 }).toEqual(child);
+  await timed('redo-click', async () => {
+    await page.locator('#redoBtn').click({ timeout: 30_000, noWaitAfter: true });
+  });
+  await timed('redo-observation', async () => {
+    await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id),
+      { timeout: 30_000 }).toEqual(child);
+  });
   const committedProofPath = testInfo.outputPath('cut-geometry-history.json');
   await writeFile(committedProofPath, JSON.stringify({ parent: before, child, candidates,
     restored: { identities: beforeStorage.territorialEntities, timelineRecords: beforeStorage.timelineRecords,
