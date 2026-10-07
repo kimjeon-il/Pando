@@ -27,6 +27,8 @@ const specPath = name => `${prefix}${name}.spec.mjs`;
 const coreSmoke = ['boundary-cut-snapping', 'country-label-flags', 'generic-feature-independent-geometry',
   'hydro-metadata-edit', 'storage-protection', 'ui-components', 'gis-interchange'].map(specPath).sort();
 const focusedSpecs = ['country-map-substrate', 'interaction-unification'].map(specPath);
+const editorDiagnosticSpecs = ['gis-interchange', 'boundary-cut-snapping', 'hydro-metadata-edit',
+  'library-header-layout'].map(specPath);
 const scopeNames = ['territorial_store', 'unit_suite', 'python_contracts', 'data_contracts', 'terrain_rendering',
   'boundary_continuity', 'preview_handoff', 'scene_staging', 'visual_policy'];
 const timelineConsumers = readdirSync(browserDirectory).filter(name => name.endsWith('.spec.mjs')
@@ -164,6 +166,23 @@ test('focused map dispatch ignores unrelated specs helpers and infrastructure ch
   assert.deepEqual(await runSelector(t, changed, 'workflow_dispatch', 'map-rendering', { expectedGitCalls: 0 }), focusedSpecs);
 });
 
+test('editor diagnostics select only the four fixed complete specs without inspecting git', async t => {
+  assert.deepEqual(await runSelector(t, [], 'workflow_dispatch', 'editor-diagnostics', { expectedGitCalls: 0 }), editorDiagnosticSpecs);
+});
+
+test('editor diagnostics ignore unrelated specs helpers and infrastructure changes', async t => {
+  const changed = ['tests/browser/territorial-library.spec.mjs', 'tests/helpers/timeline-project.mjs',
+    'tests/browser/helpers/map-diagnostics.mjs', 'package.json', '.github/workflows/application-architecture.yml'];
+  assert.deepEqual(await runSelector(t, changed, 'workflow_dispatch', 'editor-diagnostics', { expectedGitCalls: 0 }), editorDiagnosticSpecs);
+});
+
+test('editor diagnostics leave all nine optional application scopes disabled without inspecting git', () => {
+  const result = runScope('workflow_dispatch', 'editor-diagnostics');
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(result.scopes, Object.fromEntries(scopeNames.map(name => [name, 'false'])));
+  assert.deepEqual(result.gitCalls, []);
+});
+
 for (const browserScope of [undefined, '', 'default']) {
   const label = browserScope === undefined ? 'missing' : JSON.stringify(browserScope);
   test(`manual ${label} scope retains changed specs and all existing smoke specs`, async t => {
@@ -179,7 +198,7 @@ for (const browserScope of [undefined, '', 'default']) {
 }
 
 for (const eventName of ['pull_request', 'push']) {
-  for (const browserScope of ['map-rendering', 'unknown']) {
+  for (const browserScope of ['map-rendering', 'editor-diagnostics', 'unknown']) {
     test(`${eventName} selector ignores supplied ${browserScope} manual scope`, async t => {
       const changed = ['tests/helpers/timeline-project.mjs', 'package.json'];
       const expected = [...new Set([...timelineConsumers, ...coreSmoke])].sort();
@@ -201,7 +220,7 @@ for (const eventName of ['pull_request', 'push']) {
   }
 }
 
-for (const browserScope of ['unknown', 'map-rendering; touch sentinel', '$(touch sentinel)']) {
+for (const browserScope of ['unknown', 'map-rendering; touch sentinel', 'editor-diagnostics; touch sentinel', '$(touch sentinel)']) {
   test(`manual selector rejects ${JSON.stringify(browserScope)} before output or git`, async t => {
     await runSelector(t, [], 'workflow_dispatch', browserScope,
       { expectedGitCalls: 0, expectedError: /Unsupported browser_scope/ });
@@ -223,6 +242,14 @@ for (const missingSpec of focusedSpecs) {
   });
 }
 
+for (const missingSpec of editorDiagnosticSpecs) {
+  test(`editor diagnostics reject missing ${missingSpec} before output or git`, async t => {
+    await runSelector(t, [], 'workflow_dispatch', 'editor-diagnostics', {
+      expectedGitCalls: 0, expectedError: { message: `Missing focused browser spec: ${missingSpec}` }, missingSpec,
+    });
+  });
+}
+
 test('focused application scopes enable only the existing preview handoff renderer job', () => {
   const result = runScope('workflow_dispatch', 'map-rendering');
   assert.equal(result.status, 0, result.stderr);
@@ -236,7 +263,7 @@ test('workflow exposes only the allowlisted optional dispatch choice and keeps r
   assert.match(dispatch, /^ {8}required: false$/m);
   assert.match(dispatch, /^ {8}type: choice$/m);
   assert.match(dispatch, /^ {8}default: default$/m);
-  assert.deepEqual([...dispatch.matchAll(/^ {10}- (.+)$/gm)].map(match => match[1]), ['default', 'map-rendering']);
+  assert.deepEqual([...dispatch.matchAll(/^ {10}- (.+)$/gm)].map(match => match[1]), ['default', 'map-rendering', 'editor-diagnostics']);
   assert.deepEqual([...dispatch.matchAll(/^ {6}(\w+):$/gm)].map(match => match[1]), ['browser_scope']);
   assert.match(workflow, /^permissions:\n {2}contents: read\n\njobs:/m);
   assert.equal(workflow.match(/^ {10}BROWSER_SCOPE: \$\{\{ inputs.browser_scope \|\| 'default' \}\}$/gm)?.length, 2);
@@ -246,7 +273,7 @@ test('workflow exposes only the allowlisted optional dispatch choice and keeps r
 });
 
 test('focused dispatch skips only the broad unconditional architecture job through an explicit event and input gate', () => {
-  assert.match(jobs['command-contract'], /^ {4}if: github.event_name != 'workflow_dispatch' \|\| inputs.browser_scope != 'map-rendering'$/m);
+  assert.match(jobs['command-contract'], /^ {4}if: github.event_name != 'workflow_dispatch' \|\| \(inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics'\)$/m);
   assert.match(jobs['command-contract'], /^ {8}run: pnpm check:architecture$/m);
 });
 
@@ -266,12 +293,15 @@ test('all focused job names are distinct while normal names and matrix suffixes 
     'full-unit-suite': 'Full unit suite',
   };
   const namePrefix = "${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}";
+  const editorPrefix = "${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}";
   assert.deepEqual(Object.keys(jobs), Object.keys(expectedNames));
   for (const [id, expected] of Object.entries(expectedNames)) {
-    assert.equal(jobs[id].match(/^ {4}name: (.+)$/m)?.[1], `${namePrefix}${expected}`, id);
+    assert.equal(jobs[id].match(/^ {4}name: (.+)$/m)?.[1], `${namePrefix}${editorPrefix}${expected}`, id);
   }
   assert.match(jobs['current-browser-contracts'], /^ {6}max-parallel: 2$/m);
   assert.match(jobs['current-browser-contracts'], /^ {6}fail-fast: false$/m);
+  assert.match(jobs['current-browser-contracts'], /pnpm exec playwright test "\$\{\{ matrix.spec \}\}" --workers=1 --output=test-results\/current-browser-contracts /);
+  assert.doesNotMatch(jobs['current-browser-contracts'], /--grep/);
   assert.match(jobs['preview-handoff'], /^ {8}renderer: \[webgl2, canvas\]$/m);
   assert.match(jobs['preview-handoff'], /pnpm exec playwright test tests\/browser\/edit-preview-handoff\.spec\.mjs --grep='\$\{\{ matrix.renderer \}\} '/);
 });
