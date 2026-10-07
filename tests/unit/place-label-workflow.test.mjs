@@ -15,6 +15,7 @@ import { createCanonicalCountryStore } from '../../assets/js/modules/canonical-c
 import { encodeCanonicalCountryPacket } from '../../tools/canonical-country-packet-encoder.mjs';
 import { readFileSync } from 'node:fs';
 import { createHistoryService } from '../../assets/js/modules/history-service.js';
+import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
 const source=normalizePlace({source:'synthetic',sourceId:'1',name:'서울',kind:'capital',coordinates:[127,37]});
 test('canonical object lookup resolves builtin labels in the existing domain with readonly capabilities',()=>{
   const owner=createObjectCommands();owner.connect({selectionServices:{normalizeObjectRef},projectState:{state:{labels:[]}},labelPresentation:{labelById:id=>id===source.id?source:null}});
@@ -54,6 +55,7 @@ function historySnapshotFixture({ labels = [], labelSettings = {} } = {}) {
   };
   owner.connect({
     projectState: { state },
+    projectSession: { saveState: createSaveStateController() },
     applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { SINGLE: 'single', OVERLAP: 'overlap' }, BUILTIN_TERRITORY_MERGES: [] },
     platformConfigurationA: { BASE_DATASET: 'fixture' },
     objectCatalog: { builtinSubunitSourceId: () => '' },
