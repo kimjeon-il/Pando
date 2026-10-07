@@ -125,3 +125,70 @@ test('boundary requests reuse synchronized sources and send only geometry, hiera
   client.invalidateBoundaryCache();
   assert.equal(worker.messages.at(-1).type, 'boundary-invalidate');
 });
+
+function manualWorkerClient(t) {
+  const workers = [];
+  const client = createMapEditWorkerClient({
+    createWorker: () => {
+      const worker = createFakeWorker();
+      worker.postMessage = function(message) { this.messages.push(message); };
+      workers.push(worker);
+      return worker;
+    },
+    getEntities: () => [],
+    getFeatureById: () => null,
+  });
+  t.after(() => client.stop());
+  return { client, workers };
+}
+
+test('retired edit worker errors cannot clear replacement readiness', t => {
+  const { client, workers } = manualWorkerClient(t);
+  client.rebase();
+  const retiredError = workers[0].onerror;
+  client.stop();
+  const revision = client.rebase();
+  workers[1].onmessage({ data: { type: 'ready', dataRevision: revision } });
+  assert.equal(client.stats().ready, true);
+  retiredError({ message: 'retired bootstrap failure' });
+  assert.equal(client.stats().ready, true);
+  assert.equal(workers[1].terminated, false);
+  assert.equal(workers.length, 2);
+});
+
+test('retired edit worker ready messages cannot ready a same-revision replacement', t => {
+  const { client, workers } = manualWorkerClient(t);
+  const revision = client.rebase();
+  const retiredMessage = workers[0].onmessage;
+  workers[0].onerror({ message: 'bootstrap failure' });
+  client.invalidateBoundaryCache();
+  assert.equal(workers.length, 2);
+  assert.equal(client.stats().dataRevision, revision);
+  retiredMessage({ data: { type: 'ready', dataRevision: revision } });
+  assert.equal(client.stats().ready, false);
+  workers[1].onmessage({ data: { type: 'ready', dataRevision: revision } });
+  assert.equal(client.stats().ready, true);
+});
+
+test('stopped edit worker ignores ready messages without a replacement', t => {
+  const { client, workers } = manualWorkerClient(t);
+  const revision = client.rebase();
+  const retiredMessage = workers[0].onmessage;
+  client.stop();
+  retiredMessage({ data: { type: 'ready', dataRevision: revision } });
+  assert.equal(client.stats().ready, false);
+  assert.equal(client.stats().workerActive, false);
+  assert.equal(workers.length, 1);
+});
+
+test('active edit worker errors clear readiness without cancelling the native error', t => {
+  const { client, workers } = manualWorkerClient(t);
+  const revision = client.rebase();
+  workers[0].onmessage({ data: { type: 'ready', dataRevision: revision } });
+  let prevented = false;
+  workers[0].onerror({ message: 'active bootstrap failure', preventDefault: () => { prevented = true; } });
+  assert.equal(client.stats().ready, false);
+  assert.equal(client.stats().crashes, 1);
+  assert.equal(workers[0].terminated, true);
+  assert.equal(prevented, false);
+});

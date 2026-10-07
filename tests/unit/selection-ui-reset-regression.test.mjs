@@ -59,8 +59,6 @@ function setup() {
     },
     uiActions: {
       clearPresenter: () => events.push(['clear-presenter']),
-      syncSelectionToolbar: ref => events.push(['toolbar', ref.key]),
-      clearSelectionToolbar: () => events.push(['clear-toolbar']),
       syncBatchActions: current => events.push(['batch', current.items.map(ref => ref.key)]),
       syncMapSurfaces: current => events.push(['surfaces', current.items.map(ref => ref.key)]),
       syncLayerRows: current => events.push(['layers', current.items.map(ref => ref.key)]),
@@ -83,7 +81,6 @@ test('same-frame selection changes render only the final empty state', () => {
 
   assert.deepEqual(state.events, [
     ['clear-presenter'],
-    ['clear-toolbar'],
     ['batch', []],
     ['surfaces', []],
     ['layers', []],
@@ -112,14 +109,13 @@ test('project reset cancels stale selection work and synchronizes every selectio
   assert.equal(state.bodyClasses.has('multi-selection-active'), false);
   assert.deepEqual(state.events, [
     ['clear-presenter'],
-    ['clear-toolbar'],
     ['batch', []],
     ['surfaces', []],
     ['layers', []],
   ]);
 
   state.scheduler.flushAll();
-  assert.equal(state.events.length, 5);
+  assert.equal(state.events.length, 4);
 });
 
 test('dispose cancels a queued selection frame permanently', () => {

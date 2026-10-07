@@ -5,7 +5,6 @@ test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
 
 async function select(page, id) {
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#entityProperties')).toBeVisible();
 }
 async function importRegions(page, rows) {
@@ -54,7 +53,10 @@ test('common territorial metadata, flags and deletion preserve selection, undo a
   expect(await page.evaluate(()=>JSON.stringify(window.__PANDOLAB_VIEW_STATE__))).toBe(camera);
   const unit=await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list({kind:'general'}).filter(f=>f.properties.parentId).find(f=>f.properties.metadata?.builtinSubunit?.sourceCountryId==='ALD').id);
   await select(page,unit);
-  await page.locator('#flagFileInput').setInputFiles({name:'test.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="12"><path fill="red" d="M0 0h24v12H0z"/></svg>')});
+  await page.locator('#flagMenuBtn').click();
+  const flagChooser = page.waitForEvent('filechooser');
+  await page.locator('#flagUploadBtn').click();
+  await (await flagChooser).setFiles({name:'test.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="12"><path fill="red" d="M0 0h24v12H0z"/></svg>')});
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id).properties.metadata.flagDataUrl,unit)).toMatch(/^data:image/);
   await page.locator('#flagMenuBtn').click(); await page.locator('#flagRemoveBtn').click();
   expect(await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id).properties.metadata.flagDataUrl,unit)).toBeNull();
@@ -90,7 +92,6 @@ test('Region merge uses the common Worker plan and supports geometry undo and sa
   await page.locator(`[data-object-search-focus][data-item-id="${a}"]`).click();
   await expect(page.locator(`g.territorial-label-item[data-label-id="territorial:entity:${a}"]`)).toBeVisible();
   await page.locator(`[data-object-search-select][data-item-id="${a}"]`).click();
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.locator('#actionsTabBtn').click(); await page.locator('#mergeEntityBtn').click();
   await page.locator('path.territorial-unit-shape').evaluateAll((nodes,id)=>{

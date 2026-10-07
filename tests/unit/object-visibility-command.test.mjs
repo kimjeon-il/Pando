@@ -27,7 +27,7 @@ function harness(refs, { builtin = false } = {}) {
     distributionLayerById: () => feature,
     hydroFeatureById: () => feature, hydroEditById: () => builtin ? null : feature,
     labelById: () => feature,
-    syncSelectionToolbarInteraction() {},
+    syncTerritorialEditorInteraction() {},
     hydroCategoryKey: value => value === 'lake' ? 'lake' : 'river',
     hydroCategoryLabel: value => value === 'lake' ? '호수' : '강',
     hydroFallbackName: value => `이름 없는 ${value === 'lake' ? '호수' : '강'}`,

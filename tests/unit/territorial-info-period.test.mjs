@@ -37,7 +37,7 @@ test('one period change submits both endpoints together and failure uses native 
   const commits = [];
   let result = { ok: false, code: 'TIMELINE_ACTIVATION', issues: ['정적 프로젝트만 편집할 수 있습니다.'] };
   const ref = { domain: 'territorial', type: 'entity', id: 'A' };
-  propertyEditor.createTerritorialPropertyController({ getElement, getPrimaryRef: () => ref,
+  propertyEditor.createTerritorialPropertyController({ window: { addEventListener() {} }, document: { addEventListener() {} }, isMutationBlocked: () => false, getElement, getPrimaryRef: () => ref,
     elements: { name: getElement('entityNameInput'), notes: getElement('entityNotesInput') },
     commitField: (...args) => { commits.push(args); return result; },
   }).bind();

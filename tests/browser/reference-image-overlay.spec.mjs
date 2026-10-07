@@ -310,7 +310,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   const baseCenterX = baseGeometry.center.x;
   const baseCenterY = baseGeometry.center.y;
   await page.locator('[data-ref-action="gcp"]').click();
-  const selectedBeforeGcp = await page.locator('#selectionToolbar').getAttribute('aria-hidden');
+  const selectedBeforeGcp = await page.locator('#propertyTitle').textContent();
   await expect(page.locator('#map')).toHaveClass(/is-reference-gcp-mode/);
   await page.mouse.click(firstImagePoint.x, firstImagePoint.y);
   await page.mouse.move(baseCenterX - 120, baseCenterY - 120);
@@ -326,7 +326,7 @@ test('reference images support placement, ordering, georeferencing and persisten
     return { count: item?.controlPointCount, mode: item?.warpMode };
   })).toEqual({ count: 2, mode: 'similarity' });
   await expect(page.locator('[data-ref-action="placement"]')).toBeDisabled();
-  expect(await page.locator('#selectionToolbar').getAttribute('aria-hidden')).toEqual(selectedBeforeGcp);
+  expect(await page.locator('#propertyTitle').textContent()).toEqual(selectedBeforeGcp);
   await page.keyboard.press('Escape');
   const pointBeforeDirectEdit = (await readReferenceStore(page)).find(item => item.name === '<Base "reference">').controlPoints[0];
   const pointScreen = await page.evaluate(point => {
