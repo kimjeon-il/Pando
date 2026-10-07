@@ -226,7 +226,7 @@ body.modal-open { overflow: hidden; }
   padding: var(--ui-space-2);
   border: var(--ui-border-width) solid var(--border-strong);
   border-radius: var(--ui-radius-panel);
-  background: var(--surface-elevated);
+  background: var(--modal-card-bg);
   box-shadow: var(--design-control-shadow);
 }
 .territorial-library-time-popover[hidden] { display: none; }

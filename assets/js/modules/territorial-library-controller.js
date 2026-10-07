@@ -6,6 +6,7 @@ export function createTerritorialLibraryController({
   service,
   renderMapPreview,
   createEmptyState,
+  syncSearchClearButton,
   replaceSelectOptions,
   shouldShowTerritorialParentChoice,
   closeSurface,
@@ -331,6 +332,7 @@ export function createTerritorialLibraryController({
   // a pending chunk. Retiring the old generation alone would leave a loading preview.
   async function refreshSelection({ generation = ++requestGeneration, restoreFocus = false } = {}) {
     const project = getProjectGeneration();
+    syncSearchClearButton(elements.search, elements.clearSearch);
     resetOwnership();
     setTimePopover(false);
     setLoadingState(false);

@@ -6,6 +6,7 @@ import { selectGeometryVersion } from '../../assets/js/modules/territorial-libra
 import { shouldShowTerritorialParentChoice } from '../../assets/js/modules/library-ownership.js';
 import { resolveSelectChoice } from '../../assets/js/modules/select-option-policy.js';
 import { catalogEntity } from '../helpers/territorial-catalog.mjs';
+import { createEnvironment } from '../../assets/js/modules/app-environment.js';
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]] };
 const entity = (id, extra = {}) => catalogEntity({ entityId: `state:${id}`, entityKind: 'general', names: { en: id },
@@ -30,7 +31,8 @@ function fakeElement(ownerDocument, tag = 'div') {
   return {
     ownerDocument, tagName: tag.toUpperCase(), children: [], attributes, dataset: {}, value: '', disabled: false,
     textContent: '', hidden: false, parentElement: null,
-    classList: { add: (...names) => names.forEach(name => classes.add(name)), remove: (...names) => names.forEach(name => classes.delete(name)), contains: name => classes.has(name) },
+    classList: { add: (...names) => names.forEach(name => classes.add(name)), remove: (...names) => names.forEach(name => classes.delete(name)), contains: name => classes.has(name),
+      toggle: (name, force) => { const add = force ?? !classes.has(name); if (add) classes.add(name); else classes.delete(name); return add; } },
     addEventListener(name, callback) { listeners.set(name, callback); },
     dispatchEvent(event) { return listeners.get(event.type)?.({ target: this, ...event }); },
     append(...children) { for (const child of children) { child.remove(); child.parentElement = this; this.children.push(child); } },
@@ -57,6 +59,7 @@ function harness({ entities = [entity('root')], lineages, snapshots = [], loadIn
   const names = ['open', 'modal', 'card', 'close', 'backdrop', 'search', 'clearSearch', 'referenceDate', 'timeSuggest', 'timePopover',
     'results', 'preview', 'childDepth', 'add', 'addOptions', 'optionsBack', 'ownership'];
   const elements = Object.fromEntries(names.map(name => [name, fakeElement(document)]));
+  elements.clearSearch.classList.add('hidden');
   elements.modal.classList.add('hidden'); elements.timePopover.hidden = true; elements.childDepth.value = 'none';
   elements.preview.id = 'territorialLibraryPreview'; elements.timePopover.id = 'territorialLibraryTimePopover';
   elements.modal.append(elements.card); elements.card.append(...names.filter(name => !['modal', 'card', 'open'].includes(name)).map(name => elements[name]));
@@ -78,6 +81,7 @@ function harness({ entities = [entity('root')], lineages, snapshots = [], loadIn
   const controller = createTerritorialLibraryController({ document, elements,
     service: { ...service, search: options => { calls.search.push(options); return service.search(options); } },
     selectGeometryVersion, shouldShowTerritorialParentChoice, getProjectGeneration, requestFrame,
+    syncSearchClearButton: createEnvironment().syncSearchClearButton,
     renderMapPreview: () => { const map = fakeElement(document); map.className = 'territorial-library-preview-map'; return map; },
     createEmptyState: (title, help) => { const node = fakeElement(document); node.textContent = `${title} ${help}`; return node; },
     replaceSelectOptions: (select, options, value, policy) => { const choice = resolveSelectChoice(options, value, policy); select.value = choice.value; return choice; },
@@ -308,4 +312,27 @@ test('retired project chunk failure clears loading preview without reporting an 
   let project = 1; const gate = deferred(), h = harness({ getProjectGeneration: () => project, loadEntity: () => gate.promise });
   await h.controller.open(); const selecting = h.controller.select('state:root'); project++; gate.reject(new Error('obsolete failure')); await selecting;
   assert.equal(h.elements.preview.hidden, true); assert.equal(h.elements.add.disabled, true); assert.deepEqual(h.calls.reports, []);
+});
+
+
+test('library search clear visibility follows typing, invalid date, clearing and reopened query through the shared helper', async () => {
+  const h = harness({ entities: [gdr(), entity('other')] });
+  await h.controller.open();
+  assert.equal(h.elements.clearSearch.classList.contains('hidden'), true);
+  await h.input('search', '동독');
+  assert.equal(h.elements.clearSearch.classList.contains('hidden'), false, 'typing a name reveals the native clear action');
+  assert.equal(h.rows().length, 1);
+  await h.input('referenceDate', '0000');
+  assert.equal(h.elements.clearSearch.classList.contains('hidden'), false, 'invalid dates do not disable clearing the name');
+  await h.input('referenceDate', '');
+  await h.elements.clearSearch.click();
+  assert.equal(h.elements.search.value, '');
+  assert.equal(h.elements.clearSearch.classList.contains('hidden'), true);
+  assert.equal(h.document.activeElement, h.elements.search);
+  assert.equal(h.rows().length, 2);
+  h.controller.close(); h.elements.search.value = '동독'; await h.controller.open();
+  assert.equal(h.elements.clearSearch.classList.contains('hidden'), false, 'opening derives clear visibility from the retained query');
+  await h.input('search', '');
+  assert.equal(h.elements.clearSearch.classList.contains('hidden'), true);
+  assert.deepEqual(h.calls.chunks, []);
 });
