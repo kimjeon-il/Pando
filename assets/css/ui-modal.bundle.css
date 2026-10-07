@@ -170,6 +170,94 @@ body.modal-open { overflow: hidden; }
 }
 
 .territorial-library-search { grid-column: 1; }
+
+.territorial-library-time-field { position: relative; }
+.territorial-library-time-control { position: relative; min-width: 0; }
+.territorial-library-time-control input {
+  width: 100%;
+  padding-inline-end: calc(var(--ui-space-6) + var(--ui-space-3));
+  font-variant-numeric: tabular-nums;
+}
+
+.territorial-library-time-suggest {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--ui-space-1);
+  width: var(--ui-space-6);
+  min-width: var(--ui-space-6);
+  height: var(--ui-space-6);
+  min-height: var(--ui-space-6);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+}
+
+.territorial-library-time-suggest:is(:hover, [aria-expanded="true"]) {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.territorial-library-time-suggest:is(:hover, :active, :focus-visible):not(:disabled) { transform: translateY(-50%); }
+.territorial-library-time-suggest:focus-visible { outline-offset: calc(-1 * var(--ui-border-width)); }
+.territorial-library-time-suggest svg {
+  width: .9375rem;
+  height: .9375rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.territorial-library-time-popover {
+  position: absolute;
+  z-index: var(--ui-library-popover-z);
+  inset-block-start: calc(100% + var(--ui-select-popover-gap));
+  inset-inline-end: 0;
+  width: min(20rem, calc(100vw - (var(--ui-dialog-edge) * 2) - (var(--ui-dialog-padding) * 2) - (var(--ui-border-width) * 2)));
+  max-height: min(18rem, calc(100dvh - (var(--ui-dialog-edge) * 2) - 13rem));
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--ui-space-2);
+  border: var(--ui-border-width) solid var(--border-strong);
+  border-radius: var(--ui-radius-panel);
+  background: var(--surface-elevated);
+  box-shadow: var(--design-control-shadow);
+}
+.territorial-library-time-popover[hidden] { display: none; }
+.territorial-library-time-heading {
+  margin: var(--ui-space-1) var(--ui-space-2) var(--ui-space-1-5);
+  font-size: var(--ui-font-sm);
+  font-weight: var(--ui-weight-semibold);
+  color: var(--muted);
+}
+.territorial-library-time-option {
+  width: 100%;
+  min-height: var(--ui-touch-height);
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-soft);
+  text-align: start;
+  font-size: var(--ui-font-sm);
+}
+.territorial-library-time-option:is(:hover, :focus-visible) { background: var(--surface-hover); color: var(--text-strong); }
+.territorial-library-time-option time { color: var(--text-strong); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.territorial-library-time-option span { min-width: 0; overflow-wrap: anywhere; }
+.territorial-library-time-popover > .editor-help { margin: var(--ui-space-2); }
+.territorial-library-source-date { margin-block: var(--ui-space-1) 0; }
+
 .territorial-library-toolbar .field-group,
 .territorial-library-add-options .field-group { min-width: 0; margin: 0; }
 
@@ -292,15 +380,6 @@ body.modal-open { overflow: hidden; }
   font-weight: var(--ui-weight-bold);
 }
 
-.territorial-library-version-field {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--ui-space-2);
-  margin-bottom: var(--ui-space-2);
-}
-.territorial-library-version-field > span { color: var(--muted); white-space: nowrap; }
-
 .territorial-library-preview .editor-help {
   color: var(--muted);
   font-size: var(--ui-font-sm);
@@ -383,6 +462,7 @@ body.modal-open { overflow: hidden; }
 }
 
 .territorial-library-card {
+  --ui-library-popover-z: calc(var(--ui-scrollbar-z) + 1);
   width: min(47.5rem, calc(100vw - (var(--ui-dialog-edge) * 2)));
   max-width: 47.5rem;
   height: min(40rem, calc(100dvh - (var(--ui-dialog-edge) * 2)));
