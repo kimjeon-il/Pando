@@ -1,14 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { openLibrary, importFiniteSource } from './helpers/library-state.mjs';
 
-test('historical library search previews a sourced country and imports a static instance reversibly', async ({ page }, testInfo) => {
+test('historical library month input imports the first-day sourced geometry reversibly', async ({ page }, testInfo) => {
   test.setTimeout(240_000);
   const errors = await openLibrary(page);
   await expect.poll(() => page.locator('#territorialLibraryResults [data-library-entity-id]').count()).toBeGreaterThan(200);
   await expect(page.locator('[data-library-entity-id="state:DEU"] .territorial-library-result-flag img')).toHaveCount(1);
   await page.locator('#territorialLibrarySearchInput').fill('USSR');
   await expect(page.locator('.territorial-library-filters summary')).toHaveCount(0);
-  await page.locator('#territorialLibraryReferenceDateInput').fill('1991-01-01');
+  await page.locator('#territorialLibraryReferenceDateInput').fill('1991-01');
   const result = page.locator('[data-library-entity-id="state:soviet-union"]');
   await result.click();
   await expect(result.locator('.territorial-library-result-flag img')).toHaveCount(1);
@@ -18,7 +18,7 @@ test('historical library search previews a sourced country and imports a static 
   await expect(result).toHaveAttribute('aria-controls','territorialLibraryPreview');
   await expect(page.locator('#territorialLibraryPreview a[aria-label^="출처"]')).toHaveCount(0);
   await expect(page.locator('#territorialLibraryPreview svg path')).toHaveCount(1);
-  await importFiniteSource(page, testInfo, 'state:soviet-union', errors);
+  await importFiniteSource(page, testInfo, 'state:soviet-union', errors, { referenceDate: '1991-01-01' });
 });
 
 for(const renderer of ['webgl2','canvas']) test(`${renderer}: North Schleswig exact-date import preserves source and Undo`, async ({ page }, testInfo) => {
@@ -30,7 +30,7 @@ for(const renderer of ['webgl2','canvas']) test(`${renderer}: North Schleswig ex
   await expect(result.locator('.territorial-library-result-flag img')).toHaveCount(1);
   await result.click();
   await expect(page.locator('#territorialLibraryPreview')).toContainText('북슐레스비히');
-  await importFiniteSource(page, testInfo, 'state:north-schleswig', errors);
+  await importFiniteSource(page, testInfo, 'state:north-schleswig', errors, { referenceDate: '1900-01-01' });
 });
 
 test('catalog search loads only the index and repeated selection loads one unchanged country chunk',async({page},testInfo)=>{
@@ -51,14 +51,20 @@ test('catalog search loads only the index and repeated selection loads one uncha
   expect(first).toEqual(second);expect(first.geometryVersions[0].versionId).toBe('state:KOR:natural-earth-5.1.1');
   expect(requests.filter(url=>url.includes('/territorial-entities/') && url.includes('index.json'))).toHaveLength(1);
   expect(requests.filter(url=>url.includes('/territorial-entities/') && url.includes('.json.gz')).map(url=>new URL(url).pathname)).toEqual(['/assets/data/territorial-entities/generated/v2/state-KOR.json.gz']);
-  await page.locator('#territorialLibraryReferenceDateInput').fill('1970');
   await page.locator('#territorialLibrarySearchInput').fill('독일');
-  await expect(page.locator('.territorial-library-lineage-title')).toContainText('독일');
+  await expect(page.locator('#territorialLibraryResults > h3')).toHaveCount(0);
+  await expect(page.locator('[data-library-entity-id="state:DEU"]')).toBeVisible();
+  await expect(page.locator('[data-library-entity-id="state:DEU"] strong')).toHaveText('독일');
+  await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]')).toBeVisible();
+  await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"] strong')).toHaveText('독일 민주공화국');
+  await page.locator('#territorialLibraryReferenceDateInput').fill('1970');
+  await expect(page.locator('[data-library-entity-id="state:DEU"]')).toHaveCount(0);
+  await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]')).toBeVisible();
   await page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]').click();
   await expect(page.locator('#territorialLibraryPreview')).toContainText('국토 자료가 없습니다');
   await expect(page.locator('#territorialLibraryAddBtn')).toBeDisabled();
   await page.locator('#territorialLibraryReferenceDateInput').fill('1989-04-25');
-  await expect(page.locator('[data-library-entity-id="state:DEU"]')).toBeVisible();
+  await expect(page.locator('[data-library-entity-id="state:DEU"]')).toHaveCount(0);
   await expect(page.locator('[data-library-entity-id="state:deutsche-demokratische-republik"]')).toBeVisible();
   await expect(page.locator('#territorialLibraryPreview [data-geometry-version-id]')).toHaveAttribute('data-geometry-version-id','state:deutsche-demokratische-republik:1989-04-25-r1');
   await expect(page.locator('#territorialLibraryAddBtn')).toBeEnabled();
@@ -71,6 +77,7 @@ test('catalog search loads only the index and repeated selection loads one uncha
   await page.locator('#territorialLibraryCloseBtn').click();
   await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#flagMenuBtn').click();await page.locator('#flagLibraryBtn').click();
+  await page.locator('#territorialLibraryReferenceDateInput').fill('');
   await page.locator('#territorialLibrarySearchInput').fill('일본');
   const flagSource=await page.evaluate(async()=> (await window.PANDOLAB_TERRITORIAL_LIBRARY.list()).find(e=>e.entityId==='state:JPN').metadata.defaultFlagDataUrl);
   const chunksBefore=requests.filter(url=>url.includes('/territorial-entities/') && url.includes('.json.gz')).length;
@@ -91,5 +98,5 @@ test('East Germany static import preserves identity, archive, history and origin
   await expect(page.locator('#territorialLibraryPreview')).toBeVisible();
   await expect(page.locator('#territorialLibraryPreview details')).toHaveCount(0);
   await expect(page.locator('#territorialLibraryPreview svg path')).toHaveCount(1);
-  await importFiniteSource(page, testInfo, 'state:deutsche-demokratische-republik', errors);
+  await importFiniteSource(page, testInfo, 'state:deutsche-demokratische-republik', errors, { referenceDate: '1989-04-25' });
 });

@@ -7,13 +7,13 @@ test('map command bar owns add while selection and editor context own object con
   const html = read('index.html');
   const toolbar = html.match(/<div class="[^"]*map-command-toolbar[^"]*"[\s\S]*?<\/div>/)[0];
   const editorHeader = html.match(/<aside id="editorSurface"[\s\S]*?<header class="surface-header">[\s\S]*?<\/header>/)[0];
-  const selectionToolbar = html.match(/<section id="selectionToolbar"[\s\S]*?<\/section>/)[0];
+  assert.doesNotMatch(html, /id="selectionToolbar"|selection-card/);
   assert.match(toolbar, /<button id="createMenuBtn"/);
-  assert.match(selectionToolbar, /<button id="objectLockBtn"/);
-  assert.match(selectionToolbar, /<button id="objectVisibilityBtn"/);
   assert.doesNotMatch(editorHeader, /id="objectLockBtn"|id="objectVisibilityBtn"|id="objectDeleteBtn"/);
   const objectHeader = html.match(/<section id="editorObjectHeader"[\s\S]*?<\/section>/)[0];
   assert.match(objectHeader, /id="focusSelectedObjectBtn"/);
+  assert.match(objectHeader, /id="objectLockBtn"/);
+  assert.match(objectHeader, /id="objectVisibilityBtn"/);
   assert.match(objectHeader, /id="flagMenuBtn"/);
   const editorBody = html.slice(html.indexOf('id="editorScrollBody"'), html.indexOf('id="objectActionsMenu"'));
   assert.doesNotMatch(editorBody, /id="focusSelectedObjectBtn"|id="flagMenuBtn"/);

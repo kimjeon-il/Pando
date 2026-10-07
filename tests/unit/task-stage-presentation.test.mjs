@@ -137,7 +137,7 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
     isMobile: () => false,
     setMapModeContextActive() {},
     editorWorkspacePresentation: { sync() {} },
-    syncSelectionToolbarInteraction() {},
+    syncTerritorialEditorInteraction() {},
     projectUi: { syncHistory() {} },
     syncStatusBar() {},
     formatArea: area => `${area} km²`,

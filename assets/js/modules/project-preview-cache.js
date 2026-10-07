@@ -8,9 +8,18 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
   let inFlight = null;
   const pending = new Map();
 
-  function stopWorker(reason = '미리보기 준비가 취소됐습니다.') {
-    worker?.terminate();
+  function retireWorker() {
+    const retiredWorker = worker;
+    // The Worker reference is the callback owner, even across equal cache epochs.
     worker = null;
+    if (!retiredWorker) return;
+    retiredWorker.onmessage = null;
+    retiredWorker.onerror = null;
+    retiredWorker.terminate();
+  }
+
+  function stopWorker(reason = '미리보기 준비가 취소됐습니다.') {
+    retireWorker();
     for (const task of pending.values()) {
       clearTimeout(task.timeout);
       task.reject(new Error(reason));
@@ -20,16 +29,17 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
 
   function releaseWorkerIfIdle() {
     if (pending.size) return;
-    worker?.terminate();
-    worker = null;
+    retireWorker();
   }
 
   function getWorker() {
     if (worker) return worker;
     const url = new URL('../workers/project-preview-worker.js', import.meta.url);
     url.searchParams.set('v', globalThis.PANDOLAB_BUILD_META?.assetRevision || '');
-    worker = new Worker(url.href);
-    worker.onmessage = event => {
+    const currentWorker = new Worker(url.href);
+    worker = currentWorker;
+    currentWorker.onmessage = event => {
+      if (worker !== currentWorker) return;
       const { id, ok, result, message } = event.data || {};
       const task = pending.get(id);
       if (!task) return;
@@ -38,7 +48,10 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
       if (ok) task.resolve(result);
       else task.reject(new Error(message || '미리보기 Worker 오류'));
     };
-    worker.onerror = event => stopWorker(event.message || '미리보기 Worker 오류');
+    currentWorker.onerror = event => {
+      if (worker !== currentWorker) return;
+      stopWorker(event.message || '미리보기 Worker 오류');
+    };
     return worker;
   }
 
