@@ -731,3 +731,155 @@ for (const scenario of ['expired-install', 'new-document', 'stale-token', 'late-
     assert.equal(loaf.observer.disconnected, true);
   });
 }
+
+function enableFixtureCpuProfile(fixture) {
+  const stages = [];
+  fixture.page.context = () => ({ newCDPSession: async () => ({
+    async send(method) { stages.push(method); return {}; },
+    async detach() { stages.push('detach'); },
+  }) });
+  return stages;
+}
+
+for (const failed of [false, true]) test(`CPU opt-in retains a real-timer final take beyond 250 ms and preserves the action ${failed ? 'error' : 'result'}`, { timeout: 2500 }, async () => {
+  let now = 5, attempts = 0;
+  const reads = [];
+  const captured = { longAnimationFrames: { status: 'available', frames: [{ startTime: 100, duration: 75 }] } };
+  let readStartedAt;
+  const f = hostFixture(async (probe, options) => {
+    reads.push(options.command);
+    if (options.command === 'install') return { installed: true };
+    readStartedAt = performance.now();
+    await new Promise(resolve => setTimeout(resolve, 350));
+    now = 20000; return captured;
+  });
+  const stages = enableFixtureCpuProfile(f);
+  const original = failed ? new Error('original native timeout') : {};
+  const result = await withNativeActionDiagnostics(f.page, f.testInfo,
+    { ...f.options, cpuProfile: true, now: () => now }, () => {
+      attempts++; now = 9805; if (failed) throw original; return original;
+    }).then(value => ({ value }), error => ({ error }));
+  assert.equal(result[failed ? 'error' : 'value'], original);
+  const report = JSON.parse(await readFile(f.testInfo.outputPath('project-undo-native-action.json'), 'utf8'));
+  assert.deepEqual(report.browser, captured);
+  assert.ok(performance.now() - readStartedAt >= 300, 'uses real elapsed time beyond the former deadline');
+  assert.deepEqual(report.diagnosticDeadlinesMs, { setup: 250, finalTake: 15000, output: 250 });
+  const logged = JSON.parse(f.lines.find(line => line.startsWith('[native-action] ')).slice('[native-action] '.length));
+  assert.deepEqual(logged.diagnosticDeadlinesMs, report.diagnosticDeadlinesMs);
+  assert.deepEqual(report.host, { startedAtMs: 5, endedAtMs: 9805, durationMs: 9800, outcome: failed ? 'rejected' : 'fulfilled' });
+  assert.equal(attempts, 1); assert.deepEqual(reads, ['install', 'take']);
+  assert.equal(stages.filter(stage => stage === 'Profiler.stop').length, 1);
+});
+
+for (const [cpuProfile, failed, late] of [[true, true, 'reject'], [true, false, 'fulfill'], [false, true, 'reject'], [false, false, 'fulfill']]) {
+  test(`${cpuProfile ? 'CPU' : 'non-CPU'} final take has a ${cpuProfile ? 15000 : 250} ms bound and contains late ${late} without replacing the action`, { timeout: 2500 }, async t => {
+    let announceTake, resolveTake, rejectTake, nativeOutputStarted = false, attempts = 0;
+    const takeRequested = new Promise(resolve => { announceTake = resolve; });
+    const read = new Promise((resolve, reject) => { resolveTake = resolve; rejectTake = reject; });
+    const reads = [];
+    const f = hostFixture((probe, options) => {
+      reads.push(options.command);
+      if (options.command === 'install') return Promise.resolve({ installed: true });
+      announceTake(); return read;
+    });
+    const outputPath = f.testInfo.outputPath;
+    f.testInfo.outputPath = name => { if (name === 'project-undo-native-action.json') nativeOutputStarted = true; return outputPath(name); };
+    if (cpuProfile) enableFixtureCpuProfile(f);
+    const original = failed ? new Error('original native action failed') : {};
+    t.mock.timers.enable({ apis: ['setTimeout'] });
+    const running = withNativeActionDiagnostics(f.page, f.testInfo, { ...f.options, cpuProfile }, () => {
+      attempts++; if (failed) throw original; return original;
+    }).then(value => ({ value }), error => ({ error }));
+    await takeRequested;
+    const deadline = cpuProfile ? 15000 : 250;
+    t.mock.timers.tick(deadline - 1);
+    for (let i = 0; i < 30; i++) await Promise.resolve();
+    const outputBeforeDeadline = nativeOutputStarted;
+    t.mock.timers.tick(1);
+    for (let i = 0; i < 30; i++) await Promise.resolve();
+    const outputAtDeadline = nativeOutputStarted;
+    t.mock.timers.reset();
+    const result = await running;
+    const path = outputPath('project-undo-native-action.json');
+    const saved = await readFile(path, 'utf8'), report = JSON.parse(saved);
+    if (late === 'reject') rejectTake(new Error('late page closure'));
+    else resolveTake({ lateData: 'must not republish' });
+    for (let i = 0; i < 30; i++) await Promise.resolve();
+    assert.equal(outputBeforeDeadline, false); assert.equal(outputAtDeadline, true);
+    assert.equal(result[failed ? 'error' : 'value'], original); assert.equal(attempts, 1);
+    assert.match(report.browser.diagnosticError, new RegExp(`exceeded ${deadline} ms`));
+    assert.deepEqual(report.diagnosticDeadlinesMs, { setup: 250, finalTake: deadline, output: 250 });
+    assert.deepEqual(reads, ['install', 'take']);
+    assert.equal(await readFile(path, 'utf8'), saved);
+  });
+}
+
+test('CPU opt-in final read rejection preserves the original action error without waiting or retrying', async () => {
+  const reads = [];
+  const f = hostFixture((probe, options) => {
+    reads.push(options.command);
+    if (options.command === 'take') throw new Error('page closed during final take');
+    return Promise.resolve({ installed: true });
+  });
+  enableFixtureCpuProfile(f);
+  const original = new Error('original locator timeout');
+  await assert.rejects(withNativeActionDiagnostics(f.page, f.testInfo, { ...f.options, cpuProfile: true },
+    () => { throw original; }), error => error === original);
+  const report = JSON.parse(await readFile(f.testInfo.outputPath('project-undo-native-action.json'), 'utf8'));
+  assert.match(report.browser.diagnosticError, /page closed during final take/);
+  assert.deepEqual(report.diagnosticDeadlinesMs, { setup: 250, finalTake: 15000, output: 250 });
+  assert.deepEqual(reads, ['install', 'take']);
+});
+
+test('CPU opt-in leaves native setup at 250 ms and contains its late rejection', { timeout: 2500 }, async t => {
+  let requestedSetup, rejectSetup, attempts = 0;
+  const requested = new Promise(resolve => { requestedSetup = resolve; });
+  const pending = new Promise((resolve, reject) => { rejectSetup = reject; });
+  const f = hostFixture((probe, options) => {
+    if (options.command === 'install') { requestedSetup(); return pending; }
+    return Promise.resolve({ captured: true });
+  });
+  enableFixtureCpuProfile(f);
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const running = withNativeActionDiagnostics(f.page, f.testInfo, { ...f.options, cpuProfile: true }, () => { attempts++; return 42; });
+  await requested;
+  t.mock.timers.tick(249); for (let i = 0; i < 30; i++) await Promise.resolve();
+  const attemptsBefore = attempts;
+  t.mock.timers.tick(1); for (let i = 0; i < 50; i++) await Promise.resolve();
+  const attemptsAtDeadline = attempts;
+  t.mock.timers.reset();
+  assert.equal(await running, 42);
+  rejectSetup(new Error('late native setup closure'));
+  for (let i = 0; i < 30; i++) await Promise.resolve();
+  assert.equal(attemptsBefore, 0); assert.equal(attemptsAtDeadline, 1);
+  const report = JSON.parse(await readFile(f.testInfo.outputPath('project-undo-native-action.json'), 'utf8'));
+  assert.match(report.setup.diagnosticError, /exceeded 250 ms/);
+  assert.equal(report.browser.captured, true);
+  assert.deepEqual(report.diagnosticDeadlinesMs, { setup: 250, finalTake: 15000, output: 250 });
+});
+
+test('CPU opt-in leaves native output at 250 ms without replacing the original error', { timeout: 2500 }, async t => {
+  let announceOutput, rejectOutput, settled = false;
+  const requested = new Promise(resolve => { announceOutput = resolve; });
+  const pending = new Promise((resolve, reject) => { rejectOutput = reject; });
+  const f = hostFixture(); enableFixtureCpuProfile(f);
+  f.testInfo.attach = (name, value) => {
+    if (name === 'project-undo-native-action.json') { announceOutput(); return pending; }
+    f.attachments.push({ name, ...value }); return Promise.resolve();
+  };
+  const original = new Error('original action failure');
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const running = withNativeActionDiagnostics(f.page, f.testInfo, { ...f.options, cpuProfile: true }, () => { throw original; })
+    .then(value => { settled = true; return { value }; }, error => { settled = true; return { error }; });
+  await requested;
+  t.mock.timers.tick(249); for (let i = 0; i < 30; i++) await Promise.resolve();
+  const settledBefore = settled;
+  t.mock.timers.tick(1); for (let i = 0; i < 30; i++) await Promise.resolve();
+  const settledAtDeadline = settled;
+  t.mock.timers.reset();
+  assert.equal((await running).error, original);
+  rejectOutput(new Error('late output rejection'));
+  for (let i = 0; i < 30; i++) await Promise.resolve();
+  assert.equal(settledBefore, false); assert.equal(settledAtDeadline, true);
+  assert.ok(f.lines.some(line => line.includes('[native-action-output]') && line.includes('exceeded 250 ms')));
+});

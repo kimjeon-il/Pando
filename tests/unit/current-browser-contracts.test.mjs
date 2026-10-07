@@ -7,6 +7,8 @@ import { basename, dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 
 const workflow = readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8').replaceAll('\r\n', '\n');
+const automaticWorkflows = ['application-architecture', 'ui-architecture', 'place-runtime', 'reference-image-integration']
+  .map(file => ({ file, source: readFileSync(new URL(`../../.github/workflows/${file}.yml`, import.meta.url), 'utf8').replaceAll('\r\n', '\n') }));
 const startMarker = "node --input-type=module <<'NODE'\n";
 const start = workflow.indexOf(startMarker);
 assert.ok(start >= 0, 'the workflow must expose its actual browser selector');
@@ -37,6 +39,122 @@ const timelineConsumers = readdirSync(browserDirectory).filter(name => name.ends
 assert.ok(timelineConsumers.length > 0, 'the current timeline fixture must have real browser consumers');
 
 let selectorRun = 0;
+
+function concurrencyContract(source) {
+  const body = source.match(/^concurrency:\n((?: {2,}.+\n)+)/m)?.[1];
+  assert.ok(body, 'the actual workflow must define top-level concurrency');
+  assert.deepEqual([...body.matchAll(/^ {2}([a-z-]+):/gm)].map(match => match[1]), ['group', 'cancel-in-progress']);
+  const scalar = key => {
+    const value = body.match(new RegExp(`^ {2}${key}: >-\\n((?: {4}.+\\n)+)`, 'm'))?.[1];
+    assert.ok(value, `${key} must be a folded expression`);
+    return value.trim().split('\n').map(line => line.trim()).join(' ');
+  };
+  const group = scalar('group').match(/^\$\{\{ github\.workflow \}\}-\$\{\{ (.+) && '([^']+)' \|\| format\('([^']+)', github\.run_id, github\.run_attempt\) \}\}$/);
+  assert.ok(group, 'group must isolate workflows and use fixed automatic or unique run/attempt suffixes');
+  const cancel = scalar('cancel-in-progress').match(/^\$\{\{ (.+) \}\}$/);
+  assert.ok(cancel, 'cancellation must be an expression');
+  assert.equal(group[1], cancel[1], 'the shared group and cancellation must have identical guards');
+  assert.equal(group[2], 'pr-76-country-editor-hover-relations');
+  assert.equal(group[3], 'run-{0}-attempt-{1}');
+  const evaluate = (expression, github) => expression.split(' && ').every(term => {
+    // Evaluate only this contract's equality/conjunction subset, never arbitrary code.
+    const comparison = term.match(/^github\.([a-z_.]+) == (?:'([^']*)'|(\d+))$/);
+    assert.ok(comparison, `unsupported concurrency guard: ${term}`);
+    const actual = comparison[1].split('.').reduce((value, key) => value?.[key], github) ?? '';
+    return comparison[3] === undefined
+      ? String(actual).toLowerCase() === comparison[2].toLowerCase()
+      : Number(actual) === Number(comparison[3]);
+  });
+  return github => ({
+    group: `${github.workflow}-${evaluate(group[1], github) ? group[2]
+      : group[3].replace('{0}', String(github.run_id)).replace('{1}', String(github.run_attempt))}`,
+    cancel: evaluate(cancel[1], github),
+  });
+}
+
+function concurrencyContext(overrides = {}) {
+  return { workflow: 'Application Architecture', event_name: 'pull_request', repository: 'kimjeon-il/Pando',
+    run_id: 1001, run_attempt: 1,
+    event: { pull_request: { number: 76,
+      head: { ref: 'codex/country-editor-hover-relations', repo: { full_name: 'kimjeon-il/Pando' } } } },
+    ...overrides };
+}
+
+for (const { file, source } of automaticWorkflows) {
+  test(`${file} concurrency cancels only the exact trusted automatic PR across all guard combinations`, () => {
+    const concurrency = concurrencyContract(source);
+    for (let mask = 0; mask < 64; mask++) {
+      const github = concurrencyContext();
+      if (mask & 1) github.event_name = 'workflow_dispatch';
+      if (mask & 2) github.repository = 'someone-else/Pando';
+      if (mask & 4) github.event.pull_request.number = 77;
+      if (mask & 8) github.event.pull_request.head.repo.full_name = 'someone-else/Pando';
+      if (mask & 16) github.event.pull_request.head.ref = 'another-branch';
+      if (mask & 32) github.run_attempt = 2;
+      const result = concurrency(github);
+      assert.equal(result.cancel, mask === 0, `guard mask ${mask}`);
+      assert.equal(result.group, `${github.workflow}-${mask === 0 ? 'pr-76-country-editor-hover-relations' : `run-1001-attempt-${github.run_attempt}`}`, `guard mask ${mask}`);
+      const nextRun = concurrency({ ...github, run_id: 1002 });
+      const nextAttempt = concurrency({ ...github, run_attempt: github.run_attempt + 1 });
+      assert.equal(result.group === nextRun.group, mask === 0, 'only the matching automatic PR shares runs');
+      assert.notEqual(result.group, nextAttempt.group, 'every rerun must remain independent');
+    }
+  });
+
+  test(`${file} concurrency isolates old and current PR reruns and missing attempts`, () => {
+    const concurrency = concurrencyContract(source);
+    const automatic = concurrency(concurrencyContext({ run_id: 1002 })).group;
+    const rerunGroups = new Set();
+    for (const runId of [1001, 1002]) {
+      for (const attempt of [2, 3]) {
+        const result = concurrency(concurrencyContext({ run_id: runId, run_attempt: attempt }));
+        assert.deepEqual(result, { group: `Application Architecture-run-${runId}-attempt-${attempt}`, cancel: false });
+        assert.notEqual(result.group, automatic, 'old and current reruns must not replace or cancel an automatic run');
+        rerunGroups.add(result.group);
+      }
+    }
+    assert.equal(rerunGroups.size, 4, 'reruns must not replace or cancel each other');
+    const missingAttempt = concurrencyContext();
+    delete missingAttempt.run_attempt;
+    assert.equal(concurrency(missingAttempt).cancel, false, 'absent attempt metadata must not enable cancellation');
+    assert.notEqual(concurrency(missingAttempt).group, automatic, 'absent attempt metadata must not enter the shared group');
+  });
+
+  test(`${file} concurrency preserves manual scopes and non-PR events without PR context`, () => {
+    const concurrency = concurrencyContract(source);
+    const automatic = concurrency(concurrencyContext()).group;
+    for (const eventName of ['workflow_dispatch', 'push', 'schedule', 'workflow_call', 'pull_request_target']) {
+      for (const browserScope of [undefined, 'default', 'map-rendering', 'editor-diagnostics', '$(touch sentinel)']) {
+        const github = concurrencyContext({ event_name: eventName, event: {}, inputs: { browser_scope: browserScope } });
+        assert.deepEqual(concurrency(github), { group: 'Application Architecture-run-1001-attempt-1', cancel: false });
+        assert.notEqual(concurrency(github).group, automatic);
+        assert.notEqual(concurrency(github).group, concurrency({ ...github, run_id: 1002 }).group);
+        assert.notEqual(concurrency(github).group, concurrency({ ...github, run_attempt: 2 }).group);
+      }
+    }
+    for (const event of [{}, { pull_request: {} }, { pull_request: { number: 76, head: { repo: null } } }]) {
+      assert.equal(concurrency(concurrencyContext({ event })).cancel, false, 'incomplete PR metadata must not match');
+    }
+    const hostileBranch = concurrencyContext();
+    hostileBranch.event.pull_request.head.ref = 'codex/country-editor-hover-relations; $(touch sentinel)';
+    assert.deepEqual(concurrency(hostileBranch), { group: 'Application Architecture-run-1001-attempt-1', cancel: false });
+  });
+}
+
+test('automatic validation workflow groups cannot cancel one another or manual runs', () => {
+  const automaticGroups = new Set();
+  const manualGroups = new Set();
+  for (const { source } of automaticWorkflows) {
+    const name = source.match(/^name: (.+)$/m)?.[1];
+    assert.ok(name);
+    const concurrency = concurrencyContract(source);
+    automaticGroups.add(concurrency(concurrencyContext({ workflow: name })).group.toLowerCase());
+    manualGroups.add(concurrency(concurrencyContext({ workflow: name, event_name: 'workflow_dispatch' })).group.toLowerCase());
+  }
+  assert.equal(automaticGroups.size, automaticWorkflows.length);
+  assert.equal(manualGroups.size, automaticWorkflows.length);
+  assert.equal(new Set([...automaticGroups, ...manualGroups]).size, automaticWorkflows.length * 2);
+});
 
 async function runSelector(t, changed, eventName = 'pull_request', browserScope,
   { expectedGitCalls = 1, expectedError, missingSpec } = {}) {
