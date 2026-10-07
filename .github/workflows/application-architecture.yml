@@ -40,6 +40,15 @@ jobs:
           sys.modules[spec.name] = module
           spec.loader.exec_module(module)
           recipe = module.load_json(module.DEFAULT_RECIPE)
+          transforms = []
+          original_transform = module.transform_geometry
+          def observe_transform(geometry, source_crs, target_crs=module.WGS84):
+              result = original_transform(geometry, source_crs, target_crs)
+              if source_crs in ('EPSG:25832', 'EPSG:25833') and target_crs == module.WGS84:
+                  transforms.append({'sourceCRS': source_crs, 'input': module.mapping(geometry),
+                                     'output': module.mapping(result)})
+              return result
+          module.transform_geometry = observe_transform
           builder = module.RecipeBuilder(recipe)
           geometry = builder.build_geometry()
           generated = json.loads(module.build_entity(recipe, geometry))
@@ -73,6 +82,7 @@ jobs:
           (out / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
           (out / 'generated.json').write_text(json.dumps(generated), encoding='utf-8')
           (out / 'stages.json').write_text(json.dumps({key: module.mapping(value) for key, value in builder.results.items()}), encoding='utf-8')
+          (out / 'transforms.json').write_text(json.dumps(transforms), encoding='utf-8')
           print(json.dumps({**report, 'differences': differences[:12]}, indent=2))
           PY
       - uses: actions/upload-artifact@v4
