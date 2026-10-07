@@ -26,6 +26,15 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await expect.poll(() => results.evaluate(node => node.scrollTop)).toBeGreaterThan(100);
     await page.keyboard.press('Home'); await expect.poll(() => results.evaluate(node => node.scrollTop)).toBe(0);
     await clock.click(); await expect(popover).toBeVisible();
+    const surface = await popover.evaluate(node => {
+      const style = getComputedStyle(node), context = document.createElement('canvas').getContext('2d');
+      context.fillStyle = style.backgroundColor; context.fillRect(0, 0, 1, 1);
+      return { background: style.backgroundColor, modalBackground: getComputedStyle(node.closest('.ui-dialog-card')).backgroundColor,
+        opacity: style.opacity, alpha: context.getImageData(0, 0, 1, 1).data[3] };
+    });
+    expect(surface.background).toBe(surface.modalBackground);
+    expect(surface.opacity).toBe('1');
+    expect(surface.alpha).toBe(255);
     const bounds = await popover.boundingBox(), cardBounds = await card.boundingBox();
     expect(bounds.x).toBeGreaterThanOrEqual(cardBounds.x); expect(bounds.x + bounds.width).toBeLessThanOrEqual(cardBounds.x + cardBounds.width + 1);
     expect(bounds.y).toBeGreaterThanOrEqual(cardBounds.y); expect(bounds.y + bounds.height).toBeLessThanOrEqual(cardBounds.y + cardBounds.height + 1);

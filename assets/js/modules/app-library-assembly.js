@@ -176,6 +176,7 @@ export function createLibraryAssembly() {
       service: territorialLibraryService,
       renderMapPreview: territorialLibraryPreviewSvg,
       createEmptyState: dependencies.platformConfigurationB.createEmptyState,
+      syncSearchClearButton: dependencies.platformConfigurationB.syncSearchClearButton,
       replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
       shouldShowTerritorialParentChoice: dependencies.territorialServicesA.shouldShowTerritorialParentChoice,
       isMobile: dependencies.surfaces.isMobile,
