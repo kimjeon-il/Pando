@@ -83,12 +83,12 @@ test('unsupported CDP and rejected setup do not prevent or retry the original ac
   }
 });
 
-test('setup waits at most 250 ms and a late session is cleaned without ever starting sampling', async t => {
+test('setup waits at most 15000 ms and a late session is cleaned without ever starting sampling', async t => {
   const { startNativeActionCpuProfile } = await load(); const f = await fixture(); const pending = deferred();
   f.page.context = () => ({ newCDPSession: () => pending.promise });
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const begun = startNativeActionCpuProfile(f.page, f.options); await flush();
-  t.mock.timers.tick(250); await flush(); const capture = await begun;
+  t.mock.timers.tick(15000); await flush(); const capture = await begun;
   capture.stop('action-settled', { durationMs: 0 });
   pending.resolve(f.session); await flush();
   assert.equal(f.calls.filter(([method]) => method === 'Profiler.start').length, 0);
@@ -99,7 +99,7 @@ test('late start acknowledgement after setup expiry cannot leave an active profi
   const { startNativeActionCpuProfile } = await load(); const pending = deferred();
   const f = await fixture(async method => method === 'Profiler.start' ? pending.promise : method === 'Profiler.stop' ? { profile: profile() } : {});
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  const begun = startNativeActionCpuProfile(f.page, f.options); await flush(); t.mock.timers.tick(250); await flush();
+  const begun = startNativeActionCpuProfile(f.page, f.options); await flush(); t.mock.timers.tick(15000); await flush();
   const capture = await begun; capture.stop('action-settled'); pending.resolve({}); await flush();
   assert.equal(f.calls.filter(([method]) => method === 'Profiler.stop').length, 1);
   assert.equal(f.calls.filter(([method]) => method === 'Profiler.disable').length, 1);
@@ -133,7 +133,7 @@ test('stop timeout still disables and detaches; late stop rejection is handled',
   const f = await fixture(async method => method === 'Profiler.stop' ? pending.promise : {});
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const capture = await startNativeActionCpuProfile(f.page, f.options); capture.stop('action-settled'); await flush();
-  t.mock.timers.tick(250); await flush();
+  t.mock.timers.tick(15000); await flush();
   assert.equal(f.calls.filter(([method]) => method === 'Profiler.disable').length, 1);
   assert.equal(f.calls.filter(([method]) => method === 'detach').length, 1);
   pending.reject(new Error('late page close')); await flush();
@@ -143,9 +143,14 @@ test('never-settling disable and detach each have bounded independent cleanup bu
   const { startNativeActionCpuProfile } = await load(); const f = await fixture(async method => method === 'Profiler.disable' ? new Promise(() => {}) : method === 'Profiler.stop' ? { profile: profile() } : {});
   f.session.detach = () => { f.calls.push(['detach']); return new Promise(() => {}); };
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  const capture = await startNativeActionCpuProfile(f.page, f.options); const stopped = capture.stop('action-settled'); await flush();
-  t.mock.timers.tick(250); await flush(); assert.equal(f.calls.filter(([method]) => method === 'detach').length, 1);
-  t.mock.timers.tick(250); await flush(); await stopped;
+  const capture = await startNativeActionCpuProfile(f.page, f.options); const stopped = capture.stop('action-settled');
+  let settled = false; stopped.then(() => { settled = true; }); await flush();
+  t.mock.timers.tick(249); await flush(); assert.equal(settled, false);
+  assert.equal(f.calls.filter(([method]) => method === 'detach').length, 0);
+  t.mock.timers.tick(1); await flush(); assert.equal(settled, false);
+  assert.equal(f.calls.filter(([method]) => method === 'detach').length, 1);
+  t.mock.timers.tick(249); await flush(); assert.equal(settled, false);
+  t.mock.timers.tick(1); await flush(); await stopped; assert.equal(settled, true);
 });
 
 test('stop, output path, file write, attachment, and diagnostic logger failures preserve the native error', async () => {
@@ -320,4 +325,95 @@ test('publication checks elapsed time even before the host timeout callback gets
   const summary = await capture.finish(f.testInfo);
   assert.equal(summary.output.status, 'unpublished'); assert.equal(f.attachments.length, 0);
   await assert.rejects(readFile(f.testInfo.outputPath('boundary-project-undo-cpu-profile.cpuprofile.gz')), /ENOENT/);
+});
+
+test('production CPU setup and stop allow delayed CDP acknowledgements beyond 250 ms without extending the action timer', { timeout: 3000 }, async () => {
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const f = await fixture(async method => {
+    if (method === 'Profiler.enable' || method === 'Profiler.stop') await wait(320);
+    return method === 'Profiler.stop' ? { profile: profile() } : {};
+  });
+  const original = new Error('unchanged native failure'); let attempts = 0;
+  await assert.rejects(withNativeActionDiagnostics(f.page, f.testInfo, f.options, () => { attempts++; throw original; }), error => error === original);
+  assert.equal(attempts, 1);
+  const summary = await cpuSummary(f);
+  assert.equal(summary.status, 'captured');
+  assert.equal(summary.limits.setupMs, 15000); assert.equal(summary.limits.stopMs, 15000);
+  assert.equal(summary.limits.disableMs, 250); assert.equal(summary.limits.detachMs, 250);
+  assert.equal(summary.limits.outputMs, 250); assert.equal(summary.limits.encodeMs, 1000);
+  assert.equal(summary.limits.watchdogMs, 20000);
+  assert.ok(summary.host.setupEndedAtMs - summary.host.setupStartedAtMs >= 300);
+  assert.ok(summary.host.stopRoundTripMs >= 300);
+  assert.ok(summary.host.action.durationMs < 100, 'CPU setup and stop latency stay outside the original action timer');
+  assert.deepEqual(JSON.parse(gunzipSync(await readFile(f.testInfo.outputPath('boundary-project-undo-cpu-profile.cpuprofile.gz')))), profile());
+});
+
+test('fixed CDP-stage timing records distinguish every setup, stop and cleanup request from its acknowledgement', async () => {
+  let now = 100;
+  const f = await fixture(async method => { now += 7; return method === 'Profiler.stop' ? { profile: profile() } : {}; });
+  f.page.context = () => ({ newCDPSession: async () => { now += 4; return f.session; } });
+  f.session.detach = async () => { now += 3; };
+  await withNativeActionDiagnostics(f.page, f.testInfo, { ...f.options, now: () => now }, () => { now += 11; return 42; });
+  const summary = await cpuSummary(f);
+  assert.deepEqual(Object.keys(summary.cdpStages), ['session', 'enable', 'samplingInterval', 'start', 'stop', 'disable', 'detach']);
+  for (const [name, stage] of Object.entries(summary.cdpStages)) {
+    assert.equal(stage.status, 'fulfilled', name);
+    assert.equal(stage.acknowledgedAtMs, stage.settledAtMs, name);
+    assert.equal(stage.durationMs, stage.acknowledgedAtMs - stage.requestedAtMs, name);
+    assert.equal(stage.deadlineExceededAtMs, null, name);
+  }
+  assert.equal(summary.cdpStages.session.durationMs, 4); assert.equal(summary.cdpStages.enable.durationMs, 7);
+  assert.equal(summary.cdpStages.detach.durationMs, 3);
+  assert.equal(summary.host.watchdogDueAtMs - summary.cdpStages.start.requestedAtMs, 20000);
+  assert.match(summary.watchdogOrigin, /start request/i);
+});
+
+test('a setup deadline identifies a pending enable and records its late acknowledgement without proceeding to start', async t => {
+  const { startNativeActionCpuProfile } = await load(); const pending = deferred(); let now = 0;
+  const f = await fixture(async method => method === 'Profiler.enable' ? pending.promise : {});
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const begun = startNativeActionCpuProfile(f.page, { ...f.options, now: () => now }); await flush();
+  now = 15000; t.mock.timers.tick(15000); await flush(); const capture = await begun;
+  now = 16000; pending.resolve({}); await flush(); t.mock.timers.reset();
+  const summary = await capture.finish(f.testInfo);
+  assert.equal(summary.status, 'unavailable'); assert.equal(summary.setupExpiredStage, 'enable');
+  assert.equal(summary.cdpStages.enable.requestedAtMs, 0);
+  assert.equal(summary.cdpStages.enable.deadlineExceededAtMs, 15000);
+  assert.equal(summary.cdpStages.enable.acknowledgedAtMs, 16000);
+  assert.equal(summary.cdpStages.enable.status, 'fulfilled-after-deadline');
+  assert.equal(summary.cdpStages.samplingInterval.status, 'not-requested');
+  assert.equal(summary.cdpStages.start.status, 'not-requested');
+  assert.equal(f.calls.filter(([method]) => method === 'Profiler.start').length, 0);
+  assert.equal(f.calls.filter(([method]) => method === 'detach').length, 1);
+});
+
+test('slow start acknowledgement consumes the existing request-based watchdog window instead of resetting it', async t => {
+  const { startNativeActionCpuProfile } = await load(); const pending = deferred(); let now = 0;
+  const f = await fixture(async method => method === 'Profiler.start' ? pending.promise : method === 'Profiler.stop' ? { profile: profile() } : {});
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const begun = startNativeActionCpuProfile(f.page, { ...f.options, now: () => now }); await flush();
+  now = 9000; t.mock.timers.tick(9000); pending.resolve({}); await flush(); const capture = await begun;
+  now = 19999; t.mock.timers.tick(10999); await flush(); assert.equal(f.calls.some(([method]) => method === 'Profiler.stop'), false);
+  now = 20000; t.mock.timers.tick(1); await flush();
+  assert.equal(f.calls.filter(([method]) => method === 'Profiler.stop').length, 1);
+  t.mock.timers.reset(); const summary = await capture.finish(f.testInfo);
+  assert.equal(summary.host.startRequestedAtMs, 0); assert.equal(summary.host.startAcknowledgedAtMs, 9000);
+  assert.equal(summary.host.watchdogDueAtMs, 20000); assert.equal(summary.stopReason, 'watchdog');
+  assert.equal(summary.cdpStages.start.durationMs, 9000); assert.equal(summary.incomplete, true);
+});
+
+test('the 15 s setup budget is shared across stages and cannot restart at each acknowledgement', async t => {
+  const { startNativeActionCpuProfile } = await load(); const session = deferred(), enable = deferred(); let now = 0, settled = false;
+  const f = await fixture(async method => method === 'Profiler.enable' ? enable.promise : {});
+  f.page.context = () => ({ newCDPSession: () => session.promise });
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const begun = startNativeActionCpuProfile(f.page, { ...f.options, now: () => now }); begun.then(() => { settled = true; }); await flush();
+  now = 8000; t.mock.timers.tick(8000); session.resolve(f.session); await flush();
+  now = 14999; t.mock.timers.tick(6999); await flush(); assert.equal(settled, false);
+  now = 15000; t.mock.timers.tick(1); await flush(); const capture = await begun;
+  enable.resolve({}); await flush(); t.mock.timers.reset(); const summary = await capture.finish(f.testInfo);
+  assert.equal(summary.host.setupEndedAtMs, 15000); assert.equal(summary.setupExpiredStage, 'enable');
+  assert.equal(summary.cdpStages.session.durationMs, 8000);
+  assert.equal(summary.cdpStages.enable.requestedAtMs, 8000);
+  assert.equal(summary.cdpStages.start.status, 'not-requested');
 });
