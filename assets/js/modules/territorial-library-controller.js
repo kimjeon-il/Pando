@@ -4,25 +4,21 @@ export function createTerritorialLibraryController({
   document,
   elements,
   service,
-  typeLabels,
   selectGeometryVersion,
   renderMapPreview,
   createEmptyState,
   replaceSelectOptions,
   shouldShowTerritorialParentChoice,
-  collator,
   closeSurface,
   focusSurfaceTrigger,
   instantiate,
   ownershipContext = () => ({ missing: [], countries: [], parents: () => [] }),
-  confirm,
   setStatus,
   reportError,
   getProjectGeneration,
   requestFrame = callback => requestAnimationFrame(callback),
 }) {
   let selectedId = '';
-  let selectedVersionId = '';
   let loading = false;
   let requestGeneration = 0;
   let ownershipChoices = null;
@@ -111,16 +107,11 @@ export function createTerritorialLibraryController({
     for (const element of [
       elements.search,
       elements.clearSearch,
-      elements.type,
-      elements.status,
-      elements.year,
-      elements.geographicRegion,
-      elements.snapshot,
+      elements.referenceDate,
       elements.childDepth,
     ]) {
       if (element) element.disabled = loading;
     }
-    if (elements.snapshotButton) elements.snapshotButton.disabled = loading || !elements.snapshot.value;
     if (elements.add) elements.add.disabled = true;
     if (elements.results) elements.results.setAttribute('aria-busy', String(loading));
   }
@@ -129,7 +120,7 @@ export function createTerritorialLibraryController({
     const fragment = document.createDocumentFragment();
     for (let index = 0; index < 6; index += 1) {
       const row = document.createElement('div');
-      row.className = 'historical-library-result-skeleton';
+      row.className = 'territorial-library-result-skeleton';
       row.setAttribute('aria-hidden', 'true');
       const title = document.createElement('span');
       const meta = document.createElement('span');
@@ -146,29 +137,8 @@ export function createTerritorialLibraryController({
     return `${entity.lifetime.validFrom || '?'}–${entity.lifetime.validTo || '현재'}`;
   }
 
-  function hasMultipleGeometryVersions(entity) {
-    return (entity?.geometryVersions || []).length > 1;
-  }
-
-  function syncFilterOptions() {
-    const geographicRegions = [...new Set(service.list().map(entity => String(entity.metadata?.geographicRegion || '')).filter(Boolean))].sort(collator.compare);
-    const geographicChoice = replaceSelectOptions(elements.geographicRegion, [{ value: '', label: '전체' }, ...geographicRegions.map(geographicRegion => ({ value: geographicRegion, label: geographicRegion }))], elements.geographicRegion.value, { autoSelectSingle: true });
-    elements.geographicRegion.closest?.('.field-group')?.classList.toggle('hidden', geographicChoice?.single === true);
-    replaceSelectOptions(elements.snapshot, [
-      { value: '', label: '스냅샷 선택', placeholder: true },
-      ...service.snapshots().map(snapshot => ({ value: snapshot.id, label: `${snapshot.name}${snapshot.metadata?.partial ? ' · 부분' : ''}` })),
-    ], elements.snapshot.value, { autoSelectSingle: true });
-    if (elements.snapshotButton) elements.snapshotButton.disabled = !elements.snapshot.value;
-  }
-
   function searchResults() {
-    return service.search({
-      query: elements.search.value,
-      entityKind: elements.type.value,
-      status: elements.status.value,
-      referenceDate: elements.year.value,
-      geographicRegion: elements.geographicRegion.value,
-    });
+    return service.search({query:elements.search.value,referenceDate:elements.referenceDate.value});
   }
 
   function renderPreview() {
@@ -184,8 +154,8 @@ export function createTerritorialLibraryController({
       }
       elements.preview.hidden = false;
       const title = document.createElement('h3');
-      title.className = 'historical-library-preview-title';
-      title.textContent = entity.displayNames?.ko || entity.canonicalName;
+      title.className = 'territorial-library-preview-title';
+      title.textContent = entity.names.ko || entity.names.en || Object.values(entity.names)[0];
       const help = document.createElement('p');
       help.className = 'editor-help';
       help.textContent = flagUrl ? '이 항목의 기본 국기를 적용합니다.' : '이 항목에는 기본 국기가 없습니다.';
@@ -199,82 +169,26 @@ export function createTerritorialLibraryController({
       elements.add.dataset.tooltip = '선택한 라이브러리 국기 적용';
       return;
     }
-    const referenceDate = elements.year.value || entity?.geometryVersions[0]?.validFrom || entity?.lifetime.validFrom || new Date().toISOString().slice(0, 10);
-    const automaticVersion = entity ? selectGeometryVersion(entity, referenceDate) : null;
-    const version = entity?.geometryVersions?.find(candidate => candidate.id === selectedVersionId) || automaticVersion;
+    const version = entity ? selectGeometryVersion(entity, elements.referenceDate.value) : null;
     if (!entity || !version) {
-      elements.preview.hidden = true;
-      selectedVersionId = '';
+      elements.preview.hidden = !selectedId;
       const help = document.createElement('p');
       help.className = 'editor-help';
-      help.textContent = '항목을 선택하세요.';
+      help.textContent = selectedId ? (entity ? '선택한 시점의 국토 자료가 없습니다.' : '국토 자료를 불러오는 중입니다.') : '항목을 선택하세요.';
       elements.preview.replaceChildren(help);
       elements.add.disabled = true;
       elements.addOptions?.classList.add('hidden');
       elements.optionsBack?.classList.add('hidden');
-      elements.card?.classList.remove('is-detail', 'is-options');
-      return;
-    }
-    const hasMultipleVersions = hasMultipleGeometryVersions(entity);
-    if (!hasMultipleVersions) {
-      // A single boundary is already represented by the result row. Keep the
-      // preview surface hidden so selecting an item does not create a second,
-      // mostly empty detail block beneath it.
-      elements.preview.hidden = true;
-      elements.card?.classList.remove('is-detail', 'is-options');
-      const title = document.createElement('h3');
-      title.className = 'historical-library-preview-title';
-      title.textContent = entity.displayNames?.ko || entity.canonicalName;
-      const heading = document.createElement('div');
-      heading.className = 'historical-library-preview-heading';
-      heading.append(title);
-      const versionSummary = document.createElement('div');
-      versionSummary.className = 'ui-field field-group historical-library-version-field';
-      versionSummary.textContent = `경계 · ${version.validFrom || '?'}–${version.validTo || '현재'}`;
-      const metadata = document.createElement('p');
-      metadata.className = 'editor-help';
-      metadata.textContent = [
-        version.certainty === 'low' ? '정확도가 낮은 경계' : version.certainty === 'medium' ? '경계 일부 불확실' : '',
-        entity.metadata?.approximateGeometry ? '근사 경계' : '',
-      ].filter(Boolean).join(' · ');
-      elements.preview.replaceChildren(heading, versionSummary, ...(metadata.textContent ? [metadata] : []));
-      elements.add.disabled = false;
-      const hasChildren = service.list().some(candidate => candidate.parentEntityId === entity.entityId);
-      if (hasChildren) elements.addOptions?.classList.remove('hidden');
-      else {
-        elements.addOptions?.classList.add('hidden');
-        elements.childDepth.value = 'none';
-      }
-      elements.optionsBack?.classList.add('hidden');
-      elements.add.textContent = '추가';
-      elements.add.setAttribute('aria-label', '선택한 항목을 현재 프로젝트에 추가');
-      elements.add.dataset.tooltip = '선택한 항목을 현재 프로젝트에 추가';
       return;
     }
     elements.preview.hidden = false;
     const title = document.createElement('h3');
-    title.className = 'historical-library-preview-title';
-    title.textContent = entity.displayNames?.ko || entity.canonicalName;
-    const versionField = document.createElement('label');
-    versionField.className = 'ui-field field-group historical-library-version-field';
-    const versionLabel = document.createElement('span');
-    versionLabel.textContent = '경계';
-    const versionSelect = document.createElement('select');
-    versionSelect.id = 'historicalLibraryGeometryVersionInput';
-    versionSelect.setAttribute('aria-label', `${entity.displayNames?.ko || entity.canonicalName} 경계`);
-    for (const candidate of entity.geometryVersions || []) {
-      const option = document.createElement('option');
-      option.value = candidate.id;
-      option.textContent = `${candidate.validFrom || '?'}–${candidate.validTo || '현재'}`;
-      option.selected = candidate.id === version.id;
-      versionSelect.appendChild(option);
-    }
-    versionField.append(versionLabel, versionSelect);
-    versionSelect.addEventListener('change', () => {
-      selectedVersionId = versionSelect.value;
-      resetOwnership();
-      renderPreview();
-    });
+    title.className = 'territorial-library-preview-title';
+    title.textContent = entity.names.ko || entity.names.en || Object.values(entity.names)[0];
+    const versionField = document.createElement('div');
+    versionField.className = 'territorial-library-version-field';
+    versionField.textContent = `${version.validFrom || '?'}–${version.validTo || '현재'}`;
+    versionField.dataset.geometryVersionId = version.versionId;
     const meta = document.createElement('p');
     meta.className = 'editor-help';
     meta.textContent = [
@@ -282,7 +196,7 @@ export function createTerritorialLibraryController({
       entity.metadata?.approximateGeometry ? '근사 경계' : '',
     ].filter(Boolean).join(' · ');
     const heading = document.createElement('div');
-    heading.className = 'historical-library-preview-heading';
+    heading.className = 'territorial-library-preview-heading';
     heading.append(title);
     elements.preview.replaceChildren(heading, versionField, renderMapPreview(entity, version),
       ...(meta.textContent ? [meta] : []));
@@ -300,38 +214,45 @@ export function createTerritorialLibraryController({
   }
 
   function renderResults() {
-    const results = searchResults().filter(entity => !flagPicker || String(entity.metadata?.defaultFlagDataUrl || '').trim());
+    const groups = searchResults().map(group=>({...group,entities:group.entities.filter(entity=>!flagPicker || String(entity.metadata?.defaultFlagDataUrl || '').trim())})).filter(group=>group.entities.length);
+    const results = groups.flatMap(group=>group.entities);
     const fragment = document.createDocumentFragment();
-    for (const entity of results) {
+    for (const group of groups) {
+      const heading=document.createElement('h3');
+      heading.className='territorial-library-lineage-title';
+      heading.textContent=group.names.ko || group.names.en || Object.values(group.names)[0];
+      fragment.appendChild(heading);
+      for (const entity of group.entities) {
       const button = document.createElement('button');
       const selected = selectedId === entity.entityId;
       button.type = 'button';
-      button.className = `ui-button ui-row ui-card ui-selectable-row historical-library-result${selected ? ' is-selected' : ''}`;
+      button.className = `ui-button ui-row ui-card ui-selectable-row territorial-library-result${selected ? ' is-selected' : ''}`;
       button.dataset.libraryEntityId = entity.entityId;
       button.setAttribute('aria-expanded', String(selected));
-      if (selected && hasMultipleGeometryVersions(entity)) button.setAttribute('aria-controls', elements.preview.id);
+      if (selected) button.setAttribute('aria-controls', elements.preview.id);
       button.tabIndex = selected ? 0 : -1;
       const strong = document.createElement('strong');
-      strong.textContent = entity.displayNames?.ko || entity.canonicalName;
+      strong.textContent = entity.names.ko || entity.names.en || Object.values(entity.names)[0];
       const small = document.createElement('small');
-      small.textContent = `${typeLabels[entity.entityKind]} · ${period(entity)}`;
+      small.textContent = period(entity);
       const flagUrl = String(entity.metadata?.defaultFlagDataUrl || '').trim();
       if (flagUrl) {
         const flag = document.createElement('span');
-        flag.className = 'historical-library-result-flag';
+        flag.className = 'territorial-library-result-flag';
         flag.setAttribute('aria-hidden', 'true');
         const image = document.createElement('img');
         image.src = flagUrl;
         image.alt = '';
         flag.appendChild(image);
-        button.className += ' historical-library-result--flagged';
+        button.className += ' territorial-library-result--flagged';
         button.append(flag, strong, small);
       } else button.append(strong, small);
       fragment.appendChild(button);
+      }
     }
     if (!results.length) fragment.appendChild(createEmptyState(
       flagPicker ? '국기가 있는 항목이 없습니다.' : '조건에 맞는 항목이 없습니다.',
-      flagPicker ? '검색어, 종류, 상태 또는 기준 연도를 바꿔 보세요.' : '검색어, 종류, 상태 또는 기준 연도를 바꿔 보세요.',
+      flagPicker ? '검색어 또는 시점을 바꿔 보세요.' : '검색어 또는 시점을 바꿔 보세요.',
       { compact: true },
     ));
     elements.results.replaceChildren(fragment);
@@ -348,7 +269,6 @@ export function createTerritorialLibraryController({
     if (loading) return;
     if (selectedId !== String(id || '')) {
       resetOwnership();
-      selectedVersionId = '';
       elements.childDepth.value = 'none';
     }
     selectedId = String(id || '');
@@ -358,6 +278,9 @@ export function createTerritorialLibraryController({
     try {
       renderResults();
       if (!flagPicker && selectedId) await service.loadEntity(selectedId);
+      if (generation === requestGeneration && project !== getProjectGeneration()) {
+        selectedId='';resetOwnership();renderResults();renderPreview();return;
+      }
       if (generation !== requestGeneration || project !== getProjectGeneration() || elements.modal.classList.contains('hidden')) return;
       renderPreview();
     } catch (error) {
@@ -390,7 +313,7 @@ export function createTerritorialLibraryController({
       await service.load();
       if (generation !== requestGeneration || project !== getProjectGeneration()) return;
       setLoadingState(false);
-      syncFilterOptions();
+      if (!elements.referenceDate.value) elements.referenceDate.value=service.today();
       renderResults();
       renderPreview();
       elements.search.focus();
@@ -406,18 +329,28 @@ export function createTerritorialLibraryController({
   async function addSelected() {
     if (loading || !selectedId) return;
     const generation = ++requestGeneration;
+    const project = getProjectGeneration();
+    function isCurrent() {
+      if (generation !== requestGeneration) return false;
+      if (project === getProjectGeneration()) return true;
+      selectedId = '';
+      resetOwnership();
+      setLoadingState(false);
+      renderResults();
+      renderPreview();
+      return false;
+    }
     setLoadingState(true);
-    const versionOverrides = selectedVersionId ? { [selectedId]: selectedVersionId } : {};
     try {
-      const context = await ownershipContext([selectedId], elements.year.value, elements.childDepth.value, versionOverrides);
-      if (generation !== requestGeneration) return;
+      const context = await ownershipContext([selectedId], elements.referenceDate.value, elements.childDepth.value);
+      if (!isCurrent()) return;
       if (!ownershipChoices && context.missing.length) {
         setLoadingState(false);
         showOwnership(context);
         return;
       }
     } catch (error) {
-      if (generation !== requestGeneration) return;
+      if (!isCurrent()) return;
       setLoadingState(false);
       renderPreview();
       reportError(error, '선택한 항목의 소속과 경계 버전을 확인하세요.', 'PL-LIB-002', 4800);
@@ -426,11 +359,11 @@ export function createTerritorialLibraryController({
     setLoadingState(true);
     for (const control of elements.ownership?.querySelectorAll('input, select') || []) control.disabled = true;
     try {
-      const result = await instantiate([selectedId], elements.year.value, elements.childDepth.value, versionOverrides, {
+      const result = await instantiate([selectedId], elements.referenceDate.value, elements.childDepth.value, {
         ownership: ownershipChoices || {}, confirmedImpact,
-        isCurrent: () => requestGeneration === generation,
+        isCurrent,
       });
-      if (requestGeneration !== generation) return;
+      if (!isCurrent()) return;
       if (result?.confirmationRequired) {
         const host = elements.ownership;
         host.classList.remove('hidden');
@@ -455,7 +388,7 @@ export function createTerritorialLibraryController({
       }
       const added = Number(result?.added || 0);
       const deleted = Number(result?.deleted || 0);
-      if (!added) setStatus('이미 현재 프로젝트에 있는 항목입니다.', 'success', 2800);
+      if (!added) throw new Error('추가 결과에 새 프로젝트 객체가 없습니다.');
       else if (Number(result?.subtracted || 0)) {
         const deletedText = deleted ? ` 이 중 ${deleted}개는 완전히 대체되어 제거했습니다.` : '';
         setStatus(`라이브러리 항목 ${added}개를 추가하고 기존 국가 ${result.subtracted}개의 겹친 영토를 대체했습니다.${deletedText}`, 'success', 4200);
@@ -464,7 +397,7 @@ export function createTerritorialLibraryController({
       }
       close();
     } catch (error) {
-      if (requestGeneration !== generation) return;
+      if (!isCurrent()) return;
       setLoadingState(false);
       renderPreview();
       reportError(error, '라이브러리 항목을 프로젝트에 추가하지 못했습니다.', 'PL-LIB-002', 4800);
@@ -500,27 +433,6 @@ export function createTerritorialLibraryController({
     requestFrame(() => elements.results.querySelector('[aria-selected="true"]')?.focus());
   }
 
-  function requestSnapshot() {
-    const snapshot = service.getSnapshot(elements.snapshot.value);
-    if (!snapshot) return;
-    confirm({
-      title: `${snapshot.name} 스냅샷`,
-      message: snapshot.metadata?.partial
-        ? '이 스냅샷은 라이브러리 기능 시험용 부분 구성입니다. 현재 프로젝트에 없는 항목만 추가합니다.'
-        : '현재 프로젝트에 없는 스냅샷 항목만 추가합니다.',
-      confirmText: '없는 항목 추가',
-      onConfirm: async () => {
-        try {
-          const result = await instantiate(snapshot.entityRefs, snapshot.referenceDate, 'all');
-          setStatus(`${snapshot.name}에서 ${Number(result?.added || 0)}개 항목을 추가했습니다.`, 'success', 4200);
-          close();
-        } catch (error) {
-          reportError(error, '세계 스냅샷을 프로젝트에 추가하지 못했습니다.', 'PL-LIB-003', 4800);
-        }
-      },
-    });
-  }
-
   function connect() {
     elements.childDepth?.addEventListener('change', resetOwnership);
     elements.open?.addEventListener('click', open);
@@ -528,23 +440,17 @@ export function createTerritorialLibraryController({
     elements.backdrop?.addEventListener('click', close);
     for (const [element, eventName] of [
       [elements.search, 'input'],
-      [elements.type, 'change'],
-      [elements.status, 'change'],
-      [elements.year, 'input'],
-      [elements.geographicRegion, 'change'],
+      [elements.referenceDate, 'input'],
     ]) {
       element?.addEventListener(eventName, () => {
         resetOwnership();
         try {
           renderResults();
-          if (element === elements.year) {
-            selectedVersionId = '';
-            renderPreview();
-          }
+          renderPreview();
         } catch (error) {
           elements.add.disabled = true;
           elements.preview.replaceChildren();
-          reportError(error, '검색 조건의 기준 연도를 확인해 주세요.', 'PL-LIB-005', 4800);
+          reportError(error, '검색 조건의 시점을 확인해 주세요.', 'PL-LIB-005', 4800);
         }
       });
     }
@@ -575,8 +481,6 @@ export function createTerritorialLibraryController({
     });
     elements.add?.addEventListener('click', advanceAdd);
     elements.optionsBack?.addEventListener('click', returnToDetail);
-    elements.snapshot?.addEventListener('change', () => { elements.snapshotButton.disabled = !elements.snapshot.value; });
-    elements.snapshotButton?.addEventListener('click', requestSnapshot);
   }
 
   return Object.freeze({ close, connect, isOpen: () => !elements.modal.classList.contains('hidden'), open, renderPreview, renderResults, select });

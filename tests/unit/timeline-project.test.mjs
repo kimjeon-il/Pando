@@ -13,7 +13,7 @@ test('production serializer stores records and every version instead of a curren
   const source = projectForStorage();
   const before = structuredClone(source);
   const project = serializer(source).buildProject();
-  assert.equal(project.schemaVersion, 9);
+  assert.equal(project.schemaVersion, 10);
   assert.equal(project.territorialEntities[0].geometry, null);
   assert.deepEqual(project.timelineRecords, source.projectFields.timelineRecords);
   const versions = entries => new Map(entries.map(entry => [JSON.stringify([entry.id, entry.version]), entry.geojson]));

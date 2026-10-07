@@ -8,6 +8,8 @@ export function createTerritorialEntityLoader({indexUrl,indexSpec,dataRevision,f
   const entities=new Map(), pending=new Map();
   let index=null,indexPromise=null;
   const parse=bytes=>JSON.parse(new TextDecoder().decode(bytes));
+  const comparable=value=>Array.isArray(value)?value.map(comparable):value && typeof value==='object'
+    ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,comparable(value[key])])):value;
   async function loadIndex(){
     if(index)return index;
     if(!indexPromise)indexPromise=assets.loadAsset({...indexSpec,url:base.href},'catalog','index','Territorial index',parse).then(({value})=>{
@@ -21,7 +23,12 @@ export function createTerritorialEntityLoader({indexUrl,indexSpec,dataRevision,f
       const catalog=await loadIndex();const entry=catalog.entities.find(e=>e.entityId===entityId);
       if(!entry)throw new Error(`Unknown territorial entity: ${entityId}`);
       const {value}=await assets.loadAsset({...entry,url:entry.file,encoding:'gzip'},'catalog',entityId,entityId,bytes=>normalizeTerritorialLibraryEntity(parse(bytes)));
-      if(value.entityId!==entityId || value.geometryVersions.length!==entry.geometryVersionCount || value.geometryVersions.some((v,i)=>v.id!==entry.geometryVersions[i].id))throw new Error('Territorial chunk identity mismatch');
+      const metadataKeys=['schemaVersion','entityId','lineageId','entityKind','names','alternateNames','lifetime','parentEntityId','instantiation','metadata'];
+      const chunkMetadata=Object.fromEntries(metadataKeys.map(key=>[key,value[key]]));
+      const indexMetadata=Object.fromEntries(metadataKeys.map(key=>[key,entry[key]]));
+      chunkMetadata.geometryVersions=value.geometryVersions.map(({geometry,...version})=>version);
+      indexMetadata.geometryVersions=entry.geometryVersions;
+      if(JSON.stringify(comparable(chunkMetadata))!==JSON.stringify(comparable(indexMetadata)))throw new Error('Territorial chunk identity/metadata mismatch');
       entities.set(entityId,value);return value;
     })().finally(()=>pending.delete(entityId)));
     return pending.get(entityId);

@@ -3,8 +3,7 @@
 // are left byte-for-byte intact; generated map assets are rebuilt separately.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {readTerritorialSources,entityFileName,territorialDataRoot} from './territorial-entity-sources.mjs';
-import path from 'node:path';
+import {readTerritorialSources,updateTerritorialSource} from './territorial-entity-sources.mjs';
 
 const root = new URL('../', import.meta.url);
 const names = new Map([
@@ -33,9 +32,9 @@ for(const [id,name] of names){
   else assert.equal(previous,id==='TUR'?'터키':'스페인');
   const next=structuredClone(entity);
   next.sourceInfo.featureProperties.name=name;
-  next.canonicalName=name;next.displayNames.ko=name;
+  next.names.ko=name;
   assert.deepEqual(next.geometryVersions,entity.geometryVersions);
-  fs.writeFileSync(path.join(territorialDataRoot,'source',entityFileName(entity.entityId)),`${JSON.stringify(next,null,2)}\n`);
+  updateTerritorialSource(entity.entityId,raw=>({...raw,names:next.names,sourceInfo:next.sourceInfo}));
   countryNamesChanged++;
 }
 

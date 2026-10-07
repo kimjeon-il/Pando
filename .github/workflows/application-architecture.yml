@@ -672,6 +672,13 @@ jobs:
           tests/unit/territorial-entity-loader.test.mjs
           tests/unit/territorial-timeline-storage.test.mjs
           tests/unit/territorial-snapshots.test.mjs
+          tests/unit/country-lineage.test.mjs
+          tests/unit/country-lineage-preservation.test.mjs
+          tests/unit/library-ownership.test.mjs
+          tests/unit/library-import-atomic.test.mjs
+          tests/unit/library-map-preview.test.mjs
+          tests/unit/territorial-library-controller.test.mjs
+          tests/unit/territorial-source-provenance.test.mjs
 
   full-unit-suite:
     name: Full unit suite

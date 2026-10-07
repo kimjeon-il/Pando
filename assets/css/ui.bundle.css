@@ -2855,12 +2855,12 @@ body.map-sheet-dragging {
   scrollbar-gutter: auto;
 }
 
-.ui-native-scroll.historical-library-results {
+.ui-native-scroll.territorial-library-results {
   scrollbar-width: none;
   scrollbar-gutter: auto;
 }
 
-.ui-native-scroll.historical-library-preview {
+.ui-native-scroll.territorial-library-preview {
   scrollbar-width: none;
   scrollbar-gutter: auto;
 }
@@ -6913,7 +6913,7 @@ body.file-menu-open .app-root .topbar {
   }
 }
 
-.historical-library-ownership {
+.territorial-library-ownership {
   min-height: 0;
   max-height: 45dvh;
   overflow-y: auto;
@@ -6924,11 +6924,11 @@ body.file-menu-open .app-root .topbar {
   flex-shrink: 0;
 }
 
-.historical-library-ownership .field-group[hidden] {
+.territorial-library-ownership .field-group[hidden] {
   display: none;
 }
 
-.historical-library-ownership h3 {
+.territorial-library-ownership h3 {
   margin: 0;
 }
 
@@ -7497,7 +7497,7 @@ body.file-menu-open .mobile-backdrop {
 }
 
 @media (max-width: 799px) {
-  .historical-library-modal .historical-library-card {
+  .territorial-library-modal .territorial-library-card {
     width: calc(100vw - var(--ui-space-4));
     max-height: calc(100dvh - var(--ui-space-4));
   }
@@ -7518,14 +7518,14 @@ body.file-menu-open .mobile-backdrop {
 }
 
 @media (max-width: 799px) {
-  .historical-library-layout {
+  .territorial-library-layout {
     grid-template-columns: 1fr;
     border-bottom: 0;
   }
 }
 
 @media (max-width: 799px) {
-  .historical-library-footer {
+  .territorial-library-footer {
     position: sticky;
     bottom: 0;
     z-index: 2;
@@ -10328,7 +10328,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 @media (max-width: 799px) {
-  .historical-library-results {
+  .territorial-library-results {
     border-right: 0;
     padding-right: 0;
   }
@@ -10379,7 +10379,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   color: var(--text-soft);
 }
 
-:is( .editor-object-heading h2, .workflow-dialog-card h2, .historical-library-preview, .historical-library-result, .editor-action-row, .file-menu-item, .ui-callout, .ui-alert, .ui-empty-state, .action-status strong ) {
+:is( .editor-object-heading h2, .workflow-dialog-card h2, .territorial-library-preview, .territorial-library-result, .editor-action-row, .file-menu-item, .ui-callout, .ui-alert, .ui-empty-state, .action-status strong ) {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -10451,7 +10451,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   outline-offset: var(--design-focus-offset);
 }
 
-.historical-library-results {
+.territorial-library-results {
   scroll-padding: var(--ui-space-2);
 }
 
@@ -10467,7 +10467,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   scroll-padding: var(--ui-space-2);
 }
 
-.historical-library-result[aria-selected="true"] {
+.territorial-library-result[aria-selected="true"] {
   box-shadow: inset 0 -2px color-mix(in srgb, var(--accent) 68%, transparent);
 }
 

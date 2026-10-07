@@ -9,7 +9,7 @@ test('library title occupies the flexible column and close button stays right', 
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#createMenuBtn').click();
   await page.locator('#addFromLibraryBtn').click();
-  const title = page.locator('#historicalLibraryTitle');
+  const title = page.locator('#territorialLibraryTitle');
   await expect(title).toBeVisible();
   await expect(title).toHaveText('국가·지역 라이브러리');
   for (const width of [1440, 390]) {
@@ -17,12 +17,12 @@ test('library title occupies the flexible column and close button stays right', 
     await expect.poll(async () => title.evaluate(el => {
       const header = el.closest('header').getBoundingClientRect();
       const text = el.getBoundingClientRect();
-      const close = document.getElementById('historicalLibraryCloseBtn').getBoundingClientRect();
+      const close = document.getElementById('territorialLibraryCloseBtn').getBoundingClientRect();
       return text.width > 180 && text.height < 60 && close.x >= text.right
         && close.right <= header.right + 1 && close.y < text.bottom;
     })).toBe(true);
   }
-  await page.locator('#historicalLibraryCloseBtn').click();
-  await expect(page.locator('#historicalLibraryModal')).toBeHidden();
+  await page.locator('#territorialLibraryCloseBtn').click();
+  await expect(page.locator('#territorialLibraryModal')).toBeHidden();
   expect(errors).toEqual([]);
 });

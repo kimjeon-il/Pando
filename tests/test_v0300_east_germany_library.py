@@ -10,9 +10,9 @@ from shapely.ops import transform, unary_union
 
 
 ROOT = Path(__file__).parents[1]
-PILOT_PATH = ROOT / "assets/data/territorial-entities/source/state-deutsche-demokratische-republik.json"
+PILOT_PATH = ROOT / "assets/data/territorial-entities/source/countries/germany.json"
 COUNTRIES_PATH = ROOT / "assets" / "data" / "countries-ne-5.1.1.geojson"
-PILOT = {"entities": [json.loads(PILOT_PATH.read_text(encoding="utf-8"))]}
+PILOT = json.loads(PILOT_PATH.read_text(encoding="utf-8"))
 COUNTRIES = json.loads(COUNTRIES_PATH.read_text(encoding="utf-8"))
 ENTITY = next(item for item in PILOT["entities"] if item["entityId"] == "state:deutsche-demokratische-republik")
 GEOMETRY = shape(ENTITY["geometryVersions"][0]["geometry"])
@@ -28,9 +28,9 @@ def projected_area_km2(geometry):
 
 class EastGermanyHistoricalLibraryTests(unittest.TestCase):
     def test_identity_dates_aliases_and_instantiation_policy(self):
-        self.assertEqual(ENTITY["canonicalName"], "German Democratic Republic")
-        self.assertEqual(ENTITY["displayNames"]["ko"], "독일 민주공화국")
-        self.assertEqual(ENTITY["displayNames"]["de"], "Deutsche Demokratische Republik")
+        self.assertEqual(ENTITY["names"]["en"], "German Democratic Republic")
+        self.assertEqual(ENTITY["names"]["ko"], "독일 민주공화국")
+        self.assertEqual(ENTITY["names"]["de"], "Deutsche Demokratische Republik")
         self.assertEqual(set(ENTITY["alternateNames"]), {"동독", "East Germany", "DDR", "GDR", "Ostdeutschland"})
         self.assertEqual(ENTITY["lifetime"]["validFrom"], "1949-10-07")
         self.assertEqual(ENTITY["lifetime"]["validTo"], "1990-10-02")
@@ -48,7 +48,7 @@ class EastGermanyHistoricalLibraryTests(unittest.TestCase):
         self.assertGreaterEqual(abs(area) / 1_000_000, 108_000)
         self.assertLessEqual(abs(area) / 1_000_000, 109_000)
         self.assertLessEqual(projected_area_km2(GEOMETRY.difference(CANONICAL_DEU)), 1e-6)
-        self.assertLess(PILOT_PATH.stat().st_size, 6 * 1024 * 1024)
+        self.assertLess(len(json.dumps(ENTITY).encode("utf-8")), 6 * 1024 * 1024)
 
     def test_reference_points_and_west_berlin_exclusion(self):
         inside = {

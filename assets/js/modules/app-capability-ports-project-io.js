@@ -157,6 +157,7 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "domains",
     "feedback",
     "gisRuntime",
+    "geometryModel",
     "layers",
     "libraryServices",
     "objectCatalog",

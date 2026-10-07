@@ -17,7 +17,7 @@ test('territorial GIS rows keep hierarchy association dates and multipart geomet
       type: 'Feature', id: 'admin-a', geometry,
       properties: {
         entityKind: 'general', name: '아티키', parentId: 'country-gr', 
-        validFrom: '1900', validTo: '2000', style: { color: '#123456' }, sourceLibraryId: 'lib-admin-a',
+        validFrom: '1900', validTo: '2000', style: { color: '#123456' }, sourceEntityId: 'lib-admin-a',
       },
     }],
   };
@@ -27,7 +27,7 @@ test('territorial GIS rows keep hierarchy association dates and multipart geomet
   assert.deepEqual(rows.entities[0], {
     ...rows.entities[0],
     id: 'admin-a', entity_kind: 'general', parent_id: 'country-gr', 
-    valid_from: '1900', valid_to: '2000', source_library_id: 'lib-admin-a',
+    valid_from: '1900', valid_to: '2000', source_entity_id: 'lib-admin-a',
   });
 });
 
@@ -80,7 +80,7 @@ test('the canonical general entity table imports a child with the current schema
   const source = {
     type: 'Feature', geometry: polygon(), properties: { id: 'admin-1', name: '아티키', parent_id: 'GR' },
   };
-  const imported = adapters.importTerritorialFeature(source, 'entities');
+  const imported = adapters.importTerritorialFeature(source, 'entities', 0, 6);
   assert.equal(imported.properties.schemaVersion, TERRITORIAL_SCHEMA_VERSION);
   assert.equal(imported.properties.entityKind, 'general');
   assert.equal(imported.properties.parentId, 'GR');

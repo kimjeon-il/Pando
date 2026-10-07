@@ -26,7 +26,7 @@ class V0270GisInterchangeTests(unittest.TestCase):
     def test_territorial_and_distribution_tables_are_explicit(self):
         for table in ('entities', 'regions', 'distributions'):
             self.assertIn(f"'{table}'", ADAPTERS)
-        for field in ('parent_id','entity_kind','valid_from','valid_to','source_library_id','entry_id','layer_id','source_mode','territorial_unit_id','value','unit','certainty'):
+        for field in ('parent_id','entity_kind','valid_from','valid_to','source_entity_id','entry_id','layer_id','source_mode','territorial_unit_id','value','unit','certainty'):
             self.assertIn(field, ADAPTERS)
         for retired in ('language_distribution','ethnicity_distribution','religion_distribution','associated_country_id'):
             self.assertNotIn(retired, ADAPTERS)
