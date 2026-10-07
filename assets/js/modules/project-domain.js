@@ -156,7 +156,6 @@ export function createProjectDomain({
     if (!history) throw new TypeError('Project history is not configured.');
     const changed = history[direction](metadata);
     if (changed) {
-      saveState?.markContentChanged();
       notify(`project-${direction}`, null, invalidateHistory);
     }
     return changed;
