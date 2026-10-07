@@ -6,11 +6,23 @@ import { assertCurrentProjectSchema } from '../../assets/js/modules/project-stat
 
 async function openMap(page) {
   page.setDefaultTimeout(12_000);
-  await page.addInitScript(() => document.addEventListener('pointermove', event => {
-    window.__countryHoverPointer = { x: event.clientX, y: event.clientY, pointerType: event.pointerType,
-      target: event.target.closest('svg')?.getAttribute('class') || event.target.tagName,
-      label: event.target.closest('[data-label-id]')?.dataset.labelId || null };
-  }, true));
+  await page.addInitScript(() => {
+    window.__tooltipTransitionEvents = [];
+    for (const type of ['pointerout', 'pointerover', 'pointermove', 'focusout', 'focusin']) document.addEventListener(type, event => {
+      const tooltip = document.getElementById('uiTooltip');
+      window.__tooltipTransitionEvents.push({ type, time: performance.now(), target: event.target.tagName,
+        control: event.target.closest?.('[data-tooltip]')?.id || null,
+        relatedControl: event.relatedTarget?.closest?.('[data-tooltip]')?.id || null,
+        tooltipKind: tooltip?.dataset.kind || null, tooltipOwner: tooltip?.dataset.ownerId || null,
+        tooltipHidden: tooltip?.classList.contains('hidden') });
+      if (window.__tooltipTransitionEvents.length > 80) window.__tooltipTransitionEvents.shift();
+    }, true);
+    document.addEventListener('pointermove', event => {
+      window.__countryHoverPointer = { x: event.clientX, y: event.clientY, pointerType: event.pointerType,
+        target: event.target.closest('svg')?.getAttribute('class') || event.target.tagName,
+        label: event.target.closest('[data-label-id]')?.dataset.labelId || null };
+    }, true);
+  });
   await page.goto('/?debug=1&renderer=canvas&demTerrain=raster');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
 }
@@ -73,12 +85,33 @@ for (const width of [1366, 1024]) test(`country hover only identifies; one label
   await expect(page.locator('#undoBtn')).toBeDisabled();
   await expect(page.locator('#editorObjectHeader #objectVisibilityBtn, #editorObjectHeader #objectLockBtn, #editorObjectHeader #focusSelectedObjectBtn')).toHaveCount(3);
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath(`editor-header-${width}.png`) });
-  await page.locator('#focusSelectedObjectBtn').hover();
+  const selectedRevision = await revision(page);
+  const focusButton = page.locator('#focusSelectedObjectBtn');
   const buttonTooltip = page.locator('#uiTooltip');
-  await expect(buttonTooltip).toBeVisible();
-  await expect(buttonTooltip).toHaveText('선택 객체로 이동');
-  expect(await buttonTooltip.evaluate(node => getComputedStyle(node).pointerEvents)).toBe('none');
-  await page.screenshot({ path: testInfo.outputPath(`button-tooltip-${width}.png`) });
+  try {
+    await focusButton.hover();
+    await expect(buttonTooltip).toBeVisible();
+    await expect(buttonTooltip).toHaveText('선택 객체로 이동');
+    expect(await buttonTooltip.evaluate(node => getComputedStyle(node).pointerEvents)).toBe('none');
+    await focusButton.locator('svg').hover({ position: { x: 1, y: 1 } });
+    await expect(buttonTooltip).toBeVisible();
+    await expect(buttonTooltip).toHaveAttribute('data-owner-id', 'focusSelectedObjectBtn');
+    await page.screenshot({ path: testInfo.outputPath(`button-tooltip-${width}.png`) });
+    await label(page).hover(); await assertTooltip(page, '독일');
+    await expect(focusButton).not.toHaveAttribute('aria-describedby', /uiTooltip/);
+    await focusButton.focus();
+    await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Tab');
+    await expect(focusButton).toBeFocused();
+    await expect(buttonTooltip).toBeVisible();
+    await expect(buttonTooltip).toHaveText('선택 객체로 이동');
+    await expect(buttonTooltip).toHaveAttribute('data-owner-id', 'focusSelectedObjectBtn');
+    await page.screenshot({ path: testInfo.outputPath(`keyboard-tooltip-${width}.png`) });
+    await page.keyboard.press('Escape'); await expect(buttonTooltip).toBeHidden();
+    expect(await revision(page)).toBe(selectedRevision); expect(await view(page)).toEqual(before.view);
+  } finally {
+    await testInfo.attach('tooltip-transition-events', { contentType: 'application/json',
+      body: JSON.stringify(await page.evaluate(() => window.__tooltipTransitionEvents), null, 2) });
+  }
   await page.locator('#createMenuBtn').click();
   await expect(page.locator('#createMenu')).toBeVisible();
   expect(await page.locator('#createMenu').evaluate(node => getComputedStyle(node).pointerEvents)).toBe('auto');
