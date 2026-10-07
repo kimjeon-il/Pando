@@ -202,3 +202,15 @@
   bottom: var(--map-view-toolbar-bottom);
   transform: none;
 }
+
+.map-overlay-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  min-width: 0;
+  min-height: 0;
+  pointer-events: none;
+}
+
+
+.territorial-label-item { pointer-events: bounding-box; }

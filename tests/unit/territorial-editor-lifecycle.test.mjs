@@ -4,7 +4,7 @@ import { createApplicationLifecycle } from '../../assets/js/modules/application-
 import { createLifecycleAssembly } from '../../assets/js/modules/app-lifecycle-assembly.js';
 import { createGlobalInputBindings } from '../../assets/js/modules/app-global-input-bindings.js';
 import { createTaskPresentation } from '../../assets/js/modules/app-task-presentation.js';
-import { createSelectionToolbarPresentation } from '../../assets/js/modules/selection-toolbar-presentation.js';
+import { createTerritorialPropertyController } from '../../assets/js/modules/territorial-property-controller.js';
 import { createFoundationPorts } from '../../assets/js/modules/app-capability-ports-foundation.js';
 import { createProjectUiBridge } from '../../assets/js/modules/project-ui-bridge.js';
 import { createPropertyEditorBindings } from '../../assets/js/modules/property-editor-bindings.js';
@@ -46,13 +46,13 @@ function taskFixture(domainControllers) {
   return owner;
 }
 
-test('task surface synchronization rejects a missing required toolbar command', t => {
+test('task surface synchronization rejects a missing required editor command', t => {
   environment(t);
   const task = taskFixture({});
   assert.throws(() => task.syncMapContextSurfaces(), TypeError);
 });
 
-test('global Escape rejects a missing required toolbar command instead of falling through', t => {
+test('global Escape rejects a missing required editor command instead of falling through', t => {
   const { listeners } = environment(t);
   const owner = createGlobalInputBindings();
   owner.connect({
@@ -67,15 +67,15 @@ test('global Escape rejects a missing required toolbar command instead of fallin
   assert.throws(() => listeners.get('keydown')(escape), TypeError);
 });
 
-test('real lifecycle assembly creates toolbar capabilities before startup task synchronization and Escape', async t => {
+test('real lifecycle assembly creates editor capabilities before startup task synchronization and Escape', async t => {
   const { window, listeners } = environment(t);
   let flagOpen = true;
   const flagMenu = { matches: () => flagOpen, hidePopover: () => { flagOpen = false; } };
   const getElement = id => id === 'flagMenu' ? flagMenu : null;
   const domainAssembly = {
-    selectionToolbarPresentation: null,
+    territorialPropertyController: null,
     initializeDomainBoundaries() {
-      domainAssembly.selectionToolbarPresentation = createSelectionToolbarPresentation({ window, getElement });
+      domainAssembly.territorialPropertyController = createTerritorialPropertyController({ window, getElement });
     },
   };
   const foundation = createFoundationPorts({ domainAssembly });
@@ -114,7 +114,7 @@ test('real lifecycle assembly creates toolbar capabilities before startup task s
   assert.equal(owner.lifecycle.start(), start);
   assert.equal(await start, true);
   assert.equal(startupCalls, 1);
-  assert.equal(typeof foundation.domainControllers.syncSelectionToolbarInteraction, 'function');
+  assert.equal(typeof foundation.domainControllers.syncTerritorialEditorInteraction, 'function');
   const escape = Object.assign(new Event('keydown', { cancelable: true }), { key: 'Escape' });
   listeners.get('keydown')(escape);
   assert.equal(flagOpen, false);

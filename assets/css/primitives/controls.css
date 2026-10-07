@@ -1453,3 +1453,13 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
     min-height: var(--ui-touch-height);
   }
 }
+
+.ui-tooltip[data-kind="country"] {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  max-width: min(var(--ui-tooltip-max-width), calc(100vw - 1rem));
+  white-space: nowrap;
+}
+.ui-tooltip[data-kind="country"] > img { flex: 0 0 auto; width: 1.25rem; height: .875rem; object-fit: contain; }
+.ui-tooltip[data-kind="country"] > span { overflow: hidden; text-overflow: ellipsis; }
