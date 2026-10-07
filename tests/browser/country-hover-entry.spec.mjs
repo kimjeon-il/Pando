@@ -106,8 +106,18 @@ for (const width of [1366, 1024]) test(`country hover only identifies; one label
     await expect(buttonTooltip).toHaveText('선택 객체로 이동');
     await expect(buttonTooltip).toHaveAttribute('data-owner-id', 'focusSelectedObjectBtn');
     await page.screenshot({ path: testInfo.outputPath(`keyboard-tooltip-${width}.png`) });
-    await page.keyboard.press('Escape'); await expect(buttonTooltip).toBeHidden();
     expect(await revision(page)).toBe(selectedRevision); expect(await view(page)).toEqual(before.view);
+    // Escape also reaches the existing layout-specific global editor/selection action.
+    await page.keyboard.press('Escape'); await expect(buttonTooltip).toBeHidden();
+    await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
+    if (width === 1366) {
+      expect(await revision(page)).toBe(selectedRevision + 1);
+      await expect(page.locator('#entityProperties')).toBeHidden();
+    } else {
+      expect(await revision(page)).toBe(selectedRevision);
+      await expect(page.locator('#entityNameInput')).toHaveValue('독일');
+    }
+    expect(await view(page)).toEqual(before.view);
   } finally {
     await testInfo.attach('tooltip-transition-events', { contentType: 'application/json',
       body: JSON.stringify(await page.evaluate(() => window.__tooltipTransitionEvents), null, 2) });
