@@ -321,3 +321,25 @@ export function applyProjectFields(target, source, {
   }
   return target;
 }
+
+/** Prepare detached history data before the Store publishes any mutation. */
+export function prepareEditableProjectSnapshot(snapshot, { reuseGeometries = null, normalizeHydroEditCollection, normalizeGenericFeatureCollection }) {
+    const { geometries, ...fields } = snapshot;
+    const candidate = { ...structuredClone(fields), geometries };
+    const identities = normalizeTerritorialIdentities(candidate.territorialEntities);
+    const storage = restoreTimelineStorage({ schemaVersion: 1, records: candidate.timelineRecords,
+      geometries: candidate.geometries }, identities.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })),
+    { reuse: reuseGeometries });
+    candidate.geometries = storage.geometries.snapshot();
+    candidate.timelineRecords = storage.records;
+    candidate.hydroEdits = normalizeHydroEditCollection(candidate.hydroEdits);
+    candidate.genericFeatures = normalizeGenericFeatureCollection(candidate.genericFeatures);
+    candidate.distributionLayers = normalizeDistributionLayers(candidate.distributionLayers);
+    const ids = new Set(candidate.distributionLayers.map(layer => layer.id));
+    candidate.distributionEntries = normalizeDistributionEntries(candidate.distributionEntries, {
+      layerExists: id => ids.has(id), cloneGeometry: geometry => geometry,
+    });
+    assertProjectReferenceIntegrity({ ...candidate,
+      territorialEntities: staticTimelineViews(identities, storage.records, storage.geometries) });
+    return candidate;
+  }

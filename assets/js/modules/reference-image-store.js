@@ -1,4 +1,4 @@
-import { createBrowserProjectStorage } from './persistence-service.js';
+import { createBrowserProjectStorage } from './browser-project-storage.js';
 
 export const REFERENCE_IMAGE_COLLECTION_VERSION = 2;
 const COLLECTION_KEY = 'reference-images';

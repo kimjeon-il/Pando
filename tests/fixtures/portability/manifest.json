@@ -1,0 +1,10 @@
+{
+  "webBaseline": "008b99b5ca2dd39936e51f7ddd11c0c70fc7bb74",
+  "appBaseline": "3934077519bb716cbb45b683bbb63d85dcc8d5ee",
+  "source": "assets/js/modules/object-selection-controller.js",
+  "steps": 14,
+  "sha256": {
+    "selection.json": "22b960c42f494449953853cd1e0d06083905660794f683b4648240074d16a02d",
+    "baseline-selection.mjs": "61e5b9b1fc6592cdaae2306853bc60ec93c6668a5449f6d2e39ba3b7811ac453"
+  }
+}

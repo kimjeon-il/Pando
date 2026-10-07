@@ -8,7 +8,9 @@ export function createTerritorialApplicationService({
   entityRepository,
   entityStore,
   commandPipeline,
+  createId,
 }) {
+  if (typeof createId !== 'function') throw new TypeError('Territorial service requires createId().');
   if (!entityStore) throw new TypeError('영역 애플리케이션 서비스에는 엔티티 저장소가 필요합니다.');
   const mutateDocument = createDocumentMutationRunner({ commandPipeline });
   const entity = id => entityRepository.get(id);
@@ -206,7 +208,7 @@ export function createTerritorialApplicationService({
     const source = entityRepository.get(sourceId);
     if (!source || source.properties.entityKind !== 'general') return { ok: false, code: 'invalid-source' };
     const feature = createTerritorialFeature({
-      id: globalThis.crypto.randomUUID(), entityKind: 'regional',
+      id: createId(), entityKind: 'regional',
       name, color, geometry: source.geometry,
     });
     mutateDocument({ type: 'territorial-copy-region', affectedIds: [feature.id] }, () => {

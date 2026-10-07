@@ -7,7 +7,7 @@ import {
   EMPTY_EDITING_RENDER_PACKET,
   freezeEditingGeometry,
 } from '../../assets/js/modules/editing-render-packet.js';
-import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
 
 const assertDeepFrozen = value => {

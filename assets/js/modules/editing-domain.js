@@ -179,6 +179,8 @@ export function createEditingDomain({
 
   const tool = toolController || {};
   const services = draftServices || {};
+  if (typeof services.requestFrame !== 'function') throw new TypeError('Editing domain requires requestFrame().');
+  if (typeof services.cancelFrame !== 'function') throw new TypeError('Editing domain requires cancelFrame().');
   const geometry = geometryEditing || {};
   const active = () => { if (disposed) throw new Error('Editing domain is disposed.'); };
   const toolConfig = () => services.getToolConfig?.(activeTool) || null;
@@ -498,7 +500,7 @@ export function createEditingDomain({
       ? { render: options }
       : (options || {});
     pendingMove = null;
-    if (pendingMoveFrame) services.cancelFrame?.(pendingMoveFrame);
+    if (pendingMoveFrame) services.cancelFrame(pendingMoveFrame);
     pendingMoveFrame = 0;
     activeGesture = null;
     draftCoords = [];
@@ -639,7 +641,7 @@ export function createEditingDomain({
 
   const queueGestureMove = event => {
     pendingMove = event;
-    if (!pendingMoveFrame) pendingMoveFrame = (services.requestFrame || globalThis.requestAnimationFrame || (callback => globalThis.setTimeout(callback, 0)))(flushPendingMove);
+    if (!pendingMoveFrame) pendingMoveFrame = services.requestFrame(flushPendingMove);
     return true;
   };
 

@@ -100,7 +100,8 @@ export function createProjectSession() {
       distributionSettings: { renderMode: dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.OVERLAP, activeLayerId: '', boundaryVisible: true },
       selectedDistributionLayerId: '',
       layerPresentation: (0, dependencies.modelValidation.normalizeLayerPresentation)(),
-      selected: null,
+      // SelectionDomain owns selection. Before domain initialization it is empty.
+      get selected() { return dependencies.domains.selectionDomain?.primary() || null; },
       projection: 'globe',
       layerVisibility: normalizeLayerVisibility(),
       physicalSettings: {

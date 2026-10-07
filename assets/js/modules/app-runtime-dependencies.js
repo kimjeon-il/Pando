@@ -23,7 +23,7 @@ const { createGisFileController } = await import(versionedModuleUrl('./modules/g
 const polygonGeometry = globalThis.PandoLabPolygonGeometry;
 if (!polygonGeometry) throw new Error('폴리곤 지오메트리 정규화 모듈을 불러오지 못했습니다.');
 
-const [projectStateModule, mapEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectRefModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, tooltipControllerModule, layerTreeControllerModule, historyServiceModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
+const [projectStateModule, mapEditTransactionModule, territorialUnitsModule, distributionModelModule, surfaceControllerModule, toolControllerModule, mapInputControllerModule, gpuMapRendererModule, territorialGeometryModule, selectControllerModule, startupReadinessModule, boundaryTopologyModule, geometryMetricsModule, geometryPreviewModule, geometryValidationModule, labelLayoutModule, mapStateTransitionModule, objectRefModule, layerPresentationModule, saveStateModule, colorAdapterModule, projectSerializerModule, persistenceServiceModule, browserProjectStorageModule, physicalLayerServiceModule, territorialServiceModule, distributionServiceModule, genericFeatureServiceModule, tooltipControllerModule, layerTreeControllerModule, historyServiceModule, mapEditWorkerClientModule, mapObjectSpatialIndexModule, surfaceTabsControllerModule] = await Promise.all([
   import(versionedModuleUrl('./modules/project-state.js')),
   import(versionedModuleUrl('./modules/map-edit-transaction.js')),
   import(versionedModuleUrl('./modules/territorial-units.js')),
@@ -47,6 +47,7 @@ const [projectStateModule, mapEditTransactionModule, territorialUnitsModule, dis
   import(versionedModuleUrl('./modules/color-adapter.js')),
   import(versionedModuleUrl('./modules/project-serializer.js')),
   import(versionedModuleUrl('./modules/persistence-service.js')),
+  import(versionedModuleUrl('./modules/browser-project-storage.js')),
   import(versionedModuleUrl('./modules/physical-layer-service.js')),
   import(versionedModuleUrl('./modules/territorial-service.js')),
   import(versionedModuleUrl('./modules/distribution-service.js')),
@@ -70,7 +71,8 @@ const {
 } = projectStateModule;
 const { COLOR_DOMAINS, normalizeColorValue, readDomainColor, writeDomainColor } = colorAdapterModule;
 const { createProjectSerializer } = projectSerializerModule;
-const { createBrowserProjectStorage, createPersistenceService } = persistenceServiceModule;
+const { createPersistenceService } = persistenceServiceModule;
+const { createBrowserProjectStorage } = browserProjectStorageModule;
 const { createHydroService, createTerrainService } = physicalLayerServiceModule;
 const { createTerritorialApplicationService } = territorialServiceModule;
 const { createDistributionService } = distributionServiceModule;
