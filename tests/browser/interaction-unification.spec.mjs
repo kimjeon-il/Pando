@@ -1,6 +1,59 @@
 import { test, expect } from '@playwright/test';
+import { logMapDiagnostic, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
+
+const diagnosticErrors = new WeakMap();
+test.beforeEach(async ({ page }) => {
+  const errors = [];
+  diagnosticErrors.set(page, errors);
+  page.on('pageerror', error => { errors.push(error.message); if (errors.length > 8) errors.shift(); });
+  // Same read-only production-owner observer as helpers/library-state.mjs.
+  // The factory still returns its original frozen object with unchanged methods.
+  await page.route('**/modules/selection-domain.js*', async route => {
+    const response = await route.fetch();
+    const original = (await response.text()).replace(/\r\n/g, '\n');
+    const marker = '  return Object.freeze({\n    replace,';
+    expect(original).toContain(marker);
+    await route.fulfill({ response, body: original.replace(marker,
+      '  return window.__selectionDiagnostics = Object.freeze({\n    replace,') });
+  });
+});
+
+async function selectionDiagnostics(page, request = {}) {
+  const data = await page.evaluate(() => {
+    const snapshot = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
+    const pick = (value, keys) => Object.fromEntries(keys.map(key => [key, value?.[key]]));
+    const gpu = snapshot.gpu;
+    return {
+      canonicalSelection: window.__selectionDiagnostics.snapshot(),
+      document: { hidden: document.hidden, visibilityState: document.visibilityState },
+      selectionPass: snapshot.gpuSelection,
+      selectionPresentation: pick(snapshot.selection, ['failureCount', 'lastFailureStage', 'retainedPreviousFrame',
+        'highlightPreparationError', 'svgFallbackKeys', 'gpuCoverage']),
+      selectionInput: snapshot.selectionInput,
+      gpu: pick(gpu, ['renderer', 'canonicalMeshReady', 'activeMeshQuality', 'projectGeneration', 'projectRenderBlocked',
+        'requestedRevision', 'displayedRevision', 'committedGeometryRevision', 'displayedGeometryRevision',
+        'pendingCountryCount', 'interactionActive', 'interactionFillCoverage', 'lastSelectionRenderResult', 'countryEmphasis']),
+      stroke: pick(gpu.stroke, ['resourceCount', 'buildCount', 'uploadBytes', 'drawCount', 'drawCallCount', 'failureCount',
+        'lastFailureStage', 'gpuHealth', 'selfTestPassed', 'selfTestFailureReason', 'resourceBudget']),
+      frame: pick(snapshot.rendering, ['projectGeneration', 'lastPreparedVisualFrameId', 'lastCommittedVisualFrameId',
+        'visualFrameRejectedCount', 'lastReasons', 'lastDirtyMask', 'lastRendererTimes', 'uploads']),
+      recentFrames: snapshot.rendering.recentFrames?.slice(-4),
+      mapHost: snapshot.mapHost,
+      status: document.querySelector('#statusAction')?.textContent,
+      unavailable: ['selection-pass requested item keys and packet resources', 'per-owner boundary pending/source reasons',
+        'raw drawBatches failure reasons'],
+    };
+  });
+  return { request, ...data, pageErrors: diagnosticErrors.get(page) || [] };
+}
+
+test.afterEach(async ({ page }) => {
+  if (test.info().status !== test.info().expectedStatus) {
+    await logMapDiagnostic(test.info().title, 'failed-case', () => selectionDiagnostics(page));
+  }
+});
 
 test('Canvas ownership keeps overlap pixels equal to a single highest grade', async ({ page }) => {
   await page.goto('/assets/js/workers/canvas-scene-composition-core.js');
@@ -34,10 +87,7 @@ test('unified emphasis boots and selects a country with the configured style', a
   try {
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.gpuCoverage?.primary?.renderedKeys || []), { timeout: 30000 }).toContain('territorial:entity:DEU');
   } catch (error) {
-    console.log(JSON.stringify(await page.evaluate(() => {
-      const s = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
-      return { selection: s.selection, gpuSelection: s.gpuSelection, errors: document.querySelector('#fatalError')?.textContent };
-    })));
+    await logMapDiagnostic('configured-selection-style', 'failed', () => selectionDiagnostics(page, { id: 'DEU' }));
     throw error;
   }
   expect(errors).toEqual([]);
@@ -59,7 +109,7 @@ test('adjacent countries share prepared boundaries and list hover never adds a s
     const coverage = window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage;
     return [...(coverage?.primary?.renderedKeys || []), ...(coverage?.secondary?.renderedKeys || [])].sort();
   }), { timeout: 30000 }).toEqual(['territorial:entity:AUT', 'territorial:entity:DEU', 'territorial:entity:FRA']).catch(async error => {
-    console.log(await page.evaluate(() => ({ selection: window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection, gpu: window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage }))); throw error;
+    await logMapDiagnostic('adjacent-country-selection', 'failed', () => selectionDiagnostics(page)); throw error;
   });
   await page.locator('[data-object-search-select="countries"][data-item-id="AUT"]').hover();
   expect(await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage.hover.renderedKeys)).toEqual([]);
@@ -85,7 +135,11 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
   });
   await page.goto(`/?debug=1&renderer=${renderer}`);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  if (renderer === 'canvas') await page.locator('#terrainNoneRadio').check();
+  if (renderer === 'canvas') {
+    await page.locator('#mapDisplayBtn').click();
+    await page.locator('[data-map-display-row="terrain"]').click();
+    await page.locator('#terrainNoneRadio').check();
+  }
   const add = async (parentId, name, coords) => {
     expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), parentId)).toBe(true);
     await page.locator('#actionsTabBtn').click();
@@ -131,9 +185,13 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
       return pixel;
     });
   };
-  await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
-  if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [], id)).toContain(`territorial:entity:${encodeURIComponent(id)}`);
-  if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.interactionFillCoverage?.renderedKeys?.some(key => key.includes(id)), id), { timeout: 30000 }).toBe(true);
+  const selectionRequest = { id, renderer, accepted: null };
+  await withMapDiagnostics(`parent-child-selection:${renderer}`, () => selectionDiagnostics(page, selectionRequest), async () => {
+    selectionRequest.accepted = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
+    await logMapDiagnostic(`parent-child-selection:${renderer}`, 'after-select', () => selectionDiagnostics(page, selectionRequest));
+    if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [], id)).toContain(`territorial:entity:${encodeURIComponent(id)}`);
+    if (renderer !== 'canvas') await expect.poll(() => page.evaluate(id => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.interactionFillCoverage?.renderedKeys?.some(key => key.includes(id)), id), { timeout: 30000 }).toBe(true);
+  });
   await expect(page.locator('.map-selection-fill')).toHaveCount(0);
   const single = await pixels();
   expect(single[3]).toBe(255);
@@ -205,8 +263,12 @@ test('GPU context recovery never gives scene fills back to SVG', async ({ page }
   test.setTimeout(120000);
   await page.goto('/?debug=1&renderer=webgl2');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
-  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [])).toContain('territorial:entity:DEU');
+  const selectionRequest = { id: 'DEU', accepted: null, contextLossRequested: false };
+  await withMapDiagnostics('context-recovery-initial-selection', () => selectionDiagnostics(page, selectionRequest), async () => {
+    selectionRequest.accepted = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+    await logMapDiagnostic('context-recovery-initial-selection', 'after-select', () => selectionDiagnostics(page, selectionRequest));
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.primary?.renderedKeys || [])).toContain('territorial:entity:DEU');
+  });
   const supported = await page.evaluate(() => {
     const gl = document.querySelector('.gpu-map-canvas').getContext('webgl2');
     window.__lossExtension = gl.getExtension('WEBGL_lose_context');
