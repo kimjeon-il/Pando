@@ -218,10 +218,6 @@ export function createTerritorialLibraryController({
     const results = groups.flatMap(group=>group.entities);
     const fragment = document.createDocumentFragment();
     for (const group of groups) {
-      const heading=document.createElement('h3');
-      heading.className='territorial-library-lineage-title';
-      heading.textContent=group.names.ko || group.names.en || Object.values(group.names)[0];
-      fragment.appendChild(heading);
       for (const entity of group.entities) {
       const button = document.createElement('button');
       const selected = selectedId === entity.entityId;
