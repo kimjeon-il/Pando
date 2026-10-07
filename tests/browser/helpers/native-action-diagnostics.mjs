@@ -4,6 +4,9 @@ import { startNativeActionCpuProfile } from './native-action-cpu-profile.mjs';
 
 let nextToken = 0;
 const DIAGNOSTIC_DEADLINE_MS = 250;
+// CPU experiments already wait for slow renderer/protocol completion at stop.
+// Their one final evidence read needs the same scale, outside action timing.
+const CPU_FINAL_TAKE_DEADLINE_MS = 15_000;
 
 // No retry, timeout override or altered click options. The callback owns the
 // original native action; diagnostic setup/output never determine its outcome.
@@ -11,8 +14,10 @@ export async function withNativeActionDiagnostics(page, testInfo, {
   label, selector, rowSelector, cpuProfile = false, longAnimationFrames = false, now = () => performance.now(), write = console.log,
 }, action) {
   const token = String(++nextToken);
-  const read = async options => {
-    try { return await withDiagnosticDeadline(() => page.evaluate(nativeActionProbe, options), DIAGNOSTIC_DEADLINE_MS); }
+  const diagnosticDeadlinesMs = { setup: DIAGNOSTIC_DEADLINE_MS,
+    finalTake: cpuProfile ? CPU_FINAL_TAKE_DEADLINE_MS : DIAGNOSTIC_DEADLINE_MS, output: DIAGNOSTIC_DEADLINE_MS };
+  const read = async (options, deadlineMs = DIAGNOSTIC_DEADLINE_MS) => {
+    try { return await withDiagnosticDeadline(() => page.evaluate(nativeActionProbe, options), deadlineMs); }
     catch (error) { return { diagnosticError: String(error).slice(0, 240) }; }
   };
   const setup = await read({ command: 'install', token, selector, rowSelector, longAnimationFrames,
@@ -29,14 +34,14 @@ export async function withNativeActionDiagnostics(page, testInfo, {
     cpu?.stop('action-settled', host);
     // Emit the host clock before any browser read: a stalled renderer cannot
     // withhold this evidence. Host and browser time origins are not interchangeable.
-    try { Promise.resolve(write(`[native-action] ${JSON.stringify({ label, host, setup })}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
-    // This completion was already awaited below. Retain the independently
-    // observed frames after delayed stop/cleanup, without adding a wait or retry.
+    try { Promise.resolve(write(`[native-action] ${JSON.stringify({ label, host, setup, diagnosticDeadlinesMs })}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
+    // Keep the existing CPU completion before the single final evidence read.
+    // CPU-only collection has a longer budget; the action is already settled.
     await cpu?.finish(testInfo);
-    const browser = await read({ command: 'take', token, longAnimationFrames });
+    const browser = await read({ command: 'take', token, longAnimationFrames }, diagnosticDeadlinesMs.finalTake);
     let outputController;
     try {
-      const body = JSON.stringify({ label, host, setup, browser });
+      const body = JSON.stringify({ label, host, setup, browser, diagnosticDeadlinesMs });
       const name = `${label}-native-action.json`;
       outputController = new AbortController();
       await withDiagnosticDeadline(async () => {
