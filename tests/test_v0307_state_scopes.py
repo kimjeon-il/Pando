@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APP = read_application_sources(ROOT)
 PROJECT_STATE = (ROOT / "assets/js/modules/project-state.js").read_text(encoding="utf-8")
 SAVE_STATE = (ROOT / "assets/js/modules/save-state-controller.js").read_text(encoding="utf-8")
-PERSISTENCE = (ROOT / "assets/js/modules/persistence-service.js").read_text(encoding="utf-8")
+BROWSER_STORAGE = read_module(ROOT, 'browser-project-storage.js')
 
 
 class StateScopeContractTests(unittest.TestCase):
@@ -29,10 +29,10 @@ class StateScopeContractTests(unittest.TestCase):
         self.assertIn("'countries', 'subunits', 'regions'", PROJECT_STATE)
 
     def test_project_and_view_use_separate_indexeddb_records(self):
-        self.assertIn("readProject: () => readRecord(projectKey", PERSISTENCE)
-        self.assertIn("readView: () => readRecord(viewKey", PERSISTENCE)
-        self.assertIn("writeProject: project => writeRecord(projectKey", PERSISTENCE)
-        self.assertIn("writeView: view => writeRecord(viewKey", PERSISTENCE)
+        self.assertIn("readProject: () => readRecord(projectKey", BROWSER_STORAGE)
+        self.assertIn("readView: () => readRecord(viewKey", BROWSER_STORAGE)
+        self.assertIn("writeProject: project => writeRecord(projectKey", BROWSER_STORAGE)
+        self.assertIn("writeView: view => writeRecord(viewKey", BROWSER_STORAGE)
         self.assertIn('(0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view)', APP)
 
     def test_presentation_changes_do_not_record_document_history(self):
