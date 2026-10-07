@@ -239,21 +239,35 @@ test('opt-out fixture creates no native session and passes straight through the 
 });
 
 test('teardown retains an acknowledged end marker before publishing its host alignment interval', async t => {
+  let now = 1000;
   const endMarker = deferred(), reachedEndMarker = deferred();
+  t.mock.timers.enable({ apis: ['setTimeout'] });
   const f = await fixture(t, { 'Tracing.recordClockSyncMarker': params => {
     if (params.syncId.endsWith('-end')) { reachedEndMarker.resolve(); return endMarker.promise; }
     return {};
-  } });
+  } }, { now: () => now });
   await f.controller.start(); f.controller.requestStop('wrapper-finished');
   await reachedEndMarker.promise;
   let settled = false;
   const finishing = f.controller.finish(f.testInfo).then(report => { settled = true; return report; });
-  await new Promise(resolve => setTimeout(resolve, 40));
+  await flush();
   assert.equal(settled, false, 'completion cannot discard a pending bounded clock calibration');
+  assert.equal(count(f, 'IO.read'), 0, 'draining waits for the end marker acknowledgment');
+  // Advance the measured clock and deadline timers without relying on host scheduling.
+  now += 40; t.mock.timers.tick(40); await flush();
+  assert.equal(settled, false, 'completion cannot discard a pending bounded clock calibration');
+  assert.equal(count(f, 'IO.read'), 0);
   endMarker.resolve({});
   const report = await finishing;
+  t.mock.timers.reset();
   assert.equal(report.captureComplete, true); assert.equal(report.stages.endMarker.status, 'fulfilled');
-  assert.ok(report.stages.endMarker.roundTripMs >= 40);
+  assert.equal(report.stages.endMarker.requestedAtMs, 1000);
+  assert.equal(report.stages.endMarker.acknowledgedAtMs, 1040);
+  assert.equal(report.stages.endMarker.settledAtMs, 1040);
+  assert.equal(report.stages.endMarker.deadlineExceededAtMs, null);
+  assert.equal(report.stages.endMarker.roundTripMs, 40);
+  const manifest = JSON.parse(await readFile(join(f.directory, 'boundary-project-undo-native-timeline-manifest.json')));
+  assert.deepEqual(manifest.stages.endMarker, report.stages.endMarker);
 });
 
 test('a missing loss flag is unknown rather than proof of a complete trace', async t => {
