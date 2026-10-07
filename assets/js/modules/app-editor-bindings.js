@@ -50,7 +50,6 @@ export function createEditorBindings() {
       mergeEntityBtn: 'countryMerge',
       editEntityBorderBtn: 'boundary',
       copyEntityRegionBtn: 'copy',
-      addEntityChildBtn: 'hierarchy',
       redrawEntityBtn: 'boundary',
       reconcileEntityCoastBtn: 'coastline',
       editEntityCoastBtn: 'coastline',

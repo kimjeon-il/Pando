@@ -1,3 +1,4 @@
+import { startChildCreation } from './helpers/ui-select.mjs';
 import { test, expect } from '@playwright/test';
 import { withPollTimingDiagnostics, installGpuStrokeDiagnostics, instrumentSelectionPassSource, instrumentStrokeRendererSource, logMapDiagnostic, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
 
@@ -196,7 +197,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
     diagnosticStages.set(page, 'child-create-setup');
     expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), parentId)).toBe(true);
     await page.locator('#actionsTabBtn').click();
-    await page.locator('#addEntityChildBtn').click();
+    await startChildCreation(page, parentId);
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#territorialCreateNameInput').fill(name);
     await page.locator('#modePrimaryBtn').click();
