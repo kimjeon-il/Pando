@@ -131,8 +131,10 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   expect(insertPoint.hitsSegment).toBe(true);
   await page.mouse.move(insertPoint.x, insertPoint.y);
   await expect(page.locator('.draft-insert-handle')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.__cutEditing.snapshot().draft.insertTarget?.segmentIndex)).toBe(0);
   expect(await page.evaluate(point => !!document.elementFromPoint(point.x, point.y)
     ?.closest('.draft-insert-handle'), insertPoint)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('draft-insert-handle.png') });
   await page.mouse.down();
   await page.mouse.up();
   await expect(page.locator('g.draft-vertex')).toHaveCount(3);

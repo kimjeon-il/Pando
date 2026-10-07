@@ -3013,7 +3013,7 @@ body.map-sheet-dragging {
   pointer-events: none;
 }
 
-.overlay-root > * {
+.overlay-root > :where(:not(.ui-tooltip)) {
   pointer-events: auto;
 }
 
