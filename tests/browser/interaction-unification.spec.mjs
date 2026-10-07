@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { installGpuStrokeDiagnostics, instrumentSelectionPassSource, instrumentStrokeRendererSource, logMapDiagnostic, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
+import { withPollTimingDiagnostics, installGpuStrokeDiagnostics, instrumentSelectionPassSource, instrumentStrokeRendererSource, logMapDiagnostic, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
 
 test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 } });
 
@@ -287,7 +287,8 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) test(`Russia parent-child
   await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('러시아');
   await page.locator('[data-object-search-select="countries"][data-item-id="RUS"]').click({ modifiers: ['Control'] });
-  if (renderer !== 'canvas') await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.secondary?.drawSucceeded), { timeout: 30000 }).toBe(true);
+  if (renderer !== 'canvas') await withPollTimingDiagnostics(page, test.info(), { label: `russia-secondary-${renderer}` }, timing =>
+    expect.poll(() => timing.call(evaluate => evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpuSelection.drawCoverage?.secondary?.drawSucceeded)), { timeout: 30000 }).toBe(true));
   const overlap = await pixels();
   console.log('interior-pixels', single, overlap);
   for (let i = 0; i < 4; i++) expect(Math.abs(single[i] - overlap[i])).toBeLessThanOrEqual(2);

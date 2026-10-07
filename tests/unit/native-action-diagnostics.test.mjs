@@ -5,6 +5,7 @@ import { mkdtempSync } from 'node:fs';
 import fs, { readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createRuntimePerformanceMetrics } from '../../assets/js/modules/runtime-performance-metrics.js';
 import { withNativeActionDiagnostics, nativeActionProbe } from '../browser/helpers/native-action-diagnostics.mjs';
 
 const temporaryDirectories = [];
@@ -339,4 +340,239 @@ test('missing performance reporting is explicitly unavailable rather than an emp
   const report = fixture.take();
   assert.equal(report.performance, null);
   assert.ok(report.errors.some(value => value.includes('Performance report unavailable')));
+});
+
+
+test('an unarmed take retains startup metrics with collection clocks and an explicitly unknown native window', () => {
+  let reads = 0;
+  const fixture = browserFixture({ report: () => {
+    reads++; fixture.setNow(121);
+    return { version: 1, installedAtMs: 4, capturedAt: '2026-10-07T08:00:00.000Z',
+      longTasks: { samples: [{ startTime: 10, durationMs: 60, name: 'longtask' }] },
+      eventTimings: { samples: [] }, operations: {} };
+  } });
+  const report = fixture.take();
+  assert.equal(report.unavailable, true);
+  assert.equal(report.unavailableReason, 'missing-token');
+  assert.equal(report.nativeWindow, null);
+  assert.equal(report.performance.longTasks.samples[0].startTime, 10);
+  assert.deepEqual(JSON.parse(JSON.stringify(report.performanceCollection)), {
+    status: 'available', source: '__PANDOLAB_PERFORMANCE_REPORT__', version: 1,
+    installedAtMs: 4, capturedAt: '2026-10-07T08:00:00.000Z', timeOrigin: 123000,
+    startedAtMs: 100, endedAtMs: 121, scope: 'retained-startup-samples', partial: true,
+    coverage: 'Unknown observer support and prior buffer loss; empty samples do not rule out JavaScript blocking.',
+  });
+  assert.equal(reads, 1);
+  assert.equal(fixture.listeners.length, 0);
+  assert.equal(fixture.observers.length, 0);
+  assert.equal(fixture.frames.size, 0);
+  assert.equal(fixture.timers.size, 0);
+});
+
+test('expired installation retains the existing startup report without arming a native probe', () => {
+  const fixture = browserFixture({ report: () => ({
+    longTasks: { samples: [{ startTime: 20, durationMs: 500 }] },
+  }) });
+  const setup = fixture.call({ command: 'install', token: 'test', selector: '#undoBtn', installBeforeEpochMs: 0 });
+  assert.equal(setup.installationExpired, true);
+  const report = fixture.take();
+  assert.equal(report.unavailable, true);
+  assert.equal(report.nativeWindow, null);
+  assert.equal(report.performance.longTasks.samples.length, 1);
+  assert.equal(fixture.listeners.length, 0);
+  assert.equal(fixture.observers.length, 0);
+  assert.equal(fixture.frames.size, 0);
+  assert.equal(fixture.timers.size, 0);
+});
+
+test('a stale take collects startup metrics without consuming or disposing the newer native probe', () => {
+  let reads = 0;
+  const fixture = browserFixture({ report: () => {
+    reads++;
+    return { longTasks: { samples: [{ startTime: 20, durationMs: 50 }, { startTime: 110, durationMs: 50 }] } };
+  } });
+  fixture.call({ command: 'install', token: 'new', selector: '#undoBtn' });
+  const active = fixture.scope.__PANDOLAB_NATIVE_ACTION_TEST_PROBE__;
+  const report = fixture.take();
+  assert.equal(report.unavailable, true);
+  assert.equal(report.unavailableReason, 'token-mismatch');
+  assert.equal(report.nativeWindow, null);
+  assert.equal(report.performance.longTasks.samples.length, 2);
+  assert.equal(fixture.scope.__PANDOLAB_NATIVE_ACTION_TEST_PROBE__, active);
+  assert.equal(fixture.listeners.length, 10);
+  assert.equal(fixture.frames.size, 1);
+  assert.equal(fixture.timers.size, 1);
+  fixture.setNow(200);
+  const ready = fixture.call({ command: 'take', token: 'new' });
+  assert.equal(ready.performance.longTasks.samples.length, 1);
+  assert.equal(ready.performance.longTasks.samples[0].startTime, 110);
+  assert.deepEqual(JSON.parse(JSON.stringify(ready.nativeWindow)), { startedAtMs: 100, endedAtMs: 200 });
+  assert.equal(ready.performanceCollection.scope, 'native-window-overlap');
+  assert.equal(reads, 2);
+  assert.equal(fixture.listeners.length, 0);
+  assert.equal(fixture.frames.size, 0);
+  assert.equal(fixture.timers.size, 0);
+});
+
+for (const [description, hook, status, message] of [
+  ['missing', undefined, 'unavailable', 'Performance report unavailable'],
+  ['throwing', () => { throw new Error('metrics unavailable'); }, 'error', 'metrics unavailable'],
+]) test(`an unarmed take labels a ${description} metrics hook without fabricating empty evidence`, () => {
+  const fixture = browserFixture(); fixture.scope.__PANDOLAB_PERFORMANCE_REPORT__ = hook;
+  const report = fixture.take();
+  assert.equal(report.unavailable, true);
+  assert.equal(report.nativeWindow, null);
+  assert.equal(report.performance, null);
+  assert.equal(report.performanceCollection.status, status);
+  assert.equal(report.performanceCollection.partial, true);
+  assert.match(report.performanceCollection.coverage, /empty samples do not rule out JavaScript blocking/);
+  assert.ok(report.errors.some(error => error.includes(message)));
+});
+
+test('startup sample exports disclose retained counts, output caps, extents and unknown source losses', () => {
+  const samples = Array.from({ length: 120 }, (_, i) => ({
+    startTime: i * 100, atMs: i * 100 + 60, durationMs: 60, name: 'x'.repeat(1000),
+    target: 'y'.repeat(1000), interactionId: i, detail: { secret: 'excluded' },
+  }));
+  const fixture = browserFixture({ report: () => ({
+    version: 1, installedAtMs: 0, longTasks: { count: 120, samples }, eventTimings: { count: 120, samples },
+    operations: Object.fromEntries(['autosave.persist', 'project.command', 'project.transaction', 'unrelated'].map(name => [name, { count: 120, samples }])),
+    startup: { secret: 'excluded' },
+  }) });
+  const report = fixture.take(), metrics = report.performance;
+  assert.equal(metrics.longTasks.samples.length, 120);
+  assert.equal(metrics.longTasks.retainedCount, 120);
+  assert.equal(metrics.longTasks.exportedCount, 120);
+  assert.equal(metrics.longTasks.omitted, 0);
+  assert.equal(metrics.longTasks.oldestRetainedStartTimeMs, 0);
+  assert.equal(metrics.longTasks.newestRetainedEndTimeMs, 11960);
+  for (const category of [metrics.longTasks, metrics.eventTimings, ...Object.values(metrics.operations)]) {
+    assert.equal(category.retentionLimitReached, true);
+    assert.equal(category.observerSupported, null);
+    assert.equal(category.droppedBeforeSnapshot, null);
+    assert.equal(category.status, 'available');
+  }
+  for (const category of [metrics.eventTimings, ...Object.values(metrics.operations)]) {
+    assert.equal(category.retainedCount, 120);
+    assert.equal(category.exportedCount, 32);
+    assert.equal(category.omitted, 88);
+  }
+  assert.equal(metrics.eventTimings.samples[0].startTime, 8800);
+  assert.deepEqual(Object.keys(metrics.operations), ['autosave.persist', 'project.command', 'project.transaction']);
+  assert.equal(metrics.longTasks.samples[0].name.length, 160);
+  assert.equal(metrics.eventTimings.samples[0].target.length, 160);
+  assert.ok(!JSON.stringify(report).includes('excluded'));
+  assert.ok(JSON.stringify(report).length < 55000);
+});
+
+test('empty and missing retained categories remain distinct and neither claims complete observation', () => {
+  const fixture = browserFixture({ report: () => ({ longTasks: { samples: [] } }) });
+  const report = fixture.take();
+  assert.equal(report.performance.longTasks.status, 'available');
+  assert.equal(report.performance.longTasks.retainedCount, 0);
+  assert.equal(report.performance.longTasks.oldestRetainedStartTimeMs, null);
+  assert.equal(report.performance.longTasks.newestRetainedEndTimeMs, null);
+  assert.equal(report.performance.longTasks.retentionLimitReached, false);
+  assert.equal(report.performance.eventTimings.status, 'unavailable');
+  assert.equal(report.performance.eventTimings.retainedCount, null);
+  assert.equal(report.performance.eventTimings.retentionLimitReached, null);
+  assert.equal(report.performanceCollection.partial, true);
+});
+
+test('ready native windows keep interval filtering, including end-timestamp operation overlap', () => {
+  const fixture = browserFixture({ report: () => ({
+    longTasks: { samples: [{ startTime: 0, durationMs: 50 }, { startTime: 90, durationMs: 10 },
+      { startTime: 200, durationMs: 30 }, { startTime: 201, durationMs: 50 }] },
+    operations: { 'project.command': { samples: [{ atMs: 99, durationMs: 60 }, { atMs: 110, durationMs: 20 },
+      { atMs: 240, durationMs: 40 }, { atMs: 251, durationMs: 50 }] } },
+  }) });
+  fixture.install(); fixture.setNow(200);
+  const report = fixture.take();
+  assert.deepEqual(Array.from(report.performance.longTasks.samples, sample => sample.startTime), [90, 200]);
+  assert.deepEqual(Array.from(report.performance.operations['project.command'].samples, sample => sample.atMs), [110, 240]);
+  assert.equal(report.performance.longTasks.retainedCount, 4);
+  assert.equal(report.performance.longTasks.exportedCount, 2);
+  assert.equal(report.performance.longTasks.omitted, 0);
+  assert.equal(report.performanceCollection.scope, 'native-window-overlap');
+  assert.equal(fixture.listeners.length, 0);
+});
+
+test('a late rejected setup still permits one bounded final startup collection and preserves the action error', { timeout: 1500 }, async () => {
+  const browser = browserFixture({ report: () => ({ longTasks: { samples: [{ startTime: 10, durationMs: 100 }] } }) });
+  let reads = 0, rejectSetup, actions = 0;
+  const fixture = hostFixture((probe, options) => {
+    reads++;
+    if (options.command === 'install') return new Promise((_, reject) => { rejectSetup = reject; });
+    return Promise.resolve(browser.call(options));
+  });
+  const original = new Error('original native timeout');
+  const startedAt = performance.now();
+  await assert.rejects(withNativeActionDiagnostics(fixture.page, fixture.testInfo, fixture.options, () => {
+    actions++;
+    assert.equal(browser.call({ command: 'install', token: 'late', installBeforeEpochMs: 0 }).installationExpired, true);
+    throw original;
+  }), error => error === original);
+  assert.ok(performance.now() - startedAt < 1000);
+  rejectSetup(new Error('late page closure'));
+  await Promise.resolve(); await Promise.resolve();
+  const report = JSON.parse(await readFile(fixture.attachments[0].path, 'utf8'));
+  assert.equal(actions, 1);
+  assert.equal(reads, 2);
+  assert.match(report.setup.diagnosticError, /250 ms/);
+  assert.equal(report.host.outcome, 'rejected');
+  assert.equal(report.browser.unavailable, true);
+  assert.equal(report.browser.nativeWindow, null);
+  assert.equal(report.browser.performance.longTasks.samples.length, 1);
+  assert.equal(browser.listeners.length, 0);
+});
+
+
+test('a rolled-over production metrics ring retains 120 long tasks without claiming the lost history is known', () => {
+  const observers = new Map();
+  const fixture = browserFixture();
+  const metrics = createRuntimePerformanceMetrics({
+    globalObject: {}, performanceObject: fixture.scope.performance,
+    PerformanceObserverCtor: class {
+      constructor(callback) { this.callback = callback; }
+      observe({ type }) { observers.set(type, this.callback); }
+      disconnect() {}
+    },
+  });
+  metrics.observe();
+  observers.get('longtask')({ getEntries: () => Array.from({ length: 140 }, (_, i) => ({ startTime: i * 100, duration: 60 })) });
+  fixture.scope.__PANDOLAB_PERFORMANCE_REPORT__ = metrics.snapshot;
+  const report = fixture.take();
+  const tasks = report.performance.longTasks;
+  assert.equal(tasks.retainedCount, 120);
+  assert.equal(tasks.exportedCount, 120);
+  assert.equal(tasks.omitted, 0, 'export omissions cannot count entries lost before the snapshot');
+  assert.equal(tasks.samples[0].startTime, 2000);
+  assert.equal(tasks.samples.at(-1).startTime, 13900);
+  assert.equal(tasks.oldestRetainedStartTimeMs, 2000);
+  assert.equal(tasks.newestRetainedEndTimeMs, 13960);
+  assert.equal(tasks.retentionLimitReached, true);
+  assert.equal(tasks.droppedBeforeSnapshot, null, 'production does not expose the 20 overwritten entries');
+  assert.equal(tasks.observerSupported, null, 'snapshot does not expose the actual observer installation result');
+  assert.equal(report.performanceCollection.partial, true);
+  metrics.dispose();
+});
+
+for (const [description, hook] of [
+  ['missing', undefined], ['throwing', () => { throw new Error('unarmed metrics failure'); }],
+]) test(`an unarmed ${description} metrics hook preserves the original host result and saved diagnostic error`, async () => {
+  const browser = browserFixture(); browser.scope.__PANDOLAB_PERFORMANCE_REPORT__ = hook;
+  let reads = 0;
+  const fixture = hostFixture((probe, options) => {
+    reads++;
+    return Promise.resolve(browser.call({ ...options, installBeforeEpochMs: 0 }));
+  });
+  const originalResult = {};
+  assert.equal(await withNativeActionDiagnostics(fixture.page, fixture.testInfo, fixture.options, () => originalResult), originalResult);
+  const report = JSON.parse(await readFile(fixture.attachments[0].path, 'utf8'));
+  assert.equal(reads, 2);
+  assert.equal(report.host.outcome, 'fulfilled');
+  assert.equal(report.browser.unavailable, true);
+  assert.equal(report.browser.performance, null);
+  assert.equal(report.browser.errors.length, 1);
+  assert.equal(browser.listeners.length, 0);
 });
