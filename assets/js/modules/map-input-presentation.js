@@ -167,7 +167,10 @@ export function createMapInputPresentation({
       if (getInputSnapshot().projectReplacing) return;
       const draft = getDraftSnapshot();
       if (draft.strokeActive) return;
-      if (d3.event.target?.closest?.('.draft-interactive') || draft.dragging) {
+      // Draft controls own segment/vertex/insert hover, including its cleanup.
+      // Their bubbling events must not erase the target they just published.
+      if (d3.event.target?.closest?.('.draft-interactive')) return;
+      if (draft.dragging) {
         editingDomain?.clearDraftHover?.('draft-interactive-hover');
         return;
       }

@@ -7,6 +7,7 @@ import { normalizeObjectRef } from '../../assets/js/modules/object-selection-con
 import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
 import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
 import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
+import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
 import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 const sandbox = {};
@@ -21,18 +22,26 @@ function node(name, parent = null) {
     n.listeners.set(type, list);
   };
   n.removeEventListener = (type, fn) => n.listeners.set(type, (n.listeners.get(type) || []).filter(x => x.fn !== fn));
+  n.compareDocumentPosition = other => {
+    for (let current = n.parent; current; current = current.parent) if (current === other) return 8;
+    for (let current = other.parent; current; current = current.parent) if (current === n) return 16;
+    return 1;
+  };
   n.closest = selector => {
     for (let current = n; current; current = current.parent) {
       if (selector === '#map' && current.name === 'map') return current;
       if (selector === '.territorial-label-item[data-label-id]' && current.name === 'label') return current;
       if (selector === '.user-label' && current.name === 'user-label') return current;
+      if (selector === '.draft-interactive' && ['draft-segment', 'draft-insert', 'draft-vertex'].includes(current.name)) return current;
+      if (selector === 'path.draft-segment-hit' && current.name === 'draft-segment') return current;
+      if (selector === 'g.draft-insert-handle' && current.name === 'draft-insert') return current;
     }
     return null;
   };
   return n;
 }
 
-function fixture({ queuedPicks = false, peerKind = 'city' } = {}) {
+function fixture({ queuedPicks = false, peerKind = 'city', editing = null } = {}) {
   const document = node('document');
   document.documentElement = editorNode();
   document.createElement = editorNode;
@@ -80,7 +89,8 @@ function fixture({ queuedPicks = false, peerKind = 'city' } = {}) {
   const input = createMapInputPresentation({
     getElement: () => map, window, navigator: {}, d3,
     createMapInputController: () => ({ destroy() {}, isPanning: () => panning }),
-    getInputSnapshot: () => state, getDraftSnapshot: () => draft,
+    getInputSnapshot: () => state, getDraftSnapshot: () => editing ? editing.snapshot().draft : draft,
+    editingDomain: editing,
     isMobile: () => false, isGenericFeatureDraftTool: () => false,
     screenToGeo: () => [10, 49], getTerritorialLabelRef: () => ref,
     cancelCountryHoverPick: pointers.cancelCountryHoverPick, clearHoverHit() {}, dispatchEditingInteraction: (...args) => draftEvents.push(args), mapClickBlocked: () => false,
@@ -89,12 +99,17 @@ function fixture({ queuedPicks = false, peerKind = 'city' } = {}) {
     selectionDomain: domain,
   });
   input.bindSvg(d3.select(overlay));
-  const dispatch = (target, type) => {
+  const dispatch = (target, type, extra = {}) => {
     const path = [];
     for (let n = target; n; n = n.parent) path.push(n);
-    const event = { type, target, pointerType: 'mouse', buttons: 0, clientX: 100, clientY: 120, relatedTarget: null };
+    const event = { type, target, pointerType: 'mouse', buttons: 0, clientX: 100, clientY: 120, relatedTarget: null,
+      preventDefault() { this.defaultPrevented = true; }, stopPropagation() { this.cancelBubble = true; }, ...extra };
     for (const n of path.slice().reverse()) for (const x of n.listeners.get(type) || []) if (x.capture) x.fn.call(n, event);
-    for (const n of path) for (const x of n.listeners.get(type) || []) if (!x.capture) x.fn.call(n, event);
+    for (const n of path) {
+      for (const x of n.listeners.get(type) || []) if (!x.capture) x.fn.call(n, event);
+      if (event.cancelBubble) break;
+    }
+    return event;
   };
   const hover = target => {
     dispatch(target, 'pointermove');
@@ -106,7 +121,7 @@ function fixture({ queuedPicks = false, peerKind = 'city' } = {}) {
       selectionRevision: domain.snapshot().revision,
     };
   };
-  return { hover, label: text, peer: peerText, hit, map, overlay, dispatch, points, clicks, input, domain, state, draft, draftEvents, pointers, executedPicks: () => executedPicks, setPanning: value => { panning = value; } };
+  return { hover, label: text, peer: peerText, hit, map, overlay, interaction, dispatch, points, clicks, input, domain, state, draft, draftEvents, pointers, executedPicks: () => executedPicks, setPanning: value => { panning = value; } };
 }
 
 // Reflect app-map-host's actual sibling SVG topology. Real D3 listeners see
@@ -170,4 +185,83 @@ for (const peerKind of ['city', 'label']) for (const moveWithinLabel of [false, 
   assert.equal(f.executedPicks(), 1);
   assert.equal(f.hover(f.label).tooltip, 'country');
   assert.equal(f.domain.size(), 0); assert.equal(f.domain.snapshot().revision, 0);
+});
+
+function draftFixture(t, tool) {
+  const editing = createEditingDomain({ draftServices: {
+    getToolConfig: () => ({ shape: 'line' }), projectCoordinate: point => point, screenToCoordinate: point => point,
+  } });
+  editing.setTool(tool);
+  editing.replaceDraftCoordinates([[0, 0], [100, 0]], { inputPhase: 'refine' });
+  const f = fixture({ editing }); f.state.tool = tool;
+  const root = node('draft-layer', f.interaction);
+  const segment = node('draft-segment', root), handle = node('draft-insert', root), vertex = node('draft-vertex', root);
+  for (const item of [segment, handle, vertex]) item.parentNode = root;
+  segment.__data__ = handle.__data__ = { segmentIndex: 0 };
+  vertex.__data__ = { index: 1 };
+  const handleHit = node('handle-hit', handle), vertexHit = node('vertex-hit', vertex);
+  const events = [];
+  const source = readFileSync(new URL('../../assets/js/modules/rendering-domain.js', import.meta.url), 'utf8');
+  const context = {
+    d3, segment, handle, vertex, interaction: { d3 }, layer: { node: () => root }, isMobile: () => false,
+    get editingPacket() { return editing.createRenderPacket(); },
+    localEditingPoint: () => d3.mouse(f.overlay),
+    stop: () => { d3.event.preventDefault(); d3.event.stopPropagation(); },
+    publishEditingInteraction: event => {
+      events.push(event.type);
+      const packet = editing.createRenderPacket();
+      return editing.handleInteraction({ ...event, projectGeneration: packet.projectGeneration, packetRevision: packet.revision });
+    },
+  };
+  // Use the renderer's actual control handlers with real D3 registration and
+  // propagation through the sibling interaction SVG into the common map.
+  let start = source.indexOf("      .on('mousemove', d =>", source.indexOf("joinEditingNodes(layer, 'path.draft-segment-hit'"));
+  let end = source.indexOf('    const vertices =', start);
+  vm.runInNewContext('d3.select(segment)' + source.slice(start, end), context);
+  start = source.indexOf("      .on('click', function()", source.indexOf('  const renderDraftInsertionHandle ='));
+  end = source.indexOf('    return true;', start);
+  vm.runInNewContext('d3.select(handle)' + source.slice(start, end), context);
+  start = source.indexOf("      .on('click', d =>", source.indexOf('    const vertices =', end));
+  end = source.indexOf('    vertices.each', start);
+  vm.runInNewContext('d3.select(vertex)' + source.slice(start, end), context);
+  t.after(() => { f.input.dispose(); editing.dispose(); });
+  return { ...f, editing, segment, handle, handleHit, vertexHit, events };
+}
+
+for (const tool of ['draw-territorial-unit', 'river']) test(`shared map preserves ${tool} segment, insertion and vertex control ownership`, t => {
+  const f = draftFixture(t, tool);
+  const before = f.editing.snapshot().draft;
+  f.hover(f.segment);
+  const target = { segmentIndex: 0, coordinate: [60, 0] };
+  assert.deepEqual(f.editing.snapshot().draft.insertTarget, target);
+  f.dispatch(f.segment, 'mouseout', { relatedTarget: f.handleHit });
+  f.hover(f.handleHit);
+  assert.deepEqual(f.editing.snapshot().draft.insertTarget, target, 'bubbling movement must preserve the handle target');
+  assert.deepEqual(f.events, ['draft-segment-hover']);
+  const click = f.dispatch(f.handleHit, 'click');
+  assert.equal(click.defaultPrevented, true); assert.equal(click.cancelBubble, true);
+  assert.deepEqual(f.editing.snapshot().draft.coords, [[0, 0], [60, 0], [100, 0]]);
+  assert.equal(f.editing.snapshot().draft.historyCount, before.historyCount + 1);
+  f.hover(f.vertexHit); f.dispatch(f.vertexHit, 'click');
+  assert.equal(f.editing.snapshot().draft.selectedVertexIndex, 1);
+  assert.deepEqual(f.events, ['draft-segment-hover', 'draft-insert-request', 'draft-vertex-select']);
+  assert.equal(f.editing.snapshot().draft.historyCount, before.historyCount + 1);
+  assert.deepEqual(f.clicks, []); assert.deepEqual(f.draftEvents, []);
+  assert.equal(f.domain.size(), 0); assert.equal(f.domain.snapshot().revision, 0);
+  assert.equal(f.editing.performDraftUndo(), true);
+  assert.deepEqual(f.editing.snapshot().draft.coords, before.coords);
+});
+
+test('draft controls retain leave cleanup and the map still clears insertion during panning', t => {
+  const f = draftFixture(t, 'draw-territorial-unit');
+  f.hover(f.segment);
+  assert.notEqual(f.editing.snapshot().draft.insertTarget, null);
+  f.dispatch(f.segment, 'mouseout', { relatedTarget: f.handleHit });
+  f.dispatch(f.handle, 'mouseout', { relatedTarget: f.hit });
+  assert.equal(f.editing.snapshot().draft.insertTarget, null);
+  f.hover(f.segment);
+  assert.notEqual(f.editing.snapshot().draft.insertTarget, null);
+  f.setPanning(true); f.hover(f.hit);
+  assert.equal(f.editing.snapshot().draft.insertTarget, null);
+  assert.deepEqual(f.editing.snapshot().draft.coords, [[0, 0], [100, 0]]);
 });
