@@ -50,9 +50,8 @@ geometry helper permits only explicitly selected representation equivalences;
 editing traces must retain vertex/ring ordering. Raw outputs remain evidence.
 
 The command/history fixture asserts one rename per undo unit and a clean state
-when returning to a saved document. The current Web save-token implementation
-keeps dirty on history travel; this is deliberately observable and must not be
-rewritten by the adapter. Product behavior is unchanged by this verification work.
+when returning to a saved document. The Web save-token implementation now
+matches this contract on Undo/Redo history travel.
 
 Known differences require an exact case ID and exact mismatch records. Do not
 automatically update expectations, register failures, or broaden an exception.
