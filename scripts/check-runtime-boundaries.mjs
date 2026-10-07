@@ -101,6 +101,14 @@ for (const name of ['project-domain.js', 'selection-domain.js', 'gis-domain.js',
   }
 }
 
+// These services receive platform capabilities at composition, not from globals.
+for (const name of ['editing-domain.js', 'territorial-service.js', 'persistence-service.js']) {
+  const source = sourceByFile.get(path.join(modulesDirectory, name));
+  for (const token of ['globalThis.requestAnimationFrame', 'globalThis.setTimeout', 'globalThis.crypto', 'indexedDB.open(', 'localStorage.setItem(']) {
+    if (source.includes(token)) throw new Error(`${name} must use its injected platform boundary: ${token}`);
+  }
+}
+
 const selectionPassSource = sourceByFile.get(path.join(modulesDirectory, 'selection-pass.js')) || '';
 for (const token of ['getContext(', 'addEventListener(', 'removeEventListener(']) {
   if (selectionPassSource.includes(token)) throw new Error(`selection-pass.js must not own canvas/context lifecycle: ${token}`);
@@ -120,10 +128,10 @@ for (const token of ['webglcontextlost', 'webglcontextrestored', 'createRenderDe
 
 const javascriptFiles = [path.join(root, 'assets/js/app.js'), ...moduleFiles];
 for (const file of javascriptFiles) {
-  if (path.basename(file) === 'persistence-service.js') continue;
+  if (path.basename(file) === 'browser-project-storage.js') continue;
   const source = fs.readFileSync(file, 'utf8');
   for (const token of ['indexedDB.open(', 'localStorage.setItem(', 'localStorage.removeItem(']) {
-    if (source.includes(token)) throw new Error(`${path.relative(root, file)} bypasses persistence-service.js: ${token}`);
+    if (source.includes(token)) throw new Error(`${path.relative(root, file)} bypasses browser-project-storage.js: ${token}`);
   }
 }
 

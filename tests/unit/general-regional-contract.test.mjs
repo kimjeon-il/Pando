@@ -54,7 +54,7 @@ test('a locked descendant prevents root reassignment and a locked source can be 
 const store = createTerritorialEntityStore({ getState: () => state });
   const repository = createTerritorialEntityRepository({ entityStore: store });
   const history = [];
-  const service = createTerritorialApplicationService({ entityRepository: repository, entityStore: store,
+  const service = createTerritorialApplicationService({ createId: () => globalThis.crypto.randomUUID(), entityRepository: repository, entityStore: store,
     commandPipeline: { runMutation(_meta, mutate) {
       const before = store.snapshot(); const value = store.transaction(mutate);
       history.push({ before, after: store.snapshot() }); return { ok: true, value };

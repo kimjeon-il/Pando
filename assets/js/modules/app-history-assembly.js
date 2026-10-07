@@ -116,6 +116,7 @@ export function createHistoryAssembly() {
     }));
 
     dependencies.projectServiceCommands.installTerritorialApplicationService((0, dependencies.territorialServicesA.createTerritorialApplicationService)({
+      createId: dependencies.projectServices.createProjectObjectId,
       entityRepository: dependencies.territorialModel.entityRepository,
       entityStore: dependencies.territorialModel.entityStore,
       commandPipeline: dependencies.objectModelB.projectCommandPipeline,
