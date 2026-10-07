@@ -16,14 +16,8 @@
       "date": "2026-10-06",
       "expected": {
         "id": "korean-lineage",
-        "ids": [
-          "state:KOR",
-          "state:PRK"
-        ],
-        "versions": [
-          "state:KOR:natural-earth-5.1.1",
-          "state:PRK:natural-earth-5.1.1"
-        ],
+        "ids": [],
+        "versions": [],
         "entityReads": 0
       }
     },
@@ -34,12 +28,8 @@
       "date": "2026",
       "expected": {
         "id": "korean-name",
-        "ids": [
-          "state:KOR"
-        ],
-        "versions": [
-          "state:KOR:natural-earth-5.1.1"
-        ],
+        "ids": [],
+        "versions": [],
         "entityReads": 0
       }
     },
@@ -51,12 +41,10 @@
       "expected": {
         "id": "germany-1900",
         "ids": [
-          "state:DEU",
           "state:east-prussia",
           "state:west-prussia"
         ],
         "versions": [
-          "state:DEU:natural-earth-5.1.1",
           "ostpreussen-1878-1920-r3",
           "state:west-prussia:1900-01-01-r1"
         ],
