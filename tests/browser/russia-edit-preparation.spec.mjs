@@ -1,3 +1,4 @@
+import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import {routeStaticCatalogSource} from './helpers/static-catalog-source.mjs';
@@ -10,7 +11,7 @@ test('Russia nested edits retain parent candidates, locks and history after auto
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   const add = async (parentId, name, coords) => {
     await page.evaluate(parentId => window.PANDOLAB_TERRITORIAL.select(parentId), parentId);
-    await page.locator('#addEntityChildBtn').evaluate(button => button.click());
+    await startChildCreation(page, parentId);
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#territorialCreateNameInput').fill(name);
     await page.locator('#modePrimaryBtn').click();
@@ -95,7 +96,7 @@ test('Russia detailed line preparation remains cancellable and keeps the origina
   await page.locator('#flatBtn').evaluate(button => button.click());
   const original = await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('RUS').geometry));
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
-  await page.locator('#addEntityChildBtn').evaluate(button => button.click());
+  await startChildCreation(page, 'RUS');
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
   await page.locator('#territorialCreateNameInput').fill('러시아 경계선 시험');
   await page.locator('#modePrimaryBtn').click();
@@ -143,7 +144,7 @@ for (const renderer of ['webgl2', 'webgl1', 'canvas']) {
     });
     expect(baseline).toMatchObject({ polygons: 214, pairs: 36756 });
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
-    await page.locator('#addEntityChildBtn').evaluate(button => button.click());
+    await startChildCreation(page, 'RUS');
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60000 });
     await page.locator('#territorialCreateNameInput').fill('러시아 응답성 시험');
     await page.locator('#modePrimaryBtn').click();

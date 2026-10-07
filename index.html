@@ -434,7 +434,6 @@
               <div class="ui-field field-group editor-field"><label for="entityNotesInput">비고</label><textarea id="entityNotesInput" rows="5"></textarea></div>
             </section>
             <section class="editor-section editor-action-section" aria-label="편집"><div class="editor-action-list">
-              <button id="addEntityChildBtn" type="button" class="ui-button editor-action-row"><span><strong>하위 객체 추가</strong><small>이 객체를 상위 객체로 지정하여 추가</small></span></button>
               <button id="annexEntityBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 편입</strong><small>다른 객체의 영역 가져오기</small></span></button>
               <button id="mergeEntityBtn" type="button" class="ui-button editor-action-row"><span><strong>객체 합병</strong><small>연결된 객체들을 하나로 합치기</small></span></button>
               <button id="editEntityBorderBtn" type="button" class="ui-button editor-action-row"><span><strong>경계 조정</strong><small>접한 객체 사이의 공유 경계 편집</small></span></button>
@@ -445,12 +444,11 @@
             </div></section>
             <section class="editor-section editor-action-section editor-relation-section" aria-label="관계">
               <div id="entityRelations" class="editor-relations" aria-label="소속 및 산하 관계">
-                <div class="editor-relation-block editor-field"><span class="editor-relation-label">소속</span><div id="entityParentRows" class="editor-relation-list"></div></div>
-                <div id="entityParentRow" class="ui-field field-group editor-field"><label for="entityParentInput">소속 변경</label><select id="entityParentInput"><option value="">상위 객체 없음</option></select></div>
-                <div class="editor-relation-block editor-field"><span class="editor-relation-label">산하</span><div id="entityChildRows" class="editor-relation-list"></div></div>
-                <div class="editor-relation-add">
+                <div class="editor-relation-block editor-field"><div class="editor-relation-heading"><span class="editor-relation-label">소속</span><button id="entityChangeParentBtn" type="button" class="ui-button btn ghost" aria-label="소속 변경" aria-controls="entityParentRow" aria-expanded="false">변경</button></div><div id="entityParentRows" class="editor-relation-list"></div></div>
+                <div id="entityParentRow" class="ui-field field-group editor-field" hidden><label for="entityParentInput">소속 변경</label><select id="entityParentInput"><option value="">상위 객체 없음</option></select></div>
+                <div class="editor-relation-block editor-field"><div class="editor-relation-heading"><span class="editor-relation-label">산하</span><button id="entityAddChildBtn" type="button" class="ui-button btn ghost" aria-label="산하 객체 추가" aria-controls="entityChildRow" aria-expanded="false">추가</button></div><div id="entityChildRows" class="editor-relation-list"></div></div>
+                <div id="entityChildRow" class="editor-relation-add" hidden>
                   <div class="ui-field field-group editor-field"><label for="entityChildInput">산하 객체 추가</label><select id="entityChildInput"><option value="">산하 객체 선택</option></select></div>
-                  <button id="entityAddChildBtn" class="ui-button btn ghost" type="button" aria-label="선택한 객체를 산하에 추가" data-tooltip="산하에 추가">추가</button>
                 </div>
               </div>
               <p id="entityRegionalStatus" class="editor-help hidden">독립 권역 · 다른 객체와 겹칠 수 있으며 상위 객체를 갖지 않습니다.</p>

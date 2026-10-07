@@ -37,6 +37,8 @@ test('territorial selection enters the editor directly and preserves its flag me
   await expect(page.locator('#entityProperties > .editor-relation-section')).toHaveAttribute('aria-label', '관계');
   await expect(page.locator('#entityProperties > .editor-section > .editor-section-title')).toHaveCount(0);
   await page.locator('#relationTabBtn').click();
+  await expect(page.locator('#entityParentInputControl')).toBeHidden();
+  await page.locator('#entityChangeParentBtn').click();
   await expect(page.locator('#entityParentInputControl')).toBeVisible();
   await expect(page.locator('#annexEntityBtn')).toBeHidden();
   await expect(page.locator('#entityNameInput')).toBeHidden();

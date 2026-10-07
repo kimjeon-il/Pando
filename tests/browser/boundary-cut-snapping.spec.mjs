@@ -1,3 +1,4 @@
+import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test as base } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
@@ -93,7 +94,7 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   const before = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), parentId);
   const beforeStorage = await savedProject(page);
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#addEntityChildBtn').click();
+  await startChildCreation(page, parentId);
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
   await page.locator('#territorialCreateNameInput').fill('스냅 자식');
   await page.locator('#modePrimaryBtn').click();
