@@ -1,0 +1,18 @@
+{
+  "schema": "web-app-known-differences",
+  "version": 1,
+  "cases": [
+    {
+      "caseId": "history:commands/undo-to-save",
+      "reason": "Baseline Web ProjectDomain.travelHistory marks a new content token; native Project restores the saved checkpoint. This existing dirty-state difference is not a product fix in this task.",
+      "baseline": { "web": "582908e9645b79b212f7db5105e596c9986a6ee1", "app": "faa4ced0824dd8eb05484365590dc129e8e64b2a" },
+      "differences": [{ "path": "/dirty", "webPresent": true, "appPresent": true, "expectedPresent": true, "web": true, "app": false, "expected": false }]
+    },
+    {
+      "caseId": "history:commands/redo-to-save",
+      "reason": "Baseline Web ProjectDomain.travelHistory marks a new content token; native Project restores the saved checkpoint. This existing dirty-state difference is not a product fix in this task.",
+      "baseline": { "web": "582908e9645b79b212f7db5105e596c9986a6ee1", "app": "faa4ced0824dd8eb05484365590dc129e8e64b2a" },
+      "differences": [{ "path": "/dirty", "webPresent": true, "appPresent": true, "expectedPresent": true, "web": true, "app": false, "expected": false }]
+    }
+  ]
+}
