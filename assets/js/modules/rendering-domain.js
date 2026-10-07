@@ -1618,7 +1618,9 @@ export function createRenderingDomain({
     if (viewOnly) {
       const { result: gpuSelectionResult, reuseView } = selectionFrameOwnership({ gpuFrameResult,
         renderer: gpuMapRenderer?.getRuntimeState?.()?.renderer, lastFillOwner: lastInteractionFillOwner });
-      if (reuseView) {
+      // Worker submission is not presentation. Keep the previous emphasis
+      // until the accepted Canvas frame reconciles its new fill owner.
+      if (gpuFrameResult?.deferred || reuseView) {
         if (gpuSelectionResult) selection.publishMetrics?.({ gpuCoverage: gpuSelectionResult.channels,
           renderSucceeded: gpuSelectionResult.succeeded, contextLost: gpuSelectionResult.contextLost === true });
         // Upload completion schedules an interaction/view frame, not a new
@@ -1844,7 +1846,8 @@ export function createRenderingDomain({
     stagedHoverLayer.selectAll('.map-hover-fill[data-object-key]').filter(function() {
       return gpuFilledObjectKeys.has(this.getAttribute('data-object-key') || '');
     }).remove();
-    lastInteractionFillOwner = fillOwner;
+    fillOwner = selectionFrameOwnership({ gpuFrameResult: directFrameResult,
+      renderer: gpuMapRenderer?.getRuntimeState?.()?.renderer, lastFillOwner: fillOwner }).fillOwner;
     if (fillOwner === 'svg' && !sceneOwnsFills) {
       for (const entry of emphasisEntries) {
         if (!rootGeneralSelection(entry.ref)) continue;
@@ -1928,6 +1931,7 @@ export function createRenderingDomain({
     selectionOverlayStage = 'selection-frame-commit';
     selectionTarget?.replaceChildren(...selectionStageNode.childNodes);
     hoverTarget?.replaceChildren(...hoverStageNode.childNodes);
+    lastInteractionFillOwner = fillOwner;
     if (editSuccessor) editSuccessor.painted = renderedKeys[editSuccessor.channel].has(editSuccessor.objectKey)
       || objectEditingStrokePresented(editSuccessor.geometry, frameContext)
       || [...(selectionTarget?.querySelectorAll('[data-selection-fallback-key]') || [])]
@@ -2219,6 +2223,9 @@ export function createRenderingDomain({
     syncBaseView(frame);
     renderProjectedOverlays(frame);
     renderCountries(frame, { presentationOnly: true, gpuResult });
+    // GPU-only redraws bypass selectionView; accepted Canvas presentation must
+    // still retire the previous fill owner while retaining outline fallbacks.
+    if (canvasPresented) renderSelectionOverlay(frame, { viewOnly: true, updateData: false, gpuFrameResult: gpuResult });
     renderTerritorialLabelPositions(frame);
     renderUserLabelPositions(frame);
     if (editingPacketHasViewContent(editingPacket)) {
@@ -2292,6 +2299,10 @@ export function createRenderingDomain({
       view: frame => {
         const result = renderPass('view', frame);
         if (result?.deferred) commitViewAttachedLayers(frame, result);
+        else if (gpuMapRenderer?.getRuntimeState?.()?.renderer === 'canvas2d') {
+          // Canvas2D presents synchronously and has no Worker acceptance callback.
+          renderSelectionOverlay(frame, { viewOnly: true, updateData: false, gpuFrameResult: result });
+        }
         return result;
       },
       base: renderBase,
