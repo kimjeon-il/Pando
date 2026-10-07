@@ -3,7 +3,7 @@ import { openLibrary } from './helpers/library-state.mjs';
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 390, height: 568 }]) {
   test(`library header, date clock and scrollable events fit ${viewport.width}×${viewport.height}`, async ({ page }, testInfo) => {
-    const errors = await openLibrary(page);
+    const errors = await openLibrary(page, { nativeActionTestInfo: testInfo });
     await page.setViewportSize(viewport);
     const card = page.locator('.territorial-library-card'), input = page.locator('#territorialLibraryReferenceDateInput');
     const results = page.locator('#territorialLibraryResults'), footer = page.locator('.territorial-library-footer');

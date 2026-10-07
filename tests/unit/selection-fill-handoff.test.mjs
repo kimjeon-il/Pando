@@ -66,7 +66,9 @@ function harness(t) {
   selection.replace({ domain: 'territorial', type: 'entity', id: 'DEU' });
   selection.setHover({ domain: 'territorial', type: 'entity', id: 'FRA' });
   const snapshot = selection.snapshot(), modelBefore = structuredClone(state);
-  let renderer = 'webgl-recovering', presented, currentFrame, interactionRenders = 0;
+  // The real renderer starts in pending before a scene renderer takes ownership.
+  // Keep stale SVG presentation coverage separate from context recovery.
+  let renderer = 'pending', presented, currentFrame, interactionRenders = 0;
   const result = () => renderer === 'canvas-worker' ? { deferred: true, frameId: currentFrame.frameId } : null;
   const rendering = createRenderingDomain({
     requestFrame: callback => queued.push(callback), selectionDomain: selection,
@@ -97,10 +99,10 @@ function harness(t) {
 const fillSelector = '.map-selection-fill, .map-hover-fill';
 const outlineSelector = '.map-selection-outline, .map-hover-outline';
 
-test('first accepted Canvas Worker frame retires recovery fills while preserving selection and outline fallback', t => {
+test('first accepted Canvas Worker frame retires pending-startup fills while preserving selection and outline fallback', t => {
   const h = harness(t);
   h.render('invalidateGpuContext');
-  assert.equal(h.nodes(fillSelector).length, 2, 'recovery still provides temporary selection and hover emphasis');
+  assert.equal(h.nodes(fillSelector).length, 2, 'pending startup provides temporary selection and hover emphasis');
   assert.equal(h.nodes(outlineSelector).length, 2);
   h.setRenderer('canvas-worker');
   const first = h.render('invalidateGpuFrame');
@@ -120,7 +122,7 @@ test('first accepted Canvas Worker frame retires recovery fills while preserving
   h.verifyCanonical();
 });
 
-test('deferred view changes retain recovery emphasis until acceptance, then stable Canvas views reuse their SVG outlines', t => {
+test('deferred view changes retain pending-startup emphasis until acceptance, then stable Canvas views reuse their SVG outlines', t => {
   const h = harness(t);
   h.render('invalidateGpuContext');
   h.setRenderer('canvas-worker');
@@ -137,7 +139,7 @@ test('deferred view changes retain recovery emphasis until acceptance, then stab
   h.verifyCanonical();
 });
 
-test('synchronous Canvas2D scene redraw reconciles recovery fill ownership without a selection change', t => {
+test('synchronous Canvas2D scene redraw reconciles pending-startup fill ownership without a selection change', t => {
   const h = harness(t);
   h.render('invalidateGpuContext');
   assert.equal(h.nodes(fillSelector).length, 2);
@@ -240,12 +242,13 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   if (queued.length) queued.shift()();
   const nodes = selector => [...selected.querySelectorAll(selector), ...hovered.querySelectorAll(selector)];
   assert.equal(rendering.getSelectionRenderStats().failureCount, 0);
-  assert.equal(nodes(fillSelector).length, 2);
   assert.equal(state.pendingCountryRenderIds.size, 0);
   assert.equal(renderer.getStats().pendingCountryCount, 0);
   assert.equal(queued.length, 0);
   scheduledReasons.length = 0;
   return { renderer, rendering, nodes, queued, scheduledReasons, scenePaints: () => scenePaints,
+    currentCanvas: () => canvas, recoveryPending: () => [...timers.values()].some(timer => timer.delay === 5000),
+    restore: async () => { contextLost = false; await canvas.dispatch('webglcontextrestored'); },
     transition: async () => {
       const recovery = [...timers.values()].find(timer => timer.delay === 5000);
       assert.ok(recovery); recovery.callback();
@@ -267,19 +270,46 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   };
 }
 
+test('real context loss reserves scene fills until same-canvas WebGL restoration', async t => {
+  const h = await directFallbackHarness(t);
+  const recoveringCanvas = h.currentCanvas();
+  assert.equal(h.renderer.getRuntimeState().renderer, 'webgl-recovering');
+  assert.equal(h.renderer.getRenderDevice(), null, 'reserved scene ownership does not imply a usable GPU device');
+  assert.equal(h.nodes(fillSelector).length, 0, 'context loss must not recreate selection or hover scene fills in SVG');
+  assert.equal(h.nodes(outlineSelector).length, 2, 'lost GPU stroke coverage keeps both SVG outlines');
+  assert.ok(h.nodes(outlineSelector).every(node => node.getAttribute('fill') === 'none'));
+  assert.equal(h.recoveryPending(), true);
+  h.verifyCanonical();
+
+  await h.restore();
+  assert.equal(h.renderer.getRuntimeState().renderer, 'webgl2');
+  assert.ok(h.renderer.getRenderDevice());
+  assert.strictEqual(h.currentCanvas(), recoveringCanvas, 'restoration happens before timeout replaces the canvas');
+  assert.equal(h.recoveryPending(), false, 'successful restoration cancels the fallback timeout');
+  assert.equal(h.queued.length, 1, 'restoration itself schedules the selection redraw');
+  h.queued.shift()();
+  assert.equal(h.nodes(fillSelector).length, 0);
+  assert.equal(h.nodes(outlineSelector).length, 2, 'unprepared GPU strokes still need SVG outlines after restoration');
+  assert.ok(h.nodes(outlineSelector).every(node => node.getAttribute('fill') === 'none'));
+  assert.equal(h.rendering.getSelectionRenderStats().failureCount, 0);
+  assert.equal(h.queued.length, 0);
+  h.verifyCanonical();
+});
+
 for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker failure' : 'context recovery timeout'} presents its first Canvas2D frame through selection ownership`, async t => {
   const h = await directFallbackHarness(t, { canvasWorker });
+  assert.equal(h.nodes(fillSelector).length, 0, 'scene fills remain reserved during recovery');
   await h.transition();
   assert.equal(h.renderer.getRuntimeState().renderer, 'canvas2d');
   assert.equal(h.scenePaints(), 0, 'activation must not paint outside the canonical presentation boundary');
   assert.deepEqual(h.scheduledReasons, ['canvas-fallback-ready']);
-  assert.equal(h.nodes(fillSelector).length, 2, 'the previous emphasis remains until the first scheduled paint');
+  assert.equal(h.nodes(fillSelector).length, 0, 'fallback activation does not return scene fills to SVG');
   assert.equal(h.queued.length, 1);
   // Only internally scheduled transition work may run. The test does not
   // request another redraw or manufacture a selection/user interaction.
   h.queued.shift()();
   assert.equal(h.scenePaints(), 1, 'the transition presents exactly one Canvas2D scene');
-  assert.equal(h.nodes(fillSelector).length, 0, 'first Canvas2D presentation must retire recovery fills');
+  assert.equal(h.nodes(fillSelector).length, 0, 'first Canvas2D presentation preserves reserved scene-fill ownership');
   assert.equal(h.nodes(outlineSelector).length, 2);
   assert.ok(h.nodes(outlineSelector).every(node => node.getAttribute('fill') === 'none'));
   assert.equal(h.rendering.getSelectionRenderStats().failureCount, 0);
