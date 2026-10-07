@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
+import { withNativeActionDiagnostics } from './helpers/native-action-diagnostics.mjs';
 
 const parentId = '00000000-0000-4000-8000-000000000021';
 const parent = createTerritorialFeature({ id: parentId, entityKind: 'general', name: '경계 스냅 실제 시험 영역',
@@ -269,7 +270,9 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   expect(candidates).toContainEqual(child.geometry);
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), parentId)).toEqual(before);
   await expect.poll(async () => (await savedProject(page)).territorialEntities.some(entity => entity.id === child.id), { timeout: 30_000 }).toBe(true);
-  await page.locator('#undoBtn').click();
+  await withNativeActionDiagnostics(page, testInfo, { label: 'boundary-project-undo', selector: '#undoBtn' }, async () => {
+    await page.locator('#undoBtn').click();
+  });
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id)).toBeNull();
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), parentId)).toEqual(before);
   await expect.poll(async () => {

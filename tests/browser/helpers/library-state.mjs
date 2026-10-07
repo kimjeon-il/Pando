@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
+import { withNativeActionDiagnostics } from './native-action-diagnostics.mjs';
 
 // Observe the production owners. These hooks never substitute a serializer,
 // activation policy, selection implementation, or operation error boundary.
@@ -74,7 +75,7 @@ async function stateProof(page, sourceId) {
   }, sourceId);
 }
 
-export async function openLibrary(page, {renderer='webgl2'}={}) {
+export async function openLibrary(page, {renderer='webgl2', nativeActionTestInfo=null}={}) {
   page.setDefaultTimeout(10_000);
   await observeOwners(page);
   const pageErrors = [], unexpectedConsoleErrors = [];
@@ -89,7 +90,13 @@ export async function openLibrary(page, {renderer='webgl2'}={}) {
   // Preserve a real nonempty Undo and Redo chain through a rejected operation.
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setName('DEU', '보존 이름 A'))).toMatchObject({ changed: true });
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setName('DEU', '보존 이름 B'))).toMatchObject({ changed: true });
-  await page.locator('#undoBtn').click();
+  if (nativeActionTestInfo) {
+    await withNativeActionDiagnostics(page, nativeActionTestInfo, { label: 'library-setup-undo', selector: '#undoBtn' }, async () => {
+      await page.locator('#undoBtn').click();
+    });
+  } else {
+    await page.locator('#undoBtn').click();
+  }
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'))).toBe(true);
   await expect.poll(() => page.evaluate(() => window.__librarySaveState.snapshot().autosave), { timeout: 30_000 }).toBe('saved');
   await page.locator('#createMenuBtn').click();
