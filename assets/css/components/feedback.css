@@ -516,15 +516,6 @@ body.is-loading .app-root {
   }
 }
 
-@media (max-width: 799px) {
-  .map-bottom-status .status-group {
-    max-width: 46vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .action-status.ui-toast.working .status-dot {
     animation: none;

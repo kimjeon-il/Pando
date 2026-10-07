@@ -9058,15 +9058,6 @@ body.is-loading .app-root {
   }
 }
 
-@media (max-width: 799px) {
-  .map-bottom-status .status-group {
-    max-width: 46vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .action-status.ui-toast.working .status-dot {
     animation: none;
@@ -9192,8 +9183,13 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
   max-width: 36vw;
 }
 
+.app-root[data-layout="mobile"] .status-selection {
+  flex: 1 1 0;
+}
+
 .app-root[data-layout="mobile"] .selection-status {
-  max-width: 32vw;
+  min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
