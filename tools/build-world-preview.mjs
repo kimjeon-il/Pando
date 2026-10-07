@@ -11,6 +11,7 @@ import { encodeCanonicalCountryPacket } from './canonical-country-packet-encoder
 import { buildTopologyPreview } from './preview-topology.mjs';
 import { classifyBuiltinCountries } from '../assets/js/modules/builtin-subunits.js';
 import { geometryFingerprint } from '../assets/js/modules/project-preview-policy.js';
+import { verifyGzipAssetBytes } from '../scripts/lib/gzip-asset-verification.mjs';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
@@ -176,6 +177,12 @@ function compareOrWrite(filePath, bytes) {
   fs.writeFileSync(filePath, bytes);
 }
 
+function checkedGzip(filePath, generated) {
+  if (!checkOnly) return generated;
+  return verifyGzipAssetBytes(fs.existsSync(filePath) ? fs.readFileSync(filePath) : null,
+    generated, path.relative(projectRoot, filePath));
+}
+
 const canonicalBytes = Buffer.from(fs.readFileSync(sourcePath, 'utf8').replaceAll('\r\n', '\n'));
 const canonicalMeshBytes = fs.readFileSync(canonicalMeshPath);
 const canonicalMeshDecoded = zlib.gunzipSync(canonicalMeshBytes);
@@ -199,15 +206,16 @@ const defaultClassification = {
   }])),
 };
 const previewJson = Buffer.from(JSON.stringify(preview.collection));
-const previewCountries = zlib.gzipSync(previewJson, { level: 9, mtime: 0 });
+const previewCountries = checkedGzip(previewCountriesPath, zlib.gzipSync(previewJson, { level: 9, mtime: 0 }));
 const canonicalCountryPacketBuffer = encodeCanonicalCountryPacket(canonicalSource);
 const canonicalCountryPacketHeader = inspectCanonicalCountryPacket(canonicalCountryPacketBuffer);
-const canonicalCountryPacket = zlib.gzipSync(Buffer.from(canonicalCountryPacketBuffer), { level: 9, mtime: 0 });
+const canonicalCountryPacket = checkedGzip(canonicalCountryPacketPath, zlib.gzipSync(Buffer.from(canonicalCountryPacketBuffer), { level: 9, mtime: 0 }));
 if (canonicalCountryPacketBuffer.byteLength > 10 * 1024 * 1024) throw new Error(`canonical 국가 packet이 10MiB를 초과했습니다: ${canonicalCountryPacketBuffer.byteLength}`);
 if (canonicalCountryPacket.length > 5.5 * 1024 * 1024) throw new Error(`canonical 국가 packet gzip이 5.5MiB를 초과했습니다: ${canonicalCountryPacket.length}`);
 const mesh = meshCore.buildGpuMeshFeatures(preview.collection.features, earcut, { validate: true, maxEdgeDegrees: 2 });
 validatePackedMeshGeometry(mesh);
 const packedMesh = packMesh(mesh, preview.coordinateCount);
+packedMesh.compressed = checkedGzip(previewMeshPath, packedMesh.compressed);
 const combinedCompressedBytes = previewCountries.length + packedMesh.compressed.length;
 if (combinedCompressedBytes > MAX_COMPRESSED_BYTES) throw new Error(`미리보기 압축 크기가 3MiB를 초과했습니다: ${combinedCompressedBytes}`);
 
