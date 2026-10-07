@@ -3,6 +3,7 @@ import test from 'node:test';
 import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
 import { createHistoryService } from '../../assets/js/modules/history-service.js';
 import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
+import { createCommandFixture } from '../../tools/parity/command-history.mjs';
 
 function fixture() {
   const events = [];
@@ -116,6 +117,22 @@ test('undo/redo emit one lifecycle sequence; empty history has no effects', () =
   events.length = 0;
   assert.equal(domain.redo(), true);
   assert.deepEqual(events, ['history', 'event', 'render', 'autosave']);
+});
+
+test('undo and redo restore the saved content token at the saved document', () => {
+  const { service, domain, saveState } = createCommandFixture();
+  service.updateMetadata('A', 'name', 'Beta');
+  saveState.markFileSaved();
+  service.updateMetadata('A', 'name', 'Gamma');
+  assert.equal(saveState.snapshot().documentDirty, true);
+  assert.equal(domain.undo(), true);
+  assert.equal(saveState.snapshot().documentDirty, false);
+  assert.equal(domain.undo(), true);
+  assert.equal(saveState.snapshot().documentDirty, true);
+  assert.equal(domain.redo(), true);
+  assert.equal(saveState.snapshot().documentDirty, false);
+  assert.equal(domain.redo(), true);
+  assert.equal(saveState.snapshot().documentDirty, true);
 });
 
 test('failed history restore rolls back without moving history stacks or scheduling effects', () => {

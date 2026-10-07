@@ -16,12 +16,14 @@ export function createCommandFixture(initial = {id:'A',name:'Alpha'}) {
   store.replaceEntities((initial.entities??[initial]).map(row=>createTerritorialFeature({ id: row.id, entityKind: row.kind??'general', name: row.name,
     parentId:row.parent??'',locked:row.locked??false,
     geometry: { type: 'Polygon', coordinates: [[[0,0],[8,0],[8,8],[0,8],[0,0]]] } })));
-  const snapshot = () => ({ territorialEntities: store.identities(), timelineRecords: structuredClone(state.timelineRecords), geometries: state.geometries.snapshot() });
   const saveState = createSaveStateController({ now: () => new Date('2000-01-01T00:00:00Z') });
+  const snapshot = () => ({ territorialEntities: store.identities(), timelineRecords: structuredClone(state.timelineRecords), geometries: state.geometries.snapshot(),
+    historyContentToken: saveState.snapshot().currentContentToken });
+  const restore = value => { store.restoreProject(value); saveState.setContentToken(value.historyContentToken); };
   const history = createHistoryService({ store: { history: [], historyMeta: [], future: [], futureMeta: [] }, maxEntries: 100,
-    snapshot, restore: value => store.restoreProject(value), normalizeMetadata: value => value,
+    snapshot, restore, normalizeMetadata: value => value,
     onRecord: () => saveState.markContentChanged() });
-  const pipeline = createProjectCommandPipeline({ captureSnapshot: snapshot, restoreSnapshot: value => store.restoreProject(value),
+  const pipeline = createProjectCommandPipeline({ captureSnapshot: snapshot, restoreSnapshot: restore,
     recordHistory: (meta, before) => history.commitSnapshot(before, meta), discardHistory: history.discardLast,
     advanceRevision: () => { state.stateRevision += 1; } });
   const repository = createTerritorialEntityRepository({ entityStore: store });

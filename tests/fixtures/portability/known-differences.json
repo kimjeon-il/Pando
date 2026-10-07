@@ -1,51 +1,5 @@
 {
   "schema": "web-app-known-differences",
   "version": 1,
-  "cases": [
-    {
-      "caseId": "history:commands/undo-to-save",
-      "reason": "Baseline Web ProjectDomain.travelHistory marks a new content token; native Project restores the saved checkpoint. This existing dirty-state difference is not a product fix in this task.",
-      "baseline": { "web": "582908e9645b79b212f7db5105e596c9986a6ee1", "app": "faa4ced0824dd8eb05484365590dc129e8e64b2a" },
-      "differences": [{ "path": "/dirty", "webPresent": true, "appPresent": true, "expectedPresent": true, "web": true, "app": false, "expected": false }]
-    },
-    {
-      "caseId": "history:commands/redo-to-save",
-      "reason": "Baseline Web ProjectDomain.travelHistory marks a new content token; native Project restores the saved checkpoint. This existing dirty-state difference is not a product fix in this task.",
-      "baseline": { "web": "582908e9645b79b212f7db5105e596c9986a6ee1", "app": "faa4ced0824dd8eb05484365590dc129e8e64b2a" },
-      "differences": [{ "path": "/dirty", "webPresent": true, "appPresent": true, "expectedPresent": true, "web": true, "app": false, "expected": false }]
-    },
-    {
-      "caseId": "library:queries/korean-lineage",
-      "reason": "After Web date-aware browse filtering, entities with unknown lifetime are excluded from dated search. Native catalog search still returns KOR and PRK. This is a reviewed current-source difference, not product parity.",
-      "baseline": { "web": "1c47399fe1b2d0f54077978a6ad739deb64504be", "app": "bb2e80cb495ce74a1aa9466a69191a04b2fa971b" },
-      "differences": [
-        { "path": "/ids/0", "webPresent": false, "appPresent": true, "expectedPresent": false, "app": "state:KOR" },
-        { "path": "/ids/1", "webPresent": false, "appPresent": true, "expectedPresent": false, "app": "state:PRK" },
-        { "path": "/versions/0", "webPresent": false, "appPresent": true, "expectedPresent": false, "app": "state:KOR:natural-earth-5.1.1" },
-        { "path": "/versions/1", "webPresent": false, "appPresent": true, "expectedPresent": false, "app": "state:PRK:natural-earth-5.1.1" }
-      ]
-    },
-    {
-      "caseId": "library:queries/korean-name",
-      "reason": "Web date-aware browse excludes KOR with unknown lifetime; native search still returns it.",
-      "baseline": { "web": "1c47399fe1b2d0f54077978a6ad739deb64504be", "app": "bb2e80cb495ce74a1aa9466a69191a04b2fa971b" },
-      "differences": [
-        { "path": "/ids/0", "webPresent": false, "appPresent": true, "expectedPresent": false, "app": "state:KOR" },
-        { "path": "/versions/0", "webPresent": false, "appPresent": true, "expectedPresent": false, "app": "state:KOR:natural-earth-5.1.1" }
-      ]
-    },
-    {
-      "caseId": "library:queries/germany-1900",
-      "reason": "Web date-aware browse excludes DEU with unknown lifetime while native catalog search returns it before both Prussian entities.",
-      "baseline": { "web": "1c47399fe1b2d0f54077978a6ad739deb64504be", "app": "bb2e80cb495ce74a1aa9466a69191a04b2fa971b" },
-      "differences": [
-        { "path": "/ids/0", "webPresent": true, "appPresent": true, "expectedPresent": true, "web": "state:east-prussia", "app": "state:DEU", "expected": "state:east-prussia" },
-        { "path": "/ids/1", "webPresent": true, "appPresent": true, "expectedPresent": true, "web": "state:west-prussia", "app": "state:east-prussia", "expected": "state:west-prussia" },
-        { "path": "/ids/2", "webPresent": false, "appPresent": true, "expectedPresent": false, "app": "state:west-prussia" },
-        { "path": "/versions/0", "webPresent": true, "appPresent": true, "expectedPresent": true, "web": "ostpreussen-1878-1920-r3", "app": "state:DEU:natural-earth-5.1.1", "expected": "ostpreussen-1878-1920-r3" },
-        { "path": "/versions/1", "webPresent": true, "appPresent": true, "expectedPresent": true, "web": "state:west-prussia:1900-01-01-r1", "app": "ostpreussen-1878-1920-r3", "expected": "state:west-prussia:1900-01-01-r1" },
-        { "path": "/versions/2", "webPresent": false, "appPresent": true, "expectedPresent": false, "app": "state:west-prussia:1900-01-01-r1" }
-      ]
-    }
-  ]
+  "cases": []
 }
