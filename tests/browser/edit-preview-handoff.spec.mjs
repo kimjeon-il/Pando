@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
+import { boundaryDragCommitEvidence } from '../helpers/boundary-drag-commit.mjs';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
 import { defaultUserPreferences, STORAGE_KEY } from '../../assets/js/modules/user-preferences.js';
 import { logMapDiagnostic, withDiagnosticDeadline, withMapDiagnostics } from './helpers/map-diagnostics.mjs';
@@ -60,7 +61,7 @@ async function observe(page, continuity = false, renderer = 'webgl2') {
     expect(body).not.toBe(original); await route.fulfill({ response, body });
   });
   await page.addInitScript(() => {
-    window.__m2 = { hold: '', releases: [], results: [], draws: [], presentations: [], handoffs: [], waits: [] };
+    window.__m2 = { hold: '', releases: [], results: [], draws: [], presentations: [], handoffs: [], waits: [], boundaryMoves: [] };
     window.addEventListener('error', event => {
       (window.__m2.errors ||= []).push({ message: event.message, stack: event.error?.stack });
     });
@@ -116,6 +117,14 @@ export function createHistoryService(options) {
 export function createMapEditWorkerClient(options) {
   const client = createObservedClient({ ...options, readyTimeoutMs: 30_000 });
   return Object.freeze({ ...client, execute: async (...args) => {
+    if (args[0] === 'boundary-move') {
+      const payload = args[1].payload, preview = window.__m2Preview();
+      window.__m2.boundaryMoves.push({ operation: args[0], preparationId: payload.preparationId,
+        nodeKey: payload.nodeKey, coordinate: payload.coordinate.slice(), previewId: preview.snapshot().id,
+        packetStatus: preview.snapshot().status, packetRevision: preview.packet()?.packet.geometryRevision });
+      // Continuity follows the final flushed vertex from this boundary onward.
+      if (window.__m7?.tracking) window.__m7.point = payload.coordinate.slice();
+    }
     const response = await client.execute(...args);
     if (window.__m2.hold === args[0]) {
       window.__m2.results.push({ operation: args[0], result: response.result });
@@ -250,6 +259,8 @@ async function handoffDiagnostics(page, attempt = null) {
       preview: pick(window.__m2Preview().snapshot(), ['id', 'status', 'revision', 'viewRevision']),
       packet: packet && { key: packet.key, segmentCount: packet.startsEnds.length / 4 },
       pendingLineCheck: observed.pendingLineCheck,
+      boundaryDrag: observed.boundaryDrag,
+      boundaryCommitCheck: observed.boundaryCommitCheck,
       render: pick(snapshot.rendering, ['lastPreparedVisualFrameId', 'lastCommittedVisualFrameId', 'visualFrameRejectedCount',
         'lastReason', 'lastReasons', 'pendingMask', 'frameQueued']),
       gpu: pick(snapshot.gpu, ['renderer', 'requestedRevision', 'displayedRevision', 'committedGeometryRevision',
@@ -278,6 +289,8 @@ const snapshot = page => page.evaluate(() => {
   const controller = window.__m2Preview(), packet = controller.packet();
   return { ...controller.snapshot(), successor: controller.snapshot().successor?.kind,
     coordinates: packet ? Array.from(packet.packet.startsEnds) : [], key: packet?.packet.key,
+    packetRevision: packet?.packet.geometryRevision,
+    boundaryActiveCoordinate: window.__m2EditingPacket().boundaryActiveCoordinate,
     svg: document.querySelector('.map-direct-preview')?.getAttribute('d') || '',
     geometryPreview: window.__m2State().geometryPreview.session?.sessionId };
 });
@@ -350,34 +363,52 @@ async function focusSelectedObject(page, renderer) {
 async function moveHandle(page, selector, preferredCoordinate = null) {
   const handles = page.locator(selector);
   await expect.poll(() => handles.count(), { timeout: 60_000 }).toBeGreaterThan(0);
-  const box = await handles.evaluateAll((nodes, preferred) => nodes.map(node => ({ node, rect: node.getBoundingClientRect() }))
+  const handle = await handles.evaluateAll((nodes, preferred) => {
+    const selected = nodes.map(node => ({ node, rect: node.getBoundingClientRect() }))
     .find(({ node, rect }) => rect.width && rect.x > 80 && rect.x < 1050 && rect.y > 130 && rect.y < 720
       && (!preferred || Math.hypot(node.__data__.coordinate[0] - preferred[0], node.__data__.coordinate[1] - preferred[1]) < 0.000001)
-      && document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === node)?.rect.toJSON(), preferredCoordinate);
-  expect(box).toBeTruthy();
+      && document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === node);
+    return selected && { box: selected.rect.toJSON(), key: selected.node.__data__.key, nodeKey: selected.node.__data__.nodeKey };
+  }, preferredCoordinate);
+  expect(handle).toBeTruthy();
+  const { box } = handle;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
-  const originalCoordinate = await page.evaluate(() => window.__m2EditingPacket().boundaryActiveCoordinate);
+  const started = await page.evaluate(() => {
+    const packet = window.__m2EditingPacket();
+    return { originalCoordinate: packet.boundaryActiveCoordinate, activeNodeKey: packet.boundaryActiveNodeKey,
+      preparationId: packet.boundaryEdit?.preparationId, previewId: window.__m2Preview().snapshot().id,
+      requestOffset: window.__m2.boundaryMoves.length };
+  });
+  const { originalCoordinate } = started;
   expect(originalCoordinate).toHaveLength(2);
+  expect(started.activeNodeKey).toBe(handle.key);
+  expect(handle.nodeKey).toBeTruthy();
+  const target = { nodeKey: handle.nodeKey, preparationId: started.preparationId, previewId: started.previewId };
   await page.mouse.move(box.x + box.width / 2 + 20, box.y + box.height / 2 - 14, { steps: 4 });
   const moved = await snapshot(page);
   expect(moved.coordinates.length).toBeGreaterThan(0);
-  // The editing packet owns the dragged vertex. The first new packet endpoint
-  // can instead be an unchanged neighbour when the initial preview is pending.
-  const editedCoordinate = await page.evaluate(() => window.__m2EditingPacket().boundaryActiveCoordinate);
-  expect(editedCoordinate).toHaveLength(2);
-  expect(Math.hypot(editedCoordinate[0] - originalCoordinate[0], editedCoordinate[1] - originalCoordinate[1])).toBeGreaterThan(0.00002);
+  const preUpCoordinate = moved.boundaryActiveCoordinate;
+  await page.evaluate(evidence => { window.__m2.boundaryDrag = evidence; }, { target, originalCoordinate, preUpCoordinate });
+  expect(preUpCoordinate).toHaveLength(2);
+  expect(Math.hypot(preUpCoordinate[0] - originalCoordinate[0], preUpCoordinate[1] - originalCoordinate[1])).toBeGreaterThan(0.00002);
   expect(moved.coordinates.some((_, index, values) => index % 2 === 0
-    && Math.hypot(values[index] - editedCoordinate[0], values[index + 1] - editedCoordinate[1]) < 0.00002)).toBe(true);
+    && Math.hypot(values[index] - preUpCoordinate[0], values[index + 1] - preUpCoordinate[1]) < 0.00002)).toBe(true);
   const continuity = await page.evaluate(point => {
     if (!window.__m7) return false;
     window.__m7.point = point; window.__m7.tracking = true;
     window.__m2Rendering.invalidateViewport('m7-dragging'); return true;
-  }, editedCoordinate);
+  }, preUpCoordinate);
   if (continuity) await expect.poll(() => page.evaluate(() => window.__m7.frames.some(row => row.status === 'dragging'
     && row.owners > 0)), { timeout: 120_000 }).toBe(true);
   await page.mouse.up();
-  return { ...await snapshot(page), editedCoordinate };
+  const pending = await snapshot(page);
+  const requests = await page.evaluate(offset => window.__m2.boundaryMoves.slice(offset), started.requestOffset);
+  const evidence = boundaryDragCommitEvidence({ target, originalCoordinate, preUpCoordinate, requests, pending });
+  await page.evaluate(evidence => { window.__m2.boundaryDrag = evidence; }, evidence);
+  expect(evidence).toMatchObject({ requestCount: 1, requestMatchesTarget: true, frozenRequestPacket: true,
+    meaningfulDisplacement: true, packetContainsEditedCoordinate: true });
+  return { ...pending, editedCoordinate: evidence.editedCoordinate, dragEvidence: evidence };
 }
 
 async function projectPendingLine(page, moved) {
@@ -532,12 +563,23 @@ for (const renderer of ['webgl2', 'canvas']) {
       const records = window.__m2.draws.filter(draw => draw.frameId === handoff.frame.frameId && draw.painted
         && draw.key.includes(handoff.successor.sessionId) && draw.key.includes('geometry-preview-new-boundary'));
       const svg = handoff.svg.filter(row => row.key.includes(handoff.successor.sessionId) && row.key.includes('geometry-preview-new-boundary'));
-      const flatContains = values => { for (let index = 0; index < values.length; index += 2) {
-        if (Math.hypot(values[index] - point[0], values[index + 1] - point[1]) < 0.00002) return true;
-      } return false; };
-      const points = value => Array.isArray(value) && typeof value[0] === 'number' ? [value] : Array.isArray(value) ? value.flatMap(points) : [];
-      return records.some(row => flatContains(row.coordinates)) || svg.some(row => row.visible && row.d && row.d === row.expected && points(row.geometry?.coordinates || [])
-        .some(coordinate => Math.hypot(coordinate[0] - point[0], coordinate[1] - point[1]) < 0.00002));
+      const nearestFlat = values => { let nearest = Infinity;
+        for (let index = 0; index < values.length; index += 2) nearest = Math.min(nearest,
+          Math.hypot(values[index] - point[0], values[index + 1] - point[1]));
+        return nearest;
+      };
+      const nearestPoint = value => Array.isArray(value) && typeof value[0] === 'number'
+        ? Math.hypot(value[0] - point[0], value[1] - point[1])
+        : Array.isArray(value) ? value.reduce((nearest, child) => Math.min(nearest, nearestPoint(child)), Infinity) : Infinity;
+      const gpuEvidence = records.map(row => ({ key: row.key, nearestDistance: nearestFlat(row.coordinates) }));
+      const svgEvidence = svg.map(row => ({ key: row.key, visible: row.visible, nonemptyPath: !!row.d,
+        pathMatches: row.d === row.expected, nearestDistance: nearestPoint(row.geometry?.coordinates) }));
+      const proof = gpuEvidence.some(row => row.nearestDistance < 0.00002)
+        || svgEvidence.some(row => row.visible && row.nonemptyPath && row.pathMatches && row.nearestDistance < 0.00002);
+      window.__m2.boundaryCommitCheck = { frame: handoff.frame, point, targetNodeKey: window.__m2.boundaryDrag.target.nodeKey,
+        packetRevision: window.__m2.boundaryDrag.packet.revision, packetContainsPoint: nearestFlat(handoff.coordinates) < 0.00002,
+        gpuCount: gpuEvidence.length, svgCount: svgEvidence.length, gpu: gpuEvidence.slice(0, 4), svg: svgEvidence.slice(0, 4), proof };
+      return proof;
     }, { handoff, point: moved.editedCoordinate });
     expect(proof).toBe(true);
     if (staticInput) {

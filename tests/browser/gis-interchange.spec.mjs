@@ -82,7 +82,9 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('독일');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '독일' }).first().click();
-  await page.locator('#flagFileInput').setInputFiles({
+  await page.locator('#flagMenuBtn').click();
+  const [germanFlagChooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#flagUploadBtn').click()]);
+  await germanFlagChooser.setFiles({
     name: 'custom-german-flag.svg',
     mimeType: 'image/svg+xml',
     buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><path fill="#111" d="M0 0h60v40H0z"/></svg>'),
@@ -153,11 +155,14 @@ test('GeoPackage export contains QGIS-ready territorial and distribution tables'
   if (!await page.locator('#layerSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();
   await page.locator('#layerSearchInput').fill('폴란드');
   await page.locator('#layerSearchResults .layer-search-result').filter({ hasText: '폴란드' }).first().click();
-  await page.locator('#flagFileInput').setInputFiles({
+  await page.locator('#flagMenuBtn').click();
+  const [polishFlagChooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#flagUploadBtn').click()]);
+  await polishFlagChooser.setFiles({
     name: 'temporary-polish-flag.svg',
     mimeType: 'image/svg+xml',
     buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40"><path fill="#00f" d="M0 0h60v40H0z"/></svg>'),
   });
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('POL').properties.metadata.flagDataUrl)).toMatch(/^data:image\/svg\+xml;base64,/);
 
   await page.locator('#mobileFileBtn').click();
   const chooserPromise = page.waitForEvent('filechooser');
