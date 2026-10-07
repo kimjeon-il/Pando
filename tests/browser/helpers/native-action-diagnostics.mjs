@@ -52,15 +52,72 @@ export async function withNativeActionDiagnostics(page, testInfo, {
 export function nativeActionProbe({ command, token, selector, rowSelector, installBeforeEpochMs }) {
   const scope = globalThis;
   const key = '__PANDOLAB_NATIVE_ACTION_TEST_PROBE__';
+  const clock = () => scope.performance.now();
+  const text = value => value == null ? null : String(value).slice(0, 160);
+  // The startup monitor owns these rings. Read it once in the existing final
+  // evaluation, independently of whether the native observer could be armed.
+  const collectPerformance = (nativeWindow, recordError) => {
+    const performanceCollection = {
+      status: 'error', source: '__PANDOLAB_PERFORMANCE_REPORT__', version: null,
+      installedAtMs: null, capturedAt: null, timeOrigin: scope.performance.timeOrigin,
+      startedAtMs: clock(), endedAtMs: null,
+      scope: nativeWindow ? 'native-window-overlap' : 'retained-startup-samples', partial: true,
+      coverage: 'Unknown observer support and prior buffer loss; empty samples do not rule out JavaScript blocking.',
+    };
+    let performanceReport = null;
+    try {
+      if (typeof scope.__PANDOLAB_PERFORMANCE_REPORT__ !== 'function') {
+        performanceCollection.status = 'unavailable';
+        throw new Error('Performance report unavailable');
+      }
+      const report = scope.__PANDOLAB_PERFORMANCE_REPORT__();
+      performanceCollection.version = Number.isFinite(report.version) ? report.version : null;
+      performanceCollection.installedAtMs = Number.isFinite(report.installedAtMs) ? report.installedAtMs : null;
+      performanceCollection.capturedAt = text(report.capturedAt);
+      const samples = (source, keys, limit, endTimestamp = false) => {
+        const available = Array.isArray(source?.samples);
+        const values = available ? source.samples : [];
+        const start = sample => endTimestamp ? sample.atMs - sample.durationMs : sample.startTime;
+        const end = sample => endTimestamp ? sample.atMs : sample.startTime + sample.durationMs;
+        const matching = nativeWindow ? values.filter(sample =>
+          end(sample) >= nativeWindow.startedAtMs && start(sample) <= nativeWindow.endedAtMs) : values;
+        const exported = matching.slice(-limit).map(sample => Object.fromEntries(keys.map(key =>
+          [key, typeof sample[key] === 'number' ? (Number.isFinite(sample[key]) ? sample[key] : null) : text(sample[key])])));
+        const starts = values.map(start).filter(Number.isFinite), ends = values.map(end).filter(Number.isFinite);
+        return {
+          status: available ? 'available' : 'unavailable', retainedCount: available ? values.length : null,
+          exportedCount: exported.length, omitted: Math.max(0, matching.length - limit),
+          oldestRetainedStartTimeMs: starts.length ? starts.reduce((a, b) => Math.min(a, b)) : null,
+          newestRetainedEndTimeMs: ends.length ? ends.reduce((a, b) => Math.max(a, b)) : null,
+          // Production retains at most 120, but exposes neither total drops nor
+          // observer installation success. A full ring only suggests lost history.
+          retentionLimitReached: available ? values.length >= 120 : null,
+          observerSupported: null, droppedBeforeSnapshot: null, samples: exported,
+        };
+      };
+      performanceReport = {
+        longTasks: samples(report.longTasks, ['startTime', 'durationMs', 'name'], 120),
+        eventTimings: samples(report.eventTimings, ['startTime', 'durationMs', 'name', 'target', 'interactionId'], 32),
+        operations: Object.fromEntries(['autosave.persist', 'project.command', 'project.transaction'].map(name =>
+          [name, samples(report.operations?.[name], ['atMs', 'durationMs'], 32, true)])),
+      };
+      performanceCollection.status = 'available';
+    } catch (error) { recordError(String(error).slice(0, 240)); }
+    performanceCollection.endedAtMs = clock();
+    return { performance: performanceReport, performanceCollection };
+  };
   if (command === 'take') {
     const current = scope[key];
-    if (current?.token !== token) return { unavailable: true };
+    if (current?.token !== token) {
+      const errors = [];
+      return { unavailable: true, unavailableReason: current ? 'token-mismatch' : 'missing-token', nativeWindow: null,
+        ...collectPerformance(null, error => errors.push(error)), errors };
+    }
     delete scope[key];
     return current.take();
   }
   if (installBeforeEpochMs != null && Date.now() > installBeforeEpochMs) return { installationExpired: true };
   scope[key]?.dispose();
-  const clock = () => scope.performance.now();
   const startedAtMs = clock();
   const rows = [], events = [], frames = [], errors = [], rowMutations = [];
   const rings = new Map([[rows, 'rows'], [events, 'events'], [frames, 'frames'], [errors, 'errors'], [rowMutations, 'rowMutations']]);
@@ -72,7 +129,6 @@ export function nativeActionProbe({ command, token, selector, rowSelector, insta
   const safe = action => {
     try { return action(); } catch (error) { retain(errors, String(error).slice(0, 240)); }
   };
-  const text = value => value == null ? null : String(value).slice(0, 160);
   const nodeSummary = node => {
     if (!node) return null;
     if (!identities.has(node)) identities.set(node, ++identity);
@@ -117,28 +173,10 @@ export function nativeActionProbe({ command, token, selector, rowSelector, insta
   const api = { token, dispose, take() {
     dispose();
     const endedAtMs = clock();
-    let performanceReport = null;
-    safe(() => {
-      if (typeof scope.__PANDOLAB_PERFORMANCE_REPORT__ !== 'function') throw new Error('Performance report unavailable');
-      const report = scope.__PANDOLAB_PERFORMANCE_REPORT__();
-      const samples = (values, keys, endTimestamp = false) => {
-        const matching = (values || []).filter(sample => {
-          const start = endTimestamp ? sample.atMs - sample.durationMs : sample.startTime;
-          const end = endTimestamp ? sample.atMs : sample.startTime + sample.durationMs;
-          return end >= startedAtMs && start <= endedAtMs;
-        });
-        return { omitted: Math.max(0, matching.length - 32), samples: matching.slice(-32).map(sample =>
-          Object.fromEntries(keys.map(key => [key, typeof sample[key] === 'number' ? sample[key] : text(sample[key])])) ) };
-      };
-      performanceReport = {
-        longTasks: samples(report.longTasks?.samples, ['startTime', 'durationMs', 'name']),
-        eventTimings: samples(report.eventTimings?.samples, ['startTime', 'durationMs', 'name', 'target', 'interactionId']),
-        operations: Object.fromEntries(['autosave.persist', 'project.command', 'project.transaction'].map(name =>
-          [name, samples(report.operations?.[name]?.samples, ['atMs', 'durationMs'], true)])),
-      };
-    });
-    return { startedAtMs, endedAtMs, timeOrigin: scope.performance.timeOrigin, expired,
-      rows, rowChanges, rowMutations, events, frames, errors, dropped, rowContainerAvailable: !!root, performance: performanceReport };
+    const nativeWindow = { startedAtMs, endedAtMs };
+    const performanceReport = collectPerformance(nativeWindow, error => retain(errors, error));
+    return { startedAtMs, endedAtMs, timeOrigin: scope.performance.timeOrigin, expired, nativeWindow,
+      rows, rowChanges, rowMutations, events, frames, errors, dropped, rowContainerAvailable: !!root, ...performanceReport };
   } };
   scope[key] = api;
   // The observer self-disposes even if page.evaluate cannot return to the host.
