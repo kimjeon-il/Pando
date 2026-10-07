@@ -7,7 +7,7 @@ import { normalizeObjectRef } from '../../assets/js/modules/object-selection-con
 import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
 import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
 import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
-import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
 import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
 const sandbox = {};

@@ -203,10 +203,8 @@ export function createDomainAssembly() {
       selectionPacketFactory: dependencies.selectionServices.createSelectionPacket,
       normalizeRef: dependencies.selectionServices.normalizeObjectRef,
       refExists: dependencies.objectLookup.objectRefExists,
-      onSelectionChanged: snapshot => {
-        const selection = snapshot.selection;
-        const previous = dependencies.projectState.state.selected;
-        dependencies.projectState.state.selected = selection.items.find(item => item.key === selection.primaryKey) || null;
+      onSelectionChanged: (snapshot, _reason, previousSelection) => {
+        const previous = previousSelection.items.find(item => item.key === previousSelection.primaryKey) || null;
         if (previous?.domain === 'hydro' && dependencies.projectState.state.tool === 'select'
           && previous.key !== dependencies.projectState.state.selected?.key) {
           editingDomain?.cancelActiveGesture('object-target-changed', { emitChange: false });

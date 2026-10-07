@@ -10,7 +10,7 @@ import test from 'node:test';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const runnerUrl = new URL('../../scripts/run-boundary-revision-comparison.mjs', import.meta.url);
 const configUrl = new URL('../../playwright.boundary-revision.config.mjs', import.meta.url);
-const baseline = 'ebcfae4d27b29cbbea6416a7045a4806930204be';
+const baseline = '0c55e8e4e8bacb3b125091c9b3a12ff535b5bdb6';
 const head = 'bd7ccd6762928d480c806c6188814372281d24de';
 const title = 'a child cut snaps to both parent boundaries, preserves coverage and undoes in one step';
 const sequence = ['PR1', 'main1', 'main2', 'PR2'];
@@ -33,6 +33,13 @@ function launchSuccess(command, args, options) {
       .map((name, index) => ({ name, status: 'fulfilled', startMs: index * 2 + 1, endMs: index * 2 + 2, durationMs: 1 })), label: 'boundary-project-undo' }));
   return { status: 0, signal: null };
 }
+
+test('revision runner and workflow pin the approved latest main architecture', () => {
+  const source = readFileSync(runnerUrl, 'utf8');
+  assert.ok(source.includes(`const baselineRevision = '${baseline}';`));
+  const workflow = readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8');
+  assert.ok(workflow.includes(`ref: ${baseline}`));
+});
 
 test('revision runner fixes PR/main/main/PR order and the exact desktop selection', async t => {
   const { runBoundaryRevisionComparison } = await runner();
