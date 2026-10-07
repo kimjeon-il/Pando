@@ -7,6 +7,12 @@ import * as projectState from '../../assets/js/modules/project-state.js';
 import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { normalizeGenericFeatureCollection } from '../../assets/js/modules/generic-feature-service.js';
+import { createProjectSession } from '../../assets/js/modules/app-project-session.js';
+import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
+import { createGeometryPreviewState } from '../../assets/js/modules/geometry-preview.js';
+import { createAtomicMapStateController } from '../../assets/js/modules/map-state-transition.js';
+import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
+import { DISTRIBUTION_RENDER_MODES } from '../../assets/js/modules/distribution-model.js';
 
 test('territorial service rejects a missing ID provider at its composition boundary', () => {
   assert.throws(() => createTerritorialApplicationService({
@@ -57,4 +63,42 @@ test('editing domain requires paired frame scheduling from its platform owner', 
   const domain = createEditingDomain({ draftServices: { requestFrame() {}, cancelFrame() {} } });
   assert.equal(domain.snapshot().phase, 'idle');
   domain.dispose();
+});
+
+test('project session reads the current selection owner across replacement and reset without storing a second selection', () => {
+  const domains = { selectionDomain: null };
+  const owner = createProjectSession();
+  owner.connect({
+    domains,
+    readiness: { DATA_READINESS: { PREVIEW: 'preview' } },
+    applicationConstantsA: { DISTRIBUTION_RENDER_MODES },
+    modelValidation: { normalizeLayerPresentation },
+    physicalConfig: { PHYSICAL_DATASET: 'fixture' },
+    applicationFactories: { createGeometryPreviewState },
+    uiFactoriesA: { createAtomicMapStateController },
+    uiFactoriesB: { createSaveStateController },
+  });
+  owner.initializeMapWorkScheduler();
+  assert.equal(owner.state.selected, null);
+  const selected = Object.getOwnPropertyDescriptor(owner.state, 'selected');
+  assert.equal(typeof selected.get, 'function');
+  assert.equal(selected.set, undefined);
+  assert.equal(Object.hasOwn(selected, 'value'), false);
+  domains.selectionDomain = createSelectionDomain();
+  domains.selectionDomain.replace({ domain: 'territorial', type: 'entity', id: 'A' });
+  assert.equal(owner.state.selected, domains.selectionDomain.primary());
+  assert.equal(owner.state.selected.id, 'A');
+  domains.selectionDomain.replace({ domain: 'territorial', type: 'entity', id: 'B' });
+  assert.equal(owner.state.selected.id, 'B');
+  assert.throws(() => { owner.state.selected = null; }, TypeError);
+  assert.equal(owner.state.selected.id, 'B');
+  domains.selectionDomain.resetProject(1);
+  assert.equal(owner.state.selected, null);
+  domains.selectionDomain.dispose();
+  domains.selectionDomain = null;
+  assert.equal(owner.state.selected, null);
+  domains.selectionDomain = createSelectionDomain();
+  domains.selectionDomain.replace({ domain: 'generic', type: 'feature', id: 'C' });
+  assert.equal(owner.state.selected.id, 'C');
+  domains.selectionDomain.dispose();
 });

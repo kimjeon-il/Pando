@@ -384,8 +384,7 @@ body.file-menu-open .mobile-backdrop {
 
 :is(
   .mobile-menu-toolbar,
-  .map-command-toolbar,
-  .selection-toolbar
+  .map-command-toolbar
 ) .ui-button.icon-btn:is(
   [aria-pressed="true"],
   [aria-expanded="true"],
@@ -399,8 +398,7 @@ body.file-menu-open .mobile-backdrop {
 
 :is(
   .mobile-menu-toolbar,
-  .map-command-toolbar,
-  .selection-toolbar
+  .map-command-toolbar
 ) .ui-button.icon-btn:is(
   [aria-pressed="true"],
   [aria-expanded="true"],

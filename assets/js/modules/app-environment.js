@@ -61,7 +61,6 @@ export function createEnvironment() {
   let $;
   let selectController;
   let tooltipController;
-  let bindUiTooltips;
   let REQUIRED_UI_IDS;
   let CACHE_MISMATCH_MESSAGE;
   let deepClone;
@@ -399,20 +398,18 @@ export function createEnvironment() {
       clamp: (value, minimum, maximum) => clamp(value, minimum, maximum),
     }));
 
-    (bindUiTooltips = () => tooltipController.bind());
-
     (REQUIRED_UI_IDS = Object.freeze([
       'app', 'map', 'mapBottomStatus', 'statusView', 'projectionStatus', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
       'objectSearchSurface', 'objectSearchSection', 'mapDisplaySurface', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
       'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'distributionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'subunitLabelsVisible', 'subunitFlagsVisible', 'regionLabelsVisible', 'regionFlagsVisible', 'distributionActiveLayerInput', 'distributionLegend', 'distributionBoundaryVisibleInput',
-      'createMenuBtn', 'mobileCreateBtn', 'mobileMenuBtn', 'mobileGlobalMenu', 'mobileMenuFileBtn', 'mobileFileBackBtn', 'mobilePreferencesBtn', 'mobileHelpBtn', 'mobileUndoBtn', 'mobileRedoBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainNoneRadio', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'selectionToolbar', 'selectionToolbarEditBtn', 'flagMenuBtn', 'flagMenu', 'flagPreview', 'entityNameInput', 'entityColorInput', 'entityNotesInput',
+      'createMenuBtn', 'mobileCreateBtn', 'mobileMenuBtn', 'mobileGlobalMenu', 'mobileMenuFileBtn', 'mobileFileBackBtn', 'mobilePreferencesBtn', 'mobileHelpBtn', 'mobileUndoBtn', 'mobileRedoBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainNoneRadio', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'flagMenuBtn', 'flagMenu', 'flagPreview', 'entityNameInput', 'entityColorInput', 'entityNotesInput',
       'debugMapPanel', 'entityAreaValue',
       'flagUploadBtn', 'flagFileInput', 'flagRemoveBtn',
       'genericFeatureConversionSection', 'genericFeatureConvertType', 'genericFeatureConvertParentField', 'genericFeatureConvertParentInput', 'genericFeatureConvertDistributionField', 'genericFeatureConvertDistributionInput', 'genericFeatureConvertDistributionValueField', 'genericFeatureConvertDistributionValueInput', 'convertGenericFeatureBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue',
       'labelNameInput', 'labelKindInput', 'labelNotesInput', 'labelPositionValue',
       'labelBuiltinInfo', 'labelBuiltinSource', 'labelBuiltinId', 'copyPlaceSection', 'copyPlaceBtn',
       'editorScrollBody', 'editorObjectHeader', 'editorObjectStatus', 'emptyProperties', 'propertyTitle', 'propertyTypeLabel', 'editorTabBtn', 'actionsTabBtn', 'relationTabBtn', 'objectVisibilityBtn', 'objectVisibilityIcon', 'objectLockBtn', 'objectDeleteBtn', 'editorDeleteSection', 'objectActionsMenu',
-      'entityProperties', 'entityPeriodInput', 'entityInfoRelations', 'entityInfoParent', 'entityInfoChildren', 'entityInfoParentRows', 'entityInfoChildRows', 'entityParentInput', 'entityRegionalStatus', 'entityParentRow', 'copyEntityRegionBtn', 'addEntityChildBtn', 'redrawEntityBtn', 'distributionProperties', 'distributionNameInput', 'distributionUnitInput', 'distributionValueScaleInput', 'distributionValueMinInput', 'distributionValueMaxInput', 'distributionColorInput', 'distributionParentInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionValueInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
+      'entityProperties', 'entityPeriodInput', 'entityRelations', 'entityParentRows', 'entityChildRows', 'entityChildInput', 'entityAddChildBtn', 'entityParentInput', 'entityRegionalStatus', 'entityParentRow', 'copyEntityRegionBtn', 'addEntityChildBtn', 'redrawEntityBtn', 'distributionProperties', 'distributionNameInput', 'distributionUnitInput', 'distributionValueScaleInput', 'distributionValueMinInput', 'distributionValueMaxInput', 'distributionColorInput', 'distributionParentInput', 'distributionRenderModeInput', 'distributionEntryList', 'distributionTerritorialUnitInput', 'distributionValueInput', 'addTerritorialDistributionBtn', 'addGeometryDistributionBtn', 'genericFeatureProperties', 'labelProperties', 'hydroProperties',
       'editEntityBorderBtn', 'editEntityCoastBtn', 'reconcileEntityCoastBtn', 'genericFeatureIdInput', 'hydroCategoryValue', 'hydroIdLabel', 'hydroIdValue', 'hydroSystemRow', 'hydroSystemValue', 'hydroTributaryValue', 'hydroSourceValue', 'hydroBuiltinHelp', 'hydroEditFields', 'hydroNameInput', 'hydroColorInput', 'hydroNotesInput', 'copyHydroBtn',
       'undoBtn', 'redoBtn', 'editorSurface',
       'mapTopContextSlot', 'modeEditingContext', 'modeEditingHud', 'modeTaskWindowContent', 'modeTaskMinimizeBtn', 'modeActionBar', 'modeTaskName', 'modeTaskStage', 'modeTaskStatus', 'modeCancelIcon', 'modePrimaryIcon', 'modeTaskInstruction', 'modeTaskObjects', 'modeTaskDisabledReason', 'modeTaskFeedback', 'modeTaskCandidateFeedback',
@@ -423,7 +420,7 @@ export function createEnvironment() {
       'addEntityBtn', 'createBuildPanel', 'territorialCreateSetup', 'territorialCreateNameLabel', 'territorialCreateNameInput', 'territorialCreateRegionalInput', 'territorialCreateParentInput', 'territorialCreateSourceInput', 'territorialCreateReference', 'territorialCreateReferenceLabel', 'territorialCreateReferenceCount', 'territorialCreateReferenceList',
       'gisCoastReference', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
       'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',
-      'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'territorialLibraryModal', 'territorialLibraryCloseBtn', 'territorialLibrarySearchInput', 'territorialLibrarySearchClearBtn', 'territorialLibraryReferenceDateInput', 'territorialLibraryResults', 'territorialLibraryPreview', 'territorialLibraryChildDepthInput', 'territorialLibraryAddBtn',
+      'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'territorialLibraryModal', 'territorialLibraryCloseBtn', 'territorialLibrarySearchInput', 'territorialLibrarySearchClearBtn', 'territorialLibraryReferenceDateInput', 'territorialLibraryTimeSuggestBtn', 'territorialLibraryTimePopover', 'territorialLibraryResults', 'territorialLibraryPreview', 'territorialLibraryChildDepthInput', 'territorialLibraryAddBtn',
     ]));
 
     (CACHE_MISMATCH_MESSAGE = '화면 파일과 스크립트 버전이 다릅니다. 페이지를 강력 새로고침하세요. PC에서는 Ctrl+F5를 사용할 수 있습니다.');
@@ -481,7 +478,7 @@ export function createEnvironment() {
     get applyMapLabelPreferences() { return applyMapLabelPreferences; },
     get applySystemTheme() { return applySystemTheme; },
     get assertRuntimeCompatibility() { return assertRuntimeCompatibility; },
-    get bindUiTooltips() { return bindUiTooltips; },
+    get tooltipController() { return tooltipController; },
     get clamp() { return clamp; },
     get coarsePointer() { return globalThis.matchMedia?.('(pointer: coarse)')?.matches === true; },
     get createEmptyState() { return createEmptyState; },

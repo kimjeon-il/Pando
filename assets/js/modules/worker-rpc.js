@@ -188,6 +188,16 @@ export function createWorkerRpcClient({
     for (const entry of [...pending.values()]) rejectEntry(entry, error);
   }
 
+  function retireWorker() {
+    const retiredWorker = worker;
+    // Invalidate callbacks before disposal, including already captured callbacks.
+    worker = null;
+    if (!retiredWorker) return;
+    retiredWorker.onmessage = null;
+    retiredWorker.onerror = null;
+    try { retiredWorker.terminate?.(); } catch (_) { /* best effort */ }
+  }
+
   function handleCrash(event) {
     metrics.crashes += 1;
     const error = createWorkerRpcError({
@@ -197,17 +207,23 @@ export function createWorkerRpcClient({
       retryable: true,
     });
     rejectAll(error);
-    try { worker?.terminate?.(); } catch (_) { /* best effort */ }
-    worker = null;
+    retireWorker();
     onCrash(error);
   }
 
   function ensureWorker() {
     if (closed) throw createWorkerRpcError({ message: 'Worker RPC client가 종료되었습니다.', category: WORKER_RPC_ERROR_CATEGORIES.CANCELLED, code: 'PL-WORKER-RPC-CLOSED' });
     if (worker) return worker;
-    worker = createWorker();
-    worker.onmessage = handleMessage;
-    worker.onerror = handleCrash;
+    const currentWorker = createWorker();
+    worker = currentWorker;
+    currentWorker.onmessage = event => {
+      if (closed || worker !== currentWorker) return;
+      handleMessage(event);
+    };
+    currentWorker.onerror = event => {
+      if (closed || worker !== currentWorker) return;
+      handleCrash(event);
+    };
     if (metrics.crashes && restartOnCrash) metrics.restarted += 1;
     return worker;
   }
@@ -378,8 +394,7 @@ export function createWorkerRpcClient({
     if (closed) return;
     cancelAll(reason);
     closed = true;
-    try { worker?.terminate?.(); } catch (_) { /* best effort */ }
-    worker = null;
+    retireWorker();
   }
 
   return Object.freeze({

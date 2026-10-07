@@ -20,7 +20,6 @@ test('common entities feed editing, undo, autosave and restoration', async ({ pa
   });
   for (const [type, entity] of [['country', before.country], ['subunit', before.unit]]) {
     expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), entity.id)).toBe(true);
-    if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
     await expect(page.locator('#entityProperties')).toBeVisible();
     const input = page.locator('#entityNameInput');
     await input.fill(`공통 경로 ${type}`);

@@ -549,30 +549,30 @@
   padding-top: var(--ui-space-1);
 }
 
-.editor-info-relations {
+.editor-relations {
   min-width: 0;
   display: grid;
   gap: var(--ui-field-gap);
 }
 
-.editor-info-relation-label {
+.editor-relation-label {
   color: var(--text-soft);
   font-size: var(--ui-font-label);
   font-weight: var(--ui-weight-medium);
   line-height: var(--ui-line-normal);
 }
 
-.editor-info-relation-list {
+.editor-relation-list {
   display: grid;
   gap: 0;
 }
 
-.editor-info-relations[hidden],
-.editor-info-relation-block[hidden] {
+.editor-relations[hidden],
+.editor-relation-block[hidden] {
   display: none;
 }
 
-.editor-info-relation-row {
+.editor-relation-row {
   min-width: 0;
   min-height: var(--ui-control-height);
   display: grid;
@@ -584,26 +584,26 @@
   background: transparent;
 }
 
-.editor-info-relation-name {
+.editor-relation-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--ui-font-body);
 }
 
-.editor-info-relation-flag {
+.editor-relation-flag {
   display: grid;
   place-items: center;
 }
 
-.editor-info-relation-flag img {
+.editor-relation-flag img {
   display: block;
   max-width: calc(var(--ui-icon-size) + var(--ui-space-3));
   max-height: var(--ui-icon-size);
   object-fit: contain;
 }
 
-.surface-editor .editor-info-relation-focus {
+.surface-editor .editor-relation-focus {
   width: var(--ui-control-height);
   height: var(--ui-control-height);
   padding: 0;
@@ -613,7 +613,7 @@
   box-shadow: none;
 }
 
-.surface-editor .editor-info-relation-focus:is(:hover, :focus-visible) {
+.surface-editor .editor-relation-focus:is(:hover, :focus-visible) {
   background: var(--surface-hover);
   color: var(--text-strong);
 }
@@ -1323,3 +1323,10 @@
     display: none;
   }
 }
+
+.editor-relation-actions { display: flex; flex: 0 0 auto; }
+.editor-relation-add { display: flex; align-items: end; gap: var(--ui-space-2); }
+.editor-relation-add > .editor-field { flex: 1 1 auto; min-width: 0; }
+.editor-relation-add > .ui-button { flex: 0 0 auto; min-width: var(--ui-touch-height); white-space: nowrap; }
+.editor-relation-remove { flex: 0 0 auto; }
+.editor-relation-remove:hover:not(:disabled) { color: var(--danger-text); }

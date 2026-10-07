@@ -3,28 +3,28 @@ import test from 'node:test';
 import { createPropertySelection } from '../../assets/js/modules/app-property-selection.js';
 import { OBJECT_EDITING_OWNER_PORTS } from '../../assets/js/modules/app-capability-ports.js';
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
-import { createSelectionToolbarPresentation } from '../../assets/js/modules/selection-toolbar-presentation.js';
+import { createTerritorialPropertyController } from '../../assets/js/modules/territorial-property-controller.js';
 import { createFoundationPorts } from '../../assets/js/modules/app-capability-ports-foundation.js';
 
-test('foundation transient capability closes the actual toolbar flag popover and restores focus', () => {
+test('foundation transient capability closes the actual editor flag popover and restores focus', () => {
   let flagOpen = true;
   const focusCalls = [];
   const elements = {
-    selectionToolbar: { querySelector: () => null },
+    editorSurface: { querySelector: () => null },
     flagMenu: {
       matches: selector => selector === ':popover-open' && flagOpen,
       hidePopover: () => { flagOpen = false; },
     },
     flagMenuBtn: { disabled: false, focus: options => focusCalls.push(options) },
   };
-  const selectionToolbarPresentation = createSelectionToolbarPresentation({ getElement: id => elements[id] });
-  const ports = createFoundationPorts({ domainAssembly: { selectionToolbarPresentation } });
-  assert.equal(ports.domainControllers.closeSelectionToolbarTransient({ restoreFocus: true }), true);
+  const territorialPropertyController = createTerritorialPropertyController({ getElement: id => elements[id] });
+  const ports = createFoundationPorts({ domainAssembly: { territorialPropertyController } });
+  assert.equal(ports.domainControllers.closeTerritorialEditorTransient({ restoreFocus: true }), true);
   assert.equal(flagOpen, false);
   assert.deepEqual(focusCalls, [{ preventScroll: true }]);
-  assert.equal(ports.domainControllers.closeSelectionToolbarTransient({ restoreFocus: true }), false);
+  assert.equal(ports.domainControllers.closeTerritorialEditorTransient({ restoreFocus: true }), false);
   assert.equal(focusCalls.length, 1);
-  assert.equal(Object.hasOwn(selectionToolbarPresentation, 'syncOcclusion'), false);
+  assert.equal(Object.hasOwn(territorialPropertyController, 'syncOcclusion'), false);
 });
 
 test('territorial selection enters the editor through the common controller, while refresh does not reopen it', t => {
