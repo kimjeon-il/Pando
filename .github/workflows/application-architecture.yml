@@ -11,6 +11,7 @@ on:
         options:
           - default
           - map-rendering
+          - editor-diagnostics
   pull_request:
     paths:
       - 'assets/js/**'
@@ -73,7 +74,7 @@ permissions:
 
 jobs:
   changes:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Detect application scopes
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Detect application scopes
     runs-on: ubuntu-latest
     outputs:
       territorial-store: ${{ steps.scope.outputs.territorial_store }}
@@ -123,6 +124,8 @@ jobs:
                 ;;
               map-rendering)
                 preview_handoff=true
+                ;;
+              editor-diagnostics)
                 ;;
               *)
                 printf '%s\n' 'Unsupported browser_scope' >&2
@@ -202,13 +205,18 @@ jobs:
           const manualScope = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch'
             ? process.env.BROWSER_SCOPE || 'default'
             : 'default';
-          if (!['default', 'map-rendering'].includes(manualScope)) {
+          if (!['default', 'map-rendering', 'editor-diagnostics'].includes(manualScope)) {
             throw new Error('Unsupported browser_scope');
           }
-          if (manualScope === 'map-rendering') {
-            const selected = [
+          if (manualScope === 'map-rendering' || manualScope === 'editor-diagnostics') {
+            const selected = manualScope === 'map-rendering' ? [
               'tests/browser/country-map-substrate.spec.mjs',
               'tests/browser/interaction-unification.spec.mjs',
+            ] : [
+              'tests/browser/gis-interchange.spec.mjs',
+              'tests/browser/boundary-cut-snapping.spec.mjs',
+              'tests/browser/hydro-metadata-edit.spec.mjs',
+              'tests/browser/library-header-layout.spec.mjs',
             ];
             for (const spec of selected) {
               if (!existsSync(spec)) throw new Error(`Missing focused browser spec: ${spec}`);
@@ -238,7 +246,7 @@ jobs:
           NODE
 
   current-browser-contracts:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Current browser contract (${{ matrix.spec }})
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Current browser contract (${{ matrix.spec }})
     needs: changes
     if: needs.changes.outputs.current-browser-specs != '[]'
     runs-on: ubuntu-latest
@@ -275,7 +283,7 @@ jobs:
           if-no-files-found: error
 
   visual-policy:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Common map visual policy and frame consumers (M4-M6)
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Common map visual policy and frame consumers (M4-M6)
     needs: changes
     if: needs.changes.outputs.visual-policy == 'true'
     runs-on: ubuntu-latest
@@ -352,7 +360,7 @@ jobs:
           if-no-files-found: error
 
   scene-staging:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}GPU stroke domain staging (M3)
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}GPU stroke domain staging (M3)
     needs: changes
     if: needs.changes.outputs.scene-staging == 'true'
     runs-on: ubuntu-latest
@@ -400,7 +408,7 @@ jobs:
           if-no-files-found: error
 
   preview-handoff:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Direct edit preview and end-to-end continuity (M2/M7, ${{ matrix.renderer }})
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Direct edit preview and end-to-end continuity (M2/M7, ${{ matrix.renderer }})
     needs: changes
     if: needs.changes.outputs.preview-handoff == 'true'
     runs-on: ubuntu-latest
@@ -471,7 +479,7 @@ jobs:
           if-no-files-found: error
 
   terrain-rendering-contract:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Terrain coverage and GPU upload regression
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Terrain coverage and GPU upload regression
     needs: changes
     if: needs.changes.outputs.terrain-rendering == 'true'
     runs-on: ubuntu-latest
@@ -524,7 +532,7 @@ jobs:
           if-no-files-found: ignore
 
   boundary-continuity:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Territorial boundary topology continuity
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Territorial boundary topology continuity
     needs: changes
     if: needs.changes.outputs.boundary-continuity == 'true'
     runs-on: ubuntu-latest
@@ -571,8 +579,8 @@ jobs:
           if-no-files-found: ignore
 
   command-contract:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}command-contract
-    if: github.event_name != 'workflow_dispatch' || inputs.browser_scope != 'map-rendering'
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}command-contract
+    if: github.event_name != 'workflow_dispatch' || (inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -598,7 +606,7 @@ jobs:
         run: pnpm check:architecture
 
   territorial-store-contract:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Territorial storage contract
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Territorial storage contract
     needs: changes
     if: needs.changes.outputs.territorial-store == 'true'
     runs-on: ubuntu-latest
@@ -654,7 +662,7 @@ jobs:
         run: pnpm check:territorial-storage
 
   python-contracts:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Current Python contracts and terrain DEM
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Current Python contracts and terrain DEM
     needs: changes
     if: needs.changes.outputs.python-contracts == 'true'
     runs-on: ubuntu-latest
@@ -675,7 +683,7 @@ jobs:
         run: python -m unittest discover -s tests/python -p "test_*.py"
 
   data-contracts:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Validation entrypoints and current generated assets
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Validation entrypoints and current generated assets
     needs: changes
     if: needs.changes.outputs.data-contracts == 'true'
     runs-on: ubuntu-latest
@@ -722,7 +730,7 @@ jobs:
           tests/unit/territorial-source-provenance.test.mjs
 
   full-unit-suite:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}Full unit suite
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Full unit suite
     needs: changes
     if: needs.changes.outputs.unit-suite == 'true'
     runs-on: ubuntu-latest
