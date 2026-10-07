@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 APP = read_application_sources(ROOT)
 PERSISTENCE = (ROOT / "assets/js/modules/persistence-service.js").read_text(encoding="utf-8")
+BROWSER_STORAGE = read_module(ROOT, 'browser-project-storage.js')
 SERIALIZER = (ROOT / "assets/js/modules/project-serializer.js").read_text(encoding="utf-8")
 PHYSICAL = (ROOT / "assets/js/modules/physical-layer-service.js").read_text(encoding="utf-8")
 TERRITORIAL_SERVICE = (ROOT / "assets/js/modules/territorial-service.js").read_text(encoding="utf-8")
@@ -25,12 +26,13 @@ MAP_EDIT_WORKER_CLIENT = (ROOT / "assets/js/modules/map-edit-worker-client.js").
 
 
 class RefactorBoundaryTests(unittest.TestCase):
-    def test_browser_project_storage_is_confined_to_the_persistence_module(self):
+    def test_browser_project_storage_is_confined_to_the_browser_adapter(self):
         self.assertNotIn("indexedDB.open", APP)
         self.assertNotIn("localStorage.setItem(STORAGE_KEY", APP)
         self.assertNotIn("localStorage.removeItem(STORAGE_KEY", APP)
-        self.assertIn("indexedDB.open(databaseName", PERSISTENCE)
-        self.assertIn("localStorage.setItem(fallbackKey", PERSISTENCE)
+        self.assertIn("indexedDB.open(databaseName", BROWSER_STORAGE)
+        self.assertIn("localStorage.setItem(fallbackKey", BROWSER_STORAGE)
+        self.assertNotIn("indexedDB.open", PERSISTENCE)
 
     def test_persistence_and_serializer_are_dom_free(self):
         for source in (PERSISTENCE, SERIALIZER, PHYSICAL, TERRITORIAL_SERVICE, DISTRIBUTION_SERVICE, GENERIC_FEATURE_SERVICE):

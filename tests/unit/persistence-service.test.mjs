@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createBrowserProjectStorage, createPersistenceService } from '../../assets/js/modules/persistence-service.js';
+import { createPersistenceService } from '../../assets/js/modules/persistence-service.js';
+import { createBrowserProjectStorage } from '../../assets/js/modules/browser-project-storage.js';
 import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
 
 function harness(overrides = {}) {

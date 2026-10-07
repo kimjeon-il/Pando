@@ -396,10 +396,10 @@ jobs:
         with:
           path: boundary-pr
           fetch-depth: 1
-      - name: Checkout immutable pre-PR main product
+      - name: Checkout immutable latest main product
         uses: actions/checkout@v4
         with:
-          ref: ebcfae4d27b29cbbea6416a7045a4806930204be
+          ref: 0c55e8e4e8bacb3b125091c9b3a12ff535b5bdb6
           path: boundary-main
           fetch-depth: 1
       - uses: pnpm/action-setup@v4

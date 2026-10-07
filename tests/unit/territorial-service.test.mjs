@@ -25,7 +25,7 @@ const entityStore = createTerritorialEntityStore({
     getState: () => state,
   });
   const entityRepository = createTerritorialEntityRepository({ entityStore: entityStore });
-  const service = createTerritorialApplicationService({
+  const service = createTerritorialApplicationService({ createId: () => globalThis.crypto.randomUUID(),
     entityRepository,
     entityStore,
     commandPipeline,

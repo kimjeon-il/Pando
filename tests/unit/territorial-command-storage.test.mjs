@@ -17,7 +17,7 @@ function fixture({ fail = false, child = false } = {}) {
   initializeTestTerritorialState(state);
 const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
-  const territorialApplicationService = createTerritorialApplicationService({ entityStore, entityRepository,
+  const territorialApplicationService = createTerritorialApplicationService({ createId: () => globalThis.crypto.randomUUID(), entityStore, entityRepository,
     commandPipeline: { runMutation: (_, mutate) => ({ ok: true, value: mutate() }) } });
   const refs = [{ domain: 'territorial', type: 'entity', id: 'A' }, { domain: 'territorial', type: 'entity', id: 'S' }];
   let confirm; let histories = 0; let saves = 0; const patches = [], diagnostics = [];

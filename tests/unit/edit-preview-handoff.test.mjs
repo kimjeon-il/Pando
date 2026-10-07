@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createEditPreviewController } from '../../assets/js/modules/edit-preview-controller.js';
-import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
 import { createEditingRenderPacket } from '../../assets/js/modules/editing-render-packet.js';
 import { calculateEditPreview } from '../../assets/js/modules/map-edit-preview-calculations.js';
 import { createBoundaryPreparation } from '../../assets/js/modules/boundary-preparation.js';
