@@ -29,7 +29,6 @@ test('one catalog owns canonical, modal and audit UI stylesheet inputs', async (
     'assets/css/layout/surfaces.css',
     'assets/css/components/topbar.css',
     'assets/css/components/editor-shell.css',
-    'assets/css/components/selection-toolbar.css',
     'assets/css/components/panels.css',
     'assets/css/components/menus.css',
     'assets/css/components/view-menu.css',

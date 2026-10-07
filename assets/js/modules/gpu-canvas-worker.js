@@ -1,7 +1,8 @@
 // Canvas transport owns readiness, latest-frame backpressure, stale delivery and
 // outstanding picks. The coordinator serializes scene state and presents accepted frames.
 export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale = () => {}, onSend = () => {} }) {
-  let live = true, ready = false, busy = false, pendingFrame = null;
+  let live = true, ready = false, pendingFrame = null;
+  let inFlightRenderRequestId = null, renderRequestId = 0;
   let requestedRevision = 0, displayedRevision = 0, requestId = 0;
   let onmessage = null, onerror = null;
   const picks = new Map();
@@ -12,9 +13,10 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
     worker.postMessage(...args); return true;
   }
   function flush() {
-    if (!live || !ready || busy || !pendingFrame) return;
+    if (!live || !ready || inFlightRenderRequestId !== null || !pendingFrame) return;
     const message = pendingFrame; pendingFrame = null;
-    busy = true; postMessage(message);
+    inFlightRenderRequestId = ++renderRequestId;
+    postMessage({ ...message, renderRequestId: inFlightRenderRequestId });
   }
   function settlePick(id, value) {
     const pending = picks.get(id);
@@ -32,7 +34,9 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
     }
     if (message.type === 'hydro-pick') { settlePick(Number(message.requestId), message.fid); return; }
     if (message.type !== 'frame') { onmessage?.(event); return; }
-    busy = false;
+    // Completion belongs to a submission, independently of bitmap freshness.
+    if (inFlightRenderRequestId !== null && message.renderRequestId === inFlightRenderRequestId
+      && Number(message.projectGeneration) === generation) inFlightRenderRequestId = null;
     const revision = Number(message.revision || 0);
     const current = Number(message.projectGeneration ?? generation) === generation
       && revision >= requestedRevision && revision >= displayedRevision && acceptFrame(message);
@@ -49,10 +53,10 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
   return Object.freeze({
     get onmessage() { return onmessage; }, set onmessage(handler) { onmessage = handler; },
     get onerror() { return onerror; }, set onerror(handler) { onerror = handler; },
-    get ready() { return ready; }, get busy() { return busy; }, get hasPendingFrame() { return !!pendingFrame; },
+    get ready() { return ready; }, get busy() { return inFlightRenderRequestId !== null; }, get hasPendingFrame() { return !!pendingFrame; },
     postMessage,
     queueFrame(message) {
-      if (!live) return;
+      if (!live || Number(message.projectGeneration) !== generation) return;
       requestedRevision = Math.max(requestedRevision, Number(message.revision || 0));
       if (!pendingFrame || Number(pendingFrame.revision || 0) <= Number(message.revision || 0)) pendingFrame = message;
       flush();
@@ -68,7 +72,7 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
     },
     terminate() {
       if (!live) return;
-      live = false; ready = false; busy = false; pendingFrame = null;
+      live = false; ready = false; inFlightRenderRequestId = null; pendingFrame = null;
       for (const id of picks.keys()) settlePick(id, null);
       worker.terminate(); onmessage = null; onerror = null;
     },

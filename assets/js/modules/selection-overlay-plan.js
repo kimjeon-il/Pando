@@ -36,7 +36,7 @@ export function selectionFrameOwnership({ gpuFrameResult, renderer, lastFillOwne
   const result = gpuFrameResult?.selection || gpuFrameResult?.interactionResult?.selection || null;
   const canvas = renderer === 'canvas-worker' || renderer === 'canvas2d';
   const failed = !canvas && !!gpuFrameResult && (gpuFrameResult.succeeded === false || result?.succeeded === false || result?.contextLost === true);
-  const fillOwner = gpuFrameResult?.interactionResult?.fillOwner || lastFillOwner;
+  const fillOwner = canvas ? 'canvas' : gpuFrameResult?.interactionResult?.fillOwner || lastFillOwner;
   return { result, fillOwner, reuseView: !failed && fillOwner === lastFillOwner };
 }
 

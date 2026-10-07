@@ -17,7 +17,6 @@ test('selection domain drives country editing, multi-selection, and independent 
   await expect.poll(() => page.evaluate(() => typeof window.PANDOLAB_TERRITORIAL?.select === 'function')).toBe(true);
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#propertyTypeLabel')).toHaveText('객체');
   await expect(page.locator('#entityProperties')).toBeVisible();
   await expect(page.locator('#actionsTabBtn')).toBeVisible();

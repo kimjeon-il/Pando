@@ -74,10 +74,9 @@ export function createObjectMetadata() {
     return (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(outside) <= Math.max(1e-9, (0, dependencies.territoryGeometry.multiPolygonPlanarArea)(feature.geometry.coordinates) * 1e-9);
   }
 
-  function commitTerritorialRelation(field, value) {
-    const ref = dependencies.projectState.state.selected;
+  function commitTerritorialRelation(ref, field, value) {
     const feature = ref?.domain === 'territorial' ? dependencies.territorialModel.entityRepository.get(ref.id) : null;
-    if (!feature || field !== 'parentId' || feature.properties.entityKind !== 'general') return false;
+    if (!feature || ref.type !== 'entity' || field !== 'parentId') return { ok: false, code: 'invalid-ref' };
     const result = dependencies.objectModelB.territorialApplicationService.changeAdministrativeParent(feature.id, value, {
       validateCandidate: ({ candidateUnits, previousUnits }) => {
         globalThis.PandoLabTerritorialEdit.createKernel(window.polygonClipping).validate(candidateUnits, previousUnits, [feature.id]);

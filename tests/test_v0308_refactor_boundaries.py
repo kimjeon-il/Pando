@@ -125,8 +125,8 @@ class RefactorBoundaryTests(unittest.TestCase):
     def test_historical_library_dom_lifecycle_is_behind_controller(self):
         self.assertIn("createTerritorialLibraryController({", APP)
         self.assertIn("territorialLibraryController.connect()", APP)
-        self.assertIn("function renderResults()", HISTORICAL_LIBRARY_CONTROLLER)
-        self.assertIn("function renderPreview()", HISTORICAL_LIBRARY_CONTROLLER)
+        self.assertRegex(HISTORICAL_LIBRARY_CONTROLLER, r"(?m)^[ \t]*function[ \t]+renderResults[ \t]*\(")
+        self.assertRegex(HISTORICAL_LIBRARY_CONTROLLER, r"(?m)^[ \t]*function[ \t]+renderPreview[ \t]*\(")
         self.assertNotIn("function renderHistoricalLibraryResults", APP)
 
     def test_map_edit_worker_protocol_is_behind_client(self):

@@ -30,7 +30,6 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.locator('#flatBtn').evaluate(button => button.click());
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('TUR'));
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click({ timeout: 10_000 });
   await page.locator('#focusSelectedObjectBtn').click({ timeout: 10_000 });
   const map = await page.locator('#map').boundingBox();
   const centerPoint = await page.evaluate(coordinate => window.__PANDOLAB_VIEW_DEBUG__.geoToScreen(coordinate), center);
@@ -38,7 +37,6 @@ async function openAnnex(page, center, { renderer = 'webgl2', targetId = 'GRC' }
   await page.mouse.move(map.x + centerPoint[0], map.y + centerPoint[1]);
   await page.mouse.wheel(0, -400);
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), targetId);
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click({ timeout: 10_000 });
   await expect(page.locator('#editorSurface')).toBeVisible();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexEntityBtn').click();
@@ -358,8 +356,12 @@ for (const svgFallback of [false, true]) {
     await page.locator('#resetViewBtn').click();
     await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('path.geometry-preview-add.geometry-preview-fill')).toHaveCount(1, { timeout: 90_000 });
-    await expect.poll(() => page.locator('#modePrimaryBtn').evaluate(button => !button.disabled && button.getAttribute('aria-busy') === 'false'),
+    await expect(page.locator('path.territory-candidate.selected-candidate')).toHaveCount(1);
+    await expect(page.locator('#modeDraftDoneBtn')).toBeVisible();
+    await expect(page.locator('#modeDraftDoneBtn')).toHaveAttribute('aria-label', '현재 영역 확정');
+    await expect.poll(() => page.locator('#modeDraftDoneBtn').evaluate(button => !button.disabled && button.getAttribute('aria-busy') === 'false'),
       { timeout: 90_000 }).toBe(true);
+    await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
     if (!svgFallback) await expect.poll(() => page.locator('path.geometry-preview-add.geometry-preview-fill')
       .evaluate(node => node.style.fill), { timeout: 10_000 }).toBe('none');
     await expect(page.locator('path.geometry-preview-add.geometry-preview-outline'))
