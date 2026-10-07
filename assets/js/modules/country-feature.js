@@ -10,7 +10,7 @@ export function normalizeCountryFeature(feature, { id = countryId(feature), name
     geometry: feature.geometry, validFrom: source.validFrom ?? null, validTo: source.validTo ?? null,
     notes: source.notes || '', color: source.style?.color || '', locked: source.locked === true,
     metadata: (source.entityKind === 'general' && !source.parentId) ? source.metadata : { ...source.metadata, sourceProperties: clone(source) },
-    sourceFolderId: source.sourceFolderId, sourceLibraryId: source.sourceLibraryId, sourceGeometryVersion: source.sourceGeometryVersion });
+    sourceFolderId: source.sourceFolderId, sourceEntityId: source.sourceEntityId, sourceGeometryVersion: source.sourceGeometryVersion });
   if ((source.entityKind === 'general' && !source.parentId)) entity.properties.style = clone(source.style || {});
   return entity;
 }

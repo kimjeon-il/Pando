@@ -1,0 +1,7228 @@
+{
+  "webBase": "008b99b5ca2dd39936e51f7ddd11c0c70fc7bb74",
+  "appBase": "b5120b5b9cf03780783b642782e93db8dbfa565c",
+  "entityCount": 284,
+  "versionCount": 287,
+  "membership": {
+    "state:DEU": "germany",
+    "state:deutsche-demokratische-republik": "germany",
+    "state:east-prussia": "germany",
+    "state:west-prussia": "germany",
+    "state:KOR": "korea",
+    "state:PRK": "korea",
+    "state:FRA": "france",
+    "state:IDN": "indonesia",
+    "state:indonesia": "indonesia",
+    "state:SDN": "sudan",
+    "state:sudan": "sudan",
+    "state:UKR": "ukraine",
+    "state:ukraine": "ukraine",
+    "state:soviet-union-ukrainian-ssr": "ukraine",
+    "state:ARM": "arm",
+    "state:soviet-union-armenian-ssr": "arm",
+    "state:AZE": "aze",
+    "state:soviet-union-azerbaijan-ssr": "aze",
+    "state:BLR": "blr",
+    "state:soviet-union-byelorussian-ssr": "blr",
+    "state:EST": "est",
+    "state:soviet-union-estonian-ssr": "est",
+    "state:GEO": "geo",
+    "state:soviet-union-georgian-ssr": "geo",
+    "state:KAZ": "kaz",
+    "state:soviet-union-kazakh-ssr": "kaz",
+    "state:KGZ": "kgz",
+    "state:soviet-union-kirghiz-ssr": "kgz",
+    "state:LVA": "lva",
+    "state:soviet-union-latvian-ssr": "lva",
+    "state:LTU": "ltu",
+    "state:soviet-union-lithuanian-ssr": "ltu",
+    "state:MDA": "mda",
+    "state:soviet-union-moldavian-ssr": "mda",
+    "state:RUS": "rus",
+    "state:soviet-union-russian-sfsr": "rus",
+    "state:TJK": "tjk",
+    "state:soviet-union-tajik-ssr": "tjk",
+    "state:TKM": "tkm",
+    "state:soviet-union-turkmen-ssr": "tkm",
+    "state:UZB": "uzb",
+    "state:soviet-union-uzbek-ssr": "uzb",
+    "state:ABW": "abw",
+    "state:AFG": "afg",
+    "state:AGO": "ago",
+    "state:AIA": "aia",
+    "state:ALB": "alb",
+    "state:ALD": "ald",
+    "state:AND": "and",
+    "state:ARE": "are",
+    "state:ARG": "arg",
+    "state:ASM": "asm",
+    "state:ATA": "ata",
+    "state:ATC": "atc",
+    "state:ATF": "atf",
+    "state:ATG": "atg",
+    "state:AUS": "aus",
+    "state:AUT": "aut",
+    "state:BDI": "bdi",
+    "state:BEL": "bel",
+    "state:BEN": "ben",
+    "state:BFA": "bfa",
+    "state:BGD": "bgd",
+    "state:BGR": "bgr",
+    "state:BHR": "bhr",
+    "state:BHS": "bhs",
+    "state:BIH": "bih",
+    "state:BJN": "bjn",
+    "state:BLM": "blm",
+    "state:BLZ": "blz",
+    "state:BMU": "bmu",
+    "state:BOL": "bol",
+    "state:BRA": "bra",
+    "state:BRB": "brb",
+    "state:BRI": "bri",
+    "state:BRN": "brn",
+    "state:BRT": "brt",
+    "state:BTN": "btn",
+    "state:BWA": "bwa",
+    "state:CAF": "caf",
+    "state:CAN": "can",
+    "state:CHE": "che",
+    "state:CHL": "chl",
+    "state:CHN": "chn",
+    "state:CIV": "civ",
+    "state:CLP": "clp",
+    "state:CMR": "cmr",
+    "state:CNM": "cnm",
+    "state:COD": "cod",
+    "state:COG": "cog",
+    "state:COK": "cok",
+    "state:COL": "col",
+    "state:COM": "com",
+    "state:CPV": "cpv",
+    "state:CRI": "cri",
+    "state:CSI": "csi",
+    "state:CUB": "cub",
+    "state:CUW": "cuw",
+    "state:CYM": "cym",
+    "state:CYN": "cyn",
+    "state:CYP": "cyp",
+    "state:CZE": "cze",
+    "state:DJI": "dji",
+    "state:DMA": "dma",
+    "state:DNK": "dnk",
+    "state:DOM": "dom",
+    "state:DZA": "dza",
+    "state:ECU": "ecu",
+    "state:EGY": "egy",
+    "state:ERI": "eri",
+    "state:ESB": "esb",
+    "state:ESP": "esp",
+    "state:ETH": "eth",
+    "state:FIN": "fin",
+    "state:FJI": "fji",
+    "state:FLK": "flk",
+    "state:FRO": "fro",
+    "state:FSM": "fsm",
+    "state:GAB": "gab",
+    "state:GBR": "gbr",
+    "state:GGY": "ggy",
+    "state:GHA": "gha",
+    "state:GIB": "gib",
+    "state:GIN": "gin",
+    "state:GMB": "gmb",
+    "state:GNB": "gnb",
+    "state:GNQ": "gnq",
+    "state:GRC": "grc",
+    "state:GRD": "grd",
+    "state:GRL": "grl",
+    "state:GTM": "gtm",
+    "state:GUM": "gum",
+    "state:GUY": "guy",
+    "state:HKG": "hkg",
+    "state:HMD": "hmd",
+    "state:HND": "hnd",
+    "state:HRV": "hrv",
+    "state:HTI": "hti",
+    "state:HUN": "hun",
+    "state:IMN": "imn",
+    "state:IND": "ind",
+    "state:IOA": "ioa",
+    "state:IOT": "iot",
+    "state:IRL": "irl",
+    "state:IRN": "irn",
+    "state:IRQ": "irq",
+    "state:ISL": "isl",
+    "state:ISR": "isr",
+    "state:ITA": "ita",
+    "state:JAM": "jam",
+    "state:JEY": "jey",
+    "state:JOR": "jor",
+    "state:JPN": "jpn",
+    "state:KAB": "kab",
+    "state:KAS": "kas",
+    "state:KEN": "ken",
+    "state:KHM": "khm",
+    "state:KIR": "kir",
+    "state:KNA": "kna",
+    "state:KOS": "kos",
+    "state:KWT": "kwt",
+    "state:LAO": "lao",
+    "state:LBN": "lbn",
+    "state:LBR": "lbr",
+    "state:LBY": "lby",
+    "state:LCA": "lca",
+    "state:LIE": "lie",
+    "state:LKA": "lka",
+    "state:LSO": "lso",
+    "state:LUX": "lux",
+    "state:MAC": "mac",
+    "state:MAF": "maf",
+    "state:MAR": "mar",
+    "state:MCO": "mco",
+    "state:MDG": "mdg",
+    "state:MDV": "mdv",
+    "state:MEX": "mex",
+    "state:MHL": "mhl",
+    "state:MKD": "mkd",
+    "state:MLI": "mli",
+    "state:MLT": "mlt",
+    "state:MMR": "mmr",
+    "state:MNE": "mne",
+    "state:MNG": "mng",
+    "state:MNP": "mnp",
+    "state:MOZ": "moz",
+    "state:MRT": "mrt",
+    "state:MSR": "msr",
+    "state:MUS": "mus",
+    "state:MWI": "mwi",
+    "state:MYS": "mys",
+    "state:NAM": "nam",
+    "state:NCL": "ncl",
+    "state:NER": "ner",
+    "state:NFK": "nfk",
+    "state:NGA": "nga",
+    "state:NIC": "nic",
+    "state:NIU": "niu",
+    "state:NLD": "nld",
+    "state:NOR": "nor",
+    "state:NPL": "npl",
+    "state:NRU": "nru",
+    "state:NZL": "nzl",
+    "state:OMN": "omn",
+    "state:PAK": "pak",
+    "state:PAN": "pan",
+    "state:PCN": "pcn",
+    "state:PER": "per",
+    "state:PGA": "pga",
+    "state:PHL": "phl",
+    "state:PLW": "plw",
+    "state:PNG": "png",
+    "state:POL": "pol",
+    "state:PRI": "pri",
+    "state:PRT": "prt",
+    "state:PRY": "pry",
+    "state:PSX": "psx",
+    "state:PYF": "pyf",
+    "state:QAT": "qat",
+    "state:ROU": "rou",
+    "state:RWA": "rwa",
+    "state:SAH": "sah",
+    "state:SAU": "sau",
+    "state:SCR": "scr",
+    "state:SDS": "sds",
+    "state:SEN": "sen",
+    "state:SER": "ser",
+    "state:SGP": "sgp",
+    "state:SGS": "sgs",
+    "state:SHN": "shn",
+    "state:SLB": "slb",
+    "state:SLE": "sle",
+    "state:SLV": "slv",
+    "state:SMR": "smr",
+    "state:SOL": "sol",
+    "state:SOM": "som",
+    "state:SPI": "spi",
+    "state:SPM": "spm",
+    "state:SRB": "srb",
+    "state:STP": "stp",
+    "state:SUR": "sur",
+    "state:SVK": "svk",
+    "state:SVN": "svn",
+    "state:SWE": "swe",
+    "state:SWZ": "swz",
+    "state:SXM": "sxm",
+    "state:SYC": "syc",
+    "state:SYR": "syr",
+    "state:TCA": "tca",
+    "state:TCD": "tcd",
+    "state:TGO": "tgo",
+    "state:THA": "tha",
+    "state:TLS": "tls",
+    "state:TON": "ton",
+    "state:TTO": "tto",
+    "state:TUN": "tun",
+    "state:TUR": "tur",
+    "state:TUV": "tuv",
+    "state:TWN": "twn",
+    "state:TZA": "tza",
+    "state:UGA": "uga",
+    "state:UMI": "umi",
+    "state:URY": "ury",
+    "state:USA": "usa",
+    "state:USG": "usg",
+    "state:VAT": "vat",
+    "state:VCT": "vct",
+    "state:VEN": "ven",
+    "state:VGB": "vgb",
+    "state:VIR": "vir",
+    "state:VNM": "vnm",
+    "state:VUT": "vut",
+    "state:WLF": "wlf",
+    "state:WSB": "wsb",
+    "state:WSM": "wsm",
+    "state:YEM": "yem",
+    "state:ZAF": "zaf",
+    "state:ZMB": "zmb",
+    "state:ZWE": "zwe",
+    "state:czechoslovakia": "czechoslovakia",
+    "state:nagorno-karabakh": "nagorno-karabakh",
+    "state:north-schleswig": "north-schleswig",
+    "state:soviet-union": "soviet-union",
+    "state:yugoslavia": "yugoslavia"
+  },
+  "lineageNames": {
+    "germany": {
+      "ko": "독일",
+      "en": "Germany"
+    },
+    "korea": {
+      "ko": "한국",
+      "en": "Korea"
+    },
+    "france": {
+      "ko": "프랑스",
+      "en": "France"
+    },
+    "indonesia": {
+      "ko": "인도네시아"
+    },
+    "sudan": {
+      "ko": "수단"
+    },
+    "ukraine": {
+      "ko": "우크라이나"
+    },
+    "arm": {
+      "ko": "아르메니아"
+    },
+    "aze": {
+      "ko": "아제르바이잔"
+    },
+    "blr": {
+      "ko": "벨라루스"
+    },
+    "est": {
+      "ko": "에스토니아"
+    },
+    "geo": {
+      "ko": "조지아"
+    },
+    "kaz": {
+      "ko": "카자흐스탄"
+    },
+    "kgz": {
+      "ko": "키르기스스탄"
+    },
+    "lva": {
+      "ko": "라트비아"
+    },
+    "ltu": {
+      "ko": "리투아니아"
+    },
+    "mda": {
+      "ko": "몰도바"
+    },
+    "rus": {
+      "ko": "러시아"
+    },
+    "tjk": {
+      "ko": "타지키스탄"
+    },
+    "tkm": {
+      "ko": "투르크메니스탄"
+    },
+    "uzb": {
+      "ko": "우즈베키스탄"
+    },
+    "abw": {
+      "ko": "아루바"
+    },
+    "afg": {
+      "ko": "아프가니스탄"
+    },
+    "ago": {
+      "ko": "앙골라"
+    },
+    "aia": {
+      "ko": "앵귈라"
+    },
+    "alb": {
+      "ko": "알바니아"
+    },
+    "ald": {
+      "ko": "올란드제도"
+    },
+    "and": {
+      "ko": "안도라"
+    },
+    "are": {
+      "ko": "아랍에미리트"
+    },
+    "arg": {
+      "ko": "아르헨티나"
+    },
+    "asm": {
+      "ko": "아메리칸사모아"
+    },
+    "ata": {
+      "ko": "남극"
+    },
+    "atc": {
+      "ko": "애시모어카르티에제도"
+    },
+    "atf": {
+      "ko": "프랑스령 남방 및 남극"
+    },
+    "atg": {
+      "ko": "앤티가바부다"
+    },
+    "aus": {
+      "ko": "오스트레일리아"
+    },
+    "aut": {
+      "ko": "오스트리아"
+    },
+    "bdi": {
+      "ko": "부룬디"
+    },
+    "bel": {
+      "ko": "벨기에"
+    },
+    "ben": {
+      "ko": "베냉"
+    },
+    "bfa": {
+      "ko": "부르키나파소"
+    },
+    "bgd": {
+      "ko": "방글라데시"
+    },
+    "bgr": {
+      "ko": "불가리아"
+    },
+    "bhr": {
+      "ko": "바레인"
+    },
+    "bhs": {
+      "ko": "바하마"
+    },
+    "bih": {
+      "ko": "보스니아헤르체고비나"
+    },
+    "bjn": {
+      "ko": "바호누에보환초"
+    },
+    "blm": {
+      "ko": "생바르텔레미"
+    },
+    "blz": {
+      "ko": "벨리즈"
+    },
+    "bmu": {
+      "ko": "버뮤다"
+    },
+    "bol": {
+      "ko": "볼리비아"
+    },
+    "bra": {
+      "ko": "브라질"
+    },
+    "brb": {
+      "ko": "바베이도스"
+    },
+    "bri": {
+      "ko": "브라질섬"
+    },
+    "brn": {
+      "ko": "브루나이"
+    },
+    "brt": {
+      "ko": "비르타윌"
+    },
+    "btn": {
+      "ko": "부탄"
+    },
+    "bwa": {
+      "ko": "보츠와나"
+    },
+    "caf": {
+      "ko": "중앙아프리카 공화국"
+    },
+    "can": {
+      "ko": "캐나다"
+    },
+    "che": {
+      "ko": "스위스"
+    },
+    "chl": {
+      "ko": "칠레"
+    },
+    "chn": {
+      "ko": "중화인민공화국"
+    },
+    "civ": {
+      "ko": "코트디부아르"
+    },
+    "clp": {
+      "ko": "클리퍼턴섬"
+    },
+    "cmr": {
+      "ko": "카메룬"
+    },
+    "cnm": {
+      "ko": "유엔 키프로스 완충 지대"
+    },
+    "cod": {
+      "ko": "콩고 민주 공화국"
+    },
+    "cog": {
+      "ko": "콩고 공화국"
+    },
+    "cok": {
+      "ko": "쿡제도"
+    },
+    "col": {
+      "ko": "콜롬비아"
+    },
+    "com": {
+      "ko": "코모로"
+    },
+    "cpv": {
+      "ko": "카보베르데"
+    },
+    "cri": {
+      "ko": "코스타리카"
+    },
+    "csi": {
+      "ko": "산호해제도"
+    },
+    "cub": {
+      "ko": "쿠바"
+    },
+    "cuw": {
+      "ko": "퀴라소"
+    },
+    "cym": {
+      "ko": "케이맨제도"
+    },
+    "cyn": {
+      "ko": "북키프로스"
+    },
+    "cyp": {
+      "ko": "키프로스"
+    },
+    "cze": {
+      "ko": "체코"
+    },
+    "dji": {
+      "ko": "지부티"
+    },
+    "dma": {
+      "ko": "도미니카 연방"
+    },
+    "dnk": {
+      "ko": "덴마크"
+    },
+    "dom": {
+      "ko": "도미니카 공화국"
+    },
+    "dza": {
+      "ko": "알제리"
+    },
+    "ecu": {
+      "ko": "에콰도르"
+    },
+    "egy": {
+      "ko": "이집트"
+    },
+    "eri": {
+      "ko": "에리트레아"
+    },
+    "esb": {
+      "ko": "데켈리아 지역"
+    },
+    "esp": {
+      "ko": "에스파냐"
+    },
+    "eth": {
+      "ko": "에티오피아"
+    },
+    "fin": {
+      "ko": "핀란드"
+    },
+    "fji": {
+      "ko": "피지"
+    },
+    "flk": {
+      "ko": "포클랜드제도"
+    },
+    "fro": {
+      "ko": "페로제도"
+    },
+    "fsm": {
+      "ko": "미크로네시아 연방"
+    },
+    "gab": {
+      "ko": "가봉"
+    },
+    "gbr": {
+      "ko": "영국"
+    },
+    "ggy": {
+      "ko": "건지섬"
+    },
+    "gha": {
+      "ko": "가나"
+    },
+    "gib": {
+      "ko": "지브롤터"
+    },
+    "gin": {
+      "ko": "기니"
+    },
+    "gmb": {
+      "ko": "감비아"
+    },
+    "gnb": {
+      "ko": "기니비사우"
+    },
+    "gnq": {
+      "ko": "적도기니"
+    },
+    "grc": {
+      "ko": "그리스"
+    },
+    "grd": {
+      "ko": "그레나다"
+    },
+    "grl": {
+      "ko": "그린란드"
+    },
+    "gtm": {
+      "ko": "과테말라"
+    },
+    "gum": {
+      "ko": "괌"
+    },
+    "guy": {
+      "ko": "가이아나"
+    },
+    "hkg": {
+      "ko": "홍콩"
+    },
+    "hmd": {
+      "ko": "허드맥도널드제도"
+    },
+    "hnd": {
+      "ko": "온두라스"
+    },
+    "hrv": {
+      "ko": "크로아티아"
+    },
+    "hti": {
+      "ko": "아이티"
+    },
+    "hun": {
+      "ko": "헝가리"
+    },
+    "imn": {
+      "ko": "맨섬"
+    },
+    "ind": {
+      "ko": "인도"
+    },
+    "ioa": {
+      "ko": "호주령 인도양 지역"
+    },
+    "iot": {
+      "ko": "영국령 인도양 지역"
+    },
+    "irl": {
+      "ko": "아일랜드"
+    },
+    "irn": {
+      "ko": "이란"
+    },
+    "irq": {
+      "ko": "이라크"
+    },
+    "isl": {
+      "ko": "아이슬란드"
+    },
+    "isr": {
+      "ko": "이스라엘"
+    },
+    "ita": {
+      "ko": "이탈리아"
+    },
+    "jam": {
+      "ko": "자메이카"
+    },
+    "jey": {
+      "ko": "저지섬"
+    },
+    "jor": {
+      "ko": "요르단"
+    },
+    "jpn": {
+      "ko": "일본"
+    },
+    "kab": {
+      "ko": "바이코누르"
+    },
+    "kas": {
+      "ko": "시아첸빙하"
+    },
+    "ken": {
+      "ko": "케냐"
+    },
+    "khm": {
+      "ko": "캄보디아"
+    },
+    "kir": {
+      "ko": "키리바시"
+    },
+    "kna": {
+      "ko": "세인트키츠네비스"
+    },
+    "kos": {
+      "ko": "코소보"
+    },
+    "kwt": {
+      "ko": "쿠웨이트"
+    },
+    "lao": {
+      "ko": "라오스"
+    },
+    "lbn": {
+      "ko": "레바논"
+    },
+    "lbr": {
+      "ko": "라이베리아"
+    },
+    "lby": {
+      "ko": "리비아"
+    },
+    "lca": {
+      "ko": "세인트루시아"
+    },
+    "lie": {
+      "ko": "리히텐슈타인"
+    },
+    "lka": {
+      "ko": "스리랑카"
+    },
+    "lso": {
+      "ko": "레소토"
+    },
+    "lux": {
+      "ko": "룩셈부르크"
+    },
+    "mac": {
+      "ko": "마카오"
+    },
+    "maf": {
+      "ko": "생마르탱"
+    },
+    "mar": {
+      "ko": "모로코"
+    },
+    "mco": {
+      "ko": "모나코"
+    },
+    "mdg": {
+      "ko": "마다가스카르"
+    },
+    "mdv": {
+      "ko": "몰디브"
+    },
+    "mex": {
+      "ko": "멕시코"
+    },
+    "mhl": {
+      "ko": "마셜제도"
+    },
+    "mkd": {
+      "ko": "북마케도니아"
+    },
+    "mli": {
+      "ko": "말리"
+    },
+    "mlt": {
+      "ko": "몰타"
+    },
+    "mmr": {
+      "ko": "미얀마"
+    },
+    "mne": {
+      "ko": "몬테네그로"
+    },
+    "mng": {
+      "ko": "몽골"
+    },
+    "mnp": {
+      "ko": "북마리아나제도"
+    },
+    "moz": {
+      "ko": "모잠비크"
+    },
+    "mrt": {
+      "ko": "모리타니"
+    },
+    "msr": {
+      "ko": "몬트세랫"
+    },
+    "mus": {
+      "ko": "모리셔스"
+    },
+    "mwi": {
+      "ko": "말라위"
+    },
+    "mys": {
+      "ko": "말레이시아"
+    },
+    "nam": {
+      "ko": "나미비아"
+    },
+    "ncl": {
+      "ko": "누벨칼레도니"
+    },
+    "ner": {
+      "ko": "니제르"
+    },
+    "nfk": {
+      "ko": "노퍽섬"
+    },
+    "nga": {
+      "ko": "나이지리아"
+    },
+    "nic": {
+      "ko": "니카라과"
+    },
+    "niu": {
+      "ko": "니우에"
+    },
+    "nld": {
+      "ko": "네덜란드"
+    },
+    "nor": {
+      "ko": "노르웨이"
+    },
+    "npl": {
+      "ko": "네팔"
+    },
+    "nru": {
+      "ko": "나우루"
+    },
+    "nzl": {
+      "ko": "뉴질랜드"
+    },
+    "omn": {
+      "ko": "오만"
+    },
+    "pak": {
+      "ko": "파키스탄"
+    },
+    "pan": {
+      "ko": "파나마"
+    },
+    "pcn": {
+      "ko": "핏케언제도"
+    },
+    "per": {
+      "ko": "페루"
+    },
+    "pga": {
+      "ko": "웨이크섬"
+    },
+    "phl": {
+      "ko": "필리핀"
+    },
+    "plw": {
+      "ko": "팔라우"
+    },
+    "png": {
+      "ko": "파푸아뉴기니"
+    },
+    "pol": {
+      "ko": "폴란드"
+    },
+    "pri": {
+      "ko": "푸에르토리코"
+    },
+    "prt": {
+      "ko": "포르투갈"
+    },
+    "pry": {
+      "ko": "파라과이"
+    },
+    "psx": {
+      "ko": "팔레스타인"
+    },
+    "pyf": {
+      "ko": "프랑스령폴리네시아"
+    },
+    "qat": {
+      "ko": "카타르"
+    },
+    "rou": {
+      "ko": "루마니아"
+    },
+    "rwa": {
+      "ko": "르완다"
+    },
+    "sah": {
+      "ko": "서사하라"
+    },
+    "sau": {
+      "ko": "사우디아라비아"
+    },
+    "scr": {
+      "ko": "스카버러암초"
+    },
+    "sds": {
+      "ko": "남수단"
+    },
+    "sen": {
+      "ko": "세네갈"
+    },
+    "ser": {
+      "ko": "세라니야환초"
+    },
+    "sgp": {
+      "ko": "싱가포르"
+    },
+    "sgs": {
+      "ko": "사우스조지아사우스샌드위치제도"
+    },
+    "shn": {
+      "ko": "세인트헬레나"
+    },
+    "slb": {
+      "ko": "솔로몬제도"
+    },
+    "sle": {
+      "ko": "시에라리온"
+    },
+    "slv": {
+      "ko": "엘살바도르"
+    },
+    "smr": {
+      "ko": "산마리노"
+    },
+    "sol": {
+      "ko": "소말릴란드"
+    },
+    "som": {
+      "ko": "소말리아"
+    },
+    "spi": {
+      "ko": "남부파타고니아빙원"
+    },
+    "spm": {
+      "ko": "생피에르미클롱"
+    },
+    "srb": {
+      "ko": "세르비아"
+    },
+    "stp": {
+      "ko": "상투메프린시페"
+    },
+    "sur": {
+      "ko": "수리남"
+    },
+    "svk": {
+      "ko": "슬로바키아"
+    },
+    "svn": {
+      "ko": "슬로베니아"
+    },
+    "swe": {
+      "ko": "스웨덴"
+    },
+    "swz": {
+      "ko": "에스와티니"
+    },
+    "sxm": {
+      "ko": "신트마르턴"
+    },
+    "syc": {
+      "ko": "세이셸"
+    },
+    "syr": {
+      "ko": "시리아"
+    },
+    "tca": {
+      "ko": "터크스케이커스제도"
+    },
+    "tcd": {
+      "ko": "차드"
+    },
+    "tgo": {
+      "ko": "토고"
+    },
+    "tha": {
+      "ko": "태국"
+    },
+    "tls": {
+      "ko": "동티모르"
+    },
+    "ton": {
+      "ko": "통가"
+    },
+    "tto": {
+      "ko": "트리니다드토바고"
+    },
+    "tun": {
+      "ko": "튀니지"
+    },
+    "tur": {
+      "ko": "튀르키예"
+    },
+    "tuv": {
+      "ko": "투발루"
+    },
+    "twn": {
+      "ko": "중화민국"
+    },
+    "tza": {
+      "ko": "탄자니아"
+    },
+    "uga": {
+      "ko": "우간다"
+    },
+    "umi": {
+      "ko": "미국령군소제도"
+    },
+    "ury": {
+      "ko": "우루과이"
+    },
+    "usa": {
+      "ko": "미국"
+    },
+    "usg": {
+      "ko": "관타나모만 해군 기지"
+    },
+    "vat": {
+      "ko": "바티칸 시국"
+    },
+    "vct": {
+      "ko": "세인트빈센트그레나딘"
+    },
+    "ven": {
+      "ko": "베네수엘라"
+    },
+    "vgb": {
+      "ko": "영국령버진아일랜드"
+    },
+    "vir": {
+      "ko": "미국령버진아일랜드"
+    },
+    "vnm": {
+      "ko": "베트남"
+    },
+    "vut": {
+      "ko": "바누아투"
+    },
+    "wlf": {
+      "ko": "왈리스푸투나"
+    },
+    "wsb": {
+      "ko": "아크로티리"
+    },
+    "wsm": {
+      "ko": "사모아"
+    },
+    "yem": {
+      "ko": "예멘"
+    },
+    "zaf": {
+      "ko": "남아프리카 공화국"
+    },
+    "zmb": {
+      "ko": "잠비아"
+    },
+    "zwe": {
+      "ko": "짐바브웨"
+    },
+    "czechoslovakia": {
+      "ko": "체코슬로바키아",
+      "en": "Czechoslovakia",
+      "cs": "Československo"
+    },
+    "nagorno-karabakh": {
+      "ko": "나고르노카라바흐",
+      "en": "Nagorno-Karabakh"
+    },
+    "north-schleswig": {
+      "ko": "북슐레스비히",
+      "en": "North Schleswig",
+      "de": "Nordschleswig",
+      "da": "Nordslesvig"
+    },
+    "soviet-union": {
+      "ko": "소련",
+      "en": "Soviet Union",
+      "ru": "СССР"
+    },
+    "yugoslavia": {
+      "ko": "유고슬라비아",
+      "en": "Yugoslavia"
+    }
+  },
+  "entities": {
+    "state:ABW": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:NLD",
+      "sourceInfoHash": "c8a1d3818a814bf9b39352410bfcd13a53c3b16d694fa8d3800e46cfc769f57f",
+      "names": {
+        "ko": "아루바"
+      },
+      "alternateNames": [],
+      "canonicalName": "아루바",
+      "versions": [
+        {
+          "versionId": "state:ABW:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "36b36ab2688b4d4205fc1a2d17056662240e1fa76043d805bed91142a139d852"
+        }
+      ]
+    },
+    "state:AFG": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "0176ff5ee377510af9c2da140fc66a1c813b7440ffea42b485ac9eb6af6b55c7",
+      "names": {
+        "ko": "아프가니스탄"
+      },
+      "alternateNames": [],
+      "canonicalName": "아프가니스탄",
+      "versions": [
+        {
+          "versionId": "state:AFG:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "03e244523d0e893c6ad5c939b16301796f4a1982809209b7d7bf56c3d14ccef2"
+        }
+      ]
+    },
+    "state:AGO": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "777d2cbc2415fd4055fc7599691f656f728306b9436729754ff671a7d7cfbe3e",
+      "names": {
+        "ko": "앙골라"
+      },
+      "alternateNames": [],
+      "canonicalName": "앙골라",
+      "versions": [
+        {
+          "versionId": "state:AGO:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c0e80b3f3c0657208c14aa1359bcdce1994b7735083c761ff736bbaaf1849a63"
+        }
+      ]
+    },
+    "state:AIA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "4641f59e5d7a4f040336f40834e44fe7b55389468d0de3059997f74d78fd9dae",
+      "names": {
+        "ko": "앵귈라"
+      },
+      "alternateNames": [],
+      "canonicalName": "앵귈라",
+      "versions": [
+        {
+          "versionId": "state:AIA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "bf2a7409ead98136a3bfba810396d0dcbc7cfa8569f51b462a1ca1b5ba7d3a63"
+        }
+      ]
+    },
+    "state:ALB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "44cd3523198eceaa5ab8fb215063ef1457ef6a114383e2e1cfc4ff2b35e598be",
+      "names": {
+        "ko": "알바니아"
+      },
+      "alternateNames": [],
+      "canonicalName": "알바니아",
+      "versions": [
+        {
+          "versionId": "state:ALB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "66af7ab10d8c5566eafc201e17211d5f712fdddc0f030fa8bafbd998f2f9b436"
+        }
+      ]
+    },
+    "state:ALD": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:FIN",
+      "sourceInfoHash": "a53ecc82c68951e81c5ab076d1ecb9d64036ff5fc41c8f0c929da1523c08b61e",
+      "names": {
+        "ko": "올란드제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "올란드제도",
+      "versions": [
+        {
+          "versionId": "state:ALD:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "a7d6de0cdb53411bf245ceed6b3b3a55edccc71ecdf70833f804fdac53904ae7"
+        }
+      ]
+    },
+    "state:AND": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ede9175fe0fcc6a58ddf2e9a85acefc9da33117d40f5c56091987de528caf2e5",
+      "names": {
+        "ko": "안도라"
+      },
+      "alternateNames": [],
+      "canonicalName": "안도라",
+      "versions": [
+        {
+          "versionId": "state:AND:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "386ef1681c0d8c723c878ad8ee0388c724c63cb99450d4183946fab7173f9337"
+        }
+      ]
+    },
+    "state:ARE": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "da3311976d35675e87ba496dd763ca256e271b412e2c21cd51fd06a882718348",
+      "names": {
+        "ko": "아랍에미리트"
+      },
+      "alternateNames": [],
+      "canonicalName": "아랍에미리트",
+      "versions": [
+        {
+          "versionId": "state:ARE:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e558fdf25eedc59ae0f10774bb12c4014443cea0dd62660ef73a1608e0f91474"
+        }
+      ]
+    },
+    "state:ARG": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "f5cfcd184df769a252532581341d297833fb4dd48a8de94e9c12ab5975ad6214",
+      "names": {
+        "ko": "아르헨티나"
+      },
+      "alternateNames": [],
+      "canonicalName": "아르헨티나",
+      "versions": [
+        {
+          "versionId": "state:ARG:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "23c21a0d9b56dafc6ed561e850d5a6c9034ff5a4bdbdb9eecfeb9bbe10194a41"
+        }
+      ]
+    },
+    "state:ARM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "700b4df8b9762b4615507613c6c61c0e73785dc71e518f00c95752d9bad2f31d",
+      "names": {
+        "ko": "아르메니아"
+      },
+      "alternateNames": [],
+      "canonicalName": "아르메니아",
+      "versions": [
+        {
+          "versionId": "state:ARM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "7285d03fd0d45c918b481e3c56fc6e8da7b819315bf057d39784ca18ae383948"
+        }
+      ]
+    },
+    "state:ASM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:USA",
+      "sourceInfoHash": "a8541ecd788af056454333d493cfb658d1ce4baa61c61fb2f684dd1638dd3118",
+      "names": {
+        "ko": "아메리칸사모아"
+      },
+      "alternateNames": [],
+      "canonicalName": "아메리칸사모아",
+      "versions": [
+        {
+          "versionId": "state:ASM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "609df2f4d6a1eb175b8873d92b990e7cbd62bf049c0e62f87650745251fecb7d"
+        }
+      ]
+    },
+    "state:ATA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "8c510af8e7b1f110bd0361b5684d54a055485b57f336d99615e574188e15917d",
+      "names": {
+        "ko": "남극"
+      },
+      "alternateNames": [],
+      "canonicalName": "남극",
+      "versions": [
+        {
+          "versionId": "state:ATA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "a7cd0509f1321cf578bcb3f520f9bffa444eecd83f95ef43f449d7294d4e4232"
+        }
+      ]
+    },
+    "state:ATC": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:AUS",
+      "sourceInfoHash": "bba371772166edd6a4b7733d0b9b77d62ef8ec41ad485290b8ff46ed67ae0939",
+      "names": {
+        "ko": "애시모어카르티에제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "애시모어카르티에제도",
+      "versions": [
+        {
+          "versionId": "state:ATC:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "19354f70609b55d13e93fc068d65698aa3f66ebd86826abfd9ff9bb3dfcf3d42"
+        }
+      ]
+    },
+    "state:ATF": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:FRA",
+      "sourceInfoHash": "63346a0c15d1686d7f5b619087fccf2e753a4a91134052b1871fd13ac4659eb5",
+      "names": {
+        "ko": "프랑스령 남방 및 남극"
+      },
+      "alternateNames": [],
+      "canonicalName": "프랑스령 남방 및 남극",
+      "versions": [
+        {
+          "versionId": "state:ATF:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "901886327a6c98e173262202cb707ee454749a18dca264aabac46e1a39081472"
+        }
+      ]
+    },
+    "state:ATG": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "84ef140d969b297d60d3536dbb4c653526e6884650c833441d2e652be2b99b2a",
+      "names": {
+        "ko": "앤티가바부다"
+      },
+      "alternateNames": [],
+      "canonicalName": "앤티가바부다",
+      "versions": [
+        {
+          "versionId": "state:ATG:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "541275e3df97f52a0cd0ecd48152dfe219574ffaef0caaeef29d0a4a193a48f4"
+        }
+      ]
+    },
+    "state:AUS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "961a2cd37911a680313723e59b89555be774565dd5fb0a7a7e0857bcbb114803",
+      "names": {
+        "ko": "오스트레일리아"
+      },
+      "alternateNames": [],
+      "canonicalName": "오스트레일리아",
+      "versions": [
+        {
+          "versionId": "state:AUS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "35f6bac778ddf5737448253a0a03e0f4bdb57bc33a908728ab2dabfcd919b011"
+        }
+      ]
+    },
+    "state:AUT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "489007267b5c4949c087e626e9f98c4107fbca9ecb77ef168601f45bb65978fe",
+      "names": {
+        "ko": "오스트리아"
+      },
+      "alternateNames": [],
+      "canonicalName": "오스트리아",
+      "versions": [
+        {
+          "versionId": "state:AUT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "862338dd9d6edd025ded79e5cf242e86de69ebb3d88e7947685ffc98a3620cad"
+        }
+      ]
+    },
+    "state:AZE": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "f40585e832b956f87f80b63bf884a840c1887667e3a5ccf45b893df02035f865",
+      "names": {
+        "ko": "아제르바이잔"
+      },
+      "alternateNames": [],
+      "canonicalName": "아제르바이잔",
+      "versions": [
+        {
+          "versionId": "state:AZE:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ae0c78b091eacff7df9575c6f9f73bfd84d6b739d73336dfb949feabede8a354"
+        }
+      ]
+    },
+    "state:BDI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "073cfd3c7b913e0b1e23435a76a3e33bd8fd360b71dc2fbd5c4ed2beb7fee8ab",
+      "names": {
+        "ko": "부룬디"
+      },
+      "alternateNames": [],
+      "canonicalName": "부룬디",
+      "versions": [
+        {
+          "versionId": "state:BDI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b07fea771a3986bd34a464c440b91e00631d4c6098ea802c850510d0340b9aee"
+        }
+      ]
+    },
+    "state:BEL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "90e371848409c48f5acf5b0b4c3fd9ec8e189f723902862dfaa04999ac0b8132",
+      "names": {
+        "ko": "벨기에"
+      },
+      "alternateNames": [],
+      "canonicalName": "벨기에",
+      "versions": [
+        {
+          "versionId": "state:BEL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "87c88eb3bf97c3a350543625c745decf627114d911677ae98341165c09f69b82"
+        }
+      ]
+    },
+    "state:BEN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "45d681e814197f78c8966f4c6c6a6895a1dcd3108e2a33333615d7c943857d46",
+      "names": {
+        "ko": "베냉"
+      },
+      "alternateNames": [],
+      "canonicalName": "베냉",
+      "versions": [
+        {
+          "versionId": "state:BEN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "031c310e5ba41e6cb50291284b8a959a5d25cf7a7d2f6338ad7106ec803b165c"
+        }
+      ]
+    },
+    "state:BFA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "11c8e18dcfe743b496427f3345dff8f794d3763d5fe830ceee292ef71d45c382",
+      "names": {
+        "ko": "부르키나파소"
+      },
+      "alternateNames": [],
+      "canonicalName": "부르키나파소",
+      "versions": [
+        {
+          "versionId": "state:BFA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "96ccb4f09359e60a5bfd2acc57392f10ddd5a9166b254587e4d4cbf31a8eea2a"
+        }
+      ]
+    },
+    "state:BGD": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "5d828ec92f83188025713e62c9b33d7b393cb878a09d60a541864c703f46ee98",
+      "names": {
+        "ko": "방글라데시"
+      },
+      "alternateNames": [],
+      "canonicalName": "방글라데시",
+      "versions": [
+        {
+          "versionId": "state:BGD:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "9f2aae4864f9c625c996d4f9e87977c7a24077055c8535ec29a98deddc01d075"
+        }
+      ]
+    },
+    "state:BGR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "715ff779f427ce7ba702b5d388e301ffbef826ed819c97fc9494bf9f121abc61",
+      "names": {
+        "ko": "불가리아"
+      },
+      "alternateNames": [],
+      "canonicalName": "불가리아",
+      "versions": [
+        {
+          "versionId": "state:BGR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d407ce90ff0c8f6c80f3c4285a83a9e6eda107d88aba0702f9a2e2ef909f552b"
+        }
+      ]
+    },
+    "state:BHR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "c43437120abbb78ed4aa3de3181b804ddf2ddd3acf21b5b44eb24c1441189649",
+      "names": {
+        "ko": "바레인"
+      },
+      "alternateNames": [],
+      "canonicalName": "바레인",
+      "versions": [
+        {
+          "versionId": "state:BHR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "bc08b757a42195bbce01b41ba76ee2ba3abc6ac8c3aa70dff0a5916a65f002c7"
+        }
+      ]
+    },
+    "state:BHS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "f4b1a670121123a3ea28f86e488555092fe568b6a7ce030fbb14a787d226d531",
+      "names": {
+        "ko": "바하마"
+      },
+      "alternateNames": [],
+      "canonicalName": "바하마",
+      "versions": [
+        {
+          "versionId": "state:BHS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "664c4d7a641a686fde82a29dce1f5ef34c7b1779e5f29b945d79af589a4fddf8"
+        }
+      ]
+    },
+    "state:BIH": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "b88a4c04f76ec0b12b6d8b1e01f6eaa62f285181157193e7d78d3d991e8e28fb",
+      "names": {
+        "ko": "보스니아헤르체고비나"
+      },
+      "alternateNames": [],
+      "canonicalName": "보스니아헤르체고비나",
+      "versions": [
+        {
+          "versionId": "state:BIH:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "a9cb91ff7660c6ed51b5252a59497ae98cef569594d056c7a944115740675f28"
+        }
+      ]
+    },
+    "state:BJN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "dc2e2d6a78ab773c63f860f834e501d8de773b8ef386e41ebce400b944df5af5",
+      "names": {
+        "ko": "바호누에보환초"
+      },
+      "alternateNames": [],
+      "canonicalName": "바호누에보환초",
+      "versions": [
+        {
+          "versionId": "state:BJN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "add4b6131b56f7c10f85071f86ac152a415f9b29c66b5867d936d799d2bb1667"
+        }
+      ]
+    },
+    "state:BLM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:FRA",
+      "sourceInfoHash": "6fae79a957708fbf61d85e39143be86787063fbc0a1ff881f90b06fa170d51b1",
+      "names": {
+        "ko": "생바르텔레미"
+      },
+      "alternateNames": [],
+      "canonicalName": "생바르텔레미",
+      "versions": [
+        {
+          "versionId": "state:BLM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b40619b0c86684bafd17a47b427cf361fcc0f743690c0abbd478e5846eb74b0a"
+        }
+      ]
+    },
+    "state:BLR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "5a6fd823bdc6e2cc79778b5a824799861a06b3e68e2df693bc721849aac1c6d5",
+      "names": {
+        "ko": "벨라루스"
+      },
+      "alternateNames": [],
+      "canonicalName": "벨라루스",
+      "versions": [
+        {
+          "versionId": "state:BLR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "2663e53f6a226149db72916c3211acb9a4eaef7d594d7a653bb0059c619a639f"
+        }
+      ]
+    },
+    "state:BLZ": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "4101757e147cb4306205c7b72f755a6ac396bc45c495e3a8bdd0bb7e391d31e5",
+      "names": {
+        "ko": "벨리즈"
+      },
+      "alternateNames": [],
+      "canonicalName": "벨리즈",
+      "versions": [
+        {
+          "versionId": "state:BLZ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "92a9f652b62c4014e6451f2ff5d09d71e7dcd0c302667eb5e7ca16c19ecccffc"
+        }
+      ]
+    },
+    "state:BMU": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "f70ced8fb0dc768ed5b99ac7fc294505db45c55e930d311f9cf82d0e0a756717",
+      "names": {
+        "ko": "버뮤다"
+      },
+      "alternateNames": [],
+      "canonicalName": "버뮤다",
+      "versions": [
+        {
+          "versionId": "state:BMU:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "6399b7112b4d8b947fa0a0548038f7416d14771c7d6620b74554816dac2abf70"
+        }
+      ]
+    },
+    "state:BOL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "5f45a9e0cbe28e949a843c09c908d2a338c3d38bc30dd0cb84a65897bedf61c0",
+      "names": {
+        "ko": "볼리비아"
+      },
+      "alternateNames": [],
+      "canonicalName": "볼리비아",
+      "versions": [
+        {
+          "versionId": "state:BOL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "9627979657def95af5ec39b7ec3cb691a70a83ed7a251c8c36e23b67898c2f07"
+        }
+      ]
+    },
+    "state:BRA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "1812051a1cf3cba89fb4df63820964acf23b2fe3be0642afe11fa0b6139fe627",
+      "names": {
+        "ko": "브라질"
+      },
+      "alternateNames": [],
+      "canonicalName": "브라질",
+      "versions": [
+        {
+          "versionId": "state:BRA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "8a93ecf90c01f5dac3994553c9ae850eed340718f14282aebc342644164c154f"
+        }
+      ]
+    },
+    "state:BRB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "774705a1eae9983b3088543cb57a4a665fb2ce51a1657057794ed7122a751525",
+      "names": {
+        "ko": "바베이도스"
+      },
+      "alternateNames": [],
+      "canonicalName": "바베이도스",
+      "versions": [
+        {
+          "versionId": "state:BRB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "41f2bac065dcb4925f4d9bcc675e78d8acb5df01a5ac0f762626586345a110b5"
+        }
+      ]
+    },
+    "state:BRI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "4627f2573e81a6df20d30a6a3c5f15807de4a0d03a3048a087625c74bf155f99",
+      "names": {
+        "ko": "브라질섬"
+      },
+      "alternateNames": [],
+      "canonicalName": "브라질섬",
+      "versions": [
+        {
+          "versionId": "state:BRI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "cfd8ea975cd2c93e7be7ed6b77e2ba29b3184c8d6fcb415e8f3067a7f518bc3a"
+        }
+      ]
+    },
+    "state:BRN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "241ce89e94e59e7aa28d843bff77e34f5a122410feddfae1b6f1aabd5e3ddf6a",
+      "names": {
+        "ko": "브루나이"
+      },
+      "alternateNames": [],
+      "canonicalName": "브루나이",
+      "versions": [
+        {
+          "versionId": "state:BRN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c3680f0089e48034966e15ba9d9e15bf06b8411991d88356bb13986a1e944a8d"
+        }
+      ]
+    },
+    "state:BRT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "365e34cabbabd5e43c7a5ada2a4db35f2304a537321f8cb42b38a216f7a23c8b",
+      "names": {
+        "ko": "비르타윌"
+      },
+      "alternateNames": [],
+      "canonicalName": "비르타윌",
+      "versions": [
+        {
+          "versionId": "state:BRT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5f33adc11c127b9c4bcb8cbc4e4f224eb6721ef80abfd4aeb7f186cf52b1c370"
+        }
+      ]
+    },
+    "state:BTN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "564dce357b39acd8f8c0a4a23da6de50bb47a6d578d17ed2903f46c314694a16",
+      "names": {
+        "ko": "부탄"
+      },
+      "alternateNames": [],
+      "canonicalName": "부탄",
+      "versions": [
+        {
+          "versionId": "state:BTN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b46b6ad0621bf9c440c275a6bfe323bb3eb99ef10829252439edd1f58c855c86"
+        }
+      ]
+    },
+    "state:BWA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "701710845cd26c74f5afa76560ee4b68c7c82a3dc370704bf384d75b91d8a2d7",
+      "names": {
+        "ko": "보츠와나"
+      },
+      "alternateNames": [],
+      "canonicalName": "보츠와나",
+      "versions": [
+        {
+          "versionId": "state:BWA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "61c9e5d24428f770c55893013581c3642bf2392b5f4e8dd7339ad9d8113be67d"
+        }
+      ]
+    },
+    "state:CAF": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "e92fd9c439a125d88d171debf1537672a4f59a9570bae65339b46972ec2414cc",
+      "names": {
+        "ko": "중앙아프리카 공화국"
+      },
+      "alternateNames": [],
+      "canonicalName": "중앙아프리카 공화국",
+      "versions": [
+        {
+          "versionId": "state:CAF:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "17dcb957848a86c96d097d5f96e54d7f0afc0637bf81402622007eac74c55565"
+        }
+      ]
+    },
+    "state:CAN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "8a0e64ac6f531cdc24db734659c1bdd260e2ad78d3ec07a727b069c8d5c57e04",
+      "names": {
+        "ko": "캐나다"
+      },
+      "alternateNames": [],
+      "canonicalName": "캐나다",
+      "versions": [
+        {
+          "versionId": "state:CAN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c4708dcc8188ebe3fc87a4d08b3d3290d00d0afb684efed9b1338e7b87c974f2"
+        }
+      ]
+    },
+    "state:CHE": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "b01f92215bc0a8e35485bc847d268339de38569c4c4ea1e4c1d20b3031f7835d",
+      "names": {
+        "ko": "스위스"
+      },
+      "alternateNames": [],
+      "canonicalName": "스위스",
+      "versions": [
+        {
+          "versionId": "state:CHE:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "eaf0e987e82f8df5241e364aacc879fb211e37bb24093dc494ec25ac27d23dd9"
+        }
+      ]
+    },
+    "state:CHL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "11825125022536ecafaad3e734977db62823e8db021a11b7b50d7b6ae3335d56",
+      "names": {
+        "ko": "칠레"
+      },
+      "alternateNames": [],
+      "canonicalName": "칠레",
+      "versions": [
+        {
+          "versionId": "state:CHL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "292bc476b5bb54ac543869e0f9f403aea059e29a09986e3e8cea53eb6624ede5"
+        }
+      ]
+    },
+    "state:CHN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "02bdd181f014275ae1870cce3712f6ded325fa0aad1d521b13402f95e95a6531",
+      "names": {
+        "ko": "중화인민공화국"
+      },
+      "alternateNames": [],
+      "canonicalName": "중화인민공화국",
+      "versions": [
+        {
+          "versionId": "state:CHN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "97c02032eaa5b08f92584d39139cc8cc69da31e295afd32e96e97dfb50f69a02"
+        }
+      ]
+    },
+    "state:CIV": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "71ecbdabff636f2007858ac9ba1c5d5736c92f64359ef6483c2992df8c0f4bb2",
+      "names": {
+        "ko": "코트디부아르"
+      },
+      "alternateNames": [],
+      "canonicalName": "코트디부아르",
+      "versions": [
+        {
+          "versionId": "state:CIV:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "bb9c44ffd910f5567e354d9f796fadbb5869f2fd9ebbfb0523a88fe61ccb3aaa"
+        }
+      ]
+    },
+    "state:CLP": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:FRA",
+      "sourceInfoHash": "97c920b899db20bac8106dfb3c2cefdf5dbec8e6060e1e4ef6220041d0cc9363",
+      "names": {
+        "ko": "클리퍼턴섬"
+      },
+      "alternateNames": [],
+      "canonicalName": "클리퍼턴섬",
+      "versions": [
+        {
+          "versionId": "state:CLP:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d99ad616d0a840a55539e7f8da453bd336e11cd3dc14bbe028b79c89cdb97dc0"
+        }
+      ]
+    },
+    "state:CMR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "69689bfec1adc6faee7184d84704cb45f846f64b980f59ed3f5f3b7875fdfa97",
+      "names": {
+        "ko": "카메룬"
+      },
+      "alternateNames": [],
+      "canonicalName": "카메룬",
+      "versions": [
+        {
+          "versionId": "state:CMR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "7197d2aad34ad6065a66879ea6ba1fb117afe4363e2c7c8b503ef0a4442bf87f"
+        }
+      ]
+    },
+    "state:CNM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "dfba1b7b91f7de821699def095c158a186c2703c59b22fc62e954b0c8a2a3cae",
+      "names": {
+        "ko": "유엔 키프로스 완충 지대"
+      },
+      "alternateNames": [],
+      "canonicalName": "유엔 키프로스 완충 지대",
+      "versions": [
+        {
+          "versionId": "state:CNM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "defb62609fd3900f1edf63f554b267237130ae9af0fe43167164dcbbfc0018f6"
+        }
+      ]
+    },
+    "state:COD": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "dc1dda84511b16688681fa5c2992abf852f7a9a44f18b8a6b9d2ea70169a2f02",
+      "names": {
+        "ko": "콩고 민주 공화국"
+      },
+      "alternateNames": [],
+      "canonicalName": "콩고 민주 공화국",
+      "versions": [
+        {
+          "versionId": "state:COD:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "7632a13c09bc1879c08c28bb6b652b528c0c819ee302bcd10063eb0d5efd93a1"
+        }
+      ]
+    },
+    "state:COG": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "fad910ee75a7d69b042516dfe504693be7b324ef75905a0fa6e76c7e3e544220",
+      "names": {
+        "ko": "콩고 공화국"
+      },
+      "alternateNames": [],
+      "canonicalName": "콩고 공화국",
+      "versions": [
+        {
+          "versionId": "state:COG:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "bcba8c753a0c34c056b2944bafc9ddab5a0d5e05e351c51e34a83e524dcb826f"
+        }
+      ]
+    },
+    "state:COK": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "9198dfd4b5f555b7b18bcf0d2bc8af4f05b6d38ea53252857532f2b4bdb2cb33",
+      "names": {
+        "ko": "쿡제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "쿡제도",
+      "versions": [
+        {
+          "versionId": "state:COK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "7b6a7612480e3cb5f4196fe3850933c456861a36fbc503be57e7d86adbffa4eb"
+        }
+      ]
+    },
+    "state:COL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "35b873a03e0808062b81e3f05f8f65768305b8669df8827b763ed66afe3e3420",
+      "names": {
+        "ko": "콜롬비아"
+      },
+      "alternateNames": [],
+      "canonicalName": "콜롬비아",
+      "versions": [
+        {
+          "versionId": "state:COL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "df117f67ba7624bfd247a1bf583284e254c6963ffb544d346ad138c9e9e6658e"
+        }
+      ]
+    },
+    "state:COM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d9e3ea7f97851cc4b4b02418610ebec58ca251078b5ec15b96ff91e06a8a8f12",
+      "names": {
+        "ko": "코모로"
+      },
+      "alternateNames": [],
+      "canonicalName": "코모로",
+      "versions": [
+        {
+          "versionId": "state:COM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "6e6b53a36864832050fd35a52319cfc6a297f16b3c9abc1dfda5adee5e732b3b"
+        }
+      ]
+    },
+    "state:CPV": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "f578812af1d4528f45341eb21f790d8d7f913b6467f0c2a0c2c8c703a20c63d4",
+      "names": {
+        "ko": "카보베르데"
+      },
+      "alternateNames": [],
+      "canonicalName": "카보베르데",
+      "versions": [
+        {
+          "versionId": "state:CPV:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "178523a91188450f1e359275e98bda61bbc5daea5bccf1643dd1ba9e43f67019"
+        }
+      ]
+    },
+    "state:CRI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "3a00fa82c280cd3da640b2715b7eeda80ac7f7e1370f17a64208cfce23ae5ee6",
+      "names": {
+        "ko": "코스타리카"
+      },
+      "alternateNames": [],
+      "canonicalName": "코스타리카",
+      "versions": [
+        {
+          "versionId": "state:CRI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "6d3b73555ca311167e3076f7ba0ecadf73ddda7c85f12b59cc464d1d8c87e4cd"
+        }
+      ]
+    },
+    "state:CSI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:AUS",
+      "sourceInfoHash": "4b87a6020e3c80885b3ae1131baa1f28c35c7b55099e181621d1fd06fe2aaf91",
+      "names": {
+        "ko": "산호해제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "산호해제도",
+      "versions": [
+        {
+          "versionId": "state:CSI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d7426535e915f3b3c7f1b98e694bf9f63fdd4520c1166108198cf2376f0005d9"
+        }
+      ]
+    },
+    "state:CUB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "a6e3072f3f57c3827152fca68eeab157edb84ccd717e23a89b2a9fd0c3b1b3d8",
+      "names": {
+        "ko": "쿠바"
+      },
+      "alternateNames": [],
+      "canonicalName": "쿠바",
+      "versions": [
+        {
+          "versionId": "state:CUB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "aa69a19b8999981dfb70bd05230b84b96ebf3c6f7fba4d6be613bc14ca9b1253"
+        }
+      ]
+    },
+    "state:CUW": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:NLD",
+      "sourceInfoHash": "b9ef04f295efd4a53a7a5b536afd5167d9554eab7679229858e959a5eca5c913",
+      "names": {
+        "ko": "퀴라소"
+      },
+      "alternateNames": [],
+      "canonicalName": "퀴라소",
+      "versions": [
+        {
+          "versionId": "state:CUW:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "519a66e052c63b9850bc4b563059e58f855ea87646ad93e0a4247cfdaa175797"
+        }
+      ]
+    },
+    "state:CYM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "e71fa91e70cf9de36fc6a5101f2588000246212220e73825f57a79af543343d4",
+      "names": {
+        "ko": "케이맨제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "케이맨제도",
+      "versions": [
+        {
+          "versionId": "state:CYM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "a09513a7cb0a4aac8ff66f0812e395d9349a9a763ac72511980f5a9db6cf2c37"
+        }
+      ]
+    },
+    "state:CYN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "23c3a6ae71bc12f4cc7b893b8a6704e3d5b119095d453c78c422e5aa330d0904",
+      "names": {
+        "ko": "북키프로스"
+      },
+      "alternateNames": [],
+      "canonicalName": "북키프로스",
+      "versions": [
+        {
+          "versionId": "state:CYN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "85985eb854b17db887dc28028aadd8388efed4a2a71a49b724e708fbf77d1b10"
+        }
+      ]
+    },
+    "state:CYP": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "e32fd3a12e7e0d64d9a903da6f33910a361d89e83c0e0359ac9af83ad104c22a",
+      "names": {
+        "ko": "키프로스"
+      },
+      "alternateNames": [],
+      "canonicalName": "키프로스",
+      "versions": [
+        {
+          "versionId": "state:CYP:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "20b2b0578e503a032f95040acbc1a200473153d6a7314f724c3aafd131c1753a"
+        }
+      ]
+    },
+    "state:CZE": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ef3f0d6dae5c57df01fcb7bb29c9d8a57f366c9dd950cdc12ca3de2f22dab964",
+      "names": {
+        "ko": "체코"
+      },
+      "alternateNames": [],
+      "canonicalName": "체코",
+      "versions": [
+        {
+          "versionId": "state:CZE:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "4bf2da20bcd2298ad0fdede784aeb4d0d37dc7bc0260011983f6b67c19717ed5"
+        }
+      ]
+    },
+    "state:DEU": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ccb8e36e81234a12d2279230897a610abc2bcff65e99d76288f89d3bfeab39be",
+      "names": {
+        "ko": "독일"
+      },
+      "alternateNames": [],
+      "canonicalName": "독일",
+      "versions": [
+        {
+          "versionId": "state:DEU:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e1f16cc117fa3230bf347e105891da52acdeaafb105b160e99ee69e395b65443"
+        }
+      ]
+    },
+    "state:DJI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "1f25859eadea4b8b95127de8f2590c84ee2eebe09c1c3a48bec0bb4faeb4719a",
+      "names": {
+        "ko": "지부티"
+      },
+      "alternateNames": [],
+      "canonicalName": "지부티",
+      "versions": [
+        {
+          "versionId": "state:DJI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "3436195e80235cece724dc2f8e73a47073f380355dedc3cdfe516d02be0fcc75"
+        }
+      ]
+    },
+    "state:DMA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "b373d3ca8fba2f2420faa3f552cfd6ce28de04ede82fd3d810df4236b02c1fb9",
+      "names": {
+        "ko": "도미니카 연방"
+      },
+      "alternateNames": [],
+      "canonicalName": "도미니카 연방",
+      "versions": [
+        {
+          "versionId": "state:DMA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "a0b7467c537d1024938588049040645320b503ce0988db76b1a5bf8affd652f9"
+        }
+      ]
+    },
+    "state:DNK": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "bd0b3927e8abe75a0c7282ba73ec2918dbf90d68bad7cae0fae1d99611c7bf15",
+      "names": {
+        "ko": "덴마크"
+      },
+      "alternateNames": [],
+      "canonicalName": "덴마크",
+      "versions": [
+        {
+          "versionId": "state:DNK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "eadcf9edd56bf9b0eb6f92e60d30cf9d9d6fa13eb6758f89657e11872dd96ae2"
+        }
+      ]
+    },
+    "state:DOM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ac8bb293f4c2dc49ab3bcb09bd96e549a5295d51e0be3b91b8d519e17b815f1b",
+      "names": {
+        "ko": "도미니카 공화국"
+      },
+      "alternateNames": [],
+      "canonicalName": "도미니카 공화국",
+      "versions": [
+        {
+          "versionId": "state:DOM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "691c2a166d7b3a16dbec6a5ec80a5529e47ceb2bfe9f9ec88f698f0f42996f67"
+        }
+      ]
+    },
+    "state:DZA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "89bdbb6cc4ba41cd10a74d6474298cfee5f0130c831e45c823c82e73efa1db34",
+      "names": {
+        "ko": "알제리"
+      },
+      "alternateNames": [],
+      "canonicalName": "알제리",
+      "versions": [
+        {
+          "versionId": "state:DZA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "1edf7ff613c7f45bcc24d4c8f28bb8b12cae408d824eb50fbc4b3e62011aaec0"
+        }
+      ]
+    },
+    "state:ECU": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "398e10efb12c6e99201b053164c7d61a38efb7587f1730d2ce4f8ca9051fb84a",
+      "names": {
+        "ko": "에콰도르"
+      },
+      "alternateNames": [],
+      "canonicalName": "에콰도르",
+      "versions": [
+        {
+          "versionId": "state:ECU:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e1bb392809fae4a0a5f8ff495fc834365291849c1a7ab9fcec13b309649056c1"
+        }
+      ]
+    },
+    "state:EGY": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "f78046b8cd0fbc3e473da2dfd659199b989b96ab14b5789bf52b579052f5dd65",
+      "names": {
+        "ko": "이집트"
+      },
+      "alternateNames": [],
+      "canonicalName": "이집트",
+      "versions": [
+        {
+          "versionId": "state:EGY:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "94f3310f78826e03f68019de5b0cea0b17e226fbbe9b754fe3d3d7a6c729a665"
+        }
+      ]
+    },
+    "state:ERI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "c3a99ca3f5760af31d76ecf5752dd3cf64e48f4dc9307fac2315d57cf21d1531",
+      "names": {
+        "ko": "에리트레아"
+      },
+      "alternateNames": [],
+      "canonicalName": "에리트레아",
+      "versions": [
+        {
+          "versionId": "state:ERI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c23522ee01a0607526053bb1f17249e89d075e808c5f867a0c9a42c480833d83"
+        }
+      ]
+    },
+    "state:ESB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "dd9981220b40f4adaa57f3aef5f8b8e48bd9ea4a297bbfd5ef012a2b34e8e622",
+      "names": {
+        "ko": "데켈리아 지역"
+      },
+      "alternateNames": [],
+      "canonicalName": "데켈리아 지역",
+      "versions": [
+        {
+          "versionId": "state:ESB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d8a0efa25c9cd4342d188c7af4a410b7d30c22c0f0bf283315674b71b92b7937"
+        }
+      ]
+    },
+    "state:ESP": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "484443de688636901e1b40a7fb37678d3823658e53b87bef4b9a4237c97c87d5",
+      "names": {
+        "ko": "에스파냐"
+      },
+      "alternateNames": [],
+      "canonicalName": "에스파냐",
+      "versions": [
+        {
+          "versionId": "state:ESP:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "9c83c4b12935b263758ea4166a851ee0b1dc3bd5cdf8b2185e0b6d8ab5dc1b5e"
+        }
+      ]
+    },
+    "state:EST": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "cbb1bf84350062913de0f8b8e5952bd5364aeb8ea5cb93432a861d1dd58672cf",
+      "names": {
+        "ko": "에스토니아"
+      },
+      "alternateNames": [],
+      "canonicalName": "에스토니아",
+      "versions": [
+        {
+          "versionId": "state:EST:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "3891b4557f687924e2dd86fd9ab64e6af1183e8369bae0392cc247781f0ef53d"
+        }
+      ]
+    },
+    "state:ETH": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "767a120b223f041e7853f7dcc2781a4841954763f4aeee0af38e1500d77bb5b4",
+      "names": {
+        "ko": "에티오피아"
+      },
+      "alternateNames": [],
+      "canonicalName": "에티오피아",
+      "versions": [
+        {
+          "versionId": "state:ETH:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c6c1fa3f0d1e86bde0ff6a2745c6a6e6e941ed0cf49dba7d40f18610f2b1f4da"
+        }
+      ]
+    },
+    "state:FIN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "a67e3fc23b2d5dfdc54055e8db33b1fb998b03aeaf991538b7ff8fefe6be286b",
+      "names": {
+        "ko": "핀란드"
+      },
+      "alternateNames": [],
+      "canonicalName": "핀란드",
+      "versions": [
+        {
+          "versionId": "state:FIN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "37ca0b0fc4ded7cb80d10d02cb89c9c1c2366765c30bcf35940dc1d598dc636f"
+        }
+      ]
+    },
+    "state:FJI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "85d082598715b08b1538153df7b8f98e22867c5be1d6556239ab4a98743ce951",
+      "names": {
+        "ko": "피지"
+      },
+      "alternateNames": [],
+      "canonicalName": "피지",
+      "versions": [
+        {
+          "versionId": "state:FJI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e78db9dd880ee430e40751f3ed02af3bf78bd9a9d84f0946336a725fc116b75d"
+        }
+      ]
+    },
+    "state:FLK": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "bf6785aba531d762b4e21cbfbf7ddbf890da5cdf2279baa4fe8a5c204b331aa0",
+      "names": {
+        "ko": "포클랜드제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "포클랜드제도",
+      "versions": [
+        {
+          "versionId": "state:FLK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b7db182b1cdcfb866d24aa8213b02bbb9cf6834e408dda090aceeff3a2d7861c"
+        }
+      ]
+    },
+    "state:FRA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ba5a7325ce5f900c7c2e137d16d3176a1c52221d404b5d8e6a1282217e1054d2",
+      "names": {
+        "ko": "프랑스"
+      },
+      "alternateNames": [],
+      "canonicalName": "프랑스",
+      "versions": [
+        {
+          "versionId": "state:FRA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "6c2a22d4eb411b91583a95f57477fbc8ea20065af1dc3906be318f56eca717f5"
+        }
+      ]
+    },
+    "state:FRO": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:DNK",
+      "sourceInfoHash": "91531960c03444eb74550db5f812f26d535aadc9232f0d5ab6379a4437331873",
+      "names": {
+        "ko": "페로제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "페로제도",
+      "versions": [
+        {
+          "versionId": "state:FRO:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "77c208f27c1c7c6494ff963d190f627ca549c4ab629324bab1273ad2a1f53bfd"
+        }
+      ]
+    },
+    "state:FSM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "5118a98e348e4dda9f4ace90aa876cde44c9b099db28950d3e64667bc65a2a9d",
+      "names": {
+        "ko": "미크로네시아 연방"
+      },
+      "alternateNames": [],
+      "canonicalName": "미크로네시아 연방",
+      "versions": [
+        {
+          "versionId": "state:FSM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "77974a16c3cd823cd4436345c552e6024b0805427cca973a83b2c9e1679a5baf"
+        }
+      ]
+    },
+    "state:GAB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "a24b2e8a6061c193e761ccf6a7b8b83778da27f82ffaddf7b0db04b2ecbb06e4",
+      "names": {
+        "ko": "가봉"
+      },
+      "alternateNames": [],
+      "canonicalName": "가봉",
+      "versions": [
+        {
+          "versionId": "state:GAB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "37110aa22dc11e72be4fe6ef8080f17c692e02c99080123efef7ae4481c8985f"
+        }
+      ]
+    },
+    "state:GBR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "78dc91475ac39569bee005f20d2a2e85776ed979b1bd3a24ee75baf3b5fb7b98",
+      "names": {
+        "ko": "영국"
+      },
+      "alternateNames": [],
+      "canonicalName": "영국",
+      "versions": [
+        {
+          "versionId": "state:GBR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "87379ab4271fd1030a8393d6d2072fe58aad8c37010ad42ef85b2e419be46a15"
+        }
+      ]
+    },
+    "state:GEO": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "6e93c5bdcf102a0c3a8a8c37b46ce20c24ce5f25243c436516a8ade3b6cd3128",
+      "names": {
+        "ko": "조지아"
+      },
+      "alternateNames": [],
+      "canonicalName": "조지아",
+      "versions": [
+        {
+          "versionId": "state:GEO:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5563d7ddb1a52e79540c63d18a35b4e002fd0fd860558cf0188fba0b35a7e407"
+        }
+      ]
+    },
+    "state:GGY": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "94e19c99e4fb950825adb98e9ee95d755d5c07e299f064209e21f81b20afa960",
+      "names": {
+        "ko": "건지섬"
+      },
+      "alternateNames": [],
+      "canonicalName": "건지섬",
+      "versions": [
+        {
+          "versionId": "state:GGY:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e92c80bedec266e75457e0d9b8662f655787704be0d52d5f269f5de5c9dfcf3a"
+        }
+      ]
+    },
+    "state:GHA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "b01abd70c8fe940d7953e4e8d131dcbef47c90c33093b153a90b03b85b236e29",
+      "names": {
+        "ko": "가나"
+      },
+      "alternateNames": [],
+      "canonicalName": "가나",
+      "versions": [
+        {
+          "versionId": "state:GHA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e0fbfc502a2085587808074c1e5438c97f66dca20b295fef0e91c170e4b29769"
+        }
+      ]
+    },
+    "state:GIB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "d710b5ca75182081850dd71d0f03c389235b9a71717b7cf8e1210547773ddbb6",
+      "names": {
+        "ko": "지브롤터"
+      },
+      "alternateNames": [],
+      "canonicalName": "지브롤터",
+      "versions": [
+        {
+          "versionId": "state:GIB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "2487a23a5dd2e3e826ce942172326de798244d7536ff95248e66d76ab1f547ee"
+        }
+      ]
+    },
+    "state:GIN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "da03e5f47f3a60438a54c2f202e9a4c264b01c5081ee1164b85e9261267b7506",
+      "names": {
+        "ko": "기니"
+      },
+      "alternateNames": [],
+      "canonicalName": "기니",
+      "versions": [
+        {
+          "versionId": "state:GIN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "69206eaaf5ac6ee9c3c1b606d3757a217d6d378a59333f70b6603bc64614fa36"
+        }
+      ]
+    },
+    "state:GMB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "23c6aa6beaf5337ee173368ab8f27f079b4a4567bc2a24cae207a5bbf97f4cb1",
+      "names": {
+        "ko": "감비아"
+      },
+      "alternateNames": [],
+      "canonicalName": "감비아",
+      "versions": [
+        {
+          "versionId": "state:GMB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "20c90e98803afe7bb5c78eccd1f454e8f9b3a336d27e394813f96531856cab17"
+        }
+      ]
+    },
+    "state:GNB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d7da7ace8f511eac6a0cf87121dfe4623f368e9d94261d91c607ba97f3f5ca89",
+      "names": {
+        "ko": "기니비사우"
+      },
+      "alternateNames": [],
+      "canonicalName": "기니비사우",
+      "versions": [
+        {
+          "versionId": "state:GNB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5934f7e4488b151df0f118dca7cd029a74e447c95435ed8002d491bafea4a58e"
+        }
+      ]
+    },
+    "state:GNQ": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "243a057721d35959a06dd0ad184dc4d5d065003da130163d9a7ecd73ad0bb15e",
+      "names": {
+        "ko": "적도기니"
+      },
+      "alternateNames": [],
+      "canonicalName": "적도기니",
+      "versions": [
+        {
+          "versionId": "state:GNQ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "00df208ee786964d030bd8ec9af14fb774e1e30ebeebf311e005e31810e4a433"
+        }
+      ]
+    },
+    "state:GRC": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "071dac651aefb41e0b796edda8dc1778c0ab26d58bce70c4031dcd5aff8f4558",
+      "names": {
+        "ko": "그리스"
+      },
+      "alternateNames": [],
+      "canonicalName": "그리스",
+      "versions": [
+        {
+          "versionId": "state:GRC:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "11664004bd335736739713a2cf194fa04ef0a16cfe1ec96ba1fdb220751c3f47"
+        }
+      ]
+    },
+    "state:GRD": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "a646eeb1da96692851448baa8a854de3b6a157994151df79517b1b03e877ed17",
+      "names": {
+        "ko": "그레나다"
+      },
+      "alternateNames": [],
+      "canonicalName": "그레나다",
+      "versions": [
+        {
+          "versionId": "state:GRD:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d71bfe62e5a3c411e06cc75032b7a615f1c500c52263e725441c3451b91c1fac"
+        }
+      ]
+    },
+    "state:GRL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:DNK",
+      "sourceInfoHash": "3860109e371640f07926c1842a0c0f748616a394fcd186db9442cbe4ced9236a",
+      "names": {
+        "ko": "그린란드"
+      },
+      "alternateNames": [],
+      "canonicalName": "그린란드",
+      "versions": [
+        {
+          "versionId": "state:GRL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "0180283488cec1019f4c353eafcbcd461878ef0258d95b42d9189f3d38d70354"
+        }
+      ]
+    },
+    "state:GTM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "97d837254bfa87d2ffc0a7d915d52713f06c1e6ad1fe6e9bcda97435a285a014",
+      "names": {
+        "ko": "과테말라"
+      },
+      "alternateNames": [],
+      "canonicalName": "과테말라",
+      "versions": [
+        {
+          "versionId": "state:GTM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "1ce831f6e4671df99be8285bc604356ba9585a60662cf79b203dbfc77d3c44a7"
+        }
+      ]
+    },
+    "state:GUM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:USA",
+      "sourceInfoHash": "56661ee612ef7e3449fda148d3476a5acd49e20a01e199e4c7de606e26119784",
+      "names": {
+        "ko": "괌"
+      },
+      "alternateNames": [],
+      "canonicalName": "괌",
+      "versions": [
+        {
+          "versionId": "state:GUM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "4b708b8a3108ae088d36021c3b982c2353d8101d4a9b69ecd2c05508b3bcd5d4"
+        }
+      ]
+    },
+    "state:GUY": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "b30c8c6dfa2f4294a4cbd0ab71a396167986d466d101d0ee29144c12e93732f1",
+      "names": {
+        "ko": "가이아나"
+      },
+      "alternateNames": [],
+      "canonicalName": "가이아나",
+      "versions": [
+        {
+          "versionId": "state:GUY:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c6b39e843c79fcc121756b6eaf19deee3d34f56494de32df79ce2a37c39f09e3"
+        }
+      ]
+    },
+    "state:HKG": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:CHN",
+      "sourceInfoHash": "900f999afe74b654426a11609af60487face23fe2e2dbf383e1a8b420da35e76",
+      "names": {
+        "ko": "홍콩"
+      },
+      "alternateNames": [],
+      "canonicalName": "홍콩",
+      "versions": [
+        {
+          "versionId": "state:HKG:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "cc1f59adfcc843f48a978e044be79ad9efa4be67900989f743b9d99a280b2b56"
+        }
+      ]
+    },
+    "state:HMD": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:AUS",
+      "sourceInfoHash": "32dd9f8e346fdb3ecb6289e8644602250bf9b9c26d8833ee0c35898c87b66b75",
+      "names": {
+        "ko": "허드맥도널드제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "허드맥도널드제도",
+      "versions": [
+        {
+          "versionId": "state:HMD:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e24ccaab3e84c03690ea1afac4fac25ff99f1f3b3a489ea50ef32171f12ca18e"
+        }
+      ]
+    },
+    "state:HND": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "5c94579c1d66418c20785ac7b768352ad1fb8bc879ca8e1ca794b06861c0cf1e",
+      "names": {
+        "ko": "온두라스"
+      },
+      "alternateNames": [],
+      "canonicalName": "온두라스",
+      "versions": [
+        {
+          "versionId": "state:HND:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "836655bfd9abb1e0023189b34585ef132e483c2a45c82de2cef3bdd111ab5c86"
+        }
+      ]
+    },
+    "state:HRV": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d58ea82b5638bbf458888248477ca7406bfc6828e0696b0a1f571599dda3b34d",
+      "names": {
+        "ko": "크로아티아"
+      },
+      "alternateNames": [],
+      "canonicalName": "크로아티아",
+      "versions": [
+        {
+          "versionId": "state:HRV:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c4b01683510c272d8f7c95119040dcc329873733bc04e5f6eda17088efe7ee06"
+        }
+      ]
+    },
+    "state:HTI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "8501fc71d34881e9e885c9fd2732c3a278be2fe9ef582e21064a8c0b65f57ce0",
+      "names": {
+        "ko": "아이티"
+      },
+      "alternateNames": [],
+      "canonicalName": "아이티",
+      "versions": [
+        {
+          "versionId": "state:HTI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "cb7429263f5c567a866eb24c17ceb029ad21c81acae91fb06b565d5cf45dc950"
+        }
+      ]
+    },
+    "state:HUN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ef7cbafa4b63f89db176d7b0c79c8f708ad5e7ca1a6a114b2d6da2210e66691c",
+      "names": {
+        "ko": "헝가리"
+      },
+      "alternateNames": [],
+      "canonicalName": "헝가리",
+      "versions": [
+        {
+          "versionId": "state:HUN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "98804683bd33f81034417f781564abd33de78f20331fb01edb87284b30e46acb"
+        }
+      ]
+    },
+    "state:IDN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "5dea7ca843ea053c0632088066b4cebdfb658c6b2669cfc2b014cf624ee22d3c",
+      "names": {
+        "ko": "인도네시아"
+      },
+      "alternateNames": [],
+      "canonicalName": "인도네시아",
+      "versions": [
+        {
+          "versionId": "state:IDN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "003396bbc0865e9414592eece15f68fef1453d26426766f37bb575bf8257b4bd"
+        }
+      ]
+    },
+    "state:IMN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "b05acaa5d84ae15cdf41a4b040ff5044f684d3f57c83aeebdeea1d215f7af201",
+      "names": {
+        "ko": "맨섬"
+      },
+      "alternateNames": [],
+      "canonicalName": "맨섬",
+      "versions": [
+        {
+          "versionId": "state:IMN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "16fa987ed3373f2d9dd22121cf047a01485b981eee0cfea58297814d12d88e10"
+        }
+      ]
+    },
+    "state:IND": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "8a47ef07a81e8b8876fe13cead79ce45157f1598e4205265d38d19ea8926b2f7",
+      "names": {
+        "ko": "인도"
+      },
+      "alternateNames": [],
+      "canonicalName": "인도",
+      "versions": [
+        {
+          "versionId": "state:IND:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d967bc4b8ed1497e9e766721a5b767060e391747e1a626328d17f9fa5c3f39b6"
+        }
+      ]
+    },
+    "state:IOA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:AUS",
+      "sourceInfoHash": "5231a98cdf8b47bfdde6b4e39f8e9d9097f9890460063e64e1fc60e2e458d2ff",
+      "names": {
+        "ko": "호주령 인도양 지역"
+      },
+      "alternateNames": [],
+      "canonicalName": "호주령 인도양 지역",
+      "versions": [
+        {
+          "versionId": "state:IOA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "489cd14a0efd529bdfb6c7eb07f1a6924e3b025ee48fc1211b76d132a7ee8ba0"
+        }
+      ]
+    },
+    "state:IOT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "174189f76de304166d464f7b1ff1d3b68e54e073561f5343674c4fe502b7b3e3",
+      "names": {
+        "ko": "영국령 인도양 지역"
+      },
+      "alternateNames": [],
+      "canonicalName": "영국령 인도양 지역",
+      "versions": [
+        {
+          "versionId": "state:IOT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "622c735cdf91f9f4ac32491941411ec7a3e90d27e20dff8592390b72134192e1"
+        }
+      ]
+    },
+    "state:IRL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "37b0df7adbb2294e9366fe11dedf3d10d79722b5cc0d8c50eed2d1141409584a",
+      "names": {
+        "ko": "아일랜드"
+      },
+      "alternateNames": [],
+      "canonicalName": "아일랜드",
+      "versions": [
+        {
+          "versionId": "state:IRL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "9c0108554a7823ca3e6a6e4f86994e2200872f90e4748b73a9271abdd58ac487"
+        }
+      ]
+    },
+    "state:IRN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "0c09624ba3c063298247fa461caa31a4993a5d29c505538fdaa30450899c84a7",
+      "names": {
+        "ko": "이란"
+      },
+      "alternateNames": [],
+      "canonicalName": "이란",
+      "versions": [
+        {
+          "versionId": "state:IRN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5a618b5f7b556aa39177a2b2ec48da0618c2fa2c56a9fa2ad55560ad1ca87082"
+        }
+      ]
+    },
+    "state:IRQ": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ffd86ec5cec645cd153e766e57ae764f11aa85aef6d5ee1097e5f98fa9d0d33d",
+      "names": {
+        "ko": "이라크"
+      },
+      "alternateNames": [],
+      "canonicalName": "이라크",
+      "versions": [
+        {
+          "versionId": "state:IRQ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "967830b25a35f8ea009f151e07359e2840fe04d635f24940e8a594833c711372"
+        }
+      ]
+    },
+    "state:ISL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "5eefc0233869ec651f21ccef8be8c00d4e1e6da4b4f7ab17534789aaecb7ca42",
+      "names": {
+        "ko": "아이슬란드"
+      },
+      "alternateNames": [],
+      "canonicalName": "아이슬란드",
+      "versions": [
+        {
+          "versionId": "state:ISL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "a6a896d002212a24f468eb9c35020189bf8e6f749b202ec46deb6ae198dec78b"
+        }
+      ]
+    },
+    "state:ISR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "faf61497de7fb05a459da6071b2c1f9daee3cd52c402fa0ee4b2328f1f648033",
+      "names": {
+        "ko": "이스라엘"
+      },
+      "alternateNames": [],
+      "canonicalName": "이스라엘",
+      "versions": [
+        {
+          "versionId": "state:ISR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "2ab411e64dd9b63b4bdfb6160740198f01a8b9072e9ba0d38e92ecb6062b6e43"
+        }
+      ]
+    },
+    "state:ITA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d27d68d7c411455e5e84d20065bffb7a6001512dcc5688062fd8493b19af553a",
+      "names": {
+        "ko": "이탈리아"
+      },
+      "alternateNames": [],
+      "canonicalName": "이탈리아",
+      "versions": [
+        {
+          "versionId": "state:ITA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "218487f14b67043d0f676b35f485eedcdeb186109371422f99693f33c5e02404"
+        }
+      ]
+    },
+    "state:JAM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "9d96363879530457dc002b96ec14b1076bf0670e97eb492338db6c9317b9d9ef",
+      "names": {
+        "ko": "자메이카"
+      },
+      "alternateNames": [],
+      "canonicalName": "자메이카",
+      "versions": [
+        {
+          "versionId": "state:JAM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5f60beed828f12bb21112ba264ec71754ede5693412f811ba0e3242ee702bf8a"
+        }
+      ]
+    },
+    "state:JEY": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "cdbd920ffb6b9bb450520b49054bc088ae0407a1c088cc52f3b269b7c454d762",
+      "names": {
+        "ko": "저지섬"
+      },
+      "alternateNames": [],
+      "canonicalName": "저지섬",
+      "versions": [
+        {
+          "versionId": "state:JEY:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "77c6d06fa524d84ef373853e1cc6a553556e1b87ede06c1a71ae1225442e9c02"
+        }
+      ]
+    },
+    "state:JOR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "7bcb728794a7b96d91847007356746baa5fa613335476bf52ce88e77b47ce0e6",
+      "names": {
+        "ko": "요르단"
+      },
+      "alternateNames": [],
+      "canonicalName": "요르단",
+      "versions": [
+        {
+          "versionId": "state:JOR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "9bf08213d184c0cfb535664f5fdecc2a0b468075cba08e30b4f34feade9d1f2b"
+        }
+      ]
+    },
+    "state:JPN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "fdf83ecc2e5d7d99e399bb1f8b4dc63df5811f6ab1d0ac2941c53c7ee75c6af0",
+      "names": {
+        "ko": "일본"
+      },
+      "alternateNames": [],
+      "canonicalName": "일본",
+      "versions": [
+        {
+          "versionId": "state:JPN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "f0fba88c30972b4227820589ebbd10cb528ca049ff74b93b9daca85988721d55"
+        }
+      ]
+    },
+    "state:KAB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:KAZ",
+      "sourceInfoHash": "5a0c86091f6078a4988daf995d9997e54cb3919c2767b4c6d88922e3475d875e",
+      "names": {
+        "ko": "바이코누르"
+      },
+      "alternateNames": [],
+      "canonicalName": "바이코누르",
+      "versions": [
+        {
+          "versionId": "state:KAB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b70c501ed8d14584865bece928e85a57de755c260ef6bd95fc80a63cdddea909"
+        }
+      ]
+    },
+    "state:KAS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ec32f68093043cbe77c36912d824a8aaf6197bca3e437fbace2c595a5e7b08d1",
+      "names": {
+        "ko": "시아첸빙하"
+      },
+      "alternateNames": [],
+      "canonicalName": "시아첸빙하",
+      "versions": [
+        {
+          "versionId": "state:KAS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b72c1061e8f06e84142511703fa7a93889a29819bdf5c62de54a79cd3b8388c0"
+        }
+      ]
+    },
+    "state:KAZ": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "caeee0a4db6e904188b340af953be1f726c212557c7cc40d01f722f0c944fe6a",
+      "names": {
+        "ko": "카자흐스탄"
+      },
+      "alternateNames": [],
+      "canonicalName": "카자흐스탄",
+      "versions": [
+        {
+          "versionId": "state:KAZ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "bc61d2fc08a3819c252981b65afc2b444a7b495a149e7c6f0d3c8130daf59a52"
+        }
+      ]
+    },
+    "state:KEN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "999132b66b5502fdbba8475d0a4bbbc234886967416fb8db164a53cf5950d5db",
+      "names": {
+        "ko": "케냐"
+      },
+      "alternateNames": [],
+      "canonicalName": "케냐",
+      "versions": [
+        {
+          "versionId": "state:KEN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "8a1071a5ed7dc8a64cb43c8c4bbfa1a6555468dfbd91dd85cf700ff78b726f52"
+        }
+      ]
+    },
+    "state:KGZ": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "60790b0d076e08afed5aa9486c4085a64240e9b65ce1a3b17f02c9c29eb401a6",
+      "names": {
+        "ko": "키르기스스탄"
+      },
+      "alternateNames": [],
+      "canonicalName": "키르기스스탄",
+      "versions": [
+        {
+          "versionId": "state:KGZ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b70896971ad28a907d227445e21917c7a3591a8b3a49e5838d36faa22fef49d8"
+        }
+      ]
+    },
+    "state:KHM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "96701d08e575d59ac754a2ebfe8a5c03f33897df99447004dbbc9248dae7d288",
+      "names": {
+        "ko": "캄보디아"
+      },
+      "alternateNames": [],
+      "canonicalName": "캄보디아",
+      "versions": [
+        {
+          "versionId": "state:KHM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "4c2a7d923d120412d45714ae0589b56af5720b68f9f6f0f33c64a80f17a219d2"
+        }
+      ]
+    },
+    "state:KIR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "c679bab09306afcaccdb603ed1f5eb9408db8d7026a65bdb910be23212e5ad2c",
+      "names": {
+        "ko": "키리바시"
+      },
+      "alternateNames": [],
+      "canonicalName": "키리바시",
+      "versions": [
+        {
+          "versionId": "state:KIR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e320e978fb907a0941ded85329112edd5326fb2efe583d2db7385e9986d8808a"
+        }
+      ]
+    },
+    "state:KNA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "f68f97b35c434439b8d543085082d0c7e9bf2d026fb37dcdcd4c4d2ed2f68734",
+      "names": {
+        "ko": "세인트키츠네비스"
+      },
+      "alternateNames": [],
+      "canonicalName": "세인트키츠네비스",
+      "versions": [
+        {
+          "versionId": "state:KNA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "8996bf8c7332f15c29be4548cb6bd4fd71c85b24b4cfd945e3b9cdb6069d31f4"
+        }
+      ]
+    },
+    "state:KOR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "19f27ae861ede18c8a366d699cb67943f1d3dc5e6b22efd0d1b74d2decc8ff87",
+      "names": {
+        "ko": "대한민국"
+      },
+      "alternateNames": [],
+      "canonicalName": "대한민국",
+      "versions": [
+        {
+          "versionId": "state:KOR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "263f2ecfe935885a37a50f050e602cbef8197b4b12878757c0246b9165fa35e2"
+        }
+      ]
+    },
+    "state:KOS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d9c4176078bdebf23e80d30f12092317b6ad508d983aaf2a2b0f7ed964814fe3",
+      "names": {
+        "ko": "코소보"
+      },
+      "alternateNames": [],
+      "canonicalName": "코소보",
+      "versions": [
+        {
+          "versionId": "state:KOS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "fccbc04fd1cef9c69c21871394ea6a0a60168a8809e8186a9e6f29ecf5847df5"
+        }
+      ]
+    },
+    "state:KWT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "16500889e25039056cddbf6429a429fd0b3037019e64f6f00f9701e3c384c4e8",
+      "names": {
+        "ko": "쿠웨이트"
+      },
+      "alternateNames": [],
+      "canonicalName": "쿠웨이트",
+      "versions": [
+        {
+          "versionId": "state:KWT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "70cefa9a5dd56b2c675148cbbf235d542ff3389cf600b0fab62062d9c3a15f6c"
+        }
+      ]
+    },
+    "state:LAO": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "2d072aedf96c7a49e13b5619543cdd13710acf59bab9398311e49e4d5c5207fb",
+      "names": {
+        "ko": "라오스"
+      },
+      "alternateNames": [],
+      "canonicalName": "라오스",
+      "versions": [
+        {
+          "versionId": "state:LAO:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "4ca8e6d68458228af07e6674647ad510a789704816c1b70e5fb0ed64bd67b1b7"
+        }
+      ]
+    },
+    "state:LBN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "6fe89c4da788c8c7dc12319165eb1f10ca8aa661a0d5a4c6777313efc585c2c7",
+      "names": {
+        "ko": "레바논"
+      },
+      "alternateNames": [],
+      "canonicalName": "레바논",
+      "versions": [
+        {
+          "versionId": "state:LBN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "f56a295c874c683744415a89b2401a6bd13ce9dda971b848d321bfd31a63ae04"
+        }
+      ]
+    },
+    "state:LBR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "00dc0de5cc8944a17f61714b08108f83550ac91595a123f490be5bea034bc307",
+      "names": {
+        "ko": "라이베리아"
+      },
+      "alternateNames": [],
+      "canonicalName": "라이베리아",
+      "versions": [
+        {
+          "versionId": "state:LBR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "68dd08432fa4f67acb3b22c4505f1376d96120e621cea3878154cc892cde64bd"
+        }
+      ]
+    },
+    "state:LBY": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "9899f3d9ca32bcecabd71c98e1852c3f671d9deb6b07aa2fa31f092e3d0ca808",
+      "names": {
+        "ko": "리비아"
+      },
+      "alternateNames": [],
+      "canonicalName": "리비아",
+      "versions": [
+        {
+          "versionId": "state:LBY:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "f59b029348dbd695b0b2a11c7054b45fd9db1f3c79540a932f35d9bfe40897eb"
+        }
+      ]
+    },
+    "state:LCA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "a5dbbce6190fe252adf7ee8222cad2d9b536b9f99417eb4d425cf8b7b9d86fb3",
+      "names": {
+        "ko": "세인트루시아"
+      },
+      "alternateNames": [],
+      "canonicalName": "세인트루시아",
+      "versions": [
+        {
+          "versionId": "state:LCA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "8af28960408133b927bd217015c02f86800291f5888f36a474aacedffa08e721"
+        }
+      ]
+    },
+    "state:LIE": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "3203ee67b55cbb46174851eb7ad4e412f76c740149e39089eb5a7663822bdcd2",
+      "names": {
+        "ko": "리히텐슈타인"
+      },
+      "alternateNames": [],
+      "canonicalName": "리히텐슈타인",
+      "versions": [
+        {
+          "versionId": "state:LIE:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "16d9a0e1927fe316aef5a2205e5df55d6830f23430cd238161cbc7dfcaa83365"
+        }
+      ]
+    },
+    "state:LKA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "83bbe4a33bbff154915ce7d25e647dcf1a16cdc35bf72b9b128a0360a95f72e0",
+      "names": {
+        "ko": "스리랑카"
+      },
+      "alternateNames": [],
+      "canonicalName": "스리랑카",
+      "versions": [
+        {
+          "versionId": "state:LKA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "0ed6bf92d5e333c8914e60a8fe28a2ca46c12889c38eb17c33af3d580d784cad"
+        }
+      ]
+    },
+    "state:LSO": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "52d6f3632a15bce215f8c58ebd6c96a91fcff1f6feeff19a1d2250a22343abad",
+      "names": {
+        "ko": "레소토"
+      },
+      "alternateNames": [],
+      "canonicalName": "레소토",
+      "versions": [
+        {
+          "versionId": "state:LSO:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "0a23be722ab3c747fd9c3c950ace80612e85225df75493ab7617a53adc0cf8b7"
+        }
+      ]
+    },
+    "state:LTU": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "7699064096f9cbad1522849e10a5c5c770407bfa27d93db1cb6ef51d9aef1dd0",
+      "names": {
+        "ko": "리투아니아"
+      },
+      "alternateNames": [],
+      "canonicalName": "리투아니아",
+      "versions": [
+        {
+          "versionId": "state:LTU:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "84af2ed19f6dee9aa625185e5619d2d18d6a2248a0a713c293a44a773bbada83"
+        }
+      ]
+    },
+    "state:LUX": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "9758310e294e6b4b46687c0ea6f34810973270c8f8bf7ee829acb4d51e76c298",
+      "names": {
+        "ko": "룩셈부르크"
+      },
+      "alternateNames": [],
+      "canonicalName": "룩셈부르크",
+      "versions": [
+        {
+          "versionId": "state:LUX:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c6ba48b10a638040e867c08b57bd1cfbaf7a884dc844c72f48e04289f20292b8"
+        }
+      ]
+    },
+    "state:LVA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "1b19920fef58c4071a1360c579a91841ef148c3ae3c9af4511bcdb53f249bdd5",
+      "names": {
+        "ko": "라트비아"
+      },
+      "alternateNames": [],
+      "canonicalName": "라트비아",
+      "versions": [
+        {
+          "versionId": "state:LVA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "4e380bc12960fa5124fd7f39e39a2f2bd470292f387d0a02c359ed5a4d205c35"
+        }
+      ]
+    },
+    "state:MAC": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:CHN",
+      "sourceInfoHash": "f91ce898193bf91cdf469da9ee68149cd0110e9ecb444146d6553389ed3d99c4",
+      "names": {
+        "ko": "마카오"
+      },
+      "alternateNames": [],
+      "canonicalName": "마카오",
+      "versions": [
+        {
+          "versionId": "state:MAC:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "13c5891bc9917a55683f211e34d4039066eb8b24b191d46bc3a8c48176736adb"
+        }
+      ]
+    },
+    "state:MAF": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:FRA",
+      "sourceInfoHash": "ffb0d7c7babc4427e97fcec534b20eeadf9ffd794045671adef207dffded293a",
+      "names": {
+        "ko": "생마르탱"
+      },
+      "alternateNames": [],
+      "canonicalName": "생마르탱",
+      "versions": [
+        {
+          "versionId": "state:MAF:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "59ae2c796ffa383a3c38be657cfaef92c2123e6cd29589120e609851bb5e1691"
+        }
+      ]
+    },
+    "state:MAR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "481eb4c786bd90e569a098eb07a3070eba27358c617e109f32a33ae373bbd416",
+      "names": {
+        "ko": "모로코"
+      },
+      "alternateNames": [],
+      "canonicalName": "모로코",
+      "versions": [
+        {
+          "versionId": "state:MAR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b474ca16bdf13fff7f1aff38dfd03edb137694f7b1bdb59543173289f078d5d5"
+        }
+      ]
+    },
+    "state:MCO": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "aee65045d2ab7cecdf787a14ac9463f2557e3bfd13b8ebfab5bdae75aab0aa50",
+      "names": {
+        "ko": "모나코"
+      },
+      "alternateNames": [],
+      "canonicalName": "모나코",
+      "versions": [
+        {
+          "versionId": "state:MCO:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c552245a0fe8ac70c1b6eba5b89349c46191026b1d17f78f89a0cebeb1b0149b"
+        }
+      ]
+    },
+    "state:MDA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "1d2a2b0f2728b16cbef1818175f956b92ad1356f70ef33eb46476e764cfc44d9",
+      "names": {
+        "ko": "몰도바"
+      },
+      "alternateNames": [],
+      "canonicalName": "몰도바",
+      "versions": [
+        {
+          "versionId": "state:MDA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "28e8c2643b6e993f62e1766280a912bf0ec687f371d1575e15c06b016d873d66"
+        }
+      ]
+    },
+    "state:MDG": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "cb83a3cd859260306702eedf6d49055826547fb3773353aed5d0c427470b1379",
+      "names": {
+        "ko": "마다가스카르"
+      },
+      "alternateNames": [],
+      "canonicalName": "마다가스카르",
+      "versions": [
+        {
+          "versionId": "state:MDG:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ed9942e610117bc34d133df21b68d598fcbd761e5d7b158134e5f3d387dabfec"
+        }
+      ]
+    },
+    "state:MDV": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d3c114854b803690bdc688f0df7f4f962042241a6357f689e04859461284b347",
+      "names": {
+        "ko": "몰디브"
+      },
+      "alternateNames": [],
+      "canonicalName": "몰디브",
+      "versions": [
+        {
+          "versionId": "state:MDV:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "144ad06265fa217db3a94d639759edf076e3b77cd410af863177d5277a5565ce"
+        }
+      ]
+    },
+    "state:MEX": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "6ec28e2945d88f8e72b8167f5a62847fe25fd830dd4d6588c1e7c6db7a465714",
+      "names": {
+        "ko": "멕시코"
+      },
+      "alternateNames": [],
+      "canonicalName": "멕시코",
+      "versions": [
+        {
+          "versionId": "state:MEX:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "03d57c1b5a3aba652e662e6465031254c4cfaa68f9c3dddc2cb7fef39c2e4567"
+        }
+      ]
+    },
+    "state:MHL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "e958b467e3bef4d74469fc2b702e8cd519c638ccc1cf7e52626ba5f19e12a3c3",
+      "names": {
+        "ko": "마셜제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "마셜제도",
+      "versions": [
+        {
+          "versionId": "state:MHL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "bbdb21b0b3e4094ee0fdd245fc686fd502cc49a52cd4dcb28bb266cae25bdfb5"
+        }
+      ]
+    },
+    "state:MKD": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "800e4cdb23657d6805eda11d0a2a8a6bb22d49b253f09e3edd70926031756e41",
+      "names": {
+        "ko": "북마케도니아"
+      },
+      "alternateNames": [],
+      "canonicalName": "북마케도니아",
+      "versions": [
+        {
+          "versionId": "state:MKD:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "8147f86f9db6deb5d5b390f06cb68e0624c56020de12b03fd609fee740d12a13"
+        }
+      ]
+    },
+    "state:MLI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "0586ff85e3007d1057f25f6cb554bf0283b084c60fe7bf02593714dd91d5bc56",
+      "names": {
+        "ko": "말리"
+      },
+      "alternateNames": [],
+      "canonicalName": "말리",
+      "versions": [
+        {
+          "versionId": "state:MLI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b2bd1e4ee5831b70a3aebec6c650c4d7922327fa172f973e96ef9b51ee7690d8"
+        }
+      ]
+    },
+    "state:MLT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d937d8aeaa09a799895edc7b104a3c10d24d1bbeef35d6252f1bb6a2a6274a34",
+      "names": {
+        "ko": "몰타"
+      },
+      "alternateNames": [],
+      "canonicalName": "몰타",
+      "versions": [
+        {
+          "versionId": "state:MLT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "4afd9acc8ed9b161377d88a9904c810d0fa534a8284e810d36857a42405dc874"
+        }
+      ]
+    },
+    "state:MMR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "9fdfb195669c473e0acaca3254c449f0835da86ddbb6d101877949050f9ab916",
+      "names": {
+        "ko": "미얀마"
+      },
+      "alternateNames": [],
+      "canonicalName": "미얀마",
+      "versions": [
+        {
+          "versionId": "state:MMR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "3d8ade051929cdfa58522b70b75028135bdc4a59132e17106d7d3fe8f99937c3"
+        }
+      ]
+    },
+    "state:MNE": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "fbb176ef419ec4329f56ecce28236f5483c8c799882927132477e46ef4894eb2",
+      "names": {
+        "ko": "몬테네그로"
+      },
+      "alternateNames": [],
+      "canonicalName": "몬테네그로",
+      "versions": [
+        {
+          "versionId": "state:MNE:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "84db4ff9325fb191eccadf8578e10a26f0d927baa9ec23bdcc3a659c0bca3bc0"
+        }
+      ]
+    },
+    "state:MNG": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "eb073b056edc4cb69242148c557cf6142ccb8b3d0cf00192bab492c13f49533a",
+      "names": {
+        "ko": "몽골"
+      },
+      "alternateNames": [],
+      "canonicalName": "몽골",
+      "versions": [
+        {
+          "versionId": "state:MNG:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e0a84c896375313571c00b8a3d28d1be1f5637a914c9df387b8bc5f81238ff74"
+        }
+      ]
+    },
+    "state:MNP": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:USA",
+      "sourceInfoHash": "95813b768475563b200efdd42d0e176154d2976306956b4062b2ae575999a805",
+      "names": {
+        "ko": "북마리아나제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "북마리아나제도",
+      "versions": [
+        {
+          "versionId": "state:MNP:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ba9c30d22fcdde97d5e3a49a967beae2d28c398b33ed6f3200309ad563393def"
+        }
+      ]
+    },
+    "state:MOZ": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "96c63092c25e0ca989439b26f1fb134cab946165da0f3f7c8bf02775c0c95c23",
+      "names": {
+        "ko": "모잠비크"
+      },
+      "alternateNames": [],
+      "canonicalName": "모잠비크",
+      "versions": [
+        {
+          "versionId": "state:MOZ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c6308cb95bac12d863bab56c81621a5f0506062c2ae7c28feb36c6826689ac89"
+        }
+      ]
+    },
+    "state:MRT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "50be05c4e3ce23f2bb88bc1b12ea833262640b5f9f0073c35dfb8f9ed8c735cf",
+      "names": {
+        "ko": "모리타니"
+      },
+      "alternateNames": [],
+      "canonicalName": "모리타니",
+      "versions": [
+        {
+          "versionId": "state:MRT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "31c0716a688a7e0b868b6a748b813ad2ef63c8828ea89c94e4b3c3752d485005"
+        }
+      ]
+    },
+    "state:MSR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "c1db157ba3d0a3c6b39acf27bac3c75b8a7cfc9b83866d09270679128c94426e",
+      "names": {
+        "ko": "몬트세랫"
+      },
+      "alternateNames": [],
+      "canonicalName": "몬트세랫",
+      "versions": [
+        {
+          "versionId": "state:MSR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "666aee1e9ac80f9485b302e996568f98548fdf3876f007211eab9fc6980f2c3c"
+        }
+      ]
+    },
+    "state:MUS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "072e0d8428c7d8ac1207a476e8eabbfdf6fa0d20786a26e4adad92620ab617a4",
+      "names": {
+        "ko": "모리셔스"
+      },
+      "alternateNames": [],
+      "canonicalName": "모리셔스",
+      "versions": [
+        {
+          "versionId": "state:MUS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b9b6e1607af475d00016630a7c2f087a317c9c45fada7962f7ff448558a6c40b"
+        }
+      ]
+    },
+    "state:MWI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "081b17ef51b7838e46addbe2d6aeff11a1fe1eedb4709e176d88a7bac4172d8b",
+      "names": {
+        "ko": "말라위"
+      },
+      "alternateNames": [],
+      "canonicalName": "말라위",
+      "versions": [
+        {
+          "versionId": "state:MWI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ef3c17dfccd5a487ebfbbf77b508770e66d5d36109eea5a8e76ccd0c806f53d4"
+        }
+      ]
+    },
+    "state:MYS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "25735f1dbd9c256f98dab40dae9f0c89e4b3797d4414601a38300e7984b5e09e",
+      "names": {
+        "ko": "말레이시아"
+      },
+      "alternateNames": [],
+      "canonicalName": "말레이시아",
+      "versions": [
+        {
+          "versionId": "state:MYS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "77169b58676a7475bb73e42edb2cd854415708c6c1f0b4f8850e240916fb0f28"
+        }
+      ]
+    },
+    "state:NAM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "b9f328d8fbf2fd86ffcdda1446683235689edc3f718d7d5fcdd8b238155c4d63",
+      "names": {
+        "ko": "나미비아"
+      },
+      "alternateNames": [],
+      "canonicalName": "나미비아",
+      "versions": [
+        {
+          "versionId": "state:NAM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "dd23c1fcc25b0e97e1f0330768ef5e70f29574ff32a25ec899c1df13e98c3448"
+        }
+      ]
+    },
+    "state:NCL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:FRA",
+      "sourceInfoHash": "99feefccdfe26cd335f9bebe13e35005cd2d3c84831856e8e234d3cd1ce7d364",
+      "names": {
+        "ko": "누벨칼레도니"
+      },
+      "alternateNames": [],
+      "canonicalName": "누벨칼레도니",
+      "versions": [
+        {
+          "versionId": "state:NCL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "bf8c8374362032ff28b0c9c921d31b970b3d56adbb9645d71865e489412cc198"
+        }
+      ]
+    },
+    "state:NER": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "5832c687c738597f723a9737fecc104415e4a44081446e20c6f8ff8943a0a29a",
+      "names": {
+        "ko": "니제르"
+      },
+      "alternateNames": [],
+      "canonicalName": "니제르",
+      "versions": [
+        {
+          "versionId": "state:NER:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "bb6f9902e646ee3a35e066a91272691e6974479406892904074d39afd2747b94"
+        }
+      ]
+    },
+    "state:NFK": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:AUS",
+      "sourceInfoHash": "94ed3aedaf865ac1e1111237679f787a3805f5ecd527d4e49976b534db82d07c",
+      "names": {
+        "ko": "노퍽섬"
+      },
+      "alternateNames": [],
+      "canonicalName": "노퍽섬",
+      "versions": [
+        {
+          "versionId": "state:NFK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "a7095581b146c01fab6483a5660a628652ae836c468ef700be3a5023e9fff079"
+        }
+      ]
+    },
+    "state:NGA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "c8117c34e272b78eb0eb6d57c0dec1ca581075bb9ed18b7f9a9d72bbe595ad49",
+      "names": {
+        "ko": "나이지리아"
+      },
+      "alternateNames": [],
+      "canonicalName": "나이지리아",
+      "versions": [
+        {
+          "versionId": "state:NGA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "639797d73335429eab63bd667da0c084787b8996502a738c76cf2081137c4173"
+        }
+      ]
+    },
+    "state:NIC": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d2ddd8b85686c5a88baf3f22f0a482a4e27ef73e1d5a43e0c9cbaf8e70a8cd59",
+      "names": {
+        "ko": "니카라과"
+      },
+      "alternateNames": [],
+      "canonicalName": "니카라과",
+      "versions": [
+        {
+          "versionId": "state:NIC:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "f6475098ed51e7f5592e87cbdb55477e4c4eabf82e4f1d769a95adc652c5a223"
+        }
+      ]
+    },
+    "state:NIU": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "1e1cad9090cd89375f0c633733889da24f77cad1c2706676b3880ce53d8c4d2d",
+      "names": {
+        "ko": "니우에"
+      },
+      "alternateNames": [],
+      "canonicalName": "니우에",
+      "versions": [
+        {
+          "versionId": "state:NIU:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "fad652e6cb5a40fe80fa16669b58e111dfdf3c3fc7e20dee60ac592513dde6c2"
+        }
+      ]
+    },
+    "state:NLD": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "985aeac3ae9eab81598c58102de8b5273d150b6a00c14c670f6c44e2127af178",
+      "names": {
+        "ko": "네덜란드"
+      },
+      "alternateNames": [],
+      "canonicalName": "네덜란드",
+      "versions": [
+        {
+          "versionId": "state:NLD:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "7b5314af87ccc7775efcef7c1c2f569b63eccb3c8b99144315761a3d0723b3a1"
+        }
+      ]
+    },
+    "state:NOR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "2d7534268c36e41e5c2c6508d4d7983037d7686c36c958ac459fbe759e00037a",
+      "names": {
+        "ko": "노르웨이"
+      },
+      "alternateNames": [],
+      "canonicalName": "노르웨이",
+      "versions": [
+        {
+          "versionId": "state:NOR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "783a4c9122c30adf4dbd035827361bbac5710a73e78e151fe961d7209f81d57d"
+        }
+      ]
+    },
+    "state:NPL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "55050cefed106943a44b08bd73fa601f5f8f05664f86ca91f206eaa0c3aefbb1",
+      "names": {
+        "ko": "네팔"
+      },
+      "alternateNames": [],
+      "canonicalName": "네팔",
+      "versions": [
+        {
+          "versionId": "state:NPL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "cdbe4c2e8f8fbc8ac4cd085762a76baae94478a1825e259c3cf9a36c724f27ac"
+        }
+      ]
+    },
+    "state:NRU": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "7a9c1c91208e1bdf568738357271942bd759b1fb504545d7c8b773262c7dbd1c",
+      "names": {
+        "ko": "나우루"
+      },
+      "alternateNames": [],
+      "canonicalName": "나우루",
+      "versions": [
+        {
+          "versionId": "state:NRU:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5a2491bbc480e4acf21fb97af67240098f96ae20bdcfd14eab7dc61fedb06e07"
+        }
+      ]
+    },
+    "state:NZL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "2d078225b8920e96ce65bd186d9da0885b41aa305e7dc8827387746ce1923c32",
+      "names": {
+        "ko": "뉴질랜드"
+      },
+      "alternateNames": [],
+      "canonicalName": "뉴질랜드",
+      "versions": [
+        {
+          "versionId": "state:NZL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5a1ed472c42f1bc05299511140aa0a53e84cb1f4afa7901edd2947915c86fd90"
+        }
+      ]
+    },
+    "state:OMN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "11a258af0a7a651c153af38f61ff6b37420ddf26c772ce7a6c8e65d8c309ffad",
+      "names": {
+        "ko": "오만"
+      },
+      "alternateNames": [],
+      "canonicalName": "오만",
+      "versions": [
+        {
+          "versionId": "state:OMN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "95d5b077c9345d6f42510ff6f221f3acb6cba7e46db6d1d6c189c44715868d0e"
+        }
+      ]
+    },
+    "state:PAK": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "de859894374bfef95fe4adbdff7cf5937065ef716c7497b96022f55c60d9d185",
+      "names": {
+        "ko": "파키스탄"
+      },
+      "alternateNames": [],
+      "canonicalName": "파키스탄",
+      "versions": [
+        {
+          "versionId": "state:PAK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "44596d6ec000c675cd821283832f8a93c4711fd459797787034c5353f9803174"
+        }
+      ]
+    },
+    "state:PAN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "e01274468727363ba28fe863569ea2c54597244c5682a23ec02714e7373372f9",
+      "names": {
+        "ko": "파나마"
+      },
+      "alternateNames": [],
+      "canonicalName": "파나마",
+      "versions": [
+        {
+          "versionId": "state:PAN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c8178f6a1931483f93dbd0bb3cfe9e4900bb5656155f97ef45eff26906b0907f"
+        }
+      ]
+    },
+    "state:PCN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "4cb649239be1ed13915de4cef6d7fd5ec870edc68344ccf706de0e74263ae113",
+      "names": {
+        "ko": "핏케언제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "핏케언제도",
+      "versions": [
+        {
+          "versionId": "state:PCN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "38d900578c972a0e22c52d33c79293523e2dfbf658e5fc4ca5da0cf7c280422c"
+        }
+      ]
+    },
+    "state:PER": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "38e700ef226867f912bce20cac4c9ba168c796413c01f77ea8589eef80424079",
+      "names": {
+        "ko": "페루"
+      },
+      "alternateNames": [],
+      "canonicalName": "페루",
+      "versions": [
+        {
+          "versionId": "state:PER:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b2574be5d77a9ff422b502fc2569cb57fbac673e1a6891abc7891eb83a109ae3"
+        }
+      ]
+    },
+    "state:PGA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:USA",
+      "sourceInfoHash": "2d41df15f72a5aa53d3d209c42e74e74cb523ef4d93c8362237f9ce27f57e225",
+      "names": {
+        "ko": "웨이크섬"
+      },
+      "alternateNames": [],
+      "canonicalName": "웨이크섬",
+      "versions": [
+        {
+          "versionId": "state:PGA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "9e5be392bfe7f494927e6e4cc023a0a6ac1dd00c3782c93d44b3ad1ca99404f3"
+        }
+      ]
+    },
+    "state:PHL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "7bfc1cddb34395387399bf1e79d49906bf5c4b1510e0a2e258c662a96c3e4152",
+      "names": {
+        "ko": "필리핀"
+      },
+      "alternateNames": [],
+      "canonicalName": "필리핀",
+      "versions": [
+        {
+          "versionId": "state:PHL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d8bbad5ba7538732b21a73abfad791f11851302f012fd94dabd60944577db201"
+        }
+      ]
+    },
+    "state:PLW": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "e48d7565c32d7f299688235f6b09d1baeb9292613415e0416de14260358f1149",
+      "names": {
+        "ko": "팔라우"
+      },
+      "alternateNames": [],
+      "canonicalName": "팔라우",
+      "versions": [
+        {
+          "versionId": "state:PLW:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "0757b9133b7af5ebe358314a94b998764efee1584e83282d35181320f5eb5b49"
+        }
+      ]
+    },
+    "state:PNG": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "c425d0db966db0b8252218e856b7090e54166f29137a873633a40df246c5b09e",
+      "names": {
+        "ko": "파푸아뉴기니"
+      },
+      "alternateNames": [],
+      "canonicalName": "파푸아뉴기니",
+      "versions": [
+        {
+          "versionId": "state:PNG:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b497d26e89222f78daeaffae935cf7b57eaaf4bff138e4e30272a20f4f0faa43"
+        }
+      ]
+    },
+    "state:POL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "2ad222d2f496a38f7c376b054ab86df9f773fee75ef97784d436f0b94966b397",
+      "names": {
+        "ko": "폴란드"
+      },
+      "alternateNames": [],
+      "canonicalName": "폴란드",
+      "versions": [
+        {
+          "versionId": "state:POL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "170b948eec85e30ae33a134c01125618ee3d7df00a09efcc9a17a3a2f49d6859"
+        }
+      ]
+    },
+    "state:PRI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:USA",
+      "sourceInfoHash": "109145ce95b34586358eceff12a082b8d48fffb90db40954bba6459f8e0c21f8",
+      "names": {
+        "ko": "푸에르토리코"
+      },
+      "alternateNames": [],
+      "canonicalName": "푸에르토리코",
+      "versions": [
+        {
+          "versionId": "state:PRI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ede5aa479c6a1b42196cc0de648a9b65d834d40f93c9bdff696d330c07620a27"
+        }
+      ]
+    },
+    "state:PRK": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "967db47e21a4d1c391848bd17339a745e4026a8c39f37fbca1a873bbe524b643",
+      "names": {
+        "ko": "조선민주주의인민공화국"
+      },
+      "alternateNames": [],
+      "canonicalName": "조선민주주의인민공화국",
+      "versions": [
+        {
+          "versionId": "state:PRK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ca42fc31c0b2143ce459de8210aa4a20825589d1d557e543fc58fc8187231a35"
+        }
+      ]
+    },
+    "state:PRT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "2cea6d218d619bebcaeeb776109bcb8dc84bf0b4b5f38925a58859c23c65f92b",
+      "names": {
+        "ko": "포르투갈"
+      },
+      "alternateNames": [],
+      "canonicalName": "포르투갈",
+      "versions": [
+        {
+          "versionId": "state:PRT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "77b6c806dbadadb6003b91a1efefb8ebb1d79fdd9eb6cca342aeec2728ea67d3"
+        }
+      ]
+    },
+    "state:PRY": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "433ef024688814db5ac1688cd5902d0010b9f344ba81597ddcb084333de22d57",
+      "names": {
+        "ko": "파라과이"
+      },
+      "alternateNames": [],
+      "canonicalName": "파라과이",
+      "versions": [
+        {
+          "versionId": "state:PRY:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "9bacabe9ae4bc1910fc437d46cf621dca99a672410d877a16bab6cc557ff1191"
+        }
+      ]
+    },
+    "state:PSX": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "31b5c22a82692694f2d920bf67a834e8fd39a46b6e6d06875a55a53d251c5caa",
+      "names": {
+        "ko": "팔레스타인"
+      },
+      "alternateNames": [],
+      "canonicalName": "팔레스타인",
+      "versions": [
+        {
+          "versionId": "state:PSX:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ee1b25223f5a8aa8b8ca50dd2887b09a5c4b0259e9065dd20fc8cb9b6e694e3e"
+        }
+      ]
+    },
+    "state:PYF": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:FRA",
+      "sourceInfoHash": "333c5f074fc855d10050c522dec98c6e45dfea4b4917c5f3c33e47b55f56e03d",
+      "names": {
+        "ko": "프랑스령폴리네시아"
+      },
+      "alternateNames": [],
+      "canonicalName": "프랑스령폴리네시아",
+      "versions": [
+        {
+          "versionId": "state:PYF:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e910ed7e698882a0f691f3867c491b54cecf2cc3df01ab3924f6db2bab15fc10"
+        }
+      ]
+    },
+    "state:QAT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ed0bbf6b93c7b719af1c15e139747c0628c6faefb565b40fa799a9016ef19e61",
+      "names": {
+        "ko": "카타르"
+      },
+      "alternateNames": [],
+      "canonicalName": "카타르",
+      "versions": [
+        {
+          "versionId": "state:QAT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "6efd8a467a615e7b86eed1edbce741e1f8ca086b48c44d96f45abeb9b57f051a"
+        }
+      ]
+    },
+    "state:ROU": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "1679a5bc8069520402f256675fe159dcd7cb71316a4b7c99adce1fbcb4e6dc74",
+      "names": {
+        "ko": "루마니아"
+      },
+      "alternateNames": [],
+      "canonicalName": "루마니아",
+      "versions": [
+        {
+          "versionId": "state:ROU:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "00a1f818b133fd2dbe0e4bff7a178f118f1b2f99d1e8d240d3fd52306a38b97b"
+        }
+      ]
+    },
+    "state:RUS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "33f7ec0116556893064c2591921f5b257d5755e87efbc91bb97b0659ad6a8dad",
+      "names": {
+        "ko": "러시아"
+      },
+      "alternateNames": [],
+      "canonicalName": "러시아",
+      "versions": [
+        {
+          "versionId": "state:RUS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ec4a51711dd7b654e21e4529fd60fbfae9ded094e95edcdbb7f69128472cad13"
+        }
+      ]
+    },
+    "state:RWA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ba14270155d4a51aa3624ad0e75f3b99ad441c5adf15068d9116239163688264",
+      "names": {
+        "ko": "르완다"
+      },
+      "alternateNames": [],
+      "canonicalName": "르완다",
+      "versions": [
+        {
+          "versionId": "state:RWA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ba6d593be4972c0df6f7f26a6465d6eb935ab61aa9ce543d07d55d98c2c06ccd"
+        }
+      ]
+    },
+    "state:SAH": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "01096bc19c2f24a7182b3302858b00697c7245a0d63f0ff00bb02497d7681a53",
+      "names": {
+        "ko": "서사하라"
+      },
+      "alternateNames": [],
+      "canonicalName": "서사하라",
+      "versions": [
+        {
+          "versionId": "state:SAH:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "6df294217e770a960d119abeb9a96a4bfb97fc6bb312255477185c8a9102bdf5"
+        }
+      ]
+    },
+    "state:SAU": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "66ce8c2563f6d22201a3de729dd73daa21eb625e969f16e0ad0eb0622aae7efc",
+      "names": {
+        "ko": "사우디아라비아"
+      },
+      "alternateNames": [],
+      "canonicalName": "사우디아라비아",
+      "versions": [
+        {
+          "versionId": "state:SAU:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c2abd477db9e78f1f0bb82ed96a18214368ff363656185be5a9f138892ae0b10"
+        }
+      ]
+    },
+    "state:SCR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "7ed0f106b157eea66ae6fcb60e0e920f9b798cd87804f080a01708f27a414616",
+      "names": {
+        "ko": "스카버러암초"
+      },
+      "alternateNames": [],
+      "canonicalName": "스카버러암초",
+      "versions": [
+        {
+          "versionId": "state:SCR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "dd8c11cb8715516c054c70caa6dbc9e732cb8620cbd6ec92d3de87d9028cd950"
+        }
+      ]
+    },
+    "state:SDN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "c16a34fef0f2e55f0779d3455ab3b8960ece84ebb11cc71789374c6ca59bef0d",
+      "names": {
+        "ko": "수단"
+      },
+      "alternateNames": [],
+      "canonicalName": "수단",
+      "versions": [
+        {
+          "versionId": "state:SDN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "de29435e599aef2e934ad59e706fff00f0ba01f81deb8dd4de771692113e7b8b"
+        }
+      ]
+    },
+    "state:SDS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "9024a96067f17c5ab8957a2fbee5a8db30df428326512d2fd6311e7f5afdedff",
+      "names": {
+        "ko": "남수단"
+      },
+      "alternateNames": [],
+      "canonicalName": "남수단",
+      "versions": [
+        {
+          "versionId": "state:SDS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "aff619c54f8c72bb50cea480492e2e054cd68ead812cd4e2526446a335010fdc"
+        }
+      ]
+    },
+    "state:SEN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "1bebd2068caf093be94c676c026cdb7d751d02f6d26b548ef85746c4d5396fc7",
+      "names": {
+        "ko": "세네갈"
+      },
+      "alternateNames": [],
+      "canonicalName": "세네갈",
+      "versions": [
+        {
+          "versionId": "state:SEN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "36d77270fc4c0524bb59b3288d24a49bedaa5a479d096637b578a812c0705391"
+        }
+      ]
+    },
+    "state:SER": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ac2b014a2488388528933cc8e7a35d6dbca32fab0c15dd43328886375c502145",
+      "names": {
+        "ko": "세라니야환초"
+      },
+      "alternateNames": [],
+      "canonicalName": "세라니야환초",
+      "versions": [
+        {
+          "versionId": "state:SER:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c971d123197e09d5a7acd874c00293a39e4970ba9f79392ba6b18969acc48209"
+        }
+      ]
+    },
+    "state:SGP": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "3244ae5153ac2ea9b8586496774c2ab9fd20f8415da636cff9a0a076a6b825f4",
+      "names": {
+        "ko": "싱가포르"
+      },
+      "alternateNames": [],
+      "canonicalName": "싱가포르",
+      "versions": [
+        {
+          "versionId": "state:SGP:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "4517fc3c440dfc600eafa94f3fbe34c9c3979d1a5f171509646152a03aed6edb"
+        }
+      ]
+    },
+    "state:SGS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "1f73bf1acd49779a12d2db704266e8ba320eace4570bb89465cfd4d2534dec58",
+      "names": {
+        "ko": "사우스조지아사우스샌드위치제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "사우스조지아사우스샌드위치제도",
+      "versions": [
+        {
+          "versionId": "state:SGS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "6c33060f81eb666bf9be58cdc8cc9bd85eb801acf513644279bc897c90d3badf"
+        }
+      ]
+    },
+    "state:SHN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "1663c142a69d61271ee4f4c5f06aee68d00f684f670cc97ba60964fe2f6c08a9",
+      "names": {
+        "ko": "세인트헬레나"
+      },
+      "alternateNames": [],
+      "canonicalName": "세인트헬레나",
+      "versions": [
+        {
+          "versionId": "state:SHN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "9a2b838fbd67eb385fe98b318c0f338ba8d7888707b8d8e3fb1c759c04d964f0"
+        }
+      ]
+    },
+    "state:SLB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "a0c50bbc34349871aa90f8e5e16de4d2738e2dfc09f113e7fcd69b785c0d8c5b",
+      "names": {
+        "ko": "솔로몬제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "솔로몬제도",
+      "versions": [
+        {
+          "versionId": "state:SLB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "f2a0466c3fd6df991a831ae591adbafe506ef8e3b313c782fb711e3f4481bb02"
+        }
+      ]
+    },
+    "state:SLE": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "da7570bd8822ceb38c2725bfe0e2538452a9796eeb3c5a76903a1d132744018b",
+      "names": {
+        "ko": "시에라리온"
+      },
+      "alternateNames": [],
+      "canonicalName": "시에라리온",
+      "versions": [
+        {
+          "versionId": "state:SLE:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5dcf2d9de34107434f24861b89f323e8d94f88ea8cc4b8e4c29b96ce250ad50e"
+        }
+      ]
+    },
+    "state:SLV": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "e442cc30da383e654c41a7d2fbcf582e25569c8a9fc2262777411d4b001abfa6",
+      "names": {
+        "ko": "엘살바도르"
+      },
+      "alternateNames": [],
+      "canonicalName": "엘살바도르",
+      "versions": [
+        {
+          "versionId": "state:SLV:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "14a79147c0ac96fe89d08782ea27135f015897b5b00056688508254b7fc432e7"
+        }
+      ]
+    },
+    "state:SMR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "a3d74729b494924c8dca2dab56aa212617bb456c6b5674a280779c104b9df335",
+      "names": {
+        "ko": "산마리노"
+      },
+      "alternateNames": [],
+      "canonicalName": "산마리노",
+      "versions": [
+        {
+          "versionId": "state:SMR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "3f03ac73f401ecce873197ded602f8486901bebb7ccd3aa160b2ce95a26e0611"
+        }
+      ]
+    },
+    "state:SOL": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "34f8fcfd5499f52d895b44fb8e48077002978690db3173b41b17391a3d3bfd7d",
+      "names": {
+        "ko": "소말릴란드"
+      },
+      "alternateNames": [],
+      "canonicalName": "소말릴란드",
+      "versions": [
+        {
+          "versionId": "state:SOL:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "6ba3fcc935ec27a639dfc284172e12f841e8395cbd59f1bd4e619dcf78ee6b40"
+        }
+      ]
+    },
+    "state:SOM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "89808fcc71ab84c3ff008d263fffa3d5b0b47542a3025f9d98ec6104789a7a0f",
+      "names": {
+        "ko": "소말리아"
+      },
+      "alternateNames": [],
+      "canonicalName": "소말리아",
+      "versions": [
+        {
+          "versionId": "state:SOM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "fb52dafabee3b08f94f04456c111b0504604379cd72db6dccaf5b8a2f91556dd"
+        }
+      ]
+    },
+    "state:SPI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "9457232f2bbb60df70ec3e1b5bebd3ca2c500c8254cb1a339dd5bb8fa4631ffe",
+      "names": {
+        "ko": "남부파타고니아빙원"
+      },
+      "alternateNames": [],
+      "canonicalName": "남부파타고니아빙원",
+      "versions": [
+        {
+          "versionId": "state:SPI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b487de5fe4c9c80864072704f0b5d08340d442f23cdf6d67b02d63ba3f7f2edc"
+        }
+      ]
+    },
+    "state:SPM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:FRA",
+      "sourceInfoHash": "f6ce09b9abe7141e2a1a4ec3b8891c2193ac15c6cc7cbb7783480dc1b0b1df45",
+      "names": {
+        "ko": "생피에르미클롱"
+      },
+      "alternateNames": [],
+      "canonicalName": "생피에르미클롱",
+      "versions": [
+        {
+          "versionId": "state:SPM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "0fb80eab1f7987001c3f19ae14fe54173873f1d8ca31d970b14a39759ed7d9af"
+        }
+      ]
+    },
+    "state:SRB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "69c4d53325ec79d7db7ec0f3d6a4dbfb5c7b4ad041e98e8cb8da89f2ac912750",
+      "names": {
+        "ko": "세르비아"
+      },
+      "alternateNames": [],
+      "canonicalName": "세르비아",
+      "versions": [
+        {
+          "versionId": "state:SRB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "0fa5be5088381c531a3cc39010cdf4d53fdc34e63fab67f18f4f034f8d40fc83"
+        }
+      ]
+    },
+    "state:STP": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "fb62f24dea3715179b449b60f1ded7d302ff38d3f5dbb7667010fef0372f746a",
+      "names": {
+        "ko": "상투메프린시페"
+      },
+      "alternateNames": [],
+      "canonicalName": "상투메프린시페",
+      "versions": [
+        {
+          "versionId": "state:STP:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "793e8df366442249c130704d1ef00523c2f1aa8ba8198732f3795fc31b32bff9"
+        }
+      ]
+    },
+    "state:SUR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "932036b50a04df1ba53bd479f9b6ba3096a3c7d1331bcd49715d1cd49cad2dbc",
+      "names": {
+        "ko": "수리남"
+      },
+      "alternateNames": [],
+      "canonicalName": "수리남",
+      "versions": [
+        {
+          "versionId": "state:SUR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5528574de24d82182c630f2b0941db0311bced1cde099f4bde92470deea4ce17"
+        }
+      ]
+    },
+    "state:SVK": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "aab51a3b4947f10578e1d9c3aa7c5e756dc5c74abff922cd1cd15ea5b7ab5bcb",
+      "names": {
+        "ko": "슬로바키아"
+      },
+      "alternateNames": [],
+      "canonicalName": "슬로바키아",
+      "versions": [
+        {
+          "versionId": "state:SVK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ef715b9b097eb18086e4bf1ddf9dd833e2fbbfb5e5e3299d0a016f42d8f240f8"
+        }
+      ]
+    },
+    "state:SVN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "8e8d96eb5016b389b4071fe56abc7f7a13752f540adae28b422b33cb98d5c5b5",
+      "names": {
+        "ko": "슬로베니아"
+      },
+      "alternateNames": [],
+      "canonicalName": "슬로베니아",
+      "versions": [
+        {
+          "versionId": "state:SVN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "116f55a19e8e72a7d9ee0f14beaab7c35f812d559ca554b158a6de09417203da"
+        }
+      ]
+    },
+    "state:SWE": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "dd8f180b067d9c319b2882c8f2fdb77ae6c6f41bfa8f6bfe166be0c1f710d8e9",
+      "names": {
+        "ko": "스웨덴"
+      },
+      "alternateNames": [],
+      "canonicalName": "스웨덴",
+      "versions": [
+        {
+          "versionId": "state:SWE:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "8e88181d4f4b98dd25a99224de59fddc498cecaf7f0c0482382ffb712bac0930"
+        }
+      ]
+    },
+    "state:SWZ": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "0843cff6058f629933298e8e8691970c12c0ebed96db5fcccdbe56a8704fc2da",
+      "names": {
+        "ko": "에스와티니"
+      },
+      "alternateNames": [],
+      "canonicalName": "에스와티니",
+      "versions": [
+        {
+          "versionId": "state:SWZ:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "842ffcb1ceafdb02a57bf6b17e3d69c1ce51e946eabf991e9cdbe8180dd3bdbf"
+        }
+      ]
+    },
+    "state:SXM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:NLD",
+      "sourceInfoHash": "c3f97de9d3b5956c9ec59292090883e6b916fe1aa087ca37efec303b660fe306",
+      "names": {
+        "ko": "신트마르턴"
+      },
+      "alternateNames": [],
+      "canonicalName": "신트마르턴",
+      "versions": [
+        {
+          "versionId": "state:SXM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "f5510b254fdcb655b30c20a6ac9c3348e12bb582aa32ef1778b74165e43bb63d"
+        }
+      ]
+    },
+    "state:SYC": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "fa7b21046de946d344b88fd3fea99cede22d1177c6081bce2e1442fce31ebec1",
+      "names": {
+        "ko": "세이셸"
+      },
+      "alternateNames": [],
+      "canonicalName": "세이셸",
+      "versions": [
+        {
+          "versionId": "state:SYC:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "acb44b1eb73c6c55d204ba3e0771cf421526d81ad5bd32ca1cc9f04ac1958f9f"
+        }
+      ]
+    },
+    "state:SYR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "75b21032111cee39cec3380a3ec7df4d15867dc7d5dfec7110c6fec6a8ab036d",
+      "names": {
+        "ko": "시리아"
+      },
+      "alternateNames": [],
+      "canonicalName": "시리아",
+      "versions": [
+        {
+          "versionId": "state:SYR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5fec389881ae1bf6613dbf719f647e595b8a27ee18662a6f5f8e738cf060df0b"
+        }
+      ]
+    },
+    "state:TCA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "40ab4e5b9590d31170fef113f4e259d20c97246c71c1a74e0e183b44d3710867",
+      "names": {
+        "ko": "터크스케이커스제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "터크스케이커스제도",
+      "versions": [
+        {
+          "versionId": "state:TCA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "1497d70f4fe5297c4a74372521023723af832226ec8ed40abf27a005184cf904"
+        }
+      ]
+    },
+    "state:TCD": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "5c39e8b07cfc00b69f53648df1936c6aef15d51c828aeb91432c098d91f340ed",
+      "names": {
+        "ko": "차드"
+      },
+      "alternateNames": [],
+      "canonicalName": "차드",
+      "versions": [
+        {
+          "versionId": "state:TCD:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "242e9f7ef502a6b80b44e0959ca95c38462ae8a880ab6e0d07cd85c529a03f3b"
+        }
+      ]
+    },
+    "state:TGO": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d3dd7b4fa53537b00a7caa990b638e11e3fcbc711c6c7b41cdf25e102219e5e0",
+      "names": {
+        "ko": "토고"
+      },
+      "alternateNames": [],
+      "canonicalName": "토고",
+      "versions": [
+        {
+          "versionId": "state:TGO:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e9496d40cccfbda2e3b3887aa32dfdc44fdbc455f8a0f5ad2bc7ca5150f93dc0"
+        }
+      ]
+    },
+    "state:THA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "3fcc4eec4269294de62515b3d147af3c836dcb61fa77e2bd208596522fc3838a",
+      "names": {
+        "ko": "태국"
+      },
+      "alternateNames": [],
+      "canonicalName": "태국",
+      "versions": [
+        {
+          "versionId": "state:THA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "8fdafea565b52fb1ed773ee662c8dd2d4cb5ecf55981f1c7b944f2b30fd8b073"
+        }
+      ]
+    },
+    "state:TJK": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "0963fef91324796fb5b579c079ecd2369cb510a804b7f42412dda608ae4d8222",
+      "names": {
+        "ko": "타지키스탄"
+      },
+      "alternateNames": [],
+      "canonicalName": "타지키스탄",
+      "versions": [
+        {
+          "versionId": "state:TJK:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ad587908c0d709514d2e760a4665902227a0fa0ce0b824c923e906d2456d5d67"
+        }
+      ]
+    },
+    "state:TKM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ebcc3e88097ec0b78c458de78a30c0a9db0407af58d8df1d59b6cccb2d2b23bb",
+      "names": {
+        "ko": "투르크메니스탄"
+      },
+      "alternateNames": [],
+      "canonicalName": "투르크메니스탄",
+      "versions": [
+        {
+          "versionId": "state:TKM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "9335632ed2354a8827b405772e692d00de6996f140adc4830643bfbda5cf08f6"
+        }
+      ]
+    },
+    "state:TLS": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "6fb7d40d5b19b4f78e0ea9a3e2dd2b35951fc191a2b0b80cf05cedb83eed89d6",
+      "names": {
+        "ko": "동티모르"
+      },
+      "alternateNames": [],
+      "canonicalName": "동티모르",
+      "versions": [
+        {
+          "versionId": "state:TLS:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "63b893f27d4384481279d7c74ccfb75dc548d0a3448e82f87cb4d366c530caa9"
+        }
+      ]
+    },
+    "state:TON": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "9579a58a0e2b5f312a57229de9cb1d10fa9deeaf2ec82fbda0e9b18435ccfd38",
+      "names": {
+        "ko": "통가"
+      },
+      "alternateNames": [],
+      "canonicalName": "통가",
+      "versions": [
+        {
+          "versionId": "state:TON:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "cc488d3891c0b5ea75561b3892b8dd736bb072e7e0c093e17a991ce95b390b3d"
+        }
+      ]
+    },
+    "state:TTO": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "c4241323e9ff249b032856649e58271f160e2d69862e45ccfd3ec4fd202a8087",
+      "names": {
+        "ko": "트리니다드토바고"
+      },
+      "alternateNames": [],
+      "canonicalName": "트리니다드토바고",
+      "versions": [
+        {
+          "versionId": "state:TTO:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ea872ffa69b70f21115440a3cc0612eb33f8cb6c0c2c8e4a34a979f92dd6af81"
+        }
+      ]
+    },
+    "state:TUN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "67da4f0732726b40dda2a29b052b3c674b7b2fe99f16396383bf18e0894f6a33",
+      "names": {
+        "ko": "튀니지"
+      },
+      "alternateNames": [],
+      "canonicalName": "튀니지",
+      "versions": [
+        {
+          "versionId": "state:TUN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "345926481d4261fecdc77b0d8f6b32c5283aac5e8364adf94cf52a7fa8af424d"
+        }
+      ]
+    },
+    "state:TUR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "56b5d7dfdf170064b1cd1d478b60e30de06f4828b17ec470b9e379e8e9ba6b31",
+      "names": {
+        "ko": "튀르키예"
+      },
+      "alternateNames": [],
+      "canonicalName": "튀르키예",
+      "versions": [
+        {
+          "versionId": "state:TUR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "b77ace407ca86cb878ab361557902f1a5a3f3792510084ae8c4abb124d0bbbd3"
+        }
+      ]
+    },
+    "state:TUV": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "431ea04fddaffa79eb0109d1ef8ae412a9cef9945e69602f7e3a0b9916d03286",
+      "names": {
+        "ko": "투발루"
+      },
+      "alternateNames": [],
+      "canonicalName": "투발루",
+      "versions": [
+        {
+          "versionId": "state:TUV:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "0e7d693b85316a3d09c87dfe942785edd17cbb3f2abefddc31864f2e001bdc29"
+        }
+      ]
+    },
+    "state:TWN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "26c607be64bbfee65d51f118c9282ea07a117a3b1b21b7d291bd1a39a2be4521",
+      "names": {
+        "ko": "중화민국"
+      },
+      "alternateNames": [],
+      "canonicalName": "중화민국",
+      "versions": [
+        {
+          "versionId": "state:TWN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d6f17d864a74bc4e75e55ddf0ce881a7c62953140c18cbf84b006b044cbf1e8f"
+        }
+      ]
+    },
+    "state:TZA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d5e662fa8c737493a3ea2a045d92efe9440629a9169b06b79e89123134f9657b",
+      "names": {
+        "ko": "탄자니아"
+      },
+      "alternateNames": [],
+      "canonicalName": "탄자니아",
+      "versions": [
+        {
+          "versionId": "state:TZA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "faec654e55dbdd41e8766093c8cb2b07522874ab0cb1f238789eeedb8d847359"
+        }
+      ]
+    },
+    "state:UGA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "038fea8bff895814a684d835ebc6b1f9378edb6eceab0231851da2af97eb4c56",
+      "names": {
+        "ko": "우간다"
+      },
+      "alternateNames": [],
+      "canonicalName": "우간다",
+      "versions": [
+        {
+          "versionId": "state:UGA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "1bc1b939e1b247327379308aa592eabc824f7ada7230406982830427186a005d"
+        }
+      ]
+    },
+    "state:UKR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "e84384a7abe14ae83285c5de21ab9e441d31f48d93023568fcd617c23fceec5d",
+      "names": {
+        "ko": "우크라이나"
+      },
+      "alternateNames": [],
+      "canonicalName": "우크라이나",
+      "versions": [
+        {
+          "versionId": "state:UKR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5ae7b60a4fb246e12f8acc2b79ecfad0f28d040f278db53688960f5a9800765f"
+        }
+      ]
+    },
+    "state:UMI": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:USA",
+      "sourceInfoHash": "b091ea31a3ec768bee037251d08344af79978c1c554498535d0d63c8e3016efe",
+      "names": {
+        "ko": "미국령군소제도"
+      },
+      "alternateNames": [],
+      "canonicalName": "미국령군소제도",
+      "versions": [
+        {
+          "versionId": "state:UMI:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "93e4e6e544f77fbf05e55f6b8e8b2468b29644e9bdacb3e9900420fd3f839702"
+        }
+      ]
+    },
+    "state:URY": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "6deb8028346ce0b6f83de790948e513fe27b7e864f2563db9ea76059366db3f0",
+      "names": {
+        "ko": "우루과이"
+      },
+      "alternateNames": [],
+      "canonicalName": "우루과이",
+      "versions": [
+        {
+          "versionId": "state:URY:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "ba3a00d69ff57d508ffb3a4b91e0c2ca55f9ed3042c1a1517f682856569e1171"
+        }
+      ]
+    },
+    "state:USA": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ae1b32b5599b53b47a4d66bee4a4b291964d8a60847465cd57e79fe65052e552",
+      "names": {
+        "ko": "미국"
+      },
+      "alternateNames": [],
+      "canonicalName": "미국",
+      "versions": [
+        {
+          "versionId": "state:USA:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "1682495e0cdb7930feb299983228132a07aaa292fe44c718b09c4da0f291ecaa"
+        }
+      ]
+    },
+    "state:USG": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:CUB",
+      "sourceInfoHash": "8795b1e5724673757851b7941781d8c7206e64c3f82d1314de67e5a514c54626",
+      "names": {
+        "ko": "관타나모만 해군 기지"
+      },
+      "alternateNames": [],
+      "canonicalName": "관타나모만 해군 기지",
+      "versions": [
+        {
+          "versionId": "state:USG:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d2e386205073c3db0fa70a5438fd915d4a0762b5af116e6b3cf45ba2e70e2932"
+        }
+      ]
+    },
+    "state:UZB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "8c69a311742a09e74780b2031756f7f11aff916c47309d8ce1d65996c1fa9d95",
+      "names": {
+        "ko": "우즈베키스탄"
+      },
+      "alternateNames": [],
+      "canonicalName": "우즈베키스탄",
+      "versions": [
+        {
+          "versionId": "state:UZB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "beb6414c7c5f77565aee06ab4e53433017197c1ce4366acf134d60b0d37da118"
+        }
+      ]
+    },
+    "state:VAT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "94bedbfcc5d94e52081364d3ac128fd55a74110e5ee653ae056260113c25b534",
+      "names": {
+        "ko": "바티칸 시국"
+      },
+      "alternateNames": [],
+      "canonicalName": "바티칸 시국",
+      "versions": [
+        {
+          "versionId": "state:VAT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c003bf425add34e4483281d1eb72f476bc1a3d6d7125f5f6d3cc8f3551739450"
+        }
+      ]
+    },
+    "state:VCT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "a824eb2a07416de355179887a5da0f44f53ee9038bc62d2216a79bb5b03584bf",
+      "names": {
+        "ko": "세인트빈센트그레나딘"
+      },
+      "alternateNames": [],
+      "canonicalName": "세인트빈센트그레나딘",
+      "versions": [
+        {
+          "versionId": "state:VCT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "63a56e4f4e1a19670bbc510472d79ce593b91645a89eaf0d8243e5413612ab41"
+        }
+      ]
+    },
+    "state:VEN": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "7c4aeb7602bf0890f7881c48c640aabaaa0c565ec4dc611d5b1ab276e3d8a3fb",
+      "names": {
+        "ko": "베네수엘라"
+      },
+      "alternateNames": [],
+      "canonicalName": "베네수엘라",
+      "versions": [
+        {
+          "versionId": "state:VEN:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "16d15d1626df3b671f2ce4da9dd01811b97bc80b65c5c2ea483536e02d826553"
+        }
+      ]
+    },
+    "state:VGB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "e83688170e6b11e58788071b94859e63c6eb78f36f5a9991658c157c90f82bd6",
+      "names": {
+        "ko": "영국령버진아일랜드"
+      },
+      "alternateNames": [],
+      "canonicalName": "영국령버진아일랜드",
+      "versions": [
+        {
+          "versionId": "state:VGB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "0c70d7eba5c810148cd7ca2eddea9a0e4421f78a835c9bea7fcbd98fc212cab0"
+        }
+      ]
+    },
+    "state:VIR": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:USA",
+      "sourceInfoHash": "96525c3484d701278e1175a2c45cef5afe964b79df284dbf109adc8979e641a4",
+      "names": {
+        "ko": "미국령버진아일랜드"
+      },
+      "alternateNames": [],
+      "canonicalName": "미국령버진아일랜드",
+      "versions": [
+        {
+          "versionId": "state:VIR:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "d61bdc11c5e44913b4790a610cdd2a3b41a84772101adafeb5d18f616e39a02b"
+        }
+      ]
+    },
+    "state:VNM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d39a6ca496a8b85007e912ce5ca73027ce603926b16c25e21f1bf069cc71fae8",
+      "names": {
+        "ko": "베트남"
+      },
+      "alternateNames": [],
+      "canonicalName": "베트남",
+      "versions": [
+        {
+          "versionId": "state:VNM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "5e879434559ed4d785d0de598d25978892d7d16ddac70fc9dd7331f3c4f4a52e"
+        }
+      ]
+    },
+    "state:VUT": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "42a98783050b7b315b142d2031077de49ba3d75c65bef5a47574346f6e1a00f2",
+      "names": {
+        "ko": "바누아투"
+      },
+      "alternateNames": [],
+      "canonicalName": "바누아투",
+      "versions": [
+        {
+          "versionId": "state:VUT:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c65f8839da2775cafd5eefe0e4867db1e678807a49307eeaeadb48d75d4c3569"
+        }
+      ]
+    },
+    "state:WLF": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:FRA",
+      "sourceInfoHash": "c73356798c470472683a498a814c5d188313e3e3286da474ab0f78a715af34bb",
+      "names": {
+        "ko": "왈리스푸투나"
+      },
+      "alternateNames": [],
+      "canonicalName": "왈리스푸투나",
+      "versions": [
+        {
+          "versionId": "state:WLF:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "06f6885b51ffb787a28454655cc9cbd1af97dcc3288bd9c7eb77cc1462a36c55"
+        }
+      ]
+    },
+    "state:WSB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "state:GBR",
+      "sourceInfoHash": "7a3c8f9f584c4bc176fbd1c19ef1aa73ea0567ec5574aff8ddd08b1a317e0483",
+      "names": {
+        "ko": "아크로티리"
+      },
+      "alternateNames": [],
+      "canonicalName": "아크로티리",
+      "versions": [
+        {
+          "versionId": "state:WSB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "704202604817fc30aa1344f70f11d54dd9ff063a4267be8c326aee5ed92d1b19"
+        }
+      ]
+    },
+    "state:WSM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "8413af64970ad3c68a4884ee609afea6c38e324251412311f643802b9e1b1953",
+      "names": {
+        "ko": "사모아"
+      },
+      "alternateNames": [],
+      "canonicalName": "사모아",
+      "versions": [
+        {
+          "versionId": "state:WSM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "72e85c630020b6b29db600632e9462f7538d609c342fdc200e19ea9b8de46b94"
+        }
+      ]
+    },
+    "state:YEM": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "8e8c962044f6d12a0aa6786168640247426b9931a54cab4e2bf161853586969c",
+      "names": {
+        "ko": "예멘"
+      },
+      "alternateNames": [],
+      "canonicalName": "예멘",
+      "versions": [
+        {
+          "versionId": "state:YEM:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "625c396dd8effea9b3262935f76dd7cc9d98bbd5a89bd906b98e418155d0116c"
+        }
+      ]
+    },
+    "state:ZAF": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "8310d562538d4bc3e0f070f83fbf743bd4f8feda6569fa7d64ad1ed9469b32f5",
+      "names": {
+        "ko": "남아프리카 공화국"
+      },
+      "alternateNames": [],
+      "canonicalName": "남아프리카 공화국",
+      "versions": [
+        {
+          "versionId": "state:ZAF:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "e1dfb8f6935fa8ff0dc8bab4c2d2353ab6d4f04ed67a6474e3a82e4a507b4d4e"
+        }
+      ]
+    },
+    "state:ZMB": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "f30abfd35cebf211f18c4db4ba9a62ae9b18d367ad5743181d96b2c478e29cf6",
+      "names": {
+        "ko": "잠비아"
+      },
+      "alternateNames": [],
+      "canonicalName": "잠비아",
+      "versions": [
+        {
+          "versionId": "state:ZMB:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "c7cb8964a6184ada5078984e4773ea473e8ea198178b6e9dee51a02f93881b93"
+        }
+      ]
+    },
+    "state:ZWE": {
+      "lifetime": {
+        "validFrom": null,
+        "validTo": null
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "adf0159ec670e02923aab95f1696fdbeb1ffa445610bbd9d2c39796f046f10aa",
+      "names": {
+        "ko": "짐바브웨"
+      },
+      "alternateNames": [],
+      "canonicalName": "짐바브웨",
+      "versions": [
+        {
+          "versionId": "state:ZWE:natural-earth-5.1.1",
+          "validFrom": null,
+          "validTo": null,
+          "geometryHash": "7830e446eae3a78ce69dbc827539add7f3ba0bfe4ca3d2776a963abe633b3f9c"
+        }
+      ]
+    },
+    "state:czechoslovakia": {
+      "lifetime": {
+        "validFrom": "1918",
+        "validTo": "1992"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "d9c6af6e8b23f826a98c9014fda678ea18e4fbb9228b2fe5f99c608ae250b1e2",
+      "names": {
+        "ko": "체코슬로바키아",
+        "en": "Czechoslovakia",
+        "cs": "Československo"
+      },
+      "alternateNames": [
+        "체코슬로바키아 공화국",
+        "Czecho-Slovakia"
+      ],
+      "canonicalName": "Czechoslovakia",
+      "versions": [
+        {
+          "versionId": "state:czechoslovakia:pilot-successor-union",
+          "validFrom": "1918",
+          "validTo": "1992",
+          "geometryHash": "ded7c16a1962971e3b382009d99fe547b730902eafeca5efef3b54c36e16ce34"
+        }
+      ]
+    },
+    "state:deutsche-demokratische-republik": {
+      "lifetime": {
+        "validFrom": "1949-10-07",
+        "validTo": "1990-10-02"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "bf0a3d742234b2b24ef340930be55ff7741d57222637073af53d0345dc8b1950",
+      "names": {
+        "ko": "독일 민주공화국",
+        "en": "German Democratic Republic",
+        "de": "Deutsche Demokratische Republik"
+      },
+      "alternateNames": [
+        "동독",
+        "East Germany",
+        "DDR",
+        "GDR",
+        "Ostdeutschland"
+      ],
+      "canonicalName": "German Democratic Republic",
+      "versions": [
+        {
+          "versionId": "state:deutsche-demokratische-republik:1989-04-25-r1",
+          "validFrom": "1989-04-25",
+          "validTo": "1989-04-25",
+          "geometryHash": "91be70ef0d0952b91983831a271a6a143079667ae138acbeab77038fb2fec662"
+        }
+      ]
+    },
+    "state:east-prussia": {
+      "lifetime": {
+        "validFrom": "1878-04-01",
+        "validTo": "1920-01-10"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "c29dd2981619fa60e4197772cdaea1944cdc084f40f5a84701ca743ecbfbcf15",
+      "names": {
+        "ko": "동프로이센주",
+        "en": "East Prussia",
+        "de": "Ostpreußen",
+        "pl": "Prusy Wschodnie",
+        "lt": "Rytų Prūsija",
+        "ru": "Восточная Пруссия"
+      },
+      "alternateNames": [
+        "동프로이센",
+        "Ostpreussen",
+        "Province of East Prussia",
+        "Provinz Ostpreußen"
+      ],
+      "canonicalName": "East Prussia",
+      "versions": [
+        {
+          "versionId": "ostpreussen-1878-1920-r3",
+          "validFrom": "1878-04-01",
+          "validTo": "1920-01-10",
+          "geometryHash": "54c45d4de9f5f16e9dffb06eec24aeaef8f89b82aa455fd7c26b1064fe716237"
+        }
+      ]
+    },
+    "state:indonesia": {
+      "lifetime": {
+        "validFrom": "1945-08-17",
+        "validTo": "2002-05-19"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "ff59c2b592def40b70af46703a2d0583e8206614182c9417d96df430acea027f",
+      "names": {
+        "ko": "인도네시아",
+        "en": "Indonesia"
+      },
+      "alternateNames": [
+        "인도네시아(2002년 이전)",
+        "Indonesia with East Timor",
+        "Indonesia before 2002",
+        "인도네시아(동티모르 분리 전)"
+      ],
+      "canonicalName": "Indonesia",
+      "versions": [
+        {
+          "versionId": "state:indonesia:1945-2002-r1",
+          "validFrom": "1945-08-17",
+          "validTo": "2002-05-19",
+          "geometryHash": "d01d231263d423add51c65a2279a0860e298a5bf3c13e8aaca03aa886d89700c"
+        }
+      ]
+    },
+    "state:nagorno-karabakh": {
+      "lifetime": {
+        "validFrom": "1991-09-02",
+        "validTo": "2023-09-28"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "f1369f606b36f5945e8f9607ba8ee170c39d74320cd95cff2c376b3afb50ecb7",
+      "names": {
+        "ko": "나고르노카라바흐",
+        "en": "Nagorno-Karabakh"
+      },
+      "alternateNames": [
+        "아르차흐",
+        "Artsakh",
+        "Nagorno-Karabakh Republic",
+        "Republic of Artsakh",
+        "NKR"
+      ],
+      "canonicalName": "Nagorno-Karabakh",
+      "versions": [
+        {
+          "versionId": "state:nagorno-karabakh:1991-2020-r1",
+          "validFrom": "1991-09-02",
+          "validTo": "2020-11-09",
+          "geometryHash": "15d089f015296dc90859ba97efcc22e72918958d30f348c3244046d0f1617634"
+        },
+        {
+          "versionId": "state:nagorno-karabakh:2020-2023-r1",
+          "validFrom": "2020-11-10",
+          "validTo": "2023-09-28",
+          "geometryHash": "c389b470d922f0c9ea48693f2a5114d4370d3ccbdc8081fc6a29589e89d349a1"
+        }
+      ]
+    },
+    "state:north-schleswig": {
+      "lifetime": {
+        "validFrom": "1900-01-01",
+        "validTo": "1900-01-01"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "758d47db6ddbeafeac69a9dfbcbf2bd60a3061e857d80b458a9d3e103803cef0",
+      "names": {
+        "ko": "북슐레스비히",
+        "en": "North Schleswig",
+        "de": "Nordschleswig",
+        "da": "Nordslesvig"
+      },
+      "alternateNames": [
+        "북슐레스비히",
+        "North Schleswig",
+        "Nordschleswig",
+        "Nordslesvig"
+      ],
+      "canonicalName": "North Schleswig",
+      "versions": [
+        {
+          "versionId": "north-schleswig-1900-r3",
+          "validFrom": "1900-01-01",
+          "validTo": "1900-01-01",
+          "geometryHash": "c3557d8941c5cfd74346d7dd7d97e5406ebf630f5a713f6691a5388ff2ec68e8"
+        }
+      ]
+    },
+    "state:soviet-union-armenian-ssr": {
+      "lifetime": {
+        "validFrom": "1936-12-05",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "035fed1db5c117ec8ce12e09f692c11dabd0b28ed137aff844c41c810a91bd5b",
+      "names": {
+        "ko": "아르메니아 소비에트 사회주의 공화국",
+        "en": "Armenian Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "아르메니아 SSR",
+        "Armenian SSR"
+      ],
+      "canonicalName": "Armenian Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-armenian-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "7285d03fd0d45c918b481e3c56fc6e8da7b819315bf057d39784ca18ae383948"
+        }
+      ]
+    },
+    "state:soviet-union-azerbaijan-ssr": {
+      "lifetime": {
+        "validFrom": "1936-12-05",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "2f1dab1a1cb09607c1c58e35b9254bbb389595e9f484ad3d314e11ce7c621e27",
+      "names": {
+        "ko": "아제르바이잔 소비에트 사회주의 공화국",
+        "en": "Azerbaijan Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "아제르바이잔 SSR",
+        "Azerbaijan SSR"
+      ],
+      "canonicalName": "Azerbaijan Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-azerbaijan-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "ae0c78b091eacff7df9575c6f9f73bfd84d6b739d73336dfb949feabede8a354"
+        }
+      ]
+    },
+    "state:soviet-union-byelorussian-ssr": {
+      "lifetime": {
+        "validFrom": "1922-12-30",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "f92334eee465bc432bfe5301db64c4da8caea9527fe0b625e76b6b6e607642ff",
+      "names": {
+        "ko": "벨로루시 소비에트 사회주의 공화국",
+        "en": "Byelorussian Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "벨로루시 SSR",
+        "Byelorussian SSR",
+        "Belorussian SSR"
+      ],
+      "canonicalName": "Byelorussian Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-byelorussian-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "2663e53f6a226149db72916c3211acb9a4eaef7d594d7a653bb0059c619a639f"
+        }
+      ]
+    },
+    "state:soviet-union-estonian-ssr": {
+      "lifetime": {
+        "validFrom": "1940-08-06",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "f751622f1ab62c6c78b722d8073969ca73fb5ca478f339976fd7894af377f6da",
+      "names": {
+        "ko": "에스토니아 소비에트 사회주의 공화국",
+        "en": "Estonian Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "에스토니아 SSR",
+        "Estonian SSR"
+      ],
+      "canonicalName": "Estonian Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-estonian-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "3891b4557f687924e2dd86fd9ab64e6af1183e8369bae0392cc247781f0ef53d"
+        }
+      ]
+    },
+    "state:soviet-union-georgian-ssr": {
+      "lifetime": {
+        "validFrom": "1936-12-05",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "aa38fe4927975b5d92bbf313e81a85d7d79e235b4b2610b8afaf7999625be65f",
+      "names": {
+        "ko": "조지아 소비에트 사회주의 공화국",
+        "en": "Georgian Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "조지아 SSR",
+        "그루지야 SSR",
+        "Georgian SSR"
+      ],
+      "canonicalName": "Georgian Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-georgian-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "5563d7ddb1a52e79540c63d18a35b4e002fd0fd860558cf0188fba0b35a7e407"
+        }
+      ]
+    },
+    "state:soviet-union-kazakh-ssr": {
+      "lifetime": {
+        "validFrom": "1936-12-05",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "4f68d13c15ea2ddc30fa527a7962b4fa1a7132dc2320987604b789a64a730c68",
+      "names": {
+        "ko": "카자흐 소비에트 사회주의 공화국",
+        "en": "Kazakh Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "카자흐 SSR",
+        "Kazakh SSR"
+      ],
+      "canonicalName": "Kazakh Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-kazakh-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "0e22daa74dfe984e57a7cbe6bc2ef4c24b43fb33d6f73018c75154f6cca745c1"
+        }
+      ]
+    },
+    "state:soviet-union-kirghiz-ssr": {
+      "lifetime": {
+        "validFrom": "1936-12-05",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "c81d2c16020ad3259e7835021c6321572d8a172743dfe99b7ff219ce2c4530e3",
+      "names": {
+        "ko": "키르기스 소비에트 사회주의 공화국",
+        "en": "Kirghiz Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "키르기스 SSR",
+        "Kirghiz SSR",
+        "Kyrgyz SSR"
+      ],
+      "canonicalName": "Kirghiz Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-kirghiz-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "b70896971ad28a907d227445e21917c7a3591a8b3a49e5838d36faa22fef49d8"
+        }
+      ]
+    },
+    "state:soviet-union-latvian-ssr": {
+      "lifetime": {
+        "validFrom": "1940-08-05",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "22350fe930a2a9aa4acd331ea75c7ded06f071c98c7a0e2f2e4f083eb058b673",
+      "names": {
+        "ko": "라트비아 소비에트 사회주의 공화국",
+        "en": "Latvian Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "라트비아 SSR",
+        "Latvian SSR"
+      ],
+      "canonicalName": "Latvian Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-latvian-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "4e380bc12960fa5124fd7f39e39a2f2bd470292f387d0a02c359ed5a4d205c35"
+        }
+      ]
+    },
+    "state:soviet-union-lithuanian-ssr": {
+      "lifetime": {
+        "validFrom": "1940-08-03",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "d204da50b8a0a1f2b107486bfb6f14f750c5a2c20ddd5b8c44dc15da235563f1",
+      "names": {
+        "ko": "리투아니아 소비에트 사회주의 공화국",
+        "en": "Lithuanian Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "리투아니아 SSR",
+        "Lithuanian SSR"
+      ],
+      "canonicalName": "Lithuanian Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-lithuanian-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "84af2ed19f6dee9aa625185e5619d2d18d6a2248a0a713c293a44a773bbada83"
+        }
+      ]
+    },
+    "state:soviet-union-moldavian-ssr": {
+      "lifetime": {
+        "validFrom": "1940-08-02",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "e40fc1e0bfa7cb88e58ea16922ad68695dce97c4a5d8183505ff0e135f296b4c",
+      "names": {
+        "ko": "몰도바 소비에트 사회주의 공화국",
+        "en": "Moldavian Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "몰도바 SSR",
+        "몰다비아 SSR",
+        "Moldavian SSR"
+      ],
+      "canonicalName": "Moldavian Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-moldavian-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "28e8c2643b6e993f62e1766280a912bf0ec687f371d1575e15c06b016d873d66"
+        }
+      ]
+    },
+    "state:soviet-union-russian-sfsr": {
+      "lifetime": {
+        "validFrom": "1922-12-30",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "99d4ba708ee0b60be9eb4d313b9d9685bddf262bcf2946375c2499214bfb37c2",
+      "names": {
+        "ko": "러시아 소비에트 연방 사회주의 공화국",
+        "en": "Russian Soviet Federative Socialist Republic"
+      },
+      "alternateNames": [
+        "러시아 SFSR",
+        "Russian SFSR",
+        "RSFSR",
+        "РСФСР"
+      ],
+      "canonicalName": "Russian Soviet Federative Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-russian-sfsr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "1622accbe95fcd708d980b0871b72a2d65dc471541371e1a0af193f44dc985be"
+        }
+      ]
+    },
+    "state:soviet-union-tajik-ssr": {
+      "lifetime": {
+        "validFrom": "1929-12-05",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "3c2de097cb72837c6ed6a8ce21aa197b7911a033d62a1bd3acb95ffeff357d68",
+      "names": {
+        "ko": "타지크 소비에트 사회주의 공화국",
+        "en": "Tajik Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "타지크 SSR",
+        "Tajik SSR"
+      ],
+      "canonicalName": "Tajik Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-tajik-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "ad587908c0d709514d2e760a4665902227a0fa0ce0b824c923e906d2456d5d67"
+        }
+      ]
+    },
+    "state:soviet-union-turkmen-ssr": {
+      "lifetime": {
+        "validFrom": "1925-05-13",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "fd1c6e5111c14fccf9628900137fc146d78cfc7b44da0eb470adcea8483c5939",
+      "names": {
+        "ko": "투르크멘 소비에트 사회주의 공화국",
+        "en": "Turkmen Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "투르크멘 SSR",
+        "Turkmen SSR"
+      ],
+      "canonicalName": "Turkmen Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-turkmen-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "9335632ed2354a8827b405772e692d00de6996f140adc4830643bfbda5cf08f6"
+        }
+      ]
+    },
+    "state:soviet-union-ukrainian-ssr": {
+      "lifetime": {
+        "validFrom": "1922-12-30",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "56dcefee635b310555781f16baac5cdcda73dbb63ca821479cba196ce529916a",
+      "names": {
+        "ko": "우크라이나 소비에트 사회주의 공화국",
+        "en": "Ukrainian Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "우크라이나 SSR",
+        "Ukrainian SSR"
+      ],
+      "canonicalName": "Ukrainian Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-ukrainian-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "15e7d73c240c9227b575be073a291960fbe673f1ec689f1a61274948fe7ff78b"
+        }
+      ]
+    },
+    "state:soviet-union-uzbek-ssr": {
+      "lifetime": {
+        "validFrom": "1925-05-13",
+        "validTo": "1991-12-25"
+      },
+      "parentEntityId": "state:soviet-union",
+      "sourceInfoHash": "9f72a914099f6263d86fd08495b3bd2ff49d7028db95d2305cf1d3cd449fb808",
+      "names": {
+        "ko": "우즈베크 소비에트 사회주의 공화국",
+        "en": "Uzbek Soviet Socialist Republic"
+      },
+      "alternateNames": [
+        "우즈베크 SSR",
+        "Uzbek SSR"
+      ],
+      "canonicalName": "Uzbek Soviet Socialist Republic",
+      "versions": [
+        {
+          "versionId": "state:soviet-union-uzbek-ssr:1991-r1",
+          "validFrom": "1991-01-01",
+          "validTo": "1991-12-25",
+          "geometryHash": "beb6414c7c5f77565aee06ab4e53433017197c1ce4366acf134d60b0d37da118"
+        }
+      ]
+    },
+    "state:soviet-union": {
+      "lifetime": {
+        "validFrom": "1922",
+        "validTo": "1991"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "f401d038095589a1f7942c15aee7b03cb208b447f0bb1aea4bd7dc4a0c6f4169",
+      "names": {
+        "ko": "소련",
+        "en": "Soviet Union",
+        "ru": "СССР"
+      },
+      "alternateNames": [
+        "소비에트 사회주의 공화국 연방",
+        "USSR",
+        "Union of Soviet Socialist Republics"
+      ],
+      "canonicalName": "Soviet Union",
+      "versions": [
+        {
+          "versionId": "state:soviet-union:1922-1991-baikonur-r1",
+          "validFrom": "1922",
+          "validTo": "1991",
+          "geometryHash": "45266b2c05d2cc1fff6acc80328eaac354d757d84b2a9a9212e88f7166a92092"
+        }
+      ]
+    },
+    "state:sudan": {
+      "lifetime": {
+        "validFrom": "1956-01-01",
+        "validTo": "2011-07-08"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "e7c8e8129a62b3cfde3dc63b5e8f7a1361cf75e02cf0a1a89344e554e154e6c8",
+      "names": {
+        "ko": "수단",
+        "en": "Sudan"
+      },
+      "alternateNames": [
+        "북수단",
+        "수단(2011년 이전)",
+        "Sudan before 2011",
+        "Greater Sudan",
+        "수단(남수단 분리 전)"
+      ],
+      "canonicalName": "Sudan",
+      "versions": [
+        {
+          "versionId": "state:sudan:1956-2011-r1",
+          "validFrom": "1956-01-01",
+          "validTo": "2011-07-08",
+          "geometryHash": "7e3653122779f1f21cd1b66048d4eccc45b0f9a2073cbb38831b729bedcf4bc5"
+        }
+      ]
+    },
+    "state:ukraine": {
+      "lifetime": {
+        "validFrom": "1991-08-24",
+        "validTo": "2014-03-17"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "3602f458479374aeef1ca78001ef6ab01868cdb8496d9ea16077b09e29cadbf3",
+      "names": {
+        "ko": "우크라이나",
+        "en": "Ukraine"
+      },
+      "alternateNames": [
+        "우크라이나(크림반도 포함)",
+        "Ukraine with Crimea",
+        "Ukraine before 2014",
+        "우크라이나(2014년 이전 국경)",
+        "Ukraine (pre-2014 borders)"
+      ],
+      "canonicalName": "Ukraine",
+      "versions": [
+        {
+          "versionId": "state:ukraine:1991-2014-r1",
+          "validFrom": "1991-08-24",
+          "validTo": "2014-03-17",
+          "geometryHash": "15e7d73c240c9227b575be073a291960fbe673f1ec689f1a61274948fe7ff78b"
+        }
+      ]
+    },
+    "state:west-prussia": {
+      "lifetime": {
+        "validFrom": "1878-04-01",
+        "validTo": "1919-12-31"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "acc766ce92d7022f8667302b5fa71ba8feda3183257a3cfee02e7a70fdb98a5f",
+      "names": {
+        "ko": "서프로이센주",
+        "en": "West Prussia",
+        "de": "Westpreußen",
+        "pl": "Prusy Zachodnie"
+      },
+      "alternateNames": [
+        "서프로이센",
+        "Westpreußen",
+        "Province of West Prussia",
+        "Provinz Westpreußen",
+        "Prusy Zachodnie"
+      ],
+      "canonicalName": "West Prussia",
+      "versions": [
+        {
+          "versionId": "state:west-prussia:1900-01-01-r1",
+          "validFrom": "1878-04-01",
+          "validTo": "1919-12-31",
+          "geometryHash": "27420ca8eb4764fb9d6b8a08e2d09ca20429aa5b27dbd491c7a90ab330b3813f"
+        }
+      ]
+    },
+    "state:yugoslavia": {
+      "lifetime": {
+        "validFrom": "1918-12-01",
+        "validTo": "2003-02-04"
+      },
+      "parentEntityId": "",
+      "sourceInfoHash": "53949311b721c5f23ae34740b5d5df427fa530f85e60afcc19f2cdd7cfc1ba5d",
+      "names": {
+        "ko": "유고슬라비아",
+        "en": "Yugoslavia"
+      },
+      "alternateNames": [
+        "유고슬라비아 왕국",
+        "Kingdom of Yugoslavia",
+        "Kingdom of Serbs, Croats and Slovenes",
+        "유고슬라비아 사회주의 연방공화국",
+        "Socialist Federal Republic of Yugoslavia",
+        "SFR Yugoslavia",
+        "SFRY",
+        "유고슬라비아 연방공화국",
+        "Federal Republic of Yugoslavia",
+        "세르비아-몬테네그로",
+        "FRY"
+      ],
+      "canonicalName": "Yugoslavia",
+      "versions": [
+        {
+          "versionId": "state:kingdom-of-yugoslavia:1918-1941-r1",
+          "validFrom": "1918-12-01",
+          "validTo": "1941-04-17",
+          "geometryHash": "d030de4817614c2aa567a11603ac8426b181e1d233593c674d8ddb1377b40a4c"
+        },
+        {
+          "versionId": "state:sfr-yugoslavia:1945-1992-r1",
+          "validFrom": "1945-11-29",
+          "validTo": "1992-04-26",
+          "geometryHash": "d030de4817614c2aa567a11603ac8426b181e1d233593c674d8ddb1377b40a4c"
+        },
+        {
+          "versionId": "state:federal-republic-of-yugoslavia:1992-2003-r1",
+          "validFrom": "1992-04-27",
+          "validTo": "2003-02-04",
+          "geometryHash": "1933fd6b631c0c63578c946ccd3713491ea09e8475981da70b6eac3d2a4aaa86"
+        }
+      ]
+    }
+  }
+}

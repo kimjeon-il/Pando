@@ -16,6 +16,12 @@
 
 ## 1. 객체 구조와 필드
 
+아래 Polygon 및 parent/coverage/기간 필드는 정적 UI의 파생 view다. 저장된
+`territorialEntities`는 `geometry:null` 정체성이며, 형상 연결·존속기간·부모의
+정본은 각각 `timelineRecords.geometryBindings/lifetimes/parentRelations`다.
+전체 `geometries` archive를 저장한다. 라이브러리 source의 유한 기간을 정적 UI
+객체의 기간으로 직접 적용하지 않으며 원본 기간은 출처 metadata에 보존한다.
+
 `TerritorialEntity`라는 공통 모델명, GeoJSON Feature 구조와 기존 Store·Repository를
 유지한다. 새 클래스·wrapper나 동일 객체를 나타내는 종류별 병행 모델을 만들지 않는다. 기존 지형지물
 `GenericFeature`는 이 계약의 일반객체와 별개이며 통합 대상이 아니다.
@@ -38,7 +44,7 @@ TerritorialEntity
     validTo: string | null
     metadata: object
     sourceFolderId: string
-    sourceLibraryId: string
+    sourceEntityId: string
     sourceGeometryVersion: string
 ```
 
@@ -47,7 +53,7 @@ TerritorialEntity
 | `type` | `"Feature"` | 공통 GeoJSON 표현 |
 | `id` | 비어 있지 않은 문자열, 기본값 없음 | 두 종류 전체에서 유일한 논리 ID |
 | `geometry` | Polygon/MultiPolygon, 기본값 없음 | 직접 소유하는 유효한 canonical 형상 |
-| `properties.schemaVersion` | 공통 모델 버전 `4` | 프로젝트 스키마 `8`, 기간별 관계 스키마 `3` |
+| `properties.schemaVersion` | 공통 모델 버전 `6` | 프로젝트 스키마 `10`, timelineRecords 스키마 `1` |
 | `properties.entityKind` | `general` 또는 `regional`, 모델 입력에서 필수 | 일반객체 또는 지방객체. 계층 깊이·ID·교차 국가 수에서 추측하지 않음 |
 | `properties.name`, `notes` | 문자열, `""` | 명시적 이름과 메모 |
 | `properties.parentId` | 문자열, `""` | 일반객체의 상위 일반객체 ID. 지방객체에서는 반드시 빈 문자열 |
@@ -56,7 +62,7 @@ TerritorialEntity
 | `properties.locked` | Boolean, `false` | 편집 잠금 |
 | `properties.validFrom`, `validTo` | 기존 날짜 문자열 또는 `null`, 기본 `null` | 기존 기간 계약 유지 |
 | `properties.metadata` | 객체, `{}` | 국기·수도·원본 부가정보의 기존 의미 유지 |
-| `properties.sourceFolderId`, `sourceLibraryId`, `sourceGeometryVersion` | 문자열, `""` | 출처 필드 유지. 행정 부모·논리 ID·프로젝트 리비전과 구분 |
+| `properties.sourceFolderId`, `sourceEntityId`, `sourceGeometryVersion` | 문자열, `""` | 원본 entity/version과 프로젝트 객체 ID 구분. [웹·앱 출처 계약](../territorial-source-contract.md) 참조 |
 
 `unitType`, `associatedCountryId`, `sovereignId`는 최종 canonical 필드에 없다.
 ‘국가형/하위단위형’, 독립 권역 Boolean 또는 metadata 안의 동일한 역할 필드로

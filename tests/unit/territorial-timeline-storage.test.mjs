@@ -9,10 +9,10 @@ import { projectForStorage } from '../helpers/timeline-project.mjs';
 
 const polygon = east => ({type:'Polygon',coordinates:[[[0,0],[0,1],[east,1],[east,0],[0,0]]]});
 function completeCatalog() {
-  return normalizeTerritorialLibraryEntity({schemaVersion:1,entityId:'state:synthetic',entityKind:'general',canonicalName:'Synthetic only',lifetime:{validFrom:'1948-08-15',validTo:null},geometryVersions:[
-    {id:'snapshot:1948',validFrom:'1948-08-15',validTo:'1953-07-26',geometry:polygon(1),datePrecision:'date',sourceId:'synthetic',certainty:'high'},
-    {id:'snapshot:1953',validFrom:'1953-07-27',validTo:'2000-12-31',geometry:polygon(2),datePrecision:'date',sourceId:'synthetic',certainty:'high'},
-    {id:'snapshot:current',validFrom:'2001-01-01',validTo:null,geometry:polygon(3),datePrecision:'date',sourceId:'synthetic',certainty:'high'},
+  return normalizeTerritorialLibraryEntity({schemaVersion:2,entityId:'state:synthetic',entityKind:'general',names:{ko:'Synthetic only'},lifetime:{validFrom:'1948-08-15',validTo:null},geometryVersions:[
+    {versionId:'snapshot:1948',validFrom:'1948-08-15',validTo:'1953-07-26',geometry:polygon(1),datePrecision:'date',sourceId:'synthetic',certainty:'high'},
+    {versionId:'snapshot:1953',validFrom:'1953-07-27',validTo:'2000-12-31',geometry:polygon(2),datePrecision:'date',sourceId:'synthetic',certainty:'high'},
+    {versionId:'snapshot:current',validFrom:'2001-01-01',validTo:null,geometry:polygon(3),datePrecision:'date',sourceId:'synthetic',certainty:'high'},
   ]});
 }
 function storageInput(entity) {
@@ -22,9 +22,9 @@ function storageInput(entity) {
   const refs=new Map([['snapshot:1948',{id:'archive-shape',version:7}],['snapshot:1953',{id:'archive-shape',version:11}],['snapshot:current',{id:'archive-shape',version:18}]]);
   return {entities:[{id:logicalId,entityKind:entity.entityKind}],input:{schemaVersion:1,records:{schemaVersion:1,
     lifetimes:[{id:'life-existing',entityId:logicalId,...entity.lifetime}],
-    geometryBindings:entity.geometryVersions.map(v=>({id:`binding:${v.id}`,entityId:logicalId,validFrom:v.validFrom,validTo:v.validTo,geometryRef:refs.get(v.id)})),
+    geometryBindings:entity.geometryVersions.map(v=>({id:`binding:${v.versionId}`,entityId:logicalId,validFrom:v.validFrom,validTo:v.validTo,geometryRef:refs.get(v.versionId)})),
     parentRelations:[{id:'parent-existing',entityId:logicalId,parentId:'',coverageMode:'explicit',...entity.lifetime}],
-  },geometries:[...entity.geometryVersions.map(v=>({...refs.get(v.id),geojson:v.geometry})),{id:'unreferenced',version:4,geojson:polygon(4)}]}};
+  },geometries:[...entity.geometryVersions.map(v=>({...refs.get(v.versionId),geojson:v.geometry})),{id:'unreferenced',version:4,geojson:polygon(4)}]}};
 }
 test('catalog versions retain explicit identities, records and whole archive through production full/delta saves',()=>{
   const catalog=completeCatalog(),row=storageInput(catalog),before=structuredClone(catalog);
@@ -34,7 +34,7 @@ test('catalog versions retain explicit identities, records and whole archive thr
   for(const fullAutosave of [true,false]){
     const serializer=createProjectSerializer({appVersion:'test',baseDataset:'test-base',distributionModes:['territorial','geometry'],terrainDataset:'test',hydroDataset:'test',readSnapshot:()=>({...snapshot,fullAutosave,baseDatasetFingerprint:'1'.repeat(64),entityDelta:{changed:snapshot.territorialEntities,removedIds:[]}})});
     const saved=serializer.buildAutosave();
-    assert.equal(saved.schemaVersion,9);assert.equal(saved.timelineRecords.schemaVersion,1);
+    assert.equal(saved.schemaVersion,10);assert.equal(saved.timelineRecords.schemaVersion,1);
     assert.deepEqual(saved.timelineRecords,row.input.records);assert.deepEqual(saved.geometries,row.input.geometries);
     assertCurrentProjectSchema(saved,fullAutosave?{}:{baseEntities:snapshot.territorialEntities,baseDataset:'test-base',baseDatasetFingerprint:'1'.repeat(64)});
     const reopened=restoreTimelineStorage({schemaVersion:1,records:saved.timelineRecords,geometries:saved.geometries},row.entities);

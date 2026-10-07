@@ -12,20 +12,16 @@ import { createTerritorialEntityRepository } from '../../assets/js/modules/terri
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
 const country = id => createTerritorialFeature({ id, entityKind: 'general', name: id, geometry });
 const unit = (id, parentId = 'A') => createTerritorialFeature({ id, entityKind: 'general', name: id, parentId, geometry });
-const root = { entityId: 'root', entityKind: 'general', name: 'Root', parentEntityId: 'old-parent', geometry: {}, geometryVersionId: 'v1', validFrom: '1900' };
+const root = { entityId: 'root', entityKind: 'general', name: 'Root', parentEntityId: 'old-parent', geometry: {}, geometryVersionId: 'v1', validFrom: null, metadata: {sourceLifetime: {validFrom:'1900',validTo:null}} };
 const child = { ...root, entityId: 'child', name: 'Child', parentEntityId: 'root' };
-function prepare(descriptors, choices = {}, units = [], refs = {}) {
+function prepare(descriptors, choices = {}, units = []) {
   let counter = 0;
   return prepareLibraryOwnership({ descriptors, choices, countries: [country('A'), country('B')], units,
-    resolve: id => refs[id] || '', allocateId: () => `new-${++counter}`, contains: () => true });
+    allocateId: () => `new-${++counter}`, contains: () => true });
 }
 
 test('missing ownership never matches names or assigns an arbitrary country; intermediate parent defaults sovereign', () => {
-  assert.deepEqual(missingLibraryOwnership([root], () => '', [country('A')], []), [{ entityId: 'root', name: 'Root', countryId: '' }]);
-  const refs = { 'old-country': 'A' };
-  assert.equal(missingLibraryOwnership([root], id => refs[id] || '', [country('A')], [])[0].countryId, '');
-  refs['old-parent'] = 'P';
-  assert.equal(missingLibraryOwnership([root], id => refs[id] || '', [country('A')], [unit('P')]).length, 0);
+  assert.deepEqual(missingLibraryOwnership([root]), [{ entityId: 'root', name: 'Root', countryId: '' }]);
   assert.throws(() => prepare([root]), /소속/);
   assert.throws(() => prepare([root], { root: { mode: 'child', countryId: '' } }), /국가를 선택/);
 });
@@ -90,20 +86,25 @@ test('promotion clears active parents, preserves source refs/version/period, and
   assert.equal(result[0].name, 'New country');
   assert.equal(result[0].parentEntityId, 'old-parent');
   assert.equal(result[0].geometryVersionId, 'v1');
-  assert.equal(result[0].validFrom, '1900');
-  assert.equal(result[1].parentId, 'root');
+  assert.equal(result[0].validFrom, null);
+  assert.equal(result[0].metadata.sourceLifetime.validFrom,'1900');
+  assert.equal(result[1].parentId, result[0].id);
+  assert.notEqual(result[0].id, root.entityId);
   assert.equal(result[1].rootId, undefined);
 });
 
-test('existing parent reuse and automatic linkage; missing ancestor only prompts once', () => {
-  const refs = { 'old-parent': 'P', 'old-country': 'A' };
-  assert.equal(prepare([root], {}, [unit('P')], refs)[0].parentId, 'P');
-  assert.equal(missingLibraryOwnership([root, child], () => '', [country('A')], []).length, 1);
-  assert.equal(prepare([root], {}, [unit('P')], { ...refs, root: 'P' }).length, 0);
+test('source identity never reuses an existing instance or implicitly selects its parent', () => {
+  assert.throws(() => prepare([root], {}, [unit('P')]), /소속/);
+  assert.equal(missingLibraryOwnership([root, child]).length, 1);
+  const descriptors=[{...root,parentEntityId:''}];
+  const first=prepare(descriptors), second=prepareLibraryOwnership({descriptors,countries:[country('A'),country(first[0].id)],units:[],allocateId:()=> 'new-2'});
+  assert.notEqual(first[0].id, second[0].id);
+  assert.equal(second[0].entityId, root.entityId);
+  assert.throws(()=>prepare([root,root]), /중복/);
 });
 
 test('invalid containing subunit and library cycles are rejected before application', () => {
   assert.throws(() => prepareLibraryOwnership({ descriptors: [root], choices: { root: { mode: 'child', countryId: 'A', parentId: 'P' } },
-    countries: [country('A')], units: [unit('P')], resolve: () => '', allocateId: () => 'new', contains: () => false }), /포함되지/);
+    countries: [country('A')], units: [unit('P')], allocateId: () => 'new', contains: () => false }), /포함되지/);
   assert.throws(() => prepare([{ ...root, parentEntityId: 'child' }, child]), /순환/);
 });

@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.35.0-build-5213223aa10b" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.35.0-build-5213223aa10b" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.36.0-build-383d9fe8813d" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.36.0-build-383d9fe8813d" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -78,7 +78,7 @@
       <div class="ui-progress bootstrap-progress" aria-hidden="true"><span id="bootstrapProgressBar"></span></div>
     </div>
   </div>
-  <div id="app" class="app-root" data-app-version="0.35.0" data-layout="wide" data-od-id="app-shell">
+  <div id="app" class="app-root" data-app-version="0.36.0" data-layout="wide" data-od-id="app-shell">
     <header class="topbar" data-od-id="topbar">
       <nav class="topbar-history" aria-label="편집 기록"><button id="undoBtn" class="ui-button icon-btn" data-tooltip="실행취소" aria-label="실행취소"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg></button><button id="redoBtn" class="ui-button icon-btn" data-tooltip="다시실행" aria-label="다시실행"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg></button></nav>
       <div class="topbar-actions" role="navigation" aria-label="문서 및 도움말">
@@ -719,32 +719,29 @@
       </div>
     </section>
   </div>
-  <div id="historicalLibraryModal" class="ui-dialog historical-library-modal hidden" role="dialog" aria-modal="true" aria-labelledby="historicalLibraryTitle">
+  <div id="territorialLibraryModal" class="ui-dialog territorial-library-modal hidden" role="dialog" aria-modal="true" aria-labelledby="territorialLibraryTitle">
     <div class="ui-dialog-backdrop"></div>
-    <section class="ui-dialog-card ui-workflow-shell historical-library-card ui-scroll-surface">
+    <section class="ui-dialog-card ui-workflow-shell territorial-library-card ui-scroll-surface">
       <header class="ui-dialog-header">
-        <div><h2 id="historicalLibraryTitle">국가·지역 라이브러리</h2></div>
-        <button id="historicalLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기" data-tooltip="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
+        <div><h2 id="territorialLibraryTitle">국가·지역 라이브러리</h2></div>
+        <button id="territorialLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기" data-tooltip="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
-      <div class="historical-library-toolbar">
-        <div class="ui-field field-group historical-library-search"><label for="historicalLibrarySearchInput">이름 검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="historicalLibrarySearchInput" type="search" placeholder="이름 검색" autocomplete="off" /><button id="historicalLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기" data-tooltip="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
-        <label class="ui-field field-group"><span>기준 연도</span><input id="historicalLibraryYearInput" type="number" min="-5000" max="9999" step="1" placeholder="예: 1910" /></label>
-        <div class="historical-library-filters" role="group" aria-label="필터" data-od-id="library-filters"><label class="ui-field field-group"><span>종류</span><select id="historicalLibraryTypeInput"><option value="">전체</option><option value="general">객체</option><option value="regional">독립 권역</option></select></label><label class="ui-field field-group"><span>상태</span><select id="historicalLibraryStatusInput"><option value="all">전체</option><option value="current">현존</option><option value="past">과거</option></select></label><label class="ui-field field-group"><span>지역</span><select id="historicalLibraryGeographicRegionInput"><option value="">전체</option></select></label></div>
+      <div class="territorial-library-toolbar">
+        <div class="ui-field field-group territorial-library-search"><label for="territorialLibrarySearchInput">이름 검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="territorialLibrarySearchInput" type="search" placeholder="이름 검색" autocomplete="off" /><button id="territorialLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기" data-tooltip="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
+        <label class="ui-field field-group"><span>시점</span><input id="territorialLibraryReferenceDateInput" type="text" placeholder="연·월·일" autocomplete="off" /></label>
       </div>
-      <div class="historical-library-layout">
-        <div id="historicalLibraryResults" class="historical-library-results" role="group" aria-label="라이브러리 검색 결과"></div>
-        <aside id="historicalLibraryPreview" class="historical-library-preview" hidden>
+      <div class="territorial-library-layout">
+        <div id="territorialLibraryResults" class="territorial-library-results" role="group" aria-label="라이브러리 검색 결과"></div>
+        <aside id="territorialLibraryPreview" class="territorial-library-preview" hidden>
           <p class="editor-help">항목을 선택하세요.</p>
         </aside>
       </div>
-      <section id="historicalLibraryOwnership" class="historical-library-ownership hidden" aria-label="라이브러리 소속 설정" aria-live="polite"></section>
-      <footer class="historical-library-footer">
-        <label class="ui-field field-group" hidden><span>WorldSnapshot</span><select id="historicalLibrarySnapshotInput"><option value="" disabled hidden selected data-placeholder="true">스냅샷 선택</option></select></label>
-        <button id="historicalLibrarySnapshotBtn" type="button" class="ui-button btn ghost" disabled hidden>없는 항목 추가</button>
-        <span class="historical-library-footer-spacer"></span>
-        <button id="historicalLibraryOptionsBackBtn" type="button" class="historical-library-back-action ui-button btn ghost hidden" aria-label="검색 결과로 돌아가기" data-tooltip="검색 결과로 돌아가기">목록</button>
-        <div id="historicalLibraryAddOptions" class="historical-library-add-options hidden" data-od-id="library-child-options"><label class="ui-field field-group"><span>불러올 범위</span><select id="historicalLibraryChildDepthInput" aria-label="하위 영역 가져오기"><option value="none">선택한 항목만</option><option value="level1">바로 아래 영역까지 가져오기</option><option value="all">모든 하위 영역 가져오기</option></select></label></div>
-        <button id="historicalLibraryAddBtn" type="button" class="historical-library-add-action ui-button btn" aria-label="선택한 항목을 현재 프로젝트에 추가" data-tooltip="선택한 항목을 현재 프로젝트에 추가" disabled>추가</button>
+      <section id="territorialLibraryOwnership" class="territorial-library-ownership hidden" aria-label="라이브러리 소속 설정" aria-live="polite"></section>
+      <footer class="territorial-library-footer">
+        <span class="territorial-library-footer-spacer"></span>
+        <button id="territorialLibraryOptionsBackBtn" type="button" class="territorial-library-back-action ui-button btn ghost hidden" aria-label="검색 결과로 돌아가기" data-tooltip="검색 결과로 돌아가기">목록</button>
+        <div id="territorialLibraryAddOptions" class="territorial-library-add-options hidden" data-od-id="library-child-options"><label class="ui-field field-group"><span>불러올 범위</span><select id="territorialLibraryChildDepthInput" aria-label="하위 영역 가져오기"><option value="none">선택한 항목만</option><option value="level1">바로 아래 영역까지 가져오기</option><option value="all">모든 하위 영역 가져오기</option></select></label></div>
+        <button id="territorialLibraryAddBtn" type="button" class="territorial-library-add-action ui-button btn" aria-label="선택한 항목을 현재 프로젝트에 추가" data-tooltip="선택한 항목을 현재 프로젝트에 추가" disabled>추가</button>
       </footer>
     </section>
   </div>
@@ -825,10 +822,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.35.0-build-5213223aa10b" defer></script>
+  <script src="assets/js/build-meta.js?v=0.36.0-build-383d9fe8813d" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.35.0-build-5213223aa10b" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.36.0-build-383d9fe8813d" defer></script>
 </body>
 </html>

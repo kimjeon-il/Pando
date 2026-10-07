@@ -460,3 +460,16 @@ test('actual new-country Worker preserves a subdivided wide source and its previ
   assert.equal(result.preview.delta.addedGeometry, null);
   assert.deepEqual(globalThis.polygonClipping.xor(multiCoordinates(result.preview.delta.afterUnion), multiCoordinates(source)), []);
 });
+
+
+test('library batch replaces an overlapping previous instance with its fresh ID and leaves import provenance intact for commit', async t => {
+  const old=feature('old-copy',square(0,0,2,2),{sourceEntityId:'state:fixture',sourceGeometryVersion:'v1'});
+  const next=feature('new-copy',square(0,0,2,2),{sourceEntityId:'state:fixture',sourceGeometryVersion:'v1'});
+  const before=structuredClone(old),client=harness(t,[{kind:'country',feature:old}]);
+  const result=(await client.execute('territorial-library-batch',{payload:{countries:[next],units:[]}})).result;
+  assert.deepEqual(result.removedIds,['old-copy']);
+  assert.deepEqual(result.features.map(f=>f.id),['new-copy']);
+  assert.equal(next.properties.sourceEntityId,'state:fixture');
+  assert.equal(next.properties.sourceGeometryVersion,'v1');
+  assert.deepEqual(old,before);assert.equal(result.deleted,1);
+});

@@ -249,7 +249,7 @@ export function createEnvironment() {
     (TERRAIN_FALLBACK_MANIFEST_URL = terrainSelection.fallback);
     (TERRAIN_SOURCE_CHOICE = terrainSelection.source);
 
-    (TERRITORIAL_LIBRARY_INDEX_URL = new URL('territorial-entities/generated/v1/index.json', PHYSICAL_DATA_BASE_URL));
+    (TERRITORIAL_LIBRARY_INDEX_URL = new URL('territorial-entities/generated/v2/index.json', PHYSICAL_DATA_BASE_URL));
 
     TERRITORIAL_LIBRARY_INDEX_URL.searchParams.set('v', ASSET_REVISION);
 
@@ -423,7 +423,7 @@ export function createEnvironment() {
       'addEntityBtn', 'createBuildPanel', 'territorialCreateSetup', 'territorialCreateNameLabel', 'territorialCreateNameInput', 'territorialCreateRegionalInput', 'territorialCreateParentInput', 'territorialCreateSourceInput', 'territorialCreateReference', 'territorialCreateReferenceLabel', 'territorialCreateReferenceCount', 'territorialCreateReferenceList',
       'gisCoastReference', 'gisParentUnit', 'gisExportModal', 'gisExportConfirmBtn', 'confirmModalChoiceRow', 'confirmModalChoice',
       'coastReconciliationModal', 'coastReconciliationTitle', 'coastReconciliationMessage', 'coastReconciliationImpact', 'coastReconciliationImpactList', 'coastReconciliationCountryBtn', 'coastReconciliationAdminBtn', 'coastReconciliationIndependentBtn', 'coastReconciliationCancelBtn',
-      'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'historicalLibraryModal', 'historicalLibraryCloseBtn', 'historicalLibrarySearchInput', 'historicalLibrarySearchClearBtn', 'historicalLibraryTypeInput', 'historicalLibraryStatusInput', 'historicalLibraryYearInput', 'historicalLibraryGeographicRegionInput', 'historicalLibraryResults', 'historicalLibraryPreview', 'historicalLibrarySnapshotInput', 'historicalLibrarySnapshotBtn', 'historicalLibraryChildDepthInput', 'historicalLibraryAddBtn',
+      'layerSearchInput', 'layerSearchClearBtn', 'addFromLibraryBtn', 'territorialLibraryModal', 'territorialLibraryCloseBtn', 'territorialLibrarySearchInput', 'territorialLibrarySearchClearBtn', 'territorialLibraryReferenceDateInput', 'territorialLibraryResults', 'territorialLibraryPreview', 'territorialLibraryChildDepthInput', 'territorialLibraryAddBtn',
     ]));
 
     (CACHE_MISMATCH_MESSAGE = '화면 파일과 스크립트 버전이 다릅니다. 페이지를 강력 새로고침하세요. PC에서는 Ctrl+F5를 사용할 수 있습니다.');
