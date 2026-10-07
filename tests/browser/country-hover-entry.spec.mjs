@@ -39,6 +39,10 @@ async function assertTooltip(page, name) {
   expect(box.x).toBeGreaterThanOrEqual(7); expect(box.y).toBeGreaterThanOrEqual(7);
   expect(box.x + box.width).toBeLessThanOrEqual(size.width - 7);
   expect(box.y + box.height).toBeLessThanOrEqual(size.height - 7);
+  expect(await tooltip.evaluate(node => {
+    const rect = node.getBoundingClientRect();
+    return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+  })).toBe(false);
 }
 
 for (const width of [1366, 1024]) test(`country hover only identifies; one label click opens the editor at ${width}px`, async ({ page }, testInfo) => {
@@ -69,6 +73,21 @@ for (const width of [1366, 1024]) test(`country hover only identifies; one label
   await expect(page.locator('#undoBtn')).toBeDisabled();
   await expect(page.locator('#editorObjectHeader #objectVisibilityBtn, #editorObjectHeader #objectLockBtn, #editorObjectHeader #focusSelectedObjectBtn')).toHaveCount(3);
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath(`editor-header-${width}.png`) });
+  await page.locator('#focusSelectedObjectBtn').hover();
+  const buttonTooltip = page.locator('#uiTooltip');
+  await expect(buttonTooltip).toBeVisible();
+  await expect(buttonTooltip).toHaveText('선택 객체로 이동');
+  expect(await buttonTooltip.evaluate(node => getComputedStyle(node).pointerEvents)).toBe('none');
+  await page.screenshot({ path: testInfo.outputPath(`button-tooltip-${width}.png`) });
+  await page.locator('#createMenuBtn').click();
+  await expect(page.locator('#createMenu')).toBeVisible();
+  expect(await page.locator('#createMenu').evaluate(node => getComputedStyle(node).pointerEvents)).toBe('auto');
+  expect(await page.locator('#addLabelBtn').evaluate(node => {
+    const rect = node.getBoundingClientRect();
+    return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+  })).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#createMenu')).toBeHidden();
   expect(errors).toEqual([]);
 });
 
