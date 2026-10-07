@@ -1,5 +1,10 @@
 # PandoLab runtime refactor inventory
 
+Current cross-platform ownership: [platform-boundaries.md](platform-boundaries.md).
+The Phase 06 line ranges and extraction narrative below are historical, not the
+current entrypoint size. Current production entry is the small `app.js` loader;
+`app-composition.js` wires existing application owners through capability ports.
+
 This inventory fixes the Phase 06 extraction boundaries before code is moved. It describes the current `assets/js/app.js` responsibilities; it is not a new runtime contract.
 
 | Current responsibility | Approximate current range | Coupling / strongly connected group | Target boundary |
@@ -40,7 +45,8 @@ The inventory above records the pre-extraction responsibility map. Phase 06 keep
 | Boundary | Owns | Does not own |
 | --- | --- | --- |
 | `project-serializer.js` | current project and autosave materialization | browser storage, UI |
-| `persistence-service.js` | IndexedDB/local fallback, autosave queues, view record | document mutation, DOM |
+| `persistence-service.js` | autosave queues, recovery policy, view record | browser storage, document mutation, DOM |
+| `browser-project-storage.js` | IndexedDB/local fallback record I/O | autosave/recovery policy, document mutation |
 | `physical-layer-service.js` | terrain and hydro manifest/retry lifecycle | renderer internals, project objects |
 | `territorial-service.js` | territorial metadata, hierarchy and lock commands through the entity Store | form values, DOM |
 | `distribution-service.js` | distribution layer/entry CRUD and validation | generic feature objects, UI rendering |
@@ -60,7 +66,7 @@ The composition root wires selectors and commands into these boundaries, owns st
 
 - an `assets/js/modules` static-import cycle is introduced;
 - a domain/application service starts querying the DOM;
-- IndexedDB or localStorage writes bypass `persistence-service.js`;
+- IndexedDB or localStorage writes bypass `browser-project-storage.js`;
 - `app.js` reintroduces the raw map-edit Worker execute protocol.
 
 The remaining direct Worker calls in `app.js` are intentionally limited to the country-label anchor and map-audit application facades. GIS country validation is confined to `import-service.js`; political mesh and hydro Worker traffic remains inside the renderer. The debug-only `localStorage.getItem('atlaswright.debug-map')` read is a session preference and is not project persistence.

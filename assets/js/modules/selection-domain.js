@@ -54,10 +54,10 @@ export function createSelectionDomain({
     metrics.renderInvalidationCount += 1;
     (typeof requestRender === 'function' ? requestRender : context?.requestRender)?.(reason || 'selection-change');
   };
-  const publishSelection = reason => {
+  const publishSelection = (reason, previousSelection) => {
     projectGeneration = Number(projectDomain?.getGeneration?.() ?? projectGeneration ?? 0);
     const value = rebuildSnapshot();
-    onSelectionChanged(value, reason || 'selection-change');
+    onSelectionChanged(value, reason || 'selection-change', previousSelection);
     invalidate(reason || 'selection-change');
     return value;
   };
@@ -71,12 +71,13 @@ export function createSelectionDomain({
 
   const controller = createObjectSelectionController({
     onChange: (nextSelection, reason) => {
+      const previousSelection = controllerSnapshot;
       controllerSnapshot = freezeSelection(nextSelection);
       changeSerial += 1;
       if (suppressControllerChange) return;
       metrics.mutationCount += 1;
       revision += 1;
-      publishSelection(activeReason || reason);
+      publishSelection(activeReason || reason, previousSelection);
     },
   });
   controllerSnapshot = freezeSelection(controller.snapshot());
@@ -166,6 +167,7 @@ export function createSelectionDomain({
   };
   const resetProject = generation => {
     active();
+    const previousSelection = controllerSnapshot;
     const hadSelection = controller.size() > 0;
     const hadHover = !!hover;
     const previousGeneration = readProjectGeneration();
@@ -187,7 +189,7 @@ export function createSelectionDomain({
     if (hadSelection) revision += 1;
     if (hadHover) hoverRevision += 1;
     const value = rebuildSnapshot();
-    onSelectionChanged(value, 'project-reset');
+    onSelectionChanged(value, 'project-reset', previousSelection);
     if (hadHover) onHoverChanged(value, 'project-reset');
     invalidate('project-reset-selection');
     return value;

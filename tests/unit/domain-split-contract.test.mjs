@@ -9,7 +9,7 @@ import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
 import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
 import { createRenderingDomain } from '../../assets/js/modules/rendering-domain.js';
 import { createGisDomain } from '../../assets/js/modules/gis-domain.js';
-import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
+import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
 import { MAP_RENDER_DIRTY, MAP_RENDER_MASKS } from '../../assets/js/modules/map-render-coordinator.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
