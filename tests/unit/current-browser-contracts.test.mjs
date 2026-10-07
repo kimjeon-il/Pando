@@ -381,7 +381,7 @@ test('workflow exposes only the allowlisted optional dispatch choice and keeps r
   assert.match(dispatch, /^ {8}required: false$/m);
   assert.match(dispatch, /^ {8}type: choice$/m);
   assert.match(dispatch, /^ {8}default: default$/m);
-  assert.deepEqual([...dispatch.matchAll(/^ {10}- (.+)$/gm)].map(match => match[1]), ['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison']);
+  assert.deepEqual([...dispatch.matchAll(/^ {10}- (.+)$/gm)].map(match => match[1]), ['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison', 'boundary-native-capture']);
   assert.deepEqual([...dispatch.matchAll(/^ {6}(\w+):$/gm)].map(match => match[1]), ['browser_scope']);
   assert.match(workflow, /^permissions:\n {2}contents: read\n\njobs:/m);
   assert.equal(workflow.match(/^ {10}BROWSER_SCOPE: \$\{\{ inputs.browser_scope \|\| 'default' \}\}$/gm)?.length, 2);
@@ -391,7 +391,7 @@ test('workflow exposes only the allowlisted optional dispatch choice and keeps r
 });
 
 test('focused dispatch skips only the broad unconditional architecture job through an explicit event and input gate', () => {
-  assert.match(jobs['command-contract'], /^ {4}if: github.event_name != 'workflow_dispatch' \|\| \(inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison'\)$/m);
+  assert.match(jobs['command-contract'], /^ {4}if: github.event_name != 'workflow_dispatch' \|\| \(inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison' && inputs.browser_scope != 'boundary-native-capture'\)$/m);
   assert.match(jobs['command-contract'], /^ {8}run: pnpm check:architecture$/m);
 });
 
@@ -399,6 +399,7 @@ test('all focused job names are distinct while normal names and matrix suffixes 
   const expectedNames = {
     changes: 'Detect application scopes',
     'boundary-capture-comparison': 'Boundary screencast comparison (A1, B1, B2, A2)',
+    'boundary-native-capture': 'Boundary native rendering attribution (one B run)',
     'current-browser-contracts': 'Current browser contract (${{ matrix.spec }})',
     'visual-policy': 'Common map visual policy and frame consumers (M4-M6)',
     'scene-staging': 'GPU stroke domain staging (M3)',
@@ -416,7 +417,7 @@ test('all focused job names are distinct while normal names and matrix suffixes 
   assert.deepEqual(Object.keys(jobs), Object.keys(expectedNames));
   for (const [id, expected] of Object.entries(expectedNames)) {
     assert.equal(jobs[id].match(/^ {4}name: (.+)$/m)?.[1],
-      id === 'boundary-capture-comparison' ? expected : `${namePrefix}${editorPrefix}${expected}`, id);
+      ['boundary-capture-comparison', 'boundary-native-capture'].includes(id) ? expected : `${namePrefix}${editorPrefix}${expected}`, id);
   }
   assert.match(jobs['current-browser-contracts'], /^ {6}max-parallel: 2$/m);
   assert.match(jobs['current-browser-contracts'], /^ {6}fail-fast: false$/m);
@@ -454,4 +455,36 @@ test('capture comparison job is explicitly manual and invokes only the bounded f
   }
   assert.ok(comparison.includes('          path: |\n            test-results/boundary-capture-comparison/comparison-*/summary.json\n            test-results/boundary-capture-comparison/comparison-*/**/evidence/**'));
   assert.equal(comparison.match(/^ {10}if-no-files-found: error$/gm)?.length, 5);
+});
+
+
+test('manual native capture selects no unrelated browser matrix or application scope', async t => {
+  assert.deepEqual(await runSelector(t, ['package.json', specPath('territorial-library')],
+    'workflow_dispatch', 'boundary-native-capture', { expectedGitCalls: 0 }), []);
+  const result = runScope('workflow_dispatch', 'boundary-native-capture');
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(result.scopes, Object.fromEntries(scopeNames.map(name => [name, 'false'])));
+  assert.deepEqual(result.gitCalls, []);
+});
+
+test('native capture job invokes one exact desktop B case and separates native raw and manifest artifacts', () => {
+  const native = jobs['boundary-native-capture'];
+  assert.ok(native, 'the isolated manual native capture job must exist');
+  assert.match(native, /^ {4}needs: changes$/m);
+  assert.match(native, /^ {4}if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-native-capture'$/m);
+  assert.match(native, /PANDOLAB_BOUNDARY_NATIVE_TRACE: '1'/);
+  assert.match(native, /PANDOLAB_BOUNDARY_CAPTURE_SCREENSHOTS: 'false'/);
+  assert.equal(native.match(/pnpm exec playwright test /g)?.length, 1);
+  assert.match(native, /tests\/browser\/boundary-cut-snapping\.spec\.mjs/);
+  assert.match(native, /--config=playwright\.boundary-capture\.config\.mjs/);
+  assert.match(native, /--workers=1 --retries=0 --repeat-each=1/);
+  assert.ok(native.includes("--grep='(?:^|\\s)a child cut snaps to both parent boundaries, preserves coverage and undoes in one step$'"));
+  assert.doesNotMatch(native, /run-boundary-capture-comparison|strategy:|matrix:|continue-on-error:|pnpm check:|pnpm test:/);
+  assert.equal(native.match(/actions\/upload-artifact@v4/g)?.length, 3);
+  assert.equal(native.match(/^ {8}if: always\(\)$/gm)?.length, 3);
+  assert.match(native, /path: test-results\/boundary-native-capture\/\*\*\/boundary-project-undo-native-timeline\.json/);
+  assert.match(native, /path: \|\n {12}test-results\/boundary-native-capture\/\*\*\/boundary-project-undo-native-timeline-manifest\.json/);
+  assert.match(native, /!test-results\/boundary-native-capture\/\*\*\/boundary-project-undo-native-timeline\.json/);
+  assert.match(native, /!test-results\/boundary-native-capture\/\*\*\/boundary-project-undo-native-timeline-manifest\.json/);
+  assert.match(native, /compression-level: 0/);
 });

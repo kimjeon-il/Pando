@@ -13,6 +13,7 @@ on:
           - map-rendering
           - editor-diagnostics
           - boundary-capture-comparison
+          - boundary-native-capture
   pull_request:
     paths:
       - 'assets/js/**'
@@ -144,7 +145,7 @@ jobs:
               map-rendering)
                 preview_handoff=true
                 ;;
-              editor-diagnostics|boundary-capture-comparison)
+              editor-diagnostics|boundary-capture-comparison|boundary-native-capture)
                 ;;
               *)
                 printf '%s\n' 'Unsupported browser_scope' >&2
@@ -224,10 +225,10 @@ jobs:
           const manualScope = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch'
             ? process.env.BROWSER_SCOPE || 'default'
             : 'default';
-          if (!['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison'].includes(manualScope)) {
+          if (!['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison', 'boundary-native-capture'].includes(manualScope)) {
             throw new Error('Unsupported browser_scope');
           }
-          if (manualScope === 'boundary-capture-comparison') {
+          if (manualScope === 'boundary-capture-comparison' || manualScope === 'boundary-native-capture') {
             appendFileSync(process.env.GITHUB_OUTPUT, 'specs=[]\n');
           } else if (manualScope === 'map-rendering' || manualScope === 'editor-diagnostics') {
             const selected = manualScope === 'map-rendering' ? [
@@ -322,6 +323,61 @@ jobs:
         with:
           name: boundary-capture-A2-${{ github.run_id }}-attempt-${{ github.run_attempt }}
           path: test-results/boundary-capture-comparison/comparison-*/A2
+          if-no-files-found: error
+
+  boundary-native-capture:
+    name: Boundary native rendering attribution (one B run)
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-native-capture'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Capture one exact desktop Undo with screenshots disabled
+        shell: bash
+        env:
+          PANDOLAB_BOUNDARY_NATIVE_TRACE: '1'
+          PANDOLAB_BOUNDARY_CAPTURE_SCREENSHOTS: 'false'
+        run: |
+          mkdir -p test-results/boundary-native-capture
+          set -o pipefail
+          pnpm exec playwright test tests/browser/boundary-cut-snapping.spec.mjs --config=playwright.boundary-capture.config.mjs --grep='(?:^|\s)a child cut snaps to both parent boundaries, preserves coverage and undoes in one step$' --workers=1 --retries=0 --repeat-each=1 --output=test-results/boundary-native-capture 2>&1 | tee test-results/boundary-native-capture.log
+      - name: Upload bounded native raw trace separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-native-raw-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: test-results/boundary-native-capture/**/boundary-project-undo-native-timeline.json
+          compression-level: 0
+          if-no-files-found: warn
+      - name: Upload compact native manifest and host log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-native-manifest-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: |
+            test-results/boundary-native-capture/**/boundary-project-undo-native-timeline-manifest.json
+            test-results/boundary-native-capture.log
+          if-no-files-found: error
+      - name: Upload existing Playwright evidence separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-native-playwright-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: |
+            test-results/boundary-native-capture
+            !test-results/boundary-native-capture/**/boundary-project-undo-native-timeline.json*
+            !test-results/boundary-native-capture/**/boundary-project-undo-native-timeline-manifest.json*
           if-no-files-found: error
 
   current-browser-contracts:
@@ -659,7 +715,7 @@ jobs:
 
   command-contract:
     name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}command-contract
-    if: github.event_name != 'workflow_dispatch' || (inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison')
+    if: github.event_name != 'workflow_dispatch' || (inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison' && inputs.browser_scope != 'boundary-native-capture')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

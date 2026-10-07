@@ -883,3 +883,39 @@ test('CPU opt-in leaves native output at 250 ms without replacing the original e
   assert.equal(settledBefore, false); assert.equal(settledAtDeadline, true);
   assert.ok(f.lines.some(line => line.includes('[native-action-output]') && line.includes('exceeded 250 ms')));
 });
+
+for (const failed of [false, true]) test(`native timeline brackets the existing CPU/final read and preserves the original ${failed ? 'error' : 'result'}`, async () => {
+  const order = [];
+  let attempts = 0;
+  const f = hostFixture(async (probe, options) => { order.push(options.command); return { installed: true }; });
+  f.page.context = () => ({ newCDPSession: async () => ({
+    async send(method) { order.push(method); return {}; },
+    async detach() { order.push('cpu-detach'); },
+  }) });
+  const nativeTimeline = {
+    async start() { order.push('native-start'); },
+    requestStop(reason) { order.push(`native-stop:${reason}`); },
+    finish() { throw new Error('Native stream drain belongs only to fixture teardown'); },
+  };
+  const original = failed ? new Error('original locator error') : {};
+  const result = await withNativeActionDiagnostics(f.page, f.testInfo, { ...f.options, cpuProfile: true, nativeTimeline }, () => {
+    attempts++; order.push('original-action'); if (failed) throw original; return original;
+  }).then(value => ({ value }), error => ({ error }));
+  assert.equal(result[failed ? 'error' : 'value'], original); assert.equal(attempts, 1);
+  assert.deepEqual(order, ['native-start', 'install', 'Profiler.enable', 'Profiler.setSamplingInterval', 'Profiler.start',
+    'original-action', 'Profiler.stop', 'Profiler.disable', 'cpu-detach', 'take', 'native-stop:wrapper-finished']);
+  const report = JSON.parse(await readFile(f.testInfo.outputPath('project-undo-native-action.json'), 'utf8'));
+  assert.deepEqual(report.diagnosticDeadlinesMs, { setup: 250, finalTake: 15000, output: 250 });
+});
+
+for (const phase of ['start', 'requestStop']) test(`native timeline ${phase} failure cannot change an original action error`, async () => {
+  const f = hostFixture();
+  const original = new Error('original locator failure');
+  const nativeTimeline = { async start() {}, requestStop() {}, finish() { throw new Error('must not drain'); } };
+  nativeTimeline[phase] = () => { throw new Error('native diagnostic failure'); };
+  let attempts = 0;
+  await assert.rejects(withNativeActionDiagnostics(f.page, f.testInfo, { ...f.options, nativeTimeline }, () => {
+    attempts++; throw original;
+  }), error => error === original);
+  assert.equal(attempts, 1);
+});

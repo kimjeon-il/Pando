@@ -11,7 +11,7 @@ const CPU_FINAL_TAKE_DEADLINE_MS = 15_000;
 // No retry, timeout override or altered click options. The callback owns the
 // original native action; diagnostic setup/output never determine its outcome.
 export async function withNativeActionDiagnostics(page, testInfo, {
-  label, selector, rowSelector, cpuProfile = false, longAnimationFrames = false, now = () => performance.now(), write = console.log,
+  label, selector, rowSelector, cpuProfile = false, longAnimationFrames = false, nativeTimeline = null, now = () => performance.now(), write = console.log,
 }, action) {
   const token = String(++nextToken);
   const diagnosticDeadlinesMs = { setup: DIAGNOSTIC_DEADLINE_MS,
@@ -20,6 +20,10 @@ export async function withNativeActionDiagnostics(page, testInfo, {
     try { return await withDiagnosticDeadline(() => page.evaluate(nativeActionProbe, options), deadlineMs); }
     catch (error) { return { diagnosticError: String(error).slice(0, 240) }; }
   };
+  const timelineError = error => {
+    try { Promise.resolve(write(`[native-action-timeline] ${JSON.stringify({ label, diagnosticError: String(error).slice(0, 240) })}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
+  };
+  if (nativeTimeline) try { await nativeTimeline.start(); } catch (error) { timelineError(error); }
   const setup = await read({ command: 'install', token, selector, rowSelector, longAnimationFrames,
     installBeforeEpochMs: Date.now() + DIAGNOSTIC_DEADLINE_MS });
   const cpu = cpuProfile ? await startNativeActionCpuProfile(page, { label, now, write }) : null;
@@ -39,6 +43,9 @@ export async function withNativeActionDiagnostics(page, testInfo, {
     // CPU-only collection has a longer budget; the action is already settled.
     await cpu?.finish(testInfo);
     const browser = await read({ command: 'take', token, longAnimationFrames }, diagnosticDeadlinesMs.finalTake);
+    // Enqueue native end after existing evidence, with no stream wait before
+    // Undo restoration or Redo assertions. Only the boundary fixture drains it.
+    if (nativeTimeline) try { Promise.resolve(nativeTimeline.requestStop('wrapper-finished')).catch(timelineError); } catch (error) { timelineError(error); }
     let outputController;
     try {
       const body = JSON.stringify({ label, host, setup, browser, diagnosticDeadlinesMs });

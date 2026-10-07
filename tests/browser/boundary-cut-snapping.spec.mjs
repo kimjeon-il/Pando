@@ -1,9 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, test as base } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { installLongAnimationFrameProbe } from './helpers/long-animation-frame-diagnostics.mjs';
 import { withNativeActionDiagnostics } from './helpers/native-action-diagnostics.mjs';
+import { boundaryNativeTimelineFixture } from './helpers/native-action-timeline.mjs';
+
+const test = base.extend({
+  // Playwright shares a custom fixture's slot between setup and teardown.
+  // Allow 2 s preflight plus the controller's independent 20 s teardown cap.
+  nativeTimeline: [boundaryNativeTimelineFixture, { timeout: 22_000 }],
+});
 
 const parentId = '00000000-0000-4000-8000-000000000021';
 const parent = createTerritorialFeature({ id: parentId, entityKind: 'general', name: '경계 스냅 실제 시험 영역',
@@ -45,7 +52,7 @@ async function openApp(page, viewport = { width: 1440, height: 900 }) {
   return errors;
 }
 
-test('a child cut snaps to both parent boundaries, preserves coverage and undoes in one step', async ({ page }, testInfo) => {
+test('a child cut snaps to both parent boundaries, preserves coverage and undoes in one step', async ({ page, nativeTimeline }, testInfo) => {
   test.setTimeout(360_000);
   await page.addInitScript(installLongAnimationFrameProbe);
   const errors = await openApp(page);
@@ -272,7 +279,7 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   expect(candidates).toContainEqual(child.geometry);
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), parentId)).toEqual(before);
   await expect.poll(async () => (await savedProject(page)).territorialEntities.some(entity => entity.id === child.id), { timeout: 30_000 }).toBe(true);
-  await withNativeActionDiagnostics(page, testInfo, { label: 'boundary-project-undo', selector: '#undoBtn', cpuProfile: true, longAnimationFrames: true }, async () => {
+  await withNativeActionDiagnostics(page, testInfo, { label: 'boundary-project-undo', selector: '#undoBtn', cpuProfile: true, longAnimationFrames: true, nativeTimeline }, async () => {
     await page.locator('#undoBtn').click();
   });
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id)).toBeNull();
