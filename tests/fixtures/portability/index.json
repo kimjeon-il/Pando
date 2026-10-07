@@ -1,0 +1,2599 @@
+{
+  "schema": "web-app-parity-index",
+  "version": 1,
+  "baseline": {
+    "web": "582908e9645b79b212f7db5105e596c9986a6ee1",
+    "app": "faa4ced0824dd8eb05484365590dc129e8e64b2a"
+  },
+  "sharedPaths": {
+    "web": [
+      "tools/parity/**",
+      "tests/fixtures/portability/**",
+      "assets/js/modules/project-state.js",
+      "assets/js/modules/project-serializer.js",
+      ".github/workflows/web-app-parity.yml",
+      "tests/unit/web-app-parity-*.test.mjs"
+    ],
+    "app": [
+      "tools/parity/**",
+      "tools/run-final-oracles.mjs",
+      "docs/platform-portability-pin.json",
+      "CMakeLists.txt",
+      ".github/workflows/web-app-parity.yml",
+      "app/selection.cmake",
+      "tools/evaluate-release-gate.mjs",
+      "ui/**"
+    ]
+  },
+  "relevantRoots": {
+    "web": [
+      "assets/js/",
+      "tests/unit/",
+      "tests/browser/",
+      "tools/parity/",
+      "tests/fixtures/",
+      "assets/data/",
+      "assets/flags/"
+    ],
+    "app": [
+      "core/",
+      "engine/",
+      "app/",
+      "ui/",
+      "tests/",
+      "tools/",
+      "assets/",
+      "renderer/"
+    ]
+  },
+  "features": [
+    {
+      "id": "selection",
+      "title": "선택·primary·범위 선택",
+      "owners": {
+        "web": "SelectionDomain / object-selection-controller",
+        "app": "SelectionState / editorselection"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/*selection*.js",
+          "tests/unit/platform-portability.test.mjs",
+          "tests/browser/selection-domain-smoke.spec.mjs"
+        ],
+        "app": [
+          "core/include/pandoeditor/selection.h",
+          "app/editorselection.cpp",
+          "tests/selection_ui_tests.cpp",
+          "tests/selection_probe.cpp"
+        ]
+      },
+      "dependsOn": [],
+      "contract": {
+        "input": "Ordered ObjectRefs and replace/toggle/range/hover requests.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "SelectionDomain / object-selection-controller; SelectionState.",
+        "preconditions": "Selection membership and primary are ordered; hover must not edit the document.",
+        "commit": "Each selection request publishes its selection state; no project history entry.",
+        "failure": "Reject or ignore invalid references according to the existing selection policy; preserve prior primary/order."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "selection:selection",
+          "adapter": "selection",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "observationIds": [
+            "selection:0:replace",
+            "selection:1:replace",
+            "selection:2:toggle",
+            "selection:3:range",
+            "selection:4:setMany",
+            "selection:5:prune",
+            "selection:6:range",
+            "selection:7:remove",
+            "selection:8:clear",
+            "selection:9:toggle",
+            "selection:10:toggle",
+            "selection:11:clear",
+            "selection:12:range",
+            "selection:13:replace"
+          ]
+        },
+        {
+          "id": "selection:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/platform-portability.test.mjs"
+          ],
+          "nativeTests": [
+            "selection_state_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "selection:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/selection-domain-smoke.spec.mjs"
+          ],
+          "nativeTests": [
+            "selection_ui_tests"
+          ],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        },
+        {
+          "id": "historical:M3.1",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "selection_web_parity"
+          ],
+          "nativeTargets": [
+            "selection_probe"
+          ],
+          "sourceCommit": "58e4087f85aa51884bc4ab80959e05010d94d7d5",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ]
+    },
+    {
+      "id": "commands",
+      "title": "명령·잠금·검증·부분 적용 방지",
+      "owners": {
+        "web": "ProjectCommandPipeline / domain services",
+        "app": "CommandProcessor / ChangeSet"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/project-command-pipeline.js",
+          "assets/js/modules/document-mutation-runner.js",
+          "tests/unit/project-command-pipeline.test.mjs",
+          "tests/unit/service-command-pipeline.test.mjs"
+        ],
+        "app": [
+          "core/src/commands.cpp",
+          "core/include/pandoeditor/commands.h",
+          "app/editorcommands.cpp",
+          "tests/command_tests.cpp",
+          "tests/command_editor_tests.cpp"
+        ]
+      },
+      "dependsOn": [],
+      "contract": {
+        "input": "Existing platform command arguments against a document revision.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "ProjectCommandPipeline and runProjectTransaction; CommandProcessor prepare/confirm.",
+        "preconditions": "Validate locks, references, candidate state and revision before committing.",
+        "commit": "A successful command owns one existing history boundary; no-op does not create history.",
+        "failure": "Failed validation and stale previews do not partially apply; preserve platform error category."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state"
+      ],
+      "cases": [
+        {
+          "id": "commands:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/project-command-pipeline.test.mjs",
+            "tests/unit/service-command-pipeline.test.mjs"
+          ],
+          "nativeTests": [
+            "command_tests",
+            "command_editor_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        }
+      ],
+      "notApplicable": {
+        "interaction": "Command execution has no independent UI; command input and display are covered by the feature-specific selection/editing/storage UI scenarios."
+      }
+    },
+    {
+      "id": "properties",
+      "title": "이름·메모·색상·잠금",
+      "owners": {
+        "web": "territorial-service / object-property-controller",
+        "app": "objectproperties / editorproperties"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/territorial-*controller.js",
+          "assets/js/modules/territorial-metadata*.js",
+          "assets/js/modules/*property*.js",
+          "tests/unit/territorial-service.test.mjs",
+          "tests/unit/territorial-metadata-command.test.mjs",
+          "tests/browser/territorial-common-commands.spec.mjs"
+        ],
+        "app": [
+          "core/src/objectproperties.cpp",
+          "app/editorproperties.cpp",
+          "app/editorfields.cpp",
+          "tests/property_tests.cpp",
+          "tests/property_ui_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "commands"
+      ],
+      "contract": {
+        "input": "Territorial ID, metadata field/value or lock toggle.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "TerritorialApplicationService.updateMetadata/setLocked; territorial.field/territorial.lock.",
+        "preconditions": "Resolve the target, enforce lock and static timeline activation restrictions.",
+        "commit": "Only changed fields enter history; a new edit after Undo discards the redo branch.",
+        "failure": "Missing targets, invalid dates and locked writes preserve metadata/history. Error codes are not yet compared by the scalar property observer."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "properties:commands",
+          "adapter": "property-commands",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "observationIds": [
+            "rename",
+            "rename-noop",
+            "notes",
+            "invalid-reference",
+            "lock",
+            "locked-rename",
+            "lock-noop",
+            "undo-lock",
+            "undo-notes",
+            "redo-notes",
+            "invalid-date",
+            "activation-guard",
+            "new-edit-clears-redo",
+            "redo-empty"
+          ]
+        },
+        {
+          "id": "properties:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/territorial-service.test.mjs",
+            "tests/unit/territorial-metadata-command.test.mjs"
+          ],
+          "nativeTests": [
+            "property_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "properties:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/territorial-common-commands.spec.mjs"
+          ],
+          "nativeTests": [
+            "property_ui_tests"
+          ],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        },
+        {
+          "id": "historical:M3.2",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "property_web_parity"
+          ],
+          "nativeTargets": [
+            "property_probe"
+          ],
+          "sourceCommit": "58e4087f85aa51884bc4ab80959e05010d94d7d5",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ]
+    },
+    {
+      "id": "structure",
+      "title": "국가·객체 생성·삭제·부모·관계",
+      "owners": {
+        "web": "TerritorialEntityStore / Repository / territorial-service",
+        "app": "ProjectDocument / territorialmutation"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/territorial-entity*.js",
+          "assets/js/modules/territorial-service.js",
+          "assets/js/modules/territorial-hierarchy*.js",
+          "assets/js/modules/territorial-units.js",
+          "tests/unit/territorial-entity-store.test.mjs",
+          "tests/unit/territorial-service.test.mjs",
+          "tests/unit/territorial-hierarchy-model.test.mjs",
+          "tests/browser/territorial-hierarchy.spec.mjs"
+        ],
+        "app": [
+          "core/src/document.cpp",
+          "core/src/territorialmutation.cpp",
+          "app/editorstructure.cpp",
+          "tests/model_tests.cpp",
+          "tests/territorial_structure_tests.cpp",
+          "tests/territorial_info_ui_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "commands"
+      ],
+      "contract": {
+        "input": "Entity creation/deletion, kind and parent relationship intents.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "TerritorialEntityStore/Repository/Service; ProjectDocument and territorial mutation plans.",
+        "preconditions": "Use current kind, containment, dependency and lock validators.",
+        "commit": "Confirm through the existing command boundary; preserve source identity and reference rewrites.",
+        "failure": "No partial removal/reparenting on invalid dependencies; existing unsupported transitions remain unsupported."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "structure:commands",
+          "adapter": "structure-commands",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "observationIds": [
+            "parent-cannot-delete",
+            "leaf-can-delete",
+            "reparent",
+            "parent-noop",
+            "self-parent",
+            "cycle-parent",
+            "missing-parent",
+            "regional-parent-refused",
+            "undo-reparent",
+            "redo-reparent",
+            "lock-child",
+            "locked-parent-refused",
+            "locked-delete-refused",
+            "missing-delete-refused",
+            "batch-missing-is-atomic",
+            "batch-lock-two",
+            "batch-lock-noop",
+            "batch-undo-one-unit",
+            "batch-redo-one-unit",
+            "batch-unlock-missing-is-atomic",
+            "batch-unlock-two"
+          ]
+        },
+        {
+          "id": "structure:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/territorial-entity-store.test.mjs",
+            "tests/unit/territorial-service.test.mjs",
+            "tests/unit/territorial-hierarchy-model.test.mjs"
+          ],
+          "nativeTests": [
+            "model_tests",
+            "territorial_structure_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "structure:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/territorial-hierarchy.spec.mjs"
+          ],
+          "nativeTests": [
+            "territorial_info_ui_tests"
+          ],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        },
+        {
+          "id": "historical:M3.3",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m33_structure_web_parity"
+          ],
+          "nativeTargets": [
+            "structure_probe"
+          ],
+          "sourceCommit": "58e4087f85aa51884bc4ab80959e05010d94d7d5",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "프로젝트 이력·저장 체크포인트",
+      "owners": {
+        "web": "history-service / save-state-controller",
+        "app": "Project"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/history-service.js",
+          "assets/js/modules/save-state-controller.js",
+          "assets/js/modules/app-history*.js",
+          "tests/unit/history-service.test.mjs",
+          "tests/unit/project-state.test.mjs",
+          "tests/browser/storage-protection.spec.mjs"
+        ],
+        "app": [
+          "core/src/project.cpp",
+          "core/include/pandoeditor/project.h",
+          "tests/command_tests.cpp",
+          "tests/timeline_project_tests.cpp",
+          "tests/portability_command_probe.cpp"
+        ]
+      },
+      "dependsOn": [
+        "commands"
+      ],
+      "contract": {
+        "input": "Observe, edit, mark saved, Undo and Redo on a fixed project.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "HistoryService/ProjectDomain/SaveStateController; Project command cursor and checkpoint.",
+        "preconditions": "Project and draft history remain separate; no-op/rejection cannot consume a history unit.",
+        "commit": "Observe state after every operation, including both returns to the save point.",
+        "failure": "The two registered Web dirty-token differences remain exact known cases; no broad dirty exclusion."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "history:commands",
+          "adapter": "command-history",
+          "axes": [
+            "availability",
+            "data",
+            "state"
+          ],
+          "observationIds": [
+            "initial",
+            "rename",
+            "noop",
+            "save",
+            "rename-again",
+            "undo-to-save",
+            "undo-to-initial",
+            "redo-to-save",
+            "redo-to-latest",
+            "invalid-reference"
+          ]
+        },
+        {
+          "id": "history:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/history-service.test.mjs",
+            "tests/unit/project-state.test.mjs"
+          ],
+          "nativeTests": [
+            "command_tests",
+            "timeline_project_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "history:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/storage-protection.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        }
+      ]
+    },
+    {
+      "id": "draft",
+      "title": "초안·정점 편집·확정·취소",
+      "owners": {
+        "web": "EditingDomain / editing transaction",
+        "app": "GeometryDraft / editorgeometry"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/editing*.js",
+          "assets/js/modules/app-geometry*.js",
+          "tests/unit/editing-vertex-transaction.test.mjs",
+          "tests/unit/editing-render-packet.test.mjs",
+          "tests/browser/edit-preview-handoff.spec.mjs"
+        ],
+        "app": [
+          "engine/src/editgeometry.cpp",
+          "engine/include/pandoeditor/map/editgeometry.h",
+          "app/editorgeometry.cpp",
+          "tests/edit_geometry_tests.cpp",
+          "tests/edit_screen_controller_tests.cpp",
+          "tests/edit_screen_ui_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "selection",
+        "history"
+      ],
+      "contract": {
+        "input": "Enter editor, manipulate draft, confirm or cancel, draft Undo/Redo.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "EditingDomain and geometry preview/session; native edit session/controller.",
+        "preconditions": "Draft identity and source revision must still refer to the current project.",
+        "commit": "The preview stays separate from the committed document until existing confirmation.",
+        "failure": "Cancel and invalid preview leave the committed document unchanged; do not merge draft history with project history."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "draft:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/editing-vertex-transaction.test.mjs",
+            "tests/unit/editing-render-packet.test.mjs"
+          ],
+          "nativeTests": [
+            "edit_geometry_tests",
+            "edit_screen_controller_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "draft:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/edit-preview-handoff.spec.mjs"
+          ],
+          "nativeTests": [
+            "edit_screen_ui_tests"
+          ],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        }
+      ]
+    },
+    {
+      "id": "transfer",
+      "title": "영토 편입·합병",
+      "owners": {
+        "web": "territorial-edit-plan / map-edit commands",
+        "app": "territorialmutation / geometrycalculator"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/territorial-edit*.js",
+          "assets/js/modules/map-edit-country*.js",
+          "assets/js/modules/*annex*.js",
+          "tests/unit/territorial-edit-plan.test.mjs",
+          "tests/unit/annex-drawn-selection.test.mjs",
+          "tests/browser/annex-drawn-selection.spec.mjs"
+        ],
+        "app": [
+          "core/src/territorialmutation.cpp",
+          "app/geometrycalculator.cpp",
+          "app/editorterritoryselection.cpp",
+          "tests/territorial_geometry_tests.cpp",
+          "tests/territory_selection_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "geometry",
+        "commands"
+      ],
+      "contract": {
+        "input": "Target/donor IDs and the existing selected territory geometry.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Territorial edit plan and native territorial mutation/geometry calculator.",
+        "preconditions": "Current ownership, locked-object and coverage rules apply to every affected object.",
+        "commit": "Commit the existing geometry patch and ownership changes together.",
+        "failure": "Empty/rejected calculations do not partially transfer owners or create history."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "transfer:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/territorial-edit-plan.test.mjs",
+            "tests/unit/annex-drawn-selection.test.mjs"
+          ],
+          "nativeTests": [
+            "territorial_geometry_tests",
+            "territory_selection_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "transfer:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/annex-drawn-selection.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        }
+      ]
+    },
+    {
+      "id": "split",
+      "title": "영토 분할·하천 분할",
+      "owners": {
+        "web": "map-edit cutting / river-territory-partition",
+        "app": "cutgeometrycalculator / river_partition"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/map-edit*cut*.js",
+          "assets/js/modules/map-edit*split*.js",
+          "assets/js/modules/river-territory*.js",
+          "assets/js/workers/river-territory*.js",
+          "tests/unit/territorial-edit-plan.test.mjs",
+          "tests/unit/map-edit-transaction.test.mjs",
+          "tests/browser/boundary-cut-snapping.spec.mjs"
+        ],
+        "app": [
+          "app/cutgeometrycalculator.cpp",
+          "app/riverpartition.cpp",
+          "app/editorriverselection.cpp",
+          "tests/cut_geometry_calculator_tests.cpp",
+          "tests/split_geometry_lifecycle_tests.cpp",
+          "tests/split_geometry_normalizer_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "geometry",
+        "selection"
+      ],
+      "contract": {
+        "input": "Source ID, selection geometry and generated sibling identity.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Map-edit cut/split calculation; native cut calculator and split plan.",
+        "preconditions": "Preserve current snapping, normalization, holes and selection interpretation.",
+        "commit": "Preview then the existing split confirmation creates its current undo unit.",
+        "failure": "Cancellation, empty results and invalid geometry preserve the previous document."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "split:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/territorial-edit-plan.test.mjs",
+            "tests/unit/map-edit-transaction.test.mjs"
+          ],
+          "nativeTests": [
+            "cut_geometry_calculator_tests",
+            "split_geometry_lifecycle_tests",
+            "split_geometry_normalizer_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "split:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/boundary-cut-snapping.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        }
+      ]
+    },
+    {
+      "id": "boundary",
+      "title": "국경·해안선·스냅",
+      "owners": {
+        "web": "map-edit / boundary calculators",
+        "app": "sharedboundary / geometrysnap / editorgeometry"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/boundary*.js",
+          "assets/js/modules/map-edit*.js",
+          "tests/unit/territorial-boundary-continuity.test.mjs",
+          "tests/unit/territorial-geometry.test.mjs",
+          "tests/browser/territorial-boundary-continuity.spec.mjs"
+        ],
+        "app": [
+          "engine/src/sharedboundary.cpp",
+          "engine/src/geometrysnap.cpp",
+          "app/editorsnapping.cpp",
+          "tests/m976_shared_boundary_engine_tests.cpp",
+          "tests/m974_snap_tests.cpp",
+          "tests/m974_boundary_session_tests.cpp",
+          "tests/m974_boundary_ui_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "geometry",
+        "draft"
+      ],
+      "contract": {
+        "input": "Selected owners, boundary/coastline nodes, draft coordinates and session revision.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Boundary preparation/move worker and native shared-boundary/snap session.",
+        "preconditions": "Keep boundary ownership, vertex identity, snapping and source order unchanged.",
+        "commit": "Existing preview adoption and confirm/cancel boundary controls replacement.",
+        "failure": "Late or canceled results must not resurrect an old draft, preview or selection."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "boundary:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/territorial-boundary-continuity.test.mjs",
+            "tests/unit/territorial-geometry.test.mjs"
+          ],
+          "nativeTests": [
+            "m976_shared_boundary_engine_tests",
+            "m974_snap_tests",
+            "m974_boundary_session_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "boundary:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/territorial-boundary-continuity.spec.mjs"
+          ],
+          "nativeTests": [
+            "m974_boundary_ui_tests"
+          ],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        }
+      ]
+    },
+    {
+      "id": "geometry",
+      "title": "geometry 구조·holes·교차·날짜변경선",
+      "owners": {
+        "web": "geometry modules / map-edit worker",
+        "app": "geometrypredicates / calculators"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/*geometry*.js",
+          "assets/js/workers/map-edit-worker.js",
+          "assets/js/workers/geometry-validation-worker.js",
+          "tests/unit/territorial-geometry.test.mjs",
+          "tests/unit/territorial-source-provenance.test.mjs"
+        ],
+        "app": [
+          "core/src/geometrypredicates.cpp",
+          "core/src/geobounds.cpp",
+          "core/src/geometryprovenance.cpp",
+          "app/geometrycalculator.cpp",
+          "tests/geometry_predicate_tests.cpp",
+          "tests/geometry_provenance_tests.cpp",
+          "tests/geometry_calculator_tests.cpp",
+          "tests/portability_geometry_probe.cpp"
+        ]
+      },
+      "dependsOn": [],
+      "contract": {
+        "input": "Polygon/MultiPolygon coordinates with explicit containment expectations.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Current Web polygon geometry kernel; native geometryContains and geometry calculators.",
+        "preconditions": "No coordinate rounding, repair, reprojection or vertex removal in the observer.",
+        "commit": "Containment is read-only and must preserve exact input geometry. Editing outputs have separate evidence.",
+        "failure": "Malformed/unsupported geometry is recorded without claiming containment tests cover all editing algorithms."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state"
+      ],
+      "cases": [
+        {
+          "id": "geometry:clipping",
+          "adapter": "geometry-clipping",
+          "axes": [
+            "availability",
+            "rules",
+            "data"
+          ],
+          "observationIds": [
+            "overlap-union",
+            "overlap-intersection",
+            "overlap-difference",
+            "identical-difference",
+            "disjoint-intersection",
+            "edge-touch-intersection",
+            "disjoint-union",
+            "hole-difference",
+            "three-operand-union",
+            "subdecimal-coordinate"
+          ]
+        },
+        {
+          "id": "geometry:containment",
+          "adapter": "geometry-containment",
+          "axes": [
+            "availability",
+            "rules"
+          ],
+          "observationIds": [
+            "contained",
+            "outside",
+            "touching",
+            "identical",
+            "hole-excludes-child",
+            "around-hole",
+            "multipolygon-contained",
+            "multipolygon-outside",
+            "raw-antimeridian",
+            "split-antimeridian",
+            "raw-with-split-child",
+            "antimeridian-outside",
+            "world-with-seam-hole",
+            "seam-hole-excludes-child"
+          ]
+        },
+        {
+          "id": "geometry:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/territorial-geometry.test.mjs",
+            "tests/unit/territorial-source-provenance.test.mjs"
+          ],
+          "nativeTests": [
+            "geometry_predicate_tests",
+            "geometry_provenance_tests",
+            "geometry_calculator_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "historical:M4",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m4_geometry_web_parity"
+          ],
+          "nativeTargets": [
+            "m4_geometry_probe"
+          ],
+          "sourceCommit": "58e4087f85aa51884bc4ab80959e05010d94d7d5",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M7.6-large-world-edit-parity",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [],
+          "nativeTargets": [],
+          "sourceCommit": "58e4087f85aa51884bc4ab80959e05010d94d7d5",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ],
+      "notApplicable": {
+        "interaction": "Pure geometry calculation has no UI surface; draft, transfer, split and boundary own interactive geometry workflows."
+      }
+    },
+    {
+      "id": "async",
+      "title": "취소·revision·늦은 결과·commit/discard",
+      "owners": {
+        "web": "project-transaction / worker scheduler",
+        "app": "JobScheduler / CommandJobRunner"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/project-transaction.js",
+          "assets/js/modules/worker*.js",
+          "assets/js/modules/map-edit-worker-client.js",
+          "assets/js/workers/worker-rpc-host.js",
+          "tests/unit/project-transaction.test.mjs",
+          "tests/unit/worker-job-scheduler.test.mjs",
+          "tests/unit/map-edit-transaction-reliability.test.mjs",
+          "tests/browser/edit-preview-handoff.spec.mjs"
+        ],
+        "app": [
+          "core/src/jobs.cpp",
+          "app/commandjobrunner.cpp",
+          "app/editorjobs.cpp",
+          "tests/job_tests.cpp",
+          "tests/job_runner_tests.cpp",
+          "tests/job_editor_tests.cpp",
+          "tests/portability_async_probe.cpp"
+        ]
+      },
+      "dependsOn": [
+        "commands"
+      ],
+      "contract": {
+        "input": "Controlled successful, failed, canceled, stale-revision and replaced-project jobs.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "LatestWorkerJobScheduler with current revision port; CommandJobRunner and CommandProcessor.",
+        "preconditions": "The queued job is bound to its original project/revision; completion gates control delivery without sleeps.",
+        "commit": "Only the accepted current result commits; discarded late results leave state/history untouched.",
+        "failure": "Failure/cancellation completion is observed separately from accepted mutation; original worker paths execute."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "async:lifecycle",
+          "adapter": "async-lifecycle",
+          "axes": [
+            "availability",
+            "rules",
+            "state"
+          ],
+          "observationIds": [
+            "success",
+            "cancel-late-result",
+            "revision-late-result",
+            "replacement-late-result",
+            "worker-failure"
+          ]
+        },
+        {
+          "id": "async:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/project-transaction.test.mjs",
+            "tests/unit/worker-job-scheduler.test.mjs",
+            "tests/unit/map-edit-transaction-reliability.test.mjs"
+          ],
+          "nativeTests": [
+            "job_tests",
+            "job_runner_tests",
+            "job_editor_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "async:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/edit-preview-handoff.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        }
+      ]
+    },
+    {
+      "id": "storage",
+      "title": "저장·재열기·자동저장·복구",
+      "owners": {
+        "web": "project-serializer / persistence-service",
+        "app": "projectcodec / ProjectStorage / ProjectAutosave"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/project-serializer.js",
+          "assets/js/modules/persistence*.js",
+          "assets/js/modules/browser-project-storage.js",
+          "assets/js/modules/project-save*.js",
+          "tests/unit/project-serializer.test.mjs",
+          "tests/unit/persistence-service.test.mjs",
+          "tests/unit/reference-image-store.test.mjs",
+          "tests/browser/storage-protection.spec.mjs",
+          "tests/browser/timeline-persistence.spec.mjs"
+        ],
+        "app": [
+          "app/projectcodec.cpp",
+          "app/platformstorage.cpp",
+          "app/projectautosave.cpp",
+          "tests/storage_tests.cpp",
+          "tests/autosave_tests.cpp",
+          "tests/timeline_editor_persistence_tests.cpp",
+          "tests/web_import_ui_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "history",
+        "timeline",
+        "structure",
+        "reference"
+      ],
+      "contract": {
+        "input": "Project snapshot, autosave recovery or explicit save/reopen request.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "ProjectSerializer/PersistenceService/BrowserProjectStorage; codec/autosave/platform storage.",
+        "preconditions": "Existing schema validation and save protection apply before replacing a document.",
+        "commit": "Preserve queue ordering and original save success/failure and recovery boundaries.",
+        "failure": "Failed writes must not mark the document saved or replace a recoverable previous project."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "storage:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/project-serializer.test.mjs",
+            "tests/unit/persistence-service.test.mjs",
+            "tests/unit/reference-image-store.test.mjs"
+          ],
+          "nativeTests": [
+            "storage_tests",
+            "autosave_tests",
+            "timeline_editor_persistence_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "storage:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/storage-protection.spec.mjs",
+            "tests/browser/timeline-persistence.spec.mjs"
+          ],
+          "nativeTests": [
+            "web_import_ui_tests"
+          ],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        }
+      ]
+    },
+    {
+      "id": "timeline",
+      "title": "날짜·역사 상태·geometry version",
+      "owners": {
+        "web": "temporal / timeline-records / timeline-storage",
+        "app": "temporal / timeline-records / timeline-storage"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/temporal.js",
+          "assets/js/modules/timeline*.js",
+          "assets/js/modules/geometry-version-store.js",
+          "tests/unit/timeline-records.test.mjs",
+          "tests/unit/timeline-storage.test.mjs",
+          "tests/unit/timeline-project-activation.test.mjs",
+          "tests/browser/timeline-persistence.spec.mjs"
+        ],
+        "app": [
+          "core/src/temporal.cpp",
+          "core/src/timeline-records.cpp",
+          "core/src/timeline-storage.cpp",
+          "tests/timeline_records_tests.cpp",
+          "tests/timeline_storage_tests.cpp",
+          "tests/temporal_tests.cpp"
+        ]
+      },
+      "dependsOn": [],
+      "contract": {
+        "input": "Identity list, lifetime/geometry/parent records, geometry archive and date endpoints.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Current temporal/timeline-records/timeline-storage modules on each platform.",
+        "preconditions": "Preserve precision, inclusive intervals, references and activation limits.",
+        "commit": "Record validator observes verdict only; storage observer additionally checks the round-trip snapshot.",
+        "failure": "Native-excluded fixture cases are UNSUPPORTED, never PASS; active historical projects retain activation refusal."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "timeline:timeline-records",
+          "adapter": "timeline-records",
+          "axes": [
+            "availability",
+            "rules"
+          ],
+          "observationIds": [
+            "timeless hierarchy and independent region",
+            "empty world",
+            "schema version rejected",
+            "missing entity",
+            "empty record id",
+            "cross-slot duplicate id",
+            "duplicate entity catalog id",
+            "invalid entity kind",
+            "missing geometry asset",
+            "missing exact geometry version",
+            "zero geometry version",
+            "empty geometry id",
+            "bad date",
+            "year zero",
+            "empty date is not unbounded",
+            "whitespace date is not unbounded",
+            "reversed interval",
+            "missing lifetime",
+            "overlapping lifetimes",
+            "overlapping geometry slots",
+            "overlapping parent slots",
+            "missing geometry slot",
+            "missing parent slot",
+            "geometry outside lifetime",
+            "parent slot outside lifetime",
+            "unknown parent",
+            "self parent",
+            "regional cannot be a parent",
+            "regional cannot have a parent",
+            "root must be explicit",
+            "unknown coverage mode",
+            "active parent cycle",
+            "parent ends before child",
+            "parent starts after child",
+            "child inside finite parent",
+            "bounded month lifetime",
+            "exact day lifetime",
+            "mixed precision lifetime",
+            "normalized endpoints retain precision",
+            "monthly switch",
+            "daily switch",
+            "inclusive same-day overlap",
+            "one-day hole",
+            "non-leap February adjacency",
+            "leap February adjacency",
+            "leap day hole",
+            "century not leap",
+            "400-year leap",
+            "BCE CE adjacency",
+            "BCE leap adjacency",
+            "expanded year adjacency",
+            "upper bound then open future",
+            "one-day cycle invisible at month end",
+            "opposite edges in disjoint periods",
+            "disjoint lifetimes",
+            "geometry leaks between lifetimes",
+            "unknown wire field rejected",
+            "missing collection rejected",
+            "missing endpoint is not null",
+            "numeric entity id rejected",
+            "numeric date rejected",
+            "fractional geometry version",
+            "overflow geometry version",
+            "retired sovereign field rejected",
+            "two-million-year span uses only record boundaries",
+            "maximum native geometry version",
+            "Unicode date whitespace stays lossless",
+            "day starts within ending month"
+          ]
+        },
+        {
+          "id": "timeline:timeline-storage",
+          "adapter": "timeline-storage",
+          "axes": [
+            "availability",
+            "rules",
+            "data"
+          ],
+          "observationIds": [
+            "past and present geometry versions plus unbound features",
+            "empty snapshot",
+            "missing past geometry",
+            "missing future version",
+            "territory cannot bind a point",
+            "territory cannot bind a line",
+            "duplicate version",
+            "unknown snapshot schema",
+            "invalid old geometry coordinate",
+            "open old ring",
+            "zero geometry version",
+            "empty geometry ID",
+            "overlapping records",
+            "one-day record gap",
+            "day precision retained",
+            "BCE CE transition retained",
+            "blank endpoint is not null",
+            "endpoint normalization retains month precision",
+            "maximum geometry version retained",
+            "unbound old version is not pruned",
+            "holes islands and dateline retained",
+            "all canonical geometry types retained",
+            "UTF8 geometry ID ordering",
+            "multiple entities share one immutable version",
+            "old record schema rejected",
+            "unknown snapshot field",
+            "missing geometries collection",
+            "unknown geometry field",
+            "numeric version string",
+            "fractional version",
+            "extra coordinate is rejected"
+          ]
+        },
+        {
+          "id": "timeline:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/timeline-records.test.mjs",
+            "tests/unit/timeline-storage.test.mjs",
+            "tests/unit/timeline-project-activation.test.mjs"
+          ],
+          "nativeTests": [
+            "timeline_records_tests",
+            "timeline_storage_tests",
+            "temporal_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "timeline:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/timeline-persistence.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        },
+        {
+          "id": "historical:M6-temporal",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m6_temporal_web_parity"
+          ],
+          "nativeTargets": [
+            "temporal_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ]
+    },
+    {
+      "id": "exchange",
+      "title": "Web/App 교환·GIS·출처 보존",
+      "owners": {
+        "web": "import/export domains / exchange adapters",
+        "app": "gisexchange / projectcodec"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/gis*.js",
+          "assets/js/modules/import*.js",
+          "assets/js/modules/*exchange*.js",
+          "assets/js/modules/source-provenance.js",
+          "tests/unit/territorial-gis-export.test.mjs",
+          "tests/unit/territorial-gis-current.test.mjs",
+          "tests/unit/generic-provenance.test.mjs",
+          "tests/browser/gis-interchange.spec.mjs"
+        ],
+        "app": [
+          "core/src/gisexchange.cpp",
+          "core/src/giszip.cpp",
+          "app/editorgis*.cpp",
+          "app/editorwebimport.cpp",
+          "app/projectcodec.cpp",
+          "tests/gis_exchange_tests.cpp",
+          "tests/gis_failure_matrix_tests.cpp",
+          "tests/project_geopackage_tests.cpp",
+          "tests/web_import_ui_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "storage"
+      ],
+      "contract": {
+        "input": "Fixed JSON/GeoPackage projects and invalid interval mutations.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Current Web project-state and GIS Worker; native timeline_project_tests production file trace.",
+        "preconditions": "Both sides read the same pinned fixture; expected identity/timeline/archive content is independently specified.",
+        "commit": "Read, JSON reopen and GeoPackage reopen are observed separately; original files remain in evidence.",
+        "failure": "Invalid files must reject with the specified timeline category and publish no output. Only declared ID-keyed collections have immaterial row order."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "exchange:files",
+          "adapter": "file-exchange",
+          "axes": [
+            "availability",
+            "rules",
+            "data"
+          ],
+          "observationIds": [
+            "static-json",
+            "static-gpkg",
+            "complex-json",
+            "complex-gpkg",
+            "calendar-boundaries-json",
+            "calendar-boundaries-gpkg",
+            "year-zero",
+            "nonleap-1900",
+            "inclusive-overlap",
+            "leap-day-gap",
+            "content-document"
+          ]
+        },
+        {
+          "id": "exchange:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/territorial-gis-export.test.mjs",
+            "tests/unit/territorial-gis-current.test.mjs",
+            "tests/unit/generic-provenance.test.mjs"
+          ],
+          "nativeTests": [
+            "gis_exchange_tests",
+            "gis_failure_matrix_tests",
+            "project_geopackage_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "exchange:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/gis-interchange.spec.mjs"
+          ],
+          "nativeTests": [
+            "web_import_ui_tests"
+          ],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        },
+        {
+          "id": "historical:M6-GIS",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m6_gis_exchange_web_parity"
+          ],
+          "nativeTargets": [
+            "gis_exchange_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M6-GIS-export",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m6_gis_export_sqlite_oracle"
+          ],
+          "nativeTargets": [
+            "gis_export_tests"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M6-project-GPKG",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m6_project_gpkg_sqlite_oracle"
+          ],
+          "nativeTargets": [
+            "project_geopackage_tests"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ]
+    },
+    {
+      "id": "library",
+      "title": "역사 라이브러리·국가·국기 자료",
+      "owners": {
+        "web": "territorial library / flag assets",
+        "app": "historicallibrary / catalog loaders"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/territorial-library*.js",
+          "assets/js/modules/*flag*.js",
+          "assets/data/territorial-entities/**",
+          "assets/flags/**",
+          "tests/unit/territorial-library-data.test.mjs",
+          "tests/unit/territorial-source-files.test.mjs",
+          "tests/unit/territorial-source-parity.test.mjs",
+          "tests/unit/territorial-chunks.test.mjs",
+          "tests/browser/historical-library.spec.mjs"
+        ],
+        "app": [
+          "core/src/historicallibrary.cpp",
+          "app/territoriallibrary*.cpp",
+          "app/historicallibrary*.cpp",
+          "assets/flags/**",
+          "tests/historical_library_tests.cpp",
+          "tests/territorial_library_catalog_tests.cpp",
+          "tests/historical_library_loader_tests.cpp",
+          "tests/portability_library_probe.cpp",
+          "assets/territorial-library-v2/**"
+        ]
+      },
+      "dependsOn": [
+        "timeline"
+      ],
+      "contract": {
+        "input": "Fixed catalog bytes, name search or source geometry-version date query.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Current TerritorialLibraryService/loader; TerritorialLibraryCatalog.",
+        "preconditions": "Catalog byte length/hash and source version are exact; query order and date gaps matter.",
+        "commit": "Metadata lookup stays read-only and does not load entity geometry.",
+        "failure": "Gap queries remain empty; network failures/retries and flags need their own provider evidence."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "library:queries",
+          "adapter": "library-queries",
+          "axes": [
+            "availability",
+            "rules"
+          ],
+          "observationIds": [
+            "korean-lineage",
+            "korean-name",
+            "germany-1900",
+            "ddr-gap",
+            "yugoslavia-1941-04-17",
+            "yugoslavia-1943",
+            "yugoslavia-1945-11-29",
+            "yugoslavia-1992-04-26",
+            "yugoslavia-1992-04-27",
+            "yugoslavia-1992-04",
+            "yugoslavia-2003"
+          ]
+        },
+        {
+          "id": "library:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/territorial-library-data.test.mjs",
+            "tests/unit/territorial-source-files.test.mjs",
+            "tests/unit/territorial-source-parity.test.mjs",
+            "tests/unit/territorial-chunks.test.mjs"
+          ],
+          "nativeTests": [
+            "historical_library_tests",
+            "territorial_library_catalog_tests",
+            "historical_library_loader_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "library:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/historical-library.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        },
+        {
+          "id": "historical:M6-historical",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m6_historical_catalog_web_parity"
+          ],
+          "nativeTargets": [
+            "historical_library_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ]
+    },
+    {
+      "id": "distribution",
+      "title": "분포 데이터·수치·선택",
+      "owners": {
+        "web": "distribution-service / numeric model",
+        "app": "content / editorcontent"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/distribution*.js",
+          "tests/unit/distribution-service.test.mjs",
+          "tests/unit/distribution-numeric-model.test.mjs",
+          "tests/unit/distribution-selection.test.mjs"
+        ],
+        "app": [
+          "core/src/content.cpp",
+          "app/editorcontent.cpp",
+          "tests/command_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "commands"
+      ],
+      "contract": {
+        "input": "Distribution layers/entries, territorial references and finite values.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "DistributionService/model; native ContentEdit and distribution records.",
+        "preconditions": "Current numeric, source mode, reference and validity rules apply.",
+        "commit": "Existing content command owns the change, undo and persistence unit.",
+        "failure": "Invalid numeric values or references cannot partially change a layer or entry."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "distribution:scale",
+          "adapter": "distribution-scale",
+          "axes": [
+            "availability",
+            "rules",
+            "data"
+          ],
+          "observationIds": [
+            "empty-auto",
+            "constant",
+            "negative-to-positive",
+            "manual-clamps",
+            "zero-opacity",
+            "independent-layer-ranges",
+            "manual-without-entries"
+          ],
+          "reason": "Current value range and alpha calculations only; editing lifecycle and visible rendering are separate unverified obligations."
+        },
+        {
+          "id": "distribution:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/distribution-service.test.mjs",
+            "tests/unit/distribution-numeric-model.test.mjs",
+            "tests/unit/distribution-selection.test.mjs"
+          ],
+          "nativeTests": [
+            "command_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        }
+      ]
+    },
+    {
+      "id": "generic",
+      "title": "기타 객체·참조·잠금",
+      "owners": {
+        "web": "generic-feature-service",
+        "app": "content / editorcontent"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/generic-feature*.js",
+          "tests/unit/generic-feature-service.test.mjs",
+          "tests/unit/generic-provenance.test.mjs",
+          "tests/browser/generic-feature-independent-geometry.spec.mjs"
+        ],
+        "app": [
+          "core/src/content.cpp",
+          "app/editorcontent.cpp",
+          "tests/retained_reference_tests.cpp"
+        ]
+      },
+      "dependsOn": [
+        "commands"
+      ],
+      "contract": {
+        "input": "Independent feature identity, geometry, properties and retained provenance.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "GenericFeatureService; native generic content command/storage.",
+        "preconditions": "Preserve independent geometry and existing provenance/reference validation.",
+        "commit": "Existing feature command commits properties and geometry together.",
+        "failure": "Deletion cleans only the existing known references; unsupported imports remain explicit."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "generic:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/generic-feature-service.test.mjs",
+            "tests/unit/generic-provenance.test.mjs"
+          ],
+          "nativeTests": [
+            "retained_reference_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "generic:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/generic-feature-independent-geometry.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        },
+        {
+          "id": "historical:M5-content",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m5_content_web_parity"
+          ],
+          "nativeTargets": [
+            "content_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ]
+    },
+    {
+      "id": "reference",
+      "title": "참조 이미지·변환·보정·초안",
+      "owners": {
+        "web": "reference-image modules",
+        "app": "reference image editor/session"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/reference-image*.js",
+          "tests/unit/reference-image-transform.test.mjs",
+          "tests/unit/reference-image-source-mapping.test.mjs",
+          "tests/unit/reference-image-edit-session.test.mjs",
+          "tests/unit/reference-image-store.test.mjs",
+          "tests/browser/reference-image-overlay.spec.mjs"
+        ],
+        "app": [
+          "app/*reference*.cpp",
+          "app/*reference*.h",
+          "tests/reference*",
+          "tests/reference_image_tests.cpp"
+        ]
+      },
+      "dependsOn": [],
+      "contract": {
+        "input": "Reference image asset identity, transform, visibility and edit session.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Reference-image store/transform/session; native reference image controller.",
+        "preconditions": "Retain original source mapping, image bytes and current transform conventions.",
+        "commit": "Draft transforms commit or cancel at the existing UI boundary.",
+        "failure": "Failed source load and canceled transform preserve the previous image/session; no coordinate policy changes."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "reference:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/reference-image-transform.test.mjs",
+            "tests/unit/reference-image-source-mapping.test.mjs",
+            "tests/unit/reference-image-edit-session.test.mjs",
+            "tests/unit/reference-image-store.test.mjs"
+          ],
+          "nativeTests": [
+            "reference_image_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "reference:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/reference-image-overlay.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        }
+      ]
+    },
+    {
+      "id": "place",
+      "title": "지명 로딩·편집·표시",
+      "owners": {
+        "web": "place runtime / worker store",
+        "app": "place providers / editorplace"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/place*.js",
+          "assets/js/workers/place*.js",
+          "tests/unit/place-runtime.test.mjs",
+          "tests/unit/place-worker-store.test.mjs",
+          "tests/unit/place-codec.test.mjs",
+          "assets/data/places/**"
+        ],
+        "app": [
+          "app/place*.cpp",
+          "app/editorplace.cpp",
+          "engine/src/labelengine.cpp",
+          "tests/place_runtime_store_tests.cpp",
+          "tests/place_runtime_provider_tests.cpp",
+          "tests/place_controller_tests.cpp",
+          "assets/world/places/**"
+        ]
+      },
+      "dependsOn": [
+        "loading"
+      ],
+      "contract": {
+        "input": "Fixed place manifest/chunks, viewport/search and label edits.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Place worker store/codec/runtime; native PlaceRuntimeStore/provider/controller.",
+        "preconditions": "Source IDs, population order, selection caps and viewport rules remain current.",
+        "commit": "Publish only current query results and keep label edits at the existing content boundary.",
+        "failure": "Canceled/failed loads must not populate a replaced project or publish stale labels."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "place:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/place-runtime.test.mjs",
+            "tests/unit/place-worker-store.test.mjs",
+            "tests/unit/place-codec.test.mjs"
+          ],
+          "nativeTests": [
+            "place_runtime_store_tests",
+            "place_runtime_provider_tests",
+            "place_controller_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        }
+      ]
+    },
+    {
+      "id": "hydro",
+      "title": "수계 로딩·캐시·재시도·편집",
+      "owners": {
+        "web": "hydro runtime / workers",
+        "app": "hydro providers / scheduler"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/hydro*.js",
+          "assets/js/workers/hydro*.js",
+          "tests/unit/hydro-tile-window.test.mjs",
+          "tests/unit/hydro-recovery.test.mjs",
+          "tests/unit/hydro-metadata-edit.test.mjs",
+          "tests/browser/hydro-metadata-edit.spec.mjs",
+          "assets/data/hydro/**"
+        ],
+        "app": [
+          "app/hydro*.cpp",
+          "core/src/hydro*.cpp",
+          "engine/src/builtinhydrochannel.cpp",
+          "tests/hydro_runtime_tests.cpp",
+          "tests/hydro_scheduler_resource_tests.cpp",
+          "tests/hydro_cache_tests.cpp",
+          "assets/world/hydro/**"
+        ]
+      },
+      "dependsOn": [
+        "loading"
+      ],
+      "contract": {
+        "input": "Fixed water metadata/tiles, viewport selection and metadata edits.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Hydro scheduler/recovery/model; native hydro runtime/cache.",
+        "preconditions": "Preserve source coordinates, logical feature identity and current tile/merge policy.",
+        "commit": "Existing tile adoption and content command boundaries own visible replacement.",
+        "failure": "Failed or canceled tile requests retain the existing retry/cache lifetime rules."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "hydro:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/hydro-tile-window.test.mjs",
+            "tests/unit/hydro-recovery.test.mjs",
+            "tests/unit/hydro-metadata-edit.test.mjs"
+          ],
+          "nativeTests": [
+            "hydro_runtime_tests",
+            "hydro_scheduler_resource_tests",
+            "hydro_cache_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "hydro:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/hydro-metadata-edit.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        },
+        {
+          "id": "historical:M5-hydro-index",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m5_hydro_index_parity"
+          ],
+          "nativeTargets": [
+            "hydro_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M5-hydro-pack",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m5_hydro_pack_parity"
+          ],
+          "nativeTargets": [
+            "hydro_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M5-hydro-merge",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m5_hydro_logical_merge_parity"
+          ],
+          "nativeTargets": [
+            "hydro_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M5-viewport",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m5_hydro_viewport_parity"
+          ],
+          "nativeTargets": [
+            "hydro_viewport_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ]
+    },
+    {
+      "id": "terrain",
+      "title": "지형 수요·로딩·취소·캐시·표시",
+      "owners": {
+        "web": "terrain modules / GPU preparation",
+        "app": "terrain providers / render owner"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/terrain*.js",
+          "assets/js/modules/gpu-terrain*.js",
+          "assets/js/workers/terrain*.js",
+          "tests/unit/terrain-manifest.test.mjs",
+          "tests/unit/gpu-terrain-preparation.test.mjs",
+          "tests/browser/terrain-progressive.spec.mjs",
+          "assets/data/terrain/**"
+        ],
+        "app": [
+          "app/terrain*.cpp",
+          "engine/src/resourcecachepolicy.cpp",
+          "tests/terrain_resource_cache_tests.cpp",
+          "tests/terrain_dem_provider_tests.cpp",
+          "tests/terrain_display_state_tests.cpp",
+          "tests/terrain_render_owner_tests.cpp",
+          "assets/world/terrain/**"
+        ]
+      },
+      "dependsOn": [
+        "loading"
+      ],
+      "contract": {
+        "input": "Fixed terrain manifest/tiles, view and display replacement events.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "GPU terrain preparation/manifest; native terrain provider/display/render owner.",
+        "preconditions": "Use current LOD, resource budget and required base-tile readiness rules.",
+        "commit": "Only existing readiness/adoption rules replace the displayed terrain.",
+        "failure": "Decode/upload failures and stale results may not falsely authorize new display; missing decoder is not PASS."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "terrain:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/terrain-manifest.test.mjs",
+            "tests/unit/gpu-terrain-preparation.test.mjs"
+          ],
+          "nativeTests": [
+            "terrain_resource_cache_tests",
+            "terrain_dem_provider_tests",
+            "terrain_display_state_tests",
+            "terrain_render_owner_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "terrain:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/terrain-progressive.spec.mjs"
+          ],
+          "nativeTests": [],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        }
+      ]
+    },
+    {
+      "id": "render",
+      "title": "레이어·강조·preview·렌더 인계",
+      "owners": {
+        "web": "RenderingDomain / coordinator / renderer",
+        "app": "MapSceneBridge / scene builder / Qt renderer"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/render*.js",
+          "assets/js/modules/gpu*.js",
+          "assets/js/modules/map-render*.js",
+          "assets/js/modules/map-visual*.js",
+          "assets/js/modules/layer*.js",
+          "assets/js/workers/canvas*.js",
+          "tests/unit/render-scene.test.mjs",
+          "tests/unit/map-render-coordinator.test.mjs",
+          "tests/unit/gpu-renderer-lifecycle.test.mjs",
+          "tests/unit/selection-overlay-plan.test.mjs",
+          "tests/browser/selection-interaction-style.spec.mjs",
+          "tests/browser/visual-frame-sync.spec.mjs"
+        ],
+        "app": [
+          "engine/src/renderscene.cpp",
+          "engine/src/scenepatch.cpp",
+          "app/mapscenebridge.cpp",
+          "app/maprenderer*.cpp",
+          "tests/geometry_presentation_handoff_tests.cpp",
+          "tests/map_stroke_handoff_tests.cpp",
+          "tests/m72_scene_bridge_tests.cpp",
+          "tests/edit_display_ui_tests.cpp",
+          "renderer/**"
+        ]
+      },
+      "dependsOn": [
+        "selection",
+        "draft",
+        "properties",
+        "structure",
+        "place",
+        "hydro",
+        "terrain",
+        "reference"
+      ],
+      "contract": {
+        "input": "Read-only scene state, selection/hover, layer visibility and preview handoff.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "RenderScene/MapRenderCoordinator; native scene bridge/render handoff.",
+        "preconditions": "Compare visible object/geometry/highlight meaning, not renderer internals or rasterized font pixels.",
+        "commit": "Required display updates finish without an extra user input; preserve preview-to-document timing.",
+        "failure": "Released resources and obsolete preview results cannot reappear; screenshots are diagnostic only."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state",
+        "interaction"
+      ],
+      "cases": [
+        {
+          "id": "render:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/render-scene.test.mjs",
+            "tests/unit/map-render-coordinator.test.mjs",
+            "tests/unit/gpu-renderer-lifecycle.test.mjs",
+            "tests/unit/selection-overlay-plan.test.mjs"
+          ],
+          "nativeTests": [
+            "geometry_presentation_handoff_tests",
+            "map_stroke_handoff_tests",
+            "m72_scene_bridge_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        },
+        {
+          "id": "render:input-display",
+          "adapter": "ui-evidence",
+          "axes": [
+            "interaction"
+          ],
+          "webTests": [
+            "tests/browser/selection-interaction-style.spec.mjs",
+            "tests/browser/visual-frame-sync.spec.mjs"
+          ],
+          "nativeTests": [
+            "edit_display_ui_tests"
+          ],
+          "platform": "win32",
+          "reason": "Actual browser/Qt input evidence; shared state trace coverage is assessed separately."
+        },
+        {
+          "id": "historical:M3.4",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "presentation_web_parity"
+          ],
+          "nativeTargets": [
+            "presentation_parity_probe"
+          ],
+          "sourceCommit": "58e4087f85aa51884bc4ab80959e05010d94d7d5",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M3.5",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [],
+          "nativeTargets": [],
+          "sourceCommit": "58e4087f85aa51884bc4ab80959e05010d94d7d5",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M5-draw/pick",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m5_render_pick_order_parity"
+          ],
+          "nativeTargets": [
+            "map_render_order_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M5-safe-area",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m5_label_safe_area_web"
+          ],
+          "nativeTargets": [],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M7.1-corpus",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "world_corpus_tests"
+          ],
+          "nativeTargets": [
+            "world_corpus_tests"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M7.2-projection",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m72_projection_web_oracle"
+          ],
+          "nativeTargets": [
+            "m72_projection_tests"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M7.2-packet",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [
+            "m72_packet_corpus"
+          ],
+          "nativeTargets": [
+            "m72_packet_corpus_probe"
+          ],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M7.3-GPU-parity",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [],
+          "nativeTargets": [],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M7.4-full-world-parity",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [],
+          "nativeTargets": [],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        },
+        {
+          "id": "historical:M7.5-quality-native-parity",
+          "adapter": "historical",
+          "axes": [
+            "data"
+          ],
+          "nativeTests": [],
+          "nativeTargets": [],
+          "sourceCommit": "c0bd31d13dc8495593d78cf51f7cc195de7c9469",
+          "reason": "Archived oracle retained from the previous runner. Its pinned Web source is not the current Web comparison."
+        }
+      ]
+    },
+    {
+      "id": "loading",
+      "title": "공통 자원 수명·프로젝트 교체",
+      "owners": {
+        "web": "physical-layer-service / resource loaders",
+        "app": "physical data store / cache policy"
+      },
+      "paths": {
+        "web": [
+          "assets/js/modules/physical*.js",
+          "assets/js/modules/resource*.js",
+          "tests/unit/hydro-recovery.test.mjs",
+          "tests/unit/place-worker-store.test.mjs"
+        ],
+        "app": [
+          "app/physicaldatastore.cpp",
+          "engine/src/viewportresourcescheduler.cpp",
+          "engine/src/resourcecachepolicy.cpp",
+          "tests/physical_data_store_tests.cpp",
+          "tests/resource_cache_policy_tests.cpp",
+          "tests/viewport_resource_scheduler_tests.cpp"
+        ]
+      },
+      "dependsOn": [],
+      "contract": {
+        "input": "Fixed responses and controlled failure, cancellation, retry and replacement requests.",
+        "identity": "Explicit domain/type/id or ObjectRef conversion; source IDs and feature IDs are not substituted.",
+        "entrypoints": "Existing physical/resource loaders; native provider/cache/scheduler.",
+        "preconditions": "Keep source identity and current lazy/duplicate request/cache lifetime rules.",
+        "commit": "Adopt only results belonging to the current request/project and release obsolete resources.",
+        "failure": "Failures, retries and canceled requests are explicit outcomes; live service availability is not an oracle."
+      },
+      "axes": [
+        "availability",
+        "rules",
+        "data",
+        "state"
+      ],
+      "cases": [
+        {
+          "id": "loading:catalog",
+          "adapter": "library-loading",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "observationIds": [
+            "lazy-index",
+            "failed-load",
+            "retry-success",
+            "cached-after-source-failure"
+          ]
+        },
+        {
+          "id": "loading:production-contracts",
+          "adapter": "evidence",
+          "axes": [
+            "availability",
+            "rules",
+            "data",
+            "state"
+          ],
+          "webTests": [
+            "tests/unit/hydro-recovery.test.mjs",
+            "tests/unit/place-worker-store.test.mjs"
+          ],
+          "nativeTests": [
+            "physical_data_store_tests",
+            "resource_cache_policy_tests",
+            "viewport_resource_scheduler_tests"
+          ],
+          "reason": "Independent production regression suites are supporting evidence, not a shared-input differential observation."
+        }
+      ],
+      "notApplicable": {
+        "interaction": "Provider and cache APIs have no independent UI; visible adoption is owned by place, hydro, terrain and render."
+      }
+    }
+  ],
+  "requiredFixtures": [
+    "tests/fixtures/portability/index.json",
+    "tests/fixtures/portability/selection.json",
+    "tests/fixtures/portability/command-history.json",
+    "tests/fixtures/timeline-records.json",
+    "tests/fixtures/timeline-records-cases.mjs",
+    "tests/fixtures/timeline-storage.json",
+    "tests/fixtures/timeline-storage-cases.mjs",
+    "tools/parity/contract.mjs",
+    "tools/parity/registry.mjs",
+    "tools/parity/command-history.mjs",
+    "tests/fixtures/portability/known-differences.json",
+    "tests/fixtures/portability/geometry-containment.json",
+    "tools/parity/geometry.mjs",
+    "tests/fixtures/portability/async-lifecycle.json",
+    "tools/parity/async.mjs",
+    "tests/fixtures/portability/library-queries.json",
+    "tools/parity/library.mjs",
+    "assets/data/territorial-entities/generated/v2/index.json",
+    "tests/fixtures/portability/file-exchange.json",
+    "tools/parity/exchange.mjs",
+    "tests/helpers/production-geopackage.mjs",
+    "tests/fixtures/timeline-exchange/static.json",
+    "tests/fixtures/timeline-exchange/static.gpkg",
+    "tests/fixtures/timeline-exchange/static.expected.json",
+    "tests/fixtures/timeline-exchange/complex.json",
+    "tests/fixtures/timeline-exchange/complex.gpkg",
+    "tests/fixtures/timeline-exchange/complex.expected.json",
+    "tests/fixtures/timeline-exchange/calendar-boundaries.json",
+    "tests/fixtures/timeline-exchange/calendar-boundaries.gpkg",
+    "tests/fixtures/timeline-exchange/calendar-boundaries.expected.json",
+    "tools/parity/properties.mjs",
+    "tests/fixtures/portability/property-commands.json",
+    "tests/fixtures/portability/structure-commands.json",
+    "tools/parity/structure.mjs",
+    "tests/fixtures/portability/geometry-clipping.json",
+    "tests/fixtures/portability/content-project.json",
+    "tests/fixtures/portability/library-loading.json",
+    "assets/data/territorial-entities/generated/v2/state-VAT.json.gz",
+    "tests/fixtures/portability/distribution-scale.json",
+    "tools/parity/distribution.mjs"
+  ]
+}
