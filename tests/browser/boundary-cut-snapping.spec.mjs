@@ -270,7 +270,7 @@ test('a child cut snaps to both parent boundaries, preserves coverage and undoes
   expect(candidates).toContainEqual(child.geometry);
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), parentId)).toEqual(before);
   await expect.poll(async () => (await savedProject(page)).territorialEntities.some(entity => entity.id === child.id), { timeout: 30_000 }).toBe(true);
-  await withNativeActionDiagnostics(page, testInfo, { label: 'boundary-project-undo', selector: '#undoBtn' }, async () => {
+  await withNativeActionDiagnostics(page, testInfo, { label: 'boundary-project-undo', selector: '#undoBtn', cpuProfile: true }, async () => {
     await page.locator('#undoBtn').click();
   });
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), child.id)).toBeNull();

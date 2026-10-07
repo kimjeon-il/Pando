@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import { withDiagnosticDeadline } from './map-diagnostics.mjs';
+import { startNativeActionCpuProfile } from './native-action-cpu-profile.mjs';
 
 let nextToken = 0;
 const DIAGNOSTIC_DEADLINE_MS = 250;
@@ -7,7 +8,7 @@ const DIAGNOSTIC_DEADLINE_MS = 250;
 // No retry, timeout override or altered click options. The callback owns the
 // original native action; diagnostic setup/output never determine its outcome.
 export async function withNativeActionDiagnostics(page, testInfo, {
-  label, selector, rowSelector, now = () => performance.now(), write = console.log,
+  label, selector, rowSelector, cpuProfile = false, now = () => performance.now(), write = console.log,
 }, action) {
   const token = String(++nextToken);
   const read = async options => {
@@ -16,6 +17,7 @@ export async function withNativeActionDiagnostics(page, testInfo, {
   };
   const setup = await read({ command: 'install', token, selector, rowSelector,
     installBeforeEpochMs: Date.now() + DIAGNOSTIC_DEADLINE_MS });
+  const cpu = cpuProfile ? await startNativeActionCpuProfile(page, { label, now, write }) : null;
   const host = { startedAtMs: now(), endedAtMs: null, durationMs: null, outcome: 'rejected' };
   try {
     const result = await action();
@@ -24,6 +26,7 @@ export async function withNativeActionDiagnostics(page, testInfo, {
   } finally {
     host.endedAtMs = now();
     host.durationMs = host.endedAtMs - host.startedAtMs;
+    cpu?.stop('action-settled', host);
     // Emit the host clock before any browser read: a stalled renderer cannot
     // withhold this evidence. Host and browser time origins are not interchangeable.
     try { Promise.resolve(write(`[native-action] ${JSON.stringify({ label, host, setup })}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
@@ -44,6 +47,7 @@ export async function withNativeActionDiagnostics(page, testInfo, {
       // Diagnose lost output, but preserve the original action result/error.
       try { Promise.resolve(write(`[native-action-output] ${JSON.stringify({ label, diagnosticError: String(error).slice(0, 240) })}`)).catch(() => {}); } catch (_) { /* Diagnostic only. */ }
     } finally { outputController?.abort(); }
+    await cpu?.finish(testInfo);
   }
 }
 
