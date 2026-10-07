@@ -487,9 +487,9 @@
       "reason": "Hashes exact normalized source metadata and geometry; stores detached baseline identities."
     },
     {
-      "file": "assets/js/modules/app-project-snapshots.js",
+      "file": "assets/js/modules/project-state.js",
       "functions": [
-        "prepareEditable"
+        "prepareEditableProjectSnapshot"
       ],
       "access": [
         "read"
