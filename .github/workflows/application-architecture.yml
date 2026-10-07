@@ -14,6 +14,7 @@ on:
           - editor-diagnostics
           - boundary-capture-comparison
           - boundary-native-capture
+          - boundary-revision-comparison
   pull_request:
     paths:
       - 'assets/js/**'
@@ -145,7 +146,7 @@ jobs:
               map-rendering)
                 preview_handoff=true
                 ;;
-              editor-diagnostics|boundary-capture-comparison|boundary-native-capture)
+              editor-diagnostics|boundary-capture-comparison|boundary-native-capture|boundary-revision-comparison)
                 ;;
               *)
                 printf '%s\n' 'Unsupported browser_scope' >&2
@@ -225,10 +226,10 @@ jobs:
           const manualScope = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch'
             ? process.env.BROWSER_SCOPE || 'default'
             : 'default';
-          if (!['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison', 'boundary-native-capture'].includes(manualScope)) {
+          if (!['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison', 'boundary-native-capture', 'boundary-revision-comparison'].includes(manualScope)) {
             throw new Error('Unsupported browser_scope');
           }
-          if (manualScope === 'boundary-capture-comparison' || manualScope === 'boundary-native-capture') {
+          if (manualScope === 'boundary-capture-comparison' || manualScope === 'boundary-native-capture' || manualScope === 'boundary-revision-comparison') {
             appendFileSync(process.env.GITHUB_OUTPUT, 'specs=[]\n');
           } else if (manualScope === 'map-rendering' || manualScope === 'editor-diagnostics') {
             const selected = manualScope === 'map-rendering' ? [
@@ -255,7 +256,7 @@ jobs:
               if (helpers.has(file)) return true;
               if (visited.has(file) || !file.startsWith('tests/') || !existsSync(file)) return false;
               visited.add(file);
-              return [...readFileSync(file, 'utf8').matchAll(/(?:from\s*|import\s*)['"](\.[^'"]+)['"]/g)]
+              return [...readFileSync(file, 'utf8').matchAll(/(?:from\s*|import\s*(?:\(\s*)?)['"](\.[^'"]+)['"]/g)]
                 .some(match => consumesChangedHelper(posix.normalize(posix.join(posix.dirname(file), match[1])), visited));
             }
             for (const spec of specs) if (!fullyCovered.has(spec) && consumesChangedHelper(spec)) selected.add(spec);
@@ -378,6 +379,81 @@ jobs:
             test-results/boundary-native-capture
             !test-results/boundary-native-capture/**/boundary-project-undo-native-timeline.json*
             !test-results/boundary-native-capture/**/boundary-project-undo-native-timeline-manifest.json*
+          if-no-files-found: error
+
+  boundary-revision-comparison:
+    name: Boundary revision comparison (PR1, main1, main2, PR2)
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-revision-comparison'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: boundary-pr
+    steps:
+      - name: Checkout comparison harness and PR product
+        uses: actions/checkout@v4
+        with:
+          path: boundary-pr
+          fetch-depth: 1
+      - name: Checkout immutable pre-PR main product
+        uses: actions/checkout@v4
+        with:
+          ref: ebcfae4d27b29cbbea6416a7045a4806930204be
+          path: boundary-main
+          fetch-depth: 1
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: boundary-pr/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Compare exact desktop case with added helpers and tracing off
+        env:
+          PANDOLAB_BOUNDARY_BASELINE_ROOT: ${{ github.workspace }}/boundary-main
+          PANDOLAB_BOUNDARY_PR_REVISION: ${{ github.sha }}
+        run: node scripts/run-boundary-revision-comparison.mjs
+      - name: Upload compact revision summary and timings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-revision-summary-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: |
+            boundary-pr/test-results/boundary-revision-comparison/comparison-*/summary.json
+            boundary-pr/test-results/boundary-revision-comparison/comparison-*/**/timings.json
+          if-no-files-found: error
+      - name: Upload PR1 revision evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-revision-PR1-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: boundary-pr/test-results/boundary-revision-comparison/comparison-*/PR1
+          if-no-files-found: error
+      - name: Upload main1 revision evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-revision-main1-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: boundary-pr/test-results/boundary-revision-comparison/comparison-*/main1
+          if-no-files-found: error
+      - name: Upload main2 revision evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-revision-main2-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: boundary-pr/test-results/boundary-revision-comparison/comparison-*/main2
+          if-no-files-found: error
+      - name: Upload PR2 revision evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-revision-PR2-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: boundary-pr/test-results/boundary-revision-comparison/comparison-*/PR2
           if-no-files-found: error
 
   current-browser-contracts:
@@ -715,7 +791,7 @@ jobs:
 
   command-contract:
     name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}command-contract
-    if: github.event_name != 'workflow_dispatch' || (inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison' && inputs.browser_scope != 'boundary-native-capture')
+    if: github.event_name != 'workflow_dispatch' || (inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison' && inputs.browser_scope != 'boundary-native-capture' && inputs.browser_scope != 'boundary-revision-comparison')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

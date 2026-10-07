@@ -246,6 +246,13 @@ test('current browser CI selects actual timeline helper consumers', async t => {
   assert.deepEqual(await runSelector(t, ['tests/helpers/timeline-project.mjs']), timelineConsumers);
 });
 
+test('current browser CI retains the boundary consumer of conditionally loaded diagnostic helpers', async t => {
+  for (const name of ['long-animation-frame-diagnostics', 'native-action-diagnostics', 'native-action-timeline']) {
+    const selected = await runSelector(t, [`tests/browser/helpers/${name}.mjs`]);
+    assert.ok(selected.includes(specPath('boundary-cut-snapping')), `${name} must retain its boundary consumer`);
+  }
+});
+
 test('current browser CI leaves renderer source changes in existing renderer groups', async t => {
   assert.deepEqual(await runSelector(t, ['assets/js/modules/gpu-map-renderer.js']), []);
 });
@@ -381,7 +388,7 @@ test('workflow exposes only the allowlisted optional dispatch choice and keeps r
   assert.match(dispatch, /^ {8}required: false$/m);
   assert.match(dispatch, /^ {8}type: choice$/m);
   assert.match(dispatch, /^ {8}default: default$/m);
-  assert.deepEqual([...dispatch.matchAll(/^ {10}- (.+)$/gm)].map(match => match[1]), ['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison', 'boundary-native-capture']);
+  assert.deepEqual([...dispatch.matchAll(/^ {10}- (.+)$/gm)].map(match => match[1]), ['default', 'map-rendering', 'editor-diagnostics', 'boundary-capture-comparison', 'boundary-native-capture', 'boundary-revision-comparison']);
   assert.deepEqual([...dispatch.matchAll(/^ {6}(\w+):$/gm)].map(match => match[1]), ['browser_scope']);
   assert.match(workflow, /^permissions:\n {2}contents: read\n\njobs:/m);
   assert.equal(workflow.match(/^ {10}BROWSER_SCOPE: \$\{\{ inputs.browser_scope \|\| 'default' \}\}$/gm)?.length, 2);
@@ -391,7 +398,7 @@ test('workflow exposes only the allowlisted optional dispatch choice and keeps r
 });
 
 test('focused dispatch skips only the broad unconditional architecture job through an explicit event and input gate', () => {
-  assert.match(jobs['command-contract'], /^ {4}if: github.event_name != 'workflow_dispatch' \|\| \(inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison' && inputs.browser_scope != 'boundary-native-capture'\)$/m);
+  assert.match(jobs['command-contract'], /^ {4}if: github.event_name != 'workflow_dispatch' \|\| \(inputs.browser_scope != 'map-rendering' && inputs.browser_scope != 'editor-diagnostics' && inputs.browser_scope != 'boundary-capture-comparison' && inputs.browser_scope != 'boundary-native-capture' && inputs.browser_scope != 'boundary-revision-comparison'\)$/m);
   assert.match(jobs['command-contract'], /^ {8}run: pnpm check:architecture$/m);
 });
 
@@ -400,6 +407,7 @@ test('all focused job names are distinct while normal names and matrix suffixes 
     changes: 'Detect application scopes',
     'boundary-capture-comparison': 'Boundary screencast comparison (A1, B1, B2, A2)',
     'boundary-native-capture': 'Boundary native rendering attribution (one B run)',
+    'boundary-revision-comparison': 'Boundary revision comparison (PR1, main1, main2, PR2)',
     'current-browser-contracts': 'Current browser contract (${{ matrix.spec }})',
     'visual-policy': 'Common map visual policy and frame consumers (M4-M6)',
     'scene-staging': 'GPU stroke domain staging (M3)',
@@ -417,7 +425,7 @@ test('all focused job names are distinct while normal names and matrix suffixes 
   assert.deepEqual(Object.keys(jobs), Object.keys(expectedNames));
   for (const [id, expected] of Object.entries(expectedNames)) {
     assert.equal(jobs[id].match(/^ {4}name: (.+)$/m)?.[1],
-      ['boundary-capture-comparison', 'boundary-native-capture'].includes(id) ? expected : `${namePrefix}${editorPrefix}${expected}`, id);
+      ['boundary-capture-comparison', 'boundary-native-capture', 'boundary-revision-comparison'].includes(id) ? expected : `${namePrefix}${editorPrefix}${expected}`, id);
   }
   assert.match(jobs['current-browser-contracts'], /^ {6}max-parallel: 2$/m);
   assert.match(jobs['current-browser-contracts'], /^ {6}fail-fast: false$/m);
@@ -487,4 +495,33 @@ test('native capture job invokes one exact desktop B case and separates native r
   assert.match(native, /!test-results\/boundary-native-capture\/\*\*\/boundary-project-undo-native-timeline\.json/);
   assert.match(native, /!test-results\/boundary-native-capture\/\*\*\/boundary-project-undo-native-timeline-manifest\.json/);
   assert.match(native, /compression-level: 0/);
+});
+
+
+test('manual revision comparison selects no other browser or application job', async t => {
+  assert.deepEqual(await runSelector(t, ['package.json', specPath('territorial-library')],
+    'workflow_dispatch', 'boundary-revision-comparison', { expectedGitCalls: 0 }), []);
+  const result = runScope('workflow_dispatch', 'boundary-revision-comparison');
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(result.scopes, Object.fromEntries(scopeNames.map(name => [name, 'false'])));
+  assert.deepEqual(result.gitCalls, []);
+});
+
+test('manual revision job checks out immutable main separately and uses one bounded runner and browser installation', () => {
+  const comparison = jobs['boundary-revision-comparison'];
+  assert.ok(comparison, 'the isolated revision job must exist');
+  assert.match(comparison, /^ {4}if: github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'boundary-revision-comparison'$/m);
+  assert.match(comparison, /^ {4}needs: changes$/m);
+  assert.equal(comparison.match(/actions\/checkout@v4/g)?.length, 2);
+  assert.match(comparison, /ref: ebcfae4d27b29cbbea6416a7045a4806930204be/);
+  assert.match(comparison, /path: boundary-main\n {10}fetch-depth: 1/);
+  assert.match(comparison, /path: boundary-pr/);
+  assert.equal(comparison.match(/pnpm install --frozen-lockfile/g)?.length, 1);
+  assert.equal(comparison.match(/playwright install --with-deps chromium/g)?.length, 1);
+  assert.equal(comparison.match(/node scripts\/run-boundary-revision-comparison.mjs/g)?.length, 1);
+  assert.match(comparison, /PANDOLAB_BOUNDARY_BASELINE_ROOT: \$\{\{ github.workspace \}\}\/boundary-main/);
+  assert.match(comparison, /PANDOLAB_BOUNDARY_PR_REVISION: \$\{\{ github.sha \}\}/);
+  assert.doesNotMatch(comparison, /strategy:|matrix:|continue-on-error:|--grep|playwright test|git (?:push|switch|reset)|delete-artifact/);
+  assert.equal(comparison.match(/actions\/upload-artifact@v4/g)?.length, 5);
+  for (const id of ['PR1', 'main1', 'main2', 'PR2']) assert.ok(comparison.includes(`comparison-*/${id}`));
 });
