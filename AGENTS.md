@@ -3,6 +3,37 @@
 These instructions apply to the entire repository unless a deeper `AGENTS.md`
 or `AGENTS.override.md` provides more specific rules.
 
+## Branch and permanent worktree policy (mandatory)
+
+Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
+local worktree. These rules apply to this repository and its independently
+managed Web/App counterpart:
+
+- Reuse the long-lived branches `work/ui`, `work/objects`, `work/gis`, and
+  `work/places` according to the task's primary purpose; `main` is the
+  stable integration branch.
+- Before local changes, run `git worktree list --porcelain` and inspect the
+  assigned worktree's branch, `git status --short --branch`, and uncommitted or
+  untracked files. Reuse the existing permanent worktree for that branch.
+- Create a permanent worktree only if it does not yet exist and is needed for
+  local work. Do not generate new branches/worktrees per task by default.
+- After a task, leave the worktree in place for the next task. Do not
+  automatically delete/prune worktrees, branches, directories, caches, or
+  locally generated files.
+- Never discard unrelated or uncommitted work, including via automatic stash,
+  `git clean`, `git reset --hard`, force checkout, force push, or force
+  worktree removal. Request explicit user approval for destructive operations.
+- Synchronize the latest `main` **into** the appropriate `work/*` branch
+  only after checking the local and remote state; preserve unfinished work and
+  resolve conflicts without silently choosing one side.
+- Never merge `work/*` into `main`, commit directly to `main`, deploy, or
+  transfer changes between categories without explicit user instructions.
+- Web and App are separate repositories: matching branch names do not imply
+  matching code or commits. Verify and maintain each repository independently.
+- Exception branches or temporary worktrees require a concrete need and user
+  approval. Do not delete them automatically after integration.
+
+
 ## Project status
 
 PandoLab is under active development and has no compatibility commitment to
