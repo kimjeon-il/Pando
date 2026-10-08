@@ -107,7 +107,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           node tools/plan-gis-archive-rollout.mjs \
-            --root . --tree-json reports/stage8-tree.json \
+            --root . --tree-json reports/stage9-gis-tree.json \
             --app-manifest pinned-app/assets/world/manifest.json \
             --out reports/stage9-stage8-plan.json \
             --lock-out reports/stage9-stage8-lock.json
