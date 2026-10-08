@@ -62,7 +62,7 @@
           "sourceUrl": "https://e-history.kz/en/history-of-kazakhstan/show/9740"
         },
         {
-          "text": "Аkmolinsk",
+          "text": "Akmolinsk",
           "language": "en",
           "usage": "historical",
           "variantType": "earlyEnglishRendering",
@@ -155,11 +155,19 @@
       "displayTimeline": [
         {
           "fromYear": 1801,
-          "nameKo": "아크몰린스크",
+          "nameKo": "아크몰라",
           "kind": "koreanEditorialTranscription",
           "sourceUrl": "https://e-history.kz/en/history-of-kazakhstan/show/9740",
-          "note": "1830년 이전 수도 취락 표기 억제",
-          "researchNote": "1801 is only the shared historical review baseline. Present-day Astana's Akmola fort dates from 1830, legal city status from 1862; pre-1830 label is suppressed using temporalEligibility rather than claiming Akmolinsk existed in 1801."
+          "note": "1830년 아크몰라 요새부터 표시",
+          "researchNote": "1801년은 공통 역사 검수 시작점에 불과하다. 근대 도시의 전신 아크몰라 요새는 1830년에 형성되었으므로 이전 시점에는 현대 취락 ID 표시를 억제한다. 1862년 시 지위 취득 후 러시아어 Akmolinsk를 기준으로 '아크몰린스크' 표기로 전환한다. 이 해를 반드시 정확한 법정 도시명 개칭일로 단정하지 않는다."
+        },
+        {
+          "fromYear": 1862,
+          "nameKo": "아크몰린스크",
+          "kind": "koreanEditorialTranscription",
+          "sourceUrl": "https://e-history.kz/en/news/show/6903",
+          "note": "1862년 러시아식 도시명 표기",
+          "researchNote": "1862년 Akmola fortification(아크몰라)이 도시 지위를 받아 Akmolinsk라는 러시아식 도시명이 사용되기 시작한다. 이름 선택은 판도편집기 한국어 편집 정책에 따른 연도 정밀도의 전환으로 공식 명칭 변경 행정 일자를 추론하지 않는다."
         },
         {
           "fromDate": "1961-03-20",
@@ -267,7 +275,8 @@
         "notes": [
           {
             "detail": "수도 이전과 도시명 개칭 구별",
-            "sourceUrl": "https://www.gov.kz/memleket/entities/abay-makanshy/press/events/details/37689?lang=en"
+            "sourceUrl": "https://www.gov.kz/memleket/entities/abay-makanshy/press/events/details/37689?lang=en",
+            "researchDetail": "1830년 아크몰라 요새 형성과 1862년 아크몰린스크 도시 지위 부여 및 러시아어명 사용을 각각 구분하며 1997년 국가 수도 이전은 도시명 변경과 별개다."
           },
           {
             "detail": "2022년 서명일·공포일 분리",
