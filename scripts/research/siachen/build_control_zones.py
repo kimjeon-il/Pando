@@ -286,29 +286,45 @@ def main():
     ax.set_xlabel("Longitude (E)");ax.set_ylabel("Latitude (N)")
     ax.set_aspect(1/.816);ax.grid(alpha=.2);ax.legend(loc="upper right",fontsize=8)
     fig.tight_layout();fig.savefig(OUT/"siachen_control_comparison.png",dpi=175);plt.close(fig)
-    note=("# Siachen AGPL candidate and effective-control split — research only\n\n"
-    "Sources: OpenStreetMap relation 13559521 (ODbL 1.0), pinned derivative "
-    +OSM_SOURCE_URL+"; observation 2026-10-04T06:57:51Z; "
-    "Natural Earth v5.1.2 disputed area, public domain; RGI 7.0, CC BY 4.0.\n\n"
-    "**NOT an official demarcated border.** The position of military outposts "
-    "is not independently surveyed. Source extends each end of the OSM line "
-    "by about 0.02 degrees to cross a separate geography's limits. "
-    "It is approximate, unsuited to cadastral/sovereignty determination.\n\n"
-    The OSM line and derived control split are subject to ODbL 1.0 and require "
-    "attribution/derivative-database license compliance. Do not merge into a "
-    "canonical country database before ODbL integration review.\n\n"
-    Small split-component overlaps from OSM crossing coarse Natural Earth edges are resolved in favor of the India-side geometry, and repair sizes recorded in JSON. "
-    "The 1984-04-13 Operation Meghdoot date is NOT the geometry date. "
-    "Present positions evolved after 1984; this represents 2026 OSM mapping only.\n\n"
-    "Files:\n"
-    "- siachen_agpl_osm_candidate.geojson: source OSM-derived line (190 vertices)\n"
-    "- siachen_control_split_ne_10m.geojson: two polygons clipped to Natural Earth 1:10m B45\n"
-    "- siachen_control_split_ne_50m.geojson: corresponding two polygons for Natural Earth 1:50m B45\n"
-    "- siachen_control_comparison.json: polygon area-conservation, ice-line conflicts, scale sensitivity\n"
-    "- siachen_control_comparison.png: exploratory map.\n\n"
-    "The glacier is a **physical ice outline** and separate from political "
-    "dispute polygons; RGI geometry is unchanged. Country data are unchanged. "
-    "Do not confuse OSM approximate AGPL with legal India/Pakistan border.\n")
+    note = f"""# Siachen — AGPL candidate and effective-control split (RESEARCH ONLY)
+
+Source line: OpenStreetMap relation 13559521, 2026-10-04 snapshot (ODbL 1.0).
+Derived source, immutable Git commit: {OSM_SOURCE_URL}
+OpenStreetMap relation: {OSM_RELATION}
+Underlying line is from OSM relation v10 at {OSM_SNAPSHOT}.
+
+Additional inputs:
+- Natural Earth v5.1.2 disputed-area polygon B45 (public domain)
+- RGI 7.0 actual glacier outline (CC BY 4.0), survey image date 2002-07-10.
+
+NOT an official demarcated border. The positions of military outposts are not independently surveyed.
+The source line includes approximately 0.02 degrees of end extension for clipping other map datasets.
+Do not treat the OSM approximation as a legal international border or exact military front.
+The historical Operation Meghdoot date 1984-04-13 is NOT this line's geometry date.
+
+Topology notes:
+- The OSM line crosses Natural Earth's generalized polygon edges many times, resulting
+  in multiple small fragments rather than only two polygons.
+- Signed side classification combines pieces into IND and PAK candidate areas.
+- Any split sliver is normalized against the exact original Natural Earth polygon;
+  overlap ambiguities are resolved by keeping the eastern/IND candidate geometry
+  and assigning the remaining territory to the western/PAK side.
+- Areas of geometric adjustments are reported explicitly in siachen_control_comparison.json.
+- The physical RGI glacier is preserved independently; ice-vs-AGPL conflicts are logged.
+
+Re-use: The OSM source and derived effective-control polygon are subject to ODbL 1.0.
+Attribution and derivative database licence compliance are required.
+Do not merge these outputs into the canonical country database without licence review.
+
+Files:
+- siachen_agpl_osm_candidate.geojson: candidate approximate line (190 vertices)
+- siachen_control_split_ne_10m.geojson: two parts of Natural Earth 1:10m B45
+- siachen_control_split_ne_50m.geojson: two parts of Natural Earth 1:50m B45
+- siachen_control_comparison.json: detailed QA, overlap diagnostics, source hashes
+- siachen_control_comparison.png: research visual comparison
+
+The main country polygons, glaciers and political histories are unchanged.
+"""
     (OUT/"README_control.md").write_text(note,encoding="utf-8")
     print("SUCCESS: AGPL candidate and NE disputed-area partitions QA passed.",flush=True)
 
