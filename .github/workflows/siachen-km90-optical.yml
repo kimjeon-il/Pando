@@ -1,0 +1,60 @@
+name: Siachen km90 Sentinel-2 focus
+on:
+  push:
+    branches: [research/siachen-rgi7-outline]
+    paths:
+      - scripts/research/siachen/compare_sentinel2_km90.py
+      - .github/workflows/siachen-km90-optical.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/siachen-rgi7-outline
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Dependencies and syntax
+        run: |
+          pip install --quiet rasterio requests numpy shapely pyproj matplotlib
+          python -m py_compile scripts/research/siachen/compare_sentinel2_km90.py
+      - name: Compare two pinned Sentinel-2 scenes with OSM/DEM
+        run: python scripts/research/siachen/compare_sentinel2_km90.py
+      - name: Verify scene IDs and deliverables
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('assets/data/research/siachen')
+          a=json.loads((p/'siachen_s2_km90_corridor.json').read_text())
+          assert a['years']['2025']['item_id']=='S2B_43SFV_20250923_0_L2A'
+          assert a['years']['2026']['item_id']=='S2B_43SFV_20260829_0_L2A'
+          for v in a['years'].values():
+              assert v['local_optical_quality']['clear_fraction']>.75
+              assert (p/v['overlay_image']).stat().st_size>50000
+          assert len(json.loads((p/'siachen_s2_km90_corridor.geojson').read_text())['features'])==12
+          print('PASS: 2025 and 2026 comparison georeferenced and source-fixed')
+          PY
+      - name: Commit research outputs only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/research/siachen/
+          if ! git diff --cached --quiet; then
+            git commit -m "research: record optical km90 anomaly crosscheck"
+            git push origin HEAD:research/siachen-rgi7-outline
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: siachen-km90-optical
+          path: |
+            assets/data/research/siachen/siachen_s2_*_km90_corridor.png
+            assets/data/research/siachen/siachen_s2_km90_corridor.json
+            assets/data/research/siachen/siachen_s2_km90_corridor.geojson
+            assets/data/research/siachen/README_s2_km90.md
