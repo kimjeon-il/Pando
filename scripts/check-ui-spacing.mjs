@@ -1,3 +1,80 @@
+// TEMPORARY North Schleswig 1864 west-source probe.
+const relId = 11260903;
+const osmHeaders = { 'User-Agent': 'PandoLab-NorthSchleswig1864/1.0', 'Accept': 'application/json' };
+const relResp = await fetch(`https://api.openstreetmap.org/api/0.6/relation/${relId}/full.json`, { headers: osmHeaders });
+if (!relResp.ok) throw new Error('OSM relation HTTP ' + relResp.status);
+const relData = await relResp.json();
+const elems = Array.isArray(relData.elements) ? relData.elements : [];
+const nodeMap = new Map(elems.filter(e => e.type === 'node').map(e => [Number(e.id), [Number(e.lon), Number(e.lat)]]));
+const wayMap = new Map(elems.filter(e => e.type === 'way').map(e => [Number(e.id), e]));
+const rel = elems.find(e => e.type === 'relation' && Number(e.id) === relId);
+if (!rel) throw new Error('route relation missing');
+const memberWays = [];
+for (const m of rel.members || []) {
+  if (m.type !== 'way') continue;
+  const w = wayMap.get(Number(m.ref));
+  if (!w || !Array.isArray(w.nodes)) continue;
+  const coords = w.nodes.map(id => nodeMap.get(Number(id))).filter(Boolean);
+  if (coords.length >= 2) memberWays.push({wayId:Number(m.ref), role:m.role||'', coords});
+}
+const key = (p, tol=1e-7) => `${Math.round(p[0]/tol)},${Math.round(p[1]/tol)}`;
+const chains = memberWays.map(x => x.coords.slice());
+let changed = true;
+while (changed) {
+  changed = false;
+  outer: for (let i=0;i<chains.length;i++) for (let j=i+1;j<chains.length;j++) {
+    const a=chains[i], b=chains[j];
+    const a0=key(a[0]), a1=key(a.at(-1)), b0=key(b[0]), b1=key(b.at(-1));
+    let merged=null;
+    if (a1===b0) merged=a.concat(b.slice(1));
+    else if (a1===b1) merged=a.concat(b.slice(0,-1).reverse());
+    else if (a0===b1) merged=b.concat(a.slice(1));
+    else if (a0===b0) merged=b.slice().reverse().concat(a.slice(1));
+    if (merged) { chains[i]=merged; chains.splice(j,1); changed=true; break outer; }
+  }
+}
+const westChains = chains.map((c,i)=>({i,coords:c.filter(p=>p[0]>=8.62&&p[0]<=9.00&&p[1]>=55.25&&p[1]<=55.40)})).filter(x=>x.coords.length>=2);
+
+const query = `[out:json][timeout:90];(
+ node["historic"="boundary_stone"](55.255,8.63,55.390,8.990);
+ node["historic"="boundary_marker"](55.255,8.63,55.390,8.990);
+ node["boundary"="marker"](55.255,8.63,55.390,8.990);
+ node["man_made"="survey_point"](55.255,8.63,55.390,8.990);
+);out body;`;
+const ov = await fetch('https://overpass-api.de/api/interpreter', {
+  method:'POST',
+  headers:{...osmHeaders,'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+  body:new URLSearchParams({data:query}).toString()
+});
+if (!ov.ok) throw new Error('Overpass HTTP ' + ov.status);
+const markerData = await ov.json();
+const parseNumber = tags => {
+  for (const field of ['ref','name','inscription','description','note','old_ref']) {
+    const value=String((tags||{})[field]||'');
+    for (const m of value.matchAll(/(?:^|\\D)(\\d{1,3}[A-Za-z]?)(?=\\D|$)/g)) {
+      const n=parseInt(m[1],10);
+      if (n>=1&&n<=128) return {number:n,raw:m[1],field};
+    }
+  }
+  return {number:null,raw:null,field:null};
+};
+const markers=(markerData.elements||[]).map(e=>{
+  const n=parseNumber(e.tags||{});
+  const text=Object.values(e.tags||{}).join(' ').toLowerCase();
+  const hint=['1864','1920','grænse','grense','grenze','kr. pr','kr. dm','preussen','preußen'].some(s=>text.includes(s));
+  return {id:Number(e.id),lon:Number(e.lon),lat:Number(e.lat),...n,historicalHint:hint,tags:e.tags||{}};
+}).filter(x=>x.number!==null||x.historicalHint).sort((a,b)=>(a.number??999)-(b.number??999)||a.lon-b.lon);
+
+const result={
+  relation:{id:relId,tags:rel.tags||{},memberWayCount:memberWays.length,chainCount:chains.length,chainSizes:chains.map(c=>c.length)},
+  westChains,
+  markers,
+};
+console.log('NORTHSCHLESWIG_JSON_BEGIN');
+console.log(JSON.stringify(result));
+console.log('NORTHSCHLESWIG_JSON_END');
+process.exit(1);
+
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
