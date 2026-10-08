@@ -35,6 +35,9 @@ AREAS={
 DATES={"2025":"2025-07-15T00:00:00Z/2025-10-10T00:00:00Z",
        "2026":"2026-07-15T00:00:00Z/2026-10-07T23:59:59Z"}
 BAD={0,1,3,8,9,10}
+# Fixed, reviewed acquisition IDs: reruns cannot silently select different scenes.
+PINNED_SCENES={"2025":"S2B_43SFV_20250923_0_L2A",
+               "2026":"S2B_43SFV_20260829_0_L2A"}
 
 def features(filename):
     data=json.loads((ROOT/filename).read_text())
@@ -97,22 +100,24 @@ def qa_scl(item,aoi):
         return None
 
 def select_scene(year):
-    ranked=[]
-    for item in list_scenes(DATES[year])[:15]:
-        qa={name:qa_scl(item,a["bbox"]) for name,a in AREAS.items()}
-        if any(v is None or v["valid"]<.92 for v in qa.values()):
-            continue
-        cloud=float(item["properties"].get("eo:cloud_cover",100))
-        score=min(v["usable"] for v in qa.values())*1.7+sum(v["usable"] for v in qa.values())/len(qa)-cloud/100*.12
-        ranked.append((score,item,qa))
-        print("SCENE",year,item["id"],"score",round(score,4),"quality",qa,flush=True)
-    if not ranked:raise RuntimeError("No SCL-usable Sentinel scenes in "+year)
-    ranked.sort(key=lambda x:(-x[0],x[1]["id"]))
-    score,item,qa=ranked[0]
-    print("SELECTED",year,item["id"],item["properties"].get("datetime"),round(score,4),flush=True)
-    summaries=[{"item_id":x["id"],"datetime":x["properties"].get("datetime"),"score":round(sc,5),"local_quality":qu}
-               for sc,x,qu in ranked[:7]]
-    return item,qa,summaries
+    item_id=PINNED_SCENES[year]
+    url="https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/"+item_id
+    response=requests.get(url,timeout=55)
+    response.raise_for_status()
+    item=response.json()
+    if item.get("id")!=item_id:
+        raise RuntimeError("Pinned STAC item identity differs")
+    qa={name:qa_scl(item,a["bbox"]) for name,a in AREAS.items()}
+    if any(v is None or v["valid"]<.92 or v["usable"]<.95 for v in qa.values()):
+        raise RuntimeError("Pinned scene SCL quality deteriorated or became unavailable: "+item_id)
+    cloud=float(item["properties"].get("eo:cloud_cover",100))
+    score=min(v["usable"] for v in qa.values())*1.7+sum(v["usable"] for v in qa.values())/len(qa)-cloud/100*.12
+    print("PINNED SELECTED",year,item_id,item["properties"].get("datetime"),
+          "SCL",qa,"score",round(score,4),flush=True)
+    shortlist=[{"item_id":item_id,"datetime":item["properties"].get("datetime"),
+                "score":round(score,5),"local_quality":qa,
+                "provenance":"Pinned after initial candidate ranking and visual review on 2026-10-08"}]
+    return item,qa,shortlist
 
 def rgb_crop(item,aoi):
     bands={}
@@ -177,6 +182,8 @@ def main():
     peaks=features("sia_bilafond_dem_samples.geojson")
     report={"source":"Copernicus Sentinel-2 L2A; Earth Search v1 hosted by Element84",
             "stac_search":STAC,"generated_utc":datetime.now(timezone.utc).isoformat(),
+            "pinned_item_ids":PINNED_SCENES,
+            "selection_policy":"Frozen scene IDs after clear-scene rank and visual review; reruns must not silently swap acquisitions.",
             "study_area":AREAS,
             "classification":"SCL 0,1,3,8,9,10 excluded; snow/ice class 11 retained. Seasonal snow is not permanent glacier.",
             "interpretation_warning":"Imagery is neither surveyed AGPL nor evidence of military outpost locations; no country geometry changed.",
