@@ -43,7 +43,7 @@
 - 캐시 로더 모듈의 **실제 소스 코드**로 캐시 이름 선택 및 구형 캐시 정리 정책을 독립 평가했으며, immutable pool과 현재 catalog cache 보존을 확인.
 - 새 manifest 계약의 분리된 로컬 Node 단위 검증: **2/2 통과**.
 - 수정 후보 핵심 JS 파일 12건의 V8 구문 파싱 검사 **12/12 통과**(정적 parse 검사이며 실제 CI 구동을 뜻하지 않음).
-- **미실행**: `pnpm check:preview`, `pnpm test:unit`, Python 전체 검사, Web Worker/Playwright 실브라우저, 지도 GPU/Canvas 시각 회귀, GitHub CI와 실제 배포. 이번 결과를 해당 테스트 통과로 간주하지 말 것.
+- **최초 구현 당시 미실행**: `pnpm check:preview`, `pnpm test:unit`, Python 전체 검사, Web Worker/Playwright 실브라우저, 지도 GPU/Canvas 시각 회귀, GitHub CI와 실제 배포. **이후 실시한 집중 CI의 확인 결과는 아래 7절을 기준으로 한다.** 전체 Python·브라우저 회귀검사와 배포는 여전히 미실행.
 
 ## 6. 후속 이관
 
@@ -51,3 +51,33 @@
 - 앱은 `worldMapCommit`/SHA를 고정한 오프라인 사본으로 계속 실행하므로 새 웹 manifest가 있다고 자동 갱신하거나 대체하지 않는다.
 - 수계 v0.13.0의 실제 의존 파일, 구버전 raster, 과거 릴리스의 `world-preview-v*` 등의 삭제는 6단계까지 보류한다.
 - 공통 진행 기록은 현재 웹·앱 모든 브랜치에 갱신; 구현 코드는 웹 `work/gis`에 한정한다.
+
+## 7. 실제 GitHub Actions 통합검증 (2026-10-09)
+
+- 대상: 웹 `work/gis`, 최종 [검증 실행 #37804486287](https://github.com/kimjeon-il/Pando/actions/runs/37804486287), 원본 커밋 `dcc296ae80eb5d3f1db013962629358804e98846`.
+- 상시 회귀 장치: [`.github/workflows/world-dataset-stage3-gate.yml`](https://github.com/kimjeon-il/Pando/blob/work/gis/.github/workflows/world-dataset-stage3-gate.yml). `work/gis`의 관련 소스/데이터 변경 시 검사한다. 현재 메인으로 코드 병합/배포는 하지 않음.
+- 환경: GitHub Actions `ubuntu-24.04`, Node.js 22, pnpm 11.19.0, Python 3.11 + Shapely 2.1.2, Playwright Chromium.
+- 구형 `terrain/v0.12.0`, `hydro/v0.12.2`~`v0.12.6`, GIS 연구 자료 등은 검증 전용 sparse checkout에서 제외. 국가 정본, 현재 패킷/미리보기/라벨, 필요한 수계, 현행 지형 manifest는 유지. 테스트에 필요한 오래된 소스의 존재 자체를 코드에서 제거하거나 소스 데이터 파일을 삭제한 것은 아님.
+
+### 최종 실행의 실제 결과
+
+| 검사 | 명령·범위 | 결과 |
+|---|---|---|
+| 국가 소스 및 정본 검사 | `pnpm check:country-schema` | 통과 |
+| 미리보기 재생성·기존 결과 대조 | `pnpm check:preview` | 통과 |
+| 공유 국경선 결과 대조 | `pnpm check:country-shared-boundaries` | 통과 |
+| 불변 국가 번들 경로/해시 대조 | `pnpm check:world-bundle` | 통과 |
+| 빌드 메타데이터 검증 | `pnpm generate:build-meta`, `pnpm check:version` | 통과 |
+| JavaScript 구문 검사 | `pnpm check:js` (818개 JavaScript 파일) | 통과 |
+| 변경 영역 ESLint | 생성기·Worker·매니페스트·캐시·대상 테스트 파일 | 통과 |
+| 국가 번들·도형·공유 경계·캐시 단위검사 | 8개 대상 단위검사 파일, `node --test` | **33 통과 / 0 실패** |
+| UI 빌드 | `pnpm build:ui-bundle` | 통과 |
+| 실제 브라우저 검증 | Chromium: 모바일 DPR 제한, 캐시 재사용, 캐시 손상 후 복구 | **3 통과 / 0 실패** |
+
+- GitHub Actions의 두 작업(`dataset-contract` / `chromium-smoke`) 모두 **success**. 데이터 검사와 실제 브라우저는 같은 최종 커밋을 체크아웃해 실행했다.
+- 최초 실행 [#37802544830](https://github.com/kimjeon-il/Pando/actions/runs/37802544830)의 데이터 작업은 `tests/unit/stored-asset-content-cache.test.mjs`의 ESLint `TextDecoder no-undef`로 중단됨. 제품 코드 문제가 아닌 테스트 코드에서 Node `TextDecoder`를 import하지 않은 문제로, [`56256c515a04`](https://github.com/kimjeon-il/Pando/commit/56256c515a04e7a4908fef8313d1788b77341a2a)로 교정 후 통과했다.
+- 대용량 레거시 파일이 체크아웃을 지연시키는 문제에 대응하여 sparse checkout을 적용. 설정 충돌(`filter` 입력이 `sparse-checkout`을 덮어씀)을 제거한 최종 커밋에서 두 검증 작업이 모두 통과한 것을 확인했다.
+
+### 한계 및 4단계 인계
+
+이 검증은 **3단계 변경에 직접 영향받는 대상 검사**다. 전체 `pnpm test` 및 Playwright 전체 브라우저 스위트, 별도의 장시간 GPU 부하·성능 벤치마크, 앱 Qt 빌드/오프라인 패키지 동작, OS 간 압축 재현성 전체 검사는 포함하지 않는다. `v0.34.0` 공유 경계 캐시 경로는 과도기적 호환 참조이며, 수계 `v0.13.0` 의존 파일도 유지해야 한다. 4단계 앱 데이터 동기화를 시작할 때 웹 데이터 묶음 SHA를 별도로 승인·고정하고 앱 포맷 호환성을 검사할 것.
