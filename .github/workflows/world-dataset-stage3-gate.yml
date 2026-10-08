@@ -44,7 +44,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          filter: blob:none
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /*
@@ -94,7 +93,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          filter: blob:none
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /*
