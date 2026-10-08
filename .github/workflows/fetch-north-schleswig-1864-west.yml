@@ -1,0 +1,35 @@
+name: Fetch North Schleswig 1864 west sources
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - tools/fetch_north_schleswig_1864_west_sources.py
+      - .github/workflows/fetch-north-schleswig-1864-west.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/gis
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install requests
+      - run: python tools/fetch_north_schleswig_1864_west_sources.py
+      - name: Commit fetched sources
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/historical-library/sources/german-empire-1914/north-schleswig
+          if git diff --cached --quiet; then
+            echo "No source changes."
+          else
+            git commit -m "data: fetch North Schleswig 1864 west references"
+            git push
+          fi
