@@ -17,7 +17,7 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 from shapely.geometry import Point, shape
 from shapely.ops import transform
-from scripts.research.siachen.compare_cop30_sia_bilafond import (
+from compare_cop30_sia_bilafond import (
     OUT, DEM_URL, download, load_raster, raster_heights, TO_UTM, TO_WGS
 )
 
