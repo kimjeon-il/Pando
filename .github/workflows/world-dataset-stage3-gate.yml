@@ -43,6 +43,19 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/assets/data/terrain/v0.12.0/**
+            !/assets/data/hydro/v0.12.2/**
+            !/assets/data/hydro/v0.12.3/**
+            !/assets/data/hydro/v0.12.4/**
+            !/assets/data/hydro/v0.12.5/**
+            !/assets/data/hydro/v0.12.6/**
+            !/assets/data/research/**
+            !/assets/data/terrain/v0.12.6/[0-9]/**
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
@@ -80,6 +93,18 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/assets/data/terrain/v0.12.0/**
+            !/assets/data/hydro/v0.12.2/**
+            !/assets/data/hydro/v0.12.3/**
+            !/assets/data/hydro/v0.12.4/**
+            !/assets/data/hydro/v0.12.5/**
+            !/assets/data/hydro/v0.12.6/**
+            !/assets/data/research/**
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
