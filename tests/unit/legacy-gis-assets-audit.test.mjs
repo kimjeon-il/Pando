@@ -4,7 +4,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {audit,dataRelative,groupOf,duplicateStats,parseGitDataTree} from './audit-legacy-gis-assets.mjs';
+import {audit,dataRelative,groupOf,duplicateStats,parseGitDataTree} from '../../tools/audit-legacy-gis-assets.mjs';
 
 test('parse tracked blob inventory using Git metadata, not guessed filenames',()=>{
   const a=Buffer.from('100644 blob '+'a'.repeat(40)+' 12\tassets/data/test.json\0');
