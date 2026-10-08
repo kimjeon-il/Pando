@@ -2,10 +2,9 @@ name: Siachen RGI7 research extraction
 on:
   push:
     branches:
-      - research/siachen-rgi7-outline
+      - work/gis
     paths:
       - scripts/research/siachen/extract_rgi7.py
-      - .github/workflows/siachen-rgi7-research.yml
   workflow_dispatch:
 permissions:
   contents: write
@@ -16,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: research/siachen-rgi7-outline
+          ref: work/gis
           persist-credentials: true
       - uses: actions/setup-python@v5
         with:
@@ -52,7 +51,7 @@ jobs:
           git add assets/data/research/siachen
           if ! git diff --cached --quiet; then
             git commit -m "research: add verified Siachen glacier GeoJSON and comparison"
-            git push origin HEAD:research/siachen-rgi7-outline
+            git push origin HEAD:work/gis
           fi
       - name: Upload GIS files
         uses: actions/upload-artifact@v4
