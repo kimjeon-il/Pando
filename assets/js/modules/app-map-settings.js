@@ -3,6 +3,7 @@ import { distributionValueRange } from './distribution-model.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).flatMap(keys => Object.values(keys)));
+const PLACE_LANGUAGES = ['ko', 'en', 'native'];
 
 /** MapSettings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -91,6 +92,28 @@ export function createMapSettings() {
       if (TERRITORIAL_SYMBOL_KEYS[key]) dependencies.domains.renderingDomain.invalidateLabels('layer-visibility');
     }
     dependencies.domains.projectDomain.queuePresentationAutosave();
+  }
+
+  function syncPlaceLanguageChecks() {
+    const languages = dependencies.preferences.userPreferences.labels.place.languages;
+    for (const input of document.querySelectorAll('[data-place-language]')) {
+      input.checked = languages[input.dataset.placeLanguage] === true;
+      input.disabled = input.checked && PLACE_LANGUAGES.filter(language => languages[language] === true).length === 1;
+    }
+  }
+
+  function setPlaceLanguage(language, enabled) {
+    if (!PLACE_LANGUAGES.includes(language)) throw new TypeError('Unknown place display language');
+    const current = dependencies.preferences.userPreferences;
+    const next = { ...current.labels.place.languages, [language]: enabled };
+    if (!PLACE_LANGUAGES.some(key => next[key] === true)) return false;
+    const preferences = dependencies.preferences.saveUserPreferences({
+      ...current, labels: { ...current.labels, place: { ...current.labels.place, languages: next } },
+    });
+    dependencies.preferences.setUserPreferences(preferences);
+    syncPlaceLanguageChecks();
+    dependencies.domains.renderingDomain.invalidateLabels('place-language-visibility');
+    return true;
   }
 
   function updateLayerPresentationStyle(group, patch) {
@@ -486,6 +509,7 @@ export function createMapSettings() {
       if (blendMode) blendMode.value = style.blendMode;
     });
 
+    syncPlaceLanguageChecks();
     const layoutReady = syncDesktopMenuLayout(requestedDesktop);
     const menuDesktop = layoutReady ? requestedDesktop : desktop;
     document.querySelectorAll('[data-map-display-row]').forEach(trigger => {
@@ -587,6 +611,9 @@ export function createMapSettings() {
     ];
     for (const [group, id] of visibilityInputs) {
       (0, dependencies.platform.$)(id)?.addEventListener('change', event => setLayerVisibility(group, event.currentTarget.checked));
+    }
+    for (const input of surface.querySelectorAll('[data-place-language]')) {
+      input.addEventListener('change', event => setPlaceLanguage(event.currentTarget.dataset.placeLanguage, event.currentTarget.checked));
     }
     for (const input of surface.querySelectorAll('[data-territorial-symbol]')) {
       input.addEventListener('change', event => setLayerVisibility(event.currentTarget.dataset.territorialSymbol, event.currentTarget.checked));
@@ -849,6 +876,7 @@ export function createMapSettings() {
       rivers: { presentationGroup: 'rivers', label: '강', opacity: true },
       lakes: { presentationGroup: 'lakes', label: '호수', opacity: true },
       genericFeatures: { presentationGroup: 'genericFeatures', label: '기타 객체', opacity: true, opacityLabel: '전체 투명도' },
+      labels: { presentationGroup: 'labels', label: '지명' },
     }));
 
     (projectSerializer = (0, dependencies.projectServices.createProjectSerializer)({
@@ -883,6 +911,7 @@ export function createMapSettings() {
     get projectSerializer() { return projectSerializer; },
     get renderMapDisplaySettings() { return renderMapDisplaySettings; },
     get setLayerVisibility() { return setLayerVisibility; },
+    get setPlaceLanguage() { return setPlaceLanguage; },
     get setProjection() { return setProjection; },
     get syncMapDisplayDisclosures() { return syncMapDisplayDisclosures; },
     get syncDistributionPresentationControls() { return syncDistributionPresentationControls; },

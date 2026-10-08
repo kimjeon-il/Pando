@@ -11,7 +11,7 @@ const DEFAULTS = Object.freeze({
   appearance: Object.freeze({ theme: 'system', accentPreset: 'blue', statusBarVisible: true, smoothLines: true }),
   labels: Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
-    place: Object.freeze({ font: 'default', color: null, pointColor: null }),
+    place: Object.freeze({ font: 'default', color: null, pointColor: null, languages: Object.freeze({ ko: true, en: false, native: false }) }),
   }),
   selection: Object.freeze({ color: null, outlineVisible: true, fillStrength: 0.35 }),
 });
@@ -27,6 +27,10 @@ function normalizeFillStrength(value, fallback) {
   return Number.isFinite(numeric) ? Math.max(0, Math.min(1, numeric)) : fallback;
 }
 
+export function normalizePlaceLanguages(value) {
+  const result = { ko: value?.ko === true, en: value?.en === true, native: value?.native === true };
+  return result.ko || result.en || result.native ? result : { ko: true, en: false, native: false };
+}
 function normalizeLabelFont(value, fallback) {
   return LABEL_FONTS.has(value) ? value : fallback;
 }
@@ -41,6 +45,7 @@ export function defaultUserPreferences() {
         font: DEFAULTS.labels.place.font,
         color: DEFAULTS.labels.place.color,
         pointColor: DEFAULTS.labels.place.pointColor,
+        languages: { ...DEFAULTS.labels.place.languages },
       },
     },
     selection: {
@@ -76,6 +81,7 @@ export function normalizeUserPreferences(value) {
         font: normalizeLabelFont(source.labels?.place?.font, defaults.labels.place.font),
         color: normalizeColor(source.labels?.place?.color),
         pointColor: normalizeColor(source.labels?.place?.pointColor),
+        languages: source.labels?.place?.languages == null ? { ...defaults.labels.place.languages } : normalizePlaceLanguages(source.labels.place.languages),
       },
     },
     selection: {

@@ -1,7 +1,7 @@
 import { createMapVisualFrame, isMapVisualFrame } from './map-visual-frame.js';
 import { placeLabelDimensions } from './label-layout.js';
 import { createPlaceRuntime } from './place-runtime.js';
-import { PLACE_LIMITS } from './place-contract.js';
+import { isBuiltinPlaceId, resolvePlaceLabelRows, PLACE_LIMITS } from './place-contract.js';
 import { territorialLabelFlag } from './territorial-label-flags.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
 import { territorialSymbolGroup, territorialSymbolVisibility } from './layer-presentation.js';
@@ -226,6 +226,7 @@ export function createTerritorialLabels() {
     const builtinLabels = [...new Map([...builtinPlaces.snapshot().records, ...[...selectedIds].map(id => builtinPlaces.resolve(id)).filter(Boolean)].map(label => [label.id, label])).values()].filter(label => !copiedIds.has(label.id));
     const builtinIds = new Set(builtinLabels.map(label => label.id));
     const labelSources = [...dependencies.projectState.state.labels, ...builtinLabels];
+    const placeLanguages = dependencies.preferences.userPreferences.labels.place.languages;
     if (dependencies.projectState.state.layerVisibility.labels) for (const label of labelSources) {
       const selected = selectedIds.has(String(label.id));
       if (!selected && !builtinIds.has(label.id) && !indexedLabelIds.has(String(label.id))) continue;
@@ -235,9 +236,13 @@ export function createTerritorialLabels() {
       const point = frameContext.projectVisibleCoordinate(coordinate);
       if (!point) continue;
       const priority = settings.priority ?? (label.kind === 'capital' ? dependencies.labelPresentation.LABEL_PRIORITIES.capital : label.kind === 'city' ? dependencies.labelPresentation.LABEL_PRIORITIES.majorCity : label.kind === 'region' ? dependencies.labelPresentation.LABEL_PRIORITIES.administrative : dependencies.labelPresentation.LABEL_PRIORITIES.place);
+      const rows = isBuiltinPlaceId(label.id)
+        ? resolvePlaceLabelRows(label, placeLanguages)
+        : [{ language: 'ko', text: label.name }];
+      if (!rows.length) continue;
       candidates.push({
-        key: (0, dependencies.labelPresentation.labelKey)('label', label.id), sourceType: 'label', source: label, point,
-        ...placeLabelDimensions(label.name),
+        key: (0, dependencies.labelPresentation.labelKey)('label', label.id), sourceType: 'label', source: label, point, rows,
+        ...placeLabelDimensions(rows),
         priority, minZoom: Math.max(settings.minZoom, Number(label.minZoom || 0)), maxZoom: settings.maxZoom,
         pinned: settings.pinned, collisionGroup: settings.collisionGroup,
         selected,
@@ -283,6 +288,7 @@ export function createTerritorialLabels() {
       territorialLabelNames: new Map(placedTerritorialLabels.map(item => [String(item.source.id), item.nameVisible])),
       territorialFlags,
       userLabels: placedUserLabels.map(item => item.source),
+      userLabelRows: new Map(placedUserLabels.map(item => [String(item.source.id), item.rows])),
       territorialLabelPoints: new Map(placedTerritorialLabels.map(item => [String(item.source?.id || ''), item.point])),
       userLabelPoints: new Map(placedUserLabels.map(item => [String(item.source?.id || ''), item.point])),
       territorialLabelScreenAreas: new Map(territorialLabelScreenAreas),
