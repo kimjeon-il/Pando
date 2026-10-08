@@ -89,3 +89,13 @@ npx playwright test tests/browser/place-runtime.spec.mjs tests/browser/label-met
 `main` 병합과 기존 GitHub Pages 사이트의 배포 브랜치 전환은 수행하지 않았다.
 저장소의 workflow에는 브랜치별 웹 배포 작업이 없으며, 연결된 도구에서 별도
 브랜치의 웹 배포 경로를 확인할 수 없어 실사이트 배포는 수행하지 않았다.
+
+## 2026-10-08: 다국어 라벨 표시 기능 (data/places-tier1-major-cities)
+
+- 현재 검수 자료의 `names[]`, `displayTimeline`은 출처/언어별 원본을 보존하는 **staging 데이터**이다. 지도 바이너리 타일의 실행용 레코드는 `name`(한국어 기본형), `nameEn`, `nameNative`, `nameTimeline`으로 압축해 사용한다.
+- `nameTimeline`은 언어별 `ko`/`en`/`native` 변경 값을 필요할 때만 포함한다. `fromYear`(연도 정밀도) 또는 `fromDate`(일자 정밀도)를 그대로 보존하고, 근거 없이 연도를 1월 1일로 변환하지 않는다. 다른 언어명의 변경은 자동 추론하지 않는다.
+- 런타임 place 타일 codec은 **v2만 지원**한다. manifest schema version(현재 1)과 바이너리 타일 version(2)은 별개이다. 정식 데이터 게시 시 v2로 빌드해야 한다.
+- 지도 `보기 → 지명`에서 한국어/영어/원어를 각자 켜거나 끌 수 있다. 기본은 한국어만 사용하고, 3개 언어가 전부 꺼지는 조합은 막는다. 선택값은 프로젝트 저장 파일이 아닌 사용자 환경설정에 보관한다.
+- 동일 텍스트의 영어·원어는 한 줄만 표시한다. 서로 다른 언어는 단일 SVG label group 안에서 행으로 표시하고 **하나의 충돌 상자**로 판정한다. 언어 설정 변경은 기존 Worker 타일 재조회 없이 label layout을 invalidation한다.
+- 브라우저의 활성 역사 시점을 지명에 제공하는 연결은 아직 별도로 필요하다. 현재 지도는 날짜 미지정 시 각 레코드의 현행 표기를 사용한다.
+- **중요:** 현재 `assets/data/places/manifest.json`의 타일 목록은 비어 있으며, 검수 배치를 자동으로 생성·게시하는 파이프라인은 이번 변경에 포함하지 않았다. 따라서 지명 샘플/실제 배포 데이터를 연결하기 전에는 언어 스위치를 조작해도 내장 도시가 새로 나타나지 않는다.
