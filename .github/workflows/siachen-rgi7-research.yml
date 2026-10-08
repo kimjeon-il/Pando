@@ -23,6 +23,26 @@ jobs:
           python-version: '3.11'
       - name: Install GIS libraries
         run: python -m pip install --disable-pip-version-check --quiet geopandas pyogrio shapely pyproj requests matplotlib
+      - name: Diagnose public RGI7 download mirrors
+        run: |
+          python - <<'PY'
+          import requests
+          sources=[
+          "https://ihp-wins.unesco.org/api/3/action/resource_show?id=d4adeac9-e01b-4554-8ec8-6b1d3936b537",
+          "https://ihp-wins.unesco.org/dataset/randolph-glacier-inventory-rgi-7-0-glacier-product/resource/d4adeac9-e01b-4554-8ec8-6b1d3936b537/download",
+          "https://cluster.klima.uni-bremen.de/~fmaussion/misc/rgi7_data/l4_rgi7b0/",
+          "https://cluster.klima.uni-bremen.de/~fmaussion/misc/rgi7_data/",
+          "https://cluster.klima.uni-bremen.de/~oggm/rgi/",
+          "https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc0770_rgi_v7/regional_files/RGI2000-v7.0-G/",
+          "https://www.glims.org/geoserver/ows?service=wfs&request=GetCapabilities",
+          ]
+          for url in sources:
+            try:
+              r=requests.get(url,timeout=25,headers={"Range":"bytes=0-512"})
+              print("PROBE",url,r.status_code,r.url,r.headers.get("Content-Type"),"HEAD",r.text[:400].replace("\n"," "),flush=True)
+            except Exception as e:
+              print("PROBE ERROR",url,type(e).__name__,str(e)[:150],flush=True)
+          PY
       - name: Extract and verify RGI7 geometry
         run: python scripts/research/siachen/extract_rgi7.py
       - name: Commit isolated GIS research artifacts
