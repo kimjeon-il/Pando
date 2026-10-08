@@ -19,6 +19,20 @@ export function parseGitDataTree(raw) {
   }
   return records;
 }
+export function parseGitHubTree(input) {
+  requireThat(input && input.truncated===false && Array.isArray(input.tree),
+    'GitHub tree API response missing entries or truncated');
+  const map=new Map();
+  for(const item of input.tree){
+    if(item.type!=='blob' || !item.path?.startsWith('assets/data/'))continue;
+    requireThat(Number.isSafeInteger(item.size) && item.size>=0 && /^[0-9a-f]{40}$/.test(item.sha),
+      'Invalid repository tree metadata: '+item.path);
+    const p=item.path.slice('assets/data/'.length);
+    requireThat(!map.has(p),'Duplicate repository tree entry: '+p);
+    map.set(p,{sha:item.sha,bytes:item.size});
+  }
+  return map;
+}
 export function dataRelative(manifest,relative) {
   requireThat(typeof relative==='string' && relative.length>0 &&
     !relative.startsWith('/') && !relative.includes('\\') &&
@@ -52,15 +66,18 @@ function argumentMap(argv) {
   for(let i=0;i<argv.length;i+=2){
     requireThat(argv[i]?.startsWith('--') && argv[i+1] && !argv[i+1].startsWith('--') && !out.has(argv[i]),
       'Invalid CLI option '+argv[i]);
-    requireThat(['--root','--app-manifest','--out'].includes(argv[i]),'Unknown CLI option '+argv[i]);
+    requireThat(['--root','--app-manifest','--tree-json','--out'].includes(argv[i]),'Unknown CLI option '+argv[i]);
     out.set(argv[i],argv[i+1]);
   }
   return out;
 }
-export function audit(root,{appManifest=null}={}) {
+export function audit(root,{appManifest=null,treeJson=null}={}) {
   root=resolve(root);
-  const tree=parseGitDataTree(execFileSync('git',['-C',root,'ls-tree','-r','-l','-z','HEAD','--','assets/data'],
-    {maxBuffer:16*1024*1024}));
+  // Prefer the GitHub REST tree in sparse CI: git ls-tree -l on a blobless
+  // clone can otherwise lazily download every 1GB+ historical data blob.
+  const tree=treeJson?parseGitHubTree(JSON.parse(readFileSync(resolve(treeJson),'utf8'))):
+    parseGitDataTree(execFileSync('git',['-C',root,'ls-tree','-r','-l','-z','HEAD','--','assets/data'],
+      {maxBuffer:16*1024*1024}));
   const protectedPaths=new Map(),historicalPaths=new Map(),errors=[];
   function mark(path,reason,{historical=false,bytes=null}={}) {
     const record=tree.get(path);
@@ -200,7 +217,7 @@ if(run){
   try{
     const args=argumentMap(process.argv.slice(2));
     const report=audit(args.get('--root')||resolve(dirname(fileURLToPath(import.meta.url)),'..'),
-      {appManifest:args.get('--app-manifest')});
+      {appManifest:args.get('--app-manifest'),treeJson:args.get('--tree-json')});
     if(args.has('--out')){
       const dest=resolve(args.get('--out'));mkdirSync(dirname(dest),{recursive:true});
       writeFileSync(dest,JSON.stringify(report,null,2)+'\n');
