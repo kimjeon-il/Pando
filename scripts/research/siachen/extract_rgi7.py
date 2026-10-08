@@ -5,6 +5,7 @@ import os, json, zipfile, hashlib, shutil, tempfile
 import requests
 import geopandas as gpd
 from shapely.geometry import shape, mapping
+from shapely import force_2d
 from shapely.ops import transform
 from pyproj import Transformer
 import matplotlib
@@ -70,20 +71,20 @@ def disputed(url,d):
     data=json.loads(p.read_text())
     found=[f for f in data["features"] if any("siachen" in str(f["properties"].get(k,"")).lower() for k in ("NAME","ADMIN","BRK_NAME","NAME_LONG"))]
     if len(found)!=1: raise RuntimeError("Natural Earth Siachen matches: "+str(len(found)))
-    return shape(found[0]["geometry"]),found[0]["properties"],checksum
+    return force_2d(shape(found[0]["geometry"])),found[0]["properties"],checksum
 def paint(ax,geo,color,fill,label,style="-",weight=1.3):
     polygons=list(geo.geoms) if geo.geom_type=="MultiPolygon" else [geo]
     for i,p in enumerate(polygons):
-        x,y=zip(*p.exterior.coords)
+        x,y=zip(*[(c[0],c[1]) for c in p.exterior.coords])
         ax.fill(x,y,facecolor=fill,edgecolor=color,linewidth=weight,linestyle=style,label=label if i==0 else None,alpha=.85)
         for ring in p.interiors:
-            hx,hy=zip(*ring.coords)
+            hx,hy=zip(*[(c[0],c[1]) for c in ring.coords])
             ax.fill(hx,hy,color="white",linewidth=0)
 def main():
     with tempfile.TemporaryDirectory() as d:
         frame,rgiurl,rgisha=glacier_from_zip(d)
         row=frame.iloc[0]
-        glacier=row.geometry
+        glacier=force_2d(row.geometry)
         if glacier.is_empty or not glacier.is_valid: raise RuntimeError("Invalid glacier geometry")
         project=Transformer.from_crs(4326,32643,always_xy=True)
         meters=lambda g:transform(project.transform,g)
