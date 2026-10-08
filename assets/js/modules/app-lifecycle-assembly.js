@@ -81,7 +81,6 @@ export function createLifecycleAssembly() {
             runEntityEditAction: dependencies.territorialEditingB.runEntityEditAction,
             runModePrimaryAction: dependencies.taskPresentation.runModePrimaryAction,
             copySelectedEntityToRegion: dependencies.territorialConversion.copySelectedEntityToRegion,
-            enterTerritorialCreateWorkflow: dependencies.territorialEditingA.enterTerritorialCreateWorkflow,
             entityRepository: dependencies.territorialModel.entityRepository,
             reconcileAdminCountryCoast: dependencies.projectRestore.reconcileAdminCountryCoast,
             focusObjectRef: dependencies.objectOperationsA.focusObjectRef,
@@ -189,6 +188,7 @@ export function createLifecycleAssembly() {
             mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
             screenToGeo: dependencies.mapView.screenToGeo,
             queueCountryHoverPick: dependencies.pointerInteractionA.queueCountryHoverPick,
+            getTerritorialLabelRef: dependencies.objectPicking.getTerritorialLabelRef,
           });
             mapDebug.installRenderFacade();
         },
@@ -196,7 +196,7 @@ export function createLifecycleAssembly() {
       startup: dependencies.startup.init,
       onReady: () => { dependencies.startupCommands.markRuntimeReady(); },
       onError: dependencies.readinessUi.showFatalError,
-      getDisposables: () => [dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain],
+      getDisposables: () => [dependencies.workspaceUiB.editorWorkspacePresentation, mapInputPresentation, propertyEditorUi, dependencies.domainControllers.territorialPropertyController, dependencies.domains.selectionUiController, dependencies.domains.renderingDomain, dependencies.domains.editingDomain, dependencies.domains.selectionDomain, dependencies.gisRuntime.gisWorkflow, dependencies.domainControllers.gisDomain, dependencies.domains.projectDomain],
       reportDisposeError: error => dependencies.readiness.reliabilityDiagnostic.push({ category: 'dispose', message: String(error?.message || error) }),
     }));
   }

@@ -35,15 +35,19 @@ export function createMapInputPresentation({
   mapClickBlocked,
   screenToGeo,
   queueCountryHoverPick,
+  getTerritorialLabelRef,
 } = {}) {
 
   let boundInput = null;
   let boundSvg = null;
+  let boundHoverSurface = null;
   function dispose() {
     boundInput?.destroy();
     boundInput = null;
-    boundSvg?.on('click', null).on('mousemove', null).on('mouseleave', null);
+    boundSvg?.on('click', null);
+    boundHoverSurface?.on('mouseover.map-input', null).on('mousemove.map-input', null).on('mouseleave.map-input', null);
     boundSvg = null;
+    boundHoverSurface = null;
   }
 
   function beginMapMovement() {
@@ -149,16 +153,37 @@ export function createMapInputPresentation({
       handleMapClick(d3.mouse(this));
     });
 
-    svg.on('mousemove', function() {
+    // Labels and editing overlays live in a sibling interaction SVG. Hover
+    // belongs to their common map surface; ground clicks keep their SVG owner.
+    const hoverSurface = d3.select($('map'));
+    const preservePeerLabelHover = () => {
+      if (getInputSnapshot().tool !== 'select' || !d3.event.target?.closest?.('.user-label')) return false;
+      // Cancel on entry too: the pointer can stop before another mousemove.
+      cancelCountryHoverPick();
+      return true;
+    };
+    hoverSurface.on('mouseover.map-input', preservePeerLabelHover);
+    hoverSurface.on('mousemove.map-input', function() {
       if (getInputSnapshot().projectReplacing) return;
       const draft = getDraftSnapshot();
       if (draft.strokeActive) return;
-      if (d3.event.target?.closest?.('.draft-interactive') || draft.dragging) {
+      // Draft controls own segment/vertex/insert hover, including its cleanup.
+      // Their bubbling events must not erase the target they just published.
+      if (d3.event.target?.closest?.('.draft-interactive')) return;
+      if (draft.dragging) {
         editingDomain?.clearDraftHover?.('draft-interactive-hover');
         return;
       }
       if (mapInputController?.isPanning()) {
         editingDomain?.clearDraftHover?.('map-panning');
+        return;
+      }
+      // User/place labels already publish their own explicit hover ref.
+      if (preservePeerLabelHover()) return;
+      const label = d3.event.target?.closest?.('.territorial-label-item[data-label-id]');
+      if (label && getInputSnapshot().tool === 'select' && !isMobile()) {
+        cancelCountryHoverPick();
+        selectionDomain.setHover(getTerritorialLabelRef(label.dataset.labelId), { source: 'map' });
         return;
       }
       const screenPoint = d3.mouse(this);
@@ -183,7 +208,7 @@ export function createMapInputPresentation({
       }
     });
 
-    svg.on('mouseleave', function() {
+    hoverSurface.on('mouseleave.map-input', function() {
       cancelCountryHoverPick();
       dispatchEditingInteraction('draft-hover-clear');
       clearHoverHit();
@@ -191,6 +216,7 @@ export function createMapInputPresentation({
     });
     boundInput = mapInputController;
     boundSvg = svg;
+    boundHoverSurface = hoverSurface;
     return mapInputController;
   }
 

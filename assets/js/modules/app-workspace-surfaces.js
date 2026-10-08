@@ -177,7 +177,7 @@ export function createWorkspaceSurfaces() {
     dependencies.domains.renderingDomain?.setCountryPropertyEditingActive?.(
       surfaceController.isOpen('editor') && !!dependencies.projectState.state.selected,
     );
-    dependencies.domainControllers.syncSelectionToolbarInteraction();
+    dependencies.domainControllers.syncTerritorialEditorInteraction();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
     syncEditorPanelControls();
@@ -204,7 +204,7 @@ export function createWorkspaceSurfaces() {
     dependencies.domains.renderingDomain?.setCountryPropertyEditingActive?.(
       surfaceController.isOpen('editor') && !!dependencies.projectState.state.selected,
     );
-    dependencies.domainControllers.syncSelectionToolbarInteraction();
+    dependencies.domainControllers.syncTerritorialEditorInteraction();
     syncEditorPanelControls();
     refreshMapSheetMetrics();
     requestAnimationFrame(dependencies.taskPresentation.syncMapHudBounds);
@@ -573,7 +573,7 @@ export function createWorkspaceSurfaces() {
         || [...panel.querySelectorAll('input:not([type="hidden"]):not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled)')].find(visible);
       target?.focus({ preventScroll: true });
     });
-    dependencies.domainControllers.syncSelectionToolbarInteraction();
+    dependencies.domainControllers.syncTerritorialEditorInteraction();
     return true;
   }
 

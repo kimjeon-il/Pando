@@ -1,0 +1,91 @@
+{
+  "cases": [
+    {
+      "id": "static-json",
+      "fixture": "tests/fixtures/timeline-exchange/static.json",
+      "format": "json",
+      "expected": "tests/fixtures/timeline-exchange/static.expected.json",
+      "activation": "OK"
+    },
+    {
+      "id": "static-gpkg",
+      "fixture": "tests/fixtures/timeline-exchange/static.gpkg",
+      "format": "gpkg",
+      "expected": "tests/fixtures/timeline-exchange/static.expected.json",
+      "activation": "OK"
+    },
+    {
+      "id": "complex-json",
+      "fixture": "tests/fixtures/timeline-exchange/complex.json",
+      "format": "json",
+      "expected": "tests/fixtures/timeline-exchange/complex.expected.json",
+      "activation": "TIMELINE_ACTIVATION"
+    },
+    {
+      "id": "complex-gpkg",
+      "fixture": "tests/fixtures/timeline-exchange/complex.gpkg",
+      "format": "gpkg",
+      "expected": "tests/fixtures/timeline-exchange/complex.expected.json",
+      "activation": "TIMELINE_ACTIVATION"
+    },
+    {
+      "id": "calendar-boundaries-json",
+      "fixture": "tests/fixtures/timeline-exchange/calendar-boundaries.json",
+      "format": "json",
+      "expected": "tests/fixtures/timeline-exchange/calendar-boundaries.expected.json",
+      "activation": "TIMELINE_ACTIVATION"
+    },
+    {
+      "id": "calendar-boundaries-gpkg",
+      "fixture": "tests/fixtures/timeline-exchange/calendar-boundaries.gpkg",
+      "format": "gpkg",
+      "expected": "tests/fixtures/timeline-exchange/calendar-boundaries.expected.json",
+      "activation": "TIMELINE_ACTIVATION"
+    },
+    {
+      "id": "content-document",
+      "format": "json",
+      "contentMode": "document",
+      "fixture": "tests/fixtures/portability/content-project.json",
+      "expected": "tests/fixtures/portability/content-project.json",
+      "activation": "OK",
+      "expectation": "Every persisted field survives read/save/reopen exactly; only declared identity-keyed collections have immaterial row order.",
+      "origin": {
+        "repository": "App",
+        "commit": "faa4ced0824dd8eb05484365590dc129e8e64b2a",
+        "path": "tests/fixtures/lineage-v10-content/content.json",
+        "workingBytesSha256": "bfec28cfb5d4c4f992f3a2774dc81296621886f3d88672afa8a329081a25c982"
+      }
+    }
+  ],
+  "rejections": [
+    {
+      "id": "year-zero",
+      "record": "life:A",
+      "field": "validFrom",
+      "value": "0000-02",
+      "expected": "TIMELINE_INTERVAL"
+    },
+    {
+      "id": "nonleap-1900",
+      "record": "B:new",
+      "field": "validFrom",
+      "value": "1900-02-29",
+      "expected": "TIMELINE_INTERVAL"
+    },
+    {
+      "id": "inclusive-overlap",
+      "record": "A:new",
+      "field": "validFrom",
+      "value": "+12000-02-28",
+      "expected": "TIMELINE_OVERLAP"
+    },
+    {
+      "id": "leap-day-gap",
+      "record": "A:new",
+      "field": "validFrom",
+      "value": "+12000-03",
+      "expected": "TIMELINE_GAP"
+    }
+  ]
+}

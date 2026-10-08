@@ -39,7 +39,6 @@ export function createSelectionUiController({
     presenters.multiple?.(current, {
       typeLabel: types.length === 1 ? types[0] : '여러 유형',
     });
-    uiActions.clearSelectionToolbar?.();
     return true;
   };
 
@@ -47,7 +46,6 @@ export function createSelectionUiController({
     const count = current.items.length;
     if (!count) {
       uiActions.clearPresenter?.({ refreshOnly: false });
-      uiActions.clearSelectionToolbar?.();
       return null;
     }
     const ref = primary(current);
@@ -55,7 +53,6 @@ export function createSelectionUiController({
     else {
       const presenter = presenters.resolve?.(ref) || presenters[ref.domain] || presenters.default;
       presenter?.(ref, { refreshOnly, openEditor });
-      uiActions.syncSelectionToolbar?.(ref);
     }
     if (openEditor && !refreshOnly) uiActions.openEditor?.(ref);
     return ref;
@@ -122,11 +119,11 @@ export function createSelectionUiController({
     const selected = selectionDomain.has(ref);
     const current = selection();
     const clickedPrimary = selected && primary(current)?.key === ref.key;
-    const territorialToolbarTarget = ref.domain === 'territorial'
+    const territorialTarget = ref.domain === 'territorial'
       && ref.type === 'entity';
-    const shouldOpenEditor = clickedPrimary && (openEditor == null ? !territorialToolbarTarget || (mode === 'replace' && current.items.length === 1) : openEditor);
+    const shouldOpenEditor = clickedPrimary && (openEditor == null ? !territorialTarget || (mode === 'replace' && current.items.length === 1) : openEditor);
     presentSelectionState(current, { refreshOnly: clickedPrimary ? refreshOnly : true, openEditor: shouldOpenEditor });
-    if (clickedPrimary && !refreshOnly && !territorialToolbarTarget) uiActions.focusObject?.(ref);
+    if (clickedPrimary && !refreshOnly && !territorialTarget) uiActions.focusObject?.(ref);
     uiActions.closeChooser?.();
     return selected;
   };
@@ -154,7 +151,6 @@ export function createSelectionUiController({
     if (disposed) return false;
     const changed = selectionDomain.clear({ scope: options.scope || 'ui', reason: options.reason || 'selection-clear' });
     uiActions.clearPresenter?.(options);
-    uiActions.clearSelectionToolbar?.();
     return changed;
   };
 

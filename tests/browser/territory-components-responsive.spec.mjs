@@ -1,3 +1,4 @@
+import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 test.use({ channel: 'chromium' });
 
@@ -23,7 +24,7 @@ test('Russia subunit components keep input responsive and reuse preparation on h
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('RUS'));
-  await page.locator('#addEntityChildBtn').evaluate(button => button.click());
+  await startChildCreation(page, 'RUS');
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
   await page.locator('#modePrimaryBtn').click();
   await page.evaluate(() => { window.__componentMetrics.start = performance.now(); });
@@ -67,7 +68,7 @@ test('Germany river components prepare a subunit preview before the next step', 
   await page.goto('/?debug=1');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  await page.locator('#addEntityChildBtn').evaluate(button => button.click());
+  await startChildCreation(page, 'DEU');
   await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
   await page.locator('#territorialCreateNameInput').fill('하천 조각 회귀 시험');
   await page.locator('#modePrimaryBtn').click();

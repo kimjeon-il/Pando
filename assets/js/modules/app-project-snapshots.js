@@ -50,7 +50,7 @@ export function createProjectSnapshots() {
       normalizeHydroEditCollection: dependencies.hydroModel.normalizeHydroEditCollection,
       normalizeGenericFeatureCollection: dependencies.modelValidation.normalizeGenericFeatureCollection,
     });
-    dependencies.territorialModel.entityStore.restoreProject(snapshot);
+    dependencies.territorialModel.entityStore.restoreProject(snapshot, { preserveCursor: true });
     dependencies.projectState.state.historyDirtyEntityIds=new Set(snapshot.historyDirtyEntityIds || []);
     return snapshot;
   }
@@ -140,6 +140,7 @@ export function createProjectSnapshots() {
 
   function snapshotEditable() {
     return {
+      historyContentToken: dependencies.projectSession.saveState.snapshot().currentContentToken,
       territorialEntities: dependencies.territorialModel.entityStore.identities(),
       historyDirtyEntityIds: [...dependencies.projectState.state.historyDirtyEntityIds],
       historyLabelSettings: historyLabelSettings(),
@@ -259,6 +260,7 @@ export function createProjectSnapshots() {
     (0, dependencies.taskUi.updateModeButtons)();
     if (changedCountryIds.size) (0, dependencies.spatialQuery.markCountryGeometriesChanged)(changedCountryIds);
     dependencies.projectState.state.historyDirtyEntityIds = restoredDirtyIds;
+    dependencies.projectSession.saveState.setContentToken(snapshot.historyContentToken);
   }
 
   function initializeHistoryStore() {

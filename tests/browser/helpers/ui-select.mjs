@@ -31,3 +31,9 @@ export async function selectUiOption(page, selector, value) {
   }
   return select;
 }
+
+export async function startChildCreation(page, parentId) {
+  await page.locator('#createMenuBtn').click();
+  await page.locator('#addEntityBtn').click();
+  await selectUiOption(page, '#territorialCreateParentInput', parentId);
+}

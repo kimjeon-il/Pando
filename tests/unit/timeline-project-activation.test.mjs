@@ -30,11 +30,13 @@ function session(baseEntities = null, baseDataset = null) {
   return { domain, effects, before, current: () => current };
 }
 
-test('nonstatic activation fails before replacement, selection/reset/history or save effects', async () => {
+test('valid dated project activates with its full records intact', async () => {
   const s = session();
-  await assert.rejects(s.domain.load(project()), { code: 'TIMELINE_ACTIVATION' });
-  assert.equal(s.current(), s.before);
-  assert.deepEqual(s.effects, []);
+  const source = project();
+  await s.domain.load(source);
+  assert.deepEqual(s.current().timelineRecords, source.timelineRecords);
+  assert.deepEqual(s.current().geometries, source.geometries);
+  assert.ok(s.effects.includes('replace'));
 });
 
 test('a bad geometry archive fails before any project-domain publication', async () => {
@@ -94,7 +96,6 @@ test('actual project domain and entity owner preserve content, selection, histor
     candidate=>candidate.genericFeatures=[{type:'Feature',id:'00000000-0000-4000-8000-000000000001',geometry:null,properties:{schemaVersion:2}}],
     candidate=>candidate.timelineRecords.lifetimes[0].validFrom='0000',
     candidate=>candidate.timelineRecords.lifetimes[0].validTo='1900-02-29',
-    candidate=>Object.assign(candidate, project()),
   ];
   for (const mutate of mutations) {
     const bad = structuredClone(original); mutate(bad);

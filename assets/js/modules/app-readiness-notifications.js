@@ -231,7 +231,6 @@ export function createReadinessNotifications() {
       '#createMenu .ui-menu-item',
       '#editorSurface input', '#editorSurface select', '#editorSurface textarea',
       '#editorSurface button:not(.sheet-close-btn):not(#focusSelectedObjectBtn)',
-      '#selectionToolbar input', '#selectionToolbar textarea', '#selectionToolbar button:not(#selectionToolbarEditBtn)',
       '.top-actions button', '.top-actions input',
       '#mobileFileBtn', '#preferencesBtn', '#helpBtn', '#undoBtn', '#redoBtn',
       '[data-map-display-row]',

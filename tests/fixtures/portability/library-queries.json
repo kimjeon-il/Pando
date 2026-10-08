@@ -1,0 +1,183 @@
+{
+  "schema": "web-app-library-queries",
+  "version": 1,
+  "index": {
+    "webPath": "assets/data/territorial-entities/generated/v2/index.json",
+    "appPath": "assets/territorial-library-v2/index.json",
+    "sha256": "701f196f755c31a5c285f5cc7d5a1a477b1caa74059d502ba16e055080535751",
+    "compressedBytes": 557000,
+    "decodedBytes": 557000
+  },
+  "cases": [
+    {
+      "id": "korean-lineage",
+      "op": "search",
+      "query": "kOrEa",
+      "date": "2026-10-06",
+      "expected": {
+        "id": "korean-lineage",
+        "ids": [],
+        "versions": [],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "korean-name",
+      "op": "search",
+      "query": "대한민국",
+      "date": "2026",
+      "expected": {
+        "id": "korean-name",
+        "ids": [],
+        "versions": [],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "germany-1900",
+      "op": "search",
+      "query": "Germany",
+      "date": "1900-01-01",
+      "expected": {
+        "id": "germany-1900",
+        "ids": [
+          "state:east-prussia",
+          "state:west-prussia"
+        ],
+        "versions": [
+          "ostpreussen-1878-1920-r3",
+          "state:west-prussia:1900-01-01-r1"
+        ],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "ddr-gap",
+      "op": "search",
+      "query": "독일 민주공화국",
+      "date": "1989-04-24",
+      "expected": {
+        "id": "ddr-gap",
+        "ids": [
+          "state:deutsche-demokratische-republik"
+        ],
+        "versions": [
+          null
+        ],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "yugoslavia-1941-04-17",
+      "op": "version",
+      "entityId": "state:yugoslavia",
+      "date": "1941-04-17",
+      "expected": {
+        "id": "yugoslavia-1941-04-17",
+        "ids": [
+          "state:yugoslavia"
+        ],
+        "versions": [
+          "state:kingdom-of-yugoslavia:1918-1941-r1"
+        ],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "yugoslavia-1943",
+      "op": "version",
+      "entityId": "state:yugoslavia",
+      "date": "1943",
+      "expected": {
+        "id": "yugoslavia-1943",
+        "ids": [
+          "state:yugoslavia"
+        ],
+        "versions": [
+          null
+        ],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "yugoslavia-1945-11-29",
+      "op": "version",
+      "entityId": "state:yugoslavia",
+      "date": "1945-11-29",
+      "expected": {
+        "id": "yugoslavia-1945-11-29",
+        "ids": [
+          "state:yugoslavia"
+        ],
+        "versions": [
+          "state:sfr-yugoslavia:1945-1992-r1"
+        ],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "yugoslavia-1992-04-26",
+      "op": "version",
+      "entityId": "state:yugoslavia",
+      "date": "1992-04-26",
+      "expected": {
+        "id": "yugoslavia-1992-04-26",
+        "ids": [
+          "state:yugoslavia"
+        ],
+        "versions": [
+          "state:sfr-yugoslavia:1945-1992-r1"
+        ],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "yugoslavia-1992-04-27",
+      "op": "version",
+      "entityId": "state:yugoslavia",
+      "date": "1992-04-27",
+      "expected": {
+        "id": "yugoslavia-1992-04-27",
+        "ids": [
+          "state:yugoslavia"
+        ],
+        "versions": [
+          "state:federal-republic-of-yugoslavia:1992-2003-r1"
+        ],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "yugoslavia-1992-04",
+      "op": "version",
+      "entityId": "state:yugoslavia",
+      "date": "1992-04",
+      "expected": {
+        "id": "yugoslavia-1992-04",
+        "ids": [
+          "state:yugoslavia"
+        ],
+        "versions": [
+          "state:federal-republic-of-yugoslavia:1992-2003-r1"
+        ],
+        "entityReads": 0
+      }
+    },
+    {
+      "id": "yugoslavia-2003",
+      "op": "version",
+      "entityId": "state:yugoslavia",
+      "date": "2003",
+      "expected": {
+        "id": "yugoslavia-2003",
+        "ids": [
+          "state:yugoslavia"
+        ],
+        "versions": [
+          null
+        ],
+        "entityReads": 0
+      }
+    }
+  ]
+}

@@ -23,7 +23,7 @@ export function createEditorBindings() {
 
   function bindUI() {
     syncEditorCommandRows();
-    (0, dependencies.platformConfigurationB.bindUiTooltips)();
+    dependencies.platformConfigurationB.tooltipController.bind();
     (0, dependencies.navigationBindings.bindNavigationUI)();
     (0, dependencies.navigationBindings.bindLayerUI)();
     (0, dependencies.toolBindings.bindToolUI)();
@@ -31,7 +31,6 @@ export function createEditorBindings() {
     (0, dependencies.fileBindings.bindFileAndGisUI)();
     (0, dependencies.globalInput.bindGlobalInputUI)();
     (0, dependencies.platformConfigurationB.syncSearchClearButton)((0, dependencies.platform.$)('layerSearchInput'), (0, dependencies.platform.$)('layerSearchClearBtn'));
-    (0, dependencies.platformConfigurationB.syncSearchClearButton)((0, dependencies.platform.$)('territorialLibrarySearchInput'), (0, dependencies.platform.$)('territorialLibrarySearchClearBtn'));
     (0, dependencies.colorPicker.syncColorPicker)('multiProperties', { value: (0, dependencies.platform.$)('multiPropertiesColorInput')?.value, defaultColor: '#3f6fae', isDefault: false });
     dependencies.lifecycleUi.projectUi.syncSaveStatus(dependencies.projectSession.saveState.snapshot());
   }
@@ -51,7 +50,6 @@ export function createEditorBindings() {
       mergeEntityBtn: 'countryMerge',
       editEntityBorderBtn: 'boundary',
       copyEntityRegionBtn: 'copy',
-      addEntityChildBtn: 'hierarchy',
       redrawEntityBtn: 'boundary',
       reconcileEntityCoastBtn: 'coastline',
       editEntityCoastBtn: 'coastline',

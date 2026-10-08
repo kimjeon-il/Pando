@@ -570,7 +570,7 @@ function canvasFallbackWorkerMain() {
         reserve ? batches.map(packet => ({ ...packet, style: { ...packet.style, alpha: 1 } })) : batches);
       target.restore();
     }
-    function render(message) {
+    function render(message, renderRequestId = null) {
       lastRenderMessage = message;
       const width = Math.max(1, Number(message.width || 1));
       const height = Math.max(1, Number(message.height || 1));
@@ -668,6 +668,8 @@ function canvasFallbackWorkerMain() {
       self.postMessage({
         type: 'frame',
         styleRevision,
+        // Background redraws reuse visual state, but never acknowledge a submission.
+        renderRequestId,
         frameId: Number(message.frameId || message.revision || 0),
         revision: Number(message.revision || 0),
         viewRevision: Number(message.viewRevision || message.revision || 0),
@@ -783,10 +785,14 @@ function canvasFallbackWorkerMain() {
       } else if (message.type === 'view' || message.type === 'render') {
         try {
           const incomingRevision = Number(message.viewRevision || message.revision || 0);
-          if (incomingRevision < viewRevision) return;
+          if (incomingRevision < viewRevision) {
+            self.postMessage({ type: 'frame', renderRequestId: message.renderRequestId,
+              projectGeneration: Number(message.projectGeneration || 0) });
+            return;
+          }
           viewRevision = incomingRevision;
           pumpTerrainFetchQueue();
-          render(mergeRenderState(message));
+          render(mergeRenderState(message), message.renderRequestId);
         } catch (error) {
           self.postMessage({ type: 'error', message: error?.message || String(error) });
         }

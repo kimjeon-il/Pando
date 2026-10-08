@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.36.0-build-d9cdd0d9576b" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.36.0-build-d9cdd0d9576b" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.36.0-build-f5040d34a1f5" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.36.0-build-f5040d34a1f5" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -244,33 +244,6 @@
         </div>
 
 
-        <div class="selection-toolbar-slot">
-          <section id="selectionToolbar" class="ui-floating-surface selection-toolbar selection-card hidden" role="region" aria-label="선택 객체" aria-hidden="true">
-            <button id="selectionToolbarEditBtn" class="ui-button selection-card-hit" type="button" aria-label="상세 편집" aria-controls="editorSurface" aria-expanded="false"></button>
-            <div class="selection-card-main">
-              <div class="selection-summary">
-                <div class="selection-card-flag" aria-hidden="true"><span id="selectionCardFlagPreview" class="selection-card-flag-preview"></span></div>
-                <div class="selection-card-content"><strong id="selectionCardName" class="selection-card-name"></strong></div>
-              </div>
-              <div class="selection-card-quickbar" role="toolbar" aria-label="빠른 작업">
-            <div id="entityToolbarFields" class="selection-toolbar-fields ui-color-picker hidden" data-selection-kind="entity" data-color-picker="entity">
-              <button id="entityColorTrigger" class="ui-button icon-btn ui-color-trigger selection-toolbar-color" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="entityColorPopover" aria-labelledby="entityColorLabel entityColorValue">
-                <span class="ui-color-preview" aria-hidden="true"></span><span id="entityColorLabel" class="selection-toolbar-label">색상</span><span id="entityColorValue" class="ui-color-value">기본 색상</span>
-              </button>
-              <input id="entityColorInput" class="ui-native-color-input" type="color" value="#7c8da6" tabindex="-1" aria-hidden="true" />
-              <div id="entityColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="객체 색상 팔레트">
-                <button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="false"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button>
-                <div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div>
-                <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button>
-              </div>
-            </div>
-            <button id="objectVisibilityBtn" class="ui-button icon-btn editor-object-command" type="button" aria-label="객체 숨기기" data-tooltip="객체 숨기기" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectVisibilityIcon" href="#icon-eye"/></svg></button>
-            <button id="objectLockBtn" class="ui-button icon-btn editor-object-command editor-object-command--lock" type="button" aria-label="잠금" data-tooltip="잠금" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg></button>
-              </div>
-            </div>
-          </section>
-        </div>
-
         <div id="mapTopContextSlot" class="map-top-context-slot" aria-live="polite">
           <div id="modeEditingContext" class="mode-editing-context hidden">
             <section id="modeEditingHud" class="ui-floating-surface ui-workflow-shell workflow-map-session mode-task-window" role="region" aria-label="지도 편집 작업">
@@ -369,6 +342,13 @@
             <div id="statusView" class="status-group status-view" aria-label="보기 정보">
               <span id="projectionStatus" class="status-item">지구본</span>
             </div>
+            <div class="status-group timeline-status" aria-label="시간대">
+              <button id="timelinePreviousMonth" class="ui-button ghost timeline-step" type="button" aria-label="이전 달">‹</button>
+              <span id="timelineMonthLabel" class="status-item">현재 월</span>
+              <input id="timelineMonthInput" class="timeline-month-input" type="text" inputmode="numeric" aria-label="표시할 연월" placeholder="YYYY-MM" />
+              <button id="timelineNextMonth" class="ui-button ghost timeline-step" type="button" aria-label="다음 달">›</button>
+              <span id="timelineMonthError" class="timeline-month-error" role="status" hidden></span>
+            </div>
             <div id="statusSelection" class="status-group status-selection hidden" aria-label="선택 대상">
               <span id="selectionStatus" class="selection-status"></span>
             </div>
@@ -385,6 +365,8 @@
         </header>
         <strong id="editSheetTitle" hidden>편집</strong>
 
+        <span id="editorTimelineContext" class="editor-timeline-context" aria-live="polite"></span>
+
         <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
           <div class="editor-object-context-main">
             <button id="flagMenuBtn" type="button" class="ui-button editor-header-flag hidden" aria-haspopup="menu" aria-expanded="false" aria-controls="flagMenu" aria-label="국기 관리">
@@ -392,6 +374,8 @@
             </button>
             <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel" class="editor-object-type-label"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
             <button id="focusSelectedObjectBtn" class="ui-button icon-btn editor-object-command editor-focus-action hidden" type="button" data-tooltip="선택 객체로 이동" aria-label="선택 객체로 이동"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-target"/></svg></button>
+            <button id="objectVisibilityBtn" class="ui-button icon-btn editor-object-command" type="button" aria-label="객체 숨기기" data-tooltip="객체 숨기기" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectVisibilityIcon" href="#icon-eye"/></svg></button>
+            <button id="objectLockBtn" class="ui-button icon-btn editor-object-command editor-object-command--lock" type="button" aria-label="잠금" data-tooltip="잠금" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg></button>
           </div>
         </section>
         <div id="flagMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-surface ui-menu-list ui-command-menu editor-flag-menu" popover="auto" role="menu" aria-label="깃발 관리">
@@ -443,15 +427,22 @@
             <div class="editor-country-area" aria-hidden="true" hidden><strong id="entityAreaValue">—</strong></div>
             <section class="editor-section editor-info-section editor-section-primary" aria-label="정보">
               <div class="ui-field field-group editor-field"><label for="entityNameInput">이름</label><input id="entityNameInput" type="text" autocomplete="off" /></div>
-              <section id="entityInfoRelations" class="editor-info-relations" aria-label="소속 및 산하 관계" hidden>
-                <div id="entityInfoParent" class="editor-info-relation-block editor-field" hidden><span class="editor-info-relation-label">소속</span><div id="entityInfoParentRows" class="editor-info-relation-list"></div></div>
-                <div id="entityInfoChildren" class="editor-info-relation-block editor-field" hidden><span class="editor-info-relation-label">산하</span><div id="entityInfoChildRows" class="editor-info-relation-list"></div></div>
-              </section>
+              <div class="ui-field field-group editor-field ui-color-picker" data-color-picker="entity">
+                <label id="entityColorLabel">색상</label>
+                <button id="entityColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="entityColorPopover" aria-labelledby="entityColorLabel entityColorValue">
+                  <span class="ui-color-preview" aria-hidden="true"></span><span id="entityColorValue" class="ui-color-value">기본 색상</span>
+                </button>
+                <input id="entityColorInput" class="ui-native-color-input" type="color" value="#7c8da6" tabindex="-1" aria-hidden="true" />
+                <div id="entityColorPopover" class="ui-popover ui-color-popover hidden" role="dialog" aria-label="객체 색상 팔레트">
+                  <button class="ui-button ui-color-default" type="button" data-color-default aria-pressed="false"><span class="ui-color-preview" aria-hidden="true"></span><span>기본 색상</span></button>
+                  <div class="ui-color-swatches" role="group" aria-label="기본 색상 모음"></div>
+                  <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button>
+                </div>
+              </div>
               <div class="ui-field field-group editor-field"><label for="entityPeriodInput">존속기간</label><input id="entityPeriodInput" type="text" autocomplete="off" /></div>
               <div class="ui-field field-group editor-field"><label for="entityNotesInput">비고</label><textarea id="entityNotesInput" rows="5"></textarea></div>
             </section>
             <section class="editor-section editor-action-section" aria-label="편집"><div class="editor-action-list">
-              <button id="addEntityChildBtn" type="button" class="ui-button editor-action-row"><span><strong>하위 객체 추가</strong><small>이 객체를 상위 객체로 지정하여 추가</small></span></button>
               <button id="annexEntityBtn" type="button" class="ui-button editor-action-row"><span><strong>영역 편입</strong><small>다른 객체의 영역 가져오기</small></span></button>
               <button id="mergeEntityBtn" type="button" class="ui-button editor-action-row"><span><strong>객체 합병</strong><small>연결된 객체들을 하나로 합치기</small></span></button>
               <button id="editEntityBorderBtn" type="button" class="ui-button editor-action-row"><span><strong>경계 조정</strong><small>접한 객체 사이의 공유 경계 편집</small></span></button>
@@ -461,7 +452,14 @@
               <button id="copyEntityRegionBtn" type="button" class="ui-button editor-action-row"><span><strong>독립 권역으로 복사</strong><small>원본 영역을 유지하고 새 객체 생성</small></span></button>
             </div></section>
             <section class="editor-section editor-action-section editor-relation-section" aria-label="관계">
-              <div id="entityParentRow" class="ui-field field-group editor-field"><label for="entityParentInput">상위 객체</label><select id="entityParentInput"><option value="">상위 객체 없음</option></select></div>
+              <div id="entityRelations" class="editor-relations" aria-label="소속 및 산하 관계">
+                <div class="editor-relation-block editor-field"><div class="editor-relation-heading"><span class="editor-relation-label">소속</span><button id="entityChangeParentBtn" type="button" class="ui-button btn ghost" aria-label="소속 변경" aria-controls="entityParentRow" aria-expanded="false">변경</button></div><div id="entityParentRows" class="editor-relation-list"></div></div>
+                <div id="entityParentRow" class="ui-field field-group editor-field" hidden><label for="entityParentInput">소속 변경</label><select id="entityParentInput"><option value="">상위 객체 없음</option></select></div>
+                <div class="editor-relation-block editor-field"><div class="editor-relation-heading"><span class="editor-relation-label">산하</span><button id="entityAddChildBtn" type="button" class="ui-button btn ghost" aria-label="산하 객체 추가" aria-controls="entityChildRow" aria-expanded="false">추가</button></div><div id="entityChildRows" class="editor-relation-list"></div></div>
+                <div id="entityChildRow" class="editor-relation-add" hidden>
+                  <div class="ui-field field-group editor-field"><label for="entityChildInput">산하 객체 추가</label><select id="entityChildInput"><option value="">산하 객체 선택</option></select></div>
+                </div>
+              </div>
               <p id="entityRegionalStatus" class="editor-help hidden">독립 권역 · 다른 객체와 겹칠 수 있으며 상위 객체를 갖지 않습니다.</p>
             </section>
           </form>
@@ -727,8 +725,15 @@
         <button id="territorialLibraryCloseBtn" type="button" class="ui-button icon-btn" aria-label="라이브러리 닫기" data-tooltip="라이브러리 닫기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </header>
       <div class="territorial-library-toolbar">
-        <div class="ui-field field-group territorial-library-search"><label for="territorialLibrarySearchInput">이름 검색</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="territorialLibrarySearchInput" type="search" placeholder="이름 검색" autocomplete="off" /><button id="territorialLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기" data-tooltip="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
-        <label class="ui-field field-group"><span>시점</span><input id="territorialLibraryReferenceDateInput" type="text" placeholder="연·월·일" autocomplete="off" /></label>
+        <div class="ui-field field-group territorial-library-search"><label for="territorialLibrarySearchInput">이름</label><div class="ui-search-field"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg><input id="territorialLibrarySearchInput" type="search" placeholder="이름 검색" autocomplete="off" /><button id="territorialLibrarySearchClearBtn" class="ui-button ui-icon-button ui-search-clear hidden" type="button" aria-label="라이브러리 검색어 지우기" data-tooltip="라이브러리 검색어 지우기"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-close"/></svg></button></div></div>
+        <div class="ui-field field-group territorial-library-time-field">
+          <label for="territorialLibraryReferenceDateInput">시점</label>
+          <div class="territorial-library-time-control">
+            <input id="territorialLibraryReferenceDateInput" type="text" placeholder="연·월·일" autocomplete="off" />
+            <button id="territorialLibraryTimeSuggestBtn" type="button" class="ui-button territorial-library-time-suggest" aria-label="주요 역사 시점 보기" aria-expanded="false" aria-controls="territorialLibraryTimePopover"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg></button>
+          </div>
+          <div id="territorialLibraryTimePopover" class="ui-popover territorial-library-time-popover" role="group" aria-label="주요 사건" hidden></div>
+        </div>
       </div>
       <div class="territorial-library-layout">
         <div id="territorialLibraryResults" class="territorial-library-results" role="group" aria-label="라이브러리 검색 결과"></div>
@@ -822,10 +827,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.36.0-build-d9cdd0d9576b" defer></script>
+  <script src="assets/js/build-meta.js?v=0.36.0-build-f5040d34a1f5" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.36.0-build-d9cdd0d9576b" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.36.0-build-f5040d34a1f5" defer></script>
 </body>
 </html>

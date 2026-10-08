@@ -49,7 +49,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       .toBe(renderer === 'canvas' ? 'canvas-worker' : renderer);
     await page.locator('#terrainNoneRadio').evaluate(input => input.click());
     await page.locator('#flatBtn').evaluate(input => input.click());
-    await page.addStyleTag({ content: '#map text, #selectionToolbar { visibility: hidden !important; } #map .territorial-label-item { pointer-events: none !important; }' });
+    await page.addStyleTag({ content: '#map text { visibility: hidden !important; } #map .territorial-label-item { pointer-events: none !important; }' });
     const before = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL'));
     await page.evaluate(() => {
       window.PANDOLAB_TERRITORIAL.setColor('IRL', '#ff0000');
@@ -61,6 +61,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     const interior = [-8, 53];
     await expect.poll(() => mapPixel(page, interior), { timeout: renderer === 'canvas' ? 20000 : 8000 }).toEqual([255, 0, 0]);
     await page.locator('#relationTabBtn').click();
+    await page.locator('#entityChangeParentBtn').click();
     await selectUiOption(page, '#entityParentInput', 'GBR');
     await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('GBR');
     expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);

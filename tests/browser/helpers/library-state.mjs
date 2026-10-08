@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
+import { withNativeActionDiagnostics } from './native-action-diagnostics.mjs';
 
 // Observe the production owners. These hooks never substitute a serializer,
 // activation policy, selection implementation, or operation error boundary.
@@ -74,7 +75,7 @@ async function stateProof(page, sourceId) {
   }, sourceId);
 }
 
-export async function openLibrary(page, {renderer='webgl2'}={}) {
+export async function openLibrary(page, {renderer='webgl2', nativeActionTestInfo=null}={}) {
   page.setDefaultTimeout(10_000);
   await observeOwners(page);
   const pageErrors = [], unexpectedConsoleErrors = [];
@@ -89,7 +90,13 @@ export async function openLibrary(page, {renderer='webgl2'}={}) {
   // Preserve a real nonempty Undo and Redo chain through a rejected operation.
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setName('DEU', '보존 이름 A'))).toMatchObject({ changed: true });
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.setName('DEU', '보존 이름 B'))).toMatchObject({ changed: true });
-  await page.locator('#undoBtn').click();
+  if (nativeActionTestInfo) {
+    await withNativeActionDiagnostics(page, nativeActionTestInfo, { label: 'library-setup-undo', selector: '#undoBtn' }, async () => {
+      await page.locator('#undoBtn').click();
+    });
+  } else {
+    await page.locator('#undoBtn').click();
+  }
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'))).toBe(true);
   await expect.poll(() => page.evaluate(() => window.__librarySaveState.snapshot().autosave), { timeout: 30_000 }).toBe('saved');
   await page.locator('#createMenuBtn').click();
@@ -98,16 +105,20 @@ export async function openLibrary(page, {renderer='webgl2'}={}) {
   return { pageErrors, unexpectedConsoleErrors };
 }
 
-export async function importFiniteSource(page, testInfo, id, errors) {
+export async function importFiniteSource(page, testInfo, id, errors, { referenceDate }) {
+  // The caller supplies its own expected full cursor, including blank representatives.
+  // Never infer this expectation from the imported descriptor or UI normalizer.
+  expect(referenceDate).toMatch(/^-?\d{4,}-\d{2}-\d{2}$/);
   const before=await stateProof(page,id);
   const source=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),id);
   expect(source.lifetime.validFrom || source.lifetime.validTo).toBeTruthy();
-  const date=await page.locator('#territorialLibraryReferenceDateInput').inputValue();
-  const selected=await page.evaluate(async({id,date})=>{
+  const inputDate=await page.locator('#territorialLibraryReferenceDateInput').inputValue();
+  const selected=await page.evaluate(async({id,referenceDate})=>{
     const {selectGeometryVersion}=await import('/assets/js/modules/territorial-library.js');
-    return selectGeometryVersion(await window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),date);
-  },{id,date});
+    return selectGeometryVersion(await window.PANDOLAB_TERRITORIAL_LIBRARY.get(id),referenceDate);
+  },{id,referenceDate});
   expect(selected).toBeTruthy();
+  await expect(page.locator('#territorialLibraryPreview [data-geometry-version-id]')).toHaveAttribute('data-geometry-version-id',selected.versionId);
   await page.locator('#territorialLibraryAddBtn').click();
   await expect.poll(async()=> (await page.locator('[data-library-impact]').count()) || (await page.locator('#territorialLibraryModal.hidden').count()),{timeout:60_000}).toBeGreaterThan(0);
   if(await page.locator('[data-library-impact]').count())await page.locator('#territorialLibraryAddBtn').click();
@@ -116,7 +127,9 @@ export async function importFiniteSource(page, testInfo, id, errors) {
   expect(added).toHaveLength(1);expect(added[0].id).not.toBe(id);
   expect(added[0].geometry).toEqual(selected.geometry);
   expect(added[0].properties).toMatchObject({validFrom:null,validTo:null,sourceGeometryVersion:selected.versionId,
-    metadata:{sourceLifetime:source.lifetime,sourceGeometryValidity:{validFrom:selected.validFrom,validTo:selected.validTo},sourceReferenceDate:date,sourceInfo:source.sourceInfo}});
+    metadata:{sourceLifetime:source.lifetime,sourceGeometryValidity:{validFrom:selected.validFrom,validTo:selected.validTo},
+      sourceReferenceDate:referenceDate,sourceInfo:source.sourceInfo,geometryCertainty:selected.certainty,geometryDatePrecision:selected.datePrecision}});
+  await expect(page.locator('#territorialLibraryReferenceDateInput')).toHaveValue(inputDate);
   const after=await stateProof(page,id);expect(after.historyCount).toBe(before.historyCount+1);expect(after.source).toBe(before.source);
   await page.locator('#undoBtn').click({timeout:30_000,noWaitAfter:true});
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.list().some(e=>e.properties.sourceEntityId===id),id),{timeout:30_000}).toBe(false);
@@ -126,7 +139,7 @@ export async function importFiniteSource(page, testInfo, id, errors) {
   await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.list().filter(e=>e.properties.sourceEntityId===id).map(e=>e.id),id),{timeout:30_000}).toEqual([added[0].id]);
   const redone=await stateProof(page,id);for(const key of ['entities','records','archive','source','sourceInfo'])expect(redone[key],key).toBe(after[key]);
   const proofPath=testInfo.outputPath('static-import-provenance.json');
-  await writeFile(proofPath,JSON.stringify({id,date,versionId:selected.versionId,objectId:added[0].id,before,after,undone,redone}));
+  await writeFile(proofPath,JSON.stringify({id,inputDate,referenceDate,versionId:selected.versionId,objectId:added[0].id,before,after,undone,redone}));
   await testInfo.attach('static-import-provenance',{path:proofPath,contentType:'application/json'});
   expect(errors.pageErrors).toEqual([]);expect(errors.unexpectedConsoleErrors).toEqual([]);
 }
