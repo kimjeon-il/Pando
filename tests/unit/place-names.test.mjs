@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizePlace, resolvePlaceLabelRows } from '../../assets/js/modules/place-contract.js';
+import { normalizePlace, resolvePlaceLabelRows, normalizePlaceLanguages, togglePlaceLanguage } from '../../assets/js/modules/place-contract.js';
 import { placeLabelDimensions, layoutLabels } from '../../assets/js/modules/label-layout.js';
 
 const place = changes => normalizePlace({source:'geonames',sourceId:'703448',name:'키이우',nameEn:'Kyiv',nameNative:'Київ',
@@ -38,4 +38,11 @@ test('year-only and exact naming dates retain distinct precision in the codec co
   assert.equal(record.nameTimeline[0].fromDate, undefined);
   assert.equal(record.nameTimeline[1].fromDate, '1991-08-24');
   assert.deepEqual(resolvePlaceLabelRows(record, { ko: true }, '1991-08-23').map(row => row.text), ['키예프']);
+});
+
+test('one canonical language switch rule is used by Web and native contract fixtures', () => {
+  assert.deepEqual(normalizePlaceLanguages(null), { ko: true, en: false, native: false });
+  assert.deepEqual(togglePlaceLanguage({ ko: true, en: false, native: false }, 'en', true), { ko: true, en: true, native: false });
+  assert.equal(togglePlaceLanguage({ ko: false, en: true, native: false }, 'en', false), null);
+  assert.throws(() => togglePlaceLanguage({ ko: true }, 'fr', true), TypeError);
 });

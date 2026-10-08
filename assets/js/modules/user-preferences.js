@@ -1,4 +1,5 @@
 import { ACCENT_PRESET_IDS, accentPresetForColor } from './accent-presets.js';
+import { DEFAULT_PLACE_LANGUAGES, normalizePlaceLanguages } from './place-contract.js';
 
 const STORAGE_KEY = 'pandolab-user-preferences';
 
@@ -11,7 +12,7 @@ const DEFAULTS = Object.freeze({
   appearance: Object.freeze({ theme: 'system', accentPreset: 'blue', statusBarVisible: true, smoothLines: true }),
   labels: Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
-    place: Object.freeze({ font: 'default', color: null, pointColor: null, languages: Object.freeze({ ko: true, en: false, native: false }) }),
+    place: Object.freeze({ font: 'default', color: null, pointColor: null, languages: DEFAULT_PLACE_LANGUAGES }),
   }),
   selection: Object.freeze({ color: null, outlineVisible: true, fillStrength: 0.35 }),
 });
@@ -27,10 +28,6 @@ function normalizeFillStrength(value, fallback) {
   return Number.isFinite(numeric) ? Math.max(0, Math.min(1, numeric)) : fallback;
 }
 
-export function normalizePlaceLanguages(value) {
-  const result = { ko: value?.ko === true, en: value?.en === true, native: value?.native === true };
-  return result.ko || result.en || result.native ? result : { ko: true, en: false, native: false };
-}
 function normalizeLabelFont(value, fallback) {
   return LABEL_FONTS.has(value) ? value : fallback;
 }

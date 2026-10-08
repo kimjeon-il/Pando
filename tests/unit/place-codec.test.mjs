@@ -22,3 +22,10 @@ test('codec rejects truncation, wrong version, corrupt offsets and excess record
   }
   assert.throws(() => encodePlaceTile(Array(PLACE_LIMITS.tileRecords + 1).fill(raw)));
 });
+
+test('v2 encoder rejects names exceeding the decoder string bound', () => {
+  const timeline = Array.from({ length: 16 }, (_, index) => ({
+    fromYear: 1801 + index, ko: '가'.repeat(256), en: 'A'.repeat(256), native: 'Б'.repeat(256),
+  }));
+  assert.throws(() => encodePlaceTile([{ ...raw, nameTimeline: timeline }]), /string byte budget/);
+});

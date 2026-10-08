@@ -1,6 +1,7 @@
-import { normalizePlace, PLACE_KINDS, PLACE_LIMITS } from './place-contract.js';
-const HEADER = 32, STRIDE = 68, MAGIC = 0x43414c50, VERSION = 2;
-const STRING_FIELDS = ['sourceId', 'name', 'countryCode', 'source', 'featureCode', 'nameEn', 'nameNative', 'nameTimelineText'];
+import { normalizePlace, PLACE_KINDS, PLACE_LIMITS, PLACE_TILE_FORMAT } from './place-contract.js';
+const { headerBytes: HEADER, recordBytes: STRIDE, magic: MAGIC, version: VERSION,
+  stringFields: STRING_FIELDS, stringOffsetBase: STRING_OFFSET_BASE,
+  stringOffsetStride: STRING_OFFSET_STRIDE, maxStringBytes: MAX_STRING_BYTES } = PLACE_TILE_FORMAT;
 const encoder = new TextEncoder(), decoder = new TextDecoder('utf-8', { fatal: true });
 
 export function encodePlaceTile(records) {
@@ -10,7 +11,7 @@ export function encodePlaceTile(records) {
   for (const record of normalized) {
     for (const field of STRING_FIELDS) {
       const value = field === 'nameTimelineText' ? JSON.stringify(record.nameTimeline) : record[field];
-      if (!strings.has(value)) { const bytes = encoder.encode(value); strings.set(value, { offset: poolBytes, bytes }); poolBytes += 4 + bytes.length; }
+      if (!strings.has(value)) { const bytes = encoder.encode(value); if (bytes.length > MAX_STRING_BYTES) throw new RangeError('Place string byte budget exceeded'); strings.set(value, { offset: poolBytes, bytes }); poolBytes += 4 + bytes.length; }
     }
   }
   const total = HEADER + STRIDE * records.length + poolBytes;
@@ -27,7 +28,7 @@ export function encodePlaceTile(records) {
     view.setUint8(base + 32, PLACE_KINDS.indexOf(record.kind));
     STRING_FIELDS.forEach((field, j) => {
       const value = field === 'nameTimelineText' ? JSON.stringify(record.nameTimeline) : record[field];
-      view.setUint32(base + 36 + j * 4, strings.get(value).offset, true);
+      view.setUint32(base + STRING_OFFSET_BASE + j * STRING_OFFSET_STRIDE, strings.get(value).offset, true);
     });
   });
   return result;
@@ -43,7 +44,7 @@ export function decodePlaceTile(input) {
   for (let offset = 0; offset < poolBytes;) {
     if (offset + 4 > poolBytes) throw new RangeError('Invalid place string header');
     const length = view.getUint32(poolStart + offset, true);
-    if (length > 16 * 1024 || offset + 4 + length > poolBytes) throw new RangeError('Invalid place string length');
+    if (length > MAX_STRING_BYTES || offset + 4 + length > poolBytes) throw new RangeError('Invalid place string length');
     pool.set(offset, decoder.decode(bytes.subarray(poolStart + offset + 4, poolStart + offset + 4 + length)));
     offset += 4 + length;
   }
@@ -51,7 +52,7 @@ export function decodePlaceTile(input) {
     const base = HEADER + i * STRIDE;
     const raw = { coordinates: [view.getFloat64(base, true), view.getFloat64(base + 8, true)], population: view.getFloat64(base + 16, true), priority: view.getFloat32(base + 24, true), minZoom: view.getFloat32(base + 28, true), kind: PLACE_KINDS[view.getUint8(base + 32)] };
     if (!raw.kind) throw new TypeError('Invalid place kind');
-    STRING_FIELDS.forEach((field, j) => { const offset = view.getUint32(base + 36 + j * 4, true); if (!pool.has(offset)) throw new RangeError('Invalid place string offset'); raw[field] = pool.get(offset); });
+    STRING_FIELDS.forEach((field, j) => { const offset = view.getUint32(base + STRING_OFFSET_BASE + j * STRING_OFFSET_STRIDE, true); if (!pool.has(offset)) throw new RangeError('Invalid place string offset'); raw[field] = pool.get(offset); });
     try { raw.nameTimeline = JSON.parse(raw.nameTimelineText); } catch { throw new TypeError('Invalid place name timeline payload'); }
     return normalizePlace(raw);
   });
