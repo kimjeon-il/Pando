@@ -1,5 +1,5 @@
 {
-  "schema": "pando-places-tier1-review-v2",
+  "schema": "pando-places-tier1-review-v3",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0)",
   "checkedOn": "2026-10-08",
@@ -8,8 +8,38 @@
   "records": [
     {
       "geonameId": 1835848,
-      "nameKo": "서울",
-      "name": "Seoul",
+      "names": [
+        {
+          "text": "서울",
+          "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "Seoul",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "한성",
+          "language": "ko",
+          "usage": "historical",
+          "officialPeriod": {
+            "fromYear": 1395,
+            "toYear": 1910
+          },
+          "sourceUrl": "https://mediahub.seoul.go.kr/archives/176784"
+        },
+        {
+          "text": "漢城",
+          "language": "ko-Hani",
+          "usage": "historical",
+          "officialPeriod": {
+            "fromYear": 1395,
+            "toYear": 1910
+          },
+          "sourceUrl": "https://mediahub.seoul.go.kr/archives/176784"
+        }
+      ],
       "latitude": 37.566,
       "longitude": 126.9784,
       "featureClass": "P",
@@ -19,8 +49,18 @@
     },
     {
       "geonameId": 1838524,
-      "nameKo": "부산",
-      "name": "Busan",
+      "names": [
+        {
+          "text": "부산",
+          "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "Busan",
+          "language": "en",
+          "usage": "standard"
+        }
+      ],
       "latitude": 35.10168,
       "longitude": 129.03004,
       "featureClass": "P",
@@ -30,8 +70,50 @@
     },
     {
       "geonameId": 1850147,
-      "nameKo": "도쿄",
-      "name": "Tokyo",
+      "names": [
+        {
+          "text": "東京",
+          "language": "ja",
+          "usage": "standard"
+        },
+        {
+          "text": "Tokyo",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "도쿄",
+          "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "江戸",
+          "language": "ja",
+          "usage": "historical",
+          "officialPeriod": {
+            "toYear": 1868
+          },
+          "sourceUrl": "https://www.archives.go.jp/exhibition/digital/henbou/contents/03.html"
+        },
+        {
+          "text": "에도",
+          "language": "ko",
+          "usage": "historical",
+          "officialPeriod": {
+            "toYear": 1868
+          },
+          "sourceUrl": "https://www.archives.go.jp/exhibition/digital/henbou/contents/03.html"
+        },
+        {
+          "text": "Edo",
+          "language": "en",
+          "usage": "historical",
+          "officialPeriod": {
+            "toYear": 1868
+          },
+          "sourceUrl": "https://www.archives.go.jp/exhibition/digital/henbou/contents/03.html"
+        }
+      ],
       "latitude": 35.6895,
       "longitude": 139.69171,
       "featureClass": "P",
@@ -41,8 +123,23 @@
     },
     {
       "geonameId": 1853909,
-      "nameKo": "오사카",
-      "name": "Osaka",
+      "names": [
+        {
+          "text": "大阪",
+          "language": "ja",
+          "usage": "standard"
+        },
+        {
+          "text": "Osaka",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "오사카",
+          "language": "ko",
+          "usage": "standard"
+        }
+      ],
       "latitude": 34.69379,
       "longitude": 135.50107,
       "featureClass": "P",
@@ -52,8 +149,23 @@
     },
     {
       "geonameId": 1816670,
-      "nameKo": "베이징",
-      "name": "Beijing",
+      "names": [
+        {
+          "text": "北京",
+          "language": "zh",
+          "usage": "standard"
+        },
+        {
+          "text": "Beijing",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "베이징",
+          "language": "ko",
+          "usage": "standard"
+        }
+      ],
       "latitude": 39.9075,
       "longitude": 116.39723,
       "featureClass": "P",
@@ -63,8 +175,23 @@
     },
     {
       "geonameId": 1796236,
-      "nameKo": "상하이",
-      "name": "Shanghai",
+      "names": [
+        {
+          "text": "上海",
+          "language": "zh",
+          "usage": "standard"
+        },
+        {
+          "text": "Shanghai",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "상하이",
+          "language": "ko",
+          "usage": "standard"
+        }
+      ],
       "latitude": 31.22222,
       "longitude": 121.45806,
       "featureClass": "P",
@@ -74,8 +201,23 @@
     },
     {
       "geonameId": 1273294,
-      "nameKo": "델리",
-      "name": "Delhi",
+      "names": [
+        {
+          "text": "दिल्ली",
+          "language": "hi",
+          "usage": "standard"
+        },
+        {
+          "text": "Delhi",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "델리",
+          "language": "ko",
+          "usage": "standard"
+        }
+      ],
       "latitude": 28.65195,
       "longitude": 77.23149,
       "featureClass": "P",
@@ -85,8 +227,18 @@
     },
     {
       "geonameId": 2643743,
-      "nameKo": "런던",
-      "name": "London",
+      "names": [
+        {
+          "text": "London",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "런던",
+          "language": "ko",
+          "usage": "standard"
+        }
+      ],
       "latitude": 51.50853,
       "longitude": -0.12574,
       "featureClass": "P",
@@ -96,8 +248,18 @@
     },
     {
       "geonameId": 2988507,
-      "nameKo": "파리",
-      "name": "Paris",
+      "names": [
+        {
+          "text": "Paris",
+          "language": "fr",
+          "usage": "standard"
+        },
+        {
+          "text": "파리",
+          "language": "ko",
+          "usage": "standard"
+        }
+      ],
       "latitude": 48.85341,
       "longitude": 2.3488,
       "featureClass": "P",
@@ -116,5 +278,12 @@
     "notes": "Resolve border and time ambiguities explicitly; do not use countryCode as a fallback for historical ownership."
   },
   "coordinateSource": "GeoNames",
-  "coordinateConvention": "Dataset-wide WGS84 (EPSG:4326), decimal degrees; individual records store only latitude and longitude."
+  "coordinateConvention": "Dataset-wide WGS84 (EPSG:4326), decimal degrees; individual records store only latitude and longitude.",
+  "namePolicy": {
+    "storage": "One stable place ID with multilingual and historical variants in names[]",
+    "fields": "text, language (BCP 47), usage; optional officialPeriod (year precision), sourceUrl",
+    "deduplication": "Only one record when local and English spelling is identical; language matching for identical spellings is implicit",
+    "historicalDates": "officialPeriod indicates years of attested administrative/official naming, not exclusivity, extinction, or exact calendar-day transitions; different name periods may overlap",
+    "fallback": "Dates and display-language selection require separate runtime implementation. Do not infer a fixed name from sourceCountryCode."
+  }
 }
