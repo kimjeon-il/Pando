@@ -1,7 +1,7 @@
 {
   "source": "Copernicus Sentinel-2 L2A; Earth Search v1 hosted by Element84",
   "stac_search": "https://earth-search.aws.element84.com/v1/search",
-  "generated_utc": "2026-10-08T10:25:02.880920+00:00",
+  "generated_utc": "2026-10-08T10:38:01.931874+00:00",
   "pinned_item_ids": {
     "2025": "S2B_43SFV_20250923_0_L2A",
     "2026": "S2B_43SFV_20260829_0_L2A"
