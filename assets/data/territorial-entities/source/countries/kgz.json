@@ -11,7 +11,7 @@
       "entityKind": "general",
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-08-31",
         "validTo": null
       },
       "parentEntityId": "",
