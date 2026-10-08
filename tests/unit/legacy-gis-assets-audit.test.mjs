@@ -4,12 +4,20 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {audit,dataRelative,groupOf,duplicateStats,parseGitDataTree} from '../../tools/audit-legacy-gis-assets.mjs';
+import {audit,dataRelative,groupOf,duplicateStats,parseGitDataTree,parseGitHubTree} from '../../tools/audit-legacy-gis-assets.mjs';
 
 test('parse tracked blob inventory using Git metadata, not guessed filenames',()=>{
   const a=Buffer.from('100644 blob '+'a'.repeat(40)+' 12\tassets/data/test.json\0');
   assert.equal(parseGitDataTree(a).get('test.json').bytes,12);
   assert.throws(()=>parseGitDataTree(Buffer.from('malformed\0')),/Invalid git/);
+});
+test('GitHub exact tree metadata accepts complete trees and rejects truncated or missing size',()=>{
+  const tree={truncated:false,tree:[{type:'blob',path:'assets/data/file.bin',size:99,sha:'a'.repeat(40)},
+    {type:'tree',path:'assets/data/directory',sha:'b'.repeat(40)}]};
+  assert.equal(parseGitHubTree(tree).get('file.bin').bytes,99);
+  assert.throws(()=>parseGitHubTree({...tree,truncated:true}),/truncated/);
+  assert.throws(()=>parseGitHubTree({...tree,tree:[{type:'blob',
+    path:'assets/data/broken.bin',sha:'a'.repeat(40)}]}),/metadata/);
 });
 test('sibling hydro manifests resolve only inside dataset',()=>{
   assert.equal(dataRelative('hydro/v0.13.1/manifest.json','../v0.13.0/shards/s0.bin'),
@@ -63,6 +71,7 @@ function fixture(callback){
       levels:[{id:0,columns:1,rows:1}]});
     put('assets/data/terrain/v0.12.0/manifest.json',{urlTemplate:'terrain/v0.12.0/{level}/{column}-{row}.webp',
       levels:[{id:0,columns:1,rows:1}]});
+    put('.github/workflows/legacy-exclusion.yml','sparse-checkout:\n  !/assets/data/terrain/v0.12.0/**\n');
     put('assets/js/modules/app-environment.js',"(HYDRO_DATA_VERSION = '0.13.1');");
     put('assets/js/modules/terrain-manifest.js',"export const TERRAIN_RASTER_VERSION = '0.12.6';");
     put('scripts/generate-build-metadata.mjs',"'assets/data/hydro/v0.13.1/manifest.json';\n'assets/data/terrain/v0.12.6/manifest.json';");
