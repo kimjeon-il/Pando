@@ -1,5 +1,5 @@
 {
-  "schema": "pando-places-historical-display-policy-v1",
+  "schema": "pando-places-historical-display-policy-v2",
   "status": "staged-data-only-no-runtime-renderer",
   "mapLanguage": "ko",
   "historicalReviewFromYear": 1801,
@@ -8,7 +8,8 @@
     "defaultDisplayNameKo": "Current Korean map name; mandatory and must match names[].text with language ko",
     "displayTimeline": "Chronologically ordered name change points; empty for places with no verified historic change. Label references an existing Korean variant in names[].",
     "shortDescriptionKo": "Screen-facing concise Korean city description, maximum 28 Unicode code points",
-    "contextualDisplayNames": "Regime/polity-specific historical names; never auto-apply based solely on date."
+    "contextualDisplayNames": "Regime/polity-specific historical names; never auto-apply based solely on date.",
+    "temporalEligibility": "Optional verified date/year before which the currently named city had not yet been founded as a city; the editor suppresses the city label at earlier map dates."
   },
   "timelineEntry": {
     "nameKo": "Reference to names[] (ko)",
@@ -18,10 +19,11 @@
     "sourceUrl": "Source for the change"
   },
   "resolution": [
+    "Before name resolution, test temporalEligibility if present. For a map date earlier than a verified cityEstablishedFromYear/Date, suppress its city label. Existing earlier settlements remain separate historical place objects if they qualify.",
     "For a user-specified map date, select the most recent applicable displayTimeline entry.",
     "A fromDate rule is exact on/after the Gregorian date. A fromYear rule permits year-level label selection; if an exact day is queried within its boundary year, flag the result as approximate rather than claiming a precise effective date.",
     "The first entry's fromYear 1801 means only that the historic-name survey begins in the nineteenth century; it does not establish the city's founding date.",
-    "If displayTimeline is empty or the requested date is earlier than first covered date, return defaultDisplayNameKo with historicalAccuracy=unverified; do not silently claim it is the period's official name.",
+    "If no temporalEligibility blocks the city, but displayTimeline is empty or the requested date precedes the first documented label, use defaultDisplayNameKo only as historicalAccuracy=unverified, never as a verified contemporary name.",
     "Only apply contextualDisplayNames if a grounded regime/polity relation valid at the point and date supports it; otherwise retain the normal timeline name.",
     "Chinese style changes at 1912-01-01 are Korean editorial conventions, not Chinese city renamings. Japan uses Korean transcriptions of Japanese local readings; do not generate Sino-Korean kanji readings.",
     "Aliases, mixed official naming, city boundary changes, and year-granularity uncertainties remain traceable in names[] and source notes."
@@ -35,6 +37,12 @@
   },
   "caveats": [
     "Historical timelining is about label selection only; it does not create old boundary polygons or infer state affiliation from GeoNames sourceCountryCode.",
-    "This policy is staged only; no production manifest or map runtime was changed."
-  ]
+    "This policy is staged only; no production manifest or map runtime was changed.",
+    "City establishment date/year is not interchangeable with land being inhabited; it gates the named city object only, not earlier settlements."
+  ],
+  "temporalEligibility": {
+    "cityEstablishedFromYear": "Year of clearly documented city formation, not a Jan 1 effective day",
+    "cityEstablishedFromDate": "Only use if exact historical first establishment date is known and uncontroversial",
+    "beforeCityEstablished": "suppress-city-label"
+  }
 }
