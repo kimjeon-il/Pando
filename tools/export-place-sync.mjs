@@ -15,8 +15,42 @@ const path = fileURLToPath(new URL('../contracts/places/v2.json', import.meta.ur
 const labelRows = (place, languages, date) => resolvePlaceLabelRows(place, languages, date)
   .map(row => [row.language, row.text]);
 
+const reviewCache = new Map();
+function verifyReviewedSource(example) {
+  const reviewFile = example.reviewFile;
+  if (!/^reports\/places\/tier1-major-cities-batch[\w.-]+\.json$/u.test(reviewFile))
+    throw new Error('Unapproved place review path: ' + reviewFile);
+  let review = reviewCache.get(reviewFile);
+  if (!review) {
+    review = JSON.parse(readFileSync(new URL('../' + reviewFile, import.meta.url), 'utf8'));
+    reviewCache.set(reviewFile, review);
+  }
+  const geonameId = Number(example.record.sourceId);
+  const matching = (review.records || []).filter(row => row.geonameId === geonameId);
+  if (matching.length !== 1) throw new Error('Missing or duplicated reviewed place: ' + geonameId);
+  const source = matching[0];
+  if (source.defaultDisplayNameKo !== example.record.name
+    || source.longitude !== example.record.coordinates[0]
+    || source.latitude !== example.record.coordinates[1])
+    throw new Error('Place source name or coordinate drift: ' + geonameId);
+  const verifiedEnglish = (source.names || []).filter(row => row.language === 'en' && row.usage === 'standard');
+  if (verifiedEnglish.length && !verifiedEnglish.some(row => row.text === example.record.nameEn))
+    throw new Error('Reviewed English name drift: ' + geonameId);
+  if (!(source.names || []).some(row => row.text === example.record.nameNative
+      && !['ko', 'en'].includes(row.language) && row.usage !== 'historical'))
+    throw new Error('Selected native name is not in reviewed source: ' + geonameId);
+  for (const transition of example.record.nameTimeline || []) {
+    if (!(source.displayTimeline || []).some(row => row.nameKo === transition.ko
+      && (transition.fromDate ? row.fromDate === transition.fromDate : row.fromYear === transition.fromYear)))
+      throw new Error('Reviewed Korean historical name drift: ' + geonameId);
+  }
+  return { reviewFile, geonameId };
+}
+
+
 export function buildPlaceSyncContract() {
   const fixtures = PLACE_SYNC_CASES.map(example => {
+    const sourceReview = verifyReviewedSource(example);
     const normalized = normalizePlace(example.record);
     const scenarios = example.scenarios.map(({ date, languages, rows }) => {
       const actual = labelRows(normalized, languages, date);
@@ -26,7 +60,7 @@ export function buildPlaceSyncContract() {
         webEstimatedBox: placeLabelDimensions(actual.map(([, text]) => text)) };
     });
     return {
-      id: example.id, input: example.record, normalized, scenarios,
+      id: example.id, sourceReview, input: example.record, normalized, scenarios,
       tileHex: Buffer.from(encodePlaceTile([example.record])).toString('hex'),
     };
   });

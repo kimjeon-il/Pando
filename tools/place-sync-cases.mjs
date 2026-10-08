@@ -1,4 +1,4 @@
-/** Independently reviewed semantic fixtures; coordinates follow reports/places records. */
+/** Independently reviewed golden rows, pinned to matching reports/places source IDs. */
 export const PLACE_SYNC_CASES = Object.freeze([
   {
     "id": "kyiv-date-precision",
@@ -121,7 +121,8 @@ export const PLACE_SYNC_CASES = Object.freeze([
           ]
         ]
       }
-    ]
+    ],
+    "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json"
   },
   {
     "id": "mexico-city-native-short",
@@ -176,7 +177,8 @@ export const PLACE_SYNC_CASES = Object.freeze([
           ]
         ]
       }
-    ]
+    ],
+    "reviewFile": "reports/places/tier1-major-cities-batch05-americas.json"
   },
   {
     "id": "budapest-duplicate-en-native",
@@ -241,7 +243,8 @@ export const PLACE_SYNC_CASES = Object.freeze([
           ]
         ]
       }
-    ]
+    ],
+    "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json"
   },
   {
     "id": "brussels-primary-native",
@@ -282,6 +285,7 @@ export const PLACE_SYNC_CASES = Object.freeze([
           ]
         ]
       }
-    ]
+    ],
+    "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json"
   }
 ]);

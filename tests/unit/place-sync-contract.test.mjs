@@ -23,6 +23,8 @@ for (const fixture of contract.fixtures) {
   test('native-compatible PLAC v2 and reviewed multilingual results: ' + fixture.id, () => {
     const normalized = normalizePlace(fixture.input);
     assert.deepEqual(normalized, fixture.normalized);
+    assert.equal(fixture.sourceReview.geonameId, Number(fixture.input.sourceId));
+    assert.match(fixture.sourceReview.reviewFile, /^reports\/places\/tier1-major-cities-batch/u);
     assert.deepEqual(decodePlaceTile(Buffer.from(fixture.tileHex, 'hex')), [normalized]);
     assert.equal(Buffer.from(encodePlaceTile([fixture.input])).toString('hex'), fixture.tileHex);
     for (const scenario of fixture.scenarios) {

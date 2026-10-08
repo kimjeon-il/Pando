@@ -123,6 +123,10 @@
   "fixtures": [
     {
       "id": "kyiv-date-precision",
+      "sourceReview": {
+        "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+        "geonameId": 703448
+      },
       "input": {
         "source": "geonames",
         "sourceId": "703448",
@@ -296,6 +300,10 @@
     },
     {
       "id": "mexico-city-native-short",
+      "sourceReview": {
+        "reviewFile": "reports/places/tier1-major-cities-batch05-americas.json",
+        "geonameId": 3530597
+      },
       "input": {
         "source": "geonames",
         "sourceId": "3530597",
@@ -380,6 +388,10 @@
     },
     {
       "id": "budapest-duplicate-en-native",
+      "sourceReview": {
+        "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+        "geonameId": 3054643
+      },
       "input": {
         "source": "geonames",
         "sourceId": "3054643",
@@ -478,6 +490,10 @@
     },
     {
       "id": "brussels-primary-native",
+      "sourceReview": {
+        "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+        "geonameId": 2800866
+      },
       "input": {
         "source": "geonames",
         "sourceId": "2800866",
