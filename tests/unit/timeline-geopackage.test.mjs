@@ -54,11 +54,8 @@ for (const kind of ['static', 'complex', 'calendar-boundaries']) test(`fixed ${k
   const written = await request('write', new ArrayBuffer(0), project);
   const reread = await request('read', written.buffer);
   assert.deepEqual(exchangeContent(prepareProjectForStorage(reread.metadata.projectState)), expected);
-  if (kind === 'static') prepareProjectForActivation(project);
-  else {
-    assert.equal(spatialLayerCount(written.buffer), 0);
-    assert.throws(() => prepareProjectForActivation(project), { code: 'TIMELINE_ACTIVATION' });
-  }
+  if (kind !== 'static') assert.equal(spatialLayerCount(written.buffer), 0);
+  assert.deepEqual(exchangeContent(prepareProjectForActivation(project)), expected);
 });
 
 for (const [name, mutate, code] of [

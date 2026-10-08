@@ -3030,7 +3030,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-11-11",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3059,11 +3059,11 @@
       },
       "lineageId": "ago",
       "file": "state-AGO.json.gz",
-      "validFrom": null,
+      "validFrom": "1975-11-11",
       "validTo": null,
-      "compressedBytes": 15584,
-      "decodedBytes": 143127,
-      "sha256": "dfe45de5029abf819710e4f25f9e0885529e57f312b7e15d074accf3648721e9",
+      "compressedBytes": 15590,
+      "decodedBytes": 143135,
+      "sha256": "ea7ce10dc29ca3ac528379b67ef2484ad16b664861da15e42ffaa1d275acc18e",
       "bbox": [
         11.669394,
         -18.031405,
@@ -3132,7 +3132,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1912-11-28",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3161,11 +3161,11 @@
       },
       "lineageId": "alb",
       "file": "state-ALB.json.gz",
-      "validFrom": null,
+      "validFrom": "1912-11-28",
       "validTo": null,
-      "compressedBytes": 5595,
-      "decodedBytes": 44257,
-      "sha256": "1621472e082622fde80923b23fc81e49c5e58f1e797fe0f183ee9cf55cb9af58",
+      "compressedBytes": 5602,
+      "decodedBytes": 44265,
+      "sha256": "ef0d4b29644c27a023fdde4f953fa2d831b0d6cda6b37c98b1f9ce67e8542415",
       "bbox": [
         19.272033,
         39.637013,
@@ -3285,7 +3285,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1971-12-02",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3314,11 +3314,11 @@
       },
       "lineageId": "are",
       "file": "state-ARE.json.gz",
-      "validFrom": null,
+      "validFrom": "1971-12-02",
       "validTo": null,
-      "compressedBytes": 7855,
-      "decodedBytes": 70157,
-      "sha256": "14bbc7ecb1f75a94ba80dac99d7e7079f8d925b5e913b13987798d5541263ad6",
+      "compressedBytes": 7860,
+      "decodedBytes": 70165,
+      "sha256": "f7e195bd8c0a098d369be9bc48a9a677c31caee5abec2a579e339aae91ca1973",
       "bbox": [
         51.569347,
         22.620946,
@@ -3701,7 +3701,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1981-11-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3730,11 +3730,11 @@
       },
       "lineageId": "atg",
       "file": "state-ATG.json.gz",
-      "validFrom": null,
+      "validFrom": "1981-11-01",
       "validTo": null,
-      "compressedBytes": 1696,
-      "decodedBytes": 11550,
-      "sha256": "d0b0f5abd1a1af7ace2972324b57351421fa492186cebe705164cc7c2ce92077",
+      "compressedBytes": 1703,
+      "decodedBytes": 11558,
+      "sha256": "6dcf8fec5d74ca2384afde7e67e8b7519fab9ba4c49a8163fef2e3181084e1c8",
       "bbox": [
         -62.34826,
         16.93197,
@@ -3965,7 +3965,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-07-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3994,11 +3994,11 @@
       },
       "lineageId": "bdi",
       "file": "state-BDI.json.gz",
-      "validFrom": null,
+      "validFrom": "1962-07-01",
       "validTo": null,
-      "compressedBytes": 3434,
-      "decodedBytes": 25031,
-      "sha256": "58ec1cf44d2df50c2a9c28ed1cd28e74a1309d6091c10de3f7097d1b57d97468",
+      "compressedBytes": 3440,
+      "decodedBytes": 25039,
+      "sha256": "750768be297a411fb0b406eacb7f6569d5cf4273ff36963e6d5c6e3741c5dd1d",
       "bbox": [
         28.986892,
         -4.463344,
@@ -4016,7 +4016,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1830-10-04",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4045,11 +4045,11 @@
       },
       "lineageId": "bel",
       "file": "state-BEL.json.gz",
-      "validFrom": null,
+      "validFrom": "1830-10-04",
       "validTo": null,
-      "compressedBytes": 6470,
-      "decodedBytes": 50935,
-      "sha256": "a48e6c8810f6b1d7dd6ca503f45a45d24c9a08a1b0ef7ed5637ceab9681af2d0",
+      "compressedBytes": 6477,
+      "decodedBytes": 50943,
+      "sha256": "3ed6fff1a9a51ca4fcb1db3dd2c47507ad3847a99f7bbb0af24ba3516ed3e366",
       "bbox": [
         2.5218,
         49.495223,
@@ -4067,7 +4067,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4096,11 +4096,11 @@
       },
       "lineageId": "ben",
       "file": "state-BEN.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-08-01",
       "validTo": null,
-      "compressedBytes": 6225,
-      "decodedBytes": 48183,
-      "sha256": "6dcd5da86e5cce4aec1f8500cb03a7f75698ddd7a26e3fc1a71cdff344daf40f",
+      "compressedBytes": 6231,
+      "decodedBytes": 48191,
+      "sha256": "5733ea918dea1c67abf7be874848b7b1a4ef18a53dec3b4e682806f9b82ee040",
       "bbox": [
         0.759881,
         6.213894,
@@ -4118,7 +4118,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-05",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4147,11 +4147,11 @@
       },
       "lineageId": "bfa",
       "file": "state-BFA.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-08-05",
       "validTo": null,
-      "compressedBytes": 10686,
-      "decodedBytes": 86988,
-      "sha256": "c6ea01177fabaa43e6ca7ef96403cbd51f95a457a43313893eb0ed79845261d3",
+      "compressedBytes": 10693,
+      "decodedBytes": 86996,
+      "sha256": "931ff354b669cd07d66c1783d5ee7c90197291a619c737be0d45069560d6ca8d",
       "bbox": [
         -5.522578,
         9.391883,
@@ -4169,7 +4169,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1971-03-26",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4198,11 +4198,11 @@
       },
       "lineageId": "bgd",
       "file": "state-BGD.json.gz",
-      "validFrom": null,
+      "validFrom": "1971-03-26",
       "validTo": null,
-      "compressedBytes": 20452,
-      "decodedBytes": 197870,
-      "sha256": "112b046d59adb4175788d91f928966cc727ede9a8c0acfeda7b5658a34b316bb",
+      "compressedBytes": 20459,
+      "decodedBytes": 197878,
+      "sha256": "bedd7b4b73cda43c2b9b14ac396d5de0912bf748f0a9768554815b0c1aec67f7",
       "bbox": [
         88.02179,
         20.738715,
@@ -4322,7 +4322,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1973-07-10",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4351,11 +4351,11 @@
       },
       "lineageId": "bhs",
       "file": "state-BHS.json.gz",
-      "validFrom": null,
+      "validFrom": "1973-07-10",
       "validTo": null,
-      "compressedBytes": 14972,
-      "decodedBytes": 144747,
-      "sha256": "bb98fc639507ea1b0bd7c1eb9beddcc1b08928f27933c31669bb65005611a593",
+      "compressedBytes": 14978,
+      "decodedBytes": 144755,
+      "sha256": "b07d42fbadab9d6b14b34a266cc1442fe08804c5453cdfb057a67fdfc0768d7e",
       "bbox": [
         -79.59435,
         20.912399,
@@ -4637,7 +4637,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1981-09-21",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4666,11 +4666,11 @@
       },
       "lineageId": "blz",
       "file": "state-BLZ.json.gz",
-      "validFrom": null,
+      "validFrom": "1981-09-21",
       "validTo": null,
-      "compressedBytes": 5067,
-      "decodedBytes": 44445,
-      "sha256": "4f246c09378e5d811fc4b160ba2395dc0ac662a29a4250008ff1c625b24c071d",
+      "compressedBytes": 5074,
+      "decodedBytes": 44453,
+      "sha256": "f0448e8e910b5ceffa1ad040f238dc8a0ebd7c29debb85f1939da6d6fd6ae0c6",
       "bbox": [
         -89.236512,
         15.879652,
@@ -4790,7 +4790,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1822-09-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4819,11 +4819,11 @@
       },
       "lineageId": "bra",
       "file": "state-BRA.json.gz",
-      "validFrom": null,
+      "validFrom": "1822-09-07",
       "validTo": null,
-      "compressedBytes": 97922,
-      "decodedBytes": 971090,
-      "sha256": "6c84e215ac867534f809682c751632f25f04bbd8c87a32620fbc1501b9e7d5eb",
+      "compressedBytes": 97929,
+      "decodedBytes": 971098,
+      "sha256": "0895f4db8cb70dcc227630595575d6215dfef9cc208beb6c00065041c1657574",
       "bbox": [
         -74.018475,
         -33.74228,
@@ -4841,7 +4841,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1966-11-30",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4870,11 +4870,11 @@
       },
       "lineageId": "brb",
       "file": "state-BRB.json.gz",
-      "validFrom": null,
+      "validFrom": "1966-11-30",
       "validTo": null,
-      "compressedBytes": 975,
-      "decodedBytes": 3935,
-      "sha256": "ac3e79d2531c9d9efb62d0bc5ba30f8ead5753fb3cf1a29dde272ad7780b0dbc",
+      "compressedBytes": 983,
+      "decodedBytes": 3943,
+      "sha256": "1a1efa2c3d18a84d6d048fe8256e05e46a7ab11b271aa4ab58ef52607edfd607",
       "bbox": [
         -59.654205,
         13.051174,
@@ -5094,7 +5094,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1966-09-30",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5123,11 +5123,11 @@
       },
       "lineageId": "bwa",
       "file": "state-BWA.json.gz",
-      "validFrom": null,
+      "validFrom": "1966-09-30",
       "validTo": null,
-      "compressedBytes": 9558,
-      "decodedBytes": 76502,
-      "sha256": "0a4e68b4303a70e0bf73768449d998b8d2a742c6f074f4e47c7ab58a9d0dbd87",
+      "compressedBytes": 9564,
+      "decodedBytes": 76510,
+      "sha256": "e37318a3bba2ff38efcff3fa7219381049d71006a1a10f23c7a1151600c4d5e7",
       "bbox": [
         19.978346,
         -26.891794,
@@ -5145,7 +5145,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-13",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5174,11 +5174,11 @@
       },
       "lineageId": "caf",
       "file": "state-CAF.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-08-13",
       "validTo": null,
-      "compressedBytes": 16886,
-      "decodedBytes": 138918,
-      "sha256": "280d27ea467ba7a5d6209bf242f163239cd6a25fcd7bed01eacdacdf765db3ae",
+      "compressedBytes": 16892,
+      "decodedBytes": 138926,
+      "sha256": "ebb4f11ec58db5da88b7cf5b68625037f2090b585618c2fa989ba33cf223e16d",
       "bbox": [
         14.387266,
         2.236454,
@@ -5298,7 +5298,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1818-02-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5327,11 +5327,11 @@
       },
       "lineageId": "chl",
       "file": "state-CHL.json.gz",
-      "validFrom": null,
+      "validFrom": "1818-02-12",
       "validTo": null,
-      "compressedBytes": 145971,
-      "decodedBytes": 1519148,
-      "sha256": "7d7f1d913f2f07e9020fcd2df7e40484ef62857cb77b18759b37fc1c88385c66",
+      "compressedBytes": 145977,
+      "decodedBytes": 1519156,
+      "sha256": "cc14e59536afe78920066ae9cd420f76f04d8acf619a21ef6083de6480f0c4ce",
       "bbox": [
         -109.453725,
         -55.918504,
@@ -5400,7 +5400,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5429,11 +5429,11 @@
       },
       "lineageId": "civ",
       "file": "state-CIV.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-08-07",
       "validTo": null,
-      "compressedBytes": 14721,
-      "decodedBytes": 137160,
-      "sha256": "8f367ce26ae50e9ce93aa5e597d6987ee3191627cd3574f9b5b9b9886e89554a",
+      "compressedBytes": 14727,
+      "decodedBytes": 137168,
+      "sha256": "519d5005a689d82c58b104c84081ac242f5bbbc132fa76a3f724c467c66e9a59",
       "bbox": [
         -8.61872,
         4.344062,
@@ -5602,7 +5602,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-06-30",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5631,11 +5631,11 @@
       },
       "lineageId": "cod",
       "file": "state-COD.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-06-30",
       "validTo": null,
-      "compressedBytes": 26889,
-      "decodedBytes": 246816,
-      "sha256": "f2cbab694225a88c207597c7bedd5ebbb8ce2732fffdf5648a8dbd05fb4e52ed",
+      "compressedBytes": 26894,
+      "decodedBytes": 246824,
+      "sha256": "f8d72e5055b875b42ae3f127be2c65b21603eb1af8045221b378aa45639c2ef2",
       "bbox": [
         12.210541,
         -13.458351,
@@ -5653,7 +5653,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-15",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5682,11 +5682,11 @@
       },
       "lineageId": "cog",
       "file": "state-COG.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-08-15",
       "validTo": null,
-      "compressedBytes": 12953,
-      "decodedBytes": 105236,
-      "sha256": "22e22c606e320139f05e05e1fc4cc2a094d0c766b2c7ba645136fc8eeecb1c1d",
+      "compressedBytes": 12959,
+      "decodedBytes": 105244,
+      "sha256": "536063f00edd9fa3a51643ee42196c52e1b0f9427f9963e834e29a6d477f8b45",
       "bbox": [
         11.114016,
         -5.019631,
@@ -5806,7 +5806,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-07-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5835,11 +5835,11 @@
       },
       "lineageId": "com",
       "file": "state-COM.json.gz",
-      "validFrom": null,
+      "validFrom": "1975-07-06",
       "validTo": null,
-      "compressedBytes": 1802,
-      "decodedBytes": 12321,
-      "sha256": "44524d907adff67e15a4064ebc75c35c5ece49597e185b91afa75e5c57b4dc53",
+      "compressedBytes": 1810,
+      "decodedBytes": 12329,
+      "sha256": "526bc46a15257e15cdd798f1f0b28e88d9ee7babf704e78434fa83c9e9e9720f",
       "bbox": [
         43.213227,
         -12.380304,
@@ -5857,7 +5857,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-07-05",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5886,11 +5886,11 @@
       },
       "lineageId": "cpv",
       "file": "state-CPV.json.gz",
-      "validFrom": null,
+      "validFrom": "1975-07-05",
       "validTo": null,
-      "compressedBytes": 4511,
-      "decodedBytes": 39295,
-      "sha256": "9a7eb5bc340108241229f07dc27a6e767b2881697b1f2958e3e06edb507354eb",
+      "compressedBytes": 4518,
+      "decodedBytes": 39303,
+      "sha256": "6d7987510e6a677918e3b43bdd69022f7a78001d6a4e2c13aafba3ecabaf06a7",
       "bbox": [
         -25.360422,
         14.803941,
@@ -6213,7 +6213,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-16",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6242,11 +6242,11 @@
       },
       "lineageId": "cyp",
       "file": "state-CYP.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-08-16",
       "validTo": null,
-      "compressedBytes": 3226,
-      "decodedBytes": 27172,
-      "sha256": "9ab7022fe5d16564eab79f78aca21a7441a4e59889b78b549340b326680d1d4f",
+      "compressedBytes": 3234,
+      "decodedBytes": 27180,
+      "sha256": "ca9e87376aac801c2b6a51481eb4a2abb0178c74dd3ae71afa5c59d204963c1f",
       "bbox": [
         32.271739,
         34.625019,
@@ -6264,7 +6264,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1993-01-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6293,11 +6293,11 @@
       },
       "lineageId": "cze",
       "file": "state-CZE.json.gz",
-      "validFrom": null,
+      "validFrom": "1993-01-01",
       "validTo": null,
-      "compressedBytes": 8918,
-      "decodedBytes": 72874,
-      "sha256": "292363203a0a696eecb19d41cd953f98aac30c7ad8348d8a3cc6d2ab1e1c5182",
+      "compressedBytes": 8922,
+      "decodedBytes": 72882,
+      "sha256": "5f25c49c2b78cd684175b205e2e88d84eb8e1809cf15d5b2d4b16c73c714abbc",
       "bbox": [
         12.076141,
         48.557916,
@@ -6374,7 +6374,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1977-06-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6403,11 +6403,11 @@
       },
       "lineageId": "dji",
       "file": "state-DJI.json.gz",
-      "validFrom": null,
+      "validFrom": "1977-06-27",
       "validTo": null,
-      "compressedBytes": 2558,
-      "decodedBytes": 17444,
-      "sha256": "5dc412f9fdb08be598aa6535bc95ae826bb2e22331c7b34fb0a032efd9a4c7b2",
+      "compressedBytes": 2566,
+      "decodedBytes": 17452,
+      "sha256": "4fc640e0ded6c3068c6ecf60037ff9884ad4dfd0b52c3aae63752d94491cfaac",
       "bbox": [
         41.74911,
         10.929825,
@@ -6425,7 +6425,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1978-11-03",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6454,11 +6454,11 @@
       },
       "lineageId": "dma",
       "file": "state-DMA.json.gz",
-      "validFrom": null,
+      "validFrom": "1978-11-03",
       "validTo": null,
-      "compressedBytes": 1323,
-      "decodedBytes": 7094,
-      "sha256": "7e5902ca86f64df07a60f202155b821e0ad765813be9ecab1873b2081ff64d13",
+      "compressedBytes": 1331,
+      "decodedBytes": 7102,
+      "sha256": "70eb267d0401ae150604bfcf2290b8840cd87e065c6cc653ec0740c52bfbba11",
       "bbox": [
         -61.488922,
         15.201809,
@@ -6629,7 +6629,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1830-05-13",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6658,11 +6658,11 @@
       },
       "lineageId": "ecu",
       "file": "state-ECU.json.gz",
-      "validFrom": null,
+      "validFrom": "1830-05-13",
       "validTo": null,
-      "compressedBytes": 14468,
-      "decodedBytes": 132930,
-      "sha256": "bae1c07ba63bb87eb9f5f7af7ede23e09a7be5b4f85d00f9858466f636251a61",
+      "compressedBytes": 14475,
+      "decodedBytes": 132938,
+      "sha256": "f6518ad3687e1e2434baa2f314253030443f0723a8905ebeea6e2921698f5e8e",
       "bbox": [
         -92.011586,
         -5.011373,
@@ -7045,7 +7045,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1917-12-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -7074,11 +7074,11 @@
       },
       "lineageId": "fin",
       "file": "state-FIN.json.gz",
-      "validFrom": null,
+      "validFrom": "1917-12-06",
       "validTo": null,
-      "compressedBytes": 28739,
-      "decodedBytes": 279921,
-      "sha256": "ccf826809a561324e47eec0403793d7298f427d2881004465eec592072afd7d2",
+      "compressedBytes": 28745,
+      "decodedBytes": 279929,
+      "sha256": "8c4a4a3552c15bd13df3b29f89e1ccc8fb023db1d896dc5edf93aff09205046a",
       "bbox": [
         20.623165,
         59.811225,
@@ -7096,7 +7096,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1970-10-10",
         "validTo": null
       },
       "parentEntityId": "",
@@ -7125,11 +7125,11 @@
       },
       "lineageId": "fji",
       "file": "state-FJI.json.gz",
-      "validFrom": null,
+      "validFrom": "1970-10-10",
       "validTo": null,
-      "compressedBytes": 13337,
-      "decodedBytes": 133123,
-      "sha256": "23a255c0bf198cdcffc4fba8828996ba980da3d26c20d6f3513d41478a159b69",
+      "compressedBytes": 13339,
+      "decodedBytes": 133131,
+      "sha256": "8f0d8d4b943fb606f733210005c7654f837b726612973a35aa564237bf26232a",
       "bbox": [
         -180,
         -21.711114,
@@ -7351,7 +7351,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-17",
         "validTo": null
       },
       "parentEntityId": "",
@@ -7380,11 +7380,11 @@
       },
       "lineageId": "gab",
       "file": "state-GAB.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-08-17",
       "validTo": null,
-      "compressedBytes": 13556,
-      "decodedBytes": 125490,
-      "sha256": "8a2ceac74d1b28177ec7445bdeaa2109b15dcc79edbd2f068aced0f39c8affa5",
+      "compressedBytes": 13562,
+      "decodedBytes": 125498,
+      "sha256": "bc29946a02520e967d282f548a0bef57643fb1f5813e367dc298fa45a2ff02da",
       "bbox": [
         8.695567,
         -3.936856,
@@ -7899,7 +7899,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1957-03-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -7928,11 +7928,11 @@
       },
       "lineageId": "gha",
       "file": "state-GHA.json.gz",
-      "validFrom": null,
+      "validFrom": "1957-03-06",
       "validTo": null,
-      "compressedBytes": 8244,
-      "decodedBytes": 64639,
-      "sha256": "488987f0472b71d0408862bf070ff1343e0699e6c537bf7e929ae6f3416a5bc8",
+      "compressedBytes": 8250,
+      "decodedBytes": 64647,
+      "sha256": "b72b1cab74d784f73972dc99e9fcfb80d3db0ac6dee1c9ecd0ea64cb38b01c3b",
       "bbox": [
         -3.262509,
         4.737128,
@@ -8001,7 +8001,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1958-10-02",
         "validTo": null
       },
       "parentEntityId": "",
@@ -8030,11 +8030,11 @@
       },
       "lineageId": "gin",
       "file": "state-GIN.json.gz",
-      "validFrom": null,
+      "validFrom": "1958-10-02",
       "validTo": null,
-      "compressedBytes": 15202,
-      "decodedBytes": 128019,
-      "sha256": "9ed000a247c7b9d2caf61b0ae4cd66e5861d8b6e55e05e44ddc048f4e0e528d8",
+      "compressedBytes": 15209,
+      "decodedBytes": 128027,
+      "sha256": "30daaabbd90e4f2052e47a4e22360cab7a1dbe071af669be45cb398a94485433",
       "bbox": [
         -15.081125,
         7.190208,
@@ -8052,7 +8052,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1965-02-18",
         "validTo": null
       },
       "parentEntityId": "",
@@ -8081,11 +8081,11 @@
       },
       "lineageId": "gmb",
       "file": "state-GMB.json.gz",
-      "validFrom": null,
+      "validFrom": "1965-02-18",
       "validTo": null,
-      "compressedBytes": 4278,
-      "decodedBytes": 33154,
-      "sha256": "4e4658f824e9e53b0268d9031244947692c36c719595897adcb99413898911fd",
+      "compressedBytes": 4285,
+      "decodedBytes": 33162,
+      "sha256": "b9dc4de5f2c8ade3591fc84db3c4d6f1921e6f2fb38138362607182df373af88",
       "bbox": [
         -16.829701,
         13.065009,
@@ -8154,7 +8154,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1968-10-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -8183,11 +8183,11 @@
       },
       "lineageId": "gnq",
       "file": "state-GNQ.json.gz",
-      "validFrom": null,
+      "validFrom": "1968-10-12",
       "validTo": null,
-      "compressedBytes": 2973,
-      "decodedBytes": 22379,
-      "sha256": "b7b92f66791707e473f9d7aa24811bcd51c9aa79e6a7d52792601a64d67fade6",
+      "compressedBytes": 2981,
+      "decodedBytes": 22387,
+      "sha256": "d59c44e2044ea82d472b195adb9160ce5060ee024811c3626f3eab6dc8d92272",
       "bbox": [
         5.61199,
         -1.475681,
@@ -8256,7 +8256,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1974-02-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -8285,11 +8285,11 @@
       },
       "lineageId": "grd",
       "file": "state-GRD.json.gz",
-      "validFrom": null,
+      "validFrom": "1974-02-07",
       "validTo": null,
-      "compressedBytes": 1228,
-      "decodedBytes": 6812,
-      "sha256": "837dbd2c62ec8ea5aa340ae353060922312fca9c368879cb115ee44ebd545d3c",
+      "compressedBytes": 1236,
+      "decodedBytes": 6820,
+      "sha256": "b64702c554ce6991830ccf39bc35adf561ada3356b1d072c1db6cf36b7f77708",
       "bbox": [
         -61.790517,
         12.002834,
@@ -8460,7 +8460,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1966-05-26",
         "validTo": null
       },
       "parentEntityId": "",
@@ -8489,11 +8489,11 @@
       },
       "lineageId": "guy",
       "file": "state-GUY.json.gz",
-      "validFrom": null,
+      "validFrom": "1966-05-26",
       "validTo": null,
-      "compressedBytes": 10942,
-      "decodedBytes": 97416,
-      "sha256": "2204e62110571da0dad537e1e07bda6828fd47a474f73f2366fd27cdf78873f6",
+      "compressedBytes": 10948,
+      "decodedBytes": 97424,
+      "sha256": "98f87c14ea7551ade71e74d2a2ebe5e0310f1104704cddae8fd8415d4d1d3dc2",
       "bbox": [
         -61.396713,
         1.18582,
@@ -8715,7 +8715,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1804-01-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -8744,11 +8744,11 @@
       },
       "lineageId": "hti",
       "file": "state-HTI.json.gz",
-      "validFrom": null,
+      "validFrom": "1804-01-01",
       "validTo": null,
-      "compressedBytes": 6456,
-      "decodedBytes": 57990,
-      "sha256": "ff39005ef7e9799ccf3af6a8db5832314424283925c777ae7e2c09a2c32af7ba",
+      "compressedBytes": 6461,
+      "decodedBytes": 57998,
+      "sha256": "baa16413a27b4396e0148ee78418c0af465b392209f81dc194a28c9e213bf2cc",
       "bbox": [
         -74.489166,
         18.025946,
@@ -8868,7 +8868,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1947-08-15",
         "validTo": null
       },
       "parentEntityId": "",
@@ -8897,11 +8897,11 @@
       },
       "lineageId": "ind",
       "file": "state-IND.json.gz",
-      "validFrom": null,
+      "validFrom": "1947-08-15",
       "validTo": null,
-      "compressedBytes": 68922,
-      "decodedBytes": 666017,
-      "sha256": "cb6c53fa0b8a0eb8dc0b149e99617736183213bfa29a30f8b6ca2c9279abda7e",
+      "compressedBytes": 68929,
+      "decodedBytes": 666025,
+      "sha256": "972739f757c6329282440ae0aba3dc27c34b2c908e8984ebd7c28629b2290e1c",
       "bbox": [
         68.143403,
         6.745551,
@@ -9132,7 +9132,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1922-12-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -9161,11 +9161,11 @@
       },
       "lineageId": "irl",
       "file": "state-IRL.json.gz",
-      "validFrom": null,
+      "validFrom": "1922-12-06",
       "validTo": null,
-      "compressedBytes": 20593,
-      "decodedBytes": 207192,
-      "sha256": "5bc25f4d39394faf88c5ddd27d4f77e7ca392107af2cc11646236583c8591976",
+      "compressedBytes": 20599,
+      "decodedBytes": 207200,
+      "sha256": "5726a5bb14f11a5343fd99d2c7a96ff7ef66a5e7fdf4aa5f0eecb88e1d437d79",
       "bbox": [
         -10.478179,
         51.445705,
@@ -9336,7 +9336,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1948-05-14",
         "validTo": null
       },
       "parentEntityId": "",
@@ -9365,11 +9365,11 @@
       },
       "lineageId": "isr",
       "file": "state-ISR.json.gz",
-      "validFrom": null,
+      "validFrom": "1948-05-14",
       "validTo": null,
-      "compressedBytes": 4839,
-      "decodedBytes": 37776,
-      "sha256": "0d13c6ee8ff13da706ebce70b7d279583dd712f002e2adfb27098a43ebb025e2",
+      "compressedBytes": 4846,
+      "decodedBytes": 37784,
+      "sha256": "14501789666cb6ab35066f621828d1d2b75b20d0f0783860c178c0b313dc286b",
       "bbox": [
         34.248351,
         29.489691,
@@ -9387,7 +9387,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1861-03-17",
         "validTo": null
       },
       "parentEntityId": "",
@@ -9416,11 +9416,11 @@
       },
       "lineageId": "ita",
       "file": "state-ITA.json.gz",
-      "validFrom": null,
+      "validFrom": "1861-03-17",
       "validTo": null,
-      "compressedBytes": 30392,
-      "decodedBytes": 289769,
-      "sha256": "2c0567e3e8e63ddd541d87d562992e8b71b85a9d2d98f7d2aa0d8cc05fc3e202",
+      "compressedBytes": 30399,
+      "decodedBytes": 289777,
+      "sha256": "5f9dbfa52748f17031ac227fdb3048fa2c95f55e610a51996f53af8c35c0198b",
       "bbox": [
         6.602728,
         35.489244,
@@ -9438,7 +9438,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-08-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -9467,11 +9467,11 @@
       },
       "lineageId": "jam",
       "file": "state-JAM.json.gz",
-      "validFrom": null,
+      "validFrom": "1962-08-06",
       "validTo": null,
-      "compressedBytes": 2923,
-      "decodedBytes": 21184,
-      "sha256": "6b9c15f3115d7bce5220d40119dfb97800d134d8912dfed487a0435dc14e99a1",
+      "compressedBytes": 2930,
+      "decodedBytes": 21192,
+      "sha256": "0827a208b448bdc2f44040e090f50a57e29ae0e2ed7c8250435437ba9fa97804",
       "bbox": [
         -78.374664,
         17.703192,
@@ -9742,7 +9742,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-12-16",
         "validTo": null
       },
       "parentEntityId": "",
@@ -9771,11 +9771,11 @@
       },
       "lineageId": "kaz",
       "file": "state-KAZ.json.gz",
-      "validFrom": null,
+      "validFrom": "1991-12-16",
       "validTo": null,
-      "compressedBytes": 39002,
-      "decodedBytes": 362764,
-      "sha256": "8fb72a165b04ee6ea61dac9e4423536358e9b57cf7cf139ffe43dbf68d726fc6",
+      "compressedBytes": 39010,
+      "decodedBytes": 362772,
+      "sha256": "25786c1e54ef4f701a777eedb050e45e6a16d88bd84ec7e61b6dc514d55adf67",
       "bbox": [
         46.478279,
         40.584656,
@@ -9853,7 +9853,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1963-12-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -9882,11 +9882,11 @@
       },
       "lineageId": "ken",
       "file": "state-KEN.json.gz",
-      "validFrom": null,
+      "validFrom": "1963-12-12",
       "validTo": null,
-      "compressedBytes": 8800,
-      "decodedBytes": 75953,
-      "sha256": "e256e72c1e37c9c303e0c6baa05239c7555dd8b347c428f8e8a39da6cf1eaa23",
+      "compressedBytes": 8806,
+      "decodedBytes": 75961,
+      "sha256": "7e5f65f49f67cb04a306c4f4dd7a6724b53f7b220f02d14ec5e9243bd92cf2c9",
       "bbox": [
         33.890468,
         -4.677504,
@@ -9904,7 +9904,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-08-31",
         "validTo": null
       },
       "parentEntityId": "",
@@ -9933,11 +9933,11 @@
       },
       "lineageId": "kgz",
       "file": "state-KGZ.json.gz",
-      "validFrom": null,
+      "validFrom": "1991-08-31",
       "validTo": null,
-      "compressedBytes": 11800,
-      "decodedBytes": 95053,
-      "sha256": "600a20e11bdfd26f5cad2c0e94ed4eb96d9d894015e7fbcf5c9e4c42f991af9f",
+      "compressedBytes": 11807,
+      "decodedBytes": 95061,
+      "sha256": "e5a2dc52fb1974ba585c5ca876fee9700fb6d55d8a6f5e5d7df9dc77df5527eb",
       "bbox": [
         69.226296,
         39.189237,
@@ -10067,7 +10067,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1979-07-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -10096,11 +10096,11 @@
       },
       "lineageId": "kir",
       "file": "state-KIR.json.gz",
-      "validFrom": null,
+      "validFrom": "1979-07-12",
       "validTo": null,
-      "compressedBytes": 6944,
-      "decodedBytes": 64422,
-      "sha256": "83ef42195c32ec8af927b926111e64b6483356497f01c991f7ce28e6d4fff4a8",
+      "compressedBytes": 6951,
+      "decodedBytes": 64430,
+      "sha256": "dae1cc2f1e71e173a0f8b12b1327c8d849392b560f2307fac577fa0b18c16917",
       "bbox": [
         -174.543406,
         -11.461114,
@@ -10118,7 +10118,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1983-09-19",
         "validTo": null
       },
       "parentEntityId": "",
@@ -10147,11 +10147,11 @@
       },
       "lineageId": "kna",
       "file": "state-KNA.json.gz",
-      "validFrom": null,
+      "validFrom": "1983-09-19",
       "validTo": null,
-      "compressedBytes": 1063,
-      "decodedBytes": 5013,
-      "sha256": "f3587fdfb05328023c647410836d3431cf6be19ddf2992b0ddb28acb1ed88e41",
+      "compressedBytes": 1072,
+      "decodedBytes": 5021,
+      "sha256": "f22f67275eda444194ffc1a897e21dc5ae4f39bb114344a76817a23cab476f91",
       "bbox": [
         -62.861073,
         17.100531,
@@ -10475,7 +10475,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1847-07-26",
         "validTo": null
       },
       "parentEntityId": "",
@@ -10504,11 +10504,11 @@
       },
       "lineageId": "lbr",
       "file": "state-LBR.json.gz",
-      "validFrom": null,
+      "validFrom": "1847-07-26",
       "validTo": null,
-      "compressedBytes": 7043,
-      "decodedBytes": 54909,
-      "sha256": "e8241879df948f7ebbaa9a196382603dae46b4bf5d0e2a9933af766fb1dd96d6",
+      "compressedBytes": 7050,
+      "decodedBytes": 54917,
+      "sha256": "6ac0a8a5ed351699c5855b17d25da301ff54804e3bcacd513c23c73b2439b19a",
       "bbox": [
         -11.476186,
         4.347235,
@@ -10526,7 +10526,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1951-12-24",
         "validTo": null
       },
       "parentEntityId": "",
@@ -10555,11 +10555,11 @@
       },
       "lineageId": "lby",
       "file": "state-LBY.json.gz",
-      "validFrom": null,
+      "validFrom": "1951-12-24",
       "validTo": null,
-      "compressedBytes": 7003,
-      "decodedBytes": 52471,
-      "sha256": "bb79023015fdfbff1a9c16e41cc36d67e20f3c2d5e4630e704c36c7433fefa98",
+      "compressedBytes": 7010,
+      "decodedBytes": 52479,
+      "sha256": "da253eb452c7c084f479b3ee96d166ed3ca21d29857433061fd5e60338f4820e",
       "bbox": [
         9.286544,
         19.496124,
@@ -10577,7 +10577,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1979-02-22",
         "validTo": null
       },
       "parentEntityId": "",
@@ -10606,11 +10606,11 @@
       },
       "lineageId": "lca",
       "file": "state-LCA.json.gz",
-      "validFrom": null,
+      "validFrom": "1979-02-22",
       "validTo": null,
-      "compressedBytes": 1110,
-      "decodedBytes": 5122,
-      "sha256": "3e8f34746c82d2e4f608fc4de7756cac3430a501a18a76672272239e95f03bb0",
+      "compressedBytes": 1119,
+      "decodedBytes": 5130,
+      "sha256": "7a3108a2288b3df63be854358088c4cd4d50c792c973d6c44ddb7626e52977ba",
       "bbox": [
         -61.078521,
         13.714667,
@@ -10679,7 +10679,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1948-02-04",
         "validTo": null
       },
       "parentEntityId": "",
@@ -10708,11 +10708,11 @@
       },
       "lineageId": "lka",
       "file": "state-LKA.json.gz",
-      "validFrom": null,
+      "validFrom": "1948-02-04",
       "validTo": null,
-      "compressedBytes": 8148,
-      "decodedBytes": 75251,
-      "sha256": "ac71b5e4193574b1eda5d4179e0e2525ef635d4bc0ec155b92bd6d52be3a95e5",
+      "compressedBytes": 8154,
+      "decodedBytes": 75259,
+      "sha256": "243b1072a6d5d8ca99bbfa83f8affbc779b29932165cb13dfbe06531164e114f",
       "bbox": [
         79.655772,
         5.923733,
@@ -10730,7 +10730,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1966-10-04",
         "validTo": null
       },
       "parentEntityId": "",
@@ -10759,11 +10759,11 @@
       },
       "lineageId": "lso",
       "file": "state-LSO.json.gz",
-      "validFrom": null,
+      "validFrom": "1966-10-04",
       "validTo": null,
-      "compressedBytes": 3611,
-      "decodedBytes": 26703,
-      "sha256": "01178d6d9216b47616b068fa4435537ec0a31eae99d409295087edf3b3fe5981",
+      "compressedBytes": 3618,
+      "decodedBytes": 26711,
+      "sha256": "a846b65e1c137aa2a9471b77406889c941ac337b631ece75204e155f77e9c985",
       "bbox": [
         27.002155,
         -30.658799,
@@ -11258,7 +11258,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-08-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -11287,11 +11287,11 @@
       },
       "lineageId": "mda",
       "file": "state-MDA.json.gz",
-      "validFrom": null,
+      "validFrom": "1991-08-27",
       "validTo": null,
-      "compressedBytes": 7123,
-      "decodedBytes": 57243,
-      "sha256": "8ee6a44c21da15ca610091aacff5da6cdafe88986086533e49ca9ab352ee1965",
+      "compressedBytes": 7127,
+      "decodedBytes": 57251,
+      "sha256": "0c57b6df790371442281321e3daad7ede04b4baaceeb1b93add06f89316e95c2",
       "bbox": [
         26.617889,
         45.461774,
@@ -11370,7 +11370,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-06-26",
         "validTo": null
       },
       "parentEntityId": "",
@@ -11399,11 +11399,11 @@
       },
       "lineageId": "mdg",
       "file": "state-MDG.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-06-26",
       "validTo": null,
-      "compressedBytes": 15472,
-      "decodedBytes": 144416,
-      "sha256": "454f353805b0e2372e5e4f7c9c3528c897bfd210cdad7527570f0ac351cb2adb",
+      "compressedBytes": 15478,
+      "decodedBytes": 144424,
+      "sha256": "f8e11f78dc1bd164daec76e886addd9c0afc4f4ab1aad82bc0ce6af9e7eb1c81",
       "bbox": [
         43.222911,
         -25.598565,
@@ -11676,7 +11676,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1964-09-21",
         "validTo": null
       },
       "parentEntityId": "",
@@ -11705,11 +11705,11 @@
       },
       "lineageId": "mlt",
       "file": "state-MLT.json.gz",
-      "validFrom": null,
+      "validFrom": "1964-09-21",
       "validTo": null,
-      "compressedBytes": 1137,
-      "decodedBytes": 5971,
-      "sha256": "f7aaef3e312411f7c1575c1f7f0980d484d24d539c8988a9e89cd820c0bdbc53",
+      "compressedBytes": 1145,
+      "decodedBytes": 5979,
+      "sha256": "eda86a7be8c8d846381240f2c66fff3051e2659b749d5dd0df6b161279b43d8b",
       "bbox": [
         14.183604,
         35.801215,
@@ -11727,7 +11727,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1948-01-04",
         "validTo": null
       },
       "parentEntityId": "",
@@ -11756,11 +11756,11 @@
       },
       "lineageId": "mmr",
       "file": "state-MMR.json.gz",
-      "validFrom": null,
+      "validFrom": "1948-01-04",
       "validTo": null,
-      "compressedBytes": 40921,
-      "decodedBytes": 398063,
-      "sha256": "a3fc2376677962ebe616389c37ff55f5634e64109b68f5f3517b05a03d2505e4",
+      "compressedBytes": 40928,
+      "decodedBytes": 398071,
+      "sha256": "fa35dc7cf17372663c06f50d5ef3c2416f02aa75b0b1e30993f1183bf70c50b5",
       "bbox": [
         92.174973,
         9.790717,
@@ -11931,7 +11931,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-06-25",
         "validTo": null
       },
       "parentEntityId": "",
@@ -11960,11 +11960,11 @@
       },
       "lineageId": "moz",
       "file": "state-MOZ.json.gz",
-      "validFrom": null,
+      "validFrom": "1975-06-25",
       "validTo": null,
-      "compressedBytes": 21524,
-      "decodedBytes": 204059,
-      "sha256": "fde5421a6205c1092a337a564b62060e1683a09ee5a6e847ca636ce85163e30a",
+      "compressedBytes": 21530,
+      "decodedBytes": 204067,
+      "sha256": "c6840cfb8566c6ed101ce3283803714410ae816a5626d86781749608c77e0c48",
       "bbox": [
         30.213845,
         -26.860272,
@@ -11982,7 +11982,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-11-28",
         "validTo": null
       },
       "parentEntityId": "",
@@ -12011,11 +12011,11 @@
       },
       "lineageId": "mrt",
       "file": "state-MRT.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-11-28",
       "validTo": null,
-      "compressedBytes": 10885,
-      "decodedBytes": 100622,
-      "sha256": "928b59acb9d8d2bbad88b6c4da36c2226216cd38286f27b1a232e2e4c3da2dcd",
+      "compressedBytes": 10892,
+      "decodedBytes": 100630,
+      "sha256": "25041969e06bc53b09d5530463483437157bc1023a659e58c57815edd8df68e5",
       "bbox": [
         -17.081175,
         14.734399,
@@ -12084,7 +12084,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1968-03-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -12113,11 +12113,11 @@
       },
       "lineageId": "mus",
       "file": "state-MUS.json.gz",
-      "validFrom": null,
+      "validFrom": "1968-03-12",
       "validTo": null,
-      "compressedBytes": 1713,
-      "decodedBytes": 11122,
-      "sha256": "521c577d7a1c3849b1c7f4260ba79c00ad3305ac47a6cc1c1d866fae047db799",
+      "compressedBytes": 1721,
+      "decodedBytes": 11130,
+      "sha256": "37f0c5d98c9846f685c6b33b01d61f9a01064a688e5384b6355e6804e5f08dcc",
       "bbox": [
         56.524181,
         -20.517348,
@@ -12135,7 +12135,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1964-07-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -12164,11 +12164,11 @@
       },
       "lineageId": "mwi",
       "file": "state-MWI.json.gz",
-      "validFrom": null,
+      "validFrom": "1964-07-06",
       "validTo": null,
-      "compressedBytes": 8165,
-      "decodedBytes": 71875,
-      "sha256": "b926bb8dd332a972181f3f7a5da318c9668649e7d8a8e8619055b93c31e80e93",
+      "compressedBytes": 8171,
+      "decodedBytes": 71883,
+      "sha256": "0fa335fc7a198f6d2227607c446a6ecb36cacb0f7312699ba89ad9b95bcb7e3a",
       "bbox": [
         32.663308,
         -17.135335,
@@ -12307,7 +12307,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1990-03-21",
         "validTo": null
       },
       "parentEntityId": "",
@@ -12336,11 +12336,11 @@
       },
       "lineageId": "nam",
       "file": "state-NAM.json.gz",
-      "validFrom": null,
+      "validFrom": "1990-03-21",
       "validTo": null,
-      "compressedBytes": 11344,
-      "decodedBytes": 94376,
-      "sha256": "37ce905d333289f38a55b2e2580c5edb708ef2a4177d118bf4540576e5e011f2",
+      "compressedBytes": 11350,
+      "decodedBytes": 94384,
+      "sha256": "00e420f90757e8ae6987a779208cf2b9e2bcdbe02d7a0ddfe83029ff4e0def70",
       "bbox": [
         11.717621,
         -28.959368,
@@ -12409,7 +12409,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-03",
         "validTo": null
       },
       "parentEntityId": "",
@@ -12438,11 +12438,11 @@
       },
       "lineageId": "ner",
       "file": "state-NER.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-08-03",
       "validTo": null,
-      "compressedBytes": 10538,
-      "decodedBytes": 81605,
-      "sha256": "b286eac2f6759e71802afebc0823bdb68a967519548fe435062823da512fbf5c",
+      "compressedBytes": 10544,
+      "decodedBytes": 81613,
+      "sha256": "2aa90cc2b31a88279acb72f98eafe7a8750664515bb690ab45f1cb393ba8b750",
       "bbox": [
         0.152941,
         11.695773,
@@ -12511,7 +12511,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-10-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -12540,11 +12540,11 @@
       },
       "lineageId": "nga",
       "file": "state-NGA.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-10-01",
       "validTo": null,
-      "compressedBytes": 16505,
-      "decodedBytes": 150710,
-      "sha256": "14ea2ecf7af92acaa16cb5968596e10a2e290d932eee0df2c2320e98fb0258ac",
+      "compressedBytes": 16511,
+      "decodedBytes": 150718,
+      "sha256": "fedf00bdd95d615c0b255da8ff65c229959ceaafef418e92dbea7457408e0786",
       "bbox": [
         2.671082,
         4.272162,
@@ -12883,7 +12883,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1968-01-31",
         "validTo": null
       },
       "parentEntityId": "",
@@ -12912,11 +12912,11 @@
       },
       "lineageId": "nru",
       "file": "state-NRU.json.gz",
-      "validFrom": null,
+      "validFrom": "1968-01-31",
       "validTo": null,
-      "compressedBytes": 693,
-      "decodedBytes": 1877,
-      "sha256": "47ddbeea51a90d485a1b6e95f88f1ae31cc23653d8b3d9ddade7ef6e7f149b15",
+      "compressedBytes": 702,
+      "decodedBytes": 1885,
+      "sha256": "c14ce3323ccd95ef2c064fd98cc81e012b86b67e02ef922a8ef3df025f8320e6",
       "bbox": [
         166.906993,
         -0.551853,
@@ -13087,7 +13087,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1903-11-03",
         "validTo": null
       },
       "parentEntityId": "",
@@ -13116,11 +13116,11 @@
       },
       "lineageId": "pan",
       "file": "state-PAN.json.gz",
-      "validFrom": null,
+      "validFrom": "1903-11-03",
       "validTo": null,
-      "compressedBytes": 17785,
-      "decodedBytes": 173380,
-      "sha256": "3dd958888583ad28c402ec0442641c88af3f60040c93ab4cae12cbaafb702b1e",
+      "compressedBytes": 17792,
+      "decodedBytes": 173388,
+      "sha256": "a5b5235f4bbed11a22b394c40958bef536dac7c3675c997fe7972df7ceea45be",
       "bbox": [
         -83.053246,
         7.205715,
@@ -13392,7 +13392,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-09-16",
         "validTo": null
       },
       "parentEntityId": "",
@@ -13421,11 +13421,11 @@
       },
       "lineageId": "png",
       "file": "state-PNG.json.gz",
-      "validFrom": null,
+      "validFrom": "1975-09-16",
       "validTo": null,
-      "compressedBytes": 42573,
-      "decodedBytes": 420993,
-      "sha256": "560d14b9fb450c2e511e825c0bcb0bd89bfd33522503c4335d16d60a6d4fb22a",
+      "compressedBytes": 42578,
+      "decodedBytes": 421001,
+      "sha256": "57b73cf78c6a070be55395aa8500671a4e1e15ce683d52c011c9f02749df970c",
       "bbox": [
         140.849211,
         -11.636326,
@@ -13596,7 +13596,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1811-05-15",
         "validTo": null
       },
       "parentEntityId": "",
@@ -13625,11 +13625,11 @@
       },
       "lineageId": "pry",
       "file": "state-PRY.json.gz",
-      "validFrom": null,
+      "validFrom": "1811-05-15",
       "validTo": null,
-      "compressedBytes": 11182,
-      "decodedBytes": 92020,
-      "sha256": "2bf3277dcedc6f1c3d4068c5f3af65b5783f5d38619ae2ec9341161653146f8d",
+      "compressedBytes": 11189,
+      "decodedBytes": 92028,
+      "sha256": "846aedfc465c599ca4cbbf515d18dd10dbe28c24c9d6b13ab2158fb4dd74ab12",
       "bbox": [
         -62.650357,
         -27.586842,
@@ -13964,7 +13964,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-07-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -13993,11 +13993,11 @@
       },
       "lineageId": "rwa",
       "file": "state-RWA.json.gz",
-      "validFrom": null,
+      "validFrom": "1962-07-01",
       "validTo": null,
-      "compressedBytes": 3552,
-      "decodedBytes": 26127,
-      "sha256": "35e622634dbbd57a618d4f7c2fd116610bb2eb95ab464f9129a2c747a0bdc387",
+      "compressedBytes": 3558,
+      "decodedBytes": 26135,
+      "sha256": "f00e317276d052548d8c34ae58598bb5af6c74e3a10e54127e57c1bc13c52487",
       "bbox": [
         28.857236,
         -2.826855,
@@ -14167,7 +14167,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "2011-07-09",
         "validTo": null
       },
       "parentEntityId": "",
@@ -14196,11 +14196,11 @@
       },
       "lineageId": "sds",
       "file": "state-SDS.json.gz",
-      "validFrom": null,
+      "validFrom": "2011-07-09",
       "validTo": null,
-      "compressedBytes": 11372,
-      "decodedBytes": 90232,
-      "sha256": "6e6d4c64a3532e40e1f0724b6fe7f0d34b506a69e5780cc6d8d40c7d1875fd80",
+      "compressedBytes": 11379,
+      "decodedBytes": 90240,
+      "sha256": "3d4f820ffefe4f16797418703f401c13f2d049b48c64f0e1ba929c4209780bfd",
       "bbox": [
         24.121556,
         3.490202,
@@ -14319,7 +14319,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1965-08-09",
         "validTo": null
       },
       "parentEntityId": "",
@@ -14348,11 +14348,11 @@
       },
       "lineageId": "sgp",
       "file": "state-SGP.json.gz",
-      "validFrom": null,
+      "validFrom": "1965-08-09",
       "validTo": null,
-      "compressedBytes": 1010,
-      "decodedBytes": 4287,
-      "sha256": "80a288320084bbdddc0c64dfdb469470dcf5ff9bd3799c8b143e66038f787511",
+      "compressedBytes": 1017,
+      "decodedBytes": 4295,
+      "sha256": "40fa36f29116560d8e4f83a36487484678382f03cdb8b56b34ed1069cbfc57d1",
       "bbox": [
         103.640391,
         1.264309,
@@ -14472,7 +14472,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1978-07-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -14501,11 +14501,11 @@
       },
       "lineageId": "slb",
       "file": "state-SLB.json.gz",
-      "validFrom": null,
+      "validFrom": "1978-07-07",
       "validTo": null,
-      "compressedBytes": 19513,
-      "decodedBytes": 193027,
-      "sha256": "650fafefb2c29f7035542cd259b1057ff745811c160f2f83d4886da5815473f6",
+      "compressedBytes": 19519,
+      "decodedBytes": 193035,
+      "sha256": "020b25a6b5f29f58045b0ed76964aad2a680579b6d83ced6b5b2d1cef200bbc5",
       "bbox": [
         155.507986,
         -12.290623,
@@ -14523,7 +14523,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1961-04-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -14552,11 +14552,11 @@
       },
       "lineageId": "sle",
       "file": "state-SLE.json.gz",
-      "validFrom": null,
+      "validFrom": "1961-04-27",
       "validTo": null,
-      "compressedBytes": 6877,
-      "decodedBytes": 60856,
-      "sha256": "52813faf83260fb4001bbee6925756c614d7310ebd46bb6b9565d97543599906",
+      "compressedBytes": 6883,
+      "decodedBytes": 60864,
+      "sha256": "5feabd0dab082d81fea58e9faafec3c1706329e10c356feeba2664899d028d24",
       "bbox": [
         -13.301096,
         6.91942,
@@ -14727,7 +14727,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-07-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -14756,11 +14756,11 @@
       },
       "lineageId": "som",
       "file": "state-SOM.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-07-01",
       "validTo": null,
-      "compressedBytes": 6956,
-      "decodedBytes": 52786,
-      "sha256": "e5a08a4007f015d8a56d2c4924cd93a8a98378254e76ada4ee71f4a7c05bc143",
+      "compressedBytes": 6964,
+      "decodedBytes": 52794,
+      "sha256": "05ab032f8fa051817341993eb6d2cb768f62c491620875d9ab71bc3883df0939",
       "bbox": [
         40.965385,
         -1.696303,
@@ -14992,7 +14992,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-07-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -15021,11 +15021,11 @@
       },
       "lineageId": "stp",
       "file": "state-STP.json.gz",
-      "validFrom": null,
+      "validFrom": "1975-07-12",
       "validTo": null,
-      "compressedBytes": 1554,
-      "decodedBytes": 9319,
-      "sha256": "7a1c2c6aca16fb1a9bf9ce276edb2cba405f7f67a491fbf0ea838139eda17093",
+      "compressedBytes": 1562,
+      "decodedBytes": 9327,
+      "sha256": "ef75b920988992b93d831f2fe7dc182b62f0d5f87b0311b78af70077f044450b",
       "bbox": [
         6.461681,
         0.024115,
@@ -15156,7 +15156,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-11-25",
         "validTo": null
       },
       "parentEntityId": "",
@@ -15185,11 +15185,11 @@
       },
       "lineageId": "sur",
       "file": "state-SUR.json.gz",
-      "validFrom": null,
+      "validFrom": "1975-11-25",
       "validTo": null,
-      "compressedBytes": 7353,
-      "decodedBytes": 58485,
-      "sha256": "ab8b98f43580c4e67d213a541ccf7cb16374899fe41536522f9573527d128949",
+      "compressedBytes": 7360,
+      "decodedBytes": 58493,
+      "sha256": "1f518a26dfe2458ed1ed06d886041c60b631aa01c6b6569c6218247ae3d1ae37",
       "bbox": [
         -58.067691,
         1.833507,
@@ -15207,7 +15207,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1993-01-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -15236,11 +15236,11 @@
       },
       "lineageId": "svk",
       "file": "state-SVK.json.gz",
-      "validFrom": null,
+      "validFrom": "1993-01-01",
       "validTo": null,
-      "compressedBytes": 5958,
-      "decodedBytes": 45658,
-      "sha256": "81d49db3f5816b8886627235954a51308a743ef098be3318e3d3a75298852851",
+      "compressedBytes": 5964,
+      "decodedBytes": 45666,
+      "sha256": "351fdf38ff97dd3d5367da3284e7967a52ac177c95541b812279138b6bb40758",
       "bbox": [
         16.84448,
         47.750006,
@@ -15258,7 +15258,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-06-25",
         "validTo": null
       },
       "parentEntityId": "",
@@ -15287,11 +15287,11 @@
       },
       "lineageId": "svn",
       "file": "state-SVN.json.gz",
-      "validFrom": null,
+      "validFrom": "1991-06-25",
       "validTo": null,
-      "compressedBytes": 5350,
-      "decodedBytes": 41574,
-      "sha256": "093d9bf5feb200266c3cd7863963c106201dee82feba3dbf50046cc0de3e928b",
+      "compressedBytes": 5356,
+      "decodedBytes": 41582,
+      "sha256": "7ac95869689603ed817bd2f55cb80adc2905798ce1a2de33eac3e37c6721e696",
       "bbox": [
         13.365261,
         45.423637,
@@ -15360,7 +15360,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1968-09-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -15389,11 +15389,11 @@
       },
       "lineageId": "swz",
       "file": "state-SWZ.json.gz",
-      "validFrom": null,
+      "validFrom": "1968-09-06",
       "validTo": null,
-      "compressedBytes": 1469,
-      "decodedBytes": 7876,
-      "sha256": "9dc89df43d12a67da9513d1e9ac34ad38fe2c96fba2e037df501cd396ff9d5e0",
+      "compressedBytes": 1477,
+      "decodedBytes": 7884,
+      "sha256": "5c8414ed02c5d2ba8f4d4c941fc0e24d20451aedbf3a702e050ce1bc57106219",
       "bbox": [
         30.782906,
         -27.316264,
@@ -15462,7 +15462,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1976-06-29",
         "validTo": null
       },
       "parentEntityId": "",
@@ -15491,11 +15491,11 @@
       },
       "lineageId": "syc",
       "file": "state-SYC.json.gz",
-      "validFrom": null,
+      "validFrom": "1976-06-29",
       "validTo": null,
-      "compressedBytes": 3447,
-      "decodedBytes": 30800,
-      "sha256": "1366159377ee51eaead57ebd6a9d7d9a98acb90647b7669ac7ddf8b47714a36c",
+      "compressedBytes": 3455,
+      "decodedBytes": 30808,
+      "sha256": "5f59242887507cb568e54b6f3939b3d02d1ebe44c39bfe2b402c13ca0ba0244f",
       "bbox": [
         46.207367,
         -9.755548,
@@ -15615,7 +15615,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-11",
         "validTo": null
       },
       "parentEntityId": "",
@@ -15644,11 +15644,11 @@
       },
       "lineageId": "tcd",
       "file": "state-TCD.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-08-11",
       "validTo": null,
-      "compressedBytes": 11978,
-      "decodedBytes": 95332,
-      "sha256": "6cbd4edcd43e6eedba5358aff2f2c7737d33a8326d4624410fec790683561263",
+      "compressedBytes": 11985,
+      "decodedBytes": 95340,
+      "sha256": "3add81fba5944fe57e4fdb67c980ad929f35afc26f39f197ad3d4da4af866f35",
       "bbox": [
         13.449184,
         7.455567,
@@ -15666,7 +15666,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-04-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -15695,11 +15695,11 @@
       },
       "lineageId": "tgo",
       "file": "state-TGO.json.gz",
-      "validFrom": null,
+      "validFrom": "1960-04-27",
       "validTo": null,
-      "compressedBytes": 5078,
-      "decodedBytes": 38139,
-      "sha256": "4e1a0ec9ad5fcf03e9a0c8d6f4bc511b686d0d5ff2a6130d12d273dc118dd9e7",
+      "compressedBytes": 5085,
+      "decodedBytes": 38147,
+      "sha256": "a5708625f05690f1f49e128a52a95b812aeb3abf20455c70b14a4429a6d64b36",
       "bbox": [
         -0.166109,
         6.100491,
@@ -16092,7 +16092,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-08-31",
         "validTo": null
       },
       "parentEntityId": "",
@@ -16121,11 +16121,11 @@
       },
       "lineageId": "tto",
       "file": "state-TTO.json.gz",
-      "validFrom": null,
+      "validFrom": "1962-08-31",
       "validTo": null,
-      "compressedBytes": 2434,
-      "decodedBytes": 18281,
-      "sha256": "ef529e004f3fd7bb511c80bf4f023beeb269b0729fd0ffd74b4a5d3a38d6aa63",
+      "compressedBytes": 2439,
+      "decodedBytes": 18289,
+      "sha256": "0a76b791f3e31508ca0eb4e72e0d49678a41c2c20b68acb8b8c7c15c8189693c",
       "bbox": [
         -61.9287,
         10.04206,
@@ -16245,7 +16245,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1978-10-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -16274,11 +16274,11 @@
       },
       "lineageId": "tuv",
       "file": "state-TUV.json.gz",
-      "validFrom": null,
+      "validFrom": "1978-10-01",
       "validTo": null,
-      "compressedBytes": 1301,
-      "decodedBytes": 7612,
-      "sha256": "f932aba11263b3a35f835b2e9f3abe1daccb1973d6cc865d34b39269811eda4b",
+      "compressedBytes": 1309,
+      "decodedBytes": 7620,
+      "sha256": "a28d03e1dd22ef37acfda86a178bbed663e62dfd4ae7af52d89aef7dc3794f80",
       "bbox": [
         176.125255,
         -9.420668,
@@ -16398,7 +16398,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-10-09",
         "validTo": null
       },
       "parentEntityId": "",
@@ -16427,11 +16427,11 @@
       },
       "lineageId": "uga",
       "file": "state-UGA.json.gz",
-      "validFrom": null,
+      "validFrom": "1962-10-09",
       "validTo": null,
-      "compressedBytes": 6254,
-      "decodedBytes": 48237,
-      "sha256": "a47951af5173f29862cad0f0175fc61e62942b8b1445bf00747434a05f0a9f24",
+      "compressedBytes": 6258,
+      "decodedBytes": 48245,
+      "sha256": "5f1e5545ed5ddedfae349fec692756d23da054fd2ebfb0b904b1044f44b777da",
       "bbox": [
         29.54846,
         -1.475206,
@@ -16885,7 +16885,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-08-31",
         "validTo": null
       },
       "parentEntityId": "",
@@ -16914,11 +16914,11 @@
       },
       "lineageId": "uzb",
       "file": "state-UZB.json.gz",
-      "validFrom": null,
+      "validFrom": "1991-08-31",
       "validTo": null,
-      "compressedBytes": 15954,
-      "decodedBytes": 144258,
-      "sha256": "b113d7ba7dc8a6c08f02073f5e30c284e8f38be223fb8bb40a5b7a5ecb721a4d",
+      "compressedBytes": 15959,
+      "decodedBytes": 144266,
+      "sha256": "818afb50d0b43fb6c706b0fb7a08ca393d5eba943c59cb5fd7510d04b24185d1",
       "bbox": [
         55.975839,
         37.185147,
@@ -16936,7 +16936,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1929-06-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -16965,11 +16965,11 @@
       },
       "lineageId": "vat",
       "file": "state-VAT.json.gz",
-      "validFrom": null,
+      "validFrom": "1929-06-07",
       "validTo": null,
-      "compressedBytes": 672,
-      "decodedBytes": 1727,
-      "sha256": "ae64d5f4f50112ac01dcc82495c29361e7b3ef799f42a6f6cbbc351faecffe19",
+      "compressedBytes": 681,
+      "decodedBytes": 1735,
+      "sha256": "9b9d06ae54c7082a12beb95e6af1b7985a6e884947971d418a78c54f85d17c2c",
       "bbox": [
         12.452714,
         41.902752,
@@ -16987,7 +16987,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1979-10-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -17016,11 +17016,11 @@
       },
       "lineageId": "vct",
       "file": "state-VCT.json.gz",
-      "validFrom": null,
+      "validFrom": "1979-10-27",
       "validTo": null,
-      "compressedBytes": 1438,
-      "decodedBytes": 8651,
-      "sha256": "bb36cd759e00f5758f94e99dd79966884e947b3cf02160737bf581102ab9dc92",
+      "compressedBytes": 1446,
+      "decodedBytes": 8659,
+      "sha256": "14b1231640913811bcd14a95ed321951011551cee157ce6bf447739e97d19d70",
       "bbox": [
         -61.459828,
         12.58515,
@@ -17242,7 +17242,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1980-07-30",
         "validTo": null
       },
       "parentEntityId": "",
@@ -17271,11 +17271,11 @@
       },
       "lineageId": "vut",
       "file": "state-VUT.json.gz",
-      "validFrom": null,
+      "validFrom": "1980-07-30",
       "validTo": null,
-      "compressedBytes": 9432,
-      "decodedBytes": 91620,
-      "sha256": "5057d9750857b8cc6bbe9b20f26b4b5fd8ca9c087e9585ba1b6554afff29f5e3",
+      "compressedBytes": 9438,
+      "decodedBytes": 91628,
+      "sha256": "aea4fe3b0604124e68f75d66c9eaa5e6c2a8c4412d0f8dfb64e6c2977d71c0d2",
       "bbox": [
         166.520518,
         -20.253106,
@@ -17394,7 +17394,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-01-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -17423,11 +17423,11 @@
       },
       "lineageId": "wsm",
       "file": "state-WSM.json.gz",
-      "validFrom": null,
+      "validFrom": "1962-01-01",
       "validTo": null,
-      "compressedBytes": 1847,
-      "decodedBytes": 12972,
-      "sha256": "77c0cc677fa21b1585f390840c2cb7274ddeeaaa80693169a53c2d882c2bdf9a",
+      "compressedBytes": 1854,
+      "decodedBytes": 12980,
+      "sha256": "5c31bafc09afc93ea2e124c9046d77418c9723c4441c65bc3dd23637eba81dcf",
       "bbox": [
         -172.782582,
         -14.05283,
@@ -17632,7 +17632,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1964-10-24",
         "validTo": null
       },
       "parentEntityId": "",
@@ -17661,11 +17661,11 @@
       },
       "lineageId": "zmb",
       "file": "state-ZMB.json.gz",
-      "validFrom": null,
+      "validFrom": "1964-10-24",
       "validTo": null,
-      "compressedBytes": 14488,
-      "decodedBytes": 119786,
-      "sha256": "4c34f6d859707e033f956bee75dc9b1ef64d56ee911ea82400f7fc784e1642ef",
+      "compressedBytes": 14495,
+      "decodedBytes": 119794,
+      "sha256": "c63ca5d39b6f82c1d488a6302346eb0896abb18d74206b8cf89607f4a9f34162",
       "bbox": [
         21.979878,
         -18.069232,
@@ -17683,7 +17683,7 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1980-04-18",
         "validTo": null
       },
       "parentEntityId": "",
@@ -17712,11 +17712,11 @@
       },
       "lineageId": "zwe",
       "file": "state-ZWE.json.gz",
-      "validFrom": null,
+      "validFrom": "1980-04-18",
       "validTo": null,
-      "compressedBytes": 7855,
-      "decodedBytes": 61516,
-      "sha256": "7c1183856d8a74e94b6408f3ffee7807d0197c7c43b3297dac32691439d9cc5c",
+      "compressedBytes": 7861,
+      "decodedBytes": 61524,
+      "sha256": "621db46e53d692da70cc0924bf2282500856756433b5bde1d1745a7664777a69",
       "bbox": [
         25.21937,
         -22.39734,

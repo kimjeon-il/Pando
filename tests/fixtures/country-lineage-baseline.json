@@ -1134,7 +1134,7 @@
     },
     "state:AGO": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-11-11",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1176,7 +1176,7 @@
     },
     "state:ALB": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1912-11-28",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1239,7 +1239,7 @@
     },
     "state:ARE": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1971-12-02",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1386,7 +1386,7 @@
     },
     "state:ATG": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1981-11-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1470,7 +1470,7 @@
     },
     "state:BDI": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-07-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1491,7 +1491,7 @@
     },
     "state:BEL": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1830-10-04",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1512,7 +1512,7 @@
     },
     "state:BEN": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1533,7 +1533,7 @@
     },
     "state:BFA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-05",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1554,7 +1554,7 @@
     },
     "state:BGD": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1971-03-26",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1617,7 +1617,7 @@
     },
     "state:BHS": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1973-07-10",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1722,7 +1722,7 @@
     },
     "state:BLZ": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1981-09-21",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1785,7 +1785,7 @@
     },
     "state:BRA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1822-09-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1806,7 +1806,7 @@
     },
     "state:BRB": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1966-11-30",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1911,7 +1911,7 @@
     },
     "state:BWA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1966-09-30",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1932,7 +1932,7 @@
     },
     "state:CAF": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-13",
         "validTo": null
       },
       "parentEntityId": "",
@@ -1995,7 +1995,7 @@
     },
     "state:CHL": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1818-02-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2037,7 +2037,7 @@
     },
     "state:CIV": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2121,7 +2121,7 @@
     },
     "state:COD": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-06-30",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2142,7 +2142,7 @@
     },
     "state:COG": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-15",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2205,7 +2205,7 @@
     },
     "state:COM": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-07-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2226,7 +2226,7 @@
     },
     "state:CPV": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-07-05",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2373,7 +2373,7 @@
     },
     "state:CYP": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-16",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2394,7 +2394,7 @@
     },
     "state:CZE": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1993-01-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2436,7 +2436,7 @@
     },
     "state:DJI": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1977-06-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2457,7 +2457,7 @@
     },
     "state:DMA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1978-11-03",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2541,7 +2541,7 @@
     },
     "state:ECU": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1830-05-13",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2688,7 +2688,7 @@
     },
     "state:FIN": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1917-12-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2709,7 +2709,7 @@
     },
     "state:FJI": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1970-10-10",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2814,7 +2814,7 @@
     },
     "state:GAB": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-17",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2898,7 +2898,7 @@
     },
     "state:GHA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1957-03-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2940,7 +2940,7 @@
     },
     "state:GIN": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1958-10-02",
         "validTo": null
       },
       "parentEntityId": "",
@@ -2961,7 +2961,7 @@
     },
     "state:GMB": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1965-02-18",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3003,7 +3003,7 @@
     },
     "state:GNQ": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1968-10-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3045,7 +3045,7 @@
     },
     "state:GRD": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1974-02-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3129,7 +3129,7 @@
     },
     "state:GUY": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1966-05-26",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3234,7 +3234,7 @@
     },
     "state:HTI": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1804-01-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3318,7 +3318,7 @@
     },
     "state:IND": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1947-08-15",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3381,7 +3381,7 @@
     },
     "state:IRL": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1922-12-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3465,7 +3465,7 @@
     },
     "state:ISR": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1948-05-14",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3486,7 +3486,7 @@
     },
     "state:ITA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1861-03-17",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3507,7 +3507,7 @@
     },
     "state:JAM": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-08-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3633,7 +3633,7 @@
     },
     "state:KAZ": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-12-16",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3654,7 +3654,7 @@
     },
     "state:KEN": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1963-12-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3675,7 +3675,7 @@
     },
     "state:KGZ": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-08-31",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3717,7 +3717,7 @@
     },
     "state:KIR": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1979-07-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3738,7 +3738,7 @@
     },
     "state:KNA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1983-09-19",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3864,7 +3864,7 @@
     },
     "state:LBR": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1847-07-26",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3885,7 +3885,7 @@
     },
     "state:LBY": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1951-12-24",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3906,7 +3906,7 @@
     },
     "state:LCA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1979-02-22",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3948,7 +3948,7 @@
     },
     "state:LKA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1948-02-04",
         "validTo": null
       },
       "parentEntityId": "",
@@ -3969,7 +3969,7 @@
     },
     "state:LSO": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1966-10-04",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4137,7 +4137,7 @@
     },
     "state:MDA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-08-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4158,7 +4158,7 @@
     },
     "state:MDG": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-06-26",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4284,7 +4284,7 @@
     },
     "state:MLT": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1964-09-21",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4305,7 +4305,7 @@
     },
     "state:MMR": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1948-01-04",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4389,7 +4389,7 @@
     },
     "state:MOZ": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-06-25",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4410,7 +4410,7 @@
     },
     "state:MRT": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-11-28",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4452,7 +4452,7 @@
     },
     "state:MUS": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1968-03-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4473,7 +4473,7 @@
     },
     "state:MWI": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1964-07-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4515,7 +4515,7 @@
     },
     "state:NAM": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1990-03-21",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4557,7 +4557,7 @@
     },
     "state:NER": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-03",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4599,7 +4599,7 @@
     },
     "state:NGA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-10-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4725,7 +4725,7 @@
     },
     "state:NRU": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1968-01-31",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4809,7 +4809,7 @@
     },
     "state:PAN": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1903-11-03",
         "validTo": null
       },
       "parentEntityId": "",
@@ -4935,7 +4935,7 @@
     },
     "state:PNG": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-09-16",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5040,7 +5040,7 @@
     },
     "state:PRY": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1811-05-15",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5166,7 +5166,7 @@
     },
     "state:RWA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-07-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5271,7 +5271,7 @@
     },
     "state:SDS": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "2011-07-09",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5334,7 +5334,7 @@
     },
     "state:SGP": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1965-08-09",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5397,7 +5397,7 @@
     },
     "state:SLB": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1978-07-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5418,7 +5418,7 @@
     },
     "state:SLE": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1961-04-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5502,7 +5502,7 @@
     },
     "state:SOM": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-07-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5586,7 +5586,7 @@
     },
     "state:STP": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-07-12",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5607,7 +5607,7 @@
     },
     "state:SUR": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1975-11-25",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5628,7 +5628,7 @@
     },
     "state:SVK": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1993-01-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5649,7 +5649,7 @@
     },
     "state:SVN": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-06-25",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5691,7 +5691,7 @@
     },
     "state:SWZ": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1968-09-06",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5733,7 +5733,7 @@
     },
     "state:SYC": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1976-06-29",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5796,7 +5796,7 @@
     },
     "state:TCD": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-08-11",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5817,7 +5817,7 @@
     },
     "state:TGO": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1960-04-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -5943,7 +5943,7 @@
     },
     "state:TTO": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-08-31",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6006,7 +6006,7 @@
     },
     "state:TUV": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1978-10-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6069,7 +6069,7 @@
     },
     "state:UGA": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-10-09",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6195,7 +6195,7 @@
     },
     "state:UZB": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1991-08-31",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6216,7 +6216,7 @@
     },
     "state:VAT": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1929-06-07",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6237,7 +6237,7 @@
     },
     "state:VCT": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1979-10-27",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6342,7 +6342,7 @@
     },
     "state:VUT": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1980-07-30",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6405,7 +6405,7 @@
     },
     "state:WSM": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1962-01-01",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6468,7 +6468,7 @@
     },
     "state:ZMB": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1964-10-24",
         "validTo": null
       },
       "parentEntityId": "",
@@ -6489,7 +6489,7 @@
     },
     "state:ZWE": {
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "1980-04-18",
         "validTo": null
       },
       "parentEntityId": "",

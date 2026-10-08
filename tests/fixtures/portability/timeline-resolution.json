@@ -1,0 +1,49 @@
+{
+  "schema": "timeline-resolution-v1",
+  "source": "tests/fixtures/timeline-exchange/complex.json",
+  "cases": [
+    {
+      "month": "1909-12",
+      "expected": [
+        ["A", "shape", 1, "", "A", []],
+        ["C", "shape", 1, "", "C", []],
+        ["R", "shape", 1, "", "R", []]
+      ]
+    },
+    {
+      "month": "1914-06",
+      "expected": [
+        ["A", "shape", 1, "", "A", []],
+        ["B", "shape", 1, "A", "A", ["A"]],
+        ["C", "shape", 1, "", "C", []],
+        ["R", "shape", 1, "", "R", []]
+      ]
+    },
+    {
+      "month": "1914-07",
+      "expected": [
+        ["A", "shape", 2, "", "A", []],
+        ["B", "shape", 1, "A", "A", ["A"]],
+        ["C", "shape", 1, "", "C", []],
+        ["R", "shape", 1, "", "R", []]
+      ]
+    },
+    {
+      "month": "1916-01",
+      "expected": [
+        ["A", "shape", 2, "", "A", []],
+        ["B", "shape", 1, "C", "C", ["C"]],
+        ["C", "shape", 1, "", "C", []],
+        ["R", "shape", 1, "", "R", []]
+      ]
+    },
+    {
+      "month": "1920-04",
+      "expected": [
+        ["A", "shape", 2, "", "A", []],
+        ["C", "shape", 1, "", "C", []],
+        ["R", "shape", 1, "", "R", []]
+      ]
+    }
+  ]
+}

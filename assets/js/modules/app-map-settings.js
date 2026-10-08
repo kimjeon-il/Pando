@@ -2,6 +2,7 @@ import { TERRITORIAL_SYMBOL_KEYS } from './layer-presentation.js';
 import { PLACE_LANGUAGES, togglePlaceLanguage } from './place-contract.js';
 import { distributionValueRange } from './distribution-model.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
+import { hasDatedTimelineRecords } from './timeline-resolver.js';
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).flatMap(keys => Object.values(keys)));
 
@@ -892,7 +893,8 @@ export function createMapSettings() {
         territorialEntities: dependencies.territorialModel.entityStore.identities(),
         projectFields: (0, dependencies.projectServices.pickProjectFields)(dependencies.projectState.state, { clone: value => value }),
         entityDelta: (0, dependencies.projectSnapshots.buildEntityDelta)(),
-        fullAutosave: dependencies.projectState.state.autosaveMode === 'full',
+        fullAutosave: dependencies.projectState.state.autosaveMode === 'full'
+          || hasDatedTimelineRecords(dependencies.projectState.state.timelineRecords),
         terrainManifest: dependencies.projectState.state.terrainManifest,
         terrainSourceInfo: dependencies.rendering.gpuMapRenderer?.activeTerrainSourceInfo?.(),
         hydroManifest: dependencies.projectState.state.hydroManifest,

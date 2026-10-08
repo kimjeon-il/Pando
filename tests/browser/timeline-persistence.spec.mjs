@@ -79,52 +79,23 @@ test('static v10 UI file save/open and full autosave restore metadata, records a
   expect(errors).toEqual([]);
 });
 
-test('complex timeline file roundtrip preserves temporal meaning and UI rejection keeps session unchanged',async({page})=>{
+test('complex timeline file opens and month controls resolve its historical world',async({page})=>{
   const errors=await openApp(page);
   await openProject(page,fixturePath('static'));
   await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
-  await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A')?.properties.name)).toBe('A 영토');
-  expect(await page.evaluate(()=>{
-    const result=window.PANDOLAB_TERRITORIAL.setName('A','선택 유지');
-    window.PANDOLAB_TERRITORIAL.select('A');
-    return result.changed;
-  })).toBe(true);
-  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.[0]?.properties.name,{timeout:30000}).toBe('선택 유지');
-  await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('A','Redo 보존'));
-  await page.locator('#undoBtn').click();
-  await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('선택 유지');
-  await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.select('A'));
-  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.[0]?.properties.name,{timeout:30000}).toBe('선택 유지');
-  await expect(page.locator('#projectSaveStatus')).not.toHaveAttribute('data-save-state','saving',{timeout:30000});
-  const before=await readAutosave(page);
-  const renderGeneration=await page.evaluate(()=>window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.projectGeneration);
-  expect(Number.isInteger(renderGeneration)).toBe(true);
-  const selection=await page.evaluate(()=>window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection);
-  const undoDisabled=await page.locator('#undoBtn').isDisabled();
-  const redoDisabled=await page.locator('#redoBtn').isDisabled();
-  const status=await page.locator('#projectSaveStatus').getAttribute('data-tooltip');
-  const complex=await fixtureJson('complex');
-  const bytes=await page.evaluate(async project=>{
-    const blob=await window.PandoLabGIS.exportGeoPackage(project);
-    return Array.from(new Uint8Array(await blob.arrayBuffer()));
-  },complex);
-  const read=await productionGeoPackage('read',new Uint8Array(bytes).buffer);
-  expect(semantics(read.metadata.projectState)).toEqual(semantics(complex));
   await openProject(page,fixturePath('complex'));
   await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
-  await expect(page.locator('#actionStatus')).toContainText(/시간|정적|TIMELINE/,{timeout:30000});
-  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('선택 유지');
-  expect(semantics(await readAutosave(page))).toEqual(semantics(before));
-  expect(await page.evaluate(()=>window.__PANDOLAB_RENDER_DEBUG__.snapshot().selection.primaryKey)).toBe(selection.primaryKey);
-  expect(await page.locator('#undoBtn').isDisabled()).toBe(undoDisabled);
-  expect(await page.locator('#redoBtn').isDisabled()).toBe(redoDisabled);
-  expect(await page.locator('#projectSaveStatus').getAttribute('data-tooltip')).toBe(status);
-  expect(await page.evaluate(()=>window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.projectGeneration)).toBe(renderGeneration);
-  await page.locator('#redoBtn').click();
-  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('Redo 보존');
-  await page.locator('#undoBtn').click();
-  await page.locator('#undoBtn').click();
-  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').properties.name)).toBe('A 영토');
+  await expect(page.locator('#timelineMonthInput')).toHaveValue('1916-01');
+  const autosaveBefore = await readAutosave(page);
+  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('B').properties.parentId)).toBe('C');
+  await page.locator('#timelineMonthInput').fill('1914-07');
+  await page.locator('#timelineMonthInput').dispatchEvent('change');
+  await expect(page.locator('#timelineMonthLabel')).toHaveText('1914년 7월');
+  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('B').properties.parentId)).toBe('A');
+  await page.locator('#timelinePreviousMonth').click();
+  await expect(page.locator('#timelineMonthInput')).toHaveValue('1914-06');
+  expect(await readAutosave(page)).toEqual(autosaveBefore);
+  expect(await page.locator('#undoBtn').isDisabled()).toBe(true);
   expect(errors).toEqual([]);
 });
 
