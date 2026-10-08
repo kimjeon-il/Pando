@@ -31,7 +31,7 @@ jobs:
         with:
           persist-credentials: false
           filter: blob:none
-          sparse-checkout-cone: false
+          sparse-checkout-cone-mode: false
           sparse-checkout: |
             /tools/*.mjs
             /tools/*.py
