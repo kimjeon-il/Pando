@@ -16,7 +16,7 @@
     "Kjøbenhavn→København 1906 municipal spelling change, not an official renamed city or a distinct Korean city name.",
     "Helsinki and Helsingfors coexist in Finnish and Swedish. Dublin and Baile Átha Cliath similarly coexist.",
     "Bern became federal seat on 1848-11-28; no technically designated Swiss de jure national capital.",
-    "Kyiv: Kyiv/Kiev and 키이우/키예프 reflect language and transliteration, not a 2022 Ukrainian renaming. Korean editorial preference date is 2022-03-10 and old transliteration remains permitted.",
+    "Kyiv: PandoEditor Korean label convention changes 키예프→키이우 on Ukraine's 1991-08-24 independence declaration. The 2022-03-10 South Korean norm adoption remains evidence only. Ukrainian Київ and Russian Киев are coexisting language forms; no official city renaming occurred in 1991.",
     "Bucharest 1862-02-05 Gregorian (24 Jan Julian) became capital; city name persisted.",
     "UI notes/details and short descriptions <=28 Unicode codepoints; detailed notes and sources retained separately.",
     "Data is staged for later merge; map runtime and production manifest not updated."
@@ -403,9 +403,9 @@
           "text": "키예프",
           "language": "ko",
           "usage": "alternate",
-          "variantType": "formerConventionalKoreanTranscription",
+          "variantType": "russianBasedKoreanExonym",
           "sourceUrl": "https://www.korean.go.kr/front/board/boardStandardView.do?b_seq=877&board_id=6&mn_id=184",
-          "note": "2022년 이후에도 관용형 병용 허용"
+          "note": "옛 지도 표기, 검색 별칭 유지"
         }
       ],
       "latitude": 50.45466,
@@ -415,7 +415,7 @@
       "sourceUrl": "https://www.geonames.org/703448/",
       "sourceCountryCode": "UA",
       "defaultDisplayNameKo": "키이우",
-      "shortDescriptionKo": "2022년 한국어 지명 표기 추가",
+      "shortDescriptionKo": "1991년 독립 이후 키이우 표기",
       "displayTimeline": [
         {
           "fromYear": 1801,
@@ -424,18 +424,27 @@
           "sourceUrl": "https://www.korean.go.kr/front/board/boardStandardView.do?b_seq=877&board_id=6&mn_id=184"
         },
         {
-          "fromDate": "2022-03-10",
+          "fromDate": "1991-08-24",
           "nameKo": "키이우",
           "kind": "koreanEditorialTranscription",
-          "sourceUrl": "https://www.korean.go.kr/front/board/boardStandardView.do?b_seq=877&board_id=6&mn_id=184"
+          "sourceUrl": "https://zakon.rada.gov.ua/laws/show/en/1427-12",
+          "note": "독립 이후 우크라이나어 기준 표기",
+          "transitionMeaning": "PandoEditor-selected Korean map-label convention anchored to Ukraine's declaration of independence, not a renaming or change of pronunciation enacted on 1991-08-24"
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
       "historicalGeography": {
         "events": [
           {
+            "date": "1991-08-24",
+            "type": "independenceDeclaration",
+            "detail": "우크라이나 독립 선언",
+            "sourceUrl": "https://zakon.rada.gov.ua/laws/show/en/1427-12",
+            "displayEffect": "Korean map-label style transition selected by PandoEditor, not an official city rename"
+          },
+          {
             "date": "2022-03-10",
-            "type": "koreanTranscriptionEditorialDecision",
+            "type": "referenceKoreanOrthographyDecision",
             "detail": "국립국어원 키이우 표기 추가",
             "sourceUrl": "https://www.korean.go.kr/front/board/boardStandardView.do?b_seq=877&board_id=6&mn_id=184"
           }
@@ -444,6 +453,10 @@
           {
             "detail": "2022년은 도시 개칭이 아님",
             "sourceUrl": "https://www.korean.go.kr/front/board/boardStandardView.do?b_seq=877&board_id=6&mn_id=184"
+          },
+          {
+            "detail": "1991년 전환은 편집기 표기 기준",
+            "sourceUrl": "https://zakon.rada.gov.ua/laws/show/en/1427-12"
           }
         ],
         "linkedPlaces": [
@@ -455,7 +468,7 @@
           }
         ]
       },
-      "displayPolicyNote": "The 2022-03-10 Korean editorial change introduces an additional valid Korean form; the older 키예프 remains permitted. The city's Ukrainian name was not legally renamed in 2022."
+      "displayPolicyNote": "PandoEditor uses 키예프 before 1991-08-24 and 키이우 from that date as an editorial historical map convention, irrespective of when a Korean language authority endorsed either form. Ukrainian Київ and Russian Киев both predate independence; neither was officially renamed on that date. The 2022-03-10 standard-language authority decision is reference metadata only."
     },
     {
       "geonameId": 683506,
