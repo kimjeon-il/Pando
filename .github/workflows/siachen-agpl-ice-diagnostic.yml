@@ -1,10 +1,9 @@
 name: Siachen AGPL ice-discrepancy diagnostic
 on:
   push:
-    branches: [research/siachen-rgi7-outline]
+    branches: [work/gis]
     paths:
       - scripts/research/siachen/diagnose_glacier_agpl_discrepancy.py
-      - .github/workflows/siachen-agpl-ice-diagnostic.yml
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: research/siachen-rgi7-outline
+          ref: work/gis
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -41,7 +40,7 @@ jobs:
           git add assets/data/research/siachen/
           if ! git diff --cached --quiet; then
             git commit -m "research: record spatial diagnosis of AGPL and ice overlaps"
-            git push origin HEAD:research/siachen-rgi7-outline
+            git push origin HEAD:work/gis
           fi
       - uses: actions/upload-artifact@v4
         with:
