@@ -1,0 +1,87 @@
+name: Web GIS Legacy Assets Stage 6 Gate
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/legacy-gis-stage6-gate.yml'
+      - 'tools/audit-legacy-gis-assets.mjs'
+      - 'tests/unit/legacy-gis-assets-audit.test.mjs'
+      - 'assets/data/world/current.json'
+      - 'assets/data/world/build-input.json'
+      - 'assets/data/world-preview-v*.json'
+      - 'assets/data/hydro/**/manifest.json'
+      - 'assets/data/terrain/**/manifest.json'
+      - 'assets/js/modules/app-environment.js'
+      - 'assets/js/modules/terrain-manifest.js'
+      - 'scripts/generate-build-metadata.mjs'
+      - 'docs/validation/data-versioning-phase6.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  legacy-asset-audit:
+    name: Pinned live dependency graph and archive candidates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone: false
+          sparse-checkout: |
+            /tools/*.mjs
+            /tools/*.py
+            /tests/unit/*.mjs
+            /tests/browser/*.mjs
+            /scripts/
+            /.github/workflows/*.yml
+            /assets/js/
+            /assets/data/world/current.json
+            /assets/data/world/build-input.json
+            /assets/data/world-preview-v*.json
+            /assets/data/hydro/*/manifest.json
+            /assets/data/terrain/*/manifest.json
+            /package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch exact tree metadata, without historical binary checkout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p reports
+          curl --fail --silent --show-error --retry 3 --retry-delay 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/git/trees/$GITHUB_SHA?recursive=1" \
+            -o reports/stage6-tree.json
+      - name: Checkout fixed App provenance manifest only
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoEditor
+          ref: f3dc9852ec93691980b3c6afdeb84a82d4ccfad4
+          path: pinned-app
+          persist-credentials: false
+          sparse-checkout: |
+            assets/world/manifest.json
+      - name: Audit regressions on small synthetic repository
+        run: |
+          node --check tools/audit-legacy-gis-assets.mjs
+          node --test tests/unit/legacy-gis-assets-audit.test.mjs
+      - name: Read-only audit of all tracked GIS versions and pinned App references
+        run: |
+          node tools/audit-legacy-gis-assets.mjs \
+            --root . --tree-json reports/stage6-tree.json \
+            --app-manifest pinned-app/assets/world/manifest.json \
+            --out reports/legacy-gis-phase6.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-legacy-gis-stage6-audit
+          if-no-files-found: warn
+          path: |
+            reports/legacy-gis-phase6.json
