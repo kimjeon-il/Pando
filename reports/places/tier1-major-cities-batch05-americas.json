@@ -166,9 +166,18 @@
       "geonameId": 3530597,
       "names": [
         {
+          "text": "México",
+          "language": "es",
+          "usage": "standard",
+          "variantType": "officialShortForm",
+          "sourceUrl": "https://geonames.nga.mil/geonames/GNSSearch/GNSDocs/policies/Mexico_Country_Policy_webversion_Latest.pdf"
+        },
+        {
           "text": "Ciudad de México",
           "language": "es",
-          "usage": "standard"
+          "usage": "alternate",
+          "variantType": "officialLongForm",
+          "sourceUrl": "https://geonames.nga.mil/geonames/GNSSearch/GNSDocs/policies/Mexico_Country_Policy_webversion_Latest.pdf"
         },
         {
           "text": "Mexico City",
@@ -241,6 +250,10 @@
           {
             "detail": "연방구의 변화는 도시 개칭과 구별",
             "sourceUrl": "https://mexicocity.cdmx.gob.mx/e/about/about-mexico-city/?lang=en"
+          },
+          {
+            "detail": "México는 도시·국가의 동형 약칭",
+            "sourceUrl": "https://geonames.nga.mil/geonames/GNSSearch/GNSDocs/policies/Mexico_Country_Policy_webversion_Latest.pdf"
           }
         ]
       }
