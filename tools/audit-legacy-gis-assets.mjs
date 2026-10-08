@@ -167,20 +167,24 @@ export function audit(root,{appManifest=null,treeJson=null}={}) {
   const tracked=execFileSync('git',['-C',root,'ls-tree','-r','--name-only','-z','HEAD'],
     {maxBuffer:16*1024*1024}).toString('utf8').split('\0').filter(Boolean);
   const scanTargets=tracked.filter(p=>/^(assets\/js\/|scripts\/|tools\/|tests\/|\.github\/)/.test(p)
-    && /\.(?:js|mjs|cjs|ts|py|json|yml|yaml|sh|md|html)$/.test(p)
-    && !p.includes('/fixtures/') && !p.includes('/research/') && !p.includes('/historical-library/'));
+    && /\.(?:js|mjs|cjs|ts|py|yml|yaml|sh)$/.test(p)
+    && !p.includes('/fixtures/') && !p.includes('/research/') && !p.includes('/historical-library/')
+    && p!=='tests/unit/legacy-gis-assets-audit.test.mjs');
   const knownGroups=[...new Set([...tree.keys()].map(groupOf).filter(Boolean))];
   for(const p of scanTargets){
     const source=join(root,p);
     if(!existsSync(source)){scan.missingOrSkipped++;continue;}
     const text=readFileSync(source,'utf8');scan.materialized++;
+    // A GitHub sparse-checkout '!/assets/data/...' line EXCLUDES a legacy
+    // version: it is evidence of non-use, not a runtime/test reference.
+    const sourceLines=text.split(/\r?\n/).filter(line=>!/^\s*!\/assets\/data\//.test(line));
     for(const group of knownGroups){
       const [family,version]=group.split('/');
       if(!version || !versioned.test(version))continue;
       const re=family==='terrain'||family==='hydro'
         ? family+'/'+version
         : family+'-'+version;
-      if(text.includes(re)){
+      if(sourceLines.some(line=>line.includes(re))){
         if(!codeRefs.has(group))codeRefs.set(group,[]);
         if(codeRefs.get(group).length<12)codeRefs.get(group).push(p);
       }
