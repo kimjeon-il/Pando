@@ -128,5 +128,5 @@ test('post-cutover and destructive cleanup remain unauthorized even if under lim
 test('truncated remote tree or missing manifest is never accepted',()=>{
   assert.throws(()=>normalizeGitTree({truncated:true,tree:[]}),/non-truncated/);
   const {tree,lock,required}=sample();tree.delete('index.html');
-  assert.throws(()=>buildPublicationProfile(tree,lock,required),/Missing bootstrap/);
+  assert.throws(()=>buildPublicationProfile(tree,lock,required),/Bootstrap or mandatory URL coverage incomplete/);
 });
