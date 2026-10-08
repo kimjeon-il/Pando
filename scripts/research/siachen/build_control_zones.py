@@ -115,10 +115,11 @@ def split_control(polygon, agpl, rgi_center, scale):
         verify_geo(g,label)
         if polyarea(g) < 1:
             raise ValueError(scale+" unexpected tiny area for "+label)
-    base=project(polygon)
-    im,pm=project(india),project(pakistan)
-    gap_km2=base.symmetric_difference(unary_union([im,pm])).area/1e6
-    overlap_km2=im.intersection(pm).area/1e6
+    # Check topology in the original lon/lat planar CRS before reprojection.
+    # Projecting sparse long NE edges and subdivided parts independently turns
+    # the same geodesic/chord into slightly different projected edges.
+    gap_km2=polyarea(polygon.symmetric_difference(unary_union([india,pakistan])))
+    overlap_km2=polyarea(india.intersection(pakistan))
     if gap_km2>0.001 or overlap_km2>0.001:
         raise ValueError(scale + " conservation test failed, gap %.6f overlap %.6f" % (gap_km2,overlap_km2))
     return india,pakistan,gap_km2,overlap_km2
