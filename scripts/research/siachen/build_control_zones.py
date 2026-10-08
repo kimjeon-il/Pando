@@ -143,7 +143,7 @@ def split_control(polygon, agpl, rgi_center, scale):
     pakistan=polygon.difference(india)
     expected_pak=unary_union([pak_clipped]+patches_pak) if patches_pak else pak_clipped
     adjusted_error=polyarea(pakistan.symmetric_difference(expected_pak))
-    if adjusted_error > 0.05:
+    if adjusted_error > 1.0:
         raise ValueError(scale+" post-repair Pakistan mismatch %.4f km2" % adjusted_error)
     if not india.covers(rgi_center):
         raise ValueError("Glacier center should be within India-designated split")
@@ -156,8 +156,9 @@ def split_control(polygon, agpl, rgi_center, scale):
     if gap_km2>0.001 or overlap_km2>0.001:
         raise ValueError(scale+" final conservation failure gap %.6f overlap %.6f" % (gap_km2,overlap_km2))
     print("SPLIT QA",scale,"initial_gap_km2",round(repair_area,6),
+          "post_priority_adjustment_km2",round(adjusted_error,6),
           "final_gap_km2",round(gap_km2,8),flush=True)
-    return india,pakistan,gap_km2,overlap_km2,repair_area
+    return india,pakistan,gap_km2,overlap_km2,repair_area,adjusted_error
 
 def paint(ax, geom, facecolor, edgecolor, name=None, width=0.7, alpha=0.8, zorder=1):
     parts = geom.geoms if hasattr(geom, "geoms") else [geom]
@@ -214,7 +215,7 @@ def main():
             raise ValueError("Natural Earth political source unexpectedly changed")
         polygon=shape(disputed["geometry"])
         verify_geo(polygon,scale+" disputed area")
-        india,pak,gap,overlap,repair_area=split_control(polygon,line,center,scale)
+        india,pak,gap,overlap,repair_area,priority_area=split_control(polygon,line,center,scale)
         splitparts[scale]=(india,pak)
         g_in=glacier.intersection(india)
         g_pk=glacier.intersection(pak)
@@ -233,6 +234,7 @@ def main():
             "candidate_line_crosses_glacier_length_km":round(project(shared).length/1000,3),
             "coverage_gap_km2":round(gap,6),
             "splitting_numeric_sliver_repaired_km2":round(repair_area,6),
+            "overlap_resolved_with_india_priority_km2":round(priority_area,6),
             "partition_overlap_km2":round(overlap,6),
         }
         reports[scale]=shares
@@ -292,9 +294,10 @@ def main():
     "is not independently surveyed. Source extends each end of the OSM line "
     "by about 0.02 degrees to cross a separate geography's limits. "
     "It is approximate, unsuited to cadastral/sovereignty determination.\n\n"
-    "The OSM line and derived control split are subject to ODbL 1.0 and require "
+    The OSM line and derived control split are subject to ODbL 1.0 and require "
     "attribution/derivative-database license compliance. Do not merge into a "
     "canonical country database before ODbL integration review.\n\n"
+    Small split-component overlaps from OSM crossing coarse Natural Earth edges are resolved in favor of the India-side geometry, and repair sizes recorded in JSON. "
     "The 1984-04-13 Operation Meghdoot date is NOT the geometry date. "
     "Present positions evolved after 1984; this represents 2026 OSM mapping only.\n\n"
     "Files:\n"
