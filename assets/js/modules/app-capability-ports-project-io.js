@@ -17,6 +17,7 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "objectCatalog",
     "objectModelA",
     "platform",
+    "preferences",
     "platformConfigurationA",
     "platformConfigurationB",
     "pointerInteractionA",
