@@ -2,7 +2,7 @@ import '../gis-adapters.js';
 import { territorialRootId, normalizeTerritorialIdentities, TERRITORIAL_SCHEMA_VERSION } from './territorial-units.js';
 import { prepareProjectForActivation } from './project-state.js';
 import { createGeometryVersionStore } from './geometry-version-store.js';
-import { staticTimelineViews } from './timeline-static-view.js';
+import { initialTimelineMonth, resolvedTimelineViews } from './timeline-resolver.js';
 import { normalizeCountryCollection } from './country-feature.js';
 import { normalizeSourceProvenance, SOURCE_KINDS } from './source-provenance.js';
 
@@ -315,8 +315,10 @@ export function createGisImportTransactionCommitter(runtime = {}) {
     const packageProject = result.atlasMetadata?.projectState
       ? prepareProjectForActivation(result.atlasMetadata.projectState) : null;
     const imported = new Map(applyImportedPackageAssets(result.atlasMetadata,
-      packageProject ? staticTimelineViews(packageProject.territorialEntities, packageProject.timelineRecords,
-        createGeometryVersionStore(packageProject.geometries)) : normalizeCountryCollection(result.countriesData).features)
+      packageProject ? resolvedTimelineViews(packageProject.territorialEntities, packageProject.timelineRecords,
+        createGeometryVersionStore(packageProject.geometries),
+        initialTimelineMonth(packageProject.timelineRecords, new Date().toISOString().slice(0, 7)))
+        : normalizeCountryCollection(result.countriesData).features)
       .map(entity => [String(entity.id), entity]));
     const current = new Map(entityStore.snapshot().map(entity => [String(entity.id), entity]));
     const draftCountries = { type: 'FeatureCollection', features: plan.countriesData.features.map(feature => {

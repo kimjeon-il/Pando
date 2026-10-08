@@ -42,12 +42,13 @@ test('catalog versions retain explicit identities, records and whole archive thr
   }
   assert.deepEqual(catalog,before);
 });
-test('complex catalog storage succeeds but live activation rejects before replacing current owners',()=>{
+test('complex catalog storage activates without losing its historical identities',()=>{
   const row=storageInput(completeCatalog()),snapshot=projectForStorage(row);
   const state={...createEmptyTerritorialState(),history:['preserved'],future:['preserved'],dirty:true,selection:'preserved',saveTarget:'preserved'};
-  const before={...state},store=createTerritorialEntityStore({getState:()=>state});
-  assert.throws(()=>store.restoreProject({territorialEntities:snapshot.territorialEntities,timelineRecords:row.input.records,geometries:row.input.geometries}),{code:'TIMELINE_ACTIVATION'});
-  for(const key of Object.keys(before))assert.equal(state[key],before[key]);
+  const store=createTerritorialEntityStore({getState:()=>state});
+  store.restoreProject({territorialEntities:snapshot.territorialEntities,timelineRecords:row.input.records,geometries:row.input.geometries});
+  assert.deepEqual(store.identities().map(entity=>entity.id),snapshot.territorialEntities.map(entity=>entity.id));
+  assert.deepEqual(state.timelineRecords,row.input.records);
 });
 test('partial catalog coverage cannot silently become a complete project lifetime',()=>{
   const entity=structuredClone(completeCatalog());entity.geometryVersions.splice(1,1);
