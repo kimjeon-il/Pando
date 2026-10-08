@@ -4,7 +4,7 @@ import { normalizePlace, resolvePlaceLabelRows } from '../../assets/js/modules/p
 import { placeLabelDimensions, layoutLabels } from '../../assets/js/modules/label-layout.js';
 
 const place = changes => normalizePlace({source:'geonames',sourceId:'703448',name:'키이우',nameEn:'Kyiv',nameNative:'Київ',
-  kind:'capital',coordinates:[30.52,50.45],nameTimeline:[{date:'1801-01-01',ko:'키예프'},{date:'1991-08-24',ko:'키이우'}],...changes});
+  kind:'capital',coordinates:[30.52,50.45],nameTimeline:[{fromYear:1801,ko:'키예프'},{fromDate:'1991-08-24',ko:'키이우'}],...changes});
 test('Korean, English and native lines are independently selectable and ordered',()=>{
   const record=place();
   assert.deepEqual(resolvePlaceLabelRows(record,{ko:true,en:true,native:true}).map(row=>row.text),['키이우','Kyiv','Київ']);
@@ -30,4 +30,12 @@ test('three visible lines form one tall collision box',()=>{
   assert.equal(multi.height,47);assert.ok(multi.width>=single.width);
   assert.deepEqual(layoutLabels([{key:'a',point:[100,100],...multi,priority:90,collisionGroup:'place'},
     {key:'b',point:[100,120],...single,priority:40,collisionGroup:'place'}]).map(item=>item.key),['a']);
+});
+
+test('year-only and exact naming dates retain distinct precision in the codec contract', () => {
+  const record = place();
+  assert.equal(record.nameTimeline[0].fromYear, 1801);
+  assert.equal(record.nameTimeline[0].fromDate, undefined);
+  assert.equal(record.nameTimeline[1].fromDate, '1991-08-24');
+  assert.deepEqual(resolvePlaceLabelRows(record, { ko: true }, '1991-08-23').map(row => row.text), ['키예프']);
 });
