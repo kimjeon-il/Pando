@@ -12,13 +12,13 @@ test('current preferences retain only label and composable selection settings', 
   const preferences = normalizeUserPreferences({
     version: 2,
     appearance: { theme: 'dark' },
-    labels: { country: { font: 'serif', color: '#Aa11Bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef' } },
+    labels: { country: { font: 'serif', color: '#Aa11Bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', languages: { ko: true, en: false, native: false } } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
   assert.deepEqual(preferences, {
     version: 2,
     appearance: { theme: 'dark', accentPreset: 'blue', statusBarVisible: true, smoothLines: true },
-    labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef' } },
+    labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', languages: { ko: true, en: false, native: false } } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
 });
@@ -33,4 +33,12 @@ test('invisible selection combinations restore an outline and old schema values 
   assert.equal(preferences.selection.outlineVisible, true);
   assert.equal(preferences.selection.fillStrength, defaultUserPreferences().selection.fillStrength);
   assert.deepEqual(preferences.labels, defaultUserPreferences().labels);
+});
+
+test('place language preferences persist choices and do not allow an empty selection', () => {
+  const selected = normalizeUserPreferences({ version: 2, labels: { place: { languages: { ko: false, en: true, native: true } } } });
+  assert.deepEqual(selected.labels.place.languages, { ko: false, en: true, native: true });
+  const none = normalizeUserPreferences({ version: 2, labels: { place: { languages: { ko: false, en: false, native: false } } } });
+  assert.deepEqual(none.labels.place.languages, { ko: true, en: false, native: false });
+  assert.deepEqual(defaultUserPreferences().labels.place.languages, { ko: true, en: false, native: false });
 });

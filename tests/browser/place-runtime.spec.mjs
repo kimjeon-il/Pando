@@ -8,8 +8,8 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   test.setTimeout(90_000);
   page.setDefaultTimeout(8_000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  const records=[{source:'synthetic',sourceId:'seoul',name:'서울 Synthetic',kind:'capital',coordinates:[127,37],minZoom:0,priority:90},
-    {source:'synthetic',sourceId:'london',name:'London Synthetic',kind:'capital',coordinates:[0,51],minZoom:0,priority:90}];
+  const records=[{source:'synthetic',sourceId:'seoul',name:'서울 Synthetic',nameEn:'Seoul',nameNative:'서울',kind:'capital',coordinates:[127,37],minZoom:0,priority:90},
+    {source:'synthetic',sourceId:'london',name:'London Synthetic',nameEn:'London',nameNative:'London',kind:'capital',coordinates:[0,51],minZoom:0,priority:90}];
   const bytes=Buffer.from(encodePlaceTile(records));
   const row={shard:'test',offset:0,length:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
   const manifest={version:1,revision:'browser-synthetic',stages:[{id:0,minZoom:0,columns:1,rows:1}],tiles:{'0/0-0':row},shards:{test:{url:'test.bin',bytes:bytes.length}},
@@ -19,6 +19,16 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   // contracts, not headless software-WebGL throughput. Keep native UI clicks.
   await page.goto('/?renderer=canvas');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:60_000});
+  await page.locator('#mapDisplayBtn').evaluate(button => button.click());
+  await page.locator('[data-map-display-row="labels"]').evaluate(button => button.click());
+  const englishSwitch = page.locator('[data-place-language="en"]');
+  const nativeSwitch = page.locator('[data-place-language="native"]');
+  await expect(englishSwitch).toBeVisible();
+  await englishSwitch.check();
+  await nativeSwitch.check();
+  await expect(englishSwitch).toBeChecked();
+  await expect(nativeSwitch).toBeChecked();
+  await page.locator('#mapDisplayBtn').evaluate(button => button.click());
   await page.locator('#objectSearchBtn').evaluate(button => button.click());
   await page.locator('#layerSearchInput').fill('서울');
   const result=page.locator('[data-object-search-select="labels"][data-item-id="builtin:place:synthetic:seoul"]');
@@ -47,5 +57,6 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#labelNameInput')).toHaveAttribute('readonly','');
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
   expect(await page.locator('.user-label').count()).toBeLessThanOrEqual(2048);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences')).labels.place.languages)).toEqual({ko:true,en:true,native:true});
   expect(errors).toEqual([]);
 });

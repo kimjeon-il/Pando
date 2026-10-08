@@ -1,4 +1,5 @@
 import { createMapVisualFrame } from '../../assets/js/modules/map-visual-frame.js';
+import { defaultUserPreferences, normalizeUserPreferences } from '../../assets/js/modules/user-preferences.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTerritorialLabels } from '../../assets/js/modules/app-territorial-labels.js';
@@ -47,7 +48,7 @@ function fixture(visibility = {}) {
       territorialScope: { displayFeature: id => features.find(f => f.id === id) },
       selectionDomain: { has: () => false, snapshot: () => ({ selection: { items: [], primaryKey: null } }) },
     },
-    environment: { runtimeAssetUrl: path => new URL(path, 'http://localhost/assets/js/') },
+    environment: { runtimeAssetUrl: path => new URL(path, 'http://localhost/assets/js/'), userPreferences: defaultUserPreferences() },
     renderQuality: { currentRenderQuality: { labelDensity: 1, tier: 'high' } },
     objectPresentation: { territorialScope: { displayFeature: id => features.find(f => f.id === id) }, territorialEntityName: feature => feature.properties.name },
     workspaceSurfaces: { isMobile: () => false },
@@ -114,6 +115,7 @@ test('symbol and hierarchy visibility switches refresh labels while retaining in
   let baseInvalidations = 0, autosaves = 0;
   settings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.mapSettings, {
     state, $: () => null, expandedMapDisplayGroups: new Set(), DISTRIBUTION_GROUP_TYPES: {},
+    userPreferences: defaultUserPreferences(), saveUserPreferences: next => normalizeUserPreferences(next), setUserPreferences() {},
     normalizeLayerPresentation: value => value, markLayerTreeDirty() {},
     gpuMapRenderer: { invalidateCountryPalette() {} },
     renderingDomain: {
@@ -188,3 +190,25 @@ for (const [id, group, nameKey, flagKey] of [
     assert.equal(state.layerVisibility[flagKey], true, 'hiding a type retains its symbol preferences');
   });
 }
+
+test('place language toggles persist independently and invalidate only label layout', t => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelectorAll: () => [] } });
+  t.after(() => { if (previous) Object.defineProperty(globalThis, 'document', previous); else delete globalThis.document; });
+  const settings = createMapSettings();
+  let current = defaultUserPreferences(), invalidations = 0, saved = 0;
+  const flat = {
+    userPreferences: current,
+    saveUserPreferences: next => { saved++; return normalizeUserPreferences(next); },
+    setUserPreferences: next => { current = next; flat.userPreferences = next; },
+    renderingDomain: { invalidateLabels: () => { invalidations++; } },
+  };
+  settings.connect(capabilityPortsForFixture(PROJECT_IO_OWNER_PORTS.mapSettings, flat));
+  assert.equal(settings.setPlaceLanguage('en', true), true);
+  assert.deepEqual(current.labels.place.languages, { ko: true, en: true, native: false });
+  assert.equal(settings.setPlaceLanguage('ko', false), true);
+  assert.deepEqual(current.labels.place.languages, { ko: false, en: true, native: false });
+  assert.equal(settings.setPlaceLanguage('en', false), false);
+  assert.equal(saved, 2);
+  assert.equal(invalidations, 2);
+});
