@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "scope": "1–26 stones, 1914 German–Danish border",
+  "referenceDate": "1914-07-31",
+  "queriedAtUtc": "2026-10-08T13:38:50.288932+00:00",
+  "historicRasterObtained": false,
+  "historicRasterComparedWithLine": false,
+  "searchMethod": "Public SLUB Kartenforum ElasticSearch geo_shape and pre-1915 date filters (per official client)",
+  "sourceSoftware": "https://github.com/slub/slub_web_kartenforum/blob/master/Build/src/util/apiEs.js",
+  "indexedEditions": [
+    {
+      "sheetId": "0619",
+      "title": "Hügum",
+      "publicationYear": 1878,
+      "surveyYear": 1878,
+      "publicationBeforeReferenceDate": true,
+      "sourceReviewStatus": "pre-1914-edition-catalogued-raster-not-reviewed",
+      "candidateLengthKm": 5.99299,
+      "extentLonLat": [
+        8.833333333,
+        55.3,
+        9.0,
+        55.4
+      ],
+      "geometryType": "MultiLineString",
+      "sourceCatalog": "https://commons.wikimedia.org/wiki/Module:Messtischblatt/data",
+      "deutscheFotothek": "https://www.deutschefotothek.de/documents/obj/71051510",
+      "slubGeoreferencedMapId": "10006020",
+      "slubWmsCapabilities": "https://wms.kartenforum.slub-dresden.de/map/10006020?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities"
+    },
+    {
+      "sheetId": "0717",
+      "title": "Hvidding-Ufer",
+      "publicationYear": 1880,
+      "surveyYear": 1878,
+      "publicationBeforeReferenceDate": true,
+      "sourceReviewStatus": "pre-1914-edition-catalogued-raster-not-reviewed",
+      "candidateLengthKm": 0.2938,
+      "extentLonLat": [
+        8.5,
+        55.2,
+        8.666666667,
+        55.3
+      ],
+      "geometryType": "MultiLineString",
+      "sourceCatalog": "https://commons.wikimedia.org/wiki/Module:Messtischblatt/data",
+      "deutscheFotothek": "https://www.deutschefotothek.de/documents/obj/71051521",
+      "slubGeoreferencedMapId": "10006009",
+      "slubWmsCapabilities": "https://wms.kartenforum.slub-dresden.de/map/10006009?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities"
+    },
+    {
+      "sheetId": "0718",
+      "title": "Hvidding",
+      "publicationYear": 1880,
+      "surveyYear": 1878,
+      "publicationBeforeReferenceDate": true,
+      "sourceReviewStatus": "pre-1914-edition-catalogued-raster-not-reviewed",
+      "candidateLengthKm": 11.88108,
+      "extentLonLat": [
+        8.666666667,
+        55.2,
+        8.833333333,
+        55.3
+      ],
+      "geometryType": "MultiLineString",
+      "sourceCatalog": "https://commons.wikimedia.org/wiki/Module:Messtischblatt/data",
+      "deutscheFotothek": "https://www.deutschefotothek.de/documents/obj/71051522",
+      "slubGeoreferencedMapId": "10006008",
+      "slubWmsCapabilities": "https://wms.kartenforum.slub-dresden.de/map/10006008?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities"
+    },
+    {
+      "sheetId": "0719",
+      "title": "Spandet",
+      "publicationYear": 1880,
+      "surveyYear": 1878,
+      "publicationBeforeReferenceDate": true,
+      "sourceReviewStatus": "pre-1914-edition-catalogued-raster-not-reviewed",
+      "candidateLengthKm": 8.51496,
+      "extentLonLat": [
+        8.833333333,
+        55.2,
+        9.0,
+        55.3
+      ],
+      "geometryType": "MultiLineString",
+      "sourceCatalog": "https://commons.wikimedia.org/wiki/Module:Messtischblatt/data",
+      "deutscheFotothek": "https://www.deutschefotothek.de/documents/obj/71051523",
+      "slubGeoreferencedMapId": "10006007",
+      "slubWmsCapabilities": "https://wms.kartenforum.slub-dresden.de/map/10006007?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities"
+    }
+  ],
+  "endpointObservations": [
+    {
+      "searchUrl": "https://search.kartenforum.slub-dresden.de/vk20",
+      "status": "searchable",
+      "resultsPerSheet": {
+        "0619": {
+          "spatialHitsReturned": 6,
+          "exactTitleMatches": 1
+        },
+        "0717": {
+          "spatialHitsReturned": 5,
+          "exactTitleMatches": 1
+        },
+        "0718": {
+          "spatialHitsReturned": 8,
+          "exactTitleMatches": 1
+        },
+        "0719": {
+          "spatialHitsReturned": 7,
+          "exactTitleMatches": 1
+        }
+      }
+    }
+  ],
+  "matches": {
+    "0619": [
+      {
+        "endpoint": "https://search.kartenforum.slub-dresden.de/vk20",
+        "id": "oai:de:slub-dresden:vk:id-10006020",
+        "score": 0.0,
+        "metadata": {
+          "map_id": "oai:de:slub-dresden:vk:id-10006020",
+          "title": "Hügum",
+          "title_long": "Meßtischblatt 21 : Hügum, 1878",
+          "description": "Hügum. - Aufn. 1878. - 1:25000. - [Berlin]: Reichsamt für Landesaufnahme, 1878. - 1 Kt.",
+          "time_period_start": "1878-01-01",
+          "time_period_end": "1878-12-31",
+          "map_scale": 25000,
+          "online_resources": [
+            {
+              "type": "Permalink",
+              "url": "https://www.deutschefotothek.de/documents/obj/71051510"
+            },
+            {
+              "type": "WMS",
+              "url": "https://wms.kartenforum.slub-dresden.de/map/10006020?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities"
+            },
+            {
+              "type": "WCS",
+              "url": "https://wcs.kartenforum.slub-dresden.de/map/10006020?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCapabilities"
+            },
+            {
+              "type": "download",
+              "url": "https://wcs.kartenforum.slub-dresden.de/map/10006020?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCoverage&CoverageID=df_dk_0010001_0619&CRS=EPSG:4326&BBOX=8.832254866,55.298233487,8.998922244,55.398247433&WIDTH=7880&HEIGHT=4729&FORMAT=GEOTIFF"
+            }
+          ],
+          "permalink": "https://www.deutschefotothek.de/documents/obj/71051510",
+          "zoomify_url": "https://fotothek.slub-dresden.de/zooms/df/dk/0010000/df_dk_0010001_0619/ImageProperties.xml",
+          "has_georeference": true,
+          "thumb_url": "https://fotothek.slub-dresden.de/thumbs/df/dk/0010000/df_dk_0010001_0619.jpg"
+        }
+      }
+    ],
+    "0717": [
+      {
+        "endpoint": "https://search.kartenforum.slub-dresden.de/vk20",
+        "id": "oai:de:slub-dresden:vk:id-10006009",
+        "score": 0.0,
+        "metadata": {
+          "map_id": "oai:de:slub-dresden:vk:id-10006009",
+          "title": "Hvidding-Ufer",
+          "title_long": "Meßtischblatt 33 : Hvidding-Ufer, 1880",
+          "description": "Hvidding-Ufer. - Aufn. 1878. - 1:25000. - [Berlin]: Reichsamt für Landesaufnahme, 1880. - 1 Kt.",
+          "time_period_start": "1880-01-01",
+          "time_period_end": "1880-12-31",
+          "map_scale": 25000,
+          "online_resources": [
+            {
+              "type": "Permalink",
+              "url": "https://www.deutschefotothek.de/documents/obj/71051521"
+            },
+            {
+              "type": "WMS",
+              "url": "https://wms.kartenforum.slub-dresden.de/map/10006009?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities"
+            },
+            {
+              "type": "WCS",
+              "url": "https://wcs.kartenforum.slub-dresden.de/map/10006009?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCapabilities"
+            },
+            {
+              "type": "download",
+              "url": "https://wcs.kartenforum.slub-dresden.de/map/10006009?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCoverage&CoverageID=df_dk_0010001_0717&CRS=EPSG:4326&BBOX=8.498984047,55.198253004,8.665637728,55.298251599&WIDTH=7892&HEIGHT=4735&FORMAT=GEOTIFF"
+            }
+          ],
+          "permalink": "https://www.deutschefotothek.de/documents/obj/71051521",
+          "zoomify_url": "https://fotothek.slub-dresden.de/zooms/df/dk/0010000/df_dk_0010001_0717/ImageProperties.xml",
+          "has_georeference": true,
+          "thumb_url": "https://fotothek.slub-dresden.de/thumbs/df/dk/0010000/df_dk_0010001_0717.jpg"
+        }
+      }
+    ],
+    "0718": [
+      {
+        "endpoint": "https://search.kartenforum.slub-dresden.de/vk20",
+        "id": "oai:de:slub-dresden:vk:id-10006008",
+        "score": 0.0,
+        "metadata": {
+          "map_id": "oai:de:slub-dresden:vk:id-10006008",
+          "title": "Hvidding",
+          "title_long": "Meßtischblatt 34 : Hvidding, 1880",
+          "description": "Hvidding. - Aufn. 1878, hrsg. 1880. - 1:25000. - [Berlin]: Reichsamt für Landesaufnahme, 1880. - 1 Kt.",
+          "time_period_start": "1880-01-01",
+          "time_period_end": "1880-12-31",
+          "map_scale": 25000,
+          "online_resources": [
+            {
+              "type": "Permalink",
+              "url": "https://www.deutschefotothek.de/documents/obj/71051522"
+            },
+            {
+              "type": "WMS",
+              "url": "https://wms.kartenforum.slub-dresden.de/map/10006008?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities"
+            },
+            {
+              "type": "WCS",
+              "url": "https://wcs.kartenforum.slub-dresden.de/map/10006008?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCapabilities"
+            },
+            {
+              "type": "download",
+              "url": "https://wcs.kartenforum.slub-dresden.de/map/10006008?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCoverage&CoverageID=df_dk_0010001_0718&CRS=EPSG:4326&BBOX=8.665597531,55.198245262,8.832305068,55.298259351&WIDTH=7886&HEIGHT=4731&FORMAT=GEOTIFF"
+            }
+          ],
+          "permalink": "https://www.deutschefotothek.de/documents/obj/71051522",
+          "zoomify_url": "https://fotothek.slub-dresden.de/zooms/df/dk/0010000/df_dk_0010001_0718/ImageProperties.xml",
+          "has_georeference": true,
+          "thumb_url": "https://fotothek.slub-dresden.de/thumbs/df/dk/0010000/df_dk_0010001_0718.jpg"
+        }
+      }
+    ],
+    "0719": [
+      {
+        "endpoint": "https://search.kartenforum.slub-dresden.de/vk20",
+        "id": "oai:de:slub-dresden:vk:id-10006007",
+        "score": 0.0,
+        "metadata": {
+          "map_id": "oai:de:slub-dresden:vk:id-10006007",
+          "title": "Spandet",
+          "title_long": "Meßtischblatt 35 : Spandet, 1880",
+          "description": "Spandet. - Aufn. 1878. - 1:25000. - [Berlin]: Reichsamt für Landesaufnahme, 1880. - 1 Kt.",
+          "time_period_start": "1880-01-01",
+          "time_period_end": "1880-12-31",
+          "map_scale": 25000,
+          "online_resources": [
+            {
+              "type": "Permalink",
+              "url": "https://www.deutschefotothek.de/documents/obj/71051523"
+            },
+            {
+              "type": "WMS",
+              "url": "https://wms.kartenforum.slub-dresden.de/map/10006007?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities"
+            },
+            {
+              "type": "WCS",
+              "url": "https://wcs.kartenforum.slub-dresden.de/map/10006007?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCapabilities"
+            },
+            {
+              "type": "download",
+              "url": "https://wcs.kartenforum.slub-dresden.de/map/10006007?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCoverage&CoverageID=df_dk_0010001_0719&CRS=EPSG:4326&BBOX=8.832262909,55.198249711,8.998916404,55.298256003&WIDTH=7884&HEIGHT=4731&FORMAT=GEOTIFF"
+            }
+          ],
+          "permalink": "https://www.deutschefotothek.de/documents/obj/71051523",
+          "zoomify_url": "https://fotothek.slub-dresden.de/zooms/df/dk/0010000/df_dk_0010001_0719/ImageProperties.xml",
+          "has_georeference": true,
+          "thumb_url": "https://fotothek.slub-dresden.de/thumbs/df/dk/0010000/df_dk_0010001_0719.jpg"
+        }
+      }
+    ]
+  },
+  "warnings": [
+    "Catalog search matches are not evidence of original raster availability.",
+    "All four index sheets have 1878–1880 catalog editions, but catalog dating does not verify raster content.",
+    "Do not assume historical map coordinates equal the modern parish-based working candidate."
+  ],
+  "spatialContext": {}
+}
