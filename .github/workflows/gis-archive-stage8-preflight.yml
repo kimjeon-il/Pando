@@ -1,0 +1,101 @@
+name: GIS Stage 8 Unified Archive Rollout Preflight
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-archive-stage8-preflight.yml'
+      - 'tools/audit-legacy-gis-assets.mjs'
+      - 'tools/audit-legacy-release-consumers.mjs'
+      - 'tools/plan-gis-archive-rollout.mjs'
+      - 'tests/unit/legacy-gis-assets-audit.test.mjs'
+      - 'tests/unit/legacy-release-consumers.test.mjs'
+      - 'tests/unit/gis-archive-rollout.test.mjs'
+      - 'assets/data/world/current.json'
+      - 'assets/data/world/build-input.json'
+      - 'assets/data/world-preview-v*.json'
+      - 'assets/data/hydro/**/manifest.json'
+      - 'assets/data/terrain/**/manifest.json'
+      - 'assets/js/modules/app-environment.js'
+      - 'assets/js/modules/terrain-manifest.js'
+      - 'scripts/generate-build-metadata.mjs'
+      - 'docs/validation/data-versioning-phase8.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archive-rollout-preflight:
+    name: Read-only 12-branch, 1GB Pages, 2124-asset immutable deletion lock
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /tools/**/*.mjs
+            /tools/**/*.js
+            /tools/**/*.py
+            /tools/**/*.sh
+            /tests/**/*.mjs
+            /tests/**/*.js
+            /tests/**/*.py
+            /tests/**/*.ts
+            /scripts/
+            /.github/workflows/*.yml
+            /assets/js/
+            /assets/data/world/current.json
+            /assets/data/world/build-input.json
+            /assets/data/world-preview-v*.json
+            /assets/data/hydro/*/manifest.json
+            /assets/data/terrain/*/manifest.json
+            /package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch exact tree metadata, without historical binary checkout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p reports
+          curl --fail --silent --show-error --retry 3 --retry-delay 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/git/trees/$GITHUB_SHA?recursive=1" \
+            -o reports/stage8-tree.json
+      - name: Checkout fixed App provenance manifest only
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoEditor
+          ref: f3dc9852ec93691980b3c6afdeb84a82d4ccfad4
+          path: pinned-app
+          persist-credentials: false
+          sparse-checkout: |
+            assets/world/manifest.json
+      - name: Audit regressions on small synthetic repository
+        run: |
+          node --check tools/audit-legacy-gis-assets.mjs
+          node --check tools/audit-legacy-release-consumers.mjs
+          node --check tools/plan-gis-archive-rollout.mjs
+          node --test tests/unit/legacy-gis-assets-audit.test.mjs tests/unit/legacy-release-consumers.test.mjs tests/unit/gis-archive-rollout.test.mjs
+      - name: Prepare immutable group-by-group deletion lock and Pages size preflight
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node tools/plan-gis-archive-rollout.mjs \
+            --root . --tree-json reports/stage8-tree.json \
+            --app-manifest pinned-app/assets/world/manifest.json \
+            --out reports/gis-archive-stage8-plan.json \
+            --lock-out reports/gis-archive-stage8-lock.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-gis-stage8-readonly-rollout-plan
+          if-no-files-found: warn
+          path: |
+            reports/gis-archive-stage8-plan.json
+            reports/gis-archive-stage8-lock.json
