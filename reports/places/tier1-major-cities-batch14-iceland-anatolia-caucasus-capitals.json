@@ -1,0 +1,563 @@
+{
+  "schema": "pando-places-tier1-review-v6",
+  "batch": "14-iceland-anatolia-caucasus-capitals",
+  "status": "verified-source-staging-not-runtime",
+  "source": "GeoNames (CC BY 4.0), Reykjavík City, Turkish Grand National Assembly/UNESCO, Georgian National Library, Yerevan municipality, Azerbaijan state history and script law",
+  "checkedOn": "2026-10-08",
+  "selection": "Five distinct P/PPLC capital settlement IDs: Reykjavík, Ankara, Tbilisi, Yerevan and Baku. Vatican City explicitly excluded per editorial request because Rome already covers the local map location; sovereign entities are never merged by ID.",
+  "coordinateConvention": "WGS84 EPSG:4326. The numbers are GeoNames representative populated-place point coordinates, not municipal jurisdiction polygons or historical boundaries.",
+  "countryCodeSemantics": "GeoNames sourceCountryCode indicates current data source classification, not historical state sovereignty. Georgia, Armenia, and Azerbaijan straddle conventional Europe/Asia regional classifications; reviewed together as adjacent Caucasus rather than claiming uncontested Europe membership.",
+  "koreanMapLabelPolicyFile": "reports/places/korean-map-label-policy.json",
+  "historicalDisplayPolicyFile": "reports/places/historical-display-policy.json",
+  "historicalDisplayStatus": "timeline-staged-not-runtime",
+  "historicNameScope": "Historic city names and municipal or government status events since 1801, with older etymological/archaeological evidence retained as non-runtime context.",
+  "qualityNotes": [
+    "Vatican City P/PPLC 6691831 is intentionally excluded. Rome's previously reviewed P/PPLC 3169070 remains unchanged; exclusion is editorial deduplication, not a claim that Vatican is legally the same city as Rome.",
+    "All five new source records are P/PPLC capital settlements and are distinct from similarly named ADM1 metropolitan or municipal divisions.",
+    "Reykjavík's 1786 town rights, 1904 local-government role and 1944 independent republic status are not city renaming events.",
+    "Ankara's 1923-10-13 capital designation is distinct from the Angora/Ankara usage shift; no exact Korean renaming date is inferred.",
+    "Tbilisi: Georgian National Library identifies pre-1936 ტფილისი and modern თბილისი. A 1936 year-only transition in Korean editorial map label is supported, with exact date left unverified; Tiflis remains historical Russian/European form.",
+    "Yerevan's Erivan/Эривань is recorded as earlier Russian-derived variant and its Erebuni fortress as a separate archaeological site, not an 1801-or-later city renaming.",
+    "Baku: Azerbaijani Bakı/Бакы, Russian Баку and English Baku are language/script forms; 1918 state designation and 1991/2001 script policies are not simultaneous renamings.",
+    "Year-only displayTimeline fromYear specifies an editorial approximate boundary. It must never be silently described as confirmed January 1 official enactment.",
+    "All UI-facing shortDescriptionKo and note/detail strings contain at most 28 Unicode code points; detailed original research and source URLs are retained separately.",
+    "Validated review data only. No production tile, search index, runtime manifest, country's actual territorial boundary, or main branch is altered."
+  ],
+  "excluded": [
+    {
+      "subject": "Vatican City",
+      "geonameId": 6691831,
+      "reason": "user-directed-location-overlap-with-reviewed-Rome",
+      "reviewStatus": "excluded-from-batch14-not-a-sovereignty-determination"
+    }
+  ],
+  "records": [
+    {
+      "geonameId": 3413829,
+      "names": [
+        {
+          "text": "Reykjavík",
+          "language": "is",
+          "usage": "standard",
+          "note": "아이슬란드어 공식 도시명",
+          "sourceUrl": "https://www.geonames.org/3413829/"
+        },
+        {
+          "text": "Reykjavik",
+          "language": "en",
+          "usage": "standard",
+          "note": "영문에서 자주 쓰는 비강세 표기",
+          "sourceUrl": "https://www.geonames.org/3413829/"
+        },
+        {
+          "text": "레이캬비크",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3413829/"
+        },
+        {
+          "text": "Reiciavicia",
+          "language": "la",
+          "usage": "historical",
+          "variantType": "olderLatinExonym",
+          "note": "옛 라틴어 외국 명칭",
+          "sourceUrl": "https://www.geonames.org/3413829/"
+        }
+      ],
+      "latitude": 64.13548,
+      "longitude": -21.89541,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/3413829/reykjavik.html",
+      "sourceCountryCode": "IS",
+      "defaultDisplayNameKo": "레이캬비크",
+      "shortDescriptionKo": "1786년 도시권, 1904년 수도 기능",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "레이캬비크",
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://reykjavik.is/sites/default/files/ymis_skjol/skjol_utgefid_efni/reykjavik_unesco_city_of_literature.pdf"
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "historicalGeography": {
+        "events": [
+          {
+            "year": 1786,
+            "type": "tradingTownRightsGranted",
+            "detail": "1786년 도시 특허 취득",
+            "researchDetail": "아이슬란드 왕정 아래 여섯 교역지에 도시·상업 특허를 부여하였다. 레이캬비크의 행정구역은 후대 여러 차례 확대되었으므로 1786년 당시 경계를 현대 지명 객체의 폴리곤으로 대체할 수 없다.",
+            "sourceUrl": "https://reykjavik.is/en/city-viewer-help"
+          },
+          {
+            "year": 1904,
+            "type": "icelandicHomeRuleCapital",
+            "detail": "1904년 아이슬란드 자치정부 소재",
+            "researchDetail": "덴마크와 연계된 아이슬란드가 자치정부를 구성하고 행정 기관들이 레이캬비크로 이전하면서 수도 기능이 강화되었다. 국가 독립이나 공식 도시 개칭과 구분한다.",
+            "sourceUrl": "https://reykjavik.is/sites/default/files/ymis_skjol/skjol_utgefid_efni/reykjavik_unesco_city_of_literature.pdf"
+          },
+          {
+            "year": 1944,
+            "type": "icelandicRepublicFoundation",
+            "detail": "1944년 아이슬란드 공화국 성립",
+            "researchDetail": "1944년 공화국 독립으로 현재의 독립국 수도 역할이 확립되었으며 Reykjavík 자체가 새 이름으로 개칭되지는 않았다.",
+            "sourceUrl": "https://reykjavik.is/sites/default/files/ymis_skjol/skjol_utgefid_efni/reykjavik_unesco_city_of_literature.pdf"
+          }
+        ],
+        "notes": [
+          {
+            "detail": "Reykjavík와 Reykjavik 병기",
+            "sourceUrl": "https://www.geonames.org/3413829/"
+          },
+          {
+            "detail": "취락 PPLC와 Reykjavíkurborg 별개",
+            "researchDetail": "GeoNames 3413829는 수도 취락이고 Reykjavíkurborg는 해당 도시를 포함하는 별개의 ADM2 지자체 객체다.",
+            "sourceUrl": "https://www.geonames.org/3413829/"
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 323786,
+      "names": [
+        {
+          "text": "Ankara",
+          "language": "tr",
+          "usage": "standard",
+          "note": "현대 튀르키예어 공식 지명",
+          "sourceUrl": "https://www.geonames.org/323786/"
+        },
+        {
+          "text": "Ankara",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/323786/"
+        },
+        {
+          "text": "앙카라",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/323786/"
+        },
+        {
+          "text": "Angora",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "olderEnglishExonym",
+          "note": "오스만 시대 영문 지명 Angora",
+          "sourceUrl": "https://whc.unesco.org/en/tentativelists/6823/"
+        },
+        {
+          "text": "Engürü",
+          "language": "tr",
+          "usage": "historical",
+          "variantType": "earlierTurkishCityName",
+          "note": "앙카라의 옛 튀르키예어 이름",
+          "sourceUrl": "https://s.ankara.bel.tr/files/2024/12/23/ccef1b275bd35bf0350af528ef58079e.pdf"
+        },
+        {
+          "text": "Ancyra",
+          "language": "la",
+          "usage": "historical",
+          "variantType": "classicalRomanName",
+          "note": "고대 로마시대 지명",
+          "sourceUrl": "https://whc.unesco.org/en/tentativelists/6823/"
+        }
+      ],
+      "latitude": 39.91987,
+      "longitude": 32.85427,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/323786/ankara.html",
+      "sourceCountryCode": "TR",
+      "defaultDisplayNameKo": "앙카라",
+      "shortDescriptionKo": "1923-10-13 튀르키예 수도 지정",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "앙카라",
+          "kind": "koreanEditorialTranscription",
+          "sourceUrl": "https://whc.unesco.org/en/tentativelists/6823/",
+          "note": "현지 Ankara 기반 편집 표기",
+          "researchNote": "영어 역사 지도에서 Angora라는 표기를 많이 사용했지만, 한글 기본명을 국가 수도 이전일인 1923년 10월 13일에 맞추어 일괄 변경하지 않는다."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801-with-language-variants",
+      "historicalGeography": {
+        "events": [
+          {
+            "date": "1923-10-13",
+            "type": "turkishCapitalDesignation",
+            "detail": "1923년 터키 수도로 지정",
+            "researchDetail": "튀르키예 국회가 앙카라를 수도로 선정하였다. 현대 튀르키예의 1923년 수도 지정은 Angora에서 Ankara로 도시의 모든 언어명이 한 날짜에 변경됐다는 뜻이 아니다.",
+            "sourceUrl": "https://www.ankara.bel.tr/haberler/ankara-kent-konseyi-baskani-halil-ibrahim-yilmaz-in-13-ekim-ankara-nin-baskent-olusu-kutlama-mesaji-16783"
+          }
+        ],
+        "notes": [
+          {
+            "detail": "1923 수도 이전과 개칭 구별",
+            "researchDetail": "오스만 시대 Angora/Engürü, 현대 Ankara 등의 어형은 언어·시대별 변이이며 1923-10-13 날짜의 단일 법정 도시명 변경으로 압축하지 않는다.",
+            "sourceUrl": "https://s.ankara.bel.tr/files/2024/12/23/ccef1b275bd35bf0350af528ef58079e.pdf"
+          },
+          {
+            "detail": "앙카라시와 Ankara ADM1 구별",
+            "researchDetail": "GeoNames 323786은 P/PPLC 도시이고 Ankara 광역 행정구역 ADM1(323784)과는 별개의 공간 범위를 갖는다.",
+            "sourceUrl": "https://www.geonames.org/323786/"
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 611717,
+      "names": [
+        {
+          "text": "თბილისი",
+          "language": "ka",
+          "script": "Geor",
+          "usage": "standard",
+          "note": "1936년 이후 조지아어 표기",
+          "sourceUrl": "https://www.geonames.org/611717/"
+        },
+        {
+          "text": "Tbilisi",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/611717/"
+        },
+        {
+          "text": "트빌리시",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/611717/"
+        },
+        {
+          "text": "티플리스",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "historicKoreanMapExonymFromTiflis",
+          "note": "Tiflis 기반 옛 지도 편집형",
+          "sourceUrl": "https://www.nplg.gov.ge/saskolo/index.php?a=term&d=55&t=1446"
+        },
+        {
+          "text": "ტფილისი",
+          "language": "ka",
+          "script": "Geor",
+          "usage": "historical",
+          "variantType": "pre1936GeorgianOrthography",
+          "note": "1936년 이전 조지아어 철자",
+          "sourceUrl": "https://www.nplg.gov.ge/saskolo/index.php?a=term&d=55&t=1446"
+        },
+        {
+          "text": "Tiflis",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "olderEnglishRomanization",
+          "note": "러시아어 기반 옛 서양명",
+          "sourceUrl": "https://www.nplg.gov.ge/saskolo/index.php?a=term&d=55&t=1446"
+        },
+        {
+          "text": "Тифлис",
+          "language": "ru",
+          "script": "Cyrl",
+          "usage": "historical",
+          "variantType": "historicRussianExonym",
+          "note": "러시아어 옛 이름",
+          "sourceUrl": "https://www.geonames.org/611717/"
+        },
+        {
+          "text": "Тбилиси",
+          "language": "ru",
+          "script": "Cyrl",
+          "usage": "standard",
+          "note": "러시아어 현대 지명",
+          "sourceUrl": "https://www.geonames.org/611717/"
+        }
+      ],
+      "latitude": 41.69143,
+      "longitude": 44.83412,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/611717/tbilisi.html",
+      "sourceCountryCode": "GE",
+      "defaultDisplayNameKo": "트빌리시",
+      "shortDescriptionKo": "1936년 조지아어 지명 철자 변경",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "티플리스",
+          "kind": "koreanEditorialTranscription",
+          "sourceUrl": "https://www.nplg.gov.ge/saskolo/index.php?a=term&d=55&t=1446",
+          "note": "옛 Tiflis 기반 편집 표기",
+          "researchNote": "국립 조지아 도서관의 지명 설명에 따르면 1936년 전까지 조지아어 표기는 ტფილისი였다. 한국어 티플리스는 옛 유럽·러시아어 Tiflis를 바탕으로 한 판도편집기 표기 관례이며 당시 한국어 사용의 실증은 아니다."
+        },
+        {
+          "fromYear": 1936,
+          "nameKo": "트빌리시",
+          "kind": "koreanEditorialTranscription",
+          "sourceUrl": "https://www.nplg.gov.ge/saskolo/index.php?a=term&d=55&t=1446",
+          "note": "연도까지만 확인된 전환",
+          "researchNote": "1936년 전환 근거는 조지아어 표기 ტფილისი → თბილისი이며, 1936년 중 정확한 시행일을 확인하지 못했다. 한국어 지도 표기는 연도 단위로 전환하며 1월 1일 법정 개칭으로 단정하지 않는다."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801-year-precision-1936-orthography",
+      "historicalGeography": {
+        "events": [
+          {
+            "year": 1936,
+            "type": "georgianCityNameOrthographyReform",
+            "detail": "1936년 조지아어 표기 정비",
+            "researchDetail": "옛 조지아어 ტფილისი가 თანამედროვე თბილისი로 정비되었다. 독일어 Tiflis 등 외국어 명칭은 별도로 존속하므로 모든 언어의 공식 개칭이라고 표현하지 않는다.",
+            "sourceUrl": "https://www.nplg.gov.ge/saskolo/index.php?a=term&d=55&t=1446"
+          },
+          {
+            "date": "1918-05-26",
+            "type": "georgiaIndependenceDeclaration",
+            "detail": "1918년 조지아 독립 선언",
+            "researchDetail": "조지아의 독립 선언·트빌리시 수도 기능과 지명 철자 변경은 별개의 사건이다.",
+            "sourceUrl": "https://www.tbilisi.gov.ge/pages/history"
+          }
+        ],
+        "notes": [
+          {
+            "detail": "Tiflis는 외국어 옛 지명",
+            "researchDetail": "독일어와 러시아어 Tiflis는 동일 도시의 언어별 표기로 남는다. 역사적 연도 1936을 근거로 모든 지도 언어에 변환을 강제하지 않는다.",
+            "sourceUrl": "https://www.nplg.gov.ge/saskolo/index.php?a=term&d=55&t=1446"
+          },
+          {
+            "detail": "수도 취락과 Tbilisi ADM1 분리",
+            "sourceUrl": "https://www.geonames.org/611717/"
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 616052,
+      "names": [
+        {
+          "text": "Երևան",
+          "language": "hy",
+          "script": "Armn",
+          "usage": "standard",
+          "note": "현행 동부 아르메니아어명",
+          "sourceUrl": "https://www.geonames.org/616052/"
+        },
+        {
+          "text": "Yerevan",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/616052/"
+        },
+        {
+          "text": "예레반",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/616052/"
+        },
+        {
+          "text": "Ереван",
+          "language": "ru",
+          "script": "Cyrl",
+          "usage": "standard",
+          "note": "러시아어 현대 도시명",
+          "sourceUrl": "https://www.geonames.org/616052/"
+        },
+        {
+          "text": "Эривань",
+          "language": "ru",
+          "script": "Cyrl",
+          "usage": "historical",
+          "variantType": "imperialRussianHistoricName",
+          "note": "제정 러시아 시기 지명",
+          "sourceUrl": "https://www.geonames.org/616052/"
+        },
+        {
+          "text": "Erivan",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "olderRussianBasedEnglishRomanization",
+          "note": "러시아어 기반 영문 옛 지명",
+          "sourceUrl": "https://www.geonames.org/616052/"
+        },
+        {
+          "text": "Յերեվան",
+          "language": "hy",
+          "script": "Armn",
+          "usage": "historical",
+          "variantType": "earlySovietArmenianOrthography",
+          "note": "소련 초기 철자, 연대 불확실",
+          "researchNote": "GeoNames에 역사적 아르메니아어 표기 1922~1940으로 분류되어 있으나 법정 도시 개칭 범위와는 다르다.",
+          "sourceUrl": "https://www.geonames.org/616052/"
+        }
+      ],
+      "latitude": 40.17765,
+      "longitude": 44.5126,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/616052/yerevan.html",
+      "sourceCountryCode": "AM",
+      "defaultDisplayNameKo": "예레반",
+      "shortDescriptionKo": "1918년 독립 아르메니아 수도",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "예레반",
+          "kind": "koreanEditorialTranscription",
+          "sourceUrl": "https://www.yerevan.am/en/old-yerevan/",
+          "note": "현행 아르메니아어 기반 표기",
+          "researchNote": "옛 러시아어 Эривань 및 영문 Erivan은 사료·검색 별칭으로 보존한다. 1918·1920년 수도 지위 변화에 맞추어 언어마다 도시명을 강제로 교체하지 않는다."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801-with-imperial-russian-variants",
+      "historicalGeography": {
+        "events": [
+          {
+            "date": "1918-05-28",
+            "type": "armenianRepublicCapitalDesignation",
+            "detail": "1918년 아르메니아 수도 지정",
+            "researchDetail": "예레반 시청의 도시 연혁에 따르면 1918년 5월 28일 독립 아르메니아 공화국의 수도로 선포되었다. 그 날짜에 이름이 바뀐 것은 아니다.",
+            "sourceUrl": "https://www.yerevan.am/en/old-yerevan/"
+          },
+          {
+            "date": "1920-11-29",
+            "type": "sovietArmeniaCapitalDesignation",
+            "detail": "1920년 소비에트 아르메니아 수도",
+            "researchDetail": "독립 아르메니아 공화국 이후 소련 시기에도 수도 지위가 이어졌다. 1918년 및 1920년의 정치적 변화는 지명 개칭 사건이 아니다.",
+            "sourceUrl": "https://www.yerevan.am/en/old-yerevan/"
+          },
+          {
+            "year": -782,
+            "type": "ebrebuniFortressFoundationTradition",
+            "detail": "기원전 782년 에레부니 창건",
+            "researchDetail": "에레부니 요새의 창건 시점과 현대 예레반 도시 PPLC 레코드의 1801년 이후 이름 적용 시작·현재 행정 경계를 동일한 역사적 범위로 취급하지 않는다.",
+            "sourceUrl": "https://www.yerevan.am/en/old-yerevan/"
+          }
+        ],
+        "notes": [
+          {
+            "detail": "옛 러시아어 Erivan과 구별",
+            "sourceUrl": "https://www.geonames.org/616052/"
+          },
+          {
+            "detail": "Erebuni는 별도 고대 유적",
+            "researchDetail": "오늘날 예레반의 역사적 기원인 에레부니 유적은 독립 고고학 대상이다. 별도 역사적 취락·유적을 현대 도시 ID로 합치지 않는다.",
+            "sourceUrl": "https://www.yerevan.am/en/old-yerevan/"
+          },
+          {
+            "detail": "취락 Yerevan과 ADM1 구별",
+            "sourceUrl": "https://www.geonames.org/616052/"
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 587084,
+      "names": [
+        {
+          "text": "Bakı",
+          "language": "az",
+          "script": "Latn",
+          "usage": "standard",
+          "note": "아제르바이잔어 라틴 문자 표기",
+          "sourceUrl": "https://www.geonames.org/587084/"
+        },
+        {
+          "text": "Baku",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/587084/"
+        },
+        {
+          "text": "바쿠",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/587084/"
+        },
+        {
+          "text": "Бакы",
+          "language": "az",
+          "script": "Cyrl",
+          "usage": "historical",
+          "variantType": "sovietAzerbaijaniCyrillicOrthography",
+          "note": "소련기 아제르바이잔어 철자",
+          "sourceUrl": "https://cis-legislation.com/document.fwx?rgn=2892"
+        },
+        {
+          "text": "Баку",
+          "language": "ru",
+          "script": "Cyrl",
+          "usage": "standard",
+          "note": "러시아어 도시명",
+          "sourceUrl": "https://www.geonames.org/587084/"
+        },
+        {
+          "text": "باکو",
+          "language": "fa",
+          "script": "Arab",
+          "usage": "alternate",
+          "variantType": "persianExonym",
+          "note": "페르시아어 지명",
+          "sourceUrl": "https://www.geonames.org/587084/"
+        }
+      ],
+      "latitude": 40.37767,
+      "longitude": 49.89201,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/587084/baku.html",
+      "sourceCountryCode": "AZ",
+      "defaultDisplayNameKo": "바쿠",
+      "shortDescriptionKo": "1918년 독립 공화국의 수도",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "바쿠",
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/587084/",
+          "note": "자국 문자 변화와 별개 한국명",
+          "researchNote": "아제르바이잔어 지명의 아랍·키릴·라틴 문자 사용과 러시아어 Баку는 구별한다. 1918년 수도 지위 및 1991년 문자법 변경이 바쿠라는 도시의 공식 한국어명 변경을 직접 의미하지 않는다."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801-with-script-changes",
+      "historicalGeography": {
+        "events": [
+          {
+            "date": "1918-09-17",
+            "type": "azerbaijanRepublicCapitalDeclared",
+            "detail": "1918년 독립 공화국 수도",
+            "researchDetail": "아제르바이잔 공화국 정부가 간자에서 바쿠로 이동한 시점으로, 바쿠 수도 지정의 주요 기준이다. 바쿠라는 도시명 자체의 개칭은 아니다.",
+            "sourceUrl": "https://azerbaijan.az/en/related-information/284"
+          },
+          {
+            "date": "1991-12-25",
+            "type": "azerbaijaniLatinAlphabetRestorationAct",
+            "detail": "1991년 라틴 문자 복원 법령",
+            "researchDetail": "아제르바이잔어의 공식 표기 체계 변화는 바쿠 도시에 대한 법률상 개칭과 구별한다. 라틴 문자 재도입은 단계적이었다.",
+            "sourceUrl": "https://cis-legislation.com/document.fwx?rgn=2892"
+          },
+          {
+            "date": "2001-08-01",
+            "type": "officialLatinScriptImplementation",
+            "detail": "2001년 라틴 문자 사용 강화",
+            "researchDetail": "1991년 라틴 문자 재도입 결정 이후 2001년 공문서·언론 등에서 라틴 문자 사용이 확대되었다. Bakı와 Бакы는 지명 자체보다 표기 문자 관례의 차이다.",
+            "sourceUrl": "https://www.rferl.org/a/1097073.html"
+          }
+        ],
+        "notes": [
+          {
+            "detail": "Bakı·Бакы는 문자별 형태",
+            "sourceUrl": "https://cis-legislation.com/document.fwx?rgn=2892"
+          },
+          {
+            "detail": "러시아어 Баку도 병용",
+            "sourceUrl": "https://www.geonames.org/587084/"
+          },
+          {
+            "detail": "도시 PPLC와 Baki ADM1 구별",
+            "sourceUrl": "https://www.geonames.org/587084/"
+          }
+        ]
+      }
+    }
+  ]
+}
