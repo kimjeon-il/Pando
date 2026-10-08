@@ -46,9 +46,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/research/siachen/
+          git add assets/data/research/siachen/siachen_s2_*_optical.png
+          git add assets/data/research/siachen/siachen_s2_optical_comparison.json
+          git add assets/data/research/siachen/README_s2_optical.md
           if ! git diff --cached --quiet; then
             git commit -m "research: record Sentinel-2 georeferenced optical comparisons"
+            git fetch origin research/siachen-rgi7-outline
+            git rebase origin/research/siachen-rgi7-outline
             git push origin HEAD:research/siachen-rgi7-outline
           fi
       - name: Upload optical image and source data
