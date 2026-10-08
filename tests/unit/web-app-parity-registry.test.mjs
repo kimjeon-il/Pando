@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import { validateRegistry, selectFeatures } from '../../tools/parity/registry.mjs';
 
 const fixture = () => ({ schema: 'web-app-parity-index', version: 1, sharedPaths: { web: ['tools/parity/**'], app: ['tools/run-final-oracles.mjs'] },
@@ -38,4 +39,8 @@ test('impact selection includes dependent features and blocks unmapped relevant 
 test('explicit feature selection cannot silently ignore invalid IDs', () => {
   assert.throws(() => selectFeatures(fixture(), {}, ['missing']), /Unknown feature/);
   assert.deepEqual(selectFeatures(fixture(), {}, ['selection']).selected, ['selection']);
+});
+test('approved registry uses only adapters accepted by the integrated runner', () => {
+  const registry=JSON.parse(readFileSync(new URL('../fixtures/portability/index.json',import.meta.url),'utf8'));
+  assert.equal(validateRegistry(registry),registry);
 });

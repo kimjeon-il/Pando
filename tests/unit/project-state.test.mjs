@@ -20,6 +20,7 @@ const state = {
   physicalSettings: { terrainVisible: true }, projection: 'flat',
   layerVisibility: { countries: true }, itemVisibility: { A: false }, layerFolders: { countries: true },
   view: { flatZoom: 2 },
+  timelineCursor: '1914-07',
 };
 
 test('project serialization contains document and presentation fields only', () => {
@@ -28,6 +29,7 @@ test('project serialization contains document and presentation fields only', () 
   assert.equal('removedLayerItems' in project, false);
   assert.equal('countriesLocked' in project, false);
   assert.equal('projection' in project, false);
+  assert.equal('timelineCursor' in project, false);
   assert.equal('view' in project, false);
   assert.equal('layerFolders' in project, false);
 });
@@ -40,6 +42,7 @@ test('history snapshots preserve editable object state through the shared schema
   assert.equal('labelSettings' in history, false);
   assert.equal('layerVisibility' in history, false);
   assert.equal('projection' in history, false);
+  assert.equal('timelineCursor' in history, false);
 });
 
 test('presentation and session scopes stay independent', () => {
@@ -53,6 +56,7 @@ test('presentation and session scopes stay independent', () => {
   assert.equal(session.projection, 'flat');
   assert.deepEqual(session.view, { flatZoom: 2 });
   assert.deepEqual(session.layerFolders, { countries: true });
+  assert.equal(session.timelineCursor, '1914-07');
   assert.equal('layerVisibility' in session, false);
 });
 

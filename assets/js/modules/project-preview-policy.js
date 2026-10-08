@@ -1,15 +1,19 @@
 import { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
 import { staticTimelineViews } from './timeline-static-view.js';
+import { initialTimelineMonth, resolvedTimelineViews } from './timeline-resolver.js';
 export { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
 
-export const PROJECT_PREVIEW_ALGORITHM_REVISION = 'project-topology-3';
+export const PROJECT_PREVIEW_ALGORITHM_REVISION = 'project-topology-4';
 export const PROJECT_PREVIEW_MAX_BYTES = 16 * 1024 * 1024;
 
 function previewEntities(project) {
   const archive = new Map(project.geometries.map(entry => [JSON.stringify([entry.id, entry.version]), entry.geojson]));
   const identities = (project.territorialEntities || project.entityDelta.changed).map(entity => ({ ...entity,
     properties: { ...entity.properties, style: structuredClone(entity.properties.style), metadata: structuredClone(entity.properties.metadata) } }));
-  return staticTimelineViews(identities, project.timelineRecords, { get: ref => archive.get(JSON.stringify([ref.id, ref.version])) });
+  const geometries = { get: ref => archive.get(JSON.stringify([ref.id, ref.version])) };
+  if (!project.territorialEntities) return staticTimelineViews(identities, project.timelineRecords, geometries);
+  const month = initialTimelineMonth(project.timelineRecords, new Date().toISOString().slice(0, 7));
+  return resolvedTimelineViews(identities, project.timelineRecords, geometries, month);
 }
 
 export function projectPreviewGeometryRows(project) {
