@@ -1,5 +1,5 @@
 {
-  "schema": "pando-places-tier1-review-v1",
+  "schema": "pando-places-tier1-review-v2",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0)",
   "checkedOn": "2026-10-08",
@@ -8,102 +8,113 @@
   "records": [
     {
       "geonameId": 1835848,
-      "countryCode": "KR",
       "nameKo": "서울",
       "name": "Seoul",
       "latitude": 37.566,
       "longitude": 126.9784,
       "featureClass": "P",
       "featureCode": "PPLC",
-      "sourceUrl": "https://www.geonames.org/1835848/"
+      "sourceUrl": "https://www.geonames.org/1835848/",
+      "sourceCountryCode": "KR"
     },
     {
       "geonameId": 1838524,
-      "countryCode": "KR",
       "nameKo": "부산",
       "name": "Busan",
       "latitude": 35.10168,
       "longitude": 129.03004,
       "featureClass": "P",
       "featureCode": "PPLA",
-      "sourceUrl": "https://www.geonames.org/1838524/"
+      "sourceUrl": "https://www.geonames.org/1838524/",
+      "sourceCountryCode": "KR"
     },
     {
       "geonameId": 1850147,
-      "countryCode": "JP",
       "nameKo": "도쿄",
       "name": "Tokyo",
       "latitude": 35.6895,
       "longitude": 139.69171,
       "featureClass": "P",
       "featureCode": "PPLC",
-      "sourceUrl": "https://www.geonames.org/1850147/"
+      "sourceUrl": "https://www.geonames.org/1850147/",
+      "sourceCountryCode": "JP"
     },
     {
       "geonameId": 1853909,
-      "countryCode": "JP",
       "nameKo": "오사카",
       "name": "Osaka",
       "latitude": 34.69379,
       "longitude": 135.50107,
       "featureClass": "P",
       "featureCode": "PPLA",
-      "sourceUrl": "https://www.geonames.org/1853909/"
+      "sourceUrl": "https://www.geonames.org/1853909/",
+      "sourceCountryCode": "JP"
     },
     {
       "geonameId": 1816670,
-      "countryCode": "CN",
       "nameKo": "베이징",
       "name": "Beijing",
       "latitude": 39.9075,
       "longitude": 116.39723,
       "featureClass": "P",
       "featureCode": "PPLC",
-      "sourceUrl": "https://www.geonames.org/1816670/"
+      "sourceUrl": "https://www.geonames.org/1816670/",
+      "sourceCountryCode": "CN"
     },
     {
       "geonameId": 1796236,
-      "countryCode": "CN",
       "nameKo": "상하이",
       "name": "Shanghai",
       "latitude": 31.22222,
       "longitude": 121.45806,
       "featureClass": "P",
       "featureCode": "PPLA",
-      "sourceUrl": "https://www.geonames.org/1796236/"
+      "sourceUrl": "https://www.geonames.org/1796236/",
+      "sourceCountryCode": "CN"
     },
     {
       "geonameId": 1273294,
-      "countryCode": "IN",
       "nameKo": "델리",
       "name": "Delhi",
       "latitude": 28.65195,
       "longitude": 77.23149,
       "featureClass": "P",
       "featureCode": "PPLA",
-      "sourceUrl": "https://www.geonames.org/1273294/"
+      "sourceUrl": "https://www.geonames.org/1273294/",
+      "sourceCountryCode": "IN"
     },
     {
       "geonameId": 2643743,
-      "countryCode": "GB",
       "nameKo": "런던",
       "name": "London",
       "latitude": 51.50853,
       "longitude": -0.12574,
       "featureClass": "P",
       "featureCode": "PPLC",
-      "sourceUrl": "https://www.geonames.org/2643743/"
+      "sourceUrl": "https://www.geonames.org/2643743/",
+      "sourceCountryCode": "GB"
     },
     {
       "geonameId": 2988507,
-      "countryCode": "FR",
       "nameKo": "파리",
       "name": "Paris",
       "latitude": 48.85341,
       "longitude": 2.3488,
       "featureClass": "P",
       "featureCode": "PPLC",
-      "sourceUrl": "https://www.geonames.org/2988507/"
+      "sourceUrl": "https://www.geonames.org/2988507/",
+      "sourceCountryCode": "FR"
     }
-  ]
+  ],
+  "countryCodeSemantics": "countryCode is GeoNames present-day source metadata only, never historical or computed sovereignty",
+  "territorialAssignment": {
+    "mode": "resolve-at-query-time",
+    "method": "point-in-polygon",
+    "position": "record latitude/longitude",
+    "geometry": "territorial polygons valid at requested historical date",
+    "persistResolvedCountry": false,
+    "notes": "Resolve border and time ambiguities explicitly; do not use countryCode as a fallback for historical ownership."
+  },
+  "coordinateSystem": "EPSG:4326",
+  "coordinateSource": "GeoNames"
 }
