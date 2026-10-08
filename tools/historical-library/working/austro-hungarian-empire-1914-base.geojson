@@ -1,6 +1,6 @@
 {
   "type": "FeatureCollection",
-  "name": "pandolab-austro-hungarian-empire-1914-working-base",
+  "name": "pandolab-austro-hungarian-empire-1914-base",
   "crs": {
     "type": "name",
     "properties": {
@@ -15,7 +15,7 @@
         "name": "Austria-Hungary",
         "name_ko": "오스트리아-헝가리 제국",
         "referenceDate": "1914-07-28",
-        "status": "working-base-modern-coast-tripoint-corrected",
+        "status": "complete-under-modern-coastline-policy",
         "historicalBoundarySource": "ACDH-CH HistoGIS (CC BY 4.0)",
         "modernCoastSource": "Pando main assets/data/countries-ne-5.1.1.geojson (Natural Earth v5.1.1, public domain)",
         "modernCoastSourceBlobSha": "563cb4b45da28eb9367abf23bf111b1636b85c97",
@@ -29,7 +29,10 @@
           ],
           "name": "Piz da las Trais Linguas / Dreisprachenspitze",
           "policy": "Historical tripoint fixed explicitly; Italy and Switzerland sides diverge from this point without the erroneous HistoGIS shared detour."
-        }
+        },
+        "sourceBasis": "ACDH-CH HistoGIS historical borders; Pando/Natural Earth v5.1.1 modern coastline; local Stelvio correction from surviving Trentino-Alto Adige regional boundary",
+        "refinementRequired": false,
+        "completionNote": "Single integrated Austria-Hungary 1914 geometry under the agreed policy: historical terrestrial borders, current website Adriatic coastline and Bodensee."
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -31725,5 +31728,30 @@
         ]
       }
     }
-  ]
+  ],
+  "metadata": {
+    "referenceDate": "1914-07-28",
+    "completionStatus": "complete-under-modern-coastline-policy",
+    "geometryPolicy": {
+      "terrestrialBorders": "1914 reconstructed historical borders",
+      "adriaticCoastline": "Current Pando canonical Natural Earth v5.1.1 coastline, intentionally retained pending optional future shoreline reconstruction",
+      "bodensee": "Current Pando canonical boundary retained by project decision",
+      "stelvioTripoint": "Historical Piz da las Trais Linguas / Dreisprachenspitze tripoint fixed at [10.452726, 46.530948]; local Italy side corrected with surviving Trentino-Alto Adige regional boundary before rejoining HistoGIS"
+    },
+    "sourceBasis": [
+      "ACDH-CH HistoGIS historical state/crownland boundaries (CC BY 4.0)",
+      "Pando assets/data/countries-ne-5.1.1.geojson / Natural Earth v5.1.1 for modern coastline and Bodensee",
+      "Modern Trentino-Alto Adige regional boundary for local Stelvio historical-frontier correction"
+    ],
+    "qa": {
+      "geometryType": "MultiPolygon",
+      "featureCount": 1,
+      "componentCount": 24,
+      "mainRingVertices": 7076,
+      "coordinateCount": 7898,
+      "allRingsClosed": true,
+      "selfIntersectionCount": 0,
+      "areaKm2Approx": 674638.812
+    }
+  }
 }
