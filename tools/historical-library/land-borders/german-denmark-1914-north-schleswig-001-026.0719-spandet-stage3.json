@@ -252,6 +252,7 @@
       "historicBoundaryVisuallyReviewed": false
     }
   ],
+  "githubActionsRunId": "37807681078",
   "artifactDir": "tools/historical-library/review-output/north-schleswig-1914-001-026/0719-spandet",
   "historicalMapObservations": {
     "largeRouteMismatch": "not-yet-visually-reviewed",
