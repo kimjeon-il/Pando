@@ -156,6 +156,42 @@ def main():
     }
     print("AGPL_INTERSECT_RGI",report["line_through_ice"],flush=True)
 
+    # Independent reported landmark coordinates. Sources are not surveyed military
+    # positions, and alternate names/coordinate versions can disagree.
+    landmarks=[
+        dict(name="Sia La",ref="OSM via Mapcarta",lon=76.79081,lat=35.58123,source="https://mapcarta.com/14675508",reported_control="IND"),
+        dict(name="Sia La",ref="NGA via Getty TGN",lon=76.7876,lat=35.5904,source="https://www.getty.edu/vow/TGNFullDisplay?subjectid=7923170",reported_control="IND"),
+        dict(name="Bilafond La",ref="OSM via Mapcarta",lon=76.94873,lat=35.39186,source="https://mapcarta.com/14710602",reported_control="IND"),
+        dict(name="Bilafond La",ref="NGA via Getty TGN",lon=76.9486,lat=35.3922,source="https://www.getty.edu/vow/TGNFullDisplay?subjectid=7902300",reported_control="IND"),
+        dict(name="Gyong La",ref="OSM via Mapcarta",lon=77.07021,lat=35.17441,source="https://mapcarta.com/14700516",reported_control="IND"),
+        dict(name="K12",ref="OSM via Mapcarta",lon=77.0219,lat=35.2955,source="https://mapcarta.com/N4770525720",reported_control="IND"),
+    ]
+    metric_agpl=transform(TX.transform,agpl)
+    landmark_results=[]
+    for q in landmarks:
+        pt=Point(q["lon"],q["lat"])
+        mpt=transform(TX.transform,pt)
+        chainage=metric_agpl.project(mpt)
+        close=metric_agpl.interpolate(chainage)
+        aa=metric_agpl.interpolate(max(0,chainage-20))
+        bb=metric_agpl.interpolate(min(metric_agpl.length,chainage+20))
+        sign=(bb.x-aa.x)*(mpt.y-aa.y)-(bb.y-aa.y)*(mpt.x-aa.x)
+        side="IND" if sign<0 else "PAK"
+        entry={**q,"distance_to_osm_candidate_m":round(mpt.distance(metric_agpl),2),
+               "which_side_of_candidate":side,
+               "side_consistent_with_reported_control":side==q["reported_control"],
+               "chainage_from_south_km":round(chainage/1000,3)}
+        landmark_results.append(entry)
+        print("LANDMARK",q["name"],q["ref"],"distance_m",entry["distance_to_osm_candidate_m"],
+              "OSM-side",side,"reported-control",q["reported_control"],flush=True)
+    report["landmark_sanity_check"]={
+        "control_reference":"CNES reports the three major passes held by India. K12's military position is more complex; coordinates locate terrain features rather than outposts.",
+        "line_source":"OpenStreetMap 2026-10-04 approximation, independent of reported landmark coordinates where available",
+        "landmarks":landmark_results,
+        "nominal_india_landmarks_plotted_on_pakistan_side":sum(not x["side_consistent_with_reported_control"] for x in landmark_results),
+        "note":"Point accuracy and map labels vary: results within tens to hundreds of metres are diagnostics, not surveyed AGPL corrections. No claim of precise post locations.",
+    }
+
     # Produce reproducible overview and per-piece details.
     fig,ax=plt.subplots(figsize=(11,11))
     paint(ax,glacier,"#42a7c9","RGI Siachen outline",.5,True,.18)
@@ -201,7 +237,7 @@ and close-up images. In addition to RGI overlap within Natural Earth's schematic
 dispute wedge, an independent east/west line mask evaluates glacier ice *outside*
 that wedge. Never conflate these quantities.
 
-No geometry is changed by this analysis.
+Landmark QA includes Sia La, Bilafond La, Gyong La and K12 public coordinates; several reported India-held features fall to the west of the OSM line. This implies a cartographic accuracy/position warning, not evidence of Pakistan holding these passes. No military post coordinates are inferred.\n\nNo geometry is changed by this analysis.
 """
     (OUT/"README_discrepancy.md").write_text(txt,encoding="utf-8")
     print("DIAGNOSTIC SUCCESS",flush=True)
