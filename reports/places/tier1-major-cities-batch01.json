@@ -115,6 +115,6 @@
     "persistResolvedCountry": false,
     "notes": "Resolve border and time ambiguities explicitly; do not use countryCode as a fallback for historical ownership."
   },
-  "coordinateSystem": "EPSG:4326",
-  "coordinateSource": "GeoNames"
+  "coordinateSource": "GeoNames",
+  "coordinateConvention": "Dataset-wide WGS84 (EPSG:4326), decimal degrees; individual records store only latitude and longitude."
 }
