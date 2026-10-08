@@ -1,0 +1,2708 @@
+{
+  "input": {
+    "RGI_id": "RGI2000-v7.0-G-14-20040",
+    "rgi_image_date": "2002-07-10T00:00:00",
+    "osm_relation": "https://www.openstreetmap.org/relation/13559521",
+    "osm_snapshot": "2026-10-04T06:57:51Z",
+    "glacier_area_km2": 1088.019,
+    "glacier_bounds": [
+      76.757993,
+      35.168431,
+      77.337435,
+      35.674558
+    ],
+    "AGPL_length_km": 115.313,
+    "glacier_polygon_valid": true,
+    "agpl_simple": true
+  },
+  "by_source_scale": {
+    "10m": {
+      "rgi_overlap_india_km2": 903.510098,
+      "rgi_overlap_pakistan_km2": 1.515065,
+      "rgi_outside_ne_dispute_km2": 182.993543,
+      "rgi_pakistan_count": 31,
+      "rgi_pakistan_components": [
+        {
+          "index": 1,
+          "area_km2": 0.432365,
+          "bounds_lonlat": [
+            76.978169,
+            35.315225,
+            76.990134,
+            35.344587
+          ],
+          "representative_point_lonlat": [
+            76.9887946,
+            35.3299235
+          ],
+          "centroid_lonlat": [
+            76.9858216,
+            35.3325487
+          ],
+          "length_perimeter_km": 7.98,
+          "vertex_count": 100
+        },
+        {
+          "index": 2,
+          "area_km2": 0.258292,
+          "bounds_lonlat": [
+            76.977736,
+            35.345076,
+            76.986709,
+            35.359529
+          ],
+          "representative_point_lonlat": [
+            76.985035,
+            35.352365
+          ],
+          "centroid_lonlat": [
+            76.983197,
+            35.3520696
+          ],
+          "length_perimeter_km": 3.933,
+          "vertex_count": 51
+        },
+        {
+          "index": 3,
+          "area_km2": 0.224905,
+          "bounds_lonlat": [
+            76.948829,
+            35.37323,
+            76.954497,
+            35.391064
+          ],
+          "representative_point_lonlat": [
+            76.9538513,
+            35.382135
+          ],
+          "centroid_lonlat": [
+            76.951379,
+            35.3822216
+          ],
+          "length_perimeter_km": 5.068,
+          "vertex_count": 83
+        },
+        {
+          "index": 4,
+          "area_km2": 0.183953,
+          "bounds_lonlat": [
+            76.995579,
+            35.300565,
+            77.015161,
+            35.311673
+          ],
+          "representative_point_lonlat": [
+            77.0027394,
+            35.306189
+          ],
+          "centroid_lonlat": [
+            77.0043925,
+            35.3062195
+          ],
+          "length_perimeter_km": 4.708,
+          "vertex_count": 63
+        },
+        {
+          "index": 5,
+          "area_km2": 0.109059,
+          "bounds_lonlat": [
+            76.993864,
+            35.217712,
+            77.002992,
+            35.228412
+          ],
+          "representative_point_lonlat": [
+            76.9967446,
+            35.223111
+          ],
+          "centroid_lonlat": [
+            76.9973271,
+            35.222737
+          ],
+          "length_perimeter_km": 3.159,
+          "vertex_count": 46
+        },
+        {
+          "index": 6,
+          "area_km2": 0.06249,
+          "bounds_lonlat": [
+            77.000116,
+            35.230147,
+            77.004128,
+            35.238605
+          ],
+          "representative_point_lonlat": [
+            77.002569,
+            35.234321
+          ],
+          "centroid_lonlat": [
+            77.0026205,
+            35.2339539
+          ],
+          "length_perimeter_km": 2.14,
+          "vertex_count": 34
+        },
+        {
+          "index": 7,
+          "area_km2": 0.042815,
+          "bounds_lonlat": [
+            77.015287,
+            35.296707,
+            77.020221,
+            35.300678
+          ],
+          "representative_point_lonlat": [
+            77.0172735,
+            35.2987835
+          ],
+          "centroid_lonlat": [
+            77.0176623,
+            35.2984477
+          ],
+          "length_perimeter_km": 1.3,
+          "vertex_count": 21
+        },
+        {
+          "index": 8,
+          "area_km2": 0.030297,
+          "bounds_lonlat": [
+            76.99729,
+            35.282253,
+            76.999252,
+            35.285992
+          ],
+          "representative_point_lonlat": [
+            76.9981374,
+            35.284021
+          ],
+          "centroid_lonlat": [
+            76.9982257,
+            35.284052
+          ],
+          "length_perimeter_km": 0.984,
+          "vertex_count": 20
+        },
+        {
+          "index": 9,
+          "area_km2": 0.027941,
+          "bounds_lonlat": [
+            76.982791,
+            35.243782,
+            76.988555,
+            35.246941
+          ],
+          "representative_point_lonlat": [
+            76.9857057,
+            35.245276
+          ],
+          "centroid_lonlat": [
+            76.9856293,
+            35.2453867
+          ],
+          "length_perimeter_km": 1.297,
+          "vertex_count": 22
+        },
+        {
+          "index": 10,
+          "area_km2": 0.027607,
+          "bounds_lonlat": [
+            76.985182,
+            35.312111,
+            76.992129,
+            35.315219
+          ],
+          "representative_point_lonlat": [
+            76.9866256,
+            35.313674
+          ],
+          "centroid_lonlat": [
+            76.9877534,
+            35.3131146
+          ],
+          "length_perimeter_km": 1.572,
+          "vertex_count": 24
+        },
+        {
+          "index": 11,
+          "area_km2": 0.025934,
+          "bounds_lonlat": [
+            76.953635,
+            35.365655,
+            76.956117,
+            35.367641
+          ],
+          "representative_point_lonlat": [
+            76.9544901,
+            35.3666145
+          ],
+          "centroid_lonlat": [
+            76.9546175,
+            35.3665649
+          ],
+          "length_perimeter_km": 0.702,
+          "vertex_count": 11
+        },
+        {
+          "index": 12,
+          "area_km2": 0.017038,
+          "bounds_lonlat": [
+            77.040526,
+            35.181579,
+            77.043381,
+            35.18269
+          ],
+          "representative_point_lonlat": [
+            77.0423413,
+            35.1820915
+          ],
+          "centroid_lonlat": [
+            77.0421462,
+            35.1821573
+          ],
+          "length_perimeter_km": 0.618,
+          "vertex_count": 11
+        },
+        {
+          "index": 13,
+          "area_km2": 0.016701,
+          "bounds_lonlat": [
+            76.993464,
+            35.239864,
+            76.996158,
+            35.241762
+          ],
+          "representative_point_lonlat": [
+            76.9949041,
+            35.2408735
+          ],
+          "centroid_lonlat": [
+            76.9950217,
+            35.2406855
+          ],
+          "length_perimeter_km": 0.688,
+          "vertex_count": 14
+        },
+        {
+          "index": 14,
+          "area_km2": 0.0166,
+          "bounds_lonlat": [
+            76.991646,
+            35.275357,
+            76.99269,
+            35.278346
+          ],
+          "representative_point_lonlat": [
+            76.9920115,
+            35.2769785
+          ],
+          "centroid_lonlat": [
+            76.9920591,
+            35.277052
+          ],
+          "length_perimeter_km": 0.771,
+          "vertex_count": 16
+        },
+        {
+          "index": 15,
+          "area_km2": 0.010858,
+          "bounds_lonlat": [
+            77.003304,
+            35.199529,
+            77.005945,
+            35.202166
+          ],
+          "representative_point_lonlat": [
+            77.0046492,
+            35.2009455
+          ],
+          "centroid_lonlat": [
+            77.0046108,
+            35.2009462
+          ],
+          "length_perimeter_km": 0.767,
+          "vertex_count": 12
+        },
+        {
+          "index": 16,
+          "area_km2": 0.009778,
+          "bounds_lonlat": [
+            77.068063,
+            35.171802,
+            77.078223,
+            35.175539
+          ],
+          "representative_point_lonlat": [
+            77.0729316,
+            35.173667
+          ],
+          "centroid_lonlat": [
+            77.0731713,
+            35.1735987
+          ],
+          "length_perimeter_km": 2.031,
+          "vertex_count": 26
+        },
+        {
+          "index": 17,
+          "area_km2": 0.003581,
+          "bounds_lonlat": [
+            76.976154,
+            35.256488,
+            76.976671,
+            35.258574
+          ],
+          "representative_point_lonlat": [
+            76.9762738,
+            35.2573705
+          ],
+          "centroid_lonlat": [
+            76.9763386,
+            35.2576901
+          ],
+          "length_perimeter_km": 0.481,
+          "vertex_count": 8
+        },
+        {
+          "index": 18,
+          "area_km2": 0.003375,
+          "bounds_lonlat": [
+            76.999054,
+            35.289048,
+            77.001851,
+            35.290196
+          ],
+          "representative_point_lonlat": [
+            77.000514,
+            35.289635
+          ],
+          "centroid_lonlat": [
+            77.0004832,
+            35.2896203
+          ],
+          "length_perimeter_km": 0.576,
+          "vertex_count": 11
+        },
+        {
+          "index": 19,
+          "area_km2": 0.003041,
+          "bounds_lonlat": [
+            77.06515,
+            35.175778,
+            77.067294,
+            35.176183
+          ],
+          "representative_point_lonlat": [
+            77.0663424,
+            35.1760155
+          ],
+          "centroid_lonlat": [
+            77.0663767,
+            35.1759953
+          ],
+          "length_perimeter_km": 0.406,
+          "vertex_count": 9
+        },
+        {
+          "index": 20,
+          "area_km2": 0.002098,
+          "bounds_lonlat": [
+            76.9785,
+            35.248645,
+            76.979982,
+            35.249421
+          ],
+          "representative_point_lonlat": [
+            76.9790462,
+            35.2490261
+          ],
+          "centroid_lonlat": [
+            76.9790939,
+            35.2490227
+          ],
+          "length_perimeter_km": 0.329,
+          "vertex_count": 6
+        },
+        {
+          "index": 21,
+          "area_km2": 0.001615,
+          "bounds_lonlat": [
+            76.952955,
+            35.368734,
+            76.953621,
+            35.369541
+          ],
+          "representative_point_lonlat": [
+            76.9530902,
+            35.3692265
+          ],
+          "centroid_lonlat": [
+            76.9531823,
+            35.3691124
+          ],
+          "length_perimeter_km": 0.232,
+          "vertex_count": 7
+        },
+        {
+          "index": 22,
+          "area_km2": 0.001539,
+          "bounds_lonlat": [
+            76.975603,
+            35.254849,
+            76.976093,
+            35.256242
+          ],
+          "representative_point_lonlat": [
+            76.9758056,
+            35.2553595
+          ],
+          "centroid_lonlat": [
+            76.9758392,
+            35.2554889
+          ],
+          "length_perimeter_km": 0.327,
+          "vertex_count": 7
+        },
+        {
+          "index": 23,
+          "area_km2": 0.000998,
+          "bounds_lonlat": [
+            77.035258,
+            35.18303,
+            77.036243,
+            35.183259
+          ],
+          "representative_point_lonlat": [
+            77.0358797,
+            35.1831289
+          ],
+          "centroid_lonlat": [
+            77.0357763,
+            35.1831433
+          ],
+          "length_perimeter_km": 0.191,
+          "vertex_count": 6
+        },
+        {
+          "index": 24,
+          "area_km2": 0.000794,
+          "bounds_lonlat": [
+            76.992442,
+            35.311894,
+            76.993835,
+            35.312071
+          ],
+          "representative_point_lonlat": [
+            76.9928507,
+            35.3119911
+          ],
+          "centroid_lonlat": [
+            76.9930312,
+            35.3119587
+          ],
+          "length_perimeter_km": 0.259,
+          "vertex_count": 6
+        },
+        {
+          "index": 25,
+          "area_km2": 0.000604,
+          "bounds_lonlat": [
+            76.994328,
+            35.311677,
+            76.995541,
+            35.311832
+          ],
+          "representative_point_lonlat": [
+            76.9946842,
+            35.3117618
+          ],
+          "centroid_lonlat": [
+            76.9948418,
+            35.3117335
+          ],
+          "length_perimeter_km": 0.226,
+          "vertex_count": 5
+        },
+        {
+          "index": 26,
+          "area_km2": 0.000407,
+          "bounds_lonlat": [
+            76.980557,
+            35.248064,
+            76.981091,
+            35.248326
+          ],
+          "representative_point_lonlat": [
+            76.9806503,
+            35.2482547
+          ],
+          "centroid_lonlat": [
+            76.9807463,
+            35.248191
+          ],
+          "length_perimeter_km": 0.121,
+          "vertex_count": 5
+        },
+        {
+          "index": 27,
+          "area_km2": 0.000329,
+          "bounds_lonlat": [
+            77.007596,
+            35.196426,
+            77.007993,
+            35.197023
+          ],
+          "representative_point_lonlat": [
+            77.0077618,
+            35.196723
+          ],
+          "centroid_lonlat": [
+            77.0077379,
+            35.1967614
+          ],
+          "length_perimeter_km": 0.153,
+          "vertex_count": 5
+        },
+        {
+          "index": 28,
+          "area_km2": 1.6e-05,
+          "bounds_lonlat": [
+            77.021604,
+            35.295439,
+            77.021661,
+            35.295495
+          ],
+          "representative_point_lonlat": [
+            77.021619,
+            35.2954703
+          ],
+          "centroid_lonlat": [
+            77.0216235,
+            35.29546
+          ],
+          "length_perimeter_km": 0.019,
+          "vertex_count": 4
+        },
+        {
+          "index": 29,
+          "area_km2": 1.3e-05,
+          "bounds_lonlat": [
+            76.95684,
+            35.364671,
+            76.956915,
+            35.364764
+          ],
+          "representative_point_lonlat": [
+            76.9568586,
+            35.364732
+          ],
+          "centroid_lonlat": [
+            76.9568729,
+            35.3647116
+          ],
+          "length_perimeter_km": 0.026,
+          "vertex_count": 4
+        },
+        {
+          "index": 30,
+          "area_km2": 1.2e-05,
+          "bounds_lonlat": [
+            77.04909,
+            35.179354,
+            77.04936,
+            35.17949
+          ],
+          "representative_point_lonlat": [
+            77.0492051,
+            35.1794299
+          ],
+          "centroid_lonlat": [
+            77.0492541,
+            35.1794046
+          ],
+          "length_perimeter_km": 0.058,
+          "vertex_count": 4
+        },
+        {
+          "index": 31,
+          "area_km2": 1.1e-05,
+          "bounds_lonlat": [
+            77.052001,
+            35.177327,
+            77.052069,
+            35.177382
+          ],
+          "representative_point_lonlat": [
+            77.0520161,
+            35.1773619
+          ],
+          "centroid_lonlat": [
+            77.0520274,
+            35.1773502
+          ],
+          "length_perimeter_km": 0.019,
+          "vertex_count": 4
+        }
+      ],
+      "rgi_pakistan_total_component_km2": 1.515065
+    },
+    "50m": {
+      "rgi_overlap_india_km2": 905.967559,
+      "rgi_overlap_pakistan_km2": 1.533578,
+      "rgi_outside_ne_dispute_km2": 180.517564,
+      "rgi_pakistan_count": 31,
+      "rgi_pakistan_components": [
+        {
+          "index": 1,
+          "area_km2": 0.432365,
+          "bounds_lonlat": [
+            76.978169,
+            35.315225,
+            76.990134,
+            35.344587
+          ],
+          "representative_point_lonlat": [
+            76.9887946,
+            35.3299235
+          ],
+          "centroid_lonlat": [
+            76.9858216,
+            35.3325487
+          ],
+          "length_perimeter_km": 7.98,
+          "vertex_count": 100
+        },
+        {
+          "index": 2,
+          "area_km2": 0.258292,
+          "bounds_lonlat": [
+            76.977736,
+            35.345076,
+            76.986709,
+            35.359529
+          ],
+          "representative_point_lonlat": [
+            76.985035,
+            35.352365
+          ],
+          "centroid_lonlat": [
+            76.983197,
+            35.3520696
+          ],
+          "length_perimeter_km": 3.933,
+          "vertex_count": 51
+        },
+        {
+          "index": 3,
+          "area_km2": 0.224905,
+          "bounds_lonlat": [
+            76.948829,
+            35.37323,
+            76.954497,
+            35.391064
+          ],
+          "representative_point_lonlat": [
+            76.9538513,
+            35.382135
+          ],
+          "centroid_lonlat": [
+            76.951379,
+            35.3822216
+          ],
+          "length_perimeter_km": 5.068,
+          "vertex_count": 83
+        },
+        {
+          "index": 4,
+          "area_km2": 0.183953,
+          "bounds_lonlat": [
+            76.995579,
+            35.300565,
+            77.015161,
+            35.311673
+          ],
+          "representative_point_lonlat": [
+            77.0027394,
+            35.306189
+          ],
+          "centroid_lonlat": [
+            77.0043925,
+            35.3062195
+          ],
+          "length_perimeter_km": 4.708,
+          "vertex_count": 63
+        },
+        {
+          "index": 5,
+          "area_km2": 0.121862,
+          "bounds_lonlat": [
+            76.993321,
+            35.216951,
+            77.002992,
+            35.228412
+          ],
+          "representative_point_lonlat": [
+            76.9966685,
+            35.2227385
+          ],
+          "centroid_lonlat": [
+            76.9969716,
+            35.2222401
+          ],
+          "length_perimeter_km": 3.364,
+          "vertex_count": 52
+        },
+        {
+          "index": 6,
+          "area_km2": 0.06249,
+          "bounds_lonlat": [
+            77.000116,
+            35.230147,
+            77.004128,
+            35.238605
+          ],
+          "representative_point_lonlat": [
+            77.002569,
+            35.234321
+          ],
+          "centroid_lonlat": [
+            77.0026205,
+            35.2339539
+          ],
+          "length_perimeter_km": 2.14,
+          "vertex_count": 34
+        },
+        {
+          "index": 7,
+          "area_km2": 0.042815,
+          "bounds_lonlat": [
+            77.015287,
+            35.296707,
+            77.020221,
+            35.300678
+          ],
+          "representative_point_lonlat": [
+            77.0172735,
+            35.2987835
+          ],
+          "centroid_lonlat": [
+            77.0176623,
+            35.2984477
+          ],
+          "length_perimeter_km": 1.3,
+          "vertex_count": 21
+        },
+        {
+          "index": 8,
+          "area_km2": 0.030297,
+          "bounds_lonlat": [
+            76.99729,
+            35.282253,
+            76.999252,
+            35.285992
+          ],
+          "representative_point_lonlat": [
+            76.9981374,
+            35.284021
+          ],
+          "centroid_lonlat": [
+            76.9982257,
+            35.284052
+          ],
+          "length_perimeter_km": 0.984,
+          "vertex_count": 20
+        },
+        {
+          "index": 9,
+          "area_km2": 0.027941,
+          "bounds_lonlat": [
+            76.982791,
+            35.243782,
+            76.988555,
+            35.246941
+          ],
+          "representative_point_lonlat": [
+            76.9857057,
+            35.245276
+          ],
+          "centroid_lonlat": [
+            76.9856293,
+            35.2453867
+          ],
+          "length_perimeter_km": 1.297,
+          "vertex_count": 22
+        },
+        {
+          "index": 10,
+          "area_km2": 0.027607,
+          "bounds_lonlat": [
+            76.985182,
+            35.312111,
+            76.992129,
+            35.315219
+          ],
+          "representative_point_lonlat": [
+            76.9866256,
+            35.313674
+          ],
+          "centroid_lonlat": [
+            76.9877534,
+            35.3131146
+          ],
+          "length_perimeter_km": 1.572,
+          "vertex_count": 24
+        },
+        {
+          "index": 11,
+          "area_km2": 0.025934,
+          "bounds_lonlat": [
+            76.953635,
+            35.365655,
+            76.956117,
+            35.367641
+          ],
+          "representative_point_lonlat": [
+            76.9544901,
+            35.3666145
+          ],
+          "centroid_lonlat": [
+            76.9546175,
+            35.3665649
+          ],
+          "length_perimeter_km": 0.702,
+          "vertex_count": 11
+        },
+        {
+          "index": 12,
+          "area_km2": 0.017038,
+          "bounds_lonlat": [
+            77.040526,
+            35.181579,
+            77.043381,
+            35.18269
+          ],
+          "representative_point_lonlat": [
+            77.0423413,
+            35.1820915
+          ],
+          "centroid_lonlat": [
+            77.0421462,
+            35.1821573
+          ],
+          "length_perimeter_km": 0.618,
+          "vertex_count": 11
+        },
+        {
+          "index": 13,
+          "area_km2": 0.016701,
+          "bounds_lonlat": [
+            76.993464,
+            35.239864,
+            76.996158,
+            35.241762
+          ],
+          "representative_point_lonlat": [
+            76.9949041,
+            35.2408735
+          ],
+          "centroid_lonlat": [
+            76.9950217,
+            35.2406855
+          ],
+          "length_perimeter_km": 0.688,
+          "vertex_count": 14
+        },
+        {
+          "index": 14,
+          "area_km2": 0.0166,
+          "bounds_lonlat": [
+            76.991646,
+            35.275357,
+            76.99269,
+            35.278346
+          ],
+          "representative_point_lonlat": [
+            76.9920115,
+            35.2769785
+          ],
+          "centroid_lonlat": [
+            76.9920591,
+            35.277052
+          ],
+          "length_perimeter_km": 0.771,
+          "vertex_count": 16
+        },
+        {
+          "index": 15,
+          "area_km2": 0.010857,
+          "bounds_lonlat": [
+            77.003304,
+            35.199529,
+            77.005945,
+            35.202166
+          ],
+          "representative_point_lonlat": [
+            77.0046492,
+            35.2009455
+          ],
+          "centroid_lonlat": [
+            77.0046109,
+            35.2009462
+          ],
+          "length_perimeter_km": 0.767,
+          "vertex_count": 12
+        },
+        {
+          "index": 16,
+          "area_km2": 0.009778,
+          "bounds_lonlat": [
+            77.068063,
+            35.171802,
+            77.078223,
+            35.175539
+          ],
+          "representative_point_lonlat": [
+            77.0729316,
+            35.173667
+          ],
+          "centroid_lonlat": [
+            77.0731713,
+            35.1735987
+          ],
+          "length_perimeter_km": 2.031,
+          "vertex_count": 26
+        },
+        {
+          "index": 17,
+          "area_km2": 0.006244,
+          "bounds_lonlat": [
+            76.976959,
+            35.248645,
+            76.979982,
+            35.250228
+          ],
+          "representative_point_lonlat": [
+            76.9781659,
+            35.249483
+          ],
+          "centroid_lonlat": [
+            76.9782076,
+            35.2494515
+          ],
+          "length_perimeter_km": 0.684,
+          "vertex_count": 10
+        },
+        {
+          "index": 18,
+          "area_km2": 0.003585,
+          "bounds_lonlat": [
+            76.976154,
+            35.256487,
+            76.976671,
+            35.258574
+          ],
+          "representative_point_lonlat": [
+            76.9762739,
+            35.2573705
+          ],
+          "centroid_lonlat": [
+            76.9763387,
+            35.2576898
+          ],
+          "length_perimeter_km": 0.482,
+          "vertex_count": 8
+        },
+        {
+          "index": 19,
+          "area_km2": 0.003375,
+          "bounds_lonlat": [
+            76.999054,
+            35.289048,
+            77.001851,
+            35.290196
+          ],
+          "representative_point_lonlat": [
+            77.000514,
+            35.289635
+          ],
+          "centroid_lonlat": [
+            77.0004832,
+            35.2896203
+          ],
+          "length_perimeter_km": 0.576,
+          "vertex_count": 11
+        },
+        {
+          "index": 20,
+          "area_km2": 0.003101,
+          "bounds_lonlat": [
+            76.975436,
+            35.253595,
+            76.976093,
+            35.256243
+          ],
+          "representative_point_lonlat": [
+            76.9756835,
+            35.2549365
+          ],
+          "centroid_lonlat": [
+            76.9757062,
+            35.2549613
+          ],
+          "length_perimeter_km": 0.607,
+          "vertex_count": 9
+        },
+        {
+          "index": 21,
+          "area_km2": 0.003041,
+          "bounds_lonlat": [
+            77.06515,
+            35.175778,
+            77.067294,
+            35.176183
+          ],
+          "representative_point_lonlat": [
+            77.0663424,
+            35.1760155
+          ],
+          "centroid_lonlat": [
+            77.0663767,
+            35.1759953
+          ],
+          "length_perimeter_km": 0.406,
+          "vertex_count": 9
+        },
+        {
+          "index": 22,
+          "area_km2": 0.001615,
+          "bounds_lonlat": [
+            76.952955,
+            35.368734,
+            76.953621,
+            35.369541
+          ],
+          "representative_point_lonlat": [
+            76.9530902,
+            35.3692265
+          ],
+          "centroid_lonlat": [
+            76.9531823,
+            35.3691124
+          ],
+          "length_perimeter_km": 0.232,
+          "vertex_count": 7
+        },
+        {
+          "index": 23,
+          "area_km2": 0.000998,
+          "bounds_lonlat": [
+            77.035258,
+            35.18303,
+            77.036243,
+            35.183259
+          ],
+          "representative_point_lonlat": [
+            77.0358797,
+            35.1831289
+          ],
+          "centroid_lonlat": [
+            77.0357763,
+            35.1831433
+          ],
+          "length_perimeter_km": 0.191,
+          "vertex_count": 6
+        },
+        {
+          "index": 24,
+          "area_km2": 0.000794,
+          "bounds_lonlat": [
+            76.992442,
+            35.311894,
+            76.993835,
+            35.312071
+          ],
+          "representative_point_lonlat": [
+            76.9928507,
+            35.3119911
+          ],
+          "centroid_lonlat": [
+            76.9930312,
+            35.3119587
+          ],
+          "length_perimeter_km": 0.259,
+          "vertex_count": 6
+        },
+        {
+          "index": 25,
+          "area_km2": 0.000604,
+          "bounds_lonlat": [
+            76.994328,
+            35.311677,
+            76.995541,
+            35.311832
+          ],
+          "representative_point_lonlat": [
+            76.9946842,
+            35.3117618
+          ],
+          "centroid_lonlat": [
+            76.9948418,
+            35.3117335
+          ],
+          "length_perimeter_km": 0.226,
+          "vertex_count": 5
+        },
+        {
+          "index": 26,
+          "area_km2": 0.000407,
+          "bounds_lonlat": [
+            76.980557,
+            35.248064,
+            76.981091,
+            35.248326
+          ],
+          "representative_point_lonlat": [
+            76.9806503,
+            35.2482547
+          ],
+          "centroid_lonlat": [
+            76.9807463,
+            35.248191
+          ],
+          "length_perimeter_km": 0.121,
+          "vertex_count": 5
+        },
+        {
+          "index": 27,
+          "area_km2": 0.000329,
+          "bounds_lonlat": [
+            77.007596,
+            35.196426,
+            77.007993,
+            35.197023
+          ],
+          "representative_point_lonlat": [
+            77.0077618,
+            35.196723
+          ],
+          "centroid_lonlat": [
+            77.0077379,
+            35.1967614
+          ],
+          "length_perimeter_km": 0.153,
+          "vertex_count": 5
+        },
+        {
+          "index": 28,
+          "area_km2": 1.6e-05,
+          "bounds_lonlat": [
+            77.021604,
+            35.295439,
+            77.021661,
+            35.295495
+          ],
+          "representative_point_lonlat": [
+            77.021619,
+            35.2954703
+          ],
+          "centroid_lonlat": [
+            77.0216235,
+            35.29546
+          ],
+          "length_perimeter_km": 0.019,
+          "vertex_count": 4
+        },
+        {
+          "index": 29,
+          "area_km2": 1.3e-05,
+          "bounds_lonlat": [
+            76.95684,
+            35.364671,
+            76.956915,
+            35.364764
+          ],
+          "representative_point_lonlat": [
+            76.9568586,
+            35.364732
+          ],
+          "centroid_lonlat": [
+            76.9568729,
+            35.3647116
+          ],
+          "length_perimeter_km": 0.026,
+          "vertex_count": 4
+        },
+        {
+          "index": 30,
+          "area_km2": 1.2e-05,
+          "bounds_lonlat": [
+            77.04909,
+            35.179354,
+            77.04936,
+            35.17949
+          ],
+          "representative_point_lonlat": [
+            77.0492051,
+            35.1794299
+          ],
+          "centroid_lonlat": [
+            77.0492541,
+            35.1794046
+          ],
+          "length_perimeter_km": 0.058,
+          "vertex_count": 4
+        },
+        {
+          "index": 31,
+          "area_km2": 1.1e-05,
+          "bounds_lonlat": [
+            77.052001,
+            35.177327,
+            77.052069,
+            35.177382
+          ],
+          "representative_point_lonlat": [
+            77.0520161,
+            35.1773619
+          ],
+          "centroid_lonlat": [
+            77.0520274,
+            35.1773502
+          ],
+          "length_perimeter_km": 0.019,
+          "vertex_count": 4
+        }
+      ],
+      "rgi_pakistan_total_component_km2": 1.533578
+    }
+  },
+  "warning": [],
+  "uncut_glacier_vs_agpl": {
+    "east_side_mask_valid": true,
+    "west_side_mask_valid": true,
+    "mask_scope_lat": [
+      35.03356,
+      35.6782412
+    ],
+    "east_ice_area_km2": 1085.774434,
+    "west_ice_area_km2": 2.244272,
+    "east_west_ice_area_sum_km2": 1088.018706,
+    "west_ice_components": [
+      {
+        "index": 1,
+        "area_km2": 0.432299,
+        "bounds_lonlat": [
+          76.978169,
+          35.315225,
+          76.990134,
+          35.344587
+        ],
+        "representative_point_lonlat": [
+          76.9887944,
+          35.3299235
+        ],
+        "centroid_lonlat": [
+          76.9858216,
+          35.3325479
+        ],
+        "length_perimeter_km": 7.98,
+        "vertex_count": 100
+      },
+      {
+        "index": 2,
+        "area_km2": 0.258288,
+        "bounds_lonlat": [
+          76.977736,
+          35.345076,
+          76.986709,
+          35.359529
+        ],
+        "representative_point_lonlat": [
+          76.985035,
+          35.352365
+        ],
+        "centroid_lonlat": [
+          76.9831974,
+          35.3520704
+        ],
+        "length_perimeter_km": 3.933,
+        "vertex_count": 51
+      },
+      {
+        "index": 3,
+        "area_km2": 0.235583,
+        "bounds_lonlat": [
+          76.988935,
+          35.210678,
+          77.002992,
+          35.228412
+        ],
+        "representative_point_lonlat": [
+          76.9949062,
+          35.219581
+        ],
+        "centroid_lonlat": [
+          76.9943404,
+          35.2182341
+        ],
+        "length_perimeter_km": 5.017,
+        "vertex_count": 77
+      },
+      {
+        "index": 4,
+        "area_km2": 0.232565,
+        "bounds_lonlat": [
+          76.789623,
+          35.578125,
+          76.794149,
+          35.590161
+        ],
+        "representative_point_lonlat": [
+          76.7928238,
+          35.584006
+        ],
+        "centroid_lonlat": [
+          76.7923204,
+          35.5832896
+        ],
+        "length_perimeter_km": 2.991,
+        "vertex_count": 31
+      },
+      {
+        "index": 5,
+        "area_km2": 0.224903,
+        "bounds_lonlat": [
+          76.948825,
+          35.373231,
+          76.954497,
+          35.39107
+        ],
+        "representative_point_lonlat": [
+          76.9538512,
+          35.382135
+        ],
+        "centroid_lonlat": [
+          76.9513789,
+          35.3822232
+        ],
+        "length_perimeter_km": 5.07,
+        "vertex_count": 83
+      },
+      {
+        "index": 6,
+        "area_km2": 0.183974,
+        "bounds_lonlat": [
+          76.995579,
+          35.300565,
+          77.015161,
+          35.311673
+        ],
+        "representative_point_lonlat": [
+          77.0027395,
+          35.306189
+        ],
+        "centroid_lonlat": [
+          77.0043923,
+          35.3062197
+        ],
+        "length_perimeter_km": 4.708,
+        "vertex_count": 63
+      },
+      {
+        "index": 7,
+        "area_km2": 0.127647,
+        "bounds_lonlat": [
+          76.832996,
+          35.422075,
+          76.841484,
+          35.436574
+        ],
+        "representative_point_lonlat": [
+          76.8403527,
+          35.4292095
+        ],
+        "centroid_lonlat": [
+          76.8389805,
+          35.4291647
+        ],
+        "length_perimeter_km": 3.785,
+        "vertex_count": 51
+      },
+      {
+        "index": 8,
+        "area_km2": 0.078993,
+        "bounds_lonlat": [
+          76.76328,
+          35.63902,
+          76.771786,
+          35.640607
+        ],
+        "representative_point_lonlat": [
+          76.7669787,
+          35.639875
+        ],
+        "centroid_lonlat": [
+          76.7675133,
+          35.6398122
+        ],
+        "length_perimeter_km": 1.617,
+        "vertex_count": 21
+      },
+      {
+        "index": 9,
+        "area_km2": 0.062498,
+        "bounds_lonlat": [
+          77.000116,
+          35.230147,
+          77.004128,
+          35.238605
+        ],
+        "representative_point_lonlat": [
+          77.002569,
+          35.234321
+        ],
+        "centroid_lonlat": [
+          77.0026206,
+          35.2339539
+        ],
+        "length_perimeter_km": 2.14,
+        "vertex_count": 34
+      },
+      {
+        "index": 10,
+        "area_km2": 0.047199,
+        "bounds_lonlat": [
+          76.798812,
+          35.481867,
+          76.804079,
+          35.488588
+        ],
+        "representative_point_lonlat": [
+          76.8025169,
+          35.4853285
+        ],
+        "centroid_lonlat": [
+          76.8013288,
+          35.4861159
+        ],
+        "length_perimeter_km": 1.917,
+        "vertex_count": 33
+      },
+      {
+        "index": 11,
+        "area_km2": 0.04279,
+        "bounds_lonlat": [
+          77.015287,
+          35.296707,
+          77.02022,
+          35.300677
+        ],
+        "representative_point_lonlat": [
+          77.0172732,
+          35.2987835
+        ],
+        "centroid_lonlat": [
+          77.0176622,
+          35.2984476
+        ],
+        "length_perimeter_km": 1.3,
+        "vertex_count": 21
+      },
+      {
+        "index": 12,
+        "area_km2": 0.030803,
+        "bounds_lonlat": [
+          76.802742,
+          35.475976,
+          76.806423,
+          35.479622
+        ],
+        "representative_point_lonlat": [
+          76.8047818,
+          35.477639
+        ],
+        "centroid_lonlat": [
+          76.8045239,
+          35.4778892
+        ],
+        "length_perimeter_km": 1.086,
+        "vertex_count": 22
+      },
+      {
+        "index": 13,
+        "area_km2": 0.030297,
+        "bounds_lonlat": [
+          76.99729,
+          35.282254,
+          76.999252,
+          35.285992
+        ],
+        "representative_point_lonlat": [
+          76.9981373,
+          35.2840212
+        ],
+        "centroid_lonlat": [
+          76.9982258,
+          35.2840519
+        ],
+        "length_perimeter_km": 0.984,
+        "vertex_count": 20
+      },
+      {
+        "index": 14,
+        "area_km2": 0.02792,
+        "bounds_lonlat": [
+          76.982791,
+          35.243782,
+          76.988555,
+          35.246941
+        ],
+        "representative_point_lonlat": [
+          76.9857054,
+          35.245276
+        ],
+        "centroid_lonlat": [
+          76.9856289,
+          35.2453867
+        ],
+        "length_perimeter_km": 1.297,
+        "vertex_count": 22
+      },
+      {
+        "index": 15,
+        "area_km2": 0.027588,
+        "bounds_lonlat": [
+          76.985182,
+          35.312111,
+          76.992128,
+          35.315218
+        ],
+        "representative_point_lonlat": [
+          76.9866253,
+          35.313674
+        ],
+        "centroid_lonlat": [
+          76.9877534,
+          35.3131144
+        ],
+        "length_perimeter_km": 1.572,
+        "vertex_count": 24
+      },
+      {
+        "index": 16,
+        "area_km2": 0.026137,
+        "bounds_lonlat": [
+          76.793611,
+          35.488897,
+          76.798301,
+          35.491488
+        ],
+        "representative_point_lonlat": [
+          76.79524,
+          35.4903335
+        ],
+        "centroid_lonlat": [
+          76.7959335,
+          35.4899371
+        ],
+        "length_perimeter_km": 1.068,
+        "vertex_count": 17
+      },
+      {
+        "index": 17,
+        "area_km2": 0.02594,
+        "bounds_lonlat": [
+          76.953635,
+          35.365655,
+          76.956117,
+          35.367642
+        ],
+        "representative_point_lonlat": [
+          76.9544903,
+          35.3666145
+        ],
+        "centroid_lonlat": [
+          76.9546177,
+          35.3665649
+        ],
+        "length_perimeter_km": 0.702,
+        "vertex_count": 11
+      },
+      {
+        "index": 18,
+        "area_km2": 0.017025,
+        "bounds_lonlat": [
+          77.040527,
+          35.181579,
+          77.043381,
+          35.182689
+        ],
+        "representative_point_lonlat": [
+          77.0423413,
+          35.1820915
+        ],
+        "centroid_lonlat": [
+          77.0421463,
+          35.1821571
+        ],
+        "length_perimeter_km": 0.618,
+        "vertex_count": 11
+      },
+      {
+        "index": 19,
+        "area_km2": 0.016693,
+        "bounds_lonlat": [
+          76.993464,
+          35.239864,
+          76.996158,
+          35.241762
+        ],
+        "representative_point_lonlat": [
+          76.9949038,
+          35.2408735
+        ],
+        "centroid_lonlat": [
+          76.9950218,
+          35.2406852
+        ],
+        "length_perimeter_km": 0.688,
+        "vertex_count": 14
+      },
+      {
+        "index": 20,
+        "area_km2": 0.016603,
+        "bounds_lonlat": [
+          76.991646,
+          35.275357,
+          76.992689,
+          35.278346
+        ],
+        "representative_point_lonlat": [
+          76.9920115,
+          35.2769785
+        ],
+        "centroid_lonlat": [
+          76.9920591,
+          35.2770518
+        ],
+        "length_perimeter_km": 0.771,
+        "vertex_count": 16
+      },
+      {
+        "index": 21,
+        "area_km2": 0.015423,
+        "bounds_lonlat": [
+          76.809366,
+          35.470412,
+          76.811369,
+          35.473112
+        ],
+        "representative_point_lonlat": [
+          76.8101443,
+          35.4718035
+        ],
+        "centroid_lonlat": [
+          76.810151,
+          35.471883
+        ],
+        "length_perimeter_km": 0.715,
+        "vertex_count": 13
+      },
+      {
+        "index": 22,
+        "area_km2": 0.010845,
+        "bounds_lonlat": [
+          77.003304,
+          35.199529,
+          77.005945,
+          35.202166
+        ],
+        "representative_point_lonlat": [
+          77.0046492,
+          35.2009453
+        ],
+        "centroid_lonlat": [
+          77.0046108,
+          35.200946
+        ],
+        "length_perimeter_km": 0.767,
+        "vertex_count": 12
+      },
+      {
+        "index": 23,
+        "area_km2": 0.010285,
+        "bounds_lonlat": [
+          76.774867,
+          35.515764,
+          76.779365,
+          35.517018
+        ],
+        "representative_point_lonlat": [
+          76.7771672,
+          35.516274
+        ],
+        "centroid_lonlat": [
+          76.77685,
+          35.5161668
+        ],
+        "length_perimeter_km": 0.874,
+        "vertex_count": 13
+      },
+      {
+        "index": 24,
+        "area_km2": 0.009772,
+        "bounds_lonlat": [
+          77.068063,
+          35.171801,
+          77.078224,
+          35.175538
+        ],
+        "representative_point_lonlat": [
+          77.0729316,
+          35.173667
+        ],
+        "centroid_lonlat": [
+          77.0731753,
+          35.1735973
+        ],
+        "length_perimeter_km": 2.032,
+        "vertex_count": 26
+      },
+      {
+        "index": 25,
+        "area_km2": 0.008474,
+        "bounds_lonlat": [
+          76.975471,
+          35.248645,
+          76.979982,
+          35.251008
+        ],
+        "representative_point_lonlat": [
+          76.9774874,
+          35.249812
+        ],
+        "centroid_lonlat": [
+          76.9777337,
+          35.2497099
+        ],
+        "length_perimeter_km": 1.002,
+        "vertex_count": 14
+      },
+      {
+        "index": 26,
+        "area_km2": 0.007579,
+        "bounds_lonlat": [
+          76.846346,
+          35.40403,
+          76.847023,
+          35.406264
+        ],
+        "representative_point_lonlat": [
+          76.8467161,
+          35.405217
+        ],
+        "centroid_lonlat": [
+          76.8467149,
+          35.4053301
+        ],
+        "length_perimeter_km": 0.523,
+        "vertex_count": 10
+      },
+      {
+        "index": 27,
+        "area_km2": 0.007143,
+        "bounds_lonlat": [
+          76.810234,
+          35.469459,
+          76.811931,
+          35.470381
+        ],
+        "representative_point_lonlat": [
+          76.8110868,
+          35.4700145
+        ],
+        "centroid_lonlat": [
+          76.8111162,
+          35.47001
+        ],
+        "length_perimeter_km": 0.396,
+        "vertex_count": 11
+      },
+      {
+        "index": 28,
+        "area_km2": 0.004199,
+        "bounds_lonlat": [
+          76.792763,
+          35.500149,
+          76.79365,
+          35.502146
+        ],
+        "representative_point_lonlat": [
+          76.7932649,
+          35.501316
+        ],
+        "centroid_lonlat": [
+          76.793248,
+          35.5013223
+        ],
+        "length_perimeter_km": 0.479,
+        "vertex_count": 9
+      },
+      {
+        "index": 29,
+        "area_km2": 0.00373,
+        "bounds_lonlat": [
+          76.777566,
+          35.605425,
+          76.779244,
+          35.607248
+        ],
+        "representative_point_lonlat": [
+          76.7785413,
+          35.6062072
+        ],
+        "centroid_lonlat": [
+          76.7785426,
+          35.6061871
+        ],
+        "length_perimeter_km": 0.511,
+        "vertex_count": 10
+      },
+      {
+        "index": 30,
+        "area_km2": 0.003591,
+        "bounds_lonlat": [
+          76.976154,
+          35.256486,
+          76.976672,
+          35.258575
+        ],
+        "representative_point_lonlat": [
+          76.9762741,
+          35.2573705
+        ],
+        "centroid_lonlat": [
+          76.9763388,
+          35.2576896
+        ],
+        "length_perimeter_km": 0.482,
+        "vertex_count": 8
+      },
+      {
+        "index": 31,
+        "area_km2": 0.003375,
+        "bounds_lonlat": [
+          76.999054,
+          35.289047,
+          77.001851,
+          35.290196
+        ],
+        "representative_point_lonlat": [
+          77.0005139,
+          35.289635
+        ],
+        "centroid_lonlat": [
+          77.000483,
+          35.2896202
+        ],
+        "length_perimeter_km": 0.576,
+        "vertex_count": 11
+      },
+      {
+        "index": 32,
+        "area_km2": 0.003106,
+        "bounds_lonlat": [
+          76.975436,
+          35.253595,
+          76.976093,
+          35.256243
+        ],
+        "representative_point_lonlat": [
+          76.9756836,
+          35.2549365
+        ],
+        "centroid_lonlat": [
+          76.9757063,
+          35.2549614
+        ],
+        "length_perimeter_km": 0.607,
+        "vertex_count": 9
+      },
+      {
+        "index": 33,
+        "area_km2": 0.003035,
+        "bounds_lonlat": [
+          77.065151,
+          35.175778,
+          77.067294,
+          35.176183
+        ],
+        "representative_point_lonlat": [
+          77.0663419,
+          35.1760155
+        ],
+        "centroid_lonlat": [
+          77.0663768,
+          35.1759952
+        ],
+        "length_perimeter_km": 0.406,
+        "vertex_count": 9
+      },
+      {
+        "index": 34,
+        "area_km2": 0.001618,
+        "bounds_lonlat": [
+          76.952955,
+          35.368734,
+          76.953621,
+          35.369541
+        ],
+        "representative_point_lonlat": [
+          76.9530903,
+          35.3692265
+        ],
+        "centroid_lonlat": [
+          76.9531825,
+          35.3691125
+        ],
+        "length_perimeter_km": 0.232,
+        "vertex_count": 7
+      },
+      {
+        "index": 35,
+        "area_km2": 0.001089,
+        "bounds_lonlat": [
+          76.803197,
+          35.481154,
+          76.803918,
+          35.481577
+        ],
+        "representative_point_lonlat": [
+          76.8037163,
+          35.4813696
+        ],
+        "centroid_lonlat": [
+          76.803653,
+          35.481389
+        ],
+        "length_perimeter_km": 0.177,
+        "vertex_count": 7
+      },
+      {
+        "index": 36,
+        "area_km2": 0.000996,
+        "bounds_lonlat": [
+          77.035259,
+          35.18303,
+          77.036243,
+          35.183259
+        ],
+        "representative_point_lonlat": [
+          77.0358798,
+          35.1831288
+        ],
+        "centroid_lonlat": [
+          77.0357764,
+          35.1831432
+        ],
+        "length_perimeter_km": 0.191,
+        "vertex_count": 6
+      },
+      {
+        "index": 37,
+        "area_km2": 0.000798,
+        "bounds_lonlat": [
+          76.774372,
+          35.639163,
+          76.775442,
+          35.639468
+        ],
+        "representative_point_lonlat": [
+          76.7750197,
+          35.63933
+        ],
+        "centroid_lonlat": [
+          76.7749568,
+          35.6393052
+        ],
+        "length_perimeter_km": 0.21,
+        "vertex_count": 6
+      },
+      {
+        "index": 38,
+        "area_km2": 0.000797,
+        "bounds_lonlat": [
+          76.765863,
+          35.516081,
+          76.766577,
+          35.516337
+        ],
+        "representative_point_lonlat": [
+          76.7662373,
+          35.5162338
+        ],
+        "centroid_lonlat": [
+          76.7661962,
+          35.5162247
+        ],
+        "length_perimeter_km": 0.161,
+        "vertex_count": 7
+      },
+      {
+        "index": 39,
+        "area_km2": 0.000793,
+        "bounds_lonlat": [
+          76.992443,
+          35.311894,
+          76.993834,
+          35.312071
+        ],
+        "representative_point_lonlat": [
+          76.9928508,
+          35.311991
+        ],
+        "centroid_lonlat": [
+          76.9930311,
+          35.3119586
+        ],
+        "length_perimeter_km": 0.259,
+        "vertex_count": 6
+      },
+      {
+        "index": 40,
+        "area_km2": 0.000604,
+        "bounds_lonlat": [
+          76.994328,
+          35.311677,
+          76.995541,
+          35.311832
+        ],
+        "representative_point_lonlat": [
+          76.9946842,
+          35.3117618
+        ],
+        "centroid_lonlat": [
+          76.9948418,
+          35.3117335
+        ],
+        "length_perimeter_km": 0.226,
+        "vertex_count": 5
+      },
+      {
+        "index": 41,
+        "area_km2": 0.000407,
+        "bounds_lonlat": [
+          76.980557,
+          35.248064,
+          76.981091,
+          35.248326
+        ],
+        "representative_point_lonlat": [
+          76.9806502,
+          35.2482546
+        ],
+        "centroid_lonlat": [
+          76.9807461,
+          35.248191
+        ],
+        "length_perimeter_km": 0.121,
+        "vertex_count": 5
+      },
+      {
+        "index": 42,
+        "area_km2": 0.000329,
+        "bounds_lonlat": [
+          77.007596,
+          35.196426,
+          77.007994,
+          35.197023
+        ],
+        "representative_point_lonlat": [
+          77.0077618,
+          35.196723
+        ],
+        "centroid_lonlat": [
+          77.007738,
+          35.1967613
+        ],
+        "length_perimeter_km": 0.153,
+        "vertex_count": 5
+      },
+      {
+        "index": 43,
+        "area_km2": 0.000245,
+        "bounds_lonlat": [
+          76.893938,
+          35.386586,
+          76.894839,
+          35.386661
+        ],
+        "representative_point_lonlat": [
+          76.8945493,
+          35.3866285
+        ],
+        "centroid_lonlat": [
+          76.89444,
+          35.3866143
+        ],
+        "length_perimeter_km": 0.165,
+        "vertex_count": 5
+      },
+      {
+        "index": 44,
+        "area_km2": 0.000214,
+        "bounds_lonlat": [
+          76.789273,
+          35.518264,
+          76.790721,
+          35.518586
+        ],
+        "representative_point_lonlat": [
+          76.7899071,
+          35.518449
+        ],
+        "centroid_lonlat": [
+          76.7897968,
+          35.5184734
+        ],
+        "length_perimeter_km": 0.272,
+        "vertex_count": 7
+      },
+      {
+        "index": 45,
+        "area_km2": 2.6e-05,
+        "bounds_lonlat": [
+          76.792804,
+          35.493155,
+          76.792885,
+          35.493312
+        ],
+        "representative_point_lonlat": [
+          76.7928316,
+          35.4932423
+        ],
+        "centroid_lonlat": [
+          76.7928439,
+          35.4932132
+        ],
+        "length_perimeter_km": 0.039,
+        "vertex_count": 4
+      },
+      {
+        "index": 46,
+        "area_km2": 1.6e-05,
+        "bounds_lonlat": [
+          77.021604,
+          35.295439,
+          77.021661,
+          35.295494
+        ],
+        "representative_point_lonlat": [
+          77.021619,
+          35.2954698
+        ],
+        "centroid_lonlat": [
+          77.0216235,
+          35.2954595
+        ],
+        "length_perimeter_km": 0.019,
+        "vertex_count": 4
+      },
+      {
+        "index": 47,
+        "area_km2": 1.3e-05,
+        "bounds_lonlat": [
+          76.956839,
+          35.36467,
+          76.956916,
+          35.364765
+        ],
+        "representative_point_lonlat": [
+          76.9568586,
+          35.3647325
+        ],
+        "centroid_lonlat": [
+          76.956873,
+          35.3647118
+        ],
+        "length_perimeter_km": 0.026,
+        "vertex_count": 4
+      },
+      {
+        "index": 48,
+        "area_km2": 1.2e-05,
+        "bounds_lonlat": [
+          77.049085,
+          35.179354,
+          77.049362,
+          35.179492
+        ],
+        "representative_point_lonlat": [
+          77.0492029,
+          35.1794311
+        ],
+        "centroid_lonlat": [
+          77.0492529,
+          35.1794053
+        ],
+        "length_perimeter_km": 0.059,
+        "vertex_count": 4
+      },
+      {
+        "index": 49,
+        "area_km2": 1.1e-05,
+        "bounds_lonlat": [
+          77.052001,
+          35.177327,
+          77.052069,
+          35.177382
+        ],
+        "representative_point_lonlat": [
+          77.0520161,
+          35.177362
+        ],
+        "centroid_lonlat": [
+          77.0520275,
+          35.1773503
+        ],
+        "length_perimeter_km": 0.019,
+        "vertex_count": 4
+      },
+      {
+        "index": 50,
+        "area_km2": 4e-06,
+        "bounds_lonlat": [
+          76.798588,
+          35.488988,
+          76.79871,
+          35.489047
+        ],
+        "representative_point_lonlat": [
+          76.7986456,
+          35.4890193
+        ],
+        "centroid_lonlat": [
+          76.798667,
+          35.4890088
+        ],
+        "length_perimeter_km": 0.026,
+        "vertex_count": 4
+      },
+      {
+        "index": 51,
+        "area_km2": 0.0,
+        "bounds_lonlat": [
+          76.774131,
+          35.515795,
+          76.774148,
+          35.515796
+        ],
+        "representative_point_lonlat": [
+          76.7741368,
+          35.5157954
+        ],
+        "centroid_lonlat": [
+          76.7741394,
+          35.5157952
+        ],
+        "length_perimeter_km": 0.003,
+        "vertex_count": 4
+      }
+    ]
+  },
+  "line_through_ice": {
+    "intersected_length_km": 28.709208,
+    "line_segments_count": 53,
+    "major_segments": [
+      {
+        "length_km": 3.94641,
+        "bounds_lonlat": [
+          76.978177,
+          35.315225,
+          76.990134,
+          35.344587
+        ],
+        "midpoint_lonlat": [
+          76.9892847,
+          35.3299254
+        ]
+      },
+      {
+        "length_km": 2.24228,
+        "bounds_lonlat": [
+          76.948825,
+          35.373231,
+          76.954497,
+          35.39107
+        ],
+        "midpoint_lonlat": [
+          76.9541876,
+          35.3822807
+        ]
+      },
+      {
+        "length_km": 2.21807,
+        "bounds_lonlat": [
+          76.995579,
+          35.300994,
+          77.015161,
+          35.311673
+        ],
+        "midpoint_lonlat": [
+          77.0046671,
+          35.3055211
+        ]
+      },
+      {
+        "length_km": 2.01174,
+        "bounds_lonlat": [
+          76.977919,
+          35.345076,
+          76.986709,
+          35.359529
+        ],
+        "midpoint_lonlat": [
+          76.9853106,
+          35.3512083
+        ]
+      },
+      {
+        "length_km": 1.90007,
+        "bounds_lonlat": [
+          76.833219,
+          35.422075,
+          76.841484,
+          35.436574
+        ],
+        "midpoint_lonlat": [
+          76.8399754,
+          35.4280624
+        ]
+      },
+      {
+        "length_km": 1.58434,
+        "bounds_lonlat": [
+          76.789623,
+          35.578125,
+          76.794149,
+          35.590161
+        ],
+        "midpoint_lonlat": [
+          76.7941073,
+          35.5834044
+        ]
+      },
+      {
+        "length_km": 1.01815,
+        "bounds_lonlat": [
+          77.000413,
+          35.230252,
+          77.004128,
+          35.238605
+        ],
+        "midpoint_lonlat": [
+          77.002911,
+          35.2346126
+        ]
+      },
+      {
+        "length_km": 1.01421,
+        "bounds_lonlat": [
+          77.068063,
+          35.171801,
+          77.078224,
+          35.175538
+        ],
+        "midpoint_lonlat": [
+          77.0731436,
+          35.1736698
+        ]
+      },
+      {
+        "length_km": 0.94601,
+        "bounds_lonlat": [
+          76.997101,
+          35.222229,
+          77.002992,
+          35.22836
+        ],
+        "midpoint_lonlat": [
+          77.0002441,
+          35.2252683
+        ]
+      },
+      {
+        "length_km": 0.88254,
+        "bounds_lonlat": [
+          76.799593,
+          35.481867,
+          76.804079,
+          35.488588
+        ],
+        "midpoint_lonlat": [
+          76.8024713,
+          35.4854756
+        ]
+      },
+      {
+        "length_km": 0.7762,
+        "bounds_lonlat": [
+          76.76328,
+          35.63902,
+          76.771786,
+          35.639739
+        ],
+        "midpoint_lonlat": [
+          76.7675258,
+          35.6392403
+        ]
+      },
+      {
+        "length_km": 0.75127,
+        "bounds_lonlat": [
+          76.985195,
+          35.312111,
+          76.992128,
+          35.315218
+        ],
+        "midpoint_lonlat": [
+          76.9883264,
+          35.3129434
+        ]
+      },
+      {
+        "length_km": 0.67667,
+        "bounds_lonlat": [
+          76.990648,
+          35.210678,
+          76.993745,
+          35.216222
+        ],
+        "midpoint_lonlat": [
+          76.9921965,
+          35.2134497
+        ]
+      },
+      {
+        "length_km": 0.60811,
+        "bounds_lonlat": [
+          77.015616,
+          35.296707,
+          77.02022,
+          35.300677
+        ],
+        "midpoint_lonlat": [
+          77.0179317,
+          35.2987097
+        ]
+      },
+      {
+        "length_km": 0.56669,
+        "bounds_lonlat": [
+          76.983322,
+          35.244118,
+          76.988555,
+          35.246885
+        ],
+        "midpoint_lonlat": [
+          76.9859389,
+          35.2455015
+        ]
+      },
+      {
+        "length_km": 0.49328,
+        "bounds_lonlat": [
+          76.793749,
+          35.489178,
+          76.798301,
+          35.491488
+        ],
+        "midpoint_lonlat": [
+          76.7959481,
+          35.4902514
+        ]
+      },
+      {
+        "length_km": 0.48711,
+        "bounds_lonlat": [
+          76.975471,
+          35.248645,
+          76.979982,
+          35.251008
+        ],
+        "midpoint_lonlat": [
+          76.9777262,
+          35.2498262
+        ]
+      },
+      {
+        "length_km": 0.45337,
+        "bounds_lonlat": [
+          76.997597,
+          35.282254,
+          76.999252,
+          35.285992
+        ],
+        "midpoint_lonlat": [
+          76.9988141,
+          35.2842618
+        ]
+      },
+      {
+        "length_km": 0.43873,
+        "bounds_lonlat": [
+          76.803761,
+          35.476424,
+          76.806423,
+          35.479622
+        ],
+        "midpoint_lonlat": [
+          76.8049389,
+          35.4779615
+        ]
+      },
+      {
+        "length_km": 0.43037,
+        "bounds_lonlat": [
+          76.774867,
+          35.515784,
+          76.779365,
+          35.517018
+        ],
+        "midpoint_lonlat": [
+          76.7771157,
+          35.5164009
+        ]
+      },
+      {
+        "length_km": 0.42145,
+        "bounds_lonlat": [
+          76.994442,
+          35.21747,
+          76.996371,
+          35.220923
+        ],
+        "midpoint_lonlat": [
+          76.9954068,
+          35.2191966
+        ]
+      },
+      {
+        "length_km": 0.38601,
+        "bounds_lonlat": [
+          77.003304,
+          35.199529,
+          77.005945,
+          35.202166
+        ],
+        "midpoint_lonlat": [
+          77.0048869,
+          35.2011083
+        ]
+      },
+      {
+        "length_km": 0.34026,
+        "bounds_lonlat": [
+          76.809618,
+          35.470412,
+          76.811369,
+          35.473112
+        ],
+        "midpoint_lonlat": [
+          76.8105482,
+          35.4718041
+        ]
+      },
+      {
+        "length_km": 0.33914,
+        "bounds_lonlat": [
+          76.992016,
+          35.275357,
+          76.992689,
+          35.278342
+        ],
+        "midpoint_lonlat": [
+          76.9923124,
+          35.2768429
+        ]
+      },
+      {
+        "length_km": 0.29986,
+        "bounds_lonlat": [
+          76.975436,
+          35.253595,
+          76.976093,
+          35.256243
+        ],
+        "midpoint_lonlat": [
+          76.9757649,
+          35.254919
+        ]
+      },
+      {
+        "length_km": 0.28716,
+        "bounds_lonlat": [
+          76.999054,
+          35.289047,
+          77.001851,
+          35.290196
+        ],
+        "midpoint_lonlat": [
+          77.0004928,
+          35.2895458
+        ]
+      },
+      {
+        "length_km": 0.28026,
+        "bounds_lonlat": [
+          76.993464,
+          35.240538,
+          76.996158,
+          35.241762
+        ],
+        "midpoint_lonlat": [
+          76.9948111,
+          35.2411497
+        ]
+      },
+      {
+        "length_km": 0.26458,
+        "bounds_lonlat": [
+          76.954507,
+          35.365655,
+          76.956117,
+          35.367642
+        ],
+        "midpoint_lonlat": [
+          76.9553121,
+          35.3666483
+        ]
+      },
+      {
+        "length_km": 0.26345,
+        "bounds_lonlat": [
+          77.040527,
+          35.182348,
+          77.043381,
+          35.182689
+        ],
+        "midpoint_lonlat": [
+          77.0419584,
+          35.1825344
+        ]
+      },
+      {
+        "length_km": 0.25903,
+        "bounds_lonlat": [
+          76.846569,
+          35.40403,
+          76.847023,
+          35.406264
+        ],
+        "midpoint_lonlat": [
+          76.8469418,
+          35.4052154
+        ]
+      }
+    ]
+  }
+}
