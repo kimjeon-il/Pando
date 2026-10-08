@@ -1,0 +1,111 @@
+name: World Dataset Stage 3 Gate
+
+on:
+  push:
+    branches:
+      - work/gis
+    paths:
+      - '.github/workflows/world-dataset-stage3-gate.yml'
+      - 'assets/data/world/**'
+      - 'assets/data/world-preview-v*.json'
+      - 'assets/data/countries-*.gz'
+      - 'assets/data/country-label-anchors-*.json'
+      - 'assets/data/territorial-entities/generated/current-world.geojson'
+      - 'assets/data/territorial-entities/generated/v2/index.json'
+      - 'assets/js/bootstrap.js'
+      - 'assets/js/modules/app-environment.js'
+      - 'assets/js/modules/app-service-assembly.js'
+      - 'assets/js/modules/gpu-map-renderer.js'
+      - 'assets/js/modules/stored-asset-loader.js'
+      - 'assets/js/modules/world-bundle-manifest.js'
+      - 'assets/js/workers/data-loader-worker.js'
+      - 'scripts/generate-build-metadata.mjs'
+      - 'scripts/check-version.mjs'
+      - 'tools/build-world-bundle.mjs'
+      - 'tools/build-world-preview.mjs'
+      - 'tools/build-world-mesh.mjs'
+      - 'tools/build-country-shared-boundaries.mjs'
+      - 'tools/validate-country-geometry.py'
+      - 'tests/browser/startup-performance.spec.mjs'
+      - 'tests/unit/world-bundle*.test.mjs'
+      - 'tests/unit/stored-asset-content-cache.test.mjs'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dataset-contract:
+    name: World bundle, generators and unit regressions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          python -m pip install 'shapely==2.1.2'
+      - name: Check country source and derived world data
+        run: |
+          pnpm check:country-schema
+          pnpm check:preview
+          pnpm check:country-shared-boundaries
+          pnpm check:world-bundle
+      - name: Check runtime metadata and JavaScript syntax
+        run: |
+          pnpm generate:build-meta
+          pnpm check:version
+          pnpm check:js
+      - name: Check changed JavaScript modules and targeted regressions
+        run: |
+          pnpm exec eslint             tools/build-world-bundle.mjs             tools/build-world-preview.mjs             tools/build-world-mesh.mjs             tools/build-country-shared-boundaries.mjs             assets/js/modules/world-bundle-manifest.js             assets/js/modules/stored-asset-loader.js             assets/js/workers/data-loader-worker.js             scripts/check-version.mjs             scripts/generate-build-metadata.mjs             tests/unit/world-bundle-versioning.test.mjs             tests/unit/world-bundle-runtime.test.mjs             tests/unit/stored-asset-content-cache.test.mjs
+          node --test             tests/unit/world-bundle-versioning.test.mjs             tests/unit/world-bundle-runtime.test.mjs             tests/unit/stored-asset-content-cache.test.mjs             tests/unit/country-shared-boundary-generator.test.mjs             tests/unit/caribbean-reef-identity.test.mjs             tests/unit/preview-country-geometry.test.mjs             tests/unit/territorial-canonical-parity.test.mjs             tests/unit/startup-performance.test.mjs
+
+  chromium-smoke:
+    name: Real Chromium startup and immutable cache
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install browser dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Build UI bundle and fresh runtime metadata
+        run: |
+          pnpm build:ui-bundle
+          pnpm generate:build-meta
+          pnpm check:version
+      - name: Exercise real map startup and cache recovery
+        run: |
+          pnpm exec playwright test tests/browser/startup-performance.spec.mjs             --grep 'Android-density|immutable core assets|a damaged cached country asset'             --workers=1
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-stage3-chromium-failure-${{ github.run_id }}
+          if-no-files-found: ignore
+          path: |
+            test-results/
+            playwright-report/
