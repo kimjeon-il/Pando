@@ -189,8 +189,6 @@ def main():
     endpoint_to_master=[master.distance(Point(c)) for c in (center.coords[0],center.coords[-1])]
     if max(endpoint_to_master)>0.01:
         raise RuntimeError("Stage 3 candidate not on 1–26 working master")
-    if not center.equals_exact(center,0.001):  # no-op guard avoided; explicit geometry validation
-        raise RuntimeError("Invalid candidate topology")
     # Non-destructive single-sheet source clip.
     candidate = transform(prior.common.TO_LL,center)
     geo = {
