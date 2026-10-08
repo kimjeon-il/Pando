@@ -78,11 +78,12 @@ export function audit(root,{appManifest=null,treeJson=null}={}) {
   const tree=treeJson?parseGitHubTree(JSON.parse(readFileSync(resolve(treeJson),'utf8'))):
     parseGitDataTree(execFileSync('git',['-C',root,'ls-tree','-r','-l','-z','HEAD','--','assets/data'],
       {maxBuffer:16*1024*1024}));
-  const protectedPaths=new Map(),historicalPaths=new Map(),errors=[];
+  const protectedPaths=new Map(),historicalPaths=new Map(),errors=[],historicalWarnings=[];
   function mark(path,reason,{historical=false,bytes=null}={}) {
     const record=tree.get(path);
-    if(!record) {errors.push('Missing tracked dependency: '+path+' ('+reason+')');return;}
-    if(bytes!==null && record.bytes!==bytes)errors.push('Wrong stored size '+path+
+    const diagnostics=historical?historicalWarnings:errors;
+    if(!record) {diagnostics.push('Missing tracked dependency: '+path+' ('+reason+')');return;}
+    if(bytes!==null && record.bytes!==bytes)diagnostics.push('Wrong stored size '+path+
       ': '+record.bytes+' vs '+bytes+' ('+reason+')');
     const target=historical?historicalPaths:protectedPaths;
     if(!target.has(path))target.set(path,new Set());
@@ -204,7 +205,7 @@ export function audit(root,{appManifest=null,treeJson=null}={}) {
   const currentMissing=errors.length>0;
   const report={schema:'pandolab-legacy-assets-audit',version:1,gitHead:
     execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),
-    passed:!currentMissing,errors,
+    passed:!currentMissing,errors,historicalWarnings,
     metadata:{totalDataFiles:tree.size,totalDataBytes:[...tree.values()].reduce((s,x)=>s+x.bytes,0),
       currentTerrainVersion:tv[1],currentHydroVersion:hv[1],terrainTiles,activeFileCount:protectedPaths.size,
       oldManifestDependencies:historicalPaths.size,externalPins,sourceScan:scan,duplicates:duplicateStats(tree)},
@@ -223,7 +224,7 @@ if(run){
       writeFileSync(dest,JSON.stringify(report,null,2)+'\n');
     }
     console.log(JSON.stringify({passed:report.passed,errors:report.errors,
-      metadata:report.metadata,groups:report.groups},null,2));
+      historicalWarnings:report.historicalWarnings,metadata:report.metadata,groups:report.groups},null,2));
     if(!report.passed)process.exitCode=1;
   }catch(error){console.error('Legacy assets audit failed: '+error.stack);process.exitCode=1;}
 }
