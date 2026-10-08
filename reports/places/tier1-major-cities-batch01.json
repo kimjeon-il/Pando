@@ -1,5 +1,5 @@
 {
-  "schema": "pando-places-tier1-review-v4",
+  "schema": "pando-places-tier1-review-v5",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0)",
   "checkedOn": "2026-10-08",
@@ -221,13 +221,6 @@
             "toYear": 1868
           },
           "sourceUrl": "https://www.archives.go.jp/exhibition/digital/henbou/contents/03.html"
-        },
-        {
-          "text": "동경",
-          "language": "ko",
-          "usage": "alternate",
-          "variantType": "conventionalSinoKorean",
-          "sourceUrl": "https://www.korean.go.kr/front/page/pageView.do?mn_id=97&page_id=P000146"
         }
       ],
       "latitude": 35.6895,
@@ -375,6 +368,24 @@
             }
           ],
           "note": "Year-only approximation: under Japanese occupation (1937–1945) 北京 was also used; romanized versions are transliterations of 北平, not separate legal changes."
+        },
+        {
+          "text": "베이핑",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "chinesePronunciationOfHistoricalToponym",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "officialPeriods": [
+            {
+              "fromYear": 1928,
+              "toYear": 1937
+            },
+            {
+              "fromYear": 1945,
+              "toYear": 1949
+            }
+          ],
+          "note": "Korean map label for historical 北平 under the agreed post-1912 Chinese-pronunciation convention. Not a separate rename."
         }
       ],
       "latitude": 39.9075,
@@ -382,7 +393,19 @@
       "featureClass": "P",
       "featureCode": "PPLC",
       "sourceUrl": "https://www.geonames.org/1816670/",
-      "sourceCountryCode": "CN"
+      "sourceCountryCode": "CN",
+      "koMapLabels": [
+        {
+          "whenLocalToponym": "北京",
+          "before1912": "북경",
+          "from1912": "베이징"
+        },
+        {
+          "whenLocalToponym": "北平",
+          "from1912": "베이핑",
+          "note": "Choose only when 北平 is the date-appropriate local toponym, per officialPeriods; dates are year-level."
+        }
+      ]
     },
     {
       "geonameId": 1796236,
@@ -415,7 +438,14 @@
       "featureClass": "P",
       "featureCode": "PPLA",
       "sourceUrl": "https://www.geonames.org/1796236/",
-      "sourceCountryCode": "CN"
+      "sourceCountryCode": "CN",
+      "koMapLabels": [
+        {
+          "whenLocalToponym": "上海",
+          "before1912": "상해",
+          "from1912": "상하이"
+        }
+      ]
     },
     {
       "geonameId": 1273294,
@@ -530,7 +560,10 @@
     "fields": "text, language (BCP 47), usage; optional variantType, officialPeriod/officialPeriods (year precision), commonlyUsedBeforeApproxYear, note, sourceUrl",
     "deduplication": "Only one record when local and English spelling is identical; language matching for identical spellings is implicit",
     "historicalDates": "Official periods are year-level approximations where source-grounded; written variants, transliterations, and names can overlap. Do not imply exclusive usage from start/end dates.",
-    "fallback": "Dates and display-language selection require separate runtime implementation. Do not infer a fixed name from sourceCountryCode."
+    "fallback": "Dates and display-language selection require separate runtime implementation. Do not infer a fixed name from sourceCountryCode.",
+    "koreanMapLabelPolicyFile": "reports/places/korean-map-label-policy.json",
+    "displayConvention": "The shared map-label policy is distinct from multilingual names[] and the factual usage/official periods of local names. Chinese koMapLabels values reference existing ko names[] and are applied after selecting the historically appropriate local toponym.",
+    "runtimeStatus": "Staging data only, no renderer integration."
   },
   "historicalNameReview": {
     "earliestYear": 1801,
