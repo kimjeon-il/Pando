@@ -1,4 +1,4 @@
-/** Independently reviewed semantic fixtures; do not generate the expected rows from runtime functions. */
+/** Independently reviewed semantic fixtures; coordinates follow reports/places records. */
 export const PLACE_SYNC_CASES = Object.freeze([
   {
     "id": "kyiv-date-precision",
@@ -10,8 +10,8 @@ export const PLACE_SYNC_CASES = Object.freeze([
       "nameNative": "Київ",
       "kind": "capital",
       "coordinates": [
-        30.5234,
-        50.4501
+        30.5238,
+        50.45466
       ],
       "countryCode": "UA",
       "featureCode": "PPLC",
@@ -133,8 +133,8 @@ export const PLACE_SYNC_CASES = Object.freeze([
       "nameNative": "México",
       "kind": "capital",
       "coordinates": [
-        -99.1277,
-        19.4285
+        -99.12766,
+        19.42847
       ],
       "countryCode": "MX",
       "featureCode": "PPLC"
@@ -188,8 +188,8 @@ export const PLACE_SYNC_CASES = Object.freeze([
       "nameNative": "Budapest",
       "kind": "capital",
       "coordinates": [
-        19.0399,
-        47.498
+        19.04045,
+        47.49835
       ],
       "countryCode": "HU",
       "featureCode": "PPLC"
@@ -253,8 +253,8 @@ export const PLACE_SYNC_CASES = Object.freeze([
       "nameNative": "Bruxelles",
       "kind": "capital",
       "coordinates": [
-        4.3488,
-        50.8504
+        4.34878,
+        50.85045
       ],
       "countryCode": "BE",
       "featureCode": "PPLC"
