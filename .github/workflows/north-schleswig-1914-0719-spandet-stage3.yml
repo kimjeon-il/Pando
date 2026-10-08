@@ -1,0 +1,92 @@
+name: Stage 3 Spandet 0719 historical border review
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [work/gis]
+    paths:
+      - tools/verify_north_schleswig_1914_0719_spandet.py
+      - .github/workflows/north-schleswig-1914-0719-spandet-stage3.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: north-schleswig-stage3-0719
+  cancel-in-progress: false
+
+jobs:
+  verify-spandet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/gis
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check shapely pyproj requests pillow
+      - name: Pin the unmodified 1-26 master boundary
+        run: sha256sum tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.geojson > /tmp/north-schleswig-stage3-master.sha
+      - name: Fetch original pre-1914 Spandet WMS and produce candidate overlay panels
+        env:
+          GIS_EMIT_LOG_THUMBNAIL: "1"
+        run: python tools/verify_north_schleswig_1914_0719_spandet.py
+      - name: Assert seam topology, screen-scale discipline, and unchanged master
+        run: |
+          sha256sum -c /tmp/north-schleswig-stage3-master.sha
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("tools/historical-library/land-borders")
+          stem="german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3"
+          j=json.loads((root/(stem+".json")).read_text(encoding="utf-8"))
+          g=json.loads((root/(stem+".geojson")).read_text(encoding="utf-8"))
+          assert j["referenceDate"] == "1914-07-31"
+          assert j["historicalMapSourceRasterAccessible"] is True
+          assert j["geometrySourceModified"] is False
+          assert j["screenReviewPolicy"]["independentHistoricalLineDigitized"] is False
+          assert j["screenReviewPolicy"]["historicLineDisplacementPx"] is None
+          assert j["screenReviewPolicy"]["thresholdPassed"] is None
+          assert g["features"][0]["properties"]["doNotTreatAsFinal"] is True
+          geo=j["geometry"]
+          assert abs(geo["candidateLengthKm"]-8.51496) < 0.025
+          assert geo["isSimple"] and geo["westSheetSeamIsSimple"] and geo["eastSheetSeamIsSimple"]
+          assert max(geo["startMatches0718DistanceM"],
+                     geo["matchesStage2EndpointDistanceM"],
+                     geo["endMatches0619DistanceM"],
+                     geo["startToWorkingMasterDistanceM"],
+                     geo["endToWorkingMasterDistanceM"]) <= 0.01
+          q=geo["candidateVsOwnSimplification"]
+          assert q["widthCssPx"]==2560 and q["flatZoom"]==64
+          assert q["simplificationTargetCssPx"]==0.5
+          assert q["independentHistoricReferenceScreenDifferenceCssPx"] is None
+          assert q["candidateVersusOwnSimplificationHausdorffCssPx"] <= 0.5
+          assert len(j["images"])==6
+          assert [len(x["sourceWms"]) for x in j["images"]]==[1,1,1,1,2,2]
+          assert {x["panel"] for x in j["images"]} == {
+            "0719-overview","0719-west","0719-middle","0719-east",
+            "0718-0719-west-seam","0719-0619-north-seam"
+          }
+          print("PASS: 0719 candidate partition+seams+LOD; historic screen deviation unmeasured.")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: north-schleswig-0719-spandet-stage3
+          path: tools/historical-library/review-output/north-schleswig-1914-001-026/0719-spandet/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Save only source diagnostics and provisional clip
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.json \
+            tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.geojson
+          if git diff --cached --quiet; then
+            echo "Stage 3 audit unchanged"
+          else
+            git commit -m "data(gis): save 0719 Spandet stage3 candidate and original-map checks"
+            git pull --rebase origin work/gis
+            git push origin HEAD:work/gis
+          fi
