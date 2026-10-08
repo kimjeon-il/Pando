@@ -1,0 +1,41 @@
+name: Siachen RGI7 research extraction
+on:
+  push:
+    branches:
+      - research/siachen-rgi7-outline
+    paths:
+      - scripts/research/siachen/extract_rgi7.py
+      - .github/workflows/siachen-rgi7-research.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/siachen-rgi7-outline
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install GIS libraries
+        run: python -m pip install --disable-pip-version-check --quiet geopandas pyogrio shapely pyproj requests matplotlib
+      - name: Extract and verify RGI7 geometry
+        run: python scripts/research/siachen/extract_rgi7.py
+      - name: Commit isolated GIS research artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/research/siachen
+          if ! git diff --cached --quiet; then
+            git commit -m "research: add verified Siachen glacier GeoJSON and comparison"
+            git push origin HEAD:research/siachen-rgi7-outline
+          fi
+      - name: Upload GIS files
+        uses: actions/upload-artifact@v4
+        with:
+          name: siachen-rgi7-study
+          path: assets/data/research/siachen/
