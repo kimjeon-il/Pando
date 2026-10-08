@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
 import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
 import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
@@ -37,6 +38,16 @@ test('history restoration prepares and validates a detached candidate outside UI
   invalid.timelineRecords.geometryBindings[0].geometryRef.id = 'missing';
   assert.throws(() => projectState.prepareEditableProjectSnapshot(invalid, options));
   assert.deepEqual(snapshot, before);
+});
+
+test('history restoration accepts dated identities and preserves archived records', () => {
+  const source = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json', import.meta.url), 'utf8'));
+  const snapshot = { ...source, hydroEdits: [], genericFeatures: [], distributionLayers: [], distributionEntries: [] };
+  const candidate = projectState.prepareEditableProjectSnapshot(snapshot, {
+    normalizeHydroEditCollection: values => values, normalizeGenericFeatureCollection,
+  });
+  assert.deepEqual(candidate.timelineRecords, source.timelineRecords);
+  assert.deepEqual(candidate.territorialEntities, source.territorialEntities);
 });
 
 test('selection publishes the prior selection without a second mutable owner', () => {

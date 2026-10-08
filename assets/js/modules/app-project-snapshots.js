@@ -50,7 +50,7 @@ export function createProjectSnapshots() {
       normalizeHydroEditCollection: dependencies.hydroModel.normalizeHydroEditCollection,
       normalizeGenericFeatureCollection: dependencies.modelValidation.normalizeGenericFeatureCollection,
     });
-    dependencies.territorialModel.entityStore.restoreProject(snapshot);
+    dependencies.territorialModel.entityStore.restoreProject(snapshot, { preserveCursor: true });
     dependencies.projectState.state.historyDirtyEntityIds=new Set(snapshot.historyDirtyEntityIds || []);
     return snapshot;
   }

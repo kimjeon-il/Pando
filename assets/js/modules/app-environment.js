@@ -400,6 +400,7 @@ export function createEnvironment() {
 
     (REQUIRED_UI_IDS = Object.freeze([
       'app', 'map', 'mapBottomStatus', 'statusView', 'projectionStatus', 'statusSelection', 'projectSaveStatus', 'projectSaveStatusText', 'uiTooltip',
+      'timelinePreviousMonth', 'timelineNextMonth', 'timelineMonthInput', 'timelineMonthLabel', 'timelineMonthError', 'editorTimelineContext',
       'objectSearchSurface', 'objectSearchSection', 'mapDisplaySurface', 'mapViewSection', 'mapViewProjectionSlot', 'projectionControl',
       'globeBtn', 'flatBtn', 'countriesVisible', 'subunitsVisible', 'regionsVisible', 'distributionsVisible', 'riversVisible', 'lakesVisible', 'genericFeaturesVisible', 'labelsVisible', 'basemapLabelsVisible', 'countryFlagsVisible', 'subunitLabelsVisible', 'subunitFlagsVisible', 'regionLabelsVisible', 'regionFlagsVisible', 'distributionActiveLayerInput', 'distributionLegend', 'distributionBoundaryVisibleInput',
       'createMenuBtn', 'mobileCreateBtn', 'mobileMenuBtn', 'mobileGlobalMenu', 'mobileMenuFileBtn', 'mobileFileBackBtn', 'mobilePreferencesBtn', 'mobileHelpBtn', 'mobileUndoBtn', 'mobileRedoBtn', 'objectSearchBtn', 'mapDisplayBtn', 'mobileSearchBtn', 'mobileDisplayBtn', 'resetViewBtn', 'terrainNoneRadio', 'terrainPoliticalRadio', 'terrainPhysicalRadio', 'flagMenuBtn', 'flagMenu', 'flagPreview', 'entityNameInput', 'entityColorInput', 'entityNotesInput',

@@ -1,7 +1,7 @@
 import { normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS, TERRITORIAL_SCHEMA_VERSION, TERRITORIAL_ENTITY_KINDS } from './territorial-units.js';
 import { createGeometryVersionStore } from './geometry-version-store.js';
 import { restoreTimelineStorage } from './timeline-storage.js';
-import { staticTimelineViews } from './timeline-static-view.js';
+import { initialTimelineMonth, resolvedTimelineViews } from './timeline-resolver.js';
 import { assertProjectReferenceIntegrity } from './project-invariants.js';
 import { normalizeDistributionLayers, normalizeDistributionEntries } from './distribution-model.js';
 import { validateSourceProvenance } from './source-provenance.js';
@@ -131,7 +131,8 @@ export function prepareProjectForActivation(input, options = {}) {
   const project = prepareProjectForStorage(input, options);
   const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
     geometries: project.geometries }, project.territorialEntities.map(entity => ({ id: entity.id, entityKind: entity.properties.entityKind })));
-  const views = staticTimelineViews(project.territorialEntities, storage.records, storage.geometries);
+  const month = initialTimelineMonth(storage.records, new Date().toISOString().slice(0, 7));
+  const views = resolvedTimelineViews(project.territorialEntities, storage.records, storage.geometries, month);
   assertProjectReferenceIntegrity({ ...project, territorialEntities: views, timelineRecords: null });
   return project;
 }
@@ -291,6 +292,7 @@ export const PROJECT_STATE_FIELDS = Object.freeze([
   Object.freeze({ name: 'projection', scope: 'session', fallback: () => 'globe' }),
   Object.freeze({ name: 'layerFolders', scope: 'session', fallback: () => ({}) }),
   Object.freeze({ name: 'view', scope: 'session', fallback: current => current || {} }),
+  Object.freeze({ name: 'timelineCursor', scope: 'session', fallback: current => current || '' }),
 ]);
 
 const fieldsFor = scope => {
@@ -339,7 +341,6 @@ export function prepareEditableProjectSnapshot(snapshot, { reuseGeometries = nul
     candidate.distributionEntries = normalizeDistributionEntries(candidate.distributionEntries, {
       layerExists: id => ids.has(id), cloneGeometry: geometry => geometry,
     });
-    assertProjectReferenceIntegrity({ ...candidate,
-      territorialEntities: staticTimelineViews(identities, storage.records, storage.geometries) });
+    assertProjectReferenceIntegrity({ ...candidate, territorialEntities: identities, storageOnly: true });
     return candidate;
   }
