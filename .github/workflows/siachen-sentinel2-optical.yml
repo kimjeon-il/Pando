@@ -1,0 +1,61 @@
+name: Siachen Sentinel-2 optical comparison
+on:
+  push:
+    branches: [research/siachen-rgi7-outline]
+    paths:
+      - scripts/research/siachen/compare_sentinel2_saltoro.py
+      - .github/workflows/siachen-sentinel2-optical.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  optical-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/siachen-rgi7-outline
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate syntax and install geospatial packages
+        run: |
+          python -m py_compile scripts/research/siachen/compare_sentinel2_saltoro.py
+          python -m pip install --quiet requests numpy rasterio pyproj shapely matplotlib
+      - name: Retrieve Sentinel-2 and make georeferenced comparison
+        run: python scripts/research/siachen/compare_sentinel2_saltoro.py
+      - name: Verify provenance, georegistration and generated assets
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('assets/data/research/siachen')
+          x=json.loads((p/'siachen_s2_optical_comparison.json').read_text())
+          assert set(x['scenes']) == {'2025','2026'}
+          for year,record in x['scenes'].items():
+              assert record['item_id'] and record['datetime'].startswith(year)
+              for region,v in record['images'].items():
+                  assert (p/v['path']).stat().st_size>25000
+                  assert v['quality']['clear_fraction'] >= .55
+              assert set(record['images']) == {'sia_la','bilafond_north'}
+          print('PASS optical output integrity and per-AOI quality')
+          PY
+      - name: Commit only research data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/research/siachen/
+          if ! git diff --cached --quiet; then
+            git commit -m "research: record Sentinel-2 georeferenced optical comparisons"
+            git push origin HEAD:research/siachen-rgi7-outline
+          fi
+      - name: Upload optical image and source data
+        uses: actions/upload-artifact@v4
+        with:
+          name: siachen-sentinel2-optical
+          path: |
+            assets/data/research/siachen/siachen_s2_*_optical.png
+            assets/data/research/siachen/siachen_s2_optical_comparison.json
+            assets/data/research/siachen/README_s2_optical.md
