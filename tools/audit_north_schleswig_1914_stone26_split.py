@@ -89,9 +89,18 @@ def find_transition(line, river, bridge):
             "pointLonLat":list(transform(TO_LL,pt).coords[0]),
             "method":"Modern parish-line hinge and OSM Gels Å proximity; NOT a historical stone fix."
         })
-    if len(matches)!=1:
-        raise RuntimeError(f"Need unique candidate hinge; found {len(matches)}: {matches}")
-    return matches[0]
+    if not matches:
+        raise RuntimeError("No plausible waterway-entry candidate hinge found")
+    # Later river meanders can also make sharp turns within 300 m of the
+    # approach. Take the FIRST credible waterway-entry hinge, preserving
+    # alternative sharp bends for independent period-map cross-checking.
+    selected = matches[0]
+    selected["otherCloseByTurnCandidates"] = [
+        {"vertexIndex":v["vertexIndex"],
+         "alongWorkingMasterKm":v["alongWorkingMasterKm"]}
+        for v in matches[1:]
+    ]
+    return selected
 
 
 def project_coords(line,bbox,size):
