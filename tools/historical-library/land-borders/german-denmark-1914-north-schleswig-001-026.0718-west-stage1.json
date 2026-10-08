@@ -238,7 +238,7 @@
     "Do not assume moved stone 2 location is the original boundary marker.",
     "Verify WMS georeferencing accuracy and map-date alterations before meter-scale claims."
   ],
-  "githubActionsRunId": "37790631129",
+  "githubActionsRunId": "37791021798",
   "githubRepository": "kimjeon-il/Pando",
   "reviewArtifactPath": "tools/historical-library/review-output/north-schleswig-1914-001-026/0718-west",
   "next": "Manual visual classification of historic 1880 boundary symbol for both west-half subpanels; trace only unambiguous portions, compare deviation and post-1880 changes."
