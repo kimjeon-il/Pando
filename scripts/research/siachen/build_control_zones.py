@@ -74,31 +74,54 @@ def verify_geo(g, kind):
 def polyarea(g):
     return project(g).area / 1e6
 
+def side_of_agpl(line, point):
+    """Signed nearest-segment test: source line runs south to north; right = India."""
+    position=line.project(point)
+    delta=0.00004
+    a=line.interpolate(max(0,position-delta))
+    b=line.interpolate(min(line.length,position+delta))
+    # Directed source line runs south -> north. Right side lies east / India.
+    cross=(b.x-a.x)*(point.y-a.y)-(b.y-a.y)*(point.x-a.x)
+    if abs(cross)<1e-12:
+        raise ValueError("Cannot classify candidate polygon: signed distance nearly zero")
+    return ("IND" if cross < 0 else "PAK",cross)
+
 def split_control(polygon, agpl, rgi_center, scale):
     parts = list(split(polygon, agpl).geoms)
-    if len(parts) != 2:
-        raise ValueError(scale + " expected exactly two polygon pieces cut by AGPL, got " + str(len(parts)))
-    for part in parts:
-        verify_geo(part, "split part")
-    indian = [p for p in parts if p.covers(rgi_center)]
-    if len(indian) != 1:
-        # Documented fallback inside India-controlled eastern disputed wedge.
-        indian = [p for p in parts if p.covers(Point(77.25,35.35))]
-    if len(indian) != 1:
-        raise ValueError(scale + " could not prove which split segment holds the glacier")
-    india = indian[0]
-    pakistan = parts[0] if parts[1].equals(india) else parts[1]
-    for g, label in ((india,"India"),(pakistan,"Pakistan")):
-        verify_geo(g, label)
-        if polyarea(g) < 1.0:
-            raise ValueError(scale + " unexpected tiny area for " + label)
-    base = project(polygon)
-    im, pm = project(india), project(pakistan)
-    gap_km2 = base.symmetric_difference(unary_union([im,pm])).area/1e6
-    overlap_km2 = im.intersection(pm).area / 1e6
-    if gap_km2 > 0.001 or overlap_km2 > 0.001:
+    if len(parts) < 2 or len(parts) > 30:
+        raise ValueError(scale + " unexpected number of split polygon components: " + str(len(parts)))
+    if agpl.coords[0][1] >= agpl.coords[-1][1]:
+        raise ValueError("OSM line direction no longer south to north")
+    if side_of_agpl(agpl,rgi_center)[0] != "IND":
+        raise ValueError("Physical glacier center is not east of candidate AGPL")
+    parts_india,parts_pak=[],[]
+    for ix,part in enumerate(parts):
+        verify_geo(part, "split part %d" % ix)
+        rp=part.representative_point()
+        side, signed=side_of_agpl(agpl,rp)
+        print("SPLIT PART",scale,ix,"side",side,"area_km2",round(polyarea(part),3),
+              "point",[round(rp.x,6),round(rp.y,6)],"cross",round(signed,10),flush=True)
+        if side == "IND":
+            parts_india.append(part)
+        else:
+            parts_pak.append(part)
+    if not parts_india or not parts_pak:
+        raise ValueError("Missing India or Pakistan component after signed split classification")
+    india=unary_union(parts_india)
+    pakistan=unary_union(parts_pak)
+    if not india.covers(rgi_center):
+        raise ValueError("Glacier center should be within India-designated split")
+    for g,label in ((india,"India"),(pakistan,"Pakistan")):
+        verify_geo(g,label)
+        if polyarea(g) < 1:
+            raise ValueError(scale+" unexpected tiny area for "+label)
+    base=project(polygon)
+    im,pm=project(india),project(pakistan)
+    gap_km2=base.symmetric_difference(unary_union([im,pm])).area/1e6
+    overlap_km2=im.intersection(pm).area/1e6
+    if gap_km2>0.001 or overlap_km2>0.001:
         raise ValueError(scale + " conservation test failed, gap %.6f overlap %.6f" % (gap_km2,overlap_km2))
-    return india, pakistan, gap_km2, overlap_km2
+    return india,pakistan,gap_km2,overlap_km2
 
 def paint(ax, geom, facecolor, edgecolor, name=None, width=0.7, alpha=0.8, zorder=1):
     parts = geom.geoms if hasattr(geom, "geoms") else [geom]
