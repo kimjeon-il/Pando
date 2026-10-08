@@ -1,11 +1,12 @@
 # 데이터 버전 관리 구조 개선 — 진행 기록
 
-- 기준일: 2026-10-08
+- 최신 검증일: 2026-10-09 (원본 조사일 2026-10-08)
 - 범위: 웹 `kimjeon-il/Pando` · 앱 `kimjeon-il/PandoEditor`.
 - 주 구현 브랜치: 웹 `work/gis` (별도 실험 브랜치 생성 없음).
 - **1단계:** 웹·앱 데이터 인벤토리 및 참조 관계 조사 완료. 원본은 미변경.
 - **2단계:** 웹에서 독립 데이터 매니페스트·내용 해시 기반 객체·추가 생성/검증 CLI 구현 및 커밋. 새 데이터 번들에 대한 정적 경로/Blob/크기 검사 완료. 기존 앱 버전 기반 생성기·웹 로더는 전환 전까지 유지하며 원격 CI·실제 렌더링 검증은 별도 필요.
-- **3~6단계:** 아직 미착수. 앱 내부 데이터 교체, 기존 자산 삭제, 실제 서비스 배포는 진행하지 않음.
+- **3단계:** 웹 `work/gis` 구현·커밋 및 GitHub Actions **대상 통합검증 완료**. 국가 데이터·생성기·자산/버전·구문·ESLint 확인, Node 단위검사 **33/33**, UI 번들 빌드, Chromium 실제 시작·캐시·복구 **3/3** 통과. 전체 Playwright 스위트·앱 Qt·배포는 범위 밖.
+- **4~6단계:** 미착수. 앱 내부 데이터 교체, 기존 자산 삭제, 실제 서비스 배포는 진행하지 않음.
 
 ## 기준선과 구현 링크
 
@@ -25,10 +26,29 @@
 5. `pnpm build:world-bundle`·`pnpm check:world-bundle`을 추가하고 기존 `build:map-assets`·`check:preview`의 마지막 단계에 연결.
 6. `tests/unit/world-bundle-versioning.test.mjs` 추가. 별도 샘플 환경에서 같은 계약의 독립 테스트 3/3 통과. **전체 웹 CI 및 Playwright는 실행 완료로 주장하지 않음**.
 
+## 3단계 구현 현황
+
+- 웹 구현 커밋: [`7c42b8fb28cf`](https://github.com/kimjeon-il/Pando/commit/7c42b8fb28cf3a43acd6a4e81ef9370010485dcc).
+- [3단계 상세 보고서](https://github.com/kimjeon-il/Pando/blob/work/gis/docs/validation/data-versioning-phase3.md).
+- Worker는 `world/current.json`을 로딩하고 데이터 자산의 SHA-256 경로를 사용함. 세계지도 콘텐츠 캐시와 역사 라이브러리 revision 캐시를 구분함.
+- **주의:** 공유 국경선 캐시는 여전히 이전 버전 파일을 호환 참조하며, 신규 불변 이름으로의 완전한 이관은 완료되지 않음.
+- GitHub Actions에서 실제 UI 빌드 및 핵심 Chromium 시작·캐시 검사 통과. 다만 전체 브라우저 회귀·이전 모든 캐시 조합·장기 GPU 검사까지 통과한 것은 아님.
+
+## 3단계 실제 CI 검증 근거
+
+- 완료된 GitHub Actions 최종 실행: [World Dataset Stage 3 Gate #37804486287](https://github.com/kimjeon-il/Pando/actions/runs/37804486287), 웹 `work/gis` 커밋 [`dcc296ae80eb`](https://github.com/kimjeon-il/Pando/commit/dcc296ae80eb5d3f1db013962629358804e98846).
+- 국경선·미리보기·불변 번들 재생성/검사, 빌드 메타데이터 및 818개 JS 구문 검사, 영향 범위 ESLint: 모두 통과.
+- 대상 Node 단위검사: **33개 통과 / 0개 실패**.
+- 실제 Chromium: 모바일 DPR, reload 후 불변 국가 데이터 캐시 재사용, 캐시 손상 후 복구 **3개 통과 / 0개 실패**; `pnpm build:ui-bundle`도 통과.
+- 초기 [실행 #37802544830](https://github.com/kimjeon-il/Pando/actions/runs/37802544830)의 테스트 파일 `TextDecoder no-undef`는 [`56256c515a04`](https://github.com/kimjeon-il/Pando/commit/56256c515a04e7a4908fef8313d1788b77341a2a)에서 수정 후 통과.
+- 이전 지형·수계·연구 자료를 제외하는 CI sparse checkout에서도 두 작업이 모두 통과했다. 원본 Git 데이터나 웹·앱 공용 자산을 삭제한 것은 아님.
+- **검증 경계:** 전체 프로젝트 단위·브라우저 회귀검사, Qt 앱 빌드/오프라인 실행, GPU 성능 벤치마크 및 배포 미수행. 4~6단계 미착수.
+- 상세 근거: [웹 3단계 검증 보고서](https://github.com/kimjeon-il/Pando/blob/work/gis/docs/validation/data-versioning-phase3.md).
+
 ## 위험 및 남은 의존성
 
-- 현행 Worker는 `world-preview-v${APP_VERSION}.json`, 현행 공유 국경선 캐시는 `v0.34.0` 경로를 계속 사용함. 실서비스 로더·캐시·검증기 전환은 3단계.
-- `build-world-preview.mjs`가 앱 버전별 레거시 출력까지 유지하는 것은 **과도기적 호환성**임. 새 `world/current.json`은 프로그램 버전을 사용하지 않음.
+- 웹 Worker는 새 데이터 매니페스트로 전환했지만 공유 국경선 캐시의 레거시 `v0.34.0` 경로는 호환 목적으로 유지함.
+- `build-world-preview.mjs`의 출력 기준은 프로그램 버전 대신 고정 데이터 입력 매니페스트로 변경됐으며, 구형 배포 자산은 호환성을 위해 유지함.
 - 웹 수계 v0.13.1은 v0.13.0 index/detail/shards를 사용하므로 현재 모두 유지.
 - 1단계 웹·앱 역사 라이브러리 285개 중 91개가 바이트 단위로 다르며 실질 내용·압축 차이는 별도 검토 필요.
 - 신규 해시 경로와 과거 경로가 공존하므로 작업 폴더/배포 파일 수가 일시적으로 증가함. 6단계에서 안전하게 정리.
