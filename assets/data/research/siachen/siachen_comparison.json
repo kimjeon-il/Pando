@@ -1,0 +1,48 @@
+{
+  "rgi_id": "RGI2000-v7.0-G-14-20040",
+  "glacier_area_km2_UTM43": 1088.019,
+  "glacier_centroid_lonlat": [
+    77.03976619186577,
+    35.45098135325247
+  ],
+  "glacier_bounds_lonlat": [
+    76.757993,
+    35.168431,
+    77.337435,
+    35.674558
+  ],
+  "valid_geometry": true,
+  "rgi_attributes": {
+    "rgi_id": "RGI2000-v7.0-G-14-20040",
+    "glims_id": "G077129E35401N",
+    "glac_name": "IN5Q151B0013 Siachen Glacier",
+    "src_date": "2002-07-10T00:00:00",
+    "area_km2": "1087.964899376136",
+    "o2region": "14-02"
+  },
+  "rgi_source_url": "https://ihp-wins.unesco.org/dataset/randolph-glacier-inventory-rgi-7-0-glacier-product/resource/d4adeac9-e01b-4554-8ec8-6b1d3936b537/download",
+  "rgi_sha256": "7b5d9ebcc53f214bb8633893a4063babcbb0671621f7cd4220c5f03478d78407",
+  "natural_earth": {
+    "50m": {
+      "natural_earth_area_km2": 2118.493,
+      "glacier_area_km2": 1088.019,
+      "overlap_km2": 907.575,
+      "glacier_outside_dispute_km2": 180.444,
+      "glacier_inside_dispute_pct": 83.42,
+      "dispute_outside_glacier_km2": 1210.918,
+      "natural_earth_sha256": "e91f0f9518b24355ceec6668f4df874d6f39db7d0bc9ec22d9b14429bfb6be01",
+      "natural_earth_url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_breakaway_disputed_areas.geojson"
+    },
+    "10m": {
+      "natural_earth_area_km2": 2086.205,
+      "glacier_area_km2": 1088.019,
+      "overlap_km2": 904.835,
+      "glacier_outside_dispute_km2": 183.184,
+      "glacier_inside_dispute_pct": 83.16,
+      "dispute_outside_glacier_km2": 1181.37,
+      "natural_earth_sha256": "9cafef8b7dfb6b164dc58f218f981f4ace9f716f6c03795d4c62d1ac9f3d50f5",
+      "natural_earth_url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_disputed_areas.geojson"
+    }
+  },
+  "note": "NE polygons depict dispute not physical glacier; AGPL NOT modeled."
+}
