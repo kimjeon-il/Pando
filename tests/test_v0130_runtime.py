@@ -173,8 +173,7 @@ class V0131RuntimeTests(unittest.TestCase):
                 return 1
             return sum(count_coordinates(item) for item in value)
 
-        version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
-        preview = json.loads((ROOT / f"assets/data/world-preview-v{version}.json").read_text(encoding="utf-8"))
+        preview = json.loads((ROOT / "assets/data/world/current.json").read_text(encoding="utf-8"))
         expected_source_count = preview["assets"]["canonicalMesh"]["header"][6]
         self.assertEqual(sum(count_coordinates(row["geometry"]["coordinates"]) for row in countries["features"]), expected_source_count)
 

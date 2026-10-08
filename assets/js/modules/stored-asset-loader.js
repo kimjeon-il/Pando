@@ -1,13 +1,16 @@
 // Shared stored-byte cache, integrity and decoding owner for packed world and catalog assets.
-export function createStoredAssetLoader({dataRevision, resolveUrl, report = () => {}, fetchFn = globalThis.fetch, cacheStorage = globalThis.caches}) {
+export function createStoredAssetLoader({dataRevision, resolveUrl, report = () => {}, fetchFn = globalThis.fetch, cacheStorage = globalThis.caches, cachePolicy = 'revision'}) {
  const DATA_CACHE_PREFIX = 'pandolab-data-';
  const DATA_CACHE_NAME = DATA_CACHE_PREFIX + dataRevision;
+ const IMMUTABLE_WORLD_CACHE_NAME = 'pandolab-world-content-v1';
+ if (cachePolicy !== 'revision' && cachePolicy !== 'immutable') throw new Error('Unsupported stored asset cache policy');
+ const ACTIVE_CACHE_NAME = cachePolicy === 'immutable' ? IMMUTABLE_WORLD_CACHE_NAME : DATA_CACHE_NAME;
  const LEGACY_CORE_CACHE_PREFIX = 'pandolab-core-';
  let dataCachePromise = null;
  let oldCacheCleanupPromise = null;
 async function openDataCache() {
   if (!cacheStorage) return null;
-  if (!dataCachePromise) dataCachePromise = cacheStorage.open(DATA_CACHE_NAME).catch(() => null);
+  if (!dataCachePromise) dataCachePromise = cacheStorage.open(ACTIVE_CACHE_NAME).catch(() => null);
   return dataCachePromise;
 }
 
@@ -149,7 +152,7 @@ async function loadAsset(spec, phase, key, label, validate, signal = null) {
   let lastError = null;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
-      const response = await fetchFn(url, { cache: 'default', signal });
+      const response = await fetchFn(url, { cache: attempt === 1 ? 'default' : 'reload', signal });
       if (!response.ok) throw new Error(`${label} 요청에 실패했습니다. (${response.status})`);
       const responseHeaders = response.headers;
       const read = await consumeStoredResponse(response, spec, phase, key, label, 'network');

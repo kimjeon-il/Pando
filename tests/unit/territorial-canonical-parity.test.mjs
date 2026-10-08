@@ -8,18 +8,18 @@ import {buildCountrySharedBoundarySegments} from '../../assets/js/modules/bounda
 import {countryGeometrySignature} from '../../assets/js/modules/country-shared-boundary-cache.js';
 import {classifyBuiltinCountries} from '../../assets/js/modules/builtin-subunits.js';
 const root=new URL('../../',import.meta.url);
-const appVersion=JSON.parse(fs.readFileSync(new URL('package.json',root))).version;
+const worldBundle=JSON.parse(fs.readFileSync(new URL('assets/data/world/current.json',root),'utf8'));
 test('catalog current snapshot exactly reproduces all canonical features and encoded PCG bytes',()=>{
  const original=JSON.parse(fs.readFileSync(new URL('assets/data/countries-ne-5.1.1.geojson',root),'utf8'));
  const candidate=buildCurrentWorld();
  assert.deepEqual(candidate,original);
- const bytes=gunzipSync(fs.readFileSync(new URL(`assets/data/countries-canonical-v${appVersion}.pcg.gz`,root)));
+ const bytes=gunzipSync(fs.readFileSync(new URL('assets/data/'+worldBundle.assets.canonicalCountryPacket.url,root)));
  assert.deepEqual(Buffer.from(encodeCanonicalCountryPacket(candidate)),bytes);
 });
 test('catalog current snapshot reproduces canonical shared-boundary signatures and every segment',()=>{
  const candidate=classifyBuiltinCountries(buildCurrentWorld());
  const countries=[...candidate.countries.features,...candidate.subunits.map(unit=>({id:unit.properties.metadata.builtinSubunit.sourceCountryId,geometry:unit.geometry}))];
- const packet=JSON.parse(gunzipSync(fs.readFileSync(new URL('assets/data/countries-canonical-shared-v0.34.0.json.gz',root))));
+ const packet=JSON.parse(gunzipSync(fs.readFileSync(new URL('assets/data/'+worldBundle.compatibility.sharedBoundaries.canonical,root))));
  assert.deepEqual(Object.fromEntries(countries.map(f=>[String(f.id),countryGeometrySignature(f)])),packet.signatures);
  assert.deepEqual(buildCountrySharedBoundarySegments(countries),packet.segments);
 });

@@ -11,8 +11,9 @@ from shapely.validation import explain_validity
 
 ROOT = Path(__file__).resolve().parents[1]
 CANONICAL_PATH = ROOT / "assets/data/territorial-entities/generated/current-world.geojson"
-APP_VERSION = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
-PREVIEW_PATH = ROOT / "assets" / "data" / f"countries-preview-v{APP_VERSION}.geojson.gz"
+SEED = json.loads((ROOT / "assets/data/world/build-input.json").read_text(encoding="utf-8"))
+LEGACY_MANIFEST = json.loads((ROOT / "assets/data" / SEED["legacyPreviewManifest"]).read_text(encoding="utf-8"))
+PREVIEW_PATH = ROOT / "assets/data" / LEGACY_MANIFEST["assets"]["previewCountries"]["url"]
 EXPECTED_COUNTRIES = 258
 MIN_RING_AREA = 1e-14
 

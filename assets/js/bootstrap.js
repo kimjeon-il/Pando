@@ -6,7 +6,7 @@
   const APP_VERSION = String(buildMeta.appVersion || '');
   const BUILD_ID = String(buildMeta.buildId || '');
   const ASSET_REVISION = String(buildMeta.assetRevision || '');
-  const DATA_REVISION = String(buildMeta.dataRevision || `data-${APP_VERSION}`);
+  const DATA_REVISION = String(buildMeta.dataRevision || '');
   if (!APP_VERSION || !BUILD_ID || !ASSET_REVISION || !DATA_REVISION) throw new Error('빌드 메타데이터가 불완전합니다.');
   const CACHE_RECOVERY_PARAM = '_pandolab_cache';
   const MODAL_UI_BUNDLE = '../css/ui-modal.bundle.css';
@@ -37,7 +37,7 @@
     buildId: BUILD_ID,
     assetRevision: ASSET_REVISION,
     dataRevision: DATA_REVISION,
-    dataCacheName: `pandolab-data-${DATA_REVISION}`,
+    dataCacheName: 'pandolab-world-content-v1',
     uiStylesheetRequestCount: 0,
     coreStylesheetRequestCount: document.querySelectorAll('link[rel="stylesheet"]').length,
     modalStylesheetRequestCount: 0,
@@ -534,6 +534,7 @@
     window.PANDOLAB_GPU_MESH_STROKES = data.preparedStroke;
     window.PANDOLAB_LABEL_ANCHORS = data.labelAnchors || {};
     window.PANDOLAB_PREVIEW_BASELINE = data.previewBaseline || null;
+    window.PANDOLAB_WORLD_SHARED_BOUNDARY_CACHE_URLS = data.sharedBoundaryCacheUrls || null;
     setProgress('빠른 미리보기 지도를 시작하는 중입니다.', 99);
     if (appInjected) return;
     appInjected = true;

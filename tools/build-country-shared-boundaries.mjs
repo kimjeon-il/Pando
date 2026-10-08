@@ -8,9 +8,11 @@ import { classifyBuiltinCountries } from '../assets/js/modules/builtin-subunits.
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const data = path.join(root, 'assets', 'data');
+const bundle = JSON.parse(fs.readFileSync(path.join(data, 'world/current.json'), 'utf8'));
+if (bundle.schema !== 'pandolab-world-bundle' || bundle.schemaVersion !== 1) throw new Error('World bundle manifest missing');
 const inputs = [
-  ['preview', 'countries-preview-v0.34.0.geojson.gz', 'countries-preview-shared-v0.34.0.json.gz'],
-  ['canonical', 'territorial-entities/generated/current-world.geojson', 'countries-canonical-shared-v0.34.0.json.gz'],
+  ['preview', bundle.assets.previewCountries.url, bundle.compatibility.sharedBoundaries.preview],
+  ['canonical', bundle.source.url, bundle.compatibility.sharedBoundaries.canonical],
 ];
 for (const [quality, input, output] of inputs) {
   const raw = fs.readFileSync(path.join(data, input));

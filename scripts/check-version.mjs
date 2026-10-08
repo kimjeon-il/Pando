@@ -27,14 +27,20 @@ expect(index.includes(`assets/js/build-meta.js?v=${buildMeta?.assetRevision || '
 const indexRevisions = [...index.matchAll(/\?v=([^"&]+)/g)].map(match => match[1]);
 for (const revision of indexRevisions) expect(revision === buildMeta?.assetRevision, `index.html에 다른 asset revision이 있습니다: ${revision}`);
 
-const versionedMapAssets = [
-  `assets/data/countries-preview-v${appVersion}.geojson.gz`,
-  `assets/data/countries-canonical-v${appVersion}.pcg.gz`,
-  `assets/data/world-mesh-preview-v${appVersion}.bin.gz`,
-  `assets/data/world-preview-v${appVersion}.json`,
-];
-for (const relativePath of versionedMapAssets) {
-  expect(existsSync(resolve(projectRoot, relativePath)), `${relativePath} 지도 미리보기 자산이 없습니다. pnpm build:preview를 실행하세요.`);
+// Dataset identity is content-addressed and independent from package.json.version.
+const bundlePath = 'assets/data/world/current.json';
+expect(existsSync(resolve(projectRoot, bundlePath)), `${bundlePath} 데이터 매니페스트가 없습니다.`);
+if (existsSync(resolve(projectRoot, bundlePath))) {
+  try {
+    const { validateWorldBundle } = await import('../assets/js/modules/world-bundle-manifest.js');
+    const bundle = validateWorldBundle(JSON.parse(read(bundlePath)));
+    for (const [role, asset] of Object.entries(bundle.assets)) {
+      expect(existsSync(resolve(projectRoot, 'assets/data', asset.url)),
+        `세계지도 ${role} 불변 파일이 없습니다: ${asset.url}`);
+    }
+  } catch (error) {
+    failures.push(`세계지도 데이터 매니페스트 검증에 실패했습니다: ${error.message}`);
+  }
 }
 
 const productionFiles = [

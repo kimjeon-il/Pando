@@ -20,12 +20,14 @@ import {
 import { inspectCanonicalCountryPacket } from '../../assets/js/modules/canonical-country-packet.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const appVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
-const manifest = JSON.parse(fs.readFileSync(path.join(root, `assets/data/world-preview-v${appVersion}.json`), 'utf8'));
-const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, `assets/data/countries-preview-v${appVersion}.geojson.gz`))));
+const worldBundle = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world/current.json'), 'utf8'));
+const buildInput = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world/build-input.json'), 'utf8'));
+const legacyManifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/data', buildInput.legacyPreviewManifest), 'utf8'));
+const manifest = { ...legacyManifest, assets: worldBundle.assets };
+const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data', manifest.assets.previewCountries.url))));
 const canonicalSource = fs.readFileSync(path.join(root, 'assets/data/territorial-entities/generated/current-world.geojson'), 'utf8').replaceAll('\r\n', '\n');
 const canonical = JSON.parse(canonicalSource);
-const canonicalPacketGzip = fs.readFileSync(path.join(root, `assets/data/countries-canonical-v${appVersion}.pcg.gz`));
+const canonicalPacketGzip = fs.readFileSync(path.join(root, 'assets/data', manifest.assets.canonicalCountryPacket.url));
 const canonicalPacketBytes = zlib.gunzipSync(canonicalPacketGzip);
 const canonicalPacketBuffer = canonicalPacketBytes.buffer.slice(
   canonicalPacketBytes.byteOffset,
@@ -36,9 +38,9 @@ const meshHeader = bytes => {
   const prefix = new Uint32Array(bytes.buffer, bytes.byteOffset, 8);
   return new Uint32Array(bytes.buffer, bytes.byteOffset, prefix[1] >= 2 ? 12 : 8);
 };
-const previewMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, `assets/data/world-mesh-preview-v${appVersion}.bin.gz`)));
+const previewMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data', manifest.assets.previewMesh.url)));
 const previewMeshHeader = meshHeader(previewMeshBytes);
-const canonicalMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/world-mesh-v0.12.6.bin.gz')));
+const canonicalMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data', manifest.assets.canonicalMesh.url)));
 const canonicalMeshHeader = meshHeader(canonicalMeshBytes);
 const workerSource = fs.readFileSync(path.join(root, 'assets/js/workers/data-loader-worker.js'), 'utf8');
 const storedAssetSource = fs.readFileSync(path.join(root, 'assets/js/modules/stored-asset-loader.js'), 'utf8');
