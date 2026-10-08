@@ -1,0 +1,64 @@
+name: Siachen terrain continuity and saddle test
+on:
+  push:
+    branches: [research/siachen-rgi7-outline]
+    paths:
+      - scripts/research/siachen/review_saltoro_terrain_continuity.py
+      - .github/workflows/siachen-ridge-saddle-review.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/siachen-rgi7-outline
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate syntax and install scientific libraries
+        run: |
+          python -m py_compile scripts/research/siachen/review_saltoro_terrain_continuity.py
+          pip install --quiet numpy scipy shapely rasterio pyproj requests matplotlib
+      - name: Compare terrain profile maxima sensitivity and pass morphologies
+        run: python scripts/research/siachen/review_saltoro_terrain_continuity.py
+      - name: Validate source measurements and outputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('assets/data/research/siachen')
+          v=json.loads((path/'siachen_saltoro_ridge_terrain_diagnostics.json').read_text())
+          assert set(v['studies'])=={'mid_ridge_90km','sia_la','bilafond_north'}
+          assert len(v['saddle_site_points'])==5
+          for k in v['studies']:
+              assert v['studies'][k]['stations']>=15
+          assert all((path / ('siachen_terrain_90km_profile_%05d.png'%s)).stat().st_size>10000 for s in [90525,90775,91025])
+          g=json.loads((path/'siachen_saltoro_ridge_terrain_diagnostics.geojson').read_text())
+          assert g['type']=='FeatureCollection'
+          print('PASS ridge-sensitivity tests, saddle morphology, output integrity')
+          PY
+      - name: Commit independent research output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/research/siachen/siachen_saltoro_ridge_terrain_diagnostics.json
+          git add assets/data/research/siachen/siachen_saltoro_ridge_terrain_diagnostics.geojson
+          git add assets/data/research/siachen/README_saltoro_terrain_continuity.md
+          git add assets/data/research/siachen/siachen_terrain_90km_profile_*.png
+          if ! git diff --cached --quiet; then
+            git commit -m "research: save Saltoro DEM crest and pass-saddle diagnostic"
+            git fetch origin research/siachen-rgi7-outline
+            git rebase origin/research/siachen-rgi7-outline
+            git push origin HEAD:research/siachen-rgi7-outline
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: siachen-ridge-saddle-review
+          path: |
+            assets/data/research/siachen/siachen_saltoro_ridge_terrain_diagnostics.*
+            assets/data/research/siachen/siachen_terrain_90km_profile_*.png
+            assets/data/research/siachen/README_saltoro_terrain_continuity.md
