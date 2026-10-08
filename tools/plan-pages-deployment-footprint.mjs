@@ -185,7 +185,7 @@ export function finalStage9Plan(main,gis,lock,{mainSha,gisSha}={}){
     name:p.name,includedBytes:p.budget.includedBytes,
     overByBytes:p.budget.overByBytes,
     preserveLegacyCount:p.archive.files,
-    eligibleForDeployment:p.budget.withinLimit&&false
+    eligibleForDeployment:false
   }));
   return {schema:'pandolab-stage9-pages-footprint',version:1,mainSha,gisSha,
     archiveSourceSha:lock.sourceCommit,
