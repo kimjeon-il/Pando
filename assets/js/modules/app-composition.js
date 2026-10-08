@@ -259,6 +259,11 @@ export async function composeApplication({ revision }) {
       if (startedWithReferenceImages) return startedWithReferenceImages;
       startedWithReferenceImages = lifecycle.start().then(async started => {
         if (!started) return started;
+        const { installTimelineControls } = await import(`./timeline-controls.js?v=${encodeURIComponent(revision)}`);
+        installTimelineControls({ document, window,
+          getMonth: () => domainAssembly.timelineMonth,
+          setMonth: month => domainAssembly.setTimelineMonth(month),
+        });
         try {
           const { installReferenceImageFeature } = await import(`./reference-image-bootstrap.js?v=${encodeURIComponent(revision)}`);
           await installReferenceImageFeature({

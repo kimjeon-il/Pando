@@ -35,7 +35,7 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
   await expect(page.locator('#entityProperties')).toBeVisible();
   await expect(page.locator('#entityNameInput')).toHaveValue('독일');
-  const selectedKey = await page.locator('#selectionToolbar').getAttribute('data-object-key');
+  const selectedKey = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision);
   const label = page.locator(`.territorial-label-item[data-label-id="${id}"]`);
   const flag = label.locator('.territorial-label-flag[href]');
   await page.locator('#focusSelectedObjectBtn').click();
@@ -78,7 +78,7 @@ test('country flags zoom with labels and preserve selection and missing-flag fal
   const removal = await page.evaluate(id => ({
     id, feature: { id: window.PANDOLAB_TERRITORIAL.get(id).id,
       metadata: window.PANDOLAB_TERRITORIAL.get(id).properties.metadata },
-    selection: document.querySelector('#selectionToolbar').dataset.objectKey,
+    selection: window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision,
     flags: [...document.querySelectorAll('.territorial-label-flag[href]')].map(node => ({
       id: node.parentNode.__data__.id, href: node.getAttribute('href'),
     })),

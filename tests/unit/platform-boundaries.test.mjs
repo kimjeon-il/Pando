@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
 import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
 import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
@@ -7,6 +8,12 @@ import * as projectState from '../../assets/js/modules/project-state.js';
 import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { normalizeGenericFeatureCollection } from '../../assets/js/modules/generic-feature-service.js';
+import { createProjectSession } from '../../assets/js/modules/app-project-session.js';
+import { normalizeLayerPresentation } from '../../assets/js/modules/layer-presentation.js';
+import { createGeometryPreviewState } from '../../assets/js/modules/geometry-preview.js';
+import { createAtomicMapStateController } from '../../assets/js/modules/map-state-transition.js';
+import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
+import { DISTRIBUTION_RENDER_MODES } from '../../assets/js/modules/distribution-model.js';
 
 test('territorial service rejects a missing ID provider at its composition boundary', () => {
   assert.throws(() => createTerritorialApplicationService({
@@ -33,6 +40,16 @@ test('history restoration prepares and validates a detached candidate outside UI
   assert.deepEqual(snapshot, before);
 });
 
+test('history restoration accepts dated identities and preserves archived records', () => {
+  const source = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json', import.meta.url), 'utf8'));
+  const snapshot = { ...source, hydroEdits: [], genericFeatures: [], distributionLayers: [], distributionEntries: [] };
+  const candidate = projectState.prepareEditableProjectSnapshot(snapshot, {
+    normalizeHydroEditCollection: values => values, normalizeGenericFeatureCollection,
+  });
+  assert.deepEqual(candidate.timelineRecords, source.timelineRecords);
+  assert.deepEqual(candidate.territorialEntities, source.territorialEntities);
+});
+
 test('selection publishes the prior selection without a second mutable owner', () => {
   const changes = [];
   const domain = createSelectionDomain({ onSelectionChanged: (next, reason, previous) => {
@@ -57,4 +74,42 @@ test('editing domain requires paired frame scheduling from its platform owner', 
   const domain = createEditingDomain({ draftServices: { requestFrame() {}, cancelFrame() {} } });
   assert.equal(domain.snapshot().phase, 'idle');
   domain.dispose();
+});
+
+test('project session reads the current selection owner across replacement and reset without storing a second selection', () => {
+  const domains = { selectionDomain: null };
+  const owner = createProjectSession();
+  owner.connect({
+    domains,
+    readiness: { DATA_READINESS: { PREVIEW: 'preview' } },
+    applicationConstantsA: { DISTRIBUTION_RENDER_MODES },
+    modelValidation: { normalizeLayerPresentation },
+    physicalConfig: { PHYSICAL_DATASET: 'fixture' },
+    applicationFactories: { createGeometryPreviewState },
+    uiFactoriesA: { createAtomicMapStateController },
+    uiFactoriesB: { createSaveStateController },
+  });
+  owner.initializeMapWorkScheduler();
+  assert.equal(owner.state.selected, null);
+  const selected = Object.getOwnPropertyDescriptor(owner.state, 'selected');
+  assert.equal(typeof selected.get, 'function');
+  assert.equal(selected.set, undefined);
+  assert.equal(Object.hasOwn(selected, 'value'), false);
+  domains.selectionDomain = createSelectionDomain();
+  domains.selectionDomain.replace({ domain: 'territorial', type: 'entity', id: 'A' });
+  assert.equal(owner.state.selected, domains.selectionDomain.primary());
+  assert.equal(owner.state.selected.id, 'A');
+  domains.selectionDomain.replace({ domain: 'territorial', type: 'entity', id: 'B' });
+  assert.equal(owner.state.selected.id, 'B');
+  assert.throws(() => { owner.state.selected = null; }, TypeError);
+  assert.equal(owner.state.selected.id, 'B');
+  domains.selectionDomain.resetProject(1);
+  assert.equal(owner.state.selected, null);
+  domains.selectionDomain.dispose();
+  domains.selectionDomain = null;
+  assert.equal(owner.state.selected, null);
+  domains.selectionDomain = createSelectionDomain();
+  domains.selectionDomain.replace({ domain: 'generic', type: 'feature', id: 'C' });
+  assert.equal(owner.state.selected.id, 'C');
+  domains.selectionDomain.dispose();
 });

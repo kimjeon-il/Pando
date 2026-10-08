@@ -190,7 +190,11 @@ if (editor.includes('id="mobileCloseRightBtn"')) fail('editor Surface must not r
 for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectStatus']) {
   if (editorHeader.includes(`id="${forbiddenId}"`)) fail(`editor object control #${forbiddenId} must not live in the Surface Header`);
 }
-if (!html.includes('id="selectionToolbar"')) fail('selection toolbar must own floating object controls');
+if (/selectionToolbar|selection-card/.test(html)) fail('retired country card must not remain');
+const objectHeader = elementById('editorObjectHeader', 'section');
+for (const id of ['focusSelectedObjectBtn', 'objectLockBtn', 'objectVisibilityBtn']) {
+  if (!objectHeader.includes(`id="${id}"`)) fail(`editor header must own #${id}`);
+}
 if (html.includes('id="modeTaskTargetsFocusBtn"')) fail('task windows must not expose a map-focus action');
 if (!editor.includes('id="editorDeleteSection"')) fail('editor must expose the object delete section');
 if (editorHeader.includes('id="objectLockBtn"')) fail('editor Surface Header must not own #objectLockBtn');

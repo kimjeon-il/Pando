@@ -183,7 +183,6 @@ test('focus survives frames and resize until navigation resumes while editing re
   const original = await page.evaluate(() => JSON.stringify(window.PANDOLAB_TERRITORIAL.get('DEU').geometry));
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.locator('#focusSelectedObjectBtn').evaluate(button => button.click());
   await expectQuality(page, 'canonical');

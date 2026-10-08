@@ -204,7 +204,7 @@ test('flat/globe input reads current zoom and movement transitions stay single-s
   window.addEventListener('pandolab:interaction-state', event => events.push(event.detail.active));
   const svg = { on() { return this; } };
   const bridge = createMapInputPresentation({
-    getElement: () => new FakeElement(), window, navigator: {}, d3: {},
+    getElement: () => new FakeElement(), window, navigator: {}, d3: { select: () => ({ on() { return this; } }) },
     getInputSnapshot: () => ({ ...state }), setMoving: value => { state.moving = value; },
     getQualityTier: () => 'normal', createMapInputController: options => { inputOptions = options; return { destroy() {} }; },
     renderQualityController: { beginInteraction() {}, endInteraction() {} }, applyAdaptiveRenderQuality() {},

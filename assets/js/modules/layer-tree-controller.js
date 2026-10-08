@@ -267,6 +267,9 @@ export function createLayerTreeController({
     builtinTruncated = false;
     window.clearTimeout(searchTimer);
     cancelBuiltinSearch();
+    // Surface closure may detach the hovered row before pointerout is delivered.
+    // Request cancellation while search is open must retain its current preview.
+    if (model.snapshot().searchSurfaceOpen === false) commands.clearSearchHover();
   }
 
   function dispose() {
@@ -304,13 +307,15 @@ export function createAppLayerTreeController(runtime = {}) {
     builtinRecordVisible: record => !(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
     onSearchError: runtime.onSearchError,
     model: {
-      snapshot: () => ({ revision: state.layerTreeRevision, search: state.layerSearch, searchActive: runtime.isSearchOpen() }),
+      snapshot: () => ({ revision: state.layerTreeRevision, search: state.layerSearch, searchActive: runtime.isSearchOpen(),
+        searchSurfaceOpen: runtime.isSearchSurfaceOpen() }),
       items: layerTreeItems,
       itemRef: layerItemObjectRef,
       selectionSnapshot: () => selectionDomain.snapshot(),
       compare: compareItems,
     },
     commands: {
+      clearSearchHover: () => selectionDomain.setHover(null, { source: 'list' }),
       hoverItem: (group, id, entered) => {
         if (state.tool !== 'select' || state.mapMoving) return;
         const ref = layerItemObjectRef(group, id);
