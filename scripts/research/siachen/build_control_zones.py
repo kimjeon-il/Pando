@@ -295,7 +295,7 @@ def main():
     "The OSM line and derived control split are subject to ODbL 1.0 and require "
     "attribution/derivative-database license compliance. Do not merge into a "
     "canonical country database before ODbL integration review.\n\n"
-    The 1984-04-13 Operation Meghdoot date is NOT the geometry date. "
+    "The 1984-04-13 Operation Meghdoot date is NOT the geometry date. "
     "Present positions evolved after 1984; this represents 2026 OSM mapping only.\n\n"
     "Files:\n"
     "- siachen_agpl_osm_candidate.geojson: source OSM-derived line (190 vertices)\n"
