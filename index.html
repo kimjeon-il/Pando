@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.36.0-build-e7a26c5092e6" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.36.0-build-e7a26c5092e6" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.36.0-build-f5040d34a1f5" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.36.0-build-f5040d34a1f5" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -349,6 +349,13 @@
             <div id="statusView" class="status-group status-view" aria-label="보기 정보">
               <span id="projectionStatus" class="status-item">지구본</span>
             </div>
+            <div class="status-group timeline-status" aria-label="시간대">
+              <button id="timelinePreviousMonth" class="ui-button ghost timeline-step" type="button" aria-label="이전 달">‹</button>
+              <span id="timelineMonthLabel" class="status-item">현재 월</span>
+              <input id="timelineMonthInput" class="timeline-month-input" type="text" inputmode="numeric" aria-label="표시할 연월" placeholder="YYYY-MM" />
+              <button id="timelineNextMonth" class="ui-button ghost timeline-step" type="button" aria-label="다음 달">›</button>
+              <span id="timelineMonthError" class="timeline-month-error" role="status" hidden></span>
+            </div>
             <div id="statusSelection" class="status-group status-selection hidden" aria-label="선택 대상">
               <span id="selectionStatus" class="selection-status"></span>
             </div>
@@ -364,6 +371,8 @@
           <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="editorSurface" aria-label="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
         </header>
         <strong id="editSheetTitle" hidden>편집</strong>
+
+        <span id="editorTimelineContext" class="editor-timeline-context" aria-live="polite"></span>
 
         <section id="editorObjectHeader" class="editor-object-header hidden" data-editor-context>
           <div class="editor-object-context-main">
@@ -825,10 +834,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.36.0-build-e7a26c5092e6" defer></script>
+  <script src="assets/js/build-meta.js?v=0.36.0-build-f5040d34a1f5" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.36.0-build-e7a26c5092e6" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.36.0-build-f5040d34a1f5" defer></script>
 </body>
 </html>

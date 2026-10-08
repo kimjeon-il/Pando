@@ -14,11 +14,11 @@ const baseFeature = () => createTerritorialFeature({ id: 'A', entityKind: 'gener
 const serializer = snapshot => serializerModule.createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base',
   distributionModes: ['territorial', 'geometry'], readSnapshot: () => snapshot });
 
-test('preview geometry comes from canonical bindings and refuses complex timelines', () => {
+test('preview geometry comes from canonical bindings at the initial resolved month', () => {
   const snapshot = staticSerializerSnapshot({ territorialEntities: [baseFeature()], fullAutosave: true });
   const project = serializer(snapshot).buildProject();
   assert.deepEqual(projectPreviewGeometryRows(project).countries, [['A', shape]]);
-  assert.throws(() => projectPreviewGeometryRows(serializer(projectForStorage()).buildProject()), { code: 'TIMELINE_ACTIVATION' });
+  assert.deepEqual(projectPreviewGeometryRows(serializer(projectForStorage()).buildProject()).countries.map(row => row[0]), ['A']);
 });
 
 test('storage candidates preserve complex timelines and reject dangling project references', () => {
@@ -26,7 +26,7 @@ test('storage candidates preserve complex timelines and reject dangling project 
   const candidate = projectState.prepareProjectForStorage(project);
   assert.deepEqual(candidate, project);
   assert.notEqual(candidate, project);
-  assert.throws(() => projectState.prepareProjectForActivation(project), { code: 'TIMELINE_ACTIVATION' });
+  assert.deepEqual(projectState.prepareProjectForActivation(project).timelineRecords, project.timelineRecords);
   project.labels = [{ id: '00000000-0000-4000-8000-000000000001', coordinates: [0,0], countryId: 'missing' }];
   assert.throws(() => projectState.prepareProjectForStorage(project), { code: 'PL-INV-001' });
 });

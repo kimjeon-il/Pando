@@ -1231,6 +1231,7 @@
           "assets/js/modules/geometry-version-store.js",
           "tests/unit/timeline-records.test.mjs",
           "tests/unit/timeline-storage.test.mjs",
+          "tests/unit/timeline-resolver.test.mjs",
           "tests/unit/timeline-project-activation.test.mjs",
           "tests/browser/timeline-persistence.spec.mjs"
         ],
@@ -1238,6 +1239,8 @@
           "core/src/temporal.cpp",
           "core/src/timeline-records.cpp",
           "core/src/timeline-storage.cpp",
+          "core/src/timeline-resolver.cpp",
+          "tests/timeline_resolver_tests.cpp",
           "tests/timeline_records_tests.cpp",
           "tests/timeline_storage_tests.cpp",
           "tests/temporal_tests.cpp"
@@ -1381,6 +1384,22 @@
           ]
         },
         {
+          "id": "timeline:resolved-world",
+          "adapter": "timeline-resolution",
+          "axes": [
+            "availability",
+            "rules",
+            "data"
+          ],
+          "observationIds": [
+            "1909-12",
+            "1914-06",
+            "1914-07",
+            "1916-01",
+            "1920-04"
+          ]
+        },
+        {
           "id": "timeline:production-contracts",
           "adapter": "evidence",
           "axes": [
@@ -1392,6 +1411,7 @@
           "webTests": [
             "tests/unit/timeline-records.test.mjs",
             "tests/unit/timeline-storage.test.mjs",
+            "tests/unit/timeline-resolver.test.mjs",
             "tests/unit/timeline-project-activation.test.mjs"
           ],
           "nativeTests": [
@@ -2556,6 +2576,7 @@
   ],
   "requiredFixtures": [
     "tests/fixtures/portability/index.json",
+    "tests/fixtures/portability/timeline-resolution.json",
     "tests/fixtures/portability/selection.json",
     "tests/fixtures/portability/command-history.json",
     "tests/fixtures/timeline-records.json",
