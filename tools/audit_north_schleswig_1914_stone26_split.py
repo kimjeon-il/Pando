@@ -308,6 +308,17 @@ def main():
             audit["rasterPanels"].append(draw_sample(
                 session,bbox,name,name,pre,post,bridge,Point(preM.coords[-1])))
     write(AUDIT,audit)
+    if args.raster_panels and os.environ.get("GIS_LOG_MAP_THUMBNAILS") == "1":
+        import base64
+        for panel in audit["rasterPanels"]:
+            img = Image.open(VIEW / panel["overlayPreview"])
+            img.thumbnail((1280, 900))
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=67, optimize=True)
+            tag = panel["name"].upper().replace("-", "_")
+            print(f"===BEGIN_STONE26_{tag}_JPEG===")
+            print(base64.b64encode(buf.getvalue()).decode("ascii"))
+            print(f"===END_STONE26_{tag}_JPEG===")
     print(json.dumps({
         "candidateCutVertex":cut,
         "candidateLonLat":hinge["pointLonLat"],
