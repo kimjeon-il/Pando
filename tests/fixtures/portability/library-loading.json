@@ -2,7 +2,7 @@
   "entityId": "state:VAT",
   "webPath": "assets/data/territorial-entities/generated/v2/state-VAT.json.gz",
   "appPath": "assets/territorial-library-v2/state-VAT.json.gz",
-  "sha256": "ae64d5f4f50112ac01dcc82495c29361e7b3ef799f42a6f6cbbc351faecffe19",
+  "sha256": "9b9d06ae54c7082a12beb95e6af1b7985a6e884947971d418a78c54f85d17c2c",
   "expectation": "The pinned decompressed source is preserved exactly by a successful load; failed loads may be retried; repeated successful reads use the existing cache.",
   "operations": [
     {
