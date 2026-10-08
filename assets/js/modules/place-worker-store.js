@@ -1,6 +1,6 @@
 import { createHydroTileWindow, hydroTileSpecsForWindow } from './hydro-tile-window.js';
 import { decodePlaceTile } from './place-codec.js';
-import { comparePlaces, normalizePlaceQuery, PLACE_LIMITS } from './place-contract.js';
+import { comparePlaces, normalizePlaceQuery, resolvePlaceLabelRows, PLACE_LIMITS } from './place-contract.js';
 import { createFrameProjectors } from './map-visual-frame.js';
 import { placeLabelDimensions, automaticLabelSettings } from './label-layout.js';
 const noCancellation = Object.freeze({ throwIfCancelled() {} });
@@ -18,7 +18,7 @@ function viewportPredicate(view) {
   const {projectVisibleCoordinate}=createFrameProjectors(frame);
   return record => {
     const point=projectVisibleCoordinate(record.coordinates); if (!point) return false;
-    const {width,height}=placeLabelDimensions(record.name), safe=frame.safeInset;
+    const {width,height}=placeLabelDimensions(resolvePlaceLabelRows(record, { ko: true, en: true, native: true })), safe=frame.safeInset;
     return point[0]-width/2 >= safe.left && point[0]+width/2 <= frame.cssViewport[0]-safe.right
       && point[1]-height/2 >= safe.top && point[1]+height/2 <= frame.cssViewport[1]-safe.bottom;
   };
@@ -109,7 +109,7 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
       if (await sha256Hex(bytes) !== row.sha256) throw new Error('Invalid place tile hash');
       context.throwIfCancelled();
       const records=decodePlaceTile(bytes);
-      const decodedBytes=records.reduce((total,record) => total+512+Object.values(record).reduce((sum,value)=>sum+(typeof value === 'string' ? value.length*2 : 0),0),0);
+      const decodedBytes=records.reduce((total,record) => total+512+Object.values(record).reduce((sum,value)=>sum+(typeof value === 'string' ? value.length*2 : 0),0)+JSON.stringify(record.nameTimeline).length*2,0);
       context.throwIfCancelled(); return put(`tile:${key}`,records,decodedBytes);
     })();
     inflight.set(key,{task,context});
