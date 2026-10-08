@@ -1,4 +1,4 @@
-// TEMPORARY North Schleswig 1864 west-source probe.
+// TEMPORARY North Schleswig 1864 west-source probe v2.
 const relId = 11260903;
 const osmHeaders = { 'User-Agent': 'PandoLab-NorthSchleswig1864/1.0', 'Accept': 'application/json' };
 const relResp = await fetch(`https://api.openstreetmap.org/api/0.6/relation/${relId}/full.json`, { headers: osmHeaders });
@@ -35,19 +35,29 @@ while (changed) {
 }
 const westChains = chains.map((c,i)=>({i,coords:c.filter(p=>p[0]>=8.62&&p[0]<=9.00&&p[1]>=55.25&&p[1]<=55.40)})).filter(x=>x.coords.length>=2);
 
-const query = `[out:json][timeout:90];(
+const query = `[out:json][timeout:60];(
  node["historic"="boundary_stone"](55.255,8.63,55.390,8.990);
  node["historic"="boundary_marker"](55.255,8.63,55.390,8.990);
  node["boundary"="marker"](55.255,8.63,55.390,8.990);
- node["man_made"="survey_point"](55.255,8.63,55.390,8.990);
 );out body;`;
-const ov = await fetch('https://overpass-api.de/api/interpreter', {
-  method:'POST',
-  headers:{...osmHeaders,'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-  body:new URLSearchParams({data:query}).toString()
-});
-if (!ov.ok) throw new Error('Overpass HTTP ' + ov.status);
-const markerData = await ov.json();
+const endpoints=[
+ 'https://overpass.kumi.systems/api/interpreter',
+ 'https://overpass.private.coffee/api/interpreter',
+ 'https://overpass-api.de/api/interpreter'
+];
+let markerData={elements:[]}, overpassEndpoint=null, overpassErrors=[];
+for(const endpoint of endpoints){
+  try{
+    const ov=await fetch(endpoint,{
+      method:'POST',
+      headers:{...osmHeaders,'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body:new URLSearchParams({data:query}).toString(),
+      signal:AbortSignal.timeout(70000)
+    });
+    if(!ov.ok){ overpassErrors.push(endpoint+' HTTP '+ov.status); continue; }
+    markerData=await ov.json(); overpassEndpoint=endpoint; break;
+  }catch(err){ overpassErrors.push(endpoint+' '+String(err)); }
+}
 const parseNumber = tags => {
   for (const field of ['ref','name','inscription','description','note','old_ref']) {
     const value=String((tags||{})[field]||'');
@@ -69,6 +79,7 @@ const result={
   relation:{id:relId,tags:rel.tags||{},memberWayCount:memberWays.length,chainCount:chains.length,chainSizes:chains.map(c=>c.length)},
   westChains,
   markers,
+  overpass:{endpoint:overpassEndpoint,errors:overpassErrors,rawElementCount:(markerData.elements||[]).length}
 };
 console.log('NORTHSCHLESWIG_JSON_BEGIN');
 console.log(JSON.stringify(result));
