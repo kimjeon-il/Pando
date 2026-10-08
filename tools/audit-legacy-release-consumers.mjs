@@ -307,7 +307,7 @@ async function headProbe(root,path,group){
   try{
     const res=await fetch(url,{method:'HEAD',redirect:'follow',signal:AbortSignal.timeout(13000)});
     const mime=res.headers.get('content-type')||'';
-    const contentOK=!mime.startsWith('text/html') || /\.(?:json|geojson)$/.test(path);
+    const contentOK=!mime.toLowerCase().startsWith('text/html');
     return {path,group,url,status:res.status,ok:[200,206].includes(res.status)&&contentOK,
       mime:mime.slice(0,100),source:root.source};
   }catch(error){return{path,group,url,status:null,ok:false,error:String(error).slice(0,180),source:root.source};}
@@ -340,7 +340,7 @@ export async function collectEvidence(stage6,rootTree,token){
   const sampled=selectSamples(stage6,rootTree);
   const candidates=sampled.flatMap(g=>g.samples.map(path=>({group:g.group,path})));
   // Do not attempt thousands of old binary GETs; HEAD is observational only.
-  const first=roots.slice(0,2);
+  const first=[...new Map(roots.map(r=>[r.base,r])).values()].slice(0,2);
   const publicProbes=[];
   for(const root of first)publicProbes.push(...await inBatches(candidates,
     x=>headProbe(root,x.path,x.group),6));
@@ -348,6 +348,8 @@ export async function collectEvidence(stage6,rootTree,token){
     webBranches:web,appBranches:appRefs,appReleases,
     pages:{api:pageConfig.missing?'not-configured-or-inaccessible':
       pageConfig.error?'unavailable':'configured',configuredUrl:pageConfig.html_url||null,
+      source:pageConfig.source||null,buildType:pageConfig.build_type||null,
+      publishingStatus:pageConfig.status||null,
       candidates:tested,verifiedRoots:first.map(x=>({base:x.base,source:x.source}))},
     publicProbes,scope:'HEAD samples only; does not establish absence of third-party clients',
     sampledGroups:sampled};
