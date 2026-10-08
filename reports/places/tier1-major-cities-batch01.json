@@ -1,0 +1,109 @@
+{
+  "schema": "pando-places-tier1-review-v1",
+  "status": "verified-source-staging-not-runtime",
+  "source": "GeoNames (CC BY 4.0)",
+  "checkedOn": "2026-10-08",
+  "selection": "unambiguous large city settlement point; exclude administrative-area feature-class A",
+  "warning": "Source point coordinates, not city boundaries. This file is not connected to runtime or manifest.",
+  "records": [
+    {
+      "geonameId": 1835848,
+      "countryCode": "KR",
+      "nameKo": "서울",
+      "name": "Seoul",
+      "latitude": 37.566,
+      "longitude": 126.9784,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/1835848/"
+    },
+    {
+      "geonameId": 1838524,
+      "countryCode": "KR",
+      "nameKo": "부산",
+      "name": "Busan",
+      "latitude": 35.10168,
+      "longitude": 129.03004,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/1838524/"
+    },
+    {
+      "geonameId": 1850147,
+      "countryCode": "JP",
+      "nameKo": "도쿄",
+      "name": "Tokyo",
+      "latitude": 35.6895,
+      "longitude": 139.69171,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/1850147/"
+    },
+    {
+      "geonameId": 1853909,
+      "countryCode": "JP",
+      "nameKo": "오사카",
+      "name": "Osaka",
+      "latitude": 34.69379,
+      "longitude": 135.50107,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/1853909/"
+    },
+    {
+      "geonameId": 1816670,
+      "countryCode": "CN",
+      "nameKo": "베이징",
+      "name": "Beijing",
+      "latitude": 39.9075,
+      "longitude": 116.39723,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/1816670/"
+    },
+    {
+      "geonameId": 1796236,
+      "countryCode": "CN",
+      "nameKo": "상하이",
+      "name": "Shanghai",
+      "latitude": 31.22222,
+      "longitude": 121.45806,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/1796236/"
+    },
+    {
+      "geonameId": 1273294,
+      "countryCode": "IN",
+      "nameKo": "델리",
+      "name": "Delhi",
+      "latitude": 28.65195,
+      "longitude": 77.23149,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/1273294/"
+    },
+    {
+      "geonameId": 2643743,
+      "countryCode": "GB",
+      "nameKo": "런던",
+      "name": "London",
+      "latitude": 51.50853,
+      "longitude": -0.12574,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2643743/"
+    },
+    {
+      "geonameId": 2988507,
+      "countryCode": "FR",
+      "nameKo": "파리",
+      "name": "Paris",
+      "latitude": 48.85341,
+      "longitude": 2.3488,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2988507/"
+    }
+  ]
+}
