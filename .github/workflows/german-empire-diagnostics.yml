@@ -1,0 +1,78 @@
+name: German Empire diagnostics (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      data-contracts: ${{ steps.scope.outputs.data-contracts }}
+    steps:
+      - id: scope
+        run: echo 'data-contracts=true' >> "$GITHUB_OUTPUT"
+  historical-geometry:
+    name: Exact historical geometry regeneration (Windows)
+    needs: changes
+    if: needs.changes.outputs.data-contracts == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r tools/requirements-historical-library.txt
+      - name: Verify the stored geometry exactly on its generation platform
+        run: python tools/build-territorial-geometry.py --check
+
+  data-contracts:
+    name: Validation entrypoints and current generated assets
+    needs: [changes, historical-geometry]
+    if: needs.changes.outputs.data-contracts == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: python -m pip install -r tools/requirements-historical-library.txt
+      - name: Validate JavaScript syntax and shared asset versions
+        run: pnpm check:js && pnpm check:version
+      - name: Validate canonical country sources and shared boundaries
+        run: pnpm check:country-schema && pnpm check:country-default-colors && pnpm check:country-shared-boundaries
+      - name: Validate generated preview assets and unified territorial catalog
+        run: >-
+          pnpm check:preview &&
+          node tools/build-territorial-entity-chunks.mjs --check &&
+          node scripts/check-territorial-library.mjs
+      - name: Validate catalog geometry parity, lazy loading and timeline storage
+        run: >-
+          node --test tests/unit/territorial-library.test.mjs
+          tests/unit/territorial-library-data.test.mjs
+          tests/unit/territorial-source-files.test.mjs
+          tests/unit/territorial-source-parity.test.mjs
+          tests/unit/territorial-chunks.test.mjs
+          tests/unit/territorial-canonical-parity.test.mjs
+          tests/unit/territorial-library-service.test.mjs
+          tests/unit/territorial-entity-loader.test.mjs
+          tests/unit/territorial-timeline-storage.test.mjs
+          tests/unit/territorial-snapshots.test.mjs
+          tests/unit/country-lineage.test.mjs
+          tests/unit/country-lineage-preservation.test.mjs
+          tests/unit/library-ownership.test.mjs
+          tests/unit/library-import-atomic.test.mjs
+          tests/unit/library-map-preview.test.mjs
+          tests/unit/territorial-library-controller.test.mjs
+          tests/unit/territorial-source-provenance.test.mjs
+
