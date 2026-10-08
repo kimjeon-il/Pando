@@ -1,7 +1,12 @@
 {
   "source": "Copernicus Sentinel-2 L2A; Earth Search v1 hosted by Element84",
   "stac_search": "https://earth-search.aws.element84.com/v1/search",
-  "generated_utc": "2026-10-08T10:20:27.400489+00:00",
+  "generated_utc": "2026-10-08T10:25:02.880920+00:00",
+  "pinned_item_ids": {
+    "2025": "S2B_43SFV_20250923_0_L2A",
+    "2026": "S2B_43SFV_20260829_0_L2A"
+  },
+  "selection_policy": "Frozen scene IDs after clear-scene rank and visual review; reruns must not silently swap acquisitions.",
   "study_area": {
     "sia_la": {
       "bbox": [
@@ -95,121 +100,8 @@
               "cloud": 0.0004,
               "snow": 0.9247
             }
-          }
-        },
-        {
-          "item_id": "S2C_43SFV_20250928_0_L2A",
-          "datetime": "2025-09-28T05:49:21.906000Z",
-          "score": 2.67733,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.9905,
-              "cloud": 0.0095,
-              "snow": 0.9414
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.9967,
-              "cloud": 0.0033,
-              "snow": 0.9118
-            }
-          }
-        },
-        {
-          "item_id": "S2B_43SFV_20250913_0_L2A",
-          "datetime": "2025-09-13T05:49:04.875000Z",
-          "score": 2.65953,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.9817,
-              "cloud": 0.0183,
-              "snow": 0.9437
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 1.0,
-              "cloud": 0.0,
-              "snow": 0.9566
-            }
-          }
-        },
-        {
-          "item_id": "S2C_43SFV_20250829_0_L2A",
-          "datetime": "2025-08-29T05:49:25.365000Z",
-          "score": 2.62986,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.9689,
-              "cloud": 0.0311,
-              "snow": 0.9367
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.9974,
-              "cloud": 0.0026,
-              "snow": 0.9652
-            }
-          }
-        },
-        {
-          "item_id": "S2A_43SFV_20250821_1_L2A",
-          "datetime": "2025-08-21T05:49:20.394000Z",
-          "score": 2.61557,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.9631,
-              "cloud": 0.0369,
-              "snow": 0.9461
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.9969,
-              "cloud": 0.0031,
-              "snow": 0.9736
-            }
-          }
-        },
-        {
-          "item_id": "S2A_43SFV_20250930_1_L2A",
-          "datetime": "2025-09-30T05:49:21.876000Z",
-          "score": 2.58893,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.9593,
-              "cloud": 0.0407,
-              "snow": 0.9398
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.9897,
-              "cloud": 0.0103,
-              "snow": 0.9702
-            }
-          }
-        },
-        {
-          "item_id": "S2C_43SFV_20250809_0_L2A",
-          "datetime": "2025-08-09T05:49:24.920000Z",
-          "score": 2.57567,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 1.0,
-              "cloud": 0.0,
-              "snow": 0.965
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.9468,
-              "cloud": 0.0528,
-              "snow": 0.8321
-            }
-          }
+          },
+          "provenance": "Pinned after initial candidate ranking and visual review on 2026-10-08"
         }
       ],
       "images": {
@@ -284,121 +176,8 @@
               "cloud": 0.0,
               "snow": 0.9334
             }
-          }
-        },
-        {
-          "item_id": "S2C_43SFV_20261003_0_L2A",
-          "datetime": "2026-10-03T05:49:07.773000Z",
-          "score": 2.65148,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.983,
-              "cloud": 0.017,
-              "snow": 0.9563
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.9858,
-              "cloud": 0.0142,
-              "snow": 0.9332
-            }
-          }
-        },
-        {
-          "item_id": "S2B_43SFV_20260720_0_L2A",
-          "datetime": "2026-07-20T05:49:06.726000Z",
-          "score": 2.65129,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.9896,
-              "cloud": 0.0104,
-              "snow": 0.9844
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.9906,
-              "cloud": 0.0094,
-              "snow": 0.9883
-            }
-          }
-        },
-        {
-          "item_id": "S2C_43SFV_20260923_1_L2A",
-          "datetime": "2026-09-23T05:49:08.042000Z",
-          "score": 1.77613,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.6525,
-              "cloud": 0.3475,
-              "snow": 0.6519
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.7881,
-              "cloud": 0.2119,
-              "snow": 0.7722
-            }
-          }
-        },
-        {
-          "item_id": "S2C_43SFV_20260913_1_L2A",
-          "datetime": "2026-09-13T05:49:04.671000Z",
-          "score": 1.1243,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.405,
-              "cloud": 0.595,
-              "snow": 0.4028
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.6202,
-              "cloud": 0.3798,
-              "snow": 0.6118
-            }
-          }
-        },
-        {
-          "item_id": "S2B_43SFV_20260819_0_L2A",
-          "datetime": "2026-08-19T05:49:02.892000Z",
-          "score": 0.43968,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.1636,
-              "cloud": 0.834,
-              "snow": 0.1553
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.2493,
-              "cloud": 0.7492,
-              "snow": 0.2162
-            }
-          }
-        },
-        {
-          "item_id": "S2A_43SFV_20260816_1_L2A",
-          "datetime": "2026-08-16T05:49:21.817000Z",
-          "score": 0.43198,
-          "local_quality": {
-            "sia_la": {
-              "valid": 1.0,
-              "usable": 0.7782,
-              "cloud": 0.2127,
-              "snow": 0.7737
-            },
-            "bilafond_north": {
-              "valid": 1.0,
-              "usable": 0.0495,
-              "cloud": 0.9473,
-              "snow": 0.0367
-            }
-          }
+          },
+          "provenance": "Pinned after initial candidate ranking and visual review on 2026-10-08"
         }
       ],
       "images": {
