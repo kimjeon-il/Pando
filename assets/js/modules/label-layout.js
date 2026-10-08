@@ -4,7 +4,7 @@ import { PLACE_LIMITS } from './place-contract.js';
 export function placeLabelDimensions(value) {
   const rows = Array.isArray(value) ? value : [value];
   const texts = rows.map(row => String(typeof row === 'string' ? row : row?.text || ''));
-  const width = Math.max(22, ...texts.map(text => [...text].reduce((sum, char) => sum + (/[^\\u0000-\\u024f]/u.test(char) ? 11 : 8), 16)));
+  const width = Math.max(22, ...texts.map(text => [...text].reduce((sum, char) => sum + (/[^\u0000-\u024f]/u.test(char) ? 11 : 8), 16)));
   return { width, height: 19 + Math.max(0, texts.length - 1) * 14 };
 }
 
