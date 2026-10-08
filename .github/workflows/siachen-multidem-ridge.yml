@@ -1,0 +1,69 @@
+name: Siachen Saltoro cross-source DEM study
+on:
+  push:
+    branches: [research/siachen-rgi7-outline]
+    paths:
+      - scripts/research/siachen/compare_independent_dem_saltoro.py
+      - .github/workflows/siachen-multidem-ridge.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  cross-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/siachen-rgi7-outline
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate and install spatial libraries
+        run: |
+          python -m py_compile scripts/research/siachen/compare_independent_dem_saltoro.py
+          python -m pip install --quiet rasterio scipy requests numpy pyproj shapely matplotlib
+      - name: Compare independent DEMs
+        run: python scripts/research/siachen/compare_independent_dem_saltoro.py
+      - name: Check source verification and images
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('assets/data/research/siachen')
+          x=json.loads((p/'siachen_multidem_ridge_comparison.json').read_text())
+          assert 'COP30' in x['sources']
+          assert len(x['sources'])>=2
+          assert len(x['stations'])==6
+          assert len(x['public_pass_elevations'])==4
+          for name,st in x['stations'].items():
+              assert (p/st['figure']).stat().st_size>12000
+              assert '900' in st['DEM']['COP30']['search_windows_m']
+              assert '1600' in st['DEM']['COP30']['search_windows_m']
+          print('SUCCESS: four pass sites and six DEM profiles verified')
+          PY
+      - name: Upload studies irrespective of Git branch contention
+        uses: actions/upload-artifact@v4
+        with:
+          name: siachen-saltoro-dem-cross-source
+          path: |
+            assets/data/research/siachen/siachen_multidem_*.png
+            assets/data/research/siachen/siachen_multidem_ridge_comparison.json
+            assets/data/research/siachen/README_multidem_ridge.md
+      - name: Commit source data to research branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/research/siachen/siachen_multidem_* assets/data/research/siachen/README_multidem_ridge.md
+          if ! git diff --cached --quiet; then
+            git commit -m "research: source-record independent Saltoro DEM comparison"
+            for attempt in 1 2 3 4; do
+              git fetch origin research/siachen-rgi7-outline
+              git rebase FETCH_HEAD
+              if git push origin HEAD:research/siachen-rgi7-outline; then exit 0; fi
+              sleep 3
+            done
+            echo "Output preserved in Actions artifact, but Git branch was busy."
+            exit 1
+          fi
