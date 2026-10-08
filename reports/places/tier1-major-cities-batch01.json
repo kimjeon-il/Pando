@@ -114,7 +114,68 @@
       "featureClass": "P",
       "featureCode": "PPLA",
       "sourceUrl": "https://www.geonames.org/1838524/",
-      "sourceCountryCode": "KR"
+      "sourceCountryCode": "KR",
+      "historicalGeography": {
+        "policy": "Administrative-territorial genealogy, NOT names[] aliases or equal-area polygons; do not auto-relocate the GeoNames city point.",
+        "linkedPlaces": [
+          {
+            "nameKo": "동래부",
+            "relation": "historicalAdministrativeJurisdictionAndPredecessor",
+            "detail": "부산포를 관할하던 조선시대 행정구역. 1910년 부산부로 개편되었으나 현대 부산과 경계가 같지는 않음.",
+            "sourceUrl": "https://www.busan.go.kr/historyoccu/view"
+          },
+          {
+            "nameKo": "부산포",
+            "relation": "historicPortSettlementWithinDongnae",
+            "detail": "동래부의 관할 지역에 있던 역사적 항구. 동래부 전체 또는 현대 부산시 전체와 동일시하지 않음.",
+            "sourceUrl": "https://www.busan.go.kr/bhhistory/"
+          },
+          {
+            "nameKo": "동래군",
+            "relation": "post1914SeparateAdministrativeUnitAndTerritorialSource",
+            "detail": "1914년 부산부와 구별되어 재편되었고 이후 그 일부가 여러 차례 부산으로 편입됨.",
+            "sourceUrl": "https://encykorea.aks.ac.kr/Article/E0066986"
+          }
+        ],
+        "events": [
+          {
+            "year": 1910,
+            "type": "administrativeReorganization",
+            "detail": "동래부가 부산부로 개편.",
+            "sourceUrl": "https://www.busan.go.kr/historyoccu/view"
+          },
+          {
+            "year": 1914,
+            "type": "administrativeDivision",
+            "detail": "옛 동래부 관할 일부와 기장군 등을 동래군으로 재편하여 부산부와 구분.",
+            "sourceUrl": "https://www.busan.go.kr/historyoccu/view"
+          },
+          {
+            "year": 1936,
+            "type": "partialTerritorialIncorporation",
+            "detail": "동래군 서면 지역과 암남리 등이 부산부에 편입.",
+            "sourceUrl": "https://www.busan.go.kr/bhhistory/"
+          },
+          {
+            "year": 1942,
+            "type": "partialTerritorialIncorporation",
+            "detail": "동래군 동래읍 전역과 사하면, 남면 등 일부 지역이 부산부에 편입.",
+            "sourceUrl": "https://www.busan.go.kr/bhhistory/"
+          },
+          {
+            "year": 1963,
+            "type": "partialTerritorialIncorporation",
+            "detail": "부산의 직할시 승격과 함께 동래군 구포읍, 사상면, 북면 등 일부가 부산에 편입.",
+            "sourceUrl": "https://www.busan.go.kr/PageDownload.do?savename=sub0301_1-2.pdf"
+          },
+          {
+            "year": 1973,
+            "type": "administrativeDissolution",
+            "detail": "남아 있던 동래군이 폐지되고 잔여 기장지역은 양산군에 편입. 동래군 전체가 1942년 또는 1963년에 일괄 부산에 편입된 것은 아님.",
+            "sourceUrl": "https://www.busan.go.kr/PageDownload.do?savename=sub0301_1-2.pdf"
+          }
+        ]
+      }
     },
     {
       "geonameId": 1850147,
@@ -476,10 +537,11 @@
     "latestYear": 2026,
     "scope": "Includes variants used since the 19th century, including inherited older names when still used in that period.",
     "exclusions": [
-      "Dongnae is not a direct former name of all Busan",
-      "Busan-po is a particular historic port/settlement and not identical to today's city footprint",
+      "Dongnae-bu IS an administrative predecessor of Busan and Dongnae-gun later supplied incorporated territories; record this as territorial genealogy rather than a same-footprint name alias.",
+      "Busan-po was an historic port/settlement within Dongnae-bu and part of the city's historical formation; its footprint must not be conflated with all of Dongnae-bu or modern Busan.",
       "Shahjahanabad is Old Delhi, not all modern Delhi",
       "Shanghai Hu and Shen are abbreviations or nicknames, not official replacements"
-    ]
+    ],
+    "placeRelationPolicy": "Historical jurisdictions, ports, municipal splitting and annexation are separate linked-place/territorial events, not mere historical names of a fixed point."
   }
 }
