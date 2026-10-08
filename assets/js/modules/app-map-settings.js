@@ -1,9 +1,9 @@
 import { TERRITORIAL_SYMBOL_KEYS } from './layer-presentation.js';
+import { PLACE_LANGUAGES, togglePlaceLanguage } from './place-contract.js';
 import { distributionValueRange } from './distribution-model.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS).flatMap(keys => Object.values(keys)));
-const PLACE_LANGUAGES = ['ko', 'en', 'native'];
 
 /** MapSettings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -103,10 +103,9 @@ export function createMapSettings() {
   }
 
   function setPlaceLanguage(language, enabled) {
-    if (!PLACE_LANGUAGES.includes(language)) throw new TypeError('Unknown place display language');
     const current = dependencies.preferences.userPreferences;
-    const next = { ...current.labels.place.languages, [language]: enabled };
-    if (!PLACE_LANGUAGES.some(key => next[key] === true)) return false;
+    const next = togglePlaceLanguage(current.labels.place.languages, language, enabled);
+    if (!next) return false;
     const preferences = dependencies.preferences.saveUserPreferences({
       ...current, labels: { ...current.labels, place: { ...current.labels.place, languages: next } },
     });

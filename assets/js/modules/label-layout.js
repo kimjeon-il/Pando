@@ -1,11 +1,21 @@
 import { PLACE_LIMITS } from './place-contract.js';
 
-/** Dimensions for one atomic, possibly multilingual label collision box. */
+/** Web CSS-pixel estimates, not native Qt font measurements. */
+export const PLACE_LABEL_METRICS = Object.freeze({
+  minimumWidth: 22, textPadding: 16,
+  latinCharWidth: 8, otherCharWidth: 11,
+  firstLineHeight: 19, extraLineHeight: 14,
+});
+/** A single collision box contains all visible language lines of one place. */
 export function placeLabelDimensions(value) {
   const rows = Array.isArray(value) ? value : [value];
   const texts = rows.map(row => String(typeof row === 'string' ? row : row?.text || ''));
-  const width = Math.max(22, ...texts.map(text => [...text].reduce((sum, char) => sum + (/[^\u0000-\u024f]/u.test(char) ? 11 : 8), 16)));
-  return { width, height: 19 + Math.max(0, texts.length - 1) * 14 };
+  const metrics = PLACE_LABEL_METRICS;
+  const width = Math.max(metrics.minimumWidth, ...texts.map(text => [...text].reduce(
+    (sum, char) => sum + (/[^\u0000-\u024f]/u.test(char) ? metrics.otherCharWidth : metrics.latinCharWidth),
+    metrics.textPadding,
+  )));
+  return { width, height: metrics.firstLineHeight + Math.max(0, texts.length - 1) * metrics.extraLineHeight };
 }
 
 export const LABEL_PRIORITIES = Object.freeze({ country: 100, capital: 90, majorCity: 70, administrative: 60, place: 40 });
