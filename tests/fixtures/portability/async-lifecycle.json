@@ -1,0 +1,97 @@
+[
+  {
+    "id": "success",
+    "interruption": "none",
+    "expected": {
+      "id": "success",
+      "steps": [
+        {
+          "outcome": "pending",
+          "name": "Alpha",
+          "undo": false
+        },
+        {
+          "outcome": "accepted",
+          "name": "Beta",
+          "undo": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "cancel-late-result",
+    "interruption": "cancel",
+    "expected": {
+      "id": "cancel-late-result",
+      "steps": [
+        {
+          "outcome": "pending",
+          "name": "Alpha",
+          "undo": false
+        },
+        {
+          "outcome": "cancelled",
+          "name": "Alpha",
+          "undo": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "revision-late-result",
+    "interruption": "revision",
+    "expected": {
+      "id": "revision-late-result",
+      "steps": [
+        {
+          "outcome": "pending",
+          "name": "Alpha",
+          "undo": false
+        },
+        {
+          "outcome": "stale",
+          "name": "Alpha",
+          "undo": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "replacement-late-result",
+    "interruption": "replace",
+    "expected": {
+      "id": "replacement-late-result",
+      "steps": [
+        {
+          "outcome": "pending",
+          "name": "Alpha",
+          "undo": false
+        },
+        {
+          "outcome": "stale",
+          "name": "Replacement",
+          "undo": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "worker-failure",
+    "interruption": "failure",
+    "expected": {
+      "id": "worker-failure",
+      "steps": [
+        {
+          "outcome": "pending",
+          "name": "Alpha",
+          "undo": false
+        },
+        {
+          "outcome": "failed",
+          "name": "Alpha",
+          "undo": false
+        }
+      ]
+    }
+  }
+]

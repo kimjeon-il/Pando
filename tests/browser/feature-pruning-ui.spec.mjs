@@ -59,7 +59,7 @@ for (const viewport of viewports) {
     await expect(page.locator('#propertyTitle')).toHaveCSS('white-space', 'normal');
     const commandRows = page.locator('#entityProperties .editor-action-row:not(.editor-delete-row)');
     expect(await commandRows.evaluateAll(rows => rows.map(row => row.id))).toEqual([
-      'addEntityChildBtn', 'annexEntityBtn', 'mergeEntityBtn', 'editEntityBorderBtn',
+      'annexEntityBtn', 'mergeEntityBtn', 'editEntityBorderBtn',
       'redrawEntityBtn', 'editEntityCoastBtn', 'reconcileEntityCoastBtn', 'copyEntityRegionBtn',
     ]);
     const inconsistentActionRows = await commandRows.evaluateAll(rows => rows

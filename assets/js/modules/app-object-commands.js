@@ -398,7 +398,7 @@ export function createObjectCommands() {
     }
     const menuFocus = (0, dependencies.platform.$)('objectFocusMenuBtn');
     if (menuFocus) menuFocus.disabled = refs.length !== 1 || !primary;
-    dependencies.domainControllers.syncSelectionToolbarInteraction();
+    dependencies.domainControllers.syncTerritorialEditorInteraction();
   }
 
   function positionObjectActionsMenu(trigger) {

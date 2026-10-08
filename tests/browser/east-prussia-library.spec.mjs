@@ -40,7 +40,7 @@ test('East Prussia r3 preserves reviewed geometry and imports the selected stati
   expect(source.metadataHash).toBe(source.hash);
   expect(source.certainty).toBe('medium');
   expect(source.validation.modernEastUnmatchedLengthM).toBe(0);
-  await importFiniteSource(page, testInfo, 'state:east-prussia', errors);
+  await importFiniteSource(page, testInfo, 'state:east-prussia', errors, { referenceDate: '1900-01-01' });
   expect(await neighbors()).not.toEqual(before); // approved territory replacement changes donors
   await page.locator('#undoBtn').click();
   expect(await neighbors()).toEqual(before);

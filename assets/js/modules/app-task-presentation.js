@@ -218,7 +218,7 @@ export function createTaskPresentation() {
       minimize.setAttribute('aria-expanded', 'true');
     }
     dependencies.workspaceUiB.editorWorkspacePresentation.sync({ active: editing });
-    dependencies.domainControllers.syncSelectionToolbarInteraction();
+    dependencies.domainControllers.syncTerritorialEditorInteraction();
     requestAnimationFrame(syncMapHudBounds);
   }
 

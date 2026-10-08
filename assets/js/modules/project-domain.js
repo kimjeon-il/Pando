@@ -1,3 +1,6 @@
+import { restoreTimelineStorage } from './timeline-storage.js';
+import { resolveWorld as resolveTimelineWorld } from './timeline-resolver.js';
+
 const cloneValue = value => {
   if (value === undefined || value === null) return value;
   if (typeof structuredClone === 'function') {
@@ -156,7 +159,6 @@ export function createProjectDomain({
     if (!history) throw new TypeError('Project history is not configured.');
     const changed = history[direction](metadata);
     if (changed) {
-      saveState?.markContentChanged();
       notify(`project-${direction}`, null, invalidateHistory);
     }
     return changed;
@@ -191,8 +193,19 @@ export function createProjectDomain({
   const resetRenderGeneration = reason => bumpGeneration(reason || 'render-reset');
   const dispose = () => { disposed = true; };
 
+  const resolveWorld = month => {
+    assertActive();
+    const project = snapshot();
+    const identities = project.territorialEntities;
+    const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
+      geometries: project.geometries }, identities.map(feature => ({ id: feature.id,
+      entityKind: feature.properties.entityKind })));
+    return resolveTimelineWorld(identities, storage.records, storage.geometries, month);
+  };
+
   return Object.freeze({
     snapshot,
+    resolveWorld,
     buildProject,
     buildAutosave,
     entitiesFromAutosaveDelta,

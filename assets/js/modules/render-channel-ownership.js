@@ -1,4 +1,5 @@
-const SCENE_RENDERERS = new Set(['webgl2', 'webgl1', 'canvas-worker', 'canvas2d']);
+// Recovery reserves scene-fill ownership; it does not imply completed GPU coverage.
+const SCENE_RENDERERS = new Set(['webgl2', 'webgl1', 'webgl-recovering', 'canvas-worker', 'canvas2d']);
 
 export function rendererOwnsSceneGeometry(renderer) {
   return SCENE_RENDERERS.has(String(renderer || ''));

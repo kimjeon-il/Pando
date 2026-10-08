@@ -1,3 +1,4 @@
+import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
@@ -5,7 +6,6 @@ test.use({ channel: 'chromium', viewport: { width: 1440, height: 900 }, trace: '
 
 async function select(page, id) {
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
-  if (await page.locator('#selectionToolbarEditBtn').isVisible()) await page.locator('#selectionToolbarEditBtn').click();
   await expect(page.locator('#entityProperties')).toBeVisible();
 }
 
@@ -116,7 +116,7 @@ test('one object flow creates a root, child and independent region; annex across
 
   await select(page, root.id);
   await page.locator('#actionsTabBtn').click();
-  await page.locator('#addEntityChildBtn').click();
+  await startChildCreation(page, root.id);
   await expect(page.locator('#territorialCreateParentInput')).toHaveValue(root.id);
   await page.locator('#territorialCreateNameInput').fill('하위 객체');
   await page.locator('#territorialCreateNameInput').dispatchEvent('input');

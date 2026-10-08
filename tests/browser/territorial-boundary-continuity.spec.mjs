@@ -1,3 +1,4 @@
+import { startChildCreation } from './helpers/ui-select.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 
@@ -274,7 +275,7 @@ for (const renderer of ['webgl2', 'canvas']) {
         .toMatch(/^(Multi)?Polygon$/);
       await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
       await page.locator('#focusSelectedObjectBtn').evaluate(button => button.click());
-      await page.locator('#addEntityChildBtn').evaluate(button => button.click());
+      await startChildCreation(page, 'DEU');
       await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
       await page.locator('#territorialCreateNameInput').fill('M1 경계 연속성');
       await page.locator('#modePrimaryBtn').click();
@@ -304,7 +305,7 @@ for (const renderer of ['webgl2', 'canvas']) {
       await holdBoundaries(page);
       await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), childId);
       await page.locator('#actionsTabBtn').click();
-      await page.locator('#addEntityChildBtn').click();
+      await startChildCreation(page, childId);
       await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
       await page.locator('#territorialCreateNameInput').fill('M1 추가 경계');
       await page.locator('#modePrimaryBtn').click();

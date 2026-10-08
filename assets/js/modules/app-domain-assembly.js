@@ -22,7 +22,6 @@ export function createDomainAssembly() {
   let gisDomain;
   let editingDomain;
   let selectionUiController;
-  let selectionToolbarPresentation;
   let territorialPropertyController;
   let objectPropertyController;
   let layerTreeController;
@@ -213,6 +212,7 @@ export function createDomainAssembly() {
         editingDomain?.refreshEditingPresentation('selection-edit-target');
         selectionUiController?.sync?.(snapshot);
       },
+      onHoverChanged: snapshot => dependencies.platformConfigurationB.tooltipController.setMapHover(getTerritorialView(snapshot.hover)),
       requestRender: reason => renderingDomain?.invalidateSelectionOverlay?.(reason) || false,
     });
 
@@ -321,74 +321,20 @@ export function createDomainAssembly() {
       refreshTerritorialCoastAvailability: dependencies.territorialEditingB.refreshTerritorialCoastAvailability,
       replaceSelectOptions: dependencies.propertyEditingB.replaceSelectOptions,
       syncLayerSelection: () => layerTreeController?.syncSelection(),
-      metrics: dependencies.rendering.selectionPerformanceMetrics,
-    });
-
-    const territorialLabelId = ref => {
-      if (!ref?.id || ref.domain !== 'territorial') return '';
-      if ((dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(ref?.id)?.properties.parentId)) {
-        const entity = territorialEntityRepository.get(ref.id);
-        return String((entity?.properties?.entityKind === 'general' && !entity?.properties?.parentId) ? entity.id : ref.id);
-      }
-      for (const [labelId, labelRef] of dependencies.countries.builtinTerritorialScene().labelRefs || []) {
-        if (labelRef?.domain === 'territorial' && labelRef.type === ref.type && String(labelRef.id) === String(ref.id)) return String(labelId);
-      }
-      return '';
-    };
-    const selectionCardAnchor = ref => {
-      const labelId = territorialLabelId(ref);
-      if (!labelId) return null;
-      const layer = dependencies.mapHostViewA.territorialLabelLayer?.node?.();
-      const node = [...(layer?.querySelectorAll?.('g.territorial-label-item[data-label-id]') || [])]
-        .find(element => element.dataset.labelId === labelId);
-      if (node) return { node, rect: node.getBoundingClientRect() };
-      const coordinate = dependencies.labelPresentation.countryLabelAnchors.get(labelId);
-      const point = Array.isArray(coordinate) ? dependencies.mapLayout.projectVisibleCoordinate(coordinate) : null;
-      return point ? { point } : null;
-    };
-
-    selectionToolbarPresentation = (0, dependencies.uiFactoriesB.createSelectionToolbarPresentation)({
-      window,
-      document,
-      getElement: dependencies.platform.$,
-      getSelection: () => selectionDomain.snapshot().selection,
-      getView: getTerritorialView,
       commitFlag: (ref, value) => dependencies.objectMetadata.commitTerritorialMetadata(ref, 'flagDataUrl', value),
       openFlagLibrary: dependencies.flagLibrary.openFlagLibraryPicker,
-      openEditor: (ref, trigger) => {
-        if (!selectionUiController.applyIntent(ref, { openEditor: false })) return false;
-        return (0, dependencies.workspaceUiB.openSelectionEditor)({ explicit: true, trigger, focus: true });
-      },
-      selectForQuickAction: ref => selectionUiController.applyIntent(ref, { openEditor: false, refreshOnly: true }),
-      mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
-      getLabelRef: labelId => {
-        const labelRef = dependencies.countries.builtinTerritorialScene().labelRefs.get(labelId);
-        const entity = territorialEntityRepository.get(labelId);
-        return dependencies.selectionServices.normalizeObjectRef(labelRef || (entity
-          ? { domain: 'territorial', type: 'entity', id: entity.id } : null));
-      },
-      canInspect: () => dependencies.projectState.state.tool === 'select'
-        && !dependencies.projectState.state.projectReplacing && !dependencies.projectState.state.modeProcessing
-        && !dependencies.projectState.state.labelPlacementMode && !editingDomain?.draftInputActive?.(),
-      getColor: view => resolveTerritorialEditorColor(view).value,
-      isVisible: dependencies.objectOperationsA.objectRefVisible,
-      isLocked: dependencies.objectOperationsA.objectRefLocked,
-      isEditorOpen: () => dependencies.workspaceUiB.surfaceState.editorOpen,
-      isMutationBlocked: ref => dependencies.projectState.state.projectReplacing
-        || dependencies.projectState.state.modeProcessing
-        || dependencies.objectOperationsA.objectRefLocked(ref)
-        || dependencies.projectState.state.tool !== 'select'
-        || !!dependencies.projectState.state.labelPlacementMode
-        || !!dependencies.projectState.state.territorySelectionSession
-        || !!dependencies.projectState.state.geometryPreview?.session
-        || !!editingDomain?.draftInputActive?.(),
-      getProjectGeneration: () => projectDomain?.getGeneration?.() || 0,
       closeColorPickers: dependencies.colorPicker.closeAllColorPickers,
-      createSemanticIcon: dependencies.applicationFactories.createSemanticIcon,
-      getLayout: () => dependencies.surfaces.layoutMode,
-      getAnchor: selectionCardAnchor,
-      getMapRect: () => (0, dependencies.platform.$)('map')?.getBoundingClientRect() || null,
-      getViewRevision: () => dependencies.mapLayout.viewRevision,
+      getProjectGeneration: () => projectDomain.getGeneration(),
+      isMutationBlocked: ref => dependencies.projectState.state.projectReplacing
+        || dependencies.projectState.state.modeProcessing || dependencies.objectOperationsA.objectRefLocked(ref)
+        || dependencies.projectState.state.tool !== 'select' || !!dependencies.projectState.state.labelPlacementMode
+        || !!dependencies.projectState.state.territorySelectionSession || !!dependencies.projectState.state.geometryPreview?.session
+        || !!editingDomain?.draftInputActive(),
+      reportFlagError: error => {
+        dependencies.readiness.reliabilityDiagnostic.push({ category: 'editor-flag', code: 'PL-EDITOR-FLAG', message: String(error?.message || error) });
+        dependencies.feedback.setActionStatus('깃발을 불러오지 못했습니다.', 'error', 4200);
+      },
+      metrics: dependencies.rendering.selectionPerformanceMetrics,
     });
 
     selectionUiController = (0, dependencies.uiFactoriesB.createSelectionUiController)({
@@ -406,12 +352,15 @@ export function createDomainAssembly() {
           if (ref.domain === 'territorial') {
             return (value, options) => territorialPropertyController.present(value, options);
           }
-          return (value, options) => objectPropertyController.present(value, options);
+          return (value, options) => { territorialPropertyController.clear(); return objectPropertyController.present(value, options); };
         },
-        multiple: (selection, detail) => objectPropertyController.show('multi', '공통 속성', {
-          resetScroll: false,
-          typeLabel: detail.typeLabel,
-        }),
+        multiple: (selection, detail) => {
+          territorialPropertyController.clear();
+          return objectPropertyController.show('multi', '공통 속성', {
+            resetScroll: false,
+            typeLabel: detail.typeLabel,
+          });
+        },
       },
       uiActions: {
         focusObject: dependencies.objectOperationsA.focusObjectRef,
@@ -430,8 +379,6 @@ export function createDomainAssembly() {
             if (dependencies.workspaceUiB.surfaceState.editorOpen) (0, dependencies.workspaceUiA.closeSurface)('editor');
           }
         },
-        syncSelectionToolbar: () => selectionToolbarPresentation.sync(),
-        clearSelectionToolbar: () => selectionToolbarPresentation.clear(),
         syncBatchActions: dependencies.objectOperationsB.syncBatchActionAvailability,
         syncMapSurfaces: dependencies.taskPresentation.syncMapContextSurfaces,
         syncLayerRows: selection => layerTreeController?.syncSelection(selection, { reveal: true }),
@@ -440,7 +387,6 @@ export function createDomainAssembly() {
       metrics: dependencies.rendering.selectionPerformanceMetrics,
     });
     territorialPropertyController.bind();
-    selectionToolbarPresentation.bind();
 
     editingDomain = (0, dependencies.domainFactories.createEditingDomain)({
       context: domainContext,
@@ -856,6 +802,7 @@ export function createDomainAssembly() {
         mapClickBlocked: dependencies.pointerInteractionA.mapClickBlocked,
         handleObjectSelectionAt: dependencies.objectPicking.handleObjectSelectionAt,
         handleMapClick: dependencies.objectPicking.handleMapClick,
+        getTerritorialLabelRef: dependencies.objectPicking.getTerritorialLabelRef,
         countryName: dependencies.objectPresentation.territorialEntityName,
         layerStyle: dependencies.applicationServicesB.layerStyle,
         isMobile: dependencies.surfaces.isMobile,
@@ -1214,9 +1161,7 @@ export function createDomainAssembly() {
 
     (selectionUiController = null);
 
-    selectionToolbarPresentation?.dispose?.();
-    (selectionToolbarPresentation = null);
-
+    territorialPropertyController?.dispose();
     (territorialPropertyController = null);
 
     (objectPropertyController = null);
@@ -1224,9 +1169,24 @@ export function createDomainAssembly() {
     (layerTreeController = null);
   }
 
+  function setTimelineMonth(month) {
+    const current = dependencies.projectState.state;
+    if (current.projectReplacing || current.modeProcessing || current.geometryPreview?.session
+      || current.territorySelectionSession || editingDomain?.draftInputActive?.()) {
+      throw Object.assign(new Error('편집을 확정하거나 취소한 뒤 시간대를 이동하세요.'), { code: 'TIMELINE_DRAFT_ACTIVE' });
+    }
+    const changed = territorialEntityStore.setTimelineCursor(month);
+    if (!changed) return false;
+    selectionDomain?.prune(null, { reason: 'timeline-cursor' });
+    renderingDomain?.invalidateProject?.('timeline-cursor');
+    return true;
+  }
+
   return Object.freeze({
     connect,
     initializeDomainState,
+    setTimelineMonth,
+    get timelineMonth() { return dependencies.projectState.state.timelineCursor || ''; },
     get territorialPropertyController() { return territorialPropertyController; },
     get editingDomain() { return editingDomain; },
     get gisDomain() { return gisDomain; },
@@ -1237,7 +1197,6 @@ export function createDomainAssembly() {
     get projectDomain() { return projectDomain; },
     get renderingDomain() { return renderingDomain; },
     get selectionDomain() { return selectionDomain; },
-    get selectionToolbarPresentation() { return selectionToolbarPresentation; },
     get selectionUiController() { return selectionUiController; },
     get territorialEntityRepository() { return territorialEntityRepository; },
     get territorialEntityStore() { return territorialEntityStore; },

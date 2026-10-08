@@ -154,3 +154,128 @@ test('worker crashes reject pending requests and the next request recreates the 
   assert.equal(workers.length, 2);
   assert.equal(client.stats().restarted, 1);
 });
+
+test('a retired worker error cannot reject or terminate its replacement', async t => {
+  const workers = [];
+  const crashes = [];
+  const client = createWorkerRpcClient({
+    createWorker: () => { const worker = fakeWorker(); workers.push(worker); return worker; },
+    onCrash: error => crashes.push(error),
+    defaultTimeoutMs: 0,
+  });
+  t.after(() => client.stop());
+  const first = client.request('geometry.mesh');
+  const retiredError = workers[0].onerror;
+  const firstRejected = assert.rejects(first, { code: 'PL-WORKER-RPC-CRASH', message: 'first crash' });
+  retiredError({ message: 'first crash' });
+  await firstRejected;
+  const replacement = client.request('geometry.audit');
+  replacement.catch(() => {});
+  retiredError({ message: 'late retired crash' });
+  assert.equal(client.stats().pendingCount, 1);
+  assert.equal(workers[1].terminated, false);
+  assert.equal(client.stats().crashes, 1);
+  assert.equal(crashes.length, 1);
+  assert.equal(workers.length, 2);
+  workers[1].onmessage({ data: resultFor(workers[1].messages[0], 'replacement result') });
+  assert.equal((await replacement).result, 'replacement result');
+});
+
+test('retired messages cannot deliver events or resolve a reused request ID', async t => {
+  const workers = [];
+  const events = [];
+  const client = createWorkerRpcClient({
+    createWorker: () => { const worker = fakeWorker(); workers.push(worker); return worker; },
+    getProjectRevision: () => 7,
+    onEvent: event => events.push(event),
+    defaultTimeoutMs: 0,
+  });
+  t.after(() => client.stop());
+  const first = client.request('geometry.mesh', null, { requestId: 17 });
+  const retiredMessage = workers[0].onmessage;
+  const firstRejected = assert.rejects(first, { code: 'PL-WORKER-RPC-CRASH' });
+  workers[0].onerror({ message: 'crash' });
+  await firstRejected;
+  const replacement = client.request('geometry.mesh', null, { requestId: 17 });
+  replacement.catch(() => {});
+  retiredMessage({ data: {
+    rpc: WORKER_RPC_PROTOCOL, protocolVersion: WORKER_RPC_PROTOCOL_VERSION,
+    type: 'event', operation: 'ready', projectRevision: 7,
+  } });
+  retiredMessage({ data: resultFor(workers[0].messages[0], 'retired result') });
+  assert.equal(events.length, 0);
+  assert.equal(client.stats().pendingCount, 1);
+  workers[1].onmessage({ data: resultFor(workers[1].messages[0], 'replacement result') });
+  assert.equal((await replacement).result, 'replacement result');
+});
+
+test('closed RPC ignores captured callbacks without creating another worker', async () => {
+  const worker = fakeWorker();
+  const events = [];
+  const crashes = [];
+  let creations = 0;
+  const client = createWorkerRpcClient({
+    createWorker: () => { creations += 1; return worker; },
+    onEvent: event => events.push(event),
+    onCrash: error => crashes.push(error),
+    defaultTimeoutMs: 0,
+  });
+  const pending = client.request('geometry.mesh');
+  const closedMessage = worker.onmessage;
+  const closedError = worker.onerror;
+  const cancelled = assert.rejects(pending, { code: 'PL-WORKER-RPC-CANCELLED' });
+  client.stop();
+  await cancelled;
+  closedMessage({ data: {
+    rpc: WORKER_RPC_PROTOCOL, protocolVersion: WORKER_RPC_PROTOCOL_VERSION,
+    type: 'event', operation: 'ready', projectRevision: 0,
+  } });
+  closedError({ message: 'late closed crash' });
+  assert.equal(events.length, 0);
+  assert.equal(crashes.length, 0);
+  assert.equal(client.stats().crashes, 0);
+  assert.equal(client.stats().workerActive, false);
+  assert.equal(creations, 1);
+});
+
+test('active worker import failures remain visible and reject the pending operation', async () => {
+  const worker = fakeWorker();
+  const crashes = [];
+  let prevented = false;
+  const client = createWorkerRpcClient({ createWorker: () => worker, onCrash: error => crashes.push(error), defaultTimeoutMs: 0 });
+  const pending = client.request('geometry.mesh');
+  const rejected = assert.rejects(pending, error => error.code === 'PL-WORKER-RPC-CRASH'
+    && error.category === WORKER_RPC_ERROR_CATEGORIES.WORKER && error.retryable === true
+    && error.message === 'NetworkError: importScripts failed');
+  worker.onerror({ message: 'NetworkError: importScripts failed', preventDefault: () => { prevented = true; } });
+  await rejected;
+  assert.equal(prevented, false);
+  assert.equal(worker.terminated, true);
+  assert.equal(crashes[0].message, 'NetworkError: importScripts failed');
+});
+
+for (const retirement of ['crash', 'stop']) {
+  test(`RPC ${retirement} detaches native handlers before termination`, async () => {
+    const worker = fakeWorker();
+    const events = [];
+    const client = createWorkerRpcClient({ createWorker: () => worker, onEvent: event => events.push(event), defaultTimeoutMs: 0 });
+    const pending = client.request('geometry.mesh');
+    const capturedMessage = worker.onmessage;
+    let handlersAtTermination;
+    worker.terminate = () => {
+      handlersAtTermination = [worker.onmessage, worker.onerror];
+      capturedMessage({ data: {
+        rpc: WORKER_RPC_PROTOCOL, protocolVersion: WORKER_RPC_PROTOCOL_VERSION,
+        type: 'event', operation: 'ready', projectRevision: 0,
+      } });
+    };
+    const rejected = assert.rejects(pending, {
+      code: retirement === 'crash' ? 'PL-WORKER-RPC-CRASH' : 'PL-WORKER-RPC-CANCELLED',
+    });
+    if (retirement === 'crash') worker.onerror({ message: 'current crash' });
+    else client.stop();
+    await rejected;
+    assert.deepEqual(handlersAtTermination, [null, null]);
+    assert.equal(events.length, 0, 'captured callbacks also lose ownership before termination');
+  });
+}
