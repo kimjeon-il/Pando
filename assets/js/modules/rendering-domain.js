@@ -351,7 +351,8 @@ export function createRenderingDomain({
     }).on('mouseleave.hover', d => selectionDomain?.setHover(null, { source: 'map', expectedKey: labelRef(d)?.key }));
     enter.append('circle').attr('class', 'user-label-dot').attr('r', 4);
     enter.append('text').attr('class', 'user-label-text').attr('x', 7).attr('dy', '.35em');
-    selection.style('opacity', labelStyle.opacity)
+    const all = layer.selectAll('g.user-label');
+    all.style('opacity', labelStyle.opacity)
       .classed('selected', d => labels.selectionHas?.(labelRef(d)))
       .classed('is-primary-selection', d => labelRef(d)?.key === selectionState.primaryKey)
       .classed('is-secondary-selection', d => labels.selectionHas?.(labelRef(d)) && labelRef(d)?.key !== selectionState.primaryKey)
@@ -362,7 +363,18 @@ export function createRenderingDomain({
           || projectLabelCoordinate(coordinate, frameContext);
         return point ? `translate(${point[0]},${point[1]})` : 'translate(-9999,-9999)';
       });
-    selection.select('text').text(d => d.name);
+    all.select('text').each(function(label) {
+      const rows = resolvedLayout.userLabelRows?.get(String(label.id)) || [{ language: 'ko', text: label.name }];
+      const text = labels.d3.select(this);
+      const spans = text.selectAll('tspan').data(rows, row => row.language);
+      spans.exit().remove();
+      spans.enter().append('tspan');
+      text.selectAll('tspan')
+        .attr('x', 7)
+        .attr('dy', (_row, index) => index === 0 ? String(0.35 - (rows.length - 1) * 0.72) + 'em' : '1.32em')
+        .attr('class', (_row, index) => index === 0 ? 'user-label-primary' : 'user-label-secondary')
+        .text(row => row.text);
+    });
     selection.on('.drag', null);
     if (state.tool === 'select' && !state.labelPlacementMode) selection.filter(label => !isBuiltinPlaceId(label.id)).call(labels.labelDragBehavior?.());
     selection.exit().remove();
