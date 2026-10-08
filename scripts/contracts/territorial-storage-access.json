@@ -287,6 +287,13 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
+      "file": "assets/js/modules/project-domain.js",
+      "functions": ["resolveWorld"],
+      "access": ["read"],
+      "owner": "ProjectDomain",
+      "reason": "Resolve a detached validated project snapshot at the requested month without changing stored identities."
+    },
+    {
       "file": "assets/js/modules/project-preview-policy.js",
       "functions": [
         "projectPreviewGeometryRows"
@@ -373,6 +380,20 @@
       ],
       "owner": "TerritorialEntityStore",
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
+    },
+    {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": ["datedCandidateFor"],
+      "access": ["read"],
+      "owner": "Canonical entity owner",
+      "reason": "Read the current month view to prepare a validated dated record candidate before publication."
+    },
+    {
+      "file": "assets/js/modules/territorial-entity-store.js",
+      "functions": ["setTimelineCursor"],
+      "access": ["read", "write"],
+      "owner": "Canonical entity owner",
+      "reason": "Publish a derived month view; persistent identities and records remain owned by this store."
     },
     {
       "file": "assets/js/modules/territorial-entity-store.js",

@@ -27,6 +27,41 @@
   color: var(--text-soft);
 }
 
+.timeline-status {
+  gap: var(--ui-space-1);
+  color: var(--text-soft);
+  pointer-events: auto;
+}
+
+.timeline-step {
+  min-height: 1.5rem;
+  padding: 0 var(--ui-space-1);
+}
+
+.timeline-month-input {
+  width: 6.5rem;
+  min-width: 0;
+  padding: 0 var(--ui-space-1);
+  border: var(--ui-border-width) solid var(--map-status-border);
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--text);
+}
+
+.timeline-month-error {
+  max-width: 15rem;
+  overflow: hidden;
+  color: var(--danger);
+  text-overflow: ellipsis;
+}
+
+.editor-timeline-context {
+  display: block;
+  padding-inline: var(--ui-space-3);
+  color: var(--text-soft);
+  font-size: var(--ui-font-sm);
+}
+
 .autosave-recovery-action {
   pointer-events: auto;
   min-height: 0;
@@ -94,6 +129,17 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
 
 .app-root[data-layout="mobile"] .status-inner {
   padding-inline: var(--ui-space-2);
+  overflow: visible;
+}
+
+.app-root[data-layout="mobile"] .timeline-status {
+  position: absolute;
+  right: var(--ui-space-2);
+  bottom: calc(100% + var(--ui-space-1));
+  padding: var(--ui-space-1);
+  border-radius: var(--ui-radius-control);
+  background: var(--panel);
+  pointer-events: auto;
 }
 
 .app-root[data-layout="mobile"] .status-view {
