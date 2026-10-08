@@ -247,7 +247,7 @@ def plot_map(dem,affine,line,glacier,landmarks,transects):
 
 def plot_profiles(landmarks,profiles,offsets):
     for ident,title in [("sia_osm","Sia La (OSM location)"),("bila_osm","Bilafond La (OSM location)")]:
-        landmark=next(x for x in landmarks if x["id"]==ident)
+        landmark=landmarks[ident]
         t=profiles[ident]
         fig,ax=plt.subplots(figsize=(10,5))
         ax.plot(offsets/1000,np.asarray(t["profile_height_m"]),lw=2,color="#315f81",
