@@ -18,9 +18,13 @@ function viewportPredicate(view) {
   const {projectVisibleCoordinate}=createFrameProjectors(frame);
   return record => {
     const point=projectVisibleCoordinate(record.coordinates); if (!point) return false;
-    const {width,height}=placeLabelDimensions(resolvePlaceLabelRows(record, { ko: true, en: true, native: true })), safe=frame.safeInset;
-    return point[0]-width/2 >= safe.left && point[0]+width/2 <= frame.cssViewport[0]-safe.right
-      && point[1]-height/2 >= safe.top && point[1]+height/2 <= frame.cssViewport[1]-safe.bottom;
+    const rows=resolvePlaceLabelRows(record, { ko: true, en: true, native: true }), safe=frame.safeInset;
+    // Keep a superset regardless of UI language mode. Final multi-line bounds belong to main layout.
+    return rows.some(row => {
+      const {width,height}=placeLabelDimensions(row.text);
+      return point[0]-width/2 >= safe.left && point[0]+width/2 <= frame.cssViewport[0]-safe.right
+        && point[1]-height/2 >= safe.top && point[1]+height/2 <= frame.cssViewport[1]-safe.bottom;
+    });
   };
 }
 

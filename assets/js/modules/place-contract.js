@@ -17,15 +17,26 @@ function normalizeNameTimeline(value) {
   if (!Array.isArray(value) || value.length > 16) throw new TypeError('Invalid place name timeline');
   let previous = '';
   return Object.freeze(value.map(entry => {
-    if (!entry || typeof entry !== 'object' || !/^\d{4}-\d{2}-\d{2}$/u.test(entry.date || '')) throw new TypeError('Invalid place name timeline date');
-    const date = entry.date;
-    const parsed = new Date(date + 'T00:00:00Z');
-    if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date || date <= previous) throw new TypeError('Unordered or invalid place name timeline date');
-    previous = date;
+    if (!entry || typeof entry !== 'object') throw new TypeError('Invalid place name transition');
+    const hasDate = Object.hasOwn(entry, 'fromDate');
+    const hasYear = Object.hasOwn(entry, 'fromYear');
+    if (hasDate === hasYear) throw new TypeError('Place name transition needs one date precision');
+    const fromDate = entry.fromDate;
+    const fromYear = entry.fromYear;
+    if (hasDate) {
+      if (typeof fromDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/u.test(fromDate)) throw new TypeError('Invalid exact place name date');
+      const parsed = new Date(fromDate + 'T00:00:00Z');
+      if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== fromDate) throw new TypeError('Invalid exact place name date');
+    } else if (!Number.isInteger(fromYear) || fromYear < 1 || fromYear > 9999) {
+      throw new TypeError('Invalid year-only place name transition');
+    }
+    const boundary = hasDate ? fromDate : String(fromYear).padStart(4, '0') + '-01-01';
+    if (boundary <= previous) throw new TypeError('Unordered place name timeline');
+    previous = boundary;
     const names = {};
     for (const language of PLACE_LANGUAGES) if (entry[language] != null) names[language] = text(entry[language], 'historical ' + language, 256, true);
     if (!Object.keys(names).length) throw new TypeError('Empty place name transition');
-    return Object.freeze({ date, ...names });
+    return Object.freeze({ ...(hasDate ? { fromDate } : { fromYear }), ...names });
   }));
 }
 
@@ -58,7 +69,7 @@ export function resolvePlaceLabelRows(place, languages = { ko: true, en: false, 
   if (mapDate != null) {
     if (!/^\d{4}-\d{2}-\d{2}$/u.test(mapDate)) throw new TypeError('Invalid map label date');
     for (const transition of place.nameTimeline || []) {
-      if (transition.date > mapDate) break;
+      if (transition.fromDate ? transition.fromDate > mapDate : transition.fromYear > Number(mapDate.slice(0, 4))) break;
       for (const language of PLACE_LANGUAGES) if (transition[language] != null) names[language] = transition[language];
     }
   }
