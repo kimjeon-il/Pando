@@ -29,6 +29,8 @@ jobs:
       - name: Pin original historical working master hash
         run: sha256sum tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.geojson > /tmp/stone26-master.sha
       - name: Locate modern geometry hinge and inspect 1880 Gjelsbro map
+        env:
+          GIS_LOG_MAP_THUMBNAILS: "1"
         run: python tools/audit_north_schleswig_1914_stone26_split.py --raster-panels
       - name: Verify split topology, confidence limits, and source immutability
         run: |
