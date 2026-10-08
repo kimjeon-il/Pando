@@ -2,6 +2,30 @@
 export const PLACE_LIMITS = Object.freeze({ candidates: 1500, layoutCandidates: 2048, tileRecords: 512, queryTiles: 96, shardBytes: 512 * 1024, cacheBytes: 24 * 1024 * 1024, searchResults: 50, retainedRecords: 256 });
 export const PLACE_KINDS = Object.freeze(['capital', 'city', 'region', 'town', 'mountain', 'water', 'custom']);
 export const PLACE_LANGUAGES = Object.freeze(['ko', 'en', 'native']);
+export const DEFAULT_PLACE_LANGUAGES = Object.freeze({ ko: true, en: false, native: false });
+export const PLACE_NAME_TRANSITION_LIMIT = 16;
+/** Versioned platform-neutral binary contract, also exported as contracts/places/v2.json. */
+export const PLACE_TILE_FORMAT = Object.freeze({
+  magic: 0x43414c50,
+  version: 2,
+  headerBytes: 32,
+  recordBytes: 68,
+  stringOffsetBase: 36,
+  stringOffsetStride: 4,
+  stringFields: Object.freeze(['sourceId', 'name', 'countryCode', 'source', 'featureCode', 'nameEn', 'nameNative', 'nameTimelineText']),
+  maxStringBytes: 16 * 1024,
+});
+export function normalizePlaceLanguages(value) {
+  const flags = Object.fromEntries(PLACE_LANGUAGES.map(language => [language, value?.[language] === true]));
+  return PLACE_LANGUAGES.some(language => flags[language]) ? flags : { ...DEFAULT_PLACE_LANGUAGES };
+}
+export function togglePlaceLanguage(current, language, enabled) {
+  if (!PLACE_LANGUAGES.includes(language)) throw new TypeError('Unknown place display language');
+  const flags = normalizePlaceLanguages(current), checked = enabled === true;
+  if (flags[language] === checked) return null;
+  const next = { ...flags, [language]: checked };
+  return PLACE_LANGUAGES.some(key => next[key]) ? next : null;
+}
 export const isBuiltinPlaceId = id => /^builtin:place:[a-z0-9-]+:.+$/u.test(String(id || ''));
 export const normalizePlaceQuery = value => String(value || '').normalize('NFKC').trim().toLocaleLowerCase('ko').replace(/\s+/gu, ' ');
 const EMPTY_TIMELINE = Object.freeze([]);
@@ -14,7 +38,7 @@ function text(value, name, maximum, required = false) {
 
 function normalizeNameTimeline(value) {
   if (value == null) return EMPTY_TIMELINE;
-  if (!Array.isArray(value) || value.length > 16) throw new TypeError('Invalid place name timeline');
+  if (!Array.isArray(value) || value.length > PLACE_NAME_TRANSITION_LIMIT) throw new TypeError('Invalid place name timeline');
   let previous = '';
   return Object.freeze(value.map(entry => {
     if (!entry || typeof entry !== 'object') throw new TypeError('Invalid place name transition');
@@ -64,7 +88,7 @@ export function normalizePlace(raw) {
 }
 
 /** A name is chosen per language at the requested map date, not from modern sovereignty. */
-export function resolvePlaceLabelRows(place, languages = { ko: true, en: false, native: false }, mapDate = null) {
+export function resolvePlaceLabelRows(place, languages = DEFAULT_PLACE_LANGUAGES, mapDate = null) {
   const names = { ko: place.name, en: place.nameEn, native: place.nameNative };
   if (mapDate != null) {
     if (!/^\d{4}-\d{2}-\d{2}$/u.test(mapDate)) throw new TypeError('Invalid map label date');
