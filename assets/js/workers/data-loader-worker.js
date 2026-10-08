@@ -4,7 +4,8 @@ const buildMeta = globalThis.PANDOLAB_BUILD_META;
 if (!buildMeta) throw new Error('빌드 메타데이터를 불러오지 못했습니다.');
 const APP_VERSION = String(buildMeta.appVersion || '');
 const ASSET_REVISION = String(buildMeta.assetRevision || workerAssetRevision);
-const DATA_REVISION = String(buildMeta.dataRevision || `data-${APP_VERSION}`);
+const DATA_REVISION = String(buildMeta.dataRevision || '');
+if (!DATA_REVISION) throw new Error('데이터 빌드 메타데이터가 없습니다.');
 const { resolveStartupLoadPolicy } = await import(`../modules/startup-readiness.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const {
   canonicalCountryPacketTransferables,
@@ -30,7 +31,7 @@ function versionedDataUrl(relativePath) {
   return url;
 }
 
-const MANIFEST_URL = versionedDataUrl(`../../data/world-preview-v${APP_VERSION}.json`);
+const MANIFEST_URL = versionedDataUrl('../../data/world/current.json');
 const phaseProgress = { preview: new Map(), geometry: new Map(), mesh: new Map() };
 let manifest = null;
 let previewReady = false;
@@ -58,7 +59,14 @@ function report(phase, key, message, loaded = 0, total = 0, done = false, extra 
 }
 
 const { createStoredAssetLoader } = await import(`../modules/stored-asset-loader.js?v=${encodeURIComponent(ASSET_REVISION)}`);
-const { loadAsset, cleanupOldCoreCaches } = createStoredAssetLoader({dataRevision: DATA_REVISION, resolveUrl: spec => versionedDataUrl(`../../data/${String(spec.url || '')}`), report});
+const { validateWorldBundle, worldAssetUrl } = await import(`../modules/world-bundle-manifest.js?v=${encodeURIComponent(ASSET_REVISION)}`);
+const worldDataRoot = new URL('../../data/', self.location.href);
+const { loadAsset, cleanupOldCoreCaches } = createStoredAssetLoader({
+  dataRevision: DATA_REVISION,
+  cachePolicy: 'immutable',
+  resolveUrl: spec => worldAssetUrl(spec, worldDataRoot),
+  report,
+});
 
 async function parseJson(buffer) {
   const startedAt = performance.now();
@@ -115,14 +123,9 @@ function assetMetrics(result, parseMilliseconds = 0) {
 }
 
 async function loadManifest() {
-  const response = await fetch(MANIFEST_URL, { cache: 'default' });
+  const response = await fetch(MANIFEST_URL, { cache: 'no-cache' });
   if (!response.ok) throw new Error(`시작 데이터 manifest 요청에 실패했습니다. (${response.status})`);
-  const value = await response.json();
-  if (value?.version !== APP_VERSION || !value.assets?.previewCountries
-      || !value.assets?.canonicalCountryPacket || !value.assets?.canonicalMesh) {
-    throw new Error('시작 데이터 manifest 버전이 올바르지 않습니다.');
-  }
-  return value;
+  return validateWorldBundle(await response.json());
 }
 
 async function loadJsonAsset(spec, phase, key, label, countryCollection = false, signal = null) {
@@ -173,6 +176,7 @@ async function loadPreview() {
   self.postMessage({
     type: 'preview-ready', buildId: APP_VERSION, countries: countryResult.data, meshBuffer, preparedStroke, labelAnchors: labelAnchors.anchors,
     previewBaseline: { sourceSha256: manifest.sourceSha256, defaultClassification: manifest.defaultClassification },
+    sharedBoundaryCacheUrls: manifest.sharedBoundaryCacheUrls,
     postedEpochMs: performance.timeOrigin + performance.now(),
     metrics: {
       policy: loadPolicy,
