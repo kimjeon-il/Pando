@@ -1,0 +1,97 @@
+name: Stage 4 Hügum 0619 river-border review
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [work/gis]
+    paths:
+      - tools/verify_north_schleswig_1914_0619_hugum.py
+      - .github/workflows/north-schleswig-1914-0619-hugum-stage4.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: north-schleswig-stage4-hugum-0619
+  cancel-in-progress: false
+
+jobs:
+  audit-1878-hugum:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/gis
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check requests shapely pyproj pillow
+      - name: Pin original 1-26 master and provisional stone26 split
+        run: |
+          sha256sum \
+            tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.geojson \
+            tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.stone26-transition.provisional.geojson \
+            > /tmp/hugum-stage4-originals.sha
+      - name: Review original 1878 Hügum map, Gels Å, and confluence
+        env:
+          GIS_LOG_MAP_THUMBNAILS: "1"
+        run: python tools/verify_north_schleswig_1914_0619_hugum.py
+      - name: Require source topology and non-final historical status
+        run: |
+          sha256sum -c /tmp/hugum-stage4-originals.sha
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("tools/historical-library/land-borders")
+          s="german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4"
+          report=json.loads((root/(s+".json")).read_text())
+          geo=json.loads((root/(s+".geojson")).read_text())
+          g=report["geometry"]
+          assert report["referenceDate"]=="1914-07-31"
+          assert report["sourceSheet"]["id"]=="0619"
+          assert report["sourceSheet"]["surveyYear"]==1878
+          assert report["sourceHierarchy"]["modernRegulationReachMeters"]==6400
+          assert g["preservedCanonicalMaster"] is True
+          assert g["sourceGeometrySimple"] and g["combinedSheetSeamSimple"]
+          assert abs(g["sheetLengthKm"]-5.99299)<0.02
+          assert abs(g["post26EntireCandidateLengthKm"]-6.59410)<0.02
+          assert 0.5<g["post26RemainderBefore0619Km"]<0.7
+          assert abs(g["west0719ToNorth0619JoiningGapM"])<0.01
+          assert abs(g["0619EndToPost26EndpointGapM"])<0.01
+          assert g["renderDisplayEstimate"]["widthCssPx"]==2560
+          assert g["renderDisplayEstimate"]["flatZoom"]==64
+          assert g["renderDisplayEstimate"]["simplificationTargetCssPx"]==0.5
+          assert g["renderDisplayEstimate"]["candidateVersusOwnSimplificationHausdorffCssPx"]<=0.5
+          assert g["renderDisplayEstimate"]["independentHistoricReferenceScreenDifferenceCssPx"] is None
+          assert geo["features"][0]["properties"]["doNotTreatAsFinal"] is True
+          assert report["historicVisualReviewPerformed"] is False
+          assert report["historicSourceLineDigitized"] is False
+          assert report["historicDeviationMeasuredCssPx"] is None
+          assert report["historicStopCriterionPassed"] is None
+          assert report["fladsAaConfluenceHistoricallyValidated"] is False
+          assert report["point27OrFladsAaRightBankAudited"] is False
+          assert report["riverChannelModifiedInMaster"] is False
+          assert len(report["images"])==6
+          assert [len(x["sourceSheetIds"]) for x in report["images"]]==[1,1,1,1,2,1]
+          print("PASS: 1878 WMS panels generated; 0619 and stone26 river topology intact; historic geometry remains non-final")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: north-schleswig-hugum-0619-stage4
+          path: tools/historical-library/review-output/north-schleswig-1914-001-026/0619-hugum/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Commit only non-final geometry and source diagnostics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.geojson \
+            tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.json
+          if git diff --cached --quiet; then
+            echo "Stage4 unchanged."
+          else
+            git commit -m "data(gis): store non-final 1878 Hugum river visual overlay metadata"
+            git pull --rebase origin work/gis
+            git push origin HEAD:work/gis
+          fi
