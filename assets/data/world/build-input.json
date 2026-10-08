@@ -1,0 +1,10 @@
+{
+  "schema": "pandolab-world-build-input",
+  "schemaVersion": 1,
+  "canonicalSource": "territorial-entities/generated/current-world.geojson",
+  "legacyPreviewManifest": "world-preview-v0.36.0.json",
+  "sharedBoundaries": {
+    "preview": "countries-preview-shared-v0.34.0.json.gz",
+    "canonical": "countries-canonical-shared-v0.34.0.json.gz"
+  }
+}
