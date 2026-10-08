@@ -41,15 +41,7 @@ jobs:
           assert len(json.loads((p/'siachen_s2_km90_corridor.geojson').read_text())['features'])==12
           print('PASS: 2025 and 2026 comparison georeferenced and source-fixed')
           PY
-      - name: Commit research outputs only
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/research/siachen/
-          if ! git diff --cached --quiet; then
-            git commit -m "research: record optical km90 anomaly crosscheck"
-            git push origin HEAD:research/siachen-rgi7-outline
-          fi
+
       - uses: actions/upload-artifact@v4
         with:
           name: siachen-km90-optical
@@ -58,3 +50,20 @@ jobs:
             assets/data/research/siachen/siachen_s2_km90_corridor.json
             assets/data/research/siachen/siachen_s2_km90_corridor.geojson
             assets/data/research/siachen/README_s2_km90.md
+
+      - name: Commit research outputs with concurrent-branch retry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/research/siachen/siachen_s2_*_km90_corridor.png assets/data/research/siachen/siachen_s2_km90_corridor.* assets/data/research/siachen/README_s2_km90.md
+          if ! git diff --cached --quiet; then
+            git commit -m "research: record optical km90 anomaly crosscheck"
+            for attempt in 1 2 3 4 5; do
+              git fetch origin research/siachen-rgi7-outline
+              git rebase FETCH_HEAD
+              if git push origin HEAD:research/siachen-rgi7-outline; then exit 0; fi
+              sleep 3
+            done
+            echo "Research artifact uploaded, but current branch is being changed concurrently."
+            exit 1
+          fi
