@@ -33,10 +33,14 @@ jobs:
           filter: blob:none
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            /tools/*.mjs
-            /tools/*.py
-            /tests/unit/*.mjs
-            /tests/browser/*.mjs
+            /tools/**/*.mjs
+            /tools/**/*.js
+            /tools/**/*.py
+            /tools/**/*.sh
+            /tests/**/*.mjs
+            /tests/**/*.js
+            /tests/**/*.py
+            /tests/**/*.ts
             /scripts/
             /.github/workflows/*.yml
             /assets/js/
