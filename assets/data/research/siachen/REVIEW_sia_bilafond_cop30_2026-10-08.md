@@ -87,6 +87,6 @@
 - [Copernicus 30m 음영기복 + OSM AGPL + 지형표지](sia_bilafond_cop30_relief.png)
 - [시아 라 단면도](sia_bilafond_sia_osm_transect.png)
 - [빌라폰드 라 단면도](sia_bilafond_bila_osm_transect.png)
-- [재현용 Python 추출 및 계산 코드](../../../scripts/research/siachen/compare_cop30_sia_bilafond.py) — 참고: 실제 GitHub 경로는 \`scripts/research/siachen/\`.
+- [재현용 Python 추출 및 계산 코드](../../../../scripts/research/siachen/compare_cop30_sia_bilafond.py) — 참고: 실제 GitHub 경로는 \`scripts/research/siachen/\`.
 
 규칙: 출력은 모두 조사 브랜치의 연구용 참고자료. **메인 국가 데이터·AGPL GeoJSON·RGI 얼음 외곽선·인도/파키스탄 귀속 GeoJSON은 변경하지 않았다.**
