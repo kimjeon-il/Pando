@@ -15,6 +15,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from pyproj import Geod, Transformer
 from shapely.geometry import LineString, Point, mapping, shape
+from shapely import set_precision
 from shapely.ops import split, transform, unary_union
 
 OUT = Path("assets/data/research/siachen")
@@ -28,6 +29,7 @@ OSM_BLOB_SHA1 = "08a49b2b6ac1fa930dfd44c0d6da7d96cb5405b4"
 OSM_RELATION = "https://www.openstreetmap.org/relation/13559521"
 OSM_SNAPSHOT = "2026-10-04T06:57:51Z"
 RGI_ID = "RGI2000-v7.0-G-14-20040"
+SPLIT_GRID_DEGREES = 0.000001  # ~0.1m snapping for GEOS overlay; raw geometries preserved
 PROJ = Transformer.from_crs("EPSG:4326", "EPSG:32643", always_xy=True)
 project = lambda geom: transform(PROJ.transform, geom)
 geod = Geod(ellps="WGS84")
@@ -87,7 +89,7 @@ def side_of_agpl(line, point):
     return ("IND" if cross < 0 else "PAK",cross)
 
 def split_control(polygon, agpl, rgi_center, scale):
-    parts = list(split(polygon, agpl).geoms)
+    parts = [set_precision(p, SPLIT_GRID_DEGREES) for p in split(polygon, agpl).geoms]
     if len(parts) < 2 or len(parts) > 30:
         raise ValueError(scale + " unexpected number of split polygon components: " + str(len(parts)))
     if agpl.coords[0][1] >= agpl.coords[-1][1]:
@@ -111,8 +113,8 @@ def split_control(polygon, agpl, rgi_center, scale):
     # polyline crosses long straight, low-precision Natural Earth edges.
     # Clip source pieces back to the exact disputed area, then classify
     # any sub-km² uncovered fragments explicitly rather than silently losing them.
-    raw_india=unary_union(parts_india)
-    raw_pakistan=unary_union(parts_pak)
+    raw_india=set_precision(unary_union(parts_india), SPLIT_GRID_DEGREES)
+    raw_pakistan=set_precision(unary_union(parts_pak), SPLIT_GRID_DEGREES)
     india=polygon.intersection(raw_india)
     pak_clipped=polygon.intersection(raw_pakistan)
     gap_pre=polygon.difference(unary_union([india,pak_clipped]))
@@ -179,9 +181,11 @@ def main():
     glacier=shape(glacier_f["geometry"])
     verify_geo(glacier,"RGI glacier")
     center=glacier.centroid
-    line,osmprops,osmsha=get_osm()
+    raw_line,osmprops,osmsha=get_osm()
+    line=set_precision(raw_line,SPLIT_GRID_DEGREES)
+    verify_geo(line, 'normalized OSM approximate line')
     line_m=project(line)
-    print("OSM candidate",len(line.coords),"vertices",line_m.length/1000,"km",flush=True)
+    print("OSM candidate",len(raw_line.coords),"vertices",line_m.length/1000,"km",flush=True)
     print("OSM snapshot",OSM_SNAPSHOT, "source sha256",osmsha,flush=True)
     print("RGI glacier centroid",center.x,center.y,flush=True)
     # Source line extension (~2 km at each end) is inherited from the upstream
@@ -213,7 +217,7 @@ def main():
         disputed=read_feature("siachen_dispute_ne_"+scale+".geojson")
         if disputed["properties"].get("feature_type")!="political_disputed_area_not_glacier":
             raise ValueError("Natural Earth political source unexpectedly changed")
-        polygon=shape(disputed["geometry"])
+        polygon=set_precision(shape(disputed["geometry"]),SPLIT_GRID_DEGREES)
         verify_geo(polygon,scale+" disputed area")
         india,pak,gap,overlap,repair_area,priority_area=split_control(polygon,line,center,scale)
         splitparts[scale]=(india,pak)
@@ -262,7 +266,7 @@ def main():
     reports["scale_sensitivity"]={
         "india_polygon_symdiff_km2_10m_vs_50m":round(disagreement,3),
         "boundary_candidate_length_km":round(line_m.length/1000,3),
-        "source_osm_vertex_count":len(line.coords),
+        "source_osm_vertex_count":len(raw_line.coords),
         "source_osm_snapshot":OSM_SNAPSHOT,
         "source_raw_sha256":osmsha,
     }
@@ -271,7 +275,7 @@ def main():
     else:
         reports["warning"]="Overlap tests do not establish surveyed or agreed AGPL; manual verification needed."
     print("CROSSCHECK",reports["scale_sensitivity"],reports["warning"],flush=True)
-    save("siachen_agpl_osm_candidate.geojson",[geom_feature(line,line_props)])
+    save("siachen_agpl_osm_candidate.geojson",[geom_feature(raw_line,line_props)])
     for scale in ("10m","50m"):
         save("siachen_control_split_ne_"+scale+".geojson",exported[scale])
     (OUT/"siachen_control_comparison.json").write_text(json.dumps(reports,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
@@ -311,6 +315,7 @@ Topology notes:
   and assigning the remaining territory to the western/PAK side.
 - Areas of geometric adjustments are reported explicitly in siachen_control_comparison.json.
 - The physical RGI glacier is preserved independently; ice-vs-AGPL conflicts are logged.
+- GIS calculation snaps coordinates to a 0.000001 degree grid for topology. Original OSM and RGI geometries are preserved.
 
 Re-use: The OSM source and derived effective-control polygon are subject to ODbL 1.0.
 Attribution and derivative database licence compliance are required.
