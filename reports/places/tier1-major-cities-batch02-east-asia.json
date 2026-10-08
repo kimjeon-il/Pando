@@ -1,5 +1,5 @@
 {
-  "schema": "pando-places-tier1-review-v5",
+  "schema": "pando-places-tier1-review-v6",
   "batch": "02-east-asia",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0)",
@@ -53,11 +53,16 @@
             "nameKo": "제물포",
             "nameEn": "Chemulpo",
             "relation": "historicalHarborAndPortQuarter",
-            "note": "1883년 개항한 역사적 인천항·항구 일대. 도시 전체의 정식 옛 이름과 동일시하지 않음.",
-            "sourceUrl": "https://www.incheon.go.kr/en/EN010701/2127755"
+            "note": "1883년 개항한 인천항 일대",
+            "sourceUrl": "https://www.incheon.go.kr/en/EN010701/2127755",
+            "researchNote": "1883년 개항한 역사적 인천항·항구 일대. 도시 전체의 정식 옛 이름과 동일시하지 않음."
           }
         ]
-      }
+      },
+      "defaultDisplayNameKo": "인천",
+      "shortDescriptionKo": "제물포항을 중심으로 성장",
+      "displayTimeline": [],
+      "historicalDisplayCoverage": "modern-label-only"
     },
     {
       "geonameId": 1835329,
@@ -90,7 +95,11 @@
       "featureClass": "P",
       "featureCode": "PPLA",
       "sourceUrl": "https://www.geonames.org/1835329/",
-      "sourceCountryCode": "KR"
+      "sourceCountryCode": "KR",
+      "defaultDisplayNameKo": "대구",
+      "shortDescriptionKo": "대구광역시의 중심 도시",
+      "displayTimeline": [],
+      "historicalDisplayCoverage": "modern-label-only"
     },
     {
       "geonameId": 1835235,
@@ -130,7 +139,11 @@
       "featureClass": "P",
       "featureCode": "PPLA",
       "sourceUrl": "https://www.geonames.org/1835235/",
-      "sourceCountryCode": "KR"
+      "sourceCountryCode": "KR",
+      "defaultDisplayNameKo": "대전",
+      "shortDescriptionKo": "전통 지명 한밭을 가진 도시",
+      "displayTimeline": [],
+      "historicalDisplayCoverage": "modern-label-only"
     },
     {
       "geonameId": 1848354,
@@ -156,7 +169,11 @@
       "featureClass": "P",
       "featureCode": "PPLA",
       "sourceUrl": "https://www.geonames.org/1848354/",
-      "sourceCountryCode": "JP"
+      "sourceCountryCode": "JP",
+      "defaultDisplayNameKo": "요코하마",
+      "shortDescriptionKo": "일본 가나가와현의 중심 도시",
+      "displayTimeline": [],
+      "historicalDisplayCoverage": "modern-label-only"
     },
     {
       "geonameId": 1856057,
@@ -186,11 +203,16 @@
       "historicalGeography": {
         "notes": [
           {
-            "detail": "那古野는 중세 나고야 성 주변 지역명. 19세기 도시 전체의 공식 옛 명칭으로 통합하지 않음.",
-            "sourceUrl": "https://www.museum.city.nagoya.jp/exhibition/special/past/tenji191116.html"
+            "detail": "那古野는 옛 지역명, 도시명과 구분",
+            "sourceUrl": "https://www.museum.city.nagoya.jp/exhibition/special/past/tenji191116.html",
+            "researchDetail": "那古野는 중세 나고야 성 주변 지역명. 19세기 도시 전체의 공식 옛 명칭으로 통합하지 않음."
           }
         ]
-      }
+      },
+      "defaultDisplayNameKo": "나고야",
+      "shortDescriptionKo": "옛 지역명 那古野와 구분",
+      "displayTimeline": [],
+      "historicalDisplayCoverage": "modern-label-only"
     },
     {
       "geonameId": 1857910,
@@ -220,11 +242,16 @@
       "historicalGeography": {
         "notes": [
           {
-            "detail": "1868년 전후에도 京都라는 명칭이 사용되었음. 平安京는 고대 수도 관련 지명으로 이 19세기 이후 목록의 공식 개칭으로 처리하지 않음.",
-            "sourceUrl": "https://www.city.kyoto.lg.jp/kamigyo/page/0000012512.html"
+            "detail": "平安京는 고대 수도명, 근대 개칭 아님",
+            "sourceUrl": "https://www.city.kyoto.lg.jp/kamigyo/page/0000012512.html",
+            "researchDetail": "1868년 전후에도 京都라는 명칭이 사용되었음. 平安京는 고대 수도 관련 지명으로 이 19세기 이후 목록의 공식 개칭으로 처리하지 않음."
           }
         ]
-      }
+      },
+      "defaultDisplayNameKo": "교토",
+      "shortDescriptionKo": "일본의 옛 수도",
+      "displayTimeline": [],
+      "historicalDisplayCoverage": "modern-label-only"
     },
     {
       "geonameId": 1809858,
@@ -287,7 +314,22 @@
           "before1912": "광주",
           "from1912": "광저우"
         }
-      ]
+      ],
+      "defaultDisplayNameKo": "광저우",
+      "shortDescriptionKo": "1912년부터 한국어 표기 광저우",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "광주",
+          "kind": "koreanEditorialTranscription"
+        },
+        {
+          "fromDate": "1912-01-01",
+          "nameKo": "광저우",
+          "kind": "koreanEditorialTranscription"
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801"
     },
     {
       "geonameId": 1792947,
@@ -332,7 +374,22 @@
           "before1912": "천진",
           "from1912": "톈진"
         }
-      ]
+      ],
+      "defaultDisplayNameKo": "톈진",
+      "shortDescriptionKo": "1912년부터 한국어 표기 톈진",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "천진",
+          "kind": "koreanEditorialTranscription"
+        },
+        {
+          "fromDate": "1912-01-01",
+          "nameKo": "톈진",
+          "kind": "koreanEditorialTranscription"
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801"
     },
     {
       "geonameId": 1799962,
@@ -423,11 +480,39 @@
             "nameZh": "江寧府",
             "nameKo": "강녕부",
             "relation": "qingAdministrativeJurisdiction",
-            "note": "청대 부 단위 관할. 도시 대표점과 동일 객체 아님.",
-            "sourceUrl": "https://www.nanjing.gov.cn/zgnjsjb/csgk/202609/t20260930_5920372.html"
+            "note": "강녕부는 청대의 별도 행정구역",
+            "sourceUrl": "https://www.nanjing.gov.cn/zgnjsjb/csgk/202609/t20260930_5920372.html",
+            "researchNote": "청대 부 단위 관할. 도시 대표점과 동일 객체 아님."
           }
         ]
-      }
+      },
+      "defaultDisplayNameKo": "난징",
+      "shortDescriptionKo": "태평천국 시기에는 천경",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "남경",
+          "kind": "koreanEditorialTranscription"
+        },
+        {
+          "fromDate": "1912-01-01",
+          "nameKo": "난징",
+          "kind": "koreanEditorialTranscription"
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "contextualDisplayNames": [
+        {
+          "nameKo": "천경",
+          "requiresAuthority": "태평천국",
+          "fromYear": 1853,
+          "toYear": 1864,
+          "requiresVerifiedPolityAtDate": true,
+          "sourceUrl": "https://www.nanjing.gov.cn/zgnjsjb/csgk/202609/t20260930_5920372.html"
+        }
+      ]
     }
-  ]
+  ],
+  "historicalDisplayPolicyFile": "reports/places/historical-display-policy.json",
+  "historicalDisplayStatus": "timeline-staged-not-runtime"
 }
