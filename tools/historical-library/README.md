@@ -1,5 +1,16 @@
 # Historical library geometry builds
 
+## Mandatory historical boundary reconstruction standard
+
+Historical national/subnational borders, rivers, coastlines and reclamation
+geometry follow the shared [historical boundary reconstruction policy](../../docs/historical-border-reconstruction-policy.md).
+The standard uses suitable period maps (normally around 1:25,000), with a
+maximum-zoom **2560 CSS px / 0.5 CSS px** visual stopping criterion, but never
+allows subpixel tolerance to override source chronology, territory ownership,
+shoreline changes or shared-border topology. Keep canonical evidence separate
+from display-only simplified geometry.
+
+
 `east-germany-1989.recipe.json` is the pinned, declarative build recipe for the
 PandoLab historical-country pilot `state:deutsche-demokratische-republik`.
 
