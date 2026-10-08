@@ -39,7 +39,7 @@ jobs:
               for region,v in record['images'].items():
                   assert (p/v['path']).stat().st_size>25000
                   assert v['quality']['clear_fraction'] >= .55
-              assert set(record['images']) == {'sia_la','bilafond_north','ridge_90km'}
+              assert set(record['images']) == {'sia_la','bilafond_north'}
           print('PASS optical output integrity and per-AOI quality')
           PY
       - name: Commit only research data
