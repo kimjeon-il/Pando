@@ -1,16 +1,16 @@
 {
   "reference_date": "1914-07-28",
-  "source": "ACDH-CH HistoGIS Italia (1870-10-10–1919-12-31)",
-  "primary_geometry": "state border",
+  "source": "ACDH-CH HistoGIS Italia (1870-10-10–1919-12-31), with local modern Trentino-Alto Adige boundary correction",
+  "primary_geometry": "hybrid state border + surviving modern regional boundary at Stelvio",
   "qa": {
     "full": {
-      "vertex_count": 533,
-      "length_km": 721.145924,
+      "vertex_count": 560,
+      "length_km": 715.48683,
       "self_intersections": 0
     },
     "tyrol": {
-      "vertex_count": 359,
-      "length_km": 505.039554,
+      "vertex_count": 386,
+      "length_km": 499.38046,
       "self_intersections": 0
     },
     "carinthia": {
@@ -30,5 +30,20 @@
     "carinthia_gorizia_to_source": 0.037951,
     "adriatic_endpoint_to_source": 0.052
   },
-  "previous_result_note": "Previous crownland-based Tyrol sector was ~498.48 km. Reworked state-border-based Tyrol sector is ~505.04 km; the change resolves local multi-kilometre divergences in the Tyrol crownland source."
+  "previous_result_note": "The state-border-only Tyrol sector (~505.04 km) contained a false local detour caused by the HistoGIS tripoint topology. The corrected hybrid Tyrol sector is ~499.38 km.",
+  "tripointCorrection": {
+    "anchor": [
+      10.452726,
+      46.530948
+    ],
+    "rejoin": [
+      10.53971197373467,
+      46.49270416373264
+    ],
+    "local_path_vertices": 36,
+    "local_path_length_km": 9.661439,
+    "source_vertex_snap_start_m": 52.642,
+    "source_vertex_snap_end_m": 350.872,
+    "note": "Endpoint H lies on the source boundary segment; nearest-vertex distance is larger than point-to-segment distance."
+  }
 }
