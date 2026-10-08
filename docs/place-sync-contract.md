@@ -1,0 +1,73 @@
+# 지명 웹·앱 동기화용 계약 v2
+
+웹의 `data/places-tier1-major-cities` 브랜치는 지명 검수 원본과 실행용
+데이터 계약의 소유자이다. 앱은 별도의 Qt/C++ 구현을 유지하지만,
+데이터 의미·직렬화·언어별 표시 규칙은 동일한 결과를 만들어야 한다.
+
+## 범위별 정본 및 책임
+
+| 영역 | 웹 정본 | 향후 앱 대응 |
+| --- | --- | --- |
+| 검수·출처·별칭·복수 원어 | `reports/places/tier1-major-cities-*.json` | 검수 원본 보존, 표시용 원어만 선별 |
+| ID·언어 토글·역사명 | `assets/js/modules/place-contract.js` | PlaceRecord / 순수 이름 선택기 |
+| PLAC 바이너리 v2 | `assets/js/modules/place-codec.js` | PlaceRuntimeStore 디코더 |
+| viewport·검색·캐시 | `place-worker-store.js`, `place-runtime.js` | 앱 store/provider |
+| 사용자 설정/체크박스 | `user-preferences.js`, `app-map-settings.js` | 앱 환경설정/UI |
+| 라벨 충돌/표시 | `label-layout.js`, `rendering-domain.js` | Qt 라벨 엔진·서체 계측 |
+
+`assets/js/modules/place-contract.js`는 표시 이름과 바이너리 포맷의
+**단일 코드 정본**이다. UI와 환경설정에서 같은 언어 정규화/토글 함수를 사용한다.
+포맷 상수를 `place-codec.js` 등에 별도로 하드코딩하지 않는다.
+
+## 기계 판독 가능한 교환 파일
+
+`contracts/places/v2.json`에는 다음 정보를 하나로 묶는다.
+
+- 식별자 `builtin:place:{source}:{sourceId}`, 순위 및 런타임 필드.
+- PLAC 타일 v2의 매직·바이트 순서·헤더/레코드 바이트 수·필드별 오프셋.
+- `name`(한국어)·`nameEn`(영어)·`nameNative`(선택한 원어).
+  검수 원본 `names[]`의 복수 원어·별칭을 이 레코드 하나로 덮어쓰면 안 된다.
+- `nameTimeline[]`의 연도 `fromYear`·정확한 날짜 `fromDate`
+  구분. 국가 코드·주권 변경만으로 언어/역사명 전환을 추정하지 않는다.
+- 독립 언어 체크와 최소 1개 활성 규칙·동일 표기 중복 제거.
+- 검증된 데이터 사례에 대한 입력·정규화 결과·원시 v2 타일 hex·
+  선택 언어/시점별 기대 행·웹 예상 충돌 상자.
+
+라벨 충돌상자는 웹 CSS 픽셀의 보수적 추정이다.
+Qt 글꼴 실측치까지 같다는 뜻이 아니므로 시각적 기하 오차는 별도 검사한다.
+
+## 웹에서 변경 시
+
+```sh
+node tools/export-place-sync.mjs
+pnpm check:place-sync
+node --test tests/unit/place-codec.test.mjs tests/unit/place-names.test.mjs tests/unit/place-layout.test.mjs tests/unit/user-preferences.test.mjs
+```
+
+`tools/place-sync-cases.mjs`의 기대 행은 별도로 검수된 고정값이며, 생성기가
+현재 코드 동작을 그대로 기대값으로 복사하지 않는다. 생성기는 실측
+인코딩·정규화·충돌상자만 갱신한다. CI의 `--check` 단계가 갱신 누락을 탐지한다.
+생성 결과는 해당 소스 변경과 **같은 커밋**에 반영해야 한다.
+
+## 나중에 앱에 이식할 때
+
+1. 대상 웹 **커밋 SHA**와 이 커밋의 `contracts/places/v2.json`을 함께 고정한다.
+2. 앱 `PlaceRecord`에 언어별 이름과 날짜별 이력을 추가하고 v2 디코더를 작성한다.
+3. 동일 JSON의 `fixtures[]`에 들어 있는 **모든 hex 바이트 및 출력 행**을
+   C++ 테스트에서 그대로 검증한다. 원본을 변형하거나 테스트 통과를 위해
+   기대값을 재생성하지 않는다.
+4. 앱 사용자 설정과 렌더링 adapter를 독립 구현하되 언어 선택·중복·
+   최소 1개 활성의 의미는 순수 계약대로 유지한다.
+5. Qt 충돌상자는 실제 폰트 측정과 웹 예상값 차이를 명시적으로 보고한다.
+
+현재 앱의 `tools/place-runtime-contract/`는 과거 **고정 웹 소스 v1**의
+검증 자료이므로 그 원본을 덮어쓰지 않는다. 이번에는 **앱 브랜치를 만들거나
+앱 코드를 수정하지 않는다.**
+
+## 아직 완료되지 않은 연결
+
+웹 실제 지명 manifest는 빈 상태이고, 검수 기록을 PLAC v2 타일로 배포하는
+빌드 단계는 이 변경 범위 밖이다. 지도 선택 날짜를
+`resolvePlaceLabelRows(place, languages, mapDate)`에 전달하는 런타임
+연결도 미완료다. 이 둘을 구현하기 전에는 실제 지도 데이터/역사 시점의
+웹·앱 동작 일치를 주장해서는 안 된다.
