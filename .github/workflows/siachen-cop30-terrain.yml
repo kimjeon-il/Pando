@@ -1,10 +1,9 @@
 name: Siachen Saltoro GLO30 terrain comparison
 on:
   push:
-    branches: [research/siachen-rgi7-outline]
+    branches: [work/gis]
     paths:
       - scripts/research/siachen/compare_cop30_sia_bilafond.py
-      - .github/workflows/siachen-cop30-terrain.yml
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: research/siachen-rgi7-outline
+          ref: work/gis
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -45,7 +44,7 @@ jobs:
           git add assets/data/research/siachen/
           if ! git diff --cached --quiet; then
             git commit -m "research: record Copernicus GLO30 Saltoro terrain diagnostics"
-            git push origin HEAD:research/siachen-rgi7-outline
+            git push origin HEAD:work/gis
           fi
       - uses: actions/upload-artifact@v4
         with:
