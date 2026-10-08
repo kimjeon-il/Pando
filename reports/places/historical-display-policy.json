@@ -1,0 +1,40 @@
+{
+  "schema": "pando-places-historical-display-policy-v1",
+  "status": "staged-data-only-no-runtime-renderer",
+  "mapLanguage": "ko",
+  "historicalReviewFromYear": 1801,
+  "purpose": "Choose Korean map label by map date from curated transitions, without confusing historical city renaming with language transcription or administrative annexation.",
+  "recordFields": {
+    "defaultDisplayNameKo": "Current Korean map name; mandatory and must match names[].text with language ko",
+    "displayTimeline": "Chronologically ordered name change points; empty for places with no verified historic change. Label references an existing Korean variant in names[].",
+    "shortDescriptionKo": "Screen-facing concise Korean city description, maximum 28 Unicode code points",
+    "contextualDisplayNames": "Regime/polity-specific historical names; never auto-apply based solely on date."
+  },
+  "timelineEntry": {
+    "nameKo": "Reference to names[] (ko)",
+    "fromDate": "YYYY-MM-DD, inclusive, Gregorian calendar, verified exact date",
+    "fromYear": "YYYY, inclusive approximate year-granularity change; not Jan 1 evidence",
+    "kind": "historicalLocalName | officialRenaming | koreanEditorialTranscription",
+    "sourceUrl": "Source for the change"
+  },
+  "resolution": [
+    "For a user-specified map date, select the most recent applicable displayTimeline entry.",
+    "A fromDate rule is exact on/after the Gregorian date. A fromYear rule permits year-level label selection; if an exact day is queried within its boundary year, flag the result as approximate rather than claiming a precise effective date.",
+    "The first entry's fromYear 1801 means only that the historic-name survey begins in the nineteenth century; it does not establish the city's founding date.",
+    "If displayTimeline is empty or the requested date is earlier than first covered date, return defaultDisplayNameKo with historicalAccuracy=unverified; do not silently claim it is the period's official name.",
+    "Only apply contextualDisplayNames if a grounded regime/polity relation valid at the point and date supports it; otherwise retain the normal timeline name.",
+    "Chinese style changes at 1912-01-01 are Korean editorial conventions, not Chinese city renamings. Japan uses Korean transcriptions of Japanese local readings; do not generate Sino-Korean kanji readings.",
+    "Aliases, mixed official naming, city boundary changes, and year-granularity uncertainties remain traceable in names[] and source notes."
+  ],
+  "displayText": {
+    "maxDescriptionCodepoints": 28,
+    "requiredField": "shortDescriptionKo",
+    "rendererRule": "Show only shortDescriptionKo and shortened note/detail for summaries; never render researchNote/researchDetail directly.",
+    "overflowRule": "Even short strings need responsive wrapping or truncation in future UI; do not assume a fixed character limit alone guarantees no clipping.",
+    "retainProvenance": "Original extended note/detail is preserved in researchNote/researchDetail where shortened."
+  },
+  "caveats": [
+    "Historical timelining is about label selection only; it does not create old boundary polygons or infer state affiliation from GeoNames sourceCountryCode.",
+    "This policy is staged only; no production manifest or map runtime was changed."
+  ]
+}
