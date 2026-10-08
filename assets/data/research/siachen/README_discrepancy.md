@@ -12,4 +12,6 @@ and close-up images. In addition to RGI overlap within Natural Earth's schematic
 dispute wedge, an independent east/west line mask evaluates glacier ice *outside*
 that wedge. Never conflate these quantities.
 
+Landmark QA includes Sia La, Bilafond La, Gyong La and K12 public coordinates; several reported India-held features fall to the west of the OSM line. This implies a cartographic accuracy/position warning, not evidence of Pakistan holding these passes. No military post coordinates are inferred.
+
 No geometry is changed by this analysis.

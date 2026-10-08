@@ -2704,5 +2704,85 @@
         ]
       }
     ]
+  },
+  "landmark_sanity_check": {
+    "control_reference": "CNES reports the three major passes held by India. K12's military position is more complex; coordinates locate terrain features rather than outposts.",
+    "line_source": "OpenStreetMap 2026-10-04 approximation, independent of reported landmark coordinates where available",
+    "landmarks": [
+      {
+        "name": "Sia La",
+        "ref": "OSM via Mapcarta",
+        "lon": 76.79081,
+        "lat": 35.58123,
+        "source": "https://mapcarta.com/14675508",
+        "reported_control": "IND",
+        "distance_to_osm_candidate_m": 207.41,
+        "which_side_of_candidate": "PAK",
+        "side_consistent_with_reported_control": false,
+        "chainage_from_south_km": 100.405
+      },
+      {
+        "name": "Sia La",
+        "ref": "NGA via Getty TGN",
+        "lon": 76.7876,
+        "lat": 35.5904,
+        "source": "https://www.getty.edu/vow/TGNFullDisplay?subjectid=7923170",
+        "reported_control": "IND",
+        "distance_to_osm_candidate_m": 282.96,
+        "which_side_of_candidate": "PAK",
+        "side_consistent_with_reported_control": false,
+        "chainage_from_south_km": 101.773
+      },
+      {
+        "name": "Bilafond La",
+        "ref": "OSM via Mapcarta",
+        "lon": 76.94873,
+        "lat": 35.39186,
+        "source": "https://mapcarta.com/14710602",
+        "reported_control": "IND",
+        "distance_to_osm_candidate_m": 34.8,
+        "which_side_of_candidate": "IND",
+        "side_consistent_with_reported_control": true,
+        "chainage_from_south_km": 60.288
+      },
+      {
+        "name": "Bilafond La",
+        "ref": "NGA via Getty TGN",
+        "lon": 76.9486,
+        "lat": 35.3922,
+        "source": "https://www.getty.edu/vow/TGNFullDisplay?subjectid=7902300",
+        "reported_control": "IND",
+        "distance_to_osm_candidate_m": 42.72,
+        "which_side_of_candidate": "IND",
+        "side_consistent_with_reported_control": true,
+        "chainage_from_south_km": 60.327
+      },
+      {
+        "name": "Gyong La",
+        "ref": "OSM via Mapcarta",
+        "lon": 77.07021,
+        "lat": 35.17441,
+        "source": "https://mapcarta.com/14700516",
+        "reported_control": "IND",
+        "distance_to_osm_candidate_m": 34.32,
+        "which_side_of_candidate": "PAK",
+        "side_consistent_with_reported_control": false,
+        "chainage_from_south_km": 20.397
+      },
+      {
+        "name": "K12",
+        "ref": "OSM via Mapcarta",
+        "lon": 77.0219,
+        "lat": 35.2955,
+        "source": "https://mapcarta.com/N4770525720",
+        "reported_control": "IND",
+        "distance_to_osm_candidate_m": 22.56,
+        "which_side_of_candidate": "IND",
+        "side_consistent_with_reported_control": true,
+        "chainage_from_south_km": 44.053
+      }
+    ],
+    "nominal_india_landmarks_plotted_on_pakistan_side": 3,
+    "note": "Point accuracy and map labels vary: results within tens to hundreds of metres are diagnostics, not surveyed AGPL corrections. No claim of precise post locations."
   }
 }
