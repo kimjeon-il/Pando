@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
+import { TextDecoder } from 'node:util';
 import { createStoredAssetLoader } from '../../assets/js/modules/stored-asset-loader.js';
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
