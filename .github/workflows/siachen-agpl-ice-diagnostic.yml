@@ -1,0 +1,54 @@
+name: Siachen AGPL ice-discrepancy diagnostic
+on:
+  push:
+    branches: [research/siachen-rgi7-outline]
+    paths:
+      - scripts/research/siachen/diagnose_glacier_agpl_discrepancy.py
+      - .github/workflows/siachen-agpl-ice-diagnostic.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/siachen-rgi7-outline
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --quiet shapely pyproj matplotlib
+      - name: Analyse the spatial discrepancy
+        run: python scripts/research/siachen/diagnose_glacier_agpl_discrepancy.py
+      - name: Validate output files
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("assets/data/research/siachen")
+          m=json.loads((p/"siachen_agpl_discrepancy_diagnostic.json").read_text())
+          assert 1 < m["by_source_scale"]["10m"]["rgi_overlap_pakistan_km2"] < 2
+          assert m["line_through_ice"]["intersected_length_km"] > 0
+          assert len(m["by_source_scale"]["10m"]["rgi_pakistan_components"])>0
+          print("VALIDATED",m["by_source_scale"]["10m"]["rgi_pakistan_components"][0])
+          PY
+      - name: Commit research-only diagnostic
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/research/siachen/
+          if ! git diff --cached --quiet; then
+            git commit -m "research: record spatial diagnosis of AGPL and ice overlaps"
+            git push origin HEAD:research/siachen-rgi7-outline
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: siachen-ice-agpl-discrepancy
+          path: |
+            assets/data/research/siachen/siachen_agpl_discrepancy_diagnostic.json
+            assets/data/research/siachen/siachen_glacier_agpl_discrepancy.geojson
+            assets/data/research/siachen/siachen_agpl_discrepancy_overview.png
+            assets/data/research/siachen/siachen_agpl_discrepancy_zoom.png
+            assets/data/research/siachen/README_discrepancy.md
