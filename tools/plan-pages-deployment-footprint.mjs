@@ -105,6 +105,14 @@ export function buildPublicationProfile(tree,lock,required,{profile='main-legacy
   }
   for(const path of archive)include(path,'locked-public-legacy-url',{required:true});
   for(const path of required)include(path,'verified-world-and-native-pin',{required:true});
+  // These are functional contracts, not discretionary trim targets.
+  for(const path of ['assets/js/gis-io.js',GDAL_WASM,GDAL_DATA,
+      'assets/data/hydro/v0.13.1/manifest.json',
+      'assets/data/hydro/v0.13.0/index.bin.gz',
+      'assets/data/terrain/v0.12.6/manifest.json',
+      'assets/data/territorial-entities/generated/v2/index.json']){
+    fail(chosen.has(path),'Mandatory Web/native runtime asset missing: '+path);
+  }
   const files=[...chosen.values()].sort((a,b)=>a.path.localeCompare(b.path));
   const buckets=new Map();
   for(const f of files){
