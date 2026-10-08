@@ -1,7 +1,7 @@
 import { AXES } from './contract.mjs';
 
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
-const currentAdapters=new Set(['selection','command-history','property-commands','structure-commands','geometry-containment','geometry-clipping','async-lifecycle','library-queries','library-loading','file-exchange','timeline-records','timeline-storage']);
+const currentAdapters=new Set(['selection','command-history','property-commands','structure-commands','geometry-containment','geometry-clipping','async-lifecycle','library-queries','library-loading','file-exchange','timeline-records','timeline-storage','timeline-resolution']);
 currentAdapters.add('distribution-scale');
 export function validateRegistry(registry) {
   requireValue(registry.schema === 'web-app-parity-index' && registry.version === 1, 'Unsupported parity registry');

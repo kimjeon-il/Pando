@@ -1169,9 +1169,24 @@ export function createDomainAssembly() {
     (layerTreeController = null);
   }
 
+  function setTimelineMonth(month) {
+    const current = dependencies.projectState.state;
+    if (current.projectReplacing || current.modeProcessing || current.geometryPreview?.session
+      || current.territorySelectionSession || editingDomain?.draftInputActive?.()) {
+      throw Object.assign(new Error('편집을 확정하거나 취소한 뒤 시간대를 이동하세요.'), { code: 'TIMELINE_DRAFT_ACTIVE' });
+    }
+    const changed = territorialEntityStore.setTimelineCursor(month);
+    if (!changed) return false;
+    selectionDomain?.prune(null, { reason: 'timeline-cursor' });
+    renderingDomain?.invalidateProject?.('timeline-cursor');
+    return true;
+  }
+
   return Object.freeze({
     connect,
     initializeDomainState,
+    setTimelineMonth,
+    get timelineMonth() { return dependencies.projectState.state.timelineCursor || ''; },
     get territorialPropertyController() { return territorialPropertyController; },
     get editingDomain() { return editingDomain; },
     get gisDomain() { return gisDomain; },
