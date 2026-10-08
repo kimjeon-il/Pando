@@ -1,0 +1,40 @@
+{
+  "10m": {
+    "dispute_area_km2": 2086.205,
+    "india_controlled_dispute_km2": 1991.37,
+    "pakistan_controlled_dispute_km2": 95.167,
+    "india_dispute_share_pct": 95.45,
+    "pakistan_dispute_share_pct": 4.56,
+    "glacier_inside_india_split_km2": 903.51,
+    "glacier_inside_pakistan_split_km2": 1.515,
+    "glacier_outside_ne_dispute_km2": 182.994,
+    "candidate_line_crosses_glacier_length_km": 28.706,
+    "coverage_gap_km2": 0.0,
+    "splitting_numeric_sliver_repaired_km2": 0.0,
+    "overlap_resolved_with_india_priority_km2": 0.0,
+    "partition_overlap_km2": 0.0
+  },
+  "50m": {
+    "dispute_area_km2": 2118.493,
+    "india_controlled_dispute_km2": 2019.165,
+    "pakistan_controlled_dispute_km2": 99.348,
+    "india_dispute_share_pct": 95.31,
+    "pakistan_dispute_share_pct": 4.69,
+    "glacier_inside_india_split_km2": 905.968,
+    "glacier_inside_pakistan_split_km2": 1.534,
+    "glacier_outside_ne_dispute_km2": 180.518,
+    "candidate_line_crosses_glacier_length_km": 28.706,
+    "coverage_gap_km2": 0.0,
+    "splitting_numeric_sliver_repaired_km2": 0.0,
+    "overlap_resolved_with_india_priority_km2": 0.0,
+    "partition_overlap_km2": 0.0
+  },
+  "scale_sensitivity": {
+    "india_polygon_symdiff_km2_10m_vs_50m": 103.344,
+    "boundary_candidate_length_km": 115.312,
+    "source_osm_vertex_count": 190,
+    "source_osm_snapshot": "2026-10-04T06:57:51Z",
+    "source_raw_sha256": "f62f91ecfa095392f9d226f813f1fc62bf3edf87fe1f5f6b118279dc1496bbc3"
+  },
+  "warning": "OSM approximate AGPL assigns part of the RGI glacier polygon to the Pakistan side. This is SOURCE DISCREPANCY, NOT evidence that Pakistan occupies Siachen proper; requires manual satellite/toponym interpretation."
+}
