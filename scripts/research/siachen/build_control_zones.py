@@ -107,22 +107,57 @@ def split_control(polygon, agpl, rgi_center, scale):
             parts_pak.append(part)
     if not parts_india or not parts_pak:
         raise ValueError("Missing India or Pakistan component after signed split classification")
-    india=unary_union(parts_india)
-    pakistan=unary_union(parts_pak)
+    # GEOS split() can create near-zero cartographic slivers where the OSM
+    # polyline crosses long straight, low-precision Natural Earth edges.
+    # Clip source pieces back to the exact disputed area, then classify
+    # any sub-km² uncovered fragments explicitly rather than silently losing them.
+    raw_india=unary_union(parts_india)
+    raw_pakistan=unary_union(parts_pak)
+    india=polygon.intersection(raw_india)
+    pak_clipped=polygon.intersection(raw_pakistan)
+    gap_pre=polygon.difference(unary_union([india,pak_clipped]))
+    repair_area=polyarea(gap_pre)
+    excessive=1.0
+    print("SPLIT GAP BEFORE REPAIR",scale,
+          "missing_km2",round(repair_area,6),
+          "outside_area_km2",round(polyarea(unary_union([raw_india,raw_pakistan]).difference(polygon)),6),
+          flush=True)
+    if repair_area > excessive:
+        raise ValueError(scale + " missing GEOS split area > 1 km2; manual revision needed")
+    patches_india=[]
+    patches_pak=[]
+    uncovered = list(gap_pre.geoms) if hasattr(gap_pre,"geoms") else [gap_pre]
+    for frag in uncovered:
+        if frag.is_empty or frag.area < 1e-18:
+            continue
+        if frag.geom_type != "Polygon":
+            raise ValueError("Unexpected split gap fragment type: "+frag.geom_type)
+        side,_=side_of_agpl(agpl,frag.representative_point())
+        if side=="IND":
+            patches_india.append(frag)
+        else:
+            patches_pak.append(frag)
+    if patches_india:
+        india=polygon.intersection(unary_union([india]+patches_india))
+    # Complement exactly on the Natural Earth dispute geometry.
+    pakistan=polygon.difference(india)
+    expected_pak=unary_union([pak_clipped]+patches_pak) if patches_pak else pak_clipped
+    adjusted_error=polyarea(pakistan.symmetric_difference(expected_pak))
+    if adjusted_error > 0.05:
+        raise ValueError(scale+" post-repair Pakistan mismatch %.4f km2" % adjusted_error)
     if not india.covers(rgi_center):
         raise ValueError("Glacier center should be within India-designated split")
     for g,label in ((india,"India"),(pakistan,"Pakistan")):
         verify_geo(g,label)
-        if polyarea(g) < 1:
+        if polyarea(g)<1:
             raise ValueError(scale+" unexpected tiny area for "+label)
-    # Check topology in the original lon/lat planar CRS before reprojection.
-    # Projecting sparse long NE edges and subdivided parts independently turns
-    # the same geodesic/chord into slightly different projected edges.
     gap_km2=polyarea(polygon.symmetric_difference(unary_union([india,pakistan])))
     overlap_km2=polyarea(india.intersection(pakistan))
     if gap_km2>0.001 or overlap_km2>0.001:
-        raise ValueError(scale + " conservation test failed, gap %.6f overlap %.6f" % (gap_km2,overlap_km2))
-    return india,pakistan,gap_km2,overlap_km2
+        raise ValueError(scale+" final conservation failure gap %.6f overlap %.6f" % (gap_km2,overlap_km2))
+    print("SPLIT QA",scale,"initial_gap_km2",round(repair_area,6),
+          "final_gap_km2",round(gap_km2,8),flush=True)
+    return india,pakistan,gap_km2,overlap_km2,repair_area
 
 def paint(ax, geom, facecolor, edgecolor, name=None, width=0.7, alpha=0.8, zorder=1):
     parts = geom.geoms if hasattr(geom, "geoms") else [geom]
@@ -179,7 +214,7 @@ def main():
             raise ValueError("Natural Earth political source unexpectedly changed")
         polygon=shape(disputed["geometry"])
         verify_geo(polygon,scale+" disputed area")
-        india,pak,gap,overlap=split_control(polygon,line,center,scale)
+        india,pak,gap,overlap,repair_area=split_control(polygon,line,center,scale)
         splitparts[scale]=(india,pak)
         g_in=glacier.intersection(india)
         g_pk=glacier.intersection(pak)
@@ -197,6 +232,7 @@ def main():
             "glacier_outside_ne_dispute_km2":round(polyarea(g_out),3),
             "candidate_line_crosses_glacier_length_km":round(project(shared).length/1000,3),
             "coverage_gap_km2":round(gap,6),
+            "splitting_numeric_sliver_repaired_km2":round(repair_area,6),
             "partition_overlap_km2":round(overlap,6),
         }
         reports[scale]=shares
@@ -259,7 +295,7 @@ def main():
     "The OSM line and derived control split are subject to ODbL 1.0 and require "
     "attribution/derivative-database license compliance. Do not merge into a "
     "canonical country database before ODbL integration review.\n\n"
-    "The 1984-04-13 Operation Meghdoot date is NOT the geometry date. "
+    The 1984-04-13 Operation Meghdoot date is NOT the geometry date. "
     "Present positions evolved after 1984; this represents 2026 OSM mapping only.\n\n"
     "Files:\n"
     "- siachen_agpl_osm_candidate.geojson: source OSM-derived line (190 vertices)\n"
