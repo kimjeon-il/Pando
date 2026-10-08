@@ -503,7 +503,7 @@
       "sourceUrl": "https://www.geonames.org/683506/",
       "sourceCountryCode": "RO",
       "defaultDisplayNameKo": "부쿠레슈티",
-      "shortDescriptionKo": "1862년 통일 루마니아 수도",
+      "shortDescriptionKo": "1862년 연합공국 수도 지정",
       "displayTimeline": [
         {
           "nameKo": "부쿠레슈티",
@@ -518,10 +518,11 @@
           {
             "date": "1862-02-05",
             "type": "becameUnitedPrincipalitiesCapital",
-            "detail": "루마니아 통합정부 수도 지정",
+            "detail": "몰다비아·왈라키아 연합공국 수도 지정",
             "sourceUrl": "https://agerpres.ro/documentare/2022/01/18/fragment-de-istorie-primul-guvern-unitar-si-primul-parlament-unic-ale-romaniei-22-si-24-ian-1862--851370",
             "calendar": "Gregorian",
-            "note": "구력 1월 24일, 신력 2월 5일"
+            "note": "구력 1월 24일, 신력 2월 5일",
+            "researchDetail": "1859년 몰다비아·왈라키아의 군주 선출을 통한 결합 이후, 1862년 2월 3일 단일 정부가 구성되고 2월 5일 통합 의회가 부쿠레슈티에서 개원하며 연합공국 수도로 지정되었다."
           }
         ],
         "notes": [
