@@ -1,0 +1,80 @@
+name: 1914 North Schleswig stone26 and Gels Aa provisional split audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [work/gis]
+    paths:
+      - tools/audit_north_schleswig_1914_stone26_split.py
+      - .github/workflows/north-schleswig-1914-stone26-transition.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: north-schleswig-stone26-transition
+  cancel-in-progress: false
+
+jobs:
+  analyze-original-1880-stone26:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/gis
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check shapely pyproj requests pillow
+      - name: Pin original historical working master hash
+        run: sha256sum tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.geojson > /tmp/stone26-master.sha
+      - name: Locate modern geometry hinge and inspect 1880 Gjelsbro map
+        run: python tools/audit_north_schleswig_1914_stone26_split.py --raster-panels
+      - name: Verify split topology, confidence limits, and source immutability
+        run: |
+          sha256sum -c /tmp/stone26-master.sha
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          base=Path("tools/historical-library/land-borders")
+          stem="german-denmark-1914-north-schleswig-001-026"
+          a=json.loads((base/(stem+".stone26-transition.audit.json")).read_text())
+          g=json.loads((base/(stem+".stone26-transition.provisional.geojson")).read_text())
+          assert a["referenceDate"]=="1914-07-31"
+          assert a["currentMasterUnmodified"]
+          assert a["splitCandidate"]["vertexIndex"]==481
+          assert len(g["features"])==2
+          assert all(f["properties"]["doNotTreatAsFinal"] for f in g["features"])
+          assert not a["historicalMarkerLocationConfirmed"]
+          assert not a["historicalGeometryChangeApproved"]
+          assert a["sourceScreenDeviationVersusHistoricBorderPx"] is None
+          assert a["historicalThresholdPassed"] is None
+          x=a["sourceTopologyChecks"]
+          assert abs(x["splitEndpointMismatchMeters"])<0.001
+          assert abs(x["lengthDifferenceMeters"])<0.001
+          assert x["bothPartsSimple"]
+          assert len(a["rasterPanels"])==2
+          for f in a["rasterPanels"]:
+            print(f["name"],f["wmsBytes"])
+          print("PASS provisional split-only; no historical stone26 coordinate invented.")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: north-schleswig-stone26-1880-original-map-review
+          path: tools/historical-library/review-output/north-schleswig-1914-001-026/stone26-transition/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Commit provisional split report without any historic map raster
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.stone26-transition.audit.json \
+            tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.stone26-transition.provisional.geojson
+          if git diff --cached --quiet; then
+            echo "Derived candidates unchanged."
+          else
+            git commit -m "data(gis): preserve provisional Gjelsbro stone26 and downstream Gels Aa split"
+            git pull --rebase origin work/gis
+            git push origin HEAD:work/gis
+          fi
