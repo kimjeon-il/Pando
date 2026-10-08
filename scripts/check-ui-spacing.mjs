@@ -1,34 +1,67 @@
-// TEMPORARY 1820 parish-boundary probe for North Schleswig 1864.
-import { execFileSync } from 'node:child_process';
-const py = String.raw`
-import json, os, subprocess, sys, tempfile, urllib.request
-try:
- import shapefile
-except Exception:
- subprocess.check_call([sys.executable,'-m','pip','install','-q','pyshp'])
- import shapefile
-base='https://raw.githubusercontent.com/christianvedels/A_perfect_storm/main/Data/sogne_shape/sogne.'
-td=tempfile.mkdtemp(prefix='sogne1820-')
-for ext in ('shp','shx','dbf','prj'):
- urllib.request.urlretrieve(base+ext, os.path.join(td,'sogne.'+ext))
-r=shapefile.Reader(os.path.join(td,'sogne.shp'))
-fields=[f[0] for f in r.fields[1:]]
-bbox=(8.55,55.20,9.05,55.45)
-features=[]
-for sr in r.iterShapeRecords():
- b=sr.shape.bbox
- if b[2]<bbox[0] or b[0]>bbox[2] or b[3]<bbox[1] or b[1]>bbox[3]:
-  continue
- props=dict(zip(fields,list(sr.record)))
- pts=sr.shape.points
- parts=list(sr.shape.parts)+[len(pts)]
- rings=[pts[parts[i]:parts[i+1]] for i in range(len(parts)-1)]
- features.append({'properties':props,'bbox':b,'rings':rings})
-print(json.dumps({'fields':fields,'count':len(features),'features':features},ensure_ascii=False))
-`;
-const out = execFileSync('python3',['-c',py],{encoding:'utf8',maxBuffer:50*1024*1024});
+// TEMPORARY 1820 parish-boundary probe v2, pure Node parser.
+const base='https://raw.githubusercontent.com/christianvedels/A_perfect_storm/main/Data/sogne_shape/sogne.';
+const [shpResp,dbfResp]=await Promise.all([fetch(base+'shp'),fetch(base+'dbf')]);
+if(!shpResp.ok) throw new Error('SHP HTTP '+shpResp.status);
+if(!dbfResp.ok) throw new Error('DBF HTTP '+dbfResp.status);
+const shp=Buffer.from(await shpResp.arrayBuffer());
+const dbf=Buffer.from(await dbfResp.arrayBuffer());
+
+function readDbf(buf){
+  const num=buf.readUInt32LE(4), headerLen=buf.readUInt16LE(8), recLen=buf.readUInt16LE(10);
+  const fields=[];
+  for(let off=32;off<headerLen-1;off+=32){
+    if(buf[off]===0x0d) break;
+    const rawName=buf.subarray(off,off+11);
+    const zero=rawName.indexOf(0);
+    const name=rawName.subarray(0,zero>=0?zero:11).toString('latin1').trim();
+    if(!name) break;
+    fields.push({name,type:String.fromCharCode(buf[off+11]),len:buf[off+16],dec:buf[off+17]});
+  }
+  const rows=[];
+  for(let i=0;i<num;i++){
+    const start=headerLen+i*recLen;
+    if(start+recLen>buf.length) break;
+    const deleted=buf[start]===0x2a;
+    let pos=start+1; const row={};
+    for(const f of fields){
+      const raw=buf.subarray(pos,pos+f.len).toString('latin1').trim(); pos+=f.len;
+      if(f.type==='N'||f.type==='F') row[f.name]=raw===''?null:Number(raw);
+      else row[f.name]=raw;
+    }
+    rows.push(deleted?null:row);
+  }
+  return {fields,rows};
+}
+function readShp(buf){
+  const shapes=[]; let off=100;
+  while(off+8<=buf.length){
+    const contentWords=buf.readInt32BE(off+4), bytes=contentWords*2, start=off+8;
+    if(start+bytes>buf.length) break;
+    const type=buf.readInt32LE(start);
+    if(type===0){shapes.push(null);off=start+bytes;continue;}
+    if(type!==5) throw new Error('unexpected shape type '+type);
+    const bbox=[buf.readDoubleLE(start+4),buf.readDoubleLE(start+12),buf.readDoubleLE(start+20),buf.readDoubleLE(start+28)];
+    const numParts=buf.readInt32LE(start+36), numPoints=buf.readInt32LE(start+40);
+    const partStart=start+44;
+    const parts=[];for(let i=0;i<numParts;i++)parts.push(buf.readInt32LE(partStart+i*4));parts.push(numPoints);
+    const ptStart=partStart+numParts*4;
+    const pts=[];for(let i=0;i<numPoints;i++)pts.push([buf.readDoubleLE(ptStart+i*16),buf.readDoubleLE(ptStart+i*16+8)]);
+    const rings=[];for(let i=0;i<numParts;i++)rings.push(pts.slice(parts[i],parts[i+1]));
+    shapes.push({bbox,rings});
+    off=start+bytes;
+  }
+  return shapes;
+}
+const D=readDbf(dbf), S=readShp(shp);
+const bbox=[8.55,55.20,9.05,55.45];
+const features=[];
+for(let i=0;i<Math.min(D.rows.length,S.length);i++){
+  const props=D.rows[i], sh=S[i]; if(!props||!sh)continue;
+  const b=sh.bbox;if(b[2]<bbox[0]||b[0]>bbox[2]||b[3]<bbox[1]||b[1]>bbox[3])continue;
+  features.push({index:i,properties:props,bbox:b,rings:sh.rings});
+}
 console.log('PARISH1820_JSON_BEGIN');
-console.log(out.trim());
+console.log(JSON.stringify({fields:D.fields.map(f=>f.name),dbfRows:D.rows.length,shapes:S.length,count:features.length,features}));
 console.log('PARISH1820_JSON_END');
 process.exit(1);
 
