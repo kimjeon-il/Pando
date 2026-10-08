@@ -38,6 +38,26 @@
             "toYear": 1910
           },
           "sourceUrl": "https://mediahub.seoul.go.kr/archives/176784"
+        },
+        {
+          "text": "경성",
+          "language": "ko",
+          "usage": "historical",
+          "officialPeriod": {
+            "fromYear": 1910,
+            "toYear": 1946
+          },
+          "sourceUrl": "https://archives.seoul.go.kr/class/OC-0001"
+        },
+        {
+          "text": "京城",
+          "language": "ko-Hani",
+          "usage": "historical",
+          "officialPeriod": {
+            "fromYear": 1910,
+            "toYear": 1946
+          },
+          "sourceUrl": "https://archives.seoul.go.kr/class/OC-0001"
         }
       ],
       "latitude": 37.566,
