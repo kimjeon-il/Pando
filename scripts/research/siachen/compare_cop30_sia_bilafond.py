@@ -45,11 +45,13 @@ TO_WGS = Transformer.from_crs(UTM, "EPSG:4326", always_xy=True)
 
 SOURCES = [
     {"name": "Sia La", "id": "sia_osm", "source": "OSM / Mapcarta", "longitude": 76.79081,
-     "latitude": 35.58123, "url": "https://mapcarta.com/14675508"},
+     "latitude": 35.58123, "url": "https://mapcarta.com/14675508", "published_elevation_m":5803},
+    {"name": "Sia La", "id": "sia_wikipedia", "source": "Wikipedia georeference", "longitude": 76.79250,
+     "latitude": 35.58194, "url": "https://en.wikipedia.org/wiki/Sia_La", "published_elevation_m":5589},
     {"name": "Sia La", "id": "sia_nga", "source": "NGA / Getty TGN", "longitude": 76.7876,
      "latitude": 35.5904, "url": "https://www.getty.edu/vow/TGNFullDisplay?subjectid=7923170"},
     {"name": "Bilafond La", "id": "bila_osm", "source": "OSM / Mapcarta", "longitude": 76.94873,
-     "latitude": 35.39186, "url": "https://mapcarta.com/14710602"},
+     "latitude": 35.39186, "url": "https://mapcarta.com/14710602", "published_elevation_m":5450},
     {"name": "Bilafond La", "id": "bila_nga", "source": "NGA / Getty TGN", "longitude": 76.9486,
      "latitude": 35.3922, "url": "https://www.getty.edu/vow/TGNFullDisplay?subjectid=7902300"},
 ]
@@ -185,6 +187,8 @@ def profile_landmark(landmark,line,array,affine,offsets):
     hpt=float(raster_heights([x],[y],array,affine)[0])
     if not math.isfinite(hpt):raise ValueError("Pass point outside DEM")
     obj={k:v for k,v in landmark.items()}
+    if "published_elevation_m" in landmark:
+        obj["dem_minus_published_elevation_m"]=round(hpt-landmark["published_elevation_m"],1)
     obj.update({"AGPL_nearest_station_km":round(station/1000,3),
                 "distance_to_AGPL_m":round(point.distance(p),1),
                 "signed_right_east_offset_m":round(signed,1),
@@ -224,7 +228,7 @@ def plot_map(dem,affine,line,glacier,landmarks,transects):
         px,py=TO_UTM.transform([p["local_max_lon"] for p in proxies],[p["local_max_lat"] for p in proxies])
         ax.scatter(px,py,s=6,marker=".",c="#ffff00",alpha=.65,zorder=8,
                    label="Local transect DEM high-points (not boundary)")
-    marks={"sia_osm":"o","sia_nga":"^","bila_osm":"o","bila_nga":"^"}
+    marks={"sia_osm":"o","sia_wikipedia":"s","sia_nga":"^","bila_osm":"o","bila_nga":"^"}
     for landmark in landmarks:
         x,y=TO_UTM.transform(landmark["longitude"],landmark["latitude"])
         ax.scatter([x],[y],marker=marks[landmark["id"]],s=45,edgecolor="#111",linewidth=.6,
