@@ -26,7 +26,8 @@
     "If no temporalEligibility blocks the city, but displayTimeline is empty or the requested date precedes the first documented label, use defaultDisplayNameKo only as historicalAccuracy=unverified, never as a verified contemporary name.",
     "Only apply contextualDisplayNames if a grounded regime/polity relation valid at the point and date supports it; otherwise retain the normal timeline name.",
     "Chinese style changes at 1912-01-01 are Korean editorial conventions, not Chinese city renamings. Japan uses Korean transcriptions of Japanese local readings; do not generate Sino-Korean kanji readings.",
-    "Aliases, mixed official naming, city boundary changes, and year-granularity uncertainties remain traceable in names[] and source notes."
+    "Aliases, mixed official naming, city boundary changes, and year-granularity uncertainties remain traceable in names[] and source notes.",
+    "Map-label displayTimeline values follow documented PandoEditor editorial conventions, even when they differ from contemporary Korean regulatory or national language guidance; keep standardization events as optional historical metadata, not forced display transitions."
   ],
   "displayText": {
     "maxDescriptionCodepoints": 28,
@@ -44,5 +45,25 @@
     "cityEstablishedFromYear": "Year of clearly documented city formation, not a Jan 1 effective day",
     "cityEstablishedFromDate": "Only use if exact historical first establishment date is known and uncontroversial",
     "beforeCityEstablished": "suppress-city-label"
+  },
+  "koreanEditorialNameAuthority": {
+    "policy": "PandoEditor independently chooses Korean labels for historical maps. South Korean National Institute of Korean Language standards may be evidence, not controlling rules.",
+    "examples": [
+      {
+        "subject": "Spain",
+        "preferred": "에스파냐",
+        "notRequired": "스페인",
+        "kind": "preferredKoreanExonym"
+      },
+      {
+        "subject": "Kyiv",
+        "before": "1991-08-24",
+        "nameKo": "키예프",
+        "fromInclusive": "1991-08-24",
+        "nameKoAfter": "키이우",
+        "kind": "historicalMapEditorialPolicy"
+      }
+    ],
+    "distinction": "Do not treat editorial map labels, naming standards, sovereignty shifts and historical city renamings as equivalent."
   }
 }
