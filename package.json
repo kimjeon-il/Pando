@@ -44,7 +44,8 @@
     "build:territorial-geometry": "python tools/build-territorial-geometry.py",
     "build:territorial-library": "node tools/build-territorial-entity-chunks.mjs",
     "build:current-world": "node tools/build-territorial-current-world.mjs",
-    "check:territorial-library": "python tools/build-territorial-geometry.py --check && node tools/build-territorial-entity-chunks.mjs --check && node scripts/check-territorial-library.mjs"
+    "check:territorial-library": "python tools/build-territorial-geometry.py --check && node tools/build-territorial-entity-chunks.mjs --check && node scripts/check-territorial-library.mjs",
+    "check:place-sync": "node tools/export-place-sync.mjs --check && node --test tests/unit/place-sync-contract.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
