@@ -40,7 +40,17 @@
         "source": "OSM / Mapcarta",
         "longitude": 76.79081,
         "latitude": 35.58123,
-        "url": "https://mapcarta.com/14675508"
+        "url": "https://mapcarta.com/14675508",
+        "published_elevation_m": 5803
+      },
+      {
+        "name": "Sia La",
+        "id": "sia_wikipedia",
+        "source": "Wikipedia georeference",
+        "longitude": 76.7925,
+        "latitude": 35.58194,
+        "url": "https://en.wikipedia.org/wiki/Sia_La",
+        "published_elevation_m": 5589
       },
       {
         "name": "Sia La",
@@ -56,7 +66,8 @@
         "source": "OSM / Mapcarta",
         "longitude": 76.94873,
         "latitude": 35.39186,
-        "url": "https://mapcarta.com/14710602"
+        "url": "https://mapcarta.com/14710602",
+        "published_elevation_m": 5450
       },
       {
         "name": "Bilafond La",
@@ -109,6 +120,8 @@
       "longitude": 76.79081,
       "latitude": 35.58123,
       "url": "https://mapcarta.com/14675508",
+      "published_elevation_m": 5803,
+      "dem_minus_published_elevation_m": -211.5,
       "AGPL_nearest_station_km": 100.405,
       "distance_to_AGPL_m": 207.4,
       "signed_right_east_offset_m": -207.4,
@@ -118,6 +131,26 @@
       "max_elevation_in_transect_m": 5591.2,
       "max_point_right_east_offset_m": -220,
       "max_minus_candidate_height_m": 3.8,
+      "candidate_line_side_for_landmark": "PAK/west"
+    },
+    "sia_wikipedia": {
+      "name": "Sia La",
+      "id": "sia_wikipedia",
+      "source": "Wikipedia georeference",
+      "longitude": 76.7925,
+      "latitude": 35.58194,
+      "url": "https://en.wikipedia.org/wiki/Sia_La",
+      "published_elevation_m": 5589,
+      "dem_minus_published_elevation_m": 1.1,
+      "AGPL_nearest_station_km": 100.537,
+      "distance_to_AGPL_m": 95.9,
+      "signed_right_east_offset_m": -95.9,
+      "candidate_AGPL_elevation_m": 5586.7,
+      "landmark_elevation_dem_m": 5590.1,
+      "landmark_minus_candidate_height_m": 3.4,
+      "max_elevation_in_transect_m": 5592.9,
+      "max_point_right_east_offset_m": -250,
+      "max_minus_candidate_height_m": 6.2,
       "candidate_line_side_for_landmark": "PAK/west"
     },
     "sia_nga": {
@@ -145,6 +178,8 @@
       "longitude": 76.94873,
       "latitude": 35.39186,
       "url": "https://mapcarta.com/14710602",
+      "published_elevation_m": 5450,
+      "dem_minus_published_elevation_m": 7.1,
       "AGPL_nearest_station_km": 60.288,
       "distance_to_AGPL_m": 34.8,
       "signed_right_east_offset_m": 34.8,

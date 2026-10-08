@@ -799,6 +799,26 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
+          76.7925,
+          35.58194
+        ]
+      },
+      "properties": {
+        "name": "Sia La",
+        "id": "sia_wikipedia",
+        "type": "public_toponym",
+        "observed_side": "PAK/west",
+        "dem_elevation_m": 5590.1,
+        "distance_to_osm_agpl_m": 95.9,
+        "coordinate_source": "Wikipedia georeference",
+        "url": "https://en.wikipedia.org/wiki/Sia_La"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
           76.7876,
           35.5904
         ]
