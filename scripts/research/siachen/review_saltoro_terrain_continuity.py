@@ -157,7 +157,7 @@ def main():
                 continue
             row,profile=sampled
             entries.append(row)
-            if name=="mid_ridge_90km" and 90500<=st<=91000 and st % 250==0:
+            if name=="mid_ridge_90km" and 90500<=st<=91050 and ((st-89400) % 250 == 125):
                 fig=fig_profiles(profile,"Saltoro 90 km elevation profile | OSM station {:.3f}km".format(st/1000))
                 file="siachen_terrain_90km_profile_{:05d}.png".format(int(st))
                 fig.savefig(OUT/file,dpi=180)
