@@ -1,0 +1,36 @@
+name: Build German Empire 1914 modern-coast base
+
+on:
+  push:
+    branches:
+      - feat/german-empire-1914-modern-coast
+    paths:
+      - tools/build_german_empire_1914_modern_coast.py
+      - .github/workflows/german-empire-1914-modern-coast.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/german-empire-1914-modern-coast
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check shapely pyproj requests
+      - run: python tools/build_german_empire_1914_modern_coast.py
+      - name: Commit generated working data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/historical-library/working tools/historical-library/sources/german-empire-1914
+          if git diff --cached --quiet; then
+            echo "No generated changes."
+          else
+            git commit -m "data: generate German Empire 1914 modern-coast base"
+            git push
+          fi

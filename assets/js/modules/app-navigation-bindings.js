@@ -240,6 +240,7 @@ export function createNavigationBindings() {
       createEmptyState: dependencies.platformConfigurationB.createEmptyState, layerTreeItems: dependencies.layerTree.layerTreeItems, layerItemObjectRef: dependencies.objectLookup.layerItemObjectRef, normalizeObjectRef: dependencies.selectionServices.normalizeObjectRef, selectionDomain: dependencies.domains.selectionDomain,
       hydroCategoryKey: dependencies.hydroPresentation.hydroCategoryKey,
       isSearchOpen: () => dependencies.workspaceUiB.surfaceController.isOpen('search') && dependencies.labelPresentation.builtinPlaces.isSearchOpen(),
+      isSearchSurfaceOpen: () => dependencies.workspaceUiB.surfaceController.isOpen('search'),
       builtinSearch: query => dependencies.labelPresentation.builtinPlaces.search(query),
       cancelBuiltinSearch: () => dependencies.labelPresentation.builtinPlaces.cancelSearch(),
       onSearchError: error => dependencies.feedback.reportOperationError(error, '내장 지명 검색에 실패했습니다.', 'PL-PLACE-SEARCH-001'),
