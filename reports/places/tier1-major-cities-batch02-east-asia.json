@@ -123,29 +123,6 @@
           "usage": "alternate",
           "variantType": "traditionalNativeName",
           "sourceUrl": "https://www.daejeon.go.kr/drh/DrhContentsHtmlView.do?menuSeq=1717"
-        },
-        {
-          "text": "태전",
-          "language": "ko",
-          "usage": "historical",
-          "variantType": "shortLivedWrittenVariant",
-          "attestedPeriodApprox": {
-            "fromYear": 1904,
-            "toYear": 1910
-          },
-          "sourceUrl": "https://www.daejeon.go.kr/his/board/musBoardDataView.do?bbsCode=hisname&boardDataSeq=216&menuSeq=669",
-          "note": "太田은 일시적으로 일부 기록에 등장함. 大田을 일괄 대체한 정식 선행 명칭이 아님."
-        },
-        {
-          "text": "太田",
-          "language": "ko-Hani",
-          "usage": "historical",
-          "variantType": "shortLivedWrittenVariant",
-          "attestedPeriodApprox": {
-            "fromYear": 1904,
-            "toYear": 1910
-          },
-          "sourceUrl": "https://www.daejeon.go.kr/his/board/musBoardDataView.do?bbsCode=hisname&boardDataSeq=216&menuSeq=669"
         }
       ],
       "latitude": 36.34913,
