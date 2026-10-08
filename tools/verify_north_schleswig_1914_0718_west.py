@@ -256,16 +256,23 @@ def main():
         "geojsonFile":str(GEOMETRY),
         "reviewFiles":[p["map"]["overlayArtifactFile"] for p in panels],
     },ensure_ascii=False,indent=2))
-    # Log a low-resolution diagnostic *thumb only* to permit source inspection
-    # without adding a copyrighted/historical map copy into git history.
+    # Output downsampled JPEGs in the temporary CI job log for visual QC.
+    # Do not put any map image into Git commits.
     if os.environ.get("GIS_EMIT_LOG_THUMBNAIL")=="1":
-        img=Image.open(ARTIFACT / "0718-west-overview-overlay.jpg")
-        img.thumbnail((1100,725))
-        buf=io.BytesIO()
-        img.save(buf,format="JPEG",quality=60,optimize=True)
-        print("===BEGIN_HVIDDING_WEST_REVIEW_JPEG===")
-        print(base64.b64encode(buf.getvalue()).decode("ascii"))
-        print("===END_HVIDDING_WEST_REVIEW_JPEG===")
+        for key, filename in [
+            ("OVERVIEW","0718-west-overview-overlay.jpg"),
+            ("ORIGINAL","0718-west-overview-source-1880.jpg"),
+            ("PANEL1","0718-west-01-overlay.jpg"),
+            ("PANEL2","0718-west-02-overlay.jpg"),
+        ]:
+            img=Image.open(ARTIFACT/filename)
+            img.thumbnail((1200,930))
+            buf=io.BytesIO()
+            img.save(buf,format="JPEG",quality=66,optimize=True)
+            print(f"===BEGIN_STAGE1_0718_WEST_{key}_JPEG===")
+            print(base64.b64encode(buf.getvalue()).decode("ascii"))
+            print(f"===END_STAGE1_0718_WEST_{key}_JPEG===")
+
 
 
 if __name__ == "__main__":
