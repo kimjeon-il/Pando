@@ -13,7 +13,7 @@
     "build:preview": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-preview.mjs && python tools/validate-country-geometry.py",
     "build:country-shared-boundaries": "node tools/build-country-shared-boundaries.mjs",
     "check:country-shared-boundaries": "node tools/build-country-shared-boundaries.mjs --check",
-    "build:map-assets": "pnpm build:territorial-library && pnpm build:current-world && pnpm build:mesh && pnpm build:preview && pnpm build:country-shared-boundaries && pnpm build:world-bundle",
+    "build:map-assets": "pnpm build:territorial-library && pnpm build:current-world && pnpm build:mesh && pnpm build:preview && pnpm build:world-bundle && pnpm build:country-shared-boundaries",
     "build:world-bundle": "node tools/build-world-bundle.mjs",
     "check:world-bundle": "node tools/build-world-bundle.mjs --check",
     "generate:build-meta": "node scripts/generate-build-metadata.mjs",
