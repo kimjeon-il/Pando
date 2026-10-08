@@ -1,5 +1,5 @@
 {
-  "schema": "pando-places-tier1-review-v3",
+  "schema": "pando-places-tier1-review-v4",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0)",
   "checkedOn": "2026-10-08",
@@ -58,6 +58,20 @@
             "toYear": 1946
           },
           "sourceUrl": "https://archives.seoul.go.kr/class/OC-0001"
+        },
+        {
+          "text": "한양",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "historicalToponym",
+          "sourceUrl": "https://history.seoul.go.kr/archive/content.do?key=2211240006"
+        },
+        {
+          "text": "漢陽",
+          "language": "ko-Hani",
+          "usage": "historical",
+          "variantType": "historicalToponym",
+          "sourceUrl": "https://history.seoul.go.kr/archive/content.do?key=2211240006"
         }
       ],
       "latitude": 37.566,
@@ -79,6 +93,20 @@
           "text": "Busan",
           "language": "en",
           "usage": "standard"
+        },
+        {
+          "text": "釜山",
+          "language": "ko-Hani",
+          "usage": "alternate",
+          "variantType": "hanja",
+          "sourceUrl": "https://www.busan.go.kr/bhnorigin01"
+        },
+        {
+          "text": "Pusan",
+          "language": "en",
+          "usage": "alternate",
+          "variantType": "formerRomanization",
+          "sourceUrl": "https://www.busan.go.kr/eng/bsnews01/798366"
         }
       ],
       "latitude": 35.10168,
@@ -132,6 +160,13 @@
             "toYear": 1868
           },
           "sourceUrl": "https://www.archives.go.jp/exhibition/digital/henbou/contents/03.html"
+        },
+        {
+          "text": "동경",
+          "language": "ko",
+          "usage": "alternate",
+          "variantType": "conventionalSinoKorean",
+          "sourceUrl": "https://www.korean.go.kr/front/page/pageView.do?mn_id=97&page_id=P000146"
         }
       ],
       "latitude": 35.6895,
@@ -158,6 +193,15 @@
           "text": "오사카",
           "language": "ko",
           "usage": "standard"
+        },
+        {
+          "text": "大坂",
+          "language": "ja",
+          "usage": "historical",
+          "variantType": "historicalOrthography",
+          "sourceUrl": "https://www.city.osaka.lg.jp/seisakukikakushitsu/page/0000010271.html",
+          "commonlyUsedBeforeApproxYear": 1877,
+          "note": "大阪 was used concurrently; circa 1877 is an approximate adoption of the modern spelling, not an exclusive cutoff."
         }
       ],
       "latitude": 34.69379,
@@ -184,6 +228,92 @@
           "text": "베이징",
           "language": "ko",
           "usage": "standard"
+        },
+        {
+          "text": "북경",
+          "language": "ko",
+          "usage": "alternate",
+          "variantType": "conventionalSinoKorean",
+          "sourceUrl": "https://www.korean.go.kr/front/mcfaq/mcfaqView.do?mcfaq_seq=5744&mn_id=217&pageIndex=225"
+        },
+        {
+          "text": "Peking",
+          "language": "en",
+          "usage": "alternate",
+          "variantType": "traditionalEnglishRomanization",
+          "sourceUrl": "https://english.visitbeijing.com.cn/article/47OMj0eIQfx"
+        },
+        {
+          "text": "北平",
+          "language": "zh",
+          "usage": "historical",
+          "variantType": "historicalOfficialToponymOrRomanization",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "officialPeriods": [
+            {
+              "fromYear": 1928,
+              "toYear": 1937
+            },
+            {
+              "fromYear": 1945,
+              "toYear": 1949
+            }
+          ],
+          "note": "Year-only approximation: under Japanese occupation (1937–1945) 北京 was also used; romanized versions are transliterations of 北平, not separate legal changes."
+        },
+        {
+          "text": "북평",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "historicalOfficialToponymOrRomanization",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "officialPeriods": [
+            {
+              "fromYear": 1928,
+              "toYear": 1937
+            },
+            {
+              "fromYear": 1945,
+              "toYear": 1949
+            }
+          ],
+          "note": "Year-only approximation: under Japanese occupation (1937–1945) 北京 was also used; romanized versions are transliterations of 北平, not separate legal changes."
+        },
+        {
+          "text": "Beiping",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "historicalOfficialToponymOrRomanization",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "officialPeriods": [
+            {
+              "fromYear": 1928,
+              "toYear": 1937
+            },
+            {
+              "fromYear": 1945,
+              "toYear": 1949
+            }
+          ],
+          "note": "Year-only approximation: under Japanese occupation (1937–1945) 北京 was also used; romanized versions are transliterations of 北平, not separate legal changes."
+        },
+        {
+          "text": "Peiping",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "historicalOfficialToponymOrRomanization",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "officialPeriods": [
+            {
+              "fromYear": 1928,
+              "toYear": 1937
+            },
+            {
+              "fromYear": 1945,
+              "toYear": 1949
+            }
+          ],
+          "note": "Year-only approximation: under Japanese occupation (1937–1945) 北京 was also used; romanized versions are transliterations of 北平, not separate legal changes."
         }
       ],
       "latitude": 39.9075,
@@ -210,6 +340,13 @@
           "text": "상하이",
           "language": "ko",
           "usage": "standard"
+        },
+        {
+          "text": "상해",
+          "language": "ko",
+          "usage": "alternate",
+          "variantType": "conventionalSinoKorean",
+          "sourceUrl": "https://www.korean.go.kr/front/page/pageView.do?mn_id=97&page_id=P000146"
         }
       ],
       "latitude": 31.22222,
@@ -236,6 +373,34 @@
           "text": "델리",
           "language": "ko",
           "usage": "standard"
+        },
+        {
+          "text": "Dilli",
+          "language": "hi-Latn",
+          "usage": "alternate",
+          "variantType": "romanizedLocalName",
+          "sourceUrl": "https://www.ndmc.gov.in/ndmc/act.aspx"
+        },
+        {
+          "text": "Dehli",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "historicalEnglishSpelling",
+          "sourceUrl": "https://www.ndmc.gov.in/ndmc/act.aspx"
+        },
+        {
+          "text": "دہلی",
+          "language": "ur",
+          "usage": "standard",
+          "variantType": "localLanguage",
+          "sourceUrl": "https://language.delhi.gov.in/language/activity"
+        },
+        {
+          "text": "ਦਿੱਲੀ",
+          "language": "pa-Guru",
+          "usage": "standard",
+          "variantType": "localLanguage",
+          "sourceUrl": "https://language.delhi.gov.in/language/activity"
         }
       ],
       "latitude": 28.65195,
@@ -301,9 +466,20 @@
   "coordinateConvention": "Dataset-wide WGS84 (EPSG:4326), decimal degrees; individual records store only latitude and longitude.",
   "namePolicy": {
     "storage": "One stable place ID with multilingual and historical variants in names[]",
-    "fields": "text, language (BCP 47), usage; optional officialPeriod (year precision), sourceUrl",
+    "fields": "text, language (BCP 47), usage; optional variantType, officialPeriod/officialPeriods (year precision), commonlyUsedBeforeApproxYear, note, sourceUrl",
     "deduplication": "Only one record when local and English spelling is identical; language matching for identical spellings is implicit",
-    "historicalDates": "officialPeriod indicates years of attested administrative/official naming, not exclusivity, extinction, or exact calendar-day transitions; different name periods may overlap",
+    "historicalDates": "Official periods are year-level approximations where source-grounded; written variants, transliterations, and names can overlap. Do not imply exclusive usage from start/end dates.",
     "fallback": "Dates and display-language selection require separate runtime implementation. Do not infer a fixed name from sourceCountryCode."
+  },
+  "historicalNameReview": {
+    "earliestYear": 1801,
+    "latestYear": 2026,
+    "scope": "Includes variants used since the 19th century, including inherited older names when still used in that period.",
+    "exclusions": [
+      "Dongnae is not a direct former name of all Busan",
+      "Busan-po is a particular historic port/settlement and not identical to today's city footprint",
+      "Shahjahanabad is Old Delhi, not all modern Delhi",
+      "Shanghai Hu and Shen are abbreviations or nicknames, not official replacements"
+    ]
   }
 }
