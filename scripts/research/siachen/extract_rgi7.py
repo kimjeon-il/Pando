@@ -15,6 +15,7 @@ OUT=Path("assets/data/research/siachen")
 OUT.mkdir(parents=True,exist_ok=True)
 RGI_ID="RGI2000-v7.0-G-14-20040"
 RGI_URLS=[
+"https://ihp-wins.unesco.org/dataset/randolph-glacier-inventory-rgi-7-0-glacier-product/resource/d4adeac9-e01b-4554-8ec8-6b1d3936b537/download",
 "https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc0770_rgi_v7/regional_files/RGI2000-v7.0-G/RGI2000-v7.0-G-14_south_asia_west.zip",
 "https://cluster.klima.uni-bremen.de/~fmaussion/misc/rgi7_data/l4_rgi7b0/RGI2000-v7.0-G-14_south_asia_west.zip"]
 NE_URLS={
