@@ -62,7 +62,7 @@ Official primary-source URLs are recorded under each event's `sourceIds`. Uninde
 
 **First target: modern Maasvlakte 2 extent vs 2010 and 2013 dated coastlines.** The outside-point result suggests the canonical current outer coast may miss material modern fill at this location. Before generating rollback patches:
 
-1. Obtain a reference-year modern extent from [PDOK Sea Regions coastline](https://www.pdok.nl/ogc-apis/-/article/zeegebieden) / TOP10NL and [Kadaster Topotijdreis](https://www.topotijdreis.nl/); review dataset date, CRS and ODbL/CC-BY provenance as appropriate.
+1. Obtain a reference-year modern extent from [PDOK Sea Regions coastline](https://www.pdok.nl/ogc-apis/-/article/zeegebieden) / TOP10NL and [Kadaster Topotijdreis](https://www.topotijdreis.nl/); review the date, CRS and actual licensing/attribution terms of each source.
 2. Confirm whether the *actual web-rendered* NLD outer polygon, built-in lake mask and coastline display include the modern filled land; a point sample alone cannot certify that.
 3. Trace and validate a complete modern footprint and a dated pre-fill outline **separately**. Only then derive a local proposed change with explicit land/water and port-basin semantics.
 4. Compute independently sourced, projected **bidirectional** shoreline separation (not the place-to-boundary measurement above), test geometry validity, unchanged adjacent sectors and relevant topology, and publish a provenance record.
