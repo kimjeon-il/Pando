@@ -421,3 +421,9 @@ The next implementation task should be Phase 0 only:
 > zoom and mark the features in this report as present / absent / uncertain.
 
 Only after that inventory should the first rollback geometry be created.
+
+## 15. Phase 0 started — 2026-10-09 (partial, point-based)
+
+[Phase 0 canonical sample audit](phase0-canonical-audit.md) and [machine-readable probe locations](canonical-phase0-probes.json) have now been added. Against the **actual** `state:NLD:natural-earth-5.1.1` national geometry, 12 point samples were tested: 11 inside, the approximate Maasvlakte 2 place point outside. This result is **not** the required full present/absent/uncertain inventory of each event footprint. The NLD polygon has no interior water holes, so inner water presence and artificial islands cannot be classified from point-in-country.
+
+The corresponding [nine-event evidence index](change-events.json) provides independent construction, drainage and inlet-closure chronology with no digitized shoreline. Phase 0 must continue with dated modern coastal GIS/actual map rendering, and first rollback geometry must not start until the modern baseline and water masks are verified. The earlier Phase 0/1–4 sequence remains unchanged.
