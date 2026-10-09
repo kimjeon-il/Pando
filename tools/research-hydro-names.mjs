@@ -26,7 +26,7 @@ const coreMetadataPath = optionValue('--archive-core');
 let sourceFeatures;
 if (coreMetadataPath) {
   const bytes = fs.readFileSync(path.resolve(coreMetadataPath));
-  const pinnedSha = '796ab937222bfa4d123d6fda2109e96bb90ce9e251c73274dcb0342decc1828';
+  const pinnedSha = '796ab937222bfa4d123d6fda210f9e96bb90ce9e251c73274dcb0342decc1828';
   if (createHash('sha256').update(bytes).digest('hex') !== pinnedSha)
     throw new Error('Historical hydro name research core does not match pinned SHA-256');
   sourceFeatures = JSON.parse(gunzipSync(bytes)).features;
