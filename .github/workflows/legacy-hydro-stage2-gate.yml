@@ -1,0 +1,57 @@
+name: Legacy Hydro Stage 2 Cross-Branch Deletion Preflight
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/plan-legacy-hydro-retirement.mjs'
+      - 'tests/unit/legacy-hydro-retirement.test.mjs'
+      - '.github/workflows/legacy-hydro-stage2-gate.yml'
+      - 'docs/validation/legacy-hydro-stage2.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  legacy-hydro:
+    name: Compare Web/App branches and source dependencies
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/plan-legacy-hydro-retirement.mjs
+            tests/unit/legacy-hydro-retirement.test.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JS syntax and classify synthetic dependencies
+        run: |
+          node --check tools/plan-legacy-hydro-retirement.mjs
+          node --test tests/unit/legacy-hydro-retirement.test.mjs
+      - name: Clone shallow, blobless Web and native sources
+        run: |
+          git clone -q --depth=1 --filter=blob:none --no-checkout --single-branch \
+            https://github.com/kimjeon-il/Pando.git audit-web
+          git -C audit-web fetch -q --depth=1 --filter=blob:none origin \
+            '+refs/heads/*:refs/remotes/origin/*'
+          git clone -q --depth=1 --filter=blob:none --no-checkout --single-branch \
+            https://github.com/kimjeon-il/PandoEditor.git audit-app
+          git -C audit-app fetch -q --depth=1 --filter=blob:none origin \
+            '+refs/heads/*:refs/remotes/origin/*'
+      - name: Scan all source references and record exact rollback blobs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node tools/plan-legacy-hydro-retirement.mjs \
+            --web-dir audit-web --app-dir audit-app \
+            --out reports/legacy-hydro-stage2-plan.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: legacy-hydro-stage2-plan
+          if-no-files-found: warn
+          path: reports/legacy-hydro-stage2-plan.json
