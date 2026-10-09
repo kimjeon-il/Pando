@@ -1,0 +1,45 @@
+name: Retired Hydro All-Branch Regression Gate
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/check-retired-hydro.mjs'
+      - 'tests/unit/retired-hydro-stage3.test.mjs'
+      - '.github/workflows/retired-hydro-stage3-gate.yml'
+      - 'docs/validation/legacy-hydro-stage3.md'
+      - 'assets/data/hydro/v0.12.*/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  protected-hydro:
+    name: All Web/App branches, active source, and public Pages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/check-retired-hydro.mjs
+            tests/unit/retired-hydro-stage3.test.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax and synthetic regression cases
+        run: |
+          node --check tools/check-retired-hydro.mjs
+          node --test tests/unit/retired-hydro-stage3.test.mjs
+      - name: Verify all branches and current public hydro
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/check-retired-hydro.mjs --out reports/retired-hydro-stage3-live.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: retired-hydro-stage3-live
+          if-no-files-found: warn
+          path: reports/retired-hydro-stage3-live.json
