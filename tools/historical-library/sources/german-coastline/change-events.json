@@ -100,6 +100,26 @@
     "amzp-koenigsberg-east": {
       "publisher": "AMZP/MapyWIG TK25 index",
       "url": "https://igrek.amzp.pl/TK25_1289"
+    },
+    "helgoland-1914-admiralty-chart": {
+      "publisher": "United Kingdom Hydrographic Office / Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:Admiralty_Chart_No_126_Helgoland,_Published_1914.jpg"
+    },
+    "helgoland-warper-map-5126": {
+      "publisher": "Wikimaps Warper (6 reported control points; georeferencing not independently verified)",
+      "url": "https://warper.wmflabs.org/maps/5126"
+    },
+    "helgoland-1890-1970-coast-figure": {
+      "publisher": "Die Küste 76 (2009), corrected historical coast-development figure after Krumbein (1975)",
+      "url": "https://izw.baw.de/publikationen/die-kueste/0/k076109.pdf"
+    },
+    "helgoland-1910-baedeker": {
+      "publisher": "Karl Baedeker, Northern Germany (1910) / Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:Map_helgoland_1910.jpg"
+    },
+    "helgoland-1921-versailles-article115": {
+      "publisher": "United States Department of State, 1919 Treaty of Versailles Article 115",
+      "url": "https://history.state.gov/historicaldocuments/frus1919Parisv13/ch12subch13"
     }
   },
   "events": [
@@ -128,6 +148,33 @@
         ]
       },
       "note": "1889-1901 period is documented for protective canal dams by Rosmorport; the city almanac dates the beginning of the navigable channel works to 1890. Opened on 1901-11-15. Do not treat different definitions of construction start as an exact shoreline switch. The original canal and lagoons' artificial dams predate 1914."
+    },
+    {
+      "id": "helgoland-south-harbor-1908-1916",
+      "name": "Helgoland Südhafen reclamation and harbor defenses",
+      "modernCountry": "DEU",
+      "sea": "North Sea",
+      "eventType": "port-reclamation",
+      "datedWorks": {
+        "startYear": 1908,
+        "endYear": 1916,
+        "dating": "construction-interval; 1914 is within the build",
+        "exactCoastlineSwitchDate": null
+      },
+      "geometryEffect": "southern-main-island-infill-and-engineered-harbor-edges",
+      "geometry": {
+        "status": "not-digitized",
+        "screenDiscrepancyCssPx": null
+      },
+      "evidence": {
+        "status": "source-indexed",
+        "sourceIds": [
+          "helgoland-1914-admiralty-chart",
+          "helgoland-1890-1970-coast-figure",
+          "helgoland-1910-baedeker"
+        ]
+      },
+      "note": "1914 is an intermediate stage, so neither a pre-construction 1903 coast nor a fully completed 1916 basin can be substituted. Historical 1914 chart is the preferred direct period check. Port structures, seawalls, reclaimed dry land, and open basin are separate geometry classes."
     },
     {
       "id": "gdynia-harbor-1921-1937",
@@ -251,10 +298,12 @@
         "status": "source-indexed",
         "sourceIds": [
           "schleswig-helgoland",
-          "helgoland-history-report"
+          "helgoland-history-report",
+          "helgoland-1890-1970-coast-figure",
+          "helgoland-1914-admiralty-chart"
         ]
       },
-      "note": "Project Hummerschere produced land fill and expansion; do not apply the full unrealized naval-port design. Actual onset may precede the named 1938 project; historical map control required."
+      "note": "1938-1941 Hummerschere expansion affected main-island Nordostland and the separate Düne island; these are separate island geometry components. Proposed mega-port plans were not all constructed. Do not use modern Nordostland / modern Düne outline as 1914 coast; 1914 already includes part of the 1908-1916 southern harbor project, which is a distinct event."
     },
     {
       "id": "leybuchtpolder-1950",
@@ -709,6 +758,27 @@
       ],
       "surveyAndRevisionDatesChecked": false,
       "georeferencingVerified": false
+    },
+    {
+      "id": "ukho-chart-126-helgoland-1914",
+      "name": "Admiralty Chart No. 126 Helgoland",
+      "scaleDenominator": 15000,
+      "sourceIds": [
+        "helgoland-1914-admiralty-chart",
+        "helgoland-warper-map-5126"
+      ],
+      "editions": [
+        {
+          "year": 1914,
+          "kind": "nautical-chart",
+          "publicationDate": "1914-09-22"
+        }
+      ],
+      "surveyAndRevisionDatesChecked": false,
+      "georeferencingVerified": false,
+      "reportedControlPointCount": 6,
+      "geometryExtracted": false,
+      "usageNote": "Public-domain UKHO nautical chart published 22 Sep 1914. Warper lists six GCPs, but target accuracy, grid correctness and actual pre-publication survey/revision time have not been verified. Coordinates must not be inferred from web page bounding-box direction labels."
     }
   ]
 }
