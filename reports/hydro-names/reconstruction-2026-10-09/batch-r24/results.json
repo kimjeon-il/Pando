@@ -1,0 +1,221 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r24",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three logical MAIN_RIV inventory groups; not three uniformly named channels or scalar-name approvals.",
+  "counts": {
+    "river_group_name_scope_hold": 1,
+    "supported_representative_system_identity": 2
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 5,
+  "river_line_part_count": 204,
+  "distinct_source_reach_count": 204,
+  "river_rendered_coordinate_count": 1428,
+  "part_counts_in_target_order": [
+    30,
+    80,
+    94
+  ],
+  "position_counts_in_target_order": [
+    258,
+    557,
+    613
+  ],
+  "fragment_part_counts_in_target_order": [
+    [
+      30
+    ],
+    [
+      69,
+      4,
+      7
+    ],
+    [
+      94
+    ]
+  ],
+  "fragment_position_counts_in_target_order": [
+    [
+      258
+    ],
+    [
+      491,
+      23,
+      43
+    ],
+    [
+      613
+    ]
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50691388",
+      "category": "river_group",
+      "system_id": "50691388",
+      "baseline_logical_fid": 2023,
+      "geometry_fids": [
+        6979
+      ],
+      "candidate_name": "Richmond River",
+      "research_category": "river_group_name_scope_hold",
+      "independent_review_status": "naming_scope_hold_after_complete_review",
+      "supported_name_scope": "The complete selected path runs southeast from a northwestern headwater, south through the upper and middle corridor, then east and northeast after a southern bend to the New South Wales coast south of Lismore. Regional geometry is compatible with the Richmond River candidate, but the clearly legible Richmond River wording in Figure 4.22 is a basin callout. Possible blue river-line lettering in the retained regional maps is too indistinct to certify. Neither basin context nor geographic resemblance establishes a directly named representative river identity here. The whole group remains on a naming-scope hold after complete available-source/path review; the upper feeder, any river/storage interfaces, exact name transitions and coastal ending are unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The Richmond River basin callout is context only; low-resolution possible line lettering is not certified as direct name evidence.",
+        "Richmond in the Sydney-area map is a town and is not evidence for the northern Richmond River candidate.",
+        "The regional publication is not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name transitions are not verified.",
+        "No name is extended across generalized lake, estuarine, storage or coastal portions merely because they share a modeled group."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_scope_hold",
+        "directly_supported_name_forms": [],
+        "follow_up_scope": "Obtain legible direct river-name evidence tied to the complete regional corridor before supporting the Richmond River representative identity. Exact upper feeder, river/storage, name-transition and coastal scope also require evidence before separately authorized application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:50768223",
+      "category": "river_group",
+      "system_id": "50768223",
+      "baseline_logical_fid": 2125,
+      "geometry_fids": [
+        7086,
+        7087,
+        7088
+      ],
+      "candidate_name": "Hawkesbury River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete three-fragment modeled mainstem begins in the southwest, sweeps east around a southern bend, then runs northeast through the upper/storage corridor and curves east toward the coast north of Sydney. The directly identified Hawkesbury River at Little Wobby photograph and the prose identifying Hawkesbury water supply to Richmond-Windsor, together with the full regional path comparison, support Hawkesbury River as a bounded representative system identity. The southwestern upper continuation follows the separately mapped Wollondilly corridor and the Lake Burragorang/Warragamba storage corridor. A modeled mainstem can include differently named feeder reaches. Coxs is a separately named contributor in source prose, not an assignment to a selected branch. Green water-transfer arrows in Figure 4.36 are not natural river geometry. Exact Wollondilly/storage/downstream name transitions, any Nepean or other intermediate naming, river/storage interfaces and the generalized coastal ending remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "Hawkesbury River basin wording alone is not the identity basis; a named river photograph and river-specific prose provide additional evidence.",
+        "Wollondilly and Lake Burragorang/Warragamba remain distinct upper/storage context. Coxs source prose and transfer arrows do not name selected reaches.",
+        "The regional publication is not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name transitions are not verified.",
+        "No name is extended across generalized lake, estuarine, storage or coastal portions merely because they share a modeled group."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Hawkesbury River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [
+          {
+            "mapped_name": "Wollondilly",
+            "scope": "Southwestern upper regional channel association; no exact rendered-part partition."
+          },
+          {
+            "mapped_name": "Lake Burragorang / Warragamba",
+            "scope": "Named storage context in Figure 4.36; no exact rendered-part partition or storage boundary assignment."
+          }
+        ],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:50798628",
+      "category": "river_group",
+      "system_id": "50798628",
+      "baseline_logical_fid": 2147,
+      "geometry_fids": [
+        7137
+      ],
+      "candidate_name": "Snowy River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path begins in the far north, runs south through the upper storage corridor, turns east, makes a broad westward middle loop, then continues south to the Victorian coast. Direct blue Snowy river-line wording supports Snowy River as a bounded representative system identity. The northern modeled mainstem follows the separately mapped Eucumbene corridor before the downstream Snowy course; a modeled mainstem can include differently named feeder reaches. The mapped lake and Snowy Hydro storage context do not establish exact lake names, river/storage interfaces or name boundaries on the selected line. Exact Eucumbene-to-Snowy transitions, intervening storage/lake scope and the generalized coastal ending remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The Snowy River basin callout is context only; direct blue Snowy and Eucumbene river-line wording distinguish channels.",
+        "Snowy Hydro storage-system labels are management context, not uniform river-name coverage or evidence for exact lake names.",
+        "The regional publication is not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name transitions are not verified.",
+        "No name is extended across generalized lake, estuarine, storage or coastal portions merely because they share a modeled group."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Snowy River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [
+          {
+            "mapped_name": "Eucumbene",
+            "scope": "Northern upper regional channel association; no exact rendered-part partition or river/storage name boundary."
+          }
+        ],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "c9298810a40352c82b0bdf322cad4257e2c7409ba33482e1ffbd7a37ad239493",
+  "publication_contents": "Own factual findings, bounded identity/count/bounds/name-state summaries and included-file validation. Full river paths, original reports, maps and private review materials are not distributed.",
+  "previous_reconstruction_commit": "a9fe33358261cc0c4f10f2ecd072b5f9dbfb9472"
+}

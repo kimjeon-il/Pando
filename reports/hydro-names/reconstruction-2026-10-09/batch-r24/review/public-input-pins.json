@@ -1,0 +1,59 @@
+{
+  "schema": "hydro-review-public-input-pins-v2",
+  "batch": "r24",
+  "scope": "included_public_files_only",
+  "automatic_application": false,
+  "files": [
+    {
+      "path": "geometry-README.md",
+      "bytes": 2436,
+      "sha256": "493d8308a3ae0a88423ebdc1995953b027fbd69667dc11055e7e3281120b5087"
+    },
+    {
+      "path": "geometry-component-manifest.json",
+      "bytes": 1428,
+      "sha256": "6d26944eb7f2423b02e355a92be14f29cfe55e8895d480a9174605c32fda30fd"
+    },
+    {
+      "path": "geometry-duplicate-check.json",
+      "bytes": 4222,
+      "sha256": "d05c18ef0772eceb6368268ba90e0d1872bd13c042c14f264163568c2d9caf89"
+    },
+    {
+      "path": "geometry-publication-rights.json",
+      "bytes": 669,
+      "sha256": "116c70aa8adb85e97559231cfdbf177d5e43bdfa3e45016e2db62f3b2a095668"
+    },
+    {
+      "path": "geometry-reference.json",
+      "bytes": 4769,
+      "sha256": "cf5905607063376eb99f4efa20b3d49d4f1ab7737113cc1ee915ee2a084e2f73"
+    },
+    {
+      "path": "geometry-validation.json",
+      "bytes": 9713,
+      "sha256": "07c0266f5cede1eb8f5c71c92325cd7ccf02afd250441a6677a9886498c30565"
+    },
+    {
+      "path": "selected-inventory-records.json",
+      "bytes": 2332,
+      "sha256": "28e74337a131b49aaee4365e5de2d001fbe0032b9e72d03664af18ece23eb820"
+    },
+    {
+      "path": "selected-river-metadata.json",
+      "bytes": 7882,
+      "sha256": "e22663ddd4f343fc3ba8021a91811364e5e56cfc99072abdb245f183e192c2f0"
+    },
+    {
+      "path": "test-geometry-reference.py",
+      "bytes": 6803,
+      "sha256": "7584e86440719f994699105c77935c9c6b4ec6cae84620a72ddb9486d46e5499"
+    },
+    {
+      "path": "validate-geometry-reference.py",
+      "bytes": 10941,
+      "sha256": "4f55e266cd90decb786c73bbb0ce1af7d0134d2ddefc37eb9c72acc7163f4ba5"
+    }
+  ],
+  "limit": "Pins cover only the ten included geometry-component files. Omitted original sources, full paths and decoder inputs are not fingerprinted here."
+}

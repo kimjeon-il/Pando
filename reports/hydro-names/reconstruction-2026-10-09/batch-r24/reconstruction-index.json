@@ -1,0 +1,1441 @@
+{
+  "schema": "hydro-reconstruction-index-v2",
+  "scope": "Fresh reconstructed research only. The unavailable historical504-target verdict ledger is not restored. Counted units are logical inventory targets.",
+  "total_distinct_reconstructed_targets": 72,
+  "previous_batch_distinct_targets": 69,
+  "current_batch_increment": 3,
+  "duplicate_targets": 0,
+  "previous_index_sha256": "705e00ab61f2d28b3689d54d7ef8f907c89aee3614cf05be387f1f7f12b96fcc",
+  "prior_commit": "a9fe33358261cc0c4f10f2ecd072b5f9dbfb9472",
+  "current_batch": "r24",
+  "current_batch_commit_note": "The commit containing this file identifies r24; no self-referential commit hash is embedded.",
+  "target_types": {
+    "lake": 38,
+    "river_group": 34
+  },
+  "categories": {
+    "whole_polygon_scope_hold": 12,
+    "supported_generalized_water_identity": 19,
+    "supported_reservoir_association_geometry_hold": 1,
+    "candidate_representative_system_identity": 2,
+    "supported_representative_system_identity": 30,
+    "candidate_waterbody_identity_extent_hold": 3,
+    "unresolved_full_feature_correspondence": 1,
+    "compound_feature_name_scope_hold": 1,
+    "source_limited_unresolved": 1,
+    "river_group_name_scope_hold": 2
+  },
+  "scope_continuity_enrichments": [
+    {
+      "aw_id": "lakes_base:1159109723",
+      "field": "supported_name_scope",
+      "value": "The complete eastern basin corresponds at regional scale to water beneath the Lake part of the Sandfly Lake label. Its broad northern cap, western notch, eastern indentation and lower eastward arm taper into the southern tip. The full outline was compared with mapped water and surrounding shore. This supports generalized Sandfly Lake association for the selected feature, not equivalence with the entire named lake or extension of that name to connecting river water.",
+      "reason": "Preserve the eastern-basin limitation explicitly in the compact cumulative record. The prior public result already contains this wording; no naming decision is changed.",
+      "source_commit": "9c7301187854cf95bc7751eaee95e129d53259b0",
+      "source_repository_path": "reports/hydro-names/reconstruction-2026-10-09/batch-r16/results.json",
+      "source_url": "https://github.com/kimjeon-il/Pando/blob/9c7301187854cf95bc7751eaee95e129d53259b0/reports/hydro-names/reconstruction-2026-10-09/batch-r16/results.json",
+      "source_sha256": "acd2dc6a1e2b4febd1a196240712dca536069f8c2b058c98d8ceb7c3fd8bd83c",
+      "source_scope": "Already published factual result, not an omitted original source or private derivative."
+    }
+  ],
+  "recorded_index_targets": 72,
+  "pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "pending_access_count": 2,
+  "scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803",
+    "lakes_base:1159108469",
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087",
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201",
+    "hydro-system:50738894",
+    "hydro-system:50691388"
+  ],
+  "scope_hold_count": 19,
+  "pending_access_scope": "Explicitly flagged source-access-limited reconstructed records. Other uncertain categories and unavailable historical decisions remain separate; no old source-coverage audit is implied.",
+  "complete_identity_review_claimed_for_all_records": false,
+  "current_batch_source_limited_follow_up_ids": [],
+  "current_batch_completed_source_scope_assessments": 3,
+  "counting_note": "Cumulative targets include recorded unresolved assessments; they are not a count of fully identified names. Explicit source-limited follow-up flags remain in affected records.",
+  "remaining_queue_recovery": {
+    "initial_inventory": {
+      "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+      "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+      "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+      "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+      "bytes": 441711,
+      "hash_scope": "Exact compressed CSV bytes.",
+      "rows": 5173
+    },
+    "eligible_filter": "classification != named_display",
+    "eligible_universe_count": 4065,
+    "eligible_universe_by_type": {
+      "river_group": 3455,
+      "lake": 610
+    },
+    "reviewed_index_targets": 72,
+    "all_reviewed_ids_in_eligible_universe": true,
+    "remaining_without_reconstructed_record": 3993,
+    "remaining_without_reconstructed_record_by_type": {
+      "river_group": 3421,
+      "lake": 572
+    },
+    "queue_order": "original_inventory_row_order",
+    "rebuild_script": "recover-remaining-queue.py",
+    "rebuild_inputs": "This complete cumulative index and the exact committed initial inventory. No local-only ledger is needed.",
+    "historical_never_reviewed_count_claimed": false,
+    "meaning": "Remaining denotes absent from fresh reconstructed records. It is not a count of historically never-researched targets; historical504 detailed decisions remain unavailable."
+  },
+  "automatic_application": false,
+  "records": [
+    {
+      "source_id": "1159109497",
+      "aw_id": "lakes_base:1159109497",
+      "batch": "r01",
+      "candidate_name": "MacKay Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159106899",
+      "aw_id": "lakes_base:1159106899",
+      "batch": "r01",
+      "candidate_name": "Becharof Lake",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159107065",
+      "aw_id": "lakes_base:1159107065",
+      "batch": "r01",
+      "candidate_name": "Lac Tasiujaq",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159115267",
+      "aw_id": "lakes_base:1159115267",
+      "batch": "r02",
+      "candidate_name": "扎日南木错 / Zhari Namco",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159123531",
+      "aw_id": "lakes_base:1159123531",
+      "batch": "r02",
+      "candidate_name": "Represa Três Irmãos",
+      "research_category": "supported_reservoir_association_geometry_hold",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159107099",
+      "aw_id": "lakes_base:1159107099",
+      "batch": "r02",
+      "candidate_name": "Buffalo Lake",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "system_id": "30624681",
+      "aw_id": "hydro-system:30624681",
+      "category": "river_group",
+      "batch": "r03",
+      "candidate_name": "Nura River",
+      "research_category": "candidate_representative_system_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r03/results.json",
+      "fixed_commit": "ed7bdaf154563ebdce8de6b40aff463b714a7a17",
+      "automatic_application": false
+    },
+    {
+      "system_id": "50488324",
+      "aw_id": "hydro-system:50488324",
+      "category": "river_group",
+      "batch": "r03",
+      "candidate_name": "Flinders River system",
+      "research_category": "supported_representative_system_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r03/results.json",
+      "fixed_commit": "ed7bdaf154563ebdce8de6b40aff463b714a7a17",
+      "automatic_application": false
+    },
+    {
+      "system_id": "40182409",
+      "aw_id": "hydro-system:40182409",
+      "category": "river_group",
+      "batch": "r03",
+      "candidate_name": "Сарысу / Sarysu system",
+      "research_category": "supported_representative_system_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r03/results.json",
+      "fixed_commit": "ed7bdaf154563ebdce8de6b40aff463b714a7a17",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:70152112",
+      "category": "river_group",
+      "system_id": "70152112",
+      "source_id": null,
+      "candidate_name": "Attawapiskat River",
+      "research_category": "candidate_representative_system_identity",
+      "selection_origin": "historical_name_lead_freshly_researched",
+      "batch": "r04",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r04/results.json",
+      "fixed_commit": "0bc30a0477862be8249b9504e8425de781c36721",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159123163",
+      "category": "lake",
+      "system_id": null,
+      "source_id": "1159123163",
+      "candidate_name": "Kamianske Reservoir",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "historical_name_lead_freshly_researched",
+      "batch": "r04",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r04/results.json",
+      "fixed_commit": "0bc30a0477862be8249b9504e8425de781c36721",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159123567",
+      "category": "lake",
+      "system_id": null,
+      "source_id": "1159123567",
+      "candidate_name": "Theodomiro Carneiro Santiago (Emborcação)",
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r04",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r04/results.json",
+      "fixed_commit": "0bc30a0477862be8249b9504e8425de781c36721",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110371",
+      "category": "lake",
+      "source_id": "1159110371",
+      "candidate_name": "Artillery Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r05",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r05/results.json",
+      "fixed_commit": "761150320ff05b4459fbd3cb899d3b46a858fa4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109471",
+      "category": "lake",
+      "source_id": "1159109471",
+      "candidate_name": "Lac de Gras / Lac du Sauvage mapped waterbody association",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r05",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r05/results.json",
+      "fixed_commit": "761150320ff05b4459fbd3cb899d3b46a858fa4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159111751",
+      "category": "lake",
+      "source_id": "1159111751",
+      "candidate_name": "Yamba Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r05",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r05/results.json",
+      "fixed_commit": "761150320ff05b4459fbd3cb899d3b46a858fa4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109553",
+      "category": "lake",
+      "source_id": "1159109553",
+      "candidate_name": "Dore Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r06",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r06/results.json",
+      "fixed_commit": "9727db6a8f55a61dffed63109df5596f901f5af6",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110303",
+      "category": "lake",
+      "source_id": "1159110303",
+      "candidate_name": "Ennadai Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r06",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r06/results.json",
+      "fixed_commit": "9727db6a8f55a61dffed63109df5596f901f5af6",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108091",
+      "category": "lake",
+      "source_id": "1159108091",
+      "candidate_name": "Naknek Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r06",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r06/results.json",
+      "fixed_commit": "9727db6a8f55a61dffed63109df5596f901f5af6",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50668155",
+      "category": "river_group",
+      "system_id": "50668155",
+      "candidate_name": "Murchison River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r07",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r07/results.json",
+      "fixed_commit": "fef2fb3fc52a276fb0059ce66474116de08137d1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50611851",
+      "category": "river_group",
+      "system_id": "50611851",
+      "candidate_name": "Gascoyne River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r07",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r07/results.json",
+      "fixed_commit": "fef2fb3fc52a276fb0059ce66474116de08137d1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50552041",
+      "category": "river_group",
+      "system_id": "50552041",
+      "candidate_name": "Ashburton River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r07",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r07/results.json",
+      "fixed_commit": "fef2fb3fc52a276fb0059ce66474116de08137d1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50538951",
+      "category": "river_group",
+      "system_id": "50538951",
+      "candidate_name": "Fortescue River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r08",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r08/results.json",
+      "fixed_commit": "d6a86e96d5ec746d9497ecafa7b597244e195e4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50631583",
+      "category": "river_group",
+      "system_id": "50631583",
+      "candidate_name": "Wooramel River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r08",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r08/results.json",
+      "fixed_commit": "d6a86e96d5ec746d9497ecafa7b597244e195e4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50691033",
+      "category": "river_group",
+      "system_id": "50691033",
+      "candidate_name": "Greenough River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r08",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r08/results.json",
+      "fixed_commit": "d6a86e96d5ec746d9497ecafa7b597244e195e4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50737565",
+      "category": "river_group",
+      "system_id": "50737565",
+      "candidate_name": "Moore River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r09",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r09/results.json",
+      "fixed_commit": "ea66825657b0f7ff8e41616e375bf974cd4dbff1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50756799",
+      "category": "river_group",
+      "system_id": "50756799",
+      "candidate_name": "Murray River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r09",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r09/results.json",
+      "fixed_commit": "ea66825657b0f7ff8e41616e375bf974cd4dbff1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50782475",
+      "category": "river_group",
+      "system_id": "50782475",
+      "candidate_name": "Gordon-Frankland River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r09",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r09/results.json",
+      "fixed_commit": "ea66825657b0f7ff8e41616e375bf974cd4dbff1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50766256",
+      "category": "river_group",
+      "system_id": "50766256",
+      "candidate_name": "Collie River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r10",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r10/results.json",
+      "fixed_commit": "480f9db0ea893051f9de9749e4786385d7daa45e",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50779535",
+      "category": "river_group",
+      "system_id": "50779535",
+      "candidate_name": "Warren River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r10",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r10/results.json",
+      "fixed_commit": "480f9db0ea893051f9de9749e4786385d7daa45e",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50782443",
+      "category": "river_group",
+      "system_id": "50782443",
+      "candidate_name": "Kalgan River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r10",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r10/results.json",
+      "fixed_commit": "480f9db0ea893051f9de9749e4786385d7daa45e",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112291",
+      "category": "lake",
+      "source_id": "1159112291",
+      "candidate_name": "Dauphin Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "batch": "r11",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r11/results.json",
+      "fixed_commit": "deb137d5b858590bd3b016d07c1f5d7d62dd33bc",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112821",
+      "category": "lake",
+      "source_id": "1159112821",
+      "candidate_name": "Cold Lake",
+      "research_category": "unresolved_full_feature_correspondence",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "batch": "r11",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r11/results.json",
+      "fixed_commit": "deb137d5b858590bd3b016d07c1f5d7d62dd33bc",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109155",
+      "category": "lake",
+      "source_id": "1159109155",
+      "candidate_name": "Deschambault Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "batch": "r11",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r11/results.json",
+      "fixed_commit": "deb137d5b858590bd3b016d07c1f5d7d62dd33bc",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108391",
+      "category": "lake",
+      "source_id": "1159108391",
+      "candidate_name": "Montreal Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {},
+      "batch": "r12",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r12/results.json",
+      "fixed_commit": "bfaef10720f3f177a71758e928e3d9bffba98442",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112839",
+      "category": "lake",
+      "source_id": "1159112839",
+      "candidate_name": "Wapawekka Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {},
+      "batch": "r12",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r12/results.json",
+      "fixed_commit": "bfaef10720f3f177a71758e928e3d9bffba98442",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112207",
+      "category": "lake",
+      "source_id": "1159112207",
+      "candidate_name": "Mirond Lake",
+      "research_category": "compound_feature_name_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "initial_geographic_lead_not_whole_polygon_identity",
+        "directly_supported_name_forms": [
+          "Wood Lake",
+          "Mirond Lake"
+        ],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "named_water_associations": [
+          {
+            "name": "Wood Lake",
+            "whole_named_water_coverage_verified": false
+          },
+          {
+            "name": "Mirond Lake",
+            "whole_named_water_coverage_verified": false
+          }
+        ],
+        "unassigned_region": "Central connection and southwestern arm near the Pelican Narrows settlement; Jan Lake is separate nearby context.",
+        "follow_up_scope": "Resolve constituent naming extents and representation before any naming or geometry change."
+      },
+      "batch": "r12",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r12/results.json",
+      "fixed_commit": "bfaef10720f3f177a71758e928e3d9bffba98442",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110463",
+      "category": "lake",
+      "source_id": "1159110463",
+      "candidate_name": "Calcasieu Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Calcasieu Lake"
+        ]
+      },
+      "batch": "r13",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r13/results.json",
+      "fixed_commit": "2f9ed802b52193eb590c96697a9fa21fdeb0aea5",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159107033",
+      "category": "lake",
+      "source_id": "1159107033",
+      "candidate_name": "Lake Maurepas",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Lake Maurepas"
+        ]
+      },
+      "batch": "r13",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r13/results.json",
+      "fixed_commit": "2f9ed802b52193eb590c96697a9fa21fdeb0aea5",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110475",
+      "category": "lake",
+      "source_id": "1159110475",
+      "candidate_name": "Lake Salvador",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "main_southern_basin_association_not_whole_polygon_name",
+        "directly_supported_name_forms": [
+          "Lake Salvador"
+        ],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Northern lobe, central connection and fine southwestern/coastal extensions.",
+        "follow_up_scope": "Resolve the unassigned naming extents before any whole-feature name application or geometry change."
+      },
+      "batch": "r13",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r13/results.json",
+      "fixed_commit": "2f9ed802b52193eb590c96697a9fa21fdeb0aea5",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108993",
+      "category": "lake",
+      "source_id": "1159108993",
+      "candidate_name": "Grand Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "main_basin_association_not_whole_polygon_name",
+        "directly_supported_name_forms": [
+          "Grand Lake"
+        ],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Northern/eastern reaches, connecting water and southeast projection.",
+        "follow_up_scope": "Resolve naming extent across those waters before any whole-feature name application or geometry change."
+      },
+      "batch": "r14",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r14/results.json",
+      "fixed_commit": "92e1143a98c5209958e4f4f546344e6abacb1301",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109007",
+      "category": "lake",
+      "source_id": "1159109007",
+      "candidate_name": "White Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "White Lake"
+        ]
+      },
+      "batch": "r14",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r14/results.json",
+      "fixed_commit": "92e1143a98c5209958e4f4f546344e6abacb1301",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108815",
+      "category": "lake",
+      "source_id": "1159108815",
+      "candidate_name": "Lake Timiskaming / lac Témiscamingue",
+      "research_category": "source_limited_unresolved",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "documented_usages_and_geographic_lead_not_verified_whole_polygon_identity",
+        "directly_supported_name_forms": [
+          "Lake Timiskaming",
+          "lac Témiscamingue"
+        ],
+        "follow_up_scope": "Obtain a permitted independent source that makes the complete northern arms, corridor and downstream endpoint inspectable."
+      },
+      "batch": "r14",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r14/results.json",
+      "fixed_commit": "92e1143a98c5209958e4f4f546344e6abacb1301",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108369",
+      "category": "lake",
+      "source_id": "1159108369",
+      "candidate_name": "Amisk Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Amisk Lake"
+        ]
+      },
+      "batch": "r15",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r15/results.json",
+      "fixed_commit": "8c96653c6012fc44d17d4f06f19e4da39198aeca",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109845",
+      "category": "lake",
+      "source_id": "1159109845",
+      "candidate_name": "Cumberland Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Cumberland Lake"
+        ]
+      },
+      "batch": "r15",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r15/results.json",
+      "fixed_commit": "8c96653c6012fc44d17d4f06f19e4da39198aeca",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109803",
+      "category": "lake",
+      "source_id": "1159109803",
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete branching feature, including northwestern and northeastern lobes, central connections and southern arm beside Stanley Mission.",
+        "follow_up_scope": "Resolve name coverage across every arm before any whole-feature naming or geometry change."
+      },
+      "batch": "r15",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r15/results.json",
+      "fixed_commit": "8c96653c6012fc44d17d4f06f19e4da39198aeca",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108453",
+      "category": "lake",
+      "source_id": "1159108453",
+      "candidate_name": "Knee Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Knee Lake"
+        ]
+      },
+      "batch": "r16",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r16/results.json",
+      "fixed_commit": "9c7301187854cf95bc7751eaee95e129d53259b0",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108469",
+      "category": "lake",
+      "source_id": "1159108469",
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The entire hooked feature, including northeastern arm, western lobe and southern hook north of Pinehouse.",
+        "follow_up_scope": "Resolve naming coverage across the full selected outline before assigning any uniform or compound name or changing geometry."
+      },
+      "batch": "r16",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r16/results.json",
+      "fixed_commit": "9c7301187854cf95bc7751eaee95e129d53259b0",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109723",
+      "category": "lake",
+      "source_id": "1159109723",
+      "candidate_name": "Sandfly Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Sandfly Lake"
+        ]
+      },
+      "batch": "r16",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r16/results.json",
+      "fixed_commit": "9c7301187854cf95bc7751eaee95e129d53259b0",
+      "automatic_application": false,
+      "supported_name_scope": "The complete eastern basin corresponds at regional scale to water beneath the Lake part of the Sandfly Lake label. Its broad northern cap, western notch, eastern indentation and lower eastward arm taper into the southern tip. The full outline was compared with mapped water and surrounding shore. This supports generalized Sandfly Lake association for the selected feature, not equivalence with the entire named lake or extension of that name to connecting river water."
+    },
+    {
+      "aw_id": "lakes_base:1159108703",
+      "category": "lake",
+      "source_id": "1159108703",
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "The complete north-south outline was compared with the mapped water cluster north of Lac Ile-a-la-Crosse, including its northern head, long western edge, narrowing middle and southeast foot. The regional map has no direct label for this selected cluster. Nearby Lac Ile-a-la-Crosse and Alstead River labels do not establish its identity or naming coverage. The full extent is inspectable, but a whole-target name remains unassigned. The independently inspected Athabasca election map also covers the entire feature and labels Patuanak as a settlement; it supplies no whole-target water name.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete selected feature, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve naming coverage across the complete selected outline with adequate independent evidence before assigning any uniform or compound name or changing geometry."
+      },
+      "batch": "r17",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r17/results.json",
+      "fixed_commit": "3df3f9a6eb749d2562ef7c6c324f92355fb0d81d",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109993",
+      "category": "lake",
+      "source_id": "1159109993",
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "The complete hooked outline was compared with the northern curved basin, western indentation, eastern edge and long southern taper in the Royal Lake, Steephill Lake and Reindeer River setting. The selected southern tip extends beyond the broadened mapped water. Label adjacency and regional outline similarity do not resolve naming coverage across every reach or establish a precise partition. A uniform or compound target name remains unassigned. The Cumberland election map likewise places Steephill Lake lettering by the northern connected water, without resolving the selected southern taper.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete selected feature, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve naming coverage across the complete selected outline with adequate independent evidence before assigning any uniform or compound name or changing geometry."
+      },
+      "batch": "r17",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r17/results.json",
+      "fixed_commit": "3df3f9a6eb749d2562ef7c6c324f92355fb0d81d",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110087",
+      "category": "lake",
+      "source_id": "1159110087",
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "The complete west-east outline was compared with the mapped broad basin and connected channels west of Wood Lake, including its western head, northern indentation, long southern edge and eastern neck. Wood Lake and Churchill River lettering belong to surrounding connected waters and do not establish the full selected feature name. The original map covers the whole outline, but its naming scope remains unassigned. The Cumberland election map leaves the central basin unnamed, with Penney Lake to the west and Lobb Lake to the southeast; electoral boundary overprints limit local detail.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete selected feature, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve naming coverage across the complete selected outline with adequate independent evidence before assigning any uniform or compound name or changing geometry."
+      },
+      "batch": "r17",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r17/results.json",
+      "fixed_commit": "3df3f9a6eb749d2562ef7c6c324f92355fb0d81d",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159116675",
+      "category": "lake",
+      "source_id": "1159116675",
+      "candidate_name": "Lake Ohrid",
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "supported_name_scope": "The entire north-south outline corresponds geographically to mapped water between Struga, Ohrid and Pogradec. Its broad northern cap, northeast shoulder, long east and west sides and rounded southern end were compared. Lake Ohrid is a low-confidence geographic naming candidate from literal wording within a partial conservation overlay, qualified by re-designate. Strong shape correspondence does not establish name coverage or naming authority for the complete selected water polygon. No supported whole-water identity or protected-site/water-boundary equivalence is assigned.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_extent_hold",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Name coverage over the complete selected waterbody, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve independent lake-name authority and name coverage over the complete selected waterbody before promoting the Lake Ohrid candidate. Conservation-area wording is insufficient; no geometry repair is prescribed by this hold."
+      },
+      "batch": "r18",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r18/results.json",
+      "fixed_commit": "6badfae989089b3d54cd5ced22302ff125c61d14",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159118183",
+      "category": "lake",
+      "source_id": "1159118183",
+      "candidate_name": "Prespa Lake",
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "supported_name_scope": "The complete northern basin, indented western shore, elongated southwestern lobe, eastern side and southeastern projection correspond geographically to the large water east of Galicica. Prespa Lake is a low-confidence geographic naming candidate from the literal wording in Prespa Lake Monument of Nature over part of the cross-border water. Conservation-area wording does not establish name coverage or naming authority for the entire selected polygon. Great Prespa, exact named-water extent and protected-site/water-boundary equivalence remain unverified; no supported whole-water identity is assigned.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_extent_hold",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Name coverage over the complete selected waterbody, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve independent lake-name authority and name coverage over the complete selected waterbody before promoting the Prespa Lake candidate. Conservation-area wording is insufficient; no geometry repair is prescribed by this hold."
+      },
+      "batch": "r18",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r18/results.json",
+      "fixed_commit": "6badfae989089b3d54cd5ced22302ff125c61d14",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159118201",
+      "category": "lake",
+      "source_id": "1159118201",
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "The complete northeastern head, west-side indentation, east edge and long southwestern tail were compared with the separate southeastern water beneath the Prespa National Park (GR) overlay. No distinct waterbody label for that complete water was established. The park label and neighboring northern-lake designation do not establish a Small/Lesser Prespa name or extend the northern designation to this feature. Its whole-target name remains unassigned after full-outline review.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete selected feature, including every source and baseline ring position.",
+        "follow_up_scope": "Obtain evidence that explicitly establishes a waterbody name over the complete selected lake, rather than a park or conservation-designation label, before any name assignment."
+      },
+      "batch": "r18",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r18/results.json",
+      "fixed_commit": "6badfae989089b3d54cd5ced22302ff125c61d14",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50517279",
+      "category": "river_group",
+      "system_id": "50517279",
+      "candidate_name": "Burdekin River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected northern inland course, southeastward middle course, northward lower bend and southern tributary were considered against the directly labelled Burdekin channel and regional drainage pattern. Burdekin River is supported as a representative system identity. This does not assign Burdekin to the selected southern tributary, all headwater reaches, storage passages, coastal continuation or every rendered part.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Burdekin River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require: Resolve the southern feeder name and reach-level name scope, including storage transitions and coastal/delta ending, before any per-reach or group scalar name application."
+      },
+      "batch": "r19",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r19/results.json",
+      "fixed_commit": "57f20ae532ef66469ea2687c5ba428d3bf257756",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50478600",
+      "category": "river_group",
+      "system_id": "50478600",
+      "candidate_name": "Gilbert River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path runs from the southeastern inland extension through the long westward middle course and then northwest toward the Gulf. The directly labelled lower Gilbert channel and the distinct upstream Einasleigh corridor support Gilbert River as the representative system identity. The upper selected route is a coarse geographic association with Einasleigh; the exact transition and individual reach names are unassigned. The modeled mainstem role does not establish uniform Gilbert naming.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Gilbert River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require: Resolve the Einasleigh/Gilbert name transition and endpoint/distributary scope against sufficiently detailed direct naming evidence before any per-reach or group scalar name application."
+      },
+      "batch": "r19",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r19/results.json",
+      "fixed_commit": "57f20ae532ef66469ea2687c5ba428d3bf257756",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50464082",
+      "category": "river_group",
+      "system_id": "50464082",
+      "candidate_name": "Mitchell River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The entire selected group includes the northern east-to-west modeled mainstem, its lower northwestward course, the long southern branch and the shorter northern tributary. Direct Mitchell labelling on the lower channel supports Mitchell River as the representative system identity. The upper modeled mainstem follows the regional Palmer corridor and the southern branch follows the Walsh corridor. These are geographic associations, not exact reach-name assignments. The shorter northern tributary, precise transitions and coastal continuation remain individually unnamed.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Mitchell River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require: Resolve Palmer/Mitchell and Walsh/Mitchell naming transitions, the northern feeder identity and coastal terminal scope before any per-reach or group scalar name application."
+      },
+      "batch": "r19",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r19/results.json",
+      "fixed_commit": "57f20ae532ef66469ea2687c5ba428d3bf257756",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50624422",
+      "category": "river_group",
+      "system_id": "50624422",
+      "candidate_name": "Mary River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path extends north from the southern inland headwater through a long northward course, then bends northeast toward the Great Sandy Strait. The directly mapped Mary River monitoring site at Miva, lower-river course and surrounding coastline support Mary River as a representative system identity. The southern upper reaches, any feeder naming transitions and coastal continuation are not assigned individual names. The selected mainstem role does not establish a uniform name for all 49 parts.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Mary River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true
+      },
+      "batch": "r20",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r20/results.json",
+      "fixed_commit": "2f97b453f50c96e3c41dcdd5907c2ce7fae0907e",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50663106",
+      "category": "river_group",
+      "system_id": "50663106",
+      "candidate_name": "Brisbane River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path includes a western upper extension, a northeastward upper bend, the southward middle corridor and a winding eastward lower course toward Moreton Bay. The directly mapped Brisbane River monitoring site at Savages Crossing and whole-path regional correspondence support Brisbane River as a representative system identity. The upper western feeder remains unnamed. Wivenhoe is storage context; neither reservoir passages nor the exact name transition and coastal endpoint receive reach-level names. The modeled mainstem role is not proof of uniform Brisbane naming.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Brisbane River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true
+      },
+      "batch": "r20",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r20/results.json",
+      "fixed_commit": "2f97b453f50c96e3c41dcdd5907c2ce7fae0907e",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50668362",
+      "category": "river_group",
+      "system_id": "50668362",
+      "candidate_name": "Logan River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path runs from a southwestern upper extension through a northerly inland corridor, then northeast and east toward the southern Moreton Bay margin. The directly mapped Logan River monitoring site at Yarrahappini and surrounding course support Logan River as a representative system identity. Logan-Albert is a regional catchment grouping, not a compound name assigned to this path. Southwestern headwater or feeder reaches, possible storage-related transitions and the coastal ending remain individually unnamed. No Albert reach assignment is made.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Logan River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true
+      },
+      "batch": "r20",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r20/results.json",
+      "fixed_commit": "2f97b453f50c96e3c41dcdd5907c2ce7fae0907e",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50701991",
+      "category": "river_group",
+      "system_id": "50701991",
+      "candidate_name": "Clarence River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Both selected fragments were viewed in full: a southwestern upper course curves east and north into a high northern bend, then the lower path turns southeast and northeast toward the coast. The direct blue Clarence label on the mapped lower/eastern river line supports Clarence River as the representative system identity. The long western and southwestern feeder course is not individually named; nearby Boyd wording does not establish its exact name partition. Both fragments carry modeled mainstem roles, which do not make every part Clarence. Coastal and feeder-to-main-river transitions remain unassigned at reach level.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Clarence River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r21",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r21/results.json",
+      "fixed_commit": "7146fe1efacebda9995365c5c51339eac5e62c95",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50760625",
+      "category": "river_group",
+      "system_id": "50760625",
+      "candidate_name": "Hunter River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path starts on a far-western feeder, turns north and east through the western Goulburn corridor, and continues southeast along the lower Hunter through the Singleton, Greta and Maitland area toward Newcastle. The mapped Hunter River at Greta station and direct Hunter line label support Hunter River as a representative system identity. Figure 4.46 separately labels Goulburn and Munmurra along the western corridor, so this modeled mainstem is not uniformly Hunter. These are regional channel associations, not exact source-reach assignments. Feeder junctions, storage-related boundaries and the coastal ending remain unassigned at reach level; the northeastern Glenbawn/Pages branch is not the selected upper path.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Hunter River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [
+          {
+            "mapped_name": "Goulburn",
+            "scope": "Western mapped river corridor upstream of lower Hunter; no exact rendered-part partition."
+          },
+          {
+            "mapped_name": "Munmurra",
+            "scope": "Far-western feeder corridor in Figure 4.46; no exact rendered-part partition."
+          }
+        ],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r21",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r21/results.json",
+      "fixed_commit": "7146fe1efacebda9995365c5c51339eac5e62c95",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50781500",
+      "category": "river_group",
+      "system_id": "50781500",
+      "candidate_name": "Shoalhaven River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path runs north from the southern inland headwater, bends northeast and north through the interior, then turns east across the Tallowa vicinity toward the coast. Direct blue Shoalhaven river-line wording, the mapped storage location and explicit text placing Tallowa on the Shoalhaven River support Shoalhaven River as a representative system identity. The southern headwater or feeder nomenclature, exact river/storage transitions and coastal ending remain individually unassigned. The modeled mainstem role does not establish a uniform name for every part or name the storage water separately.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Shoalhaven River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r21",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r21/results.json",
+      "fixed_commit": "7146fe1efacebda9995365c5c51339eac5e62c95",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50729167",
+      "category": "river_group",
+      "system_id": "50729167",
+      "candidate_name": "Macleay River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path descends southeast from its northwestern headwater, curves northeast through the middle corridor, then turns southeast into a broad southern bend and northeast toward the coast. Direct blue Macleay river-line labels support Macleay River as a representative system identity. The long northwestern feeder course is not individually named by the inspected maps, and the modeled mainstem role does not make every part Macleay. Exact feeder-to-main-river name transitions, any river/storage interfaces and the coastal ending remain unassigned at reach level.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Macleay River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r22",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r22/results.json",
+      "fixed_commit": "1dd4a326287801853a0c2fa27186fae6aeda18c5",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50738894",
+      "category": "river_group",
+      "system_id": "50738894",
+      "candidate_name": "Hastings River",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The complete selected path descends south from its northwestern headwater and then follows an eastward corridor to the Port Macquarie coast. It corresponds geographically to mapped channels within the Hastings River catchment context. Hastings River is a geographic candidate only: Figure 4.22 provides a catchment leader and Table 4.4 a River basin entry, but no direct Hastings river-line label or named Hastings station was established in the inspected maps. This does not support representative river identity or name coverage over the complete selected group. The modeled mainstem role does not name the headwater or feeder course, storage interfaces or coastal ending. The whole-group naming scope remains on hold.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_scope_hold",
+        "directly_supported_name_forms": [],
+        "follow_up_scope": "Obtain direct river-name or named-station evidence that resolves identity and naming coverage for the complete selected group before promoting the Hastings River candidate. Any separately authorized reach-level or scalar product application also requires headwater/feeder, storage-interface and coastal naming evidence. No geometry repair or new acquisition is prescribed by this bounded hold.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r22",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r22/results.json",
+      "fixed_commit": "1dd4a326287801853a0c2fa27186fae6aeda18c5",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50746648",
+      "category": "river_group",
+      "system_id": "50746648",
+      "candidate_name": "Manning River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path runs east and southeast from a far-western headwater through a long upper corridor, then bends east and northeast along the lower coastal course. Direct blue Manning river-line labels support Manning River as a representative system identity. The long western and northwestern feeder course is not individually named by the inspected maps, and the modeled mainstem role does not make every part Manning. Exact feeder-to-main-river name transitions, any river/storage interfaces and the coastal ending remain unassigned at reach level.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Manning River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r22",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r22/results.json",
+      "fixed_commit": "1dd4a326287801853a0c2fa27186fae6aeda18c5",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50798927",
+      "category": "river_group",
+      "system_id": "50798927",
+      "candidate_name": "Mitchell River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path runs southeast from a far-northwestern headwater, turns south through the middle corridor, then bends east and southeast into the Gippsland Lakes coastal complex. Direct blue Mitchell river-line labels support Mitchell River in Victoria as a representative system identity. The long northwestern upper continuation is not individually named by the inspected maps; a modeled mainstem can include differently named feeder reaches and does not make every part Mitchell. Exact feeder-to-river name transitions, any river/storage interfaces and the final generalized line through lake or coastal water remain unassigned at reach level.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Mitchell River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r23",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r23/results.json",
+      "fixed_commit": "a9fe33358261cc0c4f10f2ecd072b5f9dbfb9472",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50798928",
+      "category": "river_group",
+      "system_id": "50798928",
+      "candidate_name": "Tambo River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path runs southwest from its northeastern headwater, turns south, bows east in the middle course, then turns southwest and south toward the Gippsland Lakes coastal complex. Figure 5.31 explicitly labels the Tambo River D/S of Ramrod Creek monitoring site on the eastern channel, supporting Tambo River as a representative system identity in conjunction with the complete regional path comparison. The upstream continuation is not individually named throughout. A modeled mainstem can include differently named feeder reaches and does not establish a uniform river name. Exact feeder-to-river transitions, any river/storage interfaces and the final generalized line through lake or coastal water remain unassigned at reach level.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Tambo River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r23",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r23/results.json",
+      "fixed_commit": "a9fe33358261cc0c4f10f2ecd072b5f9dbfb9472",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50800637",
+      "category": "river_group",
+      "system_id": "50800637",
+      "candidate_name": "Latrobe River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path follows a long, nearly west-to-east corridor, with modest middle-course bends, a northeastern lower bend and a southeastern ending toward the Gippsland Lakes coastal complex. Direct blue La Trobe river-line wording and the Latrobe at Rosedale named monitoring site support Latrobe River as a representative system identity; the source also uses Latrobe in prose. The far-western upper continuation is not individually named throughout. A modeled mainstem can include differently named feeder reaches and does not establish a uniform river name. Exact feeder-to-river transitions, any river/storage interfaces and the lake-facing coastal ending remain unassigned at reach level.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Latrobe River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r23",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r23/results.json",
+      "fixed_commit": "a9fe33358261cc0c4f10f2ecd072b5f9dbfb9472",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50691388",
+      "category": "river_group",
+      "system_id": "50691388",
+      "candidate_name": "Richmond River",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The complete selected path runs southeast from a northwestern headwater, south through the upper and middle corridor, then east and northeast after a southern bend to the New South Wales coast south of Lismore. Regional geometry is compatible with the Richmond River candidate, but the clearly legible Richmond River wording in Figure 4.22 is a basin callout. Possible blue river-line lettering in the retained regional maps is too indistinct to certify. Neither basin context nor geographic resemblance establishes a directly named representative river identity here. The whole group remains on a naming-scope hold after complete available-source/path review; the upper feeder, any river/storage interfaces, exact name transitions and coastal ending are unassigned at reach level.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_scope_hold",
+        "directly_supported_name_forms": [],
+        "follow_up_scope": "Obtain legible direct river-name evidence tied to the complete regional corridor before supporting the Richmond River representative identity. Exact upper feeder, river/storage, name-transition and coastal scope also require evidence before separately authorized application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r24",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r24/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50768223",
+      "category": "river_group",
+      "system_id": "50768223",
+      "candidate_name": "Hawkesbury River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete three-fragment modeled mainstem begins in the southwest, sweeps east around a southern bend, then runs northeast through the upper/storage corridor and curves east toward the coast north of Sydney. The directly identified Hawkesbury River at Little Wobby photograph and the prose identifying Hawkesbury water supply to Richmond-Windsor, together with the full regional path comparison, support Hawkesbury River as a bounded representative system identity. The southwestern upper continuation follows the separately mapped Wollondilly corridor and the Lake Burragorang/Warragamba storage corridor. A modeled mainstem can include differently named feeder reaches. Coxs is a separately named contributor in source prose, not an assignment to a selected branch. Green water-transfer arrows in Figure 4.36 are not natural river geometry. Exact Wollondilly/storage/downstream name transitions, any Nepean or other intermediate naming, river/storage interfaces and the generalized coastal ending remain unassigned at reach level.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Hawkesbury River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [
+          {
+            "mapped_name": "Wollondilly",
+            "scope": "Southwestern upper regional channel association; no exact rendered-part partition."
+          },
+          {
+            "mapped_name": "Lake Burragorang / Warragamba",
+            "scope": "Named storage context in Figure 4.36; no exact rendered-part partition or storage boundary assignment."
+          }
+        ],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r24",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r24/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50798628",
+      "category": "river_group",
+      "system_id": "50798628",
+      "candidate_name": "Snowy River",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete selected path begins in the far north, runs south through the upper storage corridor, turns east, makes a broad westward middle loop, then continues south to the Victorian coast. Direct blue Snowy river-line wording supports Snowy River as a bounded representative system identity. The northern modeled mainstem follows the separately mapped Eucumbene corridor before the downstream Snowy course; a modeled mainstem can include differently named feeder reaches. The mapped lake and Snowy Hydro storage context do not establish exact lake names, river/storage interfaces or name boundaries on the selected line. Exact Eucumbene-to-Snowy transitions, intervening storage/lake scope and the generalized coastal ending remain unassigned at reach level.",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Snowy River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [
+          {
+            "mapped_name": "Eucumbene",
+            "scope": "Northern upper regional channel association; no exact rendered-part partition or river/storage name boundary."
+          }
+        ],
+        "regional_associations_are_exact_reach_assignments": false
+      },
+      "batch": "r24",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r24/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    }
+  ]
+}
