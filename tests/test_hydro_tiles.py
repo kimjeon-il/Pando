@@ -19,6 +19,15 @@ HYDRO_VERSION = re.search(r"HYDRO_DATA_VERSION = '([^']+)'", read_module(ROOT, "
 DATA = ROOT / "assets" / "data" / "hydro" / ("v" + HYDRO_VERSION)
 KOREA_BOUNDS = (124.0, 33.0, 131.0, 43.0)
 
+def read_hydro_resource(spec: dict) -> bytes:
+    data = (DATA / spec["url"]).read_bytes()
+    if "offset" in spec:
+        start = int(spec["offset"])
+        data = data[start:start + int(spec["bytes"])]
+    assert len(data) == spec["bytes"], "hydro section size mismatch"
+    assert hashlib.sha256(data).hexdigest() == spec["sha256"], "hydro section hash mismatch"
+    return data
+
 
 def read_uvarint(data: bytes, offset: int) -> tuple[int, int]:
     value = 0
@@ -125,8 +134,8 @@ def decode_source_ids(data: bytes) -> list[str]:
     return result
 
 
-def read_index(path: Path):
-    raw = gzip.decompress(path.read_bytes())
+def read_index(path: Path, compressed: bytes | None = None):
+    raw = gzip.decompress(path.read_bytes() if compressed is None else compressed)
     magic, version, _reserved, tile_count, logical_count, pack_count = struct.unpack_from("<4sHHIII", raw, 0)
     if (magic, version) != (b"AWI4", 4):
         raise AssertionError("invalid global hydro index")
@@ -216,13 +225,13 @@ class HydroTileTests(unittest.TestCase):
     def setUpClass(cls):
         cls.manifest_path = DATA / "manifest.json"
         cls.manifest = json.loads(cls.manifest_path.read_text(encoding="utf-8"))
-        core_payload = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["core"]["url"]).read_bytes()).decode("utf-8"))
-        detail_payload = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["detail"]["url"]).read_bytes()).decode("utf-8"))
+        core_payload = json.loads(gzip.decompress(read_hydro_resource(cls.manifest["metadata"]["core"])).decode("utf-8"))
+        detail_payload = json.loads(gzip.decompress(read_hydro_resource(cls.manifest["metadata"]["detail"])).decode("utf-8"))
         cls.metadata = {int(row["fid"]): row for row in core_payload["features"]}
         for detail in detail_payload["features"]:
             cls.metadata[int(detail["fid"])].update(detail)
-        cls.tiles, cls.logical_index, cls.packs = read_index(DATA / cls.manifest["index"]["url"])
-        shards = {row["id"]: (DATA / row["url"]).read_bytes() for row in cls.manifest["shards"]}
+        cls.tiles, cls.logical_index, cls.packs = read_index(DATA / cls.manifest["index"]["url"], read_hydro_resource(cls.manifest["index"]))
+        shards = {row["id"]: read_hydro_resource(row) for row in cls.manifest["shards"]}
         cls.features = []
         for pack_id, spec in sorted(cls.packs.items()):
             compressed = shards[spec["shard"]][spec["offset"]:spec["offset"] + spec["length"]]
@@ -232,10 +241,9 @@ class HydroTileTests(unittest.TestCase):
         self.assertEqual(self.manifest["version"], HYDRO_VERSION)
         self.assertEqual(self.manifest["schema"], "pandolab-water-shards-v5")
         self.assertLess(self.manifest_path.stat().st_size, 100 * 1024)
-        self.assertLess((DATA / self.manifest["index"]["url"]).stat().st_size, 100 * 1024)
+        self.assertLess(self.manifest["index"]["bytes"], 100 * 1024)
         self.assertEqual(self.manifest["metadata"]["featureCount"], self.manifest["stats"]["featureCount"])
-        core_path = DATA / self.manifest["metadata"]["core"]["url"]
-        core_bytes = core_path.read_bytes()
+        core_bytes = read_hydro_resource(self.manifest["metadata"]["core"])
         self.assertEqual(len(core_bytes), self.manifest["metadata"]["core"]["bytes"])
         self.assertEqual(hashlib.sha256(core_bytes).hexdigest(), self.manifest["metadata"]["core"]["sha256"])
         # v5 adds system identity, mainstem labels and branch roles to the v4
@@ -250,7 +258,7 @@ class HydroTileTests(unittest.TestCase):
         self.assertTrue(all(row["bytes"] <= 4 * 1024 * 1024 for row in self.manifest["shards"]))
         self.assertEqual(len(self.packs), self.manifest["stats"]["packCount"])
         self.assertEqual(len(self.logical_index), self.manifest["stats"]["logicalFeatureCount"])
-        self.assertEqual(self.manifest["cache"]["name"], f'pandolab-water-v{HYDRO_VERSION}-{self.manifest["metadata"]["core"]["sha256"][:12]}')
+        self.assertEqual(self.manifest["cache"]["name"], f'pandolab-water-v{HYDRO_VERSION}-{self.manifest["container"]["sha256"][:12]}')
 
     def test_selection_uses_new_detail_and_downstream_closure(self):
         selection = self.manifest["selection"]
