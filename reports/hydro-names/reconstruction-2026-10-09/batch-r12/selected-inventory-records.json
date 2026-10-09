@@ -1,0 +1,132 @@
+{
+  "schema": "selected-lake-inventory-facts-v1",
+  "scope_aw_ids": [
+    "lakes_base:1159108391",
+    "lakes_base:1159112839",
+    "lakes_base:1159112207"
+  ],
+  "records": [
+    {
+      "category": "lake",
+      "source_id": "1159108391",
+      "aw_id": "lakes_base:1159108391",
+      "logical_fid": 3959,
+      "geometry_fids": [
+        15334
+      ],
+      "geometry_count": 1,
+      "source_ids_count": 1,
+      "source_ids_sha256": "097d58436a1e12a81bb3c4372327418b87b5e17a16c60ec72356e8a2cf816b8c",
+      "bbox": [
+        -105.830817,
+        54.050077,
+        -105.538514,
+        54.514584
+      ],
+      "minimum_stage": 0,
+      "rendered_area_km2": 444.749,
+      "inventory_csv_row_exact": {
+        "aw_id": "lakes_base:1159108391",
+        "category": "lake",
+        "system_id": "",
+        "logical_fid": "3959",
+        "geometry_count": "1",
+        "classification": "no_meaningful_name_in_deployed_data",
+        "display_names": "[\"lake-142\"]",
+        "has_korean_display": "False",
+        "bbox": "[-105.830817, 54.050077, -105.538514, 54.514584]",
+        "minimum_stage": "0",
+        "source_id": "1159108391",
+        "source_ids_count": "1",
+        "source_ids_sha256": "097d58436a1e12a81bb3c4372327418b87b5e17a16c60ec72356e8a2cf816b8c",
+        "rendered_mainstem_length_km": "",
+        "rendered_network_length_km": "",
+        "rendered_area_km2": "444.749",
+        "wikidata_id": ""
+      },
+      "inventory_csv_row_canonical_sha256": "e764beea84a148a02354d206d4d1c406ff93f478d0b591b24ad3cdacc13b9282"
+    },
+    {
+      "category": "lake",
+      "source_id": "1159112839",
+      "aw_id": "lakes_base:1159112839",
+      "logical_fid": 4275,
+      "geometry_fids": [
+        15650
+      ],
+      "geometry_count": 1,
+      "source_ids_count": 1,
+      "source_ids_sha256": "26addb540625d035dfc7083b2260dba7988271f871f073c4dd0f09e13395a2d9",
+      "bbox": [
+        -104.794361,
+        54.855752,
+        -104.174872,
+        54.975558
+      ],
+      "minimum_stage": 2,
+      "rendered_area_km2": 256.118,
+      "inventory_csv_row_exact": {
+        "aw_id": "lakes_base:1159112839",
+        "category": "lake",
+        "system_id": "",
+        "logical_fid": "4275",
+        "geometry_count": "1",
+        "classification": "no_meaningful_name_in_deployed_data",
+        "display_names": "[\"lake-458\"]",
+        "has_korean_display": "False",
+        "bbox": "[-104.794361, 54.855752, -104.174872, 54.975558]",
+        "minimum_stage": "2",
+        "source_id": "1159112839",
+        "source_ids_count": "1",
+        "source_ids_sha256": "26addb540625d035dfc7083b2260dba7988271f871f073c4dd0f09e13395a2d9",
+        "rendered_mainstem_length_km": "",
+        "rendered_network_length_km": "",
+        "rendered_area_km2": "256.118",
+        "wikidata_id": ""
+      },
+      "inventory_csv_row_canonical_sha256": "3170b510942f8d648a8ffac58103d3d0233efc05ec63455ddb1f24d98488e638"
+    },
+    {
+      "category": "lake",
+      "source_id": "1159112207",
+      "aw_id": "lakes_base:1159112207",
+      "logical_fid": 4229,
+      "geometry_fids": [
+        15604
+      ],
+      "geometry_count": 1,
+      "source_ids_count": 1,
+      "source_ids_sha256": "0a4165cc10e813cce4d1194c86158ab59e472b640fc9c91c35143f1aab04bba9",
+      "bbox": [
+        -103.469134,
+        55.002934,
+        -102.624603,
+        55.491284
+      ],
+      "minimum_stage": 2,
+      "rendered_area_km2": 500.698,
+      "inventory_csv_row_exact": {
+        "aw_id": "lakes_base:1159112207",
+        "category": "lake",
+        "system_id": "",
+        "logical_fid": "4229",
+        "geometry_count": "1",
+        "classification": "no_meaningful_name_in_deployed_data",
+        "display_names": "[\"lake-412\"]",
+        "has_korean_display": "False",
+        "bbox": "[-103.469134, 55.002934, -102.624603, 55.491284]",
+        "minimum_stage": "2",
+        "source_id": "1159112207",
+        "source_ids_count": "1",
+        "source_ids_sha256": "0a4165cc10e813cce4d1194c86158ab59e472b640fc9c91c35143f1aab04bba9",
+        "rendered_mainstem_length_km": "",
+        "rendered_network_length_km": "",
+        "rendered_area_km2": "500.698",
+        "wikidata_id": ""
+      },
+      "inventory_csv_row_canonical_sha256": "47b09c52581ac63fc438a2e313a39c3d0402d7aff8cce5e18187c059d831b625"
+    }
+  ],
+  "all_three_selected_csv_rows_exact": true,
+  "historical_names_used_as_identity_evidence": false
+}

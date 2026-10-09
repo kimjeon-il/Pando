@@ -1,0 +1,58 @@
+{
+  "schema": "hydro-public-map-scope-observations-v2",
+  "aw_id": "lakes_base:1159112207",
+  "reviewed_at_utc": "2026-10-09T15:30:33.795812+00:00",
+  "whole_source_geometry_reviewed": true,
+  "whole_baseline_geometry_checked": true,
+  "coordinate_positions_including_closure": 151,
+  "ring_count": 1,
+  "source_bbox": [
+    -103.4691338569686,
+    55.002934025005885,
+    -102.62460317622784,
+    55.49128411191734
+  ],
+  "baseline_bbox": [
+    -103.469134,
+    55.002934,
+    -102.624603,
+    55.491284
+  ],
+  "method": "Historical visual comparison of the complete selected source and baseline outlines with the official map, considering every lobe rather than only proximity to one label. The included files preserve the observations but cannot reproduce this visual judgment.",
+  "region_checks": [
+    {
+      "region": "Western and northern lobes",
+      "observation": "A substantial section of the selected polygon overlaps water separately labelled Wood Lake. Its northern taper and westward branch cannot be assigned to Mirond Lake solely from the eastern label.",
+      "supported_water_label": "Wood Lake",
+      "exact_partition_established": false
+    },
+    {
+      "region": "Eastern and southeastern lobes",
+      "observation": "The eastern body and south-pointing arm overlap the mapped Mirond Lake water. The source is strongly generalized and does not reproduce all bays or islands.",
+      "supported_water_label": "Mirond Lake",
+      "exact_partition_established": false
+    },
+    {
+      "region": "Central connection and southwestern arm near Pelican Narrows",
+      "observation": "The selected ring also crosses water near the settlement symbol and extends into a long southwestern arm. The inspected map does not provide an unambiguous separate lake label for this entire intervening extent. No new waterbody name is inferred from the settlement name.",
+      "supported_water_label": null,
+      "exact_partition_established": false
+    },
+    {
+      "region": "Neighbouring Jan Lake",
+      "observation": "Jan Lake is separately labelled south of the central and eastern water. The regional comparison does not establish a precise name boundary or transfer the Jan label to the selected polygon.",
+      "supported_water_label": null,
+      "exact_partition_established": false
+    }
+  ],
+  "name_extent_assessment": "Compound regional correspondence: at least Wood Lake and Mirond Lake are represented, with intervening named-water scope unresolved. Mirond Lake is not established as a whole-feature scalar name. This is not an exhaustive two-lake union or a shoreline repair.",
+  "precision_limits": [
+    "The base source polygon is Natural Earth 1:10 million generalization; the WSA map is 1:1,750,000 and dated 2014-11-25.",
+    "The WSA map explicitly warns that accuracy, completeness and currency vary.",
+    "The regional map comparison does not establish surveyed control, current shoreline equality, quantitative water overlap or exact per-arm name partition.",
+    "A named label need not fall within a generalized polygon and does not prove that all connected waters share that name.",
+    "No formal naming instrument, current registry status, historical renaming date or Korean form was established."
+  ],
+  "map_pixels_or_derived_map_vectors_published": false,
+  "included_evidence_limit": "The included files retain factual observations, bibliographic references and selected public-domain lake geometry. The original publications and inspection materials are not included. Offline validation checks the included records and geometry; it does not reopen those publications or reproduce visual map judgments."
+}

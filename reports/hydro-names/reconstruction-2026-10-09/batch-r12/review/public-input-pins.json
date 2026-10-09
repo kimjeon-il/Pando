@@ -1,0 +1,74 @@
+{
+  "schema": "hydro-included-public-input-pins-v1",
+  "batch": "r12",
+  "scope": "included_public_files_only",
+  "path_base": "Package root",
+  "files": [
+    {
+      "path": "selected-lake-geometries.geojson",
+      "bytes": 12443,
+      "sha256": "b52c2ee5bf4cdd79d2858c8805f401aa0a504f3a5998722acd83111eed37b0f2"
+    },
+    {
+      "path": "selected-baseline-rendered-geometries.geojson",
+      "bytes": 7819,
+      "sha256": "8ae64e8316f09ba9c692dfbb2dfa0097797561c1afdd0fd2eeca914cf423531f"
+    },
+    {
+      "path": "research/mirond/README.md",
+      "bytes": 1415,
+      "sha256": "1834006d052f206221b0ec0d0ad1e4d7682f6da41c6bbb5a3b01e515ee1d5a25"
+    },
+    {
+      "path": "research/mirond/findings.json",
+      "bytes": 4334,
+      "sha256": "1796d6a9f07c46464e05b14b00dcef8fca5e5d839540ed568c377ebb7cbc118f"
+    },
+    {
+      "path": "research/mirond/map-scope-review.json",
+      "bytes": 3663,
+      "sha256": "276aea5855ac49ba019f279f40cb32234c3c84d6455d2527601e00a42ca8fda1"
+    },
+    {
+      "path": "research/mirond/research-manifest.json",
+      "bytes": 1062,
+      "sha256": "300c6acde36d95b57cbb7041fb298fba0fa308b8f771e8a0c30304b7ee9a1d59"
+    },
+    {
+      "path": "research/mirond/source-evidence.json",
+      "bytes": 2016,
+      "sha256": "db63509b20838918a7b754139485832bf7c9ceb5ec1f26a5368b9399431224ce"
+    },
+    {
+      "path": "research/mirond/target-identity-facts.json",
+      "bytes": 2335,
+      "sha256": "c5c670d30734dcf0e02fb78193e58d50f66de9296c75bfb2f8b7eec876ab6c98"
+    },
+    {
+      "path": "research/montreal-wapawekka/README.md",
+      "bytes": 1325,
+      "sha256": "c31bb68b3f479bbec97c964809d4194e695aa4dc8eeafffb8f90d8d11a04796a"
+    },
+    {
+      "path": "research/montreal-wapawekka/findings.json",
+      "bytes": 5676,
+      "sha256": "d168344103142754c019234f9c37eaf95c6fce7ab931d25009a51d766fa82cb4"
+    },
+    {
+      "path": "research/montreal-wapawekka/research-manifest.json",
+      "bytes": 906,
+      "sha256": "e6ce83a98cd763f4e1c9ecb409b48e7964ef8894ed809a4eb7e4369e284fab21"
+    },
+    {
+      "path": "research/montreal-wapawekka/source-evidence.json",
+      "bytes": 1983,
+      "sha256": "1e3a48ea5cfa4e40c1ff723c5850db252d9fad32f9ddf4e207c42aa3b8fd3a2c"
+    },
+    {
+      "path": "research/montreal-wapawekka/target-identity-facts.json",
+      "bytes": 2637,
+      "sha256": "dec323b52761a3a261ba6f078332baf22bb97486c259a0d0e0e22e4bfc3f81c3"
+    }
+  ],
+  "pin_limit": "Pins cover only files present in this package. They authenticate included bytes and do not establish the correctness of historical source interpretations."
+}

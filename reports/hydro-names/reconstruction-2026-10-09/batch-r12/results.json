@@ -1,0 +1,165 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v2",
+  "batch": "r12",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three actual logical inventory lake features; not a count of newly approved scalar names.",
+  "counts": {
+    "supported_generalized_water_identity": 2,
+    "compound_feature_name_scope_hold": 1
+  },
+  "pending_source_only_targets": 0,
+  "historical_name_lead_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "selection_count_note": "All three records are new actual-inventory investigations; no historical verdict or exact-ID lead is restored.",
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 277,
+  "lake_baseline_coordinate_count_including_closures": 277,
+  "position_counts_in_target_order": [
+    81,
+    45,
+    151
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108391",
+      "category": "lake",
+      "source_id": "1159108391",
+      "baseline_logical_fid": 3959,
+      "geometry_fids": [
+        15334
+      ],
+      "candidate_name": "Montreal Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized north-south ring agrees with the mapped Montreal waterbody: broad rounded north, middle westward shoulder, east-bank narrowing and pointed long southern arm. The small northern inlet and finer shore indentations differ; nearby separate waters are not absorbed.",
+      "source_keys": [
+        "wsa_montreal_wapawekka_map"
+      ],
+      "limits": [
+        "One WSA thematic cartographic publication supports this assessment; separate map regions are not independent sources.",
+        "The map is dated 2014-11-25 at 1:1,750,000; a 2025 URL and later HTTP metadata do not update it.",
+        "The historical review considered complete source and baseline shapes at regional thematic scale. No survey control, quantitative shoreline fit, formal registry status or current naming act was verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {}
+    },
+    {
+      "aw_id": "lakes_base:1159112839",
+      "category": "lake",
+      "source_id": "1159112839",
+      "baseline_logical_fid": 4275,
+      "geometry_fids": [
+        15650
+      ],
+      "candidate_name": "Wapawekka Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete east-west ring agrees with mapped Wapawekka's broad western basin, southern lobe and narrow eastern arm. Lac La Ronge to the northwest and Deschambault to the east are separate context; no second included named lake is established.",
+      "source_keys": [
+        "wsa_montreal_wapawekka_map"
+      ],
+      "limits": [
+        "One WSA thematic cartographic publication supports this assessment; separate map regions are not independent sources.",
+        "The map is dated 2014-11-25 at 1:1,750,000; a 2025 URL and later HTTP metadata do not update it.",
+        "The historical review considered complete source and baseline shapes at regional thematic scale. No survey control, quantitative shoreline fit, formal registry status or current naming act was verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {}
+    },
+    {
+      "aw_id": "lakes_base:1159112207",
+      "category": "lake",
+      "source_id": "1159112207",
+      "baseline_logical_fid": 4229,
+      "geometry_fids": [
+        15604
+      ],
+      "candidate_name": "Mirond Lake",
+      "research_category": "compound_feature_name_scope_hold",
+      "independent_review_status": "compound_feature_name_scope_hold",
+      "supported_name_scope": "The full branched ring reaches Wood-labelled water in the west/north and Mirond-labelled water in the east/southeast, with central and southwestern water unassigned. The initial Mirond lead cannot name this whole polygon; this is not an exhaustive two-lake union.",
+      "source_keys": [
+        "wsa_wood_mirond_map"
+      ],
+      "limits": [
+        "One WSA thematic cartographic publication supports this assessment; separate map regions are not independent sources.",
+        "The map is dated 2014-11-25 at 1:1,750,000; a 2025 URL and later HTTP metadata do not update it.",
+        "The historical review considered complete source and baseline shapes at regional thematic scale. No survey control, quantitative shoreline fit, formal registry status or current naming act was verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "initial_geographic_lead_not_whole_polygon_identity",
+        "directly_supported_name_forms": [
+          "Wood Lake",
+          "Mirond Lake"
+        ],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "named_water_associations": [
+          {
+            "name": "Wood Lake",
+            "whole_named_water_coverage_verified": false
+          },
+          {
+            "name": "Mirond Lake",
+            "whole_named_water_coverage_verified": false
+          }
+        ],
+        "unassigned_region": "Central connection and southwestern arm near the Pelican Narrows settlement; Jan Lake is separate nearby context.",
+        "follow_up_scope": "Resolve constituent naming extents and representation before any naming or geometry change."
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "eadc765ecf432d7bb8436f5dba6009c148b3f32e2702c0bff4a6e6a18666d813",
+  "publication_contents": "Own factual evidence and review, exact identifier/coordinate/hash facts, three selected public-domain Natural Earth lake polygons and validators. Raw third-party documents, maps and crops are excluded.",
+  "previous_reconstruction_commit": "deb137d5b858590bd3b016d07c1f5d7d62dd33bc"
+}

@@ -1,0 +1,72 @@
+{
+  "schema": "hydro-bounded-lake-findings-v2",
+  "batch": "r12",
+  "frozen_at_utc": "2026-10-09T15:30:33.795812+00:00",
+  "target_count": 1,
+  "new_actual_inventory_targets": 1,
+  "full_feature_correspondence_review_completed_count": 1,
+  "source_limited_unresolved_count": 0,
+  "compound_named_waterbody_required_by_evidence": true,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159112207",
+      "source_id": "1159112207",
+      "candidate_name": "Mirond Lake",
+      "candidate_name_role": "Initial geographic lead only; rejected as a demonstrated whole-polygon identity.",
+      "directly_supported_name_forms": [
+        "Wood Lake",
+        "Mirond Lake"
+      ],
+      "research_category": "compound_feature_name_scope_hold",
+      "supported_name_scope": "The full generalized polygon spans at least separately mapped Wood Lake and Mirond Lake, plus intervening water whose exact name scope is unresolved.",
+      "source_keys": [
+        "wsa_wood_mirond_map"
+      ],
+      "named_water_associations": [
+        {
+          "name": "Wood Lake",
+          "region": "Western and northern lobes",
+          "relation": "regional_overlap",
+          "whole_named_water_coverage_verified": false
+        },
+        {
+          "name": "Mirond Lake",
+          "region": "Eastern and southeastern lobes",
+          "relation": "regional_overlap",
+          "whole_named_water_coverage_verified": false
+        }
+      ],
+      "unassigned_region": "Central connection and southwestern arm near Pelican Narrows; no exact per-arm name assignment.",
+      "compound_named_waterbody_required_by_evidence": true,
+      "constituent_list_exhaustive": false,
+      "exact_name_partition_established": false,
+      "correspondence_observations": [
+        "Every position of the single 151-position source ring was reviewed against the actual WSA map; the ring was not clipped to the Mirond-labelled water.",
+        "Regional map comparison places the northwestern branch over separately labelled Wood Lake and the eastern branch over Mirond Lake.",
+        "The central and southwestern extent remains unassigned; the settlement label Pelican Narrows is not promoted to a lake name."
+      ],
+      "name_scope_limits": [
+        "One dated official map supports the compound-scope conclusion; it does not establish an exhaustive list of all named constituent waters.",
+        "Generalized polygon and map shoreline differences remain unresolved; no exact contemporary shoreline or mapped boundary adjustment is proposed.",
+        "Formal naming records and a Korean name were not verified."
+      ],
+      "source_access_limited": false,
+      "source_access_limited_scope": "The original map was available for the completed assessment. No new acquisition was attempted in this bounded review; universal source availability is not asserted.",
+      "full_feature_correspondence_review_completed": true,
+      "full_feature_correspondence_review_completed_scope": "All source-ring lobes were examined and the scalar mismatch identified; this does not mean full constituent naming or exact boundary correspondence is resolved.",
+      "follow_up_required": true,
+      "follow_up_scope": "Resolve all constituent name extents and the appropriate representation before whole-feature naming or geometry change.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "formal_naming_instrument": null,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "publication_scope": "Own factual extraction, short labels, source metadata and geometry-scope facts only. No original maps, HTML, extracted source text, crops, overlays or map-derived vectors.",
+  "automatic_application": false,
+  "recorded_review_scope": "Historical full-feature map assessment. Completion flags report that assessment, not an automated reproduction of the map judgment.",
+  "included_evidence_limit": "The included files retain factual observations, bibliographic references and selected public-domain lake geometry. The original publications and inspection materials are not included. Offline validation checks the included records and geometry; it does not reopen those publications or reproduce visual map judgments."
+}

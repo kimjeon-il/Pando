@@ -1,0 +1,35 @@
+{
+  "schema": "hydro-public-source-evidence-v2",
+  "batch": "r12",
+  "created_at_utc": "2026-10-09T15:30:33.795812+00:00",
+  "sources": [
+    {
+      "source_key": "wsa_wood_mirond_map",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "title": "Map of Saskatchewan Showing Completed Watershed Plans",
+      "publication_date": "2014-11-25",
+      "kind": "official_thematic_map",
+      "independence_group": "saskatchewan_wsa_map",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "retrieved_at_utc": "2026-10-09T13:17:20.296694+00:00",
+      "retrieved_this_batch": false,
+      "original_map_visually_inspected": true,
+      "page": 1,
+      "scale": "1:1,750,000 at 22 × 34 inches",
+      "publication_date_note": "The printed production date is November 25, 2014. The 2025/05 URL folder does not change the map date.",
+      "inspection_scope": "Historical full-feature review of the map and the complete selected source and baseline outlines. It supports regional correspondence, without an exact shoreline or name-boundary partition.",
+      "short_labels": [
+        "Wood Lake",
+        "Mirond Lake",
+        "Pelican Narrows",
+        "Jan Lake"
+      ],
+      "source_limit": "The regional thematic map cautions that accuracy, completeness and currency depend on available data and intended use."
+    }
+  ],
+  "independent_source_count": 1,
+  "independence_note": "These findings rely on one official cartographic publication. Separate regions or copies are not independent sources.",
+  "new_external_request_count": 0,
+  "included_evidence_limit": "The included files retain factual observations, bibliographic references and selected public-domain lake geometry. The original publications and inspection materials are not included. Offline validation checks the included records and geometry; it does not reopen those publications or reproduce visual map judgments.",
+  "automatic_application": false
+}

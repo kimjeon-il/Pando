@@ -1,0 +1,188 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "reviewed_at_utc": "2026-10-09T15:34:28.221015+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159108391",
+    "lakes_base:1159112839",
+    "lakes_base:1159112207"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Historical independent review inspected the original WSA map and complete selected source and baseline outlines, checked all ordered geometry positions and assessed regional correspondence. This report preserves the resulting factual judgments; current public validation checks only the included files.",
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "geometry_modified": false,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0,
+  "prior_distinct_targets": 33,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 36,
+  "duplicate_targets": 0,
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821"
+  ],
+  "pending_access_reassessment_performed": false,
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751"
+  ],
+  "new_scope_hold_ids": [
+    "lakes_base:1159112207"
+  ],
+  "cumulative_count_scope": "Recorded fresh research verdicts including source-limited and compound holds; not verified scalar names. Prior33 index membership and carry-forward flags only; no prior source/geometry reaudit.",
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159108391",
+      "source_id": "1159108391",
+      "logical_fid": 3959,
+      "geometry_fids": [
+        15334
+      ],
+      "position_count": 81,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Montreal Lake",
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "wsa_montreal_wapawekka_map"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_named_water_shapes_compared": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "compound_named_waterbody_required_by_evidence": false,
+      "supported_name_scope": "The complete generalized north-south ring agrees with the mapped Montreal waterbody: broad rounded north, middle westward shoulder, east-bank narrowing and pointed long southern arm. The small northern inlet and finer shore indentations differ; nearby separate waters are not absorbed.",
+      "limits": [
+        "One WSA thematic cartographic publication supports this assessment; separate map regions are not independent sources.",
+        "The map is dated 2014-11-25 at 1:1,750,000; a 2025 URL and later HTTP metadata do not update it.",
+        "The historical review considered complete source and baseline shapes at regional thematic scale. No survey control, quantitative shoreline fit, formal registry status or current naming act was verified."
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159112839",
+      "source_id": "1159112839",
+      "logical_fid": 4275,
+      "geometry_fids": [
+        15650
+      ],
+      "position_count": 45,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Wapawekka Lake",
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "wsa_montreal_wapawekka_map"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_named_water_shapes_compared": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "compound_named_waterbody_required_by_evidence": false,
+      "supported_name_scope": "The complete east-west ring agrees with mapped Wapawekka's broad western basin, southern lobe and narrow eastern arm. Lac La Ronge to the northwest and Deschambault to the east are separate context; no second included named lake is established.",
+      "limits": [
+        "One WSA thematic cartographic publication supports this assessment; separate map regions are not independent sources.",
+        "The map is dated 2014-11-25 at 1:1,750,000; a 2025 URL and later HTTP metadata do not update it.",
+        "The historical review considered complete source and baseline shapes at regional thematic scale. No survey control, quantitative shoreline fit, formal registry status or current naming act was verified."
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159112207",
+      "source_id": "1159112207",
+      "logical_fid": 4229,
+      "geometry_fids": [
+        15604
+      ],
+      "position_count": 151,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Mirond Lake",
+      "research_category": "compound_feature_name_scope_hold",
+      "source_research_category": "compound_feature_name_scope_hold",
+      "source_keys": [
+        "wsa_wood_mirond_map"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "actual_named_water_shapes_compared": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "compound_named_waterbody_required_by_evidence": true,
+      "supported_name_scope": "The full branched ring reaches Wood-labelled water in the west/north and Mirond-labelled water in the east/southeast, with central and southwestern water unassigned. The initial Mirond lead cannot name this whole polygon; this is not an exhaustive two-lake union.",
+      "limits": [
+        "One WSA thematic cartographic publication supports this assessment; separate map regions are not independent sources.",
+        "The map is dated 2014-11-25 at 1:1,750,000; a 2025 URL and later HTTP metadata do not update it.",
+        "The historical review considered complete source and baseline shapes at regional thematic scale. No survey control, quantitative shoreline fit, formal registry status or current naming act was verified."
+      ],
+      "directly_supported_name_forms": [
+        "Wood Lake",
+        "Mirond Lake"
+      ],
+      "constituent_list_exhaustive": false,
+      "exact_name_partition_established": false,
+      "settlement_label_promoted_to_water_name": false,
+      "candidate_name_role": "initial_geographic_lead_not_whole_polygon_identity",
+      "named_water_associations": [
+        {
+          "name": "Wood Lake",
+          "whole_named_water_coverage_verified": false
+        },
+        {
+          "name": "Mirond Lake",
+          "whole_named_water_coverage_verified": false
+        }
+      ],
+      "unassigned_region": "Central connection and southwestern arm near the Pelican Narrows settlement; Jan Lake is separate nearby context.",
+      "follow_up_scope": "Resolve constituent naming extents and representation before any naming or geometry change."
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-09T15:34:28.221015+00:00",
+    "full_source_review_completed": true,
+    "original_source_material_included": false,
+    "historical_results_recomputed_by_public_validator": false,
+    "scope": "Original source inspection and complete-feature comparison were performed during the recorded review. That inspection is not rerun by the included validator."
+  },
+  "included_evidence_limit": "The included files retain factual observations, bibliographic references and selected public-domain lake geometry. The original publications and inspection materials are not included. Offline validation checks the included records and geometry; it does not reopen those publications or reproduce visual map judgments."
+}
