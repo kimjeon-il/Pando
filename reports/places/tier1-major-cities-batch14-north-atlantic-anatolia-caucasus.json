@@ -18,7 +18,7 @@
     "Ankara became capital 1923-10-13, not evidence that the Turkish city and foreign-language Angora were legally renamed on that day.",
     "Tbilisi: 1801 Russian Empire Тифлисъ/Tiflis/티플리스; from 1918-05-26 independent Georgian ტფილისი/Tiflis/트필리시; from 1936-08-17 Georgian თბილისი/Tbilisi/트빌리시. The English 1936 change is an editorial standard, not a proven simultaneous change in all English use.",
     "Yerevan: from 1801 Persian ایروان/Erivan/이라반; 1828-02-22 Russian Эривань/Erivan/에리반; 1918-05-28 Armenian Երեւան/Yerevan/예레반; script only on 1922-03-04 Յերեվան and 1940-08-15 Երևան. Soviet 1936 Russian-name adjustment is not an Armenian or English map-name transition.",
-    "Baku Bakı and Russian Баку refer to one city, and 1918-09-17 government arrival from Ganja does not constitute a city-name change.",
+    "Baku: native Persian باکو from 1801; Russian Баку at 1813-10-24 Treaty of Gulistan; Azerbaijani Arabic-script باکو at 1918-09-15 Azerbaijani-Ottoman capture of Baku, NOT 1918-09-17 government move; pre-1940 Latin Bakь from 1929-01-01; Azerbaijani Cyrillic Бакы from 1940-01-01; modern Bakı from 1991-12-25 alphabet restoration act. English Baku and Korean 바쿠 remain unchanged. No city legal renaming is implied.",
     "Caucasus' continental classification is geographically variable; countries' modern ISO codes do not imply that the cities are legally or historically within a single defined continent.",
     "First 1801 timeline entries denote the beginning of Korean editorial survey, not documentary evidence that modern Korean transliterations were already used in 1801.",
     "All UI-facing summary/name notes are <=28 Unicode codepoints; expanded researchNote/researchDetail preserves full evidence.",
@@ -525,10 +525,45 @@
       "geonameId": 587084,
       "names": [
         {
+          "text": "باکو",
+          "language": "fa",
+          "usage": "historical",
+          "variantType": "selectedQajarPersianName",
+          "note": "1813년 정식 할양 이전 페르시아어 대표명"
+        },
+        {
+          "text": "Баку",
+          "language": "ru",
+          "usage": "historical",
+          "variantType": "selectedRussianEmpireName",
+          "note": "러시아 제국 시기 원어 대표명"
+        },
+        {
+          "text": "باکو",
+          "language": "az-Arab",
+          "usage": "historical",
+          "variantType": "selectedAzerbaijaniArabicScriptName",
+          "note": "1918년 바쿠 확보 이후 아랍 문자 표기"
+        },
+        {
+          "text": "Bakь",
+          "language": "az-Latn",
+          "usage": "historical",
+          "variantType": "selectedPre1940LatinAzerbaijaniName",
+          "note": "1929년부터 사용한 구 라틴 문자 철자"
+        },
+        {
+          "text": "Бакы",
+          "language": "az-Cyrl",
+          "usage": "historical",
+          "variantType": "selectedSovietCyrillicAzerbaijaniName",
+          "note": "1940년 이후 아제르바이잔어 키릴 문자 표기"
+        },
+        {
           "text": "Bakı",
           "language": "az",
           "usage": "standard",
-          "note": "아제르바이잔어 현행 도시명",
+          "note": "현행 아제르바이잔어명",
           "sourceUrl": "https://www.geonames.org/587084/"
         },
         {
@@ -540,14 +575,6 @@
           "text": "바쿠",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Баку",
-          "language": "ru",
-          "usage": "historical",
-          "variantType": "russianExonym",
-          "note": "러시아어 병용 지명",
-          "sourceUrl": "https://www.geonames.org/587084/"
         }
       ],
       "latitude": 40.37767,
@@ -562,19 +589,84 @@
         {
           "fromYear": 1801,
           "nameKo": "바쿠",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/587084/"
+          "nameEn": "Baku",
+          "nameNative": "باکو",
+          "nativeLanguage": "fa",
+          "kind": "historicalQajarPersianName",
+          "sourceUrl": "https://www.geonames.org/587084/",
+          "note": "페르시아 지배기 원어명",
+          "researchNote": "1801년은 조사 시작 연도. 1806년 러시아군의 군사 점령과 1813년 굴리스탄 조약에 따른 정식 할양을 구분해 조약 체결 전까지 페르시아어 대표명 باکو를 유지한다. 한국어 바쿠·영어 Baku는 편집상 전 기간 유지한다."
+        },
+        {
+          "fromDate": "1813-10-24",
+          "nameNative": "Баку",
+          "nativeLanguage": "ru",
+          "kind": "treatyCessionLanguageSelection",
+          "note": "굴리스탄 조약·러시아어 기준",
+          "researchNote": "1813년 10월 24일(그레고리력) 굴리스탄 조약으로 바쿠에 대한 러시아 제국의 영유권을 인정한 시점을 원어 대표 언어 전환일로 채택한다. 러시아군의 1806년 점령일과 구별한다. 실제 법적 지명 개칭이 아니라 당대 통치국 언어 선정 규칙이다."
+        },
+        {
+          "fromDate": "1918-09-15",
+          "nameNative": "باکو",
+          "nativeLanguage": "az-Arab",
+          "kind": "territorialControlLanguageSelection",
+          "sourceUrl": "https://meclis.gov.az/news-az.php?id=14&lang=en",
+          "note": "1918년 바쿠 확보 기준",
+          "researchNote": "아제르바이잔 민주공화국의 독립 선언일 1918-05-28, 아제르바이잔군·오스만군의 바쿠 확보일 1918-09-15, 아제르바이잔 정부의 간자→바쿠 이전일 1918-09-17을 구분한다. 원어 전환은 영토 실효 지배가 시작된 9월 15일을 기준으로 한다. 영어 Baku·한국어 바쿠는 변화 없음."
+        },
+        {
+          "fromDate": "1929-01-01",
+          "nameNative": "Bakь",
+          "nativeLanguage": "az-Latn",
+          "kind": "historicalAzerbaijaniScriptReform",
+          "note": "아랍 문자→구 라틴 문자",
+          "researchNote": "1929년 1월 1일 아제르바이잔의 구 라틴 문자 전면 적용을 원어 철자 전환 기준으로 채택. 옛 라틴 문자에 쓰인 ь 모양 글자를 현대 철자 Bakı와 혼동하지 않는다. 음운상 도시 개칭이 아니라 문자체계 변경이다."
+        },
+        {
+          "fromDate": "1940-01-01",
+          "nameNative": "Бакы",
+          "nativeLanguage": "az-Cyrl",
+          "kind": "historicalAzerbaijaniScriptReform",
+          "note": "구 라틴 문자→키릴 문자",
+          "researchNote": "1939년 키릴 문자 도입법에 따른 1940년 1월 1일 전환을 지도 편집 기준으로 선정. 아제르바이잔어 Бакы와 러시아어 Баку는 별도 언어 표기이며 도시 개칭은 아니다."
+        },
+        {
+          "fromDate": "1991-12-25",
+          "nameNative": "Bakı",
+          "nativeLanguage": "az",
+          "kind": "historicalAzerbaijaniScriptReform",
+          "note": "아제르바이잔어 라틴 문자 복원",
+          "researchNote": "1991년 12월 25일 라틴 문자 복원법을 원어 지도 표기 전환 기준으로 선정. 실제 아제르바이잔 공공·출판 영역에서의 문자 전환은 2001년까지 단계적으로 진행됐으며 이날 모든 매체가 동시에 전환된 것은 아니다. 한국어 바쿠·영어 Baku는 계속 유지한다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-statehood-events",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1813-1918-political-and-1929-1940-1991-script-transitions",
       "historicalGeography": {
         "events": [
+          {
+            "date": "1806-10-15",
+            "type": "russianMilitaryCapture",
+            "detail": "러시아군 바쿠 점령",
+            "researchDetail": "1806년 10월 3일 율리우스력 / 10월 15일 그레고리력의 군사 점령. 정식 할양과 구분."
+          },
+          {
+            "date": "1813-10-24",
+            "type": "gulistanTreatyRecognizesRussianRule",
+            "detail": "굴리스탄 조약으로 러시아 편입",
+            "researchDetail": "지배국 언어에 맞춰 도시 원어 대표명을 페르시아어에서 러시아어로 선정하는 편집상 전환 시점."
+          },
           {
             "date": "1918-05-28",
             "type": "azerbaijanDemocraticRepublicDeclared",
             "detail": "1918년 아제르바이잔 독립",
             "researchDetail": "아제르바이잔 민주공화국의 독립 선언은 1918년 5월 28일이다. 당시 정부가 바쿠에 바로 주둔한 것은 아니며 간자 등지의 지위를 구별한다.",
             "sourceUrl": "https://meclis.gov.az/news-az.php?id=14&lang=en"
+          },
+          {
+            "date": "1918-09-15",
+            "type": "azerbaijaniOttomanForcesTakeBaku",
+            "detail": "아제르바이잔군·오스만군 바쿠 확보",
+            "sourceUrl": "https://meclis.gov.az/news-az.php?id=14&lang=en",
+            "researchDetail": "9월 15일 군사적 확보를 바쿠 원어명 대표 언어 전환 기준으로 채택. 9월 17일 정부 이전과 구별."
           },
           {
             "date": "1918-09-17",
@@ -584,20 +676,52 @@
             "sourceUrl": "https://meclis.gov.az/news-az.php?id=14&lang=en"
           },
           {
-            "year": 1991,
+            "date": "1920-04-28",
+            "type": "azerbaijanSovietGovernmentEstablished",
+            "detail": "아제르바이잔 소비에트화",
+            "researchDetail": "소련 구성공화국 시기에도 아제르바이잔어를 원어 대표 언어로 계속 사용하므로 지도명 전환점은 추가하지 않는다."
+          },
+          {
+            "date": "1929-01-01",
+            "type": "azerbaijaniLatinScriptImplementation",
+            "detail": "아제르바이잔어 구 라틴 문자 전환"
+          },
+          {
+            "date": "1940-01-01",
+            "type": "azerbaijaniCyrillicScriptImplementation",
+            "detail": "아제르바이잔어 키릴 문자 전환"
+          },
+          {
+            "date": "1991-10-18",
             "type": "azerbaijanIndependenceRestored",
-            "detail": "1991년 독립 회복",
+            "detail": "아제르바이잔 독립 회복",
+            "researchDetail": "독립일은 문자개혁법 제정일 1991-12-25와 구분한다.",
             "sourceUrl": "https://meclis.gov.az/news-az.php?id=14&lang=en"
+          },
+          {
+            "date": "1991-12-25",
+            "type": "azerbaijaniLatinScriptRestorationAct",
+            "detail": "아제르바이잔어 라틴 문자 복원법"
+          },
+          {
+            "date": "2001-08-01",
+            "type": "azerbaijaniLatinScriptTransitionCompletion",
+            "detail": "라틴 문자 행정·출판 전환 완료 기준",
+            "researchDetail": "실제 사용 전환의 주요 완결 시점이며 법률 채택일과 구별한다."
           }
         ],
         "notes": [
           {
-            "detail": "Bakı와 Баку는 언어 차이",
-            "sourceUrl": "https://www.geonames.org/587084/"
+            "detail": "언어 변동과 문자개혁 분리",
+            "researchDetail": "1801~1813 페르시아어, 1813~1918 러시아어, 1918년 바쿠 확보부터 아제르바이잔어를 시대별 원어로 선택. 이후 아랍·라틴·키릴·라틴 문자변화를 기록. 실제 도시 개칭과 혼동하지 않는다."
           },
           {
-            "detail": "1918년 9월 이전 정부는 간자",
-            "researchDetail": "아제르바이잔 민주공화국의 선언과 바쿠로의 정부 이전에는 시간차가 있으며, 단순히 1918년 5월부터 바쿠가 실효 수도였다고 쓰지 않는다.",
+            "detail": "영어 Baku·한국어 바쿠 유지",
+            "researchDetail": "페르시아·러시아 제국·아제르바이잔 시기에 영어와 한국어 대표명을 별도 변환하지 않는다."
+          },
+          {
+            "detail": "1918년 9월 15일 실효 지배",
+            "researchDetail": "5월 28일 공화국 독립과 9월 15일 바쿠 점령, 9월 17일 정부 이전은 서로 다른 사건이다.",
             "sourceUrl": "https://meclis.gov.az/news-az.php?id=14&lang=en"
           },
           {
@@ -605,7 +729,10 @@
             "sourceUrl": "https://www.geonames.org/587084/"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Baku",
+      "defaultDisplayNameNative": "Bakı",
+      "defaultNativeLanguage": "az"
     }
   ]
 }
