@@ -9,6 +9,8 @@ function read(relativePath) {
 const events = read('../../tools/historical-library/sources/netherlands/change-events.json');
 const probes = read('../../tools/historical-library/sources/netherlands/canonical-phase0-probes.json');
 const germanEvents = read('../../tools/historical-library/sources/german-coastline/change-events.json');
+
+const registry = read('../../tools/historical-library/sources/coastline-catalogs.json');
 const nld = read('../../assets/data/territorial-entities/source/countries/nld.json');
 
 function insideRing([x, y], ring) {
@@ -116,4 +118,28 @@ test('country polygon deliberately cannot be used as a lake or island-presence o
   assert.equal(probes.points.find((point) => point.id === 'marker-wadden').expectedInsideCountryPolygon, true);
   // These positions inside a national footprint say nothing about whether
   // islands, floodwater or enclosed lakes exist in their historically dated form.
+});
+
+test('worldwide regional coast-catalog registry references evidence without duplicating source events', () => {
+  assert.equal(registry.schemaVersion, 1);
+  assert.equal(registry.dataPolicy.noEventCopyInManifest, true);
+  assert.equal(registry.dataPolicy.ignoreUnverifiedGeometryForWorldBuild, true);
+  assert.deepEqual(
+    registry.catalogs.map((catalog) => catalog.path),
+    [
+      'tools/historical-library/sources/german-coastline/change-events.json',
+      'tools/historical-library/sources/netherlands/change-events.json',
+    ],
+  );
+  const seen = new Set();
+  for (const catalog of registry.catalogs) {
+    assert.ok(!Object.hasOwn(catalog, 'events'));
+    assert.ok(catalog.scope.trim().length > 0);
+    const contents = read('../../' + catalog.path);
+    assert.equal(contents.dataPolicy.ownershipSeparateFromCoastalChange, true);
+    for (const event of contents.events) {
+      assert.ok(!seen.has(event.id), 'duplicate across geographic catalogs: ' + event.id);
+      seen.add(event.id);
+    }
+  }
 });
