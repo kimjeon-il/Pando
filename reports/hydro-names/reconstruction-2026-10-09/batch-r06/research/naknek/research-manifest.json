@@ -1,0 +1,31 @@
+{
+  "schema": "hydro-names-research-manifest-v1",
+  "batch": "r06",
+  "aw_id": "lakes_base:1159108091",
+  "frozen_at_utc": "2026-10-09T13:21:11.271433+00:00",
+  "files": [
+    {
+      "path": "findings.json",
+      "bytes": 2379,
+      "sha256": "986a8345bbfac98778b5065a40cb3800055b703d077df5bfd590a150891a64e7"
+    },
+    {
+      "path": "map-scope-review.json",
+      "bytes": 2805,
+      "sha256": "e1be4695b61614f18ca1ec68f92be51b4ed4ee64fd9b0096d9c6f6bfddb01b86"
+    },
+    {
+      "path": "source-evidence.json",
+      "bytes": 5695,
+      "sha256": "8141e0b5db2fc0bfd1469d3cf9be24ab51e838f3c0cfc3b399eba088d5b60ac3"
+    },
+    {
+      "path": "source-extraction.json",
+      "bytes": 3680,
+      "sha256": "3a57737345cbf8c01f9510a8ba50dd2ae4346bc299d3f1dbb48a4cfd907c7cd4"
+    }
+  ],
+  "hash_scope": "Exact UTF-8 file bytes. Manifest excludes itself. Original-source hashes are separately identified in source-evidence.json.",
+  "publication_allowlist": "Only the listed own factual JSON extractions plus this manifest. No original source documents, full HTML/text, map images or derivatives.",
+  "automatic_application": false
+}

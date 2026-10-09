@@ -1,0 +1,51 @@
+{
+  "schema": "hydro-names-bounded-research-v1",
+  "batch": "r06",
+  "checked_at_utc": "2026-10-09T13:21:11.271433+00:00",
+  "automatic_application": false,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108091",
+      "source_id": "1159108091",
+      "category": "lake",
+      "selection_origin": "new_inventory_investigation",
+      "reconstructed_historical_verdict": false,
+      "inventory_classification": "no_meaningful_name_in_deployed_data",
+      "inventory_display_names": [
+        "lake-120"
+      ],
+      "inventory_bbox": [
+        -156.461006,
+        58.50469,
+        -155.350664,
+        58.737826
+      ],
+      "candidate_name": "Naknek Lake",
+      "name_ko": null,
+      "scalar_product_name": null,
+      "automatic_application": false,
+      "research_category": "generalized_single_waterbody_supported_with_named_subbasin_caution",
+      "supported_name_scope": "The full generalized outline is consistent with Naknek Lake’s western basin, North Arm/Bay of Islands and Iliuk Arm in NPS mapping and ordinary official usage.",
+      "whole_polygon_conclusion": "Support the generalized Naknek Lake identity with an explicit local named-sub-basin qualification. The included northwestern basin is locally labeled Johnny’s Lake; acquired evidence does not establish it as an independently scoped second lake or resolve exact official name extent.",
+      "multiwater_extent_assessment": "named_connected_subbasin_present_independent_lake_status_not_established",
+      "scope_cautions": [
+        "Do not erase the local northwestern basin name from the research record.",
+        "Do not infer a compound of independently named lakes solely from a local subfeature label.",
+        "No exact shoreline, formal gazetteer extent or legal naming decision is claimed."
+      ],
+      "source_keys": [
+        "NPS-KATM-MAPS",
+        "NPS-KATM-CLASSIC-MAP",
+        "NPS-NAKNEK-BOATING-GUIDE-2013",
+        "NPS-KATM-BOATING",
+        "NPS-KATM-WATER",
+        "USGS-ILIUK-STATION"
+      ],
+      "limits": [
+        "Lake Brooks and Lake Grosvenor are distinct nearby shapes outside the reviewed source outline.",
+        "The independent USGS record is point-level corroboration for Iliuk Arm, not a full-polygon boundary source.",
+        "No direct Korean-language name evidence was acquired; no transliteration is proposed."
+      ]
+    }
+  ]
+}

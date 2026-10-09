@@ -1,0 +1,47 @@
+{
+  "schema": "hydro-names-map-scope-review-v1",
+  "aw_id": "lakes_base:1159108091",
+  "reviewed_at_utc": "2026-10-09T13:21:11.271433+00:00",
+  "whole_source_geometry_reviewed": true,
+  "geometry_type": "Polygon",
+  "ring_count": 1,
+  "coordinate_positions_including_closure": 96,
+  "geometry_sha256": "7ad9650dc5ce7d7f8c2cf41134154d782a705162dfa98e113de0101624eee064",
+  "geometry_hash_scope": "UTF-8 JSON of the complete source geometry with sorted keys and compact separators; independent of file whitespace.",
+  "source_bbox": [
+    -156.46100556940243,
+    58.504689681364226,
+    -155.3506640818618,
+    58.737826070052506
+  ],
+  "method": "Rendered all source-ring coordinates with longitude/latitude axes, then visually compared the entire outline and its geographic extent with the NPS full-lake graticule map and regional park map. No centroid-only match, georeferenced raster overlay, exact shoreline overlap score or surveyed name-boundary claim.",
+  "region_checks": [
+    {
+      "region": "Western basin and outlet",
+      "observation": "The source’s broad western basin and short western tip align with the map’s Naknek basin and Lake Camp/outlet vicinity."
+    },
+    {
+      "region": "Northwestern connected basin",
+      "observation": "The source includes a northern lobe matching the guide’s locally labeled Johnny’s Lake basin. Local naming is retained as a scope qualification; separate official-lake status was not established."
+    },
+    {
+      "region": "Northeastern arm",
+      "observation": "The long east-west source arm and its southeastern notch match North Arm/Bay of Islands at generalized scale."
+    },
+    {
+      "region": "Southeastern arm",
+      "observation": "The source turns southeast at the Brooks Camp/moraine vicinity and extends east across Iliuk Arm."
+    },
+    {
+      "region": "Neighboring lakes",
+      "observation": "The whole rendered target does not extend southwest into Lake Brooks or north across the land separation into Lake Grosvenor; those distinct neighboring basin shapes were checked on the two maps."
+    }
+  ],
+  "name_extent_assessment": "The evidence supports generalized Naknek Lake identity for the mapped waterbody, with a local named-sub-basin qualification. It does not demonstrate that the polygon improperly combines independently scoped lakes, nor certify one official name for every coordinate.",
+  "precision_limits": [
+    "Source is a generalized 1:10 million-scale polygon; local shoreline differences are expected.",
+    "The 2013 guide is not a current lake-level survey.",
+    "Complete source/rendered-coordinate verification belongs to the separate geometry-validation package.",
+    "No formal registry decision, legal name extent, Korean name or exact name-subdivision boundary was verified."
+  ]
+}

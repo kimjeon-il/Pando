@@ -1,0 +1,137 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v2",
+  "batch": "r06",
+  "research_completed_targets": 3,
+  "independently_reviewed_targets": 3,
+  "counting_unit": "Three actual logical inventory lake features; not a count of newly approved scalar names.",
+  "counts": {
+    "supported_generalized_water_identity": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_name_lead_targets": 2,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "selection_count_note": "Two name-only historical leads lacked recovered IDs; all three records are newly joined actual-inventory investigations. These counts are not disjoint.",
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 389,
+  "lake_baseline_coordinate_count_including_closures": 389,
+  "position_counts_in_target_order": [
+    101,
+    192,
+    96
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159109553",
+      "category": "lake",
+      "source_id": "1159109553",
+      "baseline_logical_fid": 4050,
+      "geometry_fids": [
+        15425
+      ],
+      "candidate_name": "Dore Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "generalized_identity_supported_not_product_name_clearance",
+      "supported_name_scope": "The complete generalized ring agrees with the broad Dore Lake basin and its southern lobes on the WSA regional map, in the arrangement south of Lac La Plonge and west of Smoothstone Lake. The hydrometric index independently uses the unaccented Dore name.",
+      "source_keys": [
+        "wsa_dore_map",
+        "eccc_dore_usage"
+      ],
+      "limits": [
+        "Only Dore Lake is directly supported here; the accented search lead is not adopted as an established variant.",
+        "The map is printed November 25, 2014 at 1:1,750,000. Its URL folder and later retrieval do not refresh its content.",
+        "Mapped islands and fine shore detail are absent from this one-ring generalized polygon. No surveyed shoreline, exact name extent or formal current registry status is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": true,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110303",
+      "category": "lake",
+      "source_id": "1159110303",
+      "baseline_logical_fid": 4105,
+      "geometry_fids": [
+        15480
+      ],
+      "candidate_name": "Ennadai Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "generalized_identity_supported_not_product_name_clearance",
+      "supported_name_scope": "The complete generalized footprint follows Ennadai Lake across the 61-degree sheet seam: its southwest body on 65C and both northward arms on 65F. Both arms carry the Ennadai Lake label. Separately mapped North End Lake lies east of the northeastern arm and is not evidence of a second included lake.",
+      "source_keys": [
+        "nluis_65c_ennadai_map",
+        "nluis_65f_ennadai_map",
+        "cirnac_ennadai_usage"
+      ],
+      "limits": [
+        "The adjacent 65C and 65F sheets are one 1979 thematic source group with base information current as of 1963, not two independent contemporary naming maps.",
+        "The sheets use NAD27. Comparison is regional and visual; no datum-transformed overlay, shoreline score, island topology or exact name subdivision is certified.",
+        "The 2019 CIRNAC narrative corroborates government usage only, without a formal naming decision, geographic boundary or Indigenous-language equivalent."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": true,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108091",
+      "category": "lake",
+      "source_id": "1159108091",
+      "baseline_logical_fid": 3937,
+      "geometry_fids": [
+        15312
+      ],
+      "candidate_name": "Naknek Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "generalized_identity_supported_with_named_subbasin_caution",
+      "supported_name_scope": "The whole generalized ring agrees with Naknek Lake’s western basin, North Arm/Bay of Islands and southeastern Iliuk Arm. The guide’s full-lake framing and NPS prose support that ordinary waterbody association. The northwestern lobe includes the locally labeled Johnny’s Lake basin; this remains an explicit scope qualification.",
+      "source_keys": [
+        "NPS-KATM-MAPS",
+        "NPS-KATM-CLASSIC-MAP",
+        "NPS-NAKNEK-BOATING-GUIDE-2013",
+        "NPS-KATM-BOATING",
+        "NPS-KATM-WATER",
+        "USGS-ILIUK-STATION"
+      ],
+      "limits": [
+        "The February 2013 guide warns that many labels use local names. Johnny’s Lake is not erased or silently converted to an alias, and its formal independent-lake status is not established.",
+        "The nearby Lake Brooks and Lake Grosvenor shapes are outside the generalized target; no exact split or surveyed coverage is claimed.",
+        "USGS station usage corroborates Iliuk Arm at one map-interpolated NAD83 point with unknown stated accuracy. It does not validate the full footprint.",
+        "The guide contains a 2011 National Geographic Society/i-cubed copyright notice. No original pages, maps or derivatives are published."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "e37e215519c280c0a78c66eea117926df28d4e5a068c2a724fbeafa29aed6d12",
+  "publication_contents": "Own factual evidence and review, exact identifier/coordinate/hash facts, three selected public-domain Natural Earth lake polygons and validators. Raw third-party documents, maps and crops are excluded.",
+  "previous_reconstruction_commit": "761150320ff05b4459fbd3cb899d3b46a858fa4b"
+}

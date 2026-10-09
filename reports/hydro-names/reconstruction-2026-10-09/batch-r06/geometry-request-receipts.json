@@ -1,0 +1,99 @@
+{
+  "schema": "selected-lake-cache-reuse-v1",
+  "batch": "r06",
+  "new_external_request_count": 0,
+  "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+  "scope": "Immutable baseline cache and previously acquired official Natural Earth terms. No current deployment observation.",
+  "receipts": [
+    {
+      "asset_name": "baseline-manifest.json",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.1/manifest.json",
+      "original_retrieved_at_utc": "2026-10-09T10:50:35.839Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+      "new_external_request_in_r06": false,
+      "bytes": 52975,
+      "sha256": "c10eaffd375d5f0d90955fa253b02ec73d9daeff261fa5cfde1f73ca89d2bd80"
+    },
+    {
+      "asset_name": "lakes_base.geojson",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/lakes_base.geojson",
+      "original_retrieved_at_utc": "2026-10-09T10:51:11.619Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+      "new_external_request_in_r06": false,
+      "bytes": 7016832,
+      "sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c"
+    },
+    {
+      "asset_name": "metadata-core.json.gz",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.1/metadata-core.json.gz",
+      "original_retrieved_at_utc": "2026-10-09T10:51:48.623Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+      "new_external_request_in_r06": false,
+      "bytes": 729625,
+      "sha256": "700b886134bbc44fa7686f8f2c131be53a73a5c2ebaabb468b50ea3e4000cee5"
+    },
+    {
+      "asset_name": "metadata-detail.json.gz",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/metadata-detail.json.gz",
+      "original_retrieved_at_utc": "2026-10-09T10:52:45.496268+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+      "new_external_request_in_r06": false,
+      "bytes": 1670972,
+      "sha256": "1416c6932976427e9cb8140f171f4ccb54704111bce49fb8b8260819ce54b2bd"
+    },
+    {
+      "asset_name": "index.bin.gz",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/index.bin.gz",
+      "original_retrieved_at_utc": "2026-10-09T10:53:19.166Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+      "new_external_request_in_r06": false,
+      "bytes": 32632,
+      "sha256": "a68aff611d2be202dbf31ef1fbce476386e1d49b1619b68e9219279be7896906"
+    },
+    {
+      "asset_name": "shard-s0.bin",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/shards/s0.bin",
+      "original_retrieved_at_utc": "2026-10-09T10:54:02.416252+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+      "new_external_request_in_r06": false,
+      "bytes": 4169624,
+      "sha256": "1ae657ac378ae4fb441425a8ce52c38348541717b363b3a8189d3bd7249702a8"
+    },
+    {
+      "asset_name": "worker.js",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/workers/hydro-tile-worker.js",
+      "original_retrieved_at_utc": "2026-10-09T10:53:59.639Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+      "new_external_request_in_r06": false,
+      "bytes": 32253,
+      "sha256": "14399a8454fb980fb2adc78b7c52bcd32ea5e1b1f313dcfba301886a6b9ddfec"
+    },
+    {
+      "asset_name": "boundary.js",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/workers/geographic-boundary-core.js",
+      "original_retrieved_at_utc": "2026-10-09T10:54:01.552Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+      "new_external_request_in_r06": false,
+      "bytes": 3928,
+      "sha256": "b9017382fcc828924608c8a32ddbf2831800475a725b432cad9e6445d33bc8ea"
+    },
+    {
+      "asset_name": "earcut.js",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/vendor/earcut.min.js",
+      "original_retrieved_at_utc": "2026-10-09T10:54:03.196Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+      "new_external_request_in_r06": false,
+      "bytes": 7131,
+      "sha256": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3"
+    }
+  ],
+  "rights_reuse": {
+    "original_resource_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "original_retrieved_at_utc": "2026-10-09T10:54:05.958532+00:00",
+    "original_http_status": 200,
+    "reuse_hash_checked_at_utc": "2026-10-09T13:17:40Z",
+    "new_external_request_in_r06": false,
+    "bytes": 38013,
+    "sha256": "9bc9cbc663b0e6298b7a8cc216a92b5b223efe87796ba5d74c99a64ed6c12db8"
+  }
+}

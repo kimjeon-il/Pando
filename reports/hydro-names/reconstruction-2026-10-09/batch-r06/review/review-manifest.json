@@ -1,0 +1,51 @@
+{
+  "schema": "hydro-independent-review-manifest-v1",
+  "batch": "r06",
+  "frozen_at_utc": "2026-10-09T13:29:49.180034+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159109553",
+    "lakes_base:1159110303",
+    "lakes_base:1159108091"
+  ],
+  "files": [
+    {
+      "file": "README.md",
+      "bytes": 5435,
+      "sha256": "0596f07dc5f0b1da028065ba5fabb951769d6600640412c25cd74405c4bc0953"
+    },
+    {
+      "file": "frozen-input-pins.json",
+      "bytes": 18374,
+      "sha256": "5a060456f5bbb529c5e45e816c93a05783c672c704300ad5bd70221ffa626f14"
+    },
+    {
+      "file": "independent-review.json",
+      "bytes": 8551,
+      "sha256": "e37e215519c280c0a78c66eea117926df28d4e5a068c2a724fbeafa29aed6d12"
+    },
+    {
+      "file": "review-validation.json",
+      "bytes": 9441,
+      "sha256": "ded37f2b374ed4e3407ac9a8f91f1698c2abac5076323d9bf271833a57ecb022"
+    },
+    {
+      "file": "source-observations.json",
+      "bytes": 9794,
+      "sha256": "68a7902920a3bb6b8c9c2c2c26142117a425422e3933c8ba1d679af9a38906c2"
+    },
+    {
+      "file": "test-independent-review.py",
+      "bytes": 6704,
+      "sha256": "b1249701167207556822f34bf96f52cf7af5006c462b956b66f227a181a8616c"
+    },
+    {
+      "file": "validate-independent-review.py",
+      "bytes": 26051,
+      "sha256": "62a882c6052d446137fe70e0489e13039a09469dcaacdcfd49803e79e0381eb4"
+    }
+  ],
+  "manifest_excludes_itself": true,
+  "review_file_count_including_manifest": 8,
+  "original_source_bodies_or_map_images_published": false,
+  "automatic_application": false
+}

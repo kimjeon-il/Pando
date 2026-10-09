@@ -1,0 +1,220 @@
+{
+  "schema": "hydro-bounded-source-evidence-v1",
+  "batch": "r06",
+  "created_at_utc": "2026-10-09T13:23:43.627021+00:00",
+  "scope": "Two actual Canadian lake inventory targets. Original official bodies and inspection images are retained separately and are not published here.",
+  "sources": [
+    {
+      "source_key": "wsa_dore_map",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "title": "Map of Saskatchewan Showing Completed Watershed Plans",
+      "publication_date": "2014-11-25",
+      "kind": "official_thematic_map",
+      "independence_group": "saskatchewan_wsa_map",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "final_url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "retrieved_at_utc": "2026-10-09T13:17:20.296694+00:00",
+      "http_status": 200,
+      "body_sha256": "64744b11dbae7381445b12ad0507487a5a38a82c6fe9de446b98814281d92197",
+      "body_byte_count": 5017913,
+      "hash_scope": "Exact acquired original HTTP response body bytes; not a search snippet, tool-generated extraction or rendered crop.",
+      "original_map_visually_inspected": true,
+      "inspection_mode": "Locally rendered/acquired map overview, target panel and imprint viewed as pixels.",
+      "locator": {
+        "page": 1,
+        "page_size_points": [
+          1584,
+          2448
+        ],
+        "target_panel_points": [
+          469.9090576171875,
+          1196.9970703125,
+          607.027587890625,
+          1338.7003173828125
+        ],
+        "label": "Dore Lake",
+        "scale": "1:1,750,000 at 22 × 34 inches",
+        "publication_date_note": "The printed production date is November 25, 2014; the 2025/05 URL directory is not the map publication date.",
+        "projection_printed": "NAD 1983 CSRS UTM Zone 13N"
+      },
+      "local_text_extraction_sha256": "11424b481c74bd23aa70cee06f01df95503bd1448cd478dda6d1588945014f2c",
+      "text_extraction_hash_scope": "Locally extracted UTF-8 text, separately hashed from the original response body."
+    },
+    {
+      "source_key": "eccc_dore_usage",
+      "publisher": "Environment and Climate Change Canada",
+      "title": "Hydrometric Station Name Index: D",
+      "publication_date": null,
+      "kind": "official_name_usage",
+      "independence_group": "eccc_hydrometric_program",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName",
+      "final_url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName",
+      "retrieved_at_utc": "2026-10-09T13:18:59.882154+00:00",
+      "http_status": 200,
+      "body_sha256": "799d07c905e838f481f30816dd808ce219edcc19ef43380682b3d19f324b6dc5",
+      "body_byte_count": 63599,
+      "hash_scope": "Exact acquired original HTTP response body bytes; not a search snippet, tool-generated extraction or rendered crop.",
+      "original_map_visually_inspected": false,
+      "inspection_mode": "Original HTML body parsed as text; no map-image claim.",
+      "locator": {
+        "html_locator": "station-name table row, station 06AG003",
+        "exact_name": "DORE LAKE AT DORE LAKE",
+        "scope": "Hydrometric station name usage only; this index row is not a waterbody boundary or formal naming record."
+      },
+      "local_text_extraction_sha256": "7c93f6813bef9abc03861f07f628a412b90310a8a4f2a84c25d672ae45fbeb44",
+      "text_extraction_hash_scope": "Locally extracted UTF-8 text, separately hashed from the original response body."
+    },
+    {
+      "source_key": "nluis_index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "title": "Northern Land Use: 1:250,000 land use map index",
+      "publication_date": null,
+      "kind": "official_map_catalog",
+      "independence_group": "federal_land_use_information_series",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "final_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "retrieved_at_utc": "2026-10-09T13:17:26.409366+00:00",
+      "http_status": 200,
+      "body_sha256": "85aa748f994da291132c7dc7142db356a770af60625250cf993affee7ca6acdc",
+      "body_byte_count": 143186,
+      "hash_scope": "Exact acquired original HTTP response body bytes; not a search snippet, tool-generated extraction or rendered crop.",
+      "original_map_visually_inspected": false,
+      "inspection_mode": "Original HTML body parsed as text; no map-image claim.",
+      "locator": {
+        "html_locator": "table rows 65c.jpg and 65f.jpg",
+        "linked_titles": [
+          "Ennadai Lake",
+          "Ennadai"
+        ],
+        "scope": "Acquisition/catalog provenance only; not independent map confirmation."
+      }
+    },
+    {
+      "source_key": "nluis_65c_ennadai_map",
+      "publisher": "Department of the Environment; thematic cartography Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "title": "Land Use Information Series: Ennadai Lake, sheet 65C",
+      "publication_date": "1979",
+      "kind": "official_thematic_map",
+      "independence_group": "federal_land_use_information_series",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65c.jpg",
+      "final_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65c.jpg",
+      "retrieved_at_utc": "2026-10-09T13:18:35.367873+00:00",
+      "http_status": 200,
+      "body_sha256": "1cbebbdac09447e7b0d04e86a2cab4587bfc5dc4c0addaf0a1a9e3d6e33ebe5d",
+      "body_byte_count": 10960672,
+      "hash_scope": "Exact acquired original HTTP response body bytes; not a search snippet, tool-generated extraction or rendered crop.",
+      "original_map_visually_inspected": true,
+      "inspection_mode": "Locally rendered/acquired map overview, target panel and imprint viewed as pixels.",
+      "locator": {
+        "image_dimensions_pixels": [
+          8752,
+          5058
+        ],
+        "target_panel_pixels": [
+          2560,
+          150,
+          4800,
+          1450
+        ],
+        "imprint_panel_pixels": [
+          2770,
+          3800,
+          6100,
+          5058
+        ],
+        "label": "ENNADAI LAKE",
+        "scale": "1:250,000",
+        "map_frame_degrees": [
+          -102,
+          60,
+          -100,
+          61
+        ],
+        "datum_printed": "North American Datum 1927",
+        "projection_printed": "Transverse Mercator",
+        "source_date_note": "Map production and thematic cartography dated 1979; the base map notes information current as of 1963. This is historical mapping, not proof of present-day shoreline or naming status."
+      }
+    },
+    {
+      "source_key": "nluis_65f_ennadai_map",
+      "publisher": "Department of the Environment; thematic cartography Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "title": "Land Use Information Series: Ennadai, sheet 65F",
+      "publication_date": "1979",
+      "kind": "official_thematic_map",
+      "independence_group": "federal_land_use_information_series",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65f.jpg",
+      "final_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65f.jpg",
+      "retrieved_at_utc": "2026-10-09T13:18:38.883797+00:00",
+      "http_status": 200,
+      "body_sha256": "6251cc40b3ad1c4a4055eae1b71068386367160c883609205534f8c3a549cf12",
+      "body_byte_count": 9763386,
+      "hash_scope": "Exact acquired original HTTP response body bytes; not a search snippet, tool-generated extraction or rendered crop.",
+      "original_map_visually_inspected": true,
+      "inspection_mode": "Locally rendered/acquired map overview, target panel and imprint viewed as pixels.",
+      "locator": {
+        "image_dimensions_pixels": [
+          8728,
+          5038
+        ],
+        "target_panel_pixels": [
+          2560,
+          2600,
+          4900,
+          3810
+        ],
+        "northeastern_detail_pixels": [
+          4100,
+          2700,
+          4750,
+          3450
+        ],
+        "imprint_panel_pixels": [
+          2770,
+          3800,
+          6100,
+          5038
+        ],
+        "labels": [
+          "ENNADAI LAKE",
+          "North End Lake"
+        ],
+        "scale": "1:250,000",
+        "map_frame_degrees": [
+          -102,
+          61,
+          -100,
+          62
+        ],
+        "datum_printed": "North American Datum 1927",
+        "projection_printed": "Transverse Mercator",
+        "source_date_note": "Map production and thematic cartography dated 1979; the base map notes information current as of 1963. Sheet 65F continues the same mapped lake north of the 61°N edge of sheet 65C."
+      }
+    },
+    {
+      "source_key": "cirnac_ennadai_usage",
+      "publisher": "Crown-Indigenous Relations and Northern Affairs Canada",
+      "title": "Ahiarmiut Relocation Claim Settlement",
+      "publication_date": "2019-01-22",
+      "kind": "official_name_usage",
+      "independence_group": "cirnac_settlement_publication",
+      "url": "https://www.rcaanc-cirnac.gc.ca/eng/1548182132843/1548182152538",
+      "final_url": "https://www.rcaanc-cirnac.gc.ca/eng/1548182132843/1548182152538",
+      "retrieved_at_utc": "2026-10-09T13:19:03.646581+00:00",
+      "http_status": 200,
+      "body_sha256": "3c72e18313dac070e80af45ff56b886c988752925de3ed24f437d87edd166eb1",
+      "body_byte_count": 16174,
+      "hash_scope": "Exact acquired original HTTP response body bytes; not a search snippet, tool-generated extraction or rendered crop.",
+      "original_map_visually_inspected": false,
+      "inspection_mode": "Original HTML body parsed as text; no map-image claim.",
+      "locator": {
+        "html_locator": "Looking back: history of failed relocations, 1950 entry; historical-photo description",
+        "exact_name": "Ennadai Lake",
+        "scope": "Independent government narrative uses Ennadai Lake as a place/waterbody reference. It does not delimit the lake or supply a formal naming decision."
+      },
+      "local_text_extraction_sha256": "d5279dca45b7e535a38ceaa1c65030b03407a25136665bc4c1765da4bc062118",
+      "text_extraction_hash_scope": "Locally extracted UTF-8 text, separately hashed from the original response body."
+    }
+  ],
+  "independence_note": "65C and 65F are adjacent sheets in one land-use map series; the index is catalog provenance. These three records are not counted as three independent confirmations. ECCC and CIRNAC provide separate official usage evidence for their respective target.",
+  "automatic_application": false
+}

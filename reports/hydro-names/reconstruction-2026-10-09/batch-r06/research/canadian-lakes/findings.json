@@ -1,0 +1,77 @@
+{
+  "schema": "hydro-bounded-lake-findings-v1",
+  "batch": "r06",
+  "frozen_at_utc": "2026-10-09T13:23:43.627021+00:00",
+  "target_count": 2,
+  "new_actual_inventory_targets": 2,
+  "compound_named_waterbody_required_by_evidence": false,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159109553",
+      "source_id": "1159109553",
+      "candidate_name": "Dore Lake",
+      "directly_supported_name_forms": [
+        "Dore Lake",
+        "DORE LAKE"
+      ],
+      "unverified_hint_form_not_adopted": "Doré Lake",
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized single source polygon is associated with Dore Lake: a broad northern basin and multiple southern lobes shown as one named lake on the WSA map. This is a generalized lake identity, not a surveyed shoreline or scalar-name approval.",
+      "source_keys": [
+        "wsa_dore_map",
+        "eccc_dore_usage"
+      ],
+      "correspondence_observations": [
+        "The WSA map places Dore Lake south of Lac La Plonge, west of Smoothstone Lake and north of Sled/Beaupre lakes; the candidate is the broad lake in that arrangement.",
+        "The source polygon preserves the same broad northern body, western indentation, southwestern extensions, long south-central inlet and eastward/southeastern lobe visible on the map. The match uses the whole outline, not merely label location or a centroid.",
+        "The WSA map depicts islands and finer shoreline structure that the one-ring generalized source polygon omits. Adjacent separately mapped waterbodies are not treated as parts of Dore Lake."
+      ],
+      "name_scope_limits": [
+        "The acquired official map and hydrometric index support the unaccented form Dore; the accented spelling supplied as a lead is not independently established by these sources.",
+        "The 2014 WSA map has an accuracy/currency disclaimer; its 2025 URL folder does not update the mapped content.",
+        "No formal naming record, effective naming date, present registry status, datum-transformed overlay or exact shoreline fit was established."
+      ],
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110303",
+      "source_id": "1159110303",
+      "candidate_name": "Ennadai Lake",
+      "directly_supported_name_forms": [
+        "Ennadai Lake",
+        "ENNADAI LAKE"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized source polygon is associated with the single mapped Ennadai Lake across adjoining 65C and 65F sheets. The southwestern body and both main northern arms have continuous geographic/cartographic support. This is a generalized lake identity, not a surveyed shoreline or scalar-name approval.",
+      "source_keys": [
+        "nluis_65c_ennadai_map",
+        "nluis_65f_ennadai_map",
+        "cirnac_ennadai_usage"
+      ],
+      "correspondence_observations": [
+        "Sheet 65C shows the elongated southwest-to-northeast main body labeled ENNADAI LAKE, including its southwest termination near Birch Bay, Caribou Point and eastern body near Halfway Bluff.",
+        "At the shared 61°N sheet boundary, sheet 65F continues the western and eastern northern arms; both are labeled ENNADAI LAKE. Their arrangement matches the two northern protrusions and intervening land indentation in the complete source polygon.",
+        "North End Lake is separately drawn and labeled east of the northeastern Ennadai arm. Its label is not evidence that the Ennadai candidate is a compound of two named lakes. No exact boundary-fit claim is made.",
+        "The generalized source polygon omits mapped islands and many fine shoreline inlets. The historic maps are in NAD27, while the source geographic coordinates have not been datum-transformed or surveyed against them."
+      ],
+      "name_scope_limits": [
+        "65C and 65F are complementary sheets of one 1979 thematic series using a base map with information current as of 1963; they are not independent current registry sources.",
+        "The 2019 CIRNAC narrative independently confirms government usage of Ennadai Lake but does not establish formal naming status or geographic extent.",
+        "No formal naming decision, current registry status, indigenous-language form, Korean form, quantitative georeferenced overlap or exact shoreline fit was verified."
+      ],
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "publication_scope": "Own factual observations, short labels, original URLs, exact response-body hashes and reproducible locators only; no official publication bodies, complete extracted texts, map images, crops or overlays.",
+  "automatic_application": false
+}
