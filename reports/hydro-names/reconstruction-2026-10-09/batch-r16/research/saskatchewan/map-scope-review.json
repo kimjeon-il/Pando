@@ -1,0 +1,56 @@
+{
+  "schema": "hydro-public-map-scope-review-v2",
+  "batch": "r16",
+  "reviewed_at_utc": "2026-10-09T17:06:42.839250+00:00",
+  "method": "Whole-outline comparison of complete source and baseline ordered coordinates, geographic placement, relative shape and surrounding mapped waters. The original official map was inspected as pixels. No shoreline repair or exact name-boundary partition is claimed.",
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108453",
+      "complete_source_positions_considered": 33,
+      "complete_baseline_positions_considered": 33,
+      "observations": [
+        "The complete 33-position ring was considered, including the northern cap, eastward middle projection, narrow middle connection, southwestern basin and southeast-pointing southern lobe.",
+        "The complete bent north-south footprint corresponds at regional scale to the water mapped as Knee Lake. Both the northern portion below the Churchill lettering and the southern basin beside the Knee Lake label were examined.",
+        "The mapped long island or land indentation in the northern portion is not retained in the one-ring source geometry. Northern bays and small channels are also simplified. These differences limit shoreline fidelity without defeating the bounded generalized identity.",
+        "The separately labelled Keller Lake to the northeast and the Sandfly/Pinehouse water network to the southeast were inspected as context and were not assigned to this feature."
+      ],
+      "assessment": "The complete generalized polygon corresponds to mapped Knee Lake at regional scale; this is bounded cartographic identification.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false
+    },
+    {
+      "aw_id": "lakes_base:1159108469",
+      "complete_source_positions_considered": 44,
+      "complete_baseline_positions_considered": 44,
+      "observations": [
+        "The complete 44-position ring was considered, including the long northeastern tip, the western arm, the inward eastern notch, the southeastern lobe and the rounded southern end.",
+        "The northern extent lies beneath the Sandfly portion of the Sandfly Lake lettering, while the southern lobes extend toward the water carrying the separately placed Pinehouse Lake lettering. The complete mapped footprint and adjoining passages are visible.",
+        "At the regional map scale, the whole selected outline can be compared with the western branching water network, but the name coverage of its northern and southern lobes is not unambiguously partitioned.",
+        "Neither the nearby Pinehouse settlement label nor a label closest to the polygon centre establishes a whole-feature name. A uniform name and an exhaustive compound identity remain unestablished."
+      ],
+      "assessment": "Whole-feature naming is unresolved for the complete western branching polygon in the Sandfly/Pinehouse water network. The mapped names are contextual and do not establish a uniform or exhaustive compound identity.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true
+    },
+    {
+      "aw_id": "lakes_base:1159109723",
+      "complete_source_positions_considered": 28,
+      "complete_baseline_positions_considered": 28,
+      "observations": [
+        "The complete 28-position ring was considered, including the broad northern cap, northeastern shoulder, eastern middle projection, southeast diagonal edge and tapered southern end.",
+        "The complete generalized outline follows the eastern basin under the Lake portion of the Sandfly Lake lettering. The Sandfly and Lake words were read together in the full regional view, rather than using the isolated word Lake as a name.",
+        "The mapped northern bays, eastern projection and southern taper belong to the same basin at regional scale. The adjoining western water network and the separately labelled Pinehouse Lake were considered when limiting this identification to the eastern basin.",
+        "The selected polygon is an eastern portion of mapped Sandfly Lake, not a claim to enclose the entire named lake. It omits fine bays and islands; exact boundaries at the adjacent narrow passages and river transitions were not established."
+      ],
+      "assessment": "The complete generalized polygon corresponds to the eastern basin of mapped Sandfly Lake at regional scale. This identifies the selected basin, without equating it with the entire named lake or assigning the name across adjacent channels.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false
+    }
+  ],
+  "included_evidence_limit": "Included records retain official bibliography, own factual observations and geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

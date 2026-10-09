@@ -1,0 +1,190 @@
+{
+  "schema": "hydro-public-review-validation-v4",
+  "checked_at_utc": "2026-10-09T17:08:05.108097+00:00",
+  "public_validation": {
+    "status": "passed",
+    "mode": "included_public_files_only",
+    "scope_aw_ids": [
+      "lakes_base:1159108453",
+      "lakes_base:1159108469",
+      "lakes_base:1159109723"
+    ],
+    "lake_geometry_checks": [
+      {
+        "aw_id": "lakes_base:1159108453",
+        "source_id": "1159108453",
+        "geometry_fid": 15339,
+        "logical_fid": 3964,
+        "position_count": 33,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true,
+        "source_bbox": [
+          -107.0908428951331,
+          55.79418479873581,
+          -106.86123887597039,
+          55.94960905786132
+        ],
+        "baseline_bbox": [
+          -107.090843,
+          55.794185,
+          -106.861239,
+          55.949609
+        ],
+        "maximum_coordinate_rounding_error_degrees": 4.873776333624846e-07
+      },
+      {
+        "aw_id": "lakes_base:1159108469",
+        "source_id": "1159108469",
+        "geometry_fid": 15340,
+        "logical_fid": 3965,
+        "position_count": 44,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true,
+        "source_bbox": [
+          -106.57320357757206,
+          55.62080432785527,
+          -106.27206907551636,
+          55.770046940311005
+        ],
+        "baseline_bbox": [
+          -106.573204,
+          55.620804,
+          -106.272069,
+          55.770047
+        ],
+        "maximum_coordinate_rounding_error_degrees": 4.982743604386997e-07
+      },
+      {
+        "aw_id": "lakes_base:1159109723",
+        "source_id": "1159109723",
+        "geometry_fid": 15438,
+        "logical_fid": 4063,
+        "position_count": 28,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true,
+        "source_bbox": [
+          -106.17021908752879,
+          55.654656202475394,
+          -105.98418095918159,
+          55.80478190731256
+        ],
+        "baseline_bbox": [
+          -106.170219,
+          55.654656,
+          -105.984181,
+          55.804782
+        ],
+        "maximum_coordinate_rounding_error_degrees": 4.79040153322785e-07
+      }
+    ],
+    "included_ordered_position_count": 105,
+    "recorded_historical_full_feature_reviews_completed": 3,
+    "current_source_limited_targets": 0,
+    "current_pending_access_ids": [],
+    "current_scope_hold_ids": [
+      "lakes_base:1159108469"
+    ],
+    "current_follow_up_ids": [
+      "lakes_base:1159108469"
+    ],
+    "preserved_pending_access_ids": [
+      "lakes_base:1159112821",
+      "lakes_base:1159108815"
+    ],
+    "preserved_scope_hold_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159123531",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159112207",
+      "lakes_base:1159110475",
+      "lakes_base:1159108993",
+      "lakes_base:1159109803"
+    ],
+    "recorded_prior_target_count": 45,
+    "current_batch_increment": 3,
+    "recorded_cumulative_distinct_targets": 48,
+    "remaining_unrecorded_targets": 4017,
+    "remaining_river_groups": 3439,
+    "remaining_lakes": 578,
+    "distinct_acquired_publications": 1,
+    "distinct_cartographic_identity_publications": 1,
+    "original_source_material_reopened": false,
+    "map_judgments_reproduced": false,
+    "prior_target_source_or_geometry_reaudit_performed": false,
+    "formal_registry_verified": false,
+    "automatic_application": false,
+    "network_requests": 0,
+    "limit": "Included-file integrity and factual linkage only. Omitted publications and past visual judgments are not reproduced. The second target remains unnamed with a completed naming-scope hold.",
+    "public_input_files_checked": 18,
+    "included_component_manifests_checked": 2
+  },
+  "public_corruption_tests": {
+    "status": "passed",
+    "mode": "included_public_files_only",
+    "semantic_corruptions_rejected": 50,
+    "corrupt_fixtures_rejected": 52,
+    "fixtures": [
+      "automatic_application",
+      "korean_name",
+      "scalar_name",
+      "scalar_clearance",
+      "label_only_identity",
+      "live_deployment",
+      "restored_history",
+      "fid_domain",
+      "target_order",
+      "cumulative_count",
+      "assigned_name_swap",
+      "scope_hold_erased",
+      "scope_follow_up_erased",
+      "scope_access_invented",
+      "scope_completion_erased",
+      "compound_invented",
+      "context_name_promoted",
+      "context_form_promoted",
+      "context_label_promoted",
+      "settlement_as_lake",
+      "exhaustive_union",
+      "precise_partition",
+      "second_constituent",
+      "cold_pending_erased",
+      "timiskaming_pending_erased",
+      "previous_holds_erased",
+      "new_pending_invented",
+      "whole_named_lake_extent",
+      "survey_claim",
+      "historical_judgments_reproduced",
+      "source_vertex",
+      "baseline_vertex",
+      "ring_order",
+      "missing_target",
+      "inventory_logical_fid",
+      "reference_order",
+      "research_scope",
+      "research_completion_count",
+      "research_context_as_name",
+      "research_whole_named_lake_extent",
+      "source_fact_count",
+      "source_fact_bounds",
+      "url_date_as_publication",
+      "multiple_views_as_sources",
+      "new_retrieval_invented",
+      "map_scope_incomplete",
+      "source_observation_count",
+      "prior_duplicate",
+      "remaining_queue",
+      "old_source_reaudit",
+      "included_file_bytes",
+      "nonincluded_pin_path"
+    ],
+    "map_judgments_reproduced": false,
+    "original_source_material_reopened": false,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "historical_assessment_scope": "Recorded past original-source inspection is separate. These checks neither reopen omitted publications nor reproduce visual judgments. The second target remains unnamed with a completed naming-scope hold; the two prior access-pending targets are not reaudited.",
+  "automatic_application": false
+}

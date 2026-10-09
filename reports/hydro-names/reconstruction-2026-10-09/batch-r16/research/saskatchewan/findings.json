@@ -1,0 +1,143 @@
+{
+  "schema": "hydro-bounded-lake-findings-v2",
+  "batch": "r16",
+  "frozen_at_utc": "2026-10-09T17:06:42.839250+00:00",
+  "target_count": 3,
+  "new_actual_inventory_targets": 3,
+  "full_feature_correspondence_review_completed_count": 3,
+  "source_limited_unresolved_count": 0,
+  "whole_feature_name_scope_hold_count": 1,
+  "compound_named_waterbody_required_by_evidence": null,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108453",
+      "source_id": "1159108453",
+      "candidate_name": "Knee Lake",
+      "directly_supported_name_forms": [
+        "Knee Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized polygon corresponds to mapped Knee Lake at regional scale; this is bounded cartographic identification.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "cartographic_identity_source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "correspondence_observations": [
+        "The complete 33-position ring was considered, including the northern cap, eastward middle projection, narrow middle connection, southwestern basin and southeast-pointing southern lobe.",
+        "The complete bent north-south footprint corresponds at regional scale to the water mapped as Knee Lake. Both the northern portion below the Churchill lettering and the southern basin beside the Knee Lake label were examined.",
+        "The mapped long island or land indentation in the northern portion is not retained in the one-ring source geometry. Northern bays and small channels are also simplified. These differences limit shoreline fidelity without defeating the bounded generalized identity.",
+        "The separately labelled Keller Lake to the northeast and the Sandfly/Pinehouse water network to the southeast were inspected as context and were not assigned to this feature."
+      ],
+      "name_scope_limits": [
+        "One dated regional official map supplies the cartographic evidence; no second independent naming source or formal registry record was established.",
+        "The source is a 1:10 million generalized lake polygon. The official map is dated 2014-11-25 and has a printed scale of 1:1,750,000. These sources do not establish a precise current shoreline.",
+        "Review completion is a bounded whole-outline identity assessment, without fine channel partitions or formal naming-instrument verification."
+      ],
+      "compound_named_waterbody_required_by_evidence": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No unresolved gap remains for this bounded generalized identity question. Formal registry, exact shoreline and fine adjoining-channel verification remain outside scope.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true
+    },
+    {
+      "aw_id": "lakes_base:1159108469",
+      "source_id": "1159108469",
+      "candidate_name": null,
+      "directly_supported_name_forms": [],
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "Whole-feature naming is unresolved for the complete western branching polygon in the Sandfly/Pinehouse water network. The mapped names are contextual and do not establish a uniform or exhaustive compound identity.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "cartographic_identity_source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "correspondence_observations": [
+        "The complete 44-position ring was considered, including the long northeastern tip, the western arm, the inward eastern notch, the southeastern lobe and the rounded southern end.",
+        "The northern extent lies beneath the Sandfly portion of the Sandfly Lake lettering, while the southern lobes extend toward the water carrying the separately placed Pinehouse Lake lettering. The complete mapped footprint and adjoining passages are visible.",
+        "At the regional map scale, the whole selected outline can be compared with the western branching water network, but the name coverage of its northern and southern lobes is not unambiguously partitioned.",
+        "Neither the nearby Pinehouse settlement label nor a label closest to the polygon centre establishes a whole-feature name. A uniform name and an exhaustive compound identity remain unestablished."
+      ],
+      "name_scope_limits": [
+        "One dated regional official map supplies the cartographic evidence; no second independent naming source or formal registry record was established.",
+        "The source is a 1:10 million generalized lake polygon. The official map is dated 2014-11-25 and has a printed scale of 1:1,750,000. These sources do not establish a precise current shoreline.",
+        "Full map coverage and full-ring inspection complete the bounded assessment, but the complete western branching feature remains unnamed in this result."
+      ],
+      "compound_named_waterbody_required_by_evidence": null,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Resolve official name coverage for the northern and southern lobes of the complete western branching feature before any whole-feature naming or geometry change.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true,
+      "contextual_map_labels": [
+        "Sandfly Lake",
+        "Pinehouse Lake",
+        "Pinehouse"
+      ],
+      "contextual_label_limits": "Sandfly Lake and Pinehouse Lake are not promoted to a candidate identity for this whole feature; Pinehouse is a settlement label.",
+      "compound_scope_status": "A uniform or compound whole-feature identity is not established.",
+      "exact_name_partition_established": false
+    },
+    {
+      "aw_id": "lakes_base:1159109723",
+      "source_id": "1159109723",
+      "candidate_name": "Sandfly Lake",
+      "directly_supported_name_forms": [
+        "Sandfly Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized polygon corresponds to the eastern basin of mapped Sandfly Lake at regional scale. This identifies the selected basin, without equating it with the entire named lake or assigning the name across adjacent channels.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "cartographic_identity_source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "correspondence_observations": [
+        "The complete 28-position ring was considered, including the broad northern cap, northeastern shoulder, eastern middle projection, southeast diagonal edge and tapered southern end.",
+        "The complete generalized outline follows the eastern basin under the Lake portion of the Sandfly Lake lettering. The Sandfly and Lake words were read together in the full regional view, rather than using the isolated word Lake as a name.",
+        "The mapped northern bays, eastern projection and southern taper belong to the same basin at regional scale. The adjoining western water network and the separately labelled Pinehouse Lake were considered when limiting this identification to the eastern basin.",
+        "The selected polygon is an eastern portion of mapped Sandfly Lake, not a claim to enclose the entire named lake. It omits fine bays and islands; exact boundaries at the adjacent narrow passages and river transitions were not established."
+      ],
+      "name_scope_limits": [
+        "One dated regional official map supplies the cartographic evidence; no second independent naming source or formal registry record was established.",
+        "The source is a 1:10 million generalized lake polygon. The official map is dated 2014-11-25 and has a printed scale of 1:1,750,000. These sources do not establish a precise current shoreline.",
+        "Review completion is a bounded whole-outline identity assessment, without fine channel partitions or formal naming-instrument verification."
+      ],
+      "compound_named_waterbody_required_by_evidence": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No unresolved gap remains for this bounded generalized identity question. Formal registry, exact shoreline and fine adjoining-channel verification remain outside scope.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true,
+      "selected_feature_scope": "Eastern mapped basin, not the entire named Sandfly Lake or adjacent channels.",
+      "whole_named_lake_extent_equivalence_claimed": false
+    }
+  ],
+  "publication_scope": "Official bibliography and own factual observations only; no source publications, map derivatives or omitted-source fingerprints.",
+  "recorded_review_scope": "Complete original and baseline outlines considered against acquired official regional cartography. All three bounded assessments are complete; the western Sandfly/Pinehouse-network target remains on a whole-feature name-scope hold.",
+  "included_evidence_limit": "Included records retain official bibliography, own factual observations and geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

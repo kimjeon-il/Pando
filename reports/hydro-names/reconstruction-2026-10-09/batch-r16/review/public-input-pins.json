@@ -1,0 +1,98 @@
+{
+  "schema": "hydro-public-review-input-pins-v4",
+  "batch": "r16",
+  "scope": "included_public_files_only",
+  "files": [
+    {
+      "path": "geometry-support.py",
+      "bytes": 2400,
+      "sha256": "dd6a583181c1527cdd0646f3ce6aee207570042c14e3fa4ebc3d35a36e752d33"
+    },
+    {
+      "path": "selected-lake-geometries.geojson",
+      "bytes": 5543,
+      "sha256": "f597a101de001200a0ca74ee8fb96726a09048b0ace76e4c6876ce7ab691b9fc"
+    },
+    {
+      "path": "selected-baseline-rendered-geometries.geojson",
+      "bytes": 3745,
+      "sha256": "ad793b9278b018744814f5c2e3303cf29f26df7c7657cefcb192f3dcceae13ce"
+    },
+    {
+      "path": "selected-inventory-records.json",
+      "bytes": 4410,
+      "sha256": "91603b34a0983f4ec78ae53d33338f97e46110993d3f6788b01974f34c57e8d7"
+    },
+    {
+      "path": "geometry-duplicate-check.json",
+      "bytes": 3294,
+      "sha256": "597c2847a629a290c87916e95f649766e32ee3300521f25605de7de08ab0ea3f"
+    },
+    {
+      "path": "geometry-publication-rights.json",
+      "bytes": 993,
+      "sha256": "95acd1f37b2c96566df7210294783a1ec8713babe3bf7e9af366de635085dbeb"
+    },
+    {
+      "path": "geometry-README.md",
+      "bytes": 6205,
+      "sha256": "05cd266e75cbd4b712ad6560c04f4747f0c4bc429d8163d82d5d981d8cc01722"
+    },
+    {
+      "path": "geometry-reference.json",
+      "bytes": 18786,
+      "sha256": "247abe39ae8e6cac6619a372ea4d53c3d95c00080767adbe8b9c72f83a49efb2"
+    },
+    {
+      "path": "validate-geometry-reference.py",
+      "bytes": 16487,
+      "sha256": "c1a0b6cc89978d6efd71346a6055ae30c67f3b4747a57386166a8397b7ed3cdb"
+    },
+    {
+      "path": "test-geometry-reference.py",
+      "bytes": 9648,
+      "sha256": "7f3c8a4c6aedbc99089fa5c2e24104d81509712fc822835c3c26a806a7262029"
+    },
+    {
+      "path": "geometry-validation.json",
+      "bytes": 8523,
+      "sha256": "e60d309de3f974ba37efb77b38e876decc75b1a5245d81db6f006c183dddd667"
+    },
+    {
+      "path": "geometry-component-manifest.json",
+      "bytes": 1613,
+      "sha256": "2998c061eb722f4731bc5dbdbcd6c20d94f85897e976cab9df7529f821a5b50b"
+    },
+    {
+      "path": "research/saskatchewan/README.md",
+      "bytes": 1704,
+      "sha256": "6d58eed8e5d62c868f6990d9d728bdcfae6ceee6ef767879a53c2cdac7550e44"
+    },
+    {
+      "path": "research/saskatchewan/findings.json",
+      "bytes": 10201,
+      "sha256": "ffd80bfe23dc350a3a917337eab4180edc090f7810451476daad10bf6406b135"
+    },
+    {
+      "path": "research/saskatchewan/source-evidence.json",
+      "bytes": 2577,
+      "sha256": "7df0e999725d658866511259ce6c740df3945022e8b0c65ebf346a26ba64b9e1"
+    },
+    {
+      "path": "research/saskatchewan/target-identity-facts.json",
+      "bytes": 3663,
+      "sha256": "691897fe435de1e935589c03f53a0298f077c9a5156d812e2910925131b7ecdc"
+    },
+    {
+      "path": "research/saskatchewan/map-scope-review.json",
+      "bytes": 5115,
+      "sha256": "a5b132b16670fdefa8a2d662d5e468178e3c2800f5f846ae6f49031259caf26e"
+    },
+    {
+      "path": "research/saskatchewan/research-manifest.json",
+      "bytes": 1095,
+      "sha256": "bbd6f7d6b32617a356573a058efc89d3093f923fe40f69c14b0c93039338bf13"
+    }
+  ],
+  "automatic_application": false
+}
