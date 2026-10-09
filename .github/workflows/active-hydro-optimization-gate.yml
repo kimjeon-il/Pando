@@ -1,0 +1,78 @@
+name: Production Hydro v0.13.2 All-Branch Gate
+
+on:
+  push:
+    branches: [main, 'work/**', 'tmp/**']
+    paths:
+      - 'tools/check-current-hydro-layout.mjs'
+      - 'tests/unit/current-hydro-layout.test.mjs'
+      - 'tests/unit/hydro-packfile.test.mjs'
+      - 'assets/js/workers/hydro-tile-worker.js'
+      - 'assets/js/workers/hydro-shard-store.js'
+      - '.github/workflows/active-hydro-optimization-gate.yml'
+      - 'assets/data/hydro/v0.13.0/**'
+      - 'assets/data/hydro/v0.13.1/**'
+      - 'assets/data/hydro/v0.13.2/**'
+      - 'assets/js/modules/app-environment.js'
+      - 'scripts/generate-build-metadata.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  current-hydro:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /tools/check-current-hydro-layout.mjs
+            /tests/unit/current-hydro-layout.test.mjs
+            /tests/unit/hydro-packfile.test.mjs
+            /assets/js/workers/hydro-tile-worker.js
+            /assets/js/workers/hydro-shard-store.js
+            /assets/js/modules/app-environment.js
+            /scripts/generate-build-metadata.mjs
+            /assets/data/hydro/v0.13.2/
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoEditor
+          ref: main
+          path: pinned-app
+          persist-credentials: false
+          sparse-checkout: |
+            assets/world/manifest.json
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoEditor
+          ref: work/gis
+          path: pinned-app-gis
+          persist-credentials: false
+          sparse-checkout: |
+            assets/world/manifest.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static syntax and synthetic non-mutation tests
+        run: |
+          node --check tools/check-current-hydro-layout.mjs
+          node --check assets/js/workers/hydro-tile-worker.js
+          node --check assets/js/workers/hydro-shard-store.js
+          node --test tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+      - name: Verify current exact two-file package and native pin (pre-retirement)
+        run: |
+          node tools/check-current-hydro-layout.mjs --root . --allow-retired true \
+            --app-manifest pinned-app/assets/world/manifest.json \
+            --app-manifest-gis pinned-app-gis/assets/world/manifest.json \
+            --out reports/active-hydro-optimization.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: active-hydro-optimization-audit
+          if-no-files-found: warn
+          path: reports/active-hydro-optimization.json
