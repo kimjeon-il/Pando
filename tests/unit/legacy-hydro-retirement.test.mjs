@@ -80,3 +80,12 @@ test('saved-project fixture terrain v0.12.6 is not a historical hydro download',
     '"dataset":"hydro","version":"0.34.0","terrain":{"version":"0.12.6"}',
     'v0.12.6').kind,'saved-project-or-regression-fixture');
 });
+
+test('a real legacy hydro fetch inside fixture or unit test remains a blocker',()=>{
+  assert.equal(classify('tests/fixtures/physical.pando.json',
+    '{"url":"assets/data/hydro/v0.12.6/manifest.json"}','v0.12.6').kind,
+    'unexpected-consumer');
+  assert.equal(classify('tests/unit/hydro.test.mjs',
+    "readFileSync('assets/data/hydro/v0.12.5/index.bin.gz')",'v0.12.5').kind,
+    'unexpected-consumer');
+});
