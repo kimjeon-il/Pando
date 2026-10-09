@@ -1,0 +1,152 @@
+{
+  "schema": "hydro-independent-source-observations-v2",
+  "scope_aw_ids": [
+    "hydro-system:50538951",
+    "hydro-system:50631583",
+    "hydro-system:50691033"
+  ],
+  "new_external_requests": 0,
+  "source_body_republication_permitted": false,
+  "original_naming_source_bodies_rehashed": 5,
+  "independent_registered_overlay_claimed": false,
+  "exact_source_reach_name_transitions_verified": false,
+  "observations": [
+    {
+      "source_key": "BOM-AWRA2012",
+      "research_source_aliases": [
+        "FORTESCUE-BOM-AWRA2012",
+        "SOUTHWESTERN-BOM-AWRA2012"
+      ],
+      "body_id": "BOM-AWRA2012-BODY",
+      "source_body_sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+      "checked_asset_ids": [
+        "BOM-AWRA2012-BODY",
+        "BOM-AWRA2012-RECEIPT",
+        "BOM-AWRA2012-TEXT",
+        "BOM-AWRA2012-VIEW-1",
+        "BOM-AWRA2012-VIEW-2"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "The complete regional maps distinguish the Fortescue northwest valley corridor, Wooramel westward course south of Gascoyne, and Greenough southwest route near Geraldton. Their full generalized paths agree at representative scale. River-line labels are distinguished from basin labels; both figures belong to one publication.",
+      "printed_date": null,
+      "assessment_year": 2012,
+      "copyright_year": 2013,
+      "original_requested_at_utc": "2026-10-09T13:39:38.842251+00:00",
+      "reused_original_from_prior_batch": true
+    },
+    {
+      "source_key": "FORTESCUE-DOW-HG34-2009",
+      "research_source_aliases": [
+        "FORTESCUE-DOW-HG34-2009"
+      ],
+      "body_id": "FORTESCUE-DOW-HG34-2009-BODY",
+      "source_body_sha256": "ad18a47f680e13180f23fe950883e5c14ae2e6e03313db5c3f865dab95fabbd6",
+      "checked_asset_ids": [
+        "FORTESCUE-DOW-HG34-2009-BODY",
+        "FORTESCUE-DOW-HG34-2009-RECEIPT",
+        "FORTESCUE-DOW-HG34-2009-TEXT",
+        "FORTESCUE-DOW-HG34-2009-VIEW-1",
+        "FORTESCUE-DOW-HG34-2009-VIEW-2"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "HG34 Figure8 labels Fortescue through the Millstream reach; Figure15 follows its lower northward coastal-plain route. These local aquifer maps corroborate lower river usage, not the eastern headwater or the marsh crossing. The internal title/imprint is March 2009; the cover is February 2009.",
+      "printed_date": "2009-03",
+      "assessment_year": null,
+      "copyright_year": null,
+      "original_requested_at_utc": "2026-10-09T13:40:04.521980+00:00",
+      "reused_original_from_prior_batch": true
+    },
+    {
+      "source_key": "FORTESCUE-DBCA-JMP2025",
+      "research_source_aliases": [
+        "FORTESCUE-DBCA-JMP2025"
+      ],
+      "body_id": "FORTESCUE-DBCA-JMP2025-BODY",
+      "source_body_sha256": "bed244468acb8daca5d745e70c9d0894285e8590f286ad607506f52a16c911d9",
+      "checked_asset_ids": [
+        "FORTESCUE-DBCA-JMP2025-BODY",
+        "FORTESCUE-DBCA-JMP2025-RECEIPT",
+        "FORTESCUE-DBCA-JMP2025-TEXT",
+        "FORTESCUE-DBCA-JMP2025-VIEW-1",
+        "FORTESCUE-DBCA-JMP2025-VIEW-2",
+        "FORTESCUE-DBCA-JMP2025-VIEW-3"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "DBCA Map1 follows the regional Fortescue corridor and Map2 shows the broad inundated Marsh and separate inflows. Printed page17 explicitly separates the upper river and Marsh from lower Fortescue across Goodiadarrie Hills, with onward drainage expected only in extreme flooding. This qualifies the continuous retained line without negating representative identity.",
+      "printed_date": "2025-09",
+      "assessment_year": null,
+      "copyright_year": null,
+      "original_requested_at_utc": "2026-10-09T14:03:57.472840+00:00",
+      "reused_original_from_prior_batch": false
+    },
+    {
+      "source_key": "WA-WATER-RESOURCES-INVENTORY2014",
+      "research_source_aliases": [
+        "WA-WATER-RESOURCES-INVENTORY2014"
+      ],
+      "body_id": "WA-WATER-RESOURCES-INVENTORY2014-BODY",
+      "source_body_sha256": "cd7162ac7cb53c24e8ff5edcd09f1d10a827f824a094942d71776c03f5b3d6d7",
+      "checked_asset_ids": [
+        "WA-WATER-RESOURCES-INVENTORY2014-BODY",
+        "WA-WATER-RESOURCES-INVENTORY2014-RECEIPT",
+        "WA-WATER-RESOURCES-INVENTORY2014-TEXT",
+        "WA-WATER-RESOURCES-INVENTORY2014-VIEW-1",
+        "WA-WATER-RESOURCES-INVENTORY2014-VIEW-2"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "The 2014 inventory maps locate Wooramel and Greenough resource-management regions with underlying drainage. Their area labels and water-quality shading are administrative/resource descriptions and do not name every stream. Table9 and the Mid West prose independently confirm English naming usage.",
+      "printed_date": "2014",
+      "assessment_year": null,
+      "copyright_year": null,
+      "original_requested_at_utc": "2026-10-09T14:03:12.369439+00:00",
+      "reused_original_from_prior_batch": false
+    },
+    {
+      "source_key": "GREENOUGH-DWER-HEALTHYRIVERS",
+      "research_source_aliases": [
+        "GREENOUGH-DWER-HEALTHYRIVERS"
+      ],
+      "body_id": "GREENOUGH-DWER-HEALTHYRIVERS-BODY",
+      "source_body_sha256": "4009ca0651c1374c8e3d10a7c09e9afb36471e6fcf6c96b4dd035a751eff524b",
+      "checked_asset_ids": [
+        "GREENOUGH-DWER-HEALTHYRIVERS-BODY",
+        "GREENOUGH-DWER-HEALTHYRIVERS-RECEIPT",
+        "GREENOUGH-DWER-HEALTHYRIVERS-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "The DWER page identifies Greenough headwaters on the Yilgarn Plateau north of Yalgoo, southwest passage through the Waterloo Range and outlet at Cape Burney south of Geraldton. This supports the entire regional corridor but does not certify every selected headwater or a surveyed mouth coordinate.",
+      "printed_date": null,
+      "assessment_year": null,
+      "copyright_year": null,
+      "original_requested_at_utc": "2026-10-09T14:03:25.500412+00:00",
+      "reused_original_from_prior_batch": false
+    }
+  ],
+  "complete_path_observations": [
+    {
+      "aw_id": "hydro-system:50538951",
+      "geometry_canonical_sha256": "d31380a6b709bb22b328bdc01dcdc8edabed9139d8b3c8c6ce2d0690adfb8cd8",
+      "part_count": 209,
+      "coordinate_count": 1038,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The complete southeastern-interior path turns northwest along the Fortescue valley and north into the coastal plain southwest of Karratha. Regional DBCA and BoM maps plus Millstream and lower-river cartography support Fortescue River as its representative identity. Upper river, Marsh and lower river are hydrologically distinct; the easternmost headwater, marsh crossing and coastal connector have no established individual name assignments."
+    },
+    {
+      "aw_id": "hydro-system:50631583",
+      "geometry_canonical_sha256": "5ded4807bd6ffd167d828cb48793c03b1b0160156ee361c822dedefdb863854a",
+      "part_count": 79,
+      "coordinate_count": 483,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The complete long westward route south of the Gascoyne system, including its coastward south bend, agrees with the Wooramel-labelled regional river course. The separate WA resource inventory corroborates this regional location and official usage. The eastern initial channel and exact interior joining-channel or headwater transitions remain unverified."
+    },
+    {
+      "aw_id": "hydro-system:50691033",
+      "geometry_canonical_sha256": "04ffb6bcef32ce26d744375d0f1d90b2697e75fc462bb2ef49b65f677b4f6993",
+      "part_count": 88,
+      "coordinate_count": 522,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The complete inland-to-southwest route and its final west/northwest coastal turn agree with the Greenough course on regional maps and DWER prose linking plateau headwaters, Waterloo Range and Cape Burney. This supports representative mainstem identity, while exact headwater and joining-channel name boundaries remain unresolved."
+    }
+  ],
+  "map_independence_note": "BoM figures and two research aliases represent one reused publication. HG34, the DBCA plan, the WA inventory and the Greenough page supply distinct official publications with different scopes. The same publisher or agency does not make every map an independent survey."
+}

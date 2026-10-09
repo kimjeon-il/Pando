@@ -1,0 +1,386 @@
+{
+  "schema": "hydro-independent-river-review-pins-v2",
+  "reviewed_at_utc": "2026-10-09T14:12:39.848645+00:00",
+  "scope_aw_ids": [
+    "hydro-system:50538951",
+    "hydro-system:50631583",
+    "hydro-system:50691033"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "package_inputs": [
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 5569,
+      "sha256": "db7a747265bd7b2aa5434883e9439a981b67a20026cfaebe91a04c38c28d9ea7"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 6949,
+      "sha256": "fd2c60f29385f947a890de39c520f9630fe662c088051f1d2b8488ef90a73f5d"
+    },
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1841,
+      "sha256": "c626797d43889c14955012d38dd3743d15d5ea05c7350d97454ed49d7c9966c4"
+    },
+    {
+      "file": "geometry-duplicate-check.json",
+      "bytes": 1300,
+      "sha256": "6a7453a5a85b9689181a35e5fdab50dc6283c039469a42748dabbd831e2bbd60"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 2319,
+      "sha256": "037857aabe9874f40155d1ad55f60be74f4cbbc18921eaa678a4a3e855dc8870"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 15689,
+      "sha256": "11954c7a215e70e343fb78dc380e4614566bf2c9fd97ddcd6d1c3e27dbea58eb"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 5552,
+      "sha256": "4024ff8648511b1e8a696caeca31e5a8db91ff1d615dbd27c2ce1f172842cb00"
+    },
+    {
+      "file": "geometry-support.py",
+      "bytes": 2259,
+      "sha256": "5427afc9c6d1ed13947f6ca08b3fe7532dd7884717d44f691b50d0d5f479bd12"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 7235,
+      "sha256": "82f10abc721b25ed4aef71c482f24ec3343f051154965d4b4859b21f3b534fc7"
+    },
+    {
+      "file": "research/fortescue/fortescue-findings.json",
+      "bytes": 2029,
+      "sha256": "42e03cafcbf8cdff725bfbf59ef3ee27aa962ecbc05b96c52f2e1827bf9144bd"
+    },
+    {
+      "file": "research/fortescue/fortescue-geometry-comparison.json",
+      "bytes": 2467,
+      "sha256": "3653d1aa9aab087f82091b227a8f81f82a5bbe5cc13373760cee7e66acbfa6de"
+    },
+    {
+      "file": "research/fortescue/fortescue-research-manifest.json",
+      "bytes": 787,
+      "sha256": "6ccda24062eb997bce5ced64177ea58b51f90577c8465778724edd890c9c5b2d"
+    },
+    {
+      "file": "research/fortescue/fortescue-source-evidence.json",
+      "bytes": 11541,
+      "sha256": "d133835f9930437983d2d532fc3333eef946dcd0590cff8905e75439a6cd9fbc"
+    },
+    {
+      "file": "research/southern-western-rivers/greenough-findings.json",
+      "bytes": 5728,
+      "sha256": "41bea6baade047b9fd3741d52b4aeb7328b7382d9ab7207cb4264fd8d106afd1"
+    },
+    {
+      "file": "research/southern-western-rivers/source-evidence.json",
+      "bytes": 9373,
+      "sha256": "1493108fa8de6bff2eead424e01b928e458e67eda29a595cd22eb82617978c3d"
+    },
+    {
+      "file": "research/southern-western-rivers/wooramel-findings.json",
+      "bytes": 5723,
+      "sha256": "be768b564aa25834222a52da6dbc1789196a81af1300f51e707d048a3aabb955"
+    },
+    {
+      "file": "selected-inventory-records.json",
+      "bytes": 4721,
+      "sha256": "ac52546d9933638c1b368416994920cf14d283c1acf9074214395b033f9facb4"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 666,
+      "sha256": "1a1785f74cea813ebef9a8d4609077244c2872bd98f031bc7378880d2e0f1034"
+    },
+    {
+      "file": "selected-river-metadata.json",
+      "bytes": 101205,
+      "sha256": "c7a5038125b927e3a1b91fb49b1e9141aea0b691360b26553043638b4e997498"
+    },
+    {
+      "file": "source-reach-manifest.json",
+      "bytes": 19263,
+      "sha256": "73a38c758aaaab4e35fb12b82101284325b33114180924c69dcf39b3b24bb0e7"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 6750,
+      "sha256": "183dbca38992feecd9853781691f7a89c178ab3b0fd31332d00c75fafd1c13ad"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 18810,
+      "sha256": "b1457b40bfa35df29f8d620a2c44b8010842b842a87a11716e9ad9736f31a922"
+    }
+  ],
+  "component_manifest_sha256": {
+    "geometry-component-manifest.json": "c626797d43889c14955012d38dd3743d15d5ea05c7350d97454ed49d7c9966c4",
+    "research/fortescue/fortescue-research-manifest.json": "6ccda24062eb997bce5ced64177ea58b51f90577c8465778724edd890c9c5b2d",
+    "research/southern-western-rivers/source-evidence.json": "1493108fa8de6bff2eead424e01b928e458e67eda29a595cd22eb82617978c3d",
+    "research/southern-western-rivers/wooramel-findings.json": "be768b564aa25834222a52da6dbc1789196a81af1300f51e707d048a3aabb955",
+    "research/southern-western-rivers/greenough-findings.json": "41bea6baade047b9fd3741d52b4aeb7328b7382d9ab7207cb4264fd8d106afd1"
+  },
+  "previous_index": {
+    "bytes": 12742,
+    "sha256": "a12b34ad5e2607182c3ec934817fe2132d2a7c2259de8c08ab1c003d47c503ae",
+    "aw_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159106899",
+      "lakes_base:1159107065",
+      "lakes_base:1159115267",
+      "lakes_base:1159123531",
+      "lakes_base:1159107099",
+      "hydro-system:30624681",
+      "hydro-system:50488324",
+      "hydro-system:40182409",
+      "hydro-system:70152112",
+      "lakes_base:1159123163",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159109553",
+      "lakes_base:1159110303",
+      "lakes_base:1159108091",
+      "hydro-system:50668155",
+      "hydro-system:50611851",
+      "hydro-system:50552041"
+    ],
+    "distinct_targets": 21,
+    "fixed_commit": "fef2fb3fc52a276fb0059ce66474116de08137d1"
+  },
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "bytes": 441711,
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "original_recovery_date_utc": "2026-10-09",
+    "original_retrieved_at_utc": null,
+    "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+    "reuse_hash_checked_at_utc": "2026-10-09T14:04:22Z",
+    "retrieved_this_batch": false,
+    "in_publishable_package": false
+  },
+  "local_evidence_assets": [
+    {
+      "id": "BOM-AWRA2012-BODY",
+      "kind": "original_source_body",
+      "bytes": 26172797,
+      "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 774,
+      "sha256": "4ea0da94c6a9e2007f26e93a6b6abff593338d49269b12759eb850f352849e5f",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 1390063,
+      "sha256": "ed69c9922a19c33f1527e70a2b1eba3d402e90706e2629024f74e53cc0fa3ff4",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1066437,
+      "sha256": "a28416e6ab718921ccc3987ae534648505e12b2cc577f63aa8e3b66a0c8b202e",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1145527,
+      "sha256": "ca42fd7d481b958ce1911fc7e502484e038134148f7a62bbb89ab29af599d005",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DOW-HG34-2009-BODY",
+      "kind": "original_source_body",
+      "bytes": 25303279,
+      "sha256": "ad18a47f680e13180f23fe950883e5c14ae2e6e03313db5c3f865dab95fabbd6",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DOW-HG34-2009-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 685,
+      "sha256": "f1c82d8785a88b05dc160e3180c8bef7ed037b61258abcd6bb80934d039b92a0",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DOW-HG34-2009-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 393702,
+      "sha256": "a20d16fa091d761e0280e269e52fc630d663b1543549fe5bd03ed03507a63923",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DOW-HG34-2009-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 809405,
+      "sha256": "4d87f55aa44b616b7846b22f9aa01513b56b4f1d7608534049a7b7b0be6f3222",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DOW-HG34-2009-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1162257,
+      "sha256": "a931322a71d0cb25434714f79594ec62ec74e3a41bd7e80bb5876e5479b50503",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DBCA-JMP2025-BODY",
+      "kind": "original_source_body",
+      "bytes": 27943519,
+      "sha256": "bed244468acb8daca5d745e70c9d0894285e8590f286ad607506f52a16c911d9",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DBCA-JMP2025-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 820,
+      "sha256": "5c2ecc1329a79ff9cbc9ff80bd782bc72b6e3a3c63f9feed9141b0742f7b0635",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DBCA-JMP2025-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 171680,
+      "sha256": "6123c1b94810e1076283361d9b60f8c6d209901016a655a9cf21a15372031a7d",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DBCA-JMP2025-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 208647,
+      "sha256": "65041df6d98360f27a6a53a3222d8a8d9d115a27eb2dbf2b33c2b63a5de5b15f",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DBCA-JMP2025-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 407381,
+      "sha256": "067f9192bb96fab5142d8c091002e9cef3659e75b1ed052e6d4b0f94fc31f186",
+      "published_raw": false
+    },
+    {
+      "id": "FORTESCUE-DBCA-JMP2025-VIEW-3",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 253103,
+      "sha256": "eae6897b2b1682ce27abd3b3d5b7e6b687a9fff27d800a999bd765e431be6324",
+      "published_raw": false
+    },
+    {
+      "id": "WA-WATER-RESOURCES-INVENTORY2014-BODY",
+      "kind": "original_source_body",
+      "bytes": 9742991,
+      "sha256": "cd7162ac7cb53c24e8ff5edcd09f1d10a827f824a094942d71776c03f5b3d6d7",
+      "published_raw": false
+    },
+    {
+      "id": "WA-WATER-RESOURCES-INVENTORY2014-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 896,
+      "sha256": "3e3644b5666a1f6c1fba91811f8178c5cb3d473d62e1c5d3b4d71cc0c4cb2d9a",
+      "published_raw": false
+    },
+    {
+      "id": "WA-WATER-RESOURCES-INVENTORY2014-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 196553,
+      "sha256": "83d105179c81886250c7179493168f5f199a8b1630396e0844fb325d8c80464d",
+      "published_raw": false
+    },
+    {
+      "id": "WA-WATER-RESOURCES-INVENTORY2014-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 610356,
+      "sha256": "090e928abccead1aa233bd55362f9b2451963e4dcd4bd48797957d1378fe17b7",
+      "published_raw": false
+    },
+    {
+      "id": "WA-WATER-RESOURCES-INVENTORY2014-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 783257,
+      "sha256": "229a6cacae66cdb7dc9780438c0946d0fe11abc4fb56a5bba9acf40350f77b8d",
+      "published_raw": false
+    },
+    {
+      "id": "GREENOUGH-DWER-HEALTHYRIVERS-BODY",
+      "kind": "original_source_body",
+      "bytes": 129162,
+      "sha256": "4009ca0651c1374c8e3d10a7c09e9afb36471e6fcf6c96b4dd035a751eff524b",
+      "published_raw": false
+    },
+    {
+      "id": "GREENOUGH-DWER-HEALTHYRIVERS-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 837,
+      "sha256": "dc209bc4463c3fac5a302cceccf6583f321749c40d0d5148daf90b50c81a50a0",
+      "published_raw": false
+    },
+    {
+      "id": "GREENOUGH-DWER-HEALTHYRIVERS-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 82395,
+      "sha256": "1a73f455dffccde6cae62340215814b1834f1408943b9f14577bab406e232541",
+      "published_raw": false
+    },
+    {
+      "id": "COMPLETE-BASELINE-PATHS",
+      "kind": "complete_path_comparison_view",
+      "bytes": 140315,
+      "sha256": "10f52e42eaddd56c035f50e74ce884955ba9637d1b816858080ff91a1aee5eaf",
+      "published_raw": false
+    }
+  ],
+  "original_source_receipt_links": [
+    {
+      "source_key": "BOM-AWRA2012",
+      "body_id": "BOM-AWRA2012-BODY",
+      "receipt_id": "BOM-AWRA2012-RECEIPT",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "original_requested_at_utc": "2026-10-09T13:39:38.842251+00:00"
+    },
+    {
+      "source_key": "FORTESCUE-DOW-HG34-2009",
+      "body_id": "FORTESCUE-DOW-HG34-2009-BODY",
+      "receipt_id": "FORTESCUE-DOW-HG34-2009-RECEIPT",
+      "url": "https://www.wa.gov.au/system/files/2022-04/Pilbara-coast-water-study.pdf",
+      "original_requested_at_utc": "2026-10-09T13:40:04.521980+00:00"
+    },
+    {
+      "source_key": "FORTESCUE-DBCA-JMP2025",
+      "body_id": "FORTESCUE-DBCA-JMP2025-BODY",
+      "receipt_id": "FORTESCUE-DBCA-JMP2025-RECEIPT",
+      "url": "https://www.dbca.wa.gov.au/media/6162/download",
+      "original_requested_at_utc": "2026-10-09T14:03:57.472840+00:00"
+    },
+    {
+      "source_key": "WA-WATER-RESOURCES-INVENTORY2014",
+      "body_id": "WA-WATER-RESOURCES-INVENTORY2014-BODY",
+      "receipt_id": "WA-WATER-RESOURCES-INVENTORY2014-RECEIPT",
+      "url": "https://www.wa.gov.au/system/files/2022-10/WAter-resources-inventory-2014.pdf",
+      "original_requested_at_utc": "2026-10-09T14:03:12.369439+00:00"
+    },
+    {
+      "source_key": "GREENOUGH-DWER-HEALTHYRIVERS",
+      "body_id": "GREENOUGH-DWER-HEALTHYRIVERS-BODY",
+      "receipt_id": "GREENOUGH-DWER-HEALTHYRIVERS-RECEIPT",
+      "url": "https://rivers.dwer.wa.gov.au/catchment/greenough-river/",
+      "original_requested_at_utc": "2026-10-09T14:03:25.500412+00:00"
+    }
+  ],
+  "automatic_application": false
+}

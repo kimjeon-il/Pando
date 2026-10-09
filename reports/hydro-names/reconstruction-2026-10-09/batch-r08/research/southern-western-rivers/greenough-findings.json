@@ -1,0 +1,108 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r08",
+  "created_at_utc": "2026-10-09T14:07:27.494545+00:00",
+  "target": {
+    "aw_id": "hydro-system:50691033",
+    "system_id": "50691033",
+    "logical_fid": 2022,
+    "geometry_fids": [
+      6978
+    ],
+    "historical_baseline_bbox": [
+      114.625494,
+      -28.96875,
+      116.691667,
+      -27.802083
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Greenough River system; representative mainstem identity only",
+    "name_original": "Greenough River",
+    "name_original_language": "en",
+    "name_en": "Greenough River",
+    "name_ko": null,
+    "status": "Supported representative system/mainstem identity; uniform whole-group naming is not cleared.",
+    "identity_confidence": "High for representative system identity and regional course association; individual headwater and reach naming unresolved.",
+    "scope": "The existing selected baseline group, not a complete basin inventory or blanket label for its component parts.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming evidence acquired.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "../../geometry-reference.json",
+    "fragment_facts_file": "../../selected-river-metadata.json",
+    "ordered_source_ids_file": "../../source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 1,
+    "all_line_parts_reviewed": 88,
+    "all_coordinate_positions_reviewed": 522,
+    "distinct_source_reach_ids": 88,
+    "canonical_fragment_geometry_sha256": "04ffb6bcef32ce26d744375d0f1d90b2697e75fc462bb2ef49b65f677b4f6993",
+    "ordered_source_id_csv_sha256": "57c4274137e1aefff97a3714d81cdb276f056a745962b068a3b3d63a2597cf90",
+    "canonical_ordered_group_geometry_sha256": "e35cadf455948f9793ae82e4953b514f69c240df30005c080b3b913d5509eb5b",
+    "source_ids_sha256": "d708f708aa2e8b0607a51398a3b96be6c3ae15475f8c4293782595acfaca46e9",
+    "fragment_geometry_and_source_id_hashes_independently_recomputed": true,
+    "discontinuous_adjacent_part_joins_detected": 0,
+    "complete_geometry_published": false,
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "All decoded parts were included in the full-path plot and numerical count, bounds and hash checks. Equal part/reach counts do not independently prove the source-to-rendered-part crosswalk."
+  },
+  "spatial_identity_check": {
+    "method": "Side-by-side visual comparison of complete decoded baseline paths with complete BOM regional maps, supported by WA official usage. No georegistered overlay or exact line fit.",
+    "evidence_ids": [
+      "SOUTHWESTERN-BOM-AWRA2012",
+      "WA-WATER-RESOURCES-INVENTORY2014",
+      "GREENOUGH-DWER-HEALTHYRIVERS"
+    ],
+    "baseline_role": "mainstem",
+    "baseline_role_is_not_a_name_authority": true,
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false,
+    "per_reach_name_assignment_cleared": false,
+    "regional_course_comparison": "The complete baseline runs southwest from the inland plateau region, bends west and then northwest near the coast, and terminates south of Geraldton. This agrees with the Greenough-labelled corridor in BOM Figures 11.1 and 11.22 and DWER's named course and Cape Burney outlet description.",
+    "bounded_unresolved_scope": "The selected northeastern start near 116.692,-27.808 is consistent with the broad headwater region, but no source identifies every headwater or joining-channel transition along the 88 rendered parts. The representative Greenough identity does not certify each part or tributary as Greenough-named."
+  },
+  "outlet_scope": {
+    "regional_location": "Cape Burney, south of Geraldton",
+    "regional_receiving_water": "Indian Ocean",
+    "baseline_terminal_class": "sea",
+    "source_endpoint_lonlat": [
+      114.63541666666654,
+      -28.864583333333766
+    ],
+    "render_endpoint_before_quantization_lonlat": [
+      114.62549392643922,
+      -28.872070336684054
+    ],
+    "decoded_render_endpoint_lonlat": [
+      114.625494,
+      -28.87207
+    ],
+    "source_endpoint_equals_render_endpoint": false,
+    "endpoint_interpretation": "Retained source-endpoint metadata and decoded render endpoint are separate baseline facts. Neither is established as a surveyed contemporary river mouth.",
+    "surveyed_outlet_verified": false
+  },
+  "evidence_package": {
+    "source_evidence_file": "source-evidence.json",
+    "source_evidence_sha256": "1493108fa8de6bff2eead424e01b928e458e67eda29a595cd22eb82617978c3d",
+    "distinct_supporting_publications_for_this_target": 3,
+    "shared_report_counted_once_across_targets": true,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Representative identity is supported; whole-group scalar and per-reach naming remain false.",
+    "Regional cartography and management-area labels cannot certify headwater name transitions, every minor channel, or a source-reach name crosswalk.",
+    "Only pinned historical-baseline geometry was checked; original HydroRIVERS coordinate equality and current deployment are not claimed."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

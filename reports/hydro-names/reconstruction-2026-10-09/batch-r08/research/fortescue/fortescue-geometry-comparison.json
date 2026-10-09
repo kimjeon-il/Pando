@@ -1,0 +1,55 @@
+{
+  "schema": "hydro-generalized-route-comparison-v1",
+  "batch": "r08",
+  "target_aw_id": "hydro-system:50538951",
+  "reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "retained_baseline_artifact": {
+    "sha256": "001cec0a5e5ce65c6c45dbe804c5a9094b388cadc676e6c668dc1ce0a6b7e368",
+    "hash_scope": "Complete private three-feature retained-baseline GeoJSON; target selected by exact awId",
+    "selected_fid": 6821,
+    "selected_logical_fid": 1882,
+    "selected_fragment_count": 1,
+    "selected_line_part_count": 209,
+    "selected_position_count": 1038,
+    "retained_role": "mainstem",
+    "source_ids_count": 209
+  },
+  "bounded_whole_fragment_facts": {
+    "bounds": [
+      116.08125,
+      -23.566667,
+      120.583333,
+      -20.992277
+    ],
+    "first_position": [
+      120.583333,
+      -23.566667
+    ],
+    "last_position": [
+      116.091802,
+      -20.992277
+    ]
+  },
+  "review": {
+    "method": "All retained parts plotted together and visually compared with BOM Figures11.1/11.22, DBCA locality/Marsh maps, and Department of Water Millstream/lower-corridor maps. No map georeferencing or numerical spatial-match claim.",
+    "complete_retained_route_inspected": true,
+    "observations": [
+      "The retained route begins in the southeastern interior, turns northwest into the long valley corridor and reaches the coastal plain southwest of Karratha.",
+      "Its overall direction and distinctive northwest lower course are consistent with the official Fortescue mapping, independently of the initial name lead.",
+      "The easternmost headwater and individual marsh-channel/connector names remain unresolved; regional consistency does not justify every line part inheriting the representative name."
+    ],
+    "whole_route_generalized_consistency": true,
+    "topology_or_exact_alignment_verified": false,
+    "all_parts_individually_named": false,
+    "coastal_connector_name_verified": false,
+    "headwater_name_boundary_verified": false,
+    "continuous_hydrological_flow_established": false
+  },
+  "limits": [
+    "Representative-system identity is a regional naming inference, not a continuous-flow or per-reach claim.",
+    "The retained terminal is a rendering endpoint, not a surveyed present mouth.",
+    "Original HydroRIVERS coordinates are unavailable; equality between original and retained coordinates was not tested.",
+    "Current live deployment was not checked."
+  ],
+  "geometry_redistributed": false
+}

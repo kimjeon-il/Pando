@@ -1,0 +1,107 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r08",
+  "created_at_utc": "2026-10-09T14:07:27.494545+00:00",
+  "target": {
+    "aw_id": "hydro-system:50631583",
+    "system_id": "50631583",
+    "logical_fid": 1956,
+    "geometry_fids": [
+      6900
+    ],
+    "historical_baseline_bbox": [
+      114.247917,
+      -25.881634,
+      117.016667,
+      -25.635417
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Wooramel River system; representative mainstem identity only",
+    "name_original": "Wooramel River",
+    "name_original_language": "en",
+    "name_en": "Wooramel River",
+    "name_ko": null,
+    "status": "Supported representative system/mainstem identity; uniform whole-group naming is not cleared.",
+    "identity_confidence": "High for representative system identity and regional course association; individual headwater and reach naming unresolved.",
+    "scope": "The existing selected baseline group, not a complete basin inventory or blanket label for its component parts.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming evidence acquired.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "../../geometry-reference.json",
+    "fragment_facts_file": "../../selected-river-metadata.json",
+    "ordered_source_ids_file": "../../source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 1,
+    "all_line_parts_reviewed": 79,
+    "all_coordinate_positions_reviewed": 483,
+    "distinct_source_reach_ids": 79,
+    "canonical_fragment_geometry_sha256": "5ded4807bd6ffd167d828cb48793c03b1b0160156ee361c822dedefdb863854a",
+    "ordered_source_id_csv_sha256": "f1b479b3090fa2b84618423ee491d24ccd7425145dde5062afca7bb5a598afc0",
+    "canonical_ordered_group_geometry_sha256": "1f85f9d142445b61bbb31f97ddf3d6e0804b08484a3caf297df5f6d6b30bf20d",
+    "source_ids_sha256": "3460a801cae6432f6f1cc273118f6e75337e8fbef0764a40a79e541d3398655e",
+    "fragment_geometry_and_source_id_hashes_independently_recomputed": true,
+    "discontinuous_adjacent_part_joins_detected": 0,
+    "complete_geometry_published": false,
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "All decoded parts were included in the full-path plot and numerical count, bounds and hash checks. Equal part/reach counts do not independently prove the source-to-rendered-part crosswalk."
+  },
+  "spatial_identity_check": {
+    "method": "Side-by-side visual comparison of complete decoded baseline paths with complete BOM regional maps, supported by WA official usage. No georegistered overlay or exact line fit.",
+    "evidence_ids": [
+      "SOUTHWESTERN-BOM-AWRA2012",
+      "WA-WATER-RESOURCES-INVENTORY2014"
+    ],
+    "baseline_role": "mainstem",
+    "baseline_role_is_not_a_name_authority": true,
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false,
+    "per_reach_name_assignment_cleared": false,
+    "regional_course_comparison": "The complete baseline follows a long, nearly east-west corridor around latitude -25.7 to -25.9, then turns south at the coast. This agrees at regional scale with the Wooramel-labelled course south of the Gascoyne system in BOM Figures 11.1 and 11.22. The WA inventory independently places the Wooramel River management area in that coastal sector.",
+    "bounded_unresolved_scope": "The selected eastern start near 117.017,-25.733 and the interior joining-channel/headwater transitions are not individually named by the regional map. The representative Wooramel identity does not certify all 79 rendered parts or any tributary as Wooramel-named."
+  },
+  "outlet_scope": {
+    "regional_location": "Western Australian coast south of the Gascoyne River",
+    "regional_receiving_water": null,
+    "baseline_terminal_class": "sea",
+    "source_endpoint_lonlat": [
+      114.24374999999989,
+      -25.877083333333808
+    ],
+    "render_endpoint_before_quantization_lonlat": [
+      114.25597014846068,
+      -25.881634303029664
+    ],
+    "decoded_render_endpoint_lonlat": [
+      114.25597,
+      -25.881634
+    ],
+    "source_endpoint_equals_render_endpoint": false,
+    "endpoint_interpretation": "Retained source-endpoint metadata and decoded render endpoint are separate baseline facts. Neither is established as a surveyed contemporary river mouth.",
+    "surveyed_outlet_verified": false
+  },
+  "evidence_package": {
+    "source_evidence_file": "source-evidence.json",
+    "source_evidence_sha256": "1493108fa8de6bff2eead424e01b928e458e67eda29a595cd22eb82617978c3d",
+    "distinct_supporting_publications_for_this_target": 2,
+    "shared_report_counted_once_across_targets": true,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Representative identity is supported; whole-group scalar and per-reach naming remain false.",
+    "Regional cartography and management-area labels cannot certify headwater name transitions, every minor channel, or a source-reach name crosswalk.",
+    "Only pinned historical-baseline geometry was checked; original HydroRIVERS coordinate equality and current deployment are not claimed."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

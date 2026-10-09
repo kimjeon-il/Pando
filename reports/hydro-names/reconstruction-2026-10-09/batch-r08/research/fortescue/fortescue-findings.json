@@ -1,0 +1,35 @@
+{
+  "schema": "hydro-representative-name-findings-v1",
+  "batch": "r08",
+  "aw_id": "hydro-system:50538951",
+  "review_status": "representative_system_mainstem_supported",
+  "representative_name": "Fortescue River",
+  "representative_name_scope": "Generalized Fortescue river-system/corridor representative only, with distinct upper–Marsh–lower hydrology",
+  "name_ko": null,
+  "confidence": "High at representative-system scale; unestablished for individual reaches and easternmost headwater name boundaries",
+  "evidence_ids": [
+    "FORTESCUE-BOM-AWRA2012",
+    "FORTESCUE-DOW-HG34-2009",
+    "FORTESCUE-DBCA-JMP2025"
+  ],
+  "reason": "Independent official naming and cartography agree with the complete retained route at regional scale. The decision does not rest on a centroid, bounding box or initial name hint.",
+  "hydrological_qualification": "The Goodiadarrie Hills divide requires explicit upper, Marsh and lower qualification; the retained line is not evidence of ordinary continuous through-flow.",
+  "distinct_names_not_assigned_to_selected_parts": [
+    "Weeli Wolli Creek",
+    "Coondiner Creek",
+    "Mindi Mindi Creek"
+  ],
+  "headwater_handling": "No blanket assignment to the easternmost headwater; its name boundary is unresolved.",
+  "tributary_handling": "Separately named inflows are not relabelled or assigned to source parts.",
+  "connector_handling": "Marsh-crossing and terminal rendering connectors have no separately established names.",
+  "whole_group_scalar_name_applicable": false,
+  "per_reach_scalar_name_applicable": false,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_name_registry_verdict": null,
+  "whole_route_name_uniqueness_established": false,
+  "continuous_hydrological_flow_established": false,
+  "remaining_scope": "Representative review may proceed; hold blanket, reach-level, marsh-connector and headwater application.",
+  "source_evidence_file": "fortescue-source-evidence.json",
+  "geometry_comparison_file": "fortescue-geometry-comparison.json"
+}
