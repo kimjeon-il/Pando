@@ -55,6 +55,8 @@ python3 tools/repack-water-v0125.py --source ../pando-hydro-archive/hydro/v0.12.
 - `work/gis`의 [기존 Stage 6](https://github.com/kimjeon-il/Pando/actions/runs/37913511992), [Stage 7](https://github.com/kimjeon-il/Pando/actions/runs/37913511999), [Stage 8](https://github.com/kimjeon-il/Pando/actions/runs/37913512095), [Stage 9](https://github.com/kimjeon-il/Pando/actions/runs/37913512087), [Stage 10](https://github.com/kimjeon-il/Pando/actions/runs/37913512163) 데이터·배포 프리플라이트 모두 성공.
 - 현재 구버전 URL은 정책상 영구 보존하지 않으며 404가 될 수 있음. 유효한 현재 수계 URL 접근은 새 Stage3 실서비스 검사에서 확인함.
 - 전 브랜치 파일 삭제 회귀 검증기: `tools/check-retired-hydro.mjs`, `tests/unit/retired-hydro-stage3.test.mjs`, `.github/workflows/retired-hydro-stage3-gate.yml`.
+- [Stage3 현행 검사 #37914128229](https://github.com/kimjeon-il/Pando/actions/runs/37914128229) **성공**: Node 단위검사 **5/5**, 웹 7개 브랜치 구형 파일 0개·현행 9개, 앱 5개 고정 참조 일치. **Pages 현행 수계 URL HTTP 200, 구형 표본 URL HTTP 404**.
+- [Stage3 원격 브랜치·실서비스 검사 JSON](https://github.com/kimjeon-il/Pando/actions/runs/37914128229/artifacts/11609435160).
 
 ## 5. 경계
 
