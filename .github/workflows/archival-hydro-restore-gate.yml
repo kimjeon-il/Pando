@@ -1,0 +1,59 @@
+name: Archived Hydro Restore Contract
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/restore-archival-hydro.py'
+      - 'tools/report-hydro-v0124.py'
+      - 'tools/repack-water-v0125.py'
+      - 'tests/test_restore_archival_hydro.py'
+      - '.github/workflows/archival-hydro-restore-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic:
+    name: No-writing-inside-checkout and binary pin tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/restore-archival-hydro.py
+            tools/report-hydro-v0124.py
+            tools/repack-water-v0125.py
+            tests/test_restore_archival_hydro.py
+      - name: Compile historical tools
+        run: python3 -m py_compile tools/restore-archival-hydro.py tools/report-hydro-v0124.py tools/repack-water-v0125.py
+      - name: Synthetic restoration and non-overwrite regression
+        run: python3 -m unittest discover -s tests -p 'test_restore_archival_hydro.py' -v
+
+  actual-archive:
+    name: Restore and verify all 27 original research binaries
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            tools/restore-archival-hydro.py
+      - name: Fetch immutable pre-cleanup commit without historical working-tree checkout
+        run: |
+          git fetch --no-tags --filter=blob:none --depth=1 origin 6dce59ea427e0728ef29bea31e2e51afbf27d9c8
+      - name: Reconstruct historical inputs outside repository and check exact 27 Git Blobs
+        run: |
+          python3 tools/restore-archival-hydro.py             --repository .             --destination "$RUNNER_TEMP/archival-hydro"             --versions v0.12.3 v0.12.4
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: historical-hydro-restore-provenance
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/archival-hydro/hydro-restore-provenance.json
