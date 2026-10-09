@@ -1,0 +1,252 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v3",
+  "batch": "r29",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three actual logical inventory lake features, not a count of approved scalar names.",
+  "counts": {
+    "supported_generalized_water_identity": 2,
+    "compound_feature_name_scope_hold": 1
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "distinct_target_increment": 3,
+  "existing_inventory_reassessment_targets": 0,
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 78,
+  "lake_baseline_coordinate_count_including_closures": 78,
+  "position_counts_in_target_order": [
+    29,
+    34,
+    15
+  ],
+  "polygon_counts_in_target_order": [
+    1,
+    1,
+    1
+  ],
+  "ring_counts_in_target_order": [
+    1,
+    1,
+    1
+  ],
+  "scope_aw_ids": [
+    "lakes_base:1159109687",
+    "lakes_base:1159111345",
+    "lakes_base:1159111357"
+  ],
+  "current_live_deployment_checked": false,
+  "current_packed_data_correspondence_verified": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159109687",
+      "candidate_name": "Nonvianuk Lake",
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete west-to-east generalized footprint has a broad rounded western basin and a narrower eastern continuation. Its position south of Kukaklek Lake, west of the separately mapped Kulik Lake, and east of the Nonvianuk River matches the water polygon directly labelled NONVIANUK LAKE on the official Katmai park map. The complete source and rendered ring support Nonvianuk Lake as a generalized water identity. This is a regional visual correspondence, not a surveyed shoreline or exact lake-to-river boundary.",
+      "source_keys": [
+        "nps_katmai_park_map"
+      ],
+      "limits": [
+        "The coarse ring omits mapped shoreline detail and islands; no exact shoreline or inclusion of every inlet is certified.",
+        "Kulik Lake and the Nonvianuk River are separately mapped nearby waters; their names are not extended onto this lake or treated as aliases.",
+        "The NPS map is official cartographic usage, not a verified formal naming registry or current naming decision."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "category": "lake",
+      "source_id": "1159109687",
+      "baseline_logical_fid": 4060,
+      "geometry_fids": [
+        15435
+      ],
+      "independent_review_status": "generalized_identity_supported_not_product_name_clearance",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Nonvianuk Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Nonvianuk Lake",
+            "scope": "Complete generalized selected lake footprint at regional map scale"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "candidate_name_role": "bounded_generalized_water_identity",
+        "directly_supported_name_forms": [
+          "Nonvianuk Lake"
+        ],
+        "follow_up_scope": "No additional work is needed for this bounded generalized identity. Exact shoreline, formal-registry or product-name application would require a separately authorized assessment.",
+        "geographic_disambiguation": "Katmai National Park and Preserve region, Alaska, United States"
+      },
+      "candidate_names": [
+        "Nonvianuk Lake"
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159111345",
+      "candidate_name": null,
+      "research_category": "compound_feature_name_scope_hold",
+      "supported_name_scope": "The complete generalized footprint begins with a northwestern north-south arm, bends southeast into a long eastward middle basin, and turns southeast again at its eastern end. The official Katmai park map labels the northwestern water LAKE COVILLE and the eastward/southeastern water LAKE GROSVENOR, with a narrow connection near Grosvenor Lodge. Both mapped waters correspond to portions of this single continuous inventory ring. No one-name identity for the complete polygon is established; Lake Coville and Lake Grosvenor are retained as separately labelled component waters. The precise inter-lake or connecting-channel name boundary is unresolved.",
+      "source_keys": [
+        "nps_katmai_park_map"
+      ],
+      "limits": [
+        "One inventory Polygon does not imply one real-world lake name. Neither Lake Coville nor Lake Grosvenor is approved as a scalar name for the whole footprint.",
+        "The mapped narrow connection is generalized in the inventory; no exact split line, connecting-channel name, separate source geometry or repaired topology is supplied.",
+        "The boating guide is a Naknek-focused document and does not resolve the complete Coville-Grosvenor naming boundary.",
+        "Formal naming decisions, exact shorelines and Korean names are not established."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "category": "lake",
+      "source_id": "1159111345",
+      "baseline_logical_fid": 4178,
+      "geometry_fids": [
+        15553
+      ],
+      "independent_review_status": "multiple_named_waters_scalar_name_hold",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Lake Coville",
+          "Lake Grosvenor"
+        ],
+        "multiple_named_lakes_in_one_polygon": true,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Lake Coville",
+            "scope": "Northwestern arm and basin"
+          },
+          {
+            "name": "Lake Grosvenor",
+            "scope": "Eastward middle basin and southeastern continuation"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "candidate_name_role": "no_single_candidate_for_compound_footprint",
+        "directly_supported_name_forms": [
+          "Lake Coville",
+          "Lake Grosvenor"
+        ],
+        "follow_up_scope": "Resolve the inter-lake and connecting-channel name boundary with more detailed direct evidence before separately authorized scalar naming or subdivision.",
+        "geographic_disambiguation": "Katmai National Park and Preserve region, Alaska, United States"
+      },
+      "candidate_names": [
+        "Lake Coville",
+        "Lake Grosvenor"
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159111357",
+      "candidate_name": "Lake Brooks",
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete compact southwest-to-northeast generalized footprint matches the water directly labelled LAKE BROOKS on the official Katmai park map. Its northeastern end lies by Brooks River and Brooks Camp, southwest of the Naknek Lake and Iliuk Arm waters shown separately on the map. The full-lake page of the Naknek boating guide supplies additional regional shoreline and Brooks Camp context, without providing another certified selected-lake name in this review. The complete source and rendered ring support Lake Brooks as a generalized water identity, with exact shoreline, islands and lake-to-river boundary unverified.",
+      "source_keys": [
+        "nps_katmai_park_map"
+      ],
+      "limits": [
+        "The single 15-position ring strongly generalizes shorelines and omits mapped islands; this is not surveyed feature coverage.",
+        "The direct supported word order is Lake Brooks; no additional alias or Korean form is certified.",
+        "Brooks River, Brooks Camp, Naknek Lake and Iliuk Arm provide location context and are not aliases for the selected lake.",
+        "The boating guide uses a separate regional presentation from the same NPS publisher; underlying cartographic independence is not established."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "category": "lake",
+      "source_id": "1159111357",
+      "baseline_logical_fid": 4179,
+      "geometry_fids": [
+        15554
+      ],
+      "independent_review_status": "generalized_identity_supported_not_product_name_clearance",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Lake Brooks"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Lake Brooks",
+            "scope": "Complete generalized selected lake footprint at regional map scale"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "candidate_name_role": "bounded_generalized_water_identity",
+        "directly_supported_name_forms": [
+          "Lake Brooks"
+        ],
+        "follow_up_scope": "No additional work is needed for this bounded generalized identity. Exact shoreline, formal-registry or product-name application would require a separately authorized assessment.",
+        "geographic_disambiguation": "Katmai National Park and Preserve region, Alaska, United States"
+      },
+      "candidate_names": [
+        "Lake Brooks"
+      ]
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "eabb628251b49c6631f34ea29df0c2c56bc474cccb1beec2e8c0c9d7b6f8e51f",
+  "publication_contents": "Own factual findings and bibliography, bounded identifier/count/bounds/name-state metadata and included-file checks. Original maps, complete lake coordinate arrays and private-input fingerprints are omitted.",
+  "previous_reconstruction_commit": "09023e875108fd31e1c3263ac724c4ff3b41d052"
+}

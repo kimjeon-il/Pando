@@ -1,0 +1,15 @@
+{
+  "schema": "hydro-lake-publication-rights-v2",
+  "batch": "r29",
+  "included": "Own factual observations, brief geographic labels, official publisher URLs and bounded selected identifier/name-state/count/bounds metadata. Any public-file validation hashes cover included public evidence only.",
+  "selected_lake_feature_count": 3,
+  "full_lake_coordinates_published": false,
+  "full_river_coordinates_published": false,
+  "raw_third_party_sources_published": false,
+  "raw_pdf_html_map_crop_count": 0,
+  "private_source_derivative_coordinate_registration_receipt_cache_fingerprints_included": false,
+  "rights_scope": "Official publication status is not treated as blanket permission to redistribute complete PDFs, map rasters, crops or overlays. No source body, coordinate-bearing geometry or private source/coordinate/derivative fingerprint is included. This component contains original factual extracts and public bibliography only.",
+  "reproducibility_limit": "Public included-file checks can verify the retained factual record and its bounded metadata, but cannot replay the omitted source-map and complete-polygon visual comparison.",
+  "automatic_application": false,
+  "product_application": false
+}
