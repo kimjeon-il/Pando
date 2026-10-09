@@ -9,6 +9,7 @@ on:
       - tools/build_german_cecilienkoog_1905_provisional.py
       - tools/render_german_cecilienkoog_1905_qa.py
       - tools/historical-library/sources/german-coastline/cecilienkoog-1905-dyke-manual-source.json
+      - tests/unit/historical-german-coastline-cecilienkoog.test.mjs
 permissions:
   contents: write
 concurrency:
@@ -77,6 +78,14 @@ jobs:
         env:
           GIS_LOG_CECILIEN_QA_IMAGE: "1"
         run: python tools/render_german_cecilienkoog_1905_qa.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate source chronology, geometry provenance and independent QA
+        run: |
+          node --test \
+            tests/unit/historical-german-coastline-events.test.mjs \
+            tests/unit/historical-german-coastline-cecilienkoog.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: sh-german-coast-microtile-period-originals
