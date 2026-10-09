@@ -11,8 +11,18 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const [input, output] = process.argv.slice(2);
 if (!input || !output) throw new Error('Usage: node tools/decode-hydro-connectivity.mjs INPUT_DIR OUTPUT_JSON');
 const manifest = JSON.parse(fs.readFileSync(path.join(input, 'manifest.json')));
+const container = manifest.container ? fs.readFileSync(path.join(input, manifest.container.url)) : null;
+if (container && (container.length !== manifest.container.bytes ||
+  createHash('sha256').update(container).digest('hex') !== manifest.container.sha256)) {
+  throw new Error('Whole hydro bundle SHA-256/length mismatch');
+}
 function verified(spec) {
-  const bytes = fs.readFileSync(path.join(input, spec.url));
+  if (container && (!Number.isSafeInteger(spec.offset) || spec.offset < 0 ||
+    spec.offset + spec.bytes > container.length || spec.url !== manifest.container.url)) {
+    throw new Error('Hydro subresource escapes container');
+  }
+  const bytes = container ? container.subarray(spec.offset, spec.offset + spec.bytes)
+    : fs.readFileSync(path.join(input, spec.url));
   if (bytes.length !== spec.bytes || createHash('sha256').update(bytes).digest('hex') !== spec.sha256) {
     throw new Error(`Asset verification failed: ${spec.url}`);
   }
