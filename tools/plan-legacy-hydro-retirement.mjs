@@ -78,6 +78,10 @@ export function activeClosure(m){
 export function classify(path,line,version){
   const found={path,version,line:line.slice(0,260)};
   if(/^(docs\/|reports\/)/.test(path)||path.endsWith('.md'))return {...found,kind:'documentation'};
+  if(/^\.github\/workflows\//.test(path)&&/^\s*!\/assets\/data\/hydro\/v0\.12\.[2-6]\//.test(line))
+    return {...found,kind:'sparse-checkout-exclusion'};
+  if(/^tests\/unit\/[^/]+\.test\.mjs$/.test(path))
+    return {...found,kind:'synthetic-unit-test-reference'};
   if(['tools/plan-legacy-hydro-retirement.mjs',
     'tests/unit/legacy-hydro-retirement.test.mjs'].includes(path))
     return {...found,kind:'audit-self'};
