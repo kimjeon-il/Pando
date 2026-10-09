@@ -1,0 +1,60 @@
+name: Hydro v0.13.2 Legacy Consumer Migration
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/decode-hydro-connectivity.mjs'
+      - 'tools/research-hydro-names.mjs'
+      - 'tools/promote-hydro-names.mjs'
+      - 'tests/unit/river-territory-partition-serbia.test.mjs'
+      - '.github/workflows/hydro-retirement-consumers-gate.yml'
+      - 'assets/data/hydro/v0.13.2/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migrated-consumers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /tools/decode-hydro-connectivity.mjs
+            /tools/research-hydro-names.mjs
+            /tools/promote-hydro-names.mjs
+            /tools/lib/
+            /reports/hydro-names/
+            /tests/unit/river-territory-partition-serbia.test.mjs
+            /assets/js/
+            /assets/data/hydro/v0.13.2/
+            /assets/data/countries-ne-5.1.1.geojson
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/Pando
+          ref: 8de07030cccff5e7ec3c68e6beb6bb288c95afb2
+          path: original-name-research
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /assets/data/hydro/v0.13.0/metadata-core.json.gz
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate migrated consumer source and archived original names
+        run: |
+          node --check tools/decode-hydro-connectivity.mjs
+          node --check tools/research-hydro-names.mjs
+          node --check tools/promote-hydro-names.mjs
+          node tools/research-hydro-names.mjs --check --archive-core original-name-research/assets/data/hydro/v0.13.0/metadata-core.json.gz
+      - name: Decode actual 2-file corpus and exercise production Serbia, Croatia and Moldova partitions
+        run: |
+          node tools/decode-hydro-connectivity.mjs assets/data/hydro/v0.13.2 "$RUNNER_TEMP/hydro-v0132-decoded.json"
+          node --test tests/unit/river-territory-partition-serbia.test.mjs
