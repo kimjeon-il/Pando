@@ -1,0 +1,133 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r07",
+  "research_completed_targets": 3,
+  "independently_reviewed_targets": 3,
+  "counting_unit": "Three actual logical MAIN_RIV inventory groups, not a count of fully named reaches.",
+  "counts": {
+    "supported_representative_system_identity": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 3,
+  "river_line_part_count": 747,
+  "distinct_source_reach_count": 747,
+  "river_rendered_coordinate_count": 3681,
+  "part_counts_in_target_order": [
+    314,
+    252,
+    181
+  ],
+  "position_counts_in_target_order": [
+    1406,
+    1246,
+    1029
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50668155",
+      "category": "river_group",
+      "system_id": "50668155",
+      "baseline_logical_fid": 2000,
+      "geometry_fids": [
+        6944
+      ],
+      "candidate_name": "Murchison River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The selected generalized route has the lower southwest Murchison corridor and coastal setting at Kalbarri. Its full shape is consistent with the regional system. The eastern initial branch, its southward turn and subsequent northern arc are not established as Murchison-named throughout; exact transitions with joining rivers remain unresolved.",
+      "source_keys": [
+        "WESTERN-BOM-AWRA2012",
+        "MURCHISON-DBCA-KALBARRI"
+      ],
+      "limits": [
+        "The regional raster cannot provide a 314-part name crosswalk. Hope, Roderick and Sandford retain distinct source names; none is assigned to a selected part here.",
+        "The retained route length and the report’s descriptive river length have different scopes and are not treated as an exact match.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:50611851",
+      "category": "river_group",
+      "system_id": "50611851",
+      "baseline_logical_fid": 1942,
+      "geometry_fids": [
+        6886
+      ],
+      "candidate_name": "Gascoyne River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The long westward route, marked northward middle bend and Carnarvon coastal approach agree with the mapped Gascoyne corridor. Lyons remains a separately mapped river. Exact names and transitions along the selected eastern headwater branch remain unverified.",
+      "source_keys": [
+        "WESTERN-BOM-AWRA2012",
+        "GASCOYNE-WA-FACTSHEET2015"
+      ],
+      "limits": [
+        "The regional maps and lower-river factsheet do not certify 252 individual part names or every headwater transition.",
+        "The lower aquifer management areas are not formal river-name boundaries.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:50552041",
+      "category": "river_group",
+      "system_id": "50552041",
+      "baseline_logical_fid": 1895,
+      "geometry_fids": [
+        6834
+      ],
+      "candidate_name": "Ashburton River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The full eastern-interior route bends south then west, crosses the northwest-trending Ashburton valley, and turns north across the coastal plain toward Onslow. The 1988 whole-corridor maps and 2009 lower-river map support this representative identity; far-upstream name boundaries and the rendered coastal connector remain unestablished.",
+      "source_keys": [
+        "ASH-WA-AGRICULTURE-1988",
+        "ASH-DWER-HG34-2009"
+      ],
+      "limits": [
+        "The 1988 revised survey represents older fieldwork, not a current formal naming register.",
+        "The 2009 lower-river map alone does not validate the 181-part upstream route; regional survey maps supply the broader corridor context.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "089c4ac14774e379b01f1b34a8aff31f3f6803b8241d36bdb07f488bf85a0d03",
+  "publication_contents": "Own factual evidence and review, identifier/role/count/hash facts, a few whole-fragment bounds/endpoints and original validators. Complete river coordinates, raw packs and all third-party document/map bodies are omitted.",
+  "previous_reconstruction_commit": "9727db6a8f55a61dffed63109df5596f901f5af6"
+}

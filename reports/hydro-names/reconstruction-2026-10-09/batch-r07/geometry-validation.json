@@ -1,0 +1,221 @@
+{
+  "schema": "selected-river-geometry-validation-v2",
+  "batch": "r07",
+  "status": "passed",
+  "validation_runs": [
+    {
+      "status": "passed",
+      "scope_aw_ids": [
+        "hydro-system:50668155",
+        "hydro-system:50611851",
+        "hydro-system:50552041"
+      ],
+      "fragment_count": 3,
+      "source_reach_counts": [
+        314,
+        252,
+        181
+      ],
+      "rendered_part_counts": [
+        314,
+        252,
+        181
+      ],
+      "rendered_coordinate_counts": [
+        1406,
+        1246,
+        1029
+      ],
+      "complete_unpublished_coordinates_rechecked": false,
+      "production_decoder_replayed": false,
+      "actual_metadata_name_states_and_ordered_source_ids_rechecked": true,
+      "prior18_duplicate_count": 0,
+      "original_selected_inventory_rows_rechecked": false,
+      "original_previous_index_rechecked": false,
+      "frozen_component_hashes_rechecked": false,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limitation": "Published factual tables, counts and independent pins are checked; unpublished full coordinates cannot be independently recomputed without the verified input cache."
+    },
+    {
+      "status": "passed",
+      "scope_aw_ids": [
+        "hydro-system:50668155",
+        "hydro-system:50611851",
+        "hydro-system:50552041"
+      ],
+      "fragment_count": 3,
+      "source_reach_counts": [
+        314,
+        252,
+        181
+      ],
+      "rendered_part_counts": [
+        314,
+        252,
+        181
+      ],
+      "rendered_coordinate_counts": [
+        1406,
+        1246,
+        1029
+      ],
+      "complete_unpublished_coordinates_rechecked": true,
+      "production_decoder_replayed": true,
+      "actual_metadata_name_states_and_ordered_source_ids_rechecked": true,
+      "prior18_duplicate_count": 0,
+      "original_selected_inventory_rows_rechecked": true,
+      "original_previous_index_rechecked": true,
+      "frozen_component_hashes_rechecked": false,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limitation": "Published factual tables, counts and independent pins are checked; unpublished full coordinates cannot be independently recomputed without the verified input cache."
+    }
+  ],
+  "corrupt_fixtures": [
+    {
+      "case": "logical_fid_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-river-metadata.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "core_name_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-river-metadata.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "detail_name_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-river-metadata.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "fragment_role_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-river-metadata.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "missing_fragment",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-river-metadata.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "part_hash_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-river-metadata.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "part_order_reversed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-river-metadata.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "part_coordinate_count_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-river-metadata.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_render_endpoint_conflated",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-river-metadata.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_id_order_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: source-reach-manifest.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "inventory_csv_row_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-inventory-records.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "prior18_duplicate_list_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: geometry-duplicate-check.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "pack_offset_changed",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: selected-pack-receipts.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "false_coordinate_redistribution",
+      "rejected": true,
+      "expected_check": "fixed artifact pin: geometry-publication-rights.json",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "false_source_equality",
+      "rejected": true,
+      "expected_check": "original source limit",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "false_live_deployment",
+      "rejected": true,
+      "expected_check": "current deployment limit",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_asset_URL_changed",
+      "rejected": true,
+      "expected_check": "source asset provenance pins",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "group_coordinate_count_changed",
+      "rejected": true,
+      "expected_check": "group pins",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "unexpected_public_geojson",
+      "rejected": true,
+      "expected_check": "raw geometry publication exclusion",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "altered_production_worker_rejected_before_execution",
+      "rejected": true,
+      "decoded_output_written": false
+    }
+  ],
+  "corrupt_fixture_count": 20,
+  "durable_corrupt_fixture_count": 19,
+  "original_inputs_unchanged": true,
+  "no_external_requests": true
+}

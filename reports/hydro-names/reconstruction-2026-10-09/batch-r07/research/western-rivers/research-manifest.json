@@ -1,0 +1,24 @@
+{
+  "schema": "hydro-name-research-manifest-v1",
+  "batch": "r07",
+  "scope": "western-rivers",
+  "frozen_at_utc": "2026-10-09T13:46:15.139701+00:00",
+  "files": {
+    "README.md": {
+      "bytes": 1115,
+      "sha256": "d51ca627e80bd9f0428c7bc80c1e555c75175d0e482810ef5679f4c4ddc4d113"
+    },
+    "gascoyne-findings.json": {
+      "bytes": 5515,
+      "sha256": "8795dff5c4a5ac6adaee5a1f13f76e07987bbb51addba1514371157233a2b642"
+    },
+    "murchison-findings.json": {
+      "bytes": 5616,
+      "sha256": "ecd2a6472d7f3f126e4c7819322b1807a73195c92c02161260eb7e0a259c5c3c"
+    },
+    "source-evidence.json": {
+      "bytes": 9674,
+      "sha256": "ff56a7e18ec179d3075407e042e30877e223de073896ba758ed09a10c33a3f21"
+    }
+  }
+}

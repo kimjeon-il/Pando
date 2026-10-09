@@ -1,0 +1,107 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r07",
+  "created_at_utc": "2026-10-09T13:45:45.176475+00:00",
+  "target": {
+    "aw_id": "hydro-system:50668155",
+    "system_id": "50668155",
+    "logical_fid": 2000,
+    "geometry_fids": [
+      6944
+    ],
+    "historical_baseline_bbox": [
+      114.145681,
+      -27.88125,
+      119.020833,
+      -25.90625
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Murchison River system; representative mainstem identity only",
+    "name_original": "Murchison River",
+    "name_original_language": "en",
+    "name_en": "Murchison River",
+    "name_ko": null,
+    "status": "Supported representative system/mainstem identity; uniform whole-group naming is not cleared.",
+    "identity_confidence": "High for representative system identity and lower-course association; upper-branch and individual-reach naming unresolved.",
+    "scope": "The existing selected baseline group, not a complete basin inventory or blanket label for its component parts.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming evidence acquired.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "../../geometry-reference.json",
+    "fragment_facts_file": "../../selected-river-metadata.json",
+    "ordered_source_ids_file": "../../source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 1,
+    "all_line_parts_reviewed": 314,
+    "all_coordinate_positions_reviewed": 1406,
+    "distinct_source_reach_ids": 314,
+    "canonical_fragment_geometry_sha256": "184dc37b3deb2b40155c3cc25255842718e804607964ee0a94c863932d3b5131",
+    "ordered_source_id_csv_sha256": "7c0551fb3129f48e3c8c6734a446c2d7ad5bcfccbd7721e1bb8013a61dcc853e",
+    "canonical_ordered_group_geometry_sha256": "802babf6902cbe7d483f17c8dc6ec242f9851bc432e6e71b4ca5a0449f2c928d",
+    "source_ids_sha256": "f797065352f8adfeb4043129fec1ab4a5ad32046b09266de03a4ae07d824e3f7",
+    "fragment_geometry_and_source_id_hashes_independently_recomputed": true,
+    "discontinuous_adjacent_part_joins_detected": 0,
+    "complete_geometry_published": false,
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "All decoded parts were included in the full path plot and numerical count, bounds and hash checks. Equal part/reach counts do not independently prove the source-to-rendered-part crosswalk."
+  },
+  "spatial_identity_check": {
+    "method": "Side-by-side visual comparison of the complete decoded baseline path with complete regional Figures 11.1 and 11.22, plus lower-river official usage. No georegistered overlay or exact line fit.",
+    "evidence_ids": [
+      "WESTERN-BOM-AWRA2012",
+      "MURCHISON-DBCA-KALBARRI"
+    ],
+    "baseline_role": "mainstem",
+    "baseline_role_is_not_a_name_authority": true,
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false,
+    "per_reach_name_assignment_cleared": false,
+    "regional_course_comparison": "The lower southwest course and western coastal bend agree with the named Murchison corridor; the terminal setting agrees with DBCA Kalbarri usage. The upper selected path first bends southwest, then north and west before joining this lower corridor.",
+    "bounded_unresolved_scope": "The eastern initial branch beginning at approximately 119.021,-26.563, curving south near 118.4,-26.9 and returning north toward 117.4,-25.9, is not certified as Murchison-named throughout. Exact transitions involving Hope or other joining rivers are unresolved; no source IDs receive those alternative names."
+  },
+  "outlet_scope": {
+    "regional_location": "Kalbarri coast",
+    "regional_receiving_water": "Indian Ocean",
+    "baseline_terminal_class": "sea",
+    "source_endpoint_lonlat": [
+      114.16041666666663,
+      -27.702083333333785
+    ],
+    "render_endpoint_before_quantization_lonlat": [
+      114.14568099999997,
+      -27.698907
+    ],
+    "decoded_render_endpoint_lonlat": [
+      114.145681,
+      -27.698907
+    ],
+    "source_endpoint_equals_render_endpoint": false,
+    "endpoint_interpretation": "Retained source-endpoint metadata and decoded render endpoint are separate baseline facts. Neither is established as a surveyed contemporary river mouth.",
+    "surveyed_outlet_verified": false
+  },
+  "evidence_package": {
+    "source_evidence_file": "source-evidence.json",
+    "source_evidence_sha256": "ff56a7e18ec179d3075407e042e30877e223de073896ba758ed09a10c33a3f21",
+    "distinct_supporting_publications_for_this_target": 2,
+    "shared_report_counted_once_across_targets": true,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Representative identity is supported; whole-group scalar and per-reach naming remain false.",
+    "Regional cartography cannot certify headwater name transitions, each minor channel, or a source-reach name crosswalk.",
+    "Only pinned historical-baseline geometry was checked; original HydroRIVERS coordinate equality and current deployment are not claimed."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

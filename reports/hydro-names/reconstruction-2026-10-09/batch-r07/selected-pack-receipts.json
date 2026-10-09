@@ -1,0 +1,15 @@
+[
+  {
+    "id": 796,
+    "shard": 2,
+    "offset": 463498,
+    "length": 16371,
+    "stage": 3,
+    "sha256": "aef53589c0bb10af5455f2e8d8080908f159b81da0f22f681c71b993c67e9da0",
+    "selected_fids": [
+      6834,
+      6886,
+      6944
+    ]
+  }
+]
