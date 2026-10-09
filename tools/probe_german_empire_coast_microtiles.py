@@ -52,6 +52,12 @@ def add_modern(src,bbox,line):
     return out
 def encode_thumb(im,label):
     x=im.copy()
+    if x.mode == "RGBA":
+        bg=Image.new("RGBA",x.size,"white")
+        bg.alpha_composite(x)
+        x=bg.convert("RGB")
+    elif x.mode != "RGB":
+        x=x.convert("RGB")
     x.thumbnail((1160,850))
     out=io.BytesIO()
     x.save(out,"JPEG",quality=72,optimize=True)
