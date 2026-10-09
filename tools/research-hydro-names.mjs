@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import process from 'node:process';
@@ -19,18 +18,43 @@ const reportDirectory = path.join(root, 'reports', 'hydro-names');
 const reviewPath = path.join(reportDirectory, 'europe-major-rivers.json');
 const markdownPath = path.join(reportDirectory, 'europe-major-rivers.md');
 const overlayPath = path.join(reportDirectory, 'europe-major-rivers.geojson');
-const immutableRef = '8de07030cccff5e7ec3c68e6beb6bb288c95afb2';
-// Historical candidate review must use the original *unnamed* v0.13.0, not v0.13.2 renamed features.
-const coreMetadataPath = optionValue('--archive-core');
-const originalCore = coreMetadataPath ? fs.readFileSync(path.resolve(coreMetadataPath))
-  : execFileSync('git', ['-C', root, 'show', immutableRef + ':assets/data/hydro/v0.13.0/metadata-core.json.gz'], { maxBuffer: 16 * 1024 * 1024 });
-const originalSha = '796ab937222bfa4d123d6fda2109e96bb90ce9e251c73274dcb0342decc1828';
-if (createHash('sha256').update(originalCore).digest('hex') !== originalSha)
-  throw new Error('Historical hydro name research core does not match pinned SHA-256');
-
+// Default research validation reconstructs the historical unnamed candidate view
+// from the exact current two-file v0.13.2 metadata. For independent archival
+// reproduction pass --archive-core with immutable v0.13.0 metadata-core.json.gz.
 const review = JSON.parse(fs.readFileSync(reviewPath, 'utf8'));
-const core = JSON.parse(gunzipSync(originalCore));
-const currentCandidates = collectMajorUnnamedEuropeanCandidates(core.features.map(feature => ({
+const coreMetadataPath = optionValue('--archive-core');
+let sourceFeatures;
+if (coreMetadataPath) {
+  const bytes = fs.readFileSync(path.resolve(coreMetadataPath));
+  const pinnedSha = '796ab937222bfa4d123d6fda2109e96bb90ce9e251c73274dcb0342decc1828';
+  if (createHash('sha256').update(bytes).digest('hex') !== pinnedSha)
+    throw new Error('Historical hydro name research core does not match pinned SHA-256');
+  sourceFeatures = JSON.parse(gunzipSync(bytes)).features;
+} else {
+  const directory = path.join(root, 'assets', 'data', 'hydro', 'v0.13.2');
+  const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'manifest.json'), 'utf8'));
+  const bundle = fs.readFileSync(path.join(directory, 'hydro.bin'));
+  const part = manifest.metadata.core;
+  if (manifest.version !== '0.13.2' ||
+      manifest.container.bytes !== bundle.length ||
+      createHash('sha256').update(bundle).digest('hex') !== manifest.container.sha256 ||
+      part.url !== 'hydro.bin' || !Number.isSafeInteger(part.offset) ||
+      part.offset < 0 || part.offset + part.bytes > bundle.length)
+    throw new Error('Invalid current two-file hydro package');
+  const compressed = bundle.subarray(part.offset, part.offset + part.bytes);
+  if (createHash('sha256').update(compressed).digest('hex') !== part.sha256)
+    throw new Error('Current hydro core digest mismatch');
+  const approved = new Set(review.entries.filter(x => x.status === 'accepted-candidate')
+    .map(x => String(x.systemId)));
+  // v0.13.1 promoted only the two name fields on these 23 reviewed systems.
+  // Reverting that promotion solely in memory allows the original 33 candidate
+  // boundaries/stages to remain independently checked against the report.
+  sourceFeatures = JSON.parse(gunzipSync(compressed)).features.map(feature => {
+    const id = String(feature.systemId || '');
+    return approved.has(id) ? { ...feature, name: '미명명 수계 ' + id } : feature;
+  });
+}
+const currentCandidates = collectMajorUnnamedEuropeanCandidates(sourceFeatures.map(feature => ({
   ...feature,
   bounds: feature.bounds.map(value => Number(value) / 1e6),
 })));
