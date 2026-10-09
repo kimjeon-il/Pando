@@ -1,0 +1,173 @@
+name: GIS Stage 10 Coordinated Pages Cutover and Main Integration Preflight
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-release-stage10-preflight.yml'
+      - 'tools/audit-legacy-gis-assets.mjs'
+      - 'tools/audit-legacy-release-consumers.mjs'
+      - 'tools/plan-gis-archive-rollout.mjs'
+      - 'tools/plan-pages-deployment-footprint.mjs'
+      - 'tools/prepare-pages-release-bundle.mjs'
+      - 'tools/plan-gis-release-transactions.mjs'
+      - 'tests/unit/legacy-gis-assets-audit.test.mjs'
+      - 'tests/unit/legacy-release-consumers.test.mjs'
+      - 'tests/unit/gis-archive-rollout.test.mjs'
+      - 'tests/unit/pages-deployment-footprint.test.mjs'
+      - 'tests/unit/pages-release-staging.test.mjs'
+      - 'tests/unit/gis-release-transactions.test.mjs'
+      - 'assets/data/world/current.json'
+      - 'assets/data/world/build-input.json'
+      - 'assets/data/world-preview-v*.json'
+      - 'assets/data/hydro/**/manifest.json'
+      - 'assets/data/terrain/**/manifest.json'
+      - 'assets/js/modules/app-environment.js'
+      - 'assets/js/modules/terrain-manifest.js'
+      - 'scripts/generate-build-metadata.mjs'
+      - 'docs/validation/data-versioning-phase10.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integrated-release-plan:
+    name: Exact Pages staging, seven Web deletes and separate Web/App main integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /tools/**/*.mjs
+            /tools/**/*.js
+            /tools/**/*.py
+            /tools/**/*.sh
+            /tests/**/*.mjs
+            /tests/**/*.js
+            /tests/**/*.py
+            /tests/**/*.ts
+            /scripts/
+            /.github/workflows/*.yml
+            /assets/js/
+            /assets/data/world/current.json
+            /assets/data/world/build-input.json
+            /assets/data/world-preview-v*.json
+            /assets/data/hydro/*/manifest.json
+            /assets/data/terrain/*/manifest.json
+            /package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch exact tree metadata, without historical binary checkout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p reports
+          curl --fail --silent --show-error --retry 3 --retry-delay 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/git/trees/$GITHUB_SHA?recursive=1" \
+            -o reports/stage10-gis-tree.json
+      - name: Pin current Pages main tree without downloading historic binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/branches/main" \
+            -o reports/stage10-main-branch.json
+          jq -er '.commit.sha | select(test("^[a-f0-9]{40}$"))' \
+            reports/stage10-main-branch.json > reports/stage10-main-tree-sha.txt
+          MAIN_SHA="$(cat reports/stage10-main-tree-sha.txt)"
+          curl --fail --silent --show-error --retry 3 --retry-delay 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/git/trees/$MAIN_SHA?recursive=1" \
+            -o reports/stage10-main-tree.json
+      - name: Checkout fixed App provenance manifest only
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoEditor
+          ref: f3dc9852ec93691980b3c6afdeb84a82d4ccfad4
+          path: pinned-app
+          persist-credentials: false
+          sparse-checkout: |
+            assets/world/manifest.json
+      - name: Audit regressions on small synthetic repository
+        run: |
+          node --check tools/audit-legacy-gis-assets.mjs
+          node --check tools/audit-legacy-release-consumers.mjs
+          node --check tools/plan-gis-archive-rollout.mjs
+          node --check tools/plan-pages-deployment-footprint.mjs
+          node --check tools/prepare-pages-release-bundle.mjs
+          node --check tools/plan-gis-release-transactions.mjs
+          node --test tests/unit/legacy-gis-assets-audit.test.mjs tests/unit/legacy-release-consumers.test.mjs tests/unit/gis-archive-rollout.test.mjs tests/unit/pages-deployment-footprint.test.mjs tests/unit/pages-release-staging.test.mjs tests/unit/gis-release-transactions.test.mjs
+      - name: Prepare immutable archive lock across all branches
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node tools/plan-gis-archive-rollout.mjs \
+            --root . --tree-json reports/stage10-gis-tree.json \
+            --app-manifest pinned-app/assets/world/manifest.json \
+            --out reports/stage10-stage8-plan.json \
+            --lock-out reports/stage10-stage8-lock.json
+      - name: Calculate full-function Pages footprint for main and GIS bridge
+        run: |
+          node tools/plan-pages-deployment-footprint.mjs \
+            --main-tree reports/stage10-main-tree.json \
+            --gis-tree reports/stage10-gis-tree.json \
+            --archive-lock reports/stage10-stage8-lock.json \
+            --legacy-manifest assets/data/world-preview-v0.36.0.json \
+            --native-manifest pinned-app/assets/world/manifest.json \
+            --main-sha "$(cat reports/stage10-main-tree-sha.txt)" \
+            --gis-sha "$GITHUB_SHA" \
+            --out reports/stage10-pages-plan.json \
+            --main-files-out reports/stage10-main-publication.json \
+            --gis-files-out reports/stage10-gis-publication.json
+      - name: Verify every retained old URL and refuse oversized Pages staging
+        run: |
+          node tools/prepare-pages-release-bundle.mjs \
+            --mode check \
+            --profile reports/stage10-main-publication.json \
+            --lock reports/stage10-stage8-lock.json \
+            --source-head "$(cat reports/stage10-main-tree-sha.txt)" \
+            --out reports/stage10-pages-main-stage-gate.json
+          node tools/prepare-pages-release-bundle.mjs \
+            --mode check \
+            --profile reports/stage10-gis-publication.json \
+            --lock reports/stage10-stage8-lock.json \
+            --source-head "$GITHUB_SHA" \
+            --out reports/stage10-pages-gis-stage-gate.json
+      - name: Prepare audited Web/App main promotion and seven Web branch delete dry runs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node tools/plan-gis-release-transactions.mjs \
+            --stage9 reports/stage10-pages-plan.json \
+            --lock reports/stage10-stage8-lock.json \
+            --out reports/stage10-integrated-readiness.json \
+            --promotions-out reports/stage10-selective-main-promotions.json \
+            --deletions-out reports/stage10-seven-branch-delete-dryrun.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-gis-stage10-cutover-cleanup-main-promotion-dryrun
+          if-no-files-found: warn
+          path: |
+            reports/stage10-stage8-plan.json
+            reports/stage10-stage8-lock.json
+            reports/stage10-pages-plan.json
+            reports/stage10-main-publication.json
+            reports/stage10-gis-publication.json
+            reports/stage10-main-tree-sha.txt
+            reports/stage10-pages-main-stage-gate.json
+            reports/stage10-pages-gis-stage-gate.json
+            reports/stage10-integrated-readiness.json
+            reports/stage10-selective-main-promotions.json
+            reports/stage10-seven-branch-delete-dryrun.json
