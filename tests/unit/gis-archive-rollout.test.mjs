@@ -82,7 +82,7 @@ test('report is read-only and includes exact budget and branch refs',()=>{
   assert.equal(p.allowAutomaticRefUpdates,false);
   assert.equal(p.phases.length,7);
   assert.ok(p.blockers.some(x=>x.code==='PAST_NATIVE_RELEASES_UNVERIFIED'));
-  assert.ok(p.blockers.some(x=>x.code==='FULL_URL_SHA_PARITY_MISSING'));
+  assert.ok(p.blockers.some(x=>x.code==='CURRENT_URL_SHA_PARITY_MISSING'));
 });
 test('current Pages wrong source is blocked even when file blobs match',()=>{
   const {s,t,lock,stage7,web,appHeads}=fixture();
