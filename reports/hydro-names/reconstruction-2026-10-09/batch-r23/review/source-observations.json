@@ -1,0 +1,98 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r23",
+  "scope_aw_ids": [
+    "hydro-system:50798927",
+    "hydro-system:50798928",
+    "hydro-system:50800637"
+  ],
+  "new_external_requests": 0,
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "figures": [
+        {
+          "figure": "5.1",
+          "physical_pdf_page": 180,
+          "printed_chapter_page": 5,
+          "scope": "Direct blue Mitchell and La Trobe river-line labels and major-river geography; town and land-use labels are context only."
+        },
+        {
+          "figure": "5.22",
+          "physical_pdf_page": 200,
+          "printed_chapter_page": 25,
+          "scope": "Direct blue river-line labels and regional path context; the black Mitchell-Thomson River basin leader is context only, not a uniform name for selected groups."
+        },
+        {
+          "figure": "5.31",
+          "physical_pdf_page": 208,
+          "printed_chapter_page": 33,
+          "scope": "Direct named monitoring sites Tambo River D/S of Ramrod Creek and Latrobe at Rosedale; neighboring Thomson, Avon and Nicholson sites distinguish channels. Site names support local river identity, not all-reach naming."
+        }
+      ],
+      "observation": "Original map pixels and legends were viewed. Blue Mitchell and La Trobe wording follows river lines. Figure 5.31 directly names Tambo River D/S of Ramrod Creek and Latrobe at Rosedale sites; its neighboring named sites help distinguish the channels. The text identifies Latrobe, Thomson, Avon, Nicholson and Tambo river inflows to the Gippsland Lakes. The black Mitchell-Thomson River catchment callout supplies basin context only. Three figures remain one publication and one source group.",
+      "is_formal_naming_registry": false,
+      "supporting_text_physical_pdf_pages": [
+        200,
+        208
+      ],
+      "tables": []
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50798927",
+      "geometry_fids": [
+        7139
+      ],
+      "fragment_count": 1,
+      "part_count": 36,
+      "position_count": 276,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path runs southeast from a far-northwestern headwater, turns south through the middle corridor, then bends east and southeast into the Gippsland Lakes coastal complex. Direct blue Mitchell river-line labels support Mitchell River in Victoria as a representative system identity. The long northwestern upper continuation is not individually named by the inspected maps; a modeled mainstem can include differently named feeder reaches and does not make every part Mitchell. Exact feeder-to-river name transitions, any river/storage interfaces and the final generalized line through lake or coastal water remain unassigned at reach level."
+    },
+    {
+      "aw_id": "hydro-system:50798928",
+      "geometry_fids": [
+        7140
+      ],
+      "fragment_count": 1,
+      "part_count": 36,
+      "position_count": 227,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path runs southwest from its northeastern headwater, turns south, bows east in the middle course, then turns southwest and south toward the Gippsland Lakes coastal complex. Figure 5.31 explicitly labels the Tambo River D/S of Ramrod Creek monitoring site on the eastern channel, supporting Tambo River as a representative system identity in conjunction with the complete regional path comparison. The upstream continuation is not individually named throughout. A modeled mainstem can include differently named feeder reaches and does not establish a uniform river name. Exact feeder-to-river transitions, any river/storage interfaces and the final generalized line through lake or coastal water remain unassigned at reach level."
+    },
+    {
+      "aw_id": "hydro-system:50800637",
+      "geometry_fids": [
+        7144
+      ],
+      "fragment_count": 1,
+      "part_count": 49,
+      "position_count": 251,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path follows a long, nearly west-to-east corridor, with modest middle-course bends, a northeastern lower bend and a southeastern ending toward the Gippsland Lakes coastal complex. Direct blue La Trobe river-line wording and the Latrobe at Rosedale named monitoring site support Latrobe River as a representative system identity; the source also uses Latrobe in prose. The far-western upper continuation is not individually named throughout. A modeled mainstem can include differently named feeder reaches and does not establish a uniform river name. Exact feeder-to-river transitions, any river/storage interfaces and the lake-facing coastal ending remain unassigned at reach level."
+    }
+  ],
+  "source_limit": "Low-resolution regional maps and named monitoring sites support three bounded representative-system associations. They do not resolve every upper feeder name, precise name transitions, river/storage/lake interfaces or a contemporary surveyed coastal ending. A named station is local identity evidence, not coverage for every reach. Original map bodies and complete paths are omitted; public validators cannot replay their interpretation."
+}
