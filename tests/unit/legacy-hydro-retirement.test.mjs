@@ -74,3 +74,9 @@ test('CI sparse-checkout exclusions and in-memory fixtures are not live hydro co
     "const fixture='assets/data/hydro/v0.12.2/manifest.json';",'v0.12.2').kind,
     'synthetic-unit-test-reference');
 });
+
+test('saved-project fixture terrain v0.12.6 is not a historical hydro download',()=>{
+  assert.equal(classify('tests/fixtures/native-v9/static.pando.json',
+    '"dataset":"hydro","version":"0.34.0","terrain":{"version":"0.12.6"}',
+    'v0.12.6').kind,'saved-project-or-regression-fixture');
+});
