@@ -107,3 +107,12 @@ test('native app manifest must pin the exact current bytes and Git Blob',()=>wit
   writeFileSync(f.appFile,JSON.stringify({...f.pin,hydro:{...f.pin.hydro,bytes:7}}));
   assert.throws(()=>auditLayout(f.root,{appManifest:f.appFile}),/Native app pinned/);
 }));
+
+test('native v1 pin may omit v2-only bytes and source fields',()=>withFixture(f=>{
+  const compact={...f.pin,version:1,hydro:{...f.pin.hydro}};
+  delete compact.hydro.bytes;
+  writeFileSync(f.appFile,JSON.stringify(compact));
+  const a=auditLayout(f.root,{appManifest:[f.appFile]});
+  assert.equal(a.nativePinsVerified,1);
+  assert.equal(a.nativePinVerified,true);
+}));
