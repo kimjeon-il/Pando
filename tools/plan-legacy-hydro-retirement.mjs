@@ -82,6 +82,8 @@ export function classify(path,line,version){
     return {...found,kind:'sparse-checkout-exclusion'};
   if(/^tests\/unit\/[^/]+\.test\.mjs$/.test(path))
     return {...found,kind:'synthetic-unit-test-reference'};
+  if(/^tests\/fixtures\//.test(path))
+    return {...found,kind:'saved-project-or-regression-fixture'};
   if(['tools/plan-legacy-hydro-retirement.mjs',
     'tests/unit/legacy-hydro-retirement.test.mjs'].includes(path))
     return {...found,kind:'audit-self'};
