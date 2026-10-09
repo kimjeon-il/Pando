@@ -1,0 +1,113 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r30",
+  "scope_aw_ids": [
+    "lakes_base:1159110649",
+    "lakes_base:1159107913",
+    "lakes_base:1159110611"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "No external requests were made during this independent review. One original map body was acquired earlier in this batch and then reused locally for review.",
+  "new_original_source_acquisitions_this_batch": 1,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "observations": [
+    {
+      "source_key": "alaska_dnr_hosted_wood_tikchik_topo_map",
+      "title": "Wood-Tikchik State Park Map",
+      "host": "Alaska Department of Natural Resources, Division of Parks and Outdoor Recreation",
+      "cartographic_source": "TOPO!; National Geographic and Tele Atlas copyright credits",
+      "url": "https://dnr.alaska.gov/parks/units/wtc/images/wtcmap2.jpg",
+      "official_catalog_url": "https://dnr.alaska.gov/parks/aspunits/southwest/southwestindex.htm",
+      "official_host_and_catalog_link_verified": true,
+      "catalog_role": "The official Southwest Region page links Wood-Tikchik State Park Map under Maps and Brochures. It verifies official hosting and discovery, not formal naming authority.",
+      "original_acquired_at_utc": "2026-10-09T22:42:01.903401+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": true,
+      "reused_original": false,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "government_authored_cartography_verified": false,
+      "publication_date": null,
+      "publication_date_verified": false,
+      "printed_map_date_literal": "10/10/11",
+      "publication_date_note": "The header reports a map print date, not a verified publication date. Copyright years and the server Last-Modified value also do not establish the publication date.",
+      "rights_credit_observed": "Map created with TOPO!; copyright 2006 National Geographic; copyright 2005 Tele Atlas; Rel. 8/2005.",
+      "role": "Direct water-name labels and full-footprint regional context for all three targets.",
+      "directly_read_water_labels": [
+        "Upnuk Lake",
+        "Chikuminuk Lake",
+        "Lake Chauekuktuli"
+      ],
+      "nearby_distinct_water_labels": [
+        "Slate Lake",
+        "Nuyakuk Lake",
+        "Tikchik Lake",
+        "Allen River"
+      ],
+      "own_observations": "The map repeats each selected lake name at multiple positions across the same water. Thick black park boundaries and thin geographic grid lines cross the regional map; those lines are not accepted as hydronym boundaries. Each selected complete footprint corresponds to one labelled water, with fine shoreline and outlet details unresolved.",
+      "authority_scope": "Third-party topographic cartographic usage hosted and linked by a state agency supports generalized association. No formal government naming-registry status, independent source corroboration, current naming decision or exact name boundary is established.",
+      "review_reused_original_acquired_earlier_this_batch": true
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159110649",
+      "aw_id": "lakes_base:1159110649",
+      "source_id": "1159110649",
+      "geometry_fids": [
+        15503
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 18,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "independent_observation": "The complete ring has a narrow western arm opening eastward into a wider basin whose eastern end turns southeast. That outline and its position south of separately labelled Slate Lake and north of Chikuminuk Lake correspond to the water directly labelled Upnuk Lake. Repeated Upnuk Lake labels describe the same mapped water. The thick park-boundary line near the west side is not a water-name division. Closer western-arm inspection confirms that narrow mapped water continues west beyond the coarse selected taper, so the selected footprint is not claimed to represent the whole detailed named lake."
+    },
+    {
+      "observation_id": "lakes_base:1159107913",
+      "aw_id": "lakes_base:1159107913",
+      "source_id": "1159107913",
+      "geometry_fids": [
+        15299
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 40,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "independent_observation": "The complete ring includes the narrow southwest arm, the broad west-to-east central basin, the long northeast arm and the southeast continuation. These match the repeatedly labelled Chikuminuk Lake water south of Upnuk Lake. The northeast arm encloses an intricate island/peninsula area in the source map that the selected ring coarsely generalizes without holes. The southeast end approaches mapped rapids and the Allen River; the polygon is not extended over that separately labelled river. No differently named lake is shown inside the complete selected footprint."
+    },
+    {
+      "observation_id": "lakes_base:1159110611",
+      "aw_id": "lakes_base:1159110611",
+      "source_id": "1159110611",
+      "geometry_fids": [
+        15500
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 26,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "independent_observation": "The complete ring follows a hooked western arm bending east-northeast into a long east-west basin with a wider eastern termination. It corresponds to the water labelled Lake Chauekuktuli north of separately labelled Nuyakuk Lake and northwest of Tikchik Lake. Repeated Lake Chauekuktuli labels occur on its western and central portions. The southern neighboring lakes are outside this selected footprint. The complete ring supports one generalized water identity, while the mapped fine inlets and east-end connection remain too generalized for exact name-boundary certification."
+    }
+  ],
+  "source_group_limit": "One cartographic publication supplies all direct identity evidence. Its official discovery page does not create a second naming source.",
+  "independent_review_and_source_research_agree": true
+}

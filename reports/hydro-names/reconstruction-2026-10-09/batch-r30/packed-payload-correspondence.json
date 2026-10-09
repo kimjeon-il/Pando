@@ -1,0 +1,137 @@
+{
+  "schema": "hydro-public-payload-correspondence-note-v1",
+  "checked_date_utc": "2026-10-09",
+  "scope_aw_ids": [
+    "lakes_base:1159109687",
+    "lakes_base:1159111345",
+    "lakes_base:1159111357"
+  ],
+  "conclusion": "The retained v0.13.1 compressed components independently match the publicly declared v0.13.2 component hashes. Their concatenation in the declared order independently reproduces the published complete-container SHA-256 and Git blob. This supports payload correspondence for the three named IDs at the specified immutable commits; it is not a fresh remote binary read or a renderer/deployment equivalence check.",
+  "public_references": {
+    "baseline_manifest": {
+      "hydro_version": "0.13.1",
+      "commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.1/manifest.json"
+    },
+    "packed_manifest": {
+      "hydro_version": "0.13.2",
+      "commit": "9cf035b64991daf445723e5b0f75bb1a71f69b61",
+      "url": "https://github.com/kimjeon-il/Pando/blob/9cf035b64991daf445723e5b0f75bb1a71f69b61/assets/data/hydro/v0.13.2/manifest.json"
+    },
+    "observed_work_gis_manifest": {
+      "commit": "708cdc6520a26503fd101439711ffcca883fdb1b",
+      "url": "https://github.com/kimjeon-il/Pando/blob/708cdc6520a26503fd101439711ffcca883fdb1b/assets/data/hydro/v0.13.2/manifest.json",
+      "entire_manifest_text_matches_packed_manifest": true
+    },
+    "retirement_report": {
+      "commit": "708cdc6520a26503fd101439711ffcca883fdb1b",
+      "url": "https://github.com/kimjeon-il/Pando/blob/708cdc6520a26503fd101439711ffcca883fdb1b/docs/validation/hydro-v0132-retirement-stage4.md"
+    },
+    "r29_public_geometry_summary": {
+      "commit": "3c794180e4d848bcbb29dc5771304baf64f96857",
+      "url": "https://github.com/kimjeon-il/Pando/blob/3c794180e4d848bcbb29dc5771304baf64f96857/reports/hydro-names/reconstruction-2026-10-09/batch-r29/geometry-reference.json"
+    }
+  },
+  "public_component_declarations": [
+    {
+      "role": "index",
+      "offset_in_container": 0,
+      "bytes": 32632,
+      "sha256": "a68aff611d2be202dbf31ef1fbce476386e1d49b1619b68e9219279be7896906",
+      "retained_component_independently_matches_both_public_manifests": true
+    },
+    {
+      "role": "metadata-core",
+      "offset_in_container": 32632,
+      "bytes": 729625,
+      "sha256": "700b886134bbc44fa7686f8f2c131be53a73a5c2ebaabb468b50ea3e4000cee5",
+      "retained_component_independently_matches_both_public_manifests": true
+    },
+    {
+      "role": "metadata-detail",
+      "offset_in_container": 762257,
+      "bytes": 1670972,
+      "sha256": "1416c6932976427e9cb8140f171f4ccb54704111bce49fb8b8260819ce54b2bd",
+      "retained_component_independently_matches_both_public_manifests": true
+    },
+    {
+      "role": "shard-0",
+      "offset_in_container": 2433229,
+      "bytes": 4169624,
+      "sha256": "1ae657ac378ae4fb441425a8ce52c38348541717b363b3a8189d3bd7249702a8",
+      "retained_component_independently_matches_both_public_manifests": true
+    },
+    {
+      "role": "shard-1",
+      "offset_in_container": 6602853,
+      "bytes": 4186759,
+      "sha256": "76eb0b3392eb3376d344ebce4cbfdda05de6fee437d25ce5ee7f98e603a28fbf",
+      "retained_component_independently_matches_both_public_manifests": true
+    },
+    {
+      "role": "shard-2",
+      "offset_in_container": 10789612,
+      "bytes": 1184508,
+      "sha256": "f3b651e7a5a1503532701222f3deee658df03757076cd73b62994637fb63e15e",
+      "retained_component_independently_matches_both_public_manifests": true
+    }
+  ],
+  "public_container_declaration": {
+    "bytes": 11974120,
+    "sha256": "91c2268c6dbfdfa7fc6103d8ad0b4eeca71f6c522df5c0118db69a3654ff532a",
+    "git_blob_sha1": "6e3365aed7fccc4ecb2faee71d730e31af6058b4",
+    "independently_computed_concatenation_matches": true,
+    "sha256_source": "packed_manifest.container.sha256",
+    "git_blob_source": "retirement_report"
+  },
+  "public_manifest_declaration": {
+    "bytes": 53375,
+    "git_blob_sha1": "6f6606ad01be6a9e295995222bfa984876e8caff",
+    "declaration_source": "retirement_report",
+    "fetched_manifest_matches": true
+  },
+  "selected_identity_correspondence": [
+    {
+      "aw_id": "lakes_base:1159109687",
+      "fid": 15435,
+      "logical_fid": 4060,
+      "fragment_count": 1,
+      "geometry_type": "Polygon",
+      "positions_including_closure": 29,
+      "basis": "Selected retained baseline metadata/geometry evidence plus exact matching public component/container declarations; public baseline summary linked above."
+    },
+    {
+      "aw_id": "lakes_base:1159111345",
+      "fid": 15553,
+      "logical_fid": 4178,
+      "fragment_count": 1,
+      "geometry_type": "Polygon",
+      "positions_including_closure": 34,
+      "basis": "Selected retained baseline metadata/geometry evidence plus exact matching public component/container declarations; public baseline summary linked above."
+    },
+    {
+      "aw_id": "lakes_base:1159111357",
+      "fid": 15554,
+      "logical_fid": 4179,
+      "fragment_count": 1,
+      "geometry_type": "Polygon",
+      "positions_including_closure": 15,
+      "basis": "Selected retained baseline metadata/geometry evidence plus exact matching public component/container declarations; public baseline summary linked above."
+    }
+  ],
+  "evidence_levels": {
+    "independently_checked": "Public manifest equality at the two specified v0.13.2 commits; retained component sizes/hashes against both public manifests; concatenated retained bytes against published container hashes; selected baseline identity correspondence.",
+    "report_sourced_only": "Remote packed-binary verification, complete 16,548-feature/902-pack decoding, web7/app5 branch checks and Pages availability stated by the linked retirement report.",
+    "not_established": [
+      "Fresh remote hydro.bin or byte-range reread",
+      "Fresh geometry decode in this correspondence check",
+      "Renderer, cache or GPU behavior equality",
+      "Latest live-deployment bytes or active runtime equality"
+    ]
+  },
+  "baseline_policy": "The research baseline remains v0.13.1 at fd6744f5e72a0c1a107452dbde6d416ab57237db. This note does not migrate the baseline or modify frozen r29 results.",
+  "hash_scope": "Every hash published in this note is an existing declaration in the linked public manifests or retirement report. No private cached-source, selected-pack, coordinate, derivative or report-body fingerprint is included.",
+  "included_with_batch": "r30",
+  "automatic_application": false,
+  "product_application": false
+}
