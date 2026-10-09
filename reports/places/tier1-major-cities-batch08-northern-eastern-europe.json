@@ -313,20 +313,6 @@
           "usage": "standard"
         },
         {
-          "text": "Berne",
-          "language": "fr",
-          "usage": "alternate",
-          "variantType": "frenchExonym",
-          "sourceUrl": "https://www.aboutswitzerland.eda.admin.ch/en/political-system"
-        },
-        {
-          "text": "Berna",
-          "language": "it",
-          "usage": "alternate",
-          "variantType": "italianExonym",
-          "sourceUrl": "https://www.aboutswitzerland.eda.admin.ch/en/political-system"
-        },
-        {
           "text": "베른",
           "language": "ko",
           "usage": "standard"
@@ -387,7 +373,7 @@
         {
           "text": "Киев",
           "language": "ru",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "russianLanguageExonym",
           "sourceUrl": "https://mfa.gov.ua/en/correctua"
         },
@@ -402,7 +388,7 @@
         {
           "text": "키예프",
           "language": "ko",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "russianBasedKoreanExonym",
           "sourceUrl": "https://www.korean.go.kr/front/board/boardStandardView.do?b_seq=877&board_id=6&mn_id=184",
           "note": "옛 지도 표기, 검색 별칭 유지"
@@ -487,13 +473,6 @@
           "text": "부쿠레슈티",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Bucureşti",
-          "language": "ro",
-          "usage": "alternate",
-          "variantType": "legacyCedillaOrthography",
-          "note": "옛 문자 인코딩 철자"
         }
       ],
       "latitude": 44.43225,

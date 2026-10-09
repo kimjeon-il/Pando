@@ -53,14 +53,6 @@
           "sourceUrl": "https://www.visitbratislava.com/about/three-countries-one-destination/"
         },
         {
-          "text": "포조니",
-          "language": "ko",
-          "usage": "historical",
-          "variantType": "koreanRenderingOfHungarianPozsony",
-          "note": "헝가리어 Pozsony의 한국어형",
-          "sourceUrl": "https://www.slovensko.sk/sk/lokality/_a9a73232-f853-4d69-9b13-189650e28842"
-        },
-        {
           "text": "Pressburg",
           "language": "de",
           "usage": "historical",
@@ -71,7 +63,7 @@
         {
           "text": "Pozsony",
           "language": "hu",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "historicalHungarianOfficialAndContemporaryExonym",
           "note": "19세기 관용·공식 헝가리어명",
           "sourceUrl": "https://www.slovensko.sk/sk/lokality/_a9a73232-f853-4d69-9b13-189650e28842"
@@ -175,7 +167,7 @@
         {
           "text": "Кишинёв",
           "language": "ru",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "russianExonymHistoricallyAdministrative",
           "note": "제정·소련기의 러시아어명",
           "sourceUrl": "https://visit.chisinau.md/ru/istoric/"
@@ -280,13 +272,6 @@
           "usage": "standard",
           "note": "국가명과 구별하는 영어 형태",
           "sourceUrl": "https://www.geonames.org/2960316/luxembourg.html"
-        },
-        {
-          "text": "Luxembourg",
-          "language": "en",
-          "usage": "alternate",
-          "variantType": "shortEnglishCityName",
-          "sourceUrl": "https://www.luxembourg-city.com/en/about-luxembourg-city/presentation/facts-figures"
         },
         {
           "text": "Luxembourg",

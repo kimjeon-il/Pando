@@ -44,14 +44,6 @@
           "text": "안도라라베야",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Andorre-la-Vieille",
-          "language": "fr",
-          "usage": "alternate",
-          "variantType": "frenchExonym",
-          "note": "프랑스어 관용 표기",
-          "sourceUrl": "https://www.geonames.org/3041563/andorra-la-vella.html"
         }
       ],
       "latitude": 42.50779,
@@ -106,24 +98,9 @@
           "sourceUrl": "https://www.geonames.org/3168070/san-marino.html"
         },
         {
-          "text": "Città di San Marino",
-          "language": "it",
-          "usage": "alternate",
-          "variantType": "disambiguatingItalianCityDesignation",
-          "note": "국가명과 구별하는 도시형",
-          "sourceUrl": "https://www.geonames.org/3168070/san-marino.html"
-        },
-        {
           "text": "San Marino",
           "language": "en",
           "usage": "standard"
-        },
-        {
-          "text": "City of San Marino",
-          "language": "en",
-          "usage": "alternate",
-          "variantType": "disambiguatingEnglishCityDesignation",
-          "sourceUrl": "https://www.geonames.org/3168070/san-marino.html"
         },
         {
           "text": "산마리노",
@@ -198,14 +175,6 @@
           "text": "모나코",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Mùnegu",
-          "language": "lij",
-          "usage": "alternate",
-          "variantType": "monegasqueLigurianLocalName",
-          "note": "모네가스크·리구리아계 이름",
-          "sourceUrl": "https://www.geonames.org/2993458/monaco.html"
         }
       ],
       "latitude": 43.73718,
@@ -261,13 +230,6 @@
         },
         {
           "text": "Valletta",
-          "language": "mt",
-          "usage": "alternate",
-          "variantType": "malteseShortName",
-          "sourceUrl": "https://www.geonames.org/2562305/valletta.html"
-        },
-        {
-          "text": "Valletta",
           "language": "en",
           "usage": "standard"
         },
@@ -275,13 +237,6 @@
           "text": "발레타",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "La Valletta",
-          "language": "it",
-          "usage": "alternate",
-          "variantType": "italianExonym",
-          "sourceUrl": "https://www.geonames.org/2562305/valletta.html"
         }
       ],
       "latitude": 35.89968,
@@ -360,13 +315,6 @@
           "text": "니코시아",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Lefkosia",
-          "language": "en",
-          "usage": "alternate",
-          "variantType": "greekBasedRomanization",
-          "sourceUrl": "https://www.geonames.org/146268/nicosia.html"
         }
       ],
       "latitude": 35.17284,

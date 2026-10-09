@@ -47,13 +47,6 @@
         },
         {
           "text": "Sarajevo",
-          "language": "sr",
-          "script": "Latn",
-          "usage": "standard",
-          "note": "세르비아어 로마자 표기"
-        },
-        {
-          "text": "Sarajevo",
           "language": "en",
           "usage": "standard"
         },
@@ -65,7 +58,7 @@
         {
           "text": "Saraybosna",
           "language": "tr",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "turkishHistoricalExonym",
           "note": "튀르키예어 역사·현행 명칭",
           "sourceUrl": "https://www.geonames.org/3191281/"
@@ -275,27 +268,11 @@
           "sourceUrl": "https://skopje.gov.mk/sq/footer/fakti-simboli/"
         },
         {
-          "text": "Shkup",
-          "language": "sq",
-          "usage": "alternate",
-          "variantType": "albanianIndefiniteForm",
-          "sourceUrl": "https://www.geonames.org/785842/"
-        },
-        {
           "text": "Üsküp",
           "language": "tr",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "ottomanTurkishExonym",
           "note": "튀르키예어·오스만기 지명",
-          "sourceUrl": "https://www.geonames.org/785842/"
-        },
-        {
-          "text": "Scupi",
-          "language": "la",
-          "usage": "historical",
-          "variantType": "ancientNearbyRomanSite",
-          "note": "고대 로마 유적지 관련 이름",
-          "researchNote": "Scupi는 현재 스코페 부근의 고대 도시·유적 지명으로, 이를 현대 스코페 취락의 19세기 표기명으로 직결하거나 별도 유적 시설을 PPLC 도시로 합치지 않는다.",
           "sourceUrl": "https://www.geonames.org/785842/"
         }
       ],
@@ -355,14 +332,6 @@
           "language": "sq",
           "usage": "standard",
           "note": "알바니아어 기본형·공식명",
-          "sourceUrl": "https://www.geonames.org/3183875/"
-        },
-        {
-          "text": "Tirana",
-          "language": "sq",
-          "usage": "alternate",
-          "variantType": "albanianDefiniteForm",
-          "note": "알바니아어 정관형 표기",
           "sourceUrl": "https://www.geonames.org/3183875/"
         },
         {
@@ -442,27 +411,11 @@
           "sourceUrl": "https://www.geonames.org/786714/"
         },
         {
-          "text": "Prishtinë",
-          "language": "sq",
-          "usage": "alternate",
-          "variantType": "albanianIndefiniteForm",
-          "note": "알바니아어 기본형 지명",
-          "sourceUrl": "https://www.geonames.org/786714/"
-        },
-        {
           "text": "Приштина",
           "language": "sr",
           "script": "Cyrl",
           "usage": "standard",
           "note": "세르비아어 키릴 표기",
-          "sourceUrl": "https://www.geonames.org/786714/"
-        },
-        {
-          "text": "Priština",
-          "language": "sr",
-          "script": "Latn",
-          "usage": "standard",
-          "note": "세르비아어 로마자 표기",
           "sourceUrl": "https://www.geonames.org/786714/"
         },
         {

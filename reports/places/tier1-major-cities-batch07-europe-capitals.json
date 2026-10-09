@@ -40,7 +40,7 @@
         {
           "text": "Warschau",
           "language": "de",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "germanExonym",
           "note": "독일어 명칭, 별도 공식 개칭 아님",
           "sourceUrl": "https://www.geonames.org/756135/warsaw.html"
@@ -130,7 +130,7 @@
         {
           "text": "Prag",
           "language": "de",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "germanExonym",
           "note": "독일어 명칭, 도시 개칭은 아님",
           "sourceUrl": "https://www.geonames.org/3067696/prague.html"

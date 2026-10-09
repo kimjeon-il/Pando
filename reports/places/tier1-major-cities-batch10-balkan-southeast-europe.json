@@ -36,14 +36,6 @@
           "note": "세르비아어 키릴 표기; 원어 기본 표기로 선택"
         },
         {
-          "text": "Beograd",
-          "language": "sr",
-          "script": "Latn",
-          "usage": "standard",
-          "note": "세르비아어 로마자 표기",
-          "researchNote": "세르비아어 로마자 표기, 키릴 문자명과 별개 도시가 아님"
-        },
-        {
           "text": "Belgrade",
           "language": "en",
           "usage": "standard"
@@ -56,27 +48,11 @@
         {
           "text": "Belgrad",
           "language": "tr",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "ottomanEraAndModernTurkishExonym",
           "sourceUrl": "https://www.geonames.org/792680/belgrade.html",
           "note": "오스만기·현대 튀르키예어명",
           "researchNote": "오스만 제국 시기와 현대 튀르키예어에서 사용되는 명칭"
-        },
-        {
-          "text": "Belgrad",
-          "language": "de",
-          "usage": "alternate",
-          "variantType": "germanExonym",
-          "sourceUrl": "https://www.geonames.org/792680/belgrade.html"
-        },
-        {
-          "text": "Nándorfehérvár",
-          "language": "hu",
-          "usage": "historical",
-          "variantType": "historicalHungarianName",
-          "sourceUrl": "https://www.beograd.rs/en/discover-belgrade/a2015/Facts-about-Belgrade.html",
-          "note": "옛 헝가리어 지명",
-          "researchNote": "중세·근세의 헝가리어 역사명으로 현재 이름의 공식 개칭과 구별"
         }
       ],
       "latitude": 44.80401,
@@ -137,30 +113,6 @@
           "text": "소피아",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Средец",
-          "language": "bg",
-          "usage": "historical",
-          "variantType": "medievalBulgarianName",
-          "sourceUrl": "https://www.sofia.bg/en/web/sofia-municipality/w/history",
-          "note": "14~15세기 이전의 중세 지명",
-          "researchNote": "현재 이름 Sofia가 14~15세기에 정착하기 전의 중세 불가리아어 지명"
-        },
-        {
-          "text": "Sredets",
-          "language": "en",
-          "usage": "historical",
-          "variantType": "medievalNameRomanization",
-          "sourceUrl": "https://www.sofia.bg/en/web/sofia-municipality/w/history"
-        },
-        {
-          "text": "Serdica",
-          "language": "la",
-          "usage": "historical",
-          "variantType": "ancientRomanName",
-          "sourceUrl": "https://www.sofia.bg/en/web/sofia-municipality/w/history",
-          "note": "고대 지명으로 1801년 이후 지도 전환값이 아님"
         }
       ],
       "latitude": 42.69751,
@@ -240,7 +192,7 @@
         {
           "text": "Zágráb",
           "language": "hu",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "hungarianExonym",
           "sourceUrl": "https://www.geonames.org/3186886/zagreb.html",
           "note": "헝가리어 별칭 Zágráb",
@@ -332,7 +284,7 @@
         {
           "text": "Lubiana",
           "language": "it",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "italianExonym",
           "sourceUrl": "https://www.geonames.org/3196359/ljubljana.html"
         }

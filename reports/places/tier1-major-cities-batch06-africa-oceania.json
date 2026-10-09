@@ -36,21 +36,6 @@
           "text": "카이로",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Al Qāhirah",
-          "language": "ar-Latn",
-          "usage": "alternate",
-          "variantType": "romanizedArabicName",
-          "sourceUrl": "https://www.geonames.org/360630/cairo.html"
-        },
-        {
-          "text": "مصر",
-          "language": "arz",
-          "usage": "alternate",
-          "variantType": "egyptianColloquialAmbiguousCountryName",
-          "note": "이집트 국가명과 겹치는 구어명",
-          "sourceUrl": "https://www.geonames.org/360630/cairo.html"
         }
       ],
       "latitude": 30.06263,
@@ -100,30 +85,6 @@
           "text": "라고스",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Eko",
-          "language": "yo",
-          "usage": "alternate",
-          "variantType": "indigenousNameOfHistoricIslandCore",
-          "note": "전통 중심지 라고스섬의 토착명",
-          "sourceUrl": "https://ans-names.pitt.edu/ans/article/view/1934"
-        },
-        {
-          "text": "에코",
-          "language": "ko",
-          "usage": "alternate",
-          "variantType": "koreanTranscriptionOfEko",
-          "linkedName": "Eko",
-          "sourceUrl": "https://ans-names.pitt.edu/ans/article/view/1934"
-        },
-        {
-          "text": "Onim",
-          "language": "und-Latn",
-          "usage": "historical",
-          "variantType": "historicEuropeanExonym",
-          "sourceUrl": "https://ans-names.pitt.edu/ans/article/view/1934",
-          "note": "19세기 유럽권 기록의 옛 지명"
         }
       ],
       "latitude": 6.45407,
@@ -187,21 +148,6 @@
           "text": "요하네스버그",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "eGoli",
-          "language": "zu",
-          "usage": "alternate",
-          "variantType": "isizuluGoldCityNickname",
-          "note": "줄루어 계열의 황금 도시 별칭",
-          "sourceUrl": "https://www.dsae.co.za/entry/egoli/e02218"
-        },
-        {
-          "text": "Jozi",
-          "language": "en",
-          "usage": "alternate",
-          "variantType": "colloquialNickname",
-          "sourceUrl": "https://www.statssa.gov.za/?id=city-of-johannesburg-municipality&page_id=993"
         }
       ],
       "latitude": -26.20227,

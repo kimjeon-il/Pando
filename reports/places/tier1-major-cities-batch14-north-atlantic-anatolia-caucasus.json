@@ -46,13 +46,6 @@
           "text": "레이캬비크",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Reykjavík",
-          "language": "en",
-          "usage": "alternate",
-          "variantType": "diacriticPreservingEnglish",
-          "sourceUrl": "https://www.geonames.org/3413829/"
         }
       ],
       "latitude": 64.13548,
@@ -146,27 +139,11 @@
           "sourceUrl": "https://www.ankara.bel.tr/ankara/ankara-nin-kisa-tarihi"
         },
         {
-          "text": "Angora",
-          "language": "tr",
-          "usage": "historical",
-          "variantType": "formerOttomanEraRomanizedName",
-          "note": "옛 도시명 관련 표기",
-          "sourceUrl": "https://www.ankara.bel.tr/ankara/ankara-nin-kisa-tarihi"
-        },
-        {
           "text": "Engürü",
           "language": "ota",
           "usage": "historical",
           "variantType": "ottomanTurkishName",
           "note": "오스만 시대 표기",
-          "sourceUrl": "https://www.ankara.bel.tr/ankara/ankara-nin-kisa-tarihi"
-        },
-        {
-          "text": "Ankyra",
-          "language": "grc",
-          "usage": "historical",
-          "variantType": "ancientGreekName",
-          "note": "고대의 그리스어 이름",
           "sourceUrl": "https://www.ankara.bel.tr/ankara/ankara-nin-kisa-tarihi"
         }
       ],
@@ -264,7 +241,7 @@
         {
           "text": "Тбилиси",
           "language": "ru",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "post1936RussianName",
           "note": "1936년 이후 러시아어명",
           "sourceUrl": "https://istmat.org/node/47162"
@@ -391,7 +368,7 @@
         {
           "text": "Ереван",
           "language": "ru",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "post1936RussianName",
           "note": "1936년 이후 러시아어명",
           "sourceUrl": "https://istmat.org/node/47162"
@@ -505,17 +482,9 @@
         {
           "text": "Баку",
           "language": "ru",
-          "usage": "alternate",
+          "usage": "historical",
           "variantType": "russianExonym",
           "note": "러시아어 병용 지명",
-          "sourceUrl": "https://www.geonames.org/587084/"
-        },
-        {
-          "text": "Bakü",
-          "language": "tr",
-          "usage": "alternate",
-          "variantType": "turkishExonym",
-          "note": "튀르키예어 표기",
           "sourceUrl": "https://www.geonames.org/587084/"
         }
       ],
