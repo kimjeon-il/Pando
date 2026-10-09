@@ -1,0 +1,19 @@
+{
+  "schema": "hydro-lake-publication-rights-v1",
+  "batch": "r18",
+  "included": "Own factual extraction, short name labels, public source URLs and included-file hashes, identification/coordinate/count facts, validation code, and exactly three selected public-domain Natural Earth lake geometries.",
+  "lake_geometry_files": [
+    "selected-lake-geometries.geojson",
+    "selected-baseline-rendered-geometries.geojson"
+  ],
+  "lake_source_ids": [
+    "1159116675",
+    "1159118183",
+    "1159118201"
+  ],
+  "lake_geometry_license": "Natural Earth public domain; the official terms URL and selected-feature rights scope are documented in geometry-publication-rights.json.",
+  "raw_third_party_sources_published": false,
+  "raw_pdf_html_map_crop_count": 0,
+  "rights_scope": "No entire government publication, original map raster, screenshot or derivative overlay is included. Government provenance alone is not treated as blanket redistribution permission.",
+  "automatic_application": false
+}

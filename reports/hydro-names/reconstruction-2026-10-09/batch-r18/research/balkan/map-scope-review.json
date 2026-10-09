@@ -1,0 +1,65 @@
+{
+  "schema": "hydro-public-map-scope-review-v2",
+  "batch": "r18",
+  "reviewed_at_utc": "2026-10-09T18:14:23.931179+00:00",
+  "method": "The retained one-page PONT map was rendered locally and inspected as pixels at whole-page and complete-water-region scale. All source and baseline ordered positions were considered using complete outline plots and geographic placement, relative shape and neighbouring waters. The blue lake fill was distinguished from protected-area hatching, intervention boundaries, country borders and settlement symbols. This is visual whole-outline comparison, not a georeferenced registration, numerical shoreline fit or formal name-boundary survey.",
+  "records": [
+    {
+      "aw_id": "lakes_base:1159116675",
+      "complete_source_positions_considered": 38,
+      "complete_baseline_positions_considered": 38,
+      "source_keys": [
+        "pont_prespa_ohrid_general_map"
+      ],
+      "observations": [
+        "The complete 38-position north-south ring was considered, including the broad northern cap, northeast shoulder, long eastern shore, rounded southern end and west-side indentation.",
+        "The complete elongated western blue-water basin on the PONT map has the same broad configuration and regional placement, west of the Galicica mountain/park area and northwest of the two eastern lakes. The northern cap, eastern shoulder, southern end and western indentation were compared as a complete footprint.",
+        "The map prints Lake Ohrid with the parenthetical re-designate inside a conservation overlay covering the northern-country portion of this basin. This wording motivates the Lake Ohrid geographic candidate but does not directly label the entire water polygon. The separate Ohrid city symbol and city label on the northeastern shore are not used to establish the lake name.",
+        "Horizontal green hatching and diagonal conservation hatching cross the lake. Strong geographic correspondence uses the blue-water outer margin and regional arrangement, not the proposed-park, protected-landscape or international-border limits. Those observations do not resolve whole-waterbody name coverage or naming authority."
+      ],
+      "assessment": "The complete generalized polygon has strong geographic correspondence with the western blue-water basin. Lake Ohrid is a low-confidence naming candidate from wording inside a partial conservation overlay, qualified by re-designate. The name coverage and authority for the complete water polygon remain unverified; no supported whole-water identity is assigned.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true
+    },
+    {
+      "aw_id": "lakes_base:1159118183",
+      "complete_source_positions_considered": 58,
+      "complete_baseline_positions_considered": 58,
+      "source_keys": [
+        "pont_prespa_ohrid_general_map"
+      ],
+      "observations": [
+        "The complete 58-position ring was considered, including the broad northwest head, irregular western embayments and projections, long eastern side, southeastern lobe and southwest-reaching arm.",
+        "The larger eastern blue-water basin on the PONT map has corresponding broad northern water, indented western shore, long eastern side and southwestern arm. It is east of the western lake and immediately northwest of the smaller southeastern lake. The complete blue-water footprint, including the long southwestern portion, was inspected.",
+        "The words Prespa Lake appear as part of the Prespa Lake Monument of Nature designation in the northern-country portion of the corresponding basin. The literal wording motivates a geographic candidate, but a conservation-area label does not directly name the entire water polygon or extend the designation across the international borders. Great Prespa is not separately printed as a waterbody name.",
+        "Complete-outline correspondence supports the geographic association with this larger eastern basin. The conservation-overlay label supplies a low-confidence Prespa Lake naming candidate only. Neither whole-waterbody name coverage, naming authority, exact named-lake extent nor a Great Prespa name form is established."
+      ],
+      "assessment": "The complete generalized polygon corresponds geographically with the larger eastern blue-water basin. Prespa Lake is a low-confidence naming candidate taken literally from the partial conservation-overlay wording. Whole-waterbody name coverage and authority, Great Prespa and exact named-lake extent remain unverified; no supported whole-water identity is assigned.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true
+    },
+    {
+      "aw_id": "lakes_base:1159118201",
+      "complete_source_positions_considered": 24,
+      "complete_baseline_positions_considered": 24,
+      "source_keys": [
+        "pont_prespa_ohrid_general_map"
+      ],
+      "observations": [
+        "The complete 24-position ring was considered, including the rounded northeastern head, inward northwest-side bend, tapering southwestward body and narrow southwestern tip.",
+        "The smaller southeastern blue-water basin on the PONT map has the same broad head-and-southwestern-tail arrangement and lies southeast of the larger eastern lake. Both the head and the entire tapered southwestern reach were considered.",
+        "The nearby Prespa National Park (GR) label names a protected area. No distinct Small Prespa waterbody label was found over the complete smaller lake in this map. The map title and neighbouring park labels are not promoted to a lake name.",
+        "The source geometry and mapped water differ in fine shoreline shape and treatment of the southwestern reach. This is sufficient for a bounded generalized geographic comparison, but not a surveyed whole-lake shoreline or independently established Small Prespa name."
+      ],
+      "assessment": "The complete generalized polygon corresponds broadly to the smaller southeastern blue-water lake in the Prespa region. No distinct waterbody name is established; Small Prespa remains an unverified naming lead.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true
+    }
+  ],
+  "included_evidence_limit": "Included records retain bibliography, own factual observations and selected geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}
