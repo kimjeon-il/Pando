@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "system_id": "30624681",
+  "aw_id": "hydro-system:30624681",
+  "logical_fid": 3798,
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "current_deployment_checked": false,
+  "verdict": "representative_nura_system_candidate_with_whole_reach_naming_hold",
+  "verdict_summary": "The complete two-fragment baseline course is geographically compatible with the Nura river-and-terminal-lake system described by acquired official and primary texts. Direct Kazakh, Russian and English usage is established. A representative Nura system candidate is retained, but no scalar name or reach-by-reach application is supported because readable external map corroboration and exact river/lake naming boundaries remain unverified.",
+  "representative_candidate": {
+    "english": "Nura River",
+    "kazakh": "Нұра",
+    "russian": "Нура",
+    "korean": null,
+    "name_forms_are_source_observed": true,
+    "scope": "Representative system identity only; not an assignment of one hydronym to every connected reach or lake."
+  },
+  "confidence": {
+    "source_name_usage": "high",
+    "baseline_group_geographic_identity": "moderate, provisional representative-system candidate",
+    "independent_visual_map_match": "not established",
+    "exact_all_reach_name_coverage": "not established",
+    "formal_registry_status": "not established"
+  },
+  "source_evidence_file": "nura-source-evidence.json",
+  "source_evidence_sha256": "680a3ece92678b6a27ed4b73eb54ff772ca67ce7c42aaa711f57a2a1dc4986cd",
+  "complete_group_checks": {
+    "basis": "Every decoded line part in both baseline geometry fragments was included in the local complete-group plot and numeric endpoint/part checks; the conclusion is not centroid-only.",
+    "geometry_fids": [
+      15165,
+      15166
+    ],
+    "fragments_expected": 2,
+    "fragments_inspected": 2,
+    "source_reaches_expected": 255,
+    "source_reaches_inspected": 255,
+    "unique_source_reaches": 255,
+    "line_parts_inspected": 255,
+    "coordinates_inspected": 1378,
+    "union_bbox_lon_lat": [
+      68.89375,
+      48.8875,
+      75.21875,
+      51.014583
+    ],
+    "source_reach_union_sha256": "9b00d659a476313d724aadf3026ed084dec18398bbc6ce4a69e96aa15c2d7a27",
+    "source_reach_union_hash_convention": "Sorted unique decimal source IDs joined by commas, UTF-8",
+    "inventory_union_hash_matches": true,
+    "ordered_group_source_reaches_sha256": "53924bf9c0de567186bfb8e65721e197300ed95ffb7befc3e69d7fd02dc0ef69",
+    "ordered_group_hash_convention": "Fragments in baseline fragmentIndex order; each sourceId comma-separated sequence retained as-is; sequences concatenated with commas, UTF-8",
+    "fragment_join_exact": true,
+    "nonmatching_internal_endpoint_boundaries": 0,
+    "all_finite_coordinates": true,
+    "geometry_repaired": false,
+    "geometry_modified": false,
+    "source_shapefile_reach_geometry_equality_verified": false,
+    "source_name_to_each_reach_verified": false,
+    "centroid_used_as_identity_proof": false,
+    "local_decoded_collection_sha256": "870ffe2536994d9577c8c6e70391ff6f07afb81a9461d1b3e19fadcc5ee1de0a",
+    "local_plot_sha256": "6407042220d5e080befbd280f91e168554c6c8bd299d7d6f1c4926cd51d34995",
+    "licensed_full_coordinates_in_public_findings": false
+  },
+  "fragments": [
+    {
+      "fid": 15165,
+      "fragment_index": 0,
+      "baseline_role": "mainstem",
+      "source_reach_count": 244,
+      "line_part_count": 244,
+      "coordinate_count": 1286,
+      "bbox_lon_lat": [
+        69.352083,
+        48.8875,
+        75.21875,
+        51.014583
+      ],
+      "first_endpoint_lon_lat": [
+        74.808333,
+        48.8875
+      ],
+      "last_endpoint_lon_lat": [
+        69.352083,
+        50.385417
+      ],
+      "first_source_reach_id": "30651381",
+      "last_source_reach_id": "30625064",
+      "ordered_source_reaches_sha256": "fc64b71772967420336271f8de53ac73e2ec629fca620b7aeb5fcbdb9f016839",
+      "decoded_coordinates_sha256": "5dcc2a68bbab75a5bcedc7f80d47cc6d905d365f90ed9dfe4a2f81273b159123",
+      "decoded_coordinate_hash_convention": "UTF-8 JSON coordinate array with no whitespace, decimal values from decoded baseline",
+      "source_ids_to_line_parts_count_match": true,
+      "nonmatching_internal_endpoint_boundaries": 0,
+      "whole_fragment_inspected": true,
+      "named_river_scope_assignment": "Not established for every constituent reach.",
+      "geographic_observation": "Long connected regional course from southeastern headwaters, first northward, then westward, with a northern loop and southwestward lower section. Broadly compatible with the described Nura basin; no independently inspected full-course source map verifies each bend."
+    },
+    {
+      "fid": 15166,
+      "fragment_index": 1,
+      "baseline_role": "mainstem",
+      "source_reach_count": 11,
+      "line_part_count": 11,
+      "coordinate_count": 92,
+      "bbox_lon_lat": [
+        68.89375,
+        50.289583,
+        69.352083,
+        50.410417
+      ],
+      "first_endpoint_lon_lat": [
+        69.352083,
+        50.385417
+      ],
+      "last_endpoint_lon_lat": [
+        68.89375,
+        50.410417
+      ],
+      "first_source_reach_id": "30625638",
+      "last_source_reach_id": "30624681",
+      "ordered_source_reaches_sha256": "b4758d5a71bf96c3f5b2bbb02fb4a81e3269223b9011300324e1bcfb7605c08b",
+      "decoded_coordinates_sha256": "5f7a350c7f56ff5d3937d2233d8d470d95babb950bb47ec0ede48191b3107421",
+      "decoded_coordinate_hash_convention": "UTF-8 JSON coordinate array with no whitespace, decimal values from decoded baseline",
+      "source_ids_to_line_parts_count_match": true,
+      "nonmatching_internal_endpoint_boundaries": 0,
+      "whole_fragment_inspected": true,
+      "named_river_scope_assignment": "Not established for every constituent reach.",
+      "geographic_observation": "Continuous lower westward continuation from the first fragment into the terminal-lake region. No acquired source establishes the individual names or lake/river status of its eleven reaches.",
+      "baseline_terminal_class": "lake",
+      "terminal_flag_scope": "The classification applies to the endpoint. It does not classify the entire fragment or its eleven reaches as lake features."
+    }
+  ],
+  "supported_geographic_name_scope": {
+    "direct_textual_scope": [
+      {
+        "source_id": "world-bank-e591",
+        "scope": "Nura River in Kazakhstan, from southeastern Karaganda headwaters to Korgalzhino Lake. The Samarkand–Intumak corridor is explicitly a river segment. Associated wetland/lake context extends to Tengiz."
+      },
+      {
+        "source_id": "gov-nura-2021-design",
+        "scope": "Нура as the principal river through the Tengiz–Korgalzhyn depression, described from the western mountain spurs through to Lake Tengiz. Engineering survey itself covers a short local reach near G. Mustafina/Samarkand Reservoir."
+      },
+      {
+        "source_id": "ministry-nura-kk",
+        "scope": "Нұра official Kazakh river/basin usage in the Karaganda-to-Akmola flood-routing context."
+      },
+      {
+        "source_id": "nasa-terminal-lakes",
+        "scope": "Nura River approaching eastern Korgaljinski lakes and a connected terminal-lake system west to Tengiz; a separate inflow is distinguished."
+      }
+    ],
+    "terminus_scope_difference": {
+      "world_bank_2002_river_end": "Korgalzhino Lake",
+      "world_bank_2002_reported_length_km": 899,
+      "gov_2021_basin_description_end": "Lake Tengiz",
+      "gov_2021_reported_length_km": 978,
+      "interpretation": "These texts use different terminal scopes for the river or lake-linked system. They support the regional association but do not establish an exact name boundary in the decoded geometry. Neither length is used to prove geometric identity or resolve reach labels."
+    },
+    "baseline_rendered_mainstem_length_km": 945.186,
+    "length_match_used_as_identity_proof": false,
+    "exact_reach_assignments_approved": 0,
+    "lake_connector_name_assignments_approved": 0,
+    "connecting_tributary_names_propagated": false
+  },
+  "limitations": [
+    "No readable full-course official or primary map was visually acquired. PDF map rendering failed; a discovered NASA image URL is not equivalent to inspected imagery.",
+    "The 2002 assessment and 2021 project description are distinct originals, but generic basin-description bibliographic independence is not established; NASA references the World Bank project for some background.",
+    "The endpoint lake classification is separate from the names and physical classifications of individual reaches.",
+    "The decoded baseline is a rendered HydroRIVERS-derived network; equality to original source shapefile reach geometries has not been checked.",
+    "No formal gazetteer entry, legal naming record, or directly sourced Korean form was acquired.",
+    "Current deployed product content was not rechecked."
+  ],
+  "application": {
+    "automatic_application": false,
+    "scalar_product_name_approved": false,
+    "product_writes_performed": false,
+    "recommended_action": "Retain the candidate and the explicit scope hold; do not rename every reach or set a production display name from this evidence alone."
+  },
+  "automatic_application": false,
+  "scalar_product_name_approved": false,
+  "korean_name": null
+}

@@ -1,0 +1,134 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v1",
+  "batch": "r03",
+  "research_completed_targets": 3,
+  "independently_reviewed_targets": 3,
+  "counting_unit": "Logical MAIN_RIV inventory groups, not individually named physical rivers or reaches.",
+  "counts": {
+    "candidate_representative_system_identity": 1,
+    "supported_representative_system_identity": 2
+  },
+  "pending_source_only_targets": 0,
+  "fragment_count": 9,
+  "line_part_count": 678,
+  "distinct_source_reach_count": 678,
+  "rendered_coordinate_count": 4220,
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:30624681",
+      "category": "river_group",
+      "system_id": "30624681",
+      "baseline_logical_fid": 3798,
+      "geometry_fids": [
+        15165,
+        15166
+      ],
+      "candidate_name": "Nura River",
+      "research_category": "candidate_representative_system_identity",
+      "independent_review_status": "Provisional representative-system candidate retained; whole-reach naming held.",
+      "supported_name_scope": "Direct Kazakh Нұра, Russian Нура and English Nura River usage in the regional river and terminal-lake system; complete group is textually compatible but no external map was visually verified.",
+      "source_keys": [
+        "world-bank-e591",
+        "gov-nura-2021-design",
+        "ministry-nura-kk",
+        "nasa-terminal-lakes"
+      ],
+      "limits": [
+        "E591 ends its named river at Korgalzhino (899 km); the 2021 design extends its account to Tengiz (978 km). Neither length resolves the name boundary.",
+        "The final fragment has terminal.class=lake only at its endpoint; no eleven-reach lake classification or connector naming is inferred.",
+        "No source proves the name or physical river/lake class of every selected part.",
+        "Nura evidence hashes describe tool-returned text captures, not original PDF bytes."
+      ],
+      "line_part_count": 255,
+      "rendered_coordinate_count": 1378,
+      "whole_group_scalar_name": null,
+      "korean_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:50488324",
+      "category": "river_group",
+      "system_id": "50488324",
+      "baseline_logical_fid": 1832,
+      "geometry_fids": [
+        6748,
+        6749,
+        6750,
+        6751,
+        6752
+      ],
+      "candidate_name": "Flinders River system",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "Representative Flinders system/mainstem identity supported; whole-group scalar naming held.",
+      "supported_name_scope": "The three mainstem fragments follow the regionally mapped Flinders course. The two western tributary fragments remain separately scoped, with a qualified lower Cloncurry-corridor association.",
+      "source_keys": [
+        "FLINDERS-BOM-FLOOD-2026",
+        "FLINDERS-BOM-MAP-2020",
+        "FLINDERS-QLD-BASIN-MAP"
+      ],
+      "limits": [
+        "Regional generalized maps do not certify every headwater, anabranch, tributary reach or exact confluence.",
+        "Cloncurry, Corella, Dugald, Saxby, Bynoe and Armstrong names are distinctions, not aliases for the entire selected group.",
+        "The retained source and render sea endpoints differ by about 2.131527 km; neither is a surveyed mouth or contemporary coastline."
+      ],
+      "line_part_count": 168,
+      "rendered_coordinate_count": 1436,
+      "whole_group_scalar_name": null,
+      "korean_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:40182409",
+      "category": "river_group",
+      "system_id": "40182409",
+      "baseline_logical_fid": 1070,
+      "geometry_fids": [
+        3103,
+        3104
+      ],
+      "candidate_name": "Сарысу / Sarysu system",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "Qualified representative Sarysu system identity supported; exact reach-name application held.",
+      "supported_name_scope": "Regional east–west upper course, southwest bend and long southern lower valley agree with acquired full-basin thematic maps and written descriptions; separately named upstream components remain unresolved.",
+      "source_keys": [
+        "SARYSU-GEOSYSTEMS-2017",
+        "SARYSU-GEOECOLOGY-2013",
+        "SARYSU-PM-FLOOD-2024"
+      ],
+      "limits": [
+        "The 761 km named-river convention begins at a confluence; a longer hydrological path can include Kairakty and Zhaman-Sarysu. Selected upstream name transitions are not established.",
+        "Floodwater reaches the Telekol/Telikol region episodically. The selected endorheic endpoint is not independently proven inside the named lake.",
+        "The 2017 page 158 is blank; only the 2013 publication provides usable full-basin map figures.",
+        "The two studies share authors and are not wholly independent naming authorities."
+      ],
+      "line_part_count": 255,
+      "rendered_coordinate_count": 1406,
+      "whole_group_scalar_name": null,
+      "korean_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "ad86ff9ef39e15cd64f52ed240649f4f7cc531a177050b57ee3fd4c205fe2710",
+  "publication_contents": "Own factual extraction and bounded review, complete ordered identifier citations, counts, hashes, bounded location facts and validators. No complete river coordinates, GeoJSON, binary packs or raw third-party documents/maps.",
+  "previous_reconstruction_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7"
+}

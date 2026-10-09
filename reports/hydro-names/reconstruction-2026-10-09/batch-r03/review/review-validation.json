@@ -1,0 +1,142 @@
+{
+  "schema": "hydro-independent-review-validation-v1",
+  "durable_only": {
+    "status": "passed",
+    "mode": "durable_only",
+    "scope_system_ids": [
+      "30624681",
+      "50488324",
+      "40182409"
+    ],
+    "frozen_package_inputs_checked": 19,
+    "published_facts_hashes_and_name_gates_checked": true,
+    "unpublished_complete_coordinates_rechecked": false,
+    "independent_binary_decoder_replayed": false,
+    "independent_binary_decode": [],
+    "production_decoder_replayed": false,
+    "selected_inventory_originals_rechecked": false,
+    "local_source_bodies_and_text_captures_rechecked": 0,
+    "local_view_assets_rechecked": 0,
+    "durable_only_limitation": "Without optional local inputs, unpublished complete coordinates, source bodies, text captures and map images are not rechecked. Hash metadata alone is not proof of renewed source inspection.",
+    "original_hydrorivers_coordinate_equality_verified": false,
+    "current_live_deployment_checked": false,
+    "network_requests": 0,
+    "automatic_application": false,
+    "scalar_product_name_approvals": 0
+  },
+  "complete_local_replay": {
+    "status": "passed",
+    "mode": "complete_local_inputs",
+    "scope_system_ids": [
+      "30624681",
+      "50488324",
+      "40182409"
+    ],
+    "frozen_package_inputs_checked": 19,
+    "published_facts_hashes_and_name_gates_checked": true,
+    "unpublished_complete_coordinates_rechecked": true,
+    "independent_binary_decoder_replayed": true,
+    "independent_binary_decode": [
+      {
+        "fid": 15165,
+        "part_count": 244,
+        "coordinate_count": 1286,
+        "ordered_geometry_hash_matched": true,
+        "internal_endpoint_discontinuities": 0
+      },
+      {
+        "fid": 15166,
+        "part_count": 11,
+        "coordinate_count": 92,
+        "ordered_geometry_hash_matched": true,
+        "internal_endpoint_discontinuities": 0
+      },
+      {
+        "fid": 6748,
+        "part_count": 76,
+        "coordinate_count": 693,
+        "ordered_geometry_hash_matched": true,
+        "internal_endpoint_discontinuities": 0
+      },
+      {
+        "fid": 6749,
+        "part_count": 1,
+        "coordinate_count": 5,
+        "ordered_geometry_hash_matched": true,
+        "internal_endpoint_discontinuities": 0
+      },
+      {
+        "fid": 6750,
+        "part_count": 69,
+        "coordinate_count": 504,
+        "ordered_geometry_hash_matched": true,
+        "internal_endpoint_discontinuities": 0
+      },
+      {
+        "fid": 6751,
+        "part_count": 20,
+        "coordinate_count": 211,
+        "ordered_geometry_hash_matched": true,
+        "internal_endpoint_discontinuities": 0
+      },
+      {
+        "fid": 6752,
+        "part_count": 2,
+        "coordinate_count": 23,
+        "ordered_geometry_hash_matched": true,
+        "internal_endpoint_discontinuities": 0
+      },
+      {
+        "fid": 3103,
+        "part_count": 176,
+        "coordinate_count": 934,
+        "ordered_geometry_hash_matched": true,
+        "internal_endpoint_discontinuities": 0
+      },
+      {
+        "fid": 3104,
+        "part_count": 79,
+        "coordinate_count": 472,
+        "ordered_geometry_hash_matched": true,
+        "internal_endpoint_discontinuities": 0
+      }
+    ],
+    "production_decoder_replayed": true,
+    "selected_inventory_originals_rechecked": true,
+    "local_source_bodies_and_text_captures_rechecked": 10,
+    "local_view_assets_rechecked": 13,
+    "durable_only_limitation": "Without optional local inputs, unpublished complete coordinates, source bodies, text captures and map images are not rechecked. Hash metadata alone is not proof of renewed source inspection.",
+    "original_hydrorivers_coordinate_equality_verified": false,
+    "current_live_deployment_checked": false,
+    "network_requests": 0,
+    "automatic_application": false,
+    "scalar_product_name_approvals": 0
+  },
+  "bounded_corrupt_fixtures": {
+    "status": "passed",
+    "scope_system_ids": [
+      "30624681",
+      "50488324",
+      "40182409"
+    ],
+    "durable_only_truthful_flags_passed": true,
+    "corrupt_fixtures_rejected": 10,
+    "fixtures": [
+      "scalar_application_enabled",
+      "unsupported_korean_name",
+      "whole_reach_clearance",
+      "whole_group_scalar_clearance",
+      "frozen_source_metadata_byte_change",
+      "missing_last_fragment",
+      "dropped_line_part",
+      "reversed_part_order",
+      "interior_coordinate_change",
+      "source_id_order_change"
+    ],
+    "local_geometry_fixtures_run": true,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "interpretation": "These are recorded successful review runs. A future durable-only invocation does not reproduce the complete-local checks without the unpublished inputs.",
+  "automatic_application": false
+}

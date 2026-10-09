@@ -1,0 +1,314 @@
+{
+  "schema": "hydro-river-geometry-reference-v1",
+  "batch": "r03",
+  "created_at_utc": "2026-10-09T12:07:50Z",
+  "scope_system_ids": [
+    "30624681",
+    "50488324",
+    "40182409"
+  ],
+  "baseline": {
+    "repository": "kimjeon-il/Pando",
+    "git_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "hydro_version": "0.13.1",
+    "manifest_sha256": "c10eaffd375d5f0d90955fa253b02ec73d9daeff261fa5cfde1f73ca89d2bd80",
+    "all_selected_baseline_fragments_decoded": true,
+    "production_decoder_hash_verified": true,
+    "current_live_deployment_checked": false,
+    "current_live_deployment_equality_claimed": false
+  },
+  "source_assets": {
+    "baseline-manifest.json": {
+      "repository_path": "assets/data/hydro/v0.13.1/manifest.json",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.1/manifest.json",
+      "bytes": 52975,
+      "sha256": "c10eaffd375d5f0d90955fa253b02ec73d9daeff261fa5cfde1f73ca89d2bd80",
+      "git_blob_sha": "9a9cdb719351e51d2ff509c410cae8741ac36a0a",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:50:35.839Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": false
+    },
+    "metadata-core.json.gz": {
+      "repository_path": "assets/data/hydro/v0.13.1/metadata-core.json.gz",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.1/metadata-core.json.gz",
+      "bytes": 729625,
+      "sha256": "700b886134bbc44fa7686f8f2c131be53a73a5c2ebaabb468b50ea3e4000cee5",
+      "git_blob_sha": "625ce46f50ae0c0fccee1c878cf8f36280dba7f4",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:51:48.623Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": false
+    },
+    "metadata-detail.json.gz": {
+      "repository_path": "assets/data/hydro/v0.13.0/metadata-detail.json.gz",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/metadata-detail.json.gz",
+      "bytes": 1670972,
+      "sha256": "1416c6932976427e9cb8140f171f4ccb54704111bce49fb8b8260819ce54b2bd",
+      "git_blob_sha": "b00fa5d7414582f8021446e286e36bed517a166f",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:52:45.496268+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": false
+    },
+    "index.bin.gz": {
+      "repository_path": "assets/data/hydro/v0.13.0/index.bin.gz",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/index.bin.gz",
+      "bytes": 32632,
+      "sha256": "a68aff611d2be202dbf31ef1fbce476386e1d49b1619b68e9219279be7896906",
+      "git_blob_sha": "c9113f4e6b22d652799c64f8e09cd6b900df4624",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:53:19.166Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": false
+    },
+    "shard-s0.bin": {
+      "repository_path": "assets/data/hydro/v0.13.0/shards/s0.bin",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/shards/s0.bin",
+      "bytes": 4169624,
+      "sha256": "1ae657ac378ae4fb441425a8ce52c38348541717b363b3a8189d3bd7249702a8",
+      "git_blob_sha": "65e3556a787b094cd83626f550072301c0bb9713",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:54:02.416252+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": false
+    },
+    "worker.js": {
+      "repository_path": "assets/js/workers/hydro-tile-worker.js",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/workers/hydro-tile-worker.js",
+      "bytes": 32253,
+      "sha256": "14399a8454fb980fb2adc78b7c52bcd32ea5e1b1f313dcfba301886a6b9ddfec",
+      "git_blob_sha": "2974a78862ce0eb1386061c06341b55c8eabb7ca",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:53:59.639Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": false
+    },
+    "boundary.js": {
+      "repository_path": "assets/js/workers/geographic-boundary-core.js",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/workers/geographic-boundary-core.js",
+      "bytes": 3928,
+      "sha256": "b9017382fcc828924608c8a32ddbf2831800475a725b432cad9e6445d33bc8ea",
+      "git_blob_sha": "3c97ed6732be0c51308f33199a8c7138abe2c515",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:54:01.552Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": false
+    },
+    "earcut.js": {
+      "repository_path": "assets/js/vendor/earcut.min.js",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/vendor/earcut.min.js",
+      "bytes": 7131,
+      "sha256": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3",
+      "git_blob_sha": "79cf67e1001350a4da6d9e51c6421da06cd7b556",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:54:03.196Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": false
+    },
+    "shard-s1.bin": {
+      "repository_path": "assets/data/hydro/v0.13.0/shards/s1.bin",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/shards/s1.bin",
+      "bytes": 4186759,
+      "sha256": "76eb0b3392eb3376d344ebce4cbfdda05de6fee437d25ce5ee7f98e603a28fbf",
+      "original_retrieved_at_utc": "2026-10-09T12:03:55.171566+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": true,
+      "in_publishable_package": false
+    },
+    "shard-s2.bin": {
+      "repository_path": "assets/data/hydro/v0.13.0/shards/s2.bin",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/shards/s2.bin",
+      "bytes": 1184508,
+      "sha256": "f3b651e7a5a1503532701222f3deee658df03757076cd73b62994637fb63e15e",
+      "original_retrieved_at_utc": "2026-10-09T12:03:58.412836+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "retrieved_this_batch": true,
+      "in_publishable_package": false
+    }
+  },
+  "identity_domains": "MAIN_RIV systemId, logicalFid, geometry fid and individual source reach IDs remain distinct. Numeric FIDs are specific to this immutable baseline.",
+  "groups": [
+    {
+      "system_id": "30624681",
+      "aw_id": "hydro-system:30624681",
+      "logical_fid": 3798,
+      "geometry_fids": [
+        15165,
+        15166
+      ],
+      "role_sequence": [
+        "mainstem",
+        "mainstem"
+      ],
+      "source_ids_count": 255,
+      "source_ids_sha256": "9b00d659a476313d724aadf3026ed084dec18398bbc6ce4a69e96aa15c2d7a27",
+      "bounds": [
+        68.89375,
+        48.8875,
+        75.21875,
+        51.014583
+      ],
+      "minimum_stage": 2,
+      "coordinate_count": 1378,
+      "canonical_ordered_group_geometry_sha256": "54ad8ac757f7ab3c7aec9cea425f620090f0dc06abb802b748a4e0ceacca8b53",
+      "selected_priority_record_canonical_sha256": "47314881a64e09244e560fc174a6beed444c9c8d2936c45ec1294073aa8875b8",
+      "priority_csv_and_baseline_join_verified": true
+    },
+    {
+      "system_id": "50488324",
+      "aw_id": "hydro-system:50488324",
+      "logical_fid": 1832,
+      "geometry_fids": [
+        6748,
+        6749,
+        6750,
+        6751,
+        6752
+      ],
+      "role_sequence": [
+        "mainstem",
+        "mainstem",
+        "mainstem",
+        "tributary",
+        "tributary"
+      ],
+      "source_ids_count": 168,
+      "source_ids_sha256": "71a9d52473951e1a345bcaf16ba6b5cd2266036cdd34ffb365826675e7b63d1a",
+      "bounds": [
+        140.56875,
+        -20.852083,
+        144.76875,
+        -17.516435
+      ],
+      "minimum_stage": 1,
+      "coordinate_count": 1436,
+      "canonical_ordered_group_geometry_sha256": "c53e0cf6be8dab31cad34a09d9fdf82967adc95770b31efa16fdf8fd733746b1",
+      "selected_priority_record_canonical_sha256": "e160a7d1e782ee5664c134a82b24adcf36e77d5e294ac5c0d0bee96569dab414",
+      "priority_csv_and_baseline_join_verified": true
+    },
+    {
+      "system_id": "40182409",
+      "aw_id": "hydro-system:40182409",
+      "logical_fid": 1070,
+      "geometry_fids": [
+        3103,
+        3104
+      ],
+      "role_sequence": [
+        "mainstem",
+        "mainstem"
+      ],
+      "source_ids_count": 255,
+      "source_ids_sha256": "4ded058ac025b4e65a0c6f1d3ecffdcf369373790a542507abea72ff09b9ee1e",
+      "bounds": [
+        66.935417,
+        45.135417,
+        73.608333,
+        48.702083
+      ],
+      "minimum_stage": 2,
+      "coordinate_count": 1406,
+      "canonical_ordered_group_geometry_sha256": "566cb65669c73251b58d8adb9a4cf58c1466dc3a219636a2884fc7c9923961d0",
+      "selected_priority_record_canonical_sha256": "e9da49cb1b228e13cb3625f20c6925c697a15bb9a0c5c08f28e8caf049efce10",
+      "priority_csv_and_baseline_join_verified": true
+    }
+  ],
+  "original_hydrorivers_geometry": {
+    "original_shapefiles_available": false,
+    "coordinate_equality_verified": false,
+    "reach_boundary_coordinate_mapping_verified": false,
+    "scope": "Complete rendered baseline geometry was decoded. Ordered source reach identifiers are preserved from metadata; original HydroRIVERS reach coordinates were not acquired or compared."
+  },
+  "name_scope": {
+    "name_verdict_established": false,
+    "representative_name_automatically_applies_to_tributaries": false,
+    "research_name_ko": null,
+    "automatic_application": false
+  },
+  "validation_modes": {
+    "durable_only": "Checks the published factual tables, exact identity joins, source-ID lists, roles, fragment coverage, known hashes and artifact receipts. It cannot independently recheck unpublished full coordinates.",
+    "input_cache": "Additionally verifies complete immutable assets, replays the actual production decoder, and recomputes every selected geometry metric/hash and metadata/reach join."
+  },
+  "public_coordinate_policy": "Complete coordinates and selected GeoJSON are excluded because open redistribution permission has not been established.",
+  "limits": [
+    "No name identity is proven by identifiers, geometry or metadata placeholders alone.",
+    "One representative river-system name must not be applied automatically to every tributary, headwater, lake connection or reach.",
+    "Terminal classes and source/render endpoints are baseline metadata. Flinders has a modified sea render endpoint.",
+    "No geometry repair, source-graph reconstruction or exact-topology proof was performed.",
+    "Current live deployment was not checked."
+  ],
+  "artifacts": {
+    "selected-river-metadata.json": {
+      "bytes": 26505,
+      "sha256": "13d6d672441080947111b38ae75234b1d1b54025e91c5c0e0195edb6d55fa6e2"
+    },
+    "source-reach-manifest.json": {
+      "bytes": 34120,
+      "sha256": "7c712ac9c5d8764fd11b03cb0566ba61a51443a30b5845a6fabc48c7bf18fcf8"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 3781,
+      "sha256": "46faac003f887e09458b043d21ac104e6eef3da607a145b29f3272917d400f90"
+    },
+    "selected-pack-receipts.json": {
+      "bytes": 1367,
+      "sha256": "c5e35e935cb63cf9ae659bd56ec8ffe44a302dadc3a93241da8768d1751d8c80"
+    },
+    "extract-baseline-geometries.mjs": {
+      "bytes": 5680,
+      "sha256": "7c1f70e70cf88872e5ef911fb488e16fec11f600323be7804ea94153bc3d1f6d"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 1700,
+      "sha256": "3fe46fdae55bf8a80cf06dfc4e89b5ba4259e896704ca360f7f4b9bb081ce1cb"
+    },
+    "geometry-request-receipts.json": {
+      "bytes": 5989,
+      "sha256": "7c12f7151e83da092ca3010f16e42e8212c89bc0c4c5509af438a53808e15dcd"
+    }
+  },
+  "selected_inventory_inputs": [
+    {
+      "repository_path": "reports/hydro-names/current-web-2026-10-08/priority-candidates.json",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/priority-candidates.json",
+      "bytes": 77514,
+      "sha256": "427b74322a4878762d02be116eaade4e70789e4d00f5eecc78a3e3ee82cce0fe",
+      "original_recovery_date_utc": "2026-10-09",
+      "original_retrieved_at_utc": null,
+      "exact_retrieval_time_available": false,
+      "reused_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "selected_record_checks_only": true,
+      "in_publishable_package": false
+    },
+    {
+      "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+      "bytes": 441711,
+      "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+      "original_recovery_date_utc": "2026-10-09",
+      "original_retrieved_at_utc": null,
+      "exact_retrieval_time_available": false,
+      "reused_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "selected_record_checks_only": true,
+      "in_publishable_package": false
+    },
+    {
+      "repository_path": "reports/hydro-names/current-web-2026-10-08/summary.json",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/summary.json",
+      "bytes": 4359,
+      "sha256": "4af18507bee586d97a113f903014019d8c8bffa7bf1f4329de0ce95c16d4f4fd",
+      "original_recovery_date_utc": "2026-10-09",
+      "original_retrieved_at_utc": null,
+      "exact_retrieval_time_available": false,
+      "reused_hash_checked_at_utc": "2026-10-09T12:07:50Z",
+      "selected_record_checks_only": true,
+      "in_publishable_package": false
+    }
+  ],
+  "non_distributed_decoded_feature_collection": {
+    "bytes": 105406,
+    "sha256": "870ffe2536994d9577c8c6e70391ff6f07afb81a9461d1b3e19fadcc5ee1de0a",
+    "complete_coordinates_in_public_package": false
+  }
+}

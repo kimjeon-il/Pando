@@ -1,0 +1,17 @@
+{
+  "schema": "hydrorivers-publication-rights-check-v1",
+  "product_url": "https://www.hydrosheds.org/products/hydrorivers",
+  "official_license_url": "https://data.hydrosheds.org/file/technical-documentation/HydroSHEDS_TechDoc_v1_4.pdf",
+  "license_locator": "Appendix A, sections 2.1.2 and 2.2, printed pages 24–25; Exhibit B, printed page 29.",
+  "checked_at_utc": "2026-10-09T12:07:50Z",
+  "official_product_original_bytes": 31468,
+  "official_product_original_sha256": "ea8ca5f29c27452ff1fa972bef481576756f091b7070b004a84112595eb4bd9f",
+  "official_product_http_status": 200,
+  "license_access": "Official PDF text was read through web extraction. Original PDF download returned HTTP 403 and was not retried. No complete PDF-byte checksum is claimed.",
+  "finding": "HydroRIVERS points to the HydroSHEDS license. It allows specified derivative use and distribution subject to protective end-user terms and attribution, and restricts stand-alone distribution. Open redistribution of a selected GeoJSON has not been established.",
+  "public_package_scope": "Own factual findings, identifiers, bounded coordinate facts, counts, hashes, citations and offline validation code. No complete coordinate arrays, binary packs, raw source maps or third-party documents.",
+  "complete_coordinate_arrays_in_public_package": false,
+  "open_redistribution_permission_claimed": false,
+  "source_attribution": "HydroRIVERS v1.0, HydroSHEDS. Lehner, B. and Grill, G. (2013), Hydrological Processes 27(15), 2171–2186, https://doi.org/10.1002/hyp.9740.",
+  "disclaimer": "WWF has not reviewed this audit. The audit does not establish contemporary accuracy, suitability or legal clearance for redistribution."
+}

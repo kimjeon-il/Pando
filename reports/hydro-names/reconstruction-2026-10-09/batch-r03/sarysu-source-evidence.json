@@ -1,0 +1,181 @@
+{
+  "schema": "hydro-own-source-evidence-v1",
+  "target_aw_id": "hydro-system:40182409",
+  "created_at_utc": "2026-10-09T12:02:44.401314+00:00",
+  "content_type": "Own compact factual extraction, source metadata and original-response hashes; raw documents and rendered maps are excluded.",
+  "sources": [
+    {
+      "id": "SARYSU-GEOSYSTEMS-2017",
+      "url": "https://journal.kazhydromet.kz/kazgidro/article/download/1123/1137/6693",
+      "landing_url": "https://journal.kazhydromet.kz/kazgidro/article/view/1123",
+      "title": "Природные факторы формирования и развития геосистем бассейна реки Сарысу",
+      "agency_or_publisher": "Hydrometeorology and Ecology, published by RSE Kazhydromet; authors from L.N. Gumilyov Eurasian National University and Shakarim State University",
+      "authors": [
+        "Ж.О. Озгелдинова",
+        "К.М. Джаналеева",
+        "Ж.Т. Мукаев",
+        "Г.Т. Оспан"
+      ],
+      "source_date": "2017",
+      "source_date_basis": "Printed issue 3 (2017), pp.154–169; manuscript received 2017-05-20. Website date 2023-03-27 is separate later online metadata.",
+      "acquisition": {
+        "url": "https://journal.kazhydromet.kz/kazgidro/article/download/1123/1137/6693",
+        "final_url": "https://journal.kazhydromet.kz/kazgidro/article/download/1123/1137/6693",
+        "http_status": 200,
+        "content_type": "application/pdf",
+        "bytes": 193732,
+        "sha256": "038dcae081441fdbf6160ef1b3565331b13c6023710876272e9a0f875cdf730a",
+        "request_started_at_utc": "2026-10-09T11:57:48.344312+00:00",
+        "retrieval_verified_by_utc": "2026-10-09T11:58:05Z",
+        "timestamp_scope": "Original receipt timestamp records request start; completion was verified by local body/hash inspection, no exact response-completion time was recorded."
+      },
+      "landing_acquisition": {
+        "url": "https://journal.kazhydromet.kz/kazgidro/article/view/1123",
+        "final_url": "https://journal.kazhydromet.kz/kazgidro/article/view/1123",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 45369,
+        "sha256": "0f0512b3b8904d6b695abb86e064f53a350675e73a33c0d4e627f266b4c63853",
+        "request_started_at_utc": "2026-10-09T11:57:39.174420+00:00",
+        "retrieval_verified_by_utc": "2026-10-09T11:58:05Z",
+        "timestamp_scope": "Original receipt timestamp records request start; completion was verified by local body/hash inspection, no exact response-completion time was recorded."
+      },
+      "read_location": "Printed pp.154–157 and 159 for geographic/seasonal context; pp.168–169 for Kazakh and English titles. PDF page 5 (printed158) visually checked.",
+      "own_factual_extraction": "The study places the Sarysu across the Kazakh uplands and western Betpakdala margin. It forms from Zhaman-Sarysu and Zhaksy-Sarysu, flows generally west, southwest and then south, and receives Kara-Kengir before a largely tributary-free lower reach. Its usual named-river length is 761 km; a hydrological main path measured from Kairakty through Zhaman-Sarysu exceeds 950 km. Floodwater reaches Lake Telekol only in some years and otherwise dissipates in alluvial deposits. The upper and lower segments therefore need distinct naming and seasonal interpretations. Russian and Kazakh titles use Сарысу; the English title uses Sarysu. The cited Figure 1 page is blank in the acquired PDF.",
+      "map_extent": null,
+      "scope_limits": [
+        "Research usage and geographic synthesis, not a formal name-register decision.",
+        "No inspectable map exists on printed page 158 of this acquired PDF; the missing figure is not reconstructed or treated as evidence.",
+        "Some geographic facts summarize earlier literature; the article is an original geosystem study, not an independent survey of every river name.",
+        "The stated length is not a measurement of the selected baseline fragments."
+      ],
+      "original_cached_locally": true,
+      "raw_original_in_publishable_package": false
+    },
+    {
+      "id": "SARYSU-GEOECOLOGY-2013",
+      "url": "https://bulletin-geography.kaznu.kz/index.php/1-geo/article/download/682/568/",
+      "final_url": "https://bulletin-geography.kaznu.kz/index.php/1-geo/ru/article/download/682/568/",
+      "title": "Геоэкологическое состояние поверхностного стока геосистем бассейна реки Сарысу",
+      "agency_or_publisher": "Al-Farabi Kazakh National University, KazNU Bulletin Geography series 2(37); research authors affiliated with L.N. Gumilyov Eurasian National University",
+      "authors": [
+        "К.М. Джаналеева",
+        "Ж.О. Озгелдинова",
+        "М.Г. Кондратенко"
+      ],
+      "source_date": "2013",
+      "source_date_basis": "Printed issue 2(37),2013, pp.76–85; fieldwork described as 2012–2013. PDF creation metadata is 2018 and is not publication date.",
+      "acquisition": {
+        "url": "https://bulletin-geography.kaznu.kz/index.php/1-geo/article/download/682/568/",
+        "final_url": "https://bulletin-geography.kaznu.kz/index.php/1-geo/ru/article/download/682/568/",
+        "http_status": 200,
+        "content_type": "application/pdf",
+        "bytes": 1264364,
+        "sha256": "106ac12ce64362d5bccd1eea75cb248d57849fa9bcbb1717f83464e53faeb821",
+        "request_started_at_utc": "2026-10-09T11:59:57.704328+00:00",
+        "retrieved_at_utc": "2026-10-09T12:00:10.161258+00:00",
+        "timestamp_scope": "Response body completed by retrieved_at_utc."
+      },
+      "read_location": "Printed pp.76–78, Figure 1 on78, Figure 2 on80, and keyed field-site names on82.",
+      "own_factual_extraction": "This original field study supplies full-basin thematic maps and a named upper/middle/lower Sarysu framework. Its upper subdivisions include Zhaman-Sarysu and Zhaksy-Sarysu; the lower subdivision extends from the Kengir confluence to Lake Telikol. Figure 1 shows the east–west upper basin and the southward lower valley on a geographic grid. Figure 2 locates numbered field sites across the whole basin, with named keys elsewhere in the article, including Kairakty. Titles provide Russian, Kazakh and English river usage. Neither map labels every river segment or defines the exact transition between headwater names.",
+      "map_extent": {
+        "figure1": {
+          "printed_page": 78,
+          "pdf_page_1_based": 3,
+          "purpose": "Geosystems map of Sarysu basin",
+          "visible_graticule_longitudes_east": [
+            66,
+            68,
+            70,
+            72,
+            74
+          ],
+          "visible_graticule_latitudes_north": [
+            46,
+            48
+          ],
+          "approximate_extent_degrees": [
+            65.5,
+            44.4,
+            74.5,
+            49.8
+          ],
+          "extent_method": "Visual estimate from curved graticule and frame, not georeferenced bounds.",
+          "scale_statement": "Text on p.77 describes compilation at 1:500000; printed-page scale is not assumed identical.",
+          "supports": "Regional whole-basin orientation, southern terminal-region context and main-valley pattern.",
+          "river_label_limit": "River name is in map caption; individual mainstem/headwater reaches are not labeled on the map."
+        },
+        "figure2": {
+          "printed_page": 80,
+          "pdf_page_1_based": 5,
+          "purpose": "Satellite-background field-site overview of whole basin",
+          "supports": "Whole-basin coverage with 12 numbered sites; site names occur in tables.",
+          "river_label_limit": "No exact reach-name boundaries or terminal-lake shoreline coordinates."
+        }
+      },
+      "scope_limits": [
+        "Same leading research authors as 2017 source, so the two publications are not counted as wholly independent naming authorities.",
+        "Thematic basin boundary and sampling sites are not a surveyed river-name polygon or present-day water extent.",
+        "No per-reach label matching or georeferencing was performed."
+      ],
+      "original_cached_locally": true,
+      "raw_original_in_publishable_package": false
+    },
+    {
+      "id": "SARYSU-PM-FLOOD-2024",
+      "url": "https://primeminister.kz/ru/news/na-94-vodokhranilishchakh-sozdany-svobodnye-emkosti-dlya-prinyatiya-pavodkovykh-vod-i-ee-propuska-27931",
+      "title": "На 94 водохранилищах созданы свободные емкости для принятия паводковых вод и ее пропуска",
+      "agency_or_publisher": "Official information resource of the Prime Minister of the Republic of Kazakhstan; reports Ministry of Water Resources and Irrigation",
+      "source_date": "2024-04-02",
+      "source_displayed_time": "17:42; timezone not stated on inspected page",
+      "acquisition": {
+        "url": "https://primeminister.kz/ru/news/na-94-vodokhranilishchakh-sozdany-svobodnye-emkosti-dlya-prinyatiya-pavodkovykh-vod-i-ee-propuska-27931",
+        "final_url": "https://primeminister.kz/ru/news/na-94-vodokhranilishchakh-sozdany-svobodnye-emkosti-dlya-prinyatiya-pavodkovykh-vod-i-ee-propuska-27931",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 72332,
+        "sha256": "72e1a6ad30944e354c5b2838337306f11e14efd811b6b84a0a81e367b72dc3bb",
+        "request_started_at_utc": "2026-10-09T12:00:10.161730+00:00",
+        "retrieved_at_utc": "2026-10-09T12:00:15.017900+00:00",
+        "timestamp_scope": "Response body completed by retrieved_at_utc."
+      },
+      "read_location": "Article date/title and paragraph about releases from Kengir reservoir through Sarysu to Kyzylorda.",
+      "own_factual_extraction": "The government reports a specific flood-management flow of 200–250 m³/s from Kengir reservoir through the Sarysu in Ulytau toward Lake Telikol in Kyzylorda. This independently establishes contemporary official Russian river usage and a real operational connection to the terminal-lake region. It does not establish perennial flow or locate the baseline endpoint on a lake shoreline.",
+      "map_extent": null,
+      "scope_limits": [
+        "A dated operational statement, not a current discharge observation or formal naming decision.",
+        "No full-river map, headwater-name boundary or exact mouth coordinate is provided."
+      ],
+      "original_cached_locally": true,
+      "raw_original_in_publishable_package": false
+    }
+  ],
+  "independence_statement": "Three distinct publications: two related university research studies and one independent government operational announcement. None is a formal place-name registration instrument.",
+  "acquisition_limits": [
+    {
+      "url": "https://www.kazhydromet.kz/uploads/files/1876/file_kk/67c55a509e914eds-vyp-8-nura-i-sarysu-2022-g.pdf",
+      "status": "HTTP tunnel 403; no body acquired",
+      "used_as_evidence": false,
+      "same_publication_alternate_retrieval": false
+    },
+    {
+      "url": "https://journal.kazhydromet.kz/kazgidro/article/view/194",
+      "status": "web timeout; no article body acquired",
+      "used_as_evidence": false,
+      "retried": false
+    },
+    {
+      "url": "https://bulchmed.enu.kz/index.php/bulchmed/article/view/492",
+      "status": "web timeout; no article body acquired",
+      "used_as_evidence": false,
+      "retried": false
+    },
+    {
+      "url": "https://bulletin-geography.kaznu.kz/index.php/1-geo/en/article/view/149",
+      "status": "Web cache miss then publisher landing-page 302 redirect loop. Separately exposed original publisher PDF succeeded; no access denial was observed for this publication.",
+      "used_as_evidence": false
+    }
+  ],
+  "automatic_application": false,
+  "raw_source_publication": "No raw PDF, HTML, map image or full river-coordinate array is included."
+}
