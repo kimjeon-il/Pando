@@ -1,0 +1,117 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r32",
+  "scope_aw_ids": [
+    "lakes_base:1159107927",
+    "lakes_base:1159110635",
+    "lakes_base:1159107889"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "No external requests or original-source acquisitions were made in r32 or this independent review. The original map acquired in r30 was reused locally.",
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "observations": [
+    {
+      "source_key": "alaska_dnr_hosted_wood_tikchik_topo_map",
+      "title": "Wood-Tikchik State Park Map",
+      "host": "Alaska Department of Natural Resources, Division of Parks and Outdoor Recreation",
+      "cartographic_source": "TOPO!; National Geographic and Tele Atlas copyright credits",
+      "url": "https://dnr.alaska.gov/parks/units/wtc/images/wtcmap2.jpg",
+      "official_catalog_url": "https://dnr.alaska.gov/parks/aspunits/southwest/southwestindex.htm",
+      "official_host_and_catalog_link_verified": true,
+      "catalog_role": "The official Southwest Region page links Wood-Tikchik State Park Map under Maps and Brochures. It verifies official hosting and discovery, not formal naming authority.",
+      "original_acquired_at_utc": "2026-10-09T22:42:01.903401+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "government_authored_cartography_verified": false,
+      "publication_date": null,
+      "publication_date_verified": false,
+      "printed_map_date_literal": "10/10/11",
+      "publication_date_note": "The header reports a map print date, not a verified publication date. Copyright years and the server Last-Modified value also do not establish the publication date.",
+      "rights_credit_observed": "Map created with TOPO!; copyright 2006 National Geographic; copyright 2005 Tele Atlas; Rel. 8/2005.",
+      "role": "Direct water-name labels, readable exact spelling and full-footprint regional context for all three targets.",
+      "directly_read_water_labels": [
+        "Lake Nerka",
+        "Lake Aleknagik",
+        "Nunavaugaluk Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Lake Beverly",
+        "Little Togiak Lake",
+        "Lynx Lake",
+        "Amanka Lake"
+      ],
+      "own_observations": "The retained map directly labels the branching northern selected water Lake Nerka, the diagonal central selected water Lake Aleknagik and the bent southern selected water Nunavaugaluk Lake. The last spelling is readable in both main and repeated labels. All three selected full footprints are distinct. Coverage extends south beyond the drawn park boundary, and coverage is not treated as park membership. Repeated labels and the discovery page are not independent naming sources.",
+      "authority_scope": "Third-party topographic cartographic usage hosted and linked by a state agency supports generalized association. No formal government naming-registry status, independent source corroboration, current naming decision or exact name boundary is established.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r30",
+      "map_coverage_establishes_park_membership": false
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159107927",
+      "aw_id": "lakes_base:1159107927",
+      "source_id": "1159107927",
+      "geometry_fids": [
+        15300
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 84,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "independent_observation": "Complete forked selected footprint comprises long narrow northwest arm, central elbow, broad eastward upper basin and southward continuation into the lower eastern basin and west-facing River Bay. The retained map repeats Lake Nerka over these waters. Little Togiak Lake, Lake Beverly, Lynx Lake and Lake Aleknagik are separate mapped waters, not aliases. Fine bays, island holes, narrow arm tips and the River Bay/connecting-river boundary are generalized or omitted; no complete detailed named-lake extent is certified."
+    },
+    {
+      "observation_id": "lakes_base:1159110635",
+      "aw_id": "lakes_base:1159110635",
+      "source_id": "1159110635",
+      "geometry_fids": [
+        15502
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 31,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "independent_observation": "Complete selected footprint is a northwest-to-southeast elongate water with a hooked northwest end, constricted middle and broad southeast terminal basin beside the separately styled Aleknagik settlement. The lake label itself reads Lake Aleknagik. Its orientation and full regional context correspond to the named water, separate from Lake Nerka to the north and Nunavaugaluk Lake to the southwest. Narrow northern connections, shore indentations, islands and southeast outlet/settlement shoreline are generalized; no exact lake-versus-river or full detailed extent is certified."
+    },
+    {
+      "observation_id": "lakes_base:1159107889",
+      "aw_id": "lakes_base:1159107889",
+      "source_id": "1159107889",
+      "geometry_fids": [
+        15297
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 25,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "independent_observation": "Main vertical label reads NUNAVAUGALUK LAKE; smaller western repeat reads Nunavaugaluk Lake. Complete selected footprint has a northwest-reaching upper arm, bent narrow middle and broad rounded southern basin, separate from Lake Aleknagik northeast and Amanka Lake southwest. Fine northwestern inlet/arm-tip detail, irregular shore margins, islands and southern outlet boundary are generalized or omitted. Exact spelling is readable in both retained labels; no alternate spelling or full detailed lake extent is certified."
+    }
+  ],
+  "source_group_limit": "One cartographic publication supplies all direct identity evidence. Its official discovery page does not create a second naming source.",
+  "independent_review_and_source_research_agree": true,
+  "park_membership_inferred_from_map_coverage": false
+}
