@@ -72,6 +72,52 @@ See [short overview](1914-sh-period-map-overlay-review.md) and
 No geometry or timeline has been changed by this source work. Period-map vector
 digitization and actual screen Hausdorff validation remain outstanding.
 
+## North Friesland chronology gap closed in the event catalogue (2026-10-09)
+
+A high-resolution official WMS microtile comparison showed a **new seaward
+dyke west of Klein Königs Pieck / Meedhallig** in the 1902–1930 layer that is
+not present on the same 1878–1880 raster. The **independent municipality of
+Reußenköge** identifies it with the Cecilienkoog construction **1903–1905**
+and 1906 land allocation. This is decisive historical chronology: the
+1905-protected polder was *already present* by the German Empire reference
+date 1914-07-31, unlike Sönke-Nissen-Koog (1924–1926), later Beltringharder
+Koog (1987), or a 1939 permanent winter dyke built atop a 1913
+Galmsbüller Sommerkoog. **A summer dyke does not necessarily prove
+permanently dry land.**
+
+The event inventory records four newly sourced changes:
+
+- `cecilienkoog-1903-1905` — protected polder should be represented in
+  1914; whether mapped tidal foreshore is legal land remains unverified.
+- `galmsbuell-summer-koog-1913` — preserve 1913 seasonal dyke regime,
+  rather than applying 1939 winter protection.
+- `soenke-nissen-koog-1924-1926` — post-1914, exclude from 1914 dry land.
+- `galmsbuell-winter-dyke-1933-1939` — not a 1914 polygon switch.
+
+**Provisional independent period-map vector:** 25 source image points were
+read from the 1902–1930 WMS raster for the seaward Cecilienkoog **dyke**
+and converted into a ~2.18 km `LineString`. At current web flat zoom 64
+(2560 CSS px width) its **one-way directed distance** to the *temporary
+generalized modern working coast* peaks at **~7.59 CSS px** with 169
+line-interpolated samples. This is **not** the 1914-to-present historic
+shoreline Hausdorff distance; the source WMS epoch group spans 1902–1930,
+sheet revision year and georeferencing residual remain unchecked, and a
+dyke crest/foot cannot automatically be used as the high-tide line.
+
+- [Manual image-to-coordinate trace source](cecilienkoog-1905-dyke-manual-source.json)
+- [High-resolution two-epoch WMS microtile metadata](sh-coast-microtile-source-probe.json)
+- [Separated provisional dyke vector](../../working/german-empire-1914-cecilienkoog-1905-seaward-dyke-candidate.geojson)
+- [Derived directed pixel QA](../../working/german-empire-1914-cecilienkoog-1905-seaward-dyke-candidate.qa.json)
+- Reproducible build: `python tools/build_german_cecilienkoog_1905_provisional.py`, followed by `--check`.
+- GitHub Actions renders a blue historical dyke versus red current
+  working coast overlay for human review; only the derived line,
+  source metadata and QA are committed, **not the third-party map PNGs**.
+
+**Do not substitute the traced dyke for a historical coastline.** Confirm
+the 1902–1930 layer's exact local sheet year, track the seaward dyke toe and
+tidal wetland, check old/new component topology, and reconstruct the 1914
+land/water edge independently before promoting any of it into a country polygon.
+
 ## Helgoland 1914: working geometry blocker
 
 The existing German Empire 1914 **working polygon** contains the present-day
