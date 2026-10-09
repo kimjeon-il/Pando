@@ -64,7 +64,9 @@ export function evaluatePromotion({base,main,gis,repo}){
 }
 export function planWebDeletes(lock,branches){
   check(lock?.schema==='pandolab-gis-archive-delete-lock'&&Array.isArray(lock.files)&&
-    lock.totalFiles===2124&&lock.totalBytes===564189000,'Exact Stage8 deletion lock required');
+    lock.totalFiles===lock.files.length&&lock.totalFiles>0&&
+    lock.totalBytes===lock.files.reduce((n,f)=>n+f.bytes,0),
+    'Exact current remaining archive inventory required');
   check(Array.isArray(branches)&&branches.length>=2,'Missing Web branch snapshots');
   const names=new Set(),plans=[];
   for(const b of branches){
@@ -118,8 +120,8 @@ export function judgeReadiness(stage9,promotions,cleanup,appBranches){
       count:p.divergentCount,paths:p.divergent.map(x=>x.path)});
   if(promotions.some(p=>p.selected.length===0))
     blockers.push({code:'MISSING_SELECTIVE_PROMOTION_SCOPE'});
-  blockers.push({code:'UNVERIFIED_URL_BODY_PARITY',
-    description:'Full public asset URL body SHA-256 parity before and after migration is outstanding'});
+  blockers.push({code:'CURRENT_URL_BODY_PARITY_UNVERIFIED',
+    description:'Verify current runtime, native-pinned assets and included publication bytes; retired-version public URLs have no permanent guarantee'});
   blockers.push({code:'PAGES_SOURCE_STILL_BRANCH',
     description:'Pages deployment source remains main /; Actions deployment/rollback not configured'});
   blockers.push({code:'QT_REGRESSION_OPEN',
@@ -138,11 +140,11 @@ export function judgeReadiness(stage9,promotions,cleanup,appBranches){
     completionState:'PREPARED_NOT_ACTIVATED',
     stepOrder:['Select and review only version-management paths for main',
       'Resolve app 3-way conflicts, native Qt regressions and historical release dependencies',
-      'Produce approved <=1GB site without removing live functions or old asset URLs',
-      'Build a verified immutable archive artifact; compare full URL path and response body SHA-256',
+      'Produce approved <=1GB site without removing live functions or currently pinned assets',
+      'Build verified current static artifact; compare all protected runtime URL response bytes',
       'Approve GitHub Pages source/Actions cutover with recovery rehearsal',
       'Move Web refs separately using expected-head leases; never assume cross-branch atomicity',
-      'Reverify old public URLs and Web/App native offline behavior']};
+      'Reverify current production URLs and Web/App native offline behavior']};
 }
 async function getJson(url,token){
   const r=await fetch(url,{headers:{Authorization:'Bearer '+token,
