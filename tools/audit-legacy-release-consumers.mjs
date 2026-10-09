@@ -166,14 +166,14 @@ export function assess(stage6,evidence){
     const publicReachable=results.some(r=>classifyHttpProbe(r)==='publicly-reachable-sample');
     const state=crossBranch?'retain-web-branch-consumer':
       appPinned?'retain-native-app-consumer':
-      publicReachable?'retain-public-asset-url':'archive-review-blocked';
+      publicReachable?'published-legacy-url-no-retention-guarantee':'archive-review-blocked';
     const reasons=[
       ...(crossBranch?['Another Web branch references a tracked asset in this group']:[]),
       ...(appPinned?['An App branch pins an asset in this group']:[]),
-      ...(publicReachable?['A historical public asset URL is responsive']:[]),
+      ...(publicReachable?['Historical URL responds now, but policy no longer guarantees permanent access']:[]),
       ...(results.some(r=>classifyHttpProbe(r)==='unknown')?['Some public origin checks were inconclusive']:[]),
       ...(evidence.appReleases?.count>0?['Past native releases exist; deployed binaries were not decompiled']:[]),
-      'Previously distributed URLs and external consumers cannot be proven absent'
+      'Explicit version-specific retirement approval and active/native dependency check still required'
     ];
     return {group:g.group,files:g.files,bytes:g.bytes,state,reasons,
       urlSamples:results.map(r=>({path:r.path,status:r.status,outcome:classifyHttpProbe(r),url:r.url||null})),
@@ -196,7 +196,7 @@ export function assess(stage6,evidence){
     appReleases:evidence.appReleases,referenceUncertainties:limited(issues),
     states:totals,groups,
     deleteReadyGroups:0,deleteReadyFiles:0,
-    decision:'retain-until-explicit-approval-and-external-consumer/release-evidence',
+    decision:'old-urls-are-not-guaranteed; retire-only-after-specific-approval-and-current/native-dependency-check',
     passed:issues.length===0&&groups.every(g=>g.files>0&&g.recovery.webGitCommit===stage6.gitHead)};
 }
 async function readAPI(url,token,{optional=false}={}){
