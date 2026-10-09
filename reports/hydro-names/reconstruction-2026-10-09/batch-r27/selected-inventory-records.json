@@ -1,0 +1,90 @@
+{
+  "schema": "selected-river-inventory-summary-public-v1",
+  "scope_aw_ids": [
+    "hydro-system:50458725",
+    "hydro-system:50487926",
+    "hydro-system:50503092"
+  ],
+  "scope_system_ids": [
+    "50458725",
+    "50487926",
+    "50503092"
+  ],
+  "records": [
+    {
+      "aw_id": "hydro-system:50458725",
+      "category": "river",
+      "system_id": "50458725",
+      "logical_fid": 1800,
+      "geometry_fids": [
+        6699,
+        6700
+      ],
+      "geometry_count": 2,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50458725"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        144.138163,
+        -16.1375,
+        145.047917,
+        -14.391136
+      ],
+      "minimum_stage": 2,
+      "source_reach_count": 60
+    },
+    {
+      "aw_id": "hydro-system:50487926",
+      "category": "river",
+      "system_id": "50487926",
+      "logical_fid": 1831,
+      "geometry_fids": [
+        6746,
+        6747
+      ],
+      "geometry_count": 2,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50487926"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        145.529167,
+        -17.602083,
+        146.071001,
+        -17.335417
+      ],
+      "minimum_stage": 2,
+      "source_reach_count": 40
+    },
+    {
+      "aw_id": "hydro-system:50503092",
+      "category": "river",
+      "system_id": "50503092",
+      "logical_fid": 1847,
+      "geometry_fids": [
+        6776,
+        6777
+      ],
+      "geometry_count": 2,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50503092"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        145.189583,
+        -18.639583,
+        146.289583,
+        -17.40625
+      ],
+      "minimum_stage": 2,
+      "source_reach_count": 74
+    }
+  ],
+  "selected_inventory_summary_only": true,
+  "original_inventory_rows_included": false,
+  "historical_names_used_as_identity_evidence": false
+}

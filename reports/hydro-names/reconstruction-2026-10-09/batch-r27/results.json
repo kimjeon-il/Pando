@@ -1,0 +1,211 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r27",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three logical MAIN_RIV inventory groups; not three uniformly named channels or scalar-name approvals.",
+  "counts": {
+    "supported_representative_system_identity": 1,
+    "river_group_name_scope_hold": 2
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 6,
+  "river_line_part_count": 174,
+  "distinct_source_reach_count": 174,
+  "river_rendered_coordinate_count": 1025,
+  "part_counts_in_target_order": [
+    60,
+    40,
+    74
+  ],
+  "position_counts_in_target_order": [
+    401,
+    169,
+    455
+  ],
+  "fragment_part_counts_in_target_order": [
+    [
+      46,
+      14
+    ],
+    [
+      37,
+      3
+    ],
+    [
+      70,
+      4
+    ]
+  ],
+  "fragment_position_counts_in_target_order": [
+    [
+      251,
+      150
+    ],
+    [
+      160,
+      9
+    ],
+    [
+      415,
+      40
+    ]
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50458725",
+      "category": "river_group",
+      "system_id": "50458725",
+      "baseline_logical_fid": 1800,
+      "geometry_fids": [
+        6699,
+        6700
+      ],
+      "candidate_name": "Normanby River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete two-fragment selected path runs north from a southeastern head, turns west at its middle elbow, then trends north-northwest through a sinuous lower course to the coast. Direct blue Normanby river-line wording in the regional maps and river-specific prose on printed chapter page 27, compared with the complete selected path, support Normanby River in Queensland as a bounded representative system identity. The separate Normanby River basin wording supplies context. The very upper headward continuation, possible feeder-name transitions, lower tidal or wetland reaches and generalized coastal ending remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "Direct Normanby line wording and river-specific prose support a regional representative identity, not exact headwater, tributary, wetland, tidal or coastal name coverage.",
+        "A modeled MAIN_RIV/mainstem role does not establish one real-world river name for every selected part.",
+        "The regional assessment is one publication with low-resolution embedded maps; enlargement cannot establish missing labels, fine junctions, exact storage crossings or coastal boundaries. No usable named-station identity is certified.",
+        "Original HydroRIVERS source-coordinate equality, exact source-reach-to-rendered-part name transitions and river/floodplain/tidal naming boundaries are not established.",
+        "The rendered sea ending differs from retained baseline source-endpoint metadata. Those metadata are not independently verified original HydroRIVERS coordinates, and no name is extended to the intervening coastal portion."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Normanby River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete this bounded representative-corridor assessment. Separately authorized reach-level or scalar product application still requires direct evidence for headward or feeder names, exact confluences and name transitions, storage relationships if relevant, and lower tidal, floodplain and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false,
+        "geographic_disambiguation": "Queensland, Australia"
+      }
+    },
+    {
+      "aw_id": "hydro-system:50487926",
+      "category": "river_group",
+      "system_id": "50487926",
+      "baseline_logical_fid": 1831,
+      "geometry_fids": [
+        6746,
+        6747
+      ],
+      "candidate_name": "Johnstone River",
+      "research_category": "river_group_name_scope_hold",
+      "independent_review_status": "naming_scope_hold_after_complete_review",
+      "supported_name_scope": "The complete two-fragment selected path begins in the west, arches northeast, turns southeast to a southern elbow, then runs east-northeast through a short coastal continuation. Its Queensland wet-tropics location is compatible with the Johnstone River basin lead. Figure 3.22 supplies basin wording, and printed chapter page 27 directly names the north Johnstone River in the regional monitoring discussion. However, the coarse Figure 3.23 map does not establish whether this selected modeled path is the named northern branch rather than another Johnstone-basin channel. No legible selected-branch label or usable named station resolves that correspondence. The complete-path and available-source review is complete; representative Johnstone or North Johnstone naming remains on hold. Exact headward names, northern/southern branch junctions, lower river scope and estuarine or coastal name transitions remain unassigned.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The river-specific north Johnstone River prose establishes a named river in the region, but its correspondence to the selected modeled path is unresolved. Plain Johnstone River wording is basin context; the monitoring circles are flow values and classes, not named stations or station IDs.",
+        "A modeled MAIN_RIV/mainstem role does not establish one real-world river name for every selected part.",
+        "The regional assessment is one publication with low-resolution embedded maps; enlargement cannot establish missing labels, fine junctions, exact storage crossings or coastal boundaries. No usable named-station identity is certified.",
+        "Original HydroRIVERS source-coordinate equality, exact source-reach-to-rendered-part name transitions and river/floodplain/tidal naming boundaries are not established.",
+        "The rendered sea ending differs from retained baseline source-endpoint metadata. Those metadata are not independently verified original HydroRIVERS coordinates, and no name is extended to the intervening coastal portion."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_scope_hold",
+        "directly_supported_name_forms": [],
+        "follow_up_scope": "Obtain a legible branch-specific map label or named-station record tying the selected path to Johnstone or North Johnstone, rather than only to the broader basin. Exact upper feeder names, northern/southern branch junctions and lower estuarine or coastal scope also require evidence before separately authorized application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false,
+        "geographic_disambiguation": "Queensland, Australia"
+      }
+    },
+    {
+      "aw_id": "hydro-system:50503092",
+      "category": "river_group",
+      "system_id": "50503092",
+      "baseline_logical_fid": 1847,
+      "geometry_fids": [
+        6776,
+        6777
+      ],
+      "candidate_name": "Herbert River",
+      "research_category": "river_group_name_scope_hold",
+      "independent_review_status": "naming_scope_hold_after_complete_review",
+      "supported_name_scope": "The complete two-fragment selected path begins at a northern hook, follows a southwestward upper continuation, turns south and then southeast through a long middle course, and runs east before a north-turning coastal ending. Its Queensland position north of the Burdekin corridor is compatible with the Herbert River basin lead in Figure 3.22. The diagonal river-line lettering in the regional base is too pixel-limited to certify a Herbert transcription independently of that lead. Herbert River Floodplain and Hinchinbrook Channel wetland/coastal callouts provide context without naming the complete selected path. No usable named station establishes direct selected-river identity. The complete-path and available-source review is complete; representative Herbert naming remains on hold. Northern headward names, possible feeder transitions, storage relationships and lower floodplain, tidal or coastal name boundaries remain unassigned.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "Herbert River basin and floodplain wording supplies geographic context. A plausible Herbert reading of the diagonal river-line lettering was considered, but this review cannot certify that transcription independently of the lead. The representative identity therefore remains on hold.",
+        "A modeled MAIN_RIV/mainstem role does not establish one real-world river name for every selected part.",
+        "The regional assessment is one publication with low-resolution embedded maps; enlargement cannot establish missing labels, fine junctions, exact storage crossings or coastal boundaries. No usable named-station identity is certified.",
+        "Original HydroRIVERS source-coordinate equality, exact source-reach-to-rendered-part name transitions and river/floodplain/tidal naming boundaries are not established.",
+        "The rendered sea ending differs from retained baseline source-endpoint metadata. Those metadata are not independently verified original HydroRIVERS coordinates, and no name is extended to the intervening coastal portion."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_scope_hold",
+        "directly_supported_name_forms": [],
+        "follow_up_scope": "Obtain a legible direct Herbert river-line label or named-station record tied to the selected corridor. Resolve the selected northern headward continuation and exact feeder, storage, lower floodplain, tidal and coastal name scope before separately authorized application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false,
+        "geographic_disambiguation": "Queensland, Australia"
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "c6b6f0bd31f440481327f8c266205008c7a2827da1414dc0b0057c0407a1ae43",
+  "publication_contents": "Own factual findings, bounded identity/count/bounds/name-state summaries and included-file validation. Full river paths, original reports, maps and private review materials are not distributed.",
+  "previous_reconstruction_commit": "6f1a4041e90c8db83fb21a08d52d9d65689d10cb"
+}

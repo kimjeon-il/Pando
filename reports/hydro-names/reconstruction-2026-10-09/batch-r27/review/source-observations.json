@@ -1,0 +1,136 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r27",
+  "scope_aw_ids": [
+    "hydro-system:50458725",
+    "hydro-system:50487926",
+    "hydro-system:50503092"
+  ],
+  "new_external_requests": 0,
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "figures": [
+        {
+          "figure": "3.1",
+          "physical_pdf_page": 48,
+          "printed_chapter_page": 5,
+          "scope": "River-line legend, coast and town context. Direct Normanby line wording is readable. The smaller diagonal lettering in the Herbert-candidate region is not certified as a direct name."
+        },
+        {
+          "figure": "3.22",
+          "physical_pdf_page": 69,
+          "printed_chapter_page": 26,
+          "scope": "Normanby River, Johnstone River and Herbert River basin wording provides context; section 3.5.1 identifies this as a map of river basins. Direct blue Normanby line wording is distinct from the basin label. No selected-branch Johnstone or certified Herbert line label is established."
+        },
+        {
+          "figure": "3.23",
+          "physical_pdf_page": 71,
+          "printed_chapter_page": 28,
+          "scope": "Annual-flow magnitude and decile symbols give regional context for the river-specific Normanby and north Johnstone prose. Numerical circles are flow values, not named stations or station IDs. The map does not anchor the named northern Johnstone branch to the selected modeled path."
+        },
+        {
+          "figure": "3.24",
+          "physical_pdf_page": 72,
+          "printed_chapter_page": 29,
+          "scope": "Stream salinity symbols and the same regional river base provide context. EC and variability circles do not supply reach names."
+        },
+        {
+          "figure": "3.25",
+          "physical_pdf_page": 74,
+          "printed_chapter_page": 31,
+          "scope": "Flood-class symbols and the same regional river base supply context, without establishing exact reach names or named stations."
+        },
+        {
+          "figure": "3.26",
+          "physical_pdf_page": 76,
+          "printed_chapter_page": 33,
+          "scope": "Storage-system triangles and capacity classes, including Mareeba Dimbulah near Cairns, supply regional context. They do not name selected upper paths or establish exact storage crossings. Small diagonal Herbert-candidate lettering is not certified as a direct river-line name."
+        },
+        {
+          "figure": "3.27",
+          "physical_pdf_page": 78,
+          "printed_chapter_page": 35,
+          "scope": "Princess Charlotte Bay Marine Area, Herbert River Floodplain and Hinchinbrook Channel wetland/coastal callouts supply context. These do not establish exact river-name transitions or complete selected tidal, wetland and coastal reach scope."
+        }
+      ],
+      "observation": "Direct Normanby river-line wording and river-specific prose support a bounded Queensland representative identity when compared with its complete selected path. The prose also names the north Johnstone River, but the coarse monitoring map does not establish that this selected modeled path follows that named branch. Plain Johnstone River and Herbert River basin wording preserves geographic candidates. A plausible Herbert reading of the small diagonal lettering was considered but is not confidently certified in this review independently of the basin lead. No direct selected-branch Johnstone label or certified Herbert label or usable named station is established. Flow values, salinity and flood symbols, storage-system triangles and wetland callouts do not assign exact selected reach names. These views belong to one publication and one source group.",
+      "is_formal_naming_registry": false,
+      "supporting_text_physical_pdf_pages": [
+        47,
+        68,
+        70,
+        73,
+        75,
+        77
+      ],
+      "tables": [
+        {
+          "table": "3.3",
+          "physical_pdf_page": 75,
+          "printed_chapter_page": 32,
+          "scope": "Regional public storage-system names and capacities; not a river-reach naming register or proof of selected-path storage crossings."
+        }
+      ]
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50458725",
+      "geometry_fids": [
+        6699,
+        6700
+      ],
+      "fragment_count": 2,
+      "part_count": 60,
+      "position_count": 401,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete two-fragment selected path runs north from a southeastern head, turns west at its middle elbow, then trends north-northwest through a sinuous lower course to the coast. Direct blue Normanby river-line wording in the regional maps and river-specific prose on printed chapter page 27, compared with the complete selected path, support Normanby River in Queensland as a bounded representative system identity. The separate Normanby River basin wording supplies context. The very upper headward continuation, possible feeder-name transitions, lower tidal or wetland reaches and generalized coastal ending remain unassigned at reach level."
+    },
+    {
+      "aw_id": "hydro-system:50487926",
+      "geometry_fids": [
+        6746,
+        6747
+      ],
+      "fragment_count": 2,
+      "part_count": 40,
+      "position_count": 169,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete two-fragment selected path begins in the west, arches northeast, turns southeast to a southern elbow, then runs east-northeast through a short coastal continuation. Its Queensland wet-tropics location is compatible with the Johnstone River basin lead. Figure 3.22 supplies basin wording, and printed chapter page 27 directly names the north Johnstone River in the regional monitoring discussion. However, the coarse Figure 3.23 map does not establish whether this selected modeled path is the named northern branch rather than another Johnstone-basin channel. No legible selected-branch label or usable named station resolves that correspondence. The complete-path and available-source review is complete; representative Johnstone or North Johnstone naming remains on hold. Exact headward names, northern/southern branch junctions, lower river scope and estuarine or coastal name transitions remain unassigned."
+    },
+    {
+      "aw_id": "hydro-system:50503092",
+      "geometry_fids": [
+        6776,
+        6777
+      ],
+      "fragment_count": 2,
+      "part_count": 74,
+      "position_count": 455,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete two-fragment selected path begins at a northern hook, follows a southwestward upper continuation, turns south and then southeast through a long middle course, and runs east before a north-turning coastal ending. Its Queensland position north of the Burdekin corridor is compatible with the Herbert River basin lead in Figure 3.22. The diagonal river-line lettering in the regional base is too pixel-limited to certify a Herbert transcription independently of that lead. Herbert River Floodplain and Hinchinbrook Channel wetland/coastal callouts provide context without naming the complete selected path. No usable named station establishes direct selected-river identity. The complete-path and available-source review is complete; representative Herbert naming remains on hold. Northern headward names, possible feeder transitions, storage relationships and lower floodplain, tidal or coastal name boundaries remain unassigned."
+    }
+  ],
+  "source_limit": "One regional publication supports a bounded Normanby identity and two completed naming-scope holds in Queensland. North Johnstone river-specific prose is not tied securely to the selected branch; Herbert basin and floodplain context is insufficient without a certified direct river name. Exact headward, feeder, confluence, storage, tidal, floodplain and coastal name coverage remains unresolved. No usable named-station identity is certified. Original maps and full paths are omitted, so public validation cannot replay the visual interpretation."
+}
