@@ -27,17 +27,26 @@ jobs:
           sparse-checkout: |
             /assets/js/workers/hydro-shard-store.js
             /assets/js/workers/hydro-tile-worker.js
-            /assets/data/hydro/v0.13.0/
-            /assets/data/hydro/v0.13.1/
             /assets/data/hydro/v0.13.2/
             /tools/build-hydro-packfile.py
             /tests/unit/hydro-packfile.test.mjs
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/Pando
+          ref: 8de07030cccff5e7ec3c68e6beb6bb288c95afb2
+          path: historical-hydro
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /assets/data/hydro/v0.13.0/
+            /assets/data/hydro/v0.13.1/
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Verify byte-equivalent package and atomic HTTP Range behavior
         run: |
-          python3 tools/build-hydro-packfile.py --check
+          python3 tools/build-hydro-packfile.py --source historical-hydro/assets/data/hydro/v0.13.1 --check
           node --check assets/js/workers/hydro-tile-worker.js
           node --check assets/js/workers/hydro-shard-store.js
           node --test tests/unit/hydro-packfile.test.mjs
