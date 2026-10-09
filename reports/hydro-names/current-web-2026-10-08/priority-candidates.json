@@ -1,0 +1,2969 @@
+{
+  "river": [
+    {
+      "aw_id": "hydro-system:30018093",
+      "category": "river",
+      "system_id": "30018093",
+      "logical_fid": 3675,
+      "geometry_fids": [
+        14697,
+        14698,
+        14699,
+        14700,
+        14701,
+        14702,
+        14703,
+        14704,
+        14705
+      ],
+      "geometry_count": 9,
+      "display_names": [
+        "미명명 수계 30018093"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        106.19375,
+        67.102083,
+        123.802083,
+        73.016928
+      ],
+      "center": [
+        114.997917,
+        70.059506
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 602,
+      "source_id": null,
+      "source_ids_sha256": "d712c4098afc40fa8eb6c722665321a69aed3c2b2e2b5a31dc16ee38a14e6393",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 2432.925,
+      "rendered_mainstem_length_km": 2143.712,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:80044492",
+      "category": "river",
+      "system_id": "80044492",
+      "logical_fid": 880,
+      "geometry_fids": [
+        2369,
+        2370,
+        2371,
+        2372,
+        2373,
+        2374,
+        2375,
+        2376,
+        2377,
+        2378,
+        2379,
+        2380,
+        2381,
+        2382,
+        2383,
+        2384,
+        2385,
+        2386,
+        2387,
+        2388,
+        2389,
+        2390,
+        2391,
+        2392,
+        2393,
+        2394,
+        2395,
+        2396,
+        2397,
+        2398,
+        2399,
+        2400,
+        2401,
+        2402,
+        2403,
+        2404,
+        2405,
+        2406,
+        2407,
+        2408,
+        2409,
+        2410,
+        2411,
+        2412,
+        2413,
+        2414,
+        2415,
+        2416,
+        2417,
+        2418,
+        2419,
+        2420,
+        2421,
+        2422,
+        2423,
+        2424,
+        2425,
+        2426,
+        2427,
+        2428,
+        2429,
+        2430,
+        2431,
+        2432,
+        2433,
+        2434,
+        2435,
+        2436,
+        2437,
+        2438,
+        2439,
+        2440,
+        2441,
+        2442,
+        2443,
+        2444,
+        2445,
+        2446,
+        2447,
+        2448,
+        2449,
+        2450,
+        2451,
+        2452,
+        2453,
+        2454,
+        2455,
+        2456,
+        2457,
+        2458,
+        2459,
+        2460,
+        2461,
+        2462,
+        2463,
+        2464,
+        2465,
+        2466,
+        2467,
+        2468,
+        2469,
+        2470,
+        2471,
+        2472,
+        2473,
+        2474,
+        2475,
+        2476,
+        2477,
+        2478,
+        2479,
+        2480,
+        2481,
+        2482,
+        2483,
+        2484,
+        2485
+      ],
+      "geometry_count": 117,
+      "display_names": [
+        "river-3776"
+      ],
+      "classification": "placeholder_with_related_name_evidence",
+      "has_korean_display": false,
+      "aliases": [
+        "리아드강",
+        "매켄지강",
+        "악틱 레드강",
+        "크리어강",
+        "피스강",
+        "핀레이강"
+      ],
+      "tributary_names": [
+        "리아드강",
+        "매켄지강",
+        "악틱 레드강",
+        "크리어강",
+        "피스강",
+        "핀레이강"
+      ],
+      "osm_relation_ids": [],
+      "bbox": [
+        -137.489583,
+        52.166667,
+        -103.641667,
+        69.263007
+      ],
+      "center": [
+        -120.565625,
+        60.714837
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 5369,
+      "source_id": null,
+      "source_ids_sha256": "86216918bdadb244b760d20c154cfed3a6b41e8f88cafa9ce0d1e6ff38b1c772",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 20455.193,
+      "rendered_mainstem_length_km": 1895.518,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:50682652",
+      "category": "river",
+      "system_id": "50682652",
+      "logical_fid": 2014,
+      "geometry_fids": [
+        6965,
+        6966,
+        6967,
+        6968,
+        6969,
+        6970
+      ],
+      "geometry_count": 6,
+      "display_names": [
+        "미명명 수계 50682652"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        137.20625,
+        -28.722917,
+        145.347917,
+        -20.675
+      ],
+      "center": [
+        141.277084,
+        -24.698958
+      ],
+      "minimum_stage": 1,
+      "source_ids_count": 416,
+      "source_id": null,
+      "source_ids_sha256": "b1e70b65507e75842015a4cff4ce0cbbda65d2505b11b179b7902daa96e14365",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1834.594,
+      "rendered_mainstem_length_km": 1834.594,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:50682651",
+      "category": "river",
+      "system_id": "50682651",
+      "logical_fid": 2013,
+      "geometry_fids": [
+        6957,
+        6958,
+        6959,
+        6960,
+        6961,
+        6962,
+        6963,
+        6964
+      ],
+      "geometry_count": 8,
+      "display_names": [
+        "미명명 수계 50682651"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        136.085417,
+        -28.427083,
+        141.66875,
+        -19.19375
+      ],
+      "center": [
+        138.877083,
+        -23.810417
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 574,
+      "source_id": null,
+      "source_ids_sha256": "218856f8a14d76fb7fd96a88ea4cefdaaefa0d03df18e67feda29b76da8fcd94",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 2802.767,
+      "rendered_mainstem_length_km": 1744.276,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:41030263",
+      "category": "river",
+      "system_id": "41030263",
+      "logical_fid": 1381,
+      "geometry_fids": [
+        4067,
+        4068,
+        4069,
+        4070,
+        4071,
+        4072,
+        4073,
+        4074,
+        4075,
+        4076,
+        4077,
+        4078,
+        4079,
+        4080,
+        4081,
+        4082,
+        4083,
+        4084,
+        4085,
+        4086,
+        4087,
+        4088,
+        4089
+      ],
+      "geometry_count": 23,
+      "display_names": [
+        "미명명 수계 41030263"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        68.59375,
+        23.833075,
+        77.0625,
+        30.010417
+      ],
+      "center": [
+        72.828125,
+        26.921746
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 457,
+      "source_id": null,
+      "source_ids_sha256": "88af3c66253f3c0597ac32417320cad35153d7983c2c7cf1d9e5372dfd6ad306",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 2228.178,
+      "rendered_mainstem_length_km": 1725.597,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:10081286",
+      "category": "river",
+      "system_id": "10081286",
+      "logical_fid": 99,
+      "geometry_fids": [
+        272
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 10081286"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        21.635417,
+        21.147917,
+        24.285417,
+        29.652083
+      ],
+      "center": [
+        22.960417,
+        25.4
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 342,
+      "source_id": null,
+      "source_ids_sha256": "9da677406c7588bd28326a5eec0e8c7556951707f8f522772f9c289a52bc37c9",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1509.509,
+      "rendered_mainstem_length_km": 1509.509,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:20872212",
+      "category": "river",
+      "system_id": "20872212",
+      "logical_fid": 2733,
+      "geometry_fids": [
+        8733,
+        8734,
+        8735,
+        8736
+      ],
+      "geometry_count": 4,
+      "display_names": [
+        "미명명 수계 20872212"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        42.43125,
+        18.060417,
+        49.402083,
+        23.252083
+      ],
+      "center": [
+        45.916666,
+        20.65625
+      ],
+      "minimum_stage": 1,
+      "source_ids_count": 273,
+      "source_id": null,
+      "source_ids_sha256": "3794f8b34d75dbca0b3030e96e6eaffc8e62e27c6a38af9fe89c633c58d0f5f9",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1502.796,
+      "rendered_mainstem_length_km": 1502.796,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:10071782",
+      "category": "river",
+      "system_id": "10071782",
+      "logical_fid": 87,
+      "geometry_fids": [
+        256
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 10071782"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        19.216667,
+        21.860417,
+        22.439583,
+        30.13125
+      ],
+      "center": [
+        20.828125,
+        25.995834
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 244,
+      "source_id": null,
+      "source_ids_sha256": "79046b02cf768910dfc0aca4167e13441a0440184c442c087b274e3176dd0905",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1392.97,
+      "rendered_mainstem_length_km": 1392.97,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:11462479",
+      "category": "river",
+      "system_id": "11462479",
+      "logical_fid": 776,
+      "geometry_fids": [
+        2208,
+        2209,
+        2210,
+        2211,
+        2212,
+        2213,
+        2214,
+        2215,
+        2216,
+        2217,
+        2218,
+        2219,
+        2220,
+        2221,
+        2222,
+        2223,
+        2224,
+        2225,
+        2226,
+        2227,
+        2228,
+        2229,
+        2230,
+        2231,
+        2232,
+        2233,
+        2234,
+        2235,
+        2236,
+        2237,
+        2238,
+        2239,
+        2240,
+        2241,
+        2242,
+        2243,
+        2244
+      ],
+      "geometry_count": 37,
+      "display_names": [
+        "미명명 수계 11462479"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        26.241667,
+        -25.370833,
+        33.95625,
+        -22.126452
+      ],
+      "center": [
+        30.098958,
+        -23.748643
+      ],
+      "minimum_stage": 1,
+      "source_ids_count": 566,
+      "source_id": null,
+      "source_ids_sha256": "5c9c193410620f78568654e70d6f9ecc1dbffcaba974003ec7d526f4f53d9ad2",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0",
+        "HydroRIVERS 1.0 · Natural Earth border BWA/ZAF",
+        "HydroRIVERS 1.0 · Natural Earth border ZAF/ZWE"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1953.007,
+      "rendered_mainstem_length_km": 1389.821,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:20890784",
+      "category": "river",
+      "system_id": "20890784",
+      "logical_fid": 2765,
+      "geometry_fids": [
+        8770,
+        8771,
+        8772
+      ],
+      "geometry_count": 3,
+      "display_names": [
+        "미명명 수계 20890784"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        46.810417,
+        16.395833,
+        53.027083,
+        21.402083
+      ],
+      "center": [
+        49.91875,
+        18.898958
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 144,
+      "source_id": null,
+      "source_ids_sha256": "4a90563835fa1b154df1decd53aba5e7d93fcc7fe744691bbf88a631ab5e568c",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0",
+        "HydroRIVERS 1.0 · Natural Earth border SAU/YEM"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1193.339,
+      "rendered_mainstem_length_km": 1193.339,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:61280216",
+      "category": "river",
+      "system_id": "61280216",
+      "logical_fid": 3513,
+      "geometry_fids": [
+        13922,
+        13923,
+        13924,
+        13925,
+        13926,
+        13927,
+        13928,
+        13929,
+        13930,
+        13931
+      ],
+      "geometry_count": 10,
+      "display_names": [
+        "미명명 수계 61280216"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -70.36875,
+        -19.335417,
+        -67.014583,
+        -14.31875
+      ],
+      "center": [
+        -68.691666,
+        -16.827084
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 323,
+      "source_id": null,
+      "source_ids_sha256": "a5f529cf0be6cc7fa257f24862ce8176bca8a5916e7ebe14ace167e1c9f00262",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0",
+        "HydroRIVERS 1.0 · Natural Earth border BOL/PER"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1405.862,
+      "rendered_mainstem_length_km": 1162.604,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:10795931",
+      "category": "river",
+      "system_id": "10795931",
+      "logical_fid": 550,
+      "geometry_fids": [
+        1033,
+        1034,
+        1035,
+        1036,
+        1037
+      ],
+      "geometry_count": 5,
+      "display_names": [
+        "미명명 수계 10795931"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        42.7625,
+        5.777083,
+        48.735417,
+        9.6375
+      ],
+      "center": [
+        45.748959,
+        7.707292
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 279,
+      "source_id": null,
+      "source_ids_sha256": "bcb29e4b0d2276bc5cc87f726545376be6bb23bb90fa244a71e7b3697b6ae5e3",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0",
+        "HydroRIVERS 1.0 · Natural Earth border ETH/SOL"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1140.645,
+      "rendered_mainstem_length_km": 1140.645,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:10353693",
+      "category": "river",
+      "system_id": "10353693",
+      "logical_fid": 416,
+      "geometry_fids": [
+        622
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 10353693"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        7.34375,
+        18.752083,
+        11.735417,
+        24.372917
+      ],
+      "center": [
+        9.539583,
+        21.5625
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 246,
+      "source_id": null,
+      "source_ids_sha256": "f771e99e77df69a656b952cbc5b216ed1c3cc57ec22f7e94851a5d6cefbd0dfe",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1139.272,
+      "rendered_mainstem_length_km": 1139.272,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:10101070",
+      "category": "river",
+      "system_id": "10101070",
+      "logical_fid": 136,
+      "geometry_fids": [
+        322,
+        323,
+        324,
+        325,
+        326,
+        327,
+        328,
+        329,
+        330
+      ],
+      "geometry_count": 9,
+      "display_names": [
+        "미명명 수계 10101070"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -11.125263,
+        28.28125,
+        -5.489583,
+        30.98125
+      ],
+      "center": [
+        -8.307423,
+        29.63125
+      ],
+      "minimum_stage": 1,
+      "source_ids_count": 252,
+      "source_id": null,
+      "source_ids_sha256": "8ae6ecb3a3decbe6fe69b5f626cfde31803b9b548d728b108419bb09805affe5",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0",
+        "HydroRIVERS 1.0 · Natural Earth border DZA/MAR"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1076.525,
+      "rendered_mainstem_length_km": 1076.525,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:10519802",
+      "category": "river",
+      "system_id": "10519802",
+      "logical_fid": 492,
+      "geometry_fids": [
+        781,
+        782,
+        783,
+        784,
+        785,
+        786,
+        787,
+        788,
+        789
+      ],
+      "geometry_count": 9,
+      "display_names": [
+        "미명명 수계 10519802"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        8.879167,
+        10.027083,
+        14.527083,
+        13.714409
+      ],
+      "center": [
+        11.703125,
+        11.870746
+      ],
+      "minimum_stage": 2,
+      "source_ids_count": 289,
+      "source_id": null,
+      "source_ids_sha256": "8a41c8fab7ffe6302a84a7b936dd2ad9b5be0fd97f71ed6f471ed2665bc34b44",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0",
+        "HydroRIVERS 1.0 · Natural Earth border NER/NGA"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1034.675,
+      "rendered_mainstem_length_km": 1034.675,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:20877260",
+      "category": "river",
+      "system_id": "20877260",
+      "logical_fid": 2743,
+      "geometry_fids": [
+        8746
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 20877260"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        45.429167,
+        18.747917,
+        52.014583,
+        22.747917
+      ],
+      "center": [
+        48.721875,
+        20.747917
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 114,
+      "source_id": null,
+      "source_ids_sha256": "d9edfa11e9d25e316a75e774845ff01fe983ef3d0f10adda5d38773cc2f4a446",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1015.461,
+      "rendered_mainstem_length_km": 1015.461,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:50665574",
+      "category": "river",
+      "system_id": "50665574",
+      "logical_fid": 1994,
+      "geometry_fids": [
+        6938
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 50665574"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        132.258333,
+        -27.572917,
+        136.839583,
+        -23.577083
+      ],
+      "center": [
+        134.548958,
+        -25.575
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 167,
+      "source_id": null,
+      "source_ids_sha256": "5d825481b7689498640f439ac1fceac62470499106ec7a8050c36ac306dbdeb0",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 988.894,
+      "rendered_mainstem_length_km": 988.894,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:90041329",
+      "category": "river",
+      "system_id": "90041329",
+      "logical_fid": 2835,
+      "geometry_fids": [
+        8846
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 90041329"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -58.40932,
+        72.9,
+        -41.227083,
+        76.402083
+      ],
+      "center": [
+        -49.818202,
+        74.651042
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 304,
+      "source_id": null,
+      "source_ids_sha256": "f84ad6a151b58962d126f1cd9f9d49e0e4885968b01b053a654b67e2057984a7",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 980.17,
+      "rendered_mainstem_length_km": 980.17,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:90027011",
+      "category": "river",
+      "system_id": "90027011",
+      "logical_fid": 2828,
+      "geometry_fids": [
+        8838,
+        8839
+      ],
+      "geometry_count": 2,
+      "display_names": [
+        "미명명 수계 90027011"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -42.977083,
+        75.941667,
+        -21.966724,
+        78.31875
+      ],
+      "center": [
+        -32.471903,
+        77.130208
+      ],
+      "minimum_stage": 2,
+      "source_ids_count": 295,
+      "source_id": null,
+      "source_ids_sha256": "e1ad9559967e9ea57cdccbde8522da5f88b838afa955ae77b24c2094c36994dc",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 972.886,
+      "rendered_mainstem_length_km": 972.886,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:70152112",
+      "category": "river",
+      "system_id": "70152112",
+      "logical_fid": 2966,
+      "geometry_fids": [
+        9228,
+        9229,
+        9230
+      ],
+      "geometry_count": 3,
+      "display_names": [
+        "미명명 수계 70152112"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -91.758333,
+        51.502083,
+        -82.301178,
+        53.135417
+      ],
+      "center": [
+        -87.029755,
+        52.31875
+      ],
+      "minimum_stage": 1,
+      "source_ids_count": 188,
+      "source_id": null,
+      "source_ids_sha256": "cc04d95740e9a8c2438573e36bebc0b81e05d89e5a9b1568ef211ea3a19246ed",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 949.03,
+      "rendered_mainstem_length_km": 949.03,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:20883507",
+      "category": "river",
+      "system_id": "20883507",
+      "logical_fid": 2755,
+      "geometry_fids": [
+        8760
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 20883507"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        45.179167,
+        19.552083,
+        51.25625,
+        22.372917
+      ],
+      "center": [
+        48.217709,
+        20.9625
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 110,
+      "source_id": null,
+      "source_ids_sha256": "350fdbbde3e26f35e0eb48760108355bae159d7c1cb989af6bc89d9461dce7ba",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 946.773,
+      "rendered_mainstem_length_km": 946.773,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:30624681",
+      "category": "river",
+      "system_id": "30624681",
+      "logical_fid": 3798,
+      "geometry_fids": [
+        15165,
+        15166
+      ],
+      "geometry_count": 2,
+      "display_names": [
+        "미명명 수계 30624681"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        68.89375,
+        48.8875,
+        75.21875,
+        51.014583
+      ],
+      "center": [
+        72.05625,
+        49.951042
+      ],
+      "minimum_stage": 2,
+      "source_ids_count": 255,
+      "source_id": null,
+      "source_ids_sha256": "9b00d659a476313d724aadf3026ed084dec18398bbc6ce4a69e96aa15c2d7a27",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 945.186,
+      "rendered_mainstem_length_km": 945.186,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:50488324",
+      "category": "river",
+      "system_id": "50488324",
+      "logical_fid": 1832,
+      "geometry_fids": [
+        6748,
+        6749,
+        6750,
+        6751,
+        6752
+      ],
+      "geometry_count": 5,
+      "display_names": [
+        "미명명 수계 50488324"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        140.56875,
+        -20.852083,
+        144.76875,
+        -17.516435
+      ],
+      "center": [
+        142.66875,
+        -19.184259
+      ],
+      "minimum_stage": 1,
+      "source_ids_count": 168,
+      "source_id": null,
+      "source_ids_sha256": "71a9d52473951e1a345bcaf16ba6b5cd2266036cdd34ffb365826675e7b63d1a",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 1156.01,
+      "rendered_mainstem_length_km": 942.084,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:50668155",
+      "category": "river",
+      "system_id": "50668155",
+      "logical_fid": 2000,
+      "geometry_fids": [
+        6944
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 50668155"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        114.145681,
+        -27.88125,
+        119.020833,
+        -25.90625
+      ],
+      "center": [
+        116.583257,
+        -26.89375
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 314,
+      "source_id": null,
+      "source_ids_sha256": "f797065352f8adfeb4043129fec1ab4a5ad32046b09266de03a4ae07d824e3f7",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 932.323,
+      "rendered_mainstem_length_km": 932.323,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:10186653",
+      "category": "river",
+      "system_id": "10186653",
+      "logical_fid": 259,
+      "geometry_fids": [
+        454
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 10186653"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -0.889583,
+        23.46875,
+        4.5875,
+        25.5
+      ],
+      "center": [
+        1.848959,
+        24.484375
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 155,
+      "source_id": null,
+      "source_ids_sha256": "e9a36ab9ec4a687e80be6777c5214a8bb9f26747e28c7a1e38249d9ba0e871b2",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 926.043,
+      "rendered_mainstem_length_km": 926.043,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:10889521",
+      "category": "river",
+      "system_id": "10889521",
+      "logical_fid": 595,
+      "geometry_fids": [
+        1403
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 10889521"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        43.341667,
+        3.947917,
+        46.922917,
+        9.25625
+      ],
+      "center": [
+        45.132292,
+        6.602083
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 197,
+      "source_id": null,
+      "source_ids_sha256": "bed33838579a04dcb1d186b3751cc989e286ffefb8affd9f4adeaf9ab38a4d44",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 923.412,
+      "rendered_mainstem_length_km": 923.412,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:50199095",
+      "category": "river",
+      "system_id": "50199095",
+      "logical_fid": 1654,
+      "geometry_fids": [
+        6096,
+        6097,
+        6098,
+        6099,
+        6100,
+        6101,
+        6102,
+        6103,
+        6104,
+        6105,
+        6106,
+        6107,
+        6108,
+        6109,
+        6110,
+        6111,
+        6112,
+        6113,
+        6114,
+        6115,
+        6116,
+        6117,
+        6118,
+        6119,
+        6120,
+        6121,
+        6122,
+        6123,
+        6124,
+        6125,
+        6126,
+        6127,
+        6128,
+        6129,
+        6130,
+        6131
+      ],
+      "geometry_count": 36,
+      "display_names": [
+        "미명명 수계 50199095"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        136.527083,
+        -4.677083,
+        141.145833,
+        -1.516765
+      ],
+      "center": [
+        138.836458,
+        -3.096924
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1062,
+      "source_id": null,
+      "source_ids_sha256": "d46ae400ced5bc406add289ca3697ecc4722cb58a99445add85d7958dba06030",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 2688.762,
+      "rendered_mainstem_length_km": 910.25,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:40182409",
+      "category": "river",
+      "system_id": "40182409",
+      "logical_fid": 1070,
+      "geometry_fids": [
+        3103,
+        3104
+      ],
+      "geometry_count": 2,
+      "display_names": [
+        "미명명 수계 40182409"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        66.935417,
+        45.135417,
+        73.608333,
+        48.702083
+      ],
+      "center": [
+        70.271875,
+        46.91875
+      ],
+      "minimum_stage": 2,
+      "source_ids_count": 255,
+      "source_id": null,
+      "source_ids_sha256": "4ded058ac025b4e65a0c6f1d3ecffdcf369373790a542507abea72ff09b9ee1e",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 909.906,
+      "rendered_mainstem_length_km": 909.906,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:10262369",
+      "category": "river",
+      "system_id": "10262369",
+      "logical_fid": 327,
+      "geometry_fids": [
+        522
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 10262369"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        0.10625,
+        21.710417,
+        5.69375,
+        23.225
+      ],
+      "center": [
+        2.9,
+        22.467709
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 175,
+      "source_id": null,
+      "source_ids_sha256": "c092c3b9c2e373fa00341a622e0c8a15c182c933afa893613ef8f5779f6a56ad",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 902.7,
+      "rendered_mainstem_length_km": 902.7,
+      "rendered_area_km2": null
+    },
+    {
+      "aw_id": "hydro-system:40191514",
+      "category": "river",
+      "system_id": "40191514",
+      "logical_fid": 1086,
+      "geometry_fids": [
+        3244
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "미명명 수계 40191514"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        59.714583,
+        43.589583,
+        65.958333,
+        44.90625
+      ],
+      "center": [
+        62.836458,
+        44.247917
+      ],
+      "minimum_stage": 3,
+      "source_ids_count": 133,
+      "source_id": null,
+      "source_ids_sha256": "0c85c6e08d06edb688d38e9103a6dfd41e952c57093885a021ce599e9ae56658",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "HydroRIVERS 1.0"
+      ],
+      "canonical_name_fields": {},
+      "wikidata_id": null,
+      "feature_class": null,
+      "rendered_network_length_km": 901.945,
+      "rendered_mainstem_length_km": 901.945,
+      "rendered_area_km2": null
+    }
+  ],
+  "lake": [
+    {
+      "aw_id": "lakes_base:1159106799",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 3832,
+      "geometry_fids": [
+        15207
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-15"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -100.520636,
+        53.623838,
+        -99.583527,
+        54.269084
+      ],
+      "center": [
+        -100.052081,
+        53.946461
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159106799",
+      "source_ids_sha256": "5b5dd4454e79afe6075555869623c48c17f10a47e8cfdf6d09b16056a74f7f00",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-15",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 1555.575
+    },
+    {
+      "aw_id": "lakes_base:1159109497",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4046,
+      "geometry_fids": [
+        15421
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-229"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -111.945202,
+        63.68491,
+        -109.766024,
+        64.232427
+      ],
+      "center": [
+        -110.855613,
+        63.958669
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109497",
+      "source_ids_sha256": "4d0583f0a6cd8c6ba275676822ce3848155318b698a70c1c31f085a543888305",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-229",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 1197.564
+    },
+    {
+      "aw_id": "lakes_base:1159106899",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 3843,
+      "geometry_fids": [
+        15218
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-26"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -156.8896,
+        57.607173,
+        -155.951314,
+        58.105532
+      ],
+      "center": [
+        -156.420457,
+        57.856352
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159106899",
+      "source_ids_sha256": "3152549e1c9c6902acd0636abf17be273aacf0aeea66c2e8f4ed01f00697196f",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-26",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 1155.653
+    },
+    {
+      "aw_id": "lakes_base:1159115267",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4414,
+      "geometry_fids": [
+        15789
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-597"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        85.331307,
+        30.747624,
+        85.902963,
+        31.081139
+      ],
+      "center": [
+        85.617135,
+        30.914381
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159115267",
+      "source_ids_sha256": "fc9277b81ac28d4f3f7ba3365aa0fa96444254d99e91bdc7c99b56b5c96eb86f",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-597",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 1009.819
+    },
+    {
+      "aw_id": "lakes_base:1159108859",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 3994,
+      "geometry_fids": [
+        15369
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-177"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -100.552868,
+        62.088573,
+        -99.53584,
+        62.670825
+      ],
+      "center": [
+        -100.044354,
+        62.379699
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159108859",
+      "source_ids_sha256": "fadea636d5d519042a3555ddfbed46ad1c52426b015a6ca82db5f704631207d2",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-177",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 1007.274
+    },
+    {
+      "aw_id": "lakes_base:1159123531",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4892,
+      "geometry_fids": [
+        16267
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-1075"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -51.271162,
+        -21.108149,
+        -50.30344,
+        -20.591834
+      ],
+      "center": [
+        -50.787301,
+        -20.849992
+      ],
+      "minimum_stage": 2,
+      "source_ids_count": 1,
+      "source_id": "1159123531",
+      "source_ids_sha256": "41d788ebaf0a1d91494da1794c6516f9c62f08ad113f96313cb7da513fdfec99",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-1075",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Reservoir",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 946.448
+    },
+    {
+      "aw_id": "lakes_base:1159115919",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4446,
+      "geometry_fids": [
+        15821
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-629"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        136.08086,
+        49.594582,
+        137.47232,
+        50.452065
+      ],
+      "center": [
+        136.77659,
+        50.023324
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159115919",
+      "source_ids_sha256": "af0910b87ef4031ae3296ed2d1817760755bdac0c3cf1dd76302cf9b3cf33ad8",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-629",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 932.614
+    },
+    {
+      "aw_id": "lakes_base:1159109619",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4055,
+      "geometry_fids": [
+        15430
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-238"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -97.83574,
+        61.069779,
+        -96.923064,
+        61.833065
+      ],
+      "center": [
+        -97.379402,
+        61.451422
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109619",
+      "source_ids_sha256": "a1a99a51d23faa0b5d733fd4b64ad64ebdaab622a216e6c4726693cc2dc12f96",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-238",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 833.54
+    },
+    {
+      "aw_id": "lakes_base:1159107065",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 3861,
+      "geometry_fids": [
+        15236
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-44"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -76.613117,
+        56.112687,
+        -75.883241,
+        56.565124
+      ],
+      "center": [
+        -76.248179,
+        56.338905
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159107065",
+      "source_ids_sha256": "179f6f8645436d67914c22aa18be38d7e399f868288d11259783e36b52f452d9",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-44",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 819.028
+    },
+    {
+      "aw_id": "lakes_base:1159109471",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4044,
+      "geometry_fids": [
+        15419
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-227"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -111.212235,
+        64.34664,
+        -109.595882,
+        64.733435
+      ],
+      "center": [
+        -110.404059,
+        64.540037
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109471",
+      "source_ids_sha256": "f6966418a82a8cc9c3f5ffcb589889d0979b0d1e99e5cf645c62b482ac2c1d6c",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-227",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 815.68
+    },
+    {
+      "aw_id": "lakes_base:1159110303",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4105,
+      "geometry_fids": [
+        15480
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-288"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -101.811275,
+        60.688872,
+        -100.878288,
+        61.258172
+      ],
+      "center": [
+        -101.344781,
+        60.973522
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159110303",
+      "source_ids_sha256": "8ec3680616c68dcc597b9f0da0384809b38e64ddb9433e829f75b3c9047318a9",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-288",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 778.003
+    },
+    {
+      "aw_id": "lakes_base:1159109627",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4056,
+      "geometry_fids": [
+        15431
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-239"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -105.819631,
+        61.245808,
+        -104.661456,
+        61.926378
+      ],
+      "center": [
+        -105.240544,
+        61.586093
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109627",
+      "source_ids_sha256": "a83171f08aba63be7c04a25ef01abf8868427e5214aae0df3d55b242f74aa810",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-239",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 732.34
+    },
+    {
+      "aw_id": "lakes_base:1159108619",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 3976,
+      "geometry_fids": [
+        15351
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-159"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -98.111412,
+        54.546964,
+        -96.691547,
+        54.948182
+      ],
+      "center": [
+        -97.401479,
+        54.747573
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159108619",
+      "source_ids_sha256": "09ffb033d55d29a8a5eb1e97441aa8d8573c0de090523a6a63ebb8677b289a44",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-159",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 730.475
+    },
+    {
+      "aw_id": "lakes_base:1159123567",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4894,
+      "geometry_fids": [
+        16269
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-1077"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -48.018733,
+        -18.55719,
+        -47.441485,
+        -18.139192
+      ],
+      "center": [
+        -47.730109,
+        -18.348191
+      ],
+      "minimum_stage": 2,
+      "source_ids_count": 1,
+      "source_id": "1159123567",
+      "source_ids_sha256": "54b55d7d4a0db3f2b559aceb4910aa2b278626e4a6e45df6782d78c8dc7076a4",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-1077",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Reservoir",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 714.413
+    },
+    {
+      "aw_id": "lakes_base:1159109213",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4023,
+      "geometry_fids": [
+        15398
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-206"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -77.456029,
+        50.71346,
+        -76.583828,
+        51.062576
+      ],
+      "center": [
+        -77.019928,
+        50.888018
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109213",
+      "source_ids_sha256": "40e5499b1563d23ddd9370e73481dce5f6e5caa2deef0da7c439311763109fe3",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-206",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 687.87
+    },
+    {
+      "aw_id": "lakes_base:1159114377",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4367,
+      "geometry_fids": [
+        15742
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-550"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        26.265968,
+        61.553419,
+        27.054275,
+        62.053838
+      ],
+      "center": [
+        26.660122,
+        61.803629
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159114377",
+      "source_ids_sha256": "9bd521d946a2485cb5b7f1cef45ee807231b655425e9dd5c0c781aa00a2fd806",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-550",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 686.904
+    },
+    {
+      "aw_id": "lakes_base:1159109759",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4066,
+      "geometry_fids": [
+        15441
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-249"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -103.223781,
+        60.313557,
+        -102.628724,
+        60.931133
+      ],
+      "center": [
+        -102.926253,
+        60.622345
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109759",
+      "source_ids_sha256": "940309201cb75c41b53fd1e7b0f03b5f219c09634be6f3287f48acab94f3205b",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-249",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 669.421
+    },
+    {
+      "aw_id": "lakes_base:1159109553",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4050,
+      "geometry_fids": [
+        15425
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-233"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -107.575366,
+        54.618494,
+        -106.989434,
+        54.913447
+      ],
+      "center": [
+        -107.2824,
+        54.76597
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109553",
+      "source_ids_sha256": "2d4478c45a64adb14d0bbda516aa51705947ec2c4f4a96758c72beb8f8744a02",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-233",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 663.224
+    },
+    {
+      "aw_id": "lakes_base:1159107015",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 3856,
+      "geometry_fids": [
+        15231
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-39"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -99.793703,
+        62.797696,
+        -99.10445,
+        63.195971
+      ],
+      "center": [
+        -99.449076,
+        62.996834
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159107015",
+      "source_ids_sha256": "3f4ca90ab8e24a23da81bff48ccbe9a5ecfdbf979f45e18848743c91dbe44a42",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-39",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 649.435
+    },
+    {
+      "aw_id": "lakes_base:1159108835",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 3992,
+      "geometry_fids": [
+        15367
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-175"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -102.045736,
+        62.081214,
+        -101.350154,
+        62.520405
+      ],
+      "center": [
+        -101.697945,
+        62.300809
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159108835",
+      "source_ids_sha256": "062b86b8df41f2e183e72da3ceac4dc64e7c0146a0770a95a48319d3854495d3",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-175",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 646.556
+    },
+    {
+      "aw_id": "lakes_base:1159109567",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4051,
+      "geometry_fids": [
+        15426
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-234"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -75.051515,
+        60.416585,
+        -73.276353,
+        60.777769
+      ],
+      "center": [
+        -74.163934,
+        60.597177
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109567",
+      "source_ids_sha256": "51ac20dc9fae868ffcb646c171ef651d551cb3d5e6ebdacf7f82c42de68884cb",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-234",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 641.346
+    },
+    {
+      "aw_id": "lakes_base:1159115903",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4445,
+      "geometry_fids": [
+        15820
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-628"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        139.855786,
+        51.52826,
+        140.768904,
+        52.02132
+      ],
+      "center": [
+        140.312345,
+        51.77479
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159115903",
+      "source_ids_sha256": "ba8d9db85a7696430f87af43077ae4ef32289572bd8c880d94e7f7507965a9f4",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-628",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 636.356
+    },
+    {
+      "aw_id": "lakes_base:1159109593",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4053,
+      "geometry_fids": [
+        15428
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-236"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -103.338731,
+        66.302984,
+        -102.173196,
+        66.815178
+      ],
+      "center": [
+        -102.755964,
+        66.559081
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109593",
+      "source_ids_sha256": "01d4ffd24ad1ae2009b3f795d867e8e97e2c0826c610d32cad2ff9b1498e0c77",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-236",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 632.904
+    },
+    {
+      "aw_id": "lakes_base:1159109147",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4017,
+      "geometry_fids": [
+        15392
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-200"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -95.403262,
+        62.029111,
+        -94.651898,
+        62.387941
+      ],
+      "center": [
+        -95.02758,
+        62.208526
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109147",
+      "source_ids_sha256": "f1ec7cea5fef61d7c5fa2530bf5c7aea9062ebd9007c8614f61ed84bff4f9bc2",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-200",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 630.251
+    },
+    {
+      "aw_id": "lakes_base:1159110443",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4112,
+      "geometry_fids": [
+        15487
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-295"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -135.17583,
+        59.408388,
+        -133.841477,
+        60.556702
+      ],
+      "center": [
+        -134.508653,
+        59.982545
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159110443",
+      "source_ids_sha256": "518a40e296ffe27f3aaa45b684c964ffcf2f56bc4a00bc10a5bda5bed00b1219",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-295",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 628.509
+    },
+    {
+      "aw_id": "lakes_base:1159107099",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 3864,
+      "geometry_fids": [
+        15239
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-47"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -115.941195,
+        60.093079,
+        -115.050596,
+        60.368015
+      ],
+      "center": [
+        -115.495895,
+        60.230547
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159107099",
+      "source_ids_sha256": "e5d9bfd91459010a1a1100e7f93512fcddcbd251d62822e8b72fa68d3530e2b7",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-47",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 621.549
+    },
+    {
+      "aw_id": "lakes_base:1159123163",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4869,
+      "geometry_fids": [
+        16244
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-1052"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        33.536467,
+        48.524863,
+        34.570274,
+        49.008209
+      ],
+      "center": [
+        34.05337,
+        48.766536
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159123163",
+      "source_ids_sha256": "b0c1722e1dd9d0ce0d71b07332c55664c3f88df641ac36f7c10d6a5c7113fb25",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-1052",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Reservoir",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 610.793
+    },
+    {
+      "aw_id": "lakes_base:1159109261",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4027,
+      "geometry_fids": [
+        15402
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-210"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -68.760218,
+        56.571012,
+        -67.827967,
+        57.27307
+      ],
+      "center": [
+        -68.294093,
+        56.922041
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159109261",
+      "source_ids_sha256": "32101792d4b974e546fe72733611929740f665ecbbe8669a3a27d281eeaf423a",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-210",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 603.592
+    },
+    {
+      "aw_id": "lakes_base:1159110371",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4110,
+      "geometry_fids": [
+        15485
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-293"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        -108.465082,
+        62.855686,
+        -107.532683,
+        63.45766
+      ],
+      "center": [
+        -107.998883,
+        63.156673
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159110371",
+      "source_ids_sha256": "a8f6c3080290726c81f8146b2d9f8a077009031618d58e2dc823dde659d5d13e",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-293",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 599.154
+    },
+    {
+      "aw_id": "lakes_base:1159114413",
+      "category": "lake",
+      "system_id": null,
+      "logical_fid": 4369,
+      "geometry_fids": [
+        15744
+      ],
+      "geometry_count": 1,
+      "display_names": [
+        "lake-552"
+      ],
+      "classification": "no_meaningful_name_in_deployed_data",
+      "has_korean_display": false,
+      "aliases": [],
+      "tributary_names": [],
+      "osm_relation_ids": [],
+      "bbox": [
+        23.750332,
+        61.018265,
+        24.780018,
+        61.738574
+      ],
+      "center": [
+        24.265175,
+        61.378419
+      ],
+      "minimum_stage": 0,
+      "source_ids_count": 1,
+      "source_id": "1159114413",
+      "source_ids_sha256": "f7f57042c554dbdf2743cad7547e1f26c65b1abad8fa5464a62fb02f3f0cbfcb",
+      "source_ids_locator": "metadata-detail.json.gz features[fid in geometry_fids].sourceId",
+      "sources": [
+        "Natural Earth 5.0.0 1:10m"
+      ],
+      "canonical_name_fields": {
+        "name": "lake-552",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "wikidata_id": null,
+      "feature_class": "Lake",
+      "rendered_network_length_km": null,
+      "rendered_mainstem_length_km": null,
+      "rendered_area_km2": 592.422
+    }
+  ]
+}
