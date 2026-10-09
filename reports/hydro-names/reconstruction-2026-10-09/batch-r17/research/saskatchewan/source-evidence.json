@@ -1,0 +1,105 @@
+{
+  "schema": "hydro-public-source-evidence-v2",
+  "batch": "r17",
+  "created_at_utc": "2026-10-09T17:23:20.880290+00:00",
+  "sources": [
+    {
+      "source_key": "wsa_completed_watershed_plans_2014",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "title": "Map of Saskatchewan Showing Completed Watershed Plans",
+      "publication_date": "2014-11-25",
+      "publication_date_note": "Printed map production date, not the URL directory date or HTTP modification date.",
+      "kind": "official_thematic_map",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "retrieved_at_utc": "2026-10-09T13:17:20.296694+00:00",
+      "retrieved_this_batch": false,
+      "original_map_visually_inspected": true,
+      "map_locations": [
+        {
+          "physical_pdf_page": 1,
+          "scope": "Complete Saskatchewan map and all three complete selected target regions."
+        }
+      ],
+      "printed_scale": "1:1,750,000 at 22 by 34 inches",
+      "short_labels": [
+        "Lac Ile-a-la-Crosse",
+        "Alstead River",
+        "Royal Lake",
+        "Steephill Lake",
+        "Reindeer River",
+        "Wood Lake",
+        "Churchill River"
+      ],
+      "short_label_scope": "Context only; no listed label establishes a candidate identity for any complete selected polygon.",
+      "independence_group": "wsa_completed_watershed_plans_2014",
+      "source_limit": "One dated regional planning map. The publisher cautions that accuracy, completeness and currency vary. Individual channels, current shorelines and precise naming partitions are not established."
+    },
+    {
+      "source_key": "elections_athabasca_ge30",
+      "publisher": "Elections Saskatchewan",
+      "title": "Athabasca constituency map, GE30",
+      "kind": "official_electoral_map",
+      "url": "https://cdn.elections.sk.ca/maps-ge30/Athabasca_GE30.pdf",
+      "publication_date": null,
+      "printed_creation_date": "02/10/2023",
+      "publication_date_note": "Exact printed creation-date string retained; month/day ordering was not independently established. Version 1.0, linked by the official map page for the 2024 election.",
+      "retrieved_at_utc": "2026-10-09T17:19:23.727056+00:00",
+      "retrieved_this_batch": true,
+      "original_map_visually_inspected": true,
+      "map_locations": [
+        {
+          "physical_pdf_page": 1,
+          "scope": "Complete original map and complete first selected target region."
+        }
+      ],
+      "printed_scale": null,
+      "scale_note": "The map has a 0 to 40 kilometre bar. A printed representative fraction was not established.",
+      "short_labels": [
+        "Patuanak"
+      ],
+      "short_label_scope": "Patuanak is a settlement label, not a lake identity.",
+      "independence_group": "elections_saskatchewan_ge30_map_series",
+      "source_limit": "Official electoral publication using adapted provincial cadastral data, administrative overlays and OpenStreetMap. It is not a formal hydrographic naming instrument. Rasterized text and electoral boundary overprints limit local map interpretation."
+    },
+    {
+      "source_key": "elections_cumberland_ge30",
+      "publisher": "Elections Saskatchewan",
+      "title": "Cumberland constituency map, GE30",
+      "kind": "official_electoral_map",
+      "url": "https://cdn.elections.sk.ca/maps-ge30/Cumberland_GE30.pdf",
+      "publication_date": null,
+      "printed_creation_date": "02/10/2023",
+      "publication_date_note": "Exact printed creation-date string retained; month/day ordering was not independently established. Version 1.0, linked by the official map page for the 2024 election.",
+      "retrieved_at_utc": "2026-10-09T17:19:27.981345+00:00",
+      "retrieved_this_batch": true,
+      "original_map_visually_inspected": true,
+      "map_locations": [
+        {
+          "physical_pdf_page": 1,
+          "scope": "Complete original map and complete second and third selected target regions."
+        }
+      ],
+      "printed_scale": null,
+      "scale_note": "The map has a 0 to 40 kilometre bar. A printed representative fraction was not established.",
+      "short_labels": [
+        "Royal Lake",
+        "Steephill Lake",
+        "Penney Lake",
+        "Lobb Lake"
+      ],
+      "short_label_scope": "Surrounding named waters provide context without resolving complete selected-feature name scope.",
+      "independence_group": "elections_saskatchewan_ge30_map_series",
+      "source_limit": "Official electoral publication using adapted provincial cadastral data, administrative overlays and OpenStreetMap. It is not a formal hydrographic naming instrument. Rasterized text and electoral boundary overprints limit local map interpretation."
+    }
+  ],
+  "distinct_publication_count": 3,
+  "independent_source_count": 2,
+  "independent_cartographic_identity_source_count": 2,
+  "independence_note": "Two publisher-level groups were inspected: the WSA planning map and the Elections Saskatchewan map series. The two election sheets count as one group. Shared underlying provincial data are possible; no claim of independently surveyed naming evidence is made.",
+  "unused_acquisition_outcomes": [],
+  "search_snippets_used_as_identity_evidence": false,
+  "availability_scope_note": "The WSA and election maps supply complete target-area coverage. All three results are completed naming-scope holds, rather than access-pending records.",
+  "included_evidence_limit": "Included records retain official bibliography, own factual observations and geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}
