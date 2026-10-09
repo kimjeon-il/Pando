@@ -1,0 +1,19 @@
+# Lake-name reconstruction r31
+
+Three new Alaska lake inventory features were assessed against the Alaska DNR-hosted Wood-Tikchik State Park map and complete immutable baseline polygons. The map uses third-party TOPO! cartography; official hosting does not establish a formal naming-registry decision. The geometry reference remains Pando v0.13.1 at fd6744f5e72a0c1a107452dbde6d416ab57237db. The previously published [compact correspondence note](https://github.com/kimjeon-il/Pando/blob/1a3b4b3437000b4bcf3913a287316d1ab5f65897/reports/hydro-names/reconstruction-2026-10-09/batch-r30/packed-payload-correspondence.json) records v0.13.2 manifest/hash preservation and the three r29 IDs. No current live binary or renderer equivalence is asserted. No historical verdict is restored.
+
+## Findings
+
+- **1159107899: No single name assigned.** The complete generalized selected footprint in the Wood-Tikchik region contains western and central water labelled Nuyakuk Lake and eastern water labelled Tikchik Lake. They are distinct component associations, not aliases or alternative scalar names for the whole polygon. The single selected ring crosses two separately labelled lakes and their connecting neck; no exact inter-lake partition is established, and fine western bays and eastern outlet detail are generalized. Exact extent and product-name application are not approved. Category: `compound_feature_name_scope_hold`.
+- **1159110667: Lake Kulik.** The complete selected generalized footprint supports Lake Kulik as a bounded water identity in the Wood River lakes portion of the Wood-Tikchik region, south of Nuyakuk Lake and north of Lake Beverly. Narrow mapped western inlet channels extend beyond the simplified western termination, and irregular margins and the eastern outlet are generalized; no entire detailed named-lake coverage is claimed. Exact extent and product-name application are not approved. Category: `supported_generalized_water_identity`.
+- **1159110627: Lake Beverly.** The complete selected generalized footprint supports Lake Beverly as a bounded water identity in the Wood River lakes portion of the Wood-Tikchik region, south of Lake Kulik and north of Lake Nerka. The Golden Horn and Silver Horn arms are represented only in generalized form; fine arm tips, Hardluck Bay margins and the southeast connecting-river boundary remain unresolved, so entire detailed named-lake coverage is not certified. Exact extent and product-name application are not approved. Category: `supported_generalized_water_identity`.
+
+## Scope and continuity
+
+Generalized identity does not establish surveyed shoreline agreement, exact name partitions, formal registry status or product-ready scalar names. Korean names and whole-feature scalar names remain null; automatic and product application are false.
+The index contains 90 distinct targets: 43 river groups and 47 lake features. It preserves 88 non-access-pending records, 2 access-pending records and 26 scope holds. Non-access-pending is an accounting category, not a count of confirmed names. Earlier records and the Richmond/Hastings assessment histories are preserved; the unavailable historical 504-target ledger is not added.
+The exact original inventory and cumulative index recover 3,975 unrecorded targets: 3,412 river groups and 563 lakes. Pending IDs and scope holds remain separately recoverable.
+
+## Public verification
+
+Run `python validate-package.py` for included-file integrity, current-result consistency and cumulative accounting. `recover-remaining-queue.py` uses the exact initial inventory. Public validators do not replay omitted source maps, complete polygons, compressed component bytes or original decoder inputs. Only own factual findings, bibliography, bounded metadata are included; the earlier public payload-correspondence note is linked without duplicating it; original map bodies, crops, full lake coordinates and private-input fingerprints are omitted.

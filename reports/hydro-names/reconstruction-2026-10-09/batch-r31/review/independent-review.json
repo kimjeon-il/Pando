@@ -1,0 +1,331 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "batch": "r31",
+  "reviewed_at_utc": "2026-10-09T23:07:56Z",
+  "scope_aw_ids": [
+    "lakes_base:1159107899",
+    "lakes_base:1159110667",
+    "lakes_base:1159110627"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Fresh visual inspection of the retained original map pixels, cartographic credits, successful original acquisition receipt and official discovery record. Every selected source and baseline-rendered polygon part and ring was viewed in full; all ordered positions, bounds and ring closure were independently recomputed from the retained source collection and selected decoded baseline. Regional position, orientation, complete outline, named water labels and narrow connections were considered together; neither bounds nor label overlap alone established identity. The packed decoder was not independently replayed by this reviewer. Independent observations were recorded before comparing the source researcher’s draft.",
+  "prior_distinct_targets": 87,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 90,
+  "duplicate_targets": 0,
+  "counted_unit": "Distinct logical inventory lake target IDs; repeated map labels do not increase the target count.",
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "current_batch_follow_up_required_targets": 1,
+  "current_batch_scope_hold_targets": 1,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803",
+    "lakes_base:1159108469",
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087",
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201",
+    "hydro-system:50738894",
+    "hydro-system:50691388",
+    "hydro-system:50443984",
+    "hydro-system:50442438",
+    "hydro-system:50442579",
+    "hydro-system:50487926",
+    "hydro-system:50503092",
+    "lakes_base:1159111345"
+  ],
+  "new_pending_access_ids": [],
+  "new_scope_hold_ids": [
+    "lakes_base:1159107899"
+  ],
+  "pending_access_reassessment_performed": false,
+  "prior_target_source_or_geometry_reaudit_performed": false,
+  "automatic_application": false,
+  "product_application": false,
+  "scalar_product_name_approvals": 0,
+  "geometry_modified": false,
+  "topology_repaired": false,
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "private_original_packed_decoder_independently_replayed": false,
+  "source_worker_comparison_completed": true,
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159107899",
+      "source_id": "1159107899",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 64,
+      "category": "lake",
+      "baseline_logical_fid": 3923,
+      "geometry_fids": [
+        15298
+      ],
+      "fragment_count": 1,
+      "candidate_name": null,
+      "candidate_names": [
+        "Nuyakuk Lake",
+        "Tikchik Lake"
+      ],
+      "research_category": "compound_feature_name_scope_hold",
+      "review_status": "multiple_named_waters_scalar_name_hold",
+      "candidate_name_role": "no_single_candidate_for_compound_footprint",
+      "directly_supported_name_forms": [
+        "Nuyakuk Lake",
+        "Tikchik Lake"
+      ],
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Resolve the Nuyakuk–Tikchik inter-lake and connecting-neck name boundary with more detailed direct evidence before any separately authorized scalar naming or geometric subdivision. No split line or geometry repair is proposed here.",
+      "supported_name_scope": "The complete generalized selected footprint in the Wood-Tikchik region contains western and central water labelled Nuyakuk Lake and eastern water labelled Tikchik Lake. They are distinct component associations, not aliases or alternative scalar names for the whole polygon. The single selected ring crosses two separately labelled lakes and their connecting neck; no exact inter-lake partition is established, and fine western bays and eastern outlet detail are generalized. Exact extent and product-name application are not approved.",
+      "source_observation_id": "lakes_base:1159107899",
+      "limits": [
+        "The single selected ring crosses two separately labelled lakes and their connecting neck; no exact inter-lake partition is established, and fine western bays and eastern outlet detail are generalized.",
+        "Lake Chauekuktuli is a separate water to the north. Tikchik Lodge is a landmark, not an additional lake name or a precise name-boundary marker.",
+        "The direct evidence is one Alaska DNR-hosted third-party TOPO! map, not a formal government naming registry or independently corroborated naming decision.",
+        "No alternate word order, additional alias or Korean form is certified."
+      ],
+      "geographic_disambiguation": "Wood-Tikchik State Park region, southwestern Alaska, United States",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": false,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Nuyakuk Lake",
+          "Tikchik Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": true,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Nuyakuk Lake",
+            "scope": "Western arms, main central basin and northern bulge"
+          },
+          {
+            "name": "Tikchik Lake",
+            "scope": "Eastern basin beyond the connecting neck"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The single selected ring crosses two separately labelled lakes and their connecting neck; no exact inter-lake partition is established, and fine western bays and eastern outlet detail are generalized."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159110667",
+      "source_id": "1159110667",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 18,
+      "category": "lake",
+      "baseline_logical_fid": 4129,
+      "geometry_fids": [
+        15504
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Lake Kulik",
+      "candidate_names": [
+        "Lake Kulik"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "generalized_identity_supported_not_product_name_clearance",
+      "candidate_name_role": "bounded_generalized_selected_water_footprint_identity",
+      "directly_supported_name_forms": [
+        "Lake Kulik"
+      ],
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No additional work is required for this bounded generalized identity. Entire detailed lake coverage, formal-registry verification, precise shoreline or connecting-river name boundaries, Korean naming and scalar product application require a separately authorized assessment.",
+      "supported_name_scope": "The complete selected generalized footprint supports Lake Kulik as a bounded water identity in the Wood River lakes portion of the Wood-Tikchik region, south of Nuyakuk Lake and north of Lake Beverly. Narrow mapped western inlet channels extend beyond the simplified western termination, and irregular margins and the eastern outlet are generalized; no entire detailed named-lake coverage is claimed. Exact extent and product-name application are not approved.",
+      "source_observation_id": "lakes_base:1159110667",
+      "limits": [
+        "Narrow mapped western inlet channels extend beyond the simplified western termination, and irregular margins and the eastern outlet are generalized; no entire detailed named-lake coverage is claimed.",
+        "Grant Lake is separately mapped to the northeast; nearby rivers, falls and small lakes are not incorporated as aliases. This finding does not apply by name alone to similarly named lakes elsewhere.",
+        "The direct evidence is one Alaska DNR-hosted third-party TOPO! map, not a formal government naming registry or independently corroborated naming decision.",
+        "No alternate word order, additional alias or Korean form is certified."
+      ],
+      "geographic_disambiguation": "Wood-Tikchik State Park region, southwestern Alaska, United States",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": false,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Lake Kulik"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Lake Kulik",
+            "scope": "Complete generalized selected footprint in the Wood River lakes portion of the Wood-Tikchik region"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "Narrow mapped western inlet channels extend beyond the simplified western termination, and irregular margins and the eastern outlet are generalized; no entire detailed named-lake coverage is claimed."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159110627",
+      "source_id": "1159110627",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 34,
+      "category": "lake",
+      "baseline_logical_fid": 4126,
+      "geometry_fids": [
+        15501
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Lake Beverly",
+      "candidate_names": [
+        "Lake Beverly"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "generalized_identity_supported_not_product_name_clearance",
+      "candidate_name_role": "bounded_generalized_selected_water_footprint_identity",
+      "directly_supported_name_forms": [
+        "Lake Beverly"
+      ],
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No additional work is required for this bounded generalized identity. Entire detailed lake coverage, formal-registry verification, precise shoreline or connecting-river name boundaries, Korean naming and scalar product application require a separately authorized assessment.",
+      "supported_name_scope": "The complete selected generalized footprint supports Lake Beverly as a bounded water identity in the Wood River lakes portion of the Wood-Tikchik region, south of Lake Kulik and north of Lake Nerka. The Golden Horn and Silver Horn arms are represented only in generalized form; fine arm tips, Hardluck Bay margins and the southeast connecting-river boundary remain unresolved, so entire detailed named-lake coverage is not certified. Exact extent and product-name application are not approved.",
+      "source_observation_id": "lakes_base:1159110627",
+      "limits": [
+        "The Golden Horn and Silver Horn arms are represented only in generalized form; fine arm tips, Hardluck Bay margins and the southeast connecting-river boundary remain unresolved, so entire detailed named-lake coverage is not certified.",
+        "Lake Nerka is a separate lake south of a mapped river connection. Nearby small waters outside the ring are not treated as parts or aliases of Lake Beverly.",
+        "The direct evidence is one Alaska DNR-hosted third-party TOPO! map, not a formal government naming registry or independently corroborated naming decision.",
+        "No alternate word order, additional alias or Korean form is certified."
+      ],
+      "geographic_disambiguation": "Wood-Tikchik State Park region, southwestern Alaska, United States",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": false,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Lake Beverly"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Lake Beverly",
+            "scope": "Complete generalized selected footprint in the Wood River lakes portion of the Wood-Tikchik region"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The Golden Horn and Silver Horn arms are represented only in generalized form; fine arm tips, Hardluck Bay margins and the southeast connecting-river boundary remain unresolved, so entire detailed named-lake coverage is not certified."
+      }
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-09T23:07:56Z",
+    "available_source_inspection_completed": true,
+    "full_feature_correspondence_review_completed": true,
+    "original_source_material_included": false,
+    "full_selected_geometry_included": false,
+    "historical_results_recomputed_by_public_validator": false
+  },
+  "included_evidence_limit": "Own factual observations and source bibliography are consolidated in source-observations.json. Public checks validate included facts, bounded metadata, arithmetic and included-file integrity; omitted original map pixels, complete polygons, visual judgments and the production decoder are not replayed."
+}

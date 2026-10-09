@@ -1,0 +1,21 @@
+{
+  "schema": "hydro-lake-publication-rights-v2",
+  "batch": "r31",
+  "included": "Own factual observations, brief geographic labels, public publisher and hosting URLs, bounded selected identifier/name-state/count/bounds metadata, included public-file validation hashes and necessary already-public continuity or payload declarations. No private source, coordinate, derivative, registration, receipt or cache fingerprints are included.",
+  "selected_lake_feature_count": 3,
+  "full_lake_coordinates_published": false,
+  "full_river_coordinates_published": false,
+  "raw_third_party_sources_published": false,
+  "raw_pdf_html_map_crop_count": 0,
+  "private_source_derivative_coordinate_registration_receipt_cache_fingerprints_included": false,
+  "source_host": "Alaska Department of Natural Resources, Division of Parks and Outdoor Recreation",
+  "source_url": "https://dnr.alaska.gov/parks/units/wtc/images/wtcmap2.jpg",
+  "official_catalog_url": "https://dnr.alaska.gov/parks/aspunits/southwest/southwestindex.htm",
+  "cartographic_attribution": "TOPO! / National Geographic, with Tele Atlas attribution. Visible map credits include ©2006 National Geographic and ©2005 Tele Atlas, Rel. 8/2005.",
+  "rights_scope": "Official Alaska DNR hosting and linking do not establish government authorship or public-domain status. The original map displays third-party copyright credits. No original map, crop, overlay, coordinate-bearing geometry or private source/coordinate/derivative fingerprint is included. This component contains original factual extracts and public bibliography only; no redistribution license for the source cartography is asserted.",
+  "reproducibility_limit": "Public included-file checks can verify the retained factual record and its bounded metadata, but cannot replay the omitted source-map and complete-polygon visual comparison.",
+  "automatic_application": false,
+  "product_application": false,
+  "retained_source_acquisition_batch": "r30",
+  "new_original_source_acquisitions_this_batch": 0
+}

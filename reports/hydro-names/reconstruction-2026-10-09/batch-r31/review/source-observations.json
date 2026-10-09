@@ -1,0 +1,115 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r31",
+  "scope_aw_ids": [
+    "lakes_base:1159107899",
+    "lakes_base:1159110667",
+    "lakes_base:1159110627"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "No external requests were made in this batch or independent review. The original map body acquired during the preceding batch was reused locally.",
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "observations": [
+    {
+      "source_key": "alaska_dnr_hosted_wood_tikchik_topo_map",
+      "title": "Wood-Tikchik State Park Map",
+      "host": "Alaska Department of Natural Resources, Division of Parks and Outdoor Recreation",
+      "cartographic_source": "TOPO!; National Geographic and Tele Atlas copyright credits",
+      "url": "https://dnr.alaska.gov/parks/units/wtc/images/wtcmap2.jpg",
+      "official_catalog_url": "https://dnr.alaska.gov/parks/aspunits/southwest/southwestindex.htm",
+      "official_host_and_catalog_link_verified": true,
+      "catalog_role": "The official Southwest Region page links Wood-Tikchik State Park Map under Maps and Brochures. It verifies official hosting and discovery, not formal naming authority.",
+      "original_acquired_at_utc": "2026-10-09T22:42:01.903401+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "government_authored_cartography_verified": false,
+      "publication_date": null,
+      "publication_date_verified": false,
+      "printed_map_date_literal": "10/10/11",
+      "publication_date_note": "The header reports a map print date, not a verified publication date. Copyright years and the server Last-Modified value also do not establish the publication date.",
+      "rights_credit_observed": "Map created with TOPO!; copyright 2006 National Geographic; copyright 2005 Tele Atlas; Rel. 8/2005.",
+      "role": "Direct water-name labels and full-footprint regional context for all three targets.",
+      "directly_read_water_labels": [
+        "Nuyakuk Lake",
+        "Tikchik Lake",
+        "Lake Kulik",
+        "Lake Beverly"
+      ],
+      "nearby_distinct_water_labels": [
+        "Lake Chauekuktuli",
+        "Grant Lake",
+        "Lake Nerka"
+      ],
+      "own_observations": "The connected upper selected water carries distinct Nuyakuk Lake and Tikchik Lake labels across its western/central and eastern portions. Farther south, Lake Kulik and Lake Beverly label two separate selected footprints. Repeated labels and the official discovery page do not create independent naming evidence. Thick park boundaries and geographic grid lines are not accepted as hydronym boundaries.",
+      "authority_scope": "Third-party topographic cartographic usage hosted and linked by a state agency supports generalized association. No formal government naming-registry status, independent source corroboration, current naming decision or exact name boundary is established.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r30"
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159107899",
+      "aw_id": "lakes_base:1159107899",
+      "source_id": "1159107899",
+      "geometry_fids": [
+        15298
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 64,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "independent_observation": "The complete exterior ring includes the narrow northwest Portage Arm, the southwest Mirror Bay corner, a broad southwest-to-northeast main basin and northern bulge, a narrowed central passage and the eastern basin. The map labels western and central water Nuyakuk Lake and the eastern basin Tikchik Lake. Both correspond to this same selected ring. The passage is near Tikchik Lodge, a landmark that does not define an exact name split. Lake Chauekuktuli is separate to the north. Neither lake name is supported as the scalar name of the complete polygon; no exact inter-lake partition is established."
+    },
+    {
+      "observation_id": "lakes_base:1159110667",
+      "aw_id": "lakes_base:1159110667",
+      "source_id": "1159110667",
+      "geometry_fids": [
+        15504
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 18,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "independent_observation": "The complete exterior ring has a western basin, a southeast-running middle and an upturned eastern end. The full outline and regional context correspond to the water labelled Lake Kulik, south of Nuyakuk Lake and north of Lake Beverly. Grant Lake lies separately to the northeast across mapped river and falls context and is outside the ring. Narrow western inlet channels extend beyond the simplified termination. The complete selected footprint supports a bounded generalized identity, without certifying the entire detailed lake or applying the name to other regions."
+    },
+    {
+      "observation_id": "lakes_base:1159110627",
+      "aw_id": "lakes_base:1159110627",
+      "source_id": "1159110627",
+      "geometry_fids": [
+        15501
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 34,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "alaska_dnr_hosted_wood_tikchik_topo_map"
+      ],
+      "independent_observation": "The complete exterior ring includes the northwest Golden Horn arm, the shorter westward Silver Horn arm, the broad central basin and its southeast continuation. These correspond to the water labelled Lake Beverly. The mapped Hardluck Bay margin and fine arm tips are generalized. Lake Nerka lies separately south of the terminal river connection; other small northwest waters are outside the selected ring. One generalized identity is supported for the selected footprint, while the detailed lake extent and precise connecting-river name boundary remain unverified."
+    }
+  ],
+  "source_group_limit": "One cartographic publication supplies all direct identity evidence. Its official discovery page does not create a second naming source.",
+  "independent_review_and_source_research_agree": true
+}
