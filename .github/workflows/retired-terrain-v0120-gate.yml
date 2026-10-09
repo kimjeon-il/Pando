@@ -1,0 +1,46 @@
+name: Retired Terrain v0.12.0 Cross-Branch Gate
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/check-retired-terrain.mjs'
+      - 'tests/unit/retired-terrain-audit.test.mjs'
+      - '.github/workflows/retired-terrain-v0120-gate.yml'
+      - 'docs/validation/terrain-v0120-retirement-evidence.json'
+      - 'docs/validation/data-versioning-phase11.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-retirement:
+    name: All 7 Web branches, 5 native pins, live Pages terrain
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/check-retired-terrain.mjs
+            tests/unit/retired-terrain-audit.test.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exercise strict version-retirement regression tests
+        run: |
+          node --check tools/check-retired-terrain.mjs
+          node --test tests/unit/retired-terrain-audit.test.mjs
+      - name: Verify every Web/App branch, current CDN and retired URL
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node tools/check-retired-terrain.mjs --out reports/terrain-v0120-retirement-live.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terrain-v0120-retirement-live-audit
+          if-no-files-found: warn
+          path: reports/terrain-v0120-retirement-live.json
