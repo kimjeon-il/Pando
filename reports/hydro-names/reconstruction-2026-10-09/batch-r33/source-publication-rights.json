@@ -1,0 +1,29 @@
+{
+  "schema": "hydro-lake-publication-rights-v2",
+  "batch": "r33",
+  "included": "Own factual observations, brief geographic labels, public publisher and hosting URLs, bounded selected identifier/name-state/count/bounds metadata, included public-file validation hashes and necessary already-public continuity or payload declarations. No private source, coordinate, derivative, registration, receipt or cache fingerprints are included.",
+  "selected_lake_feature_count": 3,
+  "full_lake_coordinates_published": false,
+  "full_river_coordinates_published": false,
+  "raw_third_party_sources_published": false,
+  "raw_pdf_html_map_crop_count": 0,
+  "private_source_derivative_coordinate_registration_receipt_cache_fingerprints_included": false,
+  "cartographic_attribution": "WSA map and datasets credit Government of Saskatchewan (2014). Elections sheets cite adapted Information Services Corporation of Saskatchewan cadastral data and administrative overlays, and OpenStreetMap.",
+  "rights_scope": "Official maps are retained only for private source inspection. Government hosting does not establish public-domain status or unrestricted republication rights. No original map, crop, overlay, coordinate-bearing geometry or private source/coordinate/derivative fingerprint is included. This component contains original factual extracts and public bibliography only; no redistribution license for source cartography is asserted.",
+  "reproducibility_limit": "Public included-file checks can verify the retained factual record and its bounded metadata, but cannot replay the omitted source-map and complete-polygon visual comparison.",
+  "automatic_application": false,
+  "product_application": false,
+  "new_original_source_acquisitions_this_batch": 0,
+  "source_authority_scope": "Official planning/electoral cartographic usage, not formal naming-registry decisions. Two publisher groups do not prove underlying hydrographic data independence.",
+  "geographic_scope_limit": "Selected generalized lake features in northern Saskatchewan. Exact detailed lake extents and name partitions are not certified.",
+  "source_hosts": [
+    "Water Security Agency, Government of Saskatchewan",
+    "Elections Saskatchewan"
+  ],
+  "source_urls": [
+    "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+    "https://cdn.elections.sk.ca/maps-ge30/Athabasca_GE30.pdf",
+    "https://cdn.elections.sk.ca/maps-ge30/Cumberland_GE30.pdf"
+  ],
+  "retained_sources_reused": true
+}

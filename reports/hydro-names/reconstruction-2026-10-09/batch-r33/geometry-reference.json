@@ -1,0 +1,258 @@
+{
+  "schema": "hydro-lake-geometry-summary-public-v1",
+  "batch": "r33",
+  "created_at_utc": "2026-10-09T23:45:53.051552Z",
+  "scope_source_ids": [
+    "1159108505",
+    "1159111821",
+    "1159112235"
+  ],
+  "scope_aw_ids": [
+    "lakes_base:1159108505",
+    "lakes_base:1159111821",
+    "lakes_base:1159112235"
+  ],
+  "baseline": {
+    "repository": "kimjeon-il/Pando",
+    "git_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "hydro_version": "0.13.1",
+    "current_live_deployment_checked": false,
+    "current_live_deployment_equality_claimed": false
+  },
+  "validation_scope": "included-summary-evidence-only",
+  "identity_domains": "Decimal source_id, source aw_id, baseline fid and logical_fid are distinct domains. FIDs apply only to the pinned baseline.",
+  "selected_features": [
+    {
+      "aw_id": "lakes_base:1159108505",
+      "source_id": "1159108505",
+      "baseline_fid": 15343,
+      "baseline_logical_fid": 3968,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "minimum_stage": 0,
+      "source_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            35
+          ]
+        ],
+        "total_coordinates_including_closure": 35,
+        "bbox": [
+          -103.84518402937931,
+          58.538835920111495,
+          -103.57495776067243,
+          58.70574038019515
+        ],
+        "all_rings_closed": true
+      },
+      "baseline_rendered_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            35
+          ]
+        ],
+        "total_coordinates_including_closure": 35,
+        "bbox": [
+          -103.845184,
+          58.538836,
+          -103.574958,
+          58.70574
+        ],
+        "all_rings_closed": true
+      },
+      "source_name_fields_exact": {
+        "name": "lake-151",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "baseline_core_name_fields_exact": {
+        "name": "lake-151"
+      },
+      "baseline_detail_name_fields_exact": {},
+      "baseline_name_fields_exact": {
+        "name": "lake-151"
+      },
+      "research_name_ko": null,
+      "name_verdict_established": false,
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159111821",
+      "source_id": "1159111821",
+      "baseline_fid": 15576,
+      "baseline_logical_fid": 4201,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "minimum_stage": 2,
+      "source_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            87
+          ]
+        ],
+        "total_coordinates_including_closure": 87,
+        "bbox": [
+          -109.45870793378025,
+          59.7174698851467,
+          -108.71602724102704,
+          59.90085873634973
+        ],
+        "all_rings_closed": true
+      },
+      "baseline_rendered_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            87
+          ]
+        ],
+        "total_coordinates_including_closure": 87,
+        "bbox": [
+          -109.458708,
+          59.71747,
+          -108.716027,
+          59.900859
+        ],
+        "all_rings_closed": true
+      },
+      "source_name_fields_exact": {
+        "name": "lake-384",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "baseline_core_name_fields_exact": {
+        "name": "lake-384"
+      },
+      "baseline_detail_name_fields_exact": {},
+      "baseline_name_fields_exact": {
+        "name": "lake-384"
+      },
+      "research_name_ko": null,
+      "name_verdict_established": false,
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112235",
+      "source_id": "1159112235",
+      "baseline_fid": 15606,
+      "baseline_logical_fid": 4231,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "minimum_stage": 2,
+      "source_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            42
+          ]
+        ],
+        "total_coordinates_including_closure": 42,
+        "bbox": [
+          -102.56425853016584,
+          58.74489080910368,
+          -102.16024376567763,
+          58.922392377764055
+        ],
+        "all_rings_closed": true
+      },
+      "baseline_rendered_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            42
+          ]
+        ],
+        "total_coordinates_including_closure": 42,
+        "bbox": [
+          -102.564259,
+          58.744891,
+          -102.160244,
+          58.922392
+        ],
+        "all_rings_closed": true
+      },
+      "source_name_fields_exact": {
+        "name": "lake-414",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "baseline_core_name_fields_exact": {
+        "name": "lake-414"
+      },
+      "baseline_detail_name_fields_exact": {},
+      "baseline_name_fields_exact": {
+        "name": "lake-414"
+      },
+      "research_name_ko": null,
+      "name_verdict_established": false,
+      "automatic_application": false
+    }
+  ],
+  "public_coordinate_policy": "Complete source/rendered coordinates, per-ring paths, original bodies and omitted-input fingerprints are not published.",
+  "name_scope": {
+    "name_verdict_established": false,
+    "historical_names_used_as_identity_evidence": false,
+    "automatic_application": false
+  },
+  "historical_private_verification": {
+    "all_selected_source_features_and_baseline_fragments_checked": true,
+    "all_source_and_rendered_parts_rings_and_positions_checked": true,
+    "source_to_decoded_ordered_positions_match_at_six_decimal_quantization": true,
+    "original_core_detail_name_field_presence_checked": true,
+    "original_selected_inventory_join_checked": true,
+    "fresh_production_decoder_replay_matched": true,
+    "public_validator_reproduces_these_omitted_input_checks": false
+  },
+  "limits": [
+    "The public validator checks only included factual summaries and included-file hashes. It cannot replay omitted complete source/rendered polygons, original inventory or the production decoder.",
+    "Private comparison preserved every source and rendered polygon part, ring and ordered position without repair, simplification, coordinate sorting or reversal.",
+    "Positions include ring closure and are not a count of distinct vertices. The full source coordinate precision is retained privately; decoded positions follow production six-decimal quantization.",
+    "Bounds and name-state summaries do not establish geographic names or exact name coverage. Empty source name fields and absent decoded fields are retained distinctly.",
+    "Ring closure was checked privately. Full OGC topological validity and current deployment equality are not asserted.",
+    "Prior93 IDs are included for duplicate arithmetic only; prior research and geometry are not reassessed. Current naming verdicts and new scope holds are decided separately."
+  ],
+  "artifacts": {
+    "selected-inventory-records.json": {
+      "bytes": 1983,
+      "sha256": "b4118c6bbfdcd8f05f6b6e24371b9ec450390a3c603abdd6d153d05a08c38be0"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 5213,
+      "sha256": "8a97d622d724a5f7670a2d946726c1c27759928e48a205df634e18e1c67d82d7"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 1065,
+      "sha256": "1b8c77bfb7750ead38e2453f7c9c28010a3d6ea86df9aa68a5b06764203b5081"
+    }
+  }
+}
