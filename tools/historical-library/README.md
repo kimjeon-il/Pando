@@ -142,3 +142,9 @@ workflow.
 
 The HGIS source contract and local-file policy are documented in
 `sources/german-empire-1914/README.md`.
+
+## Worldwide event-based shoreline pilot (October 2026)
+
+The [global historical coastline change workflow](../../docs/historical-coastline-change-workflow.md) reuses the German coastline event catalogue instead of duplicating it by sovereign or year. The Netherlands pilot adds a [nine-event source index](sources/netherlands/change-events.json), [twelve read-only national-polygon point probes](sources/netherlands/canonical-phase0-probes.json), and a [Phase 0 audit](sources/netherlands/phase0-canonical-audit.md).
+
+The Dutch sample audit established that the current NLD national polygon covers inland-water positions and does not prove whether small artificial islands/lake masks are represented. It also places the published Maasvlakte 2 sample point outside the present national outline. All historical geometry, hydrology and contemporary canonical files remain unchanged; the probes are **not** a verified shoreline or polygon rollback. Run `node --test tests/unit/historical-netherlands-coast-phase0.test.mjs` after syncing the GIS branch to a local worktree to reproduce the regression assertions.
