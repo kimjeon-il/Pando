@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { TextDecoder } from 'node:util';
@@ -16,8 +17,22 @@ const serbia = collection.features.find(feature => feature.id === 'SRB');
 const polygons = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
 
 function loadSerbiaRivers(country = serbia) {
-  const base = process.env.PANDOLAB_HYDRO_TEST_BASE || 'assets/data/hydro/v0.13.0/';
+  const base = process.env.PANDOLAB_HYDRO_TEST_BASE || 'assets/data/hydro/v0.13.2/';
   const manifest = JSON.parse(read(`${base}manifest.json`));
+  const bundle = manifest.container ? read(base + manifest.container.url) : null;
+  if (bundle) {
+    assert.equal(bundle.length, manifest.container.bytes);
+    assert.equal(createHash('sha256').update(bundle).digest('hex'), manifest.container.sha256);
+  }
+  const asset = spec => {
+    const bytes = bundle
+      ? bundle.subarray(spec.offset, spec.offset + spec.bytes)
+      : read(base + spec.url);
+    if (bundle) assert.ok(Number.isSafeInteger(spec.offset) && spec.offset >= 0 && spec.offset + spec.bytes <= bundle.length);
+    assert.equal(bytes.length, spec.bytes);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), spec.sha256);
+    return bytes;
+  };
   // Execute the production decoder, without network, cache or Worker startup.
   const context = vm.createContext({ TextDecoder, URL, performance, structuredClone, inputManifest: manifest });
   context.self = context;
@@ -28,8 +43,8 @@ function loadSerbiaRivers(country = serbia) {
   }
   vm.runInContext('manifest = inputManifest', context);
   const decoder = vm.runInContext('({ readGlobalIndex, readFeatureMetadata, readPack, mergeLogicalFragments, logicalPacks, packSpecs, featureMetadata })', context);
-  decoder.readGlobalIndex(gunzipSync(read(base + manifest.index.url)));
-  decoder.readFeatureMetadata(gunzipSync(read(base + manifest.metadata.core.url)));
+  decoder.readGlobalIndex(gunzipSync(asset(manifest.index)));
+  decoder.readFeatureMetadata(gunzipSync(asset(manifest.metadata.core)));
   const bounds = polygons(country.geometry).flat(2).reduce((b, p) => [
     Math.min(b[0], p[0]), Math.min(b[1], p[1]), Math.max(b[2], p[0]), Math.max(b[3], p[1]),
   ], [180, 90, -180, -90]);
@@ -42,7 +57,7 @@ function loadSerbiaRivers(country = serbia) {
   for (const id of packs) {
     const spec = decoder.packSpecs.get(id);
     if (!shards.has(spec.shard)) {
-      shards.set(spec.shard, read(base + manifest.shards.find(shard => Number(shard.id) === spec.shard).url));
+      shards.set(spec.shard, asset(manifest.shards.find(shard => Number(shard.id) === spec.shard)));
     }
     const bytes = shards.get(spec.shard).subarray(spec.offset, spec.offset + spec.length);
     features.push(...decoder.readPack(gunzipSync(bytes), id).features);
