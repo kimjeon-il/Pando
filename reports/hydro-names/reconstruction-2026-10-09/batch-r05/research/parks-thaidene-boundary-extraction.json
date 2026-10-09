@@ -1,0 +1,11 @@
+{
+  "source_key": "PARKS-THAIDENE-2015",
+  "factual_extraction": [
+    "A Parks Canada consultation flyer places the lake in the proposed protected area and describes the lower downstream river as a distinct feature.",
+    "It describes the crossing of the treeline and a nearby overland access route. These contextual relations corroborate the regional lake identity without specifying the selected digital polygon."
+  ],
+  "locator": "PDF page 2, text columns and small consultation map.",
+  "quoted_name_only": "Artillery Lake",
+  "extent_limit": "The small park-boundary inset is not a lake-boundary dataset; no georeferenced shoreline comparison was made from this flyer.",
+  "raw_source_republished": false
+}

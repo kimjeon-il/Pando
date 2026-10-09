@@ -1,0 +1,10 @@
+{
+  "source_key": "GNWT-CARIBOU-MAP-2018",
+  "factual_extraction": [
+    "A GNWT wildlife-management publication contains a dated, georeferenced regional map at printed scale 1:400,000.",
+    "The map associates the main shapes of the three selected polygons with named northern lakes and depicts additional named waters next to their narrower extensions.",
+    "This is a regional cartographic naming observation, not a naming-order record or an exact digital shoreline authority."
+  ],
+  "locator": "PDF page 2; map date 2018-12-18; whole-feature overlays use all original baseline polygon coordinates.",
+  "raw_source_republished": false
+}

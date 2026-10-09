@@ -1,0 +1,311 @@
+{
+  "schema": "hydro-independent-lake-review-pins-v1",
+  "reviewed_at_utc": "2026-10-09T13:07:01.318453+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "package_inputs": [
+    {
+      "file": "geometry-support.py",
+      "bytes": 2400,
+      "sha256": "dd6a583181c1527cdd0646f3ce6aee207570042c14e3fa4ebc3d35a36e752d33"
+    },
+    {
+      "file": "selected-lake-geometries.geojson",
+      "bytes": 18223,
+      "sha256": "a5c4f63442f294bbe8470ac0d44576e87d5da5d36483244a7068f6f34008c347"
+    },
+    {
+      "file": "selected-baseline-rendered-geometries.geojson",
+      "bytes": 11305,
+      "sha256": "feb812d42a5e5b85f729fa2b1bce44b09b3c0080076e53c3a32c9e00a0d0a65d"
+    },
+    {
+      "file": "selected-inventory-records.json",
+      "bytes": 4406,
+      "sha256": "93b8bc78d6fcc482c5a4629d05ccb4cefefdafdba77fac117e927a06f214b184"
+    },
+    {
+      "file": "geometry-duplicate-check.json",
+      "bytes": 1038,
+      "sha256": "3d37a0f5f3c9b43aba4cd9d632c7841597b70c140a057306cae7da95d03523ec"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 458,
+      "sha256": "7cc37f5dd9087191250ec2a511889852ae12d47753b4340dd89e820e4bd88c70"
+    },
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 5569,
+      "sha256": "9a7964bcad702b580ddfd8969fea255a77140d185adb81991b1a51c34a73fe45"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 1499,
+      "sha256": "e9644eb1af386dbbd3b142491898bcd45262d07ef7b615e92c44813aa92b8e52"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 5059,
+      "sha256": "bb9ad5bffd0ae3c14baf5527ba5fe5be412949b6bc36b126fe9d16ffe4192087"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 5265,
+      "sha256": "536c0606d7898ffc59374e1d6fe7be20efb3ff19dae19c11433c22df085c7d65"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 23890,
+      "sha256": "71d4a96ba5056626188501cbaaa61290df2afc89c655248509aba5ced3442d03"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 19391,
+      "sha256": "d2e2e9824d78e116f2ab7ada219e07b39ae14a8f78bf00783d20c3860306101a"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 7530,
+      "sha256": "b4ad88e4b387b43c272e2ffc4d0c5bfb92854a9bd10476a7c279d168873d8436"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 10684,
+      "sha256": "dfe168f9370d70fe7068dd20f5fc50700048a3c79ddcce39ef774c272cbe7716"
+    },
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1861,
+      "sha256": "15244ab80626b7eb6b30d18c44b5afb74cfc1625a02644ff9c795490530e3c25"
+    },
+    {
+      "file": "research/gnwt-daring-2008-extraction.json",
+      "bytes": 807,
+      "sha256": "9fd28c19c14c9f7d320b395e9e6627e2fb7ddab14a66876168f531bcaf7472b5"
+    },
+    {
+      "file": "research/gnwt-lac-de-gras-1998-extraction.json",
+      "bytes": 1040,
+      "sha256": "e0a79e4165e9d892cc1a8eac925075810443b3e16c8cc241840205bbde7e20e9"
+    },
+    {
+      "file": "research/gnwt-map-extraction.json",
+      "bytes": 643,
+      "sha256": "203f4f5b0091c23d74ba36633af604ac1a64e6def50a3f160c7851bc17bf857e"
+    },
+    {
+      "file": "research/northern-lakes-findings.json",
+      "bytes": 6765,
+      "sha256": "b6db2d5d30d17c6ddc400939c6fdf66f312c6a9574ef609229e000441a4ea3d0"
+    },
+    {
+      "file": "research/northern-lakes-registration-facts.json",
+      "bytes": 5642,
+      "sha256": "59964edd96d7595b7223ccc8a341ca77a1b8863ab9925c96d5603fbc18c61662"
+    },
+    {
+      "file": "research/northern-lakes-research-manifest.json",
+      "bytes": 1297,
+      "sha256": "366a4d497e137fb5b73f8578c114338bd3e32522bb2e6805f0017cbb5d4e1acc"
+    },
+    {
+      "file": "research/northern-lakes-source-evidence.json",
+      "bytes": 6141,
+      "sha256": "b7ee5f16f4125929eccb1032760084a3fd8c28785dd9d7b548d618b7b4399f45"
+    },
+    {
+      "file": "research/parks-thaidene-boundary-extraction.json",
+      "bytes": 715,
+      "sha256": "a760f4cb653164793edf805d22926ea9813ee078e4307e3754e866e4dc05d2b7"
+    }
+  ],
+  "previous_index": {
+    "bytes": 6682,
+    "sha256": "11dc1276e7191d049d9572be0732b549ccdd99699fbd2fbf557f62605a5dafb2",
+    "aw_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159106899",
+      "lakes_base:1159107065",
+      "lakes_base:1159115267",
+      "lakes_base:1159123531",
+      "lakes_base:1159107099",
+      "hydro-system:30624681",
+      "hydro-system:50488324",
+      "hydro-system:40182409",
+      "hydro-system:70152112",
+      "lakes_base:1159123163",
+      "lakes_base:1159123567"
+    ],
+    "distinct_targets": 12
+  },
+  "local_evidence_assets": [
+    {
+      "id": "GNWT-CARIBOU-MAP-2018-PDF",
+      "kind": "original_source_body",
+      "bytes": 2521327,
+      "sha256": "5aac878c13156f298024181f73255789cf115638f1959f6989e9a11655d96f3a",
+      "published_raw": false
+    },
+    {
+      "id": "GNWT-CARIBOU-MAP-2018-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 112056,
+      "sha256": "89e8f9dd8f85cf77af34cb409f4e844af63a3e47c52b2cc21a4b8d80aab25123",
+      "published_raw": false
+    },
+    {
+      "id": "GNWT-CARIBOU-MAP-2018-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 342,
+      "sha256": "92ba5cb31778377e18352016f69f8daf2e0cb5752149870f14c103158e7a67a0",
+      "published_raw": false
+    },
+    {
+      "id": "GNWT-CARIBOU-MAP-2018-MAP-VIEW",
+      "kind": "viewed_map_derivative",
+      "bytes": 4122187,
+      "sha256": "859a102e7b6d5bc7c2c9063029708b1d240af529a881c19fedbc785228ce63f9",
+      "published_raw": false
+    },
+    {
+      "id": "PARKS-THAIDENE-2015-PDF",
+      "kind": "original_source_body",
+      "bytes": 1055716,
+      "sha256": "2f5caba51483918fc6ce7128b7e7bbef5b51a35d5126792cfa15a32cf9f351da",
+      "published_raw": false
+    },
+    {
+      "id": "PARKS-THAIDENE-2015-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 5121,
+      "sha256": "c7be86a7b5cc96d76e9adca1a6842765cdfffc1f3e1be44dbae92950df42d672",
+      "published_raw": false
+    },
+    {
+      "id": "PARKS-THAIDENE-2015-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 897,
+      "sha256": "39e2fc7d7a146c54981f32d1ab0b3705f83581db52f3917c7641812e006c4ff9",
+      "published_raw": false
+    },
+    {
+      "id": "DIAND-GRAS-1998-PDF",
+      "kind": "original_source_body",
+      "bytes": 694275,
+      "sha256": "9ede20f8ced15b835f7e2fea5ae504daee9633f97b0cd5ae63456c10abce5c21",
+      "published_raw": false
+    },
+    {
+      "id": "DIAND-GRAS-1998-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 34281,
+      "sha256": "e75522274cf015dcb824fa96b697c07e443f55b68184137080bc496d452b6859",
+      "published_raw": false
+    },
+    {
+      "id": "DIAND-GRAS-1998-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 792,
+      "sha256": "c2d5c6731acefba72e37de09176f426dff16635aa682b3e104904a348611e8c6",
+      "published_raw": false
+    },
+    {
+      "id": "GNWT-TERS-2010-PDF",
+      "kind": "original_source_body",
+      "bytes": 921601,
+      "sha256": "e7c2bc2f0b4d0c29103c3d23c4262047814200f695f599ba0fa16e3ab46d5fc5",
+      "published_raw": false
+    },
+    {
+      "id": "GNWT-TERS-2010-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 43601,
+      "sha256": "9037cf4748fb56c8df33b662f011dfc1308f73c7b1543d8adf510925b504a0fc",
+      "published_raw": false
+    },
+    {
+      "id": "GNWT-TERS-2010-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 790,
+      "sha256": "34d2a5b9b74b8252055c9d075c7408302207cd48503de42055b33232333e0069",
+      "published_raw": false
+    },
+    {
+      "id": "OVERLAY-1159110371",
+      "kind": "viewed_map_overlay",
+      "bytes": 250354,
+      "sha256": "f8d34782d3aecd1322d050cc70e78ff9e288ad2301dc1b739d824a695e694845",
+      "published_raw": false
+    },
+    {
+      "id": "OVERLAY-1159109471",
+      "kind": "viewed_map_overlay",
+      "bytes": 318954,
+      "sha256": "48a363a1823341dd36db3904913f84cffe4549853cb203e19fc12fb640eb2f9c",
+      "published_raw": false
+    },
+    {
+      "id": "OVERLAY-1159111751",
+      "kind": "viewed_map_overlay",
+      "bytes": 126040,
+      "sha256": "7339de5210ab1f0e1eaa62435b92986eb7a7b72e5272e51c37302ddf90195eaf",
+      "published_raw": false
+    },
+    {
+      "id": "PARKS-PAGE-1",
+      "kind": "viewed_source_page",
+      "bytes": 673947,
+      "sha256": "eb744559be7bda52a1b5456bf4bec64e0c82095a2d6d5e336acdd0b318a488cd",
+      "published_raw": false
+    },
+    {
+      "id": "PARKS-PAGE-2",
+      "kind": "viewed_source_page",
+      "bytes": 1021360,
+      "sha256": "01c58e247f9430a5b8bcd97fff851d98b5cd467d78b614762c6864da102b09a1",
+      "published_raw": false
+    },
+    {
+      "id": "DIAND-PAGE-6",
+      "kind": "viewed_source_page",
+      "bytes": 211675,
+      "sha256": "449a093385f48fd29b14611c9dc5f8b2b2656405ef44b8299e1e88e3bda836d2",
+      "published_raw": false
+    },
+    {
+      "id": "TERS-PAGE-35",
+      "kind": "viewed_source_page",
+      "bytes": 314597,
+      "sha256": "6e4db843df35f821f78f0f5fb5c54d32ed59920f843f005c5cc15f3c6c7736a3",
+      "published_raw": false
+    },
+    {
+      "id": "ARTILLERY-ORIGINAL-DETAIL",
+      "kind": "independent_original_map_detail",
+      "bytes": 111630,
+      "sha256": "5974873866abbea4e94bc97221356cebfc2a043e25e3c3d9af1b8d28ed36ffb5",
+      "published_raw": false
+    },
+    {
+      "id": "GRAS-ORIGINAL-DETAIL",
+      "kind": "independent_original_map_detail",
+      "bytes": 242356,
+      "sha256": "110bb025beedd320757bd877a6be8e3bdddfd844b9a455c0e376be1442ef1967",
+      "published_raw": false
+    },
+    {
+      "id": "YAMBA-ORIGINAL-DETAIL",
+      "kind": "independent_original_map_detail",
+      "bytes": 109740,
+      "sha256": "072098dd031ead0e26411558d68a8520277670b61aa48d8a429cfebfcb714af5",
+      "published_raw": false
+    }
+  ],
+  "pin_scope": "Frozen geometry and research files are pinned separately from original publications, extracted text, receipts and local views. PDF hashes cover original response bytes; text hashes never substitute for PDF hashes. All source bodies and map derivatives remain absent from this package.",
+  "automatic_application": false
+}

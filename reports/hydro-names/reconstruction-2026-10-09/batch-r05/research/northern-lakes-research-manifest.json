@@ -1,0 +1,41 @@
+{
+  "schema": "hydro-research-file-manifest-v1",
+  "frozen_at_utc": "2026-10-09T13:01:20.247569+00:00",
+  "files": [
+    {
+      "file": "gnwt-daring-2008-extraction.json",
+      "bytes": 807,
+      "sha256": "9fd28c19c14c9f7d320b395e9e6627e2fb7ddab14a66876168f531bcaf7472b5"
+    },
+    {
+      "file": "gnwt-lac-de-gras-1998-extraction.json",
+      "bytes": 1040,
+      "sha256": "e0a79e4165e9d892cc1a8eac925075810443b3e16c8cc241840205bbde7e20e9"
+    },
+    {
+      "file": "gnwt-map-extraction.json",
+      "bytes": 643,
+      "sha256": "203f4f5b0091c23d74ba36633af604ac1a64e6def50a3f160c7851bc17bf857e"
+    },
+    {
+      "file": "northern-lakes-findings.json",
+      "bytes": 6765,
+      "sha256": "b6db2d5d30d17c6ddc400939c6fdf66f312c6a9574ef609229e000441a4ea3d0"
+    },
+    {
+      "file": "northern-lakes-registration-facts.json",
+      "bytes": 5642,
+      "sha256": "59964edd96d7595b7223ccc8a341ca77a1b8863ab9925c96d5603fbc18c61662"
+    },
+    {
+      "file": "northern-lakes-source-evidence.json",
+      "bytes": 6141,
+      "sha256": "b7ee5f16f4125929eccb1032760084a3fd8c28785dd9d7b548d618b7b4399f45"
+    },
+    {
+      "file": "parks-thaidene-boundary-extraction.json",
+      "bytes": 715,
+      "sha256": "a760f4cb653164793edf805d22926ea9813ee078e4307e3754e866e4dc05d2b7"
+    }
+  ]
+}

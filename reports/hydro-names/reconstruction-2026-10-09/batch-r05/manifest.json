@@ -1,0 +1,163 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r05",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r05",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "0bc30a0477862be8249b9504e8425de781c36721",
+  "scope": "Three bounded new actual-inventory lake investigations with whole-polygon name-scope holds. Historical504record ledger is not restored.",
+  "automatic_application": false,
+  "product_changes": false,
+  "selected_public_domain_lake_features": 3,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 36,
+  "bytes_excluding_self": 234900,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 4194,
+      "sha256": "6312403e131735abda2922a78153e77bc615fd5d0268013b430ce48e8e8ebe5e"
+    },
+    "extract-baseline-geometries.mjs": {
+      "bytes": 5569,
+      "sha256": "9a7964bcad702b580ddfd8969fea255a77140d185adb81991b1a51c34a73fe45"
+    },
+    "geometry-README.md": {
+      "bytes": 5265,
+      "sha256": "536c0606d7898ffc59374e1d6fe7be20efb3ff19dae19c11433c22df085c7d65"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1861,
+      "sha256": "15244ab80626b7eb6b30d18c44b5afb74cfc1625a02644ff9c795490530e3c25"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 1038,
+      "sha256": "3d37a0f5f3c9b43aba4cd9d632c7841597b70c140a057306cae7da95d03523ec"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 1499,
+      "sha256": "e9644eb1af386dbbd3b142491898bcd45262d07ef7b615e92c44813aa92b8e52"
+    },
+    "geometry-reference.json": {
+      "bytes": 23890,
+      "sha256": "71d4a96ba5056626188501cbaaa61290df2afc89c655248509aba5ced3442d03"
+    },
+    "geometry-request-receipts.json": {
+      "bytes": 5059,
+      "sha256": "bb9ad5bffd0ae3c14baf5527ba5fe5be412949b6bc36b126fe9d16ffe4192087"
+    },
+    "geometry-support.py": {
+      "bytes": 2400,
+      "sha256": "dd6a583181c1527cdd0646f3ce6aee207570042c14e3fa4ebc3d35a36e752d33"
+    },
+    "geometry-validation.json": {
+      "bytes": 10684,
+      "sha256": "dfe168f9370d70fe7068dd20f5fc50700048a3c79ddcce39ef774c272cbe7716"
+    },
+    "reconstruction-index.json": {
+      "bytes": 8190,
+      "sha256": "11fe5286dfd75b1b2828bce9e723ffc0770c1e56fae11f487cd73e824ca2ad9c"
+    },
+    "research/gnwt-daring-2008-extraction.json": {
+      "bytes": 807,
+      "sha256": "9fd28c19c14c9f7d320b395e9e6627e2fb7ddab14a66876168f531bcaf7472b5"
+    },
+    "research/gnwt-lac-de-gras-1998-extraction.json": {
+      "bytes": 1040,
+      "sha256": "e0a79e4165e9d892cc1a8eac925075810443b3e16c8cc241840205bbde7e20e9"
+    },
+    "research/gnwt-map-extraction.json": {
+      "bytes": 643,
+      "sha256": "203f4f5b0091c23d74ba36633af604ac1a64e6def50a3f160c7851bc17bf857e"
+    },
+    "research/northern-lakes-findings.json": {
+      "bytes": 6765,
+      "sha256": "b6db2d5d30d17c6ddc400939c6fdf66f312c6a9574ef609229e000441a4ea3d0"
+    },
+    "research/northern-lakes-registration-facts.json": {
+      "bytes": 5642,
+      "sha256": "59964edd96d7595b7223ccc8a341ca77a1b8863ab9925c96d5603fbc18c61662"
+    },
+    "research/northern-lakes-research-manifest.json": {
+      "bytes": 1297,
+      "sha256": "366a4d497e137fb5b73f8578c114338bd3e32522bb2e6805f0017cbb5d4e1acc"
+    },
+    "research/northern-lakes-source-evidence.json": {
+      "bytes": 6141,
+      "sha256": "b7ee5f16f4125929eccb1032760084a3fd8c28785dd9d7b548d618b7b4399f45"
+    },
+    "research/parks-thaidene-boundary-extraction.json": {
+      "bytes": 715,
+      "sha256": "a760f4cb653164793edf805d22926ea9813ee078e4307e3754e866e4dc05d2b7"
+    },
+    "results.json": {
+      "bytes": 6838,
+      "sha256": "b71fdb65fb905cec068cfba90807d3978a03b14a1943d8eaa7b764ac4769d6b4"
+    },
+    "review/README.md": {
+      "bytes": 5042,
+      "sha256": "1b5c4288bcbd74a7ca457edca0ce3a779d43b027135fc00d3cb4529b2aa25b4e"
+    },
+    "review/frozen-input-pins.json": {
+      "bytes": 10261,
+      "sha256": "e926b65e3aef1f5783c2618e390e7ef12539e26453c536403c4cfe50e19e4827"
+    },
+    "review/independent-review.json": {
+      "bytes": 8563,
+      "sha256": "bc8259f2dfef3fe7a004308fd3048c84eedee8d8773a8a0060368670902dbeb7"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1426,
+      "sha256": "cb88ee7c50df7590922f28d0a10bab631e70cf22157fc23ef972384f817880e4"
+    },
+    "review/review-validation.json": {
+      "bytes": 8604,
+      "sha256": "02c79a4ea0279093c09000948ee6a77996b867664b89400edfc82c9d8b3a29f7"
+    },
+    "review/source-observations.json": {
+      "bytes": 4623,
+      "sha256": "2d06656a20520ada1d509a7e5a2828c3e45d3fede8978e4073883a84ad004301"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 6027,
+      "sha256": "a8142a8ea3bcd5cb216219e4dc61e414d6115b8e66145e6afc80cf22224428a9"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 22765,
+      "sha256": "0f4891fdb799982d58342575222a4643e805129748658394557a8c480b4bbbdc"
+    },
+    "selected-baseline-rendered-geometries.geojson": {
+      "bytes": 11305,
+      "sha256": "feb812d42a5e5b85f729fa2b1bce44b09b3c0080076e53c3a32c9e00a0d0a65d"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 4406,
+      "sha256": "93b8bc78d6fcc482c5a4629d05ccb4cefefdafdba77fac117e927a06f214b184"
+    },
+    "selected-lake-geometries.geojson": {
+      "bytes": 18223,
+      "sha256": "a5c4f63442f294bbe8470ac0d44576e87d5da5d36483244a7068f6f34008c347"
+    },
+    "selected-pack-receipts.json": {
+      "bytes": 458,
+      "sha256": "7cc37f5dd9087191250ec2a511889852ae12d47753b4340dd89e820e4bd88c70"
+    },
+    "source-publication-rights.json": {
+      "bytes": 995,
+      "sha256": "ae2788a9a416a342f47eaf8c80ad293b3a6f5f87f710444152720e61b7b19e07"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 7530,
+      "sha256": "b4ad88e4b387b43c272e2ffc4d0c5bfb92854a9bd10476a7c279d168873d8436"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 19391,
+      "sha256": "d2e2e9824d78e116f2ab7ada219e07b39ae14a8f78bf00783d20c3860306101a"
+    },
+    "validate-package.py": {
+      "bytes": 5744,
+      "sha256": "d3eb8ee95c26c65745d9f8796523c2d8fa97887f3d6a2e6e2372f447e288104f"
+    }
+  }
+}

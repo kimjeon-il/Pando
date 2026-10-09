@@ -1,0 +1,128 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v2",
+  "batch": "r05",
+  "research_completed_targets": 3,
+  "independently_reviewed_targets": 3,
+  "counting_unit": "Three actual logical inventory lake features; not a count of newly approved scalar names.",
+  "counts": {
+    "whole_polygon_scope_hold": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 423,
+  "lake_baseline_coordinate_count_including_closures": 423,
+  "position_counts_in_target_order": [
+    114,
+    205,
+    104
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159110371",
+      "category": "lake",
+      "source_id": "1159110371",
+      "baseline_logical_fid": 4110,
+      "geometry_fids": [
+        15485
+      ],
+      "candidate_name": "Artillery Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "principal_waterbody_association_supported_whole_polygon_held",
+      "supported_name_scope": "The long north-south principal blue-water body agrees with Artillery Lake on the regional map and in Parks Canada context. The thin southwestern continuation enters the lower-water corridor near the Lockhart and Toura labels; a single name for the complete stored ring is unresolved.",
+      "source_keys": [
+        "GNWT-CARIBOU-MAP-2018",
+        "PARKS-THAIDENE-2015"
+      ],
+      "limits": [
+        "The extra-extent concern follows visible water shapes, but this crowded regional map does not delimit a complete additional lake or establish the exact transition from Artillery to lower Lockhart waters.",
+        "The acquired map spells the nearby smaller-lake label Toura Lake. No T’oula equivalence or preferred spelling is established by these sources.",
+        "Parks Canada distinguishes Artillery Lake and the lower Lockhart River. Its boundary flyer is not a name-extent decision and supplies no Toura label.",
+        "No exact shoreline, formal registration, Indigenous original form, or whole-feature scalar name is certified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109471",
+      "category": "lake",
+      "source_id": "1159109471",
+      "baseline_logical_fid": 4044,
+      "geometry_fids": [
+        15419
+      ],
+      "candidate_name": "Lac de Gras / Lac du Sauvage mapped waterbody association",
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "principal_waterbody_association_supported_whole_polygon_held",
+      "supported_name_scope": "The ring follows the broad western and southwestern Lac de Gras waterbody and extends through northeastern water arms associated with Lac du Sauvage. The field study independently describes their connecting narrows and flow from Lac du Sauvage into Lac de Gras, supporting distinct connected named waters within one generalized feature.",
+      "source_keys": [
+        "GNWT-CARIBOU-MAP-2018",
+        "DIAND-GRAS-1998"
+      ],
+      "limits": [
+        "The association is descriptive, not an official composite name, alias equivalence, or scalar name approved for the entire polygon.",
+        "The water-shape comparison includes the northeast arms, not just Lac du Sauvage text boxes crossing the outline; exact subdivision and complete coverage of either lake remain unverified.",
+        "DIAND PDF page 6 has a blank Map 1 frame in the retained render. Only its site text, photograph and caption were used; the blank frame is not a second inspected map.",
+        "The report’s outlet coordinate is a site point, not an exact boundary or polygon identity certificate."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159111751",
+      "category": "lake",
+      "source_id": "1159111751",
+      "baseline_logical_fid": 4196,
+      "geometry_fids": [
+        15571
+      ],
+      "candidate_name": "Yamba Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "principal_waterbody_association_supported_whole_polygon_held",
+      "supported_name_scope": "The principal branched north and central waterbody agrees with Yamba Lake, while the southwestern polygon lobe overlaps the blue-water extension associated with Daring Lake. The station report independently identifies narrows between the two lakes.",
+      "source_keys": [
+        "GNWT-CARIBOU-MAP-2018",
+        "GNWT-TERS-2010"
+      ],
+      "limits": [
+        "The southwest concern is visible water-shape overlap, not an inference from the Daring label alone. Complete Daring coverage and the exact name boundary remain unresolved.",
+        "The 2010 report concerns calendar year 2008. Its narrows photograph is contextual evidence without surveyed footprint or a camera-location join to the digital polygon.",
+        "Yamba and Daring are separately used names; neither is silently made an alias of the other or a name for the whole generalized feature."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "bc8259f2dfef3fe7a004308fd3048c84eedee8d8773a8a0060368670902dbeb7",
+  "publication_contents": "Own factual evidence and review, exact identifier/coordinate/hash facts, three selected public-domain Natural Earth lake polygons and validators. Raw third-party documents, maps and crops are excluded.",
+  "previous_reconstruction_commit": "0bc30a0477862be8249b9504e8425de781c36721"
+}
