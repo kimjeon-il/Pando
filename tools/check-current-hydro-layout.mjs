@@ -131,17 +131,20 @@ export function auditLayout(root,{appManifest=null,benchmarkGzip=true}={}) {
   const unexpectedLatest=leftover.filter(p=>p.startsWith('hydro/v0.13.1/'));
   ensure(unexpectedLatest.length===0,
     'Unreferenced binary copies in current hydro release: '+unexpectedLatest.join(', '));
-  let appPinChecked=false;
-  if(appManifest) {
-    const app=JSON.parse(readFileSync(resolve(appManifest),'utf8'));
+  let appPinsVerified=0;
+  const appManifests=appManifest?(Array.isArray(appManifest)?appManifest:[appManifest]):[];
+  for(const file of appManifests){
+    const app=JSON.parse(readFileSync(resolve(file),'utf8'));
     const pin=app.hydro;
     ensure(app.schema==='pandoeditor-world-dataset'&&
+      (app.version===1||app.version===2)&&
       pin?.path==='hydro/v0.13.1/manifest.json'&&pin.version==='0.13.1'&&
-      pin.bytes===manifestBytes.length&&pin.sha256===sha256(manifestBytes)&&
+      (pin.bytes===undefined||pin.bytes===manifestBytes.length)&&
+      pin.sha256===sha256(manifestBytes)&&
       pin.gitBlobSha===gitBlob(manifestBytes)&&
       (!pin.source?.path||pin.source.path===DATA+CURRENT),
-      'Native app pinned hydro manifest differs from Web');
-    appPinChecked=true;
+      'Native app pinned hydro manifest differs from Web: '+file);
+    appPinsVerified++;
   }
   const runtime=readFileSync(join(root,'assets/js/modules/app-environment.js'),'utf8');
   const buildMetadata=readFileSync(join(root,'scripts/generate-build-metadata.mjs'),'utf8');
@@ -158,7 +161,7 @@ export function auditLayout(root,{appManifest=null,benchmarkGzip=true}={}) {
     reusedRoles:contract.reused.map(x=>x.role),
     reusedBinaryBytes:contract.avoidedDuplicateBytes,
     newBinaryBytes:contract.unique.reduce((s,a)=>s+a.bytes,0),
-    oldVersionMustRemain:true,nativePinVerified:appPinChecked,
+    oldVersionMustRemain:true,nativePinVerified:appPinsVerified>0,nativePinsVerified:appPinsVerified,
     previousOrphanCandidates:leftover.filter(p=>p.startsWith('hydro/v0.13.0/')),
     currentOrphanCandidates:unexpectedLatest,
     compressionBenchmark:compression,
@@ -174,12 +177,12 @@ if(invoked){
     const args=process.argv.slice(2),flags=new Map();
     ensure(args.length%2===0,'CLI options must have values');
     for(let i=0;i<args.length;i+=2){
-      ensure(['--root','--app-manifest','--out'].includes(args[i])&&!flags.has(args[i]),
+      ensure(['--root','--app-manifest','--app-manifest-gis','--out'].includes(args[i])&&!flags.has(args[i]),
         'Unknown or repeated CLI option '+args[i]);
       flags.set(args[i],args[i+1]);
     }
     const result=auditLayout(flags.get('--root')||'.',
-      {appManifest:flags.get('--app-manifest')||null});
+      {appManifest:[flags.get('--app-manifest'),flags.get('--app-manifest-gis')].filter(Boolean)});
     if(flags.has('--out')){
       const out=resolve(flags.get('--out'));mkdirSync(dirname(out),{recursive:true});
       writeFileSync(out,JSON.stringify(result,null,2)+'\n');
@@ -190,6 +193,6 @@ if(invoked){
       currentReleaseFiles:result.currentReleaseFiles,
       previousOrphanCandidates:result.previousOrphanCandidates,
       potentialGzipSavingsBytes:result.potentialGzipSavingsBytes,
-      nativePinVerified:result.nativePinVerified},null,2));
+      nativePinVerified:result.nativePinVerified,nativePinsVerified:result.nativePinsVerified},null,2));
   }catch(error){console.error('Active hydro optimization gate failed: '+error.stack);process.exitCode=1;}
 }
