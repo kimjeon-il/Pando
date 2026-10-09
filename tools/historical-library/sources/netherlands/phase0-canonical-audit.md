@@ -323,3 +323,87 @@ historical Pando geometry
 
 Do not use the raw Natural Earth-to-historical-map difference as the
 reclamation delta.
+
+
+## 10. Quantified Natural Earth simplification check — 2026-10-10
+
+A machine-readable audit is now stored at
+[phase0-generalization-audit.json](phase0-generalization-audit.json).
+
+### 10.1 Vertex density
+
+The current Pando NLD geometry contains:
+
+- 12 component polygons;
+- 854 coordinate positions total;
+- approximate total boundary length: 1,974.7 km;
+- mean source segment length: about 2.35 km.
+
+For comparison, geoBoundaries' 2022 NLD ADM0 layer, sourced from the Dutch
+National Georegister, reports:
+
+- 36,029 vertices;
+- perimeter about 2,041.2 km.
+
+That is about **42 times as many vertices** as the Pando/Natural Earth
+geometry. The high-precision layer's mean perimeter-per-vertex scale is roughly
+57 m, versus kilometres in the Pando source. The datasets do not have identical
+boundary semantics, so this is a density/generalization comparison, not a
+coordinate-by-coordinate shoreline validation.
+
+### 10.2 Rotterdam / Maasvlakte source spacing
+
+On the Pando outer-ring run inside BBOX `3.8,51.8,4.3,52.1`, a 26.24 km run
+is represented by only 17 vertices / 16 segments:
+
+- mean segment: about 1.64 km;
+- median segment: about 0.90 km;
+- longest segment: about 4.56 km.
+
+The earlier 2.66 km Maasvlakte 2 place-to-boundary screening distance is
+therefore of the same order as the source line's own generalized segment
+lengths. It cannot be used as standalone evidence that a 2.66 km-wide strip of
+reclamation is missing.
+
+### 10.3 Aggregate area is nevertheless close
+
+Approximate spherical area of the Pando NLD MultiPolygon is about
+**37,253 km²**.
+
+CBS 2022 reports:
+
+- land: **33,626 km²**;
+- inland water: **3,748.92 km²**;
+- land + inland water: **37,374.92 km²**;
+- outside/tidal water: **4,168.45 km²**.
+
+Thus the Pando polygon is only about **122 km² (-0.33%)** below the CBS
+land-plus-inland-water total, despite the much coarser shoreline. This strongly
+supports the interpretation that the current polygon preserves national-scale
+area reasonably well while local coast shape is heavily generalized.
+
+It also explains why the country polygon is a poor dry-land mask: the excess
+of Pando polygon area over CBS dry land is about **3,627 km²**, close to the
+CBS inland-water total. Removing a complete, correctly aligned inland-water
+mask would therefore move the result close to dry-land area.
+
+However, the current bundled Natural Earth lake layer is **not** such a
+complete mask: the Netherlands Phase 0 inventory finds only Lauwersmeer and
+IJsselmeer in the study BBOX, with Markermeer generalized into IJsselmeer and
+many other inland waters absent. Therefore “subtract the current lake
+polygons” is only an approximation, not an exact dry-land reconstruction.
+
+### 10.4 Revised Maasvlakte 2 conclusion
+
+The strongest current interpretation is now:
+
+1. **Natural Earth generalization is definitely material** at Pando max zoom.
+2. Aggregate area is close enough that a local several-kilometre visual
+   displacement does not imply a comparable national area error.
+3. Maasvlakte 2 may still be partly absent or represented by older linework,
+   but that has **not** been separated quantitatively from generalization yet.
+4. The deciding comparison remains the current TOP10NL/PDOK mean-high-water
+   coastline against the Natural Earth run, followed by a dated pre-reclamation
+   coastline.
+
+No historical or current production geometry was modified by this check.
