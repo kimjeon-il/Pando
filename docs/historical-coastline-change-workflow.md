@@ -20,7 +20,7 @@ Event inventories are reusable across sovereigns and eras: Germany 1914 coastal 
 - **Dutch regional event evidence:** `tools/historical-library/sources/netherlands/change-events.json` and the previously prepared [reverse-chronological source plan](../tools/historical-library/sources/netherlands/netherlands-land-reclamation-reverse-timeline.md).
 - **Read-only Dutch current-baseline point audit:** [phase-0 result](../tools/historical-library/sources/netherlands/phase0-canonical-audit.md). Neither this audit nor the nine indexed events contains a digitized historical shoreline.
 
-Future worldwide discovery should use a **manifest of regional catalogue file paths and geographic scopes** or a generated read-only index; do not maintain a second editable copy of the events. This document does not create that manifest or switch existing loaders.
+Worldwide catalogue discovery now starts from the [read-only coastline catalogue registry](../tools/historical-library/sources/coastline-catalogs.json). It references German and Dutch regional source catalogues by **path and geographic scope**, without copying events. A future loader may consume this registry; no production loader or current-world build has been changed.
 
 ## 3. Conceptual separation
 
