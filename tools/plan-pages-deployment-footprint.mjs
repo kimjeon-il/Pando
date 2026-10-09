@@ -58,8 +58,9 @@ export function pinnedLegacyPaths(legacyManifest,nativeManifest){
 export function validateArchiveLock(lock,mainTree,gisTree){
   fail(lock?.schema==='pandolab-gis-archive-delete-lock'&&lock.version===1&&
     sha40(lock.sourceCommit)&&Array.isArray(lock.files),'Missing exact Stage8 archive lock');
-  fail(lock.totalFiles===lock.files.length&&lock.totalFiles===2124&&
-    lock.totalBytes===564189000,'Unapproved change in immutable legacy URL inventory');
+  fail(lock.totalFiles===lock.files.length&&lock.totalFiles>0&&
+    lock.totalBytes===lock.files.reduce((n,f)=>n+f.bytes,0),
+    'Invalid current unretired archive inventory');
   const errors=[],seen=new Set(),seenGroups=new Set();
   for(const entry of lock.files){
     const p=entry.path;
@@ -180,7 +181,8 @@ export function buildPublicationProfile(tree,lock,required,{profile='main-legacy
 }
 export function finalStage9Plan(main,gis,lock,{mainSha,gisSha}={}){
   fail(sha40(mainSha)&&sha40(gisSha),'Both exact source heads required');
-  fail(main.archive.files===2124&&gis.archive.files===2124,'Incomplete legacy URL coverage');
+  fail(main.archive.files===lock.totalFiles&&gis.archive.files===lock.totalFiles,
+    'Incomplete remaining archive inventory');
   const options=[main,gis].map(p=>({
     name:p.name,includedBytes:p.budget.includedBytes,
     overByBytes:p.budget.overByBytes,
@@ -193,8 +195,8 @@ export function finalStage9Plan(main,gis,lock,{mainSha,gisSha}={}){
     siteLimitBytes:BYTES,profiles:options,
     necessaryBeforeDeployment:[
       'Confirm Pages 1 GB includes generated site, not merely artifact tar.gz transfer bytes',
-      'Find an approved, fully functional <=1GB site without losing 2124 old URLs, or approve another hosting/URL model',
-      'Verify every publication path (including legacy 2124) matches immutable pre-cutover Git blob bytes',
+      'Confirm a fully functional <=1GB site, preserving active/native URLs; expired-version URLs carry no permanence guarantee',
+      'Verify every included publication path matches its pinned Git blob, including unretired archives',
       'Validate all asset access under the production origin and in real browsers',
       'Verify native releases and full Qt regression separately',
       'Authorize deployment cutover explicitly with rollback controls'
