@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import gzip
 import json
 import math
@@ -30,8 +31,8 @@ PANEL_HEIGHT = 980
 MAP_PADDING = 42
 
 
-def load_features(version: str):
-    data = ROOT / "assets" / "data" / "hydro" / version
+def load_features(version: str, hydro_root: Path):
+    data = hydro_root / version
     manifest = json.loads((data / "manifest.json").read_text(encoding="utf-8"))
     _tiles, _logical, packs = read_index(data / manifest["index"]["url"])
     shards = {row["id"]: (data / row["url"]).read_bytes() for row in manifest["shards"]}
@@ -99,9 +100,17 @@ def paektu_distance(features, labels):
 
 
 def main():
-    old_manifest, old_features = load_features("v0.12.3")
-    manifest, features = load_features("v0.12.4")
-    OUTPUT.mkdir(parents=True, exist_ok=True)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--hydro-root", type=Path, default=ROOT / "assets" / "data" / "hydro",
+                        help="Directory containing restored v0.12.3/ and v0.12.4/ (see restore-archival-hydro.py)")
+    parser.add_argument("--output-dir", type=Path, default=OUTPUT)
+    args = parser.parse_args()
+    for version in ("v0.12.3", "v0.12.4"):
+        if not (args.hydro_root / version / "manifest.json").is_file():
+            parser.error(f"{version} archive not found: restore using tools/restore-archival-hydro.py")
+    old_manifest, old_features = load_features("v0.12.3", args.hydro_root)
+    manifest, features = load_features("v0.12.4", args.hydro_root)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
 
     logical_by_source = {}
     for label, source_id in TERMINALS.items():
@@ -136,7 +145,7 @@ def main():
         y = PANEL_HEIGHT - 84 + index * 20
         draw.line((legend_x, y + 7, legend_x + 28, y + 7), fill=color, width=4)
         draw.text((legend_x + 38, y), label, fill="#23323b", font=label_font)
-    image.save(OUTPUT / "korea-mainstems-border-alignment.png", optimize=True)
+    image.save(args.output_dir / "korea-mainstems-border-alignment.png", optimize=True)
 
     pair_lengths = defaultdict(float)
     for row in manifest["sources"]["hydroRivers"]:
@@ -162,7 +171,7 @@ def main():
         },
         "previousAssetBytes": old_manifest["stats"]["compressedBytes"],
     }
-    (OUTPUT / "validation.json").write_text(json.dumps(validation, ensure_ascii=False, indent=2), encoding="utf-8")
+    (args.output_dir / "validation.json").write_text(json.dumps(validation, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 if __name__ == "__main__":
