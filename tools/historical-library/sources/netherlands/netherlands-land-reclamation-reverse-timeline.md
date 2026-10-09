@@ -279,10 +279,20 @@ official map or GIS layer is available.
 
 For each rollback checkpoint:
 
-1. **Inspect actual canonical NLD geometry first.**
-   Do not assume Natural Earth contains every very recent island or fill.
-2. Locate the relevant historical/engineering source.
-3. Record:
+1. **Inspect actual canonical NLD geometry first through the bounded world-data inspector.**
+   Do not open or parse the monolithic `current-world.geojson`, PCG, or render mesh
+   for this task. Use `tools/inspect-world-data.mjs`, which resolves NLD through
+   `assets/data/territorial-entities/generated/v2/index.json`, reads only the
+   matching compressed country chunk, verifies its SHA-256, and returns only the
+   requested summary/polygon/boundary extract.
+2. Narrow the query to the event area whenever practical:
+   - whole-country metadata: `node tools/inspect-world-data.mjs --country NLD --mode summary`
+   - candidate land polygons: `node tools/inspect-world-data.mjs --country NLD --bbox W,S,E,N --mode polygon --out /tmp/nld-area.geojson`
+   - local boundary segments: `node tools/inspect-world-data.mjs --country NLD --bbox W,S,E,N --mode boundary --out /tmp/nld-boundary.geojson`
+   - neighboring country geometry is queried separately only when coast-vs-land-border
+     classification requires it.
+3. Locate the relevant historical/engineering source.
+4. Record:
    - event ID;
    - event type (closure, drainage, reclamation, island, port fill);
    - effective date or date interval;
@@ -290,9 +300,9 @@ For each rollback checkpoint:
    - source CRS / scale where applicable;
    - confidence;
    - affected bounding box.
-4. Build a candidate rollback polygon/line.
-5. Apply only the local geometry change.
-6. Validate:
+5. Build a candidate rollback polygon/line.
+6. Apply only the local geometry change.
+7. Validate:
    - polygon validity;
    - no accidental holes/slivers;
    - expected land-area delta;
@@ -300,9 +310,9 @@ For each rollback checkpoint:
    - shared-border continuity where relevant;
    - water connectivity for closures/dikes;
    - dateline is irrelevant here but standard geometry checks still apply.
-7. Compare visually at the website's maximum flat zoom.
-8. Save diagnostics before promoting a checkpoint.
-9. Only after the modern-to-1914 rollback chain is complete should the final
+8. Compare visually at the website's maximum flat zoom.
+9. Save diagnostics before promoting a checkpoint.
+10. Only after the modern-to-1914 rollback chain is complete should the final
    1914 Netherlands geometry be treated as a stable historical-library source.
 
 ## 10. Proposed checkpoint series
@@ -344,8 +354,24 @@ change list and mark every item as:
 - absent from current canonical geometry;
 - uncertain / requires zoomed inspection.
 
+Use the existing bounded lookup path rather than loading the full world dataset:
+
+1. `--country NLD --mode summary` for the canonical entity/version and overall
+   geometry bounds/statistics.
+2. `--country NLD --bbox ... --mode polygon` for each reclamation footprint.
+   Polygon mode returns whole source polygon components whose envelopes intersect
+   the BBOX; it does **not** clip or synthesize a new polygon.
+3. `--country NLD --bbox ... --mode boundary` when only the local shoreline/
+   border run is needed. Synthetic BBOX clip endpoints are explicitly flagged.
+4. Query `DEU` or `BEL` separately only where a boundary segment must be
+   classified against a neighboring state's polygon.
+5. Use `--mode lakes` / `--mode rivers` with a tight BBOX only when the
+   water dataset is needed. These modes are independent from the country chunk
+   lookup.
+
 This avoids attempting to subtract features that the bundled Natural Earth
-version never contained.
+version never contained and avoids repeatedly opening the global country
+dataset merely to inspect one Dutch sector.
 
 ### Phase 1 — current → 1999
 
@@ -415,15 +441,93 @@ Research may be promoted to implementation when:
 
 **Do not jump to 1914 geometry.**
 
-The next implementation task should be Phase 0 only:
+Phase 0 has started, so the next task is to **finish the event-footprint
+inventory using the bounded country lookup**, not to re-read the monolithic
+world dataset and not yet to create rollback geometry.
 
-> inspect the exact current Netherlands polygon used by the website at maximum
-> zoom and mark the features in this report as present / absent / uncertain.
+For every event in section 5:
 
-Only after that inventory should the first rollback geometry be created.
+> query only the NLD chunk and event BBOX, classify the relevant canonical
+> land/boundary geometry as present / absent / uncertain, and attach the result
+> to the Phase 0 audit.
+
+Point-in-country probes already recorded below are only supporting evidence.
+They do not replace footprint/boundary inspection, especially for enclosed
+water, artificial islands and dike connectivity.
+
+Only after that inventory is complete should the first rollback geometry be
+created.
 
 ## 15. Phase 0 started — 2026-10-09 (partial, point-based)
 
 [Phase 0 canonical sample audit](phase0-canonical-audit.md) and [machine-readable probe locations](canonical-phase0-probes.json) have now been added. Against the **actual** `state:NLD:natural-earth-5.1.1` national geometry, 12 point samples were tested: 11 inside, the approximate Maasvlakte 2 place point outside. This result is **not** the required full present/absent/uncertain inventory of each event footprint. The NLD polygon has no interior water holes, so inner water presence and artificial islands cannot be classified from point-in-country.
 
 The corresponding [nine-event evidence index](change-events.json) provides independent construction, drainage and inlet-closure chronology with no digitized shoreline. Phase 0 must continue with dated modern coastal GIS/actual map rendering, and first rollback geometry must not start until the modern baseline and water masks are verified. The earlier Phase 0/1–4 sequence remains unchanged.
+
+
+## 16. Bounded country-data lookup contract — 2026-10-09
+
+The web repository now has a read-only lookup path specifically suited to this
+survey:
+
+- CLI: `tools/inspect-world-data.mjs`
+- documentation: `docs/world-data-inspection.md`
+- country/entity index:
+  `assets/data/territorial-entities/generated/v2/index.json`
+- selected country payload:
+  the indexed `territorial-entities/generated/v2/*.json.gz` chunk only
+
+The inspector:
+
+1. resolves an ISO3 such as `NLD` to its current territorial entity;
+2. prefilters by indexed BBOX where applicable;
+3. reads only the selected compressed country chunk;
+4. verifies the chunk SHA-256 against the index;
+5. selects the documented geometry version;
+6. returns summary, whole polygon components, or BBOX-limited boundary
+   segments;
+7. never needs the combined `current-world.geojson`, PCG, or mesh for a
+   country-local inspection.
+
+Recommended Netherlands queries:
+
+```sh
+# Identify current NLD geometry and source/version metadata.
+node tools/inspect-world-data.mjs --country NLD --mode summary
+
+# Extract only Dutch polygon components relevant to a study area.
+node tools/inspect-world-data.mjs \
+  --country NLD \
+  --bbox 3,50,8,54 \
+  --mode polygon \
+  --out /tmp/nld-study-area.geojson
+
+# Extract only local Dutch boundary runs for a tighter event footprint.
+node tools/inspect-world-data.mjs \
+  --country NLD \
+  --bbox 4,51,5,52 \
+  --mode boundary \
+  --out /tmp/nld-event-boundary.geojson
+
+# Discover current indexed entities in a local area without decoding every
+# country chunk.
+node tools/inspect-world-data.mjs --mode list --bbox 3,50,9,55
+```
+
+Important limitations:
+
+- `boundary` contains both coast and land borders; use neighboring polygons or
+  other geographic evidence to classify them.
+- `polygon` is an envelope-filtered source-component return, not an exact BBOX
+  polygon intersection.
+- a `--date` query can only select a geometry version already recorded for the
+  entity; the inspector does not manufacture a historical shoreline.
+- hydro modes currently read their requested base source only when invoked, so
+  keep hydro BBOX queries regional.
+- this lookup layer is for bounded inspection and evidence extraction; it is
+  not itself the Netherlands rollback generator.
+
+For this project, the practical consequence is that Phase 0 and later local
+coast QA should request **NLD first, plus only the neighboring country/water
+data actually needed for that event**. Full-world extraction is no longer the
+normal inspection path.
