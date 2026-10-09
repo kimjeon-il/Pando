@@ -27,23 +27,21 @@
           "layer": "3",
           "periodGroup": "1878–1880",
           "individualSheetSurveyRevisionYearVerified": false,
-          "status": "unavailable",
+          "status": "raster-obtained",
           "bytes": 95974,
           "rasterSha256": "8df21d5c73e48ad0a20368cdd625e691c722db56c2667618197074a3677c4163",
           "imageFile": "beltringharder-northwest-1880-3-original.png",
-          "overlayFile": "beltringharder-northwest-1880-3-modern-working-coast.jpg",
-          "error": "OSError: cannot write mode RGBA as JPEG"
+          "overlayFile": "beltringharder-northwest-1880-3-modern-working-coast.jpg"
         },
         {
           "layer": "2",
           "periodGroup": "1902–1930",
           "individualSheetSurveyRevisionYearVerified": false,
-          "status": "unavailable",
+          "status": "raster-obtained",
           "bytes": 109978,
           "rasterSha256": "90a34e2a80a1c86b6925b01b00fe1ecdb87c8c7b2793c82090db23522ec48d6f",
           "imageFile": "beltringharder-northwest-1880-2-original.png",
-          "overlayFile": "beltringharder-northwest-1880-2-modern-working-coast.jpg",
-          "error": "OSError: cannot write mode RGBA as JPEG"
+          "overlayFile": "beltringharder-northwest-1880-2-modern-working-coast.jpg"
         }
       ]
     },
@@ -61,27 +59,25 @@
           "layer": "3",
           "periodGroup": "1878–1880",
           "individualSheetSurveyRevisionYearVerified": false,
-          "status": "unavailable",
+          "status": "raster-obtained",
           "bytes": 127809,
           "rasterSha256": "3bbc7fb8a3fa68d56a35a83fda92088f7085f3cf695391dee9f97c7b422088dc",
           "imageFile": "hauke-haien-north-1880-3-original.png",
-          "overlayFile": "hauke-haien-north-1880-3-modern-working-coast.jpg",
-          "error": "OSError: cannot write mode RGBA as JPEG"
+          "overlayFile": "hauke-haien-north-1880-3-modern-working-coast.jpg"
         },
         {
           "layer": "2",
           "periodGroup": "1902–1930",
           "individualSheetSurveyRevisionYearVerified": false,
-          "status": "unavailable",
+          "status": "raster-obtained",
           "bytes": 145878,
           "rasterSha256": "b67b11442fce527cd17ecea24f9be0f64b4e44e8a388aa5ccf822d12682144fc",
           "imageFile": "hauke-haien-north-1880-2-original.png",
-          "overlayFile": "hauke-haien-north-1880-2-modern-working-coast.jpg",
-          "error": "OSError: cannot write mode RGBA as JPEG"
+          "overlayFile": "hauke-haien-north-1880-2-modern-working-coast.jpg"
         }
       ]
     }
   ],
-  "runId": "37923372142",
-  "successfulRasters": 0
+  "runId": "37923483348",
+  "successfulRasters": 4
 }
