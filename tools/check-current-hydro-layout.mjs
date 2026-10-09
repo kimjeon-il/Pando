@@ -1,223 +1,134 @@
 #!/usr/bin/env node
-// Non-mutating integrity and deduplication gate for the active hydro dataset.
+// The production hydro package is two immutable files, with six individually hashed byte ranges.
 import {createHash} from 'node:crypto';
-import {readFileSync,readdirSync,statSync,mkdirSync,writeFileSync} from 'node:fs';
-import {dirname,join,posix,resolve,relative,sep} from 'node:path';
+import {readFileSync,readdirSync,lstatSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
+import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {gunzipSync,gzipSync} from 'node:zlib';
+import {gunzipSync} from 'node:zlib';
 
-const PREVIOUS='hydro/v0.13.0/manifest.json';
-const CURRENT='hydro/v0.13.1/manifest.json';
-const BUNDLED='hydro/v0.13.2/manifest.json';
-const DATA='assets/data/';
-const ensure=(value,message)=>{if(!value)throw Error(message);};
-const sha256=value=>createHash('sha256').update(value).digest('hex');
-const gitBlob=value=>createHash('sha1').update(Buffer.from('blob '+value.length+'\0')).update(value).digest('hex');
+const DATA='assets/data/hydro';
+const VERSION='v0.13.2';
+const TYPES=['index','metadata-core','metadata-detail','shard-0','shard-1','shard-2'];
+const ensure=(ok,message)=>{if(!ok)throw Error(message);};
+const hash=buffer=>createHash('sha256').update(buffer).digest('hex');
+const gitBlob=buffer=>createHash('sha1').update(Buffer.from('blob '+buffer.length+'\0')).update(buffer).digest('hex');
+const validHash=value=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
 
-export function resolveHydroUrl(manifestPath,url) {
-  ensure(typeof url==='string'&&url.length>0&&!url.startsWith('/')&&
-    !url.includes('\\')&&!url.includes('?')&&!url.includes('#')&&
-    /^[A-Za-z0-9._/-]+$/.test(url),'Unsafe hydro URL: '+url);
-  const path=posix.normalize(posix.join(posix.dirname(manifestPath),url));
-  ensure(/^hydro\/v0\.13\.[01]\/[A-Za-z0-9._/-]+$/.test(path)&&
-    !path.endsWith('/')&&!path.split('/').includes('..'),
-    'Hydro dependency escapes the current/previous dataset: '+url);
-  return path;
-}
-
-export function manifestRoles(manifest,manifestPath) {
-  ensure(manifest&&manifest.index&&manifest.metadata?.core&&
-    manifest.metadata?.detail&&Array.isArray(manifest.shards)&&manifest.shards.length>0,
-    'Invalid hydro manifest roles: '+manifestPath);
-  const records=[
-    ['index',manifest.index],['metadata-core',manifest.metadata.core],
+export function manifestRoles(manifest) {
+  ensure(manifest?.version==='0.13.2'&&manifest.schema==='pandolab-water-shards-v5',
+    'Production hydro schema/version changed');
+  ensure(manifest.container?.url==='hydro.bin'&&
+    manifest.container.format==='byte-concatenated-subresources-v1'&&
+    Number.isSafeInteger(manifest.container.bytes)&&manifest.container.bytes>0&&
+    validHash(manifest.container.sha256),'Invalid immutable hydro container');
+  ensure(JSON.stringify(manifest.container.roles)===JSON.stringify(TYPES),
+    'Hydro container role ordering differs');
+  ensure(manifest.metadata?.detail?.lazy===true&&manifest.format?.container===1,
+    'Lazy detail or container format contract changed');
+  ensure(Array.isArray(manifest.shards)&&manifest.shards.length===3&&
+    manifest.shards.every((s,i)=>s.id===i),
+    'Expected three original independently compressed geometry shards');
+  const source=[
+    ['index',manifest.index],
+    ['metadata-core',manifest.metadata.core],
     ['metadata-detail',manifest.metadata.detail],
+    ...manifest.shards.map((s,i)=>['shard-'+i,s]),
   ];
-  const ids=new Set();
-  for(const item of manifest.shards) {
-    ensure(Number.isSafeInteger(item.id)&&item.id>=0&&!ids.has(item.id),
-      'Duplicate or invalid hydro shard id');
-    ids.add(item.id);
-    records.push(['shard-'+item.id,item]);
-  }
-  return new Map(records.map(([role,item])=>{
-    ensure(Number.isSafeInteger(item.bytes)&&item.bytes>0&&
-      /^[a-f0-9]{64}$/.test(item.sha256||''),'Invalid hydro size or SHA: '+role);
-    return [role,{role,path:resolveHydroUrl(manifestPath,item.url),
-      bytes:item.bytes,sha256:item.sha256}];
-  }));
+  let position=0;
+  const segments=source.map(([role,spec])=>{
+    ensure(spec&&spec.url==='hydro.bin'&&spec.offset===position&&
+      Number.isSafeInteger(spec.bytes)&&spec.bytes>0&&
+      spec.bytes<=manifest.container.bytes-position&&validHash(spec.sha256),
+      'Invalid, overlapping or missing hydro subresource: '+role);
+    const segment={role,offset:position,bytes:spec.bytes,sha256:spec.sha256};
+    position+=spec.bytes;
+    return segment;
+  });
+  ensure(position===manifest.container.bytes,'Hydro container has uncovered bytes');
+  return segments;
 }
 
-export function inspectContracts(previous,current) {
-  ensure(previous?.version==='0.13.0'&&current?.version==='0.13.1',
-    'Unexpected active hydro version');
-  ensure(previous.schema===current.schema&&previous.schema==='pandolab-water-shards-v5',
-    'Hydro binary schema drift');
-  for(const key of ['format','stages','layers']) {
-    ensure(JSON.stringify(previous[key])===JSON.stringify(current[key]),
-      'Hydro geometry/layout contract changed: '+key);
+function listFiles(dir,root) {
+  if(!existsSync(dir))return [];
+  const st=lstatSync(dir);ensure(st.isDirectory()&&!st.isSymbolicLink(),'Hydro directory is not plain');
+  const rows=[];
+  for(const d of readdirSync(dir,{withFileTypes:true})){
+    const full=join(dir,d.name);
+    ensure(d.isDirectory()||d.isFile(),'Hydro symlink or special file: '+full);
+    if(d.isDirectory())rows.push(...listFiles(full,root));
+    else rows.push(full.slice(root.length+1).replaceAll('\\','/'));
   }
-  for(const key of ['tileCount','logicalFeatureCount']) {
-    ensure(previous.index[key]===current.index[key],
-      'Hydro index geometry metadata changed: '+key);
-  }
-  ensure(previous.metadata.featureCount===current.metadata.featureCount,
-    'Hydro metadata feature count changed');
-  const oldRoles=manifestRoles(previous,PREVIOUS);
-  const newRoles=manifestRoles(current,CURRENT);
-  ensure(oldRoles.size===newRoles.size,'Hydro role count changed');
-  const reused=[],unique=[];
-  for(const [role,now] of newRoles) {
-    const before=oldRoles.get(role);
-    ensure(!!before,'Unknown hydro role: '+role);
-    if(role==='metadata-core') {
-      ensure(now.path.startsWith('hydro/v0.13.1/')&&
-        before.path.startsWith('hydro/v0.13.0/')&&now.sha256!==before.sha256,
-        'Changed hydro name metadata must be independently versioned');
-      unique.push(now);
-    }else{
-      ensure(now.path===before.path&&now.sha256===before.sha256&&
-        now.bytes===before.bytes,
-        'Hydro '+role+' copied or changed instead of reusing v0.13.0');
-      reused.push(now);
-    }
-  }
-  return {oldRoles,newRoles,reused,unique,
-    avoidedDuplicateBytes:reused.reduce((s,a)=>s+a.bytes,0)};
+  return rows.sort();
 }
 
-function trackedFiles(directory,root) {
-  const output=[];
-  for(const item of readdirSync(directory,{withFileTypes:true})) {
-    const full=join(directory,item.name);
-    ensure(item.isDirectory()||item.isFile(),'Symlink or special file in hydro data: '+full);
-    if(item.isDirectory())output.push(...trackedFiles(full,root));
-    else output.push(relative(root,full).split(sep).join('/'));
-  }
-  return output;
-}
-
-export function auditLayout(root,{appManifest=null,benchmarkGzip=true}={}) {
+export function auditLayout(root,{appManifest=[],allowRetired=false}={}) {
   root=resolve(root);
-  const readManifest=(p)=>JSON.parse(readFileSync(join(root,DATA,p),'utf8'));
-  const previous=readManifest(PREVIOUS),current=readManifest(CURRENT);
-  const contract=inspectContracts(previous,current);
-  const manifestBytes=readFileSync(join(root,DATA,CURRENT));
-  const expected=new Map();
-  for(const item of [...contract.oldRoles.values(),...contract.newRoles.values()]){
-    if(expected.has(item.path)) {
-      const old=expected.get(item.path);
-      ensure(old.bytes===item.bytes&&old.sha256===item.sha256,
-        'Conflicting references to '+item.path);
-    }else expected.set(item.path,item);
+  const hydro=join(root,DATA), dir=join(hydro,VERSION);
+  const current=listFiles(dir,dir);
+  ensure(JSON.stringify(current)===JSON.stringify(['hydro.bin','manifest.json']),
+    'Current hydro package must contain exactly two files');
+  const manifestBuffer=readFileSync(join(dir,'manifest.json'));
+  const manifest=JSON.parse(manifestBuffer.toString('utf8'));
+  const roles=manifestRoles(manifest);
+  const packed=readFileSync(join(dir,'hydro.bin'));
+  ensure(packed.length===manifest.container.bytes&&hash(packed)===manifest.container.sha256,
+    'Hydro container byte count or SHA-256 differs');
+  for(const segment of roles){
+    const bytes=packed.subarray(segment.offset,segment.offset+segment.bytes);
+    ensure(hash(bytes)===segment.sha256,'Hydro segment SHA-256 differs: '+segment.role);
+    if(['index','metadata-core','metadata-detail'].includes(segment.role))
+      ensure(gunzipSync(bytes).length>0,'Empty/invalid gzip: '+segment.role);
   }
-  const checks=[],compression=[];
-  for(const item of expected.values()) {
-    const data=readFileSync(join(root,DATA,item.path));
-    ensure(data.length===item.bytes,'Hydro byte-size mismatch: '+item.path);
-    ensure(sha256(data)===item.sha256,'Hydro SHA-256 mismatch: '+item.path);
-    checks.push({path:item.path,bytes:data.length,sha256:item.sha256});
-    if(benchmarkGzip&&item.path.endsWith('.gz')) {
-      const decoded=gunzipSync(data);
-      const recompressed=gzipSync(decoded,{level:9,mtime:0});
-      compression.push({path:item.path,originalBytes:data.length,
-        gzipLevel9Bytes:recompressed.length,
-        potentialSavingBytes:Math.max(0,data.length-recompressed.length)});
-    }
-  }
-  const physical=['hydro/v0.13.0','hydro/v0.13.1'].flatMap(p=>
-    trackedFiles(join(root,DATA,p),join(root,DATA)));
-  const allowed=new Set([...expected.keys(),PREVIOUS,CURRENT]);
-  const leftover=physical.filter(p=>!allowed.has(p));
-  const unexpectedLatest=leftover.filter(p=>p.startsWith('hydro/v0.13.1/'));
-  ensure(unexpectedLatest.length===0,
-    'Unreferenced binary copies in current hydro release: '+unexpectedLatest.join(', '));
-  // The current 2-file bundle is losslessly repacked from the SHA-locked v0.13.1 source.
-  const packed=readManifest(BUNDLED);
-  const combined=readFileSync(join(root,DATA,'hydro/v0.13.2/hydro.bin'));
-  const packedManifestBytes=readFileSync(join(root,DATA,BUNDLED));
-  ensure(packed.version==='0.13.2'&&packed.container?.url==='hydro.bin'&&
-    packed.container.bytes===combined.length&&
-    packed.container.sha256===sha256(combined),
-    'Packed hydro container size/hash differs');
-  const bundleSpecs=[packed.index,packed.metadata?.core,packed.metadata?.detail,...(packed.shards||[])];
-  const sourceSpecs=[current.index,current.metadata?.core,current.metadata?.detail,...(current.shards||[])];
-  ensure(bundleSpecs.length===6&&sourceSpecs.length===6,'Packed hydro role count changed');
-  let cursor=0;
-  for(let i=0;i<bundleSpecs.length;i++){
-    const item=bundleSpecs[i],reference=sourceSpecs[i];
-    ensure(item.url==='hydro.bin'&&item.offset===cursor&&
-      item.bytes===reference.bytes&&item.sha256===reference.sha256,
-      'Packed hydro role differs from original: '+i);
-    ensure(sha256(combined.subarray(cursor,cursor+item.bytes))===reference.sha256,
-      'Packed hydro resource checksum differs: '+i);
-    cursor+=item.bytes;
-  }
-  ensure(cursor===combined.length,'Packed hydro binary coverage incomplete');
-  let appPinsVerified=0;
-  const appManifests=appManifest?(Array.isArray(appManifest)?appManifest:[appManifest]):[];
-  for(const file of appManifests){
-    const app=JSON.parse(readFileSync(resolve(file),'utf8'));
-    const pin=app.hydro;
-    ensure(app.schema==='pandoeditor-world-dataset'&&
-      (app.version===1||app.version===2)&&
-      ['0.13.1','0.13.2'].includes(pin?.version)&&
-      pin.path==='hydro/v'+pin.version+'/manifest.json'&&
-      (pin.bytes===undefined||pin.bytes===(pin.version==='0.13.2'?packedManifestBytes:manifestBytes).length)&&
-      pin.sha256===sha256(pin.version==='0.13.2'?packedManifestBytes:manifestBytes)&&
-      pin.gitBlobSha===gitBlob(pin.version==='0.13.2'?packedManifestBytes:manifestBytes)&&
-      (!pin.source?.path||pin.source.path===DATA+pin.path),
-      'Native app pinned hydro manifest differs from Web: '+file);
-    appPinsVerified++;
+  const old=['v0.13.0','v0.13.1'].flatMap(v=>
+    listFiles(join(hydro,v),join(root,DATA)));
+  if(!allowRetired)ensure(old.length===0,
+    'Old production hydro files remain: '+old.slice(0,12).join(', '));
+  const declared=Array.isArray(appManifest)?appManifest:[appManifest];
+  let verified=0;
+  for(const path of declared.filter(Boolean)){
+    const doc=JSON.parse(readFileSync(resolve(path),'utf8')),pin=doc.hydro;
+    ensure(doc.schema==='pandoeditor-world-dataset'&&[1,2].includes(doc.version)&&
+      pin?.path==='hydro/v0.13.2/manifest.json'&&pin.version==='0.13.2'&&
+      pin.sha256===hash(manifestBuffer)&&pin.gitBlobSha===gitBlob(manifestBuffer)&&
+      (pin.bytes===undefined||pin.bytes===manifestBuffer.length)&&
+      (!pin.source?.path||pin.source.path==='assets/data/hydro/v0.13.2/manifest.json'),
+      'Native app hydro pin differs from current web package: '+path);
+    verified++;
   }
   const runtime=readFileSync(join(root,'assets/js/modules/app-environment.js'),'utf8');
-  const buildMetadata=readFileSync(join(root,'scripts/generate-build-metadata.mjs'),'utf8');
+  const meta=readFileSync(join(root,'scripts/generate-build-metadata.mjs'),'utf8');
   ensure(/HYDRO_DATA_VERSION\s*=\s*['"]0\.13\.2['"]/.test(runtime)&&
-    buildMetadata.includes(DATA+BUNDLED),
-    'Runtime/build metadata does not pin the checked hydro manifest');
-  const previousFileCount=physical.filter(p=>p.startsWith('hydro/v0.13.0/')).length;
-  const currentFileCount=physical.filter(p=>p.startsWith('hydro/v0.13.1/')).length;
+    meta.includes('assets/data/hydro/v0.13.2/manifest.json'),
+    'Web runtime/build metadata does not pin v0.13.2');
   return {
-    schema:'pandolab-active-hydro-optimization-audit',version:1,passed:true,
-    sourceVersions:['0.13.0','0.13.1','0.13.2'],binaryFilesChecked:checks.length+1,
-    packedContainerBytes:combined.length,packedContainerSha256:packed.container.sha256,
-    currentReleaseFiles:currentFileCount,previousReleaseFiles:previousFileCount,
-    uniqueAssetBytes:checks.reduce((s,a)=>s+a.bytes,0),
-    reusedRoles:contract.reused.map(x=>x.role),
-    reusedBinaryBytes:contract.avoidedDuplicateBytes,
-    newBinaryBytes:contract.unique.reduce((s,a)=>s+a.bytes,0),
-    oldVersionMustRemain:true,nativePinVerified:appPinsVerified>0,nativePinsVerified:appPinsVerified,
-    previousOrphanCandidates:leftover.filter(p=>p.startsWith('hydro/v0.13.0/')),
-    currentOrphanCandidates:unexpectedLatest,
-    compressionBenchmark:compression,
-    potentialGzipSavingsBytes:compression.reduce((s,x)=>s+x.potentialSavingBytes,0),
-    integrity:checks,
-    note:'Read-only audit; no hydro byte, geometry, name, URL, native pin, or published asset was modified.'
+    schema:'pandolab-two-file-hydro-retirement-audit',version:2,passed:true,
+    productionVersion:VERSION,activeFiles:current.length,activeFilePaths:current,
+    packedContainerBytes:packed.length,packedContainerSha256:hash(packed),
+    manifestBytes:manifestBuffer.length,manifestSha256:hash(manifestBuffer),
+    roles,previousFiles:old,previousFileCount:old.length,
+    archiveCompatibility:'historical v0.13.0/1 data recovered from immutable Git on demand',
+    nativePinsVerified:verified,strictRetirement:!allowRetired,
+    note:'Read-only exact-byte validation. No binary, geometry or label mutation.'
   };
 }
-
 const invoked=process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url);
-if(invoked){
-  try{
-    const args=process.argv.slice(2),flags=new Map();
-    ensure(args.length%2===0,'CLI options must have values');
-    for(let i=0;i<args.length;i+=2){
-      ensure(['--root','--app-manifest','--app-manifest-gis','--out'].includes(args[i])&&!flags.has(args[i]),
-        'Unknown or repeated CLI option '+args[i]);
-      flags.set(args[i],args[i+1]);
-    }
-    const result=auditLayout(flags.get('--root')||'.',
-      {appManifest:[flags.get('--app-manifest'),flags.get('--app-manifest-gis')].filter(Boolean)});
-    if(flags.has('--out')){
-      const out=resolve(flags.get('--out'));mkdirSync(dirname(out),{recursive:true});
-      writeFileSync(out,JSON.stringify(result,null,2)+'\n');
-    }
-    console.log(JSON.stringify({passed:result.passed,
-      binaryFilesChecked:result.binaryFilesChecked,
-      reusedRoles:result.reusedRoles,reusedBinaryBytes:result.reusedBinaryBytes,
-      currentReleaseFiles:result.currentReleaseFiles,
-      previousOrphanCandidates:result.previousOrphanCandidates,
-      potentialGzipSavingsBytes:result.potentialGzipSavingsBytes,
-      nativePinVerified:result.nativePinVerified,nativePinsVerified:result.nativePinsVerified},null,2));
-  }catch(error){console.error('Active hydro optimization gate failed: '+error.stack);process.exitCode=1;}
-}
+if(invoked)try{
+  const argv=process.argv.slice(2),flags=new Map();
+  ensure(argv.length%2===0,'Expected flag/value options');
+  for(let i=0;i<argv.length;i+=2){
+    ensure(['--root','--app-manifest','--app-manifest-gis','--allow-retired','--out'].includes(argv[i])&&
+      !flags.has(argv[i]),'Invalid argument '+argv[i]);
+    flags.set(argv[i],argv[i+1]);
+  }
+  const result=auditLayout(flags.get('--root')||'.',{
+    appManifest:[flags.get('--app-manifest'),flags.get('--app-manifest-gis')].filter(Boolean),
+    allowRetired:flags.get('--allow-retired')==='true'
+  });
+  if(flags.has('--out')){
+    const out=resolve(flags.get('--out'));mkdirSync(dirname(out),{recursive:true});
+    writeFileSync(out,JSON.stringify(result,null,2)+'\n');
+  }
+  console.log(JSON.stringify({passed:result.passed,activeFiles:result.activeFiles,
+    retiredFiles:result.previousFileCount,segmentCount:result.roles.length,
+    nativePinsVerified:result.nativePinsVerified,strictRetirement:result.strictRetirement},null,2));
+}catch(error){console.error('Hydro 2-file gate failed: '+(error.stack||error));process.exitCode=1;}

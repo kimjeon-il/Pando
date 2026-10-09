@@ -5,129 +5,91 @@ import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {gzipSync} from 'node:zlib';
-import {resolveHydroUrl,manifestRoles,inspectContracts,auditLayout} from '../../tools/check-current-hydro-layout.mjs';
+import {manifestRoles,auditLayout} from '../../tools/check-current-hydro-layout.mjs';
 
 const hash=x=>createHash('sha256').update(x).digest('hex');
 const gitHash=x=>createHash('sha1').update(Buffer.from('blob '+x.length+'\0')).update(x).digest('hex');
-const oldDir='assets/data/hydro/v0.13.0/';
-const newDir='assets/data/hydro/v0.13.1/';
-function fixture(){
-  const root=mkdtempSync(join(tmpdir(),'active-hydro-'));
-  const create=(p,data)=>{
+const main='assets/data/hydro/v0.13.2/';
+function makeFixture(){
+  const root=mkdtempSync(join(tmpdir(),'hydro-packfile-retirement-'));
+  const write=(p,data)=>{
     mkdirSync(dirname(join(root,p)),{recursive:true});writeFileSync(join(root,p),data);
-    return {url:p.split('/').slice(-1)[0],bytes:data.length,sha256:hash(data)};
   };
-  const packed=(p,content)=>create(p,gzipSync(Buffer.from(content),{level:9}));
-  const index=packed(oldDir+'index.bin.gz','test spatial index');
-  const oldCore=packed(oldDir+'metadata-core.json.gz','test old names');
-  const detail=packed(oldDir+'metadata-detail.json.gz','test shared detail');
-  const shards=[0,1,2].map(i=>({...create(oldDir+'shards/s'+i+'.bin',
-    Buffer.from('test shared map segment '+i)),id:i,url:'shards/s'+i+'.bin'}));
-  const previous={version:'0.13.0',schema:'pandolab-water-shards-v5',
-    stages:[{id:0,minZoom:6}],format:{pack:4,index:4,metadata:5},
-    layers:{rivers:true},index,metadata:{featureCount:3,core:oldCore,detail},
-    shards};
-  const current=structuredClone(previous);current.version='0.13.1';
-  const core=packed(newDir+'metadata-core.json.gz','test renamed rivers');
-  current.index.url='../v0.13.0/index.bin.gz';
-  current.metadata.core=core;
-  current.metadata.detail.url='../v0.13.0/metadata-detail.json.gz';
-  current.shards=current.shards.map(x=>({...x,url:'../v0.13.0/'+x.url}));
-  writeFileSync(join(root,oldDir,'manifest.json'),JSON.stringify(previous)+'\n');
-  writeFileSync(join(root,newDir,'manifest.json'),JSON.stringify(current)+'\n');
-  const v132=structuredClone(current);v132.version='0.13.2';
-  const segments=[v132.index,v132.metadata.core,v132.metadata.detail,...v132.shards];
-  const baseSegments=[current.index,current.metadata.core,current.metadata.detail,...current.shards];
-  const chunks=baseSegments.map(x=>readFileSync(join(root,'assets/data/hydro/v0.13.1',x.url)));
-  const combined=Buffer.concat(chunks);
-  let cursor=0;
-  for(let i=0;i<segments.length;i++){
-    segments[i].url='hydro.bin';
-    segments[i].offset=cursor;
-    cursor+=chunks[i].length;
-  }
-  v132.container={url:'hydro.bin',bytes:combined.length,sha256:hash(combined),
-    format:'byte-concatenated-subresources-v1'};
-  create('assets/data/hydro/v0.13.2/hydro.bin',combined);
-  create('assets/data/hydro/v0.13.2/manifest.json',Buffer.from(JSON.stringify(v132)+'\n'));
-  create('assets/js/modules/app-environment.js',
-    Buffer.from("HYDRO_DATA_VERSION = '0.13.2'"));
-  create('scripts/generate-build-metadata.mjs',
-    Buffer.from("assets/data/hydro/v0.13.2/manifest.json"));
-  const manifest=readFileSync(join(root,newDir,'manifest.json'));
-  const appFile=join(root,'app-manifest.json');
-  const pin={schema:'pandoeditor-world-dataset',version:2,hydro:{
-    path:'hydro/v0.13.1/manifest.json',version:'0.13.1',bytes:manifest.length,
-    sha256:hash(manifest),gitBlobSha:gitHash(manifest)}};
-  writeFileSync(appFile,JSON.stringify(pin));
-  return {root,previous,current,appFile,pin};
+  const blocks=['index','core','detail','shard0','shard1','shard2'].map(s=>
+    gzipSync(Buffer.from('reproducible '+s),{level:9,mtime:0}));
+  const blob=Buffer.concat(blocks);
+  let pos=0;
+  const records=blocks.map(bytes=>{
+    const out={url:'hydro.bin',offset:pos,bytes:bytes.length,sha256:hash(bytes)};
+    pos+=bytes.length;return out;
+  });
+  const manifest={
+    version:'0.13.2',schema:'pandolab-water-shards-v5',format:{container:1},
+    index:records[0],metadata:{core:records[1],detail:{...records[2],lazy:true}},
+    shards:records.slice(3).map((r,i)=>({...r,id:i})),
+    container:{url:'hydro.bin',bytes:blob.length,sha256:hash(blob),
+      format:'byte-concatenated-subresources-v1',
+      roles:['index','metadata-core','metadata-detail','shard-0','shard-1','shard-2']}
+  };
+  write(main+'hydro.bin',blob);
+  const manifestBytes=Buffer.from(JSON.stringify(manifest)+'\n');
+  write(main+'manifest.json',manifestBytes);
+  write('assets/js/modules/app-environment.js',Buffer.from("HYDRO_DATA_VERSION = '0.13.2'"));
+  write('scripts/generate-build-metadata.mjs',Buffer.from('assets/data/hydro/v0.13.2/manifest.json'));
+  const pin={path:'hydro/v0.13.2/manifest.json',version:'0.13.2',
+    bytes:manifestBytes.length,sha256:hash(manifestBytes),gitBlobSha:gitHash(manifestBytes)};
+  const app={schema:'pandoeditor-world-dataset',version:1,hydro:pin};
+  write('native-world.json',JSON.stringify(app));
+  return {root,manifest,blob,manifestBytes,pin,app,appFile:join(root,'native-world.json'),write};
 }
-function withFixture(run){
-  const f=fixture();try{return run(f);}finally{rmSync(f.root,{recursive:true,force:true});}
-}
-
-test('resolve nested previous-version dependencies but never escape hydro root',()=>{
-  assert.equal(resolveHydroUrl('hydro/v0.13.1/manifest.json',
-    '../v0.13.0/shards/s1.bin'),'hydro/v0.13.0/shards/s1.bin');
-  for(const invalid of ['/hydro/other','../../out.bin','https://bad',
-    '../v0.12.6/index.bin.gz','../v0.13.0/x?hash=a','..\\v0.13.0\\x']) {
-    assert.throws(()=>resolveHydroUrl('hydro/v0.13.1/manifest.json',invalid));
-  }
-});
-test('manifest role graph reuses five physical previous assets',()=>withFixture(f=>{
-  assert.equal(manifestRoles(f.current,'hydro/v0.13.1/manifest.json').size,6);
-  const result=inspectContracts(f.previous,f.current);
-  assert.deepEqual(result.reused.map(x=>x.role),['index','metadata-detail','shard-0','shard-1','shard-2']);
-  assert.equal(result.unique.length,1);
-  assert.ok(result.avoidedDuplicateBytes>0);
+function fixture(run){const f=makeFixture();try{return run(f);}finally{rmSync(f.root,{recursive:true,force:true});}}
+test('manifest six roles cover the exact concatenated container',()=>fixture(f=>{
+  const parts=manifestRoles(f.manifest);
+  assert.equal(parts.length,6);
+  assert.equal(parts.at(-1).offset+parts.at(-1).bytes,f.blob.length);
 }));
-test('shared GIS geometry cannot silently change or be duplicated',()=>withFixture(f=>{
-  const copied=structuredClone(f.current);
-  copied.shards[0].url='shards/s0.bin';
-  assert.throws(()=>inspectContracts(f.previous,copied),/copied or changed/);
-  const mismatch=structuredClone(f.current);
-  mismatch.index.sha256='1'.repeat(64);
-  assert.throws(()=>inspectContracts(f.previous,mismatch),/copied or changed/);
-  const changed=structuredClone(f.current);
-  changed.stages=[{id:1}];
-  assert.throws(()=>inspectContracts(f.previous,changed),/contract changed/);
+test('two real files, current runtime and v1 native pin pass without legacy files',()=>fixture(f=>{
+  const result=auditLayout(f.root,{appManifest:[f.appFile]});
+  assert.equal(result.passed,true);
+  assert.equal(result.activeFiles,2);
+  assert.equal(result.previousFileCount,0);
+  assert.equal(result.nativePinsVerified,1);
+  assert.equal(result.roles.length,6);
 }));
-test('read-only actual file audit checks bytes, gzip benchmark and native pin',()=>withFixture(f=>{
-  const a=auditLayout(f.root,{appManifest:f.appFile});
-  assert.equal(a.passed,true);
-  assert.equal(a.binaryFilesChecked,8);
-  assert.equal(a.currentReleaseFiles,2);
-  assert.equal(a.previousReleaseFiles,7);
-  assert.equal(a.reusedRoles.length,5);
-  assert.equal(a.compressionBenchmark.length,4);
-  assert.equal(a.nativePinVerified,true);
-  assert.deepEqual(a.previousOrphanCandidates,[]);
+test('v2 native pin and archived provenance fields also pass',()=>fixture(f=>{
+  f.write('native-world.json',JSON.stringify({...f.app,version:2,hydro:{
+    ...f.pin,source:{path:'assets/data/hydro/v0.13.2/manifest.json'}}}));
+  assert.equal(auditLayout(f.root,{appManifest:f.appFile}).nativePinsVerified,1);
 }));
-test('tampered data fails exact SHA-256 even when stored byte length stays equal',()=>withFixture(f=>{
-  const target=join(f.root,oldDir,'shards/s0.bin');
-  const original=readFileSync(target);
-  writeFileSync(target,Buffer.alloc(original.length,0));
-  assert.throws(()=>auditLayout(f.root),/SHA-256 mismatch/);
+test('retired v0.13.0/1 file must fail strict mode, but preflight may report it',()=>fixture(f=>{
+  f.write('assets/data/hydro/v0.13.0/index.bin.gz','archival left-behind');
+  assert.throws(()=>auditLayout(f.root),/Old production hydro/);
+  const pre=auditLayout(f.root,{allowRetired:true});
+  assert.equal(pre.previousFileCount,1);
+  assert.equal(pre.strictRetirement,false);
 }));
-test('unreferenced new-release binary is rejected, old-release extra is reported only',()=>withFixture(f=>{
-  mkdirSync(join(f.root,newDir,'shards'),{recursive:true});
-  writeFileSync(join(f.root,newDir,'shards/duplicate.bin'),'junk');
-  assert.throws(()=>auditLayout(f.root),/Unreferenced binary copies/);
-  rmSync(join(f.root,newDir,'shards'),{recursive:true});
-  writeFileSync(join(f.root,oldDir,'legacy.bin'),'old');
-  const a=auditLayout(f.root);
-  assert.deepEqual(a.previousOrphanCandidates,['hydro/v0.13.0/legacy.bin']);
+test('all active files must be exactly manifest plus container',()=>fixture(f=>{
+  f.write(main+'extra.bin','junk');
+  assert.throws(()=>auditLayout(f.root),/exactly two files/);
 }));
-test('native app manifest must pin the exact current bytes and Git Blob',()=>withFixture(f=>{
-  writeFileSync(f.appFile,JSON.stringify({...f.pin,hydro:{...f.pin.hydro,bytes:7}}));
-  assert.throws(()=>auditLayout(f.root,{appManifest:f.appFile}),/Native app pinned/);
+test('tampering with container byte at original length fails',()=>fixture(f=>{
+  const changed=Buffer.from(f.blob);changed[0]^=1;
+  f.write(main+'hydro.bin',changed);
+  assert.throws(()=>auditLayout(f.root),/SHA-256 differs/);
+}));
+test('overlap, gap, missing piece and unsafe URL are rejected',()=>fixture(f=>{
+  const changed=structuredClone(f.manifest);
+  changed.metadata.core.offset++;
+  assert.throws(()=>manifestRoles(changed),/overlapping or missing/);
+  changed.metadata.core.offset--;
+  changed.shards[1].bytes=0;
+  assert.throws(()=>manifestRoles(changed),/overlapping or missing/);
+  changed.shards[1].bytes=f.manifest.shards[1].bytes;
+  changed.shards[1].url='../legacy.bin';
+  assert.throws(()=>manifestRoles(changed),/overlapping or missing/);
+}));
+test('native app cannot silently drift from current manifest',()=>fixture(f=>{
+  f.write('native-world.json',JSON.stringify({...f.app,hydro:{...f.pin,gitBlobSha:'0'.repeat(40)}}));
+  assert.throws(()=>auditLayout(f.root,{appManifest:f.appFile}),/Native app hydro pin/);
 }));
 
-test('native v1 pin may omit v2-only bytes and source fields',()=>withFixture(f=>{
-  const compact={...f.pin,version:1,hydro:{...f.pin.hydro}};
-  delete compact.hydro.bytes;
-  writeFileSync(f.appFile,JSON.stringify(compact));
-  const a=auditLayout(f.root,{appManifest:[f.appFile]});
-  assert.equal(a.nativePinsVerified,1);
-  assert.equal(a.nativePinVerified,true);
-}));
