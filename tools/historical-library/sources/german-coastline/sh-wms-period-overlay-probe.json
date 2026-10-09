@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-10-09",
+  "referenceDate": "1914-07-31",
+  "service": "https://dienste.gdi-sh.de/WMS_SH_FD_Chronologen",
+  "serviceLicenseCredit": "© GeoBasis-DE/LVermGeo SH/CC BY 4.0",
+  "source": "https://www.govdata.de/suche/daten/preussische-landesaufnahme-bis-1950-chronologen",
+  "modernWorkingGeometry": "tools/historical-library/working/german-empire-1914-base.geojson",
+  "mapProjection": "WMS 1.3.0 EPSG:4326 axis-ordered request",
+  "status": "service-read-map-unavailable",
+  "independent1914ShorelineDigitized": false,
+  "actual1914PixelDisplacementMeasured": false,
+  "historicOverlayStopThresholdPassed": null,
+  "warnings": [
+    "WMS Chronologen layers are period RANGE groupings: layer 2 1902-1930 can contain post-1914 maps. Survey and revision years are NOT established per pixel.",
+    "A mapped dike or defended tidal basin is not automatically a dry-land sea edge.",
+    "Red line is website-derived modern generalized working data and does not establish historical accuracy.",
+    "Raster overlay is only an independent source VISUALIZATION. No historical coastline is digitized or changed."
+  ],
+  "panels": [
+    {
+      "id": "eider-mouth",
+      "label": "Eider mouth / 1973 barrage",
+      "bbox": [
+        8.62,
+        54.22,
+        8.98,
+        54.395
+      ],
+      "layerImages": [
+        {
+          "layerName": "3",
+          "declaredRange": "1878-1880",
+          "serviceLayerMetadata": {
+            "name": "3",
+            "title": "Chronologen_1_1878-1880",
+            "extentLonLat": [
+              7.800886,
+              53.377835,
+              11.377037,
+              55.101506
+            ]
+          },
+          "bboxInsideLayerExtent": true,
+          "actualSurveyOrRevisionYearVerified": false,
+          "independentShorelineVectorDigitized": false,
+          "historic1914ToCurrentCssPx": null,
+          "httpStatus": 200,
+          "mimeType": "image/png",
+          "downloadBytes": 9217,
+          "sha256": "a91e7dfd551c01a4672da1f7461fb8091f3be4c5e7a31c2d83f701fcae0373f3",
+          "fetchStatus": "error",
+          "error": "ValueError: Response is entirely transparent / no map coverage"
+        },
+        {
+          "layerName": "2",
+          "declaredRange": "1902-1930",
+          "serviceLayerMetadata": {
+            "name": "2",
+            "title": "Chronologen_2_1902-1930",
+            "extentLonLat": [
+              7.797623,
+              53.377973,
+              11.378737,
+              55.101409
+            ]
+          },
+          "bboxInsideLayerExtent": true,
+          "actualSurveyOrRevisionYearVerified": false,
+          "independentShorelineVectorDigitized": false,
+          "historic1914ToCurrentCssPx": null,
+          "httpStatus": 200,
+          "mimeType": "image/png",
+          "downloadBytes": 9217,
+          "sha256": "a91e7dfd551c01a4672da1f7461fb8091f3be4c5e7a31c2d83f701fcae0373f3",
+          "fetchStatus": "error",
+          "error": "ValueError: Response is entirely transparent / no map coverage"
+        }
+      ]
+    },
+    {
+      "id": "eiderstedt-husum",
+      "label": "Eiderstedt to Husum",
+      "bbox": [
+        8.5,
+        54.36,
+        9.02,
+        54.62
+      ],
+      "layerImages": [
+        {
+          "layerName": "3",
+          "declaredRange": "1878-1880",
+          "serviceLayerMetadata": {
+            "name": "3",
+            "title": "Chronologen_1_1878-1880",
+            "extentLonLat": [
+              7.800886,
+              53.377835,
+              11.377037,
+              55.101506
+            ]
+          },
+          "bboxInsideLayerExtent": true,
+          "actualSurveyOrRevisionYearVerified": false,
+          "independentShorelineVectorDigitized": false,
+          "historic1914ToCurrentCssPx": null,
+          "httpStatus": 200,
+          "mimeType": "image/png",
+          "downloadBytes": 9217,
+          "sha256": "a91e7dfd551c01a4672da1f7461fb8091f3be4c5e7a31c2d83f701fcae0373f3",
+          "fetchStatus": "error",
+          "error": "ValueError: Response is entirely transparent / no map coverage"
+        },
+        {
+          "layerName": "2",
+          "declaredRange": "1902-1930",
+          "serviceLayerMetadata": {
+            "name": "2",
+            "title": "Chronologen_2_1902-1930",
+            "extentLonLat": [
+              7.797623,
+              53.377973,
+              11.378737,
+              55.101409
+            ]
+          },
+          "bboxInsideLayerExtent": true,
+          "actualSurveyOrRevisionYearVerified": false,
+          "independentShorelineVectorDigitized": false,
+          "historic1914ToCurrentCssPx": null,
+          "httpStatus": 200,
+          "mimeType": "image/png",
+          "downloadBytes": 9217,
+          "sha256": "a91e7dfd551c01a4672da1f7461fb8091f3be4c5e7a31c2d83f701fcae0373f3",
+          "fetchStatus": "error",
+          "error": "ValueError: Response is entirely transparent / no map coverage"
+        }
+      ]
+    },
+    {
+      "id": "hauke-haien-koog",
+      "label": "Hauke-Haien-Koog 1958-1959",
+      "bbox": [
+        8.49,
+        54.585,
+        8.96,
+        54.82
+      ],
+      "layerImages": [
+        {
+          "layerName": "3",
+          "declaredRange": "1878-1880",
+          "serviceLayerMetadata": {
+            "name": "3",
+            "title": "Chronologen_1_1878-1880",
+            "extentLonLat": [
+              7.800886,
+              53.377835,
+              11.377037,
+              55.101506
+            ]
+          },
+          "bboxInsideLayerExtent": true,
+          "actualSurveyOrRevisionYearVerified": false,
+          "independentShorelineVectorDigitized": false,
+          "historic1914ToCurrentCssPx": null,
+          "httpStatus": 200,
+          "mimeType": "image/png",
+          "downloadBytes": 9217,
+          "sha256": "a91e7dfd551c01a4672da1f7461fb8091f3be4c5e7a31c2d83f701fcae0373f3",
+          "fetchStatus": "error",
+          "error": "ValueError: Response is entirely transparent / no map coverage"
+        },
+        {
+          "layerName": "2",
+          "declaredRange": "1902-1930",
+          "serviceLayerMetadata": {
+            "name": "2",
+            "title": "Chronologen_2_1902-1930",
+            "extentLonLat": [
+              7.797623,
+              53.377973,
+              11.378737,
+              55.101409
+            ]
+          },
+          "bboxInsideLayerExtent": true,
+          "actualSurveyOrRevisionYearVerified": false,
+          "independentShorelineVectorDigitized": false,
+          "historic1914ToCurrentCssPx": null,
+          "httpStatus": 200,
+          "mimeType": "image/png",
+          "downloadBytes": 9217,
+          "sha256": "a91e7dfd551c01a4672da1f7461fb8091f3be4c5e7a31c2d83f701fcae0373f3",
+          "fetchStatus": "error",
+          "error": "ValueError: Response is entirely transparent / no map coverage"
+        }
+      ]
+    },
+    {
+      "id": "beltringharder",
+      "label": "Beltringharder Koog 1987",
+      "bbox": [
+        8.38,
+        54.445,
+        8.77,
+        54.655
+      ],
+      "layerImages": [
+        {
+          "layerName": "3",
+          "declaredRange": "1878-1880",
+          "serviceLayerMetadata": {
+            "name": "3",
+            "title": "Chronologen_1_1878-1880",
+            "extentLonLat": [
+              7.800886,
+              53.377835,
+              11.377037,
+              55.101506
+            ]
+          },
+          "bboxInsideLayerExtent": true,
+          "actualSurveyOrRevisionYearVerified": false,
+          "independentShorelineVectorDigitized": false,
+          "historic1914ToCurrentCssPx": null,
+          "httpStatus": 200,
+          "mimeType": "image/png",
+          "downloadBytes": 9217,
+          "sha256": "a91e7dfd551c01a4672da1f7461fb8091f3be4c5e7a31c2d83f701fcae0373f3",
+          "fetchStatus": "error",
+          "error": "ValueError: Response is entirely transparent / no map coverage"
+        },
+        {
+          "layerName": "2",
+          "declaredRange": "1902-1930",
+          "serviceLayerMetadata": {
+            "name": "2",
+            "title": "Chronologen_2_1902-1930",
+            "extentLonLat": [
+              7.797623,
+              53.377973,
+              11.378737,
+              55.101409
+            ]
+          },
+          "bboxInsideLayerExtent": true,
+          "actualSurveyOrRevisionYearVerified": false,
+          "independentShorelineVectorDigitized": false,
+          "historic1914ToCurrentCssPx": null,
+          "httpStatus": 200,
+          "mimeType": "image/png",
+          "downloadBytes": 9217,
+          "sha256": "a91e7dfd551c01a4672da1f7461fb8091f3be4c5e7a31c2d83f701fcae0373f3",
+          "fetchStatus": "error",
+          "error": "ValueError: Response is entirely transparent / no map coverage"
+        }
+      ]
+    }
+  ],
+  "serviceCapabilities": {
+    "httpStatus": 200,
+    "bytes": 20556,
+    "sha256": "2839132bb43e59eaf98c021dcfc3caa8dcb60298fb134ed05574be4303f12ad0",
+    "rootExtentLonLat": [
+      7.797571,
+      53.377404,
+      11.378839,
+      55.103139
+    ],
+    "layers": [
+      {
+        "name": "0",
+        "title": "Chronologen_4_1953-1956",
+        "extentLonLat": [
+          8.151013,
+          53.377423,
+          11.377808,
+          55.103139
+        ]
+      },
+      {
+        "name": "1",
+        "title": "Chronologen_3_1932-1950",
+        "extentLonLat": [
+          8.150206,
+          53.377536,
+          11.377295,
+          55.101471
+        ]
+      },
+      {
+        "name": "2",
+        "title": "Chronologen_2_1902-1930",
+        "extentLonLat": [
+          7.797623,
+          53.377973,
+          11.378737,
+          55.101409
+        ]
+      },
+      {
+        "name": "3",
+        "title": "Chronologen_1_1878-1880",
+        "extentLonLat": [
+          7.800886,
+          53.377835,
+          11.377037,
+          55.101506
+        ]
+      }
+    ]
+  },
+  "successfulLayerImages": 0,
+  "ciRunId": "37920246288"
+}
