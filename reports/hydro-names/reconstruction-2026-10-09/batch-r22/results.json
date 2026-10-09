@@ -1,0 +1,199 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r22",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three logical MAIN_RIV inventory groups; not three uniformly named channels or scalar-name approvals.",
+  "counts": {
+    "supported_representative_system_identity": 2,
+    "river_group_name_scope_hold": 1
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 3,
+  "river_line_part_count": 132,
+  "distinct_source_reach_count": 132,
+  "river_rendered_coordinate_count": 926,
+  "part_counts_in_target_order": [
+    61,
+    29,
+    42
+  ],
+  "position_counts_in_target_order": [
+    432,
+    192,
+    302
+  ],
+  "fragment_part_counts_in_target_order": [
+    [
+      61
+    ],
+    [
+      29
+    ],
+    [
+      42
+    ]
+  ],
+  "fragment_position_counts_in_target_order": [
+    [
+      432
+    ],
+    [
+      192
+    ],
+    [
+      302
+    ]
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50729167",
+      "category": "river_group",
+      "system_id": "50729167",
+      "baseline_logical_fid": 2071,
+      "geometry_fids": [
+        7029
+      ],
+      "candidate_name": "Macleay River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path descends southeast from its northwestern headwater, curves northeast through the middle corridor, then turns southeast into a broad southern bend and northeast toward the coast. Direct blue Macleay river-line labels support Macleay River as a representative system identity. The long northwestern feeder course is not individually named by the inspected maps, and the modeled mainstem role does not make every part Macleay. Exact feeder-to-main-river name transitions, any river/storage interfaces and the coastal ending remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "Direct blue Macleay river-line wording supports the association; the black Macleay River catchment leader supplies the contextual full form and is not sole identity evidence.",
+        "The northwestern upper feeder is not independently named; no guessed tributary name or exact rendered-part partition is assigned.",
+        "The original publication is a coarse regional assessment, not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name mapping are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Macleay River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:50738894",
+      "category": "river_group",
+      "system_id": "50738894",
+      "baseline_logical_fid": 2085,
+      "geometry_fids": [
+        7043
+      ],
+      "candidate_name": "Hastings River",
+      "research_category": "river_group_name_scope_hold",
+      "independent_review_status": "geographic_candidate_only_river_name_scope_hold",
+      "supported_name_scope": "The complete selected path descends south from its northwestern headwater and then follows an eastward corridor to the Port Macquarie coast. It corresponds geographically to mapped channels within the Hastings River catchment context. Hastings River is a geographic candidate only: Figure 4.22 provides a catchment leader and Table 4.4 a River basin entry, but no direct Hastings river-line label or named Hastings station was established in the inspected maps. This does not support representative river identity or name coverage over the complete selected group. The modeled mainstem role does not name the headwater or feeder course, storage interfaces or coastal ending. The whole-group naming scope remains on hold.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The Hastings River catchment leader and River basin table entry establish geographic context only, not a directly named river line or whole-group identity.",
+        "No named Hastings station was found in the inspected maps; numeric discharge symbols and unlabelled flood-site dots are not named-station evidence.",
+        "Table 4.4 describes Port Macquarie and Cowarra as off-creek storages. Their supply relationship does not put either storage on the selected path or establish a river/storage name boundary.",
+        "The original publication is a coarse regional assessment, not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name mapping are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_scope_hold",
+        "directly_supported_name_forms": [],
+        "follow_up_scope": "Obtain direct river-name or named-station evidence that resolves identity and naming coverage for the complete selected group before promoting the Hastings River candidate. Any separately authorized reach-level or scalar product application also requires headwater/feeder, storage-interface and coastal naming evidence. No geometry repair or new acquisition is prescribed by this bounded hold.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:50746648",
+      "category": "river_group",
+      "system_id": "50746648",
+      "baseline_logical_fid": 2098,
+      "geometry_fids": [
+        7056
+      ],
+      "candidate_name": "Manning River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path runs east and southeast from a far-western headwater through a long upper corridor, then bends east and northeast along the lower coastal course. Direct blue Manning river-line labels support Manning River as a representative system identity. The long western and northwestern feeder course is not individually named by the inspected maps, and the modeled mainstem role does not make every part Manning. Exact feeder-to-main-river name transitions, any river/storage interfaces and the coastal ending remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "Direct blue Manning river-line wording supports the association; the black Manning River catchment leader supplies the contextual full form and is not sole identity evidence.",
+        "The long western and northwestern upper feeder is not independently named; no guessed tributary name or exact rendered-part partition is assigned.",
+        "The original publication is a coarse regional assessment, not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name mapping are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Manning River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "98727ec5dd4fa2fbf2a3f7794a0884d9d794ed7e82e206d3b2f879c14c11526a",
+  "publication_contents": "Own factual findings, bounded identity/count/bounds/name-state summaries and included-file validation. Full river paths, original reports, maps and private review materials are not distributed.",
+  "previous_reconstruction_commit": "7146fe1efacebda9995365c5c51339eac5e62c95"
+}

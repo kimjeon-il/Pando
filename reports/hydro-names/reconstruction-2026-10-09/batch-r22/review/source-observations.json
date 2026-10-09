@@ -1,0 +1,128 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r22",
+  "scope_aw_ids": [
+    "hydro-system:50729167",
+    "hydro-system:50738894",
+    "hydro-system:50746648"
+  ],
+  "new_external_requests": 0,
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "figures": [
+        {
+          "figure": "4.1",
+          "physical_pdf_page": 120,
+          "printed_chapter_page": 5,
+          "scope": "Direct blue Macleay and Manning river-line labels and whole-region geography; town names are context only"
+        },
+        {
+          "figure": "4.22",
+          "physical_pdf_page": 142,
+          "printed_chapter_page": 27,
+          "scope": "Macleay River, Hastings River and Manning River catchment leader-label context only; not sole river-line identity evidence"
+        },
+        {
+          "figure": "4.23",
+          "physical_pdf_page": 144,
+          "printed_chapter_page": 29,
+          "scope": "Numeric discharge-site context only; no named-station identity evidence"
+        },
+        {
+          "figure": "4.25",
+          "physical_pdf_page": 147,
+          "printed_chapter_page": 32,
+          "scope": "Unlabelled flood-monitoring dots are context only; no named Hastings station established"
+        },
+        {
+          "figure": "4.26",
+          "physical_pdf_page": 149,
+          "printed_chapter_page": 34,
+          "scope": "Direct blue Macleay and Manning river-line labels; storage symbols are context only"
+        },
+        {
+          "figure": "4.35",
+          "physical_pdf_page": 160,
+          "printed_chapter_page": 45,
+          "scope": "Regional river-line and urban-storage context; no direct Hastings river-name evidence established"
+        },
+        {
+          "figure": "4.45",
+          "physical_pdf_page": 172,
+          "printed_chapter_page": 57,
+          "scope": "Direct blue Macleay and Manning river-line labels; irrigation and storage symbols are context only"
+        }
+      ],
+      "observation": "Original pages and legends were viewed. Direct blue Macleay and Manning labels follow river lines; their contextual full forms occur in the catchment map. Hastings River appears as a catchment leader and River basin table entry only. Numeric discharge symbols, unlabelled flood-site dots, town names and off-creek storage supply relationships do not provide a named Hastings channel or station. Multiple figures remain one publication and one source group.",
+      "is_formal_naming_registry": false,
+      "supporting_text_physical_pdf_pages": [
+        159
+      ],
+      "tables": [
+        {
+          "table": "4.4",
+          "physical_pdf_page": 159,
+          "printed_chapter_page": 44,
+          "scope": "Hastings River is a River basin entry for Port Macquarie; Port Macquarie and Cowarra are off-creek storages. Basin and supply context only, not direct channel identity or on-path storage evidence."
+        }
+      ]
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50729167",
+      "geometry_fids": [
+        7029
+      ],
+      "fragment_count": 1,
+      "part_count": 61,
+      "position_count": 432,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path descends southeast from its northwestern headwater, curves northeast through the middle corridor, then turns southeast into a broad southern bend and northeast toward the coast. Direct blue Macleay river-line labels support Macleay River as a representative system identity. The long northwestern feeder course is not individually named by the inspected maps, and the modeled mainstem role does not make every part Macleay. Exact feeder-to-main-river name transitions, any river/storage interfaces and the coastal ending remain unassigned at reach level."
+    },
+    {
+      "aw_id": "hydro-system:50738894",
+      "geometry_fids": [
+        7043
+      ],
+      "fragment_count": 1,
+      "part_count": 29,
+      "position_count": 192,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path descends south from its northwestern headwater and then follows an eastward corridor to the Port Macquarie coast. It corresponds geographically to mapped channels within the Hastings River catchment context. Hastings River is a geographic candidate only: Figure 4.22 provides a catchment leader and Table 4.4 a River basin entry, but no direct Hastings river-line label or named Hastings station was established in the inspected maps. This does not support representative river identity or name coverage over the complete selected group. The modeled mainstem role does not name the headwater or feeder course, storage interfaces or coastal ending. The whole-group naming scope remains on hold."
+    },
+    {
+      "aw_id": "hydro-system:50746648",
+      "geometry_fids": [
+        7056
+      ],
+      "fragment_count": 1,
+      "part_count": 42,
+      "position_count": 302,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path runs east and southeast from a far-western headwater through a long upper corridor, then bends east and northeast along the lower coastal course. Direct blue Manning river-line labels support Manning River as a representative system identity. The long western and northwestern feeder course is not individually named by the inspected maps, and the modeled mainstem role does not make every part Manning. Exact feeder-to-main-river name transitions, any river/storage interfaces and the coastal ending remain unassigned at reach level."
+    }
+  ],
+  "source_limit": "Low-resolution regional maps support bounded Macleay and Manning representative associations. Hastings remains a geographic candidate under a river-group naming-scope hold because direct channel/station naming evidence was not established. These maps do not resolve precise name transitions, every feeder, storage water boundaries or a contemporary surveyed mouth. Original map bodies and complete paths are omitted; public validators cannot replay their interpretation."
+}

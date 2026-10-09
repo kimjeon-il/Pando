@@ -1,0 +1,93 @@
+{
+  "schema": "selected-river-inventory-summary-public-v1",
+  "scope_aw_ids": [
+    "hydro-system:50729167",
+    "hydro-system:50738894",
+    "hydro-system:50746648"
+  ],
+  "scope_system_ids": [
+    "50729167",
+    "50738894",
+    "50746648"
+  ],
+  "records": [
+    {
+      "aw_id": "hydro-system:50729167",
+      "category": "river",
+      "system_id": "50729167",
+      "logical_fid": 2071,
+      "geometry_fids": [
+        7029
+      ],
+      "geometry_count": 1,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50729167"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        151.660417,
+        -31.089583,
+        153.03125,
+        -30.3375
+      ],
+      "minimum_stage": 3,
+      "source_reach_count": 61,
+      "rendered_mainstem_length_km": 299.95,
+      "rendered_network_length_km": 299.95
+    },
+    {
+      "aw_id": "hydro-system:50738894",
+      "category": "river",
+      "system_id": "50738894",
+      "logical_fid": 2085,
+      "geometry_fids": [
+        7043
+      ],
+      "geometry_count": 1,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50738894"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        152.20625,
+        -31.48125,
+        152.916629,
+        -31.139583
+      ],
+      "minimum_stage": 3,
+      "source_reach_count": 29,
+      "rendered_mainstem_length_km": 134.436,
+      "rendered_network_length_km": 134.436
+    },
+    {
+      "aw_id": "hydro-system:50746648",
+      "category": "river",
+      "system_id": "50746648",
+      "logical_fid": 2098,
+      "geometry_fids": [
+        7056
+      ],
+      "geometry_count": 1,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50746648"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        151.195833,
+        -31.939583,
+        152.660132,
+        -31.5375
+      ],
+      "minimum_stage": 3,
+      "source_reach_count": 42,
+      "rendered_mainstem_length_km": 213.909,
+      "rendered_network_length_km": 213.909
+    }
+  ],
+  "selected_inventory_summary_only": true,
+  "original_inventory_rows_included": false,
+  "historical_names_used_as_identity_evidence": false
+}
