@@ -220,3 +220,106 @@ for ownership, land, lake and connectivity.
 
 **Status:** investigation continued; no new verified dated external coastline
 polygon, geometry patch or completed footprint classification is claimed.
+
+
+## 9. Natural Earth generalization / source-age audit — 2026-10-10
+
+The earlier Maasvlakte 2 screening discrepancy must **not** be classified as a
+verified missing modern reclamation footprint.
+
+### 9.1 Intended scale makes kilometre-scale displacement plausible
+
+Natural Earth explicitly describes its linework as carefully generalized for
+fixed small-map scales. The 1:10m product is intended for maps around
+1:10,000,000, where 1 cm on the map represents 100 km on the ground.
+
+At that design scale, the current ~2.66 km screening distance between the
+published Maasvlakte 2 place point and the Pando/Natural Earth NLD boundary is
+only about **0.266 mm on the intended map**. That is small enough to be
+cartographically generalized or absorbed by line shape/weight. Pando's
+`flatZoom=64` then magnifies that source-scale generalization far beyond the
+dataset's intended display scale, making the discrepancy visually prominent.
+
+Natural Earth itself warns that its data is a general world dataset and that
+zooming far beyond the intended display resolution exposes apparent boundary
+inaccuracy.
+
+References:
+- https://www.naturalearthdata.com/
+- https://www.naturalearthdata.com/downloads/
+- https://www.naturalearthdata.com/about/data-creation/
+- https://www.naturalearthdata.com/forums/reply/re-poor-accuracy-of-the-boundaries/
+
+### 9.2 Version number is not a shoreline epoch
+
+Natural Earth v5.1.1 was released in May 2022, but its changelog does **not**
+describe a contemporary Netherlands shoreline refresh. The v5.1.1 changes to
+admin-0 and land themes are primarily field/PostGIS compatibility changes.
+
+The 2018 v4.1.0 release switched administrative and 10m land/ocean topology
+building to MapShaper and states that some shapes were adjusted for new
+snapping tolerances; it was not a systematic worldwide contemporary coastline
+redigitization. Natural Earth's changelog contains no Maasvlakte entry and no
+Netherlands mainland-coast update relevant to Maasvlakte 2.
+
+The 2013 v3.0.0 coastline rebuild was triggered by specifically documented
+New Zealand coastline changes. This reinforces the rule that a later Natural
+Earth package version must not be interpreted as a surveyed shoreline of the
+same year.
+
+References:
+- https://github.com/nvkelso/natural-earth-vector/blob/master/CHANGELOG
+- https://github.com/nvkelso/natural-earth-vector/releases
+- https://www.naturalearthdata.com/downloads/10m-physical-vectors/
+
+### 9.3 Maasvlakte 2 is large but still near the Natural Earth detail threshold
+
+Port of Rotterdam describes Maasvlakte 2 as about **2,000 ha (20 km²)** of new
+land, constructed 2008–2013. The first development phase alone produced about
+700 ha. This is a real, large reclamation, but its several-kilometre coastal
+projection is still only fractions of a millimetre at Natural Earth's intended
+1:10m scale.
+
+References:
+- https://www.portofrotterdam.com/en/news-and-press-releases/maasvlakte-2-five-years-operation
+- https://www.portofrotterdam.com/sites/default/files/2023-03/widening-the-yangtze-canal.pdf
+
+### 9.4 Revised classification
+
+Current evidence supports this classification:
+
+- **verified:** the Pando canonical NLD geometry follows a generalized Natural
+  Earth 1:10m baseline, not a survey-grade current Dutch shoreline;
+- **verified:** the published Maasvlakte 2 sample lies materially seaward of
+  that generalized boundary at Pando max zoom;
+- **not verified:** that the difference equals the actual Maasvlakte 2 missing
+  footprint;
+- **plausible causes:** intended cartographic generalization, old/unrefreshed
+  coastline linework, and actual omission of some post-2008 reclamation;
+- **cannot yet separate those causes quantitatively** without comparing the
+  Natural Earth line to a current survey/topographic coastline and then to a
+  pre-Maasvlakte-2 dated coastline.
+
+Therefore the earlier wording “current outer coast materially incomplete at
+sample” should be read as **“current generalized baseline differs materially
+from survey-scale modern coastline at the sample when magnified to Pando max
+zoom”**, not as proof of a source-data omission.
+
+### 9.5 Correct comparison chain
+
+For all Dutch reclamation work, use:
+
+```text
+Natural Earth/Pando current baseline
+        ↓ compare
+current PDOK/TOP10NL survey/topographic coastline
+        = baseline generalization / source-age error
+        ↓ compare
+dated historical Dutch coastline
+        = actual historical shoreline change
+        ↓ generalize to Pando-compatible detail
+historical Pando geometry
+```
+
+Do not use the raw Natural Earth-to-historical-map difference as the
+reclamation delta.
