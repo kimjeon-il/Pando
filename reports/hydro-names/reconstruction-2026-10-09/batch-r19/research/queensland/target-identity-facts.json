@@ -1,0 +1,246 @@
+{
+  "schema": "hydro-public-target-identity-facts-v2",
+  "batch": "r19",
+  "selection_scope": "Three actual river-system inventory groups in fixed order; all complete deployed baseline fragments were considered. No historical name verdict restored.",
+  "targets": [
+    {
+      "aw_id": "hydro-system:50517279",
+      "system_id": "50517279",
+      "logical_fid": 1859,
+      "baseline_fids": [
+        6789,
+        6790,
+        6791,
+        6792,
+        6793,
+        6794,
+        6795,
+        6796
+      ],
+      "inventory_geometry_count": 8,
+      "inventory_bbox": [
+        144.86875,
+        -21.422917,
+        147.565278,
+        -18.629167
+      ],
+      "rendered_mainstem_length_km": 657.968,
+      "rendered_network_length_km": 776.567,
+      "source_reach_count": 208,
+      "complete_baseline_part_count": 208,
+      "complete_baseline_coordinate_count": 1034,
+      "graph_role_counts": {
+        "mainstem": 6,
+        "tributary": 2
+      },
+      "fragments": [
+        {
+          "fid": 6789,
+          "fragment_index": 0,
+          "graph_role": "mainstem",
+          "part_count": 68,
+          "coordinate_count": 323
+        },
+        {
+          "fid": 6790,
+          "fragment_index": 1,
+          "graph_role": "mainstem",
+          "part_count": 26,
+          "coordinate_count": 137
+        },
+        {
+          "fid": 6791,
+          "fragment_index": 2,
+          "graph_role": "mainstem",
+          "part_count": 48,
+          "coordinate_count": 254
+        },
+        {
+          "fid": 6792,
+          "fragment_index": 3,
+          "graph_role": "mainstem",
+          "part_count": 9,
+          "coordinate_count": 37
+        },
+        {
+          "fid": 6793,
+          "fragment_index": 4,
+          "graph_role": "mainstem",
+          "part_count": 6,
+          "coordinate_count": 47
+        },
+        {
+          "fid": 6794,
+          "fragment_index": 5,
+          "graph_role": "mainstem",
+          "part_count": 12,
+          "coordinate_count": 74
+        },
+        {
+          "fid": 6795,
+          "fragment_index": 6,
+          "graph_role": "tributary",
+          "part_count": 29,
+          "coordinate_count": 125
+        },
+        {
+          "fid": 6796,
+          "fragment_index": 7,
+          "graph_role": "tributary",
+          "part_count": 10,
+          "coordinate_count": 37
+        }
+      ],
+      "all_selected_fragments_parts_and_positions_considered": true,
+      "baseline_source_name_state": "No meaningful name in deployed inventory. Placeholder display strings are not naming evidence.",
+      "original_hydrorivers_source_coordinate_equality_verified": false,
+      "geometry_modified": false
+    },
+    {
+      "aw_id": "hydro-system:50478600",
+      "system_id": "50478600",
+      "logical_fid": 1826,
+      "baseline_fids": [
+        6740,
+        6741
+      ],
+      "inventory_geometry_count": 2,
+      "inventory_bbox": [
+        141.205412,
+        -19.404167,
+        144.627083,
+        -16.689224
+      ],
+      "rendered_mainstem_length_km": 623.411,
+      "rendered_network_length_km": 623.411,
+      "source_reach_count": 112,
+      "complete_baseline_part_count": 112,
+      "complete_baseline_coordinate_count": 782,
+      "graph_role_counts": {
+        "mainstem": 2,
+        "tributary": 0
+      },
+      "fragments": [
+        {
+          "fid": 6740,
+          "fragment_index": 0,
+          "graph_role": "mainstem",
+          "part_count": 91,
+          "coordinate_count": 580
+        },
+        {
+          "fid": 6741,
+          "fragment_index": 1,
+          "graph_role": "mainstem",
+          "part_count": 21,
+          "coordinate_count": 202
+        }
+      ],
+      "all_selected_fragments_parts_and_positions_considered": true,
+      "baseline_source_name_state": "No meaningful name in deployed inventory. Placeholder display strings are not naming evidence.",
+      "original_hydrorivers_source_coordinate_equality_verified": false,
+      "geometry_modified": false
+    },
+    {
+      "aw_id": "hydro-system:50464082",
+      "system_id": "50464082",
+      "logical_fid": 1810,
+      "baseline_fids": [
+        6714,
+        6715,
+        6716,
+        6717,
+        6718,
+        6719,
+        6720,
+        6721
+      ],
+      "inventory_geometry_count": 8,
+      "inventory_bbox": [
+        141.604259,
+        -17.352083,
+        145.408333,
+        -15.20322
+      ],
+      "rendered_mainstem_length_km": 539.107,
+      "rendered_network_length_km": 1201.283,
+      "source_reach_count": 232,
+      "complete_baseline_part_count": 232,
+      "complete_baseline_coordinate_count": 1544,
+      "graph_role_counts": {
+        "mainstem": 3,
+        "tributary": 5
+      },
+      "fragments": [
+        {
+          "fid": 6714,
+          "fragment_index": 0,
+          "graph_role": "mainstem",
+          "part_count": 64,
+          "coordinate_count": 455
+        },
+        {
+          "fid": 6715,
+          "fragment_index": 1,
+          "graph_role": "mainstem",
+          "part_count": 47,
+          "coordinate_count": 241
+        },
+        {
+          "fid": 6716,
+          "fragment_index": 2,
+          "graph_role": "mainstem",
+          "part_count": 2,
+          "coordinate_count": 4
+        },
+        {
+          "fid": 6717,
+          "fragment_index": 3,
+          "graph_role": "tributary",
+          "part_count": 61,
+          "coordinate_count": 417
+        },
+        {
+          "fid": 6718,
+          "fragment_index": 4,
+          "graph_role": "tributary",
+          "part_count": 8,
+          "coordinate_count": 67
+        },
+        {
+          "fid": 6719,
+          "fragment_index": 5,
+          "graph_role": "tributary",
+          "part_count": 17,
+          "coordinate_count": 105
+        },
+        {
+          "fid": 6720,
+          "fragment_index": 6,
+          "graph_role": "tributary",
+          "part_count": 23,
+          "coordinate_count": 179
+        },
+        {
+          "fid": 6721,
+          "fragment_index": 7,
+          "graph_role": "tributary",
+          "part_count": 10,
+          "coordinate_count": 76
+        }
+      ],
+      "all_selected_fragments_parts_and_positions_considered": true,
+      "baseline_source_name_state": "No meaningful name in deployed inventory. Placeholder display strings are not naming evidence.",
+      "original_hydrorivers_source_coordinate_equality_verified": false,
+      "geometry_modified": false
+    }
+  ],
+  "total_fragment_count": 18,
+  "total_part_count": 552,
+  "total_coordinate_count": 3360,
+  "geometry_note": "Counts, bounds and rendered lengths describe the generalized deployed baseline. Graph mainstem/tributary labels are structural roles, not established river-name scope. Original HydroRIVERS coordinate equality is not independently verified.",
+  "complete_coordinate_arrays_included": false,
+  "included_evidence_limit": "The included files contain bibliography, bounded identity facts and own observations. The complete baseline coordinate paths, original publication, inspection images and private verification are excluded. Public offline checks cannot reproduce the omitted whole-path or map-pixel comparisons.",
+  "automatic_application": false,
+  "product_application": false
+}

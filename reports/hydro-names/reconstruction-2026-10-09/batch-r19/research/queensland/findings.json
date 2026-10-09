@@ -1,0 +1,274 @@
+{
+  "schema": "hydro-bounded-river-findings-v2",
+  "batch": "r19",
+  "frozen_at_utc": "2026-10-09T18:39:12.606078+00:00",
+  "target_count": 3,
+  "new_actual_inventory_targets": 3,
+  "full_feature_correspondence_review_completed_count": 3,
+  "supported_representative_system_identity_count": 3,
+  "source_limited_unresolved_count": 0,
+  "all_reach_names_verified_count": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50517279",
+      "system_id": "50517279",
+      "candidate_name": "Burdekin River",
+      "research_category": "supported_representative_system_identity",
+      "directly_observed_channel_labels": [
+        "Burdekin"
+      ],
+      "directly_supported_name_forms": [
+        "Burdekin River"
+      ],
+      "directly_supported_name_forms_scope": "Supported representative river identity from map labels and prose; this does not name the entire selected network or every graph mainstem fragment.",
+      "supported_name_scope": "The complete selected network has a supported generalized association with the Burdekin drainage, including a mapped Burdekin corridor and a separate southern feeder. Burdekin River is supported for the mapped main-river corridor, not as a scalar name for all eight fragments.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "cartographic_identity_source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "component_associations": [
+        {
+          "scope": "Upper-to-lower mapped main-river corridor",
+          "name": "Burdekin River",
+          "support": "Direct regional channel labels, lower-river channel label and prose; generalized correspondence only.",
+          "exact_reach_assignment": false
+        },
+        {
+          "scope": "Entire selected southern feeder",
+          "name": null,
+          "support": "Geographically within the reviewed drainage; its selected-path name remains unverified. The report mentions Suttor River upstream of the storage, but this text alone does not identify the selected feeder geometry.",
+          "exact_reach_assignment": false
+        },
+        {
+          "scope": "Storage and lower delta context",
+          "name": null,
+          "support": "Burdekin Falls is identified as a storage in the prose, not assigned as a name to the line geometry. Delta and estuary name partitions are unresolved.",
+          "exact_reach_assignment": false
+        }
+      ],
+      "correspondence_observations": [
+        "All eight fragments, including the northwestern head, southeastward upper course, broad southern turn, northward lower course, coastal ending and entire southern feeder, were compared with the regional maps. This uses every selected path, not the group centroid.",
+        "The sinuous upper-to-middle channel is directly labelled Burdekin on Figures 3.1 and 3.22. The lower-river map in Figure 3.61 directly labels the channel Burdekin R.; the adjacent irrigation-area shading and bore symbols are separate layers.",
+        "The separate selected southern feeder reaches the main network near its southern bend. The regional maps depict a feeder here but do not directly establish its full selected-path name. Nearby Cape, Belyando and Bowen labels belong to other mapped corridors and are not copied onto this feeder.",
+        "Section 3.7.4 identifies Burdekin Falls as a storage on the Burdekin River. The continuous baseline line does not delineate reservoir water, its arms or their naming limits. River, storage and irrigation-area identities are not interchanged.",
+        "The coastal endpoint and lower course were included in the review. The maps support the lower-river context, but not an exact tidal boundary, contemporary shoreline connection or name for every delta/distributary segment."
+      ],
+      "name_scope_limits": [
+        "One official assessment is used. Multiple figures and prose passages in it are not independent naming sources. It is a 2013 publication describing the 2011-12 assessment period, not a current legal naming register.",
+        "Regional maps show selected named channels and broader catchment areas. Channel labels are distinguished from catchment titles; neither a catchment title nor a graph mainstem role names every selected reach.",
+        "The retained map images are coarse. Full groups were visually compared, but individual source-reach names, exact name-transition points, reservoir limits, distributary names and tidal or estuarine boundaries remain unverified.",
+        "The complete inspected geometry is the deployed baseline representation. Equality with original HydroRIVERS source coordinates was not independently verified; no source-topology repair or exact shore/mouth fit is claimed."
+      ],
+      "confidence": {
+        "generalized_group_association": "moderate",
+        "named_corridor_associations": "moderate",
+        "whole_group_scalar_name": "not established",
+        "all_reach_name_partition": "not established",
+        "formal_naming_authority_verified": false,
+        "numerical_probability_claimed": false,
+        "basis": "Complete selected network shape and arrangement were visually compared with direct channel labels in one official regional assessment. Coarse map resolution and unlabelled or multiply named branches prevent full reach-level name coverage."
+      },
+      "source_access_limited": false,
+      "source_access_limited_meaning": "The retained original provides usable map coverage over the complete selected group. Naming limits are evidence-resolution and scope limits, not a pending denied-source acquisition.",
+      "map_resolution_limited": true,
+      "full_feature_correspondence_review_completed": true,
+      "review_completion_meaning": "Completed bounded whole-group geographic and name-scope assessment; this does not mean every reach is named or verified.",
+      "follow_up_required": false,
+      "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require: Resolve the southern feeder name and reach-level name scope, including storage transitions and coastal/delta ending, before any per-reach or group scalar name application.",
+      "additional_reach_specific_evidence_required_before_application": true,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "exact_name_partition_established": false,
+      "formal_registry_verified": false,
+      "exact_source_topology_verified": false,
+      "exact_shoreline_or_estuary_boundary_verified": false,
+      "full_geometry_inspected": true,
+      "geometry_modified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:50478600",
+      "system_id": "50478600",
+      "candidate_name": "Gilbert River",
+      "research_category": "supported_representative_system_identity",
+      "directly_observed_channel_labels": [
+        "Gilbert",
+        "Einasleigh"
+      ],
+      "directly_supported_name_forms": [
+        "Gilbert River"
+      ],
+      "directly_supported_name_forms_scope": "Supported representative river identity from map labels and prose; this does not name the entire selected network or every graph mainstem fragment.",
+      "supported_name_scope": "The complete selected path has a supported generalized association with the Gilbert drainage, with lower Gilbert and southeastern upstream Einasleigh corridor associations. Both fragments have a modeled mainstem role; that does not establish one river name along the entire path.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "cartographic_identity_source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "component_associations": [
+        {
+          "scope": "Lower, northwestward selected corridor",
+          "name": "Gilbert",
+          "support": "Direct river-channel label and whole-path regional correspondence.",
+          "exact_reach_assignment": false
+        },
+        {
+          "scope": "Long southeastern upstream selected corridor",
+          "name": "Einasleigh",
+          "support": "Direct separate river-channel label and whole-path regional correspondence; the exact downstream name transition is unresolved.",
+          "exact_reach_assignment": false
+        },
+        {
+          "scope": "Coastal ending and any distributary/estuary partition",
+          "name": null,
+          "support": "Included in the bounded map comparison; exact naming boundaries and terminal shoreline connection remain unverified.",
+          "exact_reach_assignment": false
+        }
+      ],
+      "correspondence_observations": [
+        "Both complete fragments were compared from the far southeastern head through the long northward reach and westward middle bend to the northwestern Gulf ending. All 112 parts were included.",
+        "Figures 15.1 and 15.22 print Gilbert and Einasleigh along distinct river channels. The selected long southeastern extension corresponds regionally to the Einasleigh corridor; the downstream northwestern path corresponds to the lower Gilbert corridor.",
+        "The map evidence therefore does not support propagating the lower Gilbert name through every selected mainstem part. The exact transition between named river corridors is not resolved to a source reach or fragment boundary.",
+        "The outlet portion was inspected against the Gulf coast and regional river network. The assessment describes seasonally variable and braided rivers, but does not resolve all distributaries, estuarine name limits or the exact modern coastline endpoint."
+      ],
+      "name_scope_limits": [
+        "One official assessment is used. Multiple figures and prose passages in it are not independent naming sources. It is a 2013 publication describing the 2011-12 assessment period, not a current legal naming register.",
+        "Regional maps show selected named channels and broader catchment areas. Channel labels are distinguished from catchment titles; neither a catchment title nor a graph mainstem role names every selected reach.",
+        "The retained map images are coarse. Full groups were visually compared, but individual source-reach names, exact name-transition points, reservoir limits, distributary names and tidal or estuarine boundaries remain unverified.",
+        "The complete inspected geometry is the deployed baseline representation. Equality with original HydroRIVERS source coordinates was not independently verified; no source-topology repair or exact shore/mouth fit is claimed."
+      ],
+      "confidence": {
+        "generalized_group_association": "moderate",
+        "named_corridor_associations": "moderate",
+        "whole_group_scalar_name": "not established",
+        "all_reach_name_partition": "not established",
+        "formal_naming_authority_verified": false,
+        "numerical_probability_claimed": false,
+        "basis": "Complete selected network shape and arrangement were visually compared with direct channel labels in one official regional assessment. Coarse map resolution and unlabelled or multiply named branches prevent full reach-level name coverage."
+      },
+      "source_access_limited": false,
+      "source_access_limited_meaning": "The retained original provides usable map coverage over the complete selected group. Naming limits are evidence-resolution and scope limits, not a pending denied-source acquisition.",
+      "map_resolution_limited": true,
+      "full_feature_correspondence_review_completed": true,
+      "review_completion_meaning": "Completed bounded whole-group geographic and name-scope assessment; this does not mean every reach is named or verified.",
+      "follow_up_required": false,
+      "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require: Resolve the Einasleigh/Gilbert name transition and endpoint/distributary scope against sufficiently detailed direct naming evidence before any per-reach or group scalar name application.",
+      "additional_reach_specific_evidence_required_before_application": true,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "exact_name_partition_established": false,
+      "formal_registry_verified": false,
+      "exact_source_topology_verified": false,
+      "exact_shoreline_or_estuary_boundary_verified": false,
+      "full_geometry_inspected": true,
+      "geometry_modified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:50464082",
+      "system_id": "50464082",
+      "candidate_name": "Mitchell River",
+      "research_category": "supported_representative_system_identity",
+      "directly_observed_channel_labels": [
+        "Mitchell",
+        "Palmer",
+        "Walsh"
+      ],
+      "directly_supported_name_forms": [
+        "Mitchell River"
+      ],
+      "directly_supported_name_forms_scope": "Supported representative river identity from map labels and prose; this does not name the entire selected network or every graph mainstem fragment.",
+      "supported_name_scope": "The complete selected network has a supported generalized association with the Mitchell drainage. It includes a lower Mitchell corridor, an eastern modeled-mainstem Palmer corridor, a southern Walsh corridor and another northern feeder whose selected-path name remains unverified. Mitchell River is not a name for every selected mainstem or tributary fragment.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "cartographic_identity_source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "component_associations": [
+        {
+          "scope": "Lower northwestward selected corridor",
+          "name": "Mitchell",
+          "support": "Direct river-channel label and complete network regional correspondence.",
+          "exact_reach_assignment": false
+        },
+        {
+          "scope": "Eastern upper modeled-mainstem corridor",
+          "name": "Palmer",
+          "support": "Direct channel label on a separate mapped upper branch; the correspondence is at corridor scale, not an assignment to every part.",
+          "exact_reach_assignment": false
+        },
+        {
+          "scope": "Long southern selected branch",
+          "name": "Walsh",
+          "support": "Direct channel label and broad branch correspondence; the downstream transition to Mitchell and all source-reach extents are unresolved.",
+          "exact_reach_assignment": false
+        },
+        {
+          "scope": "Shorter northern selected feeder",
+          "name": null,
+          "support": "Entire route was inspected but direct name scope was not established.",
+          "exact_reach_assignment": false
+        },
+        {
+          "scope": "Coastal ending and any distributary/estuary partition",
+          "name": null,
+          "support": "Reviewed geographically; exact names and boundaries remain unresolved.",
+          "exact_reach_assignment": false
+        }
+      ],
+      "correspondence_observations": [
+        "All eight fragments were compared, including the entire eastern upper mainstem, long lower northwestward path and Gulf ending, the complete southern tributary route and the entire shorter northern tributary route.",
+        "Figures 15.1 and 15.22 print Mitchell, Palmer and Walsh directly beside river channels, separately from the Mitchell-Coleman catchment title. The catchment title is not used to assign either name to the whole selected network.",
+        "The eastern modeled-mainstem corridor follows the mapped Palmer branch before the lower Mitchell route. The long southern branch corresponds to the Walsh corridor and its downstream connection toward the Mitchell. Mainstem and tributary are baseline graph roles, not name authority.",
+        "The shorter northern feeder is present in the complete geometry and in the regional river pattern, but no direct name is established for its complete selected course from these map pixels. No inferred Alice or Coleman name is assigned.",
+        "The lower coastal ending was considered together with both tributary junctions. The coarse map does not establish exact named-river transitions, junction-level topology, distributary names or a surveyed current mouth/estuary boundary."
+      ],
+      "name_scope_limits": [
+        "One official assessment is used. Multiple figures and prose passages in it are not independent naming sources. It is a 2013 publication describing the 2011-12 assessment period, not a current legal naming register.",
+        "Regional maps show selected named channels and broader catchment areas. Channel labels are distinguished from catchment titles; neither a catchment title nor a graph mainstem role names every selected reach.",
+        "The retained map images are coarse. Full groups were visually compared, but individual source-reach names, exact name-transition points, reservoir limits, distributary names and tidal or estuarine boundaries remain unverified.",
+        "The complete inspected geometry is the deployed baseline representation. Equality with original HydroRIVERS source coordinates was not independently verified; no source-topology repair or exact shore/mouth fit is claimed."
+      ],
+      "confidence": {
+        "generalized_group_association": "moderate",
+        "named_corridor_associations": "moderate",
+        "whole_group_scalar_name": "not established",
+        "all_reach_name_partition": "not established",
+        "formal_naming_authority_verified": false,
+        "numerical_probability_claimed": false,
+        "basis": "Complete selected network shape and arrangement were visually compared with direct channel labels in one official regional assessment. Coarse map resolution and unlabelled or multiply named branches prevent full reach-level name coverage."
+      },
+      "source_access_limited": false,
+      "source_access_limited_meaning": "The retained original provides usable map coverage over the complete selected group. Naming limits are evidence-resolution and scope limits, not a pending denied-source acquisition.",
+      "map_resolution_limited": true,
+      "full_feature_correspondence_review_completed": true,
+      "review_completion_meaning": "Completed bounded whole-group geographic and name-scope assessment; this does not mean every reach is named or verified.",
+      "follow_up_required": false,
+      "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require: Resolve Palmer/Mitchell and Walsh/Mitchell naming transitions, the northern feeder identity and coastal terminal scope before any per-reach or group scalar name application.",
+      "additional_reach_specific_evidence_required_before_application": true,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "exact_name_partition_established": false,
+      "formal_registry_verified": false,
+      "exact_source_topology_verified": false,
+      "exact_shoreline_or_estuary_boundary_verified": false,
+      "full_geometry_inspected": true,
+      "geometry_modified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "recorded_review_scope": "Three complete baseline groups reviewed against one retained official assessment. Supported generalized drainage/corridor associations complete the bounded scope. Per-reach naming remains outside that completed scope; no uniform whole-group name is established.",
+  "included_evidence_limit": "The included files contain bibliography, bounded identity facts and own observations. The complete baseline coordinate paths, original publication, inspection images and private verification are excluded. Public offline checks cannot reproduce the omitted whole-path or map-pixel comparisons.",
+  "automatic_application": false,
+  "product_application": false
+}

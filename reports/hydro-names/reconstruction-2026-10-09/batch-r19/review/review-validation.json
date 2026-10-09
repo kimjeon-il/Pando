@@ -1,0 +1,428 @@
+{
+  "status": "passed",
+  "mode": "included_public_files_only",
+  "validation": {
+    "status": "passed",
+    "mode": "included_public_files_only",
+    "scope_aw_ids": [
+      "hydro-system:50517279",
+      "hydro-system:50478600",
+      "hydro-system:50464082"
+    ],
+    "included_geometry_summary_checks": [
+      {
+        "aw_id": "hydro-system:50517279",
+        "fragment_count": 8,
+        "part_count": 208,
+        "position_count": 1034,
+        "included_summaries_consistent": true,
+        "omitted_coordinates_recomputed": false
+      },
+      {
+        "aw_id": "hydro-system:50478600",
+        "fragment_count": 2,
+        "part_count": 112,
+        "position_count": 782,
+        "included_summaries_consistent": true,
+        "omitted_coordinates_recomputed": false
+      },
+      {
+        "aw_id": "hydro-system:50464082",
+        "fragment_count": 8,
+        "part_count": 232,
+        "position_count": 1544,
+        "included_summaries_consistent": true,
+        "omitted_coordinates_recomputed": false
+      }
+    ],
+    "recorded_fragment_count": 18,
+    "recorded_part_count": 552,
+    "recorded_position_count": 3360,
+    "recorded_full_feature_correspondence_reviews_completed": 3,
+    "representative_system_identities_supported": 3,
+    "current_source_limited_targets": 0,
+    "current_scope_hold_ids": [],
+    "current_follow_up_ids": [],
+    "future_reach_level_naming_requires_separate_evidence": true,
+    "preserved_pending_access_ids": [
+      "lakes_base:1159112821",
+      "lakes_base:1159108815"
+    ],
+    "preserved_scope_hold_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159123531",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159112207",
+      "lakes_base:1159110475",
+      "lakes_base:1159108993",
+      "lakes_base:1159109803",
+      "lakes_base:1159108469",
+      "lakes_base:1159108703",
+      "lakes_base:1159109993",
+      "lakes_base:1159110087",
+      "lakes_base:1159116675",
+      "lakes_base:1159118183",
+      "lakes_base:1159118201"
+    ],
+    "recorded_prior_target_count": 54,
+    "current_batch_increment": 3,
+    "recorded_cumulative_distinct_targets": 57,
+    "remaining_unrecorded_targets": 4008,
+    "remaining_river_groups": 3436,
+    "remaining_lakes": 572,
+    "distinct_supporting_publications": 1,
+    "independent_source_groups": 1,
+    "original_source_material_reopened": false,
+    "map_judgments_reproduced": false,
+    "omitted_full_paths_recomputed": false,
+    "original_decoder_replayed": false,
+    "prior_target_source_or_geometry_reaudit_performed": false,
+    "formal_registry_verified": false,
+    "all_reach_names_verified": false,
+    "scalar_product_name_approvals": 0,
+    "automatic_application": false,
+    "product_application": false,
+    "network_requests": 0,
+    "limit": "Included-file integrity, summaries and factual linkage only. Omitted original map pixels, full selected paths and private decoder judgments are not reproduced. Supported representative system identities do not assign names to every mainstem/tributary reach or approve scalar/product application.",
+    "public_input_files_checked": 16,
+    "included_dependency_manifests_checked": 2
+  },
+  "tests": {
+    "status": "passed",
+    "mode": "included_public_files_only",
+    "baseline": {
+      "status": "passed",
+      "mode": "included_public_files_only",
+      "scope_aw_ids": [
+        "hydro-system:50517279",
+        "hydro-system:50478600",
+        "hydro-system:50464082"
+      ],
+      "included_geometry_summary_checks": [
+        {
+          "aw_id": "hydro-system:50517279",
+          "fragment_count": 8,
+          "part_count": 208,
+          "position_count": 1034,
+          "included_summaries_consistent": true,
+          "omitted_coordinates_recomputed": false
+        },
+        {
+          "aw_id": "hydro-system:50478600",
+          "fragment_count": 2,
+          "part_count": 112,
+          "position_count": 782,
+          "included_summaries_consistent": true,
+          "omitted_coordinates_recomputed": false
+        },
+        {
+          "aw_id": "hydro-system:50464082",
+          "fragment_count": 8,
+          "part_count": 232,
+          "position_count": 1544,
+          "included_summaries_consistent": true,
+          "omitted_coordinates_recomputed": false
+        }
+      ],
+      "recorded_fragment_count": 18,
+      "recorded_part_count": 552,
+      "recorded_position_count": 3360,
+      "recorded_full_feature_correspondence_reviews_completed": 3,
+      "representative_system_identities_supported": 3,
+      "current_source_limited_targets": 0,
+      "current_scope_hold_ids": [],
+      "current_follow_up_ids": [],
+      "future_reach_level_naming_requires_separate_evidence": true,
+      "preserved_pending_access_ids": [
+        "lakes_base:1159112821",
+        "lakes_base:1159108815"
+      ],
+      "preserved_scope_hold_ids": [
+        "lakes_base:1159109497",
+        "lakes_base:1159123531",
+        "lakes_base:1159123567",
+        "lakes_base:1159110371",
+        "lakes_base:1159109471",
+        "lakes_base:1159111751",
+        "lakes_base:1159112207",
+        "lakes_base:1159110475",
+        "lakes_base:1159108993",
+        "lakes_base:1159109803",
+        "lakes_base:1159108469",
+        "lakes_base:1159108703",
+        "lakes_base:1159109993",
+        "lakes_base:1159110087",
+        "lakes_base:1159116675",
+        "lakes_base:1159118183",
+        "lakes_base:1159118201"
+      ],
+      "recorded_prior_target_count": 54,
+      "current_batch_increment": 3,
+      "recorded_cumulative_distinct_targets": 57,
+      "remaining_unrecorded_targets": 4008,
+      "remaining_river_groups": 3436,
+      "remaining_lakes": 572,
+      "distinct_supporting_publications": 1,
+      "independent_source_groups": 1,
+      "original_source_material_reopened": false,
+      "map_judgments_reproduced": false,
+      "omitted_full_paths_recomputed": false,
+      "original_decoder_replayed": false,
+      "prior_target_source_or_geometry_reaudit_performed": false,
+      "formal_registry_verified": false,
+      "all_reach_names_verified": false,
+      "scalar_product_name_approvals": 0,
+      "automatic_application": false,
+      "product_application": false,
+      "network_requests": 0,
+      "limit": "Included-file integrity, summaries and factual linkage only. Omitted original map pixels, full selected paths and private decoder judgments are not reproduced. Supported representative system identities do not assign names to every mainstem/tributary reach or approve scalar/product application.",
+      "public_input_files_checked": 16,
+      "included_dependency_manifests_checked": 2
+    },
+    "mutation_test_count": 59,
+    "mutations": [
+      {
+        "test": "automatic_application",
+        "status": "rejected"
+      },
+      {
+        "test": "product_application",
+        "status": "rejected"
+      },
+      {
+        "test": "scalar_name",
+        "status": "rejected"
+      },
+      {
+        "test": "korean_name",
+        "status": "rejected"
+      },
+      {
+        "test": "all_reaches_named",
+        "status": "rejected"
+      },
+      {
+        "test": "uniform_mainstem_name",
+        "status": "rejected"
+      },
+      {
+        "test": "formal_registry",
+        "status": "rejected"
+      },
+      {
+        "test": "exact_mouth",
+        "status": "rejected"
+      },
+      {
+        "test": "catchment_title_only",
+        "status": "rejected"
+      },
+      {
+        "test": "role_as_name",
+        "status": "rejected"
+      },
+      {
+        "test": "topology_repair",
+        "status": "rejected"
+      },
+      {
+        "test": "target_order",
+        "status": "rejected"
+      },
+      {
+        "test": "wrong_fid_domain",
+        "status": "rejected"
+      },
+      {
+        "test": "missing_branch",
+        "status": "rejected"
+      },
+      {
+        "test": "wrong_count",
+        "status": "rejected"
+      },
+      {
+        "test": "naming_upgrade",
+        "status": "rejected"
+      },
+      {
+        "test": "extra_whole_group_hold",
+        "status": "rejected"
+      },
+      {
+        "test": "lost_conditional_follow_up",
+        "status": "rejected"
+      },
+      {
+        "test": "false_access_pending",
+        "status": "rejected"
+      },
+      {
+        "test": "incomplete_bounded_review",
+        "status": "rejected"
+      },
+      {
+        "test": "unrelated_task_follow_up",
+        "status": "rejected"
+      },
+      {
+        "test": "future_product_work_erased",
+        "status": "rejected"
+      },
+      {
+        "test": "private_judgment_reproduced",
+        "status": "rejected"
+      },
+      {
+        "test": "omitted_geometry_claimed_included",
+        "status": "rejected"
+      },
+      {
+        "test": "past_source_reaudit",
+        "status": "rejected"
+      },
+      {
+        "test": "pending_access_erased",
+        "status": "rejected"
+      },
+      {
+        "test": "prior_hold_erased",
+        "status": "rejected"
+      },
+      {
+        "test": "sandfly_whole_lake",
+        "status": "rejected"
+      },
+      {
+        "test": "ohrid_candidate_upgraded",
+        "status": "rejected"
+      },
+      {
+        "test": "prespa_candidate_upgraded",
+        "status": "rejected"
+      },
+      {
+        "test": "small_prespa_invented",
+        "status": "rejected"
+      },
+      {
+        "test": "multiple_views_counted_independently",
+        "status": "rejected"
+      },
+      {
+        "test": "report_year_confused",
+        "status": "rejected"
+      },
+      {
+        "test": "false_new_acquisition",
+        "status": "rejected"
+      },
+      {
+        "test": "wrong_figure_page",
+        "status": "rejected"
+      },
+      {
+        "test": "direct_lower_label_dropped",
+        "status": "rejected"
+      },
+      {
+        "test": "source_follow_up_erased",
+        "status": "rejected"
+      },
+      {
+        "test": "source_status_changed",
+        "status": "rejected"
+      },
+      {
+        "test": "source_uniform_name",
+        "status": "rejected"
+      },
+      {
+        "test": "source_corridor_as_exact_reach",
+        "status": "rejected"
+      },
+      {
+        "test": "unnamed_feeder_invented",
+        "status": "rejected"
+      },
+      {
+        "test": "northern_feeder_invented",
+        "status": "rejected"
+      },
+      {
+        "test": "source_role_mainstem_named",
+        "status": "rejected"
+      },
+      {
+        "test": "source_incomplete_geometry",
+        "status": "rejected"
+      },
+      {
+        "test": "source_fact_omitted_branch",
+        "status": "rejected"
+      },
+      {
+        "test": "source_map_registration",
+        "status": "rejected"
+      },
+      {
+        "test": "source_map_incomplete",
+        "status": "rejected"
+      },
+      {
+        "test": "original_equality_claimed",
+        "status": "rejected"
+      },
+      {
+        "test": "geometry_original_replayed",
+        "status": "rejected"
+      },
+      {
+        "test": "geometry_role_swapped",
+        "status": "rejected"
+      },
+      {
+        "test": "summary_count_corruption",
+        "status": "rejected"
+      },
+      {
+        "test": "inventory_group_id_corruption",
+        "status": "rejected"
+      },
+      {
+        "test": "prior_duplicate",
+        "status": "rejected"
+      },
+      {
+        "test": "remaining_queue_error",
+        "status": "rejected"
+      },
+      {
+        "test": "remaining_river_error",
+        "status": "rejected"
+      },
+      {
+        "test": "prior_reaudit_invented",
+        "status": "rejected"
+      },
+      {
+        "test": "raw_paths_added",
+        "status": "rejected"
+      },
+      {
+        "test": "omitted_body_fingerprint_added",
+        "status": "rejected"
+      },
+      {
+        "test": "included_file_hash_tamper",
+        "status": "rejected"
+      }
+    ],
+    "network_requests": 0,
+    "original_map_or_full_path_or_decoder_judgments_reproduced": false,
+    "limit": "Tests verify included records and expected rejection of public-record mutations only; omitted original maps, paths and private decoder inputs are not reopened or reconstructed."
+  }
+}

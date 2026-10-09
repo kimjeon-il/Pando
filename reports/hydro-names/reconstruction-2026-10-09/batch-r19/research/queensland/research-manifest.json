@@ -1,0 +1,38 @@
+{
+  "schema": "hydro-frozen-public-research-manifest-v2",
+  "batch": "r19",
+  "frozen_at_utc": "2026-10-09T18:39:12.606078+00:00",
+  "scope": "included_public_files_only",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 2604,
+      "sha256": "3d5359bc712c97405fe10d5e7e5853f0e9fc1a13938fcb7902dbf159947a7780"
+    },
+    {
+      "path": "findings.json",
+      "bytes": 20313,
+      "sha256": "0f2a39ba733f8dfa17ace2d326e0e207525bd6250ef43ab8892e279905ac9286"
+    },
+    {
+      "path": "map-scope-review.json",
+      "bytes": 7475,
+      "sha256": "d53c00bcd1b6cf1e11af207071dc52c1eb85550d0e69674e66783941b7f8957c"
+    },
+    {
+      "path": "source-evidence.json",
+      "bytes": 6192,
+      "sha256": "fc025e5d8b40f03534399bbdbbb45675182f14f29f5c72664d3030d7c5f62e87"
+    },
+    {
+      "path": "target-identity-facts.json",
+      "bytes": 7224,
+      "sha256": "4f06cc24eac8bb99b982e82ac8d4c4162f343e58d5da9bd2913adb7983a3d9e9"
+    }
+  ],
+  "self_hash_included": false,
+  "original_publications_included": false,
+  "complete_river_coordinate_arrays_included": false,
+  "automatic_application": false,
+  "product_application": false
+}

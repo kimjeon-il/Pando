@@ -1,0 +1,127 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r19",
+  "scope_aw_ids": [
+    "hydro-system:50517279",
+    "hydro-system:50478600",
+    "hydro-system:50464082"
+  ],
+  "new_external_requests": 0,
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "figures": [
+        {
+          "figure": "3.1",
+          "physical_pdf_page": 48,
+          "printed_chapter_page": 5,
+          "scope": "Regional context with direct Burdekin channel label"
+        },
+        {
+          "figure": "3.22",
+          "physical_pdf_page": 69,
+          "printed_chapter_page": 26,
+          "scope": "Direct channel wording and catchment context for Burdekin"
+        },
+        {
+          "figure": "3.61",
+          "physical_pdf_page": 108,
+          "printed_chapter_page": 65,
+          "scope": "Direct Burdekin R. channel label in lower-river and delta context; irrigation shading is not river-name extent"
+        },
+        {
+          "figure": "15.1",
+          "physical_pdf_page": 681,
+          "printed_chapter_page": 5,
+          "scope": "Regional context with channel labels for the Carpentaria drainage"
+        },
+        {
+          "figure": "15.22",
+          "physical_pdf_page": 703,
+          "printed_chapter_page": 27,
+          "scope": "Direct Gilbert, Einasleigh, Mitchell, Palmer and Walsh channel wording; catchment-group titles are distinguished"
+        }
+      ],
+      "observation": "All maps were viewed in original page context, including their legend and regional scale. Direct lettering on river channels was distinguished from black catchment titles. Multiple figures from this one report count as one publication, not independent corroborating sources.",
+      "is_formal_naming_registry": false,
+      "supporting_text_physical_pdf_pages": [
+        68,
+        105,
+        106,
+        702,
+        707
+      ]
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50517279",
+      "geometry_fids": [
+        6789,
+        6790,
+        6791,
+        6792,
+        6793,
+        6794,
+        6795,
+        6796
+      ],
+      "fragment_count": 8,
+      "part_count": 208,
+      "position_count": 1034,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected northern inland course, southeastward middle course, northward lower bend and southern tributary were considered against the directly labelled Burdekin channel and regional drainage pattern. Burdekin River is supported as a representative system identity. This does not assign Burdekin to the selected southern tributary, all headwater reaches, storage passages, coastal continuation or every rendered part."
+    },
+    {
+      "aw_id": "hydro-system:50478600",
+      "geometry_fids": [
+        6740,
+        6741
+      ],
+      "fragment_count": 2,
+      "part_count": 112,
+      "position_count": 782,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path runs from the southeastern inland extension through the long westward middle course and then northwest toward the Gulf. The directly labelled lower Gilbert channel and the distinct upstream Einasleigh corridor support Gilbert River as the representative system identity. The upper selected route is a coarse geographic association with Einasleigh; the exact transition and individual reach names are unassigned. The modeled mainstem role does not establish uniform Gilbert naming."
+    },
+    {
+      "aw_id": "hydro-system:50464082",
+      "geometry_fids": [
+        6714,
+        6715,
+        6716,
+        6717,
+        6718,
+        6719,
+        6720,
+        6721
+      ],
+      "fragment_count": 8,
+      "part_count": 232,
+      "position_count": 1544,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The entire selected group includes the northern east-to-west modeled mainstem, its lower northwestward course, the long southern branch and the shorter northern tributary. Direct Mitchell labelling on the lower channel supports Mitchell River as the representative system identity. The upper modeled mainstem follows the regional Palmer corridor and the southern branch follows the Walsh corridor. These are geographic associations, not exact reach-name assignments. The shorter northern tributary, precise transitions and coastal continuation remain individually unnamed."
+    }
+  ],
+  "source_limit": "Coarse regional cartography supports representative system identity. It cannot resolve precise name transitions, all tributary names, every part or a contemporary surveyed mouth; neither map bodies nor full river paths are distributed."
+}

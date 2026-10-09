@@ -1,0 +1,148 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r19",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r19",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "6badfae989089b3d54cd5ced22302ff125c61d14",
+  "scope": "Three bounded new actual-inventory river-group naming assessments. Included summaries do not reproduce omitted full-path/map/decoder judgments. The cumulative index and exact initial inventory recover the fresh-reconstruction remainder.",
+  "automatic_application": false,
+  "product_changes": false,
+  "full_river_coordinates_included": false,
+  "selected_public_domain_lake_features": 0,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 32,
+  "bytes_excluding_self": 281705,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 4361,
+      "sha256": "ff3f8954494925b54e690a40d1eb14d3468f70899d46a1838223757e1a3d9b40"
+    },
+    "geometry-README.md": {
+      "bytes": 2188,
+      "sha256": "afe2b311c0e87790c7f73175aa7e01f2eee83eb1cf1a85bc5cc1a6b6910620ad"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1421,
+      "sha256": "f8c0823fdf131e63a17dd52af36bb35001f1906ab3183841c6bf7083deb4ddd0"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 3758,
+      "sha256": "c6e99f6424f2aa892e68b7c4a3069c9dd44a333075cf03f47fe0845cde0ef11e"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 669,
+      "sha256": "7745bb7e5b6e239c7afacdb3c4841a7919770e311b89bcba2bcc4fc36d2984b2"
+    },
+    "geometry-reference.json": {
+      "bytes": 5537,
+      "sha256": "d089c0dca572a853dbab7833b42f1f0f942e47c6a8a57aa91876cd6509da6dcd"
+    },
+    "geometry-validation.json": {
+      "bytes": 9718,
+      "sha256": "064a0d488d0936a939cb3086b86c432e14ff5bc7de27774a1d3f8f360af50080"
+    },
+    "queue-recovery-validation.json": {
+      "bytes": 2817,
+      "sha256": "139d6efc54e91a0953d3248beb16a977e54cf482cf64dc9dd1fa29fd33910510"
+    },
+    "reconstruction-index.json": {
+      "bytes": 52136,
+      "sha256": "24cc7e10057d19b63fabece4d73bf58af455d5075e79f8908fd5306565de91b1"
+    },
+    "recover-remaining-queue.py": {
+      "bytes": 4247,
+      "sha256": "7dcf8d54e845094c3a2b5f9eab43860af6b5e7fa887a816b34904982bcb598b6"
+    },
+    "research/queensland/README.md": {
+      "bytes": 2604,
+      "sha256": "3d5359bc712c97405fe10d5e7e5853f0e9fc1a13938fcb7902dbf159947a7780"
+    },
+    "research/queensland/findings.json": {
+      "bytes": 20313,
+      "sha256": "0f2a39ba733f8dfa17ace2d326e0e207525bd6250ef43ab8892e279905ac9286"
+    },
+    "research/queensland/map-scope-review.json": {
+      "bytes": 7475,
+      "sha256": "d53c00bcd1b6cf1e11af207071dc52c1eb85550d0e69674e66783941b7f8957c"
+    },
+    "research/queensland/research-manifest.json": {
+      "bytes": 1149,
+      "sha256": "1a4ac23a9fc537551d5964833b94fe51d5225f56503fe49f66c3c874f4b77147"
+    },
+    "research/queensland/source-evidence.json": {
+      "bytes": 6192,
+      "sha256": "fc025e5d8b40f03534399bbdbbb45675182f14f29f5c72664d3030d7c5f62e87"
+    },
+    "research/queensland/target-identity-facts.json": {
+      "bytes": 7224,
+      "sha256": "4f06cc24eac8bb99b982e82ac8d4c4162f343e58d5da9bd2913adb7983a3d9e9"
+    },
+    "results.json": {
+      "bytes": 10352,
+      "sha256": "622a1ab9dc64e98c4eb6839a92d440cb29b51f4e9ae9e4df9b4d07d33034d548"
+    },
+    "review/README.md": {
+      "bytes": 3788,
+      "sha256": "a903d60e8014153e269d9860f21811ffefffa29a647a19d8f0a858e98355a016"
+    },
+    "review/independent-review.json": {
+      "bytes": 20821,
+      "sha256": "f9f538c1fc97eaf17ad505ffc37a7a3141b133788d5ba6eb4f8abe718d2adf3f"
+    },
+    "review/public-input-pins.json": {
+      "bytes": 2828,
+      "sha256": "5cad139d0e2073efca488f07839b0c5dd3b359f0049dab1bad9297e51a6ce3d4"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1511,
+      "sha256": "eea36ee550c110e793ddd3e78b35d916c7c43fabc7b84ca87e3caf778838b710"
+    },
+    "review/review-validation.json": {
+      "bytes": 12220,
+      "sha256": "da9add421fc1dafa3289f47b08f4612a23df6d37288a06715fb4938d34531fb8"
+    },
+    "review/source-observations.json": {
+      "bytes": 5706,
+      "sha256": "ca681b11d6b16aac7ca9b82c063809ccc578d28cf876b21377bae795bd576005"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 8740,
+      "sha256": "848a323bacf1bff6f65185bd0c6c51572da7e2069c91bf1f615fb5f34e51f2ff"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 24104,
+      "sha256": "107b2535ea3a36e4857d102be778ade1f7d38a08dee87319982f3a9ded9bb916"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 2518,
+      "sha256": "881aa4588eb0c17e58d3bb1b6333c9599aa92f2c9cdbf02c1adac881cd060eac"
+    },
+    "selected-river-metadata.json": {
+      "bytes": 24596,
+      "sha256": "584313f7aa912c61f3ff9ebd36ebe4a13c55554266c67a0892e296ddb9f1d272"
+    },
+    "source-publication-rights.json": {
+      "bytes": 736,
+      "sha256": "aaafb55d32da5184171cdedb6907dc683db8a004b999110a162a96366e9b6a80"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 6725,
+      "sha256": "ac19cdf07ac9db58653889395194993583a8b25ae99b1ab79de8efcb07e6d548"
+    },
+    "test-remaining-queue.py": {
+      "bytes": 3472,
+      "sha256": "22964a9590e30efe8e7339557e1c8aee1cea7952532143fa32d06a1f2e6c1df3"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 11294,
+      "sha256": "8326502e213c91d194e22c0a52db521aa707791d2b2409732de388a10104ae95"
+    },
+    "validate-package.py": {
+      "bytes": 10485,
+      "sha256": "264fdd1a5dd5d761f590fee75687cb4b1293cbd4ff3914e9a0d25eff7e29c5c3"
+    }
+  }
+}
