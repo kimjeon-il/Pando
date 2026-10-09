@@ -1,0 +1,182 @@
+{
+  "schema": "hydro-reconstruction-river-reassessment-v1",
+  "batch": "r28",
+  "assessment_mode": "existing_scope_hold_reassessment",
+  "bounded_research_attempts": 2,
+  "independently_reviewed_targets": 2,
+  "research_completed_targets": 2,
+  "source_access_limited_targets": 0,
+  "new_inventory_targets": 0,
+  "existing_inventory_reassessment_targets": 2,
+  "distinct_target_increment": 0,
+  "counts": {
+    "river_group_name_scope_hold": 2
+  },
+  "counting_unit": "Two existing logical inventory groups reassessed against a higher-resolution edition. Neither is a new distinct target.",
+  "baseline_fragment_count": 2,
+  "river_line_part_count": 59,
+  "distinct_source_reach_count": 59,
+  "river_rendered_coordinate_count": 450,
+  "part_counts_in_target_order": [
+    30,
+    29
+  ],
+  "position_counts_in_target_order": [
+    258,
+    192
+  ],
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "8ff940cb87682f11c61aac2370b50a0db1a584ab",
+  "current_live_deployment_checked": false,
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50691388",
+      "candidate_name": "Richmond River",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The complete selected New South Wales path runs southeast from a northwestern headwater, south through the upper and middle corridor, then southeast to a southern bend before turning east and northeast to the coast south of Lismore. Its regional geography remains compatible with the Richmond River candidate. In the newly acquired high-resolution chapter, neighbouring Clarence, Boyd, Macleay and Manning line names are legible, but no direct Richmond river-line label is established in the inspected Figures 4.1, 4.22–4.27, 4.34, 4.35 or 4.45. Figure 4.22 supplies a Richmond River catchment callout, and Table 4.4 a Richmond River entry in the River basin column for Lismore. Rocky Creek in Figure 4.35 labels an urban-storage symbol, not the complete selected river. The prior ambiguity about potentially blurred Richmond lettering is replaced for these checked views by a bounded no-direct-label finding. Representative identity and whole-group naming remain on hold after complete-path reassessment. Headwater or feeder names, exact river/storage relationships, name transitions and the coastal ending remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The direct-name gap persists in the inspected high-resolution New South Wales maps despite clearly readable neighbouring river names. This is a bounded result for the cited figures, not a claim that no direct Richmond or Hastings evidence exists elsewhere.",
+        "Grey catchment callouts and entries in the River basin column do not establish which river name applies to the complete selected modeled path. A modeled MAIN_RIV/mainstem role does not establish one real-world name for every part.",
+        "Flow values, salinity and variability symbols, flood-class dots, storage triangles and wetland callouts do not supply named-station identities or exact selected river-reach names.",
+        "The high-resolution chapter and earlier low-resolution full report are editions of one publication and one source group. Their hydrographic dataset independence has not been verified.",
+        "Original HydroRIVERS source-coordinate equality, exact feeder and reach-name transitions, selected-path storage crossings, tidal boundaries and the surveyed mouth are not established.",
+        "The rendered sea ending differs from retained baseline source-endpoint metadata. Those metadata are not independently verified original HydroRIVERS coordinates; no river name is extended over that difference."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "category": "river_group",
+      "system_id": "50691388",
+      "baseline_logical_fid": 2023,
+      "geometry_fids": [
+        6979
+      ],
+      "independent_review_status": "naming_scope_hold_retained_after_complete_reassessment",
+      "selection_origin": "existing_inventory_scope_hold_reassessment",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_scope_hold",
+        "directly_supported_name_forms": [],
+        "follow_up_scope": "Establish a direct Richmond River name or named-station identity tied to the complete selected New South Wales corridor before promoting representative identity. Resolve headwater or feeder, storage-interface, exact name-transition and coastal reach scope before any separately authorized product application. This bounded review does not prescribe geometry repair or authorize new acquisition.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false,
+        "geographic_disambiguation": "New South Wales, Australia"
+      },
+      "prior_public_assessment": {
+        "aw_id": "hydro-system:50691388",
+        "category": "river_group",
+        "system_id": "50691388",
+        "candidate_name": "Richmond River",
+        "research_category": "river_group_name_scope_hold",
+        "supported_name_scope": "The complete selected path runs southeast from a northwestern headwater, south through the upper and middle corridor, then east and northeast after a southern bend to the New South Wales coast south of Lismore. Regional geometry is compatible with the Richmond River candidate, but the clearly legible Richmond River wording in Figure 4.22 is a basin callout. Possible blue river-line lettering in the retained regional maps is too indistinct to certify. Neither basin context nor geographic resemblance establishes a directly named representative river identity here. The whole group remains on a naming-scope hold after complete available-source/path review; the upper feeder, any river/storage interfaces, exact name transitions and coastal ending are unassigned at reach level.",
+        "selection_origin": "new_inventory_investigation",
+        "source_access_limited": false,
+        "full_feature_correspondence_review_completed": true,
+        "follow_up_required": true,
+        "naming_scope_details": {
+          "candidate_name_role": "geographic_candidate_only_scope_hold",
+          "directly_supported_name_forms": [],
+          "follow_up_scope": "Obtain legible direct river-name evidence tied to the complete regional corridor before supporting the Richmond River representative identity. Exact upper feeder, river/storage, name-transition and coastal scope also require evidence before separately authorized application.",
+          "reach_level_naming_follow_up_required_before_product_application": true,
+          "regional_distinct_channel_associations": [],
+          "regional_associations_are_exact_reach_assignments": false
+        },
+        "batch": "r24",
+        "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r24/results.json",
+        "fixed_commit": "7a01eaaaff700b26e1de6304c891ac29d9850f2d",
+        "automatic_application": false
+      },
+      "distinct_target_increment": 0
+    },
+    {
+      "aw_id": "hydro-system:50738894",
+      "candidate_name": "Hastings River",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The complete selected New South Wales path descends south from a northwestern headwater, bends southeast, and follows a winding eastward corridor with a southern middle-course bend before reaching the Port Macquarie coast. Its regional geography remains compatible with the Hastings River candidate. The newly acquired high-resolution chapter makes neighbouring river names, river lines and symbol roles clear, but no direct Hastings river-line label or named Hastings monitoring station is established in the inspected Figures 4.1, 4.22–4.27, 4.34, 4.35 or 4.45. Figure 4.22 retains a Hastings River catchment callout; Table 4.4 retains a Hastings River entry in the River basin column for Port Macquarie. Limeburners Creek Nature Reserve is a wetland callout, and the urban-storage symbols and off-creek storage entries do not name the selected river. The better original pixels confirm rather than resolve the prior direct-identity gap. Representative identity and whole-group naming remain on hold after complete-path reassessment. Headwater or feeder names, river/storage relationships, exact name transitions and coastal scope remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The direct-name gap persists in the inspected high-resolution New South Wales maps despite clearly readable neighbouring river names. This is a bounded result for the cited figures, not a claim that no direct Richmond or Hastings evidence exists elsewhere.",
+        "Grey catchment callouts and entries in the River basin column do not establish which river name applies to the complete selected modeled path. A modeled MAIN_RIV/mainstem role does not establish one real-world name for every part.",
+        "Flow values, salinity and variability symbols, flood-class dots, storage triangles and wetland callouts do not supply named-station identities or exact selected river-reach names.",
+        "The high-resolution chapter and earlier low-resolution full report are editions of one publication and one source group. Their hydrographic dataset independence has not been verified.",
+        "Original HydroRIVERS source-coordinate equality, exact feeder and reach-name transitions, selected-path storage crossings, tidal boundaries and the surveyed mouth are not established.",
+        "The rendered sea ending differs from retained baseline source-endpoint metadata. Those metadata are not independently verified original HydroRIVERS coordinates; no river name is extended over that difference."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "category": "river_group",
+      "system_id": "50738894",
+      "baseline_logical_fid": 2085,
+      "geometry_fids": [
+        7043
+      ],
+      "independent_review_status": "naming_scope_hold_retained_after_complete_reassessment",
+      "selection_origin": "existing_inventory_scope_hold_reassessment",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_scope_hold",
+        "directly_supported_name_forms": [],
+        "follow_up_scope": "Establish a direct Hastings River name or named-station identity tied to the complete selected New South Wales corridor before promoting representative identity. Resolve headwater or feeder, storage-interface, exact name-transition and coastal reach scope before any separately authorized product application. This bounded review does not prescribe geometry repair or authorize new acquisition.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false,
+        "geographic_disambiguation": "New South Wales, Australia"
+      },
+      "prior_public_assessment": {
+        "aw_id": "hydro-system:50738894",
+        "category": "river_group",
+        "system_id": "50738894",
+        "candidate_name": "Hastings River",
+        "research_category": "river_group_name_scope_hold",
+        "supported_name_scope": "The complete selected path descends south from its northwestern headwater and then follows an eastward corridor to the Port Macquarie coast. It corresponds geographically to mapped channels within the Hastings River catchment context. Hastings River is a geographic candidate only: Figure 4.22 provides a catchment leader and Table 4.4 a River basin entry, but no direct Hastings river-line label or named Hastings station was established in the inspected maps. This does not support representative river identity or name coverage over the complete selected group. The modeled mainstem role does not name the headwater or feeder course, storage interfaces or coastal ending. The whole-group naming scope remains on hold.",
+        "selection_origin": "new_inventory_investigation",
+        "source_access_limited": false,
+        "full_feature_correspondence_review_completed": true,
+        "follow_up_required": true,
+        "naming_scope_details": {
+          "candidate_name_role": "geographic_candidate_only_scope_hold",
+          "directly_supported_name_forms": [],
+          "follow_up_scope": "Obtain direct river-name or named-station evidence that resolves identity and naming coverage for the complete selected group before promoting the Hastings River candidate. Any separately authorized reach-level or scalar product application also requires headwater/feeder, storage-interface and coastal naming evidence. No geometry repair or new acquisition is prescribed by this bounded hold.",
+          "reach_level_naming_follow_up_required_before_product_application": true,
+          "regional_distinct_channel_associations": [],
+          "regional_associations_are_exact_reach_assignments": false
+        },
+        "batch": "r22",
+        "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r22/results.json",
+        "fixed_commit": "1dd4a326287801853a0c2fa27186fae6aeda18c5",
+        "automatic_application": false
+      },
+      "distinct_target_increment": 0
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "9f75d2bdb23f75d10e6d2abcb762f6c9a62fbcc37c73835aa04f3eedd33ac661",
+  "publication_contents": "Own factual findings, bounded metadata and included-file checks. Earlier target records are preserved verbatim as historical assessments. Original source bodies, maps and complete river coordinates are omitted."
+}

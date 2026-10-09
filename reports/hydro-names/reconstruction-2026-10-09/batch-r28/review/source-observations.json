@@ -1,0 +1,178 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r28",
+  "scope_aw_ids": [
+    "hydro-system:50691388",
+    "hydro-system:50738894"
+  ],
+  "successful_new_source_edition_acquisitions": 1,
+  "review_request_scope": "The review itself required no further external requests; one new high-resolution source edition had been successfully acquired for this batch.",
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012, South East Coast (NSW), high-resolution chapter",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/southeastcoastnsw-hr.pdf",
+      "official_landing_url": "https://www.bom.gov.au/water/awra/2012/secnsw.shtml",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T21:44:08.281869+00:00",
+      "retrieved_this_batch": true,
+      "reused_original": false,
+      "original_map_pixels_viewed": true,
+      "source_group_key": "bom_australian_water_resources_assessment_2012",
+      "figures": [
+        {
+          "figure": "4.1",
+          "physical_pdf_page": 5,
+          "printed_chapter_page": 5,
+          "scope": "Major rivers and urban centres. The legend separates blue rivers, red roads and town dots. Neighbouring Clarence, Boyd, Macleay and Manning lettering is legible, while no Richmond or Hastings line wording is established."
+        },
+        {
+          "figure": "4.22",
+          "physical_pdf_page": 27,
+          "printed_chapter_page": 27,
+          "scope": "River and catchment map. Richmond River and Hastings River occur as grey catchment callouts. Section 4.5.1 on page 26 identifies the mapped units as river basins. The callouts do not name the full selected modeled paths."
+        },
+        {
+          "figure": "4.23",
+          "physical_pdf_page": 29,
+          "printed_chapter_page": 29,
+          "scope": "Annual and summer streamflow values and percentile classes. Numbers in circles are average flows in ML/day, not station names or station IDs. No usable named Richmond or Hastings station identity is established."
+        },
+        {
+          "figure": "4.24",
+          "physical_pdf_page": 30,
+          "printed_chapter_page": 30,
+          "scope": "Median electrical conductivity and its coefficient of variation. These symbols concern salinity, with the accompanying page 28 text limiting available data to the Hunter River basin. The clearer river base still supplies no direct Richmond or Hastings line name."
+        },
+        {
+          "figure": "4.25",
+          "physical_pdf_page": 32,
+          "printed_chapter_page": 32,
+          "scope": "Flood-class circles at monitoring locations. The map and page 31 discussion do not establish named Richmond or Hastings stations or exact reach-name assignments."
+        },
+        {
+          "figure": "4.26",
+          "physical_pdf_page": 34,
+          "printed_chapter_page": 34,
+          "scope": "Storage-system and capacity triangles with town and river context. No direct Richmond or Hastings river-line name or selected-path storage crossing is established."
+        },
+        {
+          "figure": "4.27",
+          "physical_pdf_page": 35,
+          "printed_chapter_page": 35,
+          "scope": "Directory-wetland symbols and callouts. Limeburners Creek Nature Reserve is contextual wetland wording near the Hastings candidate coast, not a name for the full selected river."
+        },
+        {
+          "figure": "4.34",
+          "physical_pdf_page": 43,
+          "printed_chapter_page": 43,
+          "scope": "Population-range circles and city labels provide Lismore and Port Macquarie context. They do not name the selected river paths."
+        },
+        {
+          "figure": "4.35",
+          "physical_pdf_page": 45,
+          "printed_chapter_page": 45,
+          "scope": "Main urban water storage triangles. Rocky Creek points to a storage symbol near Lismore, consistent with the Table 4.4 storage entry. The Port Macquarie-area symbol is also a storage marker. These do not establish selected river names or exact river/storage intersections."
+        },
+        {
+          "figure": "4.45",
+          "physical_pdf_page": 57,
+          "printed_chapter_page": 57,
+          "scope": "Hunter basin, irrigation-area and storage legend. The uncluttered target corridors outside the highlighted Hunter basin remain unlabelled while neighbouring blue river names are legible. This does not establish direct Richmond or Hastings naming."
+        }
+      ],
+      "supporting_text_physical_pdf_pages": [
+        4,
+        26,
+        28,
+        31,
+        33,
+        44
+      ],
+      "supporting_text_printed_chapter_pages": [
+        4,
+        26,
+        28,
+        31,
+        33,
+        44
+      ],
+      "tables": [
+        {
+          "table": "4.3",
+          "physical_pdf_page": 33,
+          "printed_chapter_page": 33,
+          "scope": "Regional storage-system capacities, not a selected-reach naming register."
+        },
+        {
+          "table": "4.4",
+          "physical_pdf_page": 44,
+          "printed_chapter_page": 44,
+          "scope": "Lismore has Richmond River and Port Macquarie has Hastings River under the River basin column. Rocky Creek storage and Port Macquarie and Cowarra off-creek storages are supply-source entries, not complete river-path names."
+        }
+      ],
+      "observation": "The high-resolution New South Wales chapter makes neighbouring river labels and map symbol roles substantially clearer. Richmond River and Hastings River remain catchment callouts and River basin table entries in the inspected evidence. No direct line label or usable named station establishes either selected modeled corridor as the named representative river. Complete-path reassessment retains both existing naming-scope holds while replacing the earlier Richmond blurred-lettering possibility with a bounded no-direct-label finding for the checked maps. Wetland and urban-storage names remain contextual. The chapter and earlier full report are the same publication and one source group.",
+      "is_formal_naming_registry": false,
+      "earlier_edition_comparison": {
+        "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "same_publication_and_source_group": true,
+        "independent_source": false,
+        "figure": "4.1",
+        "earlier_physical_pdf_page": 120,
+        "earlier_printed_chapter_page": 5,
+        "new_physical_pdf_page": 5,
+        "new_printed_chapter_page": 5,
+        "earlier_native_map_dimensions_pixels": [
+          473,
+          667
+        ],
+        "new_native_map_dimensions_pixels": [
+          1970,
+          2777
+        ],
+        "native_width_gain_approximately": 4.16,
+        "actual_pixels_compared": true,
+        "result": "New original pixels clearly resolve neighbouring river lettering and finer linework. This is a genuine source-quality gain; it does not reveal a direct Richmond or Hastings line name in the checked Figure 4.1 map."
+      }
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50691388",
+      "geometry_fids": [
+        6979
+      ],
+      "fragment_count": 1,
+      "part_count": 30,
+      "position_count": 258,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "geographic_disambiguation": "New South Wales, Australia",
+      "independent_observation": "The complete selected New South Wales path runs southeast from a northwestern headwater, south through the upper and middle corridor, then southeast to a southern bend before turning east and northeast to the coast south of Lismore. Its regional geography remains compatible with the Richmond River candidate. In the newly acquired high-resolution chapter, neighbouring Clarence, Boyd, Macleay and Manning line names are legible, but no direct Richmond river-line label is established in the inspected Figures 4.1, 4.22–4.27, 4.34, 4.35 or 4.45. Figure 4.22 supplies a Richmond River catchment callout, and Table 4.4 a Richmond River entry in the River basin column for Lismore. Rocky Creek in Figure 4.35 labels an urban-storage symbol, not the complete selected river. The prior ambiguity about potentially blurred Richmond lettering is replaced for these checked views by a bounded no-direct-label finding. Representative identity and whole-group naming remain on hold after complete-path reassessment. Headwater or feeder names, exact river/storage relationships, name transitions and the coastal ending remain unassigned at reach level."
+    },
+    {
+      "aw_id": "hydro-system:50738894",
+      "geometry_fids": [
+        7043
+      ],
+      "fragment_count": 1,
+      "part_count": 29,
+      "position_count": 192,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "geographic_disambiguation": "New South Wales, Australia",
+      "independent_observation": "The complete selected New South Wales path descends south from a northwestern headwater, bends southeast, and follows a winding eastward corridor with a southern middle-course bend before reaching the Port Macquarie coast. Its regional geography remains compatible with the Hastings River candidate. The newly acquired high-resolution chapter makes neighbouring river names, river lines and symbol roles clear, but no direct Hastings river-line label or named Hastings monitoring station is established in the inspected Figures 4.1, 4.22–4.27, 4.34, 4.35 or 4.45. Figure 4.22 retains a Hastings River catchment callout; Table 4.4 retains a Hastings River entry in the River basin column for Port Macquarie. Limeburners Creek Nature Reserve is a wetland callout, and the urban-storage symbols and off-creek storage entries do not name the selected river. The better original pixels confirm rather than resolve the prior direct-identity gap. Representative identity and whole-group naming remain on hold after complete-path reassessment. Headwater or feeder names, river/storage relationships, exact name transitions and coastal scope remain unassigned at reach level."
+    }
+  ],
+  "source_limit": "One publication, examined in a newly acquired higher-resolution New South Wales chapter and a retained lower-resolution full-report comparison. Better pixels confirm that the cited maps provide basin and contextual wording without a direct selected-river name or usable named-station correspondence for either target. Both existing holds remain. Exact upper feeder, storage, name-transition, tidal and coastal naming scope remains unresolved. Original maps and full paths are omitted, so public validation cannot replay the visual interpretation."
+}
