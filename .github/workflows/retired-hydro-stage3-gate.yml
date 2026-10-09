@@ -1,4 +1,4 @@
-name: Retired Hydro All-Branch Regression Gate
+name: Retired Hydro v0.13.2 All-Branch Regression Gate
 
 on:
   push:
@@ -8,7 +8,11 @@ on:
       - 'tests/unit/retired-hydro-stage3.test.mjs'
       - '.github/workflows/retired-hydro-stage3-gate.yml'
       - 'docs/validation/legacy-hydro-stage3.md'
+      - 'docs/validation/hydro-v0132-retirement-stage4.md'
       - 'assets/data/hydro/v0.12.*/**'
+      - 'assets/data/hydro/v0.13.0/**'
+      - 'assets/data/hydro/v0.13.1/**'
+      - 'assets/data/hydro/v0.13.2/**'
   workflow_dispatch:
 
 permissions:
@@ -36,10 +40,10 @@ jobs:
       - name: Verify all branches and current public hydro
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/check-retired-hydro.mjs --out reports/retired-hydro-stage3-live.json
+        run: node tools/check-retired-hydro.mjs --out reports/retired-hydro-stage4-live.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: retired-hydro-stage3-live
+          name: retired-hydro-stage4-live
           if-no-files-found: warn
-          path: reports/retired-hydro-stage3-live.json
+          path: reports/retired-hydro-stage4-live.json
