@@ -1,0 +1,123 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r10",
+  "created_at_utc": "2026-10-09T14:49:34.000500+00:00",
+  "target": {
+    "aw_id": "hydro-system:50779535",
+    "system_id": "50779535",
+    "logical_fid": 2133,
+    "geometry_fids": [
+      7096
+    ],
+    "historical_baseline_bbox": [
+      115.824715,
+      -34.617149,
+      117.1125,
+      -33.947917
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Warren River system; representative mainstem identity only (Western Australia)",
+    "name_original": "Warren River",
+    "name_original_language": "en",
+    "name_en": "Warren River",
+    "name_ko": null,
+    "status": "Supported representative system/mainstem identity; uniform whole-group and per-reach naming are not cleared.",
+    "identity_confidence": "High for representative regional system identity; exact named-component boundaries unresolved.",
+    "scope": "Selected historical baseline group only, with headwater and outlet distinctions retained.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming evidence acquired.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "../../geometry-reference.json",
+    "fragment_facts_file": "../../selected-river-metadata.json",
+    "ordered_source_ids_file": "../../source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 1,
+    "all_line_parts_reviewed": 53,
+    "all_coordinate_positions_reviewed": 306,
+    "distinct_source_reach_ids": 53,
+    "canonical_ordered_group_geometry_sha256": "3ada56b7a427261f8f779771ac18834b19a93b55a667fa332b8b00b7298c26d3",
+    "source_ids_sha256": "545826c87f97352ab03594f089474278282adf60ab11cd4f2f9b6470b5745272",
+    "fragment_facts": [
+      {
+        "fid": 7096,
+        "stage": 3,
+        "part_count": 53,
+        "coordinate_count": 306,
+        "canonical_geometry_sha256": "3068df72b5d5eb87396a754994f114acc1e3696297c377c04aa8534b51895b40",
+        "ordered_source_id_csv_sha256": "a6c5a5bea64f9c21d3a427b8156f0fcccf362280249895b36e9e4ec4fd9c5205"
+      }
+    ],
+    "fragment_geometry_and_source_id_hashes_independently_recomputed": true,
+    "discontinuous_adjacent_part_joins_detected": 0,
+    "complete_geometry_published": false,
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "All decoded parts included in complete-path visual and numeric review. Equal part/reach counts do not prove a reach-to-part correspondence."
+  },
+  "spatial_identity_check": {
+    "method": "Complete baseline path plotted, inspected and checked for every part, count, bound and hash; side-by-side comparison with complete official regional maps and course descriptions. No georegistered overlay or exact line fit.",
+    "evidence_ids": [
+      "COLLIE-WARREN-BOM-AWRA2012",
+      "WA-SLUI38-2005",
+      "WARREN-DWER-HEALTHYRIVERS"
+    ],
+    "baseline_role_sequence": [
+      "mainstem"
+    ],
+    "baseline_role_is_not_a_name_authority": true,
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false,
+    "per_reach_name_assignment_cleared": false,
+    "regional_course_comparison": "The entire northeast-to-southwest path is consistent with the Tone-to-Warren corridor: inland headwaters southwest of Kojonup, southward approach east of Manjimup, westward lower valley and the coastal Warren mouth region southwest of Pemberton.",
+    "named_transition_check": "DWER explicitly places the Warren name downstream of the Tone-Perup confluence. The selected upstream course is regionally consistent with Tone, but the confluence has not been crosswalked to a rendered-part boundary.",
+    "component_scope": [
+      {
+        "component": "Tone River headwater continuation",
+        "selected_path_relationship": "Upstream association supported at regional-course level; exact reach-name boundaries not assigned."
+      },
+      {
+        "component": "Tone-Perup confluence / Warren River",
+        "selected_path_relationship": "Named transition explicitly supported by DWER; Perup is a tributary, not established as the selected upstream path."
+      },
+      {
+        "component": "Lower Warren mouth and coastal terminal",
+        "selected_path_relationship": "Southern Ocean receiving-water context supported; exact mouth and any estuarine limit not surveyed."
+      }
+    ],
+    "bounded_unresolved_scope": "Tone-to-Warren and lower-river/estuarine/coastal boundaries remain unresolved at source-reach resolution. No distinct estuary name is established by these sources."
+  },
+  "outlet_scope": {
+    "baseline_terminal_class": "sea",
+    "source_endpoint_equals_render_endpoint": false,
+    "surveyed_outlet_verified": false,
+    "exact_render_endpoint_is_named_river_mouth": false,
+    "channel_or_estuary_name_automatically_assigned": false,
+    "regional_location": "Warren mouth region southwest of Pemberton, Western Australia",
+    "regional_receiving_water": "Southern Ocean",
+    "endpoint_interpretation": "The regional outlet agrees with the official Warren course description. The retained source endpoint and rendered endpoint differ, so neither is treated as a surveyed current river-mouth boundary."
+  },
+  "evidence_package": {
+    "source_evidence_file": "source-evidence.json",
+    "source_evidence_sha256": "a5ac474fc5af4d6cb0e7fe2fe77d2f49abd7fccc5d8a198f59f62b7cb460704d",
+    "distinct_supporting_publications_for_this_target": 3,
+    "shared_reports_counted_once_across_targets": true,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Only the pinned historical baseline was checked; current deployment and original HydroRIVERS coordinate equality are not claimed.",
+    "No exact name-boundary crosswalk or universal component name is established.",
+    "Representative identity does not authorize automatic changes."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

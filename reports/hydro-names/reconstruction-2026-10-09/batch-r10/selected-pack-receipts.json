@@ -1,0 +1,25 @@
+[
+  {
+    "id": 797,
+    "shard": 2,
+    "offset": 479869,
+    "length": 10740,
+    "stage": 3,
+    "sha256": "d808f04c58a76b8cfe754954488b94dc196090d3d82492f5effdb5a8169bd304",
+    "selected_fids": [
+      7081
+    ]
+  },
+  {
+    "id": 798,
+    "shard": 2,
+    "offset": 490609,
+    "length": 5717,
+    "stage": 3,
+    "sha256": "d131bd3b2ef3b1557af67678d433cafff97f0bf4bafcd952abd0eae4ea625dd1",
+    "selected_fids": [
+      7096,
+      7098
+    ]
+  }
+]

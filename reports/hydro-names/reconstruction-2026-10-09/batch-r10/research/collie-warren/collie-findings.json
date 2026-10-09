@@ -1,0 +1,126 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r10",
+  "created_at_utc": "2026-10-09T14:49:34.000500+00:00",
+  "target": {
+    "aw_id": "hydro-system:50766256",
+    "system_id": "50766256",
+    "logical_fid": 2120,
+    "geometry_fids": [
+      7081
+    ],
+    "historical_baseline_bbox": [
+      115.672746,
+      -33.43125,
+      116.645833,
+      -33.289583
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Collie River system; representative mainstem identity only (Western Australia)",
+    "name_original": "Collie River",
+    "name_original_language": "en",
+    "name_en": "Collie River",
+    "name_ko": null,
+    "status": "Supported representative system/mainstem identity; uniform whole-group and per-reach naming are not cleared.",
+    "identity_confidence": "High for representative regional system identity; exact named-component boundaries unresolved.",
+    "scope": "Selected historical baseline group only, with headwater and outlet distinctions retained.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming evidence acquired.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "../../geometry-reference.json",
+    "fragment_facts_file": "../../selected-river-metadata.json",
+    "ordered_source_ids_file": "../../source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 1,
+    "all_line_parts_reviewed": 36,
+    "all_coordinate_positions_reviewed": 218,
+    "distinct_source_reach_ids": 36,
+    "canonical_ordered_group_geometry_sha256": "ce9d709e28f6f066883fcbc958834b107bba3eb550c94458f8fffef1a017ce8d",
+    "source_ids_sha256": "e138c1ffba3e4c7cbcef00165e0254b6b1e28773f7360e8ce9b27dd8a8b7ee73",
+    "fragment_facts": [
+      {
+        "fid": 7081,
+        "stage": 3,
+        "part_count": 36,
+        "coordinate_count": 218,
+        "canonical_geometry_sha256": "5fbf8e7788e3356610303bbea1990eeb8b5713667af79d5e9487e6bca3acb373",
+        "ordered_source_id_csv_sha256": "0435919b4d61a3880b4c84c4c6247bdb28ac003e0666ac58897c392335e9d720"
+      }
+    ],
+    "fragment_geometry_and_source_id_hashes_independently_recomputed": true,
+    "discontinuous_adjacent_part_joins_detected": 0,
+    "complete_geometry_published": false,
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "All decoded parts included in complete-path visual and numeric review. Equal part/reach counts do not prove a reach-to-part correspondence."
+  },
+  "spatial_identity_check": {
+    "method": "Complete baseline path plotted, inspected and checked for every part, count, bound and hash; side-by-side comparison with complete official regional maps and course descriptions. No georegistered overlay or exact line fit.",
+    "evidence_ids": [
+      "COLLIE-WARREN-BOM-AWRA2012",
+      "WA-SLUI38-2005",
+      "COLLIE-DWER-HEALTHYRIVERS"
+    ],
+    "baseline_role_sequence": [
+      "mainstem"
+    ],
+    "baseline_role_is_not_a_name_authority": true,
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false,
+    "per_reach_name_assignment_cleared": false,
+    "regional_course_comparison": "The complete east-to-west course and its central bends are regionally consistent with the Collie drainage through the Collie town/Wellington Reservoir corridor toward Leschenault. The eastern continuation must not inherit an unqualified mainstem name solely from this group association.",
+    "named_transition_check": "SLUI38 separately names Collie River East and Collie River South Branch. Collie River East is a plausible regional association for the selected eastern continuation; exact attribution of the first rendered headwater and its transition to Collie River remains unresolved.",
+    "component_scope": [
+      {
+        "component": "Eastern headwater continuation",
+        "source_named_context": [
+          "Collie River East"
+        ],
+        "selected_path_relationship": "Regional candidate only; exact first-part name and branch transition not established."
+      },
+      {
+        "component": "Collie River / Wellington Reservoir corridor",
+        "selected_path_relationship": "Representative system identity supported; submerged-channel and reservoir boundaries not assigned to parts."
+      },
+      {
+        "component": "Leschenault Inlet / Leschenault Estuary approach",
+        "selected_path_relationship": "Receiving estuary is separately named; selected coastal terminal is not a surveyed river-mouth location."
+      }
+    ],
+    "bounded_unresolved_scope": "Eastern headwater/branch naming, reservoir boundaries and river-to-estuary/ocean transition remain unresolved at source-reach resolution."
+  },
+  "outlet_scope": {
+    "baseline_terminal_class": "sea",
+    "source_endpoint_equals_render_endpoint": false,
+    "surveyed_outlet_verified": false,
+    "exact_render_endpoint_is_named_river_mouth": false,
+    "channel_or_estuary_name_automatically_assigned": false,
+    "regional_location": "Leschenault estuary area north of Bunbury, Western Australia",
+    "regional_receiving_water": "Leschenault Inlet / Leschenault Estuary",
+    "endpoint_interpretation": "The sea-terminal metadata represents the selected drainage termination. It does not prove the named Collie River reaches the exact rendered coastal endpoint, and it does not erase the separately named receiving estuary."
+  },
+  "evidence_package": {
+    "source_evidence_file": "source-evidence.json",
+    "source_evidence_sha256": "a5ac474fc5af4d6cb0e7fe2fe77d2f49abd7fccc5d8a198f59f62b7cb460704d",
+    "distinct_supporting_publications_for_this_target": 3,
+    "shared_reports_counted_once_across_targets": true,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Only the pinned historical baseline was checked; current deployment and original HydroRIVERS coordinate equality are not claimed.",
+    "No exact name-boundary crosswalk or universal component name is established.",
+    "Representative identity does not authorize automatic changes."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

@@ -1,0 +1,158 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r10",
+  "research_completed_targets": 3,
+  "independently_reviewed_targets": 3,
+  "counting_unit": "Three actual logical MAIN_RIV inventory groups, not a count of fully named reaches.",
+  "counts": {
+    "supported_representative_system_identity": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 3,
+  "river_line_part_count": 120,
+  "distinct_source_reach_count": 120,
+  "river_rendered_coordinate_count": 705,
+  "part_counts_in_target_order": [
+    36,
+    53,
+    31
+  ],
+  "position_counts_in_target_order": [
+    218,
+    306,
+    181
+  ],
+  "fragment_part_counts_in_target_order": [
+    [
+      36
+    ],
+    [
+      53
+    ],
+    [
+      31
+    ]
+  ],
+  "fragment_position_counts_in_target_order": [
+    [
+      218
+    ],
+    [
+      306
+    ],
+    [
+      181
+    ]
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50766256",
+      "category": "river_group",
+      "system_id": "50766256",
+      "baseline_logical_fid": 2120,
+      "geometry_fids": [
+        7081
+      ],
+      "candidate_name": "Collie River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete east-to-west path, eastern southern arc and central bends agree regionally with the Collie drainage through the Collie town and Wellington Reservoir corridor toward Leschenault. Collie River is supported as representative identity. Collie River East is only a provisional regional association for the eastern continuation; the initial channel, branch transition, reservoir passage and estuary connector are not individually named.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "WA-SLUI38-2005",
+        "COLLIE-DWER-HEALTHYRIVERS"
+      ],
+      "limits": [
+        "Collie River East and Collie River South Branch are distinct names. The selected eastern continuation is only provisionally associated with Collie River East.",
+        "Wellington Reservoir and Leschenault Inlet / Estuary are distinct receiving or passage contexts, with no selected-part boundaries established.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or whole-group scalar naming is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:50779535",
+      "category": "river_group",
+      "system_id": "50779535",
+      "baseline_logical_fid": 2133,
+      "geometry_fids": [
+        7096
+      ],
+      "candidate_name": "Warren River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete northeastern inland path bends south and then west through the lower valley toward the coast southwest of Pemberton, consistent with the Tone-to-Warren drainage. Warren River is supported as representative identity. The source distinguishes upstream Tone and the Tone-Perup confluence from downstream Warren; no selected part or exact transition is assigned.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "WA-SLUI38-2005",
+        "WARREN-DWER-HEALTHYRIVERS"
+      ],
+      "limits": [
+        "Tone and Perup form Warren east of Manjimup. The regional upstream association is Tone, with no part-level confluence or transition crosswalk.",
+        "Perup, Wilgarup, Lefroy and Dombakup remain separate names. No distinct lower estuary name is established by the inspected sources.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or whole-group scalar naming is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:50782443",
+      "category": "river_group",
+      "system_id": "50782443",
+      "baseline_logical_fid": 2135,
+      "geometry_fids": [
+        7098
+      ],
+      "candidate_name": "Kalgan River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete western inland extension, eastward course and southward then southwestward bend agree at catchment scale with the Kalgan drainage toward Stevens Farm and Oyster Harbour. Kalgan River is supported as representative identity. Exact western headwater names remain unresolved; the tidal lower river, receiving harbour and terminal continuation do not receive one blanket name.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "KALGAN-DWER-NUTRIENT2019",
+        "KALGAN-DWER-RIVERHEALTH"
+      ],
+      "limits": [
+        "Catchment-scale course agreement does not establish the name of the western starting extension or every selected reach.",
+        "The documented lower tidal nine kilometres are not projected onto geometry. Oyster Harbour and its terminal continuation do not inherit Kalgan River.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or whole-group scalar naming is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "65ef9c6c36e6149b87f5ccd92a5ff95927eb33333ec9bb87851fdfc21dcef7be",
+  "publication_contents": "Own factual evidence and review, identifier/role/count/hash facts, a few whole-fragment bounds/endpoints and original validators. Complete river coordinates, raw packs and all third-party document/map bodies are omitted.",
+  "previous_reconstruction_commit": "ea66825657b0f7ff8e41616e375bf974cd4dbff1"
+}

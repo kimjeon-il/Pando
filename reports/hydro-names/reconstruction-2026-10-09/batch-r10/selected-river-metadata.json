@@ -1,0 +1,1188 @@
+{
+  "schema": "selected-river-facts-v2",
+  "scope_system_ids": [
+    "50766256",
+    "50779535",
+    "50782443"
+  ],
+  "fragments": [
+    {
+      "system_id": "50766256",
+      "aw_id": "hydro-system:50766256",
+      "fid": 7081,
+      "logical_fid": 2120,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "role": "mainstem",
+      "stage": 3,
+      "flags": 0,
+      "baseline_width": 1.8790260304981767,
+      "source": "HydroRIVERS 1.0",
+      "baseline_placeholder_name": "미명명 수계 50766256",
+      "baseline_placeholder_mainstem_name_ko": "미명명 수계 50766256",
+      "baseline_core_metadata_exact": {
+        "fid": 7081,
+        "logicalFid": 2120,
+        "awId": "hydro-system:50766256",
+        "name": "미명명 수계 50766256",
+        "layerId": "rivers_hydro",
+        "category": "river",
+        "bounds": [
+          115672746,
+          -33431250,
+          116645833,
+          -33289583
+        ],
+        "stage": 3,
+        "flags": 0,
+        "fragmentIndex": 0,
+        "fragmentCount": 1,
+        "width": 1.8790260304981767,
+        "systemId": "50766256",
+        "mainstemNameKo": "미명명 수계 50766256",
+        "role": "mainstem",
+        "terminal": {
+          "class": "sea",
+          "sourceEndpoint": [
+            115.67291666666645,
+            -33.306250000000375
+          ],
+          "renderEndpoint": [
+            115.67274569522829,
+            -33.30738022040472
+          ]
+        }
+      },
+      "baseline_detail_metadata_exact": {
+        "fid": 7081,
+        "sourceId": "50766911,50767031,50767030,50766972,50767206,50767315,50767633,50767632,50767733,50767732,50767684,50767447,50766608,50766445,50766606,50766910,50767158,50767157,50767156,50766970,50766799,50766969,50767367,50767400,50767399,50767205,50767155,50766503,50766443,50766441,50766186,50766260,50766259,50766294,50766257,50766256",
+        "source": "HydroRIVERS 1.0"
+      },
+      "baseline_metadata_exact": {
+        "fid": 7081,
+        "logicalFid": 2120,
+        "awId": "hydro-system:50766256",
+        "name": "미명명 수계 50766256",
+        "layerId": "rivers_hydro",
+        "category": "river",
+        "bounds": [
+          115672746,
+          -33431250,
+          116645833,
+          -33289583
+        ],
+        "stage": 3,
+        "flags": 0,
+        "fragmentIndex": 0,
+        "fragmentCount": 1,
+        "width": 1.8790260304981767,
+        "systemId": "50766256",
+        "mainstemNameKo": "미명명 수계 50766256",
+        "role": "mainstem",
+        "terminal": {
+          "class": "sea",
+          "sourceEndpoint": [
+            115.67291666666645,
+            -33.306250000000375
+          ],
+          "renderEndpoint": [
+            115.67274569522829,
+            -33.30738022040472
+          ]
+        },
+        "sourceId": "50766911,50767031,50767030,50766972,50767206,50767315,50767633,50767632,50767733,50767732,50767684,50767447,50766608,50766445,50766606,50766910,50767158,50767157,50767156,50766970,50766799,50766969,50767367,50767400,50767399,50767205,50767155,50766503,50766443,50766441,50766186,50766260,50766259,50766294,50766257,50766256",
+        "source": "HydroRIVERS 1.0"
+      },
+      "baseline_core_name_fields_exact": {
+        "name": "미명명 수계 50766256",
+        "mainstemNameKo": "미명명 수계 50766256"
+      },
+      "baseline_detail_name_fields_exact": {},
+      "baseline_name_fields_exact": {
+        "name": "미명명 수계 50766256",
+        "mainstemNameKo": "미명명 수계 50766256"
+      },
+      "research_name_ko": null,
+      "automatic_application": false,
+      "source_reach_count": 36,
+      "ordered_source_id_csv_sha256": "0435919b4d61a3880b4c84c4c6247bdb28ac003e0666ac58897c392335e9d720",
+      "pack_id": 797,
+      "baseline_core_metadata_canonical_sha256": "fc8be81d7ffa669fc58f7c0578bcf6d2cfd262e02e9e419116cea07207b6e9e2",
+      "baseline_detail_metadata_canonical_sha256": "7e4d310a91d29f0bb898ba2910a60e0bf170597be53004f757f56f6f48528e14",
+      "baseline_metadata_canonical_sha256": "16323641d746bfa7e40c0849873c3f812ad4749008037b0f79fe3e834c3f997e",
+      "baseline_feature_canonical_sha256": "0e12b9753725a4c2b8c1bb98f0eba64d4fd0a98e58598879b994c727e4c3434d",
+      "geometry": {
+        "type": "MultiLineString",
+        "part_count": 36,
+        "coordinate_count": 218,
+        "coordinate_counts_by_part": [
+          9,
+          2,
+          4,
+          2,
+          3,
+          5,
+          8,
+          2,
+          9,
+          3,
+          10,
+          14,
+          17,
+          2,
+          6,
+          8,
+          6,
+          3,
+          8,
+          3,
+          10,
+          6,
+          7,
+          2,
+          11,
+          3,
+          12,
+          3,
+          3,
+          7,
+          3,
+          5,
+          11,
+          7,
+          2,
+          2
+        ],
+        "ordered_parts": [
+          {
+            "part_index": 0,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "aad9d39cda0afb2d38d96e7095c1e0e94f1261069addaf918adfb8c02654007b"
+          },
+          {
+            "part_index": 1,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "b837e2b397d88ec289aff7819cb718610ecebf312783dde142008a730e27014b"
+          },
+          {
+            "part_index": 2,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "d1f6265fe420d03837939cd6efed0021a087dd1f63a1a0dbca3e2894e13c4bcc"
+          },
+          {
+            "part_index": 3,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "2b574a6b0901e3bcf314e74e3c3872e12e2fe272faf9d4e842dccb40ba96be31"
+          },
+          {
+            "part_index": 4,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "1a3136e6094a04db544dc6b51ef503ab9220e5bf1dee94a67e3056767708ac5e"
+          },
+          {
+            "part_index": 5,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "6bdeb73a251950662fa05ec42076f7a89843e6fd52eb35075a936ca938c91d86"
+          },
+          {
+            "part_index": 6,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "3f41c4cbaa6511c71ea2ac321321a6461824430fe67183ac25b7a61e5169c505"
+          },
+          {
+            "part_index": 7,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "b0bb09cd248e6b99f70be94e6c4818759f895e6290d04b086cd9ac1f8a962244"
+          },
+          {
+            "part_index": 8,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "108233d4f7abc16f5ffcc0c19c84efc460ea40845d306488fef269be1aca8ef2"
+          },
+          {
+            "part_index": 9,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "b8bdf07487ee62e6b8a8cad18b8b2212a21ec14de83ac01318b7a4b2a318e61b"
+          },
+          {
+            "part_index": 10,
+            "coordinate_count": 10,
+            "ordered_coordinate_sha256": "8420d66d3e20340fddf430ea6cb528934d30402368489c52b43772f92d24df09"
+          },
+          {
+            "part_index": 11,
+            "coordinate_count": 14,
+            "ordered_coordinate_sha256": "8ebcc557d53e559136114d682bd0633ab0070a9356d20fcd0886f269766024fb"
+          },
+          {
+            "part_index": 12,
+            "coordinate_count": 17,
+            "ordered_coordinate_sha256": "9cd43f8d11f472cf56ba49114749121bda6cbcb7af1559a816f4d7cb77b3bcb5"
+          },
+          {
+            "part_index": 13,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "77942d8a78ebafa25263c5000c45866f4b450ea023b275bb0e3df75e68cd1316"
+          },
+          {
+            "part_index": 14,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "66b4e97a89e024dc9d2d29e1b3e5c0269d7038cf6146f5759faf519ab28bb399"
+          },
+          {
+            "part_index": 15,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "a7a0895a5e775208252a1ee550dd5e0159d26e62872228a151a13606f0328f31"
+          },
+          {
+            "part_index": 16,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "9cf9375a3f3c1d35d0894051b4f2dc2b0e60fbf8268d814a98e57ccd6bb6dcd2"
+          },
+          {
+            "part_index": 17,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "8a105b755077d9f47f1ba7f30884ccef9511e6bc751bd716ed126a3aa9c1db70"
+          },
+          {
+            "part_index": 18,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "20a5610a17146fbdd863ba500f967d4cbbf827627f16a21f4f17ca1614e89f56"
+          },
+          {
+            "part_index": 19,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "7abc05efb56b73a6a09c2010e8eaae34e1f30b972dcd053196d3189a1dbfbeb8"
+          },
+          {
+            "part_index": 20,
+            "coordinate_count": 10,
+            "ordered_coordinate_sha256": "98bb8f7a1253072765bfd94db18be9a6ea75472700c6079741c8c12ff5bc607b"
+          },
+          {
+            "part_index": 21,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "7398cc9c6464c9fd3025f9181c47e743971bd17b9c4c50fc864cad8df9c340ce"
+          },
+          {
+            "part_index": 22,
+            "coordinate_count": 7,
+            "ordered_coordinate_sha256": "e3e8664848f0c90ca6e65f1bf649238a644cdb893355b62b301557a997f602f7"
+          },
+          {
+            "part_index": 23,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "b3aefae510e3e115e9fa4c5ea7a45f2f2f0b1272769e536121d982b3a5dead2a"
+          },
+          {
+            "part_index": 24,
+            "coordinate_count": 11,
+            "ordered_coordinate_sha256": "8118e12d3323e6bef27ac20ede43d0e57553b6f4606fe41eb6a2394f5f0de81c"
+          },
+          {
+            "part_index": 25,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "51dde8039aee3d446b45f322b706c1a4682e87e143ae99d9faf13fd9704302f0"
+          },
+          {
+            "part_index": 26,
+            "coordinate_count": 12,
+            "ordered_coordinate_sha256": "476a446952ab262f4ba6d0a66added87d1826c449890145ce9767c03a1a3a142"
+          },
+          {
+            "part_index": 27,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "a9096477a1eca253cc25af7a1ee74301a20a8a1e88af3f71ccfd6e63ef69eb6e"
+          },
+          {
+            "part_index": 28,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "7e0d287c7ccc8c26086ea7ab06501a59494d417395eaaa7cb447c90ce571975b"
+          },
+          {
+            "part_index": 29,
+            "coordinate_count": 7,
+            "ordered_coordinate_sha256": "84d4a2be332158a9cbd1f16d91ddb2155728363c6f3312f1fae02759ce21aa9b"
+          },
+          {
+            "part_index": 30,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "b6f23c4c9516d846c9c4440eabb1402c9c35d604a96126ce76c5dc65f37b2fbe"
+          },
+          {
+            "part_index": 31,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "8510ac451387659c96e7483d0b04edeaa7a0514bee942b2a5bbec614df206e9b"
+          },
+          {
+            "part_index": 32,
+            "coordinate_count": 11,
+            "ordered_coordinate_sha256": "11018cc90cec8fd97b22fcf183e1430f82da990312fc8c0dc6e14476a30be16d"
+          },
+          {
+            "part_index": 33,
+            "coordinate_count": 7,
+            "ordered_coordinate_sha256": "8b965f28afd5f5968e3e958ad0503e63caff216645a52b7d1e96a4dc80203c24"
+          },
+          {
+            "part_index": 34,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "6d86fa05a52a04baccc62400f22278935949d5be79f161f6624fddd3cfa66c68"
+          },
+          {
+            "part_index": 35,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "cb18f0753f06e2b9fe1f985cedb346e68a5daba20c52f7e2444281b7225d5b8b"
+          }
+        ],
+        "bounds": [
+          115.672746,
+          -33.43125,
+          116.645833,
+          -33.289583
+        ],
+        "fragment_endpoints": [
+          [
+            116.645833,
+            -33.333333
+          ],
+          [
+            115.672746,
+            -33.30738
+          ]
+        ],
+        "canonical_geometry_sha256": "5fbf8e7788e3356610303bbea1990eeb8b5713667af79d5e9487e6bca3acb373",
+        "coordinate_order": "Exact production decoder part and vertex order; no simplification, sorting, repair or reversal."
+      },
+      "terminal": {
+        "class": "sea",
+        "source_endpoint": [
+          115.67291666666645,
+          -33.306250000000375
+        ],
+        "render_endpoint_before_quantization": [
+          115.67274569522829,
+          -33.30738022040472
+        ],
+        "render_endpoint_quantized": [
+          115.672746,
+          -33.30738
+        ],
+        "source_endpoint_equals_render_endpoint": false,
+        "decoded_last_vertex_matches_render_endpoint_quantized": true,
+        "meaning": "Source endpoint means the retained baseline metadata value, not a coordinate independently obtained from original HydroRIVERS source geometry."
+      }
+    },
+    {
+      "system_id": "50779535",
+      "aw_id": "hydro-system:50779535",
+      "fid": 7096,
+      "logical_fid": 2133,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "role": "mainstem",
+      "stage": 3,
+      "flags": 0,
+      "baseline_width": 1.7699446443442615,
+      "source": "HydroRIVERS 1.0",
+      "baseline_placeholder_name": "미명명 수계 50779535",
+      "baseline_placeholder_mainstem_name_ko": "미명명 수계 50779535",
+      "baseline_core_metadata_exact": {
+        "fid": 7096,
+        "logicalFid": 2133,
+        "awId": "hydro-system:50779535",
+        "name": "미명명 수계 50779535",
+        "layerId": "rivers_hydro",
+        "category": "river",
+        "bounds": [
+          115824715,
+          -34617149,
+          117112500,
+          -33947917
+        ],
+        "stage": 3,
+        "flags": 0,
+        "fragmentIndex": 0,
+        "fragmentCount": 1,
+        "width": 1.7699446443442615,
+        "systemId": "50779535",
+        "mainstemNameKo": "미명명 수계 50779535",
+        "role": "mainstem",
+        "terminal": {
+          "class": "sea",
+          "sourceEndpoint": [
+            115.83124999999964,
+            -34.61041666666699
+          ],
+          "renderEndpoint": [
+            115.82471519192012,
+            -34.61714929416919
+          ]
+        }
+      },
+      "baseline_detail_metadata_exact": {
+        "fid": 7096,
+        "sourceId": "50773719,50773763,50773886,50774076,50774279,50774472,50774650,50774649,50774808,50775331,50775330,50775394,50775631,50775892,50776062,50776241,50776284,50776314,50776658,50776915,50777038,50777260,50777533,50777564,50777882,50777919,50777918,50777917,50777802,50777742,50777705,50777663,50777601,50777561,50777631,50777830,50777880,50777916,50777977,50778214,50778501,50778729,50778728,50778727,50778658,50778657,50778692,50778761,50779166,50779198,50779384,50779475,50779535",
+        "source": "HydroRIVERS 1.0"
+      },
+      "baseline_metadata_exact": {
+        "fid": 7096,
+        "logicalFid": 2133,
+        "awId": "hydro-system:50779535",
+        "name": "미명명 수계 50779535",
+        "layerId": "rivers_hydro",
+        "category": "river",
+        "bounds": [
+          115824715,
+          -34617149,
+          117112500,
+          -33947917
+        ],
+        "stage": 3,
+        "flags": 0,
+        "fragmentIndex": 0,
+        "fragmentCount": 1,
+        "width": 1.7699446443442615,
+        "systemId": "50779535",
+        "mainstemNameKo": "미명명 수계 50779535",
+        "role": "mainstem",
+        "terminal": {
+          "class": "sea",
+          "sourceEndpoint": [
+            115.83124999999964,
+            -34.61041666666699
+          ],
+          "renderEndpoint": [
+            115.82471519192012,
+            -34.61714929416919
+          ]
+        },
+        "sourceId": "50773719,50773763,50773886,50774076,50774279,50774472,50774650,50774649,50774808,50775331,50775330,50775394,50775631,50775892,50776062,50776241,50776284,50776314,50776658,50776915,50777038,50777260,50777533,50777564,50777882,50777919,50777918,50777917,50777802,50777742,50777705,50777663,50777601,50777561,50777631,50777830,50777880,50777916,50777977,50778214,50778501,50778729,50778728,50778727,50778658,50778657,50778692,50778761,50779166,50779198,50779384,50779475,50779535",
+        "source": "HydroRIVERS 1.0"
+      },
+      "baseline_core_name_fields_exact": {
+        "name": "미명명 수계 50779535",
+        "mainstemNameKo": "미명명 수계 50779535"
+      },
+      "baseline_detail_name_fields_exact": {},
+      "baseline_name_fields_exact": {
+        "name": "미명명 수계 50779535",
+        "mainstemNameKo": "미명명 수계 50779535"
+      },
+      "research_name_ko": null,
+      "automatic_application": false,
+      "source_reach_count": 53,
+      "ordered_source_id_csv_sha256": "a6c5a5bea64f9c21d3a427b8156f0fcccf362280249895b36e9e4ec4fd9c5205",
+      "pack_id": 798,
+      "baseline_core_metadata_canonical_sha256": "93da958420a57643c543ac229ffe7b2bbbf333830202cd7980d11f157b4ae7cb",
+      "baseline_detail_metadata_canonical_sha256": "fdbf3e669a2e84cc2a5d9d2262c0d6a7bd52e33dcaa59ba4ead5bd72ae6c952d",
+      "baseline_metadata_canonical_sha256": "e1f681fc5110ebb74036aea49a7d01375ca0509234b6c9e8559afd5b2cec0a93",
+      "baseline_feature_canonical_sha256": "35be47d4c9d9a5bf9d4569776ace6ef73cd79c9f4000eaa3c4c143544b65e7cb",
+      "geometry": {
+        "type": "MultiLineString",
+        "part_count": 53,
+        "coordinate_count": 306,
+        "coordinate_counts_by_part": [
+          5,
+          6,
+          9,
+          3,
+          7,
+          2,
+          6,
+          2,
+          9,
+          9,
+          5,
+          2,
+          4,
+          2,
+          2,
+          3,
+          2,
+          5,
+          9,
+          8,
+          12,
+          6,
+          8,
+          2,
+          5,
+          6,
+          7,
+          4,
+          6,
+          3,
+          6,
+          4,
+          4,
+          5,
+          8,
+          9,
+          8,
+          2,
+          3,
+          6,
+          9,
+          9,
+          6,
+          10,
+          4,
+          6,
+          12,
+          2,
+          13,
+          5,
+          6,
+          5,
+          5
+        ],
+        "ordered_parts": [
+          {
+            "part_index": 0,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "057e9bf1db02d876097684c3adefbc4fbe30f8b1ba3e9d68ca4c624247f58f1c"
+          },
+          {
+            "part_index": 1,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "ea6edca7706013256739e09516a2c31c1ccbe4cf7a163fd1faa2c00d30cb5a88"
+          },
+          {
+            "part_index": 2,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "c807317a1901c8efca2944ce857f63556f68b90a90a2dcb2e38023da87d7a46a"
+          },
+          {
+            "part_index": 3,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "e9f224a1f4545e787003d8f0ae1922044b2dd6cf4562f590af17baa233529cfd"
+          },
+          {
+            "part_index": 4,
+            "coordinate_count": 7,
+            "ordered_coordinate_sha256": "90be969cacc262807ec0f0d32bd59f335729c73f27db142811574ba287ea7fef"
+          },
+          {
+            "part_index": 5,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "631fe6b232862f92d7b41e9e37938df592101736ece15889cc74075e3555459c"
+          },
+          {
+            "part_index": 6,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "bd81ecb0577dd78d4fc432e3a97e084c998190bb23316571d53c794995c6fe69"
+          },
+          {
+            "part_index": 7,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "2da9d057791b48d83c9e4972624299bd5f31c6d642f0b1c9621166e01a8d7ab5"
+          },
+          {
+            "part_index": 8,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "544aab6eada1b2ad4551b3f79dc54fb15c7c6ed6342b564b98a9f413d75373e4"
+          },
+          {
+            "part_index": 9,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "a9c3c62ed3d22594203c6e491856cb0c1c537493043308ef6ee992b6a90a743b"
+          },
+          {
+            "part_index": 10,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "b0583e3210978d8c2ba57a47521de389897c434c800cb9b2db8d4bdea1704231"
+          },
+          {
+            "part_index": 11,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "b285c084331bd33b12cc60819970c961a1b8e46aca5fe0c097658541d4d0a922"
+          },
+          {
+            "part_index": 12,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "e521ca12650e92e0e7f48000585b0fbeb46509d3504906bc1175aa3d6f0a12b2"
+          },
+          {
+            "part_index": 13,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "2cceb5c30587295d8ffe7b96552ce99008f74805708dbf8995fa6d367368e6a3"
+          },
+          {
+            "part_index": 14,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "190aa9213c6b389f72215a625652776175932eeeb24b3ba7a6118f97b412c48c"
+          },
+          {
+            "part_index": 15,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "b14076cafcd93a079c2d35542706a195a4a78cdcf257d10c2f7c924505b043e4"
+          },
+          {
+            "part_index": 16,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "c9773e4d8ffc7238cae605fbbd54d3b1e663d742d11f413deb6192631ea5dbaf"
+          },
+          {
+            "part_index": 17,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "2223587b9791db55b880df89ec1a90e9544370d2e2da3a462d617e191f3f8e24"
+          },
+          {
+            "part_index": 18,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "0b12fe0c2d59d8c0af93ccc98da7825afae5f478e8cd3d2171678e7c65bbbffe"
+          },
+          {
+            "part_index": 19,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "d450adbdafd3fdd9925486eb2fdf51c4192a44ece05796bc36ec4f6a6eddbf34"
+          },
+          {
+            "part_index": 20,
+            "coordinate_count": 12,
+            "ordered_coordinate_sha256": "f27f70a0ffdc39cadbe8f2ce262935855142ca2e9c61140f95a0c4b008cca4e2"
+          },
+          {
+            "part_index": 21,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "9e3143906f1c4dac0625e27cfca13d9cdfa956d7e497ed74c212ba9cb3c903e9"
+          },
+          {
+            "part_index": 22,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "144ff272ad90839e0f68efa8061e623b7bba389f32030a9a125873d2c3500fd1"
+          },
+          {
+            "part_index": 23,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "498db389af8064b75f1516fad87342e1b2a10f43e75c2159ce3688c946aadaa0"
+          },
+          {
+            "part_index": 24,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "81c628be3eb89d2d4144571b7a438e996261631380e3a17a272bb7608ddbbedc"
+          },
+          {
+            "part_index": 25,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "b745b2e5b47eda1ca842de0a3784a886acb35f2f19eb563acece829fe8db6306"
+          },
+          {
+            "part_index": 26,
+            "coordinate_count": 7,
+            "ordered_coordinate_sha256": "74b619f139116759ac0a2e346b8bcdccffbfbfc989dfdac7229d1c79da2bc8f6"
+          },
+          {
+            "part_index": 27,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "ad7571e4eac23141f2660ffaafb7a074ebacce892b1712aa2a0724d712f58234"
+          },
+          {
+            "part_index": 28,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "2309849de51b0b8a673cf336352913a092df07842bb04e3f90b8cfbbfad5bcc7"
+          },
+          {
+            "part_index": 29,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "233ee80250a23f42989b4cff453ccd761dfc594649cbd3abcdc2f2926282159e"
+          },
+          {
+            "part_index": 30,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "4f0b1d5adec77d28e29e337652036f339ccdb8200034d36278240e3a3fd9fb26"
+          },
+          {
+            "part_index": 31,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "a53f3f36055194b2babf37d708d425a5bce524c33705c918ee195b923ceafd31"
+          },
+          {
+            "part_index": 32,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "dd42abfad0fd8e9af46050347ea1c556c2d5666b12a91a28aa2efd8dc532cc9e"
+          },
+          {
+            "part_index": 33,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "49c12ae640741f24a0179a9c0bb0ba2cc0dcf4824c0c1040159c2b459c2177b4"
+          },
+          {
+            "part_index": 34,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "bbc0bb98d62323ea5a5fd76940a2207063ab6373305d6107b6d379caaedd87ae"
+          },
+          {
+            "part_index": 35,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "43cc6439a514c1b2baba683bb6bbc936671352472bb02baafb6ba4b63af93978"
+          },
+          {
+            "part_index": 36,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "c726290b2d0477f7f0d857a91b9f78a5f0b1b009987419254db61f247ef85c9a"
+          },
+          {
+            "part_index": 37,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "b4d7fbde2f82c97d66acdb88361fd2860801ff3e64d53b8dd75e090a7d04a231"
+          },
+          {
+            "part_index": 38,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "19d383a3d73121d1215dec1b4c580e8e033a3b2fb1dcbf9e261093fae30efab1"
+          },
+          {
+            "part_index": 39,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "8dc770e1550d5a57f573bd13791192e1c12dbaf525600ee2bfdc205d3fe0f50b"
+          },
+          {
+            "part_index": 40,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "d271b1cccb96a972d59ff008008fb2846b533a80b7a80a8e1c656874b246eb47"
+          },
+          {
+            "part_index": 41,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "c6e08c326b797eb71e42686c574d23b929fa2ec5b1e8a871fa6dc96a1391503b"
+          },
+          {
+            "part_index": 42,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "b5e6cbbf8e51945e1297e70795a14649e60001ca016cfb36aeda1cbb0367c1c2"
+          },
+          {
+            "part_index": 43,
+            "coordinate_count": 10,
+            "ordered_coordinate_sha256": "d830c122e8cabfbe57dc71cb999ca8b34f30e7efe9058165888c9885421c1d47"
+          },
+          {
+            "part_index": 44,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "59aa7cdd3952ddfae99521d5692821d4c96df65e14cdcec694d3455b9e51cc13"
+          },
+          {
+            "part_index": 45,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "47ae7c5bae2332f4fb27b96b763fd8c13d3bf94332c3d5dccc90c1089d75b8bf"
+          },
+          {
+            "part_index": 46,
+            "coordinate_count": 12,
+            "ordered_coordinate_sha256": "e45fe27546ab5d9db4b7fdeca7a506e7bb2732e9cb50cd8bbc3f75b1048f0d51"
+          },
+          {
+            "part_index": 47,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "e8834843686f6f610be53bc712126368019cb2b5b6ffc7018d459b67636e1bb6"
+          },
+          {
+            "part_index": 48,
+            "coordinate_count": 13,
+            "ordered_coordinate_sha256": "3a40bd6b6f46f4f8f0b7d591fbc257a0be2677145c47db6257a220b9d004c3a3"
+          },
+          {
+            "part_index": 49,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "b02f6f771b869a7d4b97a7d2c8664a61e1b7ad267960fd2f86d21415e1964f69"
+          },
+          {
+            "part_index": 50,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "6c2e570302b368b10a34a12a35bad70d3f79bc431ac9a42b98b444cc26121dff"
+          },
+          {
+            "part_index": 51,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "150433fa20b0205420300bf3910e4409a58ff8c5fbce868f1edcd81ffd0c3002"
+          },
+          {
+            "part_index": 52,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "5cdfb1d5faa6e194db513fc26f14a9a9b7abec0a69a4b6d4363b6d70f668e3e4"
+          }
+        ],
+        "bounds": [
+          115.824715,
+          -34.617149,
+          117.1125,
+          -33.947917
+        ],
+        "fragment_endpoints": [
+          [
+            117.1125,
+            -33.947917
+          ],
+          [
+            115.824715,
+            -34.617149
+          ]
+        ],
+        "canonical_geometry_sha256": "3068df72b5d5eb87396a754994f114acc1e3696297c377c04aa8534b51895b40",
+        "coordinate_order": "Exact production decoder part and vertex order; no simplification, sorting, repair or reversal."
+      },
+      "terminal": {
+        "class": "sea",
+        "source_endpoint": [
+          115.83124999999964,
+          -34.61041666666699
+        ],
+        "render_endpoint_before_quantization": [
+          115.82471519192012,
+          -34.61714929416919
+        ],
+        "render_endpoint_quantized": [
+          115.824715,
+          -34.617149
+        ],
+        "source_endpoint_equals_render_endpoint": false,
+        "decoded_last_vertex_matches_render_endpoint_quantized": true,
+        "meaning": "Source endpoint means the retained baseline metadata value, not a coordinate independently obtained from original HydroRIVERS source geometry."
+      }
+    },
+    {
+      "system_id": "50782443",
+      "aw_id": "hydro-system:50782443",
+      "fid": 7098,
+      "logical_fid": 2135,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "role": "mainstem",
+      "stage": 3,
+      "flags": 0,
+      "baseline_width": 1.4755404670939307,
+      "source": "HydroRIVERS 1.0",
+      "baseline_placeholder_name": "미명명 수계 50782443",
+      "baseline_placeholder_mainstem_name_ko": "미명명 수계 50782443",
+      "baseline_core_metadata_exact": {
+        "fid": 7098,
+        "logicalFid": 2135,
+        "awId": "hydro-system:50782443",
+        "name": "미명명 수계 50782443",
+        "layerId": "rivers_hydro",
+        "category": "river",
+        "bounds": [
+          117508333,
+          -35014368,
+          118081250,
+          -34427083
+        ],
+        "stage": 3,
+        "flags": 0,
+        "fragmentIndex": 0,
+        "fragmentCount": 1,
+        "width": 1.4755404670939307,
+        "systemId": "50782443",
+        "mainstemNameKo": "미명명 수계 50782443",
+        "role": "mainstem",
+        "terminal": {
+          "class": "sea",
+          "sourceEndpoint": [
+            117.94791666666649,
+            -34.99791666666686
+          ],
+          "renderEndpoint": [
+            117.94972915139527,
+            -35.014367792234076
+          ]
+        }
+      },
+      "baseline_detail_metadata_exact": {
+        "fid": 7098,
+        "sourceId": "50778112,50778145,50778539,50778766,50778835,50778801,50778735,50778700,50778701,50778802,50778860,50779004,50779069,50779360,50779599,50779727,50779853,50780316,50780593,50780878,50780977,50781199,50781265,50781402,50781720,50781749,50782075,50782122,50782278,50782404,50782443",
+        "source": "HydroRIVERS 1.0"
+      },
+      "baseline_metadata_exact": {
+        "fid": 7098,
+        "logicalFid": 2135,
+        "awId": "hydro-system:50782443",
+        "name": "미명명 수계 50782443",
+        "layerId": "rivers_hydro",
+        "category": "river",
+        "bounds": [
+          117508333,
+          -35014368,
+          118081250,
+          -34427083
+        ],
+        "stage": 3,
+        "flags": 0,
+        "fragmentIndex": 0,
+        "fragmentCount": 1,
+        "width": 1.4755404670939307,
+        "systemId": "50782443",
+        "mainstemNameKo": "미명명 수계 50782443",
+        "role": "mainstem",
+        "terminal": {
+          "class": "sea",
+          "sourceEndpoint": [
+            117.94791666666649,
+            -34.99791666666686
+          ],
+          "renderEndpoint": [
+            117.94972915139527,
+            -35.014367792234076
+          ]
+        },
+        "sourceId": "50778112,50778145,50778539,50778766,50778835,50778801,50778735,50778700,50778701,50778802,50778860,50779004,50779069,50779360,50779599,50779727,50779853,50780316,50780593,50780878,50780977,50781199,50781265,50781402,50781720,50781749,50782075,50782122,50782278,50782404,50782443",
+        "source": "HydroRIVERS 1.0"
+      },
+      "baseline_core_name_fields_exact": {
+        "name": "미명명 수계 50782443",
+        "mainstemNameKo": "미명명 수계 50782443"
+      },
+      "baseline_detail_name_fields_exact": {},
+      "baseline_name_fields_exact": {
+        "name": "미명명 수계 50782443",
+        "mainstemNameKo": "미명명 수계 50782443"
+      },
+      "research_name_ko": null,
+      "automatic_application": false,
+      "source_reach_count": 31,
+      "ordered_source_id_csv_sha256": "e7c544ab373e799c25c0158b4e6d28643b3bdabaa52d42b3cf584f0713e39c58",
+      "pack_id": 798,
+      "baseline_core_metadata_canonical_sha256": "0e21ce9247c9248ab9e358b8809e0613c917ac574907e72a9d036e56cef992da",
+      "baseline_detail_metadata_canonical_sha256": "3d50cf7eccd23540870a84fde181b3f73c251291d50c400bb49c6f74e9e2603a",
+      "baseline_metadata_canonical_sha256": "681372661b485f92b48234b96e649a92c989dd83a7c5d2018e5a2a7d93addad6",
+      "baseline_feature_canonical_sha256": "167177b4ccb0ec6ab0064e973a583b82087cc55b84d0c1f739f7403d7a85114e",
+      "geometry": {
+        "type": "MultiLineString",
+        "part_count": 31,
+        "coordinate_count": 181,
+        "coordinate_counts_by_part": [
+          8,
+          3,
+          11,
+          8,
+          9,
+          4,
+          4,
+          2,
+          2,
+          6,
+          10,
+          10,
+          5,
+          14,
+          5,
+          4,
+          6,
+          10,
+          8,
+          8,
+          3,
+          6,
+          3,
+          3,
+          6,
+          2,
+          10,
+          3,
+          4,
+          2,
+          2
+        ],
+        "ordered_parts": [
+          {
+            "part_index": 0,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "cadd528ab44675197704df865d17fda86f551426132b4465d4476851c3e54572"
+          },
+          {
+            "part_index": 1,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "1125de787479ec2219e1c3d2deb8a48b5efd2fb9309c7e49f8e139ad4108b303"
+          },
+          {
+            "part_index": 2,
+            "coordinate_count": 11,
+            "ordered_coordinate_sha256": "b503042975f5c9fd5d1b64ea5552cdb7182c8d2e53f7ae68676c7c483a2b8ac6"
+          },
+          {
+            "part_index": 3,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "47aca29106710c8b230057fe71ee966bafae6e547604c1155a43be72a34ecf2e"
+          },
+          {
+            "part_index": 4,
+            "coordinate_count": 9,
+            "ordered_coordinate_sha256": "c5681a32cc030c8b6c638aff53cb3d3812e2dfd97d6f1fc345022bb3f747c43e"
+          },
+          {
+            "part_index": 5,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "de57e6a09f70e40e46267bf48707e342c7ec80389bacd552f85526e975a4483b"
+          },
+          {
+            "part_index": 6,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "4e544d7a8c6842f7ca1f81747fbbcdaed6f93d807174811b80c2b03cc1d7f71a"
+          },
+          {
+            "part_index": 7,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "31c7813ac4c60a4149851ba95e65ad9ba4aab2252bf7687a9ecc77cd51412cb2"
+          },
+          {
+            "part_index": 8,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "5129dfe10b7700feb41c33c64f5606bc8c3457ebf41008e558b910a4e9375960"
+          },
+          {
+            "part_index": 9,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "2646b38a8650e276dd9dad03a2be5d36ed39c8cfcc2f9604eb277a5cf722a357"
+          },
+          {
+            "part_index": 10,
+            "coordinate_count": 10,
+            "ordered_coordinate_sha256": "e3af93807a1a3c90000e935717042ba38719dd69f86b64610c3d0c2183a48086"
+          },
+          {
+            "part_index": 11,
+            "coordinate_count": 10,
+            "ordered_coordinate_sha256": "a51437493d9695ab8017fbeae1a424a6206ac75dcd3514832dbbabcbb8b13776"
+          },
+          {
+            "part_index": 12,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "8c991ae0590b66d6e357e4a6ddbfd4b44cd6fc0a82f839caf2f7856e12cb33aa"
+          },
+          {
+            "part_index": 13,
+            "coordinate_count": 14,
+            "ordered_coordinate_sha256": "5a733e5c88e75a91e957f773242291f2437380af99efac14092f646b1d3972b1"
+          },
+          {
+            "part_index": 14,
+            "coordinate_count": 5,
+            "ordered_coordinate_sha256": "1851d1356c5f21f51833d58d886614388854f594c8e1919285d38e5c431a6559"
+          },
+          {
+            "part_index": 15,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "cf1e87f81e096e828531c023f209b0c9c271c7d8b6ffd597627bcc3b2e3fed14"
+          },
+          {
+            "part_index": 16,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "0de8e0c9901519965a9c2e7980a1bdfeaf0606d3f80e00f8390325713e0359ce"
+          },
+          {
+            "part_index": 17,
+            "coordinate_count": 10,
+            "ordered_coordinate_sha256": "d57755ef72b9369705a32e9e96f9faca557a810a3d5aa711eb25ace92b160656"
+          },
+          {
+            "part_index": 18,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "fc0f61a947f554ecc2cd827c5d47feefc037e599e15027aeb96bd0e5f5185e53"
+          },
+          {
+            "part_index": 19,
+            "coordinate_count": 8,
+            "ordered_coordinate_sha256": "6e7f4665986588140316491f88b91e24ad16ac4a2f18f73b089357c123d5e774"
+          },
+          {
+            "part_index": 20,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "126622c8bb5e1f187dae26c1d844ff35f862282bd84134289ea10e8a7fa4b55d"
+          },
+          {
+            "part_index": 21,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "fb06c37c028d388154c9176a24fe779960b3ddee3a0a6864e6f45e8d1dcb4b76"
+          },
+          {
+            "part_index": 22,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "5a1d21916f6d3efccff6b5a57c6a6c8249ce825087f4adf384aeb1bd7383aa84"
+          },
+          {
+            "part_index": 23,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "8e1305250470e58f14f0c73885b12a2c5bffaa7bdfec7cde6eb4e7748cf239b6"
+          },
+          {
+            "part_index": 24,
+            "coordinate_count": 6,
+            "ordered_coordinate_sha256": "d648b816277e4dbc289ee1d0da45dbbfa208c45b45a83324cd311c796769d306"
+          },
+          {
+            "part_index": 25,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "29edceaa855c6958b77a01588e7b6b46d05f73a35537588e1615ebbf10c3a2fd"
+          },
+          {
+            "part_index": 26,
+            "coordinate_count": 10,
+            "ordered_coordinate_sha256": "4f7a6a716cc850ad898ce0d44811c5575dc20b751ed0038edb108f45d02bd517"
+          },
+          {
+            "part_index": 27,
+            "coordinate_count": 3,
+            "ordered_coordinate_sha256": "f6367558100e328c92cd450f46adb39586f30a38a270fb3fbf8f49dc6cc19aae"
+          },
+          {
+            "part_index": 28,
+            "coordinate_count": 4,
+            "ordered_coordinate_sha256": "b155d258c9c242be03f3af034f2e41511ec4a0a44e3fd227c4cbecc1bbaea38c"
+          },
+          {
+            "part_index": 29,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "9ed3c1e9d386254986dab237f3121c428539a3014db7148787e048fa9e62c8c5"
+          },
+          {
+            "part_index": 30,
+            "coordinate_count": 2,
+            "ordered_coordinate_sha256": "4d232cd6694b867a15792a86256298b64bfb5644d91b36d6160b0f67b9216e5a"
+          }
+        ],
+        "bounds": [
+          117.508333,
+          -35.014368,
+          118.08125,
+          -34.427083
+        ],
+        "fragment_endpoints": [
+          [
+            117.508333,
+            -34.427083
+          ],
+          [
+            117.949729,
+            -35.014368
+          ]
+        ],
+        "canonical_geometry_sha256": "468c05bd7554499d7292b5f81aa315af0e71c44839760163f6797ae9c915f78d",
+        "coordinate_order": "Exact production decoder part and vertex order; no simplification, sorting, repair or reversal."
+      },
+      "terminal": {
+        "class": "sea",
+        "source_endpoint": [
+          117.94791666666649,
+          -34.99791666666686
+        ],
+        "render_endpoint_before_quantization": [
+          117.94972915139527,
+          -35.014367792234076
+        ],
+        "render_endpoint_quantized": [
+          117.949729,
+          -35.014368
+        ],
+        "source_endpoint_equals_render_endpoint": false,
+        "decoded_last_vertex_matches_render_endpoint_quantized": true,
+        "meaning": "Source endpoint means the retained baseline metadata value, not a coordinate independently obtained from original HydroRIVERS source geometry."
+      }
+    }
+  ],
+  "limits": [
+    "Full coordinate arrays and per-part endpoint arrays are not redistributed.",
+    "Name fields preserve exact baseline state and do not establish geographic identity.",
+    "Baseline sourceEndpoint is not independently verified original HydroRIVERS geometry."
+  ]
+}

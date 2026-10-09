@@ -1,0 +1,182 @@
+{
+  "schema": "hydro-name-reconstruction-source-evidence-v1",
+  "batch": "r10",
+  "created_at_utc": "2026-10-09T14:49:18.332591+00:00",
+  "target_aw_ids": [
+    "hydro-system:50782443"
+  ],
+  "sources": [
+    {
+      "evidence_id": "KALGAN-BOM-AWRA2012",
+      "publication_id": "BOM-Australian-Water-Resources-Assessment-2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "agency_or_publisher": "Australian Government, Bureau of Meteorology",
+      "official_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "source_date": "2013",
+      "date_basis": "Copyright year 2013; 2012 is the assessment title year.",
+      "retrieval": {
+        "requested_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "started_at_utc": "2026-10-09T13:39:38.842251+00:00",
+        "http_status": 200,
+        "final_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "content_type": "application/pdf",
+        "bytes": 26172797,
+        "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+        "completed_at_utc": "2026-10-09T13:39:46.198340+00:00"
+      },
+      "hash_scope": "Exact complete original PDF response-body bytes.",
+      "cache_reuse": {
+        "retrieved_this_batch": false,
+        "original_retrieval_unchanged": true,
+        "reuse_hash_checked_at_utc": "2026-10-09T14:49:18.332591+00:00",
+        "reuse_sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+        "matches_original_receipt": true
+      },
+      "pdf_page_count": 777,
+      "source_role": "Regional Albany Coast drainage context; not direct reach-name evidence.",
+      "locators": [
+        {
+          "pdf_page_one_based": 477,
+          "printed_page": "South West Coast chapter, 5",
+          "figure": "10.1",
+          "title": "Major rivers and urban centres in the South West Coast region",
+          "complete_map_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 499,
+          "printed_page": "South West Coast chapter, 27",
+          "figure": "10.22",
+          "title": "Rivers and catchments in the South West Coast region",
+          "complete_map_visually_inspected": true
+        }
+      ],
+      "own_factual_extraction": [
+        "The regional maps place the Albany Coast drainage east of the Frankland-Deep and Denmark systems. The regional basin context is consistent with the selected route near Albany."
+      ],
+      "limits": [
+        "The map is too coarse to establish the name of every channel or exact headwater, river-mouth or harbour boundary. The two figures count as one publication."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "full_report_republication_review_completed": false,
+        "published_material": "Own compact facts, short quotation, source locators, official URLs, retrieval facts and accurately scoped hashes."
+      },
+      "target_aw_ids": [
+        "hydro-system:50782443"
+      ]
+    },
+    {
+      "evidence_id": "KALGAN-DWER-NUTRIENT2019",
+      "publication_id": "WA-DWER-DPIRD-Kalgan-Nutrient2019-Issue2-2023",
+      "title": "Oyster Harbour catchment nutrient report 2019: Kalgan River, Issue 2",
+      "agency_or_publisher": "Western Australia Department of Water and Environmental Regulation and Department of Primary Industries and Regional Development",
+      "official_url": "https://www.wa.gov.au/system/files/2023-08/kalgan_2019.pdf",
+      "source_date": "2023-08",
+      "date_basis": "Page 10 explicitly states Publication date: August 2023; 2019 is the nutrient reporting year, not publication date.",
+      "retrieval": {
+        "requested_url": "https://www.wa.gov.au/system/files/2023-08/kalgan_2019.pdf",
+        "started_at_utc": "2026-10-09T14:45:51.037547+00:00",
+        "http_status": 200,
+        "final_url": "https://www.wa.gov.au/system/files/2023-08/kalgan_2019.pdf",
+        "content_type": "application/pdf",
+        "bytes": 7567644,
+        "sha256": "684550de80dcb150a7501e7b8a7993655789ac76cd9d4638c28368416f73a617",
+        "completed_at_utc": "2026-10-09T14:45:57.738453+00:00"
+      },
+      "hash_scope": "Exact complete original PDF response-body bytes.",
+      "pdf_page_count": 10,
+      "source_role": "Direct official English usage, complete catchment cartography and explicit receiving harbour.",
+      "locators": [
+        {
+          "pdf_page_one_based": 1,
+          "printed_page": "1",
+          "section": "Opening description; About the catchment; catchment waterways and land-use map; location inset",
+          "complete_map_visually_inspected": true,
+          "page_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 10,
+          "printed_page": null,
+          "section": "Issue and publication-date footer",
+          "extracted_text_inspected": true
+        }
+      ],
+      "direct_quote": "Downstream of the site, the river discharges into Oyster Harbour.",
+      "quote_word_count": 10,
+      "own_factual_extraction": [
+        "The report identifies Kalgan River at Stevens Farm, site 602004, north of South Coast Highway. The catchment map and inset depict its drainage within the larger Oyster Harbour catchment.",
+        "The upper catchment includes part of Stirling Range National Park; Porongurup National Park is nearer its centre. The waterways are not individually named in this map."
+      ],
+      "limits": [
+        "A catchment title does not name every tributary. The map supports broad course comparison, not exact part-to-name assignments or a surveyed mouth boundary."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "full_report_republication_review_completed": false,
+        "published_material": "Own compact facts, short quotation, source locators, official URLs, retrieval facts and accurately scoped hashes."
+      },
+      "target_aw_ids": [
+        "hydro-system:50782443"
+      ]
+    },
+    {
+      "evidence_id": "KALGAN-DWER-RIVERHEALTH",
+      "publication_id": "DWER-HealthyEstuaries-OysterHarbour-RiverHealth",
+      "title": "Oyster Harbour River Health - Healthy Estuaries",
+      "agency_or_publisher": "Western Australia Department of Water and Environmental Regulation",
+      "official_url": "https://estuaries.dwer.wa.gov.au/oyster-harbour/oyster-harbour-river-health/",
+      "source_date": null,
+      "date_basis": "No original publication or last-update date established from the acquired page.",
+      "retrieval": {
+        "requested_url": "https://estuaries.dwer.wa.gov.au/oyster-harbour/oyster-harbour-river-health/",
+        "started_at_utc": "2026-10-09T14:45:57.738668+00:00",
+        "http_status": 200,
+        "final_url": "https://estuaries.dwer.wa.gov.au/oyster-harbour/oyster-harbour-river-health/",
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 301596,
+        "sha256": "1e9f0561d01f4df3919b918233a6674e62f8d4180b7dcbcfb478c6ac882a20dc",
+        "completed_at_utc": "2026-10-09T14:46:02.492822+00:00"
+      },
+      "hash_scope": "Exact complete original HTML response-body bytes; page may change.",
+      "source_role": "Official river, tributary and estuary naming distinctions.",
+      "locators": [
+        {
+          "section": "Hydrology and landuse",
+          "paragraph_locator": "The two largest rivers are the King and Kalgan Rivers.",
+          "acquired_body_text_inspected": true,
+          "embedded_map_used_as_evidence": false
+        }
+      ],
+      "own_factual_extraction": [
+        "DWER describes Kalgan as entering northeastern Oyster Harbour and its final nine kilometres as tidal. King River separately enters the northwestern harbour.",
+        "Young River, Napier Creek, Boonawarrup Creek, Stony Creek and Gaalgegup Creek are listed as Kalgan tributaries, rather than interchangeable Kalgan names."
+      ],
+      "limits": [
+        "Ordinary official usage is not proof of a formal current naming register. The text supplies no selected source-reach crosswalk or coordinate-resolved tidal or name boundary."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "full_report_republication_review_completed": false,
+        "published_material": "Own compact facts, short quotation, source locators, official URLs, retrieval facts and accurately scoped hashes."
+      },
+      "target_aw_ids": [
+        "hydro-system:50782443"
+      ]
+    }
+  ],
+  "unique_supporting_publication_count": 3,
+  "shared_report_counted_once": true,
+  "new_original_acquisition_count": 2,
+  "cached_original_reuse_count": 1,
+  "source_acquisition_complete": true,
+  "unused_acquisition_outcomes": [],
+  "acquisition_stop_reason": "Bounded representative system identity and its headwater and receiving-water limitations are supported; no further source acquisition required.",
+  "name_ko": null,
+  "automatic_application": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false,
+  "publication_note": "Only own factual extraction, short quotation, public source references and scoped hashes are included; source bodies, maps and full river coordinates are excluded."
+}

@@ -1,0 +1,446 @@
+{
+  "schema": "hydro-independent-river-review-pins-v2",
+  "reviewed_at_utc": "2026-10-09T14:55:19.231618+00:00",
+  "scope_aw_ids": [
+    "hydro-system:50766256",
+    "hydro-system:50779535",
+    "hydro-system:50782443"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "package_inputs": [
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 5569,
+      "sha256": "c2e999bd259ca208c68939f76da3e48d8eb372818691c864312ccc1e4fe83812"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 7102,
+      "sha256": "7da0bd2992cf7c973bbe656adc08e1b5f6066e569e648d7255cbcb2d87e18451"
+    },
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1841,
+      "sha256": "879fe5dfc48808b34c73da4ffe2318ded043349ab507bad974d69ecddf613e7a"
+    },
+    {
+      "file": "geometry-duplicate-check.json",
+      "bytes": 1474,
+      "sha256": "695c6de044f81da9a4c7bd875cc4b9cec1a1fcfaacca07f1f0bf60905b8cd8d5"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 2319,
+      "sha256": "8ff3f68d8d00f637f3d4e8b5cf3aaa911c02a95b24b97ffb6acc12ef0bf2904d"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 14270,
+      "sha256": "580f013cf49aff0b18fd9f1ffa05fa928d7f9ee3de388e7211ced426ab0dabdd"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 4580,
+      "sha256": "119b6a0a41903ee2acd31e398bc64f2e1297cde0dbb73278f7ba8ba8a6b60512"
+    },
+    {
+      "file": "geometry-support.py",
+      "bytes": 2259,
+      "sha256": "5427afc9c6d1ed13947f6ca08b3fe7532dd7884717d44f691b50d0d5f479bd12"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 8751,
+      "sha256": "2c9243da136f9fca7162a009bfbd41517043981cf383880a8560db1ae73e7c88"
+    },
+    {
+      "file": "research/collie-warren/collie-findings.json",
+      "bytes": 6621,
+      "sha256": "cdd9cdcf33f79f01b7586910dbfed1a949337aad8f5107e2bbb61e2c2fabfa99"
+    },
+    {
+      "file": "research/collie-warren/research-manifest.json",
+      "bytes": 1178,
+      "sha256": "d368d8fdba60d66910a3a8b97faa9da39af231e8ccfe7e700df6a192bb6c50a1"
+    },
+    {
+      "file": "research/collie-warren/source-evidence.json",
+      "bytes": 11489,
+      "sha256": "a5ac474fc5af4d6cb0e7fe2fe77d2f49abd7fccc5d8a198f59f62b7cb460704d"
+    },
+    {
+      "file": "research/collie-warren/warren-findings.json",
+      "bytes": 6432,
+      "sha256": "4ed8b41fe0c982bfb0926a3ac0a0d6767dccf7463acd8fb004cee4d22023cc95"
+    },
+    {
+      "file": "research/kalgan/kalgan-findings.json",
+      "bytes": 6541,
+      "sha256": "dd24ce8d1cebe43fecc3daeb2b3e9c47ee60a8ac5b254ba44c82897a382f23e1"
+    },
+    {
+      "file": "research/kalgan/kalgan-research-manifest.json",
+      "bytes": 887,
+      "sha256": "1727520aa99d9c0e5b90f4d3eb43f53c6e6eb6d3b2585261abdffb88c1215697"
+    },
+    {
+      "file": "research/kalgan/source-evidence.json",
+      "bytes": 9467,
+      "sha256": "f5dc0d7bfc419242ee7e43b5399701bb96254ee76d32f0bb44cc81faf6e8d05f"
+    },
+    {
+      "file": "selected-inventory-records.json",
+      "bytes": 4711,
+      "sha256": "6dfa18d3a32ed8b7c24a0f6702d79c59744e0832fed29303670513fa13c414f7"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 456,
+      "sha256": "9f469da1751652f74d5b505c38cbfe8b9fa1aaf1fe48f1c34e19fee795c2e9ee"
+    },
+    {
+      "file": "selected-river-metadata.json",
+      "bytes": 42427,
+      "sha256": "42f41723862a4359080e854faf7f79e0be9b39420c7c7baa49b0f208ec9b07ee"
+    },
+    {
+      "file": "source-reach-manifest.json",
+      "bytes": 7997,
+      "sha256": "e8f9057f2726b6f8af602c49d67336bce2887d259b2d3f4ea9c5f66770f5bed8"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 7312,
+      "sha256": "051a93fa3bdf0ab2d4029dc77fee1ac26a22e03d5e6f73a67827e34f13064367"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 20216,
+      "sha256": "1009be6e3160cae63b7afea0235f0d63dfcf7058288fa2eec5cfcf641c68bc64"
+    }
+  ],
+  "component_manifest_sha256": {
+    "geometry-component-manifest.json": "879fe5dfc48808b34c73da4ffe2318ded043349ab507bad974d69ecddf613e7a",
+    "research/kalgan/kalgan-research-manifest.json": "1727520aa99d9c0e5b90f4d3eb43f53c6e6eb6d3b2585261abdffb88c1215697",
+    "research/collie-warren/research-manifest.json": "d368d8fdba60d66910a3a8b97faa9da39af231e8ccfe7e700df6a192bb6c50a1"
+  },
+  "previous_index": {
+    "bytes": 15809,
+    "sha256": "69d489865765862f62e701c447af6368731ab78edbffb4502a2395a0d3f37acd",
+    "aw_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159106899",
+      "lakes_base:1159107065",
+      "lakes_base:1159115267",
+      "lakes_base:1159123531",
+      "lakes_base:1159107099",
+      "hydro-system:30624681",
+      "hydro-system:50488324",
+      "hydro-system:40182409",
+      "hydro-system:70152112",
+      "lakes_base:1159123163",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159109553",
+      "lakes_base:1159110303",
+      "lakes_base:1159108091",
+      "hydro-system:50668155",
+      "hydro-system:50611851",
+      "hydro-system:50552041",
+      "hydro-system:50538951",
+      "hydro-system:50631583",
+      "hydro-system:50691033",
+      "hydro-system:50737565",
+      "hydro-system:50756799",
+      "hydro-system:50782475"
+    ],
+    "distinct_targets": 27,
+    "fixed_commit": "ea66825657b0f7ff8e41616e375bf974cd4dbff1"
+  },
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "bytes": 441711,
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "original_recovery_date_utc": "2026-10-09",
+    "original_retrieved_at_utc": null,
+    "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+    "reuse_hash_checked_at_utc": "2026-10-09T14:45:30Z",
+    "retrieved_this_batch": false,
+    "in_publishable_package": false
+  },
+  "local_evidence_assets": [
+    {
+      "id": "BOM-AWRA2012-BODY",
+      "kind": "original_source_body",
+      "bytes": 26172797,
+      "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 774,
+      "sha256": "4ea0da94c6a9e2007f26e93a6b6abff593338d49269b12759eb850f352849e5f",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 1390063,
+      "sha256": "ed69c9922a19c33f1527e70a2b1eba3d402e90706e2629024f74e53cc0fa3ff4",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1035350,
+      "sha256": "0de58b7b33853497528d842d737a7c50cdc826433205115378d866bb50524154",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 367974,
+      "sha256": "6e1142422eef6dff8fc48ad72816106638ef48e3aa45e34dd8ead8fe3f3d23f8",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-BODY",
+      "kind": "original_source_body",
+      "bytes": 4634645,
+      "sha256": "409f638c71046d932f916c38f0c4d7940953f9a8bcdd44f450af18a21b6e1d95",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 819,
+      "sha256": "e7fd5a36ac81b1086c087233c76c6b5dc515eaad53303728ff76f8d8801b436f",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 696821,
+      "sha256": "084ef49426c917bdfe8e9fbbdd58a6811ef1b061bd7baf52387b4152c21c19c6",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 310281,
+      "sha256": "130c7c1a9a8533935604c1f184e83c698b52167318218d831773ecbe7e43932a",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 871773,
+      "sha256": "ec21ac60522a168051d00d2c209e8096b1ed4c1e44fbdce5ae2c28be528b4ebb",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-VIEW-3",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 979401,
+      "sha256": "89f0374f329aa56c37472d28e3ea3cad9bab48b0ef1653c76ab106dcd6c1a7c7",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-VIEW-4",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 159687,
+      "sha256": "cf45b4936b62499686970034e362dab474f4e5965125f2576c5bc2635c190380",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-VIEW-5",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 858358,
+      "sha256": "11bc548a56618471916af5a3ce7d5bbcca7564c8ae679957fc06c689685d8f43",
+      "published_raw": false
+    },
+    {
+      "id": "COLLIE-DWER-HEALTHYRIVERS-BODY",
+      "kind": "original_source_body",
+      "bytes": 127700,
+      "sha256": "5eacb62814f987ee45a75f1ad493d22e290506060d149bc03d3f82deeef87272",
+      "published_raw": false
+    },
+    {
+      "id": "COLLIE-DWER-HEALTHYRIVERS-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 590,
+      "sha256": "b8f99157f83939c98c30b8b4a370172a6fc0350cf9d2009152919cb7a9c60faa",
+      "published_raw": false
+    },
+    {
+      "id": "COLLIE-DWER-HEALTHYRIVERS-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 2232,
+      "sha256": "c03e22c8c2e61a3fb51aedfcd25ff4f434ae1d767d239be6f584cafd00d1afff",
+      "published_raw": false
+    },
+    {
+      "id": "WARREN-DWER-HEALTHYRIVERS-BODY",
+      "kind": "original_source_body",
+      "bytes": 129489,
+      "sha256": "57682837ca5ff43345dc07ed7dc8cc06440d1beca7cd20aed4d46d7c13337cbe",
+      "published_raw": false
+    },
+    {
+      "id": "WARREN-DWER-HEALTHYRIVERS-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 529,
+      "sha256": "a21590eeca8ce59ad5bd4c0d601d4479ba2ca0e6275a956ddd8b422d86225668",
+      "published_raw": false
+    },
+    {
+      "id": "WARREN-DWER-HEALTHYRIVERS-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 3508,
+      "sha256": "a9f14714118c0d2d7f80761706ac52e359c16f090f29d2f4116fe99dc886c790",
+      "published_raw": false
+    },
+    {
+      "id": "KALGAN-DWER-NUTRIENT2019-BODY",
+      "kind": "original_source_body",
+      "bytes": 7567644,
+      "sha256": "684550de80dcb150a7501e7b8a7993655789ac76cd9d4638c28368416f73a617",
+      "published_raw": false
+    },
+    {
+      "id": "KALGAN-DWER-NUTRIENT2019-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 828,
+      "sha256": "b87d4602ee70a16496bdcd79cc72f7513f72c112d7150263039368216504e9af",
+      "published_raw": false
+    },
+    {
+      "id": "KALGAN-DWER-NUTRIENT2019-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 67574,
+      "sha256": "513e3f9fc80c695c551d53c4024266c9d78b6621da577452f1829e94b82e72ed",
+      "published_raw": false
+    },
+    {
+      "id": "KALGAN-DWER-NUTRIENT2019-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1000769,
+      "sha256": "fe351ac4cd5be444b19c5418c8b8613acdada28cb5d0745147de06cef990c5b4",
+      "published_raw": false
+    },
+    {
+      "id": "KALGAN-DWER-NUTRIENT2019-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 280345,
+      "sha256": "7a674fe2719638d511b3eee084aba62401878d7172da1893cf0fa0f3c698f578",
+      "published_raw": false
+    },
+    {
+      "id": "KALGAN-DWER-RIVERHEALTH-BODY",
+      "kind": "original_source_body",
+      "bytes": 301596,
+      "sha256": "1e9f0561d01f4df3919b918233a6674e62f8d4180b7dcbcfb478c6ac882a20dc",
+      "published_raw": false
+    },
+    {
+      "id": "KALGAN-DWER-RIVERHEALTH-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 846,
+      "sha256": "9a2e8e33587c12ad6ac3ae707ddd3ca1132165d4c9663980e823d5315204a4fb",
+      "published_raw": false
+    },
+    {
+      "id": "KALGAN-DWER-RIVERHEALTH-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 30343,
+      "sha256": "67fc6e22512595334abc26e8fb7e30612fba27543e6234b50db9676c1b2935ea",
+      "published_raw": false
+    },
+    {
+      "id": "WARREN-DWER-CATCHMENT-SUPPLEMENT-BODY",
+      "kind": "original_source_body",
+      "bytes": 131714,
+      "sha256": "99bfa6333cef8b902df041e5193081bdf78cfa0ca11f8a876fb811fdd6616a6c",
+      "published_raw": false
+    },
+    {
+      "id": "WARREN-DWER-CATCHMENT-SUPPLEMENT-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 602,
+      "sha256": "86b46a27d3cbb85e50cd25b01c9217ef355a802dbda76988b4c79b265b806657",
+      "published_raw": false
+    },
+    {
+      "id": "WARREN-DWER-CATCHMENT-SUPPLEMENT-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 1122,
+      "sha256": "b64f96d2375f39cb0c86b9ab417248f29772dd158c47f90ff87d3ef39be813d3",
+      "published_raw": false
+    },
+    {
+      "id": "COMPLETE-BASELINE-PATHS",
+      "kind": "complete_path_comparison_view",
+      "bytes": 137268,
+      "sha256": "f1510fee0392dbd33c281a6609c02314562225b54ba9cc389047635564665da8",
+      "published_raw": false
+    }
+  ],
+  "original_source_receipt_links": [
+    {
+      "source_key": "BOM-AWRA2012",
+      "body_id": "BOM-AWRA2012-BODY",
+      "receipt_id": "BOM-AWRA2012-RECEIPT",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "original_requested_at_utc": "2026-10-09T13:39:38.842251+00:00"
+    },
+    {
+      "source_key": "WA-SLUI38-2005",
+      "body_id": "WA-SLUI38-2005-BODY",
+      "receipt_id": "WA-SLUI38-2005-RECEIPT",
+      "url": "https://www.wa.gov.au/system/files/2023-03/Stream-salinity-status-and-trends-in-south-west-WA.pdf",
+      "original_requested_at_utc": "2026-10-09T14:25:45.505268+00:00"
+    },
+    {
+      "source_key": "COLLIE-DWER-HEALTHYRIVERS",
+      "body_id": "COLLIE-DWER-HEALTHYRIVERS-BODY",
+      "receipt_id": "COLLIE-DWER-HEALTHYRIVERS-RECEIPT",
+      "url": "https://rivers.dwer.wa.gov.au/basin/collie-river/",
+      "original_requested_at_utc": "2026-10-09T14:45:03.739301+00:00"
+    },
+    {
+      "source_key": "WARREN-DWER-HEALTHYRIVERS",
+      "body_id": "WARREN-DWER-HEALTHYRIVERS-BODY",
+      "receipt_id": "WARREN-DWER-HEALTHYRIVERS-RECEIPT",
+      "url": "https://rivers.dwer.wa.gov.au/basin/warren-river/",
+      "original_requested_at_utc": "2026-10-09T14:46:42.414026+00:00"
+    },
+    {
+      "source_key": "KALGAN-DWER-NUTRIENT2019",
+      "body_id": "KALGAN-DWER-NUTRIENT2019-BODY",
+      "receipt_id": "KALGAN-DWER-NUTRIENT2019-RECEIPT",
+      "url": "https://www.wa.gov.au/system/files/2023-08/kalgan_2019.pdf",
+      "original_requested_at_utc": "2026-10-09T14:45:51.037547+00:00"
+    },
+    {
+      "source_key": "KALGAN-DWER-RIVERHEALTH",
+      "body_id": "KALGAN-DWER-RIVERHEALTH-BODY",
+      "receipt_id": "KALGAN-DWER-RIVERHEALTH-RECEIPT",
+      "url": "https://estuaries.dwer.wa.gov.au/oyster-harbour/oyster-harbour-river-health/",
+      "original_requested_at_utc": "2026-10-09T14:45:57.738668+00:00"
+    },
+    {
+      "source_key": "WARREN-DWER-CATCHMENT-SUPPLEMENT",
+      "body_id": "WARREN-DWER-CATCHMENT-SUPPLEMENT-BODY",
+      "receipt_id": "WARREN-DWER-CATCHMENT-SUPPLEMENT-RECEIPT",
+      "url": "https://rivers.dwer.wa.gov.au/catchment/warren-river/",
+      "original_requested_at_utc": "2026-10-09T14:45:09.585351+00:00"
+    }
+  ],
+  "automatic_application": false
+}

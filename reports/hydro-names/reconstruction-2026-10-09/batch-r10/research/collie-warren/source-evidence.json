@@ -1,0 +1,238 @@
+{
+  "schema": "hydro-name-reconstruction-source-evidence-v1",
+  "batch": "r10",
+  "created_at_utc": "2026-10-09T14:49:34.000500+00:00",
+  "target_aw_ids": [
+    "hydro-system:50766256",
+    "hydro-system:50779535"
+  ],
+  "sources": [
+    {
+      "evidence_id": "COLLIE-WARREN-BOM-AWRA2012",
+      "publication_id": "BOM-Australian-Water-Resources-Assessment-2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "agency_or_publisher": "Australian Government, Bureau of Meteorology",
+      "official_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "source_date": "2013",
+      "date_basis": "The report title year is 2012; copyright/publication year is 2013.",
+      "retrieval": {
+        "requested_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "started_at_utc": "2026-10-09T13:39:38.842251+00:00",
+        "http_status": 200,
+        "final_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "content_type": "application/pdf",
+        "bytes": 26172797,
+        "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+        "completed_at_utc": "2026-10-09T13:39:46.198340+00:00"
+      },
+      "hash_scope": "Complete original PDF response bytes, rechecked locally; not a text capture or map crop.",
+      "retrieved_again_this_batch": false,
+      "original_receipt_sha256": "4ea0da94c6a9e2007f26e93a6b6abff593338d49269b12759eb850f352849e5f",
+      "target_aw_ids": [
+        "hydro-system:50766256",
+        "hydro-system:50779535"
+      ],
+      "source_role": "Shared regional river-course and catchment context, not a per-reach naming authority.",
+      "locators": [
+        {
+          "pdf_page_one_based": 477,
+          "printed_page": "South West Coast chapter, 5",
+          "figure": "10.1",
+          "complete_map_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 499,
+          "printed_page": "South West Coast chapter, 27",
+          "figure": "10.22",
+          "complete_map_visually_inspected": true
+        }
+      ],
+      "own_factual_extraction": [
+        "Figures 10.1 and 10.22 place the Collie corridor near Bunbury and Warren corridor on the southwest coast. The combined Collie-Preston region label is a regional unit, not a single river name."
+      ],
+      "limits": [
+        "Low-resolution regional map; exact headwater, reservoir and estuary transitions are not established. The two figures are one publication."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "published_material": "Own compact factual extraction, public source identifiers and hashes only."
+      }
+    },
+    {
+      "evidence_id": "WA-SLUI38-2005",
+      "publication_id": "WA-DoE-SLUI38-2005",
+      "title": "Stream salinity status and trends in south-west Western Australia",
+      "agency_or_publisher": "Western Australia Department of Environment",
+      "authors": [
+        "Xanthe Mayer",
+        "John Ruprecht",
+        "Mohammed Bari"
+      ],
+      "official_url": "https://www.wa.gov.au/system/files/2023-03/Stream-salinity-status-and-trends-in-south-west-WA.pdf",
+      "source_date": "2005-01",
+      "date_basis": "Title page, Report No. SLUI 38, January 2005.",
+      "retrieval": {
+        "requested_url": "https://www.wa.gov.au/system/files/2023-03/Stream-salinity-status-and-trends-in-south-west-WA.pdf",
+        "started_at_utc": "2026-10-09T14:25:45.505268+00:00",
+        "http_status": 200,
+        "final_url": "https://www.wa.gov.au/system/files/2023-03/Stream-salinity-status-and-trends-in-south-west-WA.pdf",
+        "content_type": "application/pdf",
+        "bytes": 4634645,
+        "sha256": "409f638c71046d932f916c38f0c4d7940953f9a8bcdd44f450af18a21b6e1d95",
+        "completed_at_utc": "2026-10-09T14:25:51.366760+00:00"
+      },
+      "hash_scope": "Complete original PDF response bytes, rechecked locally; not a text capture or map crop.",
+      "target_aw_ids": [
+        "hydro-system:50766256",
+        "hydro-system:50779535"
+      ],
+      "source_role": "Official regional course descriptions, component distinctions and complete Southwest study-area river map.",
+      "locators": [
+        {
+          "pdf_page_one_based": 40,
+          "printed_page": "30",
+          "section": "3.3.2 Warren River Basin (607)",
+          "page_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 51,
+          "printed_page": "41",
+          "section": "3.3.7 Collie River Basin (612)",
+          "page_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 58,
+          "printed_page": "48",
+          "figure": "3.27",
+          "complete_map_visually_inspected": true
+        }
+      ],
+      "own_factual_extraction": [
+        "Collie passes Wellington Reservoir and reaches Leschenault Inlet. Distinct tributaries include Collie River East, Collie River South Branch, Harris, Bingham and Brunswick.",
+        "The Warren description identifies Tone as the upstream river and separately names Perup, Wilgarup and Lefroy tributaries. Figure 3.27 distinguishes their regional drainage corridors."
+      ],
+      "limits": [
+        "The regional map does not provide a coordinate-resolved name boundary for each selected baseline part. Distinct official publications may share geographic source data."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "published_material": "Own compact factual extraction, public source identifiers and hashes only."
+      },
+      "retrieved_again_this_batch": false,
+      "original_receipt_sha256": "e7fd5a36ac81b1086c087233c76c6b5dc515eaad53303728ff76f8d8801b436f"
+    },
+    {
+      "evidence_id": "COLLIE-DWER-HEALTHYRIVERS",
+      "publication_id": "DWER-HealthyRivers-collie-basin",
+      "title": "Collie River - Healthy Rivers",
+      "agency_or_publisher": "Western Australia Department of Water and Environmental Regulation",
+      "official_url": "https://rivers.dwer.wa.gov.au/basin/collie-river/",
+      "source_date": null,
+      "date_basis": "No original publication or last-update date established from the acquired page; footer year is not treated as publication date.",
+      "retrieval": {
+        "requested_url": "https://rivers.dwer.wa.gov.au/basin/collie-river/",
+        "started_at_utc": "2026-10-09T14:45:03.739301+00:00",
+        "http_status": 200,
+        "final_url": "https://rivers.dwer.wa.gov.au/basin/collie-river/",
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 127700,
+        "sha256": "5eacb62814f987ee45a75f1ad493d22e290506060d149bc03d3f82deeef87272",
+        "completed_at_utc": "2026-10-09T14:45:09.583764+00:00"
+      },
+      "hash_scope": "Complete original HTML response bytes.",
+      "target_aw_ids": [
+        "hydro-system:50766256"
+      ],
+      "source_role": "Official English usage and explicit component/course distinction.",
+      "locators": [
+        {
+          "section": "Basin description",
+          "acquired_page_text_inspected": true,
+          "interactive_map_inspected": false
+        }
+      ],
+      "own_factual_extraction": [
+        "The Collie profile traces headwaters from the Darling Plateau through Wellington Dam and across the coastal plain to Leschenault Estuary north of Bunbury. It distinguishes Brunswick and Harris rivers."
+      ],
+      "limits": [
+        "Inspected text only; the interactive map was not loaded or treated as inspected cartographic evidence. No rendered-part name-boundary crosswalk is supplied."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "published_material": "Own compact factual extraction, public source identifiers and hashes only."
+      }
+    },
+    {
+      "evidence_id": "WARREN-DWER-HEALTHYRIVERS",
+      "publication_id": "DWER-HealthyRivers-warren-basin",
+      "title": "Warren River - Healthy Rivers",
+      "agency_or_publisher": "Western Australia Department of Water and Environmental Regulation",
+      "official_url": "https://rivers.dwer.wa.gov.au/basin/warren-river/",
+      "source_date": null,
+      "date_basis": "No original publication or last-update date established from the acquired page; footer year is not treated as publication date.",
+      "retrieval": {
+        "requested_url": "https://rivers.dwer.wa.gov.au/basin/warren-river/",
+        "started_at_utc": "2026-10-09T14:46:42.414026+00:00",
+        "http_status": 200,
+        "final_url": "https://rivers.dwer.wa.gov.au/basin/warren-river/",
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 129489,
+        "sha256": "57682837ca5ff43345dc07ed7dc8cc06440d1beca7cd20aed4d46d7c13337cbe",
+        "completed_at_utc": "2026-10-09T14:46:46.591156+00:00"
+      },
+      "hash_scope": "Complete original HTML response bytes.",
+      "target_aw_ids": [
+        "hydro-system:50779535"
+      ],
+      "source_role": "Official English usage and explicit component/course distinction.",
+      "locators": [
+        {
+          "section": "Basin description",
+          "acquired_page_text_inspected": true,
+          "interactive_map_inspected": false
+        }
+      ],
+      "own_factual_extraction": [
+        "Tone and Perup join east of Manjimup to form the Warren. The Warren continues through forest to the Southern Ocean southwest of Pemberton. Other named tributaries remain distinct."
+      ],
+      "limits": [
+        "Inspected text only; the interactive map was not loaded or treated as inspected cartographic evidence. No rendered-part name-boundary crosswalk is supplied."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "published_material": "Own compact factual extraction, public source identifiers and hashes only."
+      }
+    }
+  ],
+  "distinct_supporting_publications_total": 4,
+  "shared_publications_counted_once": true,
+  "publication_independence_limit": "Distinct documents/pages are counted, not independent surveys. The two Healthy Rivers basin pages belong to one departmental program.",
+  "supplemental_acquired_pages": [
+    {
+      "title": "Warren River catchment - Healthy Rivers",
+      "retrieval": {
+        "requested_url": "https://rivers.dwer.wa.gov.au/catchment/warren-river/",
+        "started_at_utc": "2026-10-09T14:45:09.585351+00:00",
+        "http_status": 200,
+        "final_url": "https://rivers.dwer.wa.gov.au/catchment/warren-river/",
+        "content_type": "text/html; charset=UTF-8",
+        "bytes": 131714,
+        "sha256": "99bfa6333cef8b902df041e5193081bdf78cfa0ca11f8a876fb811fdd6616a6c",
+        "completed_at_utc": "2026-10-09T14:45:15.184955+00:00"
+      },
+      "hash_scope": "Complete original HTML response bytes.",
+      "acquired_page_text_inspected": true,
+      "own_factual_extraction": "Lists Warren, Perup, Wilgarup and Lefroy monitoring sites separately.",
+      "counted_as_additional_independent_support": false,
+      "interactive_map_inspected": false
+    }
+  ],
+  "new_acquisition_count": 3,
+  "new_acquisitions_complete": true,
+  "raw_originals_html_or_maps_published": false,
+  "automatic_application": false
+}

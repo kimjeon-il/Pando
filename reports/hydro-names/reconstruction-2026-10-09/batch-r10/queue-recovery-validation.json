@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "positive_rebuild": {
+    "status": "passed",
+    "initial_inventory_rows": 5173,
+    "initial_eligible_targets": 4065,
+    "reviewed_index_targets": 30,
+    "remaining_without_reconstructed_record": 4035,
+    "remaining_by_type": {
+      "river_group": 3439,
+      "lake": 596
+    },
+    "queue_order": "original_inventory_row_order",
+    "scope": "Remaining means absent from this fresh reconstructed index. It does not mean historically never researched; the unavailable historical504-record ledger is not reconstructed.",
+    "network_calls": 0,
+    "automatic_application": false
+  },
+  "complete_remaining_IDs_rebuilt": 4035,
+  "no_reviewed_IDs_in_remaining": true,
+  "semantic_corrupt_fixtures": [
+    {
+      "case": "altered_initial_compressed_bytes",
+      "rejected": true
+    },
+    {
+      "case": "duplicate_reviewed_ID_with_rebased_counts",
+      "rejected": true
+    },
+    {
+      "case": "unknown_reviewed_ID",
+      "rejected": true
+    },
+    {
+      "case": "wrong_target_type",
+      "rejected": true
+    },
+    {
+      "case": "automatic_application_enabled",
+      "rejected": true
+    },
+    {
+      "case": "remaining_total_miscount",
+      "rejected": true
+    },
+    {
+      "case": "remaining_type_miscount",
+      "rejected": true
+    },
+    {
+      "case": "historically_never_reviewed_false_claim",
+      "rejected": true
+    },
+    {
+      "case": "initial_inventory_provenance_hash_changed",
+      "rejected": true
+    }
+  ],
+  "semantic_corrupt_fixture_count": 9,
+  "network_calls": 0,
+  "input_files_changed": false
+}
