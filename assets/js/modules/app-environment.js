@@ -212,7 +212,7 @@ export function createEnvironment() {
   function initializeTerritorialGeometry() {
     (APP_VERSION = String(globalThis.PANDOLAB_BUILD_META?.appVersion || ''));
 
-    (HYDRO_DATA_VERSION = '0.13.1');
+    (HYDRO_DATA_VERSION = '0.13.2');
 
     (FLAT_PROJECTION_KIND = 'equirectangular');
 
