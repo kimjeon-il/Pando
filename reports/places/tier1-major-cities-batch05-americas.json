@@ -12,9 +12,9 @@
   "historicalDisplayStatus": "timeline-staged-not-runtime",
   "historicNameScope": "Selective well-documented names used during or after 1801. Earlier founding names are linked historical settlements, not automatic complete-city renames.",
   "qualityNotes": [
-    "New York, Mexico City, São Paulo and Buenos Aires have no selected Korean map-name change after 1801. Los Angeles switches its Korean map label on 1848-05-30 treaty ratification exchange (Spanish pronunciation to English), independently of its 1850-04-04 English-native city-incorporation editorial transition.",
+    "New York, Mexico City, São Paulo and Buenos Aires have no selected Korean map-name change since 1801. Los Angeles switches Korean preferred name and English native preferred name together at the 1848-05-30 US treaty ratification exchange; the English display name Los Angeles does not change. Municipal incorporation in 1850 is not a map-name transition.",
     "New York city vs state/metro; Buenos Aires city vs province; Mexico City city vs Federal District are distinct record scopes.",
-    "Los Angeles: 1781 Pueblo's longer title is retained only as a historically linked precursor; not a preferred map-name alias. Spanish Los Ángeles / 로스앙헬레스 are the historical preferred native/ko map names until their respective 1850-04-04 and 1848-05-30 cutoffs. English Los Angeles stays unchanged.",
+    "Los Angeles: Los Ángeles (Spanish native) / 로스앙헬레스 (Korean Spanish-pronunciation label) are preferred for the 1801–1848-05-29 map period, then Los Angeles (English native) / 로스앤젤레스 are preferred from 1848-05-30. Spanish Los Ángeles continued in actual use after US cession but is no longer the selected map native name. Long Pueblo title stays only as a historical precursor.",
     "Buenos Ayres is documented in 1810 but does not imply a single exact official spelling switch date.",
     "São Paulo de Piratininga refers to early colonial settlement; name since 1801 is São Paulo, not automatic earlier-name timeline.",
     "All UI-facing notes and details are max 28 Unicode codepoints; provenance preserved in researchDetail.",
@@ -143,19 +143,12 @@
         {
           "fromDate": "1848-05-30",
           "nameKo": "로스앤젤레스",
-          "kind": "koreanEditorialTranscription",
+          "kind": "territorialCessionEditorialLabelTransition",
           "sourceUrl": "https://www.archives.gov/milestone-documents/treaty-of-guadalupe-hidalgo",
-          "note": "미국 정식 할양으로 한국어 표기 전환",
-          "researchNote": "과달루페이달고 조약 1848-02-02 체결이 아니라 1848-05-30 비준서 교환을 캘리포니아의 법적 미국 편입 기준일로 채택. 한국어 지도 대표명을 에스파냐어식 로스앙헬레스에서 영어식 로스앤젤레스로 바꾸되 실제 주민들의 동시 발음 변화나 도시의 법률상 개칭을 뜻하지 않는다. 이때 영어 표기 Los Angeles와 에스파냐어 원어 대표명 Los Ángeles는 유지한다."
-        },
-        {
-          "fromDate": "1850-04-04",
+          "note": "미국 정식 할양으로 한국어·원어 표기 전환",
+          "researchNote": "과달루페이달고 조약 1848-02-02 체결이 아니라 1848-05-30 비준서 교환을 미국 정식 할양 기준일로 채택. 이 시점부터 지도 대표 한국어명을 로스앙헬레스→로스앤젤레스, 대표 원어명을 에스파냐어 Los Ángeles→영어 Los Angeles로 함께 전환한다. 영어 이름 Los Angeles는 이전에도 대응 영어명으로 기재됐으므로 변화가 없다. 이는 지도 대표언어 선택이며 미국령 편입 후에도 주민·에스파냐어 문헌에서 Los Ángeles가 계속 사용됐고 법적 일괄 개칭·사용 금지를 뜻하지 않는다.",
           "nameNative": "Los Angeles",
-          "nativeLanguage": "en",
-          "kind": "governingAuthorityEditorialLabelTransition",
-          "sourceUrl": "https://streets.lacity.gov/about-us/history",
-          "note": "미국식 시 법인화에 따른 원어 전환",
-          "researchNote": "로스앤젤레스가 미국식 자치시로 법인화된 날짜를 지도 원어 대표명의 영어 선택 기준으로 삼았다. 실제 에스파냐어 Los Ángeles는 그 뒤에도 사용되었고, 도시의 공식 개칭이나 주민 사용 언어의 일괄 변화로 해석하지 않는다. 한국어 로스앤젤레스와 영어 Los Angeles는 그대로 유지한다."
+          "nativeLanguage": "en"
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
@@ -173,7 +166,7 @@
             "type": "municipalIncorporation",
             "detail": "로스앤젤레스시 법인화",
             "sourceUrl": "https://streets.lacity.gov/about-us/history",
-            "researchDetail": "로스앤젤레스시 공식 기관은 1850-04-04 법인화를 확인한다. 미국 정식 할양일(1848-05-30)과 별개의 사건이며 한국어명의 전환점으로 오인하지 않는다."
+            "researchDetail": "1850-04-04 로스앤젤레스시 법인화. 미국 할양·영어 원어명 선정 기준은 이미 1848-05-30이므로 법인화는 도시 행정 연혁만 설명하며 새 명칭 전환점이 아니다."
           }
         ],
         "linkedPlaces": [
@@ -188,7 +181,8 @@
         "notes": [
           {
             "detail": "역사적 푸에블로·현대 시역 구분",
-            "sourceUrl": "https://lacity.gov/government/history-los-angeles"
+            "sourceUrl": "https://lacity.gov/government/history-los-angeles",
+            "researchDetail": "할양 전 에스파냐·멕시코의 Los Ángeles와 그 이후 영어 대표명 Los Angeles를 구분한다. 미국령이 된 뒤에도 에스파냐어 사용은 계속됐으며, 1848년 원어 선택 전환은 실제 사용 중단을 뜻하지 않는다. 옛 푸에블로와 현대 시역은 별도 범위다."
           }
         ]
       },
