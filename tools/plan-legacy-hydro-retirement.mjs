@@ -157,7 +157,10 @@ async function gh(repo,path,token){
     headers:{Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',
       ...(token?{Authorization:'Bearer '+token}:{})},
     signal:AbortSignal.timeout(90000)});
-  check(res.ok,'GitHub API '+res.status+' '+repo+'/'+path+': '+(await res.text()).slice(0,350));
+  if(!res.ok){
+    const detail=await res.text();
+    throw Error('GitHub API '+res.status+' '+repo+'/'+path+': '+detail.slice(0,350));
+  }
   return res.json();
 }
 async function branches(repo,token){
